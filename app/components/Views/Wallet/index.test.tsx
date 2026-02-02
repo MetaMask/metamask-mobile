@@ -91,11 +91,11 @@ jest.mock('../../../component-library/components-temp/Tabs', () => {
   };
 });
 
-import Wallet from './';
+import Wallet, { useHomeDeepLinkEffects } from './';
 import renderWithProvider, {
   renderScreen,
 } from '../../../util/test/renderWithProvider';
-import { screen as RNScreen } from '@testing-library/react-native';
+import { screen as RNScreen, renderHook } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
@@ -107,7 +107,6 @@ import { initialState as cardInitialState } from '../../../core/redux/slices/car
 import {
   NavigationProp,
   ParamListBase,
-  RouteProp,
   useFocusEffect,
   useRoute,
 } from '@react-navigation/native';
@@ -115,7 +114,7 @@ import {
   IconColor,
   IconName,
 } from '../../../component-library/components/Icons/Icon';
-import { NAVIGATION_PARAMS_DELAY_MS } from '../../../constants/navigation/delays';
+import { PERFORMANCE_CONFIG } from '../../UI/Perps/constants/perpsConfig';
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
 
@@ -805,33 +804,6 @@ describe('Wallet', () => {
       const wrapper = render(Wallet);
       expect(wrapper.toJSON()).toMatchSnapshot();
     });
-  });
-
-  it('opens the network selector when deeplink param is set', () => {
-    jest.useFakeTimers();
-    jest.mocked(useRoute).mockReturnValueOnce({
-      params: { openNetworkSelector: true },
-    } as RouteProp<ParamListBase, string>);
-
-    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
-    render(Wallet);
-
-    const focusEffects = jest
-      .mocked(useFocusEffect)
-      .mock.calls.map(([callback]) => callback);
-
-    const cleanups = focusEffects
-      .map((callback) => callback())
-      .filter(Boolean) as (() => void)[];
-
-    jest.advanceTimersByTime(NAVIGATION_PARAMS_DELAY_MS);
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.NETWORK_SELECTOR,
-    });
-
-    cleanups.forEach((cleanup) => cleanup());
-    jest.useRealTimers();
   });
 
   // Error Handling Tests
@@ -1711,5 +1683,112 @@ describe('Wallet', () => {
         screen: 'PerpsGTMModal',
       });
     });
+  });
+});
+
+describe('useHomeDeepLinkEffects', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+  });
+
+  const arrangeMocks = () => {
+    const mockSetParams = jest.fn();
+    const mockOnPerpsTabsSelected = jest.fn();
+    const mockOnNetworkSelectorSelected = jest.fn();
+    const mockUseRoute = jest
+      .mocked(useRoute)
+      .mockReturnValue({ key: 'route', name: 'route', params: {} });
+    return {
+      mockNavigate,
+      mockSetParams,
+      navigation: {
+        setParams: mockSetParams,
+      } as unknown as NavigationProp<ParamListBase>,
+      mockUseRoute,
+      mockOnPerpsTabsSelected,
+      mockOnNetworkSelectorSelected,
+    };
+  };
+
+  interface DeepLinkTestCase {
+    testName: string;
+    params: Record<string, unknown>;
+    isPerpsEnabled: boolean;
+    assertCase: (mocks: ReturnType<typeof arrangeMocks>) => void;
+  }
+
+  const testCases: DeepLinkTestCase[] = [
+    {
+      testName: 'navigates to perps tab when shouldSelectPerpsTab is true',
+      params: { shouldSelectPerpsTab: true },
+      isPerpsEnabled: true,
+      assertCase: (mocks) => {
+        expect(mocks.mockOnPerpsTabsSelected).toHaveBeenCalled();
+        expect(mocks.mockSetParams).toHaveBeenCalledWith({});
+      },
+    },
+    {
+      testName: 'navigates to perps tab when initialTab is perps',
+      params: { initialTab: 'perps' },
+      isPerpsEnabled: true,
+      assertCase: (mocks) => {
+        expect(mocks.mockOnPerpsTabsSelected).toHaveBeenCalled();
+        expect(mocks.mockSetParams).toHaveBeenCalledWith({});
+      },
+    },
+    {
+      testName:
+        'navigates to network selector when openNetworkSelector is true',
+      params: { openNetworkSelector: true },
+      isPerpsEnabled: false,
+      assertCase: (mocks) => {
+        expect(mocks.mockOnNetworkSelectorSelected).toHaveBeenCalled();
+        expect(mocks.mockSetParams).toHaveBeenCalledWith({});
+      },
+    },
+    {
+      testName:
+        'performs no deeplink action when no deeplink params are provided',
+      params: {}, // no deeplink params
+      isPerpsEnabled: true,
+      assertCase: (mocks) => {
+        expect(mocks.mockOnPerpsTabsSelected).not.toHaveBeenCalled();
+        expect(mocks.mockOnNetworkSelectorSelected).not.toHaveBeenCalled();
+        expect(mocks.mockSetParams).not.toHaveBeenCalled();
+      },
+    },
+  ];
+
+  it.each(testCases)('$testName', ({ params, isPerpsEnabled, assertCase }) => {
+    const mocks = arrangeMocks();
+
+    // Setup the mocked useRoute to return the provided params.
+    mocks.mockUseRoute.mockReturnValue({
+      key: 'route',
+      name: 'route',
+      params,
+    });
+    const mockUseFocusEffect = jest.mocked(useFocusEffect);
+
+    renderHook(() =>
+      useHomeDeepLinkEffects({
+        isPerpsEnabled,
+        onPerpsTabSelected: mocks.mockOnPerpsTabsSelected,
+        onNetworkSelectorSelected: mocks.mockOnNetworkSelectorSelected,
+        navigation: mocks.navigation,
+      }),
+    );
+
+    const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+    focusCallback();
+
+    jest.advanceTimersByTime(PERFORMANCE_CONFIG.NavigationParamsDelayMs);
+    assertCase(mocks);
   });
 });

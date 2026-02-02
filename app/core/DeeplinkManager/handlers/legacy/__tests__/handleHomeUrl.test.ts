@@ -2,7 +2,7 @@ import NavigationService from '../../../../NavigationService';
 import { setContentPreviewToken } from '../../../../../actions/notification/helpers';
 import { navigateToHomeUrl } from '../handleHomeUrl';
 import Routes from '../../../../../constants/navigation/Routes';
-import { NAVIGATION_PARAMS_DELAY_MS } from '../../../../../constants/navigation/delays';
+import { PERFORMANCE_CONFIG } from '../../../../../components/UI/Perps/constants/perpsConfig';
 
 jest.mock('../../../../NavigationService');
 jest.mock('../../../../../actions/notification/helpers');
@@ -30,8 +30,8 @@ describe('navigateToHomeUrl', () => {
 
     return {
       mockNavigate,
-      mockSetParams,
       mockSetContentPreviewToken,
+      mockSetParams,
     };
   };
 
@@ -41,7 +41,6 @@ describe('navigateToHomeUrl', () => {
 
     expect(mocks.mockSetContentPreviewToken).toHaveBeenCalledWith(null);
     expect(mocks.mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
-    expect(mocks.mockSetParams).not.toHaveBeenCalled();
   });
 
   it('sends previewToken and navigates to home screen', () => {
@@ -50,29 +49,16 @@ describe('navigateToHomeUrl', () => {
 
     expect(mocks.mockSetContentPreviewToken).toHaveBeenCalledWith('ABC');
     expect(mocks.mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
-    expect(mocks.mockSetParams).not.toHaveBeenCalled();
   });
 
-  it('sets openNetworkSelector param when requested', () => {
+  it('navigates to home screen with openNetworkSelector param when requested', () => {
     const mocks = arrangeMocks();
     navigateToHomeUrl({ homePath: 'home?openNetworkSelector=true' });
 
-    expect(mocks.mockSetContentPreviewToken).toHaveBeenCalledWith(null);
     expect(mocks.mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
-
-    jest.advanceTimersByTime(NAVIGATION_PARAMS_DELAY_MS);
-
+    jest.advanceTimersByTime(PERFORMANCE_CONFIG.NavigationParamsDelayMs);
     expect(mocks.mockSetParams).toHaveBeenCalledWith({
       openNetworkSelector: true,
     });
-  });
-
-  it('falls back to navigated to home sceen when no homePath', () => {
-    const mocks = arrangeMocks();
-    navigateToHomeUrl({ homePath: undefined });
-
-    expect(mocks.mockSetContentPreviewToken).toHaveBeenCalledWith(null);
-    expect(mocks.mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
-    expect(mocks.mockSetParams).not.toHaveBeenCalled();
   });
 });

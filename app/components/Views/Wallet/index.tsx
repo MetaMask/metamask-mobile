@@ -109,7 +109,7 @@ import { useTheme } from '../../../util/theme';
 import { useAccountGroupName } from '../../hooks/multichainAccounts/useAccountGroupName';
 import { useAccountName } from '../../hooks/useAccountName';
 import usePrevious from '../../hooks/usePrevious';
-import { NAVIGATION_PARAMS_DELAY_MS } from '../../../constants/navigation/delays';
+import { PERFORMANCE_CONFIG } from '../../UI/Perps/constants/perpsConfig';
 import ErrorBoundary from '../ErrorBoundary';
 
 import { Token } from '@metamask/assets-controllers';
@@ -229,15 +229,74 @@ interface WalletTokensTabViewProps {
   }) => void;
   defiEnabled: boolean;
   collectiblesEnabled: boolean;
-  navigationParams?: {
-    shouldSelectPerpsTab?: boolean;
-    initialTab?: string;
-  };
 }
 
 interface WalletRouteParams {
   openNetworkSelector?: boolean;
+  shouldSelectPerpsTab?: boolean;
+  initialTab?: string;
 }
+
+export const useHomeDeepLinkEffects = (opts: {
+  isPerpsEnabled: boolean;
+  onPerpsTabSelected: () => void;
+  onNetworkSelectorSelected: () => void;
+  navigation: NavigationProp<ParamListBase>;
+}) => {
+  const {
+    isPerpsEnabled,
+    onPerpsTabSelected,
+    onNetworkSelectorSelected,
+    navigation,
+  } = opts;
+
+  const route = useRoute<RouteProp<{ params: WalletRouteParams }, 'params'>>();
+
+  // Handle tab selection from navigation params (e.g., from deeplinks)
+  // This uses useFocusEffect to ensure the tab selection happens when the screen receives focus
+  useFocusEffect(
+    useCallback(() => {
+      const params = route.params;
+
+      const clearParams = () => {
+        if (navigation?.setParams) {
+          navigation.setParams({});
+        }
+      };
+
+      const handleDelayedDeeplinkAction = (action: () => void) => {
+        const timer = setTimeout(() => {
+          // Call action
+          action();
+
+          // Clear all deeplink params
+          clearParams();
+          return;
+        }, PERFORMANCE_CONFIG.NavigationParamsDelayMs);
+
+        return () => clearTimeout(timer);
+      };
+
+      // Perps Tab Selection Deeplink
+      const shouldSelectPerpsTab = params?.shouldSelectPerpsTab;
+      const initialTab = params?.initialTab;
+      if ((shouldSelectPerpsTab || initialTab === 'perps') && isPerpsEnabled) {
+        return handleDelayedDeeplinkAction(() => onPerpsTabSelected());
+      }
+
+      // Network Picker Deeplink
+      if (params?.openNetworkSelector) {
+        return handleDelayedDeeplinkAction(() => onNetworkSelectorSelected());
+      }
+    }, [
+      route.params,
+      isPerpsEnabled,
+      navigation,
+      onPerpsTabSelected,
+      onNetworkSelectorSelected,
+    ]),
+  );
+};
 
 const WalletTokensTabView = forwardRef<
   WalletTokensTabViewHandle,
@@ -263,14 +322,8 @@ const WalletTokensTabView = forwardRef<
     [isPredictFlagEnabled],
   );
 
-  const {
-    navigation,
-    onChangeTab,
-    defiEnabled,
-    collectiblesEnabled,
-    navigationParams,
-  } = props;
-  const route = useRoute<RouteProp<ParamListBase, string>>();
+  const { navigation, onChangeTab, defiEnabled, collectiblesEnabled } = props;
+
   const tabsListRef = useRef<TabsListRef>(null);
   const { enabledNetworks: allEnabledNetworks } = useCurrentNetworkInfo();
 
@@ -422,40 +475,19 @@ const WalletTokensTabView = forwardRef<
     }
   }, [currentTabIndex, perpsTabIndex, isPerpsTabVisible, isPerpsEnabled]);
 
-  // Handle tab selection from navigation params (e.g., from deeplinks)
-  // This uses useFocusEffect to ensure the tab selection happens when the screen receives focus
-  useFocusEffect(
-    useCallback(() => {
-      // Check both navigationParams prop and route params for tab selection
-      // Type assertion needed as route params are not strongly typed in navigation
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const params = navigationParams || (route.params as any);
-      const shouldSelectPerpsTab = params?.shouldSelectPerpsTab;
-      const initialTab = params?.initialTab;
-
-      if ((shouldSelectPerpsTab || initialTab === 'perps') && isPerpsEnabled) {
-        // Calculate the index of the Perps tab
-        // Tokens is always at index 0, Perps is at index 1 when enabled
-        const targetPerpsTabIndex = 1;
-
-        // Small delay ensures the TabsList is fully rendered before selection
-        const timer = setTimeout(() => {
-          tabsListRef.current?.goToTabIndex(targetPerpsTabIndex);
-
-          // Clear the params to prevent re-selection on subsequent focuses
-          // This is important for navigation state management
-          if (navigation?.setParams) {
-            navigation.setParams({
-              shouldSelectPerpsTab: false,
-              initialTab: undefined,
-            });
-          }
-        }, NAVIGATION_PARAMS_DELAY_MS);
-
-        return () => clearTimeout(timer);
-      }
-    }, [route.params, isPerpsEnabled, navigationParams, navigation]),
-  );
+  // Handle deep link effects
+  useHomeDeepLinkEffects({
+    navigation,
+    isPerpsEnabled,
+    onPerpsTabSelected: () => {
+      tabsListRef.current?.goToTabIndex(1);
+    },
+    onNetworkSelectorSelected: () => {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.NETWORK_SELECTOR,
+      });
+    },
+  });
 
   // Build tabs array dynamically based on enabled features
   const tabsToRender = useMemo(() => {
@@ -570,7 +602,6 @@ const Wallet = ({
   storePrivacyPolicyClickedOrClosed,
 }: WalletProps) => {
   const { navigate } = useNavigation();
-  const route = useRoute<RouteProp<ParamListBase, string>>();
   const walletRef = useRef(null);
   const walletTokensTabViewRef = useRef<WalletTokensTabViewHandle>(null);
   const isMountedRef = useRef(true);
@@ -1047,27 +1078,6 @@ const Wallet = ({
     );
   }, [navigate, chainId, trackEvent, createEventBuilder]);
 
-  useFocusEffect(
-    useCallback(() => {
-      const shouldOpenNetworkSelector = (
-        route.params as WalletRouteParams | undefined
-      )?.openNetworkSelector;
-
-      if (!shouldOpenNetworkSelector) {
-        return;
-      }
-
-      const timer = setTimeout(() => {
-        onTitlePress();
-        if (navigation?.setParams) {
-          navigation.setParams({ openNetworkSelector: false });
-        }
-      }, NAVIGATION_PARAMS_DELAY_MS);
-
-      return () => clearTimeout(timer);
-    }, [navigation, onTitlePress, route.params]),
-  );
-
   /**
    * Handle network filter called when app is mounted and tokenNetworkFilter is empty
    * TODO: [SOLANA] Check if this logic supports non evm networks before shipping Solana
@@ -1400,7 +1410,6 @@ const Wallet = ({
           onChangeTab={onChangeTab}
           defiEnabled={defiEnabled}
           collectiblesEnabled={collectiblesEnabled}
-          navigationParams={route.params}
         />
       </>
     </>
