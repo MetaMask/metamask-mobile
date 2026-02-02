@@ -35,7 +35,7 @@ const createStyles = (colors) =>
 /**
  * @deprecated The `<WebsiteIcon>` component has been deprecated in favor of `<AvatarFavicon>` from `@metamask/design-system-react-native`.
  *
- * @see {@link https://github.com/MetaMask/design-system/tree/main/packages/design-system-react-native/src/components/Avatars/Avatar/variants/AvatarFavicon | AvatarFavicon component}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/tree/main/packages/design-system-react-native/src/components/Avatars/Avatar/variants/AvatarFavicon | AvatarFavicon component}
  *
  * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
  */
