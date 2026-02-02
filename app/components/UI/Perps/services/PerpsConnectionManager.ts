@@ -16,12 +16,15 @@ import {
 import Logger from '../../../../util/Logger';
 import { PERPS_CONSTANTS, PERFORMANCE_CONFIG } from '../constants/perpsConfig';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
-import { selectPerpsNetwork } from '../selectors/perpsController';
+import {
+  selectPerpsNetwork,
+  selectPerpsProvider,
+} from '../selectors/perpsController';
 import { selectHip3ConfigVersion } from '../selectors/featureFlags';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import type { ReconnectOptions } from '../types/perps-types';
 import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
-import { ensureError } from '../utils/perpsErrorHandler';
+import { ensureError } from '../../../../util/errorUtils';
 import { wait } from '../utils/wait';
 
 /**
@@ -44,6 +47,7 @@ class PerpsConnectionManagerClass {
   private unsubscribeFromStore: (() => void) | null = null;
   private previousAddress: string | undefined;
   private previousPerpsNetwork: 'mainnet' | 'testnet' | undefined;
+  private previousProvider: string | undefined;
   private previousHip3Version: number = 0;
   private gracePeriodTimer: number | null = null;
   private isInGracePeriod = false;
@@ -70,6 +74,7 @@ class PerpsConnectionManagerClass {
       selectSelectedInternalAccountByScope(state)('eip155:1');
     this.previousAddress = selectedEvmAccount?.address;
     this.previousPerpsNetwork = selectPerpsNetwork(state);
+    this.previousProvider = selectPerpsProvider(state);
     this.previousHip3Version = selectHip3ConfigVersion(state);
 
     // Subscribe to Redux store changes
@@ -79,6 +84,7 @@ class PerpsConnectionManagerClass {
         selectSelectedInternalAccountByScope(currentState)('eip155:1');
       const currentAddress = currentEvmAccount?.address;
       const currentPerpsNetwork = selectPerpsNetwork(currentState);
+      const currentProvider = selectPerpsProvider(currentState);
       const currentHip3Version = selectHip3ConfigVersion(currentState);
 
       const hasAccountChanged =
@@ -87,25 +93,36 @@ class PerpsConnectionManagerClass {
       const hasPerpsNetworkChanged =
         this.previousPerpsNetwork !== undefined &&
         this.previousPerpsNetwork !== currentPerpsNetwork;
+      const hasProviderChanged =
+        this.previousProvider !== undefined &&
+        this.previousProvider !== currentProvider;
       const hasHip3Changed = this.previousHip3Version !== currentHip3Version;
 
-      // If account, network, or HIP-3 config changed and we're connected, trigger reconnection
+      // If account, network, provider, or HIP-3 config changed and we're connected, trigger reconnection
       if (
-        (hasAccountChanged || hasPerpsNetworkChanged || hasHip3Changed) &&
+        (hasAccountChanged ||
+          hasPerpsNetworkChanged ||
+          hasProviderChanged ||
+          hasHip3Changed) &&
         this.isConnected
       ) {
         DevLogger.log(
           hasHip3Changed
             ? '[DEX:WHITELIST] PerpsConnectionManager: HIP-3 config version CHANGED - triggering reconnection'
-            : 'PerpsConnectionManager: State change detected',
+            : hasProviderChanged
+              ? 'PerpsConnectionManager: Provider CHANGED - triggering reconnection'
+              : 'PerpsConnectionManager: State change detected',
           {
             accountChanged: hasAccountChanged,
             networkChanged: hasPerpsNetworkChanged,
+            providerChanged: hasProviderChanged,
             hip3Changed: hasHip3Changed,
             previousAddress: this.previousAddress,
             currentAddress,
             previousNetwork: this.previousPerpsNetwork,
             currentNetwork: currentPerpsNetwork,
+            previousProvider: this.previousProvider,
+            currentProvider,
             previousHip3Version: this.previousHip3Version,
             currentHip3Version,
           },
@@ -141,6 +158,7 @@ class PerpsConnectionManagerClass {
       // Update tracked values
       this.previousAddress = currentAddress;
       this.previousPerpsNetwork = currentPerpsNetwork;
+      this.previousProvider = currentProvider;
       this.previousHip3Version = currentHip3Version;
     });
 
@@ -156,6 +174,7 @@ class PerpsConnectionManagerClass {
       this.unsubscribeFromStore = null;
       this.previousAddress = undefined;
       this.previousPerpsNetwork = undefined;
+      this.previousProvider = undefined;
       this.previousHip3Version = 0;
       DevLogger.log('PerpsConnectionManager: State monitoring cleaned up');
     }
@@ -541,36 +560,31 @@ class PerpsConnectionManagerClass {
         this.clearConnectionTimeout();
 
         // Capture exception with connection context
-        captureException(
-          error instanceof Error ? error : new Error(String(error)),
-          {
-            tags: {
-              component: 'PerpsConnectionManager',
-              action: 'connection_connection',
-              operation: 'connection_management',
+        captureException(ensureError(error, 'PerpsConnectionManager.connect'), {
+          tags: {
+            component: 'PerpsConnectionManager',
+            action: 'connection_connection',
+            operation: 'connection_management',
+            provider: 'hyperliquid',
+          },
+          extra: {
+            connectionContext: {
               provider: 'hyperliquid',
-            },
-            extra: {
-              connectionContext: {
-                provider: 'hyperliquid',
-                timestamp: new Date().toISOString(),
-                isTestnet:
-                  Engine.context.PerpsController?.getCurrentNetwork?.() ===
-                  'testnet',
-              },
+              timestamp: new Date().toISOString(),
+              isTestnet:
+                Engine.context.PerpsController?.getCurrentNetwork?.() ===
+                'testnet',
             },
           },
-        );
+        });
 
         traceData = {
           success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: ensureError(error, 'PerpsConnectionManager.connect').message,
         };
 
         // Set error state for UI
-        this.setError(
-          error instanceof Error ? error : new Error(String(error)),
-        );
+        this.setError(ensureError(error, 'PerpsConnectionManager.connect'));
         DevLogger.log('PerpsConnectionManager: Connection failed', error);
         throw error;
       } finally {
@@ -792,7 +806,9 @@ class PerpsConnectionManagerClass {
       };
 
       // Set error state for UI - this is critical for reliability
-      this.setError(error instanceof Error ? error : new Error(String(error)));
+      this.setError(
+        ensureError(error, 'PerpsConnectionManager.reconnectWithNewContext'),
+      );
       DevLogger.log(
         'PerpsConnectionManager: Reconnection with new context failed',
         error,

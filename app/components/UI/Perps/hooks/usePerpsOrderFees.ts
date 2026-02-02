@@ -70,8 +70,8 @@ interface UsePerpsOrderFeesParams {
   orderType: 'market' | 'limit';
   /** Order amount in USD */
   amount: string;
-  /** Coin symbol for the trade (e.g., 'BTC', 'ETH') */
-  coin?: string;
+  /** Symbol for the trade (e.g., 'BTC', 'ETH') */
+  symbol?: string;
   /** Whether this is opening or closing a position */
   isClosing?: boolean;
   /** User's limit price */
@@ -104,7 +104,7 @@ export function clearRewardsCaches(): void {
 export function usePerpsOrderFees({
   orderType,
   amount,
-  coin = 'ETH',
+  symbol = 'ETH',
   isClosing = false,
   limitPrice,
   direction,
@@ -128,7 +128,7 @@ export function usePerpsOrderFees({
       direction,
       bestAsk: currentAskPrice,
       bestBid: currentBidPrice,
-      coin,
+      symbol,
     });
   }, [
     orderType,
@@ -136,7 +136,7 @@ export function usePerpsOrderFees({
     direction,
     currentAskPrice,
     currentBidPrice,
-    coin,
+    symbol,
   ]);
 
   // Clear stale cache on component mount to force fresh API call
@@ -256,14 +256,14 @@ export function usePerpsOrderFees({
             perpsContext: {
               type: isClose ? 'CLOSE_POSITION' : 'OPEN_POSITION',
               usdFeeValue: estimatedFeeUSD.toString(),
-              coin: tradeCoin,
+              coin: tradeCoin, // EstimatePerpsContextDto uses 'coin' field
             },
           },
         };
 
         DevLogger.log('Rewards: Points estimation request via controller', {
           estimatePointsDto,
-          coin: tradeCoin,
+          symbol: tradeCoin,
           size: amountNum,
           isClose,
         });
@@ -285,7 +285,7 @@ export function usePerpsOrderFees({
         DevLogger.log('Rewards: Points estimated via controller', {
           pointsEstimate: result.pointsEstimate,
           bonusBips: result.bonusBips,
-          coin: tradeCoin,
+          symbol: tradeCoin,
           size: amountNum,
           isClose,
           duration: `${pointsEstimationDuration.toFixed(0)}ms`,
@@ -295,7 +295,7 @@ export function usePerpsOrderFees({
       } catch (error) {
         DevLogger.log('Rewards: Error estimating points via controller', {
           error: error instanceof Error ? error.message : String(error),
-          coin: tradeCoin,
+          symbol: tradeCoin,
           amount: tradeAmount,
         });
         // Non-blocking - return null if fails
@@ -429,7 +429,7 @@ export function usePerpsOrderFees({
         const pointsData = await estimatePoints(
           userAddress,
           amount,
-          coin,
+          symbol,
           isClosing,
           actualFeeUSD,
         );
@@ -479,7 +479,7 @@ export function usePerpsOrderFees({
         return {};
       }
     },
-    [amount, coin, isClosing, estimatePoints],
+    [amount, symbol, isClosing, estimatePoints],
   );
 
   /**
@@ -540,7 +540,7 @@ export function usePerpsOrderFees({
           orderType,
           isMaker,
           amount,
-          coin,
+          symbol,
         });
 
         if (!isComponentMounted) return;
@@ -624,7 +624,7 @@ export function usePerpsOrderFees({
     orderType,
     isMaker,
     amount,
-    coin,
+    symbol,
     calculateFees,
     applyFeeDiscount,
     handlePointsEstimation,

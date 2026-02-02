@@ -14,7 +14,7 @@ import {
   enableApiCallLogs,
   testConfig,
 } from './app/util/test/utils.js';
-import { defaultMockPort } from './e2e/api-mocking/mock-config/mockUrlCollection.json';
+import { defaultMockPort } from './tests/api-mocking/mock-config/mockUrlCollection.json';
 
 import './shimPerf';
 

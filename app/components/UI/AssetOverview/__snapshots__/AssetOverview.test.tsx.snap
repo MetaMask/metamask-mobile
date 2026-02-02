@@ -131,6 +131,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
             "flex": 1,
           }
         }
+        testID="price-chart-area"
       >
         <View
           style={

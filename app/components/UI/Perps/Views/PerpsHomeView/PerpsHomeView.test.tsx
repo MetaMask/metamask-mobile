@@ -95,7 +95,9 @@ jest.mock('../../hooks/usePerpsHomeActions', () => ({
 }));
 
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
-  usePerpsEventTracking: jest.fn(),
+  usePerpsEventTracking: jest.fn(() => ({
+    track: jest.fn(),
+  })),
 }));
 
 jest.mock('../../hooks/stream', () => ({
@@ -561,7 +563,7 @@ describe('PerpsHomeView', () => {
       ...mockDefaultData,
       positions: [
         {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '0.5',
           entryPrice: '50000',
           positionValue: '25000',
@@ -603,7 +605,7 @@ describe('PerpsHomeView', () => {
       orders: [
         {
           orderId: '123',
-          coin: 'ETH',
+          symbol: 'ETH',
           side: 'buy' as const,
           size: '1.0',
           limitPrice: '3000',
@@ -667,7 +669,7 @@ describe('PerpsHomeView', () => {
       ...mockDefaultData,
       positions: [
         {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '0.5',
           entryPrice: '50000',
           positionValue: '25000',
@@ -712,7 +714,7 @@ describe('PerpsHomeView', () => {
       orders: [
         {
           orderId: '123',
-          coin: 'ETH',
+          symbol: 'ETH',
           side: 'buy' as const,
           size: '1.0',
           limitPrice: '3000',

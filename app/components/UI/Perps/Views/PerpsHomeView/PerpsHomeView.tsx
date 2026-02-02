@@ -45,7 +45,7 @@ import {
   FEEDBACK_CONFIG,
   PERPS_CONSTANTS,
 } from '../../constants/perpsConfig';
-import { ensureError } from '../../utils/perpsErrorHandler';
+import { ensureError } from '../../../../../util/errorUtils';
 import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsCard from '../../components/PerpsCard';
@@ -98,11 +98,17 @@ const PerpsHomeView = () => {
   const {
     handleAddFunds,
     handleWithdraw,
+    isEligible,
     isEligibilityModalVisible,
     closeEligibilityModal,
   } = usePerpsHomeActions({
     buttonLocation: PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
   });
+
+  // Separate geo-block modal state for close all / cancel all actions
+  const [isCloseAllGeoBlockVisible, setIsCloseAllGeoBlockVisible] =
+    useState(false);
+  const { track } = usePerpsEventTracking();
 
   // Section scroll tracking for analytics
   const { handleSectionLayout, handleScroll, resetTracking } =
@@ -340,10 +346,21 @@ const PerpsHomeView = () => {
     handleGiveFeedback,
   ]);
 
-  // Bottom sheet handlers - open sheets directly
+  // Bottom sheet handlers - open sheets directly with geo-restriction check
   const handleCloseAllPress = useCallback(() => {
+    // Geo-restriction check for close all positions
+    if (!isEligible) {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PerpsEventProperties.SOURCE]:
+          PerpsEventValues.SOURCE.CLOSE_ALL_POSITIONS_BUTTON,
+      });
+      setIsCloseAllGeoBlockVisible(true);
+      return;
+    }
     setShowCloseAllSheet(true);
-  }, []);
+  }, [isEligible, track]);
 
   const handleCancelAllPress = useCallback(() => {
     setShowCancelAllSheet(true);
@@ -431,7 +448,7 @@ const PerpsHomeView = () => {
           <View style={styles.positionsOrdersContainer}>
             {positions.map((position, index) => (
               <PerpsCard
-                key={`${position.coin}-${index}`}
+                key={`${position.symbol}-${index}`}
                 position={position}
                 source={PerpsEventValues.SOURCE.HOMESCREEN_TAB}
               />
@@ -572,6 +589,20 @@ const PerpsHomeView = () => {
               onClose={closeEligibilityModal}
               contentKey={'geo_block'}
               testID={'perps-home-geo-block-tooltip'}
+            />
+          </Modal>
+        </View>
+      )}
+
+      {/* Close All / Cancel All Geo-Block Modal */}
+      {isCloseAllGeoBlockVisible && (
+        <View>
+          <Modal visible transparent animationType="none" statusBarTranslucent>
+            <PerpsBottomSheetTooltip
+              isVisible
+              onClose={() => setIsCloseAllGeoBlockVisible(false)}
+              contentKey={'geo_block'}
+              testID={'perps-home-close-all-geo-block-tooltip'}
             />
           </Modal>
         </View>

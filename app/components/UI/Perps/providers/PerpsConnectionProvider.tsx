@@ -13,7 +13,7 @@ import { isE2E } from '../../../../util/test/utils';
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
 import type { ReconnectOptions } from '../types/perps-types';
 import Logger from '../../../../util/Logger';
-import { ensureError } from '../utils/perpsErrorHandler';
+import { ensureError } from '../../../../util/errorUtils';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 export interface PerpsConnectionContextValue {
@@ -100,7 +100,7 @@ export const PerpsConnectionProvider: React.FC<
     try {
       await PerpsConnectionManager.connect();
     } catch (err) {
-      Logger.error(err as Error, {
+      Logger.error(ensureError(err, 'PerpsConnectionProvider.connect'), {
         message: 'PerpsConnectionProvider: Error during connect',
         context: 'PerpsConnectionProvider.connect',
       });
@@ -128,7 +128,7 @@ export const PerpsConnectionProvider: React.FC<
     try {
       await PerpsConnectionManager.disconnect();
     } catch (err) {
-      Logger.error(err as Error, {
+      Logger.error(ensureError(err, 'PerpsConnectionProvider.disconnect'), {
         message: 'PerpsConnectionProvider: Error during disconnect',
         context: 'PerpsConnectionProvider.disconnect',
       });
@@ -166,10 +166,13 @@ export const PerpsConnectionProvider: React.FC<
         // Use the existing reconnectWithNewContext method from the singleton
         await PerpsConnectionManager.reconnectWithNewContext(options);
       } catch (err) {
-        Logger.error(err as Error, {
-          message: 'PerpsConnectionProvider: Error during reconnect',
-          context: 'PerpsConnectionProvider.reconnectWithNewContext',
-        });
+        Logger.error(
+          ensureError(err, 'PerpsConnectionProvider.reconnectWithNewContext'),
+          {
+            message: 'PerpsConnectionProvider: Error during reconnect',
+            context: 'PerpsConnectionProvider.reconnectWithNewContext',
+          },
+        );
       }
       // Always update state after reconnection attempt
       const state = PerpsConnectionManager.getConnectionState();
@@ -185,11 +188,14 @@ export const PerpsConnectionProvider: React.FC<
       try {
         await PerpsConnectionManager.connect();
       } catch (err) {
-        Logger.error(err as Error, {
-          message: 'PerpsConnectionProvider: Error in lifecycle onConnect',
-          context:
-            'PerpsConnectionProvider.usePerpsConnectionLifecycle.onConnect',
-        });
+        Logger.error(
+          ensureError(err, 'PerpsConnectionProvider.lifecycle.onConnect'),
+          {
+            message: 'PerpsConnectionProvider: Error in lifecycle onConnect',
+            context:
+              'PerpsConnectionProvider.usePerpsConnectionLifecycle.onConnect',
+          },
+        );
       }
       const state = PerpsConnectionManager.getConnectionState();
       setConnectionState(state);
@@ -198,11 +204,14 @@ export const PerpsConnectionProvider: React.FC<
       try {
         await PerpsConnectionManager.disconnect();
       } catch (err) {
-        Logger.error(err as Error, {
-          message: 'PerpsConnectionProvider: Error in lifecycle onDisconnect',
-          context:
-            'PerpsConnectionProvider.usePerpsConnectionLifecycle.onDisconnect',
-        });
+        Logger.error(
+          ensureError(err, 'PerpsConnectionProvider.lifecycle.onDisconnect'),
+          {
+            message: 'PerpsConnectionProvider: Error in lifecycle onDisconnect',
+            context:
+              'PerpsConnectionProvider.usePerpsConnectionLifecycle.onDisconnect',
+          },
+        );
       }
       const state = PerpsConnectionManager.getConnectionState();
       setConnectionState(state);

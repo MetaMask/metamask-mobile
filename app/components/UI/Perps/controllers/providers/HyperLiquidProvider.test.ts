@@ -1,7 +1,6 @@
 import type { CaipAssetId, Hex } from '@metamask/utils';
-import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import Logger from '../../../../../util/Logger';
 import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
+import { createMockInfrastructure } from '../../__mocks__/serviceMocks';
 import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscriptionService';
 import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
 import { REFERRAL_CONFIG } from '../../constants/hyperLiquidConfig';
@@ -13,13 +12,15 @@ import {
   validateOrderParams,
   validateWithdrawalParams,
 } from '../../utils/hyperLiquidValidation';
-import {
+import type {
   ClosePositionParams,
   DepositParams,
+  IPerpsPlatformDependencies,
   LiveDataConfig,
   OrderParams,
 } from '../types';
 import { HyperLiquidProvider } from './HyperLiquidProvider';
+import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 
 jest.mock('../../services/HyperLiquidClientService');
 jest.mock('../../services/HyperLiquidWalletService');
@@ -32,35 +33,6 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
   getStreamManagerInstance: mockGetStreamManagerInstance,
 }));
 
-// Mock Sentry
-jest.mock('@sentry/react-native', () => ({
-  setMeasurement: jest.fn(),
-  captureException: jest.fn(),
-}));
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string, params?: Record<string, unknown>) => {
-    // Support both singular and plural minute formatting keys used in code
-    if (
-      (key === 'time.minutes_format' || key === 'time.minutes_format_plural') &&
-      typeof params?.count !== 'undefined'
-    ) {
-      const count = params.count as number;
-      return count === 1 ? `${count} minute` : `${count} minutes`;
-    }
-    return key;
-  }),
-}));
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    AccountsController: {
-      getSelectedAccount: jest.fn().mockReturnValue({
-        address: '0x1234567890123456789012345678901234567890',
-        id: 'mock-account-id',
-        metadata: { name: 'Test Account' },
-      }),
-    },
-  },
-}));
 jest.mock('../../utils/hyperLiquidValidation', () => ({
   validateOrderParams: jest.fn(),
   validateWithdrawalParams: jest.fn(),
@@ -264,9 +236,10 @@ const createMockInfoClient = (overrides: Record<string, unknown> = {}) => ({
   ]),
   spotMeta: jest.fn().mockResolvedValue({
     tokens: [
-      { name: 'USDC', tokenId: '0xdef456' },
-      { name: 'USDT', tokenId: '0x789abc' },
+      { name: 'USDC', tokenId: '0xdef456', index: 0 },
+      { name: 'USDT', tokenId: '0x789abc', index: 1 },
     ],
+    universe: [],
   }),
   ...overrides,
 });
@@ -304,6 +277,27 @@ const createMockExchangeClient = (overrides: Record<string, unknown> = {}) => ({
   }),
   ...overrides,
 });
+
+// Create shared mock platform dependencies for provider tests
+const mockPlatformDependencies: IPerpsPlatformDependencies =
+  createMockInfrastructure();
+
+/**
+ * Helper to create HyperLiquidProvider with mock platform dependencies
+ */
+const createTestProvider = (
+  options: {
+    isTestnet?: boolean;
+    hip3Enabled?: boolean;
+    allowlistMarkets?: string[];
+    blocklistMarkets?: string[];
+    useDexAbstraction?: boolean;
+  } = {},
+): HyperLiquidProvider =>
+  new HyperLiquidProvider({
+    ...options,
+    platformDependencies: mockPlatformDependencies,
+  });
 
 describe('HyperLiquidProvider', () => {
   let provider: HyperLiquidProvider;
@@ -391,17 +385,17 @@ describe('HyperLiquidProvider', () => {
     mockValidateAssetSupport.mockReturnValue({ isValid: true });
     mockValidateBalance.mockReturnValue({ isValid: true });
 
-    provider = new HyperLiquidProvider();
+    provider = createTestProvider();
 
     // Mock the asset mapping that gets built during ensureReady
-    Object.defineProperty(provider, 'coinToAssetId', {
+    Object.defineProperty(provider, 'symbolToAssetId', {
       value: new Map([
         ['BTC', 0],
         ['ETH', 1],
       ]),
       writable: true,
     });
-    Object.defineProperty(provider, 'assetIdToCoin', {
+    Object.defineProperty(provider, 'assetIdToSymbol', {
       value: new Map([
         [0, 'BTC'],
         [1, 'ETH'],
@@ -417,7 +411,7 @@ describe('HyperLiquidProvider', () => {
     });
 
     it('should initialize with testnet configuration', () => {
-      const testnetProvider = new HyperLiquidProvider({ isTestnet: true });
+      const testnetProvider = createTestProvider({ isTestnet: true });
       expect(testnetProvider).toBeDefined();
       expect(testnetProvider.protocolId).toBe('hyperliquid');
     });
@@ -441,7 +435,7 @@ describe('HyperLiquidProvider', () => {
     });
 
     it('initializes with HIP-3 disabled when hip3Enabled is false', async () => {
-      const disabledProvider = new HyperLiquidProvider({
+      const disabledProvider = createTestProvider({
         hip3Enabled: false,
       });
 
@@ -505,7 +499,7 @@ describe('HyperLiquidProvider', () => {
         const route = routes[0];
         expect(route.constraints).toBeDefined();
         expect(route.constraints?.minAmount).toBe('1.01');
-        expect(route.constraints?.estimatedTime).toBe('5 minutes');
+        expect(route.constraints?.estimatedMinutes).toBe(5);
         expect(route.constraints?.fees).toEqual({
           fixed: 1,
           token: 'USDC',
@@ -522,7 +516,7 @@ describe('HyperLiquidProvider', () => {
         const route = routes[0];
         expect(route.constraints).toBeDefined();
         expect(route.constraints?.minAmount).toBe('1.01');
-        expect(route.constraints?.estimatedTime).toBe('5 minutes');
+        expect(route.constraints?.estimatedMinutes).toBe(5);
         expect(route.constraints?.fees).toEqual({
           fixed: 1,
           token: 'USDC',
@@ -541,7 +535,7 @@ describe('HyperLiquidProvider', () => {
   describe('Trading Operations', () => {
     it('should place a market order successfully', async () => {
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market',
@@ -567,7 +561,7 @@ describe('HyperLiquidProvider', () => {
 
     it('should place a limit order successfully', async () => {
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         price: '51000',
@@ -592,7 +586,7 @@ describe('HyperLiquidProvider', () => {
 
     it('should use Gtc TIF for limit orders (regression test)', async () => {
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         price: '51000',
@@ -617,7 +611,7 @@ describe('HyperLiquidProvider', () => {
 
     it('should track performance measurements when placing order', async () => {
       const orderParams: OrderParams = {
-        coin: 'ETH',
+        symbol: 'ETH',
         isBuy: true,
         size: '1.0',
         orderType: 'market',
@@ -630,7 +624,7 @@ describe('HyperLiquidProvider', () => {
 
     it('should calculate USD position size correctly for market orders', async () => {
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.5', // 0.5 BTC
         orderType: 'market',
@@ -642,7 +636,7 @@ describe('HyperLiquidProvider', () => {
 
     it('should calculate USD position size correctly for limit orders', async () => {
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.2', // 0.2 BTC
         orderType: 'limit',
@@ -662,7 +656,7 @@ describe('HyperLiquidProvider', () => {
       });
 
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market',
@@ -677,7 +671,7 @@ describe('HyperLiquidProvider', () => {
       const editParams = {
         orderId: '123',
         newOrder: {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           size: '0.2',
           price: '52000',
@@ -703,7 +697,7 @@ describe('HyperLiquidProvider', () => {
       const editParams = {
         orderId: '123',
         newOrder: {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'market',
@@ -736,7 +730,7 @@ describe('HyperLiquidProvider', () => {
       const editParams = {
         orderId: '123',
         newOrder: {
-          coin: 'UNKNOWN',
+          symbol: 'UNKNOWN',
           isBuy: true,
           size: '0.1',
           orderType: 'limit',
@@ -760,7 +754,7 @@ describe('HyperLiquidProvider', () => {
       const editParams = {
         orderId: '123',
         newOrder: {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'market',
@@ -784,7 +778,7 @@ describe('HyperLiquidProvider', () => {
       const editParams = {
         orderId: '123',
         newOrder: {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'market',
@@ -810,7 +804,7 @@ describe('HyperLiquidProvider', () => {
       const editParams = {
         orderId: '123',
         newOrder: {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'market',
@@ -836,7 +830,7 @@ describe('HyperLiquidProvider', () => {
       const editParams = {
         orderId: '123',
         newOrder: {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'market',
@@ -862,7 +856,7 @@ describe('HyperLiquidProvider', () => {
       const editParams = {
         orderId: '123',
         newOrder: {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'market',
@@ -888,7 +882,7 @@ describe('HyperLiquidProvider', () => {
       const editParams = {
         orderId: '123',
         newOrder: {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'market',
@@ -912,7 +906,7 @@ describe('HyperLiquidProvider', () => {
       const editParams = {
         orderId: '123',
         newOrder: {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'market',
@@ -926,24 +920,24 @@ describe('HyperLiquidProvider', () => {
     });
 
     it('should handle editOrder when asset ID is not found', async () => {
-      // Create a spy on the coinToAssetId.get method to return undefined for BTC
+      // Create a spy on the symbolToAssetId.get method to return undefined for BTC
       // eslint-disable-next-line dot-notation
-      const originalGet = provider['coinToAssetId'].get;
+      const originalGet = provider['symbolToAssetId'].get;
       const getSpy = jest
         // eslint-disable-next-line dot-notation
-        .spyOn(provider['coinToAssetId'], 'get')
-        .mockImplementation((coin) => {
-          if (coin === 'BTC') {
+        .spyOn(provider['symbolToAssetId'], 'get')
+        .mockImplementation((symbol: string) => {
+          if (symbol === 'BTC') {
             return undefined; // Simulate BTC not found in mapping
           }
           // eslint-disable-next-line dot-notation
-          return originalGet.call(provider['coinToAssetId'], coin);
+          return originalGet.call(provider['symbolToAssetId'], symbol);
         });
 
       const editParams = {
         orderId: '123',
         newOrder: {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'limit',
@@ -963,7 +957,7 @@ describe('HyperLiquidProvider', () => {
     it('should cancel an order successfully', async () => {
       const cancelParams = {
         orderId: '123',
-        coin: 'BTC',
+        symbol: 'BTC',
       };
 
       const result = await provider.cancelOrder(cancelParams);
@@ -973,7 +967,7 @@ describe('HyperLiquidProvider', () => {
 
     it('retries USD-based order when rejected for $10 minimum with adjusted amount', async () => {
       // Add PUMP to the asset mapping
-      Object.defineProperty(provider, 'coinToAssetId', {
+      Object.defineProperty(provider, 'symbolToAssetId', {
         value: new Map([
           ['BTC', 0],
           ['ETH', 1],
@@ -981,7 +975,7 @@ describe('HyperLiquidProvider', () => {
         ]),
         writable: true,
       });
-      Object.defineProperty(provider, 'assetIdToCoin', {
+      Object.defineProperty(provider, 'assetIdToSymbol', {
         value: new Map([
           [0, 'BTC'],
           [1, 'ETH'],
@@ -1006,7 +1000,7 @@ describe('HyperLiquidProvider', () => {
       );
 
       const orderParams: OrderParams = {
-        coin: 'PUMP',
+        symbol: 'PUMP',
         isBuy: true,
         size: '2553',
         orderType: 'market',
@@ -1037,7 +1031,7 @@ describe('HyperLiquidProvider', () => {
 
     it('retries size-based order with currentPrice when rejected for $10 minimum', async () => {
       // Add PUMP to the asset mapping
-      Object.defineProperty(provider, 'coinToAssetId', {
+      Object.defineProperty(provider, 'symbolToAssetId', {
         value: new Map([
           ['BTC', 0],
           ['ETH', 1],
@@ -1045,7 +1039,7 @@ describe('HyperLiquidProvider', () => {
         ]),
         writable: true,
       });
-      Object.defineProperty(provider, 'assetIdToCoin', {
+      Object.defineProperty(provider, 'assetIdToSymbol', {
         value: new Map([
           [0, 'BTC'],
           [1, 'ETH'],
@@ -1070,7 +1064,7 @@ describe('HyperLiquidProvider', () => {
       );
 
       const orderParams: OrderParams = {
-        coin: 'PUMP',
+        symbol: 'PUMP',
         isBuy: true,
         size: '2553',
         orderType: 'market',
@@ -1100,7 +1094,7 @@ describe('HyperLiquidProvider', () => {
 
     it('validates price requirement before attempting order placement', async () => {
       // Add PUMP to the asset mapping
-      Object.defineProperty(provider, 'coinToAssetId', {
+      Object.defineProperty(provider, 'symbolToAssetId', {
         value: new Map([
           ['BTC', 0],
           ['ETH', 1],
@@ -1108,7 +1102,7 @@ describe('HyperLiquidProvider', () => {
         ]),
         writable: true,
       });
-      Object.defineProperty(provider, 'assetIdToCoin', {
+      Object.defineProperty(provider, 'assetIdToSymbol', {
         value: new Map([
           [0, 'BTC'],
           [1, 'ETH'],
@@ -1133,7 +1127,7 @@ describe('HyperLiquidProvider', () => {
       );
 
       const orderParams: OrderParams = {
-        coin: 'PUMP',
+        symbol: 'PUMP',
         isBuy: true,
         size: '2553',
         orderType: 'market',
@@ -1151,7 +1145,7 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.placeOrder(orderParams);
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe('perps.order.validation.price_required');
+      expect(result.error).toBe(PERPS_ERROR_CODES.ORDER_PRICE_REQUIRED);
       expect(
         mockClientService.getExchangeClient().order,
       ).not.toHaveBeenCalled();
@@ -1159,7 +1153,7 @@ describe('HyperLiquidProvider', () => {
 
     it('closes a position successfully', async () => {
       const closeParams: ClosePositionParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         orderType: 'market',
       };
 
@@ -1171,12 +1165,8 @@ describe('HyperLiquidProvider', () => {
 
   describe('closePosition with TP/SL handling', () => {
     beforeEach(() => {
-      // Mock DevLogger to capture logs
-      jest.spyOn(DevLogger, 'log');
-    });
-
-    afterEach(() => {
-      jest.restoreAllMocks();
+      // Clear debugLogger mock to capture logs for this test suite
+      (mockPlatformDependencies.debugLogger.log as jest.Mock).mockClear();
     });
 
     it('should close position without TP/SL successfully', async () => {
@@ -1186,7 +1176,7 @@ describe('HyperLiquidProvider', () => {
         .mockReturnValue(createMockInfoClient());
 
       const closeParams: ClosePositionParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         orderType: 'market',
       };
 
@@ -1289,7 +1279,7 @@ describe('HyperLiquidProvider', () => {
       });
 
       const closeParams: ClosePositionParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         orderType: 'market',
       };
 
@@ -1377,7 +1367,7 @@ describe('HyperLiquidProvider', () => {
       });
 
       const closeParams: ClosePositionParams = {
-        coin: 'ETH',
+        symbol: 'ETH',
         size: '0.5', // Partial close
         orderType: 'limit',
         price: '3100',
@@ -1409,7 +1399,7 @@ describe('HyperLiquidProvider', () => {
         .mockReturnValue(createMockInfoClient());
 
       const closeParams: ClosePositionParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         orderType: 'market',
       };
 
@@ -1418,7 +1408,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.success).toBe(true);
 
       // Should not log TP/SL related messages
-      expect(DevLogger.log).not.toHaveBeenCalledWith(
+      expect(mockPlatformDependencies.debugLogger.log).not.toHaveBeenCalledWith(
         expect.stringContaining('Found open TP/SL orders'),
         expect.any(Object),
       );
@@ -1438,7 +1428,7 @@ describe('HyperLiquidProvider', () => {
       );
 
       const closeParams: ClosePositionParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         orderType: 'market',
       };
 
@@ -1541,7 +1531,7 @@ describe('HyperLiquidProvider', () => {
       });
 
       const closeParams: ClosePositionParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         orderType: 'market',
       };
 
@@ -1624,7 +1614,7 @@ describe('HyperLiquidProvider', () => {
       });
 
       const closeParams: ClosePositionParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         orderType: 'market',
       };
 
@@ -1660,8 +1650,8 @@ describe('HyperLiquidProvider', () => {
         );
 
         const params = [
-          { orderId: '123', coin: 'BTC' },
-          { orderId: '456', coin: 'ETH' },
+          { orderId: '123', symbol: 'BTC' },
+          { orderId: '456', symbol: 'ETH' },
         ];
 
         const result = await provider.cancelOrders(params);
@@ -1680,7 +1670,7 @@ describe('HyperLiquidProvider', () => {
           }),
         );
 
-        const params = [{ orderId: '123', coin: 'BTC' }];
+        const params = [{ orderId: '123', symbol: 'BTC' }];
 
         const result = await provider.cancelOrders(params);
 
@@ -1786,8 +1776,8 @@ describe('HyperLiquidProvider', () => {
         expect(result.successCount).toBe(2);
         expect(result.failureCount).toBe(0);
         expect(result.results).toHaveLength(2);
-        expect(result.results[0].coin).toBe('BTC');
-        expect(result.results[1].coin).toBe('ETH');
+        expect(result.results[0].symbol).toBe('BTC');
+        expect(result.results[1].symbol).toBe('ETH');
       });
 
       it('handles batch close errors', async () => {
@@ -1839,7 +1829,7 @@ describe('HyperLiquidProvider', () => {
   describe('updatePositionTPSL', () => {
     it('should update position TP/SL successfully', async () => {
       const updateParams = {
-        coin: 'ETH',
+        symbol: 'ETH',
         takeProfitPrice: '3500',
         stopLossPrice: '2500',
       };
@@ -1852,7 +1842,7 @@ describe('HyperLiquidProvider', () => {
 
     it('should handle update with only take profit price', async () => {
       const updateParams = {
-        coin: 'ETH',
+        symbol: 'ETH',
         takeProfitPrice: '3500',
       };
 
@@ -1863,7 +1853,7 @@ describe('HyperLiquidProvider', () => {
 
     it('should handle update with only stop loss price', async () => {
       const updateParams = {
-        coin: 'ETH',
+        symbol: 'ETH',
         stopLossPrice: '2500',
       };
 
@@ -2142,7 +2132,7 @@ describe('HyperLiquidProvider', () => {
       ).mockRejectedValueOnce(new Error('Meta fetch failed'));
 
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market',
@@ -2162,7 +2152,7 @@ describe('HyperLiquidProvider', () => {
       });
 
       const orderParams: OrderParams = {
-        coin: '',
+        symbol: '',
         isBuy: true,
         size: '0',
         orderType: 'market',
@@ -2221,7 +2211,7 @@ describe('HyperLiquidProvider', () => {
         });
 
         const orderParams: OrderParams = {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'market',
@@ -2251,7 +2241,7 @@ describe('HyperLiquidProvider', () => {
         });
 
         const orderParams: OrderParams = {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'market',
@@ -2281,7 +2271,7 @@ describe('HyperLiquidProvider', () => {
         });
 
         const orderParams: OrderParams = {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'market',
@@ -2306,7 +2296,7 @@ describe('HyperLiquidProvider', () => {
         });
 
         const orderParams: OrderParams = {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'market',
@@ -2331,7 +2321,7 @@ describe('HyperLiquidProvider', () => {
       });
 
       const orderParams: OrderParams = {
-        coin: 'UNKNOWN',
+        symbol: 'UNKNOWN',
         isBuy: true,
         size: '0.1',
         orderType: 'market',
@@ -2350,7 +2340,7 @@ describe('HyperLiquidProvider', () => {
       ).mockResolvedValueOnce({});
 
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market',
@@ -2359,7 +2349,7 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.placeOrder(orderParams);
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('perps.order.validation.price_required');
+      expect(result.error).toContain(PERPS_ERROR_CODES.ORDER_PRICE_REQUIRED);
     });
 
     it('should handle missing position in close operation', async () => {
@@ -2370,7 +2360,7 @@ describe('HyperLiquidProvider', () => {
       });
 
       const closeParams: ClosePositionParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         orderType: 'market',
       };
 
@@ -2631,7 +2621,7 @@ describe('HyperLiquidProvider', () => {
   describe('validateClosePosition', () => {
     it('should validate full close position successfully', async () => {
       const params: ClosePositionParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         orderType: 'market',
       };
 
@@ -2643,7 +2633,7 @@ describe('HyperLiquidProvider', () => {
 
     it('should validate partial close position successfully', async () => {
       const params: ClosePositionParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         size: '0.5',
         orderType: 'market',
         currentPrice: 45000,
@@ -2659,7 +2649,7 @@ describe('HyperLiquidProvider', () => {
       mockClientService.isTestnetMode.mockReturnValue(false);
 
       const params: ClosePositionParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         size: '0.0001', // $4.50 at $45,000 BTC, below $10 minimum
         orderType: 'market',
         currentPrice: 45000,
@@ -2668,14 +2658,14 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.validateClosePosition(params);
 
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe('perps.order.validation.minimum_amount');
+      expect(result.error).toBe(PERPS_ERROR_CODES.ORDER_SIZE_MIN);
     });
 
     it('should reject close position below minimum value on testnet', async () => {
       mockClientService.isTestnetMode.mockReturnValue(true);
 
       const params: ClosePositionParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         size: '0.00022', // $9.90 at $45,000 BTC, below $11 testnet minimum
         orderType: 'market',
         currentPrice: 45000,
@@ -2684,14 +2674,14 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.validateClosePosition(params);
 
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe('perps.order.validation.minimum_amount');
+      expect(result.error).toBe(PERPS_ERROR_CODES.ORDER_SIZE_MIN);
     });
 
     it('should accept close position at minimum value', async () => {
       mockClientService.isTestnetMode.mockReturnValue(false);
 
       const params: ClosePositionParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         size: '0.00023', // $10.35 at $45,000 BTC, above $10 minimum
         orderType: 'market',
         currentPrice: 45000,
@@ -2705,7 +2695,7 @@ describe('HyperLiquidProvider', () => {
 
     it('should validate limit close position with price', async () => {
       const params: ClosePositionParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         size: '1.0',
         orderType: 'limit',
         price: '44000',
@@ -2720,7 +2710,7 @@ describe('HyperLiquidProvider', () => {
 
     it('should reject limit close without price', async () => {
       const params: ClosePositionParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         size: '1.0',
         orderType: 'limit',
         currentPrice: 45000,
@@ -2729,12 +2719,12 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.validateClosePosition(params);
 
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe('perps.order.validation.limit_price_required');
+      expect(result.error).toBe(PERPS_ERROR_CODES.ORDER_LIMIT_PRICE_REQUIRED);
     });
 
     it('should handle validation when currentPrice is not provided', async () => {
       const params: ClosePositionParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         size: '0.5',
         orderType: 'market',
         // currentPrice not provided
@@ -2970,7 +2960,7 @@ describe('HyperLiquidProvider', () => {
     describe('ensureReady and buildAssetMapping', () => {
       it('should handle meta fetch failure in buildAssetMapping', async () => {
         // Create a fresh provider to test buildAssetMapping
-        const freshProvider = new HyperLiquidProvider();
+        const freshProvider = createTestProvider();
 
         // Mock failed meta fetch but keep other methods working
         mockClientService.getInfoClient = jest.fn().mockReturnValue(
@@ -2988,7 +2978,7 @@ describe('HyperLiquidProvider', () => {
 
         // Try to place an order which will trigger ensureReady -> buildAssetMapping
         const orderParams: OrderParams = {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'market',
@@ -3012,7 +3002,7 @@ describe('HyperLiquidProvider', () => {
         mockWalletService.getUserAddressWithDefault.mockResolvedValue('0x123');
 
         const updateParams = {
-          coin: 'BTC',
+          symbol: 'BTC',
           takeProfitPrice: '55000',
         };
 
@@ -3030,7 +3020,7 @@ describe('HyperLiquidProvider', () => {
         );
 
         const updateParams = {
-          coin: 'BTC',
+          symbol: 'BTC',
           takeProfitPrice: '55000',
         };
 
@@ -3053,7 +3043,7 @@ describe('HyperLiquidProvider', () => {
         );
 
         const orderParams: OrderParams = {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'market',
@@ -3069,7 +3059,7 @@ describe('HyperLiquidProvider', () => {
 
       it('should fail market order without current price or usdAmount', async () => {
         const orderParams: OrderParams = {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'market',
@@ -3079,12 +3069,12 @@ describe('HyperLiquidProvider', () => {
         const result = await provider.placeOrder(orderParams);
 
         expect(result.success).toBe(false);
-        expect(result.error).toContain('perps.order.validation.price_required');
+        expect(result.error).toContain(PERPS_ERROR_CODES.ORDER_PRICE_REQUIRED);
       });
 
       it('should handle order with custom slippage', async () => {
         const orderParams: OrderParams = {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'market',
@@ -3121,7 +3111,7 @@ describe('HyperLiquidProvider', () => {
         );
 
         const orderParams: OrderParams = {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'market',
@@ -3138,7 +3128,7 @@ describe('HyperLiquidProvider', () => {
 
       it('should handle order with clientOrderId', async () => {
         const orderParams: OrderParams = {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'market',
@@ -3153,7 +3143,7 @@ describe('HyperLiquidProvider', () => {
 
       it('should handle order with TP/SL and custom grouping', async () => {
         const orderParams: OrderParams = {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'limit',
@@ -3177,7 +3167,7 @@ describe('HyperLiquidProvider', () => {
         );
 
         // Create a fresh provider to test WebSocket errors
-        const freshProvider = new HyperLiquidProvider();
+        const freshProvider = createTestProvider();
 
         // Mock getPositions to simulate the WebSocket error being handled
         jest
@@ -3187,7 +3177,7 @@ describe('HyperLiquidProvider', () => {
           });
 
         const updateParams = {
-          coin: 'BTC',
+          symbol: 'BTC',
           takeProfitPrice: '55000',
         };
 
@@ -3204,7 +3194,7 @@ describe('HyperLiquidProvider', () => {
         );
 
         // Create a fresh provider to test non-WebSocket errors
-        const freshProvider = new HyperLiquidProvider();
+        const freshProvider = createTestProvider();
 
         // Mock getPositions to simulate a generic API error
         jest
@@ -3214,7 +3204,7 @@ describe('HyperLiquidProvider', () => {
           });
 
         const updateParams = {
-          coin: 'BTC',
+          symbol: 'BTC',
           takeProfitPrice: '55000',
         };
 
@@ -3226,7 +3216,7 @@ describe('HyperLiquidProvider', () => {
 
       it('should handle canceling existing TP/SL orders', async () => {
         // Set up asset mapping for BTC
-        Object.defineProperty(provider, 'coinToAssetId', {
+        Object.defineProperty(provider, 'symbolToAssetId', {
           value: new Map([['BTC', 0]]),
           writable: true,
         });
@@ -3271,7 +3261,7 @@ describe('HyperLiquidProvider', () => {
         mockWalletService.getUserAddressWithDefault.mockResolvedValue('0x123');
 
         const updateParams = {
-          coin: 'BTC',
+          symbol: 'BTC',
           takeProfitPrice: '55000',
         };
 
@@ -3353,7 +3343,7 @@ describe('HyperLiquidProvider', () => {
         );
 
         // Create fresh provider to avoid cached state from other tests
-        const freshProvider = new HyperLiquidProvider();
+        const freshProvider = createTestProvider();
 
         // Should gracefully handle missing price data with fallback
         const result = await freshProvider.getMarketDataWithPrices();
@@ -3388,7 +3378,7 @@ describe('HyperLiquidProvider', () => {
         );
 
         // Create fresh provider to avoid cached state from other tests
-        const freshProvider = new HyperLiquidProvider();
+        const freshProvider = createTestProvider();
 
         const result = await freshProvider.getMarketDataWithPrices();
 
@@ -3589,7 +3579,7 @@ describe('HyperLiquidProvider', () => {
         const editParams = {
           orderId: '999',
           newOrder: {
-            coin: 'BTC',
+            symbol: 'BTC',
             isBuy: true,
             size: '0.2',
             price: '52000',
@@ -3614,7 +3604,7 @@ describe('HyperLiquidProvider', () => {
 
         const cancelParams = {
           orderId: '123',
-          coin: 'BTC',
+          symbol: 'BTC',
         };
 
         const result = await provider.cancelOrder(cancelParams);
@@ -3639,7 +3629,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: false,
           amount: '100000',
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         expect(result.feeRate).toBe(0.00145); // 0.045% taker + 0.1% MetaMask fee
@@ -3651,7 +3641,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'limit',
           isMaker: false,
           amount: '100000',
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         expect(result.feeRate).toBe(0.00145); // 0.045% taker + 0.1% MetaMask fee
@@ -3663,7 +3653,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'limit',
           isMaker: true,
           amount: '100000',
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         expect(result.feeRate).toBe(0.00115); // 0.015% maker + 0.1% MetaMask fee
@@ -3675,7 +3665,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: false,
           amount: '0',
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         expect(result.feeRate).toBe(0.00145); // Includes 0.1% MetaMask fee
@@ -3686,7 +3676,7 @@ describe('HyperLiquidProvider', () => {
         const result = await provider.calculateFees({
           orderType: 'market',
           isMaker: false,
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         expect(result.feeRate).toBe(0.00145); // Includes 0.1% MetaMask fee
@@ -3714,7 +3704,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: false,
           amount: '100000',
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         // Should use dynamically calculated rate: 0.045% * (1 - 0.04 - 0.05) = 0.045% * 0.91 = 0.04095%
@@ -3729,7 +3719,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: false,
           amount: '100000',
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         expect(result2.feeRate).toBeCloseTo(0.0014095, 6); // Includes MetaMask fee
@@ -3754,7 +3744,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: false,
           amount: '100000',
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         // Should use base rates on failure
@@ -3767,7 +3757,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: false,
           amount: 'invalid',
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         expect(result.feeRate).toBe(0.00145); // Includes 0.1% MetaMask fee
@@ -3779,7 +3769,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: false,
           amount: '100000',
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         expect(result).toHaveProperty('feeRate');
@@ -3792,7 +3782,7 @@ describe('HyperLiquidProvider', () => {
         const result = provider.calculateFees({
           orderType: 'market',
           isMaker: false,
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         expect(result).toBeInstanceOf(Promise);
@@ -3820,7 +3810,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: false,
           amount: '100000',
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         expect(result.feeRate).toBeCloseTo(0.001432, 6); // 0.045% * (1 - 0.04) + 0.1% MetaMask
@@ -3847,7 +3837,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: false,
           amount: '100000',
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         // Should fall back to base rates due to validation failure
@@ -3875,7 +3865,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: false,
           amount: '100000',
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         // Should fall back to base rates due to validation failure
@@ -3905,7 +3895,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: true, // This should be ignored for market orders
           amount: '100000',
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         // Should use taker rate even though isMaker is true
@@ -3934,7 +3924,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: false,
           amount: '100000',
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         // Should apply only referral discount: 0.045% * (1 - 0.04) = 0.0432%
@@ -3963,7 +3953,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: false,
           amount: '100000',
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         // Should apply only staking discount: 0.045% * (1 - 0.10) = 0.0405%
@@ -3992,7 +3982,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: false,
           amount: '100000',
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         // Combined discounts would be 55%, but capped at 40%
@@ -4022,7 +4012,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'limit',
           isMaker: true,
           amount: '100000',
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         // Should apply discounts to maker rate: 0.015% * (1 - 0.04 - 0.05) = 0.01365%
@@ -4051,7 +4041,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: false,
           amount: '100000',
-          coin: 'BTC',
+          symbol: 'BTC',
         });
 
         // Should use base rates without discounts
@@ -4065,7 +4055,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: false,
           amount: '100000',
-          coin: 'xyz:TSLA', // HIP-3 asset
+          symbol: 'xyz:TSLA', // HIP-3 asset
         });
 
         // HIP-3 should have 2× base fees: 0.045% * 2 = 0.09% + 0.1% MetaMask = 0.19%
@@ -4079,7 +4069,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'limit',
           isMaker: true,
           amount: '100000',
-          coin: 'abc:SPX', // HIP-3 asset
+          symbol: 'abc:SPX', // HIP-3 asset
         });
 
         // HIP-3 should have 2× base fees: 0.015% * 2 = 0.03% + 0.1% MetaMask = 0.13%
@@ -4093,13 +4083,13 @@ describe('HyperLiquidProvider', () => {
         it('logs discount context updates', () => {
           // Arrange
           const discountBips = 3000; // 30% in basis points
-          jest.spyOn(DevLogger, 'log');
+          (mockPlatformDependencies.debugLogger.log as jest.Mock).mockClear();
 
           // Act
           provider.setUserFeeDiscount(discountBips);
 
           // Assert
-          expect(DevLogger.log).toHaveBeenCalledWith(
+          expect(mockPlatformDependencies.debugLogger.log).toHaveBeenCalledWith(
             'HyperLiquid: Fee discount context updated',
             {
               discountBips,
@@ -4111,13 +4101,13 @@ describe('HyperLiquidProvider', () => {
 
         it('logs when clearing discount context', () => {
           // Arrange
-          jest.spyOn(DevLogger, 'log');
+          (mockPlatformDependencies.debugLogger.log as jest.Mock).mockClear();
 
           // Act
           provider.setUserFeeDiscount(undefined);
 
           // Assert
-          expect(DevLogger.log).toHaveBeenCalledWith(
+          expect(mockPlatformDependencies.debugLogger.log).toHaveBeenCalledWith(
             'HyperLiquid: Fee discount context updated',
             {
               discountBips: undefined,
@@ -4135,7 +4125,7 @@ describe('HyperLiquidProvider', () => {
 
           // Act
           await provider.placeOrder({
-            coin: 'BTC',
+            symbol: 'BTC',
             isBuy: true,
             size: '0.001',
             orderType: 'market',
@@ -4161,7 +4151,7 @@ describe('HyperLiquidProvider', () => {
 
           // Act
           await provider.updatePositionTPSL({
-            coin: 'BTC',
+            symbol: 'BTC',
             takeProfitPrice: '50000',
           });
 
@@ -4197,7 +4187,7 @@ describe('HyperLiquidProvider', () => {
             orderType: 'market',
             isMaker: false,
             amount: '100000',
-            coin: 'BTC',
+            symbol: 'BTC',
           });
 
           // Assert
@@ -4217,7 +4207,7 @@ describe('HyperLiquidProvider', () => {
             orderType: 'limit',
             isMaker: true,
             amount: '100000',
-            coin: 'BTC',
+            symbol: 'BTC',
           });
 
           // Assert
@@ -4237,7 +4227,7 @@ describe('HyperLiquidProvider', () => {
             orderType: 'market',
             isMaker: false,
             amount: '100000',
-            coin: 'BTC',
+            symbol: 'BTC',
           });
 
           // Assert
@@ -4256,7 +4246,7 @@ describe('HyperLiquidProvider', () => {
             orderType: 'market',
             isMaker: false,
             amount: '100000',
-            coin: 'BTC',
+            symbol: 'BTC',
           });
 
           // Assert
@@ -4274,7 +4264,7 @@ describe('HyperLiquidProvider', () => {
             orderType: 'limit',
             isMaker: true,
             amount: '100000',
-            coin: 'BTC',
+            symbol: 'BTC',
           });
 
           // Assert
@@ -4310,7 +4300,7 @@ describe('HyperLiquidProvider', () => {
             orderType: 'market',
             isMaker: false,
             amount: '100000',
-            coin: 'BTC',
+            symbol: 'BTC',
           });
 
           // Assert
@@ -4330,7 +4320,7 @@ describe('HyperLiquidProvider', () => {
             orderType: 'market',
             isMaker: false,
             amount: '100000',
-            coin: 'BTC',
+            symbol: 'BTC',
           });
           expect(result.feeRate).toBeCloseTo(0.0012, 5); // 0.045% + (0.1% * 0.75)
 
@@ -4342,7 +4332,7 @@ describe('HyperLiquidProvider', () => {
             orderType: 'market',
             isMaker: false,
             amount: '100000',
-            coin: 'BTC',
+            symbol: 'BTC',
           });
           expect(result.feeRate).toBe(0.00145); // Back to full fees
         });
@@ -4401,7 +4391,7 @@ describe('HyperLiquidProvider', () => {
 
     it('should validate order successfully with valid params and price', async () => {
       const params: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         size: '0.1',
         isBuy: true,
         orderType: 'market',
@@ -4414,7 +4404,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.isValid).toBe(true);
       expect(result.error).toBeUndefined();
       expect(mockValidateOrderParams).toHaveBeenCalledWith({
-        coin: 'BTC',
+        coin: 'BTC', // validateOrderParams uses 'coin' (internal util), provider maps symbol -> coin
         size: '0.1',
         price: undefined,
         orderType: 'market',
@@ -4423,7 +4413,7 @@ describe('HyperLiquidProvider', () => {
 
     it('should fail validation when currentPrice is missing', async () => {
       const params: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         size: '0.1',
         isBuy: true,
         orderType: 'market',
@@ -4434,12 +4424,12 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.validateOrder(params);
 
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe('perps.order.validation.price_required');
+      expect(result.error).toBe(PERPS_ERROR_CODES.ORDER_PRICE_REQUIRED);
     });
 
     it('should fail validation when order value is below minimum', async () => {
       const params: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         size: '0.00001', // Very small size
         isBuy: true,
         orderType: 'market',
@@ -4450,7 +4440,7 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.validateOrder(params);
 
       expect(result.isValid).toBe(false);
-      expect(result.error).toContain('perps.order.validation.minimum_amount');
+      expect(result.error).toContain(PERPS_ERROR_CODES.ORDER_SIZE_MIN);
     });
 
     it('should fail validation when basic params are invalid', async () => {
@@ -4460,7 +4450,7 @@ describe('HyperLiquidProvider', () => {
       });
 
       const params: OrderParams = {
-        coin: 'INVALID',
+        symbol: 'INVALID',
         size: '0.1',
         isBuy: true,
         orderType: 'market',
@@ -4476,7 +4466,7 @@ describe('HyperLiquidProvider', () => {
 
     it('should validate limit order with price', async () => {
       const params: OrderParams = {
-        coin: 'ETH',
+        symbol: 'ETH',
         size: '1',
         isBuy: true,
         orderType: 'limit',
@@ -4489,7 +4479,7 @@ describe('HyperLiquidProvider', () => {
 
       expect(result.isValid).toBe(true);
       expect(mockValidateOrderParams).toHaveBeenCalledWith({
-        coin: 'ETH',
+        coin: 'ETH', // validateOrderParams uses 'coin' (internal util), provider maps symbol -> coin
         size: '1',
         price: '3000',
         orderType: 'limit',
@@ -4502,7 +4492,7 @@ describe('HyperLiquidProvider', () => {
       });
 
       const params: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         size: '0.1',
         isBuy: true,
         orderType: 'market',
@@ -4519,7 +4509,7 @@ describe('HyperLiquidProvider', () => {
     describe('existing position leverage validation', () => {
       it('allows order when leverage equals existing position leverage', async () => {
         const params: OrderParams = {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '0.1',
           isBuy: true,
           orderType: 'market',
@@ -4536,7 +4526,7 @@ describe('HyperLiquidProvider', () => {
 
       it('allows order when leverage exceeds existing position leverage', async () => {
         const params: OrderParams = {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '0.1',
           isBuy: true,
           orderType: 'market',
@@ -4553,7 +4543,7 @@ describe('HyperLiquidProvider', () => {
 
       it('rejects order when leverage below existing position leverage', async () => {
         const params: OrderParams = {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '0.1',
           isBuy: true,
           orderType: 'market',
@@ -4566,13 +4556,13 @@ describe('HyperLiquidProvider', () => {
 
         expect(result.isValid).toBe(false);
         expect(result.error).toBe(
-          'perps.order.validation.leverage_below_position',
+          PERPS_ERROR_CODES.ORDER_LEVERAGE_BELOW_POSITION,
         );
       });
 
       it('allows any leverage when no existing position', async () => {
         const params: OrderParams = {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '0.1',
           isBuy: true,
           orderType: 'market',
@@ -4688,7 +4678,7 @@ describe('HyperLiquidProvider', () => {
       });
 
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market',
@@ -4791,7 +4781,7 @@ describe('HyperLiquidProvider', () => {
       });
 
       const updateParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         takeProfitPrice: '55000',
         stopLossPrice: '45000',
       };
@@ -4842,7 +4832,7 @@ describe('HyperLiquidProvider', () => {
       );
 
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market',
@@ -4877,7 +4867,7 @@ describe('HyperLiquidProvider', () => {
       );
 
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market',
@@ -4914,7 +4904,7 @@ describe('HyperLiquidProvider', () => {
       });
 
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market',
@@ -4942,7 +4932,7 @@ describe('HyperLiquidProvider', () => {
       );
 
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market',
@@ -4976,7 +4966,7 @@ describe('HyperLiquidProvider', () => {
       );
 
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market',
@@ -5981,7 +5971,7 @@ describe('HyperLiquidProvider', () => {
         .mockReturnValue(mockInfoClientWithDexs);
 
       // Create a provider instance with equity enabled for this specific test
-      const testProvider = new HyperLiquidProvider({ hip3Enabled: true });
+      const testProvider = createTestProvider({ hip3Enabled: true });
 
       // Override the private cachedValidatedDexs to simulate already validated state
       // This avoids the complex initialization flow
@@ -6001,7 +5991,7 @@ describe('HyperLiquidProvider', () => {
 
     it('returns empty array when equity disabled', async () => {
       // Arrange
-      const disabledProvider = new HyperLiquidProvider({
+      const disabledProvider = createTestProvider({
         hip3Enabled: false,
       });
 
@@ -6014,7 +6004,7 @@ describe('HyperLiquidProvider', () => {
 
     it('returns empty array when perpDexs returns invalid data', async () => {
       // Arrange
-      const hip3Provider = new HyperLiquidProvider({ hip3Enabled: true });
+      const hip3Provider = createTestProvider({ hip3Enabled: true });
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
           perpDexs: jest.fn().mockResolvedValue(null),
@@ -6035,7 +6025,8 @@ describe('HyperLiquidProvider', () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
           spotMeta: jest.fn().mockResolvedValue({
-            tokens: [{ name: 'USDC', tokenId: '0xabc123' }],
+            tokens: [{ name: 'USDC', tokenId: '0xabc123', index: 0 }],
+            universe: [],
           }),
         }),
       );
@@ -6125,7 +6116,8 @@ describe('HyperLiquidProvider', () => {
     it('calls getUsdcTokenId to get correct token', async () => {
       // Arrange
       const mockSpotMeta = jest.fn().mockResolvedValue({
-        tokens: [{ name: 'USDC', tokenId: '0xspecific' }],
+        tokens: [{ name: 'USDC', tokenId: '0xspecific', index: 0 }],
+        universe: [],
       });
       mockClientService.getInfoClient = jest
         .fn()
@@ -6235,9 +6227,10 @@ describe('HyperLiquidProvider', () => {
         // Arrange
         const mockSpotMeta = {
           tokens: [
-            { name: 'USDC', tokenId: '0xdef456' },
-            { name: 'USDT', tokenId: '0x789abc' },
+            { name: 'USDC', tokenId: '0xdef456', index: 0 },
+            { name: 'USDT', tokenId: '0x789abc', index: 1 },
           ],
+          universe: [],
         };
         mockClientService.getInfoClient = jest.fn().mockReturnValue(
           createMockInfoClient({
@@ -6257,7 +6250,8 @@ describe('HyperLiquidProvider', () => {
       it('throws error when USDC token not found in metadata', async () => {
         // Arrange
         const mockSpotMeta = {
-          tokens: [{ name: 'USDT', tokenId: '0x789abc' }],
+          tokens: [{ name: 'USDT', tokenId: '0x789abc', index: 0 }],
+          universe: [],
         };
         mockClientService.getInfoClient = jest.fn().mockReturnValue(
           createMockInfoClient({
@@ -6387,7 +6381,7 @@ describe('HyperLiquidProvider', () => {
             perpDexs: jest.fn().mockRejectedValue(mockError),
           }),
         );
-        const mockLoggerError = jest.spyOn(Logger, 'error');
+        (mockPlatformDependencies.logger.error as jest.Mock).mockClear();
 
         // Act
         const result = await testableProvider.getAllAvailableDexs();
@@ -6395,7 +6389,7 @@ describe('HyperLiquidProvider', () => {
         // Assert
         expect(result).toEqual([null]);
         expect(testableProvider.cachedAllPerpDexs).toBeNull();
-        expect(mockLoggerError).toHaveBeenCalledWith(
+        expect(mockPlatformDependencies.logger.error).toHaveBeenCalledWith(
           mockError,
           expect.objectContaining({
             context: expect.objectContaining({
@@ -6548,13 +6542,12 @@ describe('HyperLiquidProvider', () => {
         mockWalletService.getUserAddressWithDefault = jest
           .fn()
           .mockResolvedValue('0xUserAddress');
-        const mockLoggerError = jest.spyOn(Logger, 'error');
 
         // Act
         await testableProvider.ensureDexAbstractionEnabled();
 
         // Assert
-        expect(mockLoggerError).toHaveBeenCalledWith(
+        expect(mockPlatformDependencies.logger.error).toHaveBeenCalledWith(
           mockError,
           expect.objectContaining({
             context: expect.objectContaining({
@@ -6573,13 +6566,12 @@ describe('HyperLiquidProvider', () => {
         mockWalletService.getUserAddressWithDefault = jest
           .fn()
           .mockRejectedValue(mockError);
-        const mockLoggerError = jest.spyOn(Logger, 'error');
 
         // Act
         await testableProvider.ensureDexAbstractionEnabled();
 
         // Assert
-        expect(mockLoggerError).toHaveBeenCalledWith(
+        expect(mockPlatformDependencies.logger.error).toHaveBeenCalledWith(
           mockError,
           expect.objectContaining({
             context: expect.objectContaining({
@@ -6698,7 +6690,7 @@ describe('HyperLiquidProvider', () => {
     describe('calculateHip3RequiredMargin', () => {
       interface ProviderWithMarginCalc {
         calculateHip3RequiredMargin(params: {
-          coin: string;
+          symbol: string;
           dexName: string;
           positionSize: number;
           orderPrice: number;
@@ -6706,7 +6698,7 @@ describe('HyperLiquidProvider', () => {
           isBuy: boolean;
         }): Promise<number>;
         getPositions(): Promise<
-          { coin: string; size: string; marginUsed: string }[]
+          { symbol: string; size: string; marginUsed: string }[]
         >;
       }
 
@@ -6721,7 +6713,7 @@ describe('HyperLiquidProvider', () => {
         // Arrange
         jest.spyOn(testableProvider, 'getPositions').mockResolvedValue([
           {
-            coin: 'BTC',
+            symbol: 'BTC',
             size: '1.0', // Existing long position
             marginUsed: '5000',
           },
@@ -6729,7 +6721,7 @@ describe('HyperLiquidProvider', () => {
 
         // Act
         const result = await testableProvider.calculateHip3RequiredMargin({
-          coin: 'BTC',
+          symbol: 'BTC',
           dexName: 'xyz',
           positionSize: 0.5, // Adding to position
           orderPrice: 50000,
@@ -6749,7 +6741,7 @@ describe('HyperLiquidProvider', () => {
         // Arrange
         jest.spyOn(testableProvider, 'getPositions').mockResolvedValue([
           {
-            coin: 'BTC',
+            symbol: 'BTC',
             size: '1.0', // Existing long position
             marginUsed: '5000',
           },
@@ -6757,7 +6749,7 @@ describe('HyperLiquidProvider', () => {
 
         // Act
         const result = await testableProvider.calculateHip3RequiredMargin({
-          coin: 'BTC',
+          symbol: 'BTC',
           dexName: 'xyz',
           positionSize: 0.5,
           orderPrice: 50000,
@@ -6779,7 +6771,7 @@ describe('HyperLiquidProvider', () => {
 
         // Act
         const result = await testableProvider.calculateHip3RequiredMargin({
-          coin: 'ETH',
+          symbol: 'ETH',
           dexName: 'xyz',
           positionSize: 10,
           orderPrice: 3000,
@@ -6798,7 +6790,7 @@ describe('HyperLiquidProvider', () => {
         // Arrange
         jest.spyOn(testableProvider, 'getPositions').mockResolvedValue([
           {
-            coin: 'ETH',
+            symbol: 'ETH',
             size: '-5.0', // Existing short position
             marginUsed: '3000',
           },
@@ -6806,7 +6798,7 @@ describe('HyperLiquidProvider', () => {
 
         // Act
         const result = await testableProvider.calculateHip3RequiredMargin({
-          coin: 'ETH',
+          symbol: 'ETH',
           dexName: 'xyz',
           positionSize: 2.0, // Adding to short
           orderPrice: 3000,

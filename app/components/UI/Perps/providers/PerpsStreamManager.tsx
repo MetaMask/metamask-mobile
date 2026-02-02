@@ -4,6 +4,7 @@ import performance from 'react-native-performance';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
+import { ensureError } from '../../../../util/errorUtils';
 import {
   trace,
   endTrace,
@@ -22,8 +23,19 @@ import type {
 import { PERFORMANCE_CONFIG, PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
-import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';
+import { findEvmAccount } from '../utils/accountUtils';
 import { CandleStreamChannel } from './channels/CandleStreamChannel';
+
+/**
+ * Gets the EVM account from the selected account group.
+ * Mobile-specific helper using Engine context.
+ * @returns EVM account or null if not found
+ */
+function getEvmAccountFromSelectedAccountGroup() {
+  const { AccountTreeController } = Engine.context;
+  const accounts = AccountTreeController.getAccountsFromSelectedAccountGroup();
+  return findEvmAccount(accounts);
+}
 
 // Generic subscription parameters
 interface StreamSubscription<T> {
@@ -253,7 +265,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
         updates.forEach((update) => {
           // Map the update to PriceUpdate format
           const priceUpdate: PriceUpdate = {
-            coin: update.coin,
+            symbol: update.symbol,
             price: update.price,
             timestamp: Date.now(),
             percentChange24h: update.percentChange24h,
@@ -265,8 +277,8 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
             openInterest: update.openInterest,
             volume24h: update.volume24h,
           };
-          this.priceCache.set(update.coin, priceUpdate);
-          priceMap[update.coin] = priceUpdate;
+          this.priceCache.set(update.symbol, priceUpdate);
+          priceMap[update.symbol] = priceUpdate;
         });
 
         this.notifySubscribers(priceMap);
@@ -358,7 +370,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           const priceMap: Record<string, PriceUpdate> = {};
           updates.forEach((update) => {
             const priceUpdate: PriceUpdate = {
-              coin: update.coin,
+              symbol: update.symbol,
               price: update.price,
               timestamp: Date.now(),
               percentChange24h: update.percentChange24h,
@@ -370,8 +382,8 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
               openInterest: update.openInterest,
               volume24h: update.volume24h,
             };
-            this.priceCache.set(update.coin, priceUpdate);
-            priceMap[update.coin] = priceUpdate;
+            this.priceCache.set(update.symbol, priceUpdate);
+            priceMap[update.symbol] = priceUpdate;
           });
 
           // Notify any active subscribers with all updates
@@ -387,7 +399,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
         this.cleanupPrewarm();
       };
     } catch (error) {
-      Logger.error(error instanceof Error ? error : new Error(String(error)), {
+      Logger.error(ensureError(error, 'PriceStreamChannel.prewarm'), {
         context: 'PriceStreamChannel.prewarm',
       });
       // Return no-op cleanup function
@@ -702,7 +714,7 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
       return;
     }
 
-    const positionIndex = cachedPositions.findIndex((p) => p.coin === coin);
+    const positionIndex = cachedPositions.findIndex((p) => p.symbol === coin);
     if (positionIndex === -1) {
       DevLogger.log(
         `PositionStreamChannel: Cannot apply optimistic update - position not found for ${coin}`,
@@ -1061,7 +1073,7 @@ class TopOfBookStreamChannel extends StreamChannel<
       symbols: [this.currentSymbol],
       includeOrderBook: true,
       callback: (updates: PriceUpdate[]) => {
-        const update = updates.find((u) => u.coin === this.currentSymbol);
+        const update = updates.find((u) => u.symbol === this.currentSymbol);
         if (update) {
           const topOfBook = {
             bestBid: update.bestBid,
@@ -1258,9 +1270,12 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   public prewarm(): () => void {
     // Fetch data immediately to populate cache
     this.fetchMarketData().catch((error) => {
-      Logger.error(error instanceof Error ? error : new Error(String(error)), {
-        context: 'MarketDataChannel.prewarm',
-      });
+      Logger.error(
+        ensureError(error, 'PerpsStreamManager.fetchMarketData.background'),
+        {
+          context: 'MarketDataChannel.prewarm',
+        },
+      );
     });
 
     // No cleanup needed for REST data
