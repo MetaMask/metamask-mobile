@@ -38,6 +38,9 @@ import {
   getFeatureFlagAppEnvironment,
 } from '../../../../core/Engine/controllers/remote-feature-flag-controller/utils';
 import { getPreinstalledSnapsMetadata } from '../../../../selectors/snaps';
+import { OTA_VERSION } from '../../../../constants/ota';
+import { captureExceptionForced } from '../../../../util/sentry/utils';
+import { alert } from '../../../../util/alert';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -192,6 +195,16 @@ class AppInformation extends PureComponent {
     this.setState({ showEnvironmentInfo: true });
   };
 
+  onSendSentryTestError = async () => {
+    try {
+      await captureExceptionForced(
+        new Error(`OTA update Sentry test error production ${OTA_VERSION}`),
+      );
+    } catch (error) {
+      alert(`Failed to send Sentry test error: ${error.message}`);
+    }
+  };
+
   render = () => {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
@@ -271,6 +284,11 @@ class AppInformation extends PureComponent {
             )}
           </View>
           <Text style={styles.title}>{strings('app_information.links')}</Text>
+          <TouchableOpacity onPress={this.onSendSentryTestError}>
+            <Text style={styles.link}>
+              Send Sentry test error production {OTA_VERSION}
+            </Text>
+          </TouchableOpacity>
           <View style={styles.links}>
             <TouchableOpacity onPress={this.onPrivacyPolicy}>
               <Text style={styles.link}>
