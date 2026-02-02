@@ -72,14 +72,10 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    bottomSheetFooterWrapper: {
-      backgroundColor: colors.background.default,
-      paddingTop: 16,
-      paddingHorizontal: 16,
-    },
     bottomSheetFooter: {
-      paddingVertical: 0,
-      paddingHorizontal: 0,
+      backgroundColor: colors.background.default,
+      paddingHorizontal: 16,
+      paddingTop: 16,
       gap: 12,
     },
   });
@@ -297,36 +293,32 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
       )}
       {networkModal}
       {!txLoading && displaySwapsButton && isTokenDetailsRevampedEnabled() && (
-        <View
-          style={[
-            styles.bottomSheetFooterWrapper,
-            { paddingBottom: insets.bottom + 6 },
+        <BottomSheetFooter
+          style={{
+            ...styles.bottomSheetFooter,
+            paddingBottom: insets.bottom + 6,
+          }}
+          buttonPropsArray={[
+            {
+              variant: ButtonVariants.Primary,
+              label: strings('asset_overview.buy_button'),
+              size: ButtonSize.Lg,
+              onPress: handleBuyPress,
+            },
+            // Only show Sell button if user has balance of this token
+            ...(token.balance && parseFloat(token.balance) > 0
+              ? [
+                  {
+                    variant: ButtonVariants.Primary,
+                    label: strings('asset_overview.sell_button'),
+                    size: ButtonSize.Lg,
+                    onPress: handleSellPress,
+                  },
+                ]
+              : []),
           ]}
-        >
-          <BottomSheetFooter
-            style={styles.bottomSheetFooter}
-            buttonPropsArray={[
-              {
-                variant: ButtonVariants.Primary,
-                label: strings('asset_overview.buy_button'),
-                size: ButtonSize.Lg,
-                onPress: handleBuyPress,
-              },
-              // Only show Sell button if user has balance of this token
-              ...(token.balance && parseFloat(token.balance) > 0
-                ? [
-                    {
-                      variant: ButtonVariants.Primary,
-                      label: strings('asset_overview.sell_button'),
-                      size: ButtonSize.Lg,
-                      onPress: handleSellPress,
-                    },
-                  ]
-                : []),
-            ]}
-            buttonsAlignment={ButtonsAlignment.Horizontal}
-          />
-        </View>
+          buttonsAlignment={ButtonsAlignment.Horizontal}
+        />
       )}
     </View>
   );
