@@ -41,7 +41,7 @@ const WalletResetNeeded = () => {
       createEventBuilder(
         MetaMetricsEvents.VAULT_CORRUPTION_WALLET_RESET_NEEDED_SCREEN_VIEWED,
       )
-        .addProperties(deviceMetaData)
+        .addProperties({ ...deviceMetaData })
         .build(),
     );
   }, [trackEvent, deviceMetaData, createEventBuilder]);
@@ -51,7 +51,7 @@ const WalletResetNeeded = () => {
       createEventBuilder(
         MetaMetricsEvents.VAULT_CORRUPTION_WALLET_RESET_NEEDED_CREATE_NEW_WALLET_BUTTON_PRESSED,
       )
-        .addProperties(deviceMetaData)
+        .addProperties({ ...deviceMetaData })
         .build(),
     );
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -64,7 +64,7 @@ const WalletResetNeeded = () => {
       createEventBuilder(
         MetaMetricsEvents.VAULT_CORRUPTION_WALLET_RESET_NEEDED_TRY_AGAIN_BUTTON_PRESSED,
       )
-        .addProperties(deviceMetaData)
+        .addProperties({ ...deviceMetaData })
         .build(),
     );
     navigation.replace(

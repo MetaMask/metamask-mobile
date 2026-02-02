@@ -47,7 +47,7 @@ const WalletRestored = () => {
       createEventBuilder(
         MetaMetricsEvents.VAULT_CORRUPTION_WALLET_SUCCESSFULLY_RESTORED_SCREEN_VIEWED,
       )
-        .addProperties(deviceMetaData)
+        .addProperties({ ...deviceMetaData })
         .build(),
     );
   }, [deviceMetaData, trackEvent, createEventBuilder]);
@@ -72,7 +72,7 @@ const WalletRestored = () => {
       createEventBuilder(
         MetaMetricsEvents.VAULT_CORRUPTION_WALLET_SUCCESSFULLY_RESTORED_CONTINUE_BUTTON_PRESSED,
       )
-        .addProperties(deviceMetaData)
+        .addProperties({ ...deviceMetaData })
         .build(),
     );
     finishWalletRestore();

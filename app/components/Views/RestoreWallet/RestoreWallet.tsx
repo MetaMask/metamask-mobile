@@ -74,7 +74,7 @@ const RestoreWallet = () => {
       createEventBuilder(
         MetaMetricsEvents.VAULT_CORRUPTION_RESTORE_WALLET_BUTTON_PRESSED,
       )
-        .addProperties(deviceMetaData)
+        .addProperties({ ...deviceMetaData })
         .build(),
     );
     const restoreResult = await EngineService.initializeVaultFromBackup();

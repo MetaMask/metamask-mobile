@@ -120,7 +120,7 @@ const EditAccountName = () => {
           const analyticsProps = await analyticsProperties();
           trackEvent(
             createEventBuilder(MetaMetricsEvents.ACCOUNT_RENAMED)
-              .addProperties(analyticsProps)
+              .addProperties({ ...analyticsProps })
               .build(),
           );
         } catch {
