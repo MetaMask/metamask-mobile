@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Tabs renders tabs component with multiple tabs 1`] = `
+exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
 <View
   style={
     {
@@ -407,6 +407,247 @@ exports[`Tabs renders tabs component with multiple tabs 1`] = `
 </View>
 `;
 
-exports[`Tabs renders top bar with title and action buttons 1`] = `null`;
-
-exports[`Tabs renders with single tab 1`] = `null`;
+exports[`Tabs rendering renders with single tab 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "bottom": 0,
+      "flex": 1,
+      "left": 0,
+      "paddingTop": 1,
+      "position": "absolute",
+      "right": 0,
+      "top": 0,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "flexDirection": "row",
+        "justifyContent": "space-between",
+        "paddingHorizontal": 16,
+        "paddingVertical": 12,
+      }
+    }
+  >
+    <TouchableOpacity
+      onPress={[MockFunction]}
+      testID="tabs_back_button"
+    >
+      <View />
+    </TouchableOpacity>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "flex": 1,
+          "fontFamily": "Geist-Bold",
+          "fontSize": 18,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+          "textAlign": "center",
+        }
+      }
+    >
+      Opened tabs
+    </Text>
+    <TouchableOpacity
+      onPress={[Function]}
+      testID="tabs_add"
+    >
+      <View />
+    </TouchableOpacity>
+  </View>
+  <RCTScrollView
+    contentContainerStyle={
+      {
+        "backgroundColor": "transparent",
+        "flexDirection": "row",
+        "flexWrap": "wrap",
+        "gap": 12,
+        "padding": 16,
+      }
+    }
+    style={
+      {
+        "backgroundColor": "#f3f5f9",
+        "flex": 1,
+      }
+    }
+    testID="tabs-component"
+  >
+    <View>
+      <View
+        style={
+          [
+            {
+              "shadowOffset": {
+                "height": 4.8,
+              },
+              "shadowOpacity": 0.192,
+              "shadowRadius": 4.32,
+            },
+            {
+              "backgroundColor": "transparent",
+              "overflow": "hidden",
+            },
+          ]
+        }
+      >
+        <TouchableOpacity
+          accessibilityLabel="Switch tab"
+          accessible={true}
+          onPress={[Function]}
+          style={
+            [
+              {
+                "borderColor": "#b7bbc8",
+                "borderRadius": 12,
+                "borderWidth": 1,
+                "elevation": 4,
+                "height": 345.94,
+                "justifyContent": "flex-start",
+                "overflow": "hidden",
+                "width": 353,
+              },
+              {
+                "borderColor": "#4459ff",
+                "borderWidth": 3,
+              },
+            ]
+          }
+          testID="browser-tab-1"
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "flexDirection": "row",
+                "padding": 6,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "transparent",
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "marginRight": 24,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 16,
+                    "height": 16,
+                    "marginLeft": 2,
+                    "marginRight": 4,
+                    "overflow": "hidden",
+                    "width": 16,
+                  }
+                }
+              >
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={20}
+                  name="Global"
+                  style={
+                    {
+                      "height": 20,
+                      "width": 20,
+                    }
+                  }
+                  width={20}
+                />
+              </View>
+              <Text
+                accessibilityRole="text"
+                numberOfLines={1}
+                style={
+                  {
+                    "color": "#121314",
+                    "flex": 1,
+                    "fontFamily": "Geist-Bold",
+                    "fontSize": 12,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                    "marginLeft": 4,
+                    "marginRight": 24,
+                  }
+                }
+              >
+                example.com
+              </Text>
+            </View>
+            <TouchableOpacity
+              accessibilityLabel="Close tab"
+              accessible={true}
+              hitSlop={
+                {
+                  "bottom": 10,
+                  "left": 10,
+                  "right": 10,
+                  "top": 10,
+                }
+              }
+              onPress={[Function]}
+              testID="tab-close-button-1"
+            >
+              <SvgMock
+                color="#121314"
+                fill="currentColor"
+                height={20}
+                name="Close"
+                style={
+                  {
+                    "height": 20,
+                    "width": 20,
+                  }
+                }
+                width={20}
+              />
+            </TouchableOpacity>
+          </View>
+          <View
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "flex": 1,
+              }
+            }
+          >
+            <Image
+              source={
+                {
+                  "uri": "image1",
+                }
+              }
+              style={
+                {
+                  "bottom": 0,
+                  "left": 0,
+                  "position": "absolute",
+                  "resizeMode": "cover",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            />
+          </View>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </RCTScrollView>
+</View>
+`;

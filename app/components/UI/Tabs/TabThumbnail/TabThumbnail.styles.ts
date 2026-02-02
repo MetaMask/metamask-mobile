@@ -1,17 +1,10 @@
-import { StyleSheet, Dimensions } from 'react-native';
+import { StyleSheet } from 'react-native';
 import {
   fontStyles,
   colors as importedColors,
 } from '../../../../styles/common';
 import type { ThemeColors } from '@metamask/design-tokens';
-
-// Grid layout constants - must match Tabs/index.js
-const GRID_GAP = 12;
-const GRID_COLUMNS = 2;
-const GRID_PADDING = 16;
-const width =
-  (Dimensions.get('window').width - GRID_PADDING * 2 - GRID_GAP) / GRID_COLUMNS;
-const height = width * 0.98; // 30% shorter than original 1.4 ratio
+import { THUMB_WIDTH, THUMB_HEIGHT } from '../Tabs.constants';
 
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
@@ -42,8 +35,8 @@ const createStyles = (colors: ThemeColors) =>
       overflow: 'hidden',
       borderColor: colors.border.default,
       borderWidth: 1,
-      width,
-      height,
+      width: THUMB_WIDTH,
+      height: THUMB_HEIGHT,
     },
     checkWrapper: {
       backgroundColor: importedColors.transparent,

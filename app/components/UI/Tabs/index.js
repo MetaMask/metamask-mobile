@@ -23,14 +23,12 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../component-library/components/Icons/Icon';
-
-// Grid layout constants
-const GRID_GAP = 12;
-const GRID_COLUMNS = 2;
-const GRID_PADDING = 16;
-const THUMB_WIDTH =
-  (Dimensions.get('window').width - GRID_PADDING * 2 - GRID_GAP) / GRID_COLUMNS;
-const THUMB_HEIGHT = THUMB_WIDTH * 0.98; // 30% shorter than original 1.4 ratio
+import {
+  GRID_GAP,
+  GRID_COLUMNS,
+  GRID_PADDING,
+  THUMB_HEIGHT,
+} from './Tabs.constants';
 
 // Calculate visible rows for scroll positioning
 const NAVBAR_SIZE = Device.isIphoneX() ? 88 : 64;
