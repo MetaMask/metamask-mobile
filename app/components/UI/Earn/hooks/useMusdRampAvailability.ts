@@ -8,8 +8,6 @@ import { toLowerCaseEquals } from '../../../../util/general';
 import useRampsTokens from '../../Ramp/hooks/useRampsTokens';
 import useRampsUnifiedV2Enabled from '../../Ramp/hooks/useRampsUnifiedV2Enabled';
 import { useRampTokens } from '../../Ramp/hooks/useRampTokens';
-// import useRampsController from '../../Ramp/hooks/useRampsController';
-// import useRampsUserRegion from '../../Ramp/hooks/useRampsUserRegion';
 
 export interface MusdRampAvailability {
   isMusdBuyableOnChain: Record<Hex, boolean>;
