@@ -1,17 +1,17 @@
 'use strict';
 /* eslint-disable no-console */
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import { LocalNode, LocalNodeType } from '../../../tests/framework/types';
-import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { AnvilManager } from '../../../tests/seeder/anvil-manager';
-import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
-import { SmokeTrade } from '../../tags';
-import Assertions from '../../../tests/framework/Assertions';
-import QuoteView from '../../pages/swaps/QuoteView';
-import { testSpecificMock } from './helpers/swap-mocks';
-import WalletView from '../../pages/wallet/WalletView';
-import DeeplinkModal from '../../pages/swaps/Deeplink';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { LocalNode, LocalNodeType } from '../../framework/types';
+import { loginToApp } from '../../../e2e/viewHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { AnvilManager } from '../../seeder/anvil-manager';
+import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
+import { SmokeTrade } from '../../../e2e/tags';
+import Assertions from '../../framework/Assertions';
+import QuoteView from '../../../e2e/pages/swaps/QuoteView';
+import { testSpecificMock } from '../../helpers/swap/swap-mocks';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import DeeplinkModal from '../../../e2e/pages/swaps/Deeplink';
 
 // Deep link URLs for testing unified swap/bridge experience
 // Note: URLs use 'swap' terminology for backward compatibility but redirect to unified bridge experience
