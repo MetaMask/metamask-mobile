@@ -786,5 +786,19 @@ describe('PredictFeed', () => {
       expect(mockSetActiveIndex).toHaveBeenCalledWith(0);
       expect(mockSessionManager.trackTabChange).toHaveBeenCalledWith('hot');
     });
+
+    it('starts session with hot as initial tab when flag is enabled', () => {
+      mockUseSelector.mockReturnValue({
+        enabled: true,
+        queryParams: 'tag_id=149',
+      });
+
+      render(<PredictFeed />);
+
+      expect(mockSessionManager.startSession).toHaveBeenCalledWith(
+        'homepage_new_prediction',
+        'hot',
+      );
+    });
   });
 });

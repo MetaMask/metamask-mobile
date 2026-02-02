@@ -414,16 +414,6 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
     [onPageChange],
   );
 
-  const getCustomQueryParams = useCallback(
-    (tab: FeedTab) => {
-      if (tab.key === 'hot') {
-        return hotTabQueryParams;
-      }
-      return undefined;
-    },
-    [hotTabQueryParams],
-  );
-
   return (
     <PagerView
       ref={pagerRef}
@@ -446,7 +436,9 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
             headerHeight={headerHeight}
             tabBarHeight={tabBarHeight}
             headerHidden={headerHidden}
-            customQueryParams={getCustomQueryParams(tab)}
+            customQueryParams={
+              tab.key === 'hot' ? hotTabQueryParams : undefined
+            }
           />
         </View>
       ))}
@@ -650,13 +642,13 @@ const PredictFeed: React.FC = () => {
 
   useEffect(() => {
     sessionManager.enableAppStateListener();
-    sessionManager.startSession(route.params?.entryPoint, 'trending');
+    sessionManager.startSession(route.params?.entryPoint, tabs[0].key);
 
     return () => {
       sessionManager.endSession();
       sessionManager.disableAppStateListener();
     };
-  }, [route.params?.entryPoint, sessionManager]);
+  }, [route.params?.entryPoint, sessionManager, tabs]);
 
   useFocusEffect(
     useCallback(() => {
