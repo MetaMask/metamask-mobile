@@ -1129,12 +1129,14 @@ describe('PerpsStreamManager', () => {
       });
 
       let getMarketsCallCount = 0;
-      mockEngine.context.PerpsController.getMarkets = jest.fn(() => {
-        getMarketsCallCount++;
-        return getMarketsCallCount === 1
-          ? getMarketsPromise1
-          : getMarketsPromise2;
-      });
+      (mockEngine.context.PerpsController.getMarkets as jest.Mock) = jest.fn(
+        () => {
+          getMarketsCallCount++;
+          return getMarketsCallCount === 1
+            ? getMarketsPromise1
+            : getMarketsPromise2;
+        },
+      );
 
       // Cycle 1: User enters Perps
       const cleanup1 = await testStreamManager.prices.prewarm();

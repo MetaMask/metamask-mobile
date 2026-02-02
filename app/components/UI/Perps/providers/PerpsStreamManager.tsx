@@ -445,6 +445,9 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
               context: 'PriceStreamChannel.prewarm.backgroundFetch',
             },
           );
+          // Reset state so subsequent prewarm/connect calls can recover
+          this.prewarmUnsubscribe = undefined;
+          this.allMarketSymbols = [];
         });
 
       // Return cleanup function immediately (before markets load)
