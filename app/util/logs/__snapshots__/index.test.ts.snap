@@ -765,10 +765,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       "TokenRatesController": {
         "marketData": {},
       },
-      "TokenSearchDiscoveryController": {
-        "lastSearchTimestamp": null,
-        "recentSearches": [],
-      },
       "TokenSearchDiscoveryDataController": {
         "tokenDisplayData": [],
       },
@@ -1543,10 +1539,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "TokenRatesController": {
         "marketData": {},
-      },
-      "TokenSearchDiscoveryController": {
-        "lastSearchTimestamp": null,
-        "recentSearches": [],
       },
       "TokenSearchDiscoveryDataController": {
         "tokenDisplayData": [],
