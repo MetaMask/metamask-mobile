@@ -95,6 +95,7 @@ jest.mock('../../../../UI/SecurityOptionToggle', () => {
 });
 
 import React from 'react';
+import { Alert } from 'react-native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import LoginOptionsSettings from './LoginOptionsSettings';
@@ -149,9 +150,11 @@ describe('LoginOptionsSettings', () => {
   let mockGetType: jest.Mock;
   let mockUpdateAuthPreference: jest.Mock;
   let mockGetItem: jest.Mock;
+  let alertSpy: jest.SpyInstance;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
 
     // Get the mocked functions from the modules
     const coreModule = jest.requireMock('../../../../../core');
@@ -554,7 +557,7 @@ describe('LoginOptionsSettings', () => {
     });
   });
 
-  it('reverts toggle state when password entry callback fails', async () => {
+  it('reverts toggle state and shows alert when password entry callback fails', async () => {
     let passwordCallback: ((password: string) => Promise<void>) | undefined;
     mockUpdateAuthPreference
       .mockRejectedValueOnce(
@@ -598,6 +601,11 @@ describe('LoginOptionsSettings', () => {
           authType: AUTHENTICATION_TYPE.BIOMETRIC,
           password: 'test-password',
         });
+      });
+
+      // Verify alert is shown for invalid password
+      await waitFor(() => {
+        expect(alertSpy).toHaveBeenCalled();
       });
     }
   });

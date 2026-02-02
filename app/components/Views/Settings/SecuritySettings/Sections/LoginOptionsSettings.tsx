@@ -12,7 +12,7 @@ import {
   PASSCODE_DISABLED,
   TRUE,
 } from '../../../../../constants/storage';
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator, Alert } from 'react-native';
 import { LOGIN_OPTIONS } from '../SecuritySettings.constants';
 import createStyles from '../SecuritySettings.styles';
 import { SecurityPrivacyViewSelectorsIDs } from '../SecurityPrivacyView.testIds';
@@ -119,11 +119,17 @@ const LoginOptionsSettings = () => {
                 !(previouslyDisabled && previouslyDisabled === TRUE),
             );
           } catch (updateError) {
-            // On error, revert UI state
+            // On error, revert UI state and show alert
             setBiometryChoice(!enabled);
             Logger.error(
               updateError as Error,
               'Failed to update auth preference after password entry',
+            );
+
+            // Show error
+            Alert.alert(
+              strings('app_settings.invalid_password'),
+              strings('app_settings.invalid_password_message'),
             );
           } finally {
             // Clear loading after callback completes
