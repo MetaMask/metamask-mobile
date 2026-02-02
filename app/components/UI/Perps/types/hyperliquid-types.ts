@@ -16,6 +16,7 @@ import type {
   AllMidsResponse,
   PredictedFundingsResponse,
   OrderParameters,
+  SpotMetaResponse,
 } from '@nktkas/hyperliquid';
 
 // Clearinghouse (Account) Types
@@ -42,4 +43,5 @@ export type {
   AllMidsResponse,
   MetaAndAssetCtxsResponse,
   PredictedFundingsResponse,
+  SpotMetaResponse,
 };
