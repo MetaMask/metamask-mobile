@@ -14,11 +14,7 @@ import {
 import { strings } from '../../../../../../../locales/i18n';
 import { selectTronResourcesBySelectedAccountGroup } from '../../../../../../selectors/assets/assets-list';
 import type { ComputeFeeResult } from '../../../types/tron-staking.types';
-
-/**
- * Temporary fixed APR until staking yield is provided
- */
-const TRON_STAKING_APR = 0.0335; // 3.35%
+import useTronStakeApy from '../../../hooks/useTronStakeApy';
 
 export interface TronStakePreviewProps {
   fee?: ComputeFeeResult | ComputeFeeResult[0];
@@ -53,6 +49,10 @@ const TronStakePreview = ({
     selectTronResourcesBySelectedAccountGroup,
   );
 
+  const { apyDecimal } = useTronStakeApy();
+
+  const stakingApr = parseFloat(apyDecimal);
+
   const feeItem: ComputeFeeResult[0] | undefined = Array.isArray(fee)
     ? fee[0]
     : fee;
@@ -77,14 +77,14 @@ const TronStakePreview = ({
       return '';
     }
 
-    const reward = totalForRewards.multipliedBy(TRON_STAKING_APR);
+    const reward = totalForRewards.multipliedBy(stakingApr);
     const rewardRounded = reward.decimalPlaces(3, BigNumber.ROUND_HALF_UP);
 
     return `${rewardRounded.toNumber().toLocaleString(undefined, {
       minimumFractionDigits: 3,
       maximumFractionDigits: 3,
     })} TRX`;
-  }, [stakeAmount, totalStakedTrx, mode]);
+  }, [stakeAmount, totalStakedTrx, mode, stakingApr]);
 
   const translateY = React.useRef(new Animated.Value(40)).current;
   const opacity = React.useRef(new Animated.Value(0)).current;

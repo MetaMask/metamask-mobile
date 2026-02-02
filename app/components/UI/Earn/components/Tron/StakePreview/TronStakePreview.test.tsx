@@ -38,6 +38,17 @@ jest.mock('../../../../../../../locales/i18n', () => ({
   },
 }));
 
+jest.mock('../../../hooks/useTronStakeApy', () => ({
+  __esModule: true,
+  default: () => ({
+    isLoading: false,
+    errorMessage: null,
+    apyDecimal: '0.0244',
+    apyPercent: '2.44%',
+    refetch: jest.fn(),
+  }),
+}));
+
 const mockUseSelector = useSelector as jest.Mock;
 
 const createMockResourcesMap = (totalStakedTrx: number): TronResourcesMap => ({
@@ -68,10 +79,11 @@ describe('TronStakePreview', () => {
   });
 
   it('displays estimated annual reward based on staked balance and input amount', () => {
+    // (15 staked + 5 input) * 0.0244 APR = 0.488 TRX
     const { getByText } = render(<TronStakePreview stakeAmount="5" />);
 
     expect(getByText('Est. annual reward')).toBeOnTheScreen();
-    expect(getByText(/0[,.]670 TRX/)).toBeOnTheScreen();
+    expect(getByText(/0[,.]488 TRX/)).toBeOnTheScreen();
   });
 
   it('calculates annual reward from floating-point balances without precision errors', () => {
@@ -88,23 +100,23 @@ describe('TronStakePreview', () => {
     });
 
     // Stake amount of 10, total staked is 130.96926 + 10 = 140.96926
-    // Annual reward = 140.96926 * 0.0335 = 4.722 (rounded to 3 decimals)
+    // Annual reward = 140.96926 * 0.0244 = 3.440 (rounded to 3 decimals)
     const { getByText } = render(<TronStakePreview stakeAmount="10" />);
 
     expect(getByText('Est. annual reward')).toBeOnTheScreen();
-    expect(getByText(/4[,.]722 TRX/)).toBeOnTheScreen();
+    expect(getByText(/3[,.]440 TRX/)).toBeOnTheScreen();
   });
 
   it('displays existing staked balance reward when stakeAmount is empty string', () => {
     // When user clears input, stakeAmount becomes ''.
     // new BigNumber('') returns NaN, which must not propagate to the UI.
-    // With existing staked balance (15 TRX), reward = 15 * 0.0335 = 0.503 TRX
+    // With existing staked balance (15 TRX), reward = 15 * 0.0244 = 0.366 TRX
     const { getByText, queryByText } = render(
       <TronStakePreview stakeAmount="" />,
     );
 
     expect(getByText('Est. annual reward')).toBeOnTheScreen();
-    expect(getByText(/0[,.]503 TRX/)).toBeOnTheScreen();
+    expect(getByText(/0[,.]366 TRX/)).toBeOnTheScreen();
     expect(queryByText(/NaN/)).toBeNull();
   });
 
