@@ -8,12 +8,24 @@ import { CustomAmountInfo } from '../custom-amount-info';
 import { useCustomAmount } from '../../../hooks/earn/useCustomAmount';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import { useMusdConversionNavbar } from '../../../../../UI/Earn/hooks/useMusdConversionNavbar';
-import { strings } from '../../../../../../../locales/i18n';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { TransactionMeta } from '@metamask/transaction-controller';
 
 jest.mock('../../../hooks/tokens/useAddToken');
 jest.mock('../../../hooks/earn/useCustomAmount');
 jest.mock('../../../hooks/pay/useTransactionPayAvailableTokens');
 jest.mock('../../../../../UI/Earn/hooks/useMusdConversionNavbar');
+jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
+jest.mock('../../../../../../util/trace', () => ({
+  endTrace: jest.fn(),
+  TraceName: {
+    MusdConversionNavigation: 'mUSD Conversion Navigation',
+  },
+}));
+const mockStartQuoteTrace = jest.fn();
+jest.mock('../../../../../UI/Earn/hooks/useMusdConversionQuoteTrace', () => ({
+  useMusdConversionQuoteTrace: () => ({ startQuoteTrace: mockStartQuoteTrace }),
+}));
 
 jest.mock('../custom-amount-info', () => ({
   CustomAmountInfo: jest.fn(() => null),
@@ -23,10 +35,26 @@ jest.mock('../../rows/pay-with-row', () => ({
   PayWithRow: jest.fn(() => null),
 }));
 
-const mockRoute = {
+interface MockRoute {
+  key: string;
+  name: string;
+  params?: {
+    preferredPaymentToken?: {
+      address: Hex;
+      chainId: Hex;
+    };
+  };
+}
+
+const mockRoute: MockRoute = {
   key: 'test-route',
   name: 'MusdConversionInfo',
-  params: {},
+  params: {
+    preferredPaymentToken: {
+      address: '0xdef' as Hex,
+      chainId: '0x1' as Hex,
+    },
+  },
 };
 
 jest.mock('@react-navigation/native', () => {
@@ -45,10 +73,22 @@ describe('MusdConversionInfo', () => {
     useTransactionPayAvailableTokens,
   );
   const mockUseMusdConversionNavbar = jest.mocked(useMusdConversionNavbar);
+  const mockUseTransactionMetadataRequest = jest.mocked(
+    useTransactionMetadataRequest,
+  );
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRoute.params = {
+      preferredPaymentToken: {
+        address: '0xdef' as Hex,
+        chainId: '0x1' as Hex,
+      },
+    };
     mockUseMusdConversionNavbar.mockReturnValue(undefined);
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      chainId: '0x1',
+    } as unknown as TransactionMeta);
     mockUseCustomAmount.mockReturnValue({
       shouldShowOutputAmountTag: false,
       outputAmount: null,
@@ -68,7 +108,6 @@ describe('MusdConversionInfo', () => {
           address: '0xdef' as Hex,
           chainId: '0x1' as Hex,
         },
-        outputChainId: '0x1' as Hex,
       };
 
       mockUseRoute.mockReturnValue(mockRoute);
@@ -79,14 +118,30 @@ describe('MusdConversionInfo', () => {
 
       expect(mockUseAddToken).toHaveBeenCalled();
     });
+
+    it('throws error when preferredPaymentToken is missing from route params', () => {
+      mockRoute.params = {};
+
+      mockUseRoute.mockReturnValue(mockRoute);
+
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined);
+
+      try {
+        expect(() =>
+          renderWithProvider(<MusdConversionInfo />, {
+            state: {},
+          }),
+        ).toThrow('Preferred payment token chainId is required');
+      } finally {
+        consoleErrorSpy.mockRestore();
+      }
+    });
   });
 
   describe('useAddToken', () => {
     it('calls useAddToken with mUSD token info', () => {
-      mockRoute.params = {
-        outputChainId: '0x1' as Hex,
-      };
-
       mockUseRoute.mockReturnValue(mockRoute);
 
       renderWithProvider(<MusdConversionInfo />, {
@@ -112,7 +167,6 @@ describe('MusdConversionInfo', () => {
 
       mockRoute.params = {
         preferredPaymentToken,
-        outputChainId: '0x1' as Hex,
       };
 
       mockUseRoute.mockReturnValue(mockRoute);
@@ -132,10 +186,6 @@ describe('MusdConversionInfo', () => {
 
   describe('overrideContent', () => {
     it('passes overrideContent function to CustomAmountInfo', () => {
-      mockRoute.params = {
-        outputChainId: '0x1' as Hex,
-      };
-
       mockUseRoute.mockReturnValue(mockRoute);
 
       renderWithProvider(<MusdConversionInfo />, {
@@ -151,33 +201,8 @@ describe('MusdConversionInfo', () => {
     });
   });
 
-  describe('footerText', () => {
-    it('passes footerText to CustomAmountInfo', () => {
-      mockRoute.params = {
-        outputChainId: '0x1' as Hex,
-      };
-
-      mockUseRoute.mockReturnValue(mockRoute);
-
-      renderWithProvider(<MusdConversionInfo />, {
-        state: {},
-      });
-
-      expect(CustomAmountInfo).toHaveBeenCalledWith(
-        expect.objectContaining({
-          footerText: strings('earn.musd_conversion.powered_by_relay'),
-        }),
-        expect.anything(),
-      );
-    });
-  });
-
   describe('MusdOverrideContent', () => {
     it('calls useTransactionPayAvailableTokens when rendered', () => {
-      mockRoute.params = {
-        outputChainId: '0x1' as Hex,
-      };
-
       mockUseRoute.mockReturnValue(mockRoute);
       mockUseTransactionPayAvailableTokens.mockReturnValue([
         { address: '0x123' },
@@ -202,6 +227,9 @@ describe('MusdConversionInfo', () => {
   describe('useMusdConversionNavbar', () => {
     it('calls useMusdConversionNavbar', () => {
       mockUseRoute.mockReturnValue(mockRoute);
+      mockUseTransactionMetadataRequest.mockReturnValue({
+        chainId: '0xe708',
+      } as unknown as TransactionMeta);
 
       renderWithProvider(<MusdConversionInfo />, {
         state: {},

@@ -8,6 +8,7 @@ import {
 import { merge } from 'lodash';
 import { encryptVault } from './helpers.ts';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { BtcScope, SolScope, TrxScope } from '@metamask/keyring-api';
 import {
   Caip25CaveatType,
@@ -27,13 +28,17 @@ import {
   PopularNetworksList,
 } from '../../resources/networks.e2e';
 import { BackupAndSyncSettings, RampsRegion } from '../types.ts';
-import { MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER } from './constants.ts';
+import {
+  MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER,
+  TEST_ANALYTICS_ID,
+} from './constants.ts';
 import {
   MOCK_ENTROPY_SOURCE,
   MOCK_ENTROPY_SOURCE_2,
   MOCK_ENTROPY_SOURCE_3,
 } from '../../../app/util/test/keyringControllerTestUtils.ts';
 import { NetworkEnablementControllerState } from '@metamask/network-enablement-controller';
+import { USDC_MAINNET, MUSD_MAINNET } from '../../constants/musd-mainnet.ts';
 
 export const DEFAULT_FIXTURE_ACCOUNT_CHECKSUM =
   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
@@ -64,6 +69,17 @@ export const SIMPLE_KEYRING_SNAP_ID =
   'snap:npm:@metamask/snap-simple-keyring-snap';
 export const GENERIC_SNAP_WALLET_1_ID = 'snap:npm:@metamask/generic-snap-1';
 export const GENERIC_SNAP_WALLET_2_ID = 'snap:npm:@metamask/generic-snap-2';
+
+/**
+ * Options for mUSD conversion E2E fixture state.
+ */
+export interface MusdFixtureOptions {
+  musdConversionEducationSeen: boolean;
+  hasUsdcBalance?: boolean;
+  usdcBalance?: number;
+  hasMusdBalance?: boolean;
+  musdBalance?: number;
+}
 
 /**
  * FixtureBuilder class provides a fluent interface for building fixture data.
@@ -1851,31 +1867,8 @@ class FixtureBuilder {
     // Also set up AnalyticsController state so analytics.isEnabled() returns true
     this.fixture.state.engine.backgroundState.AnalyticsController = {
       optedIn: true,
-      analyticsId: 'a5f3c2e1-7b4d-4e9a-8c6f-1d2e3f4a5b6c',
+      analyticsId: TEST_ANALYTICS_ID,
     };
-    return this;
-  }
-
-  /**
-   * Sets up a minimal Solana fixture with mainnet configuration
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining
-   */
-  withSolanaFixture() {
-    const SOLANA_TOKEN = 'token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
-
-    this.fixture.state.engine.backgroundState.MultichainNetworkController = {
-      selectedMultichainNetworkChainId: SolScope.Mainnet,
-      multichainNetworkConfigurationsByChainId: {
-        [SolScope.Mainnet]: {
-          chainId: SolScope.Mainnet,
-          name: 'Solana Mainnet',
-          nativeCurrency: `${SolScope.Mainnet}/${SOLANA_TOKEN}`,
-          isEvm: false,
-        },
-      },
-      isEvmSelected: false,
-    };
-
     return this;
   }
 
@@ -2194,6 +2187,7 @@ class FixtureBuilder {
   ) {
     const stateToMerge: NetworkEnablementControllerState = {
       enabledNetworkMap: data,
+      nativeAssetIdentifiers: {},
     };
 
     merge(
@@ -2308,6 +2302,97 @@ class FixtureBuilder {
         },
       },
     });
+
+    return this;
+  }
+
+  /**
+   * Sets mUSD conversion fixture state: user flags, fiat orders, currency rates,
+   * and Mainnet token balances (USDC, optional MUSD) and native ETH for the default account.
+   * Call after withNetworkController, withTokensForAllPopularNetworks([ETH, USDC, MUSD?]), and withTokenRates.
+   *
+   * @param options - mUSD conversion options (education seen, USDC/MUSD balances).
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withMusdConversion(options: MusdFixtureOptions) {
+    const USDC_DECIMALS = 6;
+    const MUSD_DECIMALS = 6;
+    const ETH_BALANCE_WEI = '0x' + (BigInt(10) * BigInt(10 ** 18)).toString(16);
+
+    merge(this.fixture.state.user, {
+      musdConversionEducationSeen: options.musdConversionEducationSeen,
+    });
+
+    this.fixture.state.fiatOrders = this.fixture.state.fiatOrders ?? {};
+    merge(this.fixture.state.fiatOrders, {
+      detectedGeolocation: 'US',
+      rampRoutingDecision: 'AGGREGATOR',
+    });
+
+    if (!this.fixture.state.engine.backgroundState.CurrencyRateController) {
+      merge(this.fixture.state.engine.backgroundState, {
+        CurrencyRateController: { currentCurrency: 'usd', currencyRates: {} },
+      });
+    }
+    merge(this.fixture.state.engine.backgroundState.CurrencyRateController, {
+      currentCurrency: 'usd',
+      currencyRates: {
+        ETH: {
+          conversionDate: Date.now() / 1000,
+          conversionRate: 3000.0,
+          usdConversionRate: 3000.0,
+        },
+      },
+    });
+
+    const ac = this.fixture.state.engine.backgroundState.AccountsController;
+    const accountId = ac?.internalAccounts?.selectedAccount;
+    const accountAddress = ac?.internalAccounts?.accounts?.[accountId]?.address;
+    if (!accountAddress) return this;
+
+    const engine = this.fixture.state.engine.backgroundState;
+    if (!engine.AccountTrackerController) {
+      merge(engine, {
+        AccountTrackerController: { accounts: {}, accountsByChainId: {} },
+      });
+    }
+    const atc = engine.AccountTrackerController;
+    atc.accounts = atc.accounts ?? {};
+    atc.accountsByChainId = atc.accountsByChainId ?? {};
+    atc.accounts[accountAddress] = { balance: ETH_BALANCE_WEI };
+    atc.accountsByChainId[CHAIN_IDS.MAINNET] = {
+      ...atc.accountsByChainId[CHAIN_IDS.MAINNET],
+      [accountAddress]: { balance: ETH_BALANCE_WEI },
+    };
+
+    if (!engine.TokenBalancesController) {
+      merge(engine, { TokenBalancesController: { tokenBalances: {} } });
+    }
+    engine.TokenBalancesController.tokenBalances =
+      engine.TokenBalancesController.tokenBalances ?? {};
+    const tb = engine.TokenBalancesController.tokenBalances;
+    if (!tb[accountAddress]) tb[accountAddress] = {};
+    if (!tb[accountAddress][CHAIN_IDS.MAINNET])
+      tb[accountAddress][CHAIN_IDS.MAINNET] = {};
+    const mainnetBalances = tb[accountAddress][CHAIN_IDS.MAINNET] as Record<
+      string,
+      string
+    >;
+
+    if (options.hasUsdcBalance !== false) {
+      mainnetBalances[toChecksumHexAddress(USDC_MAINNET.toLowerCase())] =
+        '0x' +
+        Math.floor((options.usdcBalance ?? 100) * 10 ** USDC_DECIMALS).toString(
+          16,
+        );
+    }
+    if (options.hasMusdBalance) {
+      mainnetBalances[toChecksumHexAddress(MUSD_MAINNET.toLowerCase())] =
+        '0x' +
+        Math.floor((options.musdBalance ?? 10) * 10 ** MUSD_DECIMALS).toString(
+          16,
+        );
+    }
 
     return this;
   }
