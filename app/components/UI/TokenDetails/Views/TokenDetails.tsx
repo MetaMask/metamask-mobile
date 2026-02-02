@@ -2,7 +2,10 @@ import React, { useEffect } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { selectTokenDetailsV2Enabled } from '../../../../selectors/featureFlagController/tokenDetailsV2';
+import {
+  selectTokenDetailsV2Enabled,
+  isTokenDetailsRevampedEnabled,
+} from '../../../../selectors/featureFlagController/tokenDetailsV2';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import Asset from '../../../Views/Asset';
 import { TokenI } from '../../Tokens/types';
@@ -291,7 +294,7 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
         />
       )}
       {networkModal}
-      {!txLoading && displaySwapsButton && (
+      {!txLoading && displaySwapsButton && isTokenDetailsRevampedEnabled() && (
         <View
           style={[
             styles.bottomSheetFooterWrapper,
