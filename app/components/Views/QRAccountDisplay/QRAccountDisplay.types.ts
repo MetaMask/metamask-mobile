@@ -24,4 +24,14 @@ export interface QRAccountDisplayProps {
    * Optional props to pass to the Text component when description is a string
    */
   descriptionProps?: Partial<TextProps>;
+  /**
+   * Optional location identifier for analytics tracking.
+   * When provided, tracks "Copied Address" event with this location.
+   */
+  analyticsLocation?: string;
+  /**
+   * Optional chain ID for analytics tracking.
+   * Should be in hex format (will be converted to decimal for tracking).
+   */
+  chainId?: string;
 }

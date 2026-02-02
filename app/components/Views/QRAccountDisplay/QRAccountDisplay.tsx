@@ -22,18 +22,29 @@ import {
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { renderAccountName } from '../../../util/address';
 import { QRAccountDisplayProps } from './QRAccountDisplay.types';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
+import getDecimalChainId from '../../../util/networks/getDecimalChainId';
 
 const ADDRESS_PREFIX_LENGTH = 6;
 const ADDRESS_SUFFIX_LENGTH = 5;
 
 const QRAccountDisplay = (props: QRAccountDisplayProps) => {
-  const { accountAddress, label, labelProps, description, descriptionProps } =
-    props;
+  const {
+    accountAddress,
+    label,
+    labelProps,
+    description,
+    descriptionProps,
+    analyticsLocation,
+    chainId,
+  } = props;
   const tw = useTailwind();
   const addr = accountAddress;
   const accounts = useSelector(selectInternalAccounts);
   const accountLabel = renderAccountName(addr, accounts);
   const { toastRef } = useContext(ToastContext);
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const addressStart = addr.substring(0, ADDRESS_PREFIX_LENGTH);
   const addressMiddle: string = addr.substring(
     ADDRESS_PREFIX_LENGTH,
@@ -59,6 +70,18 @@ const QRAccountDisplay = (props: QRAccountDisplayProps) => {
   const handleCopyButton = async () => {
     showCopyNotificationToast();
     await ClipboardManager.setString(accountAddress);
+
+    // Track copy event if analytics context provided
+    if (analyticsLocation) {
+      trackEvent(
+        createEventBuilder(EVENT_NAME.WALLET_COPIED_ADDRESS)
+          .addProperties({
+            location: analyticsLocation,
+            ...(chainId && { chain_id: getDecimalChainId(chainId) }),
+          })
+          .build(),
+      );
+    }
   };
 
   const renderLabel = () => {
