@@ -84,6 +84,15 @@ export const selectCountries = createSelector(
 );
 
 /**
+ * Selects the user's selected provider from state.
+ */
+export const selectSelectedProvider = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState) =>
+    (rampsControllerState as Record<string, unknown>)?.selectedProvider ?? null,
+);
+
+/**
  * Selects the providers resource state (data, selected, isLoading, error).
  */
 export const selectProviders = createSelector(
@@ -136,6 +145,25 @@ export const selectQuotes = createSelector(
   (rampsControllerState): ResourceState<QuotesResponse | null> =>
     (rampsControllerState?.quotes as unknown as ResourceState<QuotesResponse | null>) ??
     createDefaultResourceState<QuotesResponse | null>(null),
+);
+
+/**
+ * Selects the user's selected token from state.
+ */
+export const selectSelectedToken = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState) =>
+    (rampsControllerState as Record<string, unknown>)?.selectedToken ?? null,
+);
+
+/**
+ * Selects the user's selected payment method from state.
+ */
+export const selectSelectedPaymentMethod = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState) =>
+    (rampsControllerState as Record<string, unknown>)?.selectedPaymentMethod ??
+    null,
 );
 
 /**

@@ -5,7 +5,7 @@ import type { PerpsMarketData } from '../controllers/types';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
 import { parseCurrencyString } from '../utils/formatUtils';
 
-type PerpsMarketDataWithVolumeNumber = PerpsMarketData & {
+export type PerpsMarketDataWithVolumeNumber = PerpsMarketData & {
   volumeNumber: number;
 };
 

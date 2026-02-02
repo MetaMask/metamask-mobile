@@ -44,6 +44,7 @@ jest.mock('../../../../core/Engine', () => {
   return {
     context: {
       RampsController: {
+        init: jest.fn().mockResolvedValue(mockUserRegionValue),
         setUserRegion: jest.fn().mockResolvedValue(mockUserRegionValue),
       },
     },

@@ -12,6 +12,7 @@ import {
   selectUserRegionRequest,
   selectProviders,
   selectTokens,
+  selectSelectedToken,
   selectCountries,
   selectCountriesRequest,
   selectTokensRequest,
@@ -283,6 +284,46 @@ describe('RampsController Selectors', () => {
 
       const result = selectCountries(state);
       expect(result.data).toEqual([]);
+    });
+  });
+
+  describe('selectSelectedToken', () => {
+    it('returns selected token from state', () => {
+      const state = createMockState({ selectedToken: mockToken });
+
+      expect(selectSelectedToken(state)).toEqual(mockToken);
+    });
+
+    it('returns null when selected token is null', () => {
+      const state = createMockState({ selectedToken: null });
+
+      expect(selectSelectedToken(state)).toBeNull();
+    });
+
+    it('returns null when RampsController state is undefined', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RampsController: undefined,
+          },
+        },
+      } as unknown as RootState;
+
+      expect(selectSelectedToken(state)).toBeNull();
+    });
+  });
+
+  describe('selectCountries', () => {
+    it('returns countries from state', () => {
+      const state = createMockState({ countries: mockCountries });
+
+      expect(selectCountries(state)).toEqual(mockCountries);
+    });
+
+    it('returns empty array when countries are not available', () => {
+      const state = createMockState();
+
+      expect(selectCountries(state)).toEqual([]);
     });
   });
 

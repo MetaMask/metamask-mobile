@@ -24,6 +24,10 @@ export interface UseRampsUserRegionResult {
    */
   error: string | null;
   /**
+   * Manually fetch the user region from geolocation.
+   */
+  fetchUserRegion: (options?: ExecuteRequestOptions) => Promise<void>;
+  /**
    * Set the user region manually (without fetching geolocation).
    */
   setUserRegion: (
@@ -41,6 +45,12 @@ export interface UseRampsUserRegionResult {
 export function useRampsUserRegion(): UseRampsUserRegionResult {
   const { data: userRegion, isLoading, error } = useSelector(selectUserRegion);
 
+  const fetchUserRegion = useCallback(
+    async (options?: ExecuteRequestOptions) =>
+      await Engine.context.RampsController.init(options),
+    [],
+  );
+
   const setUserRegion = useCallback(
     (region: string, options?: ExecuteRequestOptions) =>
       Engine.context.RampsController.setUserRegion(region, options),
@@ -51,6 +61,7 @@ export function useRampsUserRegion(): UseRampsUserRegionResult {
     userRegion,
     isLoading,
     error,
+    fetchUserRegion,
     setUserRegion,
   };
 }

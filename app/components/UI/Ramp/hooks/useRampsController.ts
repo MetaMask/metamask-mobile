@@ -25,6 +25,7 @@ export interface UseRampsControllerResult {
   userRegion: UseRampsUserRegionResult['userRegion'];
   userRegionLoading: UseRampsUserRegionResult['isLoading'];
   userRegionError: UseRampsUserRegionResult['error'];
+  fetchUserRegion: UseRampsUserRegionResult['fetchUserRegion'];
   setUserRegion: UseRampsUserRegionResult['setUserRegion'];
 
   // Selected provider
@@ -105,6 +106,7 @@ export function useRampsController(): UseRampsControllerResult {
     userRegion,
     isLoading: userRegionLoading,
     error: userRegionError,
+    fetchUserRegion,
     setUserRegion,
   } = useRampsUserRegion();
 
@@ -143,6 +145,7 @@ export function useRampsController(): UseRampsControllerResult {
     userRegion,
     userRegionLoading,
     userRegionError,
+    fetchUserRegion,
     setUserRegion,
 
     // Selected provider

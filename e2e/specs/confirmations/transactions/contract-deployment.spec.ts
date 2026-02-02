@@ -1,4 +1,4 @@
-import { SmokeConfirmationsRedesigned } from '../../../tags';
+import { SmokeConfirmations } from '../../../tags';
 import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
 import Browser from '../../../pages/Browser/BrowserView';
 import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
@@ -22,7 +22,7 @@ import { confirmationFeatureFlags } from '../../../../tests/api-mocking/mock-res
 import { LocalNode } from '../../../../tests/framework/types';
 import { AnvilManager } from '../../../../tests/seeder/anvil-manager';
 
-describe(SmokeConfirmationsRedesigned('Contract Deployment'), () => {
+describe(SmokeConfirmations('Contract Deployment'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     await setupMockRequest(mockServer, {
       requestMethod: 'GET',

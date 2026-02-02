@@ -342,10 +342,6 @@
   "TokenRatesController": {
     "marketData": {}
   },
-  "TokenSearchDiscoveryController": {
-    "lastSearchTimestamp": null,
-    "recentSearches": []
-  },
   "TokenSearchDiscoveryDataController": {
     "tokenDisplayData": []
   },
@@ -738,6 +734,7 @@
     "accounts": {},
     "activeAccount": null,
     "activeBoosts": {},
+    "pointsEstimateHistory": [],
     "pointsEvents": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
