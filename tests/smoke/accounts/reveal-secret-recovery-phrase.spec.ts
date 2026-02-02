@@ -6,7 +6,7 @@ import SecurityAndPrivacy from '../../../e2e/pages/Settings/SecurityAndPrivacy/S
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import Assertions from '../../framework/Assertions';
-import { completeSrpQuiz } from '../../../e2e/specs/multisrp/utils';
+import { completeSrpQuiz } from '../../flows/accounts.flow.ts';
 import { defaultGanacheOptions } from '../../framework/Constants';
 
 describe(SmokeAccounts('Secret Recovery Phrase Reveal from Settings'), () => {
