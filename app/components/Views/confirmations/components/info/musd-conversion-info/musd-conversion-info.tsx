@@ -5,7 +5,6 @@ import {
   MUSD_TOKEN,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
 } from '../../../../../UI/Earn/constants/musd';
-import { MusdConversionConfig } from '../../../../../UI/Earn/hooks/useMusdConversion';
 import { useCustomAmount } from '../../../hooks/earn/useCustomAmount';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import { PayWithRow } from '../../rows/pay-with-row';
@@ -13,8 +12,8 @@ import { CustomAmountInfo } from '../custom-amount-info';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import { useMusdConversionNavbar } from '../../../../../UI/Earn/hooks/useMusdConversionNavbar';
 import { useMusdConversionQuoteTrace } from '../../../../../UI/Earn/hooks/useMusdConversionQuoteTrace';
-import { strings } from '../../../../../../../locales/i18n';
 import { endTrace, TraceName } from '../../../../../../util/trace';
+import { Hex } from '@metamask/utils';
 
 interface MusdOverrideContentProps {
   amountHuman: string;
@@ -43,17 +42,29 @@ const MusdOverrideContent: React.FC<MusdOverrideContentProps> = ({
   );
 };
 
+interface MusdConversionConfirmationParams {
+  preferredPaymentToken: {
+    address: Hex;
+    chainId: Hex;
+  };
+}
+
 export const MusdConversionInfo = () => {
-  const { outputChainId, preferredPaymentToken } =
-    useParams<MusdConversionConfig>();
+  const { preferredPaymentToken } =
+    useParams<Partial<MusdConversionConfirmationParams>>();
+
+  if (!preferredPaymentToken?.chainId) {
+    throw new Error('Preferred payment token chainId is required');
+  }
 
   const { decimals, name, symbol } = MUSD_TOKEN;
 
-  const tokenToAddAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN?.[outputChainId];
+  const tokenToAddAddress =
+    MUSD_TOKEN_ADDRESS_BY_CHAIN?.[preferredPaymentToken.chainId];
 
   if (!tokenToAddAddress) {
     throw new Error(
-      `mUSD token address not found for chain ID: ${outputChainId}`,
+      `mUSD token address not found for chain ID: ${preferredPaymentToken.chainId}`,
     );
   }
 
@@ -66,13 +77,13 @@ export const MusdConversionInfo = () => {
     endTrace({
       name: TraceName.MusdConversionNavigation,
       data: {
-        outputChainId,
+        chainId: preferredPaymentToken.chainId,
       },
     });
-  }, [outputChainId]);
+  }, [preferredPaymentToken.chainId]);
 
   useAddToken({
-    chainId: outputChainId,
+    chainId: preferredPaymentToken.chainId,
     decimals,
     name,
     symbol,
@@ -88,7 +99,6 @@ export const MusdConversionInfo = () => {
     <CustomAmountInfo
       preferredToken={preferredPaymentToken}
       overrideContent={renderOverrideContent}
-      footerText={strings('earn.musd_conversion.powered_by_relay')}
       hasMax
       onAmountSubmit={startQuoteTrace}
     />
