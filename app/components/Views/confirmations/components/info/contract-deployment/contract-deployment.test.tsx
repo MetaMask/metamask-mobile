@@ -5,6 +5,13 @@ import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import ContractDeployment from './contract-deployment';
 
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: jest.fn(),
+  }),
+}));
+
 jest.mock('../../../../../../core/Engine', () => {
   const { otherControllersMock } = jest.requireActual(
     '../../../__mocks__/controllers/other-controllers-mock',

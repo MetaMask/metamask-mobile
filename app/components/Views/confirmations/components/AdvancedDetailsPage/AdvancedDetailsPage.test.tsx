@@ -32,10 +32,7 @@ jest.mock('../../../../UI/Name', () => ({
   default: jest.fn(() => null),
 }));
 
-jest.mock(
-  '../../legacy/components/CustomNonceModal',
-  () => 'CustomNonceModal',
-);
+jest.mock('../../legacy/components/CustomNonceModal', () => 'CustomNonceModal');
 
 jest.mock('../../../../hooks/useEditNonce', () => ({
   useEditNonce: jest.fn(),

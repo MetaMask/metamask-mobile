@@ -4,7 +4,7 @@ exports[`DepositInfoSection renders correctly 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#ffffff",
+      "backgroundColor": "#f3f5f9",
       "borderRadius": 8,
       "marginBottom": 8,
       "paddingBottom": 8,

@@ -8,6 +8,13 @@ import { flushPromises } from '../../../../../../util/test/utils';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import Approve from './approve';
 
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: jest.fn(),
+  }),
+}));
+
 jest.mock('../../../../../../core/Engine', () => {
   const { otherControllersMock } = jest.requireActual(
     '../../../__mocks__/controllers/other-controllers-mock',
