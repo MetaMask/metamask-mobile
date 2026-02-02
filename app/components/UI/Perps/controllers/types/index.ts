@@ -239,6 +239,13 @@ export type ClosePositionParams = {
 
   // Multi-provider routing (optional: defaults to active/default provider)
   providerId?: PerpsProviderType; // Optional: override active provider for routing
+
+  /**
+   * Optional live position data from WebSocket.
+   * If provided, skips the REST API position fetch (avoids rate limiting issues).
+   * If not provided, falls back to fetching positions via REST API cache.
+   */
+  position?: Position;
 };
 
 export type ClosePositionsParams = {
@@ -457,6 +464,14 @@ export interface DepositParams {
   fromChainId?: CaipChainId; // Source chain (defaults to current network)
   toChainId?: CaipChainId; // Destination chain (defaults to HyperLiquid Arbitrum)
   recipient?: Hex; // Recipient address (defaults to selected account)
+}
+
+/** Params for depositWithConfirmation: prepares transaction for confirmation screen */
+export interface DepositWithConfirmationParams {
+  /** Optional deposit amount (display/tracking; actual amount comes from prepared transaction) */
+  amount?: string;
+  /** If true, uses addTransaction instead of submit to avoid navigation (e.g. deposit + place order flow) */
+  placeOrder?: boolean;
 }
 
 export interface DepositResult {
