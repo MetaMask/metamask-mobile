@@ -1065,6 +1065,115 @@ describe('PerpsStreamManager', () => {
       // The actual unsubscribe should have been called
       expect(mockActualUnsubscribe).toHaveBeenCalled();
     });
+
+    it('returns same cleanup when prewarm called twice without cleanup (already pre-warmed guard)', async () => {
+      const mockUnsubscribe = jest.fn();
+      mockSubscribeToPrices.mockReturnValue(mockUnsubscribe);
+
+      // Create controlled promise
+      let resolveGetMarkets: (value: { name: string }[]) => void = jest.fn();
+      const getMarketsPromise = new Promise<{ name: string }[]>((resolve) => {
+        resolveGetMarkets = resolve;
+      });
+
+      mockEngine.context.PerpsController.getMarkets = jest
+        .fn()
+        .mockReturnValue(getMarketsPromise);
+
+      // Cycle 1: User enters Perps
+      const cleanup1 = await testStreamManager.prices.prewarm();
+
+      // Cycle 2: Called again without cleanup (rapid navigation)
+      // The guard at line 362 returns the existing prewarmUnsubscribe
+      const cleanup2 = await testStreamManager.prices.prewarm();
+
+      // Both cleanups should be the same function (guarded by "already pre-warmed" check)
+      expect(cleanup1).toBe(cleanup2);
+
+      // getMarkets only called once (second call was short-circuited)
+      expect(
+        mockEngine.context.PerpsController.getMarkets,
+      ).toHaveBeenCalledTimes(1);
+
+      // Resolve and cleanup
+      resolveGetMarkets([{ name: 'BTC-PERP' }]);
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(1);
+      cleanup1();
+      expect(mockUnsubscribe).toHaveBeenCalled();
+    });
+
+    it('prevents stale promise from creating subscription after cleanup and new prewarm', async () => {
+      const mockUnsubscribe1 = jest.fn();
+      const mockUnsubscribe2 = jest.fn();
+      let subscribeCallCount = 0;
+
+      mockSubscribeToPrices.mockImplementation(() => {
+        subscribeCallCount++;
+        return subscribeCallCount === 1 ? mockUnsubscribe1 : mockUnsubscribe2;
+      });
+
+      // Create controlled promises for each cycle
+      let resolveGetMarkets1: (value: { name: string }[]) => void = jest.fn();
+      let resolveGetMarkets2: (value: { name: string }[]) => void = jest.fn();
+
+      const getMarketsPromise1 = new Promise<{ name: string }[]>((resolve) => {
+        resolveGetMarkets1 = resolve;
+      });
+      const getMarketsPromise2 = new Promise<{ name: string }[]>((resolve) => {
+        resolveGetMarkets2 = resolve;
+      });
+
+      let getMarketsCallCount = 0;
+      mockEngine.context.PerpsController.getMarkets = jest.fn(() => {
+        getMarketsCallCount++;
+        return getMarketsCallCount === 1
+          ? getMarketsPromise1
+          : getMarketsPromise2;
+      });
+
+      // Cycle 1: User enters Perps
+      const cleanup1 = await testStreamManager.prices.prewarm();
+
+      // User leaves before markets load - this resets prewarmUnsubscribe to undefined
+      cleanup1();
+
+      // Cycle 2: User enters Perps again
+      const cleanup2 = await testStreamManager.prices.prewarm();
+
+      // Now cycle 1's promise resolves (STALE - should be ignored due to cycle ID mismatch)
+      resolveGetMarkets1([{ name: 'BTC-PERP' }]);
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      // Stale promise should NOT create subscription (cycle ID mismatch)
+      expect(mockSubscribeToPrices).not.toHaveBeenCalled();
+
+      // Cycle 2's promise resolves (active)
+      resolveGetMarkets2([{ name: 'ETH-PERP' }]);
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      // Only one subscription should be created (from cycle 2)
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(1);
+      expect(mockSubscribeToPrices).toHaveBeenCalledWith({
+        symbols: ['ETH-PERP'],
+        callback: expect.any(Function),
+      });
+
+      // Cleanup cycle 2 - since this is the first subscription call, it uses mockUnsubscribe1
+      cleanup2();
+      expect(mockUnsubscribe1).toHaveBeenCalled();
+      // mockUnsubscribe2 was never created because only one subscription was made
+    });
   });
 
   it('should throttle subsequent updates', async () => {

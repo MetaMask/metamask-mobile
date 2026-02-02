@@ -237,6 +237,8 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   private prewarmUnsubscribe?: () => void;
   private actualPriceUnsubscribe?: () => void;
   private allMarketSymbols: string[] = [];
+  // Unique ID per prewarm cycle to detect stale promises and prevent subscription leaks
+  private prewarmCycleId: number = 0;
   // Override cache to store individual PriceUpdate objects
   protected priceCache = new Map<string, PriceUpdate>();
 
@@ -367,6 +369,11 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     try {
       const controller = Engine.context.PerpsController;
 
+      // Increment cycle ID to detect stale promises from previous prewarm cycles
+      // This prevents subscription leaks when user navigates: Perps → away → back quickly
+      this.prewarmCycleId++;
+      const currentCycleId = this.prewarmCycleId;
+
       // Start market fetch in background (non-blocking)
       // We need the symbols to register subscribers, but we can return immediately
       const marketsPromise = controller.getMarkets();
@@ -374,6 +381,16 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       // Set up subscription once markets arrive (fire-and-forget)
       marketsPromise
         .then((markets) => {
+          // If this promise is from a stale cycle, don't set up subscription
+          // This prevents leaks when prewarm is called multiple times rapidly
+          if (currentCycleId !== this.prewarmCycleId) {
+            DevLogger.log('PriceStreamChannel: Skipping stale prewarm cycle', {
+              currentCycleId,
+              activeCycleId: this.prewarmCycleId,
+            });
+            return;
+          }
+
           // If already cleaned up, don't set up subscription
           if (this.prewarmUnsubscribe === undefined) {
             return;
