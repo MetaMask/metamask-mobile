@@ -54,6 +54,7 @@ import {
 import type {
   SDKOrderParams,
   MetaResponse,
+  SpotMetaResponse,
   PerpsAssetCtx,
   FrontendOrder,
 } from '../../types/hyperliquid-types';
@@ -287,6 +288,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
   > | null = null;
   // Pending promise to deduplicate concurrent getValidatedDexs() calls
   private pendingValidatedDexsPromise: Promise<(string | null)[]> | null = null;
+
+  // Session cache for spot metadata (contains USDC/USDH token info for HIP-3 collateral checks)
+  // Pre-fetched when needed to avoid API failures during order placement
+  private cachedSpotMeta: SpotMetaResponse | null = null;
 
   // Cache for USDC token ID from spot metadata
   private cachedUsdcTokenId?: string;
@@ -890,6 +895,35 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Fetch spot metadata with session-based caching
+   * Contains token info (USDC, USDH indices) needed for HIP-3 collateral checks
+   * @returns SpotMetaResponse with tokens and universe data
+   */
+  private async getCachedSpotMeta(): Promise<SpotMetaResponse> {
+    if (this.cachedSpotMeta) {
+      this.deps.debugLogger.log('[getCachedSpotMeta] Using cached spotMeta', {
+        tokensCount: this.cachedSpotMeta.tokens.length,
+        universeCount: this.cachedSpotMeta.universe.length,
+      });
+      return this.cachedSpotMeta;
+    }
+
+    const infoClient = this.clientService.getInfoClient();
+    const spotMeta = await infoClient.spotMeta();
+
+    this.cachedSpotMeta = spotMeta;
+    this.deps.debugLogger.log(
+      '[getCachedSpotMeta] Fetched and cached spotMeta',
+      {
+        tokensCount: spotMeta.tokens.length,
+        universeCount: spotMeta.universe.length,
+      },
+    );
+
+    return spotMeta;
+  }
+
+  /**
    * Fetch perpDexs data with TTL-based caching
    * Returns deployerFeeScale info needed for dynamic fee calculation
    * @returns Array of ExtendedPerpDex objects (null entries represent main DEX)
@@ -1082,10 +1116,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
       return this.cachedUsdcTokenId;
     }
 
-    const infoClient = this.clientService.getInfoClient();
-    const spotMeta = await infoClient.spotMeta();
+    const spotMeta = await this.getCachedSpotMeta();
 
-    const usdcToken = spotMeta.tokens.find((t) => t.name === 'USDC');
+    const usdcToken = spotMeta.tokens.find((tok) => tok.name === 'USDC');
     if (!usdcToken) {
       throw new Error('USDC token not found in spot metadata');
     }
@@ -1104,11 +1137,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   private async isUsdhCollateralDex(dexName: string): Promise<boolean> {
     const meta = await this.getCachedMeta({ dexName });
-    const infoClient = this.clientService.getInfoClient();
-    const spotMeta = await infoClient.spotMeta();
+    const spotMeta = await this.getCachedSpotMeta();
 
     const collateralToken = spotMeta.tokens.find(
-      (t: { index: number }) => t.index === meta.collateralToken,
+      (tok: { index: number }) => tok.index === meta.collateralToken,
     );
 
     const isUsdh = collateralToken?.name === USDH_CONFIG.TOKEN_NAME;
@@ -1216,7 +1248,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       return { success: false, error: `Transfer failed: ${result.status}` };
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : String(error);
+      const errorMsg = ensureError(
+        error,
+        'HyperLiquidProvider.transferUSDCToPerps',
+      ).message;
       this.deps.debugLogger.log(
         'HyperLiquidProvider: USDC transfer to spot failed',
         {
@@ -1234,8 +1269,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
   private async swapUsdcToUsdh(
     amount: number,
   ): Promise<{ success: boolean; filledSize?: number; error?: string }> {
-    const infoClient = this.clientService.getInfoClient();
-    const spotMeta = await infoClient.spotMeta();
+    const spotMeta = await this.getCachedSpotMeta();
 
     // Find USDH and USDC tokens by name
     const usdhToken = spotMeta.tokens.find(
@@ -1277,6 +1311,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     );
 
     // Get current mid price
+    const infoClient = this.clientService.getInfoClient();
     const allMids = await infoClient.allMids();
     const pairKey = `@${usdhUsdcPair.index}`;
     const usdhPrice = parseFloat(allMids[pairKey] || '1');
@@ -1373,7 +1408,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       return { success: true, filledSize };
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : String(error);
+      const errorMsg = ensureError(
+        error,
+        'HyperLiquidProvider.swapUSDCToUSDH',
+      ).message;
       this.deps.debugLogger.log('HyperLiquidProvider: USDC→USDH swap error', {
         error: errorMsg,
       });
@@ -1699,7 +1737,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Map HyperLiquid API errors to standardized PERPS_ERROR_CODES
    */
   private mapError(error: unknown): Error {
-    const message = error instanceof Error ? error.message : String(error);
+    const message = ensureError(error, 'HyperLiquidProvider.mapError').message;
 
     for (const [pattern, code] of Object.entries(this.ERROR_MAPPINGS)) {
       if (message.toLowerCase().includes(pattern.toLowerCase())) {
@@ -1708,7 +1746,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     }
 
     // Return original error to preserve stack trace for unmapped errors
-    return error instanceof Error ? error : new Error(String(error));
+    return ensureError(error, 'HyperLiquidProvider.mapError');
   }
 
   /**
@@ -6457,7 +6495,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // Clear session caches (ensures fresh state on reconnect/account switch)
       this.referralCheckCache.clear();
       this.builderFeeCheckCache.clear();
+      // NOTE: DexAbstractionCache is global and NOT cleared on disconnect
+      // to prevent repeated signing requests across reconnections
       this.cachedMetaByDex.clear();
+      this.cachedSpotMeta = null;
       this.perpDexsCache = { data: null, timestamp: 0 };
 
       // Clear pending promise trackers to prevent memory leaks and ensure clean state
