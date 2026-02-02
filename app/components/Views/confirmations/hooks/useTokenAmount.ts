@@ -6,7 +6,6 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-import { Interface } from '@ethersproject/abi';
 
 import I18n from '../../../../../locales/i18n';
 import {
@@ -37,30 +36,10 @@ import { useCallback, useMemo } from 'react';
 import { updateEditableParams } from '../../../../util/transaction-controller';
 import { selectTokensByChainIdAndAddress } from '../../../../selectors/tokensController';
 import { getTokenTransferData } from '../utils/transaction-pay';
-import { DISTRIBUTOR_CLAIM_ABI } from '../../../UI/Earn/components/MerklRewards/constants';
-
-/**
- * Decode the claim amount from a Merkl claim transaction data.
- * The claim function signature is: claim(address[] users, address[] tokens, uint256[] amounts, bytes32[][] proofs)
- */
-function decodeMerklClaimAmount(data: string | undefined): string | null {
-  if (!data || typeof data !== 'string') {
-    return null;
-  }
-
-  try {
-    const contractInterface = new Interface(DISTRIBUTOR_CLAIM_ABI);
-    const decoded = contractInterface.decodeFunctionData('claim', data);
-    // amounts is the 3rd parameter (index 2)
-    const amounts = decoded[2];
-    if (!amounts || amounts.length === 0) {
-      return null;
-    }
-    return amounts[0].toString();
-  } catch {
-    return null;
-  }
-}
+import {
+  decodeMerklClaimAmount,
+  MUSD_DECIMALS,
+} from '../../../UI/Earn/components/MerklRewards/constants';
 
 interface TokenAmountProps {
   /**
@@ -245,8 +224,6 @@ export const useTokenAmount = ({
       // Merkl claim - mUSD is a stablecoin, so 1 mUSD ≈ $1
       const claimAmount = decodeMerklClaimAmount(txParams?.data as string);
       if (claimAmount) {
-        // mUSD has 18 decimals
-        const MUSD_DECIMALS = 18;
         const claimAmountDecimal = calcTokenAmount(claimAmount, MUSD_DECIMALS);
         // For mUSD, fiat value ≈ token amount (stablecoin)
         fiat = claimAmountDecimal;

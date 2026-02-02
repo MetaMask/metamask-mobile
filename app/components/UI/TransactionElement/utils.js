@@ -36,8 +36,10 @@ import { calculateTotalGas, renderGwei } from './utils-gas';
 import { getTokenTransferData } from '../../Views/confirmations/utils/transaction-pay';
 import { hasTransactionType } from '../../Views/confirmations/utils/transaction';
 import { BigNumber } from 'bignumber.js';
-import { Interface } from '@ethersproject/abi';
-import { DISTRIBUTOR_CLAIM_ABI } from '../Earn/components/MerklRewards/constants';
+import {
+  decodeMerklClaimAmount,
+  MUSD_DECIMALS,
+} from '../Earn/components/MerklRewards/constants';
 
 const POSITIVE_TRANSFER_TRANSACTION_TYPES = [
   TransactionType.perpsDeposit,
@@ -821,29 +823,6 @@ function decodeConfirmTx(args) {
 }
 
 /**
- * Decode the claim amount from a Merkl claim transaction.
- * claim(address[] users, address[] tokens, uint256[] amounts, bytes32[][] proofs)
- */
-function decodeMerklClaimAmount(data) {
-  if (!data || typeof data !== 'string') {
-    return null;
-  }
-
-  try {
-    const contractInterface = new Interface(DISTRIBUTOR_CLAIM_ABI);
-    const decoded = contractInterface.decodeFunctionData('claim', data);
-    // amounts is the 3rd parameter (index 2)
-    const amounts = decoded[2];
-    if (!amounts || amounts.length === 0) {
-      return null;
-    }
-    return amounts[0].toString();
-  } catch {
-    return null;
-  }
-}
-
-/**
  * Decode musdClaim transaction for display in activity list
  */
 function decodeMusdClaimTx(args) {
@@ -865,7 +844,6 @@ function decodeMusdClaimTx(args) {
 
   // Decode the claim amount from transaction data
   const claimAmountRaw = decodeMerklClaimAmount(data);
-  const MUSD_DECIMALS = 18;
 
   // Calculate display values
   let renderClaimAmount = strings('transaction.value_not_available');

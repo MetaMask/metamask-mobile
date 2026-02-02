@@ -5,6 +5,7 @@ import {
 } from '@metamask/transaction-controller';
 import { merge } from 'lodash';
 import { waitFor } from '@testing-library/react-native';
+import { Interface } from '@ethersproject/abi';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import {
   stakingDepositConfirmationState,
@@ -17,6 +18,7 @@ import {
   tokensControllerMock,
 } from '../__mocks__/controllers/other-controllers-mock';
 import { updateEditableParams } from '../../../../util/transaction-controller';
+import { DISTRIBUTOR_CLAIM_ABI } from '../../../UI/Earn/components/MerklRewards/constants';
 
 jest.mock('../../../../util/transaction-controller');
 
@@ -477,6 +479,142 @@ describe('Edge cases', () => {
 
     await waitFor(() => {
       expect(result.current.fiatUnformatted).toBe('0.359625');
+    });
+  });
+});
+
+describe('musdClaim transactions', () => {
+  const USER_ADDRESS = '0x1234567890123456789012345678901234567890';
+  const TOKEN_ADDRESS = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+
+  // Helper to encode valid claim data
+  const encodeClaimData = (amount: string): string => {
+    const contractInterface = new Interface(DISTRIBUTOR_CLAIM_ABI);
+    return contractInterface.encodeFunctionData('claim', [
+      [USER_ADDRESS],
+      [TOKEN_ADDRESS],
+      [amount],
+      [[]],
+    ]);
+  };
+
+  const createMusdClaimState = (claimData: string) =>
+    merge({}, transferConfirmationState, {
+      engine: {
+        backgroundState: {
+          TransactionController: {
+            transactions: [
+              {
+                type: TransactionType.musdClaim,
+                txParams: {
+                  data: claimData,
+                  from: USER_ADDRESS,
+                },
+              },
+            ],
+          },
+        },
+      },
+    });
+
+  it('decodes and returns correct amount for musdClaim transaction', async () => {
+    const claimAmount = '50000000000000000000'; // 50 mUSD
+    const claimData = encodeClaimData(claimAmount);
+
+    const { result } = renderHookWithProvider(() => useTokenAmount(), {
+      state: createMusdClaimState(claimData),
+    });
+
+    await waitFor(() => {
+      expect(result.current).toEqual(
+        expect.objectContaining({
+          amount: '50',
+          amountPrecise: '50',
+          amountUnformatted: '50',
+          fiat: '$50',
+          fiatUnformatted: '50',
+          isNative: false,
+          usdValue: '50.00',
+        }),
+      );
+    });
+  });
+
+  it('handles fractional mUSD amounts correctly', async () => {
+    const claimAmount = '12345000000000000000'; // 12.345 mUSD
+    const claimData = encodeClaimData(claimAmount);
+
+    const { result } = renderHookWithProvider(() => useTokenAmount(), {
+      state: createMusdClaimState(claimData),
+    });
+
+    await waitFor(() => {
+      expect(result.current).toEqual(
+        expect.objectContaining({
+          amount: '12.35',
+          amountPrecise: '12.345',
+          amountUnformatted: '12.345',
+          fiat: '$12.35',
+          fiatUnformatted: '12.345',
+          isNative: false,
+          usdValue: '12.35',
+        }),
+      );
+    });
+  });
+
+  it('handles very small mUSD amounts', async () => {
+    const claimAmount = '100000000000000'; // 0.0001 mUSD
+    const claimData = encodeClaimData(claimAmount);
+
+    const { result } = renderHookWithProvider(() => useTokenAmount(), {
+      state: createMusdClaimState(claimData),
+    });
+
+    await waitFor(() => {
+      expect(result.current).toEqual(
+        expect.objectContaining({
+          amount: '0.0001',
+          amountPrecise: '0.0001',
+          fiat: '<$0.01',
+          isNative: false,
+          usdValue: '0.00',
+        }),
+      );
+    });
+  });
+
+  it('handles large mUSD amounts', async () => {
+    const claimAmount = '100000000000000000000000'; // 100,000 mUSD
+    const claimData = encodeClaimData(claimAmount);
+
+    const { result } = renderHookWithProvider(() => useTokenAmount(), {
+      state: createMusdClaimState(claimData),
+    });
+
+    await waitFor(() => {
+      expect(result.current).toEqual(
+        expect.objectContaining({
+          amount: '100,000',
+          amountUnformatted: '100000',
+          fiat: '$100,000',
+          isNative: false,
+          usdValue: '100000.00',
+        }),
+      );
+    });
+  });
+
+  it('returns default values when claim data is invalid', async () => {
+    const invalidClaimData = '0x123456'; // Invalid data
+
+    const { result } = renderHookWithProvider(() => useTokenAmount(), {
+      state: createMusdClaimState(invalidClaimData),
+    });
+
+    await waitFor(() => {
+      // When decoding fails, it falls through to default case
+      expect(result.current.amount).toBeDefined();
     });
   });
 });

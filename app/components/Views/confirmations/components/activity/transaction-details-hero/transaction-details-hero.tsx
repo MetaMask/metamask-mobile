@@ -10,7 +10,7 @@ import {
   hasTransactionType,
   parseStandardTokenTransactionData,
 } from '../../../utils/transaction';
-import { Interface, Result } from '@ethersproject/abi';
+import { Result } from '@ethersproject/abi';
 import { calcTokenAmount } from '../../../../../../util/transactions';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './transaction-details-hero.styles';
@@ -19,7 +19,10 @@ import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/us
 import { PERPS_CURRENCY } from '../../../constants/perps';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 import { BigNumber } from 'bignumber.js';
-import { DISTRIBUTOR_CLAIM_ABI } from '../../../../../UI/Earn/components/MerklRewards/constants';
+import {
+  decodeMerklClaimAmount,
+  MUSD_DECIMALS,
+} from '../../../../../UI/Earn/components/MerklRewards/constants';
 
 const SUPPORTED_TYPES = [
   TransactionType.musdConversion,
@@ -96,9 +99,7 @@ function useDecodedAmount() {
 }
 
 /**
- * Decode the claim amount from a Merkl claim transaction.
- * The claim function signature is: claim(address[] users, address[] tokens, uint256[] amounts, bytes32[][] proofs)
- * We extract the first amount from the amounts array (index 2 in the function args).
+ * Hook to decode the claim amount from a Merkl claim transaction.
  */
 function useClaimAmount() {
   const { transactionMeta } = useTransactionDetails();
@@ -108,25 +109,11 @@ function useClaimAmount() {
   }
 
   const { data } = transactionMeta.txParams ?? {};
+  const claimAmount = decodeMerklClaimAmount(data as string);
 
-  if (!data || typeof data !== 'string') {
+  if (!claimAmount) {
     return null;
   }
 
-  try {
-    const contractInterface = new Interface(DISTRIBUTOR_CLAIM_ABI);
-    const decoded = contractInterface.decodeFunctionData('claim', data);
-
-    // amounts is the 3rd parameter (index 2)
-    const amounts = decoded[2];
-    if (!amounts || amounts.length === 0) {
-      return null;
-    }
-
-    // mUSD has 18 decimals
-    const MUSD_DECIMALS = 18;
-    return calcTokenAmount(amounts[0], MUSD_DECIMALS);
-  } catch {
-    return null;
-  }
+  return calcTokenAmount(claimAmount, MUSD_DECIMALS);
 }
