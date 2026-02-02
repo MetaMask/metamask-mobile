@@ -144,7 +144,7 @@ describe('TrendingTokensData', () => {
       primary: { default: '#037DD6' },
       icon: { default: '#6A737D' },
     },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any;
 
   beforeEach(() => {
@@ -595,7 +595,8 @@ describe('TrendingTokensFullView', () => {
       const mocks = arrangeMocks();
       mocks.setTrendingSearchMock({ data: mockTokens });
 
-      const { getByTestId, getByText, queryByTestId } = renderTrendingFullView();
+      const { getByTestId, getByText, queryByTestId } =
+        renderTrendingFullView();
 
       // Open search
       const searchToggle = getByTestId('trending-tokens-header-search-toggle');
