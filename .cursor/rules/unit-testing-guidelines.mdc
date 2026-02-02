@@ -80,14 +80,17 @@ expect(submitButton).toBeOnTheScreen();
 const input = screen.getByRole('textbox', { name: 'Email' });
 const checkbox = screen.getByLabelText('Accept terms');
 
-// ❌ AVOID - Fragile text-based selection
+// ✅ ALSO GOOD - Locale keys (safe from content updates)
+const button = screen.getByText(strings('common.submit'));
+
+// ❌ AVOID - Selecting by hardcoded text content
 const button = screen.getByText('Submit'); // Breaks when text changes
 const input = screen.getByPlaceholderText('Enter email'); // Fragile
 ```
 
 ### CHILD PROP OBJECTS - ALL COMPONENTS SUPPORT THIS
 
-**ALL `@metamask/design-system-react-native` and `app/component-library` components support child prop objects for passing testIDs to internal elements.** This is a universal design pattern - there is NO reason to mock these components.
+**ALL `@metamask/design-system-react-native` and `app/component-library` components support child prop objects for passing testIDs to internal elements.** This is a universal design pattern - prefer not to mock these components just to inject testIDs.
 
 Common child prop object patterns:
 - `closeButtonProps` - for close/dismiss buttons
@@ -136,22 +139,19 @@ fireEvent.press(closeButton);
 | `@metamask/design-system-react-native` | ✅ All components support `testID` prop AND child prop objects |
 | `app/component-library/*` | ✅ All components support `testID` prop AND child prop objects |
 
-**If you think you need to mock one of these components to add a testID, you are wrong.** The capability already exists - find the child prop object.
+**If you need to add a testID to one of these components, check for child prop objects first.** Most components support this functionality. If not available, consider adjusting the component to support it.
 
 ### How to Find Child Prop Objects
 
-1. **Use IDE autocomplete** - Type the component and explore available props ending in `Props`
-2. **Check TypeScript types** - Look at the component's props interface
-3. **Check component source** - Search for `Props` suffix patterns
-4. **Check Storybook** - Component stories demonstrate these props
+1. **Check TypeScript types** - Look at the component's props interface for props ending in `Props`
+2. **Check component source** - Search for `Props` suffix patterns
+3. **Check Storybook** - Component stories demonstrate these props
 
 ```tsx
-// Example: Finding props for BottomSheet components
-// In your IDE, type <BottomSheetHeader and use autocomplete to see:
+// Example: BottomSheetHeader TypeScript interface shows:
 // - closeButtonProps?: ButtonIconProps
 // - backButtonProps?: ButtonIconProps
 // - startAccessory?: React.ReactNode
-// - etc.
 
 // Example: Design system Button with icon
 <Button
@@ -208,7 +208,7 @@ expect(element).not.toBeNull(); // Use toBeOnTheScreen() instead
 
 ### Exception: UI Components and TestIDs
 
-**NEVER mock `@metamask/design-system-react-native` or `app/component-library` components to inject testIDs.** All these components support testIDs via:
+**Prefer not to mock `@metamask/design-system-react-native` or `app/component-library` components just to inject testIDs.** All these components support testIDs via:
 - Direct `testID` prop on the component
 - Child prop objects (`closeButtonProps`, `iconProps`, etc.) for internal elements
 
@@ -467,18 +467,23 @@ Before submitting any test file, verify:
 - [ ] **Each test has one clear purpose**
 - [ ] **All code paths are tested**
 - [ ] **Edge cases are covered**
+- [ ] **Test data is realistic**
 - [ ] **Tests are independent**
 - [ ] **Assertions use `toBeOnTheScreen()`** - NOT `toBeTruthy()` or `toBeDefined()`
+- [ ] **Assertions are specific**
 - [ ] **Elements selected by `testID`** - NOT fragile text queries
+- [ ] **Test names are descriptive**
+- [ ] **No test duplication**
 - [ ] **Async operations wrapped in act()** when they trigger state updates
 
-# Common Mistakes to AVOID
+# Common Mistakes to AVOID - CRITICAL
 
 - ❌ **Mocking to inject testIDs** - Components already support testID (see guidelines above)
-- ❌ **Using "should" in test names** - Use action-oriented descriptions
+- ❌ **Using "should" in test names** - This is the #1 mistake, use action-oriented descriptions
 - ❌ **Testing multiple behaviors in one test** - One test, one behavior
 - ❌ **Sharing state between tests** - Each test must be independent
 - ❌ **Not testing error conditions** - Test both success and failure paths
+- ❌ **Using unrealistic test data** - Use data that reflects real usage
 - ❌ **Not following AAA pattern** - Always Arrange, Act, Assert
 - ❌ **Not testing edge cases** - Test null, undefined, empty values
 - ❌ **Using weak matchers** - Use `toBeOnTheScreen()` instead of `toBeTruthy()`/`toBeDefined()`
