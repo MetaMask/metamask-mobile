@@ -173,3 +173,21 @@ function getSupportedGasFeeTokens(): Record<Hex, Hex[]> {
     {},
   );
 }
+
+export type TokenPayQuoteMetadata = {
+  providerId?: string;
+  metrics?: { latency?: number };
+  quote?: { metrics?: { latency?: number } };
+};
+
+export function getTokenPayProviderId(original: unknown): string | undefined {
+  const metadata = original as TokenPayQuoteMetadata | undefined;
+  return typeof metadata?.providerId === 'string'
+    ? metadata.providerId
+    : undefined;
+}
+
+export function getQuoteLatency(original: unknown): number | undefined {
+  const metadata = original as TokenPayQuoteMetadata | undefined;
+  return metadata?.metrics?.latency ?? metadata?.quote?.metrics?.latency;
+}

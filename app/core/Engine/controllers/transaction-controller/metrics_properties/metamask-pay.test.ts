@@ -39,6 +39,35 @@ const PAY_CONTROLLER_STATE_MOCK = {
   },
 } as unknown as RootState;
 
+const TOKEN_PAY_CONTROLLER_STATE_MOCK = merge({}, PAY_CONTROLLER_STATE_MOCK, {
+  engine: {
+    backgroundState: {
+      TransactionPayController: {
+        transactionData: {
+          'parent-1': {
+            quotes: [
+              {},
+              {
+                original: {
+                  metrics: undefined,
+                  providerId: 'across',
+                  quote: {
+                    metrics: { latency: 2222 },
+                  },
+                },
+                request: {
+                  targetTokenAddress: '0x123',
+                },
+                strategy: TransactionPayStrategy.TokenPay,
+              },
+            ],
+          },
+        },
+      },
+    },
+  },
+}) as unknown as RootState;
+
 describe('Metamask Pay Metrics', () => {
   const getStateMock: jest.MockedFn<
     Parameters<TransactionMetricsBuilder>[0]['getState']
@@ -219,6 +248,35 @@ describe('Metamask Pay Metrics', () => {
     });
   });
 
+  it('adds token pay quote latency for bridge', () => {
+    request.transactionMeta.type = TransactionType.bridge;
+
+    request.allTransactions = [
+      {
+        id: 'child-0',
+        type: TransactionType.bridge,
+      } as TransactionMeta,
+      {
+        id: 'parent-1',
+        type: TransactionType.perpsDeposit,
+        requiredTransactionIds: ['child-0', 'child-1'],
+      } as TransactionMeta,
+      request.transactionMeta,
+    ];
+
+    getStateMock.mockReturnValue(TOKEN_PAY_CONTROLLER_STATE_MOCK);
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: expect.objectContaining({
+        mm_pay_quotes_latency: 2222,
+        mm_pay_strategy: 'across',
+      }),
+      sensitiveProperties: {},
+    });
+  });
+
   it('adds quote properties if swap', () => {
     request.transactionMeta.batchId = BATCH_ID_MOCK;
     request.transactionMeta.type = TransactionType.swap;
@@ -368,6 +426,21 @@ describe('Metamask Pay Metrics', () => {
       properties: {
         polymarket_account_created: false,
       },
+      sensitiveProperties: {},
+    });
+  });
+
+  it('adds execution latency when available', () => {
+    request.transactionMeta.metamaskPay = {
+      executionLatencyMs: 400,
+    };
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: expect.objectContaining({
+        mm_pay_execution_latency: 400,
+      }),
       sensitiveProperties: {},
     });
   });
