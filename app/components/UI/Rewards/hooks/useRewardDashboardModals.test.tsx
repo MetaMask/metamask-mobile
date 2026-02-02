@@ -337,7 +337,7 @@ describe('useRewardDashboardModals', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
         expect.objectContaining({
-          title: 'Start earning rewards',
+          title: "Don't miss out",
         }),
       );
     });
