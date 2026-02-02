@@ -50,46 +50,27 @@ const GAS_SPONSORSHIP_WARNING_RULES: Partial<
 /**
  * Checks if the callTraceErrors match any sponsorship warning rules for the given chain.
  *
- * @param params - Parameters for checking sponsorship warning
- * @param params.callTraceErrors - Array of error messages from simulation
- * @param params.chainId - The chain ID of the transaction
- * @param params.nativeTokenSymbol - The native token symbol of the chain
- * @returns The warning message if a rule matches, null otherwise
+ * @param callTraceErrors - Array of error messages from simulation
+ * @param chainId - The chain ID of the transaction
+ * @returns True if a matching rule is found, false otherwise
  */
-function getGasSponsorshipWarning({
-  callTraceErrors,
-  chainId,
-  nativeTokenSymbol,
-}: {
-  callTraceErrors?: string[];
-  chainId: Hex;
-  nativeTokenSymbol: string;
-}): { message: string; title: string } | null {
+function hasGasSponsorshipWarning(
+  callTraceErrors: string[] | undefined,
+  chainId: Hex,
+): boolean {
   if (!callTraceErrors?.length) {
-    return null;
+    return false;
   }
 
   const rule = GAS_SPONSORSHIP_WARNING_RULES[chainId];
   if (!rule) {
-    return null;
+    return false;
   }
 
   const normalizedErrors = callTraceErrors.map((error) => error.toLowerCase());
-  const hasMatch = rule.matchers.some((matcher) =>
+  return rule.matchers.some((matcher) =>
     normalizedErrors.some((error) => error.includes(matcher)),
   );
-
-  if (!hasMatch) {
-    return null;
-  }
-
-  return {
-    message: strings(rule.messageKey, {
-      minBalance: rule.minBalance,
-      nativeTokenSymbol,
-    }),
-    title: strings('alert_system.gas_sponsorship_reserve_balance.title'),
-  };
 }
 
 /**
@@ -118,24 +99,28 @@ export const useGasSponsorshipWarningAlert = (): Alert[] => {
     simulationData as SimulationDataWithCallTraceErrors | undefined
   )?.callTraceErrors;
 
-  const warningContent =
-    chainId && nativeCurrency
-      ? getGasSponsorshipWarning({
-          callTraceErrors,
-          chainId: chainId as Hex,
-          nativeTokenSymbol: nativeCurrency,
-        })
-      : null;
+  // Use primitive boolean to avoid object reference changes on every render
+  const hasWarning = useMemo(
+    () =>
+      chainId
+        ? hasGasSponsorshipWarning(callTraceErrors, chainId as Hex)
+        : false,
+    [callTraceErrors, chainId],
+  );
 
   // Only show warning when:
-  // 1. We have a warning message from matching rules
+  // 1. We have a warning match from configured rules
   // 2. Gas fee is NOT currently sponsored (the warning explains why)
   // 3. Gasless is supported on this network (otherwise sponsorship wouldn't be expected)
-  const shouldShow =
-    Boolean(warningContent) && !isGasFeeSponsored && isGaslessSupported;
+  const shouldShow = hasWarning && !isGasFeeSponsored && isGaslessSupported;
 
   return useMemo(() => {
-    if (!shouldShow || !warningContent) {
+    if (!shouldShow || !chainId || !nativeCurrency) {
+      return [];
+    }
+
+    const rule = GAS_SPONSORSHIP_WARNING_RULES[chainId as Hex];
+    if (!rule) {
       return [];
     }
 
@@ -144,10 +129,13 @@ export const useGasSponsorshipWarningAlert = (): Alert[] => {
         isBlocking: false,
         field: RowAlertKey.EstimatedFee,
         key: AlertKeys.GasSponsorshipReserveBalance,
-        message: warningContent.message,
-        title: warningContent.title,
+        message: strings(rule.messageKey, {
+          minBalance: rule.minBalance,
+          nativeTokenSymbol: nativeCurrency,
+        }),
+        title: strings('alert_system.gas_sponsorship_reserve_balance.title'),
         severity: Severity.Warning,
       },
     ];
-  }, [shouldShow, warningContent]);
+  }, [shouldShow, chainId, nativeCurrency]);
 };
