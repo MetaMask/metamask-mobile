@@ -82,6 +82,7 @@ describe('usePerpsMarketStats', () => {
       hasHistoricalData: true,
       error: null,
       fetchMoreHistory: jest.fn(),
+      retry: jest.fn(),
     });
 
     // Act: Render the hook with a symbol
@@ -108,6 +109,7 @@ describe('usePerpsMarketStats', () => {
       hasHistoricalData: false,
       error: null,
       fetchMoreHistory: jest.fn(),
+      retry: jest.fn(),
     });
 
     // Act: Render the hook
@@ -128,6 +130,7 @@ describe('usePerpsMarketStats', () => {
       hasHistoricalData: false,
       error: null,
       fetchMoreHistory: jest.fn(),
+      retry: jest.fn(),
     });
 
     // Act: Render the hook
@@ -166,6 +169,7 @@ describe('usePerpsMarketStats', () => {
       hasHistoricalData: true,
       error: null,
       fetchMoreHistory: jest.fn(),
+      retry: jest.fn(),
     });
 
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));
@@ -195,6 +199,7 @@ describe('usePerpsMarketStats', () => {
       hasHistoricalData: true,
       error: null,
       fetchMoreHistory: jest.fn(),
+      retry: jest.fn(),
     });
 
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));
