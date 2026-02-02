@@ -441,7 +441,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
         })
         .catch((error) => {
           Logger.error(
-            error instanceof Error ? error : new Error(String(error)),
+            ensureError(error, 'PriceStreamChannel.prewarm.backgroundFetch'),
             {
               context: 'PriceStreamChannel.prewarm.backgroundFetch',
             },
@@ -449,6 +449,10 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           // Reset state so subsequent prewarm/connect calls can recover
           this.prewarmUnsubscribe = undefined;
           this.allMarketSymbols = [];
+          // Reconnect waiting subscribers that were skipped because prewarm was pending
+          if (this.subscribers.size > 0) {
+            this.connect();
+          }
         });
 
       // Return cleanup function immediately (before markets load)
@@ -1333,7 +1337,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   public prewarm(): () => void {
     // Fetch data immediately to populate cache
     this.fetchMarketData().catch((error) => {
-      Logger.error(error instanceof Error ? error : new Error(String(error)), {
+      Logger.error(ensureError(error, 'MarketDataChannel.prewarm'), {
         context: 'MarketDataChannel.prewarm',
       });
     });
