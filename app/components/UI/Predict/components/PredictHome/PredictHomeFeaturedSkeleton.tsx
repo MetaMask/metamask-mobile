@@ -4,6 +4,7 @@ import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { PredictHomeFeaturedVariant } from '../../selectors/featureFlags';
+import PredictHomeSkeleton from './PredictHomeSkeleton';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH * 0.8;
@@ -13,28 +14,6 @@ interface PredictHomeFeaturedSkeletonProps {
   variant: PredictHomeFeaturedVariant;
   testID?: string;
 }
-
-const ListSkeleton: React.FC<{ testID: string }> = ({ testID }) => {
-  const tw = useTailwind();
-
-  return (
-    <Box testID={testID}>
-      {[0, 1, 2].map((index) => (
-        <Box
-          key={`skeleton-${index}`}
-          flexDirection={BoxFlexDirection.Row}
-          twClassName="items-center py-3 gap-3"
-        >
-          <Skeleton width={40} height={40} style={tw.style('rounded-full')} />
-          <Box twClassName="flex-1 gap-1">
-            <Skeleton width="80%" height={18} style={tw.style('rounded-md')} />
-            <Skeleton width="60%" height={14} style={tw.style('rounded-md')} />
-          </Box>
-        </Box>
-      ))}
-    </Box>
-  );
-};
 
 const CarouselSkeleton: React.FC<{ testID: string }> = ({ testID }) => {
   const tw = useTailwind();
@@ -97,7 +76,7 @@ const PredictHomeFeaturedSkeleton: React.FC<
         <Skeleton width={16} height={16} style={tw.style('rounded-full')} />
       </Box>
       {variant === 'list' ? (
-        <ListSkeleton testID={`${testID}-list`} />
+        <PredictHomeSkeleton testID={`${testID}-list`} />
       ) : (
         <CarouselSkeleton testID={`${testID}-carousel`} />
       )}

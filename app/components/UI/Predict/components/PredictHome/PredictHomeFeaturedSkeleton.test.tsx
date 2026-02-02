@@ -43,6 +43,16 @@ jest.mock(
   },
 );
 
+jest.mock('./PredictHomeSkeleton', () => {
+  const ReactNative = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ testID }: { testID?: string }) => (
+      <ReactNative.View testID={testID || 'predict-home-skeleton'} />
+    ),
+  };
+});
+
 describe('PredictHomeFeaturedSkeleton', () => {
   describe('rendering', () => {
     it('renders container with default testID', () => {
