@@ -45,7 +45,7 @@ describe(SmokeWalletPlatform('Trending Feature Browser Test'), () => {
         await navigateToBrowserView();
 
         // click on the first default Tab
-        await Browser.tapFirstTabButton;
+        await Browser.tapFirstTabButton();
 
         // Navigate to Test Dapp
         await Browser.navigateToTestDApp();
