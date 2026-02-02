@@ -23,16 +23,6 @@ const mockSelectedToken = {
   tokenSupported: true,
 };
 
-const mockSelectedToken = {
-  assetId: 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
-  chainId: 'eip155:1',
-  symbol: 'ETH',
-  name: 'Ethereum',
-  decimals: 18,
-  iconUrl: 'https://example.com/eth-icon.png',
-  tokenSupported: true,
-};
-
 const mockTokens = {
   topTokens: [
     { symbol: 'ETH', name: 'Ethereum' },

@@ -289,13 +289,17 @@ describe('RampsController Selectors', () => {
 
   describe('selectSelectedToken', () => {
     it('returns selected token from state', () => {
-      const state = createMockState({ selectedToken: mockToken });
+      const state = createMockState({
+        tokens: createDefaultResourceState(null, mockToken),
+      });
 
       expect(selectSelectedToken(state)).toEqual(mockToken);
     });
 
     it('returns null when selected token is null', () => {
-      const state = createMockState({ selectedToken: null });
+      const state = createMockState({
+        tokens: createDefaultResourceState(null, null),
+      });
 
       expect(selectSelectedToken(state)).toBeNull();
     });
@@ -310,20 +314,6 @@ describe('RampsController Selectors', () => {
       } as unknown as RootState;
 
       expect(selectSelectedToken(state)).toBeNull();
-    });
-  });
-
-  describe('selectCountries', () => {
-    it('returns countries from state', () => {
-      const state = createMockState({ countries: mockCountries });
-
-      expect(selectCountries(state)).toEqual(mockCountries);
-    });
-
-    it('returns empty array when countries are not available', () => {
-      const state = createMockState();
-
-      expect(selectCountries(state)).toEqual([]);
     });
   });
 

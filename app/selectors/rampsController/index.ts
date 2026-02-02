@@ -153,7 +153,10 @@ export const selectQuotes = createSelector(
 export const selectSelectedToken = createSelector(
   selectRampsControllerState,
   (rampsControllerState) =>
-    (rampsControllerState as Record<string, unknown>)?.selectedToken ?? null,
+    (rampsControllerState?.tokens as { selected?: unknown } | undefined)
+      ?.selected ??
+    (rampsControllerState as Record<string, unknown>)?.selectedToken ??
+    null,
 );
 
 /**
