@@ -1,9 +1,9 @@
 import { Mockttp } from 'mockttp';
-import { TestSpecificMock } from '../../../../tests/framework';
+import { TestSpecificMock } from '../../framework';
 import {
   interceptProxyUrl,
   setupMockRequest,
-} from '../../../../tests/api-mocking/helpers/mockHelpers';
+} from '../../api-mocking/helpers/mockHelpers.ts';
 import {
   GET_QUOTE_ETH_USDC_RESPONSE,
   GET_QUOTE_ETH_DAI_RESPONSE,
@@ -12,7 +12,7 @@ import {
   GET_POPULAR_TOKENS_MAINNET_RESPONSE,
   GET_TOKENS_API_USDC_RESPONSE,
   GET_TOKENS_API_USDT_RESPONSE,
-} from './constants';
+} from './constants.ts';
 
 export const testSpecificMock: TestSpecificMock = async (
   mockServer: Mockttp,

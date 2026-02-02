@@ -1,7 +1,7 @@
 import { Mockttp } from 'mockttp';
-import { TestSpecificMock } from '../../../../tests/framework';
-import { setupMockRequest } from '../../../../tests/api-mocking/helpers/mockHelpers';
-import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { TestSpecificMock } from '../../framework';
+import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers.ts';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.ts';
 import {
   GET_TOKENS_MAINNET_RESPONSE,
   GET_TOKENS_SOLANA_RESPONSE,
@@ -11,7 +11,7 @@ import {
   GET_TOP_ASSETS_BASE_RESPONSE,
   GET_POPULAR_TOKENS_MAINNET_RESPONSE,
   GET_POPULAR_TOKENS_BASE_RESPONSE,
-} from './constants';
+} from './constants.ts';
 
 export const testSpecificMock: TestSpecificMock = async (
   mockServer: Mockttp,

@@ -1,24 +1,24 @@
-import { SmokeWalletPlatform } from '../../tags';
-import TestHelpers from '../../helpers';
-import WalletView from '../../pages/wallet/WalletView';
-import { loginToApp } from '../../viewHelper';
-import Assertions from '../../../tests/framework/Assertions';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import { SmokeWalletPlatform } from '../../../e2e/tags';
+import TestHelpers from '../../../e2e/helpers';
+import WalletView from '../../../e2e/pages/wallet/WalletView.ts';
+import { loginToApp } from '../../../e2e/viewHelper.ts';
+import Assertions from '../../framework/Assertions.ts';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
 import {
   LocalNode,
   LocalNodeType,
   type WithFixturesOptions,
-} from '../../../tests/framework/types';
-import { AnvilManager } from '../../../tests/seeder/anvil-manager';
-import TransactionPayConfirmation from '../../pages/Confirmation/TransactionPayConfirmation';
-import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import { setupMusdMocks } from '../../../tests/api-mocking/mock-responses/musd/musd-mocks';
+} from '../../framework/types.ts';
+import { AnvilManager } from '../../seeder/anvil-manager.ts';
+import TransactionPayConfirmation from '../../../e2e/pages/Confirmation/TransactionPayConfirmation.ts';
+import FooterActions from '../../../e2e/pages/Browser/Confirmations/FooterActions.ts';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent.ts';
+import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView.ts';
+import { setupMusdMocks } from '../../api-mocking/mock-responses/musd/musd-mocks.ts';
 import {
   createMusdFixture,
   type MusdFixtureOptions,
-} from './helpers/musd-fixture';
+} from './helpers/musd-fixture.ts';
 
 /**
  * Returns the shared withFixtures config for mUSD conversion tests.

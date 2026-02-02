@@ -1,6 +1,6 @@
-import TabBarComponent from '../../../pages/wallet/TabBarComponent';
-import SettingsView from '../../../pages/Settings/SettingsView';
-import AdvancedSettingsView from '../../../pages/Settings/AdvancedView';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent.ts';
+import SettingsView from '../../../e2e/pages/Settings/SettingsView.ts';
+import AdvancedSettingsView from '../../../e2e/pages/Settings/AdvancedView.ts';
 
 /**
  * Prepares the swaps test environment by disabling Smart Transactions (stx).
