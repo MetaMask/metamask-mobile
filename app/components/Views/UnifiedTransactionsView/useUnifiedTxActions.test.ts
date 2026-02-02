@@ -15,6 +15,7 @@ import {
   LedgerReplacementTxTypes,
   createLedgerTransactionModalNavDetails,
 } from '../../UI/LedgerModals/LedgerTransactionModal';
+import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
 
 const mockNavigate = jest.fn();
 
