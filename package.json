@@ -299,7 +299,7 @@
     "@metamask/swaps-controller": "^15.0.0",
     "@metamask/transaction-controller": "patch:@metamask/transaction-controller@npm%3A62.9.0#~/.yarn/patches/@metamask-transaction-controller-npm-62.9.0-5c8f871530.patch",
     "@metamask/transaction-pay-controller": "^12.0.2",
-    "@metamask/tron-wallet-snap": "^1.19.2",
+    "@metamask/tron-wallet-snap": "^1.20.0",
     "@metamask/utils": "^11.8.1",
     "@ngraveio/bc-ur": "^1.1.6",
     "@nktkas/hyperliquid": "^0.30.2",
