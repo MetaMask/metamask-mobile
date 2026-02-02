@@ -368,6 +368,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     isLoading: isLoadingHistory,
     hasHistoricalData,
     fetchMoreHistory,
+    retry: retryCandles,
   } = usePerpsLiveCandles({
     symbol: market?.symbol || '',
     interval: selectedCandlePeriod,
@@ -547,8 +548,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       // Reset chart view to default position
       chartRef.current?.resetToDefault();
 
-      // WebSocket streaming provides real-time data - no manual refresh needed
-      // Just reset the UI state and the chart will update automatically
+      // Retry candle subscription (helps recover from stale WebSocket connections)
+      retryCandles();
     } catch (error) {
       Logger.error(ensureError(error), {
         feature: PERPS_CONSTANTS.FeatureName,
@@ -557,7 +558,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     } finally {
       setRefreshing(false);
     }
-  }, []);
+  }, [retryCandles]);
 
   // Check if notifications feature is enabled once
   const isNotificationsEnabled = isNotificationsFeatureEnabled();

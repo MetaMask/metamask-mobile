@@ -441,9 +441,10 @@ export class HyperLiquidClientService {
       const intervalMs = this.getIntervalMilliseconds(interval);
       const startTime = now - limit * intervalMs;
 
-      // Use the SDK's InfoClient to fetch candle data
+      // Use HTTP client for candle fetches - it's stateless and more reliable
+      // WebSocket client can get into stale connection states during network instability
       // HyperLiquid SDK uses 'coin' terminology
-      const infoClient = this.getInfoClient();
+      const infoClient = this.getInfoClient({ useHttp: true });
       const data = await infoClient.candleSnapshot({
         coin: symbol, // Map to HyperLiquid SDK's 'coin' parameter
         interval,

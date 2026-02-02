@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import type { CandleData } from '../../types/perps-types';
 import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
@@ -38,6 +38,8 @@ export interface UsePerpsLiveCandlesReturn {
   error: Error | null;
   /** Fetch more historical candles before the current oldest candle */
   fetchMoreHistory: () => Promise<void>;
+  /** Retry subscription after error (useful for pull-to-refresh) */
+  retry: () => void;
 }
 
 /**
@@ -72,6 +74,8 @@ export function usePerpsLiveCandles(
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const hasReceivedFirstUpdate = useRef(false);
+  // Retry key - incrementing this triggers a re-subscription
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     // Reset state immediately when symbol or interval changes to prevent stale data
@@ -173,10 +177,18 @@ export function usePerpsLiveCandles(
       setIsLoading(false);
       return;
     }
-  }, [stream, symbol, interval, duration, throttleMs]);
+  }, [stream, symbol, interval, duration, throttleMs, retryKey]);
 
   const hasHistoricalData =
     candleData !== null && candleData.candles.length > 0;
+
+  /**
+   * Retry subscription after an error
+   * Useful for pull-to-refresh when initial fetch failed
+   */
+  const retry = useCallback(() => {
+    setRetryKey((prev) => prev + 1);
+  }, []);
 
   /**
    * Fetch additional historical candles before the current oldest candle
@@ -221,5 +233,6 @@ export function usePerpsLiveCandles(
     hasHistoricalData,
     error,
     fetchMoreHistory,
+    retry,
   };
 }
