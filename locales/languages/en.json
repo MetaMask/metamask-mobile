@@ -7229,6 +7229,9 @@
       "no_end_of_season_rewards": "You didn't earn rewards this season, but there's always next time.",
       "verifying_rewards": "We're making sure everything's correct before you claim your rewards."
     },
+    "season_status": {
+      "points_earned": "Points earned"
+    },
     "onboarding": {
       "not_supported_region_title": "Region not supported",
       "not_supported_region_description": "Rewards are not supported in your region yet. We are working on expanding access, so check back later.",
