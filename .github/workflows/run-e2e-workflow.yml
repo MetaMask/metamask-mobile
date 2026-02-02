@@ -175,9 +175,16 @@ jobs:
         if: ${{ inputs.platform == 'android' }}
         run: |
           # Copy from artifacts to expected locations
-          # upload-artifact preserves the full path structure when uploading files
-          cp artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk/${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
-          cp artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk/${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
+          # Use find to locate files - artifact structure varies (path preserved vs flattened)
+          APK_FILE=$(find artifacts -name "${{ steps.determine-target-paths.outputs.artifact_name }}.apk" -type f | head -1)
+          TEST_APK_FILE=$(find artifacts -name "${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk" -type f | head -1)
+          if [[ -z "$APK_FILE" || -z "$TEST_APK_FILE" ]]; then
+            echo "Artifact structure:"
+            find artifacts -type f -name "*.apk"
+            exit 1
+          fi
+          cp "$APK_FILE" ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
+          cp "$TEST_APK_FILE" ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
           echo "✅ Android artifacts ready for E2E tests"
 
       - name: Setup iOS artifacts from build job
