@@ -1,8 +1,8 @@
-import { loginToApp } from '../../../viewHelper';
-import WalletView from '../../../pages/wallet/WalletView';
-import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
-import Assertions from '../../../../tests/framework/Assertions';
-import { SmokeIdentity } from '../../../tags';
+import { loginToApp } from '../../../../e2e/viewHelper';
+import WalletView from '../../../../e2e/pages/wallet/WalletView';
+import AccountListBottomSheet from '../../../../e2e/pages/wallet/AccountListBottomSheet';
+import Assertions from '../../../framework/Assertions';
+import { SmokeIdentity } from '../../../../e2e/tags';
 import { withIdentityFixtures } from '../utils/withIdentityFixtures';
 import { arrangeTestUtils } from '../utils/helpers';
 import {
@@ -14,8 +14,8 @@ import {
   USER_STORAGE_GROUPS_FEATURE_KEY,
   USER_STORAGE_WALLETS_FEATURE_KEY,
 } from '@metamask/account-tree-controller';
-import AccountDetails from '../../../pages/MultichainAccounts/AccountDetails';
-import EditAccountName from '../../../pages/MultichainAccounts/EditAccountName';
+import AccountDetails from '../../../../e2e/pages/MultichainAccounts/AccountDetails';
+import EditAccountName from '../../../../e2e/pages/MultichainAccounts/EditAccountName';
 
 describe(
   SmokeIdentity('Account syncing - Adding and Renaming Accounts'),
