@@ -61,9 +61,10 @@ describe('useMusdRampAvailability', () => {
     mockUseRampTokens.mockReturnValue(defaultRampTokens);
     mockUseRampsTokens.mockReturnValue({
       tokens: null,
+      selectedToken: null,
+      setSelectedToken: jest.fn(),
       isLoading: false,
       error: null,
-      fetchTokens: jest.fn(),
     });
   });
 
@@ -258,9 +259,10 @@ describe('useMusdRampAvailability', () => {
         tokens: createControllerTokens([
           createMusdRampToken(CHAIN_IDS.MAINNET),
         ]),
+        selectedToken: null,
+        setSelectedToken: jest.fn(),
         isLoading: false,
         error: null,
-        fetchTokens: jest.fn(),
       });
 
       const { result } = renderHook(() => useMusdRampAvailability());
@@ -286,9 +288,10 @@ describe('useMusdRampAvailability', () => {
       mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
       mockUseRampsTokens.mockReturnValue({
         tokens: null,
+        selectedToken: null,
+        setSelectedToken: jest.fn(),
         isLoading: false,
         error: null,
-        fetchTokens: jest.fn(),
       });
 
       const { result } = renderHook(() => useMusdRampAvailability());
