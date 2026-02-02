@@ -19,19 +19,19 @@ permissions:
   id-token: write
 
 jobs:
-  confirmations-redesigned-ios-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeConfirmationsRedesigned')
+  confirmations-ios-smoke:
+    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeConfirmations')
     strategy:
       matrix:
-        split: [1, 2, 3]
+        split: [1, 2, 3, 4]
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
-      test-suite-name: confirmations-redesigned-ios-smoke-${{ matrix.split }}
+      test-suite-name: confirmations-ios-smoke-${{ matrix.split }}
       platform: ios
-      test_suite_tag: 'SmokeConfirmationsRedesigned'
+      test_suite_tag: 'SmokeConfirmations'
       split_number: ${{ matrix.split }}
-      total_splits: 3
+      total_splits: 4
       changed_files: ${{ inputs.changed_files }}
     secrets: inherit
 
@@ -232,7 +232,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ !cancelled() && inputs.selected_tags != '[]' && inputs.selected_tags != '["FlaskBuildTests"]' }}
     needs:
-      - confirmations-redesigned-ios-smoke
+      - confirmations-ios-smoke
       - trade-ios-smoke
       - perps-ios-smoke
       - wallet-platform-ios-smoke
