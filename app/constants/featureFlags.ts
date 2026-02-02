@@ -12,10 +12,12 @@ export enum FeatureFlagNames {
   fullPageAccountList = 'fullPageAccountList',
   importSrpWordSuggestion = 'importSrpWordSuggestion',
   assetsDefiPositionsEnabled = 'assetsDefiPositionsEnabled',
+  tokenDetailsV2 = 'tokenDetailsV2',
 }
 
 export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
   Record<FeatureFlagNames, Json>
 > = {
   [FeatureFlagNames.assetsDefiPositionsEnabled]: true,
+  [FeatureFlagNames.tokenDetailsV2]: false,
 };

@@ -108,7 +108,7 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
         onPress={handleViewAll}
       >
         <View style={styles.titleRow}>
-          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+          <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
             {title}
           </Text>
           <Icon

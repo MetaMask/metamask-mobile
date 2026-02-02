@@ -349,25 +349,6 @@ describe('PredictMarketSingle', () => {
     expect(getByText('No')).toBeOnTheScreen();
   });
 
-  it('navigates to add funds sheet when user has no balance', () => {
-    // Mock user has no balance
-    mockUsePredictBalance.mockReturnValue({
-      hasNoBalance: true,
-    });
-
-    const { getByText } = renderWithProvider(
-      <PredictMarketSingle market={mockMarket} />,
-      { state: initialState },
-    );
-
-    const yesButton = getByText('Yes');
-    fireEvent.press(yesButton);
-
-    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
-      screen: 'PredictAddFundsSheet',
-    });
-  });
-
   it('checks eligibility before balance for Yes button', () => {
     // Mock user is not eligible AND has no balance
     mockUsePredictEligibility.mockReturnValue({

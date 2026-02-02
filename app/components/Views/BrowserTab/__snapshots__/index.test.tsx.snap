@@ -98,7 +98,7 @@ exports[`BrowserTab render Browser 1`] = `
         >
           <SvgMock
             fill="currentColor"
-            name="Close"
+            name="ArrowLeft"
             style={
               [
                 {

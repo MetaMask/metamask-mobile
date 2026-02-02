@@ -198,7 +198,6 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
         });
       },
       {
-        checkBalance: true,
         attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
       },
     );

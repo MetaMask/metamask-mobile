@@ -235,7 +235,6 @@ describe('PredictSportCardFooter', () => {
     mockUsePredictActionGuard.mockReturnValue({
       executeGuardedAction: mockExecuteGuardedAction,
       isEligible: true,
-      hasNoBalance: false,
     });
 
     mockUsePredictClaim.mockReturnValue({
@@ -514,7 +513,6 @@ describe('PredictSportCardFooter', () => {
         expect(mockExecuteGuardedAction).toHaveBeenCalledWith(
           expect.any(Function),
           {
-            checkBalance: true,
             attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
           },
         );
