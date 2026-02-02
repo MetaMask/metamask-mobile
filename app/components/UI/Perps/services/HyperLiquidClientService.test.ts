@@ -37,10 +37,15 @@ const mockSubscriptionClient = {
     },
   },
 };
+const mockSocket = {
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+};
 const mockWsTransport = {
   url: 'ws://mock',
   close: jest.fn().mockResolvedValue(undefined),
   ready: mockWsTransportReady,
+  socket: mockSocket,
 };
 const mockHttpTransport = {
   url: 'http://mock',
@@ -86,9 +91,28 @@ describe('HyperLiquidClientService', () => {
   let mockWallet: any;
   let mockDeps: ReturnType<typeof createMockInfrastructure>;
 
+  // Use fake timers globally to ensure all intervals/timeouts can be cleared
+  beforeAll(() => {
+    jest.useFakeTimers();
+  });
+
+  afterAll(() => {
+    // Final cleanup - ensure all mocks and timers are reset
+    jest.useRealTimers();
+    jest.restoreAllMocks();
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.clearAllTimers();
     mockInfoClientCallCount = 0; // Reset InfoClient call counter
+
+    // Restore default mock for transport ready
+    mockWsTransportReady.mockResolvedValue(undefined);
+    // Restore default mock for transport close
+    mockWsTransport.close.mockResolvedValue(undefined);
+    // Reset socket event listener mock
+    mockSocket.addEventListener.mockClear();
 
     mockWallet = {
       request: jest.fn().mockResolvedValue('0x123'),
@@ -96,6 +120,17 @@ describe('HyperLiquidClientService', () => {
 
     mockDeps = createMockInfrastructure();
     service = new HyperLiquidClientService(mockDeps);
+  });
+
+  afterEach(async () => {
+    // Clean up the service to stop health check monitoring and close connections
+    try {
+      await service.disconnect();
+    } catch {
+      // Ignore disconnect errors in cleanup
+    }
+    // Clear all pending timers to prevent open handles
+    jest.clearAllTimers();
   });
 
   describe('Constructor and Configuration', () => {
@@ -429,9 +464,7 @@ describe('HyperLiquidClientService', () => {
       // Make transport.ready() reject with abort error
       mockWsTransportReady.mockRejectedValueOnce(new Error('Aborted'));
 
-      await expect(service.initialize(mockWallet)).rejects.toThrow(
-        'WebSocket initialization failed',
-      );
+      await expect(service.initialize(mockWallet)).rejects.toThrow('Aborted');
       expect(service.isInitialized()).toBe(false);
     });
   });
@@ -604,9 +637,9 @@ describe('HyperLiquidClientService', () => {
     it('handles different interval formats', async () => {
       // Arrange
       const testCases = [
-        { interval: CandlePeriod.THREE_MINUTES, expected: 180000 }, // 3 minutes = 3 * 60 * 1000
-        { interval: CandlePeriod.ONE_HOUR, expected: 3600000 },
-        { interval: CandlePeriod.ONE_DAY, expected: 86400000 },
+        { interval: CandlePeriod.ThreeMinutes, expected: 180000 }, // 3 minutes = 3 * 60 * 1000
+        { interval: CandlePeriod.OneHour, expected: 3600000 },
+        { interval: CandlePeriod.OneDay, expected: 86400000 },
       ];
 
       for (const { interval, expected } of testCases) {
@@ -748,7 +781,7 @@ describe('HyperLiquidClientService', () => {
       });
 
       // Wait for async operations
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await jest.advanceTimersByTimeAsync(100);
 
       // Assert - should have fetched historical data (SDK uses 'coin' terminology)
       expect(mockInfoClientWs.candleSnapshot).toHaveBeenCalledWith(
@@ -813,7 +846,7 @@ describe('HyperLiquidClientService', () => {
         callback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await jest.advanceTimersByTimeAsync(100);
 
       // Assert - numbers converted to strings
       expect(callback).toHaveBeenCalledWith(
@@ -866,7 +899,7 @@ describe('HyperLiquidClientService', () => {
         callback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await jest.advanceTimersByTimeAsync(100);
 
       // Clear previous callback invocations
       callback.mockClear();
@@ -934,7 +967,7 @@ describe('HyperLiquidClientService', () => {
         callback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await jest.advanceTimersByTimeAsync(100);
 
       // Clear previous callback invocations
       callback.mockClear();
@@ -1010,7 +1043,7 @@ describe('HyperLiquidClientService', () => {
         callback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await jest.advanceTimersByTimeAsync(100);
 
       const firstCallCandles = callback.mock.calls[0][0].candles;
 
@@ -1047,7 +1080,7 @@ describe('HyperLiquidClientService', () => {
         callback,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await jest.advanceTimersByTimeAsync(100);
 
       // Assert - callback invoked with empty candles
       expect(callback).toHaveBeenCalledWith({
@@ -1076,7 +1109,7 @@ describe('HyperLiquidClientService', () => {
       });
 
       // Wait for subscription to complete
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await jest.advanceTimersByTimeAsync(100);
 
       // Call unsubscribe
       unsubscribe();
@@ -1117,7 +1150,7 @@ describe('HyperLiquidClientService', () => {
       resolveSnapshot([]);
 
       // Wait for async operations to complete
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await jest.advanceTimersByTimeAsync(100);
 
       // Assert - WebSocket subscription should not be created because
       // we already unsubscribed before the async chain completed
@@ -1151,7 +1184,7 @@ describe('HyperLiquidClientService', () => {
       });
 
       // Wait for snapshot to complete
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await jest.advanceTimersByTimeAsync(50);
 
       // Unsubscribe while WebSocket is still being established
       unsubscribe();
@@ -1160,21 +1193,21 @@ describe('HyperLiquidClientService', () => {
       resolveWsSubscription({ unsubscribe: mockWsUnsubscribe });
 
       // Wait for async cleanup to complete
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await jest.advanceTimersByTimeAsync(100);
 
       // Assert - WebSocket should be cleaned up immediately after establishing
       expect(mockWsUnsubscribe).toHaveBeenCalled();
     });
   });
 
-  describe('Reconnection and Health Check', () => {
-    beforeEach(() => {
-      jest.useFakeTimers();
-      jest.clearAllTimers();
-    });
-
+  describe('Reconnection and Terminate Event', () => {
     afterEach(() => {
-      jest.useRealTimers();
+      // Restore default mock implementations that may have been changed by tests
+      const { WebSocketTransport } = require('@nktkas/hyperliquid');
+      (WebSocketTransport as jest.Mock).mockImplementation(
+        () => mockWsTransport,
+      );
+      mockWsTransportReady.mockResolvedValue(undefined);
     });
 
     it('sets reconnection callback', () => {
@@ -1186,224 +1219,420 @@ describe('HyperLiquidClientService', () => {
       expect(() => service.setOnReconnectCallback(callback)).not.toThrow();
     });
 
-    it('starts health check monitoring after initialization', async () => {
-      await service.initialize(mockWallet);
+    it('sets terminate callback', () => {
+      const callback = jest.fn();
 
-      // Health check monitoring should start (interval is set)
-      // Fast-forward time to trigger health check
-      jest.advanceTimersByTime(5000);
+      service.setOnTerminateCallback(callback);
 
-      // Verify transport.ready was called (health check executed)
-      // Called once during init (ensureTransportReady) and once during health check
-      expect(mockWsTransportReady).toHaveBeenCalled();
+      // Callback is stored internally, verify it can be set without error
+      expect(() => service.setOnTerminateCallback(callback)).not.toThrow();
     });
 
-    it('skips health check when already running', async () => {
-      await service.initialize(mockWallet);
+    it('clears terminate callback when set to null', () => {
+      const callback = jest.fn();
 
-      // Reset mock after initialization
-      mockWsTransportReady.mockClear();
+      service.setOnTerminateCallback(callback);
+      service.setOnTerminateCallback(null);
 
-      // Make health check take a long time
-      let resolveReady: () => void = () => {
-        /* noop */
-      };
-      const delayedReady = new Promise<void>((resolve) => {
-        resolveReady = resolve;
-      });
-      mockWsTransportReady.mockReturnValueOnce(delayedReady);
-
-      // Trigger first health check
-      jest.advanceTimersByTime(5000);
-
-      // Try to trigger another health check while first is running
-      jest.advanceTimersByTime(5000);
-
-      // Should only have one call (second one skipped)
-      expect(mockWsTransportReady).toHaveBeenCalledTimes(1);
-
-      // Cleanup
-      resolveReady();
-      await delayedReady;
+      // Callback should be cleared without error
+      expect(() => service.setOnTerminateCallback(null)).not.toThrow();
     });
 
-    it('skips health check when disconnected', () => {
-      // Don't initialize, so connection state is DISCONNECTED
-      // Health check should not run
-      jest.advanceTimersByTime(10000);
+    it('registers terminate event listener on WebSocket transport', () => {
+      service.initialize(mockWallet);
 
-      expect(mockWsTransportReady).not.toHaveBeenCalled();
+      // Verify that addEventListener was called with 'terminate'
+      expect(mockSocket.addEventListener).toHaveBeenCalledWith(
+        'terminate',
+        expect.any(Function),
+      );
     });
 
-    it('handles connection drop and triggers reconnection callback', async () => {
-      const reconnectCallback = jest.fn().mockResolvedValue(undefined);
-      await service.initialize(mockWallet);
-      service.setOnReconnectCallback(reconnectCallback);
+    it('calls terminate callback when terminate event is fired', () => {
+      const terminateCallback = jest.fn();
+      service.initialize(mockWallet);
+      service.setOnTerminateCallback(terminateCallback);
 
-      // Reset the mock after initialization
-      mockWsTransportReady.mockClear();
+      // Get the terminate event handler that was registered
+      const terminateHandler = mockSocket.addEventListener.mock.calls.find(
+        (call: [string, (...args: unknown[]) => unknown]) =>
+          call[0] === 'terminate',
+      )?.[1] as (event: Event) => void;
 
-      // Make health check fail (simulate connection drop)
-      // But transport.ready on the NEW transport should succeed (so callback gets called)
-      mockWsTransportReady
-        .mockRejectedValueOnce(new Error('Connection lost')) // Health check fails
-        .mockResolvedValue(undefined); // Transport ready succeeds after reconnection
+      expect(terminateHandler).toBeDefined();
 
-      // Fast-forward to trigger health check
-      jest.advanceTimersByTime(5000);
+      // Simulate terminate event with error detail
+      const mockEvent = {
+        detail: { code: 1006 },
+      } as unknown as Event;
 
-      // Flush microtask queue multiple times to allow async operations to complete
-      // eslint-disable-next-line @typescript-eslint/no-loop-func
-      for (let i = 0; i < 10; i++) {
-        await Promise.resolve();
-        jest.advanceTimersByTime(100);
-      }
+      terminateHandler(mockEvent);
 
-      // Verify reconnection callback was called
-      expect(reconnectCallback).toHaveBeenCalled();
+      // Verify callback was called with an error
+      expect(terminateCallback).toHaveBeenCalledWith(expect.any(Error));
+      expect(terminateCallback.mock.calls[0][0].message).toContain(
+        'WebSocket terminated',
+      );
     });
 
-    it('recreates WebSocket transport on connection drop', async () => {
+    it('calls terminate callback with Error instance when detail is Error', () => {
+      const terminateCallback = jest.fn();
+      service.initialize(mockWallet);
+      service.setOnTerminateCallback(terminateCallback);
+
+      // Get the terminate event handler
+      const terminateHandler = mockSocket.addEventListener.mock.calls.find(
+        (call: [string, (...args: unknown[]) => unknown]) =>
+          call[0] === 'terminate',
+      )?.[1] as (event: Event) => void;
+
+      // Simulate terminate event with Error detail
+      const originalError = new Error('Connection failed');
+      const mockEvent = {
+        detail: originalError,
+      } as unknown as Event;
+
+      terminateHandler(mockEvent);
+
+      // Verify callback was called with the original error
+      expect(terminateCallback).toHaveBeenCalledWith(originalError);
+    });
+
+    it('updates connection state to DISCONNECTED when terminate event fires', async () => {
       const {
-        SubscriptionClient,
-        WebSocketTransport,
-      } = require('@nktkas/hyperliquid');
-      const reconnectCallback = jest.fn().mockResolvedValue(undefined);
-
+        WebSocketConnectionState,
+      } = require('./HyperLiquidClientService');
       await service.initialize(mockWallet);
-      service.setOnReconnectCallback(reconnectCallback);
 
-      // Track initial subscription client creation
-      const initialCallCount = (SubscriptionClient as jest.Mock).mock.calls
-        .length;
+      // Verify initial state is CONNECTED
+      expect(service.getConnectionState()).toBe(
+        WebSocketConnectionState.Connected,
+      );
 
-      // Make health check fail
-      mockWsTransportReady.mockRejectedValueOnce(new Error('Connection lost'));
+      // Get the terminate event handler
+      const terminateHandler = mockSocket.addEventListener.mock.calls.find(
+        (call: [string, (...args: unknown[]) => unknown]) =>
+          call[0] === 'terminate',
+      )?.[1] as (event: Event) => void;
 
-      // Fast-forward to trigger health check
-      jest.advanceTimersByTime(5000);
-      await Promise.resolve();
+      // Fire terminate event
+      terminateHandler({ detail: { code: 1006 } } as unknown as Event);
 
-      // Fast-forward a bit more to allow reconnection
-      jest.advanceTimersByTime(100);
-      await Promise.resolve();
-
-      // Verify new transport and subscription client were created
-      expect(WebSocketTransport).toHaveBeenCalledTimes(2); // Initial + reconnection
-      expect(SubscriptionClient).toHaveBeenCalledTimes(initialCallCount + 1);
+      // Verify state changed to DISCONNECTED
+      expect(service.getConnectionState()).toBe(
+        WebSocketConnectionState.Disconnected,
+      );
     });
 
-    it('stops health check monitoring when reconnection fails', async () => {
-      const reconnectCallback = jest.fn().mockResolvedValue(undefined);
+    it('does not throw when terminate callback is not set', () => {
+      service.initialize(mockWallet);
 
-      await service.initialize(mockWallet);
-      service.setOnReconnectCallback(reconnectCallback);
+      // Get the terminate event handler
+      const terminateHandler = mockSocket.addEventListener.mock.calls.find(
+        (call: [string, (...args: unknown[]) => unknown]) =>
+          call[0] === 'terminate',
+      )?.[1] as (event: Event) => void;
 
-      // Reset mock after initialization
-      mockWsTransportReady.mockClear();
+      // Fire terminate event without setting callback
+      expect(() => {
+        terminateHandler({ detail: { code: 1006 } } as unknown as Event);
+      }).not.toThrow();
+    });
 
-      // Make health check fail
-      mockWsTransportReady.mockRejectedValueOnce(new Error('Connection lost'));
+    it('clears terminate callback on disconnect', async () => {
+      const terminateCallback = jest.fn();
+      service.initialize(mockWallet);
+      service.setOnTerminateCallback(terminateCallback);
 
-      // Make transport recreation fail
+      await service.disconnect();
+
+      // After disconnect, the callback should be cleared
+      // Initialize again to get a new terminate handler
+      service.initialize(mockWallet);
+
+      // Get the new terminate event handler
+      const terminateHandler = mockSocket.addEventListener.mock.calls
+        .filter(
+          (call: [string, (...args: unknown[]) => unknown]) =>
+            call[0] === 'terminate',
+        )
+        .pop()?.[1] as (event: Event) => void;
+
+      // Fire terminate event
+      terminateHandler({ detail: { code: 1006 } } as unknown as Event);
+
+      // Callback should NOT be called since it was cleared on disconnect
+      expect(terminateCallback).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Reconnection Logic', () => {
+    afterEach(() => {
+      // Restore default mock implementations that may have been changed by tests
       const { WebSocketTransport } = require('@nktkas/hyperliquid');
-      (WebSocketTransport as jest.Mock).mockImplementationOnce(() => {
-        throw new Error('Failed to recreate transport');
-      });
-
-      // Fast-forward to trigger health check
-      jest.advanceTimersByTime(5000);
-      await Promise.resolve();
-
-      // Fast-forward a bit more
-      jest.advanceTimersByTime(100);
-      await Promise.resolve();
-
-      // Health check monitoring should be stopped
-      // Verify no more health checks are scheduled
-      jest.advanceTimersByTime(10000);
-      expect(mockWsTransportReady).toHaveBeenCalledTimes(1); // Only the initial failed check
+      (WebSocketTransport as jest.Mock).mockImplementation(
+        () => mockWsTransport,
+      );
+      mockWsTransportReady.mockResolvedValue(undefined);
     });
 
-    it('cleans up resources when transport not ready after reconnect', async () => {
+    it('reconnect() triggers reconnection and maintains CONNECTED state on success', async () => {
+      const {
+        WebSocketConnectionState,
+      } = require('./HyperLiquidClientService');
       await service.initialize(mockWallet);
 
-      // Reset mocks after init
-      mockWsTransportReady.mockClear();
+      // Verify initial state is CONNECTED
+      expect(service.getConnectionState()).toBe(
+        WebSocketConnectionState.Connected,
+      );
 
-      // Health check fails first, then transport ready fails after reconnection
-      mockWsTransportReady
-        .mockRejectedValueOnce(new Error('Connection lost')) // Health check fails
-        .mockRejectedValueOnce(new Error('Transport not ready')); // ensureTransportReady fails
+      // Call reconnect
+      await service.reconnect();
 
-      // Trigger health check to initiate reconnection
-      jest.advanceTimersByTime(5000);
-
-      // Flush microtask queue multiple times to allow async operations to complete
-      // eslint-disable-next-line @typescript-eslint/no-loop-func
-      for (let i = 0; i < 10; i++) {
-        await Promise.resolve();
-        jest.advanceTimersByTime(100);
-      }
-
-      // After cleanup, subscription client should be undefined
-      expect(service.getSubscriptionClient()).toBeUndefined();
-      // Connection state should be disconnected
-      expect(service.getConnectionState()).toBe('disconnected');
+      // After successful reconnect, state should be CONNECTED again
+      expect(service.getConnectionState()).toBe(
+        WebSocketConnectionState.Connected,
+      );
     });
 
-    it('handles connection drop when already connecting', async () => {
+    it('reconnect() calls wsTransport.close() to cleanup existing transport', async () => {
+      await service.initialize(mockWallet);
+      mockWsTransport.close.mockClear();
+
+      // Call reconnect
+      await service.reconnect();
+
+      // Verify close was called during reconnection
+      expect(mockWsTransport.close).toHaveBeenCalled();
+    });
+
+    it('reconnect() creates new clients after reconnection', async () => {
+      const { InfoClient, SubscriptionClient } = require('@nktkas/hyperliquid');
       await service.initialize(mockWallet);
 
-      // Simulate connection drop while already connecting
-      // Make health check fail
-      mockWsTransportReady.mockRejectedValueOnce(new Error('Connection lost'));
+      const infoClientCallsBefore = (InfoClient as jest.Mock).mock.calls.length;
+      const subscriptionClientCallsBefore = (SubscriptionClient as jest.Mock)
+        .mock.calls.length;
 
-      // Fast-forward to trigger health check
-      jest.advanceTimersByTime(5000);
-      await Promise.resolve();
+      await service.reconnect();
 
-      // Immediately trigger another connection drop (should be ignored)
-      jest.advanceTimersByTime(100);
-      await Promise.resolve();
+      // New clients should have been created
+      expect((InfoClient as jest.Mock).mock.calls.length).toBeGreaterThan(
+        infoClientCallsBefore,
+      );
+      expect(
+        (SubscriptionClient as jest.Mock).mock.calls.length,
+      ).toBeGreaterThan(subscriptionClientCallsBefore);
+    });
 
-      // Should only attempt reconnection once
+    it('performDisconnection resets isReconnecting flag', async () => {
+      const {
+        WebSocketConnectionState,
+      } = require('./HyperLiquidClientService');
+      await service.initialize(mockWallet);
+
+      // Disconnect (which calls performDisconnection internally)
+      await service.disconnect();
+
+      expect(service.getConnectionState()).toBe(
+        WebSocketConnectionState.Disconnected,
+      );
+
+      // Verify we can reconnect after disconnect (isReconnecting was reset)
+      // Reset ready mock to succeed
+      mockWsTransportReady.mockResolvedValue(undefined);
+
+      // Reset InfoClient counter since initialize creates new clients
+      mockInfoClientCallCount = 0;
+
+      await service.initialize(mockWallet);
+
+      expect(service.getConnectionState()).toBe(
+        WebSocketConnectionState.Connected,
+      );
+    });
+  });
+
+  describe('Connection State Listeners', () => {
+    afterEach(() => {
+      // Restore default mock implementations
       const { WebSocketTransport } = require('@nktkas/hyperliquid');
-      // Initial creation + one reconnection attempt
-      expect(WebSocketTransport).toHaveBeenCalledTimes(2);
+      (WebSocketTransport as jest.Mock).mockImplementation(
+        () => mockWsTransport,
+      );
+      mockWsTransportReady.mockResolvedValue(undefined);
     });
 
-    it('updates last successful health check timestamp on success', async () => {
+    it('subscribeToConnectionState immediately notifies with current state', async () => {
+      const {
+        WebSocketConnectionState,
+      } = require('./HyperLiquidClientService');
       await service.initialize(mockWallet);
 
-      // Fast-forward to trigger health check
-      jest.advanceTimersByTime(5000);
-      await Promise.resolve();
+      const listener = jest.fn();
 
-      // Fast-forward a bit more
-      jest.advanceTimersByTime(100);
-      await Promise.resolve();
+      service.subscribeToConnectionState(listener);
 
-      // Health check should succeed (transport.ready resolves)
-      expect(mockWsTransportReady).toHaveBeenCalled();
+      // Should be called immediately with current state
+      expect(listener).toHaveBeenCalledWith(
+        WebSocketConnectionState.Connected,
+        0,
+      );
     });
 
-    it('clears health check timeout on completion', async () => {
+    it('listener receives state changes when connection state updates', async () => {
+      const {
+        WebSocketConnectionState,
+      } = require('./HyperLiquidClientService');
       await service.initialize(mockWallet);
 
-      // Make health check resolve quickly
-      mockWsTransportReady.mockResolvedValueOnce(undefined);
+      const listener = jest.fn();
+      service.subscribeToConnectionState(listener);
 
-      // Fast-forward to trigger health check
-      jest.advanceTimersByTime(5000);
-      await Promise.resolve();
+      // Clear the initial call
+      listener.mockClear();
 
-      // Fast-forward a bit more
-      jest.advanceTimersByTime(100);
-      await Promise.resolve();
+      // Trigger a state change by firing terminate event
+      const terminateHandler = mockSocket.addEventListener.mock.calls.find(
+        (call: [string, (...args: unknown[]) => unknown]) =>
+          call[0] === 'terminate',
+      )?.[1] as (event: Event) => void;
 
-      // Timeout should be cleared (no errors thrown)
-      expect(mockWsTransportReady).toHaveBeenCalled();
+      terminateHandler({ detail: { code: 1006 } } as unknown as Event);
+
+      // Listener should be notified of DISCONNECTED state
+      expect(listener).toHaveBeenCalledWith(
+        WebSocketConnectionState.Disconnected,
+        0,
+      );
+    });
+
+    it('unsubscribe function removes listener', async () => {
+      await service.initialize(mockWallet);
+
+      const listener = jest.fn();
+      const unsubscribe = service.subscribeToConnectionState(listener);
+
+      // Clear the initial call
+      listener.mockClear();
+
+      // Unsubscribe
+      unsubscribe();
+
+      // Trigger a state change
+      const terminateHandler = mockSocket.addEventListener.mock.calls.find(
+        (call: [string, (...args: unknown[]) => unknown]) =>
+          call[0] === 'terminate',
+      )?.[1] as (event: Event) => void;
+
+      terminateHandler({ detail: { code: 1006 } } as unknown as Event);
+
+      // Listener should NOT be called after unsubscribe
+      expect(listener).not.toHaveBeenCalled();
+    });
+
+    it('multiple listeners all receive notifications', async () => {
+      const {
+        WebSocketConnectionState,
+      } = require('./HyperLiquidClientService');
+      await service.initialize(mockWallet);
+
+      const listener1 = jest.fn();
+      const listener2 = jest.fn();
+      const listener3 = jest.fn();
+
+      service.subscribeToConnectionState(listener1);
+      service.subscribeToConnectionState(listener2);
+      service.subscribeToConnectionState(listener3);
+
+      // All should be called with initial state
+      expect(listener1).toHaveBeenCalledWith(
+        WebSocketConnectionState.Connected,
+        0,
+      );
+      expect(listener2).toHaveBeenCalledWith(
+        WebSocketConnectionState.Connected,
+        0,
+      );
+      expect(listener3).toHaveBeenCalledWith(
+        WebSocketConnectionState.Connected,
+        0,
+      );
+
+      // Clear all
+      listener1.mockClear();
+      listener2.mockClear();
+      listener3.mockClear();
+
+      // Trigger state change
+      const terminateHandler = mockSocket.addEventListener.mock.calls.find(
+        (call: [string, (...args: unknown[]) => unknown]) =>
+          call[0] === 'terminate',
+      )?.[1] as (event: Event) => void;
+
+      terminateHandler({ detail: { code: 1006 } } as unknown as Event);
+
+      // All should be notified
+      expect(listener1).toHaveBeenCalledWith(
+        WebSocketConnectionState.Disconnected,
+        0,
+      );
+      expect(listener2).toHaveBeenCalledWith(
+        WebSocketConnectionState.Disconnected,
+        0,
+      );
+      expect(listener3).toHaveBeenCalledWith(
+        WebSocketConnectionState.Disconnected,
+        0,
+      );
+    });
+
+    it('reconnection triggers CONNECTING state notification', async () => {
+      const {
+        WebSocketConnectionState,
+      } = require('./HyperLiquidClientService');
+      await service.initialize(mockWallet);
+
+      const listener = jest.fn();
+      service.subscribeToConnectionState(listener);
+
+      // Clear initial call
+      listener.mockClear();
+
+      // Start a reconnection attempt
+      await service.reconnect();
+
+      // Listener should have been called with CONNECTING state
+      const connectingCall = listener.mock.calls.find(
+        (call: [string, number]) =>
+          call[0] === WebSocketConnectionState.Connecting,
+      );
+      expect(connectingCall).toBeDefined();
+    });
+
+    it('successful reconnection notifies listeners with CONNECTED state', async () => {
+      const {
+        WebSocketConnectionState,
+      } = require('./HyperLiquidClientService');
+      await service.initialize(mockWallet);
+
+      const listener = jest.fn();
+      service.subscribeToConnectionState(listener);
+
+      // Clear initial call
+      listener.mockClear();
+
+      // Trigger reconnect
+      await service.reconnect();
+
+      // Find the CONNECTED call after reconnection
+      const connectedCalls = listener.mock.calls.filter(
+        (call: [string, number]) =>
+          call[0] === WebSocketConnectionState.Connected,
+      );
+
+      expect(connectedCalls.length).toBeGreaterThan(0);
     });
   });
 
@@ -1425,18 +1654,32 @@ describe('HyperLiquidClientService', () => {
     it('throws timeout error when transport not ready', async () => {
       await service.initialize(mockWallet);
 
-      // Reset mock and make it never resolve (simulating timeout)
+      // Reset mock to simulate a never-resolving ready() call
+      // The AbortController in ensureTransportReady will abort after timeout
       mockWsTransportReady.mockImplementationOnce(
-        () =>
-          new Promise((_, reject) => {
-            // The AbortController will abort after timeout
-            setTimeout(() => reject(new Error('Aborted')), 100);
+        (signal?: AbortSignal) =>
+          new Promise<void>((_resolve, reject) => {
+            // If there's an abort signal, listen to it and reject when aborted
+            if (signal) {
+              signal.addEventListener('abort', () => {
+                reject(new Error('Aborted'));
+              });
+            }
+            // Never resolves on its own - waits for abort
           }),
       );
 
-      await expect(service.ensureTransportReady(50)).rejects.toThrow(
-        'WebSocket transport ready timeout',
-      );
+      // Use expect().rejects pattern with async timer advancement
+      // The promise and timer advancement need to happen concurrently
+      const promiseResult = service.ensureTransportReady(50).catch((e) => e);
+
+      // Advance timers to trigger the timeout
+      await jest.advanceTimersByTimeAsync(100);
+
+      // Now check the result
+      const error = await promiseResult;
+      expect(error).toBeInstanceOf(Error);
+      expect(error.message).toContain('WebSocket transport ready timeout');
     });
   });
 });

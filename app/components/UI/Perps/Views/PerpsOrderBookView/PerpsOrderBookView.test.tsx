@@ -175,6 +175,17 @@ jest.mock('../../hooks/usePerpsOrderBookGrouping', () => ({
   })),
 }));
 
+// Mock usePerpsTopOfBook
+const mockUsePerpsTopOfBook = jest.fn(() => ({
+  bestBid: '50000',
+  bestAsk: '50001',
+  spread: '1.00000',
+}));
+
+jest.mock('../../hooks/stream/usePerpsTopOfBook', () => ({
+  usePerpsTopOfBook: () => mockUsePerpsTopOfBook(),
+}));
+
 // Mock usePerpsEventTracking
 const mockTrack = jest.fn();
 
@@ -271,6 +282,26 @@ jest.mock('../PerpsSelectModifyActionView', () => {
   };
 });
 
+// Mock PerpsBottomSheetTooltip for geo-block modal
+jest.mock(
+  '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: (props: { testID?: string; isVisible?: boolean }) =>
+        props.isVisible ? (
+          <View testID={props.testID || 'perps-bottom-sheet-tooltip'} />
+        ) : null,
+    };
+  },
+);
+
+// Mock perpsController selectors - return eligible by default for action button tests
+jest.mock('../../selectors/perpsController', () => ({
+  selectPerpsEligibility: jest.fn(() => true),
+}));
+
 describe('PerpsOrderBookView', () => {
   const initialState = {
     engine: {
@@ -284,6 +315,11 @@ describe('PerpsOrderBookView', () => {
       orderBook: mockOrderBook,
       isLoading: false,
       error: null,
+    });
+    mockUsePerpsTopOfBook.mockReturnValue({
+      bestBid: '50000',
+      bestAsk: '50001',
+      spread: '1.00000',
     });
   });
 
@@ -767,6 +803,154 @@ describe('PerpsOrderBookView', () => {
       expect(
         queryByTestId(PerpsOrderBookViewSelectorsIDs.CLOSE_BUTTON),
       ).toBeNull();
+    });
+  });
+
+  describe('geo-restriction', () => {
+    const mockLongPosition = {
+      symbol: 'BTC',
+      size: '1.5',
+      entryPrice: '50000',
+      leverage: { value: 10, type: 'cross' as const },
+      margin: '5000',
+      unrealizedPnl: '100',
+      unrealizedPnlPercent: '2',
+      liquidationPrice: '45000',
+      takeProfitPrice: undefined,
+      stopLossPrice: undefined,
+      returnOnEquity: '2',
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('shows geo-block modal when Long button pressed and user is not eligible', () => {
+      const { selectPerpsEligibility } = jest.requireMock(
+        '../../selectors/perpsController',
+      );
+      selectPerpsEligibility.mockReturnValue(false);
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsOrderBookView />,
+        {
+          state: initialState,
+        },
+      );
+
+      const longButton = getByTestId(
+        PerpsOrderBookViewSelectorsIDs.LONG_BUTTON,
+      );
+      fireEvent.press(longButton);
+
+      // Navigation should NOT be called
+      expect(mockNavigateToOrder).not.toHaveBeenCalled();
+      // Geo-block tooltip should be shown
+      expect(
+        queryByTestId(
+          `${PerpsOrderBookViewSelectorsIDs.CONTAINER}-geo-block-tooltip`,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows geo-block modal when Short button pressed and user is not eligible', () => {
+      const { selectPerpsEligibility } = jest.requireMock(
+        '../../selectors/perpsController',
+      );
+      selectPerpsEligibility.mockReturnValue(false);
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsOrderBookView />,
+        {
+          state: initialState,
+        },
+      );
+
+      const shortButton = getByTestId(
+        PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON,
+      );
+      fireEvent.press(shortButton);
+
+      // Navigation should NOT be called
+      expect(mockNavigateToOrder).not.toHaveBeenCalled();
+      // Geo-block tooltip should be shown
+      expect(
+        queryByTestId(
+          `${PerpsOrderBookViewSelectorsIDs.CONTAINER}-geo-block-tooltip`,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows geo-block modal when Close button pressed and user is not eligible', () => {
+      const { selectPerpsEligibility } = jest.requireMock(
+        '../../selectors/perpsController',
+      );
+      selectPerpsEligibility.mockReturnValue(false);
+
+      const { useHasExistingPosition } = jest.requireMock(
+        '../../hooks/useHasExistingPosition',
+      );
+      useHasExistingPosition.mockReturnValue({
+        isLoading: false,
+        existingPosition: mockLongPosition,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsOrderBookView />,
+        {
+          state: initialState,
+        },
+      );
+
+      const closeButton = getByTestId(
+        PerpsOrderBookViewSelectorsIDs.CLOSE_BUTTON,
+      );
+      fireEvent.press(closeButton);
+
+      // Navigation should NOT be called
+      expect(mockNavigateToClosePosition).not.toHaveBeenCalled();
+      // Geo-block tooltip should be shown
+      expect(
+        queryByTestId(
+          `${PerpsOrderBookViewSelectorsIDs.CONTAINER}-geo-block-tooltip`,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows geo-block modal when Modify button pressed and user is not eligible', () => {
+      const { selectPerpsEligibility } = jest.requireMock(
+        '../../selectors/perpsController',
+      );
+      selectPerpsEligibility.mockReturnValue(false);
+
+      const { useHasExistingPosition } = jest.requireMock(
+        '../../hooks/useHasExistingPosition',
+      );
+      useHasExistingPosition.mockReturnValue({
+        isLoading: false,
+        existingPosition: mockLongPosition,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsOrderBookView />,
+        {
+          state: initialState,
+        },
+      );
+
+      const modifyButton = getByTestId(
+        PerpsOrderBookViewSelectorsIDs.MODIFY_BUTTON,
+      );
+      fireEvent.press(modifyButton);
+
+      // Modify sheet should NOT be opened
+      expect(mockOpenModifySheet).not.toHaveBeenCalled();
+      // Geo-block tooltip should be shown
+      expect(
+        queryByTestId(
+          `${PerpsOrderBookViewSelectorsIDs.CONTAINER}-geo-block-tooltip`,
+        ),
+      ).toBeOnTheScreen();
     });
   });
 

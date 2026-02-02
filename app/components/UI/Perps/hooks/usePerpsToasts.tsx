@@ -47,6 +47,9 @@ export interface PerpsToastOptionsConfig {
       ) => PerpsToastOptions;
       error: PerpsToastOptions;
     };
+    oneClickTrade: {
+      txCreationFailed: PerpsToastOptions;
+    };
     withdrawal: {
       withdrawalInProgress: PerpsToastOptions;
       withdrawalSuccess: (
@@ -396,6 +399,15 @@ const usePerpsToasts = (): {
             labelOptions: getPerpsToastLabels(
               strings('perps.deposit.deposit_failed'),
               strings('perps.deposit.error_generic'),
+            ),
+          },
+        },
+        oneClickTrade: {
+          txCreationFailed: {
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.one_click_trade.tx_creation_failed_title'),
+              strings('perps.one_click_trade.tx_creation_failed_description'),
             ),
           },
         },
@@ -816,17 +828,13 @@ const usePerpsToasts = (): {
               strings('perps.position.tpsl.update_success'),
             ),
           },
-          updateTPSLError: (error?: string) => {
-            const errorMessage = error || strings('perps.errors.unknown');
-
-            return {
-              ...perpsBaseToastOptions.error,
-              labelOptions: getPerpsToastLabels(
-                strings('perps.position.tpsl.update_failed'),
-                errorMessage,
-              ),
-            };
-          },
+          updateTPSLError: (error?: string) => ({
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.position.tpsl.update_failed'),
+              error || strings('perps.errors.tpslUpdateFailed'),
+            ),
+          }),
         },
         margin: {
           addSuccess: (assetSymbol: string, amount: string) => ({
@@ -847,17 +855,13 @@ const usePerpsToasts = (): {
               }),
             ),
           }),
-          adjustmentFailed: (error?: string) => {
-            const errorMessage = error || strings('perps.errors.unknown');
-
-            return {
-              ...perpsBaseToastOptions.error,
-              labelOptions: getPerpsToastLabels(
-                strings('perps.position.margin.adjustment_failed'),
-                errorMessage,
-              ),
-            };
-          },
+          adjustmentFailed: (error?: string) => ({
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.position.margin.adjustment_failed'),
+              error || strings('perps.errors.marginAdjustmentFailed'),
+            ),
+          }),
         },
       },
       formValidation: {
@@ -866,7 +870,7 @@ const usePerpsToasts = (): {
             ...perpsBaseToastOptions.error,
             labelOptions: getPerpsToastLabels(
               strings('perps.order.validation.failed'),
-              error,
+              error, // Pass through directly - validation errors are already localized
             ),
           }),
           limitPriceRequired: {

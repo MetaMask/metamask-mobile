@@ -820,6 +820,50 @@ describe('PersonalDetails Component', () => {
     });
   });
 
+  describe('Nationality Population from userData', () => {
+    beforeEach(() => {
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        const mockState = {
+          card: {
+            onboarding: {
+              onboardingId: 'test-onboarding-id',
+              selectedCountry: {
+                key: 'US',
+                name: 'United States',
+                emoji: '🇺🇸',
+                areaCode: '1',
+              },
+            },
+          },
+        };
+        return selector(mockState);
+      });
+    });
+
+    it('uses countryOfNationality when provided', () => {
+      const mockUserData = {
+        firstName: 'John',
+        lastName: 'Doe',
+        dateOfBirth: '1990-01-01T00:00:00.000Z',
+        countryOfNationality: 'CA',
+        countryOfResidence: 'US',
+        ssn: '123456789',
+      };
+      (useCardSDK as jest.Mock).mockReturnValue({
+        user: mockUserData,
+        setUser: mockSetUser,
+        fetchUserData: mockFetchUserData,
+        logoutFromProvider: jest.fn(),
+      });
+
+      const { getByText, queryByText } = render(<PersonalDetails />);
+
+      // The nationality should show Canada (from countryOfNationality)
+      expect(getByText('Canada')).toBeTruthy();
+      expect(queryByText('United States')).toBeNull();
+    });
+  });
+
   describe('registerPersonalDetails Function Call', () => {
     beforeEach(() => {
       (useSelector as jest.Mock).mockImplementation((selector) => {

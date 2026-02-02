@@ -144,7 +144,6 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
         });
       },
       {
-        checkBalance: true,
         attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
       },
     );
@@ -295,7 +294,12 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
           justifyContent={BoxJustifyContent.Between}
           twClassName={isCarousel ? '' : 'mt-3'}
         >
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            numberOfLines={1}
+            style={tw.style('flex-shrink min-w-0')}
+          >
             {filteredOutcomes.length > 3
               ? `+${filteredOutcomes.length - 3} ${
                   filteredOutcomes.length - 3 === 1
@@ -307,11 +311,13 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-4"
+            twClassName="gap-4 flex-shrink min-w-0 ml-2"
           >
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
+              numberOfLines={1}
+              style={tw.style('flex-shrink min-w-0')}
             >
               ${totalVolumeDisplay} {strings('predict.volume_abbreviated')}
             </Text>
@@ -319,16 +325,19 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
+                twClassName="flex-shrink min-w-0"
               >
                 <Icon
                   name={IconName.Refresh}
                   size={IconSize.Md}
                   color={IconColor.Alternative}
-                  style={tw.style('mr-1')}
+                  style={tw.style('mr-1 flex-shrink-0')}
                 />
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
+                  numberOfLines={1}
+                  style={tw.style('flex-shrink min-w-0')}
                 >
                   {strings(
                     `predict.recurrence.${market.recurrence.toLowerCase()}`,

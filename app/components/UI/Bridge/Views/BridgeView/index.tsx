@@ -64,6 +64,7 @@ import { useInitialSourceToken } from '../../hooks/useInitialSourceToken';
 import { useInitialDestToken } from '../../hooks/useInitialDestToken';
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
+import { useIsNetworkEnabled } from '../../hooks/useIsNetworkEnabled';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { BridgeQuoteResponse, BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
@@ -86,6 +87,7 @@ import { FLipQuoteButton } from '../../components/FlipQuoteButton/index.tsx';
 import { useIsGasIncludedSTXSendBundleSupported } from '../../hooks/useIsGasIncludedSTXSendBundleSupported/index.ts';
 import { useIsGasIncluded7702Supported } from '../../hooks/useIsGasIncluded7702Supported/index.ts';
 import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
+import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -135,6 +137,8 @@ const BridgeView = () => {
   const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
+  const isDestNetworkEnabled = useIsNetworkEnabled(destToken?.chainId);
+
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
   // The ref is typed to only expose the blur method we need
@@ -490,7 +494,7 @@ const BridgeView = () => {
               label={getButtonLabel()}
               onPress={handleContinue}
               style={styles.button}
-              testID="bridge-confirm-button"
+              testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON}
               isDisabled={submitDisabled}
             />
           )}
@@ -538,7 +542,7 @@ const BridgeView = () => {
                   })
                 : undefined
             }
-            testID="source-token-area"
+            testID={BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA}
             tokenType={TokenInputAreaType.Source}
             onTokenPress={handleSourceTokenPress}
             onFocus={() => setIsInputFocused(true)}
@@ -551,7 +555,12 @@ const BridgeView = () => {
           />
           <FLipQuoteButton
             onPress={handleSwitchTokens(destTokenAmount)}
-            disabled={!destChainId || !destToken || !sourceToken}
+            disabled={
+              !destChainId ||
+              !destToken ||
+              !sourceToken ||
+              !isDestNetworkEnabled
+            }
           />
           <TokenInputArea
             amount={destTokenAmount}
@@ -561,7 +570,7 @@ const BridgeView = () => {
                 ? getNetworkImageSource({ chainId: destToken?.chainId })
                 : undefined
             }
-            testID="dest-token-area"
+            testID={BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA}
             tokenType={TokenInputAreaType.Destination}
             onTokenPress={handleDestTokenPress}
             isLoading={!destTokenAmount && isLoading}
@@ -572,7 +581,7 @@ const BridgeView = () => {
 
         {/* Scrollable Dynamic Content */}
         <ScrollView
-          testID="bridge-view-scroll"
+          testID={BridgeViewSelectorsIDs.BRIDGE_VIEW_SCROLL}
           style={styles.scrollView}
           contentContainerStyle={styles.scrollViewContent}
           showsVerticalScrollIndicator={false}

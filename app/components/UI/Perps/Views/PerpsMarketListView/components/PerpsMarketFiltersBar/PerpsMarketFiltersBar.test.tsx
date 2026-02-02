@@ -23,42 +23,35 @@ jest.mock('../../../../components/PerpsMarketSortDropdowns', () => {
   };
 });
 
-jest.mock('../../../../components/PerpsMarketTypeDropdown', () => {
-  const { TouchableOpacity, Text } = jest.requireActual('react-native');
+jest.mock('../../../../components/PerpsMarketCategoryBadges', () => {
+  const { TouchableOpacity, Text, View } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: ({
-      selectedFilter,
-      onPress,
+      selectedCategory,
+      onCategorySelect,
+      availableCategories,
       testID,
     }: {
-      selectedFilter: MarketTypeFilter;
-      onPress: () => void;
+      selectedCategory: MarketTypeFilter;
+      onCategorySelect: (category: MarketTypeFilter) => void;
+      availableCategories?: Exclude<MarketTypeFilter, 'all'>[];
       testID?: string;
     }) => (
-      <TouchableOpacity testID={testID} onPress={onPress}>
-        <Text testID={`${testID}-label`}>{selectedFilter}</Text>
-      </TouchableOpacity>
-    ),
-  };
-});
-
-jest.mock('../../../../components/PerpsStocksCommoditiesDropdown', () => {
-  const { TouchableOpacity, Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({
-      selectedFilter,
-      onPress,
-      testID,
-    }: {
-      selectedFilter: string;
-      onPress: () => void;
-      testID?: string;
-    }) => (
-      <TouchableOpacity testID={testID} onPress={onPress}>
-        <Text testID={`${testID}-label`}>{selectedFilter}</Text>
-      </TouchableOpacity>
+      <View testID={testID}>
+        <Text testID={`${testID}-selected`}>{selectedCategory}</Text>
+        {(
+          availableCategories || ['crypto', 'stocks', 'commodities', 'forex']
+        ).map((cat: string) => (
+          <TouchableOpacity
+            key={cat}
+            testID={`${testID}-${cat}`}
+            onPress={() => onCategorySelect(cat as MarketTypeFilter)}
+          >
+            <Text>{cat}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
     ),
   };
 });
@@ -101,6 +94,15 @@ jest.mock(
 
 describe('PerpsMarketFiltersBar', () => {
   const mockOnSortPress = jest.fn();
+  const mockOnCategorySelect = jest.fn();
+
+  const defaultProps = {
+    selectedOptionId: 'volume' as const,
+    onSortPress: mockOnSortPress,
+    marketTypeFilter: 'all' as MarketTypeFilter,
+    onCategorySelect: mockOnCategorySelect,
+    testID: 'filters-bar',
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -108,43 +110,82 @@ describe('PerpsMarketFiltersBar', () => {
 
   describe('Rendering', () => {
     it('renders without crashing', () => {
-      const { toJSON } = render(
-        <PerpsMarketFiltersBar
-          selectedOptionId="openInterest"
-          onSortPress={mockOnSortPress}
-        />,
-      );
+      const { toJSON } = render(<PerpsMarketFiltersBar {...defaultProps} />);
 
       expect(toJSON()).toBeTruthy();
     });
 
-    it('renders sort dropdown with correct props', () => {
+    it('renders category badges component', () => {
       const { getByTestId } = render(
-        <PerpsMarketFiltersBar
-          selectedOptionId="volume"
-          onSortPress={mockOnSortPress}
-          testID="filters-bar"
-        />,
+        <PerpsMarketFiltersBar {...defaultProps} />,
       );
 
-      const sortDropdown = getByTestId('filters-bar-sort');
-      expect(sortDropdown).toBeTruthy();
+      expect(getByTestId('filters-bar-categories')).toBeTruthy();
+    });
+
+    it('renders sort dropdown', () => {
+      const { getByTestId } = render(
+        <PerpsMarketFiltersBar {...defaultProps} />,
+      );
+
+      expect(getByTestId('filters-bar-sort')).toBeTruthy();
+    });
+
+    it('renders both rows (categories and sort)', () => {
+      const { getByTestId } = render(
+        <PerpsMarketFiltersBar {...defaultProps} />,
+      );
+
+      expect(getByTestId('filters-bar-categories')).toBeTruthy();
+      expect(getByTestId('filters-bar-sort')).toBeTruthy();
     });
   });
 
-  describe('Interactions', () => {
-    it('calls onSortPress when sort dropdown is pressed', () => {
+  describe('Category Badges', () => {
+    it('passes correct selected category to badges', () => {
       const { getByTestId } = render(
+        <PerpsMarketFiltersBar {...defaultProps} marketTypeFilter="crypto" />,
+      );
+
+      expect(getByTestId('filters-bar-categories-selected')).toHaveTextContent(
+        'crypto',
+      );
+    });
+
+    it('calls onCategorySelect when a category badge is pressed', () => {
+      const { getByTestId } = render(
+        <PerpsMarketFiltersBar {...defaultProps} />,
+      );
+
+      fireEvent.press(getByTestId('filters-bar-categories-crypto'));
+      expect(mockOnCategorySelect).toHaveBeenCalledWith('crypto');
+
+      fireEvent.press(getByTestId('filters-bar-categories-stocks'));
+      expect(mockOnCategorySelect).toHaveBeenCalledWith('stocks');
+    });
+
+    it('passes available categories to badges', () => {
+      const { getByTestId, queryByTestId } = render(
         <PerpsMarketFiltersBar
-          selectedOptionId="openInterest"
-          onSortPress={mockOnSortPress}
-          testID="filters-bar"
+          {...defaultProps}
+          availableCategories={['crypto', 'stocks']}
         />,
       );
 
-      const sortDropdown = getByTestId('filters-bar-sort');
-      fireEvent.press(sortDropdown);
+      expect(getByTestId('filters-bar-categories-crypto')).toBeTruthy();
+      expect(getByTestId('filters-bar-categories-stocks')).toBeTruthy();
+      expect(queryByTestId('filters-bar-categories-commodities')).toBeNull();
+      expect(queryByTestId('filters-bar-categories-forex')).toBeNull();
+    });
+  });
 
+  describe('Sort Dropdown', () => {
+    it('calls onSortPress when sort dropdown is pressed', () => {
+      const { getByTestId } = render(
+        <PerpsMarketFiltersBar {...defaultProps} />,
+      );
+
+      fireEvent.press(getByTestId('filters-bar-sort'));
       expect(mockOnSortPress).toHaveBeenCalledTimes(1);
     });
   });
@@ -152,22 +193,21 @@ describe('PerpsMarketFiltersBar', () => {
   describe('Test IDs', () => {
     it('applies custom testID and derived testIDs', () => {
       const { getByTestId } = render(
-        <PerpsMarketFiltersBar
-          selectedOptionId="openInterest"
-          onSortPress={mockOnSortPress}
-          testID="custom-filters"
-        />,
+        <PerpsMarketFiltersBar {...defaultProps} testID="custom-filters" />,
       );
 
       expect(getByTestId('custom-filters')).toBeTruthy();
+      expect(getByTestId('custom-filters-categories')).toBeTruthy();
       expect(getByTestId('custom-filters-sort')).toBeTruthy();
     });
 
     it('handles missing testID gracefully', () => {
       const { toJSON } = render(
         <PerpsMarketFiltersBar
-          selectedOptionId="openInterest"
+          selectedOptionId="volume"
           onSortPress={mockOnSortPress}
+          marketTypeFilter="all"
+          onCategorySelect={mockOnCategorySelect}
         />,
       );
 
@@ -175,228 +215,37 @@ describe('PerpsMarketFiltersBar', () => {
     });
   });
 
-  describe('Market Type Dropdown', () => {
-    const mockOnMarketTypePress = jest.fn();
-
-    beforeEach(() => {
-      mockOnMarketTypePress.mockClear();
-    });
-
-    it('does not render market type dropdown by default', () => {
-      const { queryByTestId } = render(
-        <PerpsMarketFiltersBar
-          selectedOptionId="volume"
-          onSortPress={mockOnSortPress}
-          testID="filters-bar"
-        />,
-      );
-
-      expect(queryByTestId('filters-bar-market-type')).toBeNull();
-    });
-
-    it('renders market type dropdown when showMarketTypeDropdown is true', () => {
+  describe('Filter State Combinations', () => {
+    it('renders with all filter selected', () => {
       const { getByTestId } = render(
-        <PerpsMarketFiltersBar
-          selectedOptionId="volume"
-          onSortPress={mockOnSortPress}
-          showMarketTypeDropdown
-          marketTypeFilter="all"
-          onMarketTypePress={mockOnMarketTypePress}
-          testID="filters-bar"
-        />,
+        <PerpsMarketFiltersBar {...defaultProps} marketTypeFilter="all" />,
       );
 
-      expect(getByTestId('filters-bar-market-type')).toBeTruthy();
+      expect(getByTestId('filters-bar-categories-selected')).toHaveTextContent(
+        'all',
+      );
     });
 
-    it('does not render market type dropdown when showMarketTypeDropdown is true but onMarketTypePress is missing', () => {
-      const { queryByTestId } = render(
-        <PerpsMarketFiltersBar
-          selectedOptionId="volume"
-          onSortPress={mockOnSortPress}
-          showMarketTypeDropdown
-          marketTypeFilter="all"
-          testID="filters-bar"
-        />,
-      );
-
-      expect(queryByTestId('filters-bar-market-type')).toBeNull();
-    });
-
-    it('passes correct filter value to market type dropdown', () => {
-      const { getByTestId } = render(
-        <PerpsMarketFiltersBar
-          selectedOptionId="volume"
-          onSortPress={mockOnSortPress}
-          showMarketTypeDropdown
-          marketTypeFilter="crypto"
-          onMarketTypePress={mockOnMarketTypePress}
-          testID="filters-bar"
-        />,
-      );
-
-      expect(getByTestId('filters-bar-market-type-label')).toHaveTextContent(
+    it('renders with specific category selected', () => {
+      const categories: MarketTypeFilter[] = [
         'crypto',
-      );
-    });
+        'stocks',
+        'commodities',
+        'forex',
+      ];
 
-    it('calls onMarketTypePress when market type dropdown is pressed', () => {
-      const { getByTestId } = render(
-        <PerpsMarketFiltersBar
-          selectedOptionId="volume"
-          onSortPress={mockOnSortPress}
-          showMarketTypeDropdown
-          marketTypeFilter="all"
-          onMarketTypePress={mockOnMarketTypePress}
-          testID="filters-bar"
-        />,
-      );
+      categories.forEach((category) => {
+        const { getByTestId } = render(
+          <PerpsMarketFiltersBar
+            {...defaultProps}
+            marketTypeFilter={category}
+          />,
+        );
 
-      const marketTypeDropdown = getByTestId('filters-bar-market-type');
-      fireEvent.press(marketTypeDropdown);
-
-      expect(mockOnMarketTypePress).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('Stocks/Commodities Dropdown', () => {
-    const mockOnStocksCommoditiesPress = jest.fn();
-
-    beforeEach(() => {
-      mockOnStocksCommoditiesPress.mockClear();
-    });
-
-    it('does not render stocks/commodities dropdown by default', () => {
-      const { queryByTestId } = render(
-        <PerpsMarketFiltersBar
-          selectedOptionId="volume"
-          onSortPress={mockOnSortPress}
-          testID="filters-bar"
-        />,
-      );
-
-      expect(queryByTestId('filters-bar-stocks-commodities')).toBeNull();
-    });
-
-    it('renders stocks/commodities dropdown when showStocksCommoditiesDropdown is true', () => {
-      const { getByTestId } = render(
-        <PerpsMarketFiltersBar
-          selectedOptionId="volume"
-          onSortPress={mockOnSortPress}
-          showStocksCommoditiesDropdown
-          stocksCommoditiesFilter="all"
-          onStocksCommoditiesPress={mockOnStocksCommoditiesPress}
-          testID="filters-bar"
-        />,
-      );
-
-      expect(getByTestId('filters-bar-stocks-commodities')).toBeTruthy();
-    });
-
-    it('does not render stocks/commodities dropdown when showStocksCommoditiesDropdown is true but onStocksCommoditiesPress is missing', () => {
-      const { queryByTestId } = render(
-        <PerpsMarketFiltersBar
-          selectedOptionId="volume"
-          onSortPress={mockOnSortPress}
-          showStocksCommoditiesDropdown
-          stocksCommoditiesFilter="all"
-          testID="filters-bar"
-        />,
-      );
-
-      expect(queryByTestId('filters-bar-stocks-commodities')).toBeNull();
-    });
-
-    it('passes correct filter value to stocks/commodities dropdown', () => {
-      const { getByTestId } = render(
-        <PerpsMarketFiltersBar
-          selectedOptionId="volume"
-          onSortPress={mockOnSortPress}
-          showStocksCommoditiesDropdown
-          stocksCommoditiesFilter="equity"
-          onStocksCommoditiesPress={mockOnStocksCommoditiesPress}
-          testID="filters-bar"
-        />,
-      );
-
-      expect(
-        getByTestId('filters-bar-stocks-commodities-label'),
-      ).toHaveTextContent('equity');
-    });
-
-    it('calls onStocksCommoditiesPress when stocks/commodities dropdown is pressed', () => {
-      const { getByTestId } = render(
-        <PerpsMarketFiltersBar
-          selectedOptionId="volume"
-          onSortPress={mockOnSortPress}
-          showStocksCommoditiesDropdown
-          stocksCommoditiesFilter="all"
-          onStocksCommoditiesPress={mockOnStocksCommoditiesPress}
-          testID="filters-bar"
-        />,
-      );
-
-      const stocksDropdown = getByTestId('filters-bar-stocks-commodities');
-      fireEvent.press(stocksDropdown);
-
-      expect(mockOnStocksCommoditiesPress).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('Combined Dropdowns', () => {
-    const mockOnMarketTypePress = jest.fn();
-    const mockOnStocksCommoditiesPress = jest.fn();
-
-    beforeEach(() => {
-      mockOnMarketTypePress.mockClear();
-      mockOnStocksCommoditiesPress.mockClear();
-    });
-
-    it('renders all dropdowns when all are enabled', () => {
-      const { getByTestId } = render(
-        <PerpsMarketFiltersBar
-          selectedOptionId="volume"
-          onSortPress={mockOnSortPress}
-          showMarketTypeDropdown
-          marketTypeFilter="stocks_and_commodities"
-          onMarketTypePress={mockOnMarketTypePress}
-          showStocksCommoditiesDropdown
-          stocksCommoditiesFilter="equity"
-          onStocksCommoditiesPress={mockOnStocksCommoditiesPress}
-          testID="filters-bar"
-        />,
-      );
-
-      expect(getByTestId('filters-bar-market-type')).toBeTruthy();
-      expect(getByTestId('filters-bar-sort')).toBeTruthy();
-      expect(getByTestId('filters-bar-stocks-commodities')).toBeTruthy();
-    });
-
-    it('each dropdown calls its respective handler', () => {
-      const { getByTestId } = render(
-        <PerpsMarketFiltersBar
-          selectedOptionId="volume"
-          onSortPress={mockOnSortPress}
-          showMarketTypeDropdown
-          marketTypeFilter="all"
-          onMarketTypePress={mockOnMarketTypePress}
-          showStocksCommoditiesDropdown
-          stocksCommoditiesFilter="all"
-          onStocksCommoditiesPress={mockOnStocksCommoditiesPress}
-          testID="filters-bar"
-        />,
-      );
-
-      fireEvent.press(getByTestId('filters-bar-market-type'));
-      expect(mockOnMarketTypePress).toHaveBeenCalledTimes(1);
-      expect(mockOnSortPress).not.toHaveBeenCalled();
-      expect(mockOnStocksCommoditiesPress).not.toHaveBeenCalled();
-
-      fireEvent.press(getByTestId('filters-bar-sort'));
-      expect(mockOnSortPress).toHaveBeenCalledTimes(1);
-
-      fireEvent.press(getByTestId('filters-bar-stocks-commodities'));
-      expect(mockOnStocksCommoditiesPress).toHaveBeenCalledTimes(1);
+        expect(
+          getByTestId('filters-bar-categories-selected'),
+        ).toHaveTextContent(category);
+      });
     });
   });
 });

@@ -17,6 +17,7 @@ import { useTheme } from '../../../util/theme';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { strings } from '../../../../locales/i18n';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader';
+import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
 import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
 import { ButtonsAlignment } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
@@ -37,10 +38,6 @@ import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
-import {
-  useNetworksByNamespace,
-  NetworkType,
-} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../NetworkMultiSelector/NetworkMultiSelector.constants';
 
@@ -86,9 +83,6 @@ const NetworkManager = () => {
   const { colors } = useTheme();
   const { styles } = useStyles(createStyles, { colors });
   const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
-  useNetworksByNamespace({
-    networkType: NetworkType.Popular,
-  });
   const { disableNetwork, enabledNetworksByNamespace } = useNetworkEnablement();
 
   const enabledNetworks = useMemo(() => {
@@ -356,11 +350,10 @@ const NetworkManager = () => {
         shouldNavigateBack
       >
         <View style={containerStyle}>
-          <BottomSheetHeader
+          <HeaderCenter
+            title={strings('wallet.networks')}
             onClose={() => sheetRef.current?.onCloseBottomSheet()}
-          >
-            {strings('wallet.networks')}
-          </BottomSheetHeader>
+          />
 
           <ScrollableTabView
             renderTabBar={renderTabBar}

@@ -10,8 +10,6 @@ import {
   PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
 } from '../../constants/storage';
 import {
-  authSuccess,
-  authError,
   logIn,
   logOut,
   passwordSet,
@@ -21,6 +19,7 @@ import {
 import { setCompletedOnboarding } from '../../actions/onboarding';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
+import { UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
 import { UserCredentials, BIOMETRY_TYPE } from 'react-native-keychain';
 import {
   AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
@@ -774,8 +773,9 @@ class AuthenticationService {
     try {
       const existingUser = selectExistingUser(ReduxService.store.getState());
 
-      if (existingUser) {
+      if (existingUser || authPreference?.oauth2Login) {
         // User exists. Attempt to unlock wallet.
+        // existing user is always false when user try to rehydrate
 
         if (password !== undefined) {
           // Explicitly provided password.
@@ -880,16 +880,13 @@ class AuthenticationService {
 
   /**
    * Attempts to use biometric/pin code/remember me to login
-   * @param bioStateMachineId - ID associated with each biometric session.
    * @param disableAutoLogout - Boolean that determines if the function should auto-lock when error is thrown.
    */
   appTriggeredAuth = async (
     options: {
-      bioStateMachineId?: string;
       disableAutoLogout?: boolean;
     } = {},
   ): Promise<void> => {
-    const bioStateMachineId = options?.bioStateMachineId;
     const disableAutoLogout = options?.disableAutoLogout;
     try {
       // TODO: Replace "any" with type
@@ -922,7 +919,6 @@ class AuthenticationService {
       endTrace({ name: TraceName.VaultCreation });
 
       await this.dispatchLogin();
-      ReduxService.store.dispatch(authSuccess(bioStateMachineId));
       this.dispatchPasswordSet();
 
       // We run some post-login operations asynchronously to make login feels smoother and faster (re-sync,
@@ -942,7 +938,6 @@ class AuthenticationService {
         context: 'app_triggered_auth_failed',
       });
 
-      ReduxService.store.dispatch(authError(bioStateMachineId));
       !disableAutoLogout && this.lockApp({ reset: false });
       throw new AuthenticationError(
         errorMessage,
@@ -1667,9 +1662,6 @@ class AuthenticationService {
     try {
       const passwordToUse = await this.reauthenticate(password);
 
-      // TODO: Check if this is really needed for IOS (if so, userEntryAuth is not calling it, and we should move the reset to storePassword)
-      await this.resetPassword();
-
       // storePassword handles all storage flag management internally
       await this.storePassword(passwordToUse.password, authType);
     } catch (e) {
@@ -1689,7 +1681,12 @@ class AuthenticationService {
         );
       }
 
-      if (errorWithMessage.message === 'Invalid password') {
+      if (
+        errorWithMessage.message === 'Invalid password' ||
+        errorWithMessage.message.includes(
+          UNLOCK_WALLET_ERROR_MESSAGES.ANDROID_WRONG_PASSWORD_2,
+        )
+      ) {
         Alert.alert(
           strings('app_settings.invalid_password'),
           strings('app_settings.invalid_password_message'),
