@@ -387,6 +387,7 @@ interface PredictFeedTabsProps {
   headerHeight: number;
   tabBarHeight: number;
   headerHidden: boolean;
+  hotTabQueryParams?: string;
 }
 
 const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
@@ -397,10 +398,10 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
   headerHeight,
   tabBarHeight,
   headerHidden,
+  hotTabQueryParams,
 }) => {
   const tw = useTailwind();
   const pagerRef = useRef<PagerView>(null);
-  const hotTabFlag = useSelector(selectPredictHotTabFlag);
 
   useEffect(() => {
     pagerRef.current?.setPage(activeIndex);
@@ -416,11 +417,11 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
   const getCustomQueryParams = useCallback(
     (tab: FeedTab) => {
       if (tab.key === 'hot') {
-        return hotTabFlag.queryParams;
+        return hotTabQueryParams;
       }
       return undefined;
     },
-    [hotTabFlag.queryParams],
+    [hotTabQueryParams],
   );
 
   return (
@@ -744,6 +745,7 @@ const PredictFeed: React.FC = () => {
             headerHeight={headerHeight}
             tabBarHeight={tabBarHeight + 6}
             headerHidden={headerHidden}
+            hotTabQueryParams={hotTabFlag.queryParams}
           />
         )}
       </Box>
