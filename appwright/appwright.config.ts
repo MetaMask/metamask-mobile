@@ -165,10 +165,10 @@ export default defineConfig({
         device: {
           provider: 'emulator',
           name: 'Medium_Phone_API_36.0', // this can be changed to your emulator name
-          osVersion: '14', // this can be changed to your emulator version
+          osVersion: '16', // this can be changed to your emulator version
         },
         buildPath:
-          '/Users/aphex/repos/metamask/metamask-mobile/android/app/build/outputs/apk/prod/debug/app-prod-debug.apk',
+          '/Users/aphex/repos/metamask/metamask-mobile-alpha/metamask-main-rc-3092.apk',
         expectTimeout: 30 * 1000,
       },
     },

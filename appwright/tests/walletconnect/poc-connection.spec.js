@@ -23,6 +23,66 @@ import AppwrightHelpers from '../../../tests/framework/AppwrightHelpers.js';
 import AppwrightSelectors from '../../../tests/framework/AppwrightSelectors.js';
 import AppwrightGestures from '../../../tests/framework/AppwrightGestures.js';
 import DappConnectionModal from '../../../wdio/screen-objects/Modals/DappConnectionModal.js';
+import MobileBrowserScreen from '../../../wdio/screen-objects/MobileBrowser.js';
+
+/**
+ * Dismisses Chrome first-run dialogs if they appear
+ * Chrome shows various onboarding screens on first launch
+ */
+async function dismissChromeOnboarding(device) {
+  MobileBrowserScreen.device = device;
+
+  // Wait a moment for Chrome to fully load
+  await AppwrightGestures.wait(2000);
+
+  // Try to dismiss "Use without an account" / Sign-in screen
+  try {
+    const dismissButton = await MobileBrowserScreen.onboardingChromeWithoutAccount;
+    if (dismissButton && (await dismissButton.isVisible({ timeout: 3000 }))) {
+      console.log('Dismissing Chrome sign-in prompt...');
+      await AppwrightGestures.tap(dismissButton);
+      await AppwrightGestures.wait(1000);
+    }
+  } catch (e) {
+    // No sign-in prompt, continue
+  }
+
+  // Try to dismiss "No thanks" button (various prompts)
+  try {
+    const noThanksButton = await MobileBrowserScreen.chromeNoThanksButton;
+    if (noThanksButton && (await noThanksButton.isVisible({ timeout: 3000 }))) {
+      console.log('Dismissing Chrome "No thanks" prompt...');
+      await AppwrightGestures.tap(noThanksButton);
+      await AppwrightGestures.wait(1000);
+    }
+  } catch (e) {
+    // No "No thanks" button, continue
+  }
+
+  // Try to find and dismiss any "Accept & continue" or "Got it" buttons
+  try {
+    const acceptButton = await AppwrightSelectors.getElementByText(device, 'Accept & continue');
+    if (await acceptButton.isVisible({ timeout: 2000 })) {
+      console.log('Dismissing Chrome "Accept & continue" prompt...');
+      await AppwrightGestures.tap(acceptButton);
+      await AppwrightGestures.wait(1000);
+    }
+  } catch (e) {
+    // No accept button, continue
+  }
+
+  // Try "No thanks" text button as well
+  try {
+    const noThanksText = await AppwrightSelectors.getElementByText(device, 'No thanks');
+    if (await noThanksText.isVisible({ timeout: 2000 })) {
+      console.log('Dismissing Chrome "No thanks" text button...');
+      await AppwrightGestures.tap(noThanksText);
+      await AppwrightGestures.wait(1000);
+    }
+  } catch (e) {
+    // No "No thanks" text, continue
+  }
+}
 
 // WalletConnect React App test dapp
 const WC_TEST_DAPP_URL = 'https://react-app.walletconnect.com/';
@@ -49,6 +109,10 @@ test('POC - WalletConnect v2 basic connection flow', async ({ device }) => {
   console.log('Step 2: Launching browser and navigating to WC test dapp...');
   await AppwrightHelpers.withNativeAction(device, async () => {
     await launchMobileBrowser(device);
+
+    // Handle Chrome first-run dialogs if this is a fresh install
+    await dismissChromeOnboarding(device);
+
     await navigateToDapp(device, WC_TEST_DAPP_URL, WC_TEST_DAPP_NAME);
   });
 
