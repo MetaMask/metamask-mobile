@@ -74,6 +74,17 @@ function isGroupedResult(item: ListItem): item is GroupedSearchResult {
   return 'country' in item && 'matchingStates' in item;
 }
 
+function isRegionSupported(supported: unknown): boolean {
+  return (
+    supported == null ||
+    supported === true ||
+    (typeof supported === 'object' &&
+      supported !== null &&
+      (Boolean((supported as { buy?: boolean }).buy) ||
+        Boolean((supported as { sell?: boolean }).sell)))
+  );
+}
+
 interface HeaderBackButtonProps {
   onPress: () => void;
   testID?: string;
@@ -102,12 +113,11 @@ function RegionSelector() {
     countries,
     countriesLoading,
     countriesError,
-    fetchCountries,
   } = useRampsController();
 
   const [searchString, setSearchString] = useState('');
   const [activeView, setActiveView] = useState(RegionViewType.COUNTRY);
-  const [currentData, setCurrentData] = useState<RegionItem[]>(countries || []);
+  const [currentData, setCurrentData] = useState<RegionItem[]>(countries);
   const [regionInTransit, setRegionInTransit] = useState<Country | null>(null);
   const { styles } = useStyles(styleSheet, {});
 
@@ -126,13 +136,7 @@ function RegionSelector() {
   }, [colors, navigation, activeView, regionInTransit]);
 
   useEffect(() => {
-    if (!countries && !countriesLoading && !countriesError) {
-      fetchCountries();
-    }
-  }, [countries, countriesLoading, countriesError, fetchCountries]);
-
-  useEffect(() => {
-    if (countries && activeView === RegionViewType.COUNTRY) {
+    if (countries.length > 0 && activeView === RegionViewType.COUNTRY) {
       setCurrentData(countries);
     }
   }, [countries, activeView]);
@@ -341,7 +345,7 @@ function RegionSelector() {
     ({ item }: { item: ListItem }) => {
       if (isGroupedResult(item)) {
         const countryIsSelected = isRegionSelected(item.country);
-        const isSupported = item.country.supported !== false;
+        const isSupported = isRegionSupported(item.country.supported);
         const showStateName =
           userRegion?.state &&
           activeView === RegionViewType.COUNTRY &&
@@ -356,7 +360,7 @@ function RegionSelector() {
               onPress={() => handleOnRegionPressCallback(item.country)}
               accessibilityRole="button"
               accessible
-              disabled={!isSupported}
+              isDisabled={!isSupported}
             >
               <ListItemColumn widthType={WidthType.Fill}>
                 <View style={styles.region}>
@@ -402,7 +406,7 @@ function RegionSelector() {
             </ListItemSelect>
             {item.matchingStates.map((state) => {
               const stateIsSelected = isRegionSelected(state, item.country);
-              const isStateSupported = state.supported !== false;
+              const isStateSupported = isRegionSupported(state.supported);
               return (
                 <ListItemSelect
                   key={state.stateId || state.name}
@@ -412,7 +416,7 @@ function RegionSelector() {
                   }
                   accessibilityRole="button"
                   accessible
-                  disabled={!isStateSupported}
+                  isDisabled={!isStateSupported}
                   style={styles.nestedStateItem}
                 >
                   <ListItemColumn widthType={WidthType.Fill}>
@@ -445,7 +449,7 @@ function RegionSelector() {
       );
 
       if (isCountry(region)) {
-        const isSupported = region.supported !== false;
+        const isSupported = isRegionSupported(region.supported);
         const showStateName =
           userRegion?.state &&
           activeView === RegionViewType.COUNTRY &&
@@ -459,7 +463,7 @@ function RegionSelector() {
             onPress={() => handleOnRegionPressCallback(region)}
             accessibilityRole="button"
             accessible
-            disabled={!isSupported}
+            isDisabled={!isSupported}
           >
             <ListItemColumn widthType={WidthType.Fill}>
               <View style={styles.region}>
@@ -501,14 +505,14 @@ function RegionSelector() {
         );
       }
 
-      const isStateSupported = region.supported !== false;
+      const isStateSupported = isRegionSupported(region.supported);
       return (
         <ListItemSelect
           isSelected={isSelected}
           onPress={() => handleOnRegionPressCallback(region)}
           accessibilityRole="button"
           accessible
-          disabled={!isStateSupported}
+          isDisabled={!isStateSupported}
         >
           <ListItemColumn widthType={WidthType.Fill}>
             <View style={styles.region}>
@@ -542,7 +546,7 @@ function RegionSelector() {
   );
 
   const renderEmptyList = useCallback(() => {
-    if (countriesLoading && !countries) {
+    if (countriesLoading && countries.length === 0) {
       return (
         <View style={styles.emptyList}>
           <ActivityIndicator size="large" color={colors.primary.default} />
@@ -550,7 +554,7 @@ function RegionSelector() {
       );
     }
 
-    if (countriesError && !countries) {
+    if (countriesError && countries.length === 0) {
       return (
         <View style={styles.emptyList}>
           <Text variant={TextVariant.BodyLGMedium} style={styles.errorText}>
@@ -559,13 +563,6 @@ function RegionSelector() {
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {countriesError}
           </Text>
-          <ButtonIcon
-            size={ButtonIconSizes.Md}
-            iconName={IconName.Refresh}
-            onPress={() => fetchCountries()}
-            style={styles.retryButton}
-            testID="retry-countries-button"
-          />
         </View>
       );
     }
@@ -590,9 +587,7 @@ function RegionSelector() {
     searchString,
     styles.emptyList,
     styles.errorText,
-    styles.retryButton,
     colors.primary.default,
-    fetchCountries,
   ]);
 
   const handleSearchTextChange = useCallback(
