@@ -211,22 +211,24 @@ export class PushProvisioningService {
     walletAdapter: IWalletProviderAdapter,
     cardDisplayInfo: CardDisplayInfo,
   ): Promise<ProvisioningResult> {
-    // Create the issuer encrypt callback that will be called by PassKit
+    if (!cardAdapter.getApplePayEncryptedPayload) {
+      throw new ProvisioningError(
+        ProvisioningErrorCode.CARD_NOT_ELIGIBLE,
+        strings('card.push_provisioning.error_card_not_eligible'),
+      );
+    }
+
+    const getEncryptedPayload =
+      cardAdapter.getApplePayEncryptedPayload.bind(cardAdapter);
+
     const issuerEncryptCallback = async (
       nonce: string,
       nonceSignature: string,
       certificates: string[],
     ) => {
-      // Call card provider to get encrypted payload
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      return await cardAdapter.getApplePayEncryptedPayload!(
-        nonce,
-        nonceSignature,
-        certificates,
-      );
+      return await getEncryptedPayload(nonce, nonceSignature, certificates);
     };
 
-    // Provision the card with the callback
     return await walletAdapter.provisionCard({
       cardNetwork: cardDisplayInfo.cardNetwork,
       cardholderName: cardDisplayInfo.cardholderName,

@@ -62,6 +62,10 @@ export function usePushProvisioning(
   const [error, setError] = useState<ProvisioningError | null>(null);
   const { trackEvent, createEventBuilder } = useMetrics();
 
+  // Track current status in ref for use in activation listener
+  const statusRef = useRef<ProvisioningStatus>(status);
+  statusRef.current = status;
+
   // Get SDK and location
   const { sdk: cardSDK, isLoading: isSDKLoading } = useCardSDK();
   const userCardLocation = useSelector(selectUserCardLocation);
@@ -174,10 +178,18 @@ export function usePushProvisioning(
     walletAdapter?.walletType,
   ]);
 
-  // Set up activation listener for success events (card activated after provisioning)
+  // Set up activation listener for card activation events
+  // Only process events when status is 'provisioning' to avoid duplicate handling
+  // (initiateProvisioning already handles synchronous results)
   useEffect(() => {
     const unsubscribe = service.addActivationListener(
       (event: CardActivationEvent) => {
+        // Skip if we're not in provisioning state - the result was already handled
+        // by initiateProvisioning (e.g., error or cancel from the synchronous flow)
+        if (statusRef.current !== 'provisioning') {
+          return;
+        }
+
         if (event.status === 'activated') {
           setStatus('success');
 
@@ -201,8 +213,37 @@ export function usePushProvisioning(
             status: 'success',
             tokenId: event.tokenId,
           });
+        } else if (event.status === 'canceled') {
+          // Handle cancel events from the native SDK's activation listener
+          setStatus('idle');
+          onCancelRef.current?.();
         } else if (event.status === 'failed') {
+          const activationError = new ProvisioningError(
+            ProvisioningErrorCode.UNKNOWN_ERROR,
+            strings('card.push_provisioning.error_unknown'),
+          );
+
           setStatus('error');
+          setError(activationError);
+
+          // Track analytics
+          try {
+            trackEventRef.current(
+              createEventBuilderRef
+                .current(MetaMetricsEvents.CARD_PUSH_PROVISIONING_FAILED)
+                .addProperties({
+                  card_provider_id: cardAdapterProviderIdRef.current,
+                  wallet_type: walletAdapterTypeRef.current,
+                  error_code: activationError.code,
+                  source: 'activation_listener',
+                })
+                .build(),
+            );
+          } catch {
+            // Silently ignore analytics errors
+          }
+
+          onErrorRef.current?.(activationError);
         }
       },
     );

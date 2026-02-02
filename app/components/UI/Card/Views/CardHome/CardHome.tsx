@@ -102,6 +102,7 @@ import {
   buildCardholderName,
   type ShippingAddress,
 } from '../../util/buildUserAddress';
+import AnimatedSpinner from '../../../AnimatedSpinner';
 
 /**
  * Route params for CardHome screen
@@ -1129,10 +1130,7 @@ const CardHome = () => {
         <Box twClassName="w-full px-4 pt-4 items-center justify-center">
           {isPushProvisioning ? (
             <Box twClassName="py-3">
-              <ActivityIndicator
-                size="large"
-                color={theme.colors.primary.default}
-              />
+              <AnimatedSpinner testID="push-provisioning-spinner" />
             </Box>
           ) : (
             <AddToWalletButton

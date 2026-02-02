@@ -33,6 +33,11 @@ jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
+// Mock constants
+jest.mock('../../constants', () => ({
+  getWalletName: () => 'Google Wallet',
+}));
+
 /**
  * Helper to inject mock wallet module into adapter
  * Since the adapter uses dynamic imports, we need to manually inject the mock
@@ -156,6 +161,34 @@ describe('GoogleWalletAdapter', () => {
       const result = await adapter.getCardStatus('1234');
       expect(result).toBe('requires_activation');
     });
+
+    it('maps "not found" to not_found', async () => {
+      mockGetCardStatusBySuffix.mockResolvedValue('not found');
+
+      const result = await adapter.getCardStatus('1234');
+      expect(result).toBe('not_found');
+    });
+
+    it('maps pending status', async () => {
+      mockGetCardStatusBySuffix.mockResolvedValue('pending');
+
+      const result = await adapter.getCardStatus('1234');
+      expect(result).toBe('pending');
+    });
+
+    it('maps suspended status', async () => {
+      mockGetCardStatusBySuffix.mockResolvedValue('suspended');
+
+      const result = await adapter.getCardStatus('1234');
+      expect(result).toBe('suspended');
+    });
+
+    it('maps deactivated status', async () => {
+      mockGetCardStatusBySuffix.mockResolvedValue('deactivated');
+
+      const result = await adapter.getCardStatus('1234');
+      expect(result).toBe('deactivated');
+    });
   });
 
   describe('provisionCard', () => {
@@ -182,6 +215,20 @@ describe('GoogleWalletAdapter', () => {
         const params = {
           ...mockProvisionParams,
           encryptedPayload: {},
+        };
+
+        const result = await adapter.provisionCard(params);
+
+        expect(result.status).toBe('error');
+        expect(result.error?.code).toBe(
+          ProvisioningErrorCode.INVALID_CARD_DATA,
+        );
+      });
+
+      it('returns error when opaquePaymentCard is empty string', async () => {
+        const params = {
+          ...mockProvisionParams,
+          encryptedPayload: { opaquePaymentCard: '' },
         };
 
         const result = await adapter.provisionCard(params);
@@ -252,6 +299,14 @@ describe('GoogleWalletAdapter', () => {
 
         expect(result.status).toBe('canceled');
       });
+
+      it('returns error status when SDK returns error', async () => {
+        mockAddCardToGoogleWallet.mockResolvedValue('error');
+
+        const result = await adapter.provisionCard(mockProvisionParams);
+
+        expect(result.status).toBe('error');
+      });
     });
 
     describe('auto-resume flow (Yellow Path)', () => {
@@ -302,6 +357,48 @@ describe('GoogleWalletAdapter', () => {
         expect(result.status).toBe('success');
         expect(mockAddCardToGoogleWallet).toHaveBeenCalled();
         expect(mockResumeAddCardToGoogleWallet).not.toHaveBeenCalled();
+      });
+
+      it('handles resume canceled status', async () => {
+        mockResumeAddCardToGoogleWallet.mockResolvedValue('canceled');
+
+        const result = await adapter.provisionCard(mockProvisionParams);
+
+        expect(result.status).toBe('canceled');
+      });
+
+      it('handles resume error status', async () => {
+        mockResumeAddCardToGoogleWallet.mockResolvedValue('error');
+
+        const result = await adapter.provisionCard(mockProvisionParams);
+
+        expect(result.status).toBe('error');
+      });
+    });
+
+    describe('error handling', () => {
+      beforeEach(() => {
+        mockGetCardStatusBySuffix.mockResolvedValue('not found');
+      });
+
+      it('returns error result when SDK returns error status', async () => {
+        mockAddCardToGoogleWallet.mockResolvedValue('error');
+
+        const result = await adapter.provisionCard(mockProvisionParams);
+
+        expect(result.status).toBe('error');
+      });
+
+      it('returns error result when getCardStatus throws', async () => {
+        mockGetCardStatusBySuffix.mockImplementationOnce(async () => {
+          throw new Error('Status failed');
+        });
+        mockAddCardToGoogleWallet.mockResolvedValue('success');
+
+        // getCardStatus error is caught and returns 'not_found', so flow continues
+        const result = await adapter.provisionCard(mockProvisionParams);
+
+        expect(result.status).toBe('success');
       });
     });
   });
@@ -359,6 +456,31 @@ describe('GoogleWalletAdapter', () => {
         lastDigits: undefined,
       });
     });
+
+    it('returns canceled status when user cancels resume', async () => {
+      mockResumeAddCardToGoogleWallet.mockResolvedValue('canceled');
+
+      const result = await adapter.resumeProvisioning(
+        'token-123',
+        'MASTERCARD',
+      );
+
+      expect(result.status).toBe('canceled');
+    });
+
+    it('returns error result when SDK throws', async () => {
+      mockResumeAddCardToGoogleWallet.mockRejectedValue(
+        new Error('Resume failed'),
+      );
+
+      const result = await adapter.resumeProvisioning(
+        'token-123',
+        'MASTERCARD',
+      );
+
+      expect(result.status).toBe('error');
+      expect(result.error?.code).toBe(ProvisioningErrorCode.UNKNOWN_ERROR);
+    });
   });
 
   describe('listTokens', () => {
@@ -391,6 +513,22 @@ describe('GoogleWalletAdapter', () => {
 
     it('returns empty array on error', async () => {
       mockListTokens.mockRejectedValue(new Error('SDK error'));
+
+      const result = await adapter.listTokens();
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns empty array when SDK returns non-array', async () => {
+      mockListTokens.mockResolvedValue('not an array');
+
+      const result = await adapter.listTokens();
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns empty array when SDK returns null', async () => {
+      mockListTokens.mockResolvedValue(null);
 
       const result = await adapter.listTokens();
 
@@ -432,6 +570,18 @@ describe('GoogleWalletAdapter', () => {
 
       expect(result).toBeNull();
     });
+
+    it('returns first matching token when duplicates exist', async () => {
+      const mockTokens = [
+        { identifier: 'token-1', lastDigits: '1234', tokenState: 1 },
+        { identifier: 'token-2', lastDigits: '1234', tokenState: 2 },
+      ];
+      mockListTokens.mockResolvedValue(mockTokens);
+
+      const result = await adapter.findTokenByLastDigits('1234');
+
+      expect(result?.identifier).toBe('token-1');
+    });
   });
 
   describe('getEligibility', () => {
@@ -472,6 +622,16 @@ describe('GoogleWalletAdapter', () => {
       expect(result.tokenReferenceId).toBe('token-123');
     });
 
+    it('returns resume action without tokenReferenceId when token not found', async () => {
+      mockGetCardStatusBySuffix.mockResolvedValue('requireActivation');
+      mockListTokens.mockResolvedValue([]);
+
+      const result = await adapter.getEligibility('1234');
+
+      expect(result.recommendedAction).toBe('resume');
+      expect(result.tokenReferenceId).toBeUndefined();
+    });
+
     it('returns canAddCard false when card is active', async () => {
       mockGetCardStatusBySuffix.mockResolvedValue('active');
 
@@ -499,6 +659,23 @@ describe('GoogleWalletAdapter', () => {
       expect(result.canAddCard).toBe(false);
       expect(result.recommendedAction).toBe('contact_support');
     });
+
+    it('returns contact_support action when card is deactivated', async () => {
+      mockGetCardStatusBySuffix.mockResolvedValue('deactivated');
+
+      const result = await adapter.getEligibility('1234');
+
+      expect(result.canAddCard).toBe(false);
+      expect(result.recommendedAction).toBe('contact_support');
+    });
+
+    it('returns eligibility without checking card status when no lastFourDigits', async () => {
+      const result = await adapter.getEligibility();
+
+      expect(result.isAvailable).toBe(true);
+      expect(result.canAddCard).toBe(true);
+      expect(mockGetCardStatusBySuffix).not.toHaveBeenCalled();
+    });
   });
 
   describe('addActivationListener', () => {
@@ -508,6 +685,95 @@ describe('GoogleWalletAdapter', () => {
       const unsubscribe = adapter.addActivationListener(callback);
 
       expect(typeof unsubscribe).toBe('function');
+    });
+
+    it('removes listener on unsubscribe', () => {
+      const callback = jest.fn();
+      const unsubscribe = adapter.addActivationListener(callback);
+
+      unsubscribe();
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((adapter as any).activationListeners.size).toBe(0);
+    });
+
+    it('sets up native listener when listener is added', async () => {
+      mockAddListener.mockReturnValue({ remove: jest.fn() });
+
+      adapter.addActivationListener(jest.fn());
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(mockAddListener).toHaveBeenCalledWith(
+        'onCardActivated',
+        expect.any(Function),
+      );
+    });
+  });
+
+  describe('activation event handling', () => {
+    beforeEach(() => {
+      mockAddListener.mockReturnValue({ remove: jest.fn() });
+    });
+
+    it('notifies listeners on activated status', async () => {
+      let nativeCallback: (data: unknown) => void = () => undefined;
+      mockAddListener.mockImplementation((_event, callback) => {
+        nativeCallback = callback;
+        return { remove: jest.fn() };
+      });
+
+      const listener = jest.fn();
+      adapter.addActivationListener(listener);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Android SDK sends 'status' property with 'active' value
+      nativeCallback({ tokenId: 'token-123', status: 'active' });
+
+      expect(listener).toHaveBeenCalledWith({
+        tokenId: 'token-123',
+        status: 'activated',
+      });
+    });
+
+    it('notifies listeners on canceled status', async () => {
+      let nativeCallback: (data: unknown) => void = () => undefined;
+      mockAddListener.mockImplementation((_event, callback) => {
+        nativeCallback = callback;
+        return { remove: jest.fn() };
+      });
+
+      const listener = jest.fn();
+      adapter.addActivationListener(listener);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Android SDK sends 'status' property with 'canceled' value
+      nativeCallback({ tokenId: 'token-123', status: 'canceled' });
+
+      expect(listener).toHaveBeenCalledWith({
+        tokenId: 'token-123',
+        status: 'canceled',
+      });
+    });
+
+    it('notifies listeners on failed status (unknown status)', async () => {
+      let nativeCallback: (data: unknown) => void = () => undefined;
+      mockAddListener.mockImplementation((_event, callback) => {
+        nativeCallback = callback;
+        return { remove: jest.fn() };
+      });
+
+      const listener = jest.fn();
+      adapter.addActivationListener(listener);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Unknown status falls through to 'failed'
+      nativeCallback({ tokenId: 'token-123', status: 'unknown' });
+
+      expect(listener).toHaveBeenCalledWith({
+        tokenId: 'token-123',
+        status: 'failed',
+      });
     });
   });
 });

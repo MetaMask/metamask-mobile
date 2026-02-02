@@ -323,6 +323,29 @@ describe('PushProvisioningService', () => {
           mockCardAdapter.getApplePayEncryptedPayload,
         ).toHaveBeenCalledWith('nonce', 'signature', ['cert1', 'cert2']);
       });
+
+      it('throws error when card adapter does not support Apple Pay', async () => {
+        // Create a card adapter without getApplePayEncryptedPayload method
+        const cardAdapterWithoutApplePay: jest.Mocked<ICardProviderAdapter> = {
+          providerId: 'galileo',
+          getOpaquePaymentCard: jest.fn(),
+          // getApplePayEncryptedPayload is intentionally omitted
+        };
+
+        const serviceWithLimitedAdapter = new PushProvisioningService(
+          cardAdapterWithoutApplePay,
+          mockAppleWalletAdapter,
+        );
+
+        const result = await serviceWithLimitedAdapter.initiateProvisioning(
+          mockProvisioningOptions,
+        );
+
+        expect(result.status).toBe('error');
+        expect(result.error?.code).toBe(
+          ProvisioningErrorCode.CARD_NOT_ELIGIBLE,
+        );
+      });
     });
 
     describe('error handling', () => {

@@ -15,13 +15,12 @@ import {
   ProvisionCardParams,
   ProvisioningResult,
   CardActivationEvent,
-  ProvisioningError,
   ProvisioningErrorCode,
   UserAddress,
 } from '../../types';
 import { IWalletProviderAdapter } from './IWalletProviderAdapter';
+import { BaseWalletAdapter } from './BaseWalletAdapter';
 import {
-  mapCardStatus,
   mapTokenizationStatus,
   validateTokenArray,
   createErrorResult,
@@ -29,9 +28,7 @@ import {
   TokenInfo,
   TokenizationStatus,
 } from './utils';
-import Logger from '../../../../../../util/Logger';
 import { strings } from '../../../../../../../locales/i18n';
-import { getWalletName } from '../../constants';
 
 // Types from react-native-wallet for Android
 interface AndroidCardData {
@@ -88,237 +85,84 @@ function toAndroidUserAddress(
  * 4. Call pushTokenize with the opaque payment card
  * 5. Google/network creates and provisions the token
  */
-export class GoogleWalletAdapter implements IWalletProviderAdapter {
+export class GoogleWalletAdapter
+  extends BaseWalletAdapter
+  implements IWalletProviderAdapter
+{
   readonly walletType: WalletType = 'google_wallet';
   readonly platform: PlatformOSType = 'android';
 
-  private activationListeners: Set<(event: CardActivationEvent) => void>;
-  private walletModule: typeof import('@expensify/react-native-wallet') | null =
-    null;
-  private listenerSubscription?: { remove: () => void };
-
-  private moduleLoadPromise: Promise<void> | null = null;
-  private moduleLoadError: Error | null = null;
-
   constructor() {
-    this.activationListeners = new Set();
+    super();
     // Start loading the module immediately but don't block
     this.moduleLoadPromise = this.initializeWalletModule();
   }
 
-  /**
-   * Initialize the wallet module lazily
-   */
-  private async initializeWalletModule(): Promise<void> {
-    if (Platform.OS !== 'android') {
-      return;
-    }
+  protected getAdapterName(): string {
+    return 'GoogleWalletAdapter';
+  }
 
-    try {
-      this.walletModule = await import('@expensify/react-native-wallet');
-      this.moduleLoadError = null;
-    } catch (error) {
-      this.moduleLoadError =
-        error instanceof Error ? error : new Error(String(error));
-      Logger.log(
-        'GoogleWalletAdapter: Failed to load wallet module',
-        this.moduleLoadError.message,
-      );
-    }
+  protected getExpectedPlatform(): PlatformOSType {
+    return 'android';
   }
 
   /**
-   * Get the wallet module, ensuring it's loaded
-   */
-  private async getWalletModule(): Promise<
-    typeof import('@expensify/react-native-wallet')
-  > {
-    // Wait for the initial load to complete
-    if (this.moduleLoadPromise) {
-      await this.moduleLoadPromise;
-    }
-
-    // If still not loaded, try again
-    if (!this.walletModule && !this.moduleLoadError) {
-      await this.initializeWalletModule();
-    }
-
-    if (!this.walletModule) {
-      const errorMessage = this.moduleLoadError
-        ? `Failed to load wallet module: ${this.moduleLoadError.message}`
-        : strings('card.push_provisioning.error_wallet_not_available', {
-            walletName: getWalletName(),
-          });
-
-      Logger.log('GoogleWalletAdapter.getWalletModule: Module not available', {
-        hasModule: !!this.walletModule,
-        loadError: this.moduleLoadError?.message,
-        platform: Platform.OS,
-      });
-
-      throw new ProvisioningError(
-        ProvisioningErrorCode.WALLET_NOT_AVAILABLE,
-        errorMessage,
-        this.moduleLoadError ?? undefined,
-      );
-    }
-
-    return this.walletModule;
-  }
-
-  /**
-   * Check if Google Wallet is available on this device
-   */
-  async checkAvailability(): Promise<boolean> {
-    if (Platform.OS !== 'android') {
-      Logger.log(
-        'GoogleWalletAdapter: Not available - platform is not Android',
-      );
-      return false;
-    }
-
-    try {
-      const wallet = await this.getWalletModule();
-      const isAvailable = await wallet.checkWalletAvailability();
-
-      if (!isAvailable) {
-        Logger.log('GoogleWalletAdapter: Not available');
-      }
-
-      return isAvailable;
-    } catch (error) {
-      Logger.log('GoogleWalletAdapter: Not available - Error:', {
-        message: error instanceof Error ? error.message : String(error),
-      });
-      return false;
-    }
-  }
-
-  /**
-   * Get detailed wallet eligibility information
+   * Handle activation event from native module
    *
-   * Returns eligibility details including:
-   * - Whether wallet is available
-   * - Whether card can be added
-   * - Current card status in wallet
-   * - Recommended action (add_card, resume, none, etc.)
-   * - Token reference ID for resume flow
+   * Android SDK sends events with 'status' property (not 'actionStatus').
+   * Possible values: 'active' (success), 'canceled' (user canceled).
+   * Note: The SDK never sends a 'failed' status - errors are handled
+   * via the function return value, not the activation event.
    */
-  async getEligibility(lastFourDigits?: string): Promise<WalletEligibility> {
-    const isAvailable = await this.checkAvailability();
-
-    if (!isAvailable) {
-      return {
-        isAvailable: false,
-        canAddCard: false,
-        ineligibilityReason: strings(
-          'card.push_provisioning.error_wallet_not_available',
-          { walletName: getWalletName() },
-        ),
-        recommendedAction: 'none',
-      };
-    }
-
-    let existingCardStatus: CardTokenStatus | undefined;
-    let tokenReferenceId: string | undefined;
-
-    if (lastFourDigits) {
-      existingCardStatus = await this.getCardStatus(lastFourDigits);
-
-      // If card requires activation, find its token ID for resume flow
-      if (existingCardStatus === 'requires_activation') {
-        const token = await this.findTokenByLastDigits(lastFourDigits);
-        tokenReferenceId = token?.identifier;
-      }
-    }
-
-    // Determine recommended action based on card status
-    const { canAddCard, recommendedAction, ineligibilityReason } =
-      this.determineActionForStatus(existingCardStatus);
-
-    return {
-      isAvailable: true,
-      canAddCard,
-      existingCardStatus,
-      ineligibilityReason,
-      recommendedAction,
-      tokenReferenceId,
+  protected handleNativeActivationEvent(data: unknown): void {
+    const typedData = data as { status?: string; tokenId?: string };
+    const event: CardActivationEvent = {
+      tokenId: typedData.tokenId,
+      status:
+        typedData.status === 'active'
+          ? 'activated'
+          : typedData.status === 'canceled'
+            ? 'canceled'
+            : 'failed', // Defensive fallback for unknown statuses
     };
+    this.notifyActivationListeners(event);
   }
 
   /**
-   * Determine the recommended action based on card status
+   * Override determineActionForStatus to support Yellow Path (resume)
    */
-  private determineActionForStatus(status?: CardTokenStatus): {
+  protected determineActionForStatus(status?: CardTokenStatus): {
     canAddCard: boolean;
     recommendedAction: WalletEligibility['recommendedAction'];
     ineligibilityReason?: string;
   } {
-    switch (status) {
-      case undefined:
-      case 'not_found':
-        return {
-          canAddCard: true,
-          recommendedAction: 'add_card',
-        };
-
-      case 'requires_activation':
-        return {
-          canAddCard: true,
-          recommendedAction: 'resume',
-        };
-
-      case 'active':
-        return {
-          canAddCard: false,
-          recommendedAction: 'none',
-          ineligibilityReason: strings(
-            'card.push_provisioning.error_card_already_in_wallet',
-            { walletName: getWalletName() },
-          ),
-        };
-
-      case 'pending':
-        return {
-          canAddCard: false,
-          recommendedAction: 'wait',
-          ineligibilityReason: strings(
-            'card.push_provisioning.error_card_pending',
-            { walletName: getWalletName() },
-          ),
-        };
-
-      case 'suspended':
-      case 'deactivated':
-        return {
-          canAddCard: false,
-          recommendedAction: 'contact_support',
-          ineligibilityReason: strings(
-            'card.push_provisioning.error_card_suspended',
-            { walletName: getWalletName() },
-          ),
-        };
-
-      default:
-        return {
-          canAddCard: false,
-          recommendedAction: 'none',
-        };
+    // Google Wallet supports resume flow for requires_activation
+    if (status === 'requires_activation') {
+      return {
+        canAddCard: true,
+        recommendedAction: 'resume',
+      };
     }
+
+    // Use base class implementation for other statuses
+    return super.determineActionForStatus(status);
   }
 
   /**
-   * Check the status of a specific card in Google Wallet
+   * Get additional eligibility info for Google Wallet (token reference ID for resume)
    */
-  async getCardStatus(lastFourDigits: string): Promise<CardTokenStatus> {
-    try {
-      const wallet = await this.getWalletModule();
-      const status = await wallet.getCardStatusBySuffix(lastFourDigits);
-      return mapCardStatus(status);
-    } catch (error) {
-      logAdapterError('GoogleWalletAdapter', 'getCardStatus', error);
-      return 'not_found';
+  protected async getAdditionalEligibilityInfo(
+    lastFourDigits?: string,
+    existingCardStatus?: CardTokenStatus,
+  ): Promise<Partial<WalletEligibility>> {
+    // If card requires activation, find its token ID for resume flow
+    if (existingCardStatus === 'requires_activation' && lastFourDigits) {
+      const token = await this.findTokenByLastDigits(lastFourDigits);
+      if (token) {
+        return { tokenReferenceId: token.identifier };
+      }
     }
+    return {};
   }
 
   /**
@@ -337,20 +181,14 @@ export class GoogleWalletAdapter implements IWalletProviderAdapter {
     if (Platform.OS !== 'android') {
       return {
         status: 'error',
-        error: new ProvisioningError(
-          ProvisioningErrorCode.PLATFORM_NOT_SUPPORTED,
-          strings('card.push_provisioning.error_platform_not_supported'),
-        ),
+        error: this.createPlatformNotSupportedError(),
       };
     }
 
     if (!params.encryptedPayload.opaquePaymentCard) {
       return {
         status: 'error',
-        error: new ProvisioningError(
-          ProvisioningErrorCode.INVALID_CARD_DATA,
-          strings('card.push_provisioning.error_invalid_card_data'),
-        ),
+        error: this.createInvalidCardDataError(),
       };
     }
 
@@ -440,10 +278,7 @@ export class GoogleWalletAdapter implements IWalletProviderAdapter {
     if (Platform.OS !== 'android') {
       return {
         status: 'error',
-        error: new ProvisioningError(
-          ProvisioningErrorCode.PLATFORM_NOT_SUPPORTED,
-          strings('card.push_provisioning.error_platform_not_supported'),
-        ),
+        error: this.createPlatformNotSupportedError(),
       };
     }
 
@@ -499,88 +334,5 @@ export class GoogleWalletAdapter implements IWalletProviderAdapter {
   ): Promise<TokenInfo | null> {
     const tokens = await this.listTokens();
     return tokens.find((t) => t.lastDigits === lastFourDigits) ?? null;
-  }
-
-  /**
-   * Add a listener for card activation events
-   */
-  addActivationListener(
-    callback: (event: CardActivationEvent) => void,
-  ): () => void {
-    this.activationListeners.add(callback);
-
-    // Set up the native listener asynchronously once the module is loaded
-    this.setupNativeListenerIfNeeded();
-
-    // Return unsubscribe function
-    return () => {
-      this.activationListeners.delete(callback);
-
-      // Remove native listener if no more listeners
-      if (this.activationListeners.size === 0 && this.listenerSubscription) {
-        this.listenerSubscription.remove();
-        this.listenerSubscription = undefined;
-      }
-    };
-  }
-
-  /**
-   * Set up the native event listener once the module is loaded
-   */
-  private async setupNativeListenerIfNeeded(): Promise<void> {
-    // Already have a listener subscription
-    if (this.listenerSubscription) {
-      return;
-    }
-
-    // No listeners registered, don't set up native listener
-    if (this.activationListeners.size === 0) {
-      return;
-    }
-
-    try {
-      // Wait for the module to load
-      const wallet = await this.getWalletModule();
-
-      // Check again after await - subscription might have been set up or listeners removed
-      if (this.listenerSubscription || this.activationListeners.size === 0) {
-        return;
-      }
-
-      this.listenerSubscription = wallet.addListener(
-        'onCardActivated',
-        (data: { actionStatus: string; tokenId?: string }) => {
-          const event: CardActivationEvent = {
-            tokenId: data.tokenId,
-            status:
-              data.actionStatus === 'active'
-                ? 'activated'
-                : data.actionStatus === 'canceled'
-                  ? 'canceled'
-                  : 'failed',
-          };
-          this.notifyActivationListeners(event);
-        },
-      );
-    } catch (error) {
-      Logger.log('GoogleWalletAdapter: Failed to set up native listener', {
-        message: error instanceof Error ? error.message : String(error),
-      });
-    }
-  }
-
-  /**
-   * Notify all activation listeners
-   */
-  private notifyActivationListeners(event: CardActivationEvent): void {
-    this.activationListeners.forEach((callback) => {
-      try {
-        callback(event);
-      } catch (error) {
-        Logger.log('GoogleWalletAdapter: Error in activation listener', {
-          message: error instanceof Error ? error.message : String(error),
-        });
-      }
-    });
   }
 }
