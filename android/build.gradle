@@ -35,7 +35,7 @@ buildscript {
             url(new File(['node', '--print', "require.resolve('@notifee/react-native/package.json')"].execute(null, rootDir).text.trim(), '../android/libs'))
         }
         maven { url "https://jitpack.io" }
-				maven { url "file://${rootDir}/libs" }
+        maven { url "file://${rootDir}/libs" }
     }
 	}
 }
