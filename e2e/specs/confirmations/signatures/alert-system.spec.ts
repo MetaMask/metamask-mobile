@@ -5,7 +5,7 @@ import RequestTypes from '../../../pages/Browser/Confirmations/RequestTypes';
 import AlertSystem from '../../../pages/Browser/Confirmations/AlertSystem';
 import TestDApp from '../../../pages/Browser/TestDApp';
 import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
-import { SmokeConfirmationsRedesigned } from '../../../tags';
+import { SmokeConfirmations } from '../../../tags';
 import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
 import {
@@ -36,7 +36,7 @@ const typedSignRequestBody = {
   ],
 };
 
-describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
+describe(SmokeConfirmations('Alert System - Signature'), () => {
   const runTest = async (
     testSpecificMock: (mockServer: Mockttp) => Promise<void>,
     alertAssertion: () => Promise<void>,
@@ -245,7 +245,7 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
             AlertSystem.alertMismatchTitle,
           );
           await AlertSystem.tapAcknowledgeAlertModal();
-          await AlertSystem.tapGotItAlertModalButton();
+          await AlertSystem.tapAcknowledgeAlertModalButton();
           // Confirm request
           await FooterActions.tapConfirmButton();
           await Assertions.expectElementToBeVisible(
