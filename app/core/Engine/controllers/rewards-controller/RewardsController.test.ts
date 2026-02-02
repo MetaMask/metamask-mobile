@@ -15880,6 +15880,7 @@ describe('RewardsController', () => {
       initialState.subscriptionReferralDetails[compositeKey] = {
         referralCode: 'REF123',
         totalReferees: 5,
+        referredByCode: 'REFERRER123',
         referralPoints: 100,
         lastFetched: Date.now(),
       };
@@ -15944,12 +15945,14 @@ describe('RewardsController', () => {
       initialState.subscriptionReferralDetails[compositeKey1] = {
         referralCode: 'REF1',
         totalReferees: 3,
+        referredByCode: 'REFERRER1',
         referralPoints: 50,
         lastFetched: Date.now(),
       };
       initialState.subscriptionReferralDetails[compositeKey2] = {
         referralCode: 'REF2',
         totalReferees: 4,
+        referredByCode: 'REFERRER2',
         referralPoints: 75,
         lastFetched: Date.now(),
       };
@@ -16090,12 +16093,14 @@ describe('RewardsController', () => {
       initialState.subscriptionReferralDetails[compositeKey1] = {
         referralCode: 'REF1',
         totalReferees: 2,
+        referredByCode: 'REFERRER1',
         referralPoints: 30,
         lastFetched: Date.now(),
       };
       initialState.subscriptionReferralDetails[compositeKey2] = {
         referralCode: 'REF2',
         totalReferees: 3,
+        referredByCode: 'REFERRER2',
         referralPoints: 45,
         lastFetched: Date.now(),
       };
@@ -16175,6 +16180,7 @@ describe('RewardsController', () => {
       initialState.subscriptionReferralDetails[compositeKey1] = {
         referralCode: 'REF1',
         totalReferees: 2,
+        referredByCode: 'REFERRER1',
         referralPoints: 30,
         lastFetched: Date.now(),
       };
@@ -16280,6 +16286,7 @@ describe('RewardsController', () => {
       initialState.subscriptionReferralDetails[compositeKey] = {
         referralCode: 'REF_123',
         totalReferees: 1,
+        referredByCode: 'REFERRER_123',
         referralPoints: 10,
         lastFetched: Date.now(),
       };

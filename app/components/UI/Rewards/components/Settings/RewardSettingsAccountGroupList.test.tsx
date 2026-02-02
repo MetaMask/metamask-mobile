@@ -356,6 +356,17 @@ jest.mock('./RewardSettingsAccountGroup', () => {
   );
 });
 
+// Mock ReferredByCodeSection component to avoid navigation context requirement
+jest.mock('./ReferredByCodeSection', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+
+  return () =>
+    ReactActual.createElement(View, {
+      testID: 'referred-by-code-section',
+    });
+});
+
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseRewardOptinSummary = useRewardOptinSummary as jest.MockedFunction<
   typeof useRewardOptinSummary
@@ -512,7 +523,9 @@ describe('RewardSettingsAccountGroupList', () => {
       startBulkLink: mockStartBulkLink,
       cancelBulkLink: jest.fn(),
       resetBulkLink: jest.fn(),
+      resumeBulkLink: jest.fn(),
       isRunning: false,
+      wasInterrupted: false,
       isCompleted: false,
       hasFailures: false,
       isFullySuccessful: false,
@@ -1204,7 +1217,9 @@ describe('RewardSettingsAccountGroupList', () => {
         startBulkLink: mockStartBulkLink,
         cancelBulkLink: jest.fn(),
         resetBulkLink: jest.fn(),
+        resumeBulkLink: jest.fn(),
         isRunning: true,
+        wasInterrupted: false,
         isCompleted: false,
         hasFailures: false,
         isFullySuccessful: false,
@@ -1246,7 +1261,9 @@ describe('RewardSettingsAccountGroupList', () => {
         startBulkLink: mockStartBulkLink,
         cancelBulkLink: jest.fn(),
         resetBulkLink: jest.fn(),
+        resumeBulkLink: jest.fn(),
         isRunning: false,
+        wasInterrupted: false,
         isCompleted: false,
         hasFailures: false,
         isFullySuccessful: false,
@@ -1268,7 +1285,9 @@ describe('RewardSettingsAccountGroupList', () => {
         startBulkLink: mockStartBulkLink,
         cancelBulkLink: jest.fn(),
         resetBulkLink: jest.fn(),
+        resumeBulkLink: jest.fn(),
         isRunning: false,
+        wasInterrupted: false,
         isCompleted: false,
         hasFailures: false,
         isFullySuccessful: false,
@@ -1292,7 +1311,9 @@ describe('RewardSettingsAccountGroupList', () => {
         startBulkLink: mockStartBulkLink,
         cancelBulkLink: jest.fn(),
         resetBulkLink: jest.fn(),
+        resumeBulkLink: jest.fn(),
         isRunning: true,
+        wasInterrupted: false,
         isCompleted: false,
         hasFailures: false,
         isFullySuccessful: false,
