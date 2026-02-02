@@ -24,9 +24,8 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Logger from '../../../../../util/Logger';
-import AuthenticationError from '../../../../../core/Authentication/AuthenticationError';
-import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../../../constants/error';
 import { RootState } from '../../../../../reducers';
+import { ReauthenticateErrorType } from '../../../../../core/Authentication/types';
 
 const LoginOptionsSettings = () => {
   const navigation = useNavigation();
@@ -107,12 +106,12 @@ const LoginOptionsSettings = () => {
         // Biometrics and passcode are mutually exclusive - enabling one disables the other
         // Disabling biometrics switches to PASSWORD which disables both
         setPasscodeChoice(false);
-      } catch (error) {
+      } catch (e) {
+        const error = e as Error;
         // Check if error is "password required" - navigate to password entry
-        const isPasswordRequiredError =
-          error instanceof AuthenticationError &&
-          error.customErrorMessage ===
-            AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS;
+        const isPasswordRequiredError = error.message.includes(
+          ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS,
+        );
 
         if (isPasswordRequiredError) {
           // Navigate to password entry
@@ -195,12 +194,12 @@ const LoginOptionsSettings = () => {
         // Biometrics and passcode are mutually exclusive - enabling one disables the other
         // Disabling passcode switches to PASSWORD which disables both
         setBiometryChoice(false);
-      } catch (error) {
+      } catch (e) {
+        const error = e as Error;
         // Check if error is "password required" - navigate to password entry
-        const isPasswordRequiredError =
-          error instanceof AuthenticationError &&
-          error.customErrorMessage ===
-            AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS;
+        const isPasswordRequiredError = error.message.includes(
+          ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS,
+        );
 
         if (isPasswordRequiredError) {
           // Navigate to password entry

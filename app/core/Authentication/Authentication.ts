@@ -22,7 +22,6 @@ import AuthenticationError from './AuthenticationError';
 import { UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
 import { UserCredentials, BIOMETRY_TYPE } from 'react-native-keychain';
 import {
-  AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
   AUTHENTICATION_FAILED_WALLET_CREATION,
   AUTHENTICATION_RESET_PASSWORD_FAILED,
   AUTHENTICATION_RESET_PASSWORD_FAILED_MESSAGE,
@@ -1536,20 +1535,6 @@ class AuthenticationService {
       await this.storePassword(passwordToUse.password, authType);
     } catch (e) {
       const errorWithMessage = e as { message: string };
-
-      // Check if the error is because password is not set with biometrics
-      // Convert it to AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS so UI can handle it
-      if (
-        errorWithMessage.message.includes(
-          ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS,
-        )
-      ) {
-        throw new AuthenticationError(
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-          this.authData,
-        );
-      }
 
       if (
         errorWithMessage.message === 'Invalid password' ||

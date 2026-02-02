@@ -105,6 +105,7 @@ import {
   BIOMETRY_CHOICE_DISABLED,
   TRUE,
 } from '../../../../../constants/storage';
+import { ReauthenticateErrorType } from '../../../../../core/Authentication/types';
 
 // Mock Device
 jest.mock('../../../../../util/device', () => ({
@@ -116,9 +117,6 @@ jest.mock('../../../../../util/device', () => ({
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
-
-// Import the actual constant
-import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../../../constants/error';
 
 // Mock AuthenticationError as a proper class for instanceof to work
 // Must be defined inside the factory because jest.mock is hoisted
@@ -136,14 +134,6 @@ jest.mock('../../../../../core/Authentication/AuthenticationError', () => {
     default: AuthenticationError,
   };
 });
-
-// Get the mocked AuthenticationError class
-const MockedAuthenticationError = jest.requireMock(
-  '../../../../../core/Authentication/AuthenticationError',
-).default as new (
-  message: string,
-  code: string,
-) => Error & { customErrorMessage: string };
 
 describe('LoginOptionsSettings', () => {
   let mockGetType: jest.Mock;
@@ -242,10 +232,7 @@ describe('LoginOptionsSettings', () => {
 
   it('navigates to password entry when password is required for biometrics', async () => {
     mockUpdateAuthPreference.mockRejectedValueOnce(
-      new MockedAuthenticationError(
-        'Password required',
-        AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-      ),
+      new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
     );
 
     const { getByTestId } = renderWithProvider(<LoginOptionsSettings />, {
@@ -268,10 +255,7 @@ describe('LoginOptionsSettings', () => {
     let passwordCallback: ((password: string) => Promise<void>) | undefined;
     mockUpdateAuthPreference
       .mockRejectedValueOnce(
-        new MockedAuthenticationError(
-          'Password required',
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-        ),
+        new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
       )
       .mockResolvedValueOnce(undefined);
 
@@ -314,10 +298,7 @@ describe('LoginOptionsSettings', () => {
 
   it('clears loading state when user cancels password entry', async () => {
     mockUpdateAuthPreference.mockRejectedValueOnce(
-      new MockedAuthenticationError(
-        'Password required',
-        AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-      ),
+      new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
     );
 
     const { getByTestId } = renderWithProvider(<LoginOptionsSettings />, {
@@ -474,10 +455,7 @@ describe('LoginOptionsSettings', () => {
     let passwordCallback: ((password: string) => Promise<void>) | undefined;
     mockUpdateAuthPreference
       .mockRejectedValueOnce(
-        new MockedAuthenticationError(
-          'Password required',
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-        ),
+        new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
       )
       .mockRejectedValueOnce(new Error('Update failed'));
 
@@ -525,10 +503,7 @@ describe('LoginOptionsSettings', () => {
     });
 
     mockUpdateAuthPreference.mockRejectedValueOnce(
-      new MockedAuthenticationError(
-        'Password required',
-        AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-      ),
+      new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
     );
 
     const { getByTestId } = renderWithProvider(<LoginOptionsSettings />, {
@@ -564,10 +539,7 @@ describe('LoginOptionsSettings', () => {
 
     mockUpdateAuthPreference
       .mockRejectedValueOnce(
-        new MockedAuthenticationError(
-          'Password required',
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-        ),
+        new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
       )
       .mockResolvedValueOnce(undefined);
 
@@ -624,10 +596,7 @@ describe('LoginOptionsSettings', () => {
 
     mockUpdateAuthPreference
       .mockRejectedValueOnce(
-        new MockedAuthenticationError(
-          'Password required',
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-        ),
+        new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
       )
       .mockRejectedValueOnce(new Error('Update failed'));
 
@@ -672,10 +641,7 @@ describe('LoginOptionsSettings', () => {
 
     mockUpdateAuthPreference
       .mockRejectedValueOnce(
-        new MockedAuthenticationError(
-          'Password required',
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-        ),
+        new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
       )
       .mockResolvedValueOnce(undefined);
 
@@ -752,10 +718,7 @@ describe('LoginOptionsSettings', () => {
 
     mockUpdateAuthPreference
       .mockRejectedValueOnce(
-        new MockedAuthenticationError(
-          'Password required',
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-        ),
+        new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
       )
       .mockResolvedValueOnce(undefined);
 

@@ -15,7 +15,6 @@ import SecureKeychain from '../SecureKeychain';
 import ReduxService, { ReduxStore } from '../redux';
 import AuthenticationError from './AuthenticationError';
 import {
-  AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
   AUTHENTICATION_FAILED_WALLET_CREATION,
   AUTHENTICATION_STORE_PASSWORD_FAILED,
   AUTHENTICATION_RESET_PASSWORD_FAILED,
@@ -4181,47 +4180,6 @@ describe('Authentication', () => {
         expect.any(Error),
         'SecuritySettings:biometrics',
       );
-
-      alertSpy.mockRestore();
-    });
-
-    it('converts PASSWORD_NOT_SET_WITH_BIOMETRICS error to AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS', async () => {
-      // Mock reauthenticate to throw PASSWORD_NOT_SET_WITH_BIOMETRICS error
-      const biometricNotEnabledError = new Error(
-        `${ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS}: No password stored with biometrics in keychain.`,
-      );
-      jest
-        .spyOn(Authentication, 'reauthenticate')
-        .mockRejectedValueOnce(biometricNotEnabledError);
-
-      const loggerErrorSpy = jest.spyOn(Logger, 'error');
-      const alertSpy = jest.spyOn(Alert, 'alert');
-      const trackErrorSpy = jest.mocked(trackErrorAsAnalytics);
-
-      // Verify the error is converted to AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS
-      let caughtError: unknown;
-      try {
-        await Authentication.updateAuthPreference({
-          authType: AUTHENTICATION_TYPE.BIOMETRIC,
-        });
-      } catch (error) {
-        caughtError = error;
-      }
-
-      // Verify it throws AuthenticationError
-      expect(caughtError).toBeInstanceOf(AuthenticationError);
-
-      // Verify the error has the correct customErrorMessage
-      expect((caughtError as AuthenticationError).customErrorMessage).toBe(
-        AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-      );
-
-      // Verify that invalid password handling was not triggered
-      expect(alertSpy).not.toHaveBeenCalled();
-      expect(trackErrorSpy).not.toHaveBeenCalled();
-
-      // Verify that Logger.error was not called (since this is a converted error)
-      expect(loggerErrorSpy).not.toHaveBeenCalled();
 
       alertSpy.mockRestore();
     });

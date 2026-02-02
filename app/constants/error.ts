@@ -22,8 +22,6 @@ export const CONTACT_ALREADY_SAVED = 'contactAlreadySaved';
 export const SYMBOL_ERROR = 'symbolError';
 
 // Authentication errors
-export const AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS =
-  'Password does not exist when calling SecureKeychain.getGenericPassword';
 export const AUTHENTICATION_FAILED_WALLET_CREATION = 'Failed wallet creation';
 export const AUTHENTICATION_RESET_PASSWORD_FAILED_MESSAGE =
   'Authentication.resetPassword failed when calling SecureKeychain.resetGenericPassword with:';
