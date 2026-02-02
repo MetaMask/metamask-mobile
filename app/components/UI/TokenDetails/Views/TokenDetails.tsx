@@ -50,6 +50,7 @@ import {
   ButtonSize,
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
+import { strings } from '../../../../../locales/i18n';
 
 interface TokenDetailsProps {
   route: {
@@ -307,7 +308,7 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
             buttonPropsArray={[
               {
                 variant: ButtonVariants.Primary,
-                label: 'Buy',
+                label: strings('asset_overview.buy_button'),
                 size: ButtonSize.Lg,
                 onPress: handleBuyPress,
               },
@@ -316,7 +317,7 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
                 ? [
                     {
                       variant: ButtonVariants.Primary,
-                      label: 'Sell',
+                      label: strings('asset_overview.sell_button'),
                       size: ButtonSize.Lg,
                       onPress: handleSellPress,
                     },

@@ -307,8 +307,8 @@ export const useTokenActions = ({
     goToBuy,
   ]);
 
-  // Pre-compute destination token for Buy (current asset)
-  const buyDestToken = useMemo<BridgeToken>(
+  // Convert current token to BridgeToken format (used as dest for Buy, source for Sell)
+  const currentTokenAsBridgeToken = useMemo<BridgeToken>(
     () => ({
       address: token.address,
       chainId: token.chainId as Hex | CaipChainId,
@@ -384,26 +384,6 @@ export const useTokenActions = ({
     return null;
   }, [userAssetsMap, token.chainId, token.address]);
 
-  // Pre-compute source token for Sell (current asset)
-  const sellSourceToken = useMemo<BridgeToken>(
-    () => ({
-      address: token.address,
-      chainId: token.chainId as Hex | CaipChainId,
-      decimals: token.decimals,
-      symbol: token.symbol,
-      name: token.name,
-      image: token.image,
-    }),
-    [
-      token.address,
-      token.chainId,
-      token.decimals,
-      token.symbol,
-      token.name,
-      token.image,
-    ],
-  );
-
   // Pre-compute destination token for Sell
   // Uses getDefaultDestToken which returns:
   // - Ethereum, Linea → mUSD
@@ -436,13 +416,13 @@ export const useTokenActions = ({
     }
 
     if (!goToSwaps) return;
-    goToSwaps(buySourceToken, buyDestToken);
-  }, [goToSwaps, goToBuy, buySourceToken, buyDestToken]);
+    goToSwaps(buySourceToken, currentTokenAsBridgeToken);
+  }, [goToSwaps, goToBuy, buySourceToken, currentTokenAsBridgeToken]);
 
   const handleSellPress = useCallback(() => {
     if (!goToSwaps) return;
-    goToSwaps(sellSourceToken, sellDestToken);
-  }, [goToSwaps, sellSourceToken, sellDestToken]);
+    goToSwaps(currentTokenAsBridgeToken, sellDestToken);
+  }, [goToSwaps, currentTokenAsBridgeToken, sellDestToken]);
 
   return {
     onBuy,
