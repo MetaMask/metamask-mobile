@@ -342,10 +342,6 @@
   "TokenRatesController": {
     "marketData": {}
   },
-  "TokenSearchDiscoveryController": {
-    "lastSearchTimestamp": null,
-    "recentSearches": []
-  },
   "TokenSearchDiscoveryDataController": {
     "tokenDisplayData": []
   },

@@ -63,6 +63,7 @@ import type {
   MetaResponse,
   PerpsAssetCtx,
   FrontendOrder,
+  SpotMetaResponse,
 } from '../../types/hyperliquid-types';
 import {
   createErrorResult,
@@ -253,6 +254,10 @@ export class HyperLiquidProvider implements PerpsProvider {
   // Cache for raw meta responses (shared across methods to avoid redundant API calls)
   // Filtering is applied on-demand (cheap array operations) - no need for separate processed cache
   private cachedMetaByDex = new Map<string, MetaResponse>();
+
+  // Session cache for spot metadata (contains USDC/USDH token info for HIP-3 collateral checks)
+  // Pre-fetched in ensureReadyForTrading() to avoid API failures during order placement
+  private cachedSpotMeta: SpotMetaResponse | null = null;
 
   // Cache for perpDexs data (deployerFeeScale for dynamic fee calculation)
   // TTL-based cache - fee scales rarely change
@@ -573,7 +578,10 @@ export class HyperLiquidProvider implements PerpsProvider {
         {
           user: userAddress,
           network,
-          error: error instanceof Error ? error.message : String(error),
+          error: ensureError(
+            error,
+            'HyperLiquidProvider.ensureDexAbstractionEnabled',
+          ).message,
         },
       );
 
@@ -679,6 +687,20 @@ export class HyperLiquidProvider implements PerpsProvider {
     );
 
     this.tradingSetupPromise = (async () => {
+      // Pre-fetch spotMeta for HIP-3 operations (non-blocking if it fails)
+      // This ensures token info (USDC/USDH indices) is available during order placement
+      if (this.hip3Enabled) {
+        try {
+          await this.getCachedSpotMeta();
+        } catch (error) {
+          this.deps.debugLogger.log(
+            '[ensureReadyForTrading] spotMeta pre-fetch failed, will retry when needed',
+            error,
+          );
+          // Don't throw - spotMeta will be fetched on-demand if needed
+        }
+      }
+
       // Attempt to enable native balance abstraction
       await this.ensureDexAbstractionEnabled();
 
@@ -1078,6 +1100,36 @@ export class HyperLiquidProvider implements PerpsProvider {
   }
 
   /**
+   * Fetch spot metadata with session-based caching
+   * Contains token info (USDC, USDH indices) needed for HIP-3 collateral checks
+   * Pre-fetched in ensureReadyForTrading() to ensure availability during order placement
+   * @returns SpotMetaResponse with tokens and universe data
+   */
+  private async getCachedSpotMeta(): Promise<SpotMetaResponse> {
+    if (this.cachedSpotMeta) {
+      this.deps.debugLogger.log('[getCachedSpotMeta] Using cached spotMeta', {
+        tokensCount: this.cachedSpotMeta.tokens.length,
+        universeCount: this.cachedSpotMeta.universe.length,
+      });
+      return this.cachedSpotMeta;
+    }
+
+    const infoClient = this.clientService.getInfoClient();
+    const spotMeta = await infoClient.spotMeta();
+
+    this.cachedSpotMeta = spotMeta;
+    this.deps.debugLogger.log(
+      '[getCachedSpotMeta] Fetched and cached spotMeta',
+      {
+        tokensCount: spotMeta.tokens.length,
+        universeCount: spotMeta.universe.length,
+      },
+    );
+
+    return spotMeta;
+  }
+
+  /**
    * Fetch perpDexs data with TTL-based caching
    * Returns deployerFeeScale info needed for dynamic fee calculation
    * @returns Array of ExtendedPerpDex objects (null entries represent main DEX)
@@ -1269,8 +1321,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       return this.cachedUsdcTokenId;
     }
 
-    const infoClient = this.clientService.getInfoClient();
-    const spotMeta = await infoClient.spotMeta();
+    const spotMeta = await this.getCachedSpotMeta();
 
     const usdcToken = spotMeta.tokens.find((tok) => tok.name === 'USDC');
     if (!usdcToken) {
@@ -1291,8 +1342,7 @@ export class HyperLiquidProvider implements PerpsProvider {
    */
   private async isUsdhCollateralDex(dexName: string): Promise<boolean> {
     const meta = await this.getCachedMeta({ dexName });
-    const infoClient = this.clientService.getInfoClient();
-    const spotMeta = await infoClient.spotMeta();
+    const spotMeta = await this.getCachedSpotMeta();
 
     const collateralToken = spotMeta.tokens.find(
       (tok: { index: number }) => tok.index === meta.collateralToken,
@@ -1403,7 +1453,10 @@ export class HyperLiquidProvider implements PerpsProvider {
 
       return { success: false, error: PERPS_ERROR_CODES.TRANSFER_FAILED };
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : String(error);
+      const errorMsg = ensureError(
+        error,
+        'HyperLiquidProvider.transferUSDCToPerps',
+      ).message;
       this.deps.debugLogger.log(
         'HyperLiquidProvider: USDC transfer to spot failed',
         {
@@ -1421,8 +1474,7 @@ export class HyperLiquidProvider implements PerpsProvider {
   private async swapUsdcToUsdh(
     amount: number,
   ): Promise<{ success: boolean; filledSize?: number; error?: string }> {
-    const infoClient = this.clientService.getInfoClient();
-    const spotMeta = await infoClient.spotMeta();
+    const spotMeta = await this.getCachedSpotMeta();
 
     // Find USDH and USDC tokens by name
     const usdhToken = spotMeta.tokens.find(
@@ -1464,6 +1516,7 @@ export class HyperLiquidProvider implements PerpsProvider {
     );
 
     // Get current mid price
+    const infoClient = this.clientService.getInfoClient();
     const allMids = await infoClient.allMids();
     const pairKey = `@${usdhUsdcPair.index}`;
     const usdhPrice = parseFloat(allMids[pairKey] || '1');
@@ -1560,7 +1613,10 @@ export class HyperLiquidProvider implements PerpsProvider {
 
       return { success: true, filledSize };
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : String(error);
+      const errorMsg = ensureError(
+        error,
+        'HyperLiquidProvider.swapUSDCToUSDH',
+      ).message;
       this.deps.debugLogger.log('HyperLiquidProvider: USDC→USDH swap error', {
         error: errorMsg,
       });
@@ -1886,7 +1942,7 @@ export class HyperLiquidProvider implements PerpsProvider {
    * Map HyperLiquid API errors to standardized PERPS_ERROR_CODES
    */
   private mapError(error: unknown): Error {
-    const message = error instanceof Error ? error.message : String(error);
+    const message = ensureError(error, 'HyperLiquidProvider.mapError').message;
 
     for (const [pattern, code] of Object.entries(this.errorMappings)) {
       if (message.toLowerCase().includes(pattern.toLowerCase())) {
@@ -1895,7 +1951,7 @@ export class HyperLiquidProvider implements PerpsProvider {
     }
 
     // Return original error to preserve stack trace for unmapped errors
-    return error instanceof Error ? error : new Error(String(error));
+    return ensureError(error, 'HyperLiquidProvider.mapError');
   }
 
   /**
@@ -2119,7 +2175,10 @@ export class HyperLiquidProvider implements PerpsProvider {
         '[ensureBuilderFeeApproval] Failed, cached to prevent retries',
         {
           network,
-          error: error instanceof Error ? error.message : String(error),
+          error: ensureError(
+            error,
+            'HyperLiquidProvider.ensureBuilderFeeApproval',
+          ).message,
         },
       );
 
@@ -3096,8 +3155,10 @@ export class HyperLiquidProvider implements PerpsProvider {
     } catch (error) {
       // Retry mechanism for $10 minimum order errors
       // This handles the case where UI price feed slightly differs from HyperLiquid's orderbook price
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
+      const errorMessage = ensureError(
+        error,
+        'HyperLiquidProvider.placeOrder',
+      ).message;
       const isMinimumOrderError =
         errorMessage.includes('Order must have minimum value of $10') ||
         errorMessage.includes('Order 0: Order must have minimum value');
@@ -3448,9 +3509,8 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Ensure provider is ready for trading (includes signing operations)
       await this.ensureReadyForTrading();
 
-      // Get all current positions
-      // Force fresh API data (not WebSocket cache) since we're about to mutate positions
-      const positions = await this.getPositions({ skipCache: true });
+      // Get all current positions from cache (avoids 429 rate limiting)
+      const positions = await this.getPositions();
 
       // Filter positions based on params
       positionsToClose =
@@ -3980,9 +4040,13 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Ensure provider is ready for trading (includes signing operations)
       await this.ensureReadyForTrading();
 
-      // Force fresh API data (not WebSocket cache) since we're about to mutate the position
-      const positions = await this.getPositions({ skipCache: true });
-      const position = positions.find((pos) => pos.symbol === params.symbol);
+      // Use provided position (from WebSocket) or fetch from cache
+      // This avoids unnecessary API calls and prevents 429 rate limiting
+      let position = params.position;
+      if (!position) {
+        const positions = await this.getPositions();
+        position = positions.find((pos) => pos.symbol === params.symbol);
+      }
 
       if (!position) {
         throw new Error(`No position found for ${params.symbol}`);
@@ -4119,9 +4183,8 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Ensure provider is ready
       await this.ensureReady();
 
-      // Get current position to determine direction
-      // Force fresh API data since we're about to mutate the position
-      const positions = await this.getPositions({ skipCache: true });
+      // Get current position to determine direction (from cache to avoid 429 rate limiting)
+      const positions = await this.getPositions();
       const position = positions.find((pos) => pos.symbol === symbol);
 
       if (!position) {
@@ -4167,8 +4230,9 @@ export class HyperLiquidProvider implements PerpsProvider {
         success: true,
       };
     } catch (error) {
+      const safeError = ensureError(error, 'HyperLiquidProvider.updateMargin');
       this.deps.logger.error(
-        ensureError(error),
+        safeError,
         this.getErrorContext('updateMargin', {
           symbol: params.symbol,
           amount: params.amount,
@@ -4176,7 +4240,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       );
       return {
         success: false,
-        error: error instanceof Error ? error.message : String(error),
+        error: safeError.message,
       };
     }
   }
@@ -5853,18 +5917,19 @@ export class HyperLiquidProvider implements PerpsProvider {
         error: errorMessage,
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
+      const safeError = ensureError(
+        error,
+        'HyperLiquidProvider.initiateWithdrawal',
+      );
       this.deps.debugLogger.log('HyperLiquidProvider: WITHDRAWAL EXCEPTION', {
-        error: errorMessage,
-        errorType:
-          error instanceof Error ? error.constructor.name : typeof error,
-        stack: error instanceof Error ? error.stack : undefined,
+        error: safeError.message,
+        errorType: safeError.name,
+        stack: safeError.stack,
         params,
         timestamp: new Date().toISOString(),
       });
       this.deps.logger.error(
-        ensureError(error),
+        safeError,
         this.getErrorContext('withdraw', {
           assetId: params.assetId,
           amount: params.amount,
@@ -5957,17 +6022,21 @@ export class HyperLiquidProvider implements PerpsProvider {
 
       throw new Error(PERPS_ERROR_CODES.TRANSFER_FAILED);
     } catch (error) {
+      const safeError = ensureError(
+        error,
+        'HyperLiquidProvider.transferToSpot',
+      );
       this.deps.debugLogger.log('❌ HyperLiquidProvider: TRANSFER FAILED', {
-        error: error instanceof Error ? error.message : String(error),
+        error: safeError.message,
         params,
       });
       this.deps.logger.error(
-        ensureError(error),
+        safeError,
         this.getErrorContext('transferBetweenDexs', { ...params }),
       );
       return {
         success: false,
-        error: error instanceof Error ? error.message : String(error),
+        error: safeError.message,
       };
     }
   }
@@ -6553,12 +6622,15 @@ export class HyperLiquidProvider implements PerpsProvider {
       }
     } catch (error) {
       // Silently fall back to base rates
+      const safeError = ensureError(
+        error,
+        'HyperLiquidProvider.getFeeSchedule',
+      );
       this.deps.debugLogger.log(
         'Fee API Call Failed - Falling Back to Base Rates',
         {
-          error: error instanceof Error ? error.message : String(error),
-          errorType:
-            error instanceof Error ? error.constructor.name : typeof error,
+          error: safeError.message,
+          errorType: safeError.name,
           fallbackTakerRate: FEE_RATES.taker,
           fallbackMakerRate: FEE_RATES.maker,
           userAddress: 'unknown',
@@ -6685,6 +6757,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       // NOTE: DexAbstractionCache is global and NOT cleared on disconnect
       // to prevent repeated signing requests across reconnections
       this.cachedMetaByDex.clear();
+      this.cachedSpotMeta = null;
       this.perpDexsCache = { data: null, timestamp: 0 };
 
       // Await pending initialization before clearing to prevent the IIFE from
@@ -7027,7 +7100,8 @@ export class HyperLiquidProvider implements PerpsProvider {
         '[ensureReferralSet] Error, cached to prevent retries',
         {
           network,
-          error: error instanceof Error ? error.message : String(error),
+          error: ensureError(error, 'HyperLiquidProvider.ensureReferralSet')
+            .message,
         },
       );
       completeInFlight();
