@@ -119,14 +119,6 @@ export default class Assertions {
         const actualText = (await el.getText()) as string;
 
         if (actualText !== text) {
-          console.log(
-            '🚀 ~ Assertions ~ returnUtilities.executeWithRetry ~ actualText:',
-            actualText,
-          );
-          console.log(
-            '🚀 ~ Assertions ~ returnUtilities.executeWithRetry ~ text:',
-            text,
-          );
           throw new Error(
             `Element has text mismatch.\nExpected: "${text}"\nActual: "${actualText}"`,
           );
