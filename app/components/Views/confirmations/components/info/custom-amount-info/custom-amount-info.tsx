@@ -1,4 +1,6 @@
 import React, { ReactNode, memo, useCallback, useState } from 'react';
+import { FiatQuoteRow } from '../../rows/fiat-quote-row';
+import { useTransactionPayFiat } from '../../../hooks/pay/useTransactionPayFiat';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
 import { BridgeFeeRow } from '../../rows/bridge-fee-row';
@@ -86,8 +88,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     footerText,
   }) => {
     useClearConfirmationOnBackSwipe();
+    const { isFiatSelected } = useTransactionPayFiat();
     useAutomaticTransactionPayToken({
-      disable: disablePay,
+      disable: disablePay || isFiatSelected,
       preferredToken,
     });
     useTransactionPayMetrics();
@@ -138,7 +141,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             currency={currency}
             hasAlert={Boolean(alertMessage)}
             onPress={handleAmountPress}
-            disabled={!hasTokens}
+            disabled={!hasTokens && !isFiatSelected}
           />
           {overrideContent ? (
             overrideContent(amountHuman)
@@ -147,17 +150,19 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {disablePay !== true && (
                 <PayTokenAmount
                   amountHuman={amountHuman}
-                  disabled={!hasTokens}
+                  disabled={!hasTokens || isFiatSelected}
                 />
               )}
               {children}
-              {disablePay !== true && hasTokens && <PayWithRow />}
+              {disablePay !== true && (hasTokens || isFiatSelected) && (
+                <PayWithRow />
+              )}
             </>
           )}
         </Box>
         <Box gap={25}>
           <AlertMessage alertMessage={alertMessage} />
-          {isResultReady && (
+          {isResultReady && !isFiatSelected && (
             <Box>
               <BridgeFeeRow />
               <BridgeTimeRow />
@@ -165,6 +170,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               <PercentageRow />
             </Box>
           )}
+          {isFiatSelected && !isKeyboardVisible && <FiatQuoteRow />}
           {footerText && (
             <Text
               variant={TextVariant.BodySM}
@@ -185,7 +191,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               hasMax={hasMax && !isNativePayToken}
             />
           )}
-          {!hasTokens && <BuySection />}
+          {!hasTokens && !isFiatSelected && <BuySection />}
           {!isKeyboardVisible && <ConfirmButton alertTitle={alertTitle} />}
         </Box>
       </Box>

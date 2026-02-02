@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTransactionPayFiat } from '../pay/useTransactionPayFiat';
 import { Alert, Severity } from '../../types/alerts';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
@@ -26,7 +27,8 @@ export function useInsufficientPayTokenBalanceAlert({
   const requiredTokens = useTransactionPayRequiredTokens();
   const totals = useTransactionPayTotals();
   const isLoading = useIsTransactionPayLoading();
-  const isSourceGasFeeToken = totals?.fees.isSourceGasFeeToken ?? false;
+  const isSourceGasFeeToken = totals?.fees?.isSourceGasFeeToken ?? false;
+  const { isFiatSelected } = useTransactionPayFiat();
   const isPendingAlert = Boolean(pendingAmountUsd !== undefined);
   const isMax = useTransactionPayIsMaxAmount();
 
@@ -119,6 +121,10 @@ export function useInsufficientPayTokenBalanceAlert({
       isBlocking: true,
     };
 
+    if (isFiatSelected) {
+      return [];
+    }
+
     if (isInsufficientForInput) {
       return [
         {
@@ -160,6 +166,7 @@ export function useInsufficientPayTokenBalanceAlert({
 
     return [];
   }, [
+    isFiatSelected,
     isInsufficientForInput,
     isInsufficientForFees,
     isInsufficientForSourceNetwork,

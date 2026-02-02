@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
+import { useTransactionPayFiat } from '../../../hooks/pay/useTransactionPayFiat';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenIcon } from '../../token-icon';
@@ -40,6 +41,7 @@ export function PayWithRow() {
   const { styles } = useStyles(styleSheet, {});
   const { setConfirmationMetric } = useConfirmationMetricEvents();
 
+  const { fiatPayment, isFiatSelected } = useTransactionPayFiat();
   const {
     txParams: { from },
   } = useTransactionMetadataRequest() ?? { txParams: {} };
@@ -60,6 +62,14 @@ export function PayWithRow() {
     () => formatFiat(new BigNumber(payToken?.balanceUsd ?? '0')),
     [formatFiat, payToken?.balanceUsd],
   );
+
+  if (isFiatSelected) {
+    return (
+      <TouchableOpacity onPress={handleClick} style={styles.container}>
+        <Text variant={TextVariant.BodyMD}>{fiatPayment?.methodName}</Text>
+      </TouchableOpacity>
+    );
+  }
 
   if (!payToken) {
     return <PayWithRowSkeleton />;

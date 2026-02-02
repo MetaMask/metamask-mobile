@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTransactionPayFiat } from '../pay/useTransactionPayFiat';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
@@ -34,7 +35,7 @@ export const useInsufficientBalanceAlert = ({
   const isSimulationEnabled = useSelector(selectUseTransactionSimulations);
   const { hasInsufficientBalance, nativeCurrency } =
     useHasInsufficientBalance();
-
+  const { isFiatSelected } = useTransactionPayFiat();
   const primaryRequiredToken = (requiredTokens ?? []).find(
     (token) => !token.skipIfBalance,
   );
@@ -49,7 +50,8 @@ export const useInsufficientBalanceAlert = ({
     if (
       !transactionMetadata ||
       isTransactionValueUpdating ||
-      (payToken && !isPayTokenTarget)
+      (payToken && !isPayTokenTarget) ||
+      isFiatSelected
     ) {
       return [];
     }
@@ -119,6 +121,7 @@ export const useInsufficientBalanceAlert = ({
     transactionMetadata,
     isTransactionValueUpdating,
     payToken,
+    isFiatSelected,
     isPayTokenTarget,
     isGaslessCheckPending,
     isGaslessSupported,

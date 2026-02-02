@@ -42,6 +42,11 @@ export function useTransactionPayToken(): {
         newPayToken.chainId,
       );
 
+      TransactionPayController.setFiatPayment(
+        transactionId,
+        undefined,
+      );
+
       GasFeeController.fetchGasFeeEstimates({
         networkClientId,
       }).catch(noop);

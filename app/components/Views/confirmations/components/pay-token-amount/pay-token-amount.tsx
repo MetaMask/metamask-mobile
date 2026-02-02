@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
+import { useTransactionPayFiat } from '../../hooks/pay/useTransactionPayFiat';
 import Text, {
   TextColor,
   TextVariant,
@@ -25,6 +26,7 @@ export interface PayTokenAmountProps {
 
 export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
   const transaction = useTransactionMetadataRequest();
+  const { isFiatSelected } = useTransactionPayFiat();
   const { chainId } = transaction ?? { chainId: '0x0' };
   const { payToken } = useTransactionPayToken();
   const targetTokenAddress = getTokenAddress(transaction);
@@ -68,6 +70,10 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
 
     return formatAmount(I18n.locale, payTokenAmount);
   }, [amountHuman, disabled, payToken, fiatRates]);
+
+  if (isFiatSelected) {
+    return null;
+  }
 
   if (disabled) {
     return (

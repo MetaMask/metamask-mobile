@@ -2,8 +2,9 @@ import type { ControllerInitFunction } from '../../types';
 import Logger from '../../../../util/Logger';
 import {
   TransactionPayController,
-  TransactionPayControllerMessenger,
   TransactionPayStrategy,
+  type TransactionPayControllerMessenger,
+  type TransactionData,
 } from '@metamask/transaction-pay-controller';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { TransactionPayControllerInitMessenger } from '../../messengers/transaction-pay-controller-messenger';
@@ -20,7 +21,8 @@ export const TransactionPayControllerInit: ControllerInitFunction<
     const transactionPayController = new TransactionPayController({
       getDelegationTransaction: ({ transaction }) =>
         getDelegationTransaction(initMessenger, transaction),
-      getStrategy,
+      getStrategy: (transaction, transactionData) =>
+        getStrategy(transaction, transactionData),
       messenger: controllerMessenger,
       state: persistedState.TransactionPayController,
     });
@@ -35,6 +37,15 @@ export const TransactionPayControllerInit: ControllerInitFunction<
   }
 };
 
-function getStrategy(_transaction: TransactionMeta): TransactionPayStrategy {
+function getStrategy(
+  _transaction: TransactionMeta,
+  transactionData?: TransactionData,
+): TransactionPayStrategy {
+  const fiatPayment = transactionData?.fiatPayment;
+
+  if (fiatPayment) {
+    return TransactionPayStrategy.Fiat;
+  }
+
   return TransactionPayStrategy.Relay;
 }
