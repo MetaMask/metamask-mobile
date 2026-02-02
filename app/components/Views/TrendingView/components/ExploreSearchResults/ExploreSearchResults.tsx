@@ -3,13 +3,15 @@ import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { SECTIONS_CONFIG, type SectionId } from '../../sections.config';
+import {
+  SECTIONS_CONFIG,
+  SECTIONS_ARRAY,
+  type SectionId,
+} from '../../sections.config';
 import { useExploreSearch } from '../../hooks/useExploreSearch';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import SitesSearchFooter from '../../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
 import { useSelector } from 'react-redux';
-import { useSearchTracking } from '../../../../UI/Trending/hooks/useSearchTracking/useSearchTracking';
-import { TimeOption } from '../../../../UI/Trending/components/TrendingTokensBottomSheet/TrendingTokenTimeBottomSheet';
 
 interface ExploreSearchResultsProps {
   searchQuery: string;
@@ -39,7 +41,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
 }) => {
   const navigation = useNavigation();
   const tw = useTailwind();
-  const { data, isLoading, sectionsOrder } = useExploreSearch(searchQuery);
+  const { data, isLoading } = useExploreSearch(searchQuery);
   const flashListRef = useRef<FlashListRef<FlatListItem>>(null);
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
@@ -61,14 +63,11 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     const result: FlatListItem[] = [];
 
     // Filter sections based on basic functionality toggle
-    const sectionIdsToShow = isBasicFunctionalityEnabled ? sectionsOrder : [];
+    const sectionsToShow = isBasicFunctionalityEnabled ? SECTIONS_ARRAY : [];
 
-    sectionIdsToShow.forEach((sectionId) => {
-      const section = SECTIONS_CONFIG[sectionId];
-      if (!section) return;
-
-      const items = data[sectionId];
-      const sectionIsLoading = isLoading[sectionId];
+    sectionsToShow.forEach((section) => {
+      const items = data[section.id];
+      const sectionIsLoading = isLoading[section.id];
 
       // Show section if it has items or is loading
       if ((items && items.length > 0) || sectionIsLoading) {
@@ -83,7 +82,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
           for (let i = 0; i < 3; i++) {
             result.push({
               type: 'skeleton',
-              sectionId,
+              sectionId: section.id,
               index: i,
             });
           }
@@ -92,7 +91,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
           items.forEach((item) => {
             result.push({
               type: 'item',
-              sectionId,
+              sectionId: section.id,
               data: item,
             });
           });
@@ -101,7 +100,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     });
 
     return result;
-  }, [data, isLoading, isBasicFunctionalityEnabled, sectionsOrder]);
+  }, [data, isLoading, isBasicFunctionalityEnabled]);
 
   // Scroll to top when search query changes
   useEffect(() => {
@@ -113,16 +112,6 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     }
   }, [searchQuery, flatData.length]);
 
-  // Track search events for tokens section
-  useSearchTracking({
-    searchQuery,
-    resultsCount: data.tokens?.length || 0,
-    isLoading: isLoading.tokens,
-    timeFilter: TimeOption.TwentyFourHours,
-    sortOption: 'relevance',
-    networkFilter: 'all',
-  });
-
   const renderFooter = useMemo(() => {
     if (searchQuery.length === 0) return null;
 
@@ -130,7 +119,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   }, [searchQuery]);
 
   const renderFlatItem: ListRenderItem<FlatListItem> = useCallback(
-    ({ item, index }) => {
+    ({ item }) => {
       if (item.type === 'header') {
         return renderSectionHeader(item.data);
       }
@@ -149,20 +138,13 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         return (
           <section.OverrideRowItemSearch
             item={item.data}
-            index={index}
             navigation={navigation}
           />
         );
       }
 
       // Cast navigation to 'never' to satisfy different navigation param list types
-      return (
-        <section.RowItem
-          item={item.data}
-          index={index}
-          navigation={navigation}
-        />
-      );
+      return <section.RowItem item={item.data} navigation={navigation} />;
     },
     [navigation, renderSectionHeader],
   );

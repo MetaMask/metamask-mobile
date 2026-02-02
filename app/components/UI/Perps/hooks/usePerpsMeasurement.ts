@@ -192,7 +192,7 @@ export const usePerpsMeasurement = ({
       };
 
       DevLogger.log(
-        `${PERFORMANCE_CONFIG.LoggingMarkers.SentryPerformance} PerpsScreen: ${traceName} completed`,
+        `${PERFORMANCE_CONFIG.LOGGING_MARKERS.SENTRY_PERFORMANCE} PerpsScreen: ${traceName} completed`,
         logData,
       );
 

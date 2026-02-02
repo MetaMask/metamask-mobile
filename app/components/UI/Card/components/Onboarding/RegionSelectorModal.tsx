@@ -11,7 +11,7 @@ import Fuse from 'fuse.js';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
+import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
   WidthType,
@@ -214,11 +214,11 @@ function RegionSelectorModal() {
       keyboardAvoidingViewEnabled={false}
       testID="region-selector-modal"
     >
-      <HeaderCenter
-        title={strings('card.card_onboarding.region_selector.title')}
-        onClose={handleClose}
-        closeButtonProps={{ testID: 'region-selector-close-button' }}
-      />
+      <BottomSheetHeader onClose={handleClose}>
+        <Text variant={TextVariant.HeadingMd}>
+          {strings('card.card_onboarding.region_selector.title')}
+        </Text>
+      </BottomSheetHeader>
       <Box twClassName="px-4 pb-4">
         <TextFieldSearch
           value={searchString}
@@ -226,7 +226,6 @@ function RegionSelectorModal() {
           onPressClearButton={clearSearchText}
           onFocus={scrollToTop}
           onChangeText={handleSearchTextChange}
-          autoComplete="one-time-code"
           testID="region-selector-search-input"
         />
       </Box>

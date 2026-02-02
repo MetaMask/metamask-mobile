@@ -447,7 +447,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 ? formatPerpsFiat(position.liquidationPrice, {
                     ranges: PRICE_RANGES_UNIVERSAL,
                   })
-                : PERPS_CONSTANTS.FallbackPriceDisplay}
+                : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
             </Text>
             {liquidationDistance !== null && (
               <>

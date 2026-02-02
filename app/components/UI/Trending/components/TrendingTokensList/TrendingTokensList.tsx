@@ -3,21 +3,7 @@ import { RefreshControl } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { TrendingAsset } from '@metamask/assets-controllers';
 import TrendingTokenRowItem from '../TrendingTokenRowItem/TrendingTokenRowItem';
-import { TimeOption, PriceChangeOption } from '../TrendingTokensBottomSheet';
-
-/**
- * Filter context for analytics tracking
- */
-export interface TrendingFilterContext {
-  /** Active time filter (e.g., '24h', '6h', '1h', '5m') */
-  timeFilter: TimeOption;
-  /** Active sort option */
-  sortOption: PriceChangeOption | undefined;
-  /** Active network filter (chain ID or 'all') */
-  networkFilter: string;
-  /** Whether results are from search */
-  isSearchResult: boolean;
-}
+import { TimeOption } from '../TrendingTokensBottomSheet';
 
 export interface TrendingTokensListProps {
   /**
@@ -32,10 +18,6 @@ export interface TrendingTokensListProps {
    * Refresh control for pull-to-refresh functionality
    */
   refreshControl?: React.ReactElement<typeof RefreshControl>;
-  /**
-   * Filter context for analytics tracking
-   */
-  filterContext?: TrendingFilterContext;
 }
 
 /**
@@ -45,17 +27,15 @@ export interface TrendingTokensListProps {
  * (renderItem and keyExtractor) to avoid recreating them on every render
  */
 const TrendingTokensList: React.FC<TrendingTokensListProps> = React.memo(
-  ({ trendingTokens, selectedTimeOption, refreshControl, filterContext }) => {
+  ({ trendingTokens, selectedTimeOption, refreshControl }) => {
     const renderItem = useCallback(
-      ({ item, index }: { item: TrendingAsset; index: number }) => (
+      ({ item }: { item: TrendingAsset }) => (
         <TrendingTokenRowItem
           token={item}
           selectedTimeOption={selectedTimeOption}
-          position={index}
-          filterContext={filterContext}
         />
       ),
-      [selectedTimeOption, filterContext],
+      [selectedTimeOption],
     );
 
     const keyExtractor = useCallback(

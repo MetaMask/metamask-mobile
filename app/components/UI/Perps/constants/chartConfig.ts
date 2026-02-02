@@ -5,20 +5,20 @@ import { Colors } from '../../../../util/theme/models';
  * Provides type safety and prevents typos when referencing candle periods
  */
 export enum CandlePeriod {
-  OneMinute = '1m',
-  ThreeMinutes = '3m',
-  FiveMinutes = '5m',
-  FifteenMinutes = '15m',
-  ThirtyMinutes = '30m',
-  OneHour = '1h',
-  TwoHours = '2h',
-  FourHours = '4h',
-  EightHours = '8h',
-  TwelveHours = '12h',
-  OneDay = '1d',
-  ThreeDays = '3d',
-  OneWeek = '1w',
-  OneMonth = '1M',
+  ONE_MINUTE = '1m',
+  THREE_MINUTES = '3m',
+  FIVE_MINUTES = '5m',
+  FIFTEEN_MINUTES = '15m',
+  THIRTY_MINUTES = '30m',
+  ONE_HOUR = '1h',
+  TWO_HOURS = '2h',
+  FOUR_HOURS = '4h',
+  EIGHT_HOURS = '8h',
+  TWELVE_HOURS = '12h',
+  ONE_DAY = '1d',
+  THREE_DAYS = '3d',
+  ONE_WEEK = '1w',
+  ONE_MONTH = '1M',
 }
 
 /**
@@ -26,12 +26,12 @@ export enum CandlePeriod {
  * Provides type safety and prevents typos when referencing durations
  */
 export enum TimeDuration {
-  OneHour = '1hr',
-  OneDay = '1d',
-  OneWeek = '1w',
-  OneMonth = '1m',
-  YearToDate = 'ytd',
-  Max = 'max',
+  ONE_HOUR = '1hr',
+  ONE_DAY = '1d',
+  ONE_WEEK = '1w',
+  ONE_MONTH = '1m',
+  YEAR_TO_DATE = 'ytd',
+  MAX = 'max',
 }
 
 /**
@@ -39,14 +39,14 @@ export enum TimeDuration {
  * Note: Some intervals overlap with CandlePeriod but serve different purposes
  */
 export enum ChartInterval {
-  OneMinute = '1m',
-  FiveMinutes = '5m',
-  FifteenMinutes = '15m',
-  ThirtyMinutes = '30m',
-  OneHour = '1h',
-  TwoHours = '2h',
-  FourHours = '4h',
-  EightHours = '8h',
+  ONE_MINUTE = '1m',
+  FIVE_MINUTES = '5m',
+  FIFTEEN_MINUTES = '15m',
+  THIRTY_MINUTES = '30m',
+  ONE_HOUR = '1h',
+  TWO_HOURS = '2h',
+  FOUR_HOURS = '4h',
+  EIGHT_HOURS = '8h',
 }
 
 /**
@@ -76,7 +76,7 @@ export const PERPS_CHART_CONFIG = {
     TOTAL: 500, // Total candles to load in memory (reduced for better performance)
   },
   // Default candle period settings
-  DEFAULT_CANDLE_PERIOD: CandlePeriod.FifteenMinutes,
+  DEFAULT_CANDLE_PERIOD: CandlePeriod.FIFTEEN_MINUTES,
   // Chart layout constants
   LAYOUT: {
     DETAIL_VIEW_HEIGHT: 350, // Height for chart in market detail view
@@ -89,26 +89,26 @@ export const PERPS_CHART_CONFIG = {
  * Available time intervals for candlestick chart
  */
 export const CHART_INTERVALS = [
-  { label: '1M', value: ChartInterval.OneMinute },
-  { label: '5M', value: ChartInterval.FiveMinutes },
-  { label: '15M', value: ChartInterval.FifteenMinutes },
-  { label: '30M', value: ChartInterval.ThirtyMinutes },
-  { label: '1H', value: ChartInterval.OneHour },
-  { label: '2H', value: ChartInterval.TwoHours },
-  { label: '4H', value: ChartInterval.FourHours },
-  { label: '8H', value: ChartInterval.EightHours },
+  { label: '1M', value: ChartInterval.ONE_MINUTE },
+  { label: '5M', value: ChartInterval.FIVE_MINUTES },
+  { label: '15M', value: ChartInterval.FIFTEEN_MINUTES },
+  { label: '30M', value: ChartInterval.THIRTY_MINUTES },
+  { label: '1H', value: ChartInterval.ONE_HOUR },
+  { label: '2H', value: ChartInterval.TWO_HOURS },
+  { label: '4H', value: ChartInterval.FOUR_HOURS },
+  { label: '8H', value: ChartInterval.EIGHT_HOURS },
 ] as const;
 
 /**
  * Available time durations for chart view
  */
 export const TIME_DURATIONS = [
-  { label: '1hr', value: TimeDuration.OneHour },
-  { label: '1D', value: TimeDuration.OneDay },
-  { label: '1W', value: TimeDuration.OneWeek },
-  { label: '1M', value: TimeDuration.OneMonth },
-  { label: 'YTD', value: TimeDuration.YearToDate },
-  { label: 'Max', value: TimeDuration.Max },
+  { label: '1hr', value: TimeDuration.ONE_HOUR },
+  { label: '1D', value: TimeDuration.ONE_DAY },
+  { label: '1W', value: TimeDuration.ONE_WEEK },
+  { label: '1M', value: TimeDuration.ONE_MONTH },
+  { label: 'YTD', value: TimeDuration.YEAR_TO_DATE },
+  { label: 'Max', value: TimeDuration.MAX },
 ] as const;
 
 /**
@@ -117,75 +117,75 @@ export const TIME_DURATIONS = [
  * and keeps the chart readable on mobile screens (target: ~20-100 candles)
  */
 export const DURATION_CANDLE_PERIODS = {
-  [TimeDuration.OneHour]: {
+  [TimeDuration.ONE_HOUR]: {
     periods: [
-      { label: '1min', value: CandlePeriod.OneMinute }, // 60 candles
-      { label: '3min', value: CandlePeriod.ThreeMinutes }, // 20 candles
-      { label: '5min', value: CandlePeriod.FiveMinutes }, // 12 candles
-      { label: '15min', value: CandlePeriod.FifteenMinutes }, // 4 candles
+      { label: '1min', value: CandlePeriod.ONE_MINUTE }, // 60 candles
+      { label: '3min', value: CandlePeriod.THREE_MINUTES }, // 20 candles
+      { label: '5min', value: CandlePeriod.FIVE_MINUTES }, // 12 candles
+      { label: '15min', value: CandlePeriod.FIFTEEN_MINUTES }, // 4 candles
     ],
-    default: CandlePeriod.OneMinute, // 1-minute candles for development/testing
+    default: CandlePeriod.ONE_MINUTE, // 1-minute candles for development/testing
   },
-  [TimeDuration.OneDay]: {
+  [TimeDuration.ONE_DAY]: {
     periods: [
-      { label: '15min', value: CandlePeriod.FifteenMinutes }, // 96 candles
-      { label: '1h', value: CandlePeriod.OneHour }, // 24 candles
-      { label: '2h', value: CandlePeriod.TwoHours }, // 12 candles
-      { label: '4h', value: CandlePeriod.FourHours }, // 6 candles
+      { label: '15min', value: CandlePeriod.FIFTEEN_MINUTES }, // 96 candles
+      { label: '1h', value: CandlePeriod.ONE_HOUR }, // 24 candles
+      { label: '2h', value: CandlePeriod.TWO_HOURS }, // 12 candles
+      { label: '4h', value: CandlePeriod.FOUR_HOURS }, // 6 candles
     ],
-    default: CandlePeriod.OneHour, // Good balance for daily view
+    default: CandlePeriod.ONE_HOUR, // Good balance for daily view
   },
-  [TimeDuration.OneWeek]: {
+  [TimeDuration.ONE_WEEK]: {
     periods: [
-      { label: '1h', value: CandlePeriod.OneHour }, // 168 candles (bit high, but acceptable)
-      { label: '2h', value: CandlePeriod.TwoHours }, // 84 candles
-      { label: '4h', value: CandlePeriod.FourHours }, // 42 candles
-      { label: '8h', value: CandlePeriod.EightHours }, // 21 candles
-      { label: '1D', value: CandlePeriod.OneDay }, // 7 candles
+      { label: '1h', value: CandlePeriod.ONE_HOUR }, // 168 candles (bit high, but acceptable)
+      { label: '2h', value: CandlePeriod.TWO_HOURS }, // 84 candles
+      { label: '4h', value: CandlePeriod.FOUR_HOURS }, // 42 candles
+      { label: '8h', value: CandlePeriod.EIGHT_HOURS }, // 21 candles
+      { label: '1D', value: CandlePeriod.ONE_DAY }, // 7 candles
     ],
-    default: CandlePeriod.FourHours, // Good detail for weekly view
+    default: CandlePeriod.FOUR_HOURS, // Good detail for weekly view
   },
-  [TimeDuration.OneMonth]: {
+  [TimeDuration.ONE_MONTH]: {
     periods: [
-      { label: '8h', value: CandlePeriod.EightHours }, // 90 candles (30 days * 3 per day)
-      { label: '12h', value: CandlePeriod.TwelveHours }, // 60 candles (30 days * 2 per day)
-      { label: '1D', value: CandlePeriod.OneDay }, // 30 candles
-      { label: '1W', value: CandlePeriod.OneWeek }, // ~4 candles
+      { label: '8h', value: CandlePeriod.EIGHT_HOURS }, // 90 candles (30 days * 3 per day)
+      { label: '12h', value: CandlePeriod.TWELVE_HOURS }, // 60 candles (30 days * 2 per day)
+      { label: '1D', value: CandlePeriod.ONE_DAY }, // 30 candles
+      { label: '1W', value: CandlePeriod.ONE_WEEK }, // ~4 candles
     ],
-    default: CandlePeriod.OneDay, // Daily candles for monthly view
+    default: CandlePeriod.ONE_DAY, // Daily candles for monthly view
   },
-  [TimeDuration.YearToDate]: {
+  [TimeDuration.YEAR_TO_DATE]: {
     periods: [
-      { label: '1D', value: CandlePeriod.OneDay }, // ~365 candles (will be capped)
-      { label: '1W', value: CandlePeriod.OneWeek }, // ~52 candles
+      { label: '1D', value: CandlePeriod.ONE_DAY }, // ~365 candles (will be capped)
+      { label: '1W', value: CandlePeriod.ONE_WEEK }, // ~52 candles
     ],
-    default: CandlePeriod.OneWeek, // Weekly candles for yearly view
+    default: CandlePeriod.ONE_WEEK, // Weekly candles for yearly view
   },
-  [TimeDuration.Max]: {
+  [TimeDuration.MAX]: {
     periods: [
-      { label: '1W', value: CandlePeriod.OneWeek }, // ~104 candles (2 years)
+      { label: '1W', value: CandlePeriod.ONE_WEEK }, // ~104 candles (2 years)
     ],
-    default: CandlePeriod.OneWeek, // Only weekly makes sense for max view
+    default: CandlePeriod.ONE_WEEK, // Only weekly makes sense for max view
   },
 } as const;
 
 export const CANDLE_PERIODS = [
-  { label: '1m', value: CandlePeriod.OneMinute },
-  { label: '3m', value: CandlePeriod.ThreeMinutes },
-  { label: '5m', value: CandlePeriod.FiveMinutes },
-  { label: '15m', value: CandlePeriod.FifteenMinutes },
-  { label: '30m', value: CandlePeriod.ThirtyMinutes },
-  { label: '1h', value: CandlePeriod.OneHour },
-  { label: '2h', value: CandlePeriod.TwoHours },
-  { label: '4h', value: CandlePeriod.FourHours },
-  { label: '8h', value: CandlePeriod.EightHours },
-  { label: '12h', value: CandlePeriod.TwelveHours },
-  { label: '1d', value: CandlePeriod.OneDay },
-  { label: '3d', value: CandlePeriod.ThreeDays },
-  { label: '7d', value: CandlePeriod.OneWeek },
+  { label: '1m', value: CandlePeriod.ONE_MINUTE },
+  { label: '3m', value: CandlePeriod.THREE_MINUTES },
+  { label: '5m', value: CandlePeriod.FIVE_MINUTES },
+  { label: '15m', value: CandlePeriod.FIFTEEN_MINUTES },
+  { label: '30m', value: CandlePeriod.THIRTY_MINUTES },
+  { label: '1h', value: CandlePeriod.ONE_HOUR },
+  { label: '2h', value: CandlePeriod.TWO_HOURS },
+  { label: '4h', value: CandlePeriod.FOUR_HOURS },
+  { label: '8h', value: CandlePeriod.EIGHT_HOURS },
+  { label: '12h', value: CandlePeriod.TWELVE_HOURS },
+  { label: '1d', value: CandlePeriod.ONE_DAY },
+  { label: '3d', value: CandlePeriod.THREE_DAYS },
+  { label: '7d', value: CandlePeriod.ONE_WEEK },
 ] as const;
 
-export const DEFAULT_CANDLE_PERIOD = CandlePeriod.FifteenMinutes;
+export const DEFAULT_CANDLE_PERIOD = CandlePeriod.FIFTEEN_MINUTES;
 
 /**
  * Get available candle periods for a specific duration
@@ -206,7 +206,7 @@ export const getDefaultCandlePeriodForDuration = (
   duration: TimeDuration | string,
 ): CandlePeriod =>
   DURATION_CANDLE_PERIODS[duration as TimeDuration]?.default ||
-  CandlePeriod.OneHour;
+  CandlePeriod.ONE_HOUR;
 
 /**
  * Helper function to get candlestick colors from theme
@@ -227,33 +227,33 @@ export const calculateCandleCount = (
   // Convert candle period to minutes
   const periodInMinutes = (() => {
     switch (candlePeriod) {
-      case CandlePeriod.OneMinute:
+      case CandlePeriod.ONE_MINUTE:
         return 1;
-      case CandlePeriod.ThreeMinutes:
+      case CandlePeriod.THREE_MINUTES:
         return 3;
-      case CandlePeriod.FiveMinutes:
+      case CandlePeriod.FIVE_MINUTES:
         return 5;
-      case CandlePeriod.FifteenMinutes:
+      case CandlePeriod.FIFTEEN_MINUTES:
         return 15;
-      case CandlePeriod.ThirtyMinutes:
+      case CandlePeriod.THIRTY_MINUTES:
         return 30;
-      case CandlePeriod.OneHour:
+      case CandlePeriod.ONE_HOUR:
         return 60;
-      case CandlePeriod.TwoHours:
+      case CandlePeriod.TWO_HOURS:
         return 120;
-      case CandlePeriod.FourHours:
+      case CandlePeriod.FOUR_HOURS:
         return 240;
-      case CandlePeriod.EightHours:
+      case CandlePeriod.EIGHT_HOURS:
         return 480;
-      case CandlePeriod.TwelveHours:
+      case CandlePeriod.TWELVE_HOURS:
         return 720;
-      case CandlePeriod.OneDay:
+      case CandlePeriod.ONE_DAY:
         return 1440; // 24 * 60
-      case CandlePeriod.ThreeDays:
+      case CandlePeriod.THREE_DAYS:
         return 4320; // 3 * 24 * 60
-      case CandlePeriod.OneWeek:
+      case CandlePeriod.ONE_WEEK:
         return 10080; // 7 * 24 * 60
-      case CandlePeriod.OneMonth:
+      case CandlePeriod.ONE_MONTH:
         return 43200; // 30 * 24 * 60 (approximate)
       default:
         return 60; // Default to 1h
@@ -263,17 +263,17 @@ export const calculateCandleCount = (
   // Convert duration to total minutes needed
   const durationInMinutes = (() => {
     switch (duration) {
-      case TimeDuration.OneHour:
+      case TimeDuration.ONE_HOUR:
         return 60; // 1 hour
-      case TimeDuration.OneDay:
+      case TimeDuration.ONE_DAY:
         return 60 * 24; // 1 day
-      case TimeDuration.OneWeek:
+      case TimeDuration.ONE_WEEK:
         return 60 * 24 * 7; // 1 week
-      case TimeDuration.OneMonth:
+      case TimeDuration.ONE_MONTH:
         return 60 * 24 * 30; // 1 month (30 days)
-      case TimeDuration.YearToDate:
+      case TimeDuration.YEAR_TO_DATE:
         return 60 * 24 * 365; // Year to date (365 days max)
-      case TimeDuration.Max:
+      case TimeDuration.MAX:
         return 60 * 24 * 365 * 2; // Max (2 years)
       default:
         return 60 * 24; // Default to 1 day

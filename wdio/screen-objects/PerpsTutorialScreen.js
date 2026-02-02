@@ -53,11 +53,6 @@ class PerpsTutorialScreen {
       await AppwrightGestures.tap(await this.continueButton);
     }
   }
-
-  async isContainerDisplayed() {
-    const container = await this.title;
-    expect(await container).toBeVisible({ timeout: 20000 });
-  }
 }
 
 export default new PerpsTutorialScreen();

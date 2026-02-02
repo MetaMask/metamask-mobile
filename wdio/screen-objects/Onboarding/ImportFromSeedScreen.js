@@ -158,7 +158,12 @@ class ImportFromSeedScreen {
     } else if (!this._device)
         await Gestures.waitAndTap(this.screenTitle);
     else {
-      await AppwrightGestures.hideKeyboard(this.device);
+        if (AppwrightSelectors.isIOS(this._device)) {
+          const element = await AppwrightSelectors.getElementByText(this.device, 'Import a wallet');
+          await AppwrightGestures.tap(element);
+        } else {
+          await AppwrightGestures.hideKeyboard(this.device);
+        }
     }
   }
 }

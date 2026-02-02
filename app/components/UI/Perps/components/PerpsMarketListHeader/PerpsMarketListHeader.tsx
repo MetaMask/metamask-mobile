@@ -13,7 +13,7 @@ import type { PerpsMarketListHeaderProps } from './PerpsMarketListHeader.types';
  * - Back button with default or custom navigation handler
  * - Centered title with custom text support
  * - Search toggle button that changes icon based on visibility
- * - Keyboard dismiss on header press when search is visible
+ * - Keyboard dismiss on header press
  *
  * @example
  * ```tsx

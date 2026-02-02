@@ -27,7 +27,6 @@ import { DEFAULT_REWARDS_MOCKS } from './rewards.ts';
 import { ACL_EXECUTION_MOCKS } from './acl-execution.ts';
 import { CONTENTFUL_BANNERS_MOCKS } from './contentful-banners.ts';
 import { PERPS_HYPERLIQUID_MOCKS } from './perps-hyperliquid.ts';
-import { TRENDING_API_MOCKS } from '../trending-api-mocks.ts';
 
 // Get auth mocks
 const authMocks = getAuthMocks();
@@ -53,7 +52,6 @@ export const DEFAULT_MOCKS = {
     ...(DEFAULT_REWARDS_MOCKS.GET || []),
     ...(ACL_EXECUTION_MOCKS.GET || []),
     ...(CONTENTFUL_BANNERS_MOCKS.GET || []),
-    ...(TRENDING_API_MOCKS.GET || []),
     // Chains Network Mock - Provides blockchain network data
     {
       urlEndpoint: 'https://chainid.network/chains.json',

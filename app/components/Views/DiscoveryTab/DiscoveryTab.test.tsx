@@ -4,6 +4,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialRootState from '../../../util/test/initial-root-state';
 import { fireEvent } from '@testing-library/react-native';
 import { processUrlForBrowser } from '../../../util/browser';
+import Routes from '../../../constants/navigation/Routes';
 import Device from '../../../util/device';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
 
@@ -383,6 +384,28 @@ describe('DiscoveryTab', () => {
   });
 
   describe('onSelect callback', () => {
+    it('navigates to asset loader when selecting token from autocomplete', () => {
+      renderWithProvider(<DiscoveryTab {...defaultProps} />, {
+        state: initialState,
+      });
+
+      if (onSelectCallback) {
+        onSelectCallback({
+          category: 'tokens',
+          chainId: '0x1',
+          address: '0x1234567890abcdef',
+        });
+      }
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.BROWSER.ASSET_LOADER,
+        {
+          chainId: '0x1',
+          address: '0x1234567890abcdef',
+        },
+      );
+    });
+
     it('hides URL bar and calls onSubmitEditing when selecting site from autocomplete', async () => {
       const mockProcessUrlForBrowser = processUrlForBrowser as jest.Mock;
       mockProcessUrlForBrowser.mockReturnValue('https://processed-site.com');

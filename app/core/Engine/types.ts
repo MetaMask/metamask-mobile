@@ -255,6 +255,7 @@ import {
   AccountsControllerState,
 } from '@metamask/accounts-controller';
 import { getPermissionSpecifications } from '../Permissions/specifications.js';
+import { ComposableControllerEvents } from '@metamask/composable-controller';
 import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
 import {
   RemoteFeatureFlagController,
@@ -267,6 +268,12 @@ import {
   ActionConstraint,
   EventConstraint,
 } from '@metamask/messenger';
+import {
+  TokenSearchDiscoveryController,
+  TokenSearchDiscoveryControllerState,
+  TokenSearchDiscoveryControllerActions,
+  TokenSearchDiscoveryControllerEvents,
+} from '@metamask/token-search-discovery-controller';
 import { SnapKeyringEvents } from '@metamask/eth-snap-keyring';
 import {
   MultichainNetworkController,
@@ -423,6 +430,14 @@ type OptionalControllers = Pick<
   | 'StorageService'
 >;
 
+/**
+ * Controllers that are defined with state.
+ */
+export type StatefulControllers = Omit<
+  Controllers,
+  (typeof STATELESS_NON_CONTROLLER_NAMES)[number]
+>;
+
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
 
@@ -494,6 +509,7 @@ type GlobalActions =
   | SmartTransactionsControllerActions
   | AssetsContractControllerActions
   | RemoteFeatureFlagControllerActions
+  | TokenSearchDiscoveryControllerActions
   | TokenSearchDiscoveryDataControllerActions
   | MultichainNetworkControllerActions
   | BridgeControllerActions
@@ -520,6 +536,7 @@ type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   | SamplePetnamesControllerEvents
   ///: END:ONLY_INCLUDE_IF
+  | ComposableControllerEvents<EngineState>
   | AccountTrackerControllerEvents
   | NftControllerEvents
   | SwapsControllerEvents
@@ -570,6 +587,7 @@ type GlobalEvents =
   | SmartTransactionsControllerEvents
   | AssetsContractControllerEvents
   | RemoteFeatureFlagControllerEvents
+  | TokenSearchDiscoveryControllerEvents
   | TokenSearchDiscoveryDataControllerEvents
   | SnapKeyringEvents
   | MultichainNetworkControllerEvents
@@ -657,6 +675,7 @@ export type Controllers = {
   TokenListController: TokenListController;
   TokenDetectionController: TokenDetectionController;
   TokenRatesController: TokenRatesController;
+  TokenSearchDiscoveryController: TokenSearchDiscoveryController;
   TokensController: TokensController;
   DeFiPositionsController: DeFiPositionsController;
   TransactionController: TransactionController;
@@ -734,6 +753,7 @@ export type EngineState = {
   PhishingController: PhishingControllerState;
   TokenBalancesController: TokenBalancesControllerState;
   TokenRatesController: TokenRatesControllerState;
+  TokenSearchDiscoveryController: TokenSearchDiscoveryControllerState;
   TransactionController: TransactionControllerState;
   TransactionPayController: TransactionPayControllerState;
   SmartTransactionsController: SmartTransactionsControllerState;
@@ -867,6 +887,7 @@ export type ControllersToInitialize =
   | 'TokenListController'
   | 'TokenRatesController'
   | 'TokensController'
+  | 'TokenSearchDiscoveryController'
   | 'TokenSearchDiscoveryDataController'
   | 'TransactionController'
   | 'TransactionPayController'

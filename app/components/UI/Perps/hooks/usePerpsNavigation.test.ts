@@ -1,17 +1,10 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { waitFor } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { usePerpsNavigation } from './usePerpsNavigation';
-import { usePerpsTrading } from './usePerpsTrading';
 import Routes from '../../../../constants/navigation/Routes';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
-}));
-
-const mockDepositWithOrder = jest.fn();
-jest.mock('./usePerpsTrading', () => ({
-  usePerpsTrading: jest.fn(),
 }));
 
 describe('usePerpsNavigation', () => {
@@ -21,19 +14,10 @@ describe('usePerpsNavigation', () => {
   const mockUseNavigation = useNavigation as jest.MockedFunction<
     typeof useNavigation
   >;
-  const mockUsePerpsTrading = usePerpsTrading as jest.MockedFunction<
-    typeof usePerpsTrading
-  >;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockCanGoBack.mockReturnValue(true);
-    mockDepositWithOrder.mockResolvedValue({ result: Promise.resolve('') });
-    mockUsePerpsTrading.mockReturnValue({
-      depositWithOrder: mockDepositWithOrder,
-    } as Partial<ReturnType<typeof usePerpsTrading>> as ReturnType<
-      typeof usePerpsTrading
-    >);
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
       canGoBack: mockCanGoBack,
@@ -178,35 +162,13 @@ describe('usePerpsNavigation', () => {
       );
     });
 
-    it('navigates to order screen with direction and asset', async () => {
+    it('navigates to order screen with direction and asset', () => {
       const { result } = renderHook(() => usePerpsNavigation());
       const params = { direction: 'long' as const, asset: 'BTC' };
 
       result.current.navigateToOrder(params);
 
-      await waitFor(() => {
-        expect(mockDepositWithOrder).toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-          params,
-        );
-      });
-    });
-
-    it('does not navigate when depositWithOrder rejects (e.g. user cancellation)', async () => {
-      const rejectionError = new Error('User denied');
-      mockDepositWithOrder.mockRejectedValue(rejectionError);
-
-      const { result } = renderHook(() => usePerpsNavigation());
-      const params = { direction: 'short' as const, asset: 'ETH' };
-
-      result.current.navigateToOrder(params);
-
-      await waitFor(() => {
-        expect(mockDepositWithOrder).toHaveBeenCalled();
-      });
-
-      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ORDER, params);
     });
 
     it('navigates to tutorial without params', () => {

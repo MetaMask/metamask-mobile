@@ -16,17 +16,19 @@ import {
   MUSD_TOKEN,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../constants/musd';
+import { toHex } from '@metamask/controller-utils';
 import { useRampNavigation } from '../../../../Ramp/hooks/useRampNavigation';
 import { RampIntent } from '../../../../Ramp/types';
 import { strings } from '../../../../../../../locales/i18n';
 import { EARN_TEST_IDS } from '../../../constants/testIds';
 import Logger from '../../../../../../util/Logger';
 import { useStyles } from '../../../../../hooks/useStyles';
+import { useMusdConversionTokens } from '../../../hooks/useMusdConversionTokens';
 import { useMusdConversion } from '../../../hooks/useMusdConversion';
 import { useMusdCtaVisibility } from '../../../hooks/useMusdCtaVisibility';
-import { useMusdConversionFlowData } from '../../../hooks/useMusdConversionFlowData';
 import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
+import { toChecksumAddress } from '../../../../../../util/address';
 import Badge, {
   BadgeVariant,
 } from '../../../../../../component-library/components/Badges/Badge';
@@ -43,11 +45,7 @@ const MusdConversionAssetListCta = () => {
 
   const { goToBuy } = useRampNavigation();
 
-  const {
-    isEmptyWallet,
-    getPaymentTokenForSelectedNetwork,
-    getChainIdForBuyFlow,
-  } = useMusdConversionFlowData();
+  const { tokens, getMusdOutputChainId } = useMusdConversionTokens();
 
   const { initiateConversion, hasSeenConversionEducationScreen } =
     useMusdConversion();
@@ -56,7 +54,7 @@ const MusdConversionAssetListCta = () => {
 
   const { trackEvent, createEventBuilder } = useMetrics();
 
-  const { shouldShowCta, showNetworkIcon, selectedChainId } =
+  const { shouldShowCta, showNetworkIcon, selectedChainId, isEmptyWallet } =
     shouldShowBuyGetMusdCta();
 
   const networkName = useNetworkName(
@@ -95,30 +93,38 @@ const MusdConversionAssetListCta = () => {
   };
 
   const handlePress = async () => {
+    // Redirect users to buy flow if they have an empty wallet.
     submitCtaPressedEvent();
-
+    // Redirect users to deposit flow if they don't have any stablecoins to convert.
     if (isEmptyWallet) {
-      const chainId = getChainIdForBuyFlow();
       const rampIntent: RampIntent = {
-        assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId],
+        assetId:
+          MUSD_TOKEN_ASSET_ID_BY_CHAIN[
+            selectedChainId || MUSD_CONVERSION_DEFAULT_CHAIN_ID
+          ],
       };
       goToBuy(rampIntent);
       return;
     }
 
-    const paymentToken = getPaymentTokenForSelectedNetwork();
+    // Respect network filter if specific chain selected.
+    const preferredTokenOnSelectedChain = selectedChainId
+      ? tokens.find((token) => token.chainId === selectedChainId)
+      : undefined;
 
-    if (!paymentToken) {
-      Logger.error(
-        new Error('[mUSD Conversion] payment token missing'),
-        '[mUSD Conversion] Failed to initiate conversion - no payment token',
-      );
-      return;
+    const paymentToken = preferredTokenOnSelectedChain ?? tokens[0];
+
+    if (!paymentToken.chainId) {
+      throw new Error('[mUSD Conversion] payment token chainID missing');
     }
 
     try {
       await initiateConversion({
-        preferredPaymentToken: paymentToken,
+        preferredPaymentToken: {
+          address: toChecksumAddress(paymentToken.address),
+          chainId: toHex(paymentToken.chainId),
+        },
+        outputChainId: getMusdOutputChainId(paymentToken.chainId),
       });
     } catch (error) {
       Logger.error(

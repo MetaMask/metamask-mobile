@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     paddingHorizontal: 16,
-    marginBottom: 12,
+    marginBottom: 8,
     marginTop: 12,
   },
   titleRow: {

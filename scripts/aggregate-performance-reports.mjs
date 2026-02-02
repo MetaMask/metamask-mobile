@@ -205,12 +205,12 @@ function createEmptyReport(outputPath) {
       totalReports: 0,
       platforms: { android: 0, ios: 0 },
       jobResults: { android: "unknown", ios: "unknown" },
-      branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
+      branch: process.env.GITHUB_REF_NAME || 'unknown',
       commit: process.env.GITHUB_SHA || 'unknown',
       workflowRun: process.env.GITHUB_RUN_ID || 'unknown'
     },
     generatedAt: new Date().toISOString(),
-    branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
+    branch: process.env.GITHUB_REF_NAME || 'unknown',
     commit: process.env.GITHUB_SHA || 'unknown',
     warning: 'No test results found'
   };
@@ -256,12 +256,12 @@ function createFallbackReport(outputPath, error) {
         totalReports: 0,
         platforms: { android: 0, ios: 0 },
         jobResults: { android: "error", ios: "error" },
-        branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
+        branch: process.env.GITHUB_REF_NAME || 'unknown',
         commit: process.env.GITHUB_SHA || 'unknown',
         workflowRun: process.env.GITHUB_RUN_ID || 'unknown'
       },
       generatedAt: new Date().toISOString(),
-      branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
+      branch: process.env.GITHUB_REF_NAME || 'unknown',
       commit: process.env.GITHUB_SHA || 'unknown',
       error: error.message
     }, null, 2));
@@ -360,12 +360,12 @@ function createSummary(groupedResults) {
         android: "success", // This would need to be determined from actual test results
         ios: "success"
       },
-      branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
+      branch: process.env.GITHUB_REF_NAME || 'unknown',
       commit: process.env.GITHUB_SHA || 'unknown',
       workflowRun: process.env.GITHUB_RUN_ID || 'unknown'
     },
     generatedAt: new Date().toISOString(),
-    branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
+    branch: process.env.GITHUB_REF_NAME || 'unknown',
     commit: process.env.GITHUB_SHA || 'unknown'
   };
   

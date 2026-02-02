@@ -1,56 +1,61 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, ScrollView } from 'react-native';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import PerpsMarketSortDropdowns from '../../../../components/PerpsMarketSortDropdowns';
-import PerpsMarketCategoryBadges from '../../../../components/PerpsMarketCategoryBadges';
+import PerpsStocksCommoditiesDropdown from '../../../../components/PerpsStocksCommoditiesDropdown';
 import type { PerpsMarketFiltersBarProps } from './PerpsMarketFiltersBar.types';
 import styleSheet from './PerpsMarketFiltersBar.styles';
 
 /**
  * PerpsMarketFiltersBar Component
  *
- * Two-row filter bar for the markets list:
- * - Row 1: Category badges (Crypto, Stocks, Commodities, Forex)
- * - Row 2: Sort dropdown (volume, price change, funding rate, etc.)
+ * Combines market sort dropdown with watchlist filter toggle
+ * Provides a unified filter bar for the markets list
+ *
+ * Features:
+ * - Sort dropdown on the left (market, volume, open interest, etc.)
+ * - Watchlist toggle button on the right (icon + text)
+ * - Visual feedback for active watchlist filter (filled vs outline star)
  *
  * @example
  * ```tsx
  * <PerpsMarketFiltersBar
- *   selectedOptionId="volume"
+ *   selectedOptionId="openInterest"
  *   onSortPress={() => setSheetVisible(true)}
- *   marketTypeFilter="all"
- *   onCategorySelect={handleCategorySelect}
  * />
  * ```
  */
 const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
   selectedOptionId,
   onSortPress,
-  marketTypeFilter,
-  onCategorySelect,
-  availableCategories,
+  showStocksCommoditiesDropdown = false,
+  stocksCommoditiesFilter = 'all',
+  onStocksCommoditiesPress,
   testID,
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
     <View style={styles.container} testID={testID}>
-      {/* Row 1: Category Badges */}
-      <PerpsMarketCategoryBadges
-        selectedCategory={marketTypeFilter}
-        onCategorySelect={onCategorySelect}
-        availableCategories={availableCategories}
-        testID={testID ? `${testID}-categories` : undefined}
-      />
-
-      {/* Row 2: Sort Dropdown */}
-      <View style={styles.sortRow}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.sortContainer}
+        style={styles.sortScrollView}
+      >
         <PerpsMarketSortDropdowns
           selectedOptionId={selectedOptionId}
           onSortPress={onSortPress}
           testID={testID ? `${testID}-sort` : undefined}
         />
-      </View>
+        {showStocksCommoditiesDropdown && onStocksCommoditiesPress && (
+          <PerpsStocksCommoditiesDropdown
+            selectedFilter={stocksCommoditiesFilter}
+            onPress={onStocksCommoditiesPress}
+            testID={testID ? `${testID}-stocks-commodities` : undefined}
+          />
+        )}
+      </ScrollView>
     </View>
   );
 };

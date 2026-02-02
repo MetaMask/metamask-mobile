@@ -107,18 +107,6 @@ export const RpcDomainStatus = {
 export type RpcDomainStatus =
   (typeof RpcDomainStatus)[keyof typeof RpcDomainStatus];
 
-/**
- * Checks if an RPC endpoint URL has a valid public domain.
- * Extracts the domain from the URL and verifies it's not private, invalid, or unknown.
- *
- * @param endpointUrl - The RPC endpoint URL to check
- * @returns True if the URL has a valid public domain, false otherwise
- */
-export function isPublicRpcDomain(endpointUrl: string): boolean {
-  const rpcDomain = extractRpcDomain(endpointUrl);
-  return !Object.values(RpcDomainStatus).includes(rpcDomain as RpcDomainStatus);
-}
-
 function parseDomain(url: string): string | undefined {
   try {
     const normalizedUrl = url.includes('://') ? url : `https://${url}`;

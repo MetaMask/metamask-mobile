@@ -10,7 +10,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { initialStateBridge } from '../../../../../util/test/component-view/presets/bridge';
 import BridgeView from './index';
 import { describeForPlatforms } from '../../../../../util/test/platform';
-import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
+import { QuoteViewSelectorIDs } from '../../../Swaps/QuoteView.testIds';
 import { BuildQuoteSelectors } from '../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
 
@@ -35,14 +35,14 @@ describeForPlatforms('BridgeView', () => {
 
     // Input areas are rendered
     expect(
-      getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+      getByTestId(QuoteViewSelectorIDs.SOURCE_TOKEN_AREA),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA),
+      getByTestId(QuoteViewSelectorIDs.DESTINATION_TOKEN_INPUT),
     ).toBeOnTheScreen();
 
     // Confirm button should NOT be rendered without valid inputs and quote
-    expect(queryByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeNull();
+    expect(queryByTestId(QuoteViewSelectorIDs.CONFIRM_BUTTON)).toBeNull();
   });
 
   it('types 9.5 with keypad and displays $19,000.00 fiat value', async () => {
@@ -80,7 +80,7 @@ describeForPlatforms('BridgeView', () => {
     });
 
     // Type 9.5 using keypad buttons inside the bridge scroll container
-    const scroll = getByTestId(BridgeViewSelectorsIDs.BRIDGE_VIEW_SCROLL);
+    const scroll = getByTestId(QuoteViewSelectorIDs.BRIDGE_VIEW_SCROLL);
     fireEvent.press(within(scroll).getByText('9'));
     fireEvent.press(within(scroll).getByText('.'));
     fireEvent.press(within(scroll).getByText('5'));
@@ -131,7 +131,7 @@ describeForPlatforms('BridgeView', () => {
       } as unknown as Record<string, unknown>,
     });
 
-    const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+    const button = getByTestId(QuoteViewSelectorIDs.CONFIRM_BUTTON);
     expect(button).toBeOnTheScreen();
     expect(
       (button as unknown as { props: { isDisabled?: boolean } }).props
@@ -215,11 +215,11 @@ describeForPlatforms('BridgeView', () => {
   });
 
   it('navigates to dest token selector on press', async () => {
-    const TokenSelectorProbe: React.FC<{
-      route?: { params?: { type?: string } };
+    const ModalRootProbe: React.FC<{
+      route?: { params?: { screen?: string } };
     }> = (props) => (
       // eslint-disable-next-line react-native/no-raw-text
-      <Text testID="token-selector-probe">{props?.route?.params?.type}</Text>
+      <Text testID="modal-root-probe">{props?.route?.params?.screen}</Text>
     );
     const state = initialStateBridge()
       .withOverrides({
@@ -239,12 +239,11 @@ describeForPlatforms('BridgeView', () => {
       BridgeView as unknown as React.ComponentType,
       // Entry route
       { name: Routes.BRIDGE.ROOT },
-      // Register token selector route to probe params
+      // Register modal root to probe destination screen name
       [
         {
-          name: Routes.BRIDGE.TOKEN_SELECTOR,
-          Component:
-            TokenSelectorProbe as unknown as React.ComponentType<unknown>,
+          name: Routes.BRIDGE.MODALS.ROOT,
+          Component: ModalRootProbe as unknown as React.ComponentType<unknown>,
         },
       ],
       // State
@@ -252,7 +251,8 @@ describeForPlatforms('BridgeView', () => {
     );
 
     fireEvent.press(await findByText('Swap to'));
-    // TokenInputArea navigates to TOKEN_SELECTOR with { type: 'dest' }
-    expect(await findByText('dest')).toBeOnTheScreen();
+    expect(
+      await findByText(Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR),
+    ).toBeOnTheScreen();
   });
 });

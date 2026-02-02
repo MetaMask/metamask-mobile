@@ -91,7 +91,91 @@ jest.mock(
   },
 );
 
-// Mock TextFieldSearch - needed because component has internal elements (clear button) that need testIDs
+// Mock BottomSheetHeader
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
+  () => {
+    const React = jest.requireActual('react');
+    const { View, TouchableOpacity } = jest.requireActual('react-native');
+
+    return ({
+      children,
+      onClose,
+    }: {
+      children: React.ReactNode;
+      onClose?: () => void;
+    }) =>
+      React.createElement(
+        View,
+        { testID: 'bottom-sheet-header' },
+        children,
+        onClose &&
+          React.createElement(
+            TouchableOpacity,
+            { testID: 'bottom-sheet-close-button', onPress: onClose },
+            'Close',
+          ),
+      );
+  },
+);
+
+// Mock ListItemSelect
+jest.mock(
+  '../../../../../component-library/components/List/ListItemSelect',
+  () => {
+    const React = jest.requireActual('react');
+    const { TouchableOpacity } = jest.requireActual('react-native');
+
+    return ({
+      children,
+      onPress,
+      isSelected,
+      testID,
+    }: {
+      children: React.ReactNode;
+      onPress: () => void;
+      isSelected?: boolean;
+      accessibilityRole?: string;
+      accessible?: boolean;
+      testID?: string;
+    }) =>
+      React.createElement(
+        TouchableOpacity,
+        {
+          testID: testID || 'list-item-select',
+          onPress,
+          accessibilityState: { selected: isSelected },
+        },
+        children,
+      );
+  },
+);
+
+// Mock ListItemColumn
+jest.mock(
+  '../../../../../component-library/components/List/ListItemColumn',
+  () => {
+    const React = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+
+    const MockListItemColumn = ({
+      children,
+    }: {
+      children: React.ReactNode;
+      widthType?: string;
+    }) => React.createElement(View, { testID: 'list-item-column' }, children);
+
+    return {
+      __esModule: true,
+      default: MockListItemColumn,
+      WidthType: {
+        Fill: 'Fill',
+      },
+    };
+  },
+);
+
+// Mock TextFieldSearch
 jest.mock(
   '../../../../../component-library/components/Form/TextFieldSearch',
   () => {
@@ -135,6 +219,61 @@ jest.mock(
       );
   },
 );
+
+// Mock design system components
+jest.mock('@metamask/design-system-react-native', () => {
+  const React = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+
+  return {
+    Box: ({
+      children,
+      testID,
+      twClassName,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+      twClassName?: string;
+      flexDirection?: string;
+      alignItems?: string;
+      [key: string]: unknown;
+    }) =>
+      React.createElement(
+        View,
+        { testID: testID || 'box', 'data-tw-class': twClassName, ...props },
+        children,
+      ),
+    Text: ({
+      children,
+      testID,
+      variant,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+      variant?: string;
+      [key: string]: unknown;
+    }) =>
+      React.createElement(
+        Text,
+        { testID: testID || 'text', 'data-variant': variant, ...props },
+        children,
+      ),
+    TextVariant: {
+      HeadingMd: 'HeadingMd',
+      BodyLg: 'BodyLg',
+      BodyMd: 'BodyMd',
+    },
+    BoxFlexDirection: {
+      Row: 'row',
+      Column: 'column',
+    },
+    BoxAlignItems: {
+      Center: 'center',
+    },
+  };
+});
 
 // Mock FlatList from react-native-gesture-handler
 jest.mock('react-native-gesture-handler', () => {
@@ -435,7 +574,7 @@ describe('RegionSelectorModal', () => {
         </Provider>,
       );
 
-      const closeButton = getByTestId('region-selector-close-button');
+      const closeButton = getByTestId('bottom-sheet-close-button');
 
       await act(async () => {
         fireEvent.press(closeButton);

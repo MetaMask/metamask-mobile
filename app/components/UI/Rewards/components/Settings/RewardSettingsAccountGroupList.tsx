@@ -18,14 +18,21 @@ import { useRewardOptinSummary } from '../../hooks/useRewardOptinSummary';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import { selectInternalAccountsByGroupId } from '../../../../../selectors/multichainAccounts/accounts';
 import { AccountGroupId } from '@metamask/account-api';
+import Button, {
+  ButtonVariants,
+} from '../../../../../component-library/components/Buttons/Button';
 import RewardSettingsAccountGroup from './RewardSettingsAccountGroup';
-import RewardSettingsOptOut from './RewardSettingsOptOut';
-import ReferredByCodeSection from './ReferredByCodeSection';
 import { RewardSettingsAccountGroupListFlatListItem } from './types';
+import Routes from '../../../../../constants/navigation/Routes';
+import { RewardsMetricsButtons } from '../../utils';
+import { useOptout } from '../../hooks/useOptout';
+import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 
 const RewardSettingsAccountGroupList: React.FC = () => {
   const tw = useTailwind();
+  const { isLoading: isOptingOut, showOptoutBottomSheet } = useOptout();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   // Move all expensive operations to parent component
   const avatarAccountType = useSelector(selectAvatarAccountType);
@@ -144,12 +151,40 @@ const RewardSettingsAccountGroupList: React.FC = () => {
 
   const ListFooterComponent = useCallback(
     () => (
-      <Box>
-        <ReferredByCodeSection />
-        <RewardSettingsOptOut />
+      <Box
+        testID="rewards-settings-footer"
+        twClassName="gap-4 flex-col py-4 px-4"
+      >
+        <Box twClassName="gap-2">
+          <Text variant={TextVariant.HeadingSm}>
+            {strings('rewards.optout.title')}
+          </Text>
+          <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+            {strings('rewards.optout.description')}
+          </Text>
+        </Box>
+
+        <Button
+          testID="rewards-opt-out-button"
+          variant={ButtonVariants.Secondary}
+          label={strings('rewards.optout.confirm')}
+          isDisabled={isOptingOut}
+          isDanger
+          width={null as unknown as number}
+          onPress={() => {
+            showOptoutBottomSheet(Routes.REWARDS_SETTINGS_VIEW);
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+                .addProperties({
+                  button_type: RewardsMetricsButtons.OPT_OUT,
+                })
+                .build(),
+            );
+          }}
+        />
       </Box>
     ),
-    [],
+    [isOptingOut, showOptoutBottomSheet, trackEvent, createEventBuilder],
   );
 
   // Flatten data for FlatList
@@ -232,7 +267,7 @@ const RewardSettingsAccountGroupList: React.FC = () => {
     );
   }
 
-  // Account list using FlashList for better performance
+  // Account list using FlatList for better performance
   return (
     <FlashList
       testID="rewards-settings-flash-list"
@@ -244,7 +279,6 @@ const RewardSettingsAccountGroupList: React.FC = () => {
       ListFooterComponent={ListFooterComponent}
       showsVerticalScrollIndicator={false}
       removeClippedSubviews
-      keyboardShouldPersistTaps="handled"
     />
   );
 };

@@ -42,9 +42,6 @@ export const MUSD_TOKEN_ASSET_ID_BY_CHAIN: Record<Hex, string> = {
 export const MUSD_CURRENCY = 'MUSD';
 export const MUSD_CONVERSION_APY = 3;
 
-// Delay before cleaning up toast tracking entries after final transaction status
-export const TOAST_TRACKING_CLEANUP_DELAY_MS = 5000;
-
 /**
  * Default blocked countries for mUSD conversion when no remote or env config is available.
  * This is a safety fallback to ensure geo-blocking is always active.

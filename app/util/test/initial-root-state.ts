@@ -39,9 +39,7 @@ const initialRootState: RootState = {
   modals: undefined,
   settings: undefined,
   alert: undefined,
-  securityAlerts: {
-    alerts: {},
-  },
+  transaction: undefined,
   user: userInitialState,
   onboarding: initialOnboardingState,
   notification: undefined,
@@ -51,6 +49,9 @@ const initialRootState: RootState = {
   navigation: initialNavigationState,
   networkOnboarded: undefined,
   security: initialSecurityState,
+  signatureRequest: {
+    securityAlertResponse: undefined,
+  },
   qrKeyringScanner: initialQrKeyringScannerState,
   sdk: {
     connections: {},

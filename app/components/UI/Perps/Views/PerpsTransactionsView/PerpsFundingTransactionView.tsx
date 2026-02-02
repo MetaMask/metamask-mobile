@@ -4,7 +4,7 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import { BigNumber } from 'bignumber.js';
-import React, { useLayoutEffect } from 'react';
+import React from 'react';
 import { ScrollView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { PerpsTransactionSelectorsIDs } from '../../Perps.testIds';
@@ -21,7 +21,7 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import ScreenView from '../../../../Base/ScreenView';
-import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
+import { getPerpsTransactionsDetailsNavbar } from '../../../Navbar';
 import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
 import { usePerpsBlockExplorerUrl } from '../../hooks';
 import { PerpsNavigationParamList } from '../../types/navigation';
@@ -49,23 +49,21 @@ const PerpsFundingTransactionView: React.FC = () => {
   // Get transaction from route params
   const transaction = route.params?.transaction as PerpsTransaction;
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerShown: false,
-    });
-  }, [navigation]);
-
   // Check if transaction exists before proceeding
   if (!transaction) {
     return (
       <ScreenView>
-        <HeaderCenter includesTopInset onBack={() => navigation.goBack()} />
         <View style={styles.content}>
           <Text>{strings('perps.transactions.not_found')}</Text>
         </View>
       </ScreenView>
     );
   }
+
+  // Set navigation title
+  navigation.setOptions(
+    getPerpsTransactionsDetailsNavbar(navigation, transaction.title),
+  );
 
   const handleViewOnBlockExplorer = () => {
     if (!selectedInternalAccount) {
@@ -111,11 +109,6 @@ const PerpsFundingTransactionView: React.FC = () => {
 
   return (
     <ScreenView>
-      <HeaderCenter
-        includesTopInset
-        title={transaction.title}
-        onBack={() => navigation.goBack()}
-      />
       <ScrollView
         testID={PerpsTransactionSelectorsIDs.FUNDING_TRANSACTION_VIEW}
         style={styles.container}

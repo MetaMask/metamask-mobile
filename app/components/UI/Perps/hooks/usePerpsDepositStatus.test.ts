@@ -47,15 +47,6 @@ jest.mock('../../../../core/redux/slices/confirmationMetrics', () => ({
   selectTransactionBridgeQuotesById: jest.fn(),
 }));
 
-// Mock stream manager
-const mockStreamManager = {
-  hasActiveDepositHandler: jest.fn(),
-};
-
-jest.mock('../providers/PerpsStreamManager', () => ({
-  getStreamManagerInstance: jest.fn(() => mockStreamManager),
-}));
-
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUsePerpsLiveAccount = usePerpsLiveAccount as jest.MockedFunction<
   typeof usePerpsLiveAccount
@@ -87,7 +78,6 @@ describe('usePerpsDepositStatus', () => {
     mockUnsubscribe = jest.fn();
     mockShowToast = jest.fn();
     mockClearDepositResult = jest.fn();
-    mockStreamManager.hasActiveDepositHandler.mockReturnValue(false);
 
     mockEngine.controllerMessenger.subscribe = mockSubscribe;
     mockEngine.controllerMessenger.unsubscribe = mockUnsubscribe;
@@ -420,25 +410,6 @@ describe('usePerpsDepositStatus', () => {
       expect(
         mockPerpsToastOptions.accountManagement.deposit.inProgress,
       ).toHaveBeenCalledWith(60, 'test-tx-id'); // 60 seconds for other tokens
-    });
-
-    it('skips showing toast when active deposit handler exists', () => {
-      mockStreamManager.hasActiveDepositHandler.mockReturnValue(true);
-      mockShowToast.mockClear();
-
-      renderHook(() => usePerpsDepositStatus());
-      const transactionMeta: TransactionMeta = {
-        id: 'test-tx-id',
-        type: TransactionType.perpsDeposit,
-        status: TransactionStatus.approved,
-      } as TransactionMeta;
-
-      act(() => {
-        transactionHandler({ transactionMeta });
-      });
-
-      expect(mockShowToast).not.toHaveBeenCalled();
-      expect(mockStreamManager.hasActiveDepositHandler).toHaveBeenCalled();
     });
   });
 

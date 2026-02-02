@@ -157,55 +157,6 @@ describe('TransactionDetailsSummary', () => {
     );
   });
 
-  it('renders mUSD conversion send line title for child transaction', () => {
-    useTokenWithBalanceMock.mockReturnValue({
-      symbol: SYMBOL_MOCK,
-    } as ReturnType<typeof useTokenWithBalance>);
-
-    useTransactionDetailsMock.mockReturnValue({
-      transactionMeta: {
-        id: transactionIdMock,
-        type: TransactionType.musdConversion,
-        metamaskPay: {
-          chainId: SOURCE_CHAIN_ID_MOCK,
-          tokenAddress: '0x123',
-        },
-      } as unknown as TransactionMeta,
-    });
-
-    const { getByText } = render({
-      transactions: [
-        { ...TRANSACTION_META_MOCK, type: TransactionType.bridge },
-      ],
-    });
-
-    expect(
-      getByText(
-        strings('transaction_details.summary_title.musd_convert_send', {
-          sourceSymbol: SYMBOL_MOCK,
-          sourceChain: SOURCE_NETWORK_NAME_MOCK,
-        }),
-      ),
-    ).toBeDefined();
-  });
-
-  it('renders mUSD conversion receive line title', () => {
-    const { getByText } = render({
-      transactions: [
-        { ...TRANSACTION_META_MOCK, type: TransactionType.musdConversion },
-      ],
-    });
-
-    expect(
-      getByText(
-        strings('transaction_details.summary_title.bridge_receive', {
-          targetSymbol: 'mUSD',
-          targetChain: SOURCE_NETWORK_NAME_MOCK,
-        }),
-      ),
-    ).toBeDefined();
-  });
-
   it('renders perps deposit line title', () => {
     const { getByText } = render({
       transactions: [

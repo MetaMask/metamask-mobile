@@ -293,7 +293,7 @@ describe('PerpsFundingTransactionView', () => {
     const { getByText } = render(<PerpsFundingTransactionView />);
 
     // Assert
-    expect(getByText('Transaction not found')).toBeOnTheScreen();
+    expect(getByText('Transaction not found')).toBeTruthy();
   });
 
   it('should format date correctly', () => {

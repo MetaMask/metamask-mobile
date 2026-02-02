@@ -1,4 +1,4 @@
-import { useCallback, useState, useMemo, useEffect } from 'react';
+import { useCallback, useState, useMemo } from 'react';
 import { Alert, Severity } from '../Views/confirmations/types/alerts';
 
 /**
@@ -16,23 +16,6 @@ export const useAlertsConfirmed = (alerts: Alert[]) => {
       {},
     ),
   );
-
-  // Update confirmed state when new alerts with skipConfirmation appear
-  useEffect(() => {
-    const newConfirmedAlerts = alerts.filter(
-      (alert) =>
-        alert.skipConfirmation === true && confirmed[alert.key] === undefined,
-    );
-    if (newConfirmedAlerts.length > 0) {
-      setConfirmed((prevConfirmed) => {
-        const autoConfirmed: Record<string, boolean> = {};
-        for (const alert of newConfirmedAlerts) {
-          autoConfirmed[alert.key] = true;
-        }
-        return { ...prevConfirmed, ...autoConfirmed };
-      });
-    }
-  }, [alerts, confirmed]);
 
   /**
    * Sets the confirmation status of an alert.

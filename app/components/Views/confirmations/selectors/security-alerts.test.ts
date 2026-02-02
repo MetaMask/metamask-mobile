@@ -1,33 +1,24 @@
 import { securityAlertResponse } from '../../../../util/test/confirm-data-helpers';
 import initialRootState from '../../../../util/test/initial-root-state';
-import { selectSecurityAlertResponseByConfirmationId } from './security-alerts';
-
-const MOCK_ID = 'test-id-123';
+import { selectSignatureSecurityAlertResponse } from './security-alerts';
 
 describe('Security Alert Selectors', () => {
-  describe('selectSecurityAlertResponseByConfirmationId', () => {
-    it('returns security alert response for given ID', () => {
-      const state = {
-        ...initialRootState,
-        securityAlerts: {
-          alerts: {
-            [MOCK_ID]: securityAlertResponse,
-          },
-        },
-      };
-
+  describe('selectSignatureSecurityAlertResponse', () => {
+    it('returns signature security alert response from the state', () => {
       expect(
-        selectSecurityAlertResponseByConfirmationId(state, MOCK_ID),
-      ).toEqual(securityAlertResponse);
+        selectSignatureSecurityAlertResponse({
+          ...initialRootState,
+          signatureRequest: {
+            securityAlertResponse,
+          },
+        }),
+      ).toEqual({ securityAlertResponse });
     });
 
-    it('returns undefined if alert response not present for ID', () => {
-      expect(
-        selectSecurityAlertResponseByConfirmationId(
-          initialRootState,
-          'non-existent-id',
-        ),
-      ).toBeUndefined();
+    it('returns undefined if security alert response not present', () => {
+      expect(selectSignatureSecurityAlertResponse(initialRootState)).toEqual({
+        securityAlertResponse: undefined,
+      });
     });
   });
 });

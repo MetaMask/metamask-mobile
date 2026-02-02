@@ -4,13 +4,13 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   Reason,
   SecurityAlertResponse,
-} from '../../components/blockaid-banner/BlockaidBanner.types';
+} from '../../legacy/components/BlockaidBanner/BlockaidBanner.types';
 import { AlertKeys } from '../../constants/alerts';
 import { Alert, AlertSeverity, Severity } from '../../types/alerts';
 import { useSecurityAlertResponse } from '../alerts/useSecurityAlertResponse';
 import { ResultType as BlockaidResultType } from '../../constants/signatures';
 // TODO: Remove legacy import
-import { REASON_TITLE_I18N_KEY_MAP } from '../../components/blockaid-banner/BlockaidBanner.constants';
+import { REASON_TITLE_I18N_KEY_MAP } from '../../legacy/components/BlockaidBanner/BlockaidBanner.constants';
 import BlockaidAlertContent from '../../components/blockaid-alert-content/blockaid-alert-content';
 import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
 

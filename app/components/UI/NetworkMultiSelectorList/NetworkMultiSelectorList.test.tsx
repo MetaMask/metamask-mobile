@@ -92,6 +92,13 @@ jest.mock('../../../selectors/multichainNetworkController', () => ({
   selectIsEvmNetworkSelected: jest.fn(),
 }));
 
+jest.mock(
+  '../../../selectors/featureFlagController/multichainAccounts/index.ts',
+  () => ({
+    selectMultichainAccountsState2Enabled: jest.fn(),
+  }),
+);
+
 jest.mock('../../../multichain-accounts/remote-feature-flag', () => ({
   isMultichainAccountsRemoteFeatureEnabled: jest.fn(),
   MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_1: 'v1',
@@ -247,7 +254,8 @@ describe('NetworkMultiSelectorList', () => {
       if (selector === mockSelectIsEvmNetworkSelected) {
         return true;
       }
-      return undefined;
+      // Default return for selectMultichainAccountsState2Enabled
+      return false;
     });
 
     mockUseSafeAreaInsets.mockReturnValue({

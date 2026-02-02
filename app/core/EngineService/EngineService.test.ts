@@ -94,6 +94,7 @@ jest.unmock('../Engine');
 
 interface MockControllerMessenger {
   subscribe: jest.MockedFunction<(...args: unknown[]) => void>;
+  subscribeOnceIf: jest.MockedFunction<(...args: unknown[]) => void>;
 }
 
 interface MockController {
@@ -127,6 +128,7 @@ jest.mock('../Engine', () => {
       mockInstance = {
         controllerMessenger: {
           subscribe: jest.fn(),
+          subscribeOnceIf: jest.fn(),
         },
         context: {
           AddressBookController: { subscribe: jest.fn() },
@@ -164,6 +166,7 @@ jest.mock('../Engine', () => {
           SelectedNetworkController: { subscribe: jest.fn() },
           SnapInterfaceController: { subscribe: jest.fn() },
           SignatureController: { subscribe: jest.fn() },
+          TokenSearchDiscoveryController: { subscribe: jest.fn() },
           MultichainBalancesController: { subscribe: jest.fn() },
           RatesController: { subscribe: jest.fn() },
         },
@@ -458,13 +461,21 @@ describe('EngineService', () => {
   describe('initializeControllers edge cases', () => {
     // Type for accessing private methods
     interface EngineServiceWithInitializeControllers {
-      initializeControllers: (engine: { context: null }) => void;
+      initializeControllers: (engine: {
+        context: null;
+        controllerMessenger: {
+          subscribeOnceIf: jest.MockedFunction<(...args: unknown[]) => void>;
+        };
+      }) => void;
     }
 
     it('handles missing engine context without errors', () => {
       // Arrange
       const mockEngine = {
         context: null,
+        controllerMessenger: {
+          subscribeOnceIf: jest.fn(),
+        },
       };
 
       // Act & Assert - should not throw
@@ -480,9 +491,12 @@ describe('EngineService', () => {
       );
     });
 
-    it('handles missing vault metadata without errors', async () => {
+    it('handles missing vault metadata in subscribeOnceIf callback without errors', async () => {
       // Types for Engine mock
       interface MockEngineType {
+        controllerMessenger: {
+          subscribeOnceIf: jest.MockedFunction<(...args: unknown[]) => void>;
+        };
         context: {
           KeyringController: {
             metadata?: Record<string, unknown>;
@@ -491,7 +505,11 @@ describe('EngineService', () => {
       }
 
       // Arrange
+      await engineService.start();
+
       const mockEngine = Engine as unknown as MockEngineType;
+      const mockSubscribeOnceIf =
+        mockEngine.controllerMessenger.subscribeOnceIf;
 
       // Mock missing vault metadata
       const originalContext = mockEngine.context;
@@ -503,8 +521,15 @@ describe('EngineService', () => {
         },
       };
 
-      // Act
-      await engineService.start();
+      // Act - trigger the subscribeOnceIf callback
+      type SubscribeCall = [string, () => void, () => boolean];
+      const subscribeCall = mockSubscribeOnceIf.mock.calls.find(
+        (call: unknown[]) => call[0] === 'ComposableController:stateChange',
+      ) as SubscribeCall;
+      expect(subscribeCall).toBeDefined();
+
+      const callback = subscribeCall[1];
+      callback();
 
       // Assert
       expect(Logger.log).toHaveBeenCalledWith(

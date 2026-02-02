@@ -1,14 +1,12 @@
 import { createProjectLogger } from '@metamask/utils';
-import {
-  setSecurityAlertResponse,
-  clearSecurityAlertResponse,
-} from '../../reducers/security-alerts';
+import setSignatureRequestSecurityAlertResponse from '../../actions/signatureRequest';
+import { setTransactionSecurityAlertResponse } from '../../actions/transaction';
 import {
   Reason,
   ResultType,
   SecurityAlertResponse,
   SecurityAlertSource,
-} from '../../components/Views/confirmations/components/blockaid-banner/BlockaidBanner.types';
+} from '../../components/Views/confirmations/legacy/components/BlockaidBanner/BlockaidBanner.types';
 import Engine from '../../core/Engine';
 import { store } from '../../store';
 import { isBlockaidFeatureEnabled } from '../../util/blockaid';
@@ -138,7 +136,7 @@ async function validateRequest(
       return;
     }
 
-    dispatchSecurityAlertResponse(
+    setSecurityAlertResponse(
       req,
       SECURITY_ALERT_RESPONSE_IN_PROGRESS,
       transactionId,
@@ -163,7 +161,7 @@ async function validateRequest(
       securityAlertResponse = SECURITY_ALERT_RESPONSE_FAILED;
     }
 
-    dispatchSecurityAlertResponse(req, securityAlertResponse, transactionId, {
+    setSecurityAlertResponse(req, securityAlertResponse, transactionId, {
       updateControllerState: true,
       securityAlertId,
     });
@@ -212,9 +210,7 @@ function updateSecurityResultForTransaction(
   updateControllerState: boolean = false,
   securityAlertId?: string,
 ) {
-  if (!transactionId) return;
-
-  store.dispatch(setSecurityAlertResponse(transactionId, response));
+  store.dispatch(setTransactionSecurityAlertResponse(transactionId, response));
 
   if (updateControllerState) {
     updateSecurityAlertResponse(
@@ -244,7 +240,7 @@ function fetchTransactionIdAndUpdateSecurityResultForTransaction(
   }, 100);
 }
 
-function dispatchSecurityAlertResponse(
+function setSecurityAlertResponse(
   request: PPOMRequest,
   response: SecurityAlertResponse,
   transactionId?: string,
@@ -269,11 +265,7 @@ function dispatchSecurityAlertResponse(
       );
     }
   } else {
-    // For signatures, use the RPC request ID as the key
-    const signatureId = request.id?.toString();
-    if (signatureId) {
-      store.dispatch(setSecurityAlertResponse(signatureId, response));
-    }
+    store.dispatch(setSignatureRequestSecurityAlertResponse(response));
   }
 }
 
@@ -355,8 +347,8 @@ function normalizeTransactionRequest(
   };
 }
 
-function clearSignatureSecurityAlertResponse(signatureId: string) {
-  store.dispatch(clearSecurityAlertResponse(signatureId));
+function clearSignatureSecurityAlertResponse() {
+  store.dispatch(setSignatureRequestSecurityAlertResponse());
 }
 
 function createValidatorForSecurityAlertId(securityAlertId: string) {

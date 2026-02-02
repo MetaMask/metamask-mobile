@@ -37,10 +37,6 @@ interface KeyValueRowTooltip {
    * Optional onPress handler
    */
   onPress?: (...args: unknown[]) => unknown;
-  /**
-   * Optional bottom padding for the tooltip modal.
-   */
-  bottomPadding?: number;
 }
 
 /**

@@ -228,7 +228,6 @@ function isFilteredByMetaMaskPay(
       (item) =>
         item.status.destChain?.txHash?.toLowerCase() ===
           tx.hash?.toLowerCase() &&
-        item.txMetaId &&
         requiredTransactionIds.includes(item.txMetaId),
     );
 

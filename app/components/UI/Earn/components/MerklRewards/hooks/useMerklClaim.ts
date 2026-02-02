@@ -1,66 +1,44 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
-import {
-  TransactionType,
-  WalletDevice,
-} from '@metamask/transaction-controller';
+import { WalletDevice } from '@metamask/transaction-controller';
 import { Interface } from '@ethersproject/abi';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import { selectDefaultEndpointByChainId } from '../../../../../../selectors/networkController';
 import { addTransaction } from '../../../../../../util/transaction-controller';
 import { TokenI } from '../../../../Tokens/types';
 import { RootState } from '../../../../../../reducers';
-import { fetchMerklRewardsForAsset, getClaimChainId } from '../merkl-client';
-import {
-  DISTRIBUTOR_CLAIM_ABI,
-  MERKL_CLAIM_ORIGIN,
-  MERKL_DISTRIBUTOR_ADDRESS,
-} from '../constants';
+import { fetchMerklRewardsForAsset } from '../merkl-client';
 
-/**
- * Hook to handle claiming Merkl rewards
- * After successful submission, user is navigated to home page.
- * Toast notifications and balance refresh are handled globally by useMerklClaimStatus.
- */
-export const useMerklClaim = (asset: TokenI) => {
+const MERKL_DISTRIBUTOR_ADDRESS =
+  '0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae' as const;
+
+// ABI for the claim method
+const DISTRIBUTOR_ABI = [
+  'function claim(address[] calldata users, address[] calldata tokens, uint256[] calldata amounts, bytes32[][] calldata proofs)',
+];
+
+interface UseMerklClaimOptions {
+  asset: TokenI;
+}
+
+export const useMerklClaim = ({ asset }: UseMerklClaimOptions) => {
   const [isClaiming, setIsClaiming] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
-
-  // Cleanup: abort any pending fetch on unmount
-  useEffect(
-    () => () => {
-      abortControllerRef.current?.abort();
-    },
-    [],
-  );
-
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-
-  // Get the chain ID where claims should be executed
-  // For mUSD, claims always go to Linea regardless of which chain the user is viewing
-  const claimChainId = getClaimChainId(asset);
-
   const endpoint = useSelector((state: RootState) =>
-    selectDefaultEndpointByChainId(state, claimChainId),
+    selectDefaultEndpointByChainId(state, asset.chainId as Hex),
   );
   const networkClientId = endpoint?.networkClientId;
 
   const claimRewards = useCallback(async () => {
     if (!selectedAddress || !networkClientId) {
-      const errorMessage = 'No account or network selected';
-      setError(errorMessage);
-      throw new Error(errorMessage);
+      setError('No account or network selected');
+      return;
     }
-
-    // Abort any previous in-flight request
-    abortControllerRef.current?.abort();
-    const abortController = new AbortController();
-    abortControllerRef.current = abortController;
 
     setIsClaiming(true);
     setError(null);
@@ -70,7 +48,6 @@ export const useMerklClaim = (asset: TokenI) => {
       const rewardData = await fetchMerklRewardsForAsset(
         asset,
         selectedAddress,
-        abortController.signal,
       );
 
       if (!rewardData) {
@@ -79,23 +56,24 @@ export const useMerklClaim = (asset: TokenI) => {
 
       // Prepare claim parameters
       const users = [selectedAddress];
-      const tokens = [rewardData.token.address];
+      const tokens = [rewardData.token.address]; // Use token.address not token object
       const amounts = [rewardData.amount];
-      const proofs = [rewardData.proofs];
+      const proofs = [rewardData.proofs]; // Note: proofs is plural!
 
       // Encode the claim transaction data using ethers Interface
-      const contractInterface = new Interface(DISTRIBUTOR_CLAIM_ABI);
+      const contractInterface = new Interface(DISTRIBUTOR_ABI);
+
       const claimData = [users, tokens, amounts, proofs];
+
       const encodedData = contractInterface.encodeFunctionData(
         'claim',
         claimData,
       );
 
       // Create transaction params
-      // Use chainId from reward data (from API), fall back to the claim chain
-      // For mUSD, the reward token is always on Linea so this will be Linea's chainId
+      // Use chainId from reward data (from API) or fall back to asset chainId
       const transactionChainId =
-        rewardData.token.chainId ?? Number(claimChainId);
+        rewardData.token.chainId ?? Number(asset.chainId);
 
       const txParams = {
         from: selectedAddress as Hex,
@@ -105,39 +83,22 @@ export const useMerklClaim = (asset: TokenI) => {
         chainId: toHex(transactionChainId),
       };
 
-      // Submit transaction - resolves after user approves in the wallet UI
-      // Use MERKL_CLAIM_ORIGIN for transaction monitoring by useMerklClaimStatus
-      const { result, transactionMeta } = await addTransaction(txParams, {
+      // Submit transaction
+      const result = await addTransaction(txParams, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
         networkClientId,
-        origin: MERKL_CLAIM_ORIGIN,
-        type: TransactionType.contractInteraction,
+        origin: 'merkl-claim',
       });
 
-      // transactionMeta can be undefined if user cancels before tx is created
-      if (!transactionMeta) {
-        setIsClaiming(false);
-        return undefined;
-      }
-
-      // Wait for transaction hash (indicates tx is submitted to network)
-      const txHash = await result;
-
-      // Don't reset isClaiming here - component will unmount after navigation
-      // and useMerklClaimStatus will handle the rest globally
-
-      return { txHash, transactionMeta };
+      return result;
     } catch (e) {
-      // Ignore AbortError - component unmounted or request was cancelled
-      if ((e as Error).name === 'AbortError') {
-        return undefined;
-      }
       const errorMessage = (e as Error).message;
       setError(errorMessage);
-      setIsClaiming(false);
       throw e;
+    } finally {
+      setIsClaiming(false);
     }
-  }, [selectedAddress, networkClientId, asset, claimChainId]);
+  }, [selectedAddress, networkClientId, asset]);
 
   return {
     claimRewards,

@@ -377,7 +377,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
       >
         {/* Reward Icon */}
         <Box
-          twClassName={`h-10 w-10 rounded-full bg-muted items-center justify-center`}
+          twClassName={`h-12 w-12 rounded-full bg-muted items-center justify-center`}
           testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_ICON}
         >
           <Icon

@@ -9,7 +9,7 @@ export interface PerpsRowSkeletonProps {
    */
   count?: number;
   /**
-   * Size of the icon skeleton (defaults to HOME_SCREEN_CONFIG.DefaultIconSize)
+   * Size of the icon skeleton (defaults to HOME_SCREEN_CONFIG.DEFAULT_ICON_SIZE)
    */
   iconSize?: number;
   /**
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
  */
 const PerpsRowSkeleton: React.FC<PerpsRowSkeletonProps> = ({
   count = 1,
-  iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
+  iconSize = HOME_SCREEN_CONFIG.DEFAULT_ICON_SIZE,
   style,
 }) => {
   // Generate array for count

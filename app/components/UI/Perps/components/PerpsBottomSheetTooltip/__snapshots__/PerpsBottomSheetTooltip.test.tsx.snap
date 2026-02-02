@@ -138,20 +138,15 @@ exports[`PerpsBottomSheetTooltip renders correctly when visible 1`] = `
                 "flexDirection": "row",
                 "gap": 16,
                 "height": 56,
-                "paddingLeft": 8,
-                "paddingRight": 8,
               },
               false,
-              undefined,
+              {
+                "paddingHorizontal": 16,
+              },
             ]
           }
-          testID="perps-bottom-sheet-tooltip-title"
+          testID="header"
         >
-          <View>
-            <View
-              onLayout={[Function]}
-            />
-          </View>
           <View
             style={
               [
@@ -166,121 +161,21 @@ exports[`PerpsBottomSheetTooltip renders correctly when visible 1`] = `
               ]
             }
           >
-            <View
+            <Text
+              accessibilityRole="text"
               style={
-                [
-                  {
-                    "alignItems": "center",
-                    "display": "flex",
-                  },
-                  undefined,
-                ]
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist-Bold",
+                  "fontSize": 18,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
               }
+              testID="perps-bottom-sheet-tooltip-title"
             >
-              <Text
-                accessibilityRole="text"
-                style={
-                  [
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
-                }
-              >
-                Leverage
-              </Text>
-            </View>
-          </View>
-          <View>
-            <View
-              onLayout={[Function]}
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 20,
-                          "width": 20,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
+              Leverage
+            </Text>
           </View>
         </View>
         <View
@@ -310,10 +205,8 @@ exports[`PerpsBottomSheetTooltip renders correctly when visible 1`] = `
           style={
             {
               "flexDirection": "row",
-              "paddingBottom": 24,
               "paddingHorizontal": 16,
-              "paddingTop": 24,
-              "paddingVertical": 4,
+              "paddingVertical": 24,
             }
           }
           testID="bottomsheetfooter"

@@ -5,8 +5,8 @@ import { SolScope, Transaction, TransactionType } from '@metamask/keyring-api';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
+import MultichainTransactionDetailsModal from '../MultichainTransactionDetailsModal';
 import MultichainTransactionListItem from '../MultichainTransactionListItem';
-import Routes from '../../../constants/navigation/Routes';
 
 const mockUseTheme = jest.fn();
 jest.mock('../../../util/theme', () => ({
@@ -21,6 +21,10 @@ jest.mock('../../../../locales/i18n', () => ({
 jest.mock('../../../util/date', () => ({
   toDateFormat: jest.fn(() => 'Mar 15, 2025'),
 }));
+jest.mock(
+  '../MultichainTransactionDetailsModal',
+  () => 'MultichainTransactionDetailsModal',
+);
 
 // Create a mock store with the necessary state
 const createMockStore = () =>
@@ -193,7 +197,7 @@ describe('MultichainTransactionListItem', () => {
     expect(getByText('-0.00001 SOL')).toBeTruthy();
   });
 
-  it('navigates to transaction details sheet when pressed', () => {
+  it('opens transaction details modal when pressed', () => {
     const { UNSAFE_getByType } = renderWithProvider(
       <MultichainTransactionListItem
         transaction={mockTransaction}
@@ -205,15 +209,8 @@ describe('MultichainTransactionListItem', () => {
     const touchable = UNSAFE_getByType(TouchableHighlight);
     fireEvent.press(touchable);
 
-    expect(mockNavigation.navigate).toHaveBeenCalledWith(
-      Routes.MODAL.ROOT_MODAL_FLOW,
-      expect.objectContaining({
-        screen: Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS,
-        params: expect.objectContaining({
-          transaction: mockTransaction,
-        }),
-      }),
-    );
+    const modal = UNSAFE_getByType(MultichainTransactionDetailsModal);
+    expect(modal.props.isVisible).toBe(true);
   });
 
   it('handles failed transaction status', () => {

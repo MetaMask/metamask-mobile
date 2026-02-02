@@ -39,11 +39,6 @@ export interface ExtendedBottomTabDescriptor extends BottomTabDescriptor {
     rootScreenName: string;
     isSelected?: (rootScreenName: string) => boolean;
     isHidden?: boolean;
-    /**
-     * Callback fired when leaving this tab (switching to another tab).
-     * Useful for cleanup actions like ending analytics sessions.
-     */
-    onLeave?: () => void;
   };
 }
 

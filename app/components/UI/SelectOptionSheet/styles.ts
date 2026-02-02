@@ -3,21 +3,28 @@ import { StyleSheet } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 
-export const ROW_HEIGHT = 56;
+export const ROW_HEIGHT = 35;
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     dropdown: {
       flexDirection: 'row',
-      alignItems: 'center',
+    },
+    iconDropdown: {
+      marginTop: 7,
+      height: 25,
+      justifyContent: 'flex-end',
+      textAlign: 'right',
+      marginRight: 10,
     },
     selectedOption: {
+      flex: 1,
+      alignSelf: 'flex-start',
       color: colors.text.default,
       fontSize: 14,
-      paddingHorizontal: 10,
-      paddingTop: 8,
-      paddingBottom: 8,
+      paddingHorizontal: 15,
+      paddingTop: 10,
+      paddingBottom: 10,
       ...fontStyles.normal,
-      fontWeight: 600,
     },
     label: {
       textAlign: 'center',
@@ -31,20 +38,16 @@ const createStyles = (colors: ThemeColors) =>
       width: '100%',
     },
     optionButton: {
-      paddingHorizontal: 16,
-      paddingVertical: 16,
+      paddingHorizontal: 15,
+      paddingVertical: 5,
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
       height: Device.isIos() ? ROW_HEIGHT : undefined,
     },
-    optionButtonSelected: {
-      backgroundColor: colors.background.muted,
-    },
     optionLabel: {
       flex: 1,
-      fontSize: 16,
-      fontWeight: 500,
+      fontSize: 14,
       ...fontStyles.normal,
       color: colors.text.default,
     },

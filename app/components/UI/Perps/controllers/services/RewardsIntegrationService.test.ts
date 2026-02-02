@@ -5,12 +5,12 @@ import {
 } from '../../__mocks__/serviceMocks';
 import type { PerpsControllerMessenger } from '../PerpsController';
 import type {
-  PerpsPlatformDependencies,
-  PerpsControllerAccess,
+  IPerpsPlatformDependencies,
+  IPerpsControllerAccess,
 } from '../types';
 
 // Helper to get rewards mock with type safety
-const getRewardsMock = (controllers: jest.Mocked<PerpsControllerAccess>) => {
+const getRewardsMock = (controllers: jest.Mocked<IPerpsControllerAccess>) => {
   if (!controllers.rewards) {
     throw new Error('rewards mock not set up');
   }
@@ -18,9 +18,9 @@ const getRewardsMock = (controllers: jest.Mocked<PerpsControllerAccess>) => {
 };
 
 describe('RewardsIntegrationService', () => {
-  let mockControllers: jest.Mocked<PerpsControllerAccess>;
+  let mockControllers: jest.Mocked<IPerpsControllerAccess>;
   let mockMessenger: jest.Mocked<PerpsControllerMessenger>;
-  let mockDeps: jest.Mocked<PerpsPlatformDependencies>;
+  let mockDeps: jest.Mocked<IPerpsPlatformDependencies>;
   let service: RewardsIntegrationService;
   const mockEvmAccount = createMockEvmAccount();
 
@@ -43,10 +43,7 @@ describe('RewardsIntegrationService', () => {
       rewards: {
         getFeeDiscount: jest.fn(),
       },
-      authentication: {
-        getBearerToken: jest.fn(),
-      },
-    } as unknown as jest.Mocked<PerpsControllerAccess>;
+    } as unknown as jest.Mocked<IPerpsControllerAccess>;
 
     mockMessenger = {
       call: jest.fn(),
@@ -131,6 +128,27 @@ describe('RewardsIntegrationService', () => {
       });
 
       expect(result).toBe(0);
+    });
+
+    it('returns undefined when getFeeDiscount is not available', async () => {
+      // Create controllers without rewards (getFeeDiscount not available)
+      const controllersWithoutRewards: IPerpsControllerAccess = {
+        accounts: mockControllers.accounts,
+        keyring: mockControllers.keyring,
+        network: mockControllers.network,
+        transaction: mockControllers.transaction,
+        // rewards is intentionally omitted
+      };
+
+      const result = await service.calculateUserFeeDiscount({
+        controllers: controllersWithoutRewards,
+        messenger: mockMessenger,
+      });
+
+      expect(result).toBeUndefined();
+      expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
+        'RewardsIntegrationService: getFeeDiscount not available, no discount',
+      );
     });
 
     it('returns undefined when no EVM account found', async () => {

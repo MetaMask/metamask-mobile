@@ -11,7 +11,7 @@ import Text, {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCenter from '../../../../../../../component-library/components-temp/HeaderCenter';
+import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import ListItemSelect from '../../../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
   WidthType,
@@ -156,11 +156,11 @@ function StateSelectorModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <HeaderCenter
-        title={strings('deposit.state_modal.select_a_state')}
-        onClose={() => sheetRef.current?.onCloseBottomSheet()}
-        closeButtonProps={{ testID: 'state-selector-close-button' }}
-      />
+      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
+        <Text variant={TextVariant.HeadingMD}>
+          {strings('deposit.state_modal.select_a_state')}
+        </Text>
+      </BottomSheetHeader>
       <View style={styles.searchContainer}>
         <TextFieldSearch
           value={searchString}

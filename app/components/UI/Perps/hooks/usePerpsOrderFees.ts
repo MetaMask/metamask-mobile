@@ -189,7 +189,7 @@ export function usePerpsOrderFees({
 
         // Measure fee discount API call performance
         setMeasurement(
-          PerpsMeasurementName.PerpsRewardsFeeDiscountApiCall,
+          PerpsMeasurementName.PERPS_REWARDS_FEE_DISCOUNT_API_CALL,
           feeDiscountDuration,
           'millisecond',
         );
@@ -205,7 +205,7 @@ export function usePerpsOrderFees({
           address,
           discountBips,
           timestamp: Date.now(),
-          ttl: PERFORMANCE_CONFIG.FeeDiscountCacheDurationMs,
+          ttl: PERFORMANCE_CONFIG.FEE_DISCOUNT_CACHE_DURATION_MS,
         };
 
         return { discountBips };
@@ -277,7 +277,7 @@ export function usePerpsOrderFees({
 
         // Measure points estimation API call performance
         setMeasurement(
-          PerpsMeasurementName.PerpsRewardsPointsEstimationApiCall,
+          PerpsMeasurementName.PERPS_REWARDS_POINTS_ESTIMATION_API_CALL,
           pointsEstimationDuration,
           'millisecond',
         );
@@ -342,7 +342,7 @@ export function usePerpsOrderFees({
         const shouldSimulateFeeDiscount =
           __DEV__ &&
           Number.parseFloat(amount) ===
-            DEVELOPMENT_CONFIG.SimulateFeeDiscountAmount;
+            DEVELOPMENT_CONFIG.SIMULATE_FEE_DISCOUNT_AMOUNT;
 
         let discountData: { discountBips?: number };
 
@@ -447,7 +447,7 @@ export function usePerpsOrderFees({
               bonusBips: pointsData.bonusBips,
               basePointsPerDollar,
               timestamp: now,
-              ttl: PERFORMANCE_CONFIG.PointsCalculationCacheDurationMs,
+              ttl: PERFORMANCE_CONFIG.POINTS_CALCULATION_CACHE_DURATION_MS,
             };
 
             DevLogger.log('Rewards: Cached points calculation parameters', {
@@ -455,7 +455,7 @@ export function usePerpsOrderFees({
               bonusBips: pointsData.bonusBips,
               basePointsPerDollar,
               cacheExpiry: new Date(
-                now + PERFORMANCE_CONFIG.PointsCalculationCacheDurationMs,
+                now + PERFORMANCE_CONFIG.POINTS_CALCULATION_CACHE_DURATION_MS,
               ).toISOString(),
             });
           }

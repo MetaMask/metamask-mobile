@@ -188,7 +188,7 @@ describe('usePerpsOrderValidation', () => {
           ...defaultParams,
           orderForm: {
             ...defaultOrderForm,
-            leverage: VALIDATION_THRESHOLDS.HighLeverageWarning + 5, // Test with leverage above threshold
+            leverage: VALIDATION_THRESHOLDS.HIGH_LEVERAGE_WARNING + 5, // Test with leverage above threshold
           },
         }),
       );
@@ -214,7 +214,7 @@ describe('usePerpsOrderValidation', () => {
           ...defaultParams,
           orderForm: {
             ...defaultOrderForm,
-            leverage: VALIDATION_THRESHOLDS.HighLeverageWarning - 5, // Test with leverage below threshold
+            leverage: VALIDATION_THRESHOLDS.HIGH_LEVERAGE_WARNING - 5, // Test with leverage below threshold
           },
         }),
       );

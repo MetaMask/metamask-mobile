@@ -68,13 +68,13 @@ interface ValidationResult {
  * WARNINGS (Non-blocking - yellow text, user can proceed)
  * ==========================================
  *
- * 1. LIMIT PRICE FAR FROM MARKET (>VALIDATION_THRESHOLDS.LimitPriceDifferenceWarning)
+ * 1. LIMIT PRICE FAR FROM MARKET (>VALIDATION_THRESHOLDS.LIMIT_PRICE_DIFFERENCE_WARNING)
  * - Warns when limit price unlikely to execute soon
  * - Example: WARNING - BTC at $50,000, limit set at $60,000 (20% higher)
  * - Example: WARNING - ETH at $3,000, limit set at $2,500 (16.7% lower)
  * - User can still place the order if they want
  *
- * 2. VERY SMALL PARTIAL CLOSE (small percentage of position)
+ * 2. VERY SMALL PARTIAL CLOSE (<VALIDATION_THRESHOLDS.SMALL_CLOSE_PERCENTAGE_WARNING of position)
  * - Warns about closing tiny portions that may not be worth the fees
  * - Example: WARNING - Closing only 5% of a $1,000 position ($50)
  * - Example: WARNING - Closing only 2% of a $5,000 position ($100)
@@ -190,7 +190,7 @@ export function usePerpsClosePositionValidation(
           (limitPriceNum - currentPrice) / currentPrice,
         );
         if (
-          priceDifference > VALIDATION_THRESHOLDS.LimitPriceDifferenceWarning
+          priceDifference > VALIDATION_THRESHOLDS.LIMIT_PRICE_DIFFERENCE_WARNING
         ) {
           warnings.push(
             strings('perps.order.validation.limit_price_far_warning'),

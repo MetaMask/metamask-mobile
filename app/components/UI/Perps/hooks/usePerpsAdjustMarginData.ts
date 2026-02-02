@@ -7,7 +7,7 @@ import {
 import { usePerpsMarkets } from './usePerpsMarkets';
 import {
   calculateMaxRemovableMargin,
-  estimateLiquidationPrice,
+  calculateNewLiquidationPrice,
 } from '../utils/marginUtils';
 import { MARGIN_ADJUSTMENT_CONFIG } from '../constants/perpsConfig';
 import type { Position } from '../controllers/types';
@@ -89,7 +89,7 @@ export function usePerpsAdjustMarginData(
   );
   const maxLeverage = marketInfo?.maxLeverage
     ? parseInt(marketInfo.maxLeverage, 10)
-    : MARGIN_ADJUSTMENT_CONFIG.FallbackMaxLeverage;
+    : MARGIN_ADJUSTMENT_CONFIG.FALLBACK_MAX_LEVERAGE;
 
   // Derived values from live position
   const currentMargin = useMemo(
@@ -166,28 +166,31 @@ export function usePerpsAdjustMarginData(
     return Math.max(0, currentMargin - inputAmount);
   }, [isAddMode, currentMargin, inputAmount]);
 
-  // Estimate new liquidation price using anchored + delta approach.
-  // Starts from Hyperliquid's actual liquidation price and applies margin delta.
-  // To avoid flicker on submit, the view resets inputAmount to 0 immediately,
-  // which makes newMargin === currentMargin, returning currentLiquidationPrice.
+  // Calculate new liquidation price
   const newLiquidationPrice = useMemo(() => {
     if (newMargin === 0 || positionSize === 0) return currentLiquidationPrice;
 
-    return estimateLiquidationPrice({
-      isLong,
-      currentMargin,
+    if (isAddMode) {
+      const marginPerUnit = newMargin / positionSize;
+      return isLong
+        ? Math.max(0, entryPrice - marginPerUnit)
+        : entryPrice + marginPerUnit;
+    }
+
+    return calculateNewLiquidationPrice({
       newMargin,
       positionSize,
+      entryPrice,
+      isLong,
       currentLiquidationPrice,
-      maxLeverage,
     });
   }, [
-    isLong,
-    currentMargin,
+    isAddMode,
     newMargin,
     positionSize,
+    entryPrice,
+    isLong,
     currentLiquidationPrice,
-    maxLeverage,
   ]);
 
   // Calculate liquidation distance

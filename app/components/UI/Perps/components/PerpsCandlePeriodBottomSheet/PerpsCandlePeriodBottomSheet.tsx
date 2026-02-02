@@ -80,11 +80,11 @@ const PerpsCandlePeriodBottomSheet: React.FC<
           title: strings('perps.chart.time_periods.minutes'),
           periods: CANDLE_PERIODS.filter((period) =>
             [
-              CandlePeriod.OneMinute,
-              CandlePeriod.ThreeMinutes,
-              CandlePeriod.FiveMinutes,
-              CandlePeriod.FifteenMinutes,
-              CandlePeriod.ThirtyMinutes,
+              CandlePeriod.ONE_MINUTE,
+              CandlePeriod.THREE_MINUTES,
+              CandlePeriod.FIVE_MINUTES,
+              CandlePeriod.FIFTEEN_MINUTES,
+              CandlePeriod.THIRTY_MINUTES,
             ].includes(period.value),
           ),
         },
@@ -92,11 +92,11 @@ const PerpsCandlePeriodBottomSheet: React.FC<
           title: strings('perps.chart.time_periods.hours'),
           periods: CANDLE_PERIODS.filter((period) =>
             [
-              CandlePeriod.OneHour,
-              CandlePeriod.TwoHours,
-              CandlePeriod.FourHours,
-              CandlePeriod.EightHours,
-              CandlePeriod.TwelveHours,
+              CandlePeriod.ONE_HOUR,
+              CandlePeriod.TWO_HOURS,
+              CandlePeriod.FOUR_HOURS,
+              CandlePeriod.EIGHT_HOURS,
+              CandlePeriod.TWELVE_HOURS,
             ].includes(period.value),
           ),
         },
@@ -104,9 +104,9 @@ const PerpsCandlePeriodBottomSheet: React.FC<
           title: strings('perps.chart.time_periods.days'),
           periods: CANDLE_PERIODS.filter((period) =>
             [
-              CandlePeriod.OneDay,
-              CandlePeriod.ThreeDays, // 2d maps to 3d
-              CandlePeriod.OneWeek, // 7d
+              CandlePeriod.ONE_DAY,
+              CandlePeriod.THREE_DAYS, // 2d maps to 3d
+              CandlePeriod.ONE_WEEK, // 7d
             ].includes(period.value),
           ),
         },

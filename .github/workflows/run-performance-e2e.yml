@@ -5,10 +5,6 @@ name: Build Apps and Run Performance E2E Tests
 on:
   schedule:
     - cron: '0 */3 * * 1-6'
-  push:
-    branches:
-      - main
-      - 'release/*'
   workflow_dispatch:
     inputs:
       description:
@@ -55,19 +51,10 @@ on:
         description: 'BrowserStack iOS Imported Wallet App URL (bs://...)'
         required: false
         type: string
-      branch_name:
-        description: 'Branch name to use for build names (defaults to auto-detection)'
-        required: false
-        type: string
 
 permissions:
   contents: read
   id-token: write
-  actions: write
-
-concurrency:
-  group: performance-e2e-${{ github.ref }}-${{ github.event_name }}
-  cancel-in-progress: true
 
 env:
   BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
@@ -80,44 +67,9 @@ env:
   DISABLE_VIDEO_DOWNLOAD: true
 
 jobs:
-  determine-branch-name:
-    name: Determine Branch Name for Bitrise
-    runs-on: ubuntu-latest
-    outputs:
-      branch_name: ${{ steps.get-branch.outputs.branch_name }}
-    steps:
-      - name: Get correct branch name
-        id: get-branch
-        env:
-          INPUT_BRANCH: ${{ inputs.branch_name }}
-          HEAD_REF: ${{ github.head_ref }}
-          REF_NAME: ${{ github.ref_name }}
-          EVENT_NAME: ${{ github.event_name }}
-        run: |
-          # Determine the correct branch name for all trigger scenarios:
-          # - workflow_call (from ci.yml): uses INPUT_BRANCH (github.head_ref for PRs, github.ref_name for push)
-          # - pull_request: uses HEAD_REF (source branch, e.g., "feature-branch")
-          # - schedule: uses REF_NAME (typically "main")
-          # - workflow_dispatch: uses INPUT_BRANCH if provided, otherwise REF_NAME
-          # Priority: explicit input > PR head_ref > ref_name
-          if [ -n "$INPUT_BRANCH" ]; then
-            BRANCH_NAME="$INPUT_BRANCH"
-            echo "Using explicit input: $BRANCH_NAME"
-          elif [ "$EVENT_NAME" = "pull_request" ] && [ -n "$HEAD_REF" ]; then
-            BRANCH_NAME="$HEAD_REF"
-            echo "Using PR source branch: $BRANCH_NAME"
-          else
-            BRANCH_NAME="$REF_NAME"
-            echo "Using ref_name: $BRANCH_NAME"
-          fi
-
-          echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
-          echo "Branch for Bitrise: $BRANCH_NAME"
-
   read-device-matrix:
     name: Read Device Matrix
     runs-on: ubuntu-latest
-    needs: [determine-branch-name]
     outputs:
       android_matrix: ${{ steps.read-matrix.outputs.android_matrix }}
       ios_matrix: ${{ steps.read-matrix.outputs.ios_matrix }}
@@ -125,41 +77,37 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Select Devices
+      - name: Read device matrix
         id: read-matrix
-        env:
-          BRANCH_NAME: ${{ needs.determine-branch-name.outputs.branch_name }}
         run: |
-          FILE="appwright/device-matrix.json"
-
-          # Push to main or release branches: Use only "low" category devices
-          # Schedule and workflow_dispatch: Use all devices
-          if [ "${{ github.event_name }}" = "push" ]; then
-            FILTER='[.[] | select(.category == "low")]'
-            echo "Limited mode: low category devices only (event: ${{ github.event_name }}, branch: $BRANCH_NAME)"
-          else
-            FILTER='.'
-            echo "Full mode: All devices (event: ${{ github.event_name }}, branch: $BRANCH_NAME)"
-          fi
-
-          ANDROID_MATRIX=$(jq ".android_devices | $FILTER" "$FILE")
-          IOS_MATRIX=$(jq ".ios_devices | $FILTER" "$FILE")
+          echo "Reading device matrix from appwright/device-matrix.json"
+          # Extract Android devices
+          ANDROID_MATRIX=$(jq -r ".android_devices | map({name: .name, os_version: .os_version, category: .category}) | tojson" appwright/device-matrix.json)
+          # Extract iOS devices
+          IOS_MATRIX=$(jq -r ".ios_devices | map({name: .name, os_version: .os_version, category: .category}) | tojson" appwright/device-matrix.json)
 
           {
-            echo "android_matrix<<EOF"
-            echo "$ANDROID_MATRIX"
-            echo "EOF"
-            echo "ios_matrix<<EOF"
-            echo "$IOS_MATRIX"
-            echo "EOF"
+            echo "android_matrix=$ANDROID_MATRIX"
+            echo "ios_matrix=$IOS_MATRIX"
           } >> "$GITHUB_OUTPUT"
 
-          echo "Selected: $(echo "$ANDROID_MATRIX" | jq length) Android, $(echo "$IOS_MATRIX" | jq length) iOS"
+          echo "Android matrix: $ANDROID_MATRIX"
+          echo "iOS matrix: $IOS_MATRIX"
+
+          # Validate that we have devices
+          ANDROID_COUNT=$(echo "$ANDROID_MATRIX" | jq 'length')
+          IOS_COUNT=$(echo "$IOS_MATRIX" | jq 'length')
+
+          echo "Found $ANDROID_COUNT Android devices and $IOS_COUNT iOS devices"
+
+          if [ "$ANDROID_COUNT" -eq 0 ] && [ "$IOS_COUNT" -eq 0 ]; then
+            echo "Error: No devices found in device-matrix.json"
+            exit 1
+          fi
 
   set-build-names:
     name: Set Unified BrowserStack Build Names
     runs-on: ubuntu-latest
-    needs: [determine-branch-name]
     outputs:
       android_build_name: ${{ steps.set-builds.outputs.android_build_name }}
       ios_build_name: ${{ steps.set-builds.outputs.ios_build_name }}
@@ -167,29 +115,22 @@ jobs:
       - name: Set unified build names
         id: set-builds
         run: |
-          BRANCH_NAME="${{ needs.determine-branch-name.outputs.branch_name }}"
-          echo "android_build_name=Android-Performance-$BRANCH_NAME-Branch" >> "$GITHUB_OUTPUT"
-          echo "ios_build_name=iOS-Performance-$BRANCH_NAME-Branch" >> "$GITHUB_OUTPUT"
+          echo "android_build_name=Android-Performance-${{ github.ref_name }}-Branch" >> "$GITHUB_OUTPUT"
+          echo "ios_build_name=iOS-Performance-${{ github.ref_name }}-Branch" >> "$GITHUB_OUTPUT"
           echo "Set unified build names:"
-          echo "  Android: Android-Performance-$BRANCH_NAME-Branch"
-          echo "  iOS: iOS-Performance-$BRANCH_NAME-Branch"
+          echo "  Android: Android-Performance-${{ github.ref_name }}-Branch"
+          echo "  iOS: iOS-Performance-${{ github.ref_name }}-Branch"
 
   trigger-android-dual-versions:
     name: Trigger Android Dual Versions and Extract BrowserStack URLs
     uses: ./.github/workflows/build-android-upload-to-browserstack.yml
-    needs: [determine-branch-name]
     if: (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet)
-    with:
-      branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
     secrets: inherit
 
   trigger-ios-dual-versions:
     name: Trigger iOS Dual Versions and Extract BrowserStack URLs
     uses: ./.github/workflows/build-ios-upload-to-browserstack.yml
-    needs: [determine-branch-name]
     if: (!inputs.browserstack_app_url_ios_onboarding && !inputs.browserstack_app_url_ios_imported_wallet)
-    with:
-      branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
     secrets: inherit
 
   # =============================================================================
@@ -199,7 +140,7 @@ jobs:
   run-android-onboarding-tests:
     name: Run Android Onboarding Tests
     uses: ./.github/workflows/performance-test-runner.yml
-    needs: [read-device-matrix, trigger-android-dual-versions, set-build-names, determine-branch-name]
+    needs: [read-device-matrix, trigger-android-dual-versions, set-build-names]
     if: always() && !failure() && !cancelled() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_onboarding || needs.trigger-android-dual-versions.result == 'success')
     with:
       platform: android
@@ -207,14 +148,14 @@ jobs:
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_android_onboarding }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
-      branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
+      branch_name: ${{ github.ref_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.android_build_name }}
     secrets: inherit
 
   run-ios-onboarding-tests:
     name: Run iOS Onboarding Tests
     uses: ./.github/workflows/performance-test-runner.yml
-    needs: [read-device-matrix, trigger-ios-dual-versions, set-build-names, determine-branch-name]
+    needs: [read-device-matrix, trigger-ios-dual-versions, set-build-names]
     if: always() && !failure() && !cancelled() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_onboarding || needs.trigger-ios-dual-versions.result == 'success')
     with:
       platform: ios
@@ -222,7 +163,7 @@ jobs:
       device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
       browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_ios_onboarding }}
       app_version: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
-      branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
+      branch_name: ${{ github.ref_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.ios_build_name }}
     secrets: inherit
 
@@ -250,7 +191,6 @@ jobs:
         trigger-android-dual-versions,
         wait-for-onboarding-completion,
         set-build-names,
-        determine-branch-name,
       ]
     if: always() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet || needs.trigger-android-dual-versions.result == 'success')
     with:
@@ -259,7 +199,7 @@ jobs:
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android_imported_wallet }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
-      branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
+      branch_name: ${{ github.ref_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.android_build_name }}
     secrets: inherit
 
@@ -272,7 +212,6 @@ jobs:
         trigger-ios-dual-versions,
         wait-for-onboarding-completion,
         set-build-names,
-        determine-branch-name,
       ]
     if: always() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_imported_wallet || needs.trigger-ios-dual-versions.result == 'success')
     with:
@@ -281,7 +220,7 @@ jobs:
       device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
       browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_ios_imported_wallet }}
       app_version: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
-      branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
+      branch_name: ${{ github.ref_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.ios_build_name }}
     secrets: inherit
 
@@ -295,7 +234,6 @@ jobs:
         run-ios-imported-wallet-tests,
         run-ios-onboarding-tests,
         wait-for-onboarding-completion,
-        determine-branch-name,
       ]
     if: always()
     steps:
@@ -310,8 +248,6 @@ jobs:
           merge-multiple: true
 
       - name: Run aggregation script
-        env:
-          BRANCH_NAME: ${{ needs.determine-branch-name.outputs.branch_name }}
         run: |
           echo "Processing all test results..."
           echo "Running aggregation script..."
@@ -337,7 +273,6 @@ jobs:
         run-ios-imported-wallet-tests,
         run-ios-onboarding-tests,
         aggregate-results,
-        determine-branch-name,
       ]
     if: always()
     steps:
@@ -354,7 +289,6 @@ jobs:
         id: summary
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH_NAME: ${{ needs.determine-branch-name.outputs.branch_name }}
         run: |
           {
             echo "summary<<EOF"

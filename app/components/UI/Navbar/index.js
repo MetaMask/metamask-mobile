@@ -47,12 +47,6 @@ import HeaderBase, {
 } from '../../../component-library/components/HeaderBase';
 import getHeaderCenterNavbarOptions from '../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
-import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
-import BadgeNetwork from '../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
-import BadgeWrapperComponent, {
-  BadgePosition,
-} from '../../../component-library/components/Badges/BadgeWrapper';
 import AddressCopy from '../AddressCopy';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
@@ -73,7 +67,6 @@ import {
 import { withMetaMetrics } from '../Stake/utils/metaMetrics/withMetaMetrics';
 import { BridgeViewMode } from '../Bridge/types';
 import CardButton from '../Card/components/CardButton';
-import { Skeleton } from '../../../component-library/components/Skeleton';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event);
@@ -995,7 +988,10 @@ export function getWalletNavbarOptions(
                 <View
                   testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
                 >
-                  <AddressCopy hitSlop={innerStyles.touchAreaSlop} />
+                  <AddressCopy
+                    account={selectedInternalAccount}
+                    hitSlop={innerStyles.touchAreaSlop}
+                  />
                 </View>
                 {shouldDisplayCardButton && (
                   <CardButton
@@ -1695,20 +1691,19 @@ export function getDepositNavbarOptions(
   theme,
   onClose = undefined,
 ) {
-  let startButtonIconProps, closeButtonProps;
-  if (showBack || showClose) {
+  const handleClose = () => {
+    navigation.dangerouslyGetParent()?.pop();
+    onClose?.();
+  };
+
+  let startButtonIconProps;
+  if (showBack) {
     startButtonIconProps = {
       iconName: IconName.ArrowLeft,
-      onPress: () => {
-        navigation.pop();
-        onClose?.();
-      },
-      testID: 'deposit-back-navbar-button',
+      onPress: () => navigation.pop(),
     };
-  }
-
-  if (showConfiguration) {
-    closeButtonProps = {
+  } else if (showConfiguration) {
+    startButtonIconProps = {
       iconName: IconName.Setting,
       onPress: onConfigurationPress,
       testID: 'deposit-configuration-menu-button',
@@ -1718,7 +1713,9 @@ export function getDepositNavbarOptions(
   return getHeaderCenterNavbarOptions({
     title,
     startButtonIconProps,
-    closeButtonProps,
+    closeButtonProps: showClose
+      ? { onPress: handleClose, testID: 'deposit-close-navbar-button' }
+      : undefined,
     includesTopInset: true,
   });
 }
@@ -1746,6 +1743,44 @@ export const getEditAccountNameNavBarOptions = (goBack, themeColors) => {
         size={ButtonIconSize.Lg}
         onPress={goBack}
         style={styles.closeButton}
+      />
+    ),
+    ...innerStyles,
+  };
+};
+
+export const getSettingsNavigationOptions = (
+  title,
+  themeColors,
+  navigation,
+) => {
+  const innerStyles = StyleSheet.create({
+    headerStyle: {
+      backgroundColor: themeColors.background.default,
+      shadowColor: importedColors.transparent,
+      elevation: 0,
+    },
+    accessories: {
+      marginHorizontal: 8,
+    },
+  });
+  return {
+    headerLeft: null,
+    headerTitle: () => (
+      <MorphText
+        variant={TextVariant.HeadingMD}
+        testID={SettingsViewSelectorsIDs.SETTINGS_HEADER}
+      >
+        {title}
+      </MorphText>
+    ),
+    headerRight: () => (
+      <ButtonIcon
+        size={ButtonIconSize.Lg}
+        iconName={IconName.Close}
+        onPress={() => navigation?.goBack()}
+        style={innerStyles.accessories}
+        testID={NetworksViewSelectorsIDs.CLOSE_ICON}
       />
     ),
     ...innerStyles,
@@ -1935,141 +1970,6 @@ export function getDeFiProtocolPositionDetailsNavbarOptions(navigation) {
         iconName={IconName.ArrowLeft}
         iconColor={IconColor.Default}
       />
-    ),
-  };
-}
-
-/**
- * Function that returns the navigation options for the Ramps Build Quote screen
- *
- * @param {Object} navigation - Navigation object required to navigate between screens
- * @param {Object} options - Options for the navbar
- * @param {string} [options.tokenName] - Name of the selected token (used for avatar)
- * @param {string} [options.tokenSymbol] - Symbol/ticker of the selected token (e.g., "ETH")
- * @param {string} [options.tokenIconUrl] - URL for the token icon
- * @param {string} [options.networkName] - Name of the network
- * @param {Object} [options.networkImageSource] - Image source for the network icon
- * @param {Function} [options.onSettingsPress] - Callback for settings button press
- * @returns {Object} - Navigation options object
- */
-export function getRampsBuildQuoteNavbarOptions(
-  navigation,
-  {
-    tokenName,
-    tokenSymbol,
-    tokenIconUrl,
-    networkName,
-    networkImageSource,
-    onSettingsPress,
-  } = {},
-) {
-  const innerStyles = StyleSheet.create({
-    centerContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 16,
-    },
-    labelsContainer: {
-      gap: 0,
-      marginTop: -2,
-    },
-    backButton: {
-      marginLeft: 16,
-    },
-    skeletonAvatar: {
-      borderRadius: 20,
-    },
-    skeletonTitle: {
-      borderRadius: 4,
-    },
-    skeletonSubtitle: {
-      borderRadius: 4,
-      marginTop: 4,
-    },
-  });
-
-  const isLoading = !tokenName || !tokenSymbol || !networkName;
-
-  return {
-    header: () => (
-      <HeaderBase
-        includesTopInset
-        variant={HeaderBaseVariant.Display}
-        twClassName="gap-2"
-        startAccessory={
-          <ButtonIcon
-            style={innerStyles.backButton}
-            onPress={() => navigation.goBack()}
-            size={ButtonIconSize.Lg}
-            iconName={IconName.ArrowLeft}
-            iconColor={IconColor.Default}
-            testID="build-quote-back-button"
-          />
-        }
-        endAccessory={
-          <ButtonIcon
-            style={styles.headerRightButton}
-            onPress={onSettingsPress}
-            size={ButtonIconSize.Lg}
-            iconName={IconName.Setting}
-            iconColor={IconColor.Default}
-            testID="build-quote-settings-button"
-          />
-        }
-      >
-        <View style={innerStyles.centerContainer}>
-          {isLoading ? (
-            <>
-              <Skeleton
-                width={40}
-                height={40}
-                style={innerStyles.skeletonAvatar}
-              />
-              <View style={innerStyles.labelsContainer}>
-                <Skeleton
-                  width={80}
-                  height={20}
-                  style={innerStyles.skeletonTitle}
-                />
-                <Skeleton
-                  width={100}
-                  height={16}
-                  style={innerStyles.skeletonSubtitle}
-                />
-              </View>
-            </>
-          ) : (
-            <>
-              <BadgeWrapperComponent
-                badgePosition={BadgePosition.BottomRight}
-                badgeElement={
-                  <BadgeNetwork
-                    name={networkName}
-                    imageSource={networkImageSource}
-                  />
-                }
-              >
-                <AvatarToken
-                  name={tokenName}
-                  imageSource={{ uri: tokenIconUrl }}
-                  size={AvatarSize.Lg}
-                />
-              </BadgeWrapperComponent>
-              <View style={innerStyles.labelsContainer}>
-                <MorphText variant={TextVariant.HeadingSM}>
-                  {strings('fiat_on_ramp.buy', { ticker: tokenSymbol })}
-                </MorphText>
-                <MorphText
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                >
-                  {strings('fiat_on_ramp.on_network', { networkName })}
-                </MorphText>
-              </View>
-            </>
-          )}
-        </View>
-      </HeaderBase>
     ),
   };
 }

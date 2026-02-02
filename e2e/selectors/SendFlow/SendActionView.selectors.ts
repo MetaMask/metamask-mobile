@@ -10,7 +10,4 @@ export const SendActionViewSelectorsIDs = {
   CONTINUE_BUTTON: 'send-submit-button-snap-footer-button',
   CANCEL_BUTTON: 'send-cancel-button-snap-footer-button',
   CLOSE_BUTTON: 'default-snap-footer-button',
-  INSUFFICIENT_BALANCE_TO_COVER_FEES_ERROR:
-    'Insufficient balance to cover fees',
-  INSUFFICIENT_FUNDS_ERROR: 'Insufficient funds',
 };

@@ -9,7 +9,7 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import type { Position, PerpsMarketData } from '../../controllers/types';
+import type { Position } from '../../controllers/types';
 import PerpsTabView from './PerpsTabView';
 import { PerpsEventValues } from '../../constants/eventNames';
 
@@ -91,11 +91,6 @@ jest.mock('../../hooks', () => ({
     positions: [],
     isInitialLoading: false,
   })),
-  usePerpsTabExploreData: jest.fn(() => ({
-    exploreMarkets: [],
-    watchlistMarkets: [],
-    isLoading: false,
-  })),
 }));
 
 // Mock stream hooks separately since they're imported from different path
@@ -111,7 +106,6 @@ jest.mock('../../hooks/stream', () => ({
     },
     isInitialLoading: false,
   })),
-  usePerpsLivePrices: jest.fn(() => ({})),
 }));
 
 // Mock formatUtils
@@ -166,11 +160,6 @@ jest.mock('../../Perps.testIds', () => ({
     POSITIONS_SECTION_TITLE: 'perps-positions-section-title',
     POSITION_ITEM: 'perps-positions-item',
   },
-  getPerpsMarketRowItemSelector: {
-    rowItem: (symbol: string) => `perps-market-row-${symbol}`,
-    tokenLogo: (symbol: string) => `perps-market-logo-${symbol}`,
-    badge: (symbol: string) => `perps-market-badge-${symbol}`,
-  },
 }));
 
 // Import after mock to use the mocked values
@@ -188,42 +177,22 @@ jest.mock('../../components/PerpsBottomSheetTooltip', () => ({
   },
 }));
 
-// Mock PerpsWatchlistMarkets component
-jest.mock(
-  '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets',
-  () => ({
-    __esModule: true,
-    default: ({ markets }: { markets: unknown[] }) => {
-      const { View, Text } = jest.requireActual('react-native');
-      if (markets.length === 0) return null;
-      return (
-        <View testID="perps-watchlist-markets">
-          <Text>Watchlist ({markets.length} markets)</Text>
-        </View>
-      );
-    },
-  }),
-);
-
-// Mock PerpsMarketTypeSection component
-jest.mock('../../components/PerpsMarketTypeSection', () => ({
-  __esModule: true,
-  default: ({
-    title,
-    markets,
-    marketType,
+// Mock PerpsEmptyState component to avoid Redux context issues while preserving testID
+jest.mock('../PerpsEmptyState', () => ({
+  PerpsEmptyState: ({
+    onAction,
+    testID,
   }: {
-    title: string;
-    markets: unknown[];
-    marketType: string;
+    onAction?: () => void;
+    testID?: string;
   }) => {
-    const { View, Text } = jest.requireActual('react-native');
-    if (markets.length === 0) return null;
+    const { TouchableOpacity, Text, View } = jest.requireActual('react-native');
     return (
-      <View testID="perps-market-type-section">
-        <Text>
-          {title} ({markets.length} markets, type: {marketType})
-        </Text>
+      <View testID={testID}>
+        <Text>Bet on price movements with up to 40x leverage.</Text>
+        <TouchableOpacity onPress={onAction}>
+          <Text>Start trading</Text>
+        </TouchableOpacity>
       </View>
     );
   },
@@ -277,28 +246,6 @@ describe('PerpsTabView', () => {
     },
     takeProfitCount: 0,
     stopLossCount: 0,
-  };
-
-  const mockMarket: PerpsMarketData = {
-    symbol: 'ETH',
-    name: 'Ethereum',
-    price: '$2,000.00',
-    change24h: '+$50.00',
-    change24hPercent: '+2.5%',
-    volume: '$1.5B',
-    maxLeverage: '50x',
-    marketType: 'crypto',
-  };
-
-  const mockMarketBTC: PerpsMarketData = {
-    symbol: 'BTC',
-    name: 'Bitcoin',
-    price: '$50,000.00',
-    change24h: '-$500.00',
-    change24hPercent: '-1.0%',
-    volume: '$5B',
-    maxLeverage: '100x',
-    marketType: 'crypto',
   };
 
   beforeEach(() => {
@@ -400,15 +347,7 @@ describe('PerpsTabView', () => {
   });
 
   describe('User Interactions', () => {
-    it('shows explore section when no positions or orders exist', () => {
-      const mockUsePerpsTabExploreData =
-        jest.requireMock('../../hooks').usePerpsTabExploreData;
-      mockUsePerpsTabExploreData.mockReturnValue({
-        exploreMarkets: [mockMarket, mockMarketBTC],
-        watchlistMarkets: [],
-        isLoading: false,
-      });
-
+    it('should navigate to tutorial when Start Trading button is pressed in first-time view', () => {
       mockUsePerpsFirstTimeUser.mockReturnValue({
         isFirstTimeUser: true,
         markTutorialCompleted: jest.fn(),
@@ -416,9 +355,19 @@ describe('PerpsTabView', () => {
 
       render(<PerpsTabView />);
 
-      // Confirm the explore state is rendered (market data should be visible)
-      expect(screen.getByText('ETH')).toBeOnTheScreen();
-      expect(screen.getByText('BTC')).toBeOnTheScreen();
+      // First confirm the empty state is rendered
+      expect(screen.getByTestId('perps-empty-state')).toBeOnTheScreen();
+
+      const startTradingButton = screen.getByText(
+        strings('perps.position.list.start_trading'),
+      );
+      act(() => {
+        fireEvent.press(startTradingButton);
+      });
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.PERPS.TUTORIAL,
+      );
     });
 
     it('should render Start a new trade CTA when positions exist', () => {
@@ -650,21 +599,12 @@ describe('PerpsTabView', () => {
 
       mockUsePerpsLiveOrders.mockReturnValue({ orders: [] });
 
-      // Mock explore data with markets
-      const mockUsePerpsTabExploreData =
-        jest.requireMock('../../hooks').usePerpsTabExploreData;
-      mockUsePerpsTabExploreData.mockReturnValue({
-        exploreMarkets: [mockMarket, mockMarketBTC],
-        watchlistMarkets: [],
-        isLoading: false,
-      });
-
       // Act - Render component
       render(<PerpsTabView />);
 
-      // Assert - Component should render explore state with market data
+      // Assert - Component should render empty state with correct testID
       expect(screen.getByTestId('manage-balance-button')).toBeOnTheScreen();
-      expect(screen.getByText('ETH')).toBeOnTheScreen();
+      expect(screen.getByTestId('perps-empty-state')).toBeOnTheScreen();
     });
 
     it('should pass correct hasPositions prop to PerpsTabControlBar when positions exist', () => {
@@ -801,7 +741,7 @@ describe('PerpsTabView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('displays explore state when homepage redesign is enabled and no positions or orders', () => {
+    it('displays empty state when homepage redesign is enabled and no positions or orders', () => {
       (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
         if (selector === mockSelectPerpsEligibility) {
           return true;
@@ -826,19 +766,9 @@ describe('PerpsTabView', () => {
 
       mockUsePerpsLiveOrders.mockReturnValue({ orders: [] });
 
-      // Mock explore data with markets
-      const mockUsePerpsTabExploreData =
-        jest.requireMock('../../hooks').usePerpsTabExploreData;
-      mockUsePerpsTabExploreData.mockReturnValue({
-        exploreMarkets: [mockMarket, mockMarketBTC],
-        watchlistMarkets: [],
-        isLoading: false,
-      });
-
       render(<PerpsTabView />);
 
-      expect(screen.getByText('ETH')).toBeOnTheScreen();
-      expect(screen.getByText('BTC')).toBeOnTheScreen();
+      expect(screen.getByTestId('perps-empty-state')).toBeOnTheScreen();
     });
   });
 });

@@ -1,4 +1,4 @@
-import { SecurityAlertResponse } from '../../components/Views/confirmations/components/blockaid-banner/BlockaidBanner.types';
+import { SecurityAlertResponse } from '../../components/Views/confirmations/legacy/components/BlockaidBanner/BlockaidBanner.types';
 import AppConstants from '../../core/AppConstants';
 
 const ENDPOINT_VALIDATE = 'validate';

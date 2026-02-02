@@ -5,7 +5,7 @@ import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import Assertions from '../../../tests/framework/Assertions';
 import NetworkConnectMultiSelector from '../../pages/Browser/NetworkConnectMultiSelector';
 import NetworkNonPemittedBottomSheet from '../../pages/Network/NetworkNonPemittedBottomSheet';
-import { CustomNetworks } from '../../../tests/resources/networks.e2e';
+import { CustomNetworks } from '../../resources/networks.e2e';
 import PermissionSummaryBottomSheet from '../../pages/Browser/PermissionSummaryBottomSheet';
 import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
 import NetworkListModal from '../../pages/Network/NetworkListModal';

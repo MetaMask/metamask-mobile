@@ -1,10 +1,5 @@
 import { constants } from 'ethers';
-import {
-  getNativeSourceToken,
-  getDefaultDestToken,
-  tokenMatchesQuery,
-} from './tokenUtils';
-import { BridgeToken } from '../types';
+import { getNativeSourceToken, getDefaultDestToken } from './tokenUtils';
 import {
   getNativeAssetForChainId,
   isNonEvmChainId,
@@ -229,81 +224,6 @@ describe('tokenUtils', () => {
       // Only chainId should be different (CAIP format instead of hex)
       expect(result?.chainId).toBe(caipChainId);
       expect(result?.chainId).not.toBe(originalToken.chainId);
-    });
-  });
-
-  describe('tokenMatchesQuery', () => {
-    const createToken = (
-      overrides: Partial<BridgeToken> = {},
-    ): BridgeToken => ({
-      address: '0x1234567890abcdef',
-      symbol: 'TEST',
-      name: 'Test Token',
-      decimals: 18,
-      chainId: '0x1',
-      ...overrides,
-    });
-
-    it('returns true when query is empty', () => {
-      const token = createToken();
-
-      expect(tokenMatchesQuery(token, '')).toBe(true);
-    });
-
-    it('matches token by name (case-insensitive)', () => {
-      const token = createToken({ name: 'Ethereum' });
-
-      expect(tokenMatchesQuery(token, 'ethereum')).toBe(true);
-      expect(tokenMatchesQuery(token, 'ETHEREUM')).toBe(true);
-      expect(tokenMatchesQuery(token, 'Ether')).toBe(true);
-    });
-
-    it('matches token by symbol (case-insensitive)', () => {
-      const token = createToken({ symbol: 'ETH' });
-
-      expect(tokenMatchesQuery(token, 'eth')).toBe(true);
-      expect(tokenMatchesQuery(token, 'ETH')).toBe(true);
-      expect(tokenMatchesQuery(token, 'Et')).toBe(true);
-    });
-
-    it('matches token by address (case-insensitive)', () => {
-      const token = createToken({ address: '0xAbCdEf1234567890' });
-
-      expect(tokenMatchesQuery(token, '0xabcdef')).toBe(true);
-      expect(tokenMatchesQuery(token, '0xABCDEF')).toBe(true);
-      expect(tokenMatchesQuery(token, 'abcdef1234')).toBe(true);
-    });
-
-    it('returns false when query does not match any field', () => {
-      const token = createToken({
-        name: 'Ethereum',
-        symbol: 'ETH',
-        address: '0x1234',
-      });
-
-      expect(tokenMatchesQuery(token, 'bitcoin')).toBe(false);
-      expect(tokenMatchesQuery(token, 'BTC')).toBe(false);
-      expect(tokenMatchesQuery(token, '0x9999')).toBe(false);
-    });
-
-    it('handles token with undefined name', () => {
-      const token = createToken({ name: undefined });
-
-      // Query that would only match name returns false
-      expect(tokenMatchesQuery(token, 'token')).toBe(false);
-      // Query matching symbol still works
-      expect(tokenMatchesQuery(token, token.symbol)).toBe(true);
-    });
-
-    it('handles partial matches', () => {
-      const token = createToken({
-        name: 'Wrapped Bitcoin',
-        symbol: 'WBTC',
-      });
-
-      expect(tokenMatchesQuery(token, 'wrap')).toBe(true);
-      expect(tokenMatchesQuery(token, 'bit')).toBe(true);
-      expect(tokenMatchesQuery(token, 'btc')).toBe(true);
     });
   });
 });

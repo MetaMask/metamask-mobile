@@ -82,25 +82,4 @@ describe('useAlertsConfirmed', () => {
     );
     expect(result.current.hasUnconfirmedDangerAlerts).toBe(false);
   });
-
-  it('auto-confirms new alerts with skipConfirmation when alerts array updates', () => {
-    const { result, rerender } = renderHook(
-      ({ alerts }) => useAlertsConfirmed(alerts),
-      { initialProps: { alerts: alertsMock } },
-    );
-
-    // Initially, alert5 is not in the list
-    expect(result.current.isAlertConfirmed(skipConfirmationAlertMock.key)).toBe(
-      false,
-    );
-
-    // Add the skipConfirmation alert
-    rerender({ alerts: [...alertsMock, skipConfirmationAlertMock] });
-
-    // Alert5 should now be auto-confirmed
-    expect(result.current.isAlertConfirmed(skipConfirmationAlertMock.key)).toBe(
-      true,
-    );
-    expect(result.current.hasUnconfirmedDangerAlerts).toBe(true); // alert1 is still unconfirmed
-  });
 });

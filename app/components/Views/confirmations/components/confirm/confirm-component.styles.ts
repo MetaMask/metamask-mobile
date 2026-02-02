@@ -3,10 +3,7 @@ import { Theme } from '../../../../../util/theme/models';
 
 const styleSheet = (params: {
   theme: Theme;
-  vars: {
-    isFullScreenConfirmation: boolean;
-    disableSafeArea?: boolean;
-  };
+  vars: { isFullScreenConfirmation: boolean };
 }) => {
   const { theme, vars } = params;
 
@@ -25,7 +22,7 @@ const styleSheet = (params: {
       justifyContent: 'space-between',
     },
     scrollView: {
-      paddingHorizontal: vars.disableSafeArea === true ? 0 : 16,
+      paddingHorizontal: 16,
     },
     scrollViewContent: {
       flex: vars.isFullScreenConfirmation ? 1 : undefined,

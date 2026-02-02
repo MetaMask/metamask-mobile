@@ -22,7 +22,7 @@ const MaxBrowserTabsModal = () => {
   const {
     styles,
     theme: { colors },
-  } = useStyles(styleSheet);
+  } = useStyles(styleSheet, {});
   const modalRef = useRef<BottomSheetRef>(null);
 
   const dismissModal = (): void => {

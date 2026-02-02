@@ -3,7 +3,9 @@ import Modal from 'react-native-modal';
 import { StyleSheet, View } from 'react-native';
 import QRSigningDetails from '../QRSigningDetails';
 import { useTheme } from '../../../../util/theme';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { getNormalizedTxState } from '../../../../util/transactions';
+import { resetTransaction } from '../../../../actions/transaction';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { QrScanRequest } from '@metamask/eth-qr-keyring';
 
@@ -41,19 +43,25 @@ const QRSigningModal = ({
   onFailure,
 }: IQRSigningModalProps) => {
   const { colors } = useTheme();
+  const dispatch = useDispatch();
   const styles = createStyles(colors);
   const [isModalCompleteShow, setModalCompleteShow] = useState(false);
+  const { from } = useSelector(getNormalizedTxState);
+  // This is picking up selected account as `from` address when unusual confirmation flow - like swaps
   const selectedAccount = useSelector(selectSelectedInternalAccount);
 
   const handleCancel = () => {
     onCancel?.();
+    dispatch(resetTransaction());
   };
   const handleSuccess = () => {
     onSuccess?.();
+    dispatch(resetTransaction());
   };
 
   const handleFailure = (error: string) => {
     onFailure?.(error);
+    dispatch(resetTransaction());
   };
 
   return (
@@ -86,7 +94,7 @@ const QRSigningModal = ({
           cancelCallback={handleCancel}
           failureCallback={handleFailure}
           bypassAndroidCameraAccessCheck={false}
-          fromAddress={selectedAccount?.address ?? ''}
+          fromAddress={from || selectedAccount?.address}
         />
       </View>
     </Modal>

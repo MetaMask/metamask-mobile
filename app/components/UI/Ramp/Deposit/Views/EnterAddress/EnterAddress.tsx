@@ -349,7 +349,7 @@ const EnterAddress = (): JSX.Element => {
                 ref={postCodeInputRef}
                 autoComplete="postal-code"
                 textContentType="postalCode"
-                keyboardType="numbers-and-punctuation"
+                keyboardType="number-pad"
                 onSubmitEditing={() => Keyboard.dismiss()}
               />
 

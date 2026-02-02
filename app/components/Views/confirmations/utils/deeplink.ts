@@ -10,6 +10,7 @@ import { toHex } from '@metamask/controller-utils';
 import { ParseOutput } from 'eth-url-parser';
 import { v4 as uuid } from 'uuid';
 
+import { selectConfirmationRedesignFlagsFromRemoteFeatureFlags } from '../../../../selectors/featureFlagController/confirmations';
 import { addTransaction } from '../../../../util/transaction-controller';
 import { generateTransferData } from '../../../../util/transactions';
 import { safeToChecksumAddress } from '../../../../util/address';
@@ -37,13 +38,21 @@ const getNetworkClientIdForChainId = (chainId: Hex) => {
 export function isDeeplinkRedesignedConfirmationCompatible(
   functionName?: string,
 ) {
+  const { RemoteFeatureFlagController } = Engine.context;
+  const { remoteFeatureFlags } = RemoteFeatureFlagController.state;
+
+  const confirmationRedesignFlags =
+    selectConfirmationRedesignFlagsFromRemoteFeatureFlags(remoteFeatureFlags);
+
   switch (functionName) {
+    case ETH_ACTIONS.TRANSFER: {
+      return confirmationRedesignFlags.transfer;
+    }
     case ETH_ACTIONS.APPROVE: {
       return false;
     }
-    case ETH_ACTIONS.TRANSFER:
     default: {
-      return true;
+      return confirmationRedesignFlags.transfer;
     }
   }
 }

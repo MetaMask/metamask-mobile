@@ -76,11 +76,12 @@ export const CardSDKProvider = ({
         userCardLocation,
       });
       setSdk(cardSDK);
-      setIsLoading(false);
     } else {
       setSdk(null);
       setIsLoading(false);
     }
+
+    setIsLoading(false);
   }, [cardFeatureFlag, userCardLocation]);
 
   const fetchUserData = useCallback(async () => {

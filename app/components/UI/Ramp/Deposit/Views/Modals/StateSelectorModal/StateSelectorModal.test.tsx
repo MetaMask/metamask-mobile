@@ -187,14 +187,5 @@ describe('StateSelectorModal Component', () => {
 
       expect(getByText('No states match "Nonexistent"')).toBeOnTheScreen();
     });
-
-    it('closes the modal when close button is pressed', () => {
-      const { getByTestId } = renderWithProvider(StateSelectorModal);
-
-      const closeButton = getByTestId('state-selector-close-button');
-      fireEvent.press(closeButton);
-
-      expect(mockGoBack).toHaveBeenCalled();
-    });
   });
 });

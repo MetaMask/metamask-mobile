@@ -147,11 +147,6 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
       : styles.pillContainerTop;
   const pnlPillContainerStyle = styles.pillContainerBottom;
 
-  // Don't render wrapper if nothing to show
-  if (!shouldShowBalance && !shouldShowPnl) {
-    return null;
-  }
-
   return (
     <View style={styles.wrapper}>
       {/* Available Balance Pill */}

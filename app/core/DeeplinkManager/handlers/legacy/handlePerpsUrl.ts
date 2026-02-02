@@ -17,18 +17,12 @@ interface HandlePerpsUrlParams {
  * Maps URL tab parameter to internal MarketTypeFilter values
  * - 'all' → 'all' (shows all markets)
  * - 'crypto' → 'crypto' (crypto-only markets)
- * - 'stocks' → 'stocks' (HIP3 equities)
- * - 'commodities' → 'commodities' (HIP3 commodities)
- * - 'forex' → 'forex' (HIP3 forex)
- * - 'new' → 'new' (uncategorized HIP3 markets)
+ * - 'stocks' → 'stocks_and_commodities' (HIP3 stocks & commodities)
  */
 const TAB_TO_FILTER_MAP: Record<string, MarketTypeFilter> = {
   all: 'all',
   crypto: 'crypto',
-  stocks: 'stocks',
-  commodities: 'commodities',
-  forex: 'forex',
-  new: 'new',
+  stocks: 'stocks_and_commodities',
 };
 
 /**
@@ -163,7 +157,7 @@ const handleTabsNavigation = (tab?: string) => {
       // Future: could use tab parameter for more specific navigation
       ...(tab && { specificTab: tab }),
     });
-  }, PERFORMANCE_CONFIG.NavigationParamsDelayMs);
+  }, PERFORMANCE_CONFIG.NAVIGATION_PARAMS_DELAY_MS);
 };
 
 /**

@@ -74,6 +74,10 @@ const mockInitialState: DeepPartial<RootState> = {
       },
     },
   },
+  transaction: {
+    origin: 'https://metamask.io',
+    chainId: '0xaa36a7',
+  },
 };
 
 jest.mock('react-redux', () => ({
@@ -114,6 +118,19 @@ describe('AccountInfoCard', () => {
       />,
       { state: mockInitialState },
     );
-    expect(getByText(/Balance:/)).toBeDefined();
+    expect(getByText('Balance')).toBeDefined();
+  });
+
+  it('should show origin header in signing page', async () => {
+    const { getByText } = renderWithProvider(
+      <AccountInfoCard
+        fromAddress="0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
+        operation="signing"
+        origin="https://metamask.io"
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(getByText('https://metamask.io')).toBeDefined();
   });
 });

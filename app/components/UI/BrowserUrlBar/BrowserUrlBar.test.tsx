@@ -520,10 +520,10 @@ describe('BrowserUrlBar', () => {
       });
     });
 
-    describe('when URL bar is focused', () => {
+    describe('when URL bar is focused and showCloseButton is false', () => {
       it('renders Cancel button with text', () => {
         const { getByTestId, getByText } = renderWithProvider(
-          <BrowserUrlBar {...defaultProps} />,
+          <BrowserUrlBar {...defaultProps} showCloseButton={false} />,
           { state: mockInitialState },
         );
 
@@ -541,7 +541,7 @@ describe('BrowserUrlBar', () => {
         const props = { ...defaultProps, onCancel: onCancelMock };
 
         const { getByTestId } = renderWithProvider(
-          <BrowserUrlBar {...props} />,
+          <BrowserUrlBar {...props} showCloseButton={false} />,
           { state: mockInitialState },
         );
 
@@ -554,10 +554,64 @@ describe('BrowserUrlBar', () => {
       });
     });
 
+    describe('when URL bar is focused and showCloseButton is true', () => {
+      it('renders Close icon ButtonIcon', () => {
+        const { getByTestId, queryByText } = renderWithProvider(
+          <BrowserUrlBar {...defaultProps} showCloseButton />,
+          { state: mockInitialState },
+        );
+
+        const closeButton = getByTestId(
+          BrowserURLBarSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID,
+        );
+        const cancelText = queryByText('Cancel');
+
+        expect(closeButton).toBeDefined();
+        expect(cancelText).toBeNull();
+      });
+
+      it('calls onCancel when Close button is pressed', () => {
+        const onCancelMock = jest.fn();
+        const props = { ...defaultProps, onCancel: onCancelMock };
+
+        const { getByTestId } = renderWithProvider(
+          <BrowserUrlBar {...props} showCloseButton />,
+          { state: mockInitialState },
+        );
+
+        const closeButton = getByTestId(
+          BrowserURLBarSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID,
+        );
+        fireEvent.press(closeButton);
+
+        expect(onCancelMock).toHaveBeenCalled();
+      });
+
+      it('sets URL bar focused state to false when Close button is pressed', () => {
+        const setIsUrlBarFocusedMock = jest.fn();
+        const props = {
+          ...defaultProps,
+          setIsUrlBarFocused: setIsUrlBarFocusedMock,
+        };
+
+        const { getByTestId } = renderWithProvider(
+          <BrowserUrlBar {...props} showCloseButton />,
+          { state: mockInitialState },
+        );
+
+        const closeButton = getByTestId(
+          BrowserURLBarSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID,
+        );
+        fireEvent.press(closeButton);
+
+        expect(setIsUrlBarFocusedMock).toHaveBeenCalledWith(false);
+      });
+    });
+
     describe('button rendering logic', () => {
-      it('does not render Cancel button when URL bar is not focused', () => {
+      it('does not render Cancel or Close button when URL bar is not focused', () => {
         const { queryByText } = renderWithProvider(
-          <BrowserUrlBar {...propsWithoutUrlBarFocused} />,
+          <BrowserUrlBar {...propsWithoutUrlBarFocused} showCloseButton />,
           { state: mockInitialState },
         );
 
@@ -566,14 +620,19 @@ describe('BrowserUrlBar', () => {
         expect(cancelText).toBeNull();
       });
 
-      it('always renders Cancel text button when URL bar is focused', () => {
-        const { getByText } = renderWithProvider(
-          <BrowserUrlBar {...defaultProps} />,
+      it('renders correct button based on showCloseButton prop value change', () => {
+        const { getByText, rerender, queryByText } = renderWithProvider(
+          <BrowserUrlBar {...defaultProps} showCloseButton={false} />,
           { state: mockInitialState },
         );
 
         const cancelText = getByText('Cancel');
         expect(cancelText).toBeDefined();
+
+        rerender(<BrowserUrlBar {...defaultProps} showCloseButton />);
+
+        const cancelTextAfterRerender = queryByText('Cancel');
+        expect(cancelTextAfterRerender).toBeNull();
       });
     });
   });

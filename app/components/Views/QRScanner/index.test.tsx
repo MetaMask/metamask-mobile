@@ -147,7 +147,19 @@ jest.mock('../confirmations/utils/address', () => ({
     mockDerivePredefinedRecipientParams(address),
 }));
 
-jest.mock('../../../util/transactions', () => ({}));
+jest.mock('../../../actions/transaction', () => ({
+  newAssetTransaction: jest.fn((asset) => ({
+    type: 'NEW_ASSET_TRANSACTION',
+    payload: asset,
+  })),
+}));
+
+jest.mock('../../../util/transactions', () => ({
+  getEther: jest.fn((currency) => ({
+    type: 'ETHER',
+    currency,
+  })),
+}));
 
 const mockUseSelector = jest.fn();
 jest.mock('react-redux', () => ({
@@ -1260,7 +1272,12 @@ describe('QrScanner', () => {
         });
       });
 
-      it('navigates to send flow for Bitcoin address', async () => {
+      it('does not call EVM transaction methods for Bitcoin address', async () => {
+        const { getEther } = jest.requireMock('../../../util/transactions');
+        const { newAssetTransaction } = jest.requireMock(
+          '../../../actions/transaction',
+        );
+
         const bitcoinAddress = '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa';
 
         renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
@@ -1279,6 +1296,9 @@ describe('QrScanner', () => {
         await waitFor(() => {
           expect(mockNavigateToSendPage).toHaveBeenCalled();
         });
+
+        expect(getEther).not.toHaveBeenCalled();
+        expect(newAssetTransaction).not.toHaveBeenCalled();
       });
     });
     describe('Tron Address Scanning', () => {

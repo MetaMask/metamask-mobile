@@ -56,31 +56,26 @@ export const validateMarketPattern = (pattern: string): boolean => {
     throw new Error('Market pattern cannot be empty');
   }
 
-  // Trim whitespace and normalize the pattern
-  const normalizedPattern = pattern.trim();
-
   // Reject patterns that are too long (potential DoS)
-  if (normalizedPattern.length > MAX_MARKET_PATTERN_LENGTH) {
+  if (pattern.length > MAX_MARKET_PATTERN_LENGTH) {
     throw new Error(
-      `Market pattern exceeds maximum length (${MAX_MARKET_PATTERN_LENGTH} chars): ${normalizedPattern}`,
+      `Market pattern exceeds maximum length (${MAX_MARKET_PATTERN_LENGTH} chars): ${pattern}`,
     );
   }
 
   // Reject patterns with suspicious regex control characters
   // Allow only colon and asterisk for our pattern syntax
   const dangerousChars = /[\\()[\]{}^$+?.|]/;
-  if (dangerousChars.test(normalizedPattern)) {
+  if (dangerousChars.test(pattern)) {
     throw new Error(
-      `Market pattern contains invalid regex characters: ${normalizedPattern}`,
+      `Market pattern contains invalid regex characters: ${pattern}`,
     );
   }
 
   // Allow only: alphanumeric, colon, hyphen, underscore, asterisk
   const validPattern = /^[a-zA-Z0-9:_\-*]+$/;
-  if (!validPattern.test(normalizedPattern)) {
-    throw new Error(
-      `Market pattern contains invalid characters: ${normalizedPattern}`,
-    );
+  if (!validPattern.test(pattern)) {
+    throw new Error(`Market pattern contains invalid characters: ${pattern}`);
   }
 
   return true;
@@ -106,23 +101,22 @@ export const validateMarketPattern = (pattern: string): boolean => {
  * compileMarketPattern("xyz:TSLA") // → "xyz:TSLA"
  */
 export const compileMarketPattern = (pattern: string): MarketPatternMatcher => {
-  // Trim and validate pattern before compilation to prevent regex DoS
-  const normalizedPattern = pattern.trim();
-  validateMarketPattern(normalizedPattern);
+  // Validate pattern before compilation to prevent regex DoS
+  validateMarketPattern(pattern);
 
-  if (normalizedPattern.endsWith(':*')) {
+  if (pattern.endsWith(':*')) {
     // Wildcard: "xyz:*" → regex /^xyz:/
-    const prefix = normalizedPattern.slice(0, -2);
+    const prefix = pattern.slice(0, -2);
     return new RegExp(`^${escapeRegex(prefix)}:`);
   }
 
-  if (!normalizedPattern.includes(':')) {
+  if (!pattern.includes(':')) {
     // DEX shorthand: "xyz" → regex /^xyz:/
-    return new RegExp(`^${escapeRegex(normalizedPattern)}:`);
+    return new RegExp(`^${escapeRegex(pattern)}:`);
   }
 
   // Exact match: just use string (fastest)
-  return normalizedPattern;
+  return pattern;
 };
 
 /**
@@ -275,12 +269,9 @@ interface FundingCountdownParams {
 }
 
 /**
- * Calculate the time until the next funding period.
- * Supports market-specific funding times when provided.
- * Falls back to default HyperLiquid 1-hour periods (funding paid every hour).
- *
- * @param params - Optional funding countdown parameters
- * @returns Formatted countdown string in HH:MM:SS format
+ * Calculate the time until the next funding period
+ * Supports market-specific funding times when provided
+ * Falls back to default HyperLiquid 1-hour periods (funding paid every hour)
  */
 export const calculateFundingCountdown = (
   params?: FundingCountdownParams,
@@ -342,10 +333,7 @@ export const calculateFundingCountdown = (
 };
 
 /**
- * Calculate 24h high and low from candlestick data.
- *
- * @param candleData - Candlestick data containing price candles
- * @returns Object with high and low prices for the last 24 hours
+ * Calculate 24h high and low from candlestick data
  */
 export const calculate24hHighLow = (
   candleData: CandleData | null,

@@ -182,19 +182,16 @@ Routes are extracted from the deep link action and mapped to standardized route 
 
 ### DeepLinkRoute Enum
 
-| Route                | Value                | Actions Mapped                                                  |
-| -------------------- | -------------------- | --------------------------------------------------------------- |
-| `HOME`               | "home"               | `ACTIONS.HOME`                                                  |
-| `SWAP`               | "swap"               | `ACTIONS.SWAP`                                                  |
-| `PERPS`              | "perps"              | `ACTIONS.PERPS`, `ACTIONS.PERPS_MARKETS`, `ACTIONS.PERPS_ASSET` |
-| `DEPOSIT`            | "deposit"            | `ACTIONS.DEPOSIT`                                               |
-| `TRANSACTION`        | "transaction"        | `ACTIONS.SEND`                                                  |
-| `BUY`                | "buy"                | `ACTIONS.BUY`, `ACTIONS.BUY_CRYPTO`                             |
-| `SELL`               | "sell"               | `ACTIONS.SELL`, `ACTIONS.SELL_CRYPTO`                           |
-| `CARD_HOME`          | "card-home"          | `ACTIONS.CARD_HOME`                                             |
-| `CARD_ONBOARDING`    | "card-onboarding"    | `ACTIONS.CARD_ONBOARDING`                                       |
-| `ENABLE_CARD_BUTTON` | "enable-card-button" | `ACTIONS.ENABLE_CARD_BUTTON`                                    |
-| `INVALID`            | "invalid"            | All other actions or invalid URLs                               |
+| Route         | Value         | Actions Mapped                                                  |
+| ------------- | ------------- | --------------------------------------------------------------- |
+| `HOME`        | "home"        | `ACTIONS.HOME`                                                  |
+| `SWAP`        | "swap"        | `ACTIONS.SWAP`                                                  |
+| `PERPS`       | "perps"       | `ACTIONS.PERPS`, `ACTIONS.PERPS_MARKETS`, `ACTIONS.PERPS_ASSET` |
+| `DEPOSIT`     | "deposit"     | `ACTIONS.DEPOSIT`                                               |
+| `TRANSACTION` | "transaction" | `ACTIONS.SEND`                                                  |
+| `BUY`         | "buy"         | `ACTIONS.BUY`, `ACTIONS.BUY_CRYPTO`                             |
+| `SELL`        | "sell"        | `ACTIONS.SELL`, `ACTIONS.SELL_CRYPTO`                           |
+| `INVALID`     | "invalid"     | All other actions or invalid URLs                               |
 
 ### Route Extraction
 
@@ -311,5 +308,5 @@ export const detectAppInstallation = async (
 ## Code References
 
 - [handleUniversalLink.ts](../../app/core/DeeplinkManager/handlers/legacy/handleUniversalLink.ts) - Main handler that creates analytics contexts
-- [deepLinkAnalytics.ts](../../app/core/DeeplinkManager/util/deeplinks/deepLinkAnalytics.ts) - Analytics utility functions
+- [deepLinkAnalytics.ts](../../app/util/deeplinks/deepLinkAnalytics.ts) - Analytics utility functions
 - [deepLinkAnalytics.types.ts](../../app/core/DeeplinkManager/types/deepLinkAnalytics.types.ts) - Type definitions

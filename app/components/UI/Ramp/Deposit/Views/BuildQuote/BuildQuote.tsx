@@ -164,6 +164,8 @@ const BuildQuote = () => {
         navigation,
         {
           title: strings('deposit.buildQuote.title'),
+          showBack: false,
+          showClose: true,
           showConfiguration: true,
           onConfigurationPress: () => {
             navigation.navigate(
@@ -691,10 +693,8 @@ const BuildQuote = () => {
               <ListItemColumn>
                 {selectedPaymentMethod ? (
                   <TagBase
+                    includesBorder
                     textProps={{ variant: TextVariant.BodySM }}
-                    style={{
-                      backgroundColor: theme.colors.background.subsection,
-                    }}
                   >
                     {strings(
                       `deposit.payment_duration.${selectedPaymentMethod.duration}`,

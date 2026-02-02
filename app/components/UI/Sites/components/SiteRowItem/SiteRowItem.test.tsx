@@ -74,7 +74,7 @@ describe('SiteRowItem', () => {
         <SiteRowItem site={site} onPress={mockOnPress} />,
       );
 
-      fireEvent.press(getByTestId('site-row-item-MetaMask'));
+      fireEvent.press(getByTestId('site-row-item'));
 
       expect(mockOnPress).toHaveBeenCalledTimes(1);
     });
@@ -86,7 +86,7 @@ describe('SiteRowItem', () => {
         <SiteRowItem site={site} onPress={mockOnPress} />,
       );
 
-      const pressable = getByTestId('site-row-item-MetaMask');
+      const pressable = getByTestId('site-row-item');
       expect(pressable).toBeOnTheScreen();
 
       // Verify it's a touchable element by checking it has onPress

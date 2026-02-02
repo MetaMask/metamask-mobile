@@ -1,9 +1,8 @@
 import Gestures from '../../../tests/framework/Gestures';
 import Matchers from '../../../tests/framework/Matchers';
 import { RedesignedSendViewSelectorsIDs } from '../../../app/components/Views/confirmations/components/send/RedesignedSendView.testIds';
-import { Utilities, Assertions } from '../../../tests/framework';
+import { Utilities } from '../../../tests/framework';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
-import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionView.selectors';
 
 class SendView {
   get ethereumTokenButton(): DetoxElement {
@@ -60,18 +59,6 @@ class SendView {
 
   get backButton(): DetoxElement {
     return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
-  }
-
-  get insufficientBalanceToCoverFeesError(): DetoxElement {
-    return Matchers.getElementByText(
-      SendActionViewSelectorsIDs.INSUFFICIENT_BALANCE_TO_COVER_FEES_ERROR,
-    );
-  }
-
-  get insufficientFundsError(): DetoxElement {
-    return Matchers.getElementByText(
-      SendActionViewSelectorsIDs.INSUFFICIENT_FUNDS_ERROR,
-    );
   }
 
   async selectEthereumToken(): Promise<void> {
@@ -157,18 +144,6 @@ class SendView {
       elemDescription: 'Back Button',
     });
   }
-
-  async checkInsufficientBalanceToCoverFeesError(): Promise<void> {
-    await Assertions.expectElementToBeVisible(
-      this.insufficientBalanceToCoverFeesError,
-      { description: 'Insufficient balance to cover fees error message' },
-    );
-  }
-
-  async checkInsufficientFundsError(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.insufficientFundsError, {
-      description: 'Insufficient funds error message',
-    });
-  }
 }
+
 export default new SendView();

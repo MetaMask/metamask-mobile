@@ -2,7 +2,7 @@ import { capitalize } from 'lodash';
 import type {
   OrderParams,
   Order,
-  PerpsDebugLogger,
+  IPerpsDebugLogger,
 } from '../controllers/types';
 import { Position } from '../hooks';
 
@@ -10,7 +10,7 @@ import { Position } from '../hooks';
  * Optional debug logger for order utility functions.
  * When provided, enables detailed logging for debugging.
  */
-export type OrderUtilsDebugLogger = PerpsDebugLogger | undefined;
+export type OrderUtilsDebugLogger = IPerpsDebugLogger | undefined;
 
 /**
  * Get the order direction based on the side and position size
@@ -132,7 +132,7 @@ export const getOrderLabelDirection = (order: Order): string => {
 };
 
 /**
- * Determines if a limit order will likely be a maker or taker.
+ * Determines if a limit order will likely be a maker or taker
  *
  * Logic:
  * 1. Validates price data freshness and market state
@@ -140,15 +140,9 @@ export const getOrderLabelDirection = (order: Order): string => {
  * 3. Limit orders that would execute immediately are taker
  * 4. Limit orders that go into order book are maker
  *
- * @param params - Order parameters
- * @param params.orderType - The order type (market or limit)
- * @param params.limitPrice - The limit price for limit orders
- * @param params.direction - The order direction (long or short)
- * @param params.bestAsk - The best ask price from order book
- * @param params.bestBid - The best bid price from order book
- * @param params.symbol - The trading symbol for logging
+ * @param params Order parameters
  * @param debugLogger - Optional debug logger for detailed logging
- * @returns True if maker order, false if taker order
+ * @returns boolean - true if maker, false if taker
  */
 export function determineMakerStatus(
   params: {

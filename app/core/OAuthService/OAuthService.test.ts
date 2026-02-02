@@ -40,16 +40,6 @@ jest.mock('./OAuthLoginHandlers/constants', () => ({
   AppleServerRedirectUri: 'https://auth.example.com/api/v1/oauth/callback',
 }));
 
-jest.mock('../Analytics/whenEngineReady', () => ({
-  whenEngineReady: jest.fn().mockResolvedValue(undefined),
-}));
-
-jest.mock('../../util/analytics/analytics', () => ({
-  analytics: {
-    trackEvent: jest.fn(),
-  },
-}));
-
 import OAuthLoginService from './OAuthService';
 const mockLoginHandlerResponse = jest.fn().mockImplementation(() => ({
   idToken: MOCK_JWT_TOKEN,

@@ -67,7 +67,7 @@ const PerpsTabViewWithProvider: React.FC<PerpsTabViewWithProviderProps> = (
     <PerpsConnectionProvider isVisible={isVisible}>
       <PerpsStreamProvider>
         <PerpsStreamBridge />
-        <PerpsTabView />
+        <PerpsTabView {...props} />
       </PerpsStreamProvider>
     </PerpsConnectionProvider>
   );

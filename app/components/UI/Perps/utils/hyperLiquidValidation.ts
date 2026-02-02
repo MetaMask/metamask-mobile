@@ -6,7 +6,7 @@ import {
 } from '../constants/hyperLiquidConfig';
 import type {
   GetSupportedPathsParams,
-  PerpsDebugLogger,
+  IPerpsDebugLogger,
 } from '../controllers/types';
 import { HYPERLIQUID_ORDER_LIMITS } from '../constants/perpsConfig';
 import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
@@ -16,18 +16,14 @@ import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
  * When provided, enables detailed logging for debugging.
  * When omitted, validation runs silently.
  */
-export type ValidationDebugLogger = PerpsDebugLogger | undefined;
+export type ValidationDebugLogger = IPerpsDebugLogger | undefined;
 
 /**
  * Validation utilities for HyperLiquid operations
  */
 
 /**
- * Create standardized error response.
- *
- * @param error - The error that occurred
- * @param defaultResponse - The default response object to use as template
- * @returns The error response with success=false and error message
+ * Create standardized error response
  */
 export function createErrorResult<
   T extends { success: boolean; error?: string },
@@ -41,14 +37,9 @@ export function createErrorResult<
 }
 
 /**
- * Validate withdrawal parameters.
- *
+ * Validate withdrawal parameters
  * @param params - Withdrawal parameters to validate
- * @param params.assetId - The CAIP asset ID to withdraw
- * @param params.amount - Amount to withdraw as string
- * @param params.destination - Optional destination hex address
  * @param debugLogger - Optional debug logger for detailed logging
- * @returns Validation result with isValid flag and optional error message
  */
 export function validateWithdrawalParams(
   params: {
@@ -126,14 +117,9 @@ export function validateWithdrawalParams(
 }
 
 /**
- * Validate deposit parameters.
- *
+ * Validate deposit parameters
  * @param params - Deposit parameters to validate
- * @param params.assetId - The CAIP asset ID to deposit
- * @param params.amount - Amount to deposit as string
- * @param params.isTestnet - Whether this is a testnet deposit
  * @param debugLogger - Optional debug logger for detailed logging
- * @returns Validation result with isValid flag and optional error message
  */
 export function validateDepositParams(
   params: {
@@ -225,12 +211,10 @@ export function validateDepositParams(
 }
 
 /**
- * Validate asset support for withdrawals using AssetRoute arrays.
- *
- * @param assetId - The CAIP asset ID to validate
- * @param supportedRoutes - Array of supported asset routes
+ * Validate asset support for withdrawals using AssetRoute arrays
+ * @param assetId - Asset ID to validate
+ * @param supportedRoutes - Supported asset routes
  * @param debugLogger - Optional debug logger for detailed logging
- * @returns Validation result with isValid flag and optional error message
  */
 export function validateAssetSupport(
   assetId: CaipAssetId,
@@ -286,12 +270,10 @@ export function validateAssetSupport(
 }
 
 /**
- * Validate balance against withdrawal amount.
- *
- * @param withdrawAmount - The amount to withdraw
- * @param availableBalance - The available balance
+ * Validate balance against withdrawal amount
+ * @param withdrawAmount - Amount to withdraw
+ * @param availableBalance - Available balance
  * @param debugLogger - Optional debug logger for detailed logging
- * @returns Validation result with isValid flag and optional error message
  */
 export function validateBalance(
   withdrawAmount: number,
@@ -335,12 +317,10 @@ export function validateBalance(
 }
 
 /**
- * Apply filters to asset paths with comprehensive logging.
- *
- * @param assets - Array of CAIP asset IDs to filter
- * @param params - Filter parameters including chainId, symbol, and assetId
+ * Apply filters to asset paths with comprehensive logging
+ * @param assets - Assets to filter
+ * @param params - Filter parameters
  * @param debugLogger - Optional debug logger for detailed logging
- * @returns Filtered array of CAIP asset IDs
  */
 export function applyPathFilters(
   assets: CaipAssetId[],
@@ -420,11 +400,9 @@ export function applyPathFilters(
 }
 
 /**
- * Get supported deposit/withdrawal paths with filtering.
- *
- * @param params - Filter parameters including isTestnet, chainId, symbol
+ * Get supported deposit/withdrawal paths with filtering
+ * @param params - Filter parameters
  * @param debugLogger - Optional debug logger for detailed logging
- * @returns Array of supported CAIP asset IDs
  */
 export function getSupportedPaths(
   params?: GetSupportedPathsParams,
@@ -447,12 +425,8 @@ export function getSupportedPaths(
 }
 
 /**
- * Get maximum order value based on leverage and order type.
- * Based on HyperLiquid contract specifications.
- *
- * @param maxLeverage - The maximum leverage for the market
- * @param orderType - The order type (market or limit)
- * @returns Maximum order value in USD
+ * Get maximum order value based on leverage and order type
+ * Based on HyperLiquid contract specifications
  */
 export function getMaxOrderValue(
   maxLeverage: number,
@@ -461,31 +435,25 @@ export function getMaxOrderValue(
   let marketLimit: number;
 
   if (maxLeverage >= 25) {
-    marketLimit = HYPERLIQUID_ORDER_LIMITS.MarketOrderLimits.HighLeverage;
+    marketLimit = HYPERLIQUID_ORDER_LIMITS.MARKET_ORDER_LIMITS.HIGH_LEVERAGE;
   } else if (maxLeverage >= 20) {
-    marketLimit = HYPERLIQUID_ORDER_LIMITS.MarketOrderLimits.MediumHighLeverage;
+    marketLimit =
+      HYPERLIQUID_ORDER_LIMITS.MARKET_ORDER_LIMITS.MEDIUM_HIGH_LEVERAGE;
   } else if (maxLeverage >= 10) {
-    marketLimit = HYPERLIQUID_ORDER_LIMITS.MarketOrderLimits.MediumLeverage;
+    marketLimit = HYPERLIQUID_ORDER_LIMITS.MARKET_ORDER_LIMITS.MEDIUM_LEVERAGE;
   } else {
-    marketLimit = HYPERLIQUID_ORDER_LIMITS.MarketOrderLimits.LowLeverage;
+    marketLimit = HYPERLIQUID_ORDER_LIMITS.MARKET_ORDER_LIMITS.LOW_LEVERAGE;
   }
 
   return orderType === 'limit'
-    ? marketLimit * HYPERLIQUID_ORDER_LIMITS.LimitOrderMultiplier
+    ? marketLimit * HYPERLIQUID_ORDER_LIMITS.LIMIT_ORDER_MULTIPLIER
     : marketLimit;
 }
 
 /**
- * Validate order parameters.
- * Basic validation - checks required fields are present.
- * Amount validation (size/USD) is handled by validateOrder.
- *
- * @param params - Order parameters to validate
- * @param params.coin - The trading pair coin symbol
- * @param params.size - The order size as string
- * @param params.price - The order price as string
- * @param params.orderType - The order type (market or limit)
- * @returns Validation result with isValid flag and optional error message
+ * Validate order parameters
+ * Basic validation - checks required fields are present
+ * Amount validation (size/USD) is handled by validateOrder
  */
 export function validateOrderParams(params: {
   coin?: string;
@@ -521,11 +489,7 @@ export function validateOrderParams(params: {
 }
 
 /**
- * Validate coin exists in asset mapping.
- *
- * @param coin - The coin symbol to validate
- * @param coinToAssetId - Map of coin symbols to asset IDs
- * @returns Validation result with isValid flag and optional error message
+ * Validate coin exists in asset mapping
  */
 export function validateCoinExists(
   coin: string,

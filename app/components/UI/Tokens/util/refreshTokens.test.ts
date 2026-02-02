@@ -11,6 +11,12 @@ jest.mock('../../../../core/Engine', () => ({
     TokenBalancesController: {
       updateBalances: jest.fn(),
     },
+    AccountTrackerController: {
+      refresh: jest.fn(),
+    },
+    CurrencyRateController: {
+      updateExchangeRate: jest.fn(),
+    },
     TokenRatesController: {
       updateExchangeRates: jest.fn(),
     },
@@ -56,31 +62,18 @@ describe('refreshTokens', () => {
       '0x1': { chainId: '0x1' as Hex, nativeCurrency: 'ETH' },
       '0x89': { chainId: '0x89' as Hex, nativeCurrency: 'POL' },
     },
+    nativeCurrencies: ['ETH', 'POL'],
     internalAccount: '',
   };
 
-  beforeEach(() => {
-    jest.useRealTimers();
-    // Reset mocks to resolved state
-    (
-      Engine.context.TokenDetectionController.detectTokens as jest.Mock
-    ).mockResolvedValue(undefined);
-    (
-      Engine.context.TokenBalancesController.updateBalances as jest.Mock
-    ).mockResolvedValue(undefined);
-    (
-      Engine.context.TokenRatesController.updateExchangeRates as jest.Mock
-    ).mockResolvedValue(undefined);
-  });
-
   afterEach(() => {
     jest.clearAllMocks();
-    jest.useRealTimers();
   });
 
-  it('refreshes tokens when EVM is selected', async () => {
+  it('should refresh tokens when EVM is selected', async () => {
     await refreshTokens(mockProps);
 
+    // Check if controllers are called with expected arguments
     expect(
       Engine.context.TokenDetectionController.detectTokens,
     ).toHaveBeenCalledWith({
@@ -92,6 +85,12 @@ describe('refreshTokens', () => {
     ).toHaveBeenCalledWith({
       chainIds: ['0x1', '0x89'],
     });
+
+    expect(Engine.context.AccountTrackerController.refresh).toHaveBeenCalled();
+
+    expect(
+      Engine.context.CurrencyRateController.updateExchangeRate,
+    ).toHaveBeenCalledWith(['ETH', 'POL']);
 
     expect(
       Engine.context.TokenRatesController.updateExchangeRates,
@@ -101,26 +100,19 @@ describe('refreshTokens', () => {
     ]);
   });
 
-  it('calls updateBalance for Solana when selected', async () => {
-    await refreshTokens({
-      ...mockProps,
-      isSolanaSelected: true,
-      selectedAccountId: 'test-account-id',
-    });
-
-    expect(
-      Engine.context.MultichainBalancesController.updateBalance,
-    ).toHaveBeenCalledWith('test-account-id');
-  });
-
-  it('does not call updateBalance when Solana is not selected', async () => {
+  it('should not refresh tokens if multichain network is not selected', async () => {
     await refreshTokens({ ...mockProps, isSolanaSelected: false });
 
+    // Ensure controllers are never called
     expect(
       Engine.context.TokenDetectionController.detectTokens,
     ).toHaveBeenCalled();
     expect(
       Engine.context.TokenBalancesController.updateBalances,
+    ).toHaveBeenCalled();
+    expect(Engine.context.AccountTrackerController.refresh).toHaveBeenCalled();
+    expect(
+      Engine.context.CurrencyRateController.updateExchangeRate,
     ).toHaveBeenCalled();
     expect(
       Engine.context.TokenRatesController.updateExchangeRates,
@@ -130,44 +122,37 @@ describe('refreshTokens', () => {
     ).not.toHaveBeenCalled();
   });
 
-  it('logs an error if a timeout occurs', async () => {
-    jest.useFakeTimers();
+  it('should log an error if an exception occurs', async () => {
+    (
+      Engine.context.TokenDetectionController.detectTokens as jest.Mock
+    ).mockRejectedValue(new Error('Failed to detect tokens'));
 
-    try {
-      // Mock a promise that never resolves to trigger timeout
-      const mockDetectTokens = jest.fn().mockImplementation(
-        () =>
-          new Promise(() => {
-            // eslint-disable-next-line @typescript-eslint/no-empty-function
-          }),
-      );
-      (
-        Engine.context.TokenDetectionController.detectTokens as jest.Mock
-      ).mockImplementation(mockDetectTokens);
+    await refreshTokens(mockProps);
 
-      const refreshPromise = refreshTokens(mockProps);
-
-      // Advance timers past the 5 second timeout
-      jest.advanceTimersByTime(6000);
-
-      await refreshPromise;
-
-      expect(Logger.error).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.stringContaining('timed out'),
-        }),
-        'Error while refreshing tokens',
-      );
-    } finally {
-      jest.runOnlyPendingTimers();
-      jest.useRealTimers();
-    }
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      'Error while refreshing tokens',
+    );
   });
 
-  it('does not call updateBalance if selectedAccountId is undefined', async () => {
+  it('should call updateBalance with selectedAccount ID when Multichain network not selected', async () => {
     await refreshTokens({
       isSolanaSelected: true,
       evmNetworkConfigurationsByChainId: {},
+      nativeCurrencies: [],
+      selectedAccountId: 'test-account-id',
+    });
+
+    expect(
+      Engine.context.MultichainBalancesController.updateBalance,
+    ).toHaveBeenCalledWith('test-account-id');
+  });
+
+  it('should not call updateBalance if selectedAccount is undefined', async () => {
+    await refreshTokens({
+      isSolanaSelected: false,
+      evmNetworkConfigurationsByChainId: {},
+      nativeCurrencies: [],
       selectedAccountId: undefined,
     });
 

@@ -50,9 +50,6 @@ import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import Tag from '../../../../component-library/components/Tags/Tag';
 import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
-import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
-import { BridgeToken } from '../../Bridge/types';
-import StockBadge from '../../shared/StockBadge';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -109,7 +106,6 @@ const Balance = ({
 }: BalanceProps) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
-  const { isStockToken } = useRWAToken();
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
   );
@@ -256,22 +252,17 @@ const Balance = ({
             {label && <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />}
           </View>
 
-          <View style={styles.balanceRow}>
-            {secondaryBalance && (
-              <SensitiveText
-                variant={TextVariant.BodySMMedium}
-                style={styles.tokenAmount}
-                isHidden={privacyMode}
-                length={SensitiveTextLength.Short}
-                testID={TOKEN_AMOUNT_BALANCE_TEST_ID}
-              >
-                {secondaryBalance}
-              </SensitiveText>
-            )}
-            {isStockToken(asset as BridgeToken) && (
-              <StockBadge token={asset as BridgeToken} />
-            )}
-          </View>
+          {secondaryBalance && (
+            <SensitiveText
+              variant={TextVariant.BodySMMedium}
+              style={styles.tokenAmount}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Short}
+              testID={TOKEN_AMOUNT_BALANCE_TEST_ID}
+            >
+              {secondaryBalance}
+            </SensitiveText>
+          )}
         </View>
       </AssetElement>
       <EarnBalance asset={asset} />

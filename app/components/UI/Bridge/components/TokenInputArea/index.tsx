@@ -30,6 +30,7 @@ import I18n, { strings } from '../../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
+import { BridgeDestNetworkSelectorRouteParams } from '../BridgeDestNetworkSelector';
 import {
   setDestTokenExchangeRate,
   setSourceTokenExchangeRate,
@@ -252,15 +253,18 @@ export const TokenInputArea = forwardRef<
 
     const navigation = useNavigation();
 
-    const navigateToDestTokenSelector = () => {
-      navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
-        type: 'dest',
+    const navigateToDestNetworkSelector = () => {
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR,
+        params: {
+          shouldGoToTokens: true,
+        } as BridgeDestNetworkSelectorRouteParams,
       });
     };
 
     const navigateToSourceTokenSelector = () => {
-      navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
-        type: 'source',
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
       });
     };
 
@@ -381,9 +385,8 @@ export const TokenInputArea = forwardRef<
                 onPress={
                   isSourceToken
                     ? navigateToSourceTokenSelector
-                    : navigateToDestTokenSelector
+                    : navigateToDestNetworkSelector
                 }
-                testID={testID}
               />
             )}
           </Box>
@@ -411,8 +414,7 @@ export const TokenInputArea = forwardRef<
                 >
                   <Text
                     color={
-                      isInsufficientBalance &&
-                      tokenType === TokenInputAreaType.Source
+                      isInsufficientBalance
                         ? TextColor.Error
                         : TextColor.Alternative
                     }

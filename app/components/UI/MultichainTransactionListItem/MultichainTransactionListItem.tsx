@@ -1,5 +1,5 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import React, { useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   Image,
   TouchableHighlight,
@@ -13,6 +13,7 @@ import StatusText from '../../Base/StatusText';
 import { getTransactionIcon } from '../../../util/transaction-icons';
 import { toDateFormat } from '../../../util/date';
 import { useMultichainTransactionDisplay } from '../../hooks/useMultichainTransactionDisplay';
+import MultichainTransactionDetailsModal from '../MultichainTransactionDetailsModal';
 import styles from './MultichainTransactionListItem.styles';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../reducers';
@@ -22,7 +23,6 @@ import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
 import { getNetworkImageSource } from '../../../util/networks';
-import Routes from '../../../constants/navigation/Routes';
 
 const MultichainTransactionListItem = ({
   transaction,
@@ -39,18 +39,9 @@ const MultichainTransactionListItem = ({
   const osColorScheme = useColorScheme();
   const appTheme = useSelector((state: RootState) => state.user.appTheme);
 
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const displayData = useMultichainTransactionDisplay(transaction, chainId);
   const { title, to, priorityFee, baseFee, isRedeposit } = displayData;
-
-  const handlePress = useCallback(() => {
-    navigation.navigate(
-      Routes.MODAL.ROOT_MODAL_FLOW as never,
-      {
-        screen: Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS,
-        params: { displayData, transaction },
-      } as never,
-    );
-  }, [navigation, displayData, transaction]);
 
   const style = styles(colors, typography);
 
@@ -91,42 +82,57 @@ const MultichainTransactionListItem = ({
   };
 
   return (
-    <TouchableHighlight
-      style={[style.itemContainer, { borderBottomColor: colors.border.muted }]}
-      onPress={handlePress}
-      underlayColor={colors.background.alternative}
-      activeOpacity={1}
-      testID={`transaction-item-${index ?? 0}`}
-    >
-      <ListItem>
-        <ListItem.Date style={style.listItemDate}>
-          {transaction.timestamp &&
-            toDateFormat(new Date(transaction.timestamp * 1000))}
-        </ListItem.Date>
-        <ListItem.Content style={style.listItemContent}>
-          <ListItem.Icon>
-            {renderTxElementIcon(isRedeposit ? 'redeposit' : transaction.type)}
-          </ListItem.Icon>
-          <ListItem.Body>
-            <ListItem.Title
-              numberOfLines={1}
-              style={style.listItemTitle as TextStyle}
-            >
-              {title}
-            </ListItem.Title>
-            <StatusText
-              testID={`transaction-status-${transaction.id}`}
-              status={transaction.status}
-              style={style.listItemStatus as TextStyle}
-              context="transaction"
-            />
-          </ListItem.Body>
-          <ListItem.Amount style={style.listItemAmount as TextStyle}>
-            {displayAmount()}
-          </ListItem.Amount>
-        </ListItem.Content>
-      </ListItem>
-    </TouchableHighlight>
+    <>
+      <TouchableHighlight
+        style={[
+          style.itemContainer,
+          { borderBottomColor: colors.border.muted },
+        ]}
+        onPress={() => setIsModalVisible(true)}
+        underlayColor={colors.background.alternative}
+        activeOpacity={1}
+        testID={`transaction-item-${index ?? 0}`}
+      >
+        <ListItem>
+          <ListItem.Date style={style.listItemDate}>
+            {transaction.timestamp &&
+              toDateFormat(new Date(transaction.timestamp * 1000))}
+          </ListItem.Date>
+          <ListItem.Content style={style.listItemContent}>
+            <ListItem.Icon>
+              {renderTxElementIcon(
+                isRedeposit ? 'redeposit' : transaction.type,
+              )}
+            </ListItem.Icon>
+            <ListItem.Body>
+              <ListItem.Title
+                numberOfLines={1}
+                style={style.listItemTitle as TextStyle}
+              >
+                {title}
+              </ListItem.Title>
+              <StatusText
+                testID={`transaction-status-${transaction.id}`}
+                status={transaction.status}
+                style={style.listItemStatus as TextStyle}
+                context="transaction"
+              />
+            </ListItem.Body>
+            <ListItem.Amount style={style.listItemAmount as TextStyle}>
+              {displayAmount()}
+            </ListItem.Amount>
+          </ListItem.Content>
+        </ListItem>
+      </TouchableHighlight>
+
+      <MultichainTransactionDetailsModal
+        isVisible={isModalVisible}
+        onClose={() => setIsModalVisible(false)}
+        displayData={displayData}
+        transaction={transaction}
+        navigation={navigation}
+      />
+    </>
   );
 };
 

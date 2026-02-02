@@ -62,17 +62,13 @@ export const useOpenSwaps = ({
       if (!priorityToken) return;
 
       const destToken: BridgeToken = {
-        address: priorityToken.address ?? '',
-        symbol: priorityToken.symbol ?? '',
-        name: priorityToken.name ?? '',
-        decimals: priorityToken.decimals ?? 0,
+        ...priorityToken,
         chainId: priorityToken.caipChainId,
         image: buildTokenIconUrl(
           priorityToken.caipChainId,
           priorityToken.address ?? '',
         ),
-        aggregators: [],
-      };
+      } as BridgeToken;
       dispatch(setDestToken(destToken));
 
       const navigate = () => {

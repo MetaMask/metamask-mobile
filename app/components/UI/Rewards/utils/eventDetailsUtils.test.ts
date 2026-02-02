@@ -33,7 +33,6 @@ jest.mock('../../../../../locales/i18n', () => ({
       'rewards.events.type.predict': 'Prediction',
       'rewards.events.type.musd_deposit': 'mUSD deposit',
       'rewards.events.musd_deposit_for': 'For {{date}}',
-      'rewards.events.type.apply_referral_bonus': 'Referral code bonus',
       'rewards.events.type.uncategorized_event': 'Uncategorized event',
       'perps.market.long': 'Long',
       'perps.market.short': 'Short',
@@ -913,38 +912,6 @@ describe('eventDetailsUtils', () => {
 
         expect(result).toEqual({
           title: 'Referral action',
-          details: undefined,
-          icon: IconName.UserCircleAdd,
-        });
-      });
-    });
-
-    describe('APPLY_REFERRAL_BONUS events', () => {
-      it('returns correct details for APPLY_REFERRAL_BONUS event', () => {
-        // Given an APPLY_REFERRAL_BONUS event
-        const event = createMockEvent('APPLY_REFERRAL_BONUS');
-
-        // When getting event details
-        const result = getEventDetails(event, [], TEST_ADDRESS);
-
-        // Then it should return apply referral bonus details
-        expect(result).toEqual({
-          title: 'Referral code bonus',
-          details: undefined,
-          icon: IconName.UserCircleAdd,
-        });
-      });
-
-      it('returns correct details for APPLY_REFERRAL_BONUS event without account name', () => {
-        // Given an APPLY_REFERRAL_BONUS event without account name
-        const event = createMockEvent('APPLY_REFERRAL_BONUS');
-
-        // When getting event details without account name
-        const result = getEventDetails(event, [], undefined);
-
-        // Then it should return apply referral bonus details with undefined details
-        expect(result).toEqual({
-          title: 'Referral code bonus',
           details: undefined,
           icon: IconName.UserCircleAdd,
         });

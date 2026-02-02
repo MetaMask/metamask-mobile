@@ -2266,7 +2266,7 @@ describe('polymarket utils', () => {
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe('event-1');
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://gamma-api.polymarket.com/events/pagination?limit=20&active=true&archived=false&closed=false&ascending=false&offset=0&liquidity_min=10000&volume_min=10000&order=volume24hr',
+        'https://gamma-api.polymarket.com/events/pagination?limit=20&active=true&archived=false&closed=false&ascending=false&offset=0&liquidity_min=10000&volume_min=10000&exclude_tag_id=100639&order=volume24hr',
       );
     });
 

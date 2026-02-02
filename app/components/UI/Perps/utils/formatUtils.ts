@@ -216,7 +216,7 @@ export const countSignificantFigures = (priceString: string): number => {
  */
 export const hasExceededSignificantFigures = (
   priceString: string,
-  maxSigFigs: number = DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
+  maxSigFigs: number = DECIMAL_PRECISION_CONFIG.MAX_SIGNIFICANT_FIGURES,
 ): boolean => {
   if (!priceString || priceString.trim() === '') return false;
 
@@ -250,7 +250,7 @@ export const hasExceededSignificantFigures = (
  */
 export const roundToSignificantFigures = (
   priceString: string,
-  maxSigFigs: number = DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
+  maxSigFigs: number = DECIMAL_PRECISION_CONFIG.MAX_SIGNIFICANT_FIGURES,
 ): string => {
   if (!priceString || priceString.trim() === '') return priceString;
 
@@ -367,7 +367,7 @@ export const formatPerpsFiat = (
 
   if (isNaN(num)) {
     // Return placeholder for invalid values to avoid confusion with actual $0 values
-    return PERPS_CONSTANTS.FallbackPriceDisplay;
+    return PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
   }
 
   // Use custom ranges or defaults
@@ -551,7 +551,7 @@ export const PRICE_RANGES_UNIVERSAL: FiatRangeConfig[] = [
   {
     // Very high values (> $100,000): No decimals, 6 significant figures
     // Ex: $123,456.78 → $123,457
-    condition: (val) => Math.abs(val) > PRICE_THRESHOLD.VERY_HIGH,
+    condition: (v) => Math.abs(v) > PRICE_THRESHOLD.VERY_HIGH,
     minimumDecimals: 0,
     maximumDecimals: 0,
     significantDigits: 6,
@@ -560,7 +560,7 @@ export const PRICE_RANGES_UNIVERSAL: FiatRangeConfig[] = [
   {
     // High values ($10,000-$100,000]: No decimals, 5 significant figures
     // Ex: $12,345.67 → $12,346
-    condition: (val) => Math.abs(val) > PRICE_THRESHOLD.HIGH,
+    condition: (v) => Math.abs(v) > PRICE_THRESHOLD.HIGH,
     minimumDecimals: 0,
     maximumDecimals: 0,
     significantDigits: 5,
@@ -569,7 +569,7 @@ export const PRICE_RANGES_UNIVERSAL: FiatRangeConfig[] = [
   {
     // Large values ($1,000-$10,000]: Max 1 decimal, 5 significant figures
     // Ex: $1,234.56 → $1,234.6
-    condition: (val) => Math.abs(val) > PRICE_THRESHOLD.LARGE,
+    condition: (v) => Math.abs(v) > PRICE_THRESHOLD.LARGE,
     minimumDecimals: 0,
     maximumDecimals: 1,
     significantDigits: 5,
@@ -578,7 +578,7 @@ export const PRICE_RANGES_UNIVERSAL: FiatRangeConfig[] = [
   {
     // Medium values ($100-$1,000]: Max 2 decimals, 5 significant figures
     // Ex: $123.456 → $123.46
-    condition: (val) => Math.abs(val) > PRICE_THRESHOLD.MEDIUM,
+    condition: (v) => Math.abs(v) > PRICE_THRESHOLD.MEDIUM,
     minimumDecimals: 0,
     maximumDecimals: 2,
     significantDigits: 5,
@@ -587,7 +587,7 @@ export const PRICE_RANGES_UNIVERSAL: FiatRangeConfig[] = [
   {
     // Medium-low values ($10-$100]: Max 4 decimals, 5 significant figures
     // Ex: $12.34567 → $12.346
-    condition: (val) => Math.abs(val) > PRICE_THRESHOLD.MEDIUM_LOW,
+    condition: (v) => Math.abs(v) > PRICE_THRESHOLD.MEDIUM_LOW,
     minimumDecimals: 0,
     maximumDecimals: 4,
     significantDigits: 5,
@@ -596,10 +596,10 @@ export const PRICE_RANGES_UNIVERSAL: FiatRangeConfig[] = [
   {
     // Low values ($0.01-$10]: 5 significant figures, min 2 max MAX_PRICE_DECIMALS decimals
     // Ex: $1.3445555 → $1.3446 | $0.333333 → $0.33333
-    condition: (val) => Math.abs(val) >= PRICE_THRESHOLD.LOW,
+    condition: (v) => Math.abs(v) >= PRICE_THRESHOLD.LOW,
     significantDigits: 5,
     minimumDecimals: 2,
-    maximumDecimals: DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
+    maximumDecimals: DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS,
     threshold: PRICE_THRESHOLD.LOW,
   },
   {
@@ -608,7 +608,7 @@ export const PRICE_RANGES_UNIVERSAL: FiatRangeConfig[] = [
     condition: () => true,
     significantDigits: 4,
     minimumDecimals: 2,
-    maximumDecimals: DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
+    maximumDecimals: DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS,
     threshold: PRICE_THRESHOLD.VERY_SMALL,
   },
 ];
@@ -625,7 +625,7 @@ export const formatPnl = (pnl: string | number): string => {
   const num = typeof pnl === 'string' ? parseFloat(pnl) : pnl;
 
   if (isNaN(num)) {
-    return PERPS_CONSTANTS.ZeroAmountDetailedDisplay;
+    return PERPS_CONSTANTS.ZERO_AMOUNT_DETAILED_DISPLAY;
   }
 
   const formatted = getIntlNumberFormatter('en-US', {
@@ -677,15 +677,15 @@ export const formatFundingRate = (
   const showZero = options?.showZero ?? true;
 
   if (value === undefined || value === null) {
-    return showZero ? FUNDING_RATE_CONFIG.ZeroDisplay : '';
+    return showZero ? FUNDING_RATE_CONFIG.ZERO_DISPLAY : '';
   }
 
-  const percentage = value * FUNDING_RATE_CONFIG.PercentageMultiplier;
-  const formatted = percentage.toFixed(FUNDING_RATE_CONFIG.Decimals);
+  const percentage = value * FUNDING_RATE_CONFIG.PERCENTAGE_MULTIPLIER;
+  const formatted = percentage.toFixed(FUNDING_RATE_CONFIG.DECIMALS);
 
   // Check if the result is effectively zero
   if (showZero && parseFloat(formatted) === 0) {
-    return FUNDING_RATE_CONFIG.ZeroDisplay;
+    return FUNDING_RATE_CONFIG.ZERO_DISPLAY;
   }
 
   return `${formatted}%`;

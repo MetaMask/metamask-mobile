@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useEffect, useState } from 'react';
+import React, { useCallback, useMemo, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -27,8 +27,6 @@ import Engine from '../../../../../core/Engine';
 const RecipientSelectorModal: React.FC = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const [keyboardAvoidingViewEnabled, setKeyboardAvoidingViewEnabled] =
-    useState(true);
 
   const internalAccountsById = useSelector(selectInternalAccountsById);
   const accountToGroupMap = useSelector(selectAccountToGroupMap);
@@ -151,11 +149,8 @@ const RecipientSelectorModal: React.FC = () => {
   }, [destAddress, internalAccountsById]);
 
   return (
-    <BottomSheet
-      onClose={handleClose}
-      keyboardAvoidingViewEnabled={keyboardAvoidingViewEnabled}
-    >
-      <BottomSheetHeader onClose={handleClose}>
+    <BottomSheet onClose={handleClose} keyboardAvoidingViewEnabled>
+      <BottomSheetHeader onBack={handleClose} onClose={handleClose}>
         Recipient account
       </BottomSheetHeader>
       <MultichainAccountSelectorList
@@ -170,8 +165,6 @@ const RecipientSelectorModal: React.FC = () => {
         showExternalAccountOnEmptySearch
         onSelectExternalAccount={handleSelectExternalAccount}
         selectedExternalAddress={selectedExternalAddress}
-        setKeyboardAvoidingViewEnabled={setKeyboardAvoidingViewEnabled}
-        keyboardDismissMode="on-drag"
       />
     </BottomSheet>
   );

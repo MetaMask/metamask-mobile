@@ -60,6 +60,7 @@ const DepositOrderDetails = () => {
         navigation,
         {
           title: strings('deposit.order_details.title'),
+          showClose: false,
         },
         theme,
       ),

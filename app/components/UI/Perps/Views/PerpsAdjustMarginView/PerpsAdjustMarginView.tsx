@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -29,6 +29,7 @@ import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsAdjustMarginData } from '../../hooks/usePerpsAdjustMarginData';
 import { TraceName } from '../../../../../util/trace';
 import Logger from '../../../../../util/Logger';
+import { ensureError } from '../../../../../util/errorUtils';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsSlider from '../../components/PerpsSlider';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
@@ -58,14 +59,6 @@ const PerpsAdjustMarginView: React.FC = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
-  // Captures the estimated liquidation values at submission time.
-  // Displayed during exit animation so users see consistent values as the form closes,
-  // rather than values recalculating as position data updates from WebSocket.
-  // Uses ref (not state) since setting this shouldn't trigger a re-render.
-  const submittedEstimateRef = useRef<{
-    price: number;
-    distance: number;
-  } | null>(null);
 
   // Derived numeric value from string
   const marginAmount = useMemo(
@@ -77,13 +70,6 @@ const PerpsAdjustMarginView: React.FC = () => {
   const { handleAddMargin, handleRemoveMargin, isAdjusting } =
     usePerpsMarginAdjustment({
       onSuccess: () => navigation.goBack(),
-      onError: (errorMessage) => {
-        submittedEstimateRef.current = null;
-        Logger.error(
-          new Error(errorMessage),
-          `Failed to ${mode} margin for ${routePosition?.symbol}`,
-        );
-      },
     });
 
   // Get all margin data from dedicated hook (uses live subscriptions)
@@ -171,7 +157,7 @@ const PerpsAdjustMarginView: React.FC = () => {
   const formatLiquidationDistance = useCallback(
     (distance: number, liquidationPrice: number): string => {
       if (liquidationPrice === 0) {
-        return PERPS_CONSTANTS.FallbackDataDisplay;
+        return PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY;
       }
       return `${distance.toFixed(0)}%`;
     },
@@ -187,24 +173,24 @@ const PerpsAdjustMarginView: React.FC = () => {
       return;
     }
 
-    // Capture estimates at submission - displayed during exit animation
-    submittedEstimateRef.current = {
-      price: newLiquidationPrice,
-      distance: newLiquidationDistance,
-    };
-
-    if (isAddMode) {
-      await handleAddMargin(position.symbol, marginAmount);
-    } else {
-      await handleRemoveMargin(position.symbol, marginAmount);
+    try {
+      if (isAddMode) {
+        await handleAddMargin(position.symbol, marginAmount);
+      } else {
+        await handleRemoveMargin(position.symbol, marginAmount);
+      }
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        `Failed to ${isAddMode ? 'add' : 'remove'} margin for ${position.symbol}`,
+      );
+      // Note: Toast notification is handled by usePerpsMarginAdjustment hook
     }
   }, [
     marginAmount,
     position,
     isAddMode,
     maxAmount,
-    newLiquidationPrice,
-    newLiquidationDistance,
     handleAddMargin,
     handleRemoveMargin,
   ]);
@@ -232,14 +218,6 @@ const PerpsAdjustMarginView: React.FC = () => {
 
   // Floor maxAmount for display and comparison
   const flooredMaxAmount = Math.floor(maxAmount * 100) / 100;
-
-  // Use submitted estimate during exit animation, otherwise use live calculated values.
-  const submittedEstimate = submittedEstimateRef.current;
-  const displayNewLiquidationPrice =
-    submittedEstimate?.price ?? newLiquidationPrice;
-  const displayNewLiquidationDistance =
-    submittedEstimate?.distance ?? newLiquidationDistance;
-  const showTransition = marginAmount > 0 || submittedEstimate !== null;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -328,7 +306,7 @@ const PerpsAdjustMarginView: React.FC = () => {
                 />
               </TouchableOpacity>
             </View>
-            {showTransition ? (
+            {marginAmount > 0 ? (
               <View style={styles.changeContainer}>
                 <Text
                   variant={TextVariant.BodyMD}
@@ -344,7 +322,7 @@ const PerpsAdjustMarginView: React.FC = () => {
                   color={colors.icon.alternative}
                 />
                 <Text variant={TextVariant.BodyMD}>
-                  {formatPerpsFiat(displayNewLiquidationPrice, {
+                  {formatPerpsFiat(newLiquidationPrice, {
                     ranges: PRICE_RANGES_UNIVERSAL,
                   })}
                 </Text>
@@ -375,7 +353,7 @@ const PerpsAdjustMarginView: React.FC = () => {
                 />
               </TouchableOpacity>
             </View>
-            {showTransition ? (
+            {marginAmount > 0 ? (
               <View style={styles.changeContainer}>
                 <Text
                   variant={TextVariant.BodyMD}
@@ -393,8 +371,8 @@ const PerpsAdjustMarginView: React.FC = () => {
                 />
                 <Text variant={TextVariant.BodyMD}>
                   {formatLiquidationDistance(
-                    displayNewLiquidationDistance,
-                    displayNewLiquidationPrice,
+                    newLiquidationDistance,
+                    newLiquidationPrice,
                   )}
                 </Text>
               </View>

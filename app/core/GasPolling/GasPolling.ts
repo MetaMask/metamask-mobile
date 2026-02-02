@@ -58,6 +58,8 @@ export const useDataStore = () => {
     accounts,
     contractBalances,
     ticker,
+    transaction,
+    selectedAsset,
   ] = useSelector(
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -70,22 +72,22 @@ export const useDataStore = () => {
       selectAccounts(state),
       selectContractBalances(state),
       selectEvmTicker(state),
+      state.transaction,
+      state.transaction.selectedAsset,
     ],
     shallowEqual,
   );
 
   return {
     gasFeeEstimates,
-    // Legacy transaction state is no longer stored in Redux
-    // Transaction data now comes from TransactionController
-    transactionState: undefined,
+    transactionState: transaction,
     gasEstimateType,
     contractExchangeRates,
     conversionRate,
     currentCurrency,
     accounts,
     contractBalances,
-    selectedAsset: undefined,
+    selectedAsset,
     ticker,
   };
 };
@@ -207,12 +209,6 @@ export const useGasTransaction = ({
       updateGasEstimateTypeChange(gasEstimateType);
     }
   }, [gasEstimateType, gasEstimateTypeChange]);
-
-  // Legacy transaction state is no longer available
-  // This hook is deprecated and will be removed
-  if (!transactionState) {
-    return 'Legacy transaction state not available';
-  }
 
   const {
     transaction: { gas: transactionGas, gasPrice },

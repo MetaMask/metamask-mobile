@@ -102,20 +102,18 @@ interface ExtractFundingDataParams {
 }
 
 /**
- * Extract funding data for a symbol from predicted fundings.
- * Looks for specified exchange first, falls back to first available.
+ * Extract funding data for a symbol from predicted fundings
+ * Looks for specified exchange first, falls back to first available
  *
- * @param params - Parameters for extracting funding data
  * @param params.predictedFundings - Array of predicted funding data
  * @param params.symbol - Asset symbol to extract funding for
  * @param params.exchangeName - Exchange to prioritize (defaults to HyperLiquid's 'HlPerp')
- * @returns Funding data including next funding time, interval, and predicted rate
  */
 function extractFundingData(params: ExtractFundingDataParams): FundingData {
   const {
     predictedFundings,
     symbol,
-    exchangeName = HYPERLIQUID_CONFIG.ExchangeName,
+    exchangeName = HYPERLIQUID_CONFIG.EXCHANGE_NAME,
   } = params;
 
   const result: FundingData = {};
@@ -231,57 +229,44 @@ export function transformMarketData(
     const { dex } = parseAssetName(symbol);
     const marketSource = dex || undefined;
 
-    // HIP-3 markets have a DEX prefix (e.g., xyz:TSLA, flx:GOLD)
-    // Crypto markets (HIP-2) don't have a prefix (e.g., BTC, ETH)
-    const isHip3 = Boolean(dex);
-
-    // Determine market type from explicit mapping only
-    // Only explicitly mapped HIP-3 markets get a marketType (e.g., 'xyz:GOLD' → 'commodity')
-    // Unmapped HIP-3 markets (e.g., 'hyna:BTC') have no marketType - they go to "New" tab
-    // Main DEX crypto also has no marketType
-    const explicitMarketType = assetMarketTypes?.[symbol];
-    const marketType: MarketType | undefined = explicitMarketType;
-
-    // Mark as "new" if it's a HIP-3 market but not explicitly categorized
-    // New markets are always HIP-3 (non-crypto) that haven't been assigned a category yet
-    const isNewMarket = isHip3 && !explicitMarketType;
+    // Determine market type:
+    // 1. Check explicit mapping (e.g., 'xyz:GOLD' → 'commodity')
+    // 2. Default HIP-3 DEX markets to 'equity' (stocks) if not mapped
+    // 3. Main DEX markets remain undefined (crypto)
+    const marketType: MarketType | undefined =
+      assetMarketTypes?.[symbol] || (dex ? 'equity' : undefined);
 
     return {
       symbol,
       name: symbol,
       maxLeverage: `${asset.maxLeverage}x`,
       price: isNaN(currentPrice)
-        ? PERPS_CONSTANTS.FallbackPriceDisplay
+        ? PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY
         : formatPerpsFiat(currentPrice, { ranges: PRICE_RANGES_UNIVERSAL }),
       change24h: isNaN(change24h)
-        ? PERPS_CONSTANTS.ZeroAmountDetailedDisplay
+        ? PERPS_CONSTANTS.ZERO_AMOUNT_DETAILED_DISPLAY
         : formatChange(change24h),
       change24hPercent: isNaN(change24hPercent)
         ? '0.00%'
         : formatPercentage(change24hPercent),
       volume: isNaN(volume)
-        ? PERPS_CONSTANTS.FallbackPriceDisplay
+        ? PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY
         : formatVolume(volume),
       openInterest: isNaN(openInterest)
-        ? PERPS_CONSTANTS.FallbackPriceDisplay
+        ? PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY
         : formatVolume(openInterest),
       nextFundingTime: fundingData.nextFundingTime,
       fundingIntervalHours: fundingData.fundingIntervalHours,
       fundingRate,
       marketSource,
       marketType,
-      isHip3,
-      isNewMarket,
     };
   });
 }
 
 /**
- * Format 24h change with sign.
- * Uses more decimal places for smaller amounts to show meaningful precision.
- *
- * @param change - The price change value to format
- * @returns Formatted change string with sign and dollar symbol
+ * Format 24h change with sign
+ * Uses more decimal places for smaller amounts to show meaningful precision
  */
 export function formatChange(change: number): string {
   if (isNaN(change) || !isFinite(change)) return '$0.00';
@@ -297,10 +282,7 @@ export function formatChange(change: number): string {
 }
 
 /**
- * Format percentage change with sign.
- *
- * @param percent - The percentage value to format
- * @returns Formatted percentage string with sign
+ * Format percentage change with sign
  */
 export function formatPercentage(percent: number): string {
   if (isNaN(percent) || !isFinite(percent)) return '0.00%';

@@ -13,7 +13,7 @@ import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironme
 import { testSpecificMock } from './helpers/bridge-mocks';
 import SoftAssert from '../../../tests/framework/SoftAssert';
 import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
-import { AnvilManager } from '../../../tests/seeder/anvil-manager';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 enum eventsToCheck {
   BRIDGE_BUTTON_CLICKED = 'Bridge Button Clicked',

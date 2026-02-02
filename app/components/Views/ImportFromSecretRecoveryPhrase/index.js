@@ -81,7 +81,7 @@ import {
   PASSCODE_NOT_SET_ERROR,
   IOS_REJECTED_BIOMETRICS_ERROR,
 } from './constant';
-import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { useMetrics } from '../../hooks/useMetrics';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import {
@@ -128,7 +128,6 @@ const ImportFromSecretRecoveryPhrase = ({
   const [currentStep, setCurrentStep] = useState(0);
   const [learnMore, setLearnMore] = useState(false);
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
-  const [isPasswordFieldFocused, setIsPasswordFieldFocused] = useState(false);
 
   const srpInputGridRef = useRef(null);
   const slideAnim = useRef(new Animated.Value(0)).current;
@@ -161,7 +160,7 @@ const ImportFromSecretRecoveryPhrase = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedPhrase]);
 
-  const { isEnabled: isMetricsEnabled } = useAnalytics();
+  const { isEnabled: isMetricsEnabled } = useMetrics();
 
   const track = (event, properties) => {
     const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
@@ -396,14 +395,6 @@ const ImportFromSecretRecoveryPhrase = ({
     [password, confirmPassword, learnMore],
   );
 
-  const isPasswordTooShort = useMemo(
-    () =>
-      !isPasswordFieldFocused &&
-      password !== '' &&
-      password.length < MIN_PASSWORD_LENGTH,
-    [isPasswordFieldFocused, password],
-  );
-
   const toggleShowPassword = (index) => {
     setShowPasswordIndex((prev) => {
       if (prev.includes(index)) {
@@ -576,8 +567,8 @@ const ImportFromSecretRecoveryPhrase = ({
         testID={ImportFromSeedSelectorsIDs.CONTAINER_ID}
         keyboardShouldPersistTaps="always"
         keyboardDismissMode="none"
+        bottomOffset={180}
         showsVerticalScrollIndicator={false}
-        enabled={currentStep === 0}
       >
         <Animated.View
           style={[
@@ -627,8 +618,18 @@ const ImportFromSecretRecoveryPhrase = ({
                   placeholderText={strings('import_from_seed.srp_placeholder')}
                   uniqueId={uniqueId}
                   onCurrentWordChange={setCurrentInputWord}
-                  autoFocus={false}
                 />
+                <View style={styles.seedPhraseCtaContainer}>
+                  <Button
+                    variant={ButtonVariants.Primary}
+                    label={strings('import_from_seed.continue')}
+                    onPress={handleContinueImportFlow}
+                    width={ButtonWidthTypes.Full}
+                    size={ButtonSize.Lg}
+                    isDisabled={isSRPContinueButtonDisabled || Boolean(error)}
+                    testID={ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID}
+                  />
+                </View>
               </View>
             </>
           )}
@@ -664,8 +665,6 @@ const ImportFromSecretRecoveryPhrase = ({
                   size={TextFieldSize.Lg}
                   value={password}
                   onChangeText={onPasswordChange}
-                  onFocus={() => setIsPasswordFieldFocused(true)}
-                  onBlur={() => setIsPasswordFieldFocused(false)}
                   secureTextEntry={showPasswordIndex.includes(0)}
                   returnKeyType={'next'}
                   autoCapitalize="none"
@@ -673,8 +672,6 @@ const ImportFromSecretRecoveryPhrase = ({
                   keyboardAppearance={themeAppearance || 'light'}
                   placeholderTextColor={colors.text.muted}
                   onSubmitEditing={jumpToConfirmPassword}
-                  isError={isPasswordTooShort}
-                  style={isPasswordTooShort ? styles.errorBorder : undefined}
                   endAccessory={
                     <Icon
                       name={
@@ -692,16 +689,16 @@ const ImportFromSecretRecoveryPhrase = ({
                   }
                   testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                 />
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={
-                    isPasswordTooShort ? TextColor.Error : TextColor.Alternative
-                  }
-                >
-                  {strings('choose_password.must_be_at_least', {
-                    number: MIN_PASSWORD_LENGTH,
-                  })}
-                </Text>
+                {(!password || password.length < MIN_PASSWORD_LENGTH) && (
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={TextColor.Alternative}
+                  >
+                    {strings('choose_password.must_be_at_least', {
+                      number: MIN_PASSWORD_LENGTH,
+                    })}
+                  </Text>
+                )}
               </View>
 
               <View style={styles.field}>
@@ -797,19 +794,6 @@ const ImportFromSecretRecoveryPhrase = ({
           )}
         </Animated.View>
       </KeyboardAwareScrollView>
-      {currentStep === 0 && (
-        <View style={styles.fixedBottomContainer}>
-          <Button
-            variant={ButtonVariants.Primary}
-            label={strings('import_from_seed.continue')}
-            onPress={handleContinueImportFlow}
-            width={ButtonWidthTypes.Full}
-            size={ButtonSize.Lg}
-            isDisabled={isSRPContinueButtonDisabled}
-            testID={ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID}
-          />
-        </View>
-      )}
       {isSrpWordSuggestionsEnabled &&
         currentStep === 0 &&
         isKeyboardVisible && (

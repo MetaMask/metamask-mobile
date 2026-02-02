@@ -7,7 +7,7 @@ import {
   Reason,
   ResultType,
   SecurityAlertSource,
-} from '../../components/Views/confirmations/components/blockaid-banner/BlockaidBanner.types';
+} from '../../components/Views/confirmations/legacy/components/BlockaidBanner/BlockaidBanner.types';
 // eslint-disable-next-line import/no-namespace
 import * as NetworkControllerMock from '../../selectors/networkController';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';

@@ -13,9 +13,6 @@ export const selectBalanceTotal = (state: RootState) =>
 export const selectReferralCount = (state: RootState) =>
   state.rewards.refereeCount;
 
-export const selectReferredByCode = (state: RootState) =>
-  state.rewards.referredByCode;
-
 export const selectCurrentTier = (state: RootState) =>
   state.rewards.currentTier;
 

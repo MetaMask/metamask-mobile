@@ -37,7 +37,6 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
     selectAssetsTrendingTokensEnabled,
   );
   const tabBarRef = useRef(null);
-  const previousTabIndexRef = useRef<number>(state.index);
   const tw = useTailwind();
 
   const renderTabBarItem = useCallback(
@@ -55,13 +54,6 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       const labelKey = LABEL_BY_TAB_BAR_ICON_KEY[tabBarIconKey];
       const labelText = labelKey ? strings(labelKey) : '';
       const onPress = () => {
-        // Call onLeave callback for the previous tab before switching
-        if (previousTabIndexRef.current !== index) {
-          const previousRoute = state.routes[previousTabIndexRef.current];
-          const previousOptions = descriptors[previousRoute?.key]?.options;
-          previousOptions?.onLeave?.();
-          previousTabIndexRef.current = index;
-        }
         callback?.();
         switch (rootScreenName) {
           case Routes.WALLET_VIEW:

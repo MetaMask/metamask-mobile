@@ -1,14 +1,10 @@
 import React, { useState, useRef, useCallback } from 'react';
-import {
-  View,
-  KeyboardAvoidingView,
-  Platform,
-  ImageSourcePropType,
-} from 'react-native';
+import { View, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSelector } from 'react-redux';
 import { processUrlForBrowser } from '../../../util/browser';
 import Device from '../../../util/device';
 import ErrorBoundary from '../ErrorBoundary';
+import Routes from '../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
@@ -27,16 +23,11 @@ import { TokenDiscovery } from '../TokenDiscovery';
 import { noop } from 'lodash';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
-import { SessionENSNames } from '../BrowserTab/types';
-
-// Stable empty references to prevent unnecessary re-renders
-const EMPTY_SESSION_ENS_NAMES: SessionENSNames = {};
-const EMPTY_FAVICON: ImageSourcePropType = { uri: '' };
 
 /**
  * Tab component for the in-app browser
  */
-const DiscoveryTabPure: React.FC<DiscoveryTabProps> = ({
+export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
   id: tabId,
   showTabs,
   newTab,
@@ -83,15 +74,18 @@ const DiscoveryTabPure: React.FC<DiscoveryTabProps> = ({
    */
   const onSelect = useCallback(
     (item: AutocompleteSearchResult) => {
-      // Unfocus the url bar and hide the autocomplete results
-      urlBarRef.current?.hide();
-      // Only navigate if the item has a URL (Sites, Recents, Favorites)
-      // Tokens, Perps, and Predictions don't have URLs and are handled elsewhere
-      if ('url' in item) {
+      if (item.category === 'tokens') {
+        navigation.navigate(Routes.BROWSER.ASSET_LOADER, {
+          chainId: item.chainId,
+          address: item.address,
+        });
+      } else {
+        // Unfocus the url bar and hide the autocomplete results
+        urlBarRef.current?.hide();
         onSubmitEditing(item.url);
       }
     },
-    [onSubmitEditing],
+    [onSubmitEditing, navigation],
   );
 
   /**
@@ -117,34 +111,23 @@ const DiscoveryTabPure: React.FC<DiscoveryTabProps> = ({
     autocompleteRef.current?.search(text);
   }, []);
 
-  // Memoized callbacks and values for BrowserBottomBar to prevent re-renders
-  const getMaskedUrl = useCallback(
-    (url: string, _sessionENSNames: SessionENSNames) => url,
-    [],
-  );
-
-  const openNewTabCallback = useCallback(() => newTab(), [newTab]);
-
   /**
    * Render the bottom (navigation/options) bar
    * Note: DiscoveryTab uses minimal browser bar functionality
    */
-  const renderBottomBar = useCallback(
-    () =>
-      isTabActive && !isUrlBarFocused ? (
-        <BrowserBottomBar
-          canGoBack={false}
-          canGoForward={false}
-          openNewTab={openNewTabCallback}
-          activeUrl=""
-          getMaskedUrl={getMaskedUrl}
-          title=""
-          sessionENSNames={EMPTY_SESSION_ENS_NAMES}
-          favicon={EMPTY_FAVICON}
-        />
-      ) : null,
-    [isTabActive, isUrlBarFocused, openNewTabCallback, getMaskedUrl],
-  );
+  const renderBottomBar = () =>
+    isTabActive && !isUrlBarFocused ? (
+      <BrowserBottomBar
+        canGoBack={false}
+        canGoForward={false}
+        openNewTab={() => newTab()}
+        activeUrl=""
+        getMaskedUrl={(url) => url}
+        title=""
+        sessionENSNames={{}}
+        favicon={{ uri: '' }}
+      />
+    ) : null;
 
   /**
    * Main render
@@ -189,8 +172,5 @@ const DiscoveryTabPure: React.FC<DiscoveryTabProps> = ({
     </ErrorBoundary>
   );
 };
-
-export const DiscoveryTab = React.memo(DiscoveryTabPure);
-DiscoveryTab.displayName = 'DiscoveryTab';
 
 export default DiscoveryTab;
