@@ -37,3 +37,26 @@ export const selectPredictGtmOnboardingModalEnabledFlag = createSelector(
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
+
+/**
+ * Selector for Predict home featured variant
+ *
+ * Uses feature flag `predictHomeFeaturedVariant` from remote config.
+ * Falls back to `'carousel'` if remote flag is unavailable or invalid.
+ *
+ * @returns {PredictHomeFeaturedVariant} The variant to display ('carousel' or 'list')
+ */
+export type PredictHomeFeaturedVariant = 'carousel' | 'list';
+
+export const selectPredictHomeFeaturedVariant = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): PredictHomeFeaturedVariant => {
+    const remoteFlag = remoteFeatureFlags?.predictHomeFeaturedVariant as
+      | string
+      | undefined;
+    if (remoteFlag === 'list') {
+      return 'list';
+    }
+    return 'carousel'; // default
+  },
+);
