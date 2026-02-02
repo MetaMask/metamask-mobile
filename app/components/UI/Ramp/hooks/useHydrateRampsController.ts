@@ -12,7 +12,7 @@ import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
  * Should be called from a top-level component like Wallet that mounts early.
  */
 export function useHydrateRampsController(): void {
-  const userRegion = useSelector(selectUserRegion);
+  const { data: userRegion } = useSelector(selectUserRegion);
   const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
 
   useEffect(() => {
