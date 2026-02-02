@@ -168,31 +168,64 @@ describe('useTokenActions', () => {
     isNative: false,
   } as TokenI;
 
+  /**
+   * Sets up default selector mocks and returns individual mock functions
+   * that can be overridden in specific tests.
+   *
+   * @example
+   * // Override a specific selector in a test:
+   * const mocks = setupDefaultMocks();
+   * mocks.mockSelectAssetsBySelectedAccountGroup.mockReturnValue({ '0x1': [...] });
+   */
   const setupDefaultMocks = () => {
+    const mockSelectEvmChainId = jest.fn().mockReturnValue('0x1');
+    const mockSelectSelectedInternalAccount = jest
+      .fn()
+      .mockReturnValue(mockAccount);
+    const mockSelectSelectedAccountGroup = jest
+      .fn()
+      .mockReturnValue(mockAccountGroup);
+    const mockSelectSelectedInternalAccountByScope = jest
+      .fn()
+      .mockReturnValue(() => mockAccount);
+    const mockGetDetectedGeolocation = jest.fn().mockReturnValue('US');
+    const mockSelectAssetsBySelectedAccountGroup = jest
+      .fn()
+      .mockReturnValue({}); // Empty object of user assets (keyed by chainId)
+
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectEvmChainId) {
-        return '0x1';
+        return mockSelectEvmChainId();
       }
       if (selector === selectSelectedInternalAccount) {
-        return mockAccount;
+        return mockSelectSelectedInternalAccount();
       }
       if (selector === selectSelectedAccountGroup) {
-        return mockAccountGroup;
+        return mockSelectSelectedAccountGroup();
       }
       if (selector === selectSelectedInternalAccountByScope) {
-        return () => mockAccount;
+        return mockSelectSelectedInternalAccountByScope();
       }
       if (selector === getDetectedGeolocation) {
-        return 'US';
+        return mockGetDetectedGeolocation();
       }
       if (selector === selectAssetsBySelectedAccountGroup) {
-        return {}; // Empty object of user assets (keyed by chainId)
+        return mockSelectAssetsBySelectedAccountGroup();
       }
       if (typeof selector === 'function') {
         return 'ETH';
       }
       return undefined;
     });
+
+    return {
+      mockSelectEvmChainId,
+      mockSelectSelectedInternalAccount,
+      mockSelectSelectedAccountGroup,
+      mockSelectSelectedInternalAccountByScope,
+      mockGetDetectedGeolocation,
+      mockSelectAssetsBySelectedAccountGroup,
+    };
   };
 
   const mockMusdToken = {
@@ -211,9 +244,12 @@ describe('useTokenActions', () => {
     name: 'Ethereum',
   };
 
+  // Store mocks returned from setupDefaultMocks for per-test overrides
+  let selectorMocks: ReturnType<typeof setupDefaultMocks>;
+
   beforeEach(() => {
     jest.clearAllMocks();
-    setupDefaultMocks();
+    selectorMocks = setupDefaultMocks();
     // Default mock implementations for tokenUtils
     mockGetDefaultDestToken.mockReturnValue(mockMusdToken);
     mockGetNativeSourceToken.mockReturnValue(mockNativeToken);
@@ -360,29 +396,7 @@ describe('useTokenActions', () => {
 
   describe('handleBuyPress', () => {
     it('routes to on-ramp when no eligible tokens exist', () => {
-      // Empty user assets (no tokens with balance)
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectAssetsBySelectedAccountGroup) {
-          return {};
-        }
-        if (selector === selectEvmChainId) {
-          return '0x1';
-        }
-        if (selector === selectSelectedInternalAccount) {
-          return mockAccount;
-        }
-        if (selector === selectSelectedAccountGroup) {
-          return mockAccountGroup;
-        }
-        if (selector === selectSelectedInternalAccountByScope) {
-          return () => mockAccount;
-        }
-        if (selector === getDetectedGeolocation) {
-          return 'US';
-        }
-        return undefined;
-      });
-
+      // Empty user assets (no tokens with balance) - uses default from setupDefaultMocks
       const { result } = renderHook(() =>
         useTokenActions({
           token: defaultToken,
@@ -397,7 +411,8 @@ describe('useTokenActions', () => {
     });
 
     it('calls goToSwaps with source and dest tokens when user has eligible tokens on same chain', () => {
-      const userAssets = {
+      // Override selectAssetsBySelectedAccountGroup with tokens that have balance
+      selectorMocks.mockSelectAssetsBySelectedAccountGroup.mockReturnValue({
         '0x1': [
           {
             assetId: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
@@ -409,28 +424,6 @@ describe('useTokenActions', () => {
             fiat: { balance: 1000 },
           },
         ],
-      };
-
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectAssetsBySelectedAccountGroup) {
-          return userAssets;
-        }
-        if (selector === selectEvmChainId) {
-          return '0x1';
-        }
-        if (selector === selectSelectedInternalAccount) {
-          return mockAccount;
-        }
-        if (selector === selectSelectedAccountGroup) {
-          return mockAccountGroup;
-        }
-        if (selector === selectSelectedInternalAccountByScope) {
-          return () => mockAccount;
-        }
-        if (selector === getDetectedGeolocation) {
-          return 'US';
-        }
-        return undefined;
       });
 
       const { result } = renderHook(() =>
@@ -459,7 +452,8 @@ describe('useTokenActions', () => {
     });
 
     it('uses highest USD value token from any chain when no tokens on same chain', () => {
-      const userAssets = {
+      // Override selectAssetsBySelectedAccountGroup with tokens on a different chain
+      selectorMocks.mockSelectAssetsBySelectedAccountGroup.mockReturnValue({
         '0xa': [
           {
             assetId: '0x7F5c764cBc14f9669B88837ca1490cCa17c31607',
@@ -471,28 +465,6 @@ describe('useTokenActions', () => {
             fiat: { balance: 500 },
           },
         ],
-      };
-
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectAssetsBySelectedAccountGroup) {
-          return userAssets;
-        }
-        if (selector === selectEvmChainId) {
-          return '0x1';
-        }
-        if (selector === selectSelectedInternalAccount) {
-          return mockAccount;
-        }
-        if (selector === selectSelectedAccountGroup) {
-          return mockAccountGroup;
-        }
-        if (selector === selectSelectedInternalAccountByScope) {
-          return () => mockAccount;
-        }
-        if (selector === getDetectedGeolocation) {
-          return 'US';
-        }
-        return undefined;
       });
 
       const { result } = renderHook(() =>

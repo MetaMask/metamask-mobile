@@ -38,52 +38,6 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-// Mock safe area
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
-}));
-
-// Mock useStyles
-jest.mock('../../../hooks/useStyles', () => ({
-  useStyles: () => ({
-    styles: {
-      wrapper: {},
-      loader: {},
-      bottomSheetFooterWrapper: {},
-      bottomSheetFooter: {},
-    },
-  }),
-}));
-
-// Mock trace
-jest.mock('../../../../util/trace', () => ({
-  TraceName: { AssetDetails: 'AssetDetails' },
-  endTrace: jest.fn(),
-}));
-
-// Mock network utils
-jest.mock('../../../../util/networks', () => ({
-  isMainnetByChainId: jest.fn(() => true),
-}));
-
-// Mock AppConstants
-jest.mock('../../../../core/AppConstants', () => ({
-  SWAPS: { ACTIVE: true },
-}));
-
-// Mock getIsSwapsAssetAllowed
-jest.mock('../../../Views/Asset/utils', () => ({
-  getIsSwapsAssetAllowed: jest.fn(() => true),
-}));
-
-// Mock useBlockExplorer
-jest.mock('../../../hooks/useBlockExplorer', () => ({
-  __esModule: true,
-  default: () => ({
-    getBlockExplorerUrl: jest.fn(() => 'https://etherscan.io'),
-  }),
-}));
-
 // Mock all the hooks used by TokenDetails
 jest.mock('../hooks/useTokenPrice', () => ({
   useTokenPrice: () => ({
@@ -172,33 +126,6 @@ jest.mock('../../../Views/Asset', () => ({
   default: () => null,
 }));
 
-// Mock BottomSheetFooter to inspect button props
-jest.mock(
-  '../../../../component-library/components/BottomSheets/BottomSheetFooter',
-  () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-    const { View, Text } = require('react-native');
-
-    return {
-      __esModule: true,
-      default: ({
-        buttonPropsArray,
-      }: {
-        buttonPropsArray: { label: string }[];
-      }) => (
-        <View testID="bottom-sheet-footer">
-          {buttonPropsArray.map((btn: { label: string }, index: number) => (
-            <Text key={index} testID={`button-${btn.label.toLowerCase()}`}>
-              {btn.label}
-            </Text>
-          ))}
-        </View>
-      ),
-      ButtonsAlignment: { Horizontal: 'horizontal', Vertical: 'vertical' },
-    };
-  },
-);
-
 // Mock selectors
 jest.mock('../../../../selectors/networkController', () => ({
   selectNetworkConfigurationByChainId: jest.fn(() => ({ name: 'Ethereum' })),
@@ -267,10 +194,12 @@ describe('TokenDetails', () => {
     it('shows sticky buttons when isTokenDetailsRevampedEnabled is true', () => {
       mockIsTokenDetailsRevampedEnabled.mockReturnValue(true);
 
-      const { getByTestId } = render(<TokenDetails {...defaultProps} />);
+      const { getByTestId, getByText } = render(
+        <TokenDetails {...defaultProps} />,
+      );
 
-      expect(getByTestId('bottom-sheet-footer')).toBeOnTheScreen();
-      expect(getByTestId('button-buy')).toBeOnTheScreen();
+      expect(getByTestId('bottomsheetfooter')).toBeOnTheScreen();
+      expect(getByText('Buy')).toBeOnTheScreen();
     });
 
     it('does not show sticky buttons when isTokenDetailsRevampedEnabled is false', () => {
@@ -278,7 +207,7 @@ describe('TokenDetails', () => {
 
       const { queryByTestId } = render(<TokenDetails {...defaultProps} />);
 
-      expect(queryByTestId('bottom-sheet-footer')).toBeNull();
+      expect(queryByTestId('bottomsheetfooter')).toBeNull();
     });
 
     it('shows both Buy and Sell buttons when token has balance > 0', () => {
@@ -287,12 +216,12 @@ describe('TokenDetails', () => {
         balance: '10.5',
       };
 
-      const { getByTestId } = render(
+      const { getByText } = render(
         <TokenDetails route={{ params: tokenWithBalance }} />,
       );
 
-      expect(getByTestId('button-buy')).toBeOnTheScreen();
-      expect(getByTestId('button-sell')).toBeOnTheScreen();
+      expect(getByText('Buy')).toBeOnTheScreen();
+      expect(getByText('Sell')).toBeOnTheScreen();
     });
 
     it('shows only Buy button when token has no balance', () => {
@@ -301,12 +230,12 @@ describe('TokenDetails', () => {
         balance: '0',
       };
 
-      const { getByTestId, queryByTestId } = render(
+      const { getByText, queryByText } = render(
         <TokenDetails route={{ params: tokenWithNoBalance }} />,
       );
 
-      expect(getByTestId('button-buy')).toBeOnTheScreen();
-      expect(queryByTestId('button-sell')).toBeNull();
+      expect(getByText('Buy')).toBeOnTheScreen();
+      expect(queryByText('Sell')).toBeNull();
     });
 
     it('shows only Buy button when token balance is undefined', () => {
@@ -315,12 +244,12 @@ describe('TokenDetails', () => {
         balance: undefined,
       } as unknown as TokenI;
 
-      const { getByTestId, queryByTestId } = render(
+      const { getByText, queryByText } = render(
         <TokenDetails route={{ params: tokenWithUndefinedBalance }} />,
       );
 
-      expect(getByTestId('button-buy')).toBeOnTheScreen();
-      expect(queryByTestId('button-sell')).toBeNull();
+      expect(getByText('Buy')).toBeOnTheScreen();
+      expect(queryByText('Sell')).toBeNull();
     });
   });
 });
