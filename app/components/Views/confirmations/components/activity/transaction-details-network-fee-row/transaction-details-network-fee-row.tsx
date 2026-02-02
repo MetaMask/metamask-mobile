@@ -13,6 +13,7 @@ import { TransactionDetailsSelectorIDs } from '../TransactionDetailsModal.testId
 const FALLBACK_TYPES = [
   TransactionType.predictClaim,
   TransactionType.predictWithdraw,
+  TransactionType.musdClaim,
 ];
 
 export function TransactionDetailsNetworkFeeRow() {
