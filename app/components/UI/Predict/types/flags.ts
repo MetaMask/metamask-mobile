@@ -26,4 +26,5 @@ export interface PredictMarketHighlightsFlag {
 export interface PredictHotTabFlag {
   enabled: boolean;
   queryParams?: string; // Raw query params: "&tag_id=149&tag_id=100995&order=volume24hr"
+  minimumVersion?: string; // Minimum app version required for this flag to be active
 }

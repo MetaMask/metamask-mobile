@@ -3,9 +3,32 @@ import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagCo
 import {
   VersionGatedFeatureFlag,
   validatedVersionGatedFeatureFlag,
+  hasMinimumRequiredVersion,
 } from '../../../../../util/remoteFeatureFlag';
 import { PredictHotTabFlag } from '../../types/flags';
 import { DEFAULT_HOT_TAB_FLAG } from '../../constants/flags';
+
+/**
+ * Type guard to validate that a value is a valid PredictHotTabFlag
+ *
+ * This prevents issues where the backend might send `enabled: "false"` (string)
+ * instead of `enabled: false` (boolean), which would be truthy in JavaScript.
+ *
+ * @param value - The value to check
+ * @returns True if the value is a valid PredictHotTabFlag structure
+ */
+function isValidPredictHotTabFlag(value: unknown): value is PredictHotTabFlag {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'enabled' in value &&
+    typeof (value as { enabled: unknown }).enabled === 'boolean' &&
+    (!('queryParams' in value) ||
+      typeof (value as { queryParams: unknown }).queryParams === 'string') &&
+    (!('minimumVersion' in value) ||
+      typeof (value as { minimumVersion: unknown }).minimumVersion === 'string')
+  );
+}
 
 /**
  * Selector for Predict trading feature enablement
@@ -43,8 +66,18 @@ export const selectPredictGtmOnboardingModalEnabledFlag = createSelector(
 export const selectPredictHotTabFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): PredictHotTabFlag => {
-    const flag =
-      remoteFeatureFlags?.predictHotTab as unknown as PredictHotTabFlag;
-    return flag ?? DEFAULT_HOT_TAB_FLAG;
+    const flag = remoteFeatureFlags?.predictHotTab;
+    if (!isValidPredictHotTabFlag(flag)) {
+      return DEFAULT_HOT_TAB_FLAG;
+    }
+
+    if (
+      flag.minimumVersion &&
+      !hasMinimumRequiredVersion(flag.minimumVersion)
+    ) {
+      return DEFAULT_HOT_TAB_FLAG;
+    }
+
+    return flag;
   },
 );
