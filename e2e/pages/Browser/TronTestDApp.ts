@@ -6,6 +6,7 @@ import Browser from './BrowserView';
 import Gestures from '../../../tests/framework/Gestures';
 import { waitFor } from 'detox';
 import { TronTestDappSelectorsWebIDs } from '../../selectors/Browser/TronTestDapp.selectors';
+import Assertions from '../../../tests/framework/Assertions';
 
 /**
  * Get a test element by data-testid
@@ -116,6 +117,16 @@ class TronTestDApp {
       dataTestIds.testPage.header.connectionStatus,
     );
     return await connectionStatusDiv.getText();
+  }
+
+  async verifyConnectionStatus(connectionStatus: string): Promise<void> {
+    const connectionStatusDiv = await getTestElement(
+      dataTestIds.testPage.header.connectionStatus,
+    );
+    await Assertions.expectWebElementToHaveText(
+      connectionStatusDiv,
+      connectionStatus,
+    );
   }
 
   async getAccount(): Promise<string> {
