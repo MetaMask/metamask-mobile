@@ -4,7 +4,7 @@ import Assertions from '../../framework/Assertions';
 import WalletView from '../../../e2e/pages/wallet/WalletView';
 import AccountDetails from '../../../e2e/pages/MultichainAccounts/AccountDetails';
 import WalletDetails from '../../../e2e/pages/MultichainAccounts/WalletDetails';
-import { completeSrpQuiz } from '../../../e2e/specs/multisrp/utils';
+import { completeSrpQuiz } from '../../flows/accounts.flow.ts';
 import { defaultGanacheOptions } from '../../framework/Constants';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
