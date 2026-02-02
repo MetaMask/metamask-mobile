@@ -42,10 +42,10 @@ describe('AdvancedDetailsRow', () => {
       false,
     );
 
-    expect(getByText('Advanced details')).toBeTruthy();
+    expect(getByText('Advanced details')).toBeOnTheScreen();
     expect(
       getByTestId(ConfirmationRowComponentIDs.ADVANCED_DETAILS),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
   it('navigates to AdvancedDetailsPage when pressed', () => {

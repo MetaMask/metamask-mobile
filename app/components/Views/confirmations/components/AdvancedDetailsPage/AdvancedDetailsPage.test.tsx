@@ -84,7 +84,7 @@ describe('AdvancedDetailsPage', () => {
       false,
     );
 
-    expect(getByText('Advanced details')).toBeTruthy();
+    expect(getByText('Advanced details')).toBeOnTheScreen();
   });
 
   it('navigates back when header back button is pressed', () => {
@@ -110,7 +110,7 @@ describe('AdvancedDetailsPage', () => {
       false,
     );
 
-    expect(getByTestId('scroll-view-data')).toBeTruthy();
+    expect(getByTestId('scroll-view-data')).toBeOnTheScreen();
   });
 
   describe('Nonce tooltip', () => {
@@ -121,7 +121,7 @@ describe('AdvancedDetailsPage', () => {
         false,
       );
 
-      expect(getByText('Nonce')).toBeTruthy();
+      expect(getByText('Nonce')).toBeOnTheScreen();
 
       const nonceInfoButton = getByTestId('nonce-tooltip-button');
       fireEvent.press(nonceInfoButton);
@@ -195,9 +195,9 @@ describe('AdvancedDetailsPage', () => {
         },
       );
 
-      expect(getByText('Nonce')).toBeTruthy();
-      expect(queryByText('Data')).toBeNull();
-      expect(queryByText('Interacting with')).toBeNull();
+      expect(getByText('Nonce')).toBeOnTheScreen();
+      expect(queryByText('Data')).not.toBeOnTheScreen();
+      expect(queryByText('Interacting with')).not.toBeOnTheScreen();
     });
 
     it('displays correct information for upgrade confirmation', () => {
@@ -208,10 +208,10 @@ describe('AdvancedDetailsPage', () => {
         },
       );
 
-      expect(getByText('Nonce')).toBeTruthy();
-      expect(getByText('Interacting with')).toBeTruthy();
-      expect(getByText('Smart contract')).toBeTruthy();
-      expect(queryByText('Data')).toBeNull();
+      expect(getByText('Nonce')).toBeOnTheScreen();
+      expect(getByText('Interacting with')).toBeOnTheScreen();
+      expect(getByText('Smart contract')).toBeOnTheScreen();
+      expect(queryByText('Data')).not.toBeOnTheScreen();
     });
 
     it('displays correct information for upgrade+batch confirmation', () => {
@@ -219,11 +219,11 @@ describe('AdvancedDetailsPage', () => {
         state: getAppStateForConfirmation(upgradeAccountConfirmation),
       });
 
-      expect(getByText('Nonce')).toBeTruthy();
-      expect(getByText('Interacting with')).toBeTruthy();
-      expect(getByText('Smart contract')).toBeTruthy();
-      expect(getByText('Transaction 1')).toBeTruthy();
-      expect(getByText('Transaction 2')).toBeTruthy();
+      expect(getByText('Nonce')).toBeOnTheScreen();
+      expect(getByText('Interacting with')).toBeOnTheScreen();
+      expect(getByText('Smart contract')).toBeOnTheScreen();
+      expect(getByText('Transaction 1')).toBeOnTheScreen();
+      expect(getByText('Transaction 2')).toBeOnTheScreen();
     });
   });
 });
