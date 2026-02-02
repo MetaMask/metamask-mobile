@@ -7,7 +7,7 @@ import { selectSelectedInternalAccount } from '../../../../selectors/accountsCon
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
-import { selectSortedAssetsBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
+import { selectAssetsBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
   ActionButtonType,
@@ -53,7 +53,7 @@ jest.mock('../../../../reducers/fiatOrders', () => ({
 }));
 
 jest.mock('../../../../selectors/assets/assets-list', () => ({
-  selectSortedAssetsBySelectedAccountGroup: jest.fn(),
+  selectAssetsBySelectedAccountGroup: jest.fn(),
 }));
 
 const mockTrackEvent = jest.fn();
@@ -177,8 +177,8 @@ describe('useTokenActions', () => {
       if (selector === getDetectedGeolocation) {
         return 'US';
       }
-      if (selector === selectSortedAssetsBySelectedAccountGroup) {
-        return []; // Empty array of user assets
+      if (selector === selectAssetsBySelectedAccountGroup) {
+        return {}; // Empty object of user assets (keyed by chainId)
       }
       if (typeof selector === 'function') {
         return 'ETH';

@@ -19,7 +19,7 @@ import {
 } from '../../../../util/analytics/actionButtonTracking';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { selectSortedAssetsBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
+import { selectAssetsBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
 import { areAddressesEqual } from '../../../../util/address';
 import { useRampNavigation } from '../../Ramp/hooks/useRampNavigation';
 import { TokenI } from '../../Tokens/types';
@@ -126,7 +126,7 @@ export const useTokenActions = ({
   const getAccountByScope = useSelector(selectSelectedInternalAccountByScope);
   const selectedChainId = useSelector(selectEvmChainId);
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
-  const userAssets = useSelector(selectSortedAssetsBySelectedAccountGroup);
+  const userAssetsMap = useSelector(selectAssetsBySelectedAccountGroup);
 
   // Metrics
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -330,30 +330,28 @@ export const useTokenActions = ({
   // Pre-compute source token for Buy (smart selection based on user assets)
   // Returns null if no eligible tokens found (triggers on-ramp flow)
   const buySourceToken = useMemo<BridgeToken | null>(() => {
-    const hasPositiveBalance = (a: {
-      balanceFiat?: string;
-      balance?: string;
-    }) =>
-      parseFloat(a.balanceFiat || '0') > 0 || parseFloat(a.balance || '0') > 0;
+    // Flatten the assets map into an array
+    const userAssets = Object.values(userAssetsMap || {}).flat();
+
+    // Check if asset has positive fiat balance
+    const hasPositiveBalance = (a: { fiat?: { balance?: number } }) =>
+      (a.fiat?.balance ?? 0) > 0;
 
     // Priority 1: Find highest USD value token on same chain (with positive balance)
-    const sameChainAssets = (userAssets || [])
+    // Note: assetId contains the token address for EVM assets
+    const sameChainAssets = userAssets
       .filter(
         (a) =>
           a.chainId === token.chainId &&
-          !areAddressesEqual(a.address, token.address) &&
+          !areAddressesEqual(a.assetId, token.address) &&
           hasPositiveBalance(a),
       )
-      .sort(
-        (a, b) =>
-          (parseFloat(b.balanceFiat || '0') || 0) -
-          (parseFloat(a.balanceFiat || '0') || 0),
-      );
+      .sort((a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0));
 
     if (sameChainAssets.length > 0) {
       const asset = sameChainAssets[0];
       return {
-        address: asset.address,
+        address: asset.assetId,
         chainId: asset.chainId as Hex | CaipChainId,
         decimals: asset.decimals,
         symbol: asset.symbol,
@@ -363,21 +361,17 @@ export const useTokenActions = ({
     }
 
     // Priority 2: Find highest USD value token on any chain (with positive balance)
-    const allAssets = (userAssets || [])
+    const allAssets = userAssets
       .filter(
         (a) =>
-          !areAddressesEqual(a.address, token.address) && hasPositiveBalance(a),
+          !areAddressesEqual(a.assetId, token.address) && hasPositiveBalance(a),
       )
-      .sort(
-        (a, b) =>
-          (parseFloat(b.balanceFiat || '0') || 0) -
-          (parseFloat(a.balanceFiat || '0') || 0),
-      );
+      .sort((a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0));
 
     if (allAssets.length > 0) {
       const asset = allAssets[0];
       return {
-        address: asset.address,
+        address: asset.assetId,
         chainId: asset.chainId as Hex | CaipChainId,
         decimals: asset.decimals,
         symbol: asset.symbol,
@@ -388,7 +382,7 @@ export const useTokenActions = ({
 
     // No eligible tokens found - return null to trigger on-ramp flow
     return null;
-  }, [userAssets, token.chainId, token.address]);
+  }, [userAssetsMap, token.chainId, token.address]);
 
   // Pre-compute source token for Sell (current asset)
   const sellSourceToken = useMemo<BridgeToken>(
@@ -410,15 +404,29 @@ export const useTokenActions = ({
     ],
   );
 
-  // Pre-compute destination token for Sell (mUSD for native, native for other tokens)
-  const sellDestToken = useMemo<BridgeToken>(() => {
-    const isNative = isNativeAddress(token.address);
-    return isNative
-      ? (getDefaultDestToken(token.chainId as Hex | CaipChainId) as BridgeToken)
-      : (getNativeSourceToken(
-          token.chainId as Hex | CaipChainId,
-        ) as BridgeToken);
-  }, [token.address, token.chainId]);
+  // Pre-compute destination token for Sell
+  // Uses getDefaultDestToken which returns:
+  // - Ethereum, Linea → mUSD
+  // - Optimism, Arbitrum, Base, Avalanche, Sei, Monad → USDC
+  // - BSC, Polygon, zkSync → USDT
+  // Falls back to native token if source === default dest
+  const sellDestToken = useMemo<BridgeToken | undefined>(() => {
+    const defaultDest = getDefaultDestToken(token.chainId as Hex | CaipChainId);
+
+    // If default dest is different from source, use it
+    if (defaultDest && !areAddressesEqual(token.address, defaultDest.address)) {
+      return defaultDest;
+    }
+
+    // Fall back to native token if source === default dest (e.g., selling mUSD)
+    const nativeDest = getNativeSourceToken(token.chainId as Hex | CaipChainId);
+    if (!areAddressesEqual(token.address, nativeDest.address)) {
+      return nativeDest;
+    }
+
+    // Edge case: source is native on unsupported chain - swap UI will handle
+    return undefined;
+  }, [token.chainId, token.address]);
 
   const handleBuyPress = useCallback(() => {
     // If user has no eligible tokens to swap with, route to on-ramp
