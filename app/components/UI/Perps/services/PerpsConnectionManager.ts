@@ -560,36 +560,31 @@ class PerpsConnectionManagerClass {
         this.clearConnectionTimeout();
 
         // Capture exception with connection context
-        captureException(
-          error instanceof Error ? error : new Error(String(error)),
-          {
-            tags: {
-              component: 'PerpsConnectionManager',
-              action: 'connection_connection',
-              operation: 'connection_management',
+        captureException(ensureError(error, 'PerpsConnectionManager.connect'), {
+          tags: {
+            component: 'PerpsConnectionManager',
+            action: 'connection_connection',
+            operation: 'connection_management',
+            provider: 'hyperliquid',
+          },
+          extra: {
+            connectionContext: {
               provider: 'hyperliquid',
-            },
-            extra: {
-              connectionContext: {
-                provider: 'hyperliquid',
-                timestamp: new Date().toISOString(),
-                isTestnet:
-                  Engine.context.PerpsController?.getCurrentNetwork?.() ===
-                  'testnet',
-              },
+              timestamp: new Date().toISOString(),
+              isTestnet:
+                Engine.context.PerpsController?.getCurrentNetwork?.() ===
+                'testnet',
             },
           },
-        );
+        });
 
         traceData = {
           success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: ensureError(error, 'PerpsConnectionManager.connect').message,
         };
 
         // Set error state for UI
-        this.setError(
-          error instanceof Error ? error : new Error(String(error)),
-        );
+        this.setError(ensureError(error, 'PerpsConnectionManager.connect'));
         DevLogger.log('PerpsConnectionManager: Connection failed', error);
         throw error;
       } finally {
@@ -811,7 +806,9 @@ class PerpsConnectionManagerClass {
       };
 
       // Set error state for UI - this is critical for reliability
-      this.setError(error instanceof Error ? error : new Error(String(error)));
+      this.setError(
+        ensureError(error, 'PerpsConnectionManager.reconnectWithNewContext'),
+      );
       DevLogger.log(
         'PerpsConnectionManager: Reconnection with new context failed',
         error,
