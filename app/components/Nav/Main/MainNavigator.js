@@ -86,6 +86,7 @@ import { AesCryptoTestForm } from '../../Views/AesCryptoTestForm';
 import { isTest } from '../../../util/test/utils';
 import NftDetails from '../../Views/NftDetails';
 import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
+import { AdvancedDetailsPage } from '../../Views/confirmations/components/AdvancedDetailsPage';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
@@ -1054,6 +1055,26 @@ const MainNavigator = () => {
         name="NftDetailsFullImage"
         component={NftDetailsFullImageModeView}
         options={{
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
+      />
+      <Stack.Screen
+        name={Routes.FULL_SCREEN_CONFIRMATIONS.ADVANCED_DETAILS}
+        component={AdvancedDetailsPage}
+        options={{
+          headerShown: false,
           animationEnabled: true,
           cardStyleInterpolator: ({ current, layouts }) => ({
             cardStyle: {
