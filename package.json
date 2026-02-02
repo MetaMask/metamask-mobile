@@ -297,7 +297,6 @@
     "@metamask/storage-service": "^0.0.1",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^15.0.0",
-    "@metamask/token-search-discovery-controller": "^4.0.0",
     "@metamask/transaction-controller": "^62.10.0",
     "@metamask/transaction-pay-controller": "^12.0.2",
     "@metamask/tron-wallet-snap": "^1.19.2",
