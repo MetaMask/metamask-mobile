@@ -35,8 +35,13 @@ declare module '@react-native-community/checkbox' {
   const CheckBox: ComponentType<CheckBoxProps>;
 
   /**
-   * @deprecated The `<CheckBox />` component has been deprecated in favor of the `<Checkbox>` component from `@metamask/design-system-react-native`.
-   * Please update your code to use the new `<Checkbox>` component from `@metamask/design-system-react-native`.
+   * @deprecated The `<CheckBox />` component has been deprecated in favor of `<Checkbox>` from `@metamask/design-system-react-native`.
+   *
+   * @see {@link https://github.com/MetaMask/design-system/tree/main/packages/design-system-react-native/src/components/Form/Checkbox | Checkbox component}
+   *
+   * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
+   *
+   * @see {@link https://github.com/MetaMask/metamask-mobile/issues/6882 | Tracking issue}
    */
   export default CheckBox;
 }
@@ -47,10 +52,13 @@ declare module 'react-native-vector-icons/Ionicons' {
   const IonicIcon: ComponentType<IconProps>;
 
   /**
-   * @deprecated The `<IonicIcon />` component has been deprecated in favor of the new `<Icon>` component from `@metamask/design-system-react-native`.
-   * Please update your code to use the new `<Icon>` component from `@metamask/design-system-react-native`.
-   * If you would like to help with the replacement of the usage of the IonicIcon component, please submit a pull request against this GitHub issue:
-   * {@link https://github.com/MetaMask/metamask-mobile/issues/8110}
+   * @deprecated The `<IonicIcon />` component has been deprecated in favor of `<Icon>` from `@metamask/design-system-react-native`.
+   *
+   * @see {@link https://github.com/MetaMask/design-system/tree/main/packages/design-system-react-native/src/components/Icons/Icon | Icon component}
+   *
+   * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
+   *
+   * @see {@link https://github.com/MetaMask/metamask-mobile/issues/8110 | Tracking issue}
    */
   export default IonicIcon;
 }
@@ -61,10 +69,13 @@ declare module 'react-native-vector-icons/FontAwesome' {
   const FontAwesomeIcon: ComponentType<IconProps>;
 
   /**
-   * @deprecated The `<FontAwesomeIcon />` component has been deprecated in favor of the new `<Icon>` component from `@metamask/design-system-react-native`.
-   * Please update your code to use the new `<Icon>` component from `@metamask/design-system-react-native`.
-   * If you would like to help with the replacement of the usage of the FontAwesomeIcon component, please submit a pull request against this GitHub issue:
-   * {@link https://github.com/MetaMask/metamask-mobile/issues/8111}
+   * @deprecated The `<FontAwesomeIcon />` component has been deprecated in favor of `<Icon>` from `@metamask/design-system-react-native`.
+   *
+   * @see {@link https://github.com/MetaMask/design-system/tree/main/packages/design-system-react-native/src/components/Icons/Icon | Icon component}
+   *
+   * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
+   *
+   * @see {@link https://github.com/MetaMask/metamask-mobile/issues/8111 | Tracking issue}
    */
   export default FontAwesomeIcon;
 }
@@ -75,10 +86,13 @@ declare module 'react-native-vector-icons/AntDesign' {
   const AntDesignIcon: ComponentType<IconProps>;
 
   /**
-   * @deprecated The `<AntDesignIcon />` component has been deprecated in favor of the new `<Icon>` component from `@metamask/design-system-react-native`.
-   * Please update your code to use the new `<Icon>` component from `@metamask/design-system-react-native`.
-   * If you would like to help with the replacement of the usage of the AntDesignIcon component, please submit a pull request against this GitHub issue:
-   * {@link https://github.com/MetaMask/metamask-mobile/issues/8112}
+   * @deprecated The `<AntDesignIcon />` component has been deprecated in favor of `<Icon>` from `@metamask/design-system-react-native`.
+   *
+   * @see {@link https://github.com/MetaMask/design-system/tree/main/packages/design-system-react-native/src/components/Icons/Icon | Icon component}
+   *
+   * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
+   *
+   * @see {@link https://github.com/MetaMask/metamask-mobile/issues/8112 | Tracking issue}
    */
   export default AntDesignIcon;
 }
@@ -88,10 +102,13 @@ declare module 'react-native-vector-icons/MaterialCommunityIcons' {
 
   const MaterialCommunityIcons: ComponentType<IconProps>;
   /**
-   * @deprecated The `<MaterialCommunityIconsIcon />` component has been deprecated in favor of the new `<Icon>` component from `@metamask/design-system-react-native`.
-   * Please update your code to use the new `<Icon>` component from `@metamask/design-system-react-native`.
-   * If you would like to help with the replacement of the usage of the MaterialCommunityIcons component, please submit a pull request against this GitHub issue:
-   * {@link https://github.com/MetaMask/metamask-mobile/issues/8113}
+   * @deprecated The `<MaterialCommunityIconsIcon />` component has been deprecated in favor of `<Icon>` from `@metamask/design-system-react-native`.
+   *
+   * @see {@link https://github.com/MetaMask/design-system/tree/main/packages/design-system-react-native/src/components/Icons/Icon | Icon component}
+   *
+   * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
+   *
+   * @see {@link https://github.com/MetaMask/metamask-mobile/issues/8113 | Tracking issue}
    */
   export default MaterialCommunityIcons;
 }
@@ -102,10 +119,13 @@ declare module 'react-native-vector-icons/Feather' {
   const FeatherIcon: ComponentType<IconProps>;
 
   /**
-   * @deprecated The `<FeatherIcon />` component has been deprecated in favor of the new `<Icon>` component from `@metamask/design-system-react-native`.
-   * Please update your code to use the new `<Icon>` component from `@metamask/design-system-react-native`.
-   * If you would like to help with the replacement of the usage of the FeatherIcon component, please submit a pull request against this GitHub issue:
-   * {@link https://github.com/MetaMask/metamask-mobile/issues/8114}
+   * @deprecated The `<FeatherIcon />` component has been deprecated in favor of `<Icon>` from `@metamask/design-system-react-native`.
+   *
+   * @see {@link https://github.com/MetaMask/design-system/tree/main/packages/design-system-react-native/src/components/Icons/Icon | Icon component}
+   *
+   * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
+   *
+   * @see {@link https://github.com/MetaMask/metamask-mobile/issues/8114 | Tracking issue}
    */
   export default FeatherIcon;
 }
@@ -116,10 +136,13 @@ declare module 'react-native-vector-icons/EvilIcons' {
   const EvilIcons: ComponentType<IconProps>;
 
   /**
-   * @deprecated The `<EvilIconsIcon />` component has been deprecated in favor of the new `<Icon>` component from `@metamask/design-system-react-native`.
-   * Please update your code to use the new `<Icon>` component from `@metamask/design-system-react-native`.
-   * If you would like to help with the replacement of the usage of the EvilIcons component, please submit a pull request against this GitHub issue:
-   * {@link https://github.com/MetaMask/metamask-mobile/issues/8115}
+   * @deprecated The `<EvilIconsIcon />` component has been deprecated in favor of `<Icon>` from `@metamask/design-system-react-native`.
+   *
+   * @see {@link https://github.com/MetaMask/design-system/tree/main/packages/design-system-react-native/src/components/Icons/Icon | Icon component}
+   *
+   * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
+   *
+   * @see {@link https://github.com/MetaMask/metamask-mobile/issues/8115 | Tracking issue}
    */
   export default EvilIcons;
 }
@@ -130,10 +153,13 @@ declare module 'react-native-vector-icons/SimpleLineIcons' {
   const SimpleLineIcons: ComponentType<IconProps>;
 
   /**
-   * @deprecated The `<SimpleLineIconsIcon />` component has been deprecated in favor of the new `<Icon>` component from `@metamask/design-system-react-native`.
-   * Please update your code to use the new `<Icon>` component from `@metamask/design-system-react-native`.
-   * If you would like to help with the replacement of the usage of the SimpleLineIcons component, please submit a pull request against this GitHub issue:
-   * {@link https://github.com/MetaMask/metamask-mobile/issues/8116}
+   * @deprecated The `<SimpleLineIconsIcon />` component has been deprecated in favor of `<Icon>` from `@metamask/design-system-react-native`.
+   *
+   * @see {@link https://github.com/MetaMask/design-system/tree/main/packages/design-system-react-native/src/components/Icons/Icon | Icon component}
+   *
+   * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
+   *
+   * @see {@link https://github.com/MetaMask/metamask-mobile/issues/8116 | Tracking issue}
    */
   export default SimpleLineIcons;
 }
@@ -144,10 +170,13 @@ declare module 'react-native-vector-icons/MaterialIcons' {
   const MaterialIcons: ComponentType<IconProps>;
 
   /**
-   * @deprecated The `<MaterialIconsIcon />` component has been deprecated in favor of the new `<Icon>` component from `@metamask/design-system-react-native`.
-   * Please update your code to use the new `<Icon>` component from `@metamask/design-system-react-native`.
-   * If you would like to help with the replacement of the usage of the MaterialIcons component, please submit a pull request against this GitHub issue:
-   * {@link https://github.com/MetaMask/metamask-mobile/issues/8117}
+   * @deprecated The `<MaterialIconsIcon />` component has been deprecated in favor of `<Icon>` from `@metamask/design-system-react-native`.
+   *
+   * @see {@link https://github.com/MetaMask/design-system/tree/main/packages/design-system-react-native/src/components/Icons/Icon | Icon component}
+   *
+   * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
+   *
+   * @see {@link https://github.com/MetaMask/metamask-mobile/issues/8117 | Tracking issue}
    */
   export default MaterialIcons;
 }
@@ -158,10 +187,13 @@ declare module 'react-native-vector-icons/FontAwesome5' {
   const FontAwesome5: ComponentType<IconProps>;
 
   /**
-   * @deprecated The `<FontAwesome5Icon />` component has been deprecated in favor of the new `<Icon>` component from `@metamask/design-system-react-native`.
-   * Please update your code to use the new `<Icon>` component from `@metamask/design-system-react-native`.
-   * If you would like to help with the replacement of the usage of the FontAwesome5 component, please submit a pull request against this GitHub issue:
-   * {@link https://github.com/MetaMask/metamask-mobile/issues/8118}
+   * @deprecated The `<FontAwesome5Icon />` component has been deprecated in favor of `<Icon>` from `@metamask/design-system-react-native`.
+   *
+   * @see {@link https://github.com/MetaMask/design-system/tree/main/packages/design-system-react-native/src/components/Icons/Icon | Icon component}
+   *
+   * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
+   *
+   * @see {@link https://github.com/MetaMask/metamask-mobile/issues/8118 | Tracking issue}
    */
   export default FontAwesome5;
 }
@@ -172,10 +204,13 @@ declare module 'react-native-vector-icons/Octicons' {
   const Octicons: ComponentType<IconProps>;
 
   /**
-   * @deprecated The `<OcticonsIcon />` component has been deprecated in favor of the new `<Icon>` component from `@metamask/design-system-react-native`.
-   * Please update your code to use the new `<Icon>` component from `@metamask/design-system-react-native`.
-   * If you would like to help with the replacement of the usage of the Octicons component, please submit a pull request against this GitHub issue:
-   * {@link https://github.com/MetaMask/metamask-mobile/issues/8119}
+   * @deprecated The `<OcticonsIcon />` component has been deprecated in favor of `<Icon>` from `@metamask/design-system-react-native`.
+   *
+   * @see {@link https://github.com/MetaMask/design-system/tree/main/packages/design-system-react-native/src/components/Icons/Icon | Icon component}
+   *
+   * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
+   *
+   * @see {@link https://github.com/MetaMask/metamask-mobile/issues/8119 | Tracking issue}
    */
   export default Octicons;
 }
@@ -186,10 +221,13 @@ declare module 'react-native-vector-icons/Entypo' {
   const Entypo: ComponentType<IconProps>;
 
   /**
-   * @deprecated The `<EntypoIcon />` component has been deprecated in favor of the new `<Icon>` component from `@metamask/design-system-react-native`.
-   * Please update your code to use the new `<Icon>` component from `@metamask/design-system-react-native`.
-   * If you would like to help with the replacement of the usage of the Entypo component, please submit a pull request against this GitHub issue:
-   * {@link https://github.com/MetaMask/metamask-mobile/issues/8120}
+   * @deprecated The `<EntypoIcon />` component has been deprecated in favor of `<Icon>` from `@metamask/design-system-react-native`.
+   *
+   * @see {@link https://github.com/MetaMask/design-system/tree/main/packages/design-system-react-native/src/components/Icons/Icon | Icon component}
+   *
+   * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
+   *
+   * @see {@link https://github.com/MetaMask/metamask-mobile/issues/8120 | Tracking issue}
    */
   export default Entypo;
 }
@@ -200,10 +238,13 @@ declare module 'react-native-vector-icons/Foundation' {
   const Foundation: ComponentType<IconProps>;
 
   /**
-   * @deprecated The `<FoundationIcon />` component has been deprecated in favor of the new `<Icon>` component from `@metamask/design-system-react-native`.
-   * Please update your code to use the new `<Icon>` component from `@metamask/design-system-react-native`.
-   * If you would like to help with the replacement of the usage of the Foundation component, please submit a pull request against this GitHub issue:
-   * {@link https://github.com/MetaMask/metamask-mobile/issues/8121}
+   * @deprecated The `<FoundationIcon />` component has been deprecated in favor of `<Icon>` from `@metamask/design-system-react-native`.
+   *
+   * @see {@link https://github.com/MetaMask/design-system/tree/main/packages/design-system-react-native/src/components/Icons/Icon | Icon component}
+   *
+   * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
+   *
+   * @see {@link https://github.com/MetaMask/metamask-mobile/issues/8121 | Tracking issue}
    */
   export default Foundation;
 }
@@ -214,10 +255,13 @@ declare module 'react-native-vector-icons/Fontisto' {
   const Fontisto: ComponentType<IconProps>;
 
   /**
-   * @deprecated The `<FontistoIcon />` component has been deprecated in favor of the new `<Icon>` component from `@metamask/design-system-react-native`.
-   * Please update your code to use the new `<Icon>` component from `@metamask/design-system-react-native`.
-   * If you would like to help with the replacement of the usage of the Fontisto component, please submit a pull request against this GitHub issue:
-   * {@link https://github.com/MetaMask/metamask-mobile/issues/8122}
+   * @deprecated The `<FontistoIcon />` component has been deprecated in favor of `<Icon>` from `@metamask/design-system-react-native`.
+   *
+   * @see {@link https://github.com/MetaMask/design-system/tree/main/packages/design-system-react-native/src/components/Icons/Icon | Icon component}
+   *
+   * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
+   *
+   * @see {@link https://github.com/MetaMask/metamask-mobile/issues/8122 | Tracking issue}
    */
   export default Fontisto;
 }
@@ -228,10 +272,13 @@ declare module 'react-native-vector-icons/Zocial' {
   const Zocial: ComponentType<IconProps>;
 
   /**
-   * @deprecated The `<ZocialIcon />` component has been deprecated in favor of the new `<Icon>` component from `@metamask/design-system-react-native`.
-   * Please update your code to use the new `<Icon>` component from `@metamask/design-system-react-native`.
-   * If you would like to help with the replacement of the usage of the Zocial component, please submit a pull request against this GitHub issue:
-   * {@link https://github.com/MetaMask/metamask-mobile/issues/8123}
+   * @deprecated The `<ZocialIcon />` component has been deprecated in favor of `<Icon>` from `@metamask/design-system-react-native`.
+   *
+   * @see {@link https://github.com/MetaMask/design-system/tree/main/packages/design-system-react-native/src/components/Icons/Icon | Icon component}
+   *
+   * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
+   *
+   * @see {@link https://github.com/MetaMask/metamask-mobile/issues/8123 | Tracking issue}
    */
   export default Zocial;
 }
