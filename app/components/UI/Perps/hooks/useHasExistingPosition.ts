@@ -125,7 +125,7 @@ export function useHasExistingPosition(
         // because WebSocket cache is limited to ~100 recent fills and won't contain
         // position-opening fills for older positions. The REST API is needed for
         // historical data that predates the WebSocket connection.
-        const startTime = Date.now() - PERPS_CONSTANTS.FillsLookbackMs;
+        const startTime = Date.now() - PERPS_CONSTANTS.FILLS_LOOKBACK_MS;
         const controller = Engine.context.PerpsController;
         const fills = await controller.getOrderFills({ startTime });
 
