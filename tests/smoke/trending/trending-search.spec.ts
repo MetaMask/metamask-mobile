@@ -1,15 +1,15 @@
 import { SmokeWalletPlatform } from '../../../e2e/tags';
-import { loginToApp } from '../../../e2e/viewHelper.ts';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.ts';
+import { loginToApp } from '../../../e2e/viewHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { Mockttp } from 'mockttp';
 import { Assertions } from '../../framework';
-import TrendingView from '../../page-objects/Trending/TrendingView.ts';
-import { TRENDING_API_MOCKS } from '../../api-mocking/mock-responses/trending-api-mocks.ts';
-import { setupMockEvents } from '../../api-mocking/helpers/mockHelpers.ts';
-import { remoteFeatureFlagTrendingTokensEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks.ts';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent.ts';
+import TrendingView from '../../page-objects/Trending/TrendingView';
+import { TRENDING_API_MOCKS } from '../../api-mocking/mock-responses/trending-api-mocks';
+import { setupMockEvents } from '../../api-mocking/helpers/mockHelpers';
+import { remoteFeatureFlagTrendingTokensEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
 
 describe(SmokeWalletPlatform('Trending Search Smoke Test'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {

@@ -1,16 +1,16 @@
 import { SmokeWalletPlatform } from '../../../e2e/tags';
-import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper.ts';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
-import { DappVariants } from '../../framework/Constants.ts';
+import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { DappVariants } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
 import { Assertions } from '../../framework';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.ts';
-import { TRENDING_API_MOCKS } from '../../api-mocking/mock-responses/trending-api-mocks.ts';
-import { setupMockEvents } from '../../api-mocking/helpers/mockHelpers.ts';
-import { remoteFeatureFlagTrendingTokensEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks.ts';
-import Browser from '../../../e2e/pages/Browser/BrowserView.ts';
-import TestDApp from '../../../e2e/pages/Browser/TestDApp.ts';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { TRENDING_API_MOCKS } from '../../api-mocking/mock-responses/trending-api-mocks';
+import { setupMockEvents } from '../../api-mocking/helpers/mockHelpers';
+import { remoteFeatureFlagTrendingTokensEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import Browser from '../../../e2e/pages/Browser/BrowserView';
+import TestDApp from '../../../e2e/pages/Browser/TestDApp';
 
 describe(SmokeWalletPlatform('Trending Feature Browser Test'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {

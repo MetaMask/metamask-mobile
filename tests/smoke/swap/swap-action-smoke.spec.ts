@@ -1,23 +1,23 @@
-import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
-import { LocalNode, LocalNodeType } from '../../framework/types.ts';
-import SoftAssert from '../../framework/SoftAssert.ts';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
-import Assertions from '../../framework/Assertions.ts';
-import WalletView from '../../../e2e/pages/wallet/WalletView.ts';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { LocalNode, LocalNodeType } from '../../framework/types';
+import SoftAssert from '../../framework/SoftAssert';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import Assertions from '../../framework/Assertions';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
 import { SmokeTrade } from '../../../e2e/tags';
-import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView.ts';
-import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds.ts';
+import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView';
+import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 import {
   EventPayload,
   getEventsPayloads,
-} from '../../helpers/analytics/helpers.ts';
-import { submitSwapUnifiedUI } from '../../helpers/swap/swap-unified-ui.ts';
-import { loginToApp } from '../../../e2e/viewHelper.ts';
-import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment.ts';
-import { logger } from '../../framework/logger.ts';
-import { testSpecificMock } from '../../helpers/swap/swap-mocks.ts';
-import { AnvilPort } from '../../framework/fixtures/FixtureUtils.ts';
-import { AnvilManager } from '../../seeder/anvil-manager.ts';
+} from '../../helpers/analytics/helpers';
+import { submitSwapUnifiedUI } from '../../helpers/swap/swap-unified-ui';
+import { loginToApp } from '../../../e2e/viewHelper';
+import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment';
+import { logger } from '../../framework/logger';
+import { testSpecificMock } from '../../helpers/swap/swap-mocks';
+import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 const EVENT_NAMES = {
   SWAP_STARTED: 'Swap Started',

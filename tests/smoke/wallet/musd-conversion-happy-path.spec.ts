@@ -1,24 +1,24 @@
 import { SmokeWalletPlatform } from '../../../e2e/tags';
 import TestHelpers from '../../../e2e/helpers';
-import WalletView from '../../../e2e/pages/wallet/WalletView.ts';
-import { loginToApp } from '../../../e2e/viewHelper.ts';
-import Assertions from '../../framework/Assertions.ts';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import { loginToApp } from '../../../e2e/viewHelper';
+import Assertions from '../../framework/Assertions';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import {
   LocalNode,
   LocalNodeType,
   type WithFixturesOptions,
-} from '../../framework/types.ts';
-import { AnvilManager } from '../../seeder/anvil-manager.ts';
-import TransactionPayConfirmation from '../../../e2e/pages/Confirmation/TransactionPayConfirmation.ts';
-import FooterActions from '../../../e2e/pages/Browser/Confirmations/FooterActions.ts';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent.ts';
-import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView.ts';
-import { setupMusdMocks } from '../../api-mocking/mock-responses/musd/musd-mocks.ts';
+} from '../../framework/types';
+import { AnvilManager } from '../../seeder/anvil-manager';
+import TransactionPayConfirmation from '../../../e2e/pages/Confirmation/TransactionPayConfirmation';
+import FooterActions from '../../../e2e/pages/Browser/Confirmations/FooterActions';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView';
+import { setupMusdMocks } from '../../api-mocking/mock-responses/musd/musd-mocks';
 import {
   createMusdFixture,
   type MusdFixtureOptions,
-} from './helpers/musd-fixture.ts';
+} from './helpers/musd-fixture';
 
 /**
  * Returns the shared withFixtures config for mUSD conversion tests.

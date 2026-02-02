@@ -1,17 +1,17 @@
 'use strict';
 /* eslint-disable no-console */
-import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
-import { LocalNode, LocalNodeType } from '../../framework/types.ts';
-import { loginToApp } from '../../../e2e/viewHelper.ts';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
-import { AnvilManager } from '../../seeder/anvil-manager.ts';
-import { AnvilPort } from '../../framework/fixtures/FixtureUtils.ts';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { LocalNode, LocalNodeType } from '../../framework/types';
+import { loginToApp } from '../../../e2e/viewHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { AnvilManager } from '../../seeder/anvil-manager';
+import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { SmokeTrade } from '../../../e2e/tags';
-import Assertions from '../../framework/Assertions.ts';
-import QuoteView from '../../../e2e/pages/swaps/QuoteView.ts';
-import { testSpecificMock } from '../../helpers/swap/swap-mocks.ts';
-import WalletView from '../../../e2e/pages/wallet/WalletView.ts';
-import DeeplinkModal from '../../../e2e/pages/swaps/Deeplink.ts';
+import Assertions from '../../framework/Assertions';
+import QuoteView from '../../../e2e/pages/swaps/QuoteView';
+import { testSpecificMock } from '../../helpers/swap/swap-mocks';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import DeeplinkModal from '../../../e2e/pages/swaps/Deeplink';
 
 // Deep link URLs for testing unified swap/bridge experience
 // Note: URLs use 'swap' terminology for backward compatibility but redirect to unified bridge experience

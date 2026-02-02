@@ -7,10 +7,10 @@ import { RegressionTrade } from '../../tags';
 import {
   submitSwapUnifiedUI,
   checkSwapActivity,
-} from '../../../tests/helpers/swap/swap-unified-ui.ts';
+} from '../../../tests/helpers/swap/swap-unified-ui';
 import { loginToApp } from '../../viewHelper';
-import { prepareSwapsTestEnvironment } from '../../../tests/helpers/swap/prepareSwapsTestEnvironment.ts';
-import { testSpecificMock } from '../../../tests/helpers/swap/swap-mocks.ts';
+import { prepareSwapsTestEnvironment } from '../../../tests/helpers/swap/prepareSwapsTestEnvironment';
+import { testSpecificMock } from '../../../tests/helpers/swap/swap-mocks';
 import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 

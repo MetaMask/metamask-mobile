@@ -1,16 +1,16 @@
-import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
-import { LocalNode, LocalNodeType } from '../../framework/types.ts';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
-import Assertions from '../../framework/Assertions.ts';
-import WalletView from '../../../e2e/pages/wallet/WalletView.ts';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { LocalNode, LocalNodeType } from '../../framework/types';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import Assertions from '../../framework/Assertions';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
 import { SmokeTrade } from '../../../e2e/tags';
-import { loginToApp } from '../../../e2e/viewHelper.ts';
-import { logger } from '../../framework/logger.ts';
-import { AnvilPort } from '../../framework/fixtures/FixtureUtils.ts';
-import { AnvilManager } from '../../seeder/anvil-manager.ts';
-import QuoteView from '../../../e2e/pages/swaps/QuoteView.ts';
-import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers.ts';
-import { GASLESS_SWAP_QUOTES_ETH_MUSD } from '../../helpers/swap/constants.ts';
+import { loginToApp } from '../../../e2e/viewHelper';
+import { logger } from '../../framework/logger';
+import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
+import { AnvilManager } from '../../seeder/anvil-manager';
+import QuoteView from '../../../e2e/pages/swaps/QuoteView';
+import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
+import { GASLESS_SWAP_QUOTES_ETH_MUSD } from '../../helpers/swap/constants';
 
 describe(SmokeTrade('Gasless Swap - '), (): void => {
   const chainId = '0x1';

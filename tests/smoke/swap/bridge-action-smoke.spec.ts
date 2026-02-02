@@ -1,19 +1,19 @@
-import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
-import { LocalNode, LocalNodeType } from '../../framework/types.ts';
-import { loginToApp } from '../../../e2e/viewHelper.ts';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent.ts';
-import QuoteView from '../../../e2e/pages/swaps/QuoteView.ts';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
-import WalletView from '../../../e2e/pages/wallet/WalletView.ts';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { LocalNode, LocalNodeType } from '../../framework/types';
+import { loginToApp } from '../../../e2e/viewHelper';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import QuoteView from '../../../e2e/pages/swaps/QuoteView';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
 import TestHelpers from '../../../e2e/helpers';
 import { SmokeTrade } from '../../../e2e/tags';
-import Assertions from '../../framework/Assertions.ts';
-import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView.ts';
-import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment.ts';
-import { testSpecificMock } from '../../helpers/swap/bridge-mocks.ts';
-import SoftAssert from '../../framework/SoftAssert.ts';
-import { AnvilPort } from '../../framework/fixtures/FixtureUtils.ts';
-import { AnvilManager } from '../../seeder/anvil-manager.ts';
+import Assertions from '../../framework/Assertions';
+import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView';
+import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment';
+import { testSpecificMock } from '../../helpers/swap/bridge-mocks';
+import SoftAssert from '../../framework/SoftAssert';
+import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 enum eventsToCheck {
   BRIDGE_BUTTON_CLICKED = 'Bridge Button Clicked',

@@ -1,13 +1,13 @@
 'use strict';
 import { Mockttp } from 'mockttp';
-import { loginToApp } from '../../../e2e/viewHelper.ts';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent.ts';
-import WalletActionsBottomSheet from '../../../e2e/pages/wallet/WalletActionsBottomSheet.ts';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
+import { loginToApp } from '../../../e2e/viewHelper';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../../e2e/pages/wallet/WalletActionsBottomSheet';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SmokeTrade } from '../../../e2e/tags.js';
-import WalletView from '../../../e2e/pages/wallet/WalletView.ts';
-import Assertions from '../../framework/Assertions.ts';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import Assertions from '../../framework/Assertions';
 import TestHelpers from '../../../e2e/helpers.js';
 
 describe(SmokeTrade('Trade: Unified UI Wallet Actions'), () => {

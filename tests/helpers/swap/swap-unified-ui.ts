@@ -1,8 +1,8 @@
 import TestHelpers from '../../../e2e/helpers';
-import QuoteView from '../../../e2e/pages/swaps/QuoteView.ts';
-import Assertions from '../../framework/Assertions.ts';
-import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView.ts';
-import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds.ts';
+import QuoteView from '../../../e2e/pages/swaps/QuoteView';
+import Assertions from '../../framework/Assertions';
+import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView';
+import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 
 export async function submitSwapUnifiedUI(
   quantity: string,

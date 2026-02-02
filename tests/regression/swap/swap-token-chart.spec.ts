@@ -1,21 +1,21 @@
 'use strict';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
-import { LocalNode, LocalNodeType } from '../../framework/types.ts';
-import { loginToApp } from '../../../e2e/viewHelper.ts';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent.ts';
-import WalletView from '../../../e2e/pages/wallet/WalletView.ts';
-import TokenOverview from '../../../e2e/pages/wallet/TokenOverview.ts';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { LocalNode, LocalNodeType } from '../../framework/types';
+import { loginToApp } from '../../../e2e/viewHelper';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import TokenOverview from '../../../e2e/pages/wallet/TokenOverview';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import TestHelpers from '../../../e2e/helpers';
 import { RegressionTrade } from '../../../e2e/tags';
-import Assertions from '../../framework/Assertions.ts';
-import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView.ts';
-import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds.ts';
-import { submitSwapUnifiedUI } from '../../helpers/swap/swap-unified-ui.ts';
-import { testSpecificMock } from '../../helpers/swap/swap-mocks.ts';
-import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment.ts';
-import { AnvilPort } from '../../framework/fixtures/FixtureUtils.ts';
-import { AnvilManager } from '../../seeder/anvil-manager.ts';
+import Assertions from '../../framework/Assertions';
+import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView';
+import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
+import { submitSwapUnifiedUI } from '../../helpers/swap/swap-unified-ui';
+import { testSpecificMock } from '../../helpers/swap/swap-mocks';
+import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment';
+import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 describe(RegressionTrade('Swap from Token view'), (): void => {
   jest.setTimeout(120000);
