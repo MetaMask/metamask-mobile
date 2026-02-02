@@ -163,22 +163,6 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
     secrets: inherit
 
-  rewards-ios-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeRewards')
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: rewards-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: 'SmokeRewards'
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      changed_files: ${{ inputs.changed_files }}
-    secrets: inherit
-
   card-ios-smoke:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeCard')
     strategy:
@@ -241,7 +225,6 @@ jobs:
       - network-abstraction-ios-smoke
       - network-expansion-ios-smoke
       - prediction-market-ios-smoke
-      - rewards-ios-smoke
       - card-ios-smoke
       - ramps-ios-smoke
       - multichain-api-ios-smoke
