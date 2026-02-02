@@ -86,11 +86,11 @@ jest.mock('../PredictMarketRowItem', () => {
   };
 });
 
-jest.mock('../PredictMarketSkeleton', () => {
+jest.mock('./PredictHomeSkeleton', () => {
   const ReactNative = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: () => <ReactNative.View testID="mock-skeleton" />,
+    default: () => <ReactNative.View testID="predict-home-skeleton" />,
   };
 });
 
@@ -217,7 +217,7 @@ describe('PredictHomeFeaturedList', () => {
   });
 
   describe('data loading', () => {
-    it('renders loading skeletons when fetching and no data', () => {
+    it('renders loading skeleton when fetching and no data', () => {
       mockUsePredictMarketData.mockReturnValue({
         marketData: [],
         isFetching: true,
@@ -230,8 +230,7 @@ describe('PredictHomeFeaturedList', () => {
 
       render(<PredictHomeFeaturedList />);
 
-      const skeletons = screen.getAllByTestId('mock-skeleton');
-      expect(skeletons).toHaveLength(3);
+      expect(screen.getByTestId('predict-home-skeleton')).toBeOnTheScreen();
     });
 
     it('renders market items when data is available', () => {

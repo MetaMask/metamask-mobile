@@ -21,7 +21,7 @@ import { PredictEntryPointProvider } from '../../contexts';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
 import PredictMarketRowItem from '../PredictMarketRowItem';
-import PredictMarketSkeleton from '../PredictMarketSkeleton';
+import PredictHomeSkeleton from './PredictHomeSkeleton';
 
 interface PredictHomeFeaturedListProps {
   testID?: string;
@@ -71,9 +71,7 @@ const PredictHomeFeaturedList: React.FC<PredictHomeFeaturedListProps> = ({
             />
           </Box>
         </TouchableOpacity>
-        {[0, 1, 2].map((i) => (
-          <PredictMarketSkeleton key={i} />
-        ))}
+        <PredictHomeSkeleton />
       </Box>
     );
   }
