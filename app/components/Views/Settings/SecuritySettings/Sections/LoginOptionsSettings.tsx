@@ -86,6 +86,55 @@ const LoginOptionsSettings = () => {
     getOptions();
   }, []);
 
+  const navigateToPasswordEntry = useCallback(
+    (enabled: boolean) => {
+      const authType = enabled
+        ? AUTHENTICATION_TYPE.BIOMETRIC
+        : AUTHENTICATION_TYPE.PASSWORD;
+
+      navigation.navigate('EnterPasswordSimple', {
+        onPasswordSet: async (enteredPassword: string) => {
+          // Set loading back to true when callback is invoked
+          setIsBiometricLoading(true);
+          try {
+            await Authentication.updateAuthPreference({
+              authType,
+              password: enteredPassword,
+            });
+
+            // Update UI state after successful password entry
+            setBiometryChoice(enabled);
+            // Biometrics and passcode are mutually exclusive - enabling one disables the other
+            // Disabling biometrics switches to PASSWORD which disables both
+            setPasscodeChoice(false);
+
+            // Re-fetch to ensure UI matches actual state
+            const currentAuthType = await Authentication.getType();
+            const previouslyDisabled = await StorageWrapper.getItem(
+              BIOMETRY_CHOICE_DISABLED,
+            );
+            setBiometryChoice(
+              currentAuthType.currentAuthType ===
+                AUTHENTICATION_TYPE.BIOMETRIC &&
+                !(previouslyDisabled && previouslyDisabled === TRUE),
+            );
+          } catch (updateError) {
+            // On error, revert UI state
+            setBiometryChoice(!enabled);
+            Logger.error(
+              updateError as Error,
+              'Failed to update auth preference after password entry',
+            );
+          } finally {
+            // Clear loading after callback completes
+            setIsBiometricLoading(false);
+          }
+        },
+      });
+    },
+    [navigation],
+  );
+
   const onBiometricsOptionUpdated = useCallback(
     async (enabled: boolean) => {
       // Prevent toggling biometrics when remember me is enabled
@@ -94,72 +143,37 @@ const LoginOptionsSettings = () => {
       }
 
       setIsBiometricLoading(true);
-      try {
-        const authType = enabled
-          ? AUTHENTICATION_TYPE.BIOMETRIC
-          : AUTHENTICATION_TYPE.PASSWORD;
 
-        // Enabling biometrics is handled by the catch condition  "isPasswordRequiredError"
+      // When DISABLING biometrics, go directly to password entry
+      if (!enabled) {
+        navigateToPasswordEntry(enabled);
+        setIsBiometricLoading(false);
+        return;
+      }
+
+      // When ENABLING biometrics, try the normal flow first
+      try {
+        const authType = AUTHENTICATION_TYPE.BIOMETRIC;
+
+        // Enabling biometrics is handled by the catch condition "isPasswordRequiredError"
         await Authentication.updateAuthPreference({ authType });
 
         // Only update UI if operation completed successfully
         setBiometryChoice(enabled);
-        // Biometrics and passcode are mutually exclusive - enabling one disables the other
-        // Disabling biometrics switches to PASSWORD which disables both
+        // Biometrics and passcode are mutually exclusive
         setPasscodeChoice(false);
       } catch (error) {
-        // Check if error is "password required" - navigate to password entry
         const isPasswordRequiredError =
           error instanceof AuthenticationError &&
           error.customErrorMessage ===
             AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS;
 
-        if (isPasswordRequiredError) {
-          // Navigate to password entry
-          const authType = enabled
-            ? AUTHENTICATION_TYPE.BIOMETRIC
-            : AUTHENTICATION_TYPE.PASSWORD;
+        // Check if biometrics was cancelled or failed
+        const isBiometricError =
+          error instanceof Error && error.message?.includes('BIOMETRIC_ERROR');
 
-          navigation.navigate('EnterPasswordSimple', {
-            onPasswordSet: async (enteredPassword: string) => {
-              // Set loading back to true when callback is invoked
-              setIsBiometricLoading(true);
-              try {
-                await Authentication.updateAuthPreference({
-                  authType,
-                  password: enteredPassword,
-                });
-
-                // Update UI state after successful password entry and update
-                setBiometryChoice(enabled);
-                // Biometrics and passcode are mutually exclusive - enabling one disables the other
-                // Disabling biometrics switches to PASSWORD which disables both
-                setPasscodeChoice(false);
-
-                // Re-fetch to ensure UI matches actual state
-                const currentAuthType = await Authentication.getType();
-                const previouslyDisabled = await StorageWrapper.getItem(
-                  BIOMETRY_CHOICE_DISABLED,
-                );
-                setBiometryChoice(
-                  currentAuthType.currentAuthType ===
-                    AUTHENTICATION_TYPE.BIOMETRIC &&
-                    !(previouslyDisabled && previouslyDisabled === TRUE),
-                );
-              } catch (updateError) {
-                // On error, revert UI state
-                setBiometryChoice(!enabled);
-                Logger.error(
-                  updateError as Error,
-                  'Failed to update auth preference after password entry',
-                );
-              } finally {
-                // Clear loading after callback completes
-                setIsBiometricLoading(false);
-              }
-            },
-          });
-          // Don't update UI state here - wait for callback
+        if (isPasswordRequiredError || isBiometricError) {
+          navigateToPasswordEntry(enabled);
           return;
         }
         // Other error - revert toggle state
@@ -172,7 +186,7 @@ const LoginOptionsSettings = () => {
         setIsBiometricLoading(false);
       }
     },
-    [navigation, allowLoginWithRememberMe],
+    [allowLoginWithRememberMe, navigateToPasswordEntry],
   );
   const onPasscodeOptionUpdated = useCallback(
     async (enabled: boolean) => {
