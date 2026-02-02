@@ -7,6 +7,7 @@ import { selectSelectedInternalAccount } from '../../../../selectors/accountsCon
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
+import { selectSortedAssetsBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
   ActionButtonType,
@@ -49,6 +50,10 @@ jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
 
 jest.mock('../../../../reducers/fiatOrders', () => ({
   getDetectedGeolocation: jest.fn(),
+}));
+
+jest.mock('../../../../selectors/assets/assets-list', () => ({
+  selectSortedAssetsBySelectedAccountGroup: jest.fn(),
 }));
 
 const mockTrackEvent = jest.fn();
@@ -172,6 +177,9 @@ describe('useTokenActions', () => {
       if (selector === getDetectedGeolocation) {
         return 'US';
       }
+      if (selector === selectSortedAssetsBySelectedAccountGroup) {
+        return []; // Empty array of user assets
+      }
       if (typeof selector === 'function') {
         return 'ETH';
       }
@@ -210,12 +218,16 @@ describe('useTokenActions', () => {
       expect(result.current).toHaveProperty('onSend');
       expect(result.current).toHaveProperty('onReceive');
       expect(result.current).toHaveProperty('goToSwaps');
+      expect(result.current).toHaveProperty('handleBuyPress');
+      expect(result.current).toHaveProperty('handleSellPress');
       expect(result.current).toHaveProperty('networkModal');
 
       expect(typeof result.current.onBuy).toBe('function');
       expect(typeof result.current.onSend).toBe('function');
       expect(typeof result.current.onReceive).toBe('function');
       expect(typeof result.current.goToSwaps).toBe('function');
+      expect(typeof result.current.handleBuyPress).toBe('function');
+      expect(typeof result.current.handleSellPress).toBe('function');
     });
   });
 
