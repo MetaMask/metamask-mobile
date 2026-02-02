@@ -254,6 +254,14 @@ describe('LedgerConnect', () => {
     );
   });
 
+  it('displays error on LedgerCommunicationError EthAppNotOpen', () => {
+    checkLedgerCommunicationErrorFlow(
+      LedgerCommunicationErrors.EthAppNotOpen,
+      strings('ledger.eth_app_not_open'),
+      strings('ledger.eth_app_not_open_message'),
+    );
+  });
+
   it('navigates to selectHardwareWallet on default LedgerCommunicationError', () => {
     const navigate = jest.fn();
     jest.mocked(useNavigation).mockReturnValue({

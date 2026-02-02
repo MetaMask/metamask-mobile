@@ -5584,6 +5584,8 @@
     "running_app_close_error": "Failed to close the running app on your Ledger device.",
     "ethereum_app_not_installed": "Ethereum app not installed.",
     "ethereum_app_not_installed_error": "Please install the Ethereum app on your Ledger device.",
+    "eth_app_not_open": "Ethereum app not open",
+    "eth_app_not_open_message": "Please open the Ethereum app on your Ledger device.",
     "ledger_is_locked": "Ledger is locked",
     "unlock_ledger_message": "Please unlock your Ledger device",
     "cannot_get_account": "Cannot get account",

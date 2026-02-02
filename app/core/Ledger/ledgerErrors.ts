@@ -5,6 +5,7 @@ export enum LedgerCommunicationErrors {
   FailedToCloseApp = 'FailedToCloseApp',
   UserRefusedConfirmation = 'UserRefusedConfirmation',
   AppIsNotInstalled = 'AppIsNotInstalled',
+  EthAppNotOpen = 'EthAppNotOpen',
   LedgerIsLocked = 'LedgerIsLocked',
   NotSupported = 'NotSupported',
   UnknownError = 'UnknownError',

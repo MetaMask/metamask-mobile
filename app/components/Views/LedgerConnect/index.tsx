@@ -236,6 +236,12 @@ const LedgerConnect = ({
             strings('ledger.unlock_ledger_message'),
           );
           break;
+        case LedgerCommunicationErrors.EthAppNotOpen:
+          handleErrorWithRetry(
+            strings('ledger.eth_app_not_open'),
+            strings('ledger.eth_app_not_open_message'),
+          );
+          break;
         case LedgerCommunicationErrors.UnknownError:
         case LedgerCommunicationErrors.LedgerDisconnected:
           if (retryTimes < 3) {

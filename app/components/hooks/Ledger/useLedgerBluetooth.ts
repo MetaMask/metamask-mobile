@@ -213,6 +213,11 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
           case 0x6b0c:
             setLedgerError(LedgerCommunicationErrors.LedgerIsLocked);
             break;
+          case 0x6d00:
+          case 0x6e00:
+            // CLA_NOT_SUPPORTED or INS_NOT_SUPPORTED - ETH app is not running
+            setLedgerError(LedgerCommunicationErrors.EthAppNotOpen);
+            break;
           default:
             setLedgerError(LedgerCommunicationErrors.UserRefusedConfirmation);
             break;

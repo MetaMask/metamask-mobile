@@ -161,6 +161,12 @@ const LedgerConfirmationModal = ({
             subtitle: strings('ledger.unlock_ledger_message'),
           });
           break;
+        case LedgerCommunicationErrors.EthAppNotOpen:
+          setErrorDetails({
+            title: strings('ledger.eth_app_not_open'),
+            subtitle: strings('ledger.eth_app_not_open_message'),
+          });
+          break;
         case LedgerCommunicationErrors.BlindSignError:
           setErrorDetails({
             title: strings('ledger.blind_sign_error'),
