@@ -23,7 +23,7 @@ const styleSheet = (params: {
   vars: BottomSheetFooterStyleSheetVars;
 }) => {
   const { vars } = params;
-  const { style, buttonsAlignment } = vars;
+  const { style, buttonsAlignment, buttonGap = 16 } = vars;
   const buttonStyle: ViewStyle =
     buttonsAlignment === ButtonsAlignment.Horizontal
       ? { flex: 1 }
@@ -44,8 +44,9 @@ const styleSheet = (params: {
     },
     subsequentButton: {
       ...buttonStyle,
-      marginLeft: buttonsAlignment === ButtonsAlignment.Horizontal ? 16 : 0,
-      marginTop: buttonsAlignment === ButtonsAlignment.Vertical ? 16 : 0,
+      marginLeft:
+        buttonsAlignment === ButtonsAlignment.Horizontal ? buttonGap : 0,
+      marginTop: buttonsAlignment === ButtonsAlignment.Vertical ? buttonGap : 0,
     },
   });
 };

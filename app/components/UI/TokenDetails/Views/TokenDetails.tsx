@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { selectTokenDetailsV2Enabled } from '../../../../selectors/featureFlagController/tokenDetailsV2';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import Asset from '../../../Views/Asset';
@@ -39,6 +40,13 @@ import { getIsSwapsAssetAllowed } from '../../../Views/Asset/utils';
 import ActivityHeader from '../../../Views/Asset/ActivityHeader';
 import Transactions from '../../Transactions';
 import MultichainTransactionsView from '../../../Views/MultichainTransactionsView/MultichainTransactionsView';
+import BottomSheetFooter, {
+  ButtonsAlignment,
+} from '../../../../component-library/components/BottomSheets/BottomSheetFooter';
+import {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../../component-library/components/Buttons/Button';
 
 interface TokenDetailsProps {
   route: {
@@ -60,6 +68,15 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       justifyContent: 'center',
     },
+    bottomSheetFooterWrapper: {
+      backgroundColor: colors.background.default,
+      paddingTop: 16,
+      paddingHorizontal: 16,
+    },
+    bottomSheetFooter: {
+      paddingVertical: 0,
+      paddingHorizontal: 0,
+    },
   });
 };
 
@@ -70,6 +87,7 @@ const styleSheet = (params: { theme: Theme }) => {
 const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     endTrace({ name: TraceName.AssetDetails });
@@ -130,12 +148,18 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
 
   const isTokenBuyable = useTokenBuyability(token);
 
-  const { onBuy, onSend, onReceive, goToSwaps, networkModal } = useTokenActions(
-    {
-      token,
-      networkName,
-    },
-  );
+  const {
+    onBuy,
+    onSend,
+    onReceive,
+    goToSwaps,
+    handleBuyPress,
+    handleSellPress,
+    networkModal,
+  } = useTokenActions({
+    token,
+    networkName,
+  });
 
   const {
     transactions,
@@ -267,6 +291,39 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
         />
       )}
       {networkModal}
+      {!txLoading && displaySwapsButton && (
+        <View
+          style={[
+            styles.bottomSheetFooterWrapper,
+            { paddingBottom: insets.bottom + 6 },
+          ]}
+        >
+          <BottomSheetFooter
+            style={styles.bottomSheetFooter}
+            buttonGap={12}
+            buttonPropsArray={[
+              {
+                variant: ButtonVariants.Primary,
+                label: 'Buy',
+                size: ButtonSize.Lg,
+                onPress: handleBuyPress,
+              },
+              // Only show Sell button if user has balance of this token
+              ...(token.balance && parseFloat(token.balance) > 0
+                ? [
+                    {
+                      variant: ButtonVariants.Primary,
+                      label: 'Sell',
+                      size: ButtonSize.Lg,
+                      onPress: handleSellPress,
+                    },
+                  ]
+                : []),
+            ]}
+            buttonsAlignment={ButtonsAlignment.Horizontal}
+          />
+        </View>
+      )}
     </View>
   );
 };
