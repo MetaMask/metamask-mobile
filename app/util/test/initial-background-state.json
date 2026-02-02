@@ -734,6 +734,7 @@
     "accounts": {},
     "activeAccount": null,
     "activeBoosts": {},
+    "pointsEstimateHistory": [],
     "pointsEvents": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
@@ -752,11 +753,13 @@
     "accountMeta": {}
   },
   "RampsController": {
+    "countries": [],
     "paymentMethods": [],
     "userRegion": null,
-    "preferredProvider": null,
+    "selectedProvider": null,
     "providers": [],
     "selectedPaymentMethod": null,
+    "selectedToken": null,
     "tokens": null,
     "requests": {}
   }
