@@ -3,14 +3,10 @@ import type { AnalyticsUnfilteredProperties } from './analytics.types';
 
 /**
  * Returns an empty object if input is null/undefined, or a copy of the given object with `undefined` property values removed.
- * Use this before passing properties to `addProperties()` or `addSensitiveProperties()` so
- * the payload matches `AnalyticsEventProperties` (which does not allow undefined values).
+ * Used internally by `AnalyticsEventBuilder.addProperties()` and `addSensitiveProperties()` so callers can pass unfiltered
+ * objects directly; call this only when you need a filtered plain object for other uses.
  *
- * **When to use:** Whenever the object can have optional keys or values that are
- * `undefined` (e.g. attribution, event params, or spread from optional types).
- *
- * **Top-level null/undefined:** If `unfilteredProperties` is `null` or `undefined`,
- * returns `{}`.
+ * **Top-level null/undefined:** If `unfilteredProperties` is `null` or `undefined`, returns `{}`.
  *
  * **Property values:** Only `undefined` is removed. `null` is kept (valid in JSON).
  * Falsy but defined values (`0`, `false`, `''`) are kept.
@@ -22,14 +18,6 @@ import type { AnalyticsUnfilteredProperties } from './analytics.types';
  * // Object with mixed defined and undefined
  * filterUndefinedValues({ a: 'x', b: undefined, c: 0 });
  * // => { a: 'x', c: 0 }
- *
- * @example
- * // Safe to pass to analytics builder
- * eventBuilder.addProperties(filterUndefinedValues(attribution));
- *
- * @example
- * // Casting specific event interfaces
- * eventBuilder.addProperties(filterUndefinedValues(params as AnalyticsUnfilteredProperties));
  */
 export function filterUndefinedValues(
   unfilteredProperties: AnalyticsUnfilteredProperties,
