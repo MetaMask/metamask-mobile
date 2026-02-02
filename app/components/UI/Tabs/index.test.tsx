@@ -52,7 +52,11 @@ const mockInitialState = {
 const mockInset = { top: 1, right: 2, bottom: 3, left: 4 };
 jest.mock('react-native-safe-area-context', () => ({
   SafeAreaInsetsContext: {
-    Consumer: ({ children }: { children: (inset: typeof mockInset) => React.ReactNode }) => children(mockInset),
+    Consumer: ({
+      children,
+    }: {
+      children: (inset: typeof mockInset) => React.ReactNode;
+    }) => children(mockInset),
   },
 }));
 
@@ -170,11 +174,15 @@ describe('Tabs', () => {
         { state: mockInitialState },
       );
 
-      expect(getByTestId(BrowserViewSelectorsIDs.NO_TABS_MESSAGE)).toBeDefined();
+      expect(
+        getByTestId(BrowserViewSelectorsIDs.NO_TABS_MESSAGE),
+      ).toBeDefined();
     });
 
     it('renders with single tab', () => {
-      const singleTab = [{ id: 1, url: 'https://example.com', image: 'image1' }];
+      const singleTab = [
+        { id: 1, url: 'https://example.com', image: 'image1' },
+      ];
 
       const { toJSON } = renderWithProvider(
         <Tabs
@@ -204,7 +212,9 @@ describe('Tabs', () => {
         { state: mockInitialState },
       );
 
-      expect(getByTestId(BrowserViewSelectorsIDs.TABS_BACK_BUTTON)).toBeDefined();
+      expect(
+        getByTestId(BrowserViewSelectorsIDs.TABS_BACK_BUTTON),
+      ).toBeDefined();
       expect(getByTestId(BrowserViewSelectorsIDs.ADD_NEW_TAB)).toBeDefined();
     });
 

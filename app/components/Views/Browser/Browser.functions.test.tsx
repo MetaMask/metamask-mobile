@@ -492,9 +492,7 @@ describe('Browser - Function Coverage Tests', () => {
     it('renders DiscoveryTab when token discovery enabled and no URL', () => {
       jest.mocked(isTokenDiscoveryBrowserEnabled).mockReturnValue(true);
 
-      const tabs = [
-        { id: 1, url: undefined, image: '', isArchived: false },
-      ];
+      const tabs = [{ id: 1, url: undefined, image: '', isArchived: false }];
 
       const { getByTestId } = renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
@@ -629,9 +627,7 @@ describe('Browser - Function Coverage Tests', () => {
   describe('showTabsView with no active tab URL', () => {
     it('handles showTabs when active tab URL is undefined', async () => {
       const mockLoggerError = Logger.error as jest.Mock;
-      const tabs = [
-        { id: 1, url: undefined, image: '', isArchived: false },
-      ];
+      const tabs = [{ id: 1, url: undefined, image: '', isArchived: false }];
 
       let showTabsCallback: (() => Promise<void>) | undefined;
       const BrowserTabMock = jest.mocked(BrowserTab);
@@ -868,7 +864,10 @@ describe('Browser - Function Coverage Tests', () => {
 
       // Call updateTabInfo
       if (updateTabInfoCallback) {
-        updateTabInfoCallback(1, { url: 'https://updated.com', title: 'Updated' });
+        updateTabInfoCallback(1, {
+          url: 'https://updated.com',
+          title: 'Updated',
+        });
       }
 
       expect(mockUpdateTab).toHaveBeenCalledWith(1, {
