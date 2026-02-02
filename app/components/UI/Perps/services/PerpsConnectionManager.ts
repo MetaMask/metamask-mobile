@@ -873,13 +873,21 @@ class PerpsConnectionManagerClass {
       // Get the singleton StreamManager instance
       const streamManager = getStreamManagerInstance();
 
-      // Pre-warm all channels including prices for all markets
+      // CRITICAL: Pre-warm market data FIRST and WAIT for it to complete
+      // This ensures market lookup works when positions are clicked after reconnection
+      // Without this, there's a race condition where positions render before market data
+      // is available, causing silent navigation failures in PerpsCard
+      DevLogger.log(
+        'PerpsConnectionManager: Pre-warming market data (awaiting)',
+      );
+      const marketDataCleanup = await streamManager.marketData.prewarmAsync();
+
+      // Now pre-warm position/order channels - market data is guaranteed available
       // This creates persistent subscriptions that keep connections alive
       // Store cleanup functions to call when leaving Perps
       const positionCleanup = streamManager.positions.prewarm();
       const orderCleanup = streamManager.orders.prewarm();
       const accountCleanup = streamManager.account.prewarm();
-      const marketDataCleanup = streamManager.marketData.prewarm();
       const oiCapCleanup = streamManager.oiCaps.prewarm();
       const fillsCleanup = streamManager.fills.prewarm();
 

@@ -1279,11 +1279,28 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   }
 
   /**
-   * Prewarm market data cache
+   * Prewarm market data cache (async version)
+   * Waits for market data to be fetched before returning
+   * This ensures market lookup works when positions are clicked after reconnection
    * @returns Cleanup function (no-op for REST data)
    */
+  public async prewarmAsync(): Promise<() => void> {
+    // Fetch data and WAIT for it to complete
+    await this.fetchMarketData();
+
+    // No cleanup needed for REST data
+    return () => {
+      // No-op
+    };
+  }
+
+  /**
+   * Prewarm market data cache (fire-and-forget version)
+   * @returns Cleanup function (no-op for REST data)
+   * @deprecated Use prewarmAsync() for guaranteed data availability
+   */
   public prewarm(): () => void {
-    // Fetch data immediately to populate cache
+    // Fetch data immediately to populate cache (fire-and-forget)
     this.fetchMarketData().catch((error) => {
       Logger.error(error instanceof Error ? error : new Error(String(error)), {
         context: 'MarketDataChannel.prewarm',
