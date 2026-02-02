@@ -118,6 +118,14 @@ jest.mock('../../Bridge/hooks/useSwapBridgeNavigation', () => ({
   isAssetFromTrending: jest.fn(() => false),
 }));
 
+const mockGetDefaultDestToken = jest.fn();
+const mockGetNativeSourceToken = jest.fn();
+jest.mock('../../Bridge/utils/tokenUtils', () => ({
+  getDefaultDestToken: (...args: unknown[]) => mockGetDefaultDestToken(...args),
+  getNativeSourceToken: (...args: unknown[]) =>
+    mockGetNativeSourceToken(...args),
+}));
+
 jest.mock('../../../../core/Engine', () => ({
   context: {
     NetworkController: {
@@ -187,9 +195,28 @@ describe('useTokenActions', () => {
     });
   };
 
+  const mockMusdToken = {
+    address: '0x866e82a600a1414e583f7f13623f1ac5d58b0afa',
+    chainId: '0x1',
+    decimals: 18,
+    symbol: 'mUSD',
+    name: 'MetaMask USD',
+  };
+
+  const mockNativeToken = {
+    address: '0x0000000000000000000000000000000000000000',
+    chainId: '0x1',
+    decimals: 18,
+    symbol: 'ETH',
+    name: 'Ethereum',
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     setupDefaultMocks();
+    // Default mock implementations for tokenUtils
+    mockGetDefaultDestToken.mockReturnValue(mockMusdToken);
+    mockGetNativeSourceToken.mockReturnValue(mockNativeToken);
   });
 
   describe('getSwapTokens', () => {
@@ -327,6 +354,326 @@ describe('useTokenActions', () => {
             groupId: 'group-1',
           },
         },
+      );
+    });
+  });
+
+  describe('handleBuyPress', () => {
+    it('routes to on-ramp when no eligible tokens exist', () => {
+      // Empty user assets (no tokens with balance)
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return {};
+        }
+        if (selector === selectEvmChainId) {
+          return '0x1';
+        }
+        if (selector === selectSelectedInternalAccount) {
+          return mockAccount;
+        }
+        if (selector === selectSelectedAccountGroup) {
+          return mockAccountGroup;
+        }
+        if (selector === selectSelectedInternalAccountByScope) {
+          return () => mockAccount;
+        }
+        if (selector === getDetectedGeolocation) {
+          return 'US';
+        }
+        return undefined;
+      });
+
+      const { result } = renderHook(() =>
+        useTokenActions({
+          token: defaultToken,
+          networkName: 'Ethereum Mainnet',
+        }),
+      );
+
+      result.current.handleBuyPress();
+
+      expect(mockGoToBuy).toHaveBeenCalledTimes(1);
+      expect(mockGoToSwaps).not.toHaveBeenCalled();
+    });
+
+    it('calls goToSwaps with source and dest tokens when user has eligible tokens on same chain', () => {
+      const userAssets = {
+        '0x1': [
+          {
+            assetId: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+            chainId: '0x1',
+            decimals: 18,
+            symbol: 'WETH',
+            name: 'Wrapped Ether',
+            image: '',
+            fiat: { balance: 1000 },
+          },
+        ],
+      };
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return userAssets;
+        }
+        if (selector === selectEvmChainId) {
+          return '0x1';
+        }
+        if (selector === selectSelectedInternalAccount) {
+          return mockAccount;
+        }
+        if (selector === selectSelectedAccountGroup) {
+          return mockAccountGroup;
+        }
+        if (selector === selectSelectedInternalAccountByScope) {
+          return () => mockAccount;
+        }
+        if (selector === getDetectedGeolocation) {
+          return 'US';
+        }
+        return undefined;
+      });
+
+      const { result } = renderHook(() =>
+        useTokenActions({
+          token: defaultToken,
+          networkName: 'Ethereum Mainnet',
+        }),
+      );
+
+      result.current.handleBuyPress();
+
+      expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
+      expect(mockGoToSwaps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+          chainId: '0x1',
+          symbol: 'WETH',
+        }),
+        expect.objectContaining({
+          address: defaultToken.address,
+          chainId: defaultToken.chainId,
+          symbol: defaultToken.symbol,
+        }),
+      );
+      expect(mockGoToBuy).not.toHaveBeenCalled();
+    });
+
+    it('uses highest USD value token from any chain when no tokens on same chain', () => {
+      const userAssets = {
+        '0xa': [
+          {
+            assetId: '0x7F5c764cBc14f9669B88837ca1490cCa17c31607',
+            chainId: '0xa',
+            decimals: 6,
+            symbol: 'USDC',
+            name: 'USD Coin',
+            image: '',
+            fiat: { balance: 500 },
+          },
+        ],
+      };
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return userAssets;
+        }
+        if (selector === selectEvmChainId) {
+          return '0x1';
+        }
+        if (selector === selectSelectedInternalAccount) {
+          return mockAccount;
+        }
+        if (selector === selectSelectedAccountGroup) {
+          return mockAccountGroup;
+        }
+        if (selector === selectSelectedInternalAccountByScope) {
+          return () => mockAccount;
+        }
+        if (selector === getDetectedGeolocation) {
+          return 'US';
+        }
+        return undefined;
+      });
+
+      const { result } = renderHook(() =>
+        useTokenActions({
+          token: defaultToken,
+          networkName: 'Ethereum Mainnet',
+        }),
+      );
+
+      result.current.handleBuyPress();
+
+      expect(mockGoToSwaps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          chainId: '0xa',
+          symbol: 'USDC',
+        }),
+        expect.objectContaining({
+          address: defaultToken.address,
+        }),
+      );
+    });
+  });
+
+  describe('handleSellPress', () => {
+    it('calls goToSwaps with current token as source and default dest token', () => {
+      const { result } = renderHook(() =>
+        useTokenActions({
+          token: defaultToken,
+          networkName: 'Ethereum Mainnet',
+        }),
+      );
+
+      result.current.handleSellPress();
+
+      expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
+      expect(mockGoToSwaps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          address: defaultToken.address,
+          chainId: defaultToken.chainId,
+          symbol: defaultToken.symbol,
+        }),
+        expect.objectContaining({
+          address: mockMusdToken.address,
+          symbol: 'mUSD',
+        }),
+      );
+    });
+
+    it('falls back to native token when selling mUSD (source === default dest)', () => {
+      const musdToken: TokenI = {
+        address: '0x866e82a600a1414e583f7f13623f1ac5d58b0afa',
+        chainId: '0x1',
+        symbol: 'mUSD',
+        decimals: 18,
+        name: 'MetaMask USD',
+        isETH: false,
+        isNative: false,
+      } as TokenI;
+
+      const { result } = renderHook(() =>
+        useTokenActions({
+          token: musdToken,
+          networkName: 'Ethereum Mainnet',
+        }),
+      );
+
+      result.current.handleSellPress();
+
+      // Should fall back to native token since source === default dest
+      expect(mockGoToSwaps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          address: musdToken.address,
+          symbol: 'mUSD',
+        }),
+        expect.objectContaining({
+          address: mockNativeToken.address,
+          symbol: 'ETH',
+        }),
+      );
+    });
+
+    it('returns undefined dest when source is native and no default dest exists', () => {
+      const nativeToken: TokenI = {
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x89', // Polygon (unsupported in default dest)
+        symbol: 'MATIC',
+        decimals: 18,
+        name: 'Matic',
+        isETH: false,
+        isNative: true,
+      } as TokenI;
+
+      // No default dest for this chain
+      mockGetDefaultDestToken.mockReturnValue(undefined);
+      // Native token is the same as source
+      mockGetNativeSourceToken.mockReturnValue({
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x89',
+        decimals: 18,
+        symbol: 'MATIC',
+        name: 'Matic',
+      });
+
+      const { result } = renderHook(() =>
+        useTokenActions({
+          token: nativeToken,
+          networkName: 'Polygon',
+        }),
+      );
+
+      result.current.handleSellPress();
+
+      // destToken should be undefined - swap UI will handle
+      expect(mockGoToSwaps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          address: nativeToken.address,
+          symbol: 'MATIC',
+        }),
+        undefined,
+      );
+    });
+  });
+
+  describe('sellDestToken logic', () => {
+    it('uses getDefaultDestToken for supported chains (Ethereum -> mUSD)', () => {
+      const { result } = renderHook(() =>
+        useTokenActions({
+          token: defaultToken,
+          networkName: 'Ethereum Mainnet',
+        }),
+      );
+
+      // Verify getDefaultDestToken was called with the token's chainId
+      expect(mockGetDefaultDestToken).toHaveBeenCalledWith('0x1');
+
+      result.current.handleSellPress();
+
+      expect(mockGoToSwaps).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          symbol: 'mUSD',
+        }),
+      );
+    });
+
+    it('uses native token when getDefaultDestToken returns same as source', () => {
+      // Simulate selling mUSD - getDefaultDestToken returns mUSD
+      mockGetDefaultDestToken.mockReturnValue({
+        address: '0x866e82a600a1414e583f7f13623f1ac5d58b0afa',
+        chainId: '0x1',
+        decimals: 18,
+        symbol: 'mUSD',
+        name: 'MetaMask USD',
+      });
+
+      const musdToken: TokenI = {
+        address: '0x866e82a600a1414e583f7f13623f1ac5d58b0afa',
+        chainId: '0x1',
+        symbol: 'mUSD',
+        decimals: 18,
+        name: 'MetaMask USD',
+        isETH: false,
+        isNative: false,
+      } as TokenI;
+
+      const { result } = renderHook(() =>
+        useTokenActions({
+          token: musdToken,
+          networkName: 'Ethereum Mainnet',
+        }),
+      );
+
+      result.current.handleSellPress();
+
+      // Should use native token as fallback
+      expect(mockGoToSwaps).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          symbol: 'ETH',
+          address: '0x0000000000000000000000000000000000000000',
+        }),
       );
     });
   });
