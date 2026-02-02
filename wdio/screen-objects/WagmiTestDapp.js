@@ -133,18 +133,34 @@ class WagmiTestDapp {
         return this.assertDappConnectedStatus('connected');
     }
 
-    async assertDappConnectedStatus(value) {
+    async assertDappConnectedStatus(value, timeout = 5000) {
         if (!this._device) {
             return false;
         }
 
-        const connectedStatusHeader = await this.connectedStatusHeader;
-        const text = await connectedStatusHeader.getText();
         let expectedText = `status:`;
         if (value) {
             expectedText += ` ${value}`;
         }
-        expect(text).toContain(expectedText);
+
+        const startTime = Date.now();
+        const pollInterval = 500;
+        let lastText = '';
+
+        while (Date.now() - startTime < timeout) {
+            const connectedStatusHeader = await this.connectedStatusHeader;
+            lastText = await connectedStatusHeader.getText();
+
+            if (lastText.includes(expectedText)) {
+                return true;
+            }
+
+            await new Promise(resolve => setTimeout(resolve, pollInterval));
+        }
+
+        throw new Error(
+            `Expected text to contain "${expectedText}" but got "${lastText}" after ${timeout}ms`
+        );
     }
 
     async assertConnectedChainValue(value) {
