@@ -119,9 +119,9 @@ export abstract class BaseLoginHandler {
       () => getAuthTokens(requestData, this.authServerPath, authServerUrl),
       {
         maxRetries: 3,
-        baseDelayMs: 1000,
-        maxDelayMs: 10000,
-        jitterFactor: 0.3,
+        baseDelayMs: 500,
+        maxDelayMs: 5000,
+        jitterFactor: 0.25,
         shouldRetry: isRetryableError,
         onRetry: ({ attempt, willRetry, delayMs, error }) => {
           const errorMessage =
