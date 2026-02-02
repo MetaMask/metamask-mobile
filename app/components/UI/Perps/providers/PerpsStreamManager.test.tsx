@@ -84,6 +84,9 @@ describe('PerpsStreamManager', () => {
       subscribeToPositions: mockSubscribeToPositions,
       subscribeToAccount: mockSubscribeToAccount,
       isCurrentlyReinitializing: jest.fn().mockReturnValue(false),
+      getMarkets: jest
+        .fn()
+        .mockResolvedValue([{ name: 'BTC-PERP' }, { name: 'ETH-PERP' }]),
     } as unknown as typeof mockEngine.context.PerpsController;
 
     // Mock AccountTreeController for getEvmAccountFromSelectedAccountGroup
@@ -937,6 +940,130 @@ describe('PerpsStreamManager', () => {
 
       // Should not reconnect
       expect(mockSubscribeToPrices).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('PriceStreamChannel.prewarm non-blocking behavior', () => {
+    it('returns immediately without waiting for getMarkets', async () => {
+      // Create a promise that we can control
+      let resolveGetMarkets: (value: { name: string }[]) => void = jest.fn();
+      const getMarketsPromise = new Promise<{ name: string }[]>((resolve) => {
+        resolveGetMarkets = resolve;
+      });
+
+      mockEngine.context.PerpsController.getMarkets = jest
+        .fn()
+        .mockReturnValue(getMarketsPromise);
+
+      // prewarm should return immediately
+      const cleanupPromise = testStreamManager.prices.prewarm();
+
+      // The promise should resolve immediately (before getMarkets completes)
+      const cleanup = await cleanupPromise;
+      expect(typeof cleanup).toBe('function');
+
+      // getMarkets was called but not awaited
+      expect(mockEngine.context.PerpsController.getMarkets).toHaveBeenCalled();
+
+      // subscribeToPrices should NOT have been called yet
+      expect(mockSubscribeToPrices).not.toHaveBeenCalled();
+
+      // Now resolve getMarkets
+      resolveGetMarkets([{ name: 'BTC-PERP' }, { name: 'ETH-PERP' }]);
+
+      // Wait for the promise chain to complete
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      // Now subscribeToPrices should have been called
+      expect(mockSubscribeToPrices).toHaveBeenCalledWith({
+        symbols: ['BTC-PERP', 'ETH-PERP'],
+        callback: expect.any(Function),
+      });
+
+      cleanup();
+    });
+
+    it('skips subscription when cleanup occurs before getMarkets completes', async () => {
+      // Create a promise that we can control
+      let resolveGetMarkets: (value: { name: string }[]) => void = jest.fn();
+      const getMarketsPromise = new Promise<{ name: string }[]>((resolve) => {
+        resolveGetMarkets = resolve;
+      });
+
+      mockEngine.context.PerpsController.getMarkets = jest
+        .fn()
+        .mockReturnValue(getMarketsPromise);
+
+      // prewarm should return immediately
+      const cleanup = await testStreamManager.prices.prewarm();
+
+      // Call cleanup before getMarkets resolves
+      cleanup();
+
+      // Now resolve getMarkets
+      resolveGetMarkets([{ name: 'BTC-PERP' }, { name: 'ETH-PERP' }]);
+
+      // Wait for the promise chain to complete
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      // subscribeToPrices should NOT have been called (cleaned up before it could subscribe)
+      expect(mockSubscribeToPrices).not.toHaveBeenCalled();
+    });
+
+    it('logs error and returns cleanup function when getMarkets fails', async () => {
+      mockEngine.context.PerpsController.getMarkets = jest
+        .fn()
+        .mockRejectedValue(new Error('Network error'));
+
+      // prewarm should return immediately
+      const cleanup = await testStreamManager.prices.prewarm();
+      expect(typeof cleanup).toBe('function');
+
+      // Wait for the promise chain to complete
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      // subscribeToPrices should NOT have been called due to error
+      expect(mockSubscribeToPrices).not.toHaveBeenCalled();
+
+      // Logger.error should have been called
+      expect(mockLogger.error).toHaveBeenCalled();
+
+      cleanup();
+    });
+
+    it('calls actual unsubscribe when cleanupPrewarm runs after subscription is established', async () => {
+      const mockActualUnsubscribe = jest.fn();
+      mockSubscribeToPrices.mockReturnValue(mockActualUnsubscribe);
+
+      mockEngine.context.PerpsController.getMarkets = jest
+        .fn()
+        .mockResolvedValue([{ name: 'BTC-PERP' }]);
+
+      // prewarm and wait for subscription to be established
+      const cleanup = await testStreamManager.prices.prewarm();
+
+      // Wait for the background subscription to be set up
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockSubscribeToPrices).toHaveBeenCalled();
+
+      // Call cleanup
+      cleanup();
+
+      // The actual unsubscribe should have been called
+      expect(mockActualUnsubscribe).toHaveBeenCalled();
     });
   });
 

@@ -235,6 +235,7 @@ abstract class StreamChannel<T> {
 class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   private symbols = new Set<string>();
   private prewarmUnsubscribe?: () => void;
+  private actualPriceUnsubscribe?: () => void;
   private allMarketSymbols: string[] = [];
   // Override cache to store individual PriceUpdate objects
   protected priceCache = new Map<string, PriceUpdate>();
@@ -354,6 +355,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   /**
    * Pre-warm the channel by subscribing to all market prices
    * This keeps a single WebSocket connection alive with all price updates
+   * Non-blocking: Returns immediately while market fetch happens in background
    * @returns Cleanup function to call when leaving Perps environment
    */
   public async prewarm(): Promise<() => void> {
@@ -363,57 +365,82 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     }
 
     try {
-      // Get all available market symbols
       const controller = Engine.context.PerpsController;
-      const markets = await controller.getMarkets();
-      this.allMarketSymbols = markets.map((market) => market.name);
 
-      DevLogger.log('PriceStreamChannel: Pre-warming with all market symbols', {
-        symbolCount: this.allMarketSymbols.length,
-        symbols: this.allMarketSymbols.slice(0, 10), // Log first 10 for debugging
-      });
+      // Start market fetch in background (non-blocking)
+      // We need the symbols to register subscribers, but we can return immediately
+      const marketsPromise = controller.getMarkets();
 
-      // Subscribe to all market prices
-      this.prewarmUnsubscribe = controller.subscribeToPrices({
-        symbols: this.allMarketSymbols,
-        callback: (updates: PriceUpdate[]) => {
-          // Update cache and build price map
-          const priceMap: Record<string, PriceUpdate> = {};
-          updates.forEach((update) => {
-            const priceUpdate: PriceUpdate = {
-              symbol: update.symbol,
-              price: update.price,
-              timestamp: Date.now(),
-              percentChange24h: update.percentChange24h,
-              bestBid: update.bestBid,
-              bestAsk: update.bestAsk,
-              spread: update.spread,
-              markPrice: update.markPrice,
-              funding: update.funding,
-              openInterest: update.openInterest,
-              volume24h: update.volume24h,
-            };
-            this.priceCache.set(update.symbol, priceUpdate);
-            priceMap[update.symbol] = priceUpdate;
+      // Set up subscription once markets arrive (fire-and-forget)
+      marketsPromise
+        .then((markets) => {
+          // If already cleaned up, don't set up subscription
+          if (this.prewarmUnsubscribe === undefined) {
+            return;
+          }
+
+          this.allMarketSymbols = markets.map((market) => market.name);
+
+          DevLogger.log(
+            'PriceStreamChannel: Pre-warming with all market symbols',
+            {
+              symbolCount: this.allMarketSymbols.length,
+              symbols: this.allMarketSymbols.slice(0, 10),
+            },
+          );
+
+          // Subscribe to all market prices
+          const unsub = controller.subscribeToPrices({
+            symbols: this.allMarketSymbols,
+            callback: (updates: PriceUpdate[]) => {
+              const priceMap: Record<string, PriceUpdate> = {};
+              updates.forEach((update) => {
+                const priceUpdate: PriceUpdate = {
+                  symbol: update.symbol,
+                  price: update.price,
+                  timestamp: Date.now(),
+                  percentChange24h: update.percentChange24h,
+                  bestBid: update.bestBid,
+                  bestAsk: update.bestAsk,
+                  spread: update.spread,
+                  markPrice: update.markPrice,
+                  funding: update.funding,
+                  openInterest: update.openInterest,
+                  volume24h: update.volume24h,
+                };
+                this.priceCache.set(update.symbol, priceUpdate);
+                priceMap[update.symbol] = priceUpdate;
+              });
+
+              if (this.subscribers.size > 0) {
+                this.notifySubscribers(priceMap);
+              }
+            },
           });
 
-          // Notify any active subscribers with all updates
-          if (this.subscribers.size > 0) {
-            this.notifySubscribers(priceMap);
-          }
-        },
-      });
+          // Store the actual unsubscribe function
+          this.actualPriceUnsubscribe = unsub;
+        })
+        .catch((error) => {
+          Logger.error(
+            error instanceof Error ? error : new Error(String(error)),
+            {
+              context: 'PriceStreamChannel.prewarm.backgroundFetch',
+            },
+          );
+        });
 
-      // Return a cleanup function that properly clears internal state
-      return () => {
+      // Return cleanup function immediately (before markets load)
+      this.prewarmUnsubscribe = () => {
         DevLogger.log('PriceStreamChannel: Cleaning up prewarm subscription');
         this.cleanupPrewarm();
       };
+
+      return this.prewarmUnsubscribe;
     } catch (error) {
       Logger.error(error instanceof Error ? error : new Error(String(error)), {
         context: 'PriceStreamChannel.prewarm',
       });
-      // Return no-op cleanup function
       return () => {
         // No-op
       };
@@ -424,11 +451,12 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
    * Cleanup pre-warm subscription
    */
   public cleanupPrewarm(): void {
-    if (this.prewarmUnsubscribe) {
-      this.prewarmUnsubscribe();
-      this.prewarmUnsubscribe = undefined;
-      this.allMarketSymbols = [];
+    if (this.actualPriceUnsubscribe) {
+      this.actualPriceUnsubscribe();
+      this.actualPriceUnsubscribe = undefined;
     }
+    this.prewarmUnsubscribe = undefined;
+    this.allMarketSymbols = [];
   }
 }
 
