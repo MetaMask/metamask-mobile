@@ -45,35 +45,21 @@ const SeasonStatus: React.FC = () => {
   }, [seasonEndDate]);
 
   if (seasonStatusLoading) {
-    return (
-      <Box
-        twClassName="px-4 py-4 rounded-xl"
-        style={{ backgroundColor: theme.colors.background.section }}
-      >
-        <Skeleton height={78} width="100%" />
-      </Box>
-    );
+    return <Skeleton height={78} width="100%" />;
   }
 
   if (seasonStatusError && !seasonStartDate) {
     return (
-      <Box
-        twClassName="px-4 py-4 rounded-xl"
-        style={{ backgroundColor: theme.colors.background.section }}
-      >
-        <RewardsErrorBanner
-          title={strings('rewards.season_status_error.error_fetching_title')}
-          description={strings(
-            'rewards.season_status_error.error_fetching_description',
-          )}
-          onConfirm={() => {
-            fetchSeasonStatus();
-          }}
-          confirmButtonLabel={strings(
-            'rewards.season_status_error.retry_button',
-          )}
-        />
-      </Box>
+      <RewardsErrorBanner
+        title={strings('rewards.season_status_error.error_fetching_title')}
+        description={strings(
+          'rewards.season_status_error.error_fetching_description',
+        )}
+        onConfirm={() => {
+          fetchSeasonStatus();
+        }}
+        confirmButtonLabel={strings('rewards.season_status_error.retry_button')}
+      />
     );
   }
 
