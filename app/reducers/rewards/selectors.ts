@@ -132,6 +132,13 @@ export const selectBulkLinkFailedAccounts = (state: RootState) =>
   state.rewards.bulkLink.failedAccounts;
 
 /**
+ * Returns whether the bulk link process was interrupted (e.g., app closed during processing).
+ * When true, the user can resume the process by dispatching resumeBulkLink().
+ */
+export const selectBulkLinkWasInterrupted = (state: RootState) =>
+  state.rewards.bulkLink.wasInterrupted;
+
+/**
  * Returns account-level progress as a percentage (0-1)
  */
 export const selectBulkLinkAccountProgress = (state: RootState) => {

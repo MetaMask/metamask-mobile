@@ -44,6 +44,7 @@ import {
   selectBulkLinkTotalAccounts,
   selectBulkLinkLinkedAccounts,
   selectBulkLinkFailedAccounts,
+  selectBulkLinkWasInterrupted,
   selectBulkLinkAccountProgress,
 } from './selectors';
 import { OnboardingStep } from './types';
@@ -2524,6 +2525,8 @@ describe('Rewards selectors', () => {
             totalAccounts: 8,
             linkedAccounts: 4,
             failedAccounts: 1,
+            wasInterrupted: false,
+            initialSubscriptionId: 'sub-123',
           },
         });
         expect(selectBulkLinkState(state)).toEqual({
@@ -2531,6 +2534,8 @@ describe('Rewards selectors', () => {
           totalAccounts: 8,
           linkedAccounts: 4,
           failedAccounts: 1,
+          wasInterrupted: false,
+          initialSubscriptionId: 'sub-123',
         });
       });
     });
@@ -2579,6 +2584,8 @@ describe('Rewards selectors', () => {
             totalAccounts: 5,
             linkedAccounts: 2,
             failedAccounts: 0,
+            wasInterrupted: false,
+            initialSubscriptionId: 'sub-123',
           },
         });
         expect(selectBulkLinkIsRunning(state)).toBe(true);
@@ -2591,6 +2598,8 @@ describe('Rewards selectors', () => {
             totalAccounts: 5,
             linkedAccounts: 2,
             failedAccounts: 0,
+            wasInterrupted: false,
+            initialSubscriptionId: null,
           },
         });
         expect(selectBulkLinkIsRunning(state)).toBe(false);
@@ -2645,6 +2654,8 @@ describe('Rewards selectors', () => {
             totalAccounts: 20,
             linkedAccounts: 10,
             failedAccounts: 3,
+            wasInterrupted: false,
+            initialSubscriptionId: 'sub-123',
           },
         });
         expect(selectBulkLinkTotalAccounts(state)).toBe(20);
@@ -2699,6 +2710,8 @@ describe('Rewards selectors', () => {
             totalAccounts: 8,
             linkedAccounts: 5,
             failedAccounts: 1,
+            wasInterrupted: false,
+            initialSubscriptionId: 'sub-123',
           },
         });
         expect(selectBulkLinkLinkedAccounts(state)).toBe(5);
@@ -2753,9 +2766,175 @@ describe('Rewards selectors', () => {
             totalAccounts: 10,
             linkedAccounts: 7,
             failedAccounts: 2,
+            wasInterrupted: false,
+            initialSubscriptionId: 'sub-123',
           },
         });
         expect(selectBulkLinkFailedAccounts(state)).toBe(2);
+      });
+    });
+  });
+
+  describe('selectBulkLinkWasInterrupted', () => {
+    it('returns true when bulk link was interrupted', () => {
+      const mockState = {
+        rewards: {
+          bulkLink: {
+            isRunning: false,
+            totalAccounts: 10,
+            linkedAccounts: 5,
+            failedAccounts: 2,
+            wasInterrupted: true,
+            initialSubscriptionId: 'sub-123',
+          },
+        },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectBulkLinkWasInterrupted),
+      );
+      expect(result.current).toBe(true);
+    });
+
+    it('returns false when bulk link was not interrupted', () => {
+      const mockState = {
+        rewards: {
+          bulkLink: {
+            isRunning: false,
+            totalAccounts: 10,
+            linkedAccounts: 10,
+            failedAccounts: 0,
+            wasInterrupted: false,
+            initialSubscriptionId: null,
+          },
+        },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectBulkLinkWasInterrupted),
+      );
+      expect(result.current).toBe(false);
+    });
+
+    it('returns false when bulk link is currently running', () => {
+      const mockState = {
+        rewards: {
+          bulkLink: {
+            isRunning: true,
+            totalAccounts: 10,
+            linkedAccounts: 5,
+            failedAccounts: 0,
+            wasInterrupted: false,
+            initialSubscriptionId: 'sub-123',
+          },
+        },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectBulkLinkWasInterrupted),
+      );
+      expect(result.current).toBe(false);
+    });
+
+    it('handles state changes correctly', () => {
+      let mockState = {
+        rewards: {
+          bulkLink: {
+            isRunning: true,
+            totalAccounts: 10,
+            linkedAccounts: 5,
+            failedAccounts: 0,
+            wasInterrupted: false,
+            initialSubscriptionId: 'sub-123' as string | null,
+          },
+        },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result, rerender } = renderHook(() =>
+        useSelector(selectBulkLinkWasInterrupted),
+      );
+      expect(result.current).toBe(false);
+
+      // Simulate app closing during process - wasInterrupted becomes true on rehydrate
+      mockState = {
+        rewards: {
+          bulkLink: {
+            isRunning: false,
+            totalAccounts: 10,
+            linkedAccounts: 5,
+            failedAccounts: 0,
+            wasInterrupted: true,
+            initialSubscriptionId: 'sub-123',
+          },
+        },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(true);
+
+      // Simulate resuming and completing the process
+      mockState = {
+        rewards: {
+          bulkLink: {
+            isRunning: false,
+            totalAccounts: 10,
+            linkedAccounts: 10,
+            failedAccounts: 0,
+            wasInterrupted: false,
+            initialSubscriptionId: null,
+          },
+        },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(false);
+    });
+
+    describe('Direct selector calls', () => {
+      it('returns true when wasInterrupted is true', () => {
+        const state = createMockRootState({
+          bulkLink: {
+            isRunning: false,
+            totalAccounts: 8,
+            linkedAccounts: 4,
+            failedAccounts: 1,
+            wasInterrupted: true,
+            initialSubscriptionId: 'sub-123',
+          },
+        });
+        expect(selectBulkLinkWasInterrupted(state)).toBe(true);
+      });
+
+      it('returns false when wasInterrupted is false', () => {
+        const state = createMockRootState({
+          bulkLink: {
+            isRunning: false,
+            totalAccounts: 5,
+            linkedAccounts: 5,
+            failedAccounts: 0,
+            wasInterrupted: false,
+            initialSubscriptionId: null,
+          },
+        });
+        expect(selectBulkLinkWasInterrupted(state)).toBe(false);
+      });
+
+      it('returns false for initial bulk link state', () => {
+        const state = createMockRootState({
+          bulkLink: {
+            isRunning: false,
+            totalAccounts: 0,
+            linkedAccounts: 0,
+            failedAccounts: 0,
+            wasInterrupted: false,
+            initialSubscriptionId: null,
+          },
+        });
+        expect(selectBulkLinkWasInterrupted(state)).toBe(false);
       });
     });
   });
@@ -2848,6 +3027,8 @@ describe('Rewards selectors', () => {
             totalAccounts: 0,
             linkedAccounts: 0,
             failedAccounts: 0,
+            wasInterrupted: false,
+            initialSubscriptionId: null,
           },
         });
         expect(selectBulkLinkAccountProgress(state)).toBe(0);
@@ -2860,6 +3041,8 @@ describe('Rewards selectors', () => {
             totalAccounts: 8,
             linkedAccounts: 4,
             failedAccounts: 2,
+            wasInterrupted: false,
+            initialSubscriptionId: 'sub-123',
           },
         });
         // (4 + 2) / 8 = 0.75
@@ -2873,6 +3056,8 @@ describe('Rewards selectors', () => {
             totalAccounts: 5,
             linkedAccounts: 3,
             failedAccounts: 2,
+            wasInterrupted: false,
+            initialSubscriptionId: 'sub-123',
           },
         });
         // (3 + 2) / 5 = 1.0

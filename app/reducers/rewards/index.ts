@@ -14,6 +14,7 @@ import { AccountGroupId } from '@metamask/account-api';
 // Saga action types - defined here to avoid circular dependency with saga file
 export const BULK_LINK_START = 'rewards/bulkLink/START';
 export const BULK_LINK_CANCEL = 'rewards/bulkLink/CANCEL';
+export const BULK_LINK_RESUME = 'rewards/bulkLink/RESUME';
 
 export interface AccountOptInBannerInfoStatus {
   accountGroupId: AccountGroupId;
@@ -32,6 +33,19 @@ export interface BulkLinkState {
   linkedAccounts: number;
   /** Number of accounts that failed to link */
   failedAccounts: number;
+  /**
+   * Whether the bulk link process was interrupted (e.g., app closed during processing).
+   * This flag is set on rehydrate if isRunning was true, indicating the user
+   * can resume the process when they re-enter the rewards feature.
+   */
+  wasInterrupted: boolean;
+  /**
+   * The subscription ID captured when bulk link started.
+   * Used to detect subscription changes on resume - if the current subscription
+   * differs from this stored value, the resume should be aborted to prevent
+   * linking accounts to different subscriptions.
+   */
+  initialSubscriptionId: string | null;
 }
 
 export interface RewardsState {
@@ -154,6 +168,8 @@ export const initialState: RewardsState = {
     totalAccounts: 0,
     linkedAccounts: 0,
     failedAccounts: 0,
+    wasInterrupted: false,
+    initialSubscriptionId: null,
   },
 };
 
@@ -410,6 +426,7 @@ const rewardsSlice = createSlice({
       state,
       action: PayloadAction<{
         totalAccounts: number;
+        subscriptionId: string;
       }>,
     ) => {
       state.bulkLink = {
@@ -417,6 +434,8 @@ const rewardsSlice = createSlice({
         totalAccounts: action.payload.totalAccounts,
         linkedAccounts: 0,
         failedAccounts: 0,
+        wasInterrupted: false,
+        initialSubscriptionId: action.payload.subscriptionId,
       };
     },
     bulkLinkAccountResult: (
@@ -433,12 +452,34 @@ const rewardsSlice = createSlice({
     },
     bulkLinkCompleted: (state) => {
       state.bulkLink.isRunning = false;
+      state.bulkLink.wasInterrupted = false;
     },
     bulkLinkCancelled: (state) => {
       state.bulkLink.isRunning = false;
+      state.bulkLink.wasInterrupted = false;
+    },
+    /**
+     * Called when the bulk link process is cancelled because the candidate
+     * subscription ID changed during processing. This prevents accounts from
+     * being linked to different subscriptions.
+     */
+    bulkLinkSubscriptionChanged: (state) => {
+      state.bulkLink.isRunning = false;
+      state.bulkLink.wasInterrupted = false;
+      state.bulkLink.initialSubscriptionId = null;
     },
     bulkLinkReset: (state) => {
       state.bulkLink = initialState.bulkLink;
+    },
+    /**
+     * Called when resuming a previously interrupted bulk link process.
+     * Clears the interrupted flag and sets running to true.
+     * The saga will re-fetch opt-in status to determine which accounts still need linking.
+     */
+    bulkLinkResumed: (state) => {
+      state.bulkLink.isRunning = true;
+      state.bulkLink.wasInterrupted = false;
+      // Note: We don't reset counts here - the saga will recalculate based on current opt-in status
     },
   },
   extraReducers: (builder) => {
@@ -446,9 +487,14 @@ const rewardsSlice = createSlice({
       // Handle BULK_LINK_CANCEL directly so state is reset even if no saga is running
       .addCase(BULK_LINK_CANCEL, (state) => {
         state.bulkLink.isRunning = false;
+        state.bulkLink.wasInterrupted = false;
       })
       .addCase('persist/REHYDRATE', (state, action: RehydrateAction) => {
         if (action.payload?.rewards) {
+          // Detect if bulk link was interrupted (app closed while running)
+          const previousBulkLink = action.payload.rewards.bulkLink;
+          const wasInterrupted = previousBulkLink?.isRunning === true;
+
           return {
             // Reset non-persistent state (state is persisted via controller)
             ...initialState,
@@ -477,6 +523,23 @@ const rewardsSlice = createSlice({
               action.payload.rewards.hideUnlinkedAccountsBanner,
             hideCurrentAccountNotOptedInBanner:
               action.payload.rewards.hideCurrentAccountNotOptedInBanner,
+
+            // Bulk link state - preserve interrupted status for resume capability
+            bulkLink: {
+              ...initialState.bulkLink,
+              wasInterrupted,
+              // Preserve previous progress for UI display (how many were done before interruption)
+              linkedAccounts: wasInterrupted
+                ? (previousBulkLink?.linkedAccounts ?? 0)
+                : 0,
+              failedAccounts: wasInterrupted
+                ? (previousBulkLink?.failedAccounts ?? 0)
+                : 0,
+              // Preserve subscription ID for resume validation
+              initialSubscriptionId: wasInterrupted
+                ? (previousBulkLink?.initialSubscriptionId ?? null)
+                : null,
+            },
           };
         }
         return state;
@@ -514,7 +577,9 @@ export const {
   bulkLinkAccountResult,
   bulkLinkCompleted,
   bulkLinkCancelled,
+  bulkLinkSubscriptionChanged,
   bulkLinkReset,
+  bulkLinkResumed,
 } = rewardsSlice.actions;
 
 export default rewardsSlice.reducer;

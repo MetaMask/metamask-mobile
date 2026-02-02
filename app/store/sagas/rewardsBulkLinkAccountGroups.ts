@@ -31,12 +31,17 @@ import {
   bulkLinkAccountResult,
   bulkLinkCompleted,
   bulkLinkCancelled,
+  bulkLinkSubscriptionChanged,
+  bulkLinkResumed,
   BULK_LINK_START,
   BULK_LINK_CANCEL,
+  BULK_LINK_RESUME,
+  BulkLinkState,
 } from '../../reducers/rewards';
+import { selectBulkLinkState } from '../../reducers/rewards/selectors';
 
 // Re-export action types for backwards compatibility
-export { BULK_LINK_START, BULK_LINK_CANCEL };
+export { BULK_LINK_START, BULK_LINK_CANCEL, BULK_LINK_RESUME };
 import { selectAccountGroups } from '../../selectors/multichainAccounts/accountTreeController';
 import { selectInternalAccountsByGroupId } from '../../selectors/multichainAccounts/accounts';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
@@ -54,6 +59,15 @@ export const startBulkLink = () => ({
  */
 export const cancelBulkLink = () => ({
   type: BULK_LINK_CANCEL,
+});
+
+/**
+ * Action creator to resume an interrupted bulk link.
+ * Use this when the app was closed during a bulk link process and
+ * the user wants to continue where they left off.
+ */
+export const resumeBulkLink = () => ({
+  type: BULK_LINK_RESUME,
 });
 
 /**
@@ -99,15 +113,32 @@ const CACHE_INVALIDATION_INTERVAL = 100;
 const UI_YIELD_INTERVAL = 2;
 
 /**
- * Abort if this many consecutive failures occur
- */
-const MAX_CONSECUTIVE_FAILURES = 5;
-
-/**
  * Result of processing all accounts
  */
 interface AccountLinkingResult {
   linkResultsByAddress: Map<string, boolean>;
+  /** Whether the process was aborted due to subscription change */
+  subscriptionChanged: boolean;
+}
+
+/**
+ * Fetches the current candidate subscription ID from the RewardsController.
+ * Returns null if no candidate subscription is available.
+ */
+function* getCandidateSubscriptionId(): Generator<unknown, string | null> {
+  try {
+    const subscriptionId = (yield call(
+      [Engine.controllerMessenger, Engine.controllerMessenger.call],
+      'RewardsController:getCandidateSubscriptionId',
+    )) as string | null;
+    return subscriptionId;
+  } catch (error) {
+    Logger.log(
+      'Bulk link: Failed to get candidate subscription ID',
+      error instanceof Error ? error.message : String(error),
+    );
+    return null;
+  }
 }
 
 // ============================================================================
@@ -212,31 +243,21 @@ function* linkSingleAccount(
 }
 
 /**
- * Marks remaining accounts as failed when aborting early.
- */
-function* markRemainingAccountsAsFailed(
-  allAccountsToLink: InternalAccount[],
-  startIndex: number,
-  linkResultsByAddress: Map<string, boolean>,
-): Generator {
-  for (let j = startIndex; j < allAccountsToLink.length; j++) {
-    linkResultsByAddress.set(allAccountsToLink[j].address, false);
-    yield put(bulkLinkAccountResult({ success: false }));
-  }
-}
-
-/**
  * Processes all accounts one-by-one with progress updates and cache invalidation.
+ * Monitors for subscription ID changes and aborts if detected.
+ *
+ * @param allAccountsToLink - Accounts that need to be linked
+ * @param initialSubscriptionId - The subscription ID captured at the start of bulk linking
  */
 function* processAllAccounts(
   allAccountsToLink: InternalAccount[],
+  initialSubscriptionId: string | null,
 ): Generator<unknown, AccountLinkingResult> {
   const linkResultsByAddress = new Map<string, boolean>();
-  let consecutiveFailures = 0;
 
   if (allAccountsToLink.length === 0) {
     Logger.log('Bulk link: No accounts need linking (all already opted in)');
-    return { linkResultsByAddress };
+    return { linkResultsByAddress, subscriptionChanged: false };
   }
 
   const totalAccounts = allAccountsToLink.length;
@@ -245,6 +266,17 @@ function* processAllAccounts(
     const account = allAccountsToLink[i];
     const accountNumber = i + 1; // 1-indexed
     const isLastAccount = accountNumber === totalAccounts;
+
+    // Check if subscription ID has changed e
+    const currentSubscriptionId = (yield* getCandidateSubscriptionId()) as
+      | string
+      | null;
+    if (currentSubscriptionId !== initialSubscriptionId) {
+      Logger.log(
+        `Bulk link: Subscription ID changed during processing (was: ${initialSubscriptionId}, now: ${currentSubscriptionId}). Aborting to prevent linking to different subscriptions.`,
+      );
+      return { linkResultsByAddress, subscriptionChanged: true };
+    }
 
     // Determine if we should invalidate cache on this account:
     // - Every CACHE_INVALIDATION_INTERVAL accounts to keep data fresh
@@ -256,27 +288,6 @@ function* processAllAccounts(
       account,
       shouldInvalidate,
     )) as boolean;
-
-    if (success) {
-      consecutiveFailures = 0;
-    } else {
-      consecutiveFailures++;
-    }
-
-    // Abort early if too many consecutive failures
-    if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
-      Logger.log(
-        `Bulk link: ${MAX_CONSECUTIVE_FAILURES} consecutive failures, aborting`,
-      );
-      linkResultsByAddress.set(account.address, success);
-      yield put(bulkLinkAccountResult({ success }));
-      yield* markRemainingAccountsAsFailed(
-        allAccountsToLink,
-        i + 1,
-        linkResultsByAddress,
-      );
-      break;
-    }
 
     // Track result and update Redux for real-time UI progress
     linkResultsByAddress.set(account.address, success);
@@ -296,7 +307,7 @@ function* processAllAccounts(
     `Bulk link: All accounts processed - ${totalLinked} succeeded, ${totalFailed} failed out of ${totalAccounts} total`,
   );
 
-  return { linkResultsByAddress };
+  return { linkResultsByAddress, subscriptionChanged: false };
 }
 
 // ============================================================================
@@ -328,6 +339,40 @@ function* bulkLinkWorker(): Generator {
       return;
     }
 
+    // Get current subscription ID and check against stored one (for resume scenarios)
+    const currentSubscriptionId = (yield* getCandidateSubscriptionId()) as
+      | string
+      | null;
+    const bulkLinkState = (yield select(selectBulkLinkState)) as BulkLinkState;
+    const storedSubscriptionId = bulkLinkState.initialSubscriptionId;
+
+    // If resuming and stored ID exists, validate it matches current
+    if (
+      storedSubscriptionId &&
+      storedSubscriptionId !== currentSubscriptionId
+    ) {
+      Logger.log(
+        `Bulk link: Subscription changed since last run (was: ${storedSubscriptionId}, now: ${currentSubscriptionId}). Aborting to prevent linking to different subscriptions.`,
+      );
+      yield put(bulkLinkSubscriptionChanged());
+      return;
+    }
+
+    // Use stored ID if resuming, otherwise use current
+    const initialSubscriptionId = storedSubscriptionId || currentSubscriptionId;
+
+    if (!initialSubscriptionId) {
+      Logger.log(
+        'Bulk link: No candidate subscription ID available. Cannot proceed with bulk linking.',
+      );
+      yield put(bulkLinkCompleted());
+      return;
+    }
+
+    Logger.log(
+      `Bulk link: Starting with candidate subscription ID: ${initialSubscriptionId}${storedSubscriptionId ? ' (resumed)' : ''}`,
+    );
+
     const startTime = Date.now();
     Logger.log(
       `Bulk link: Starting process for ${groupsToProcess.length} account groups at ${new Date(startTime).toISOString()}`,
@@ -350,10 +395,11 @@ function* bulkLinkWorker(): Generator {
       optInStatusMap,
     );
 
-    // Initialize progress state
+    // Initialize progress state with subscription ID for resume validation
     yield put(
       bulkLinkStarted({
         totalAccounts: allAccountsToLink.length,
+        subscriptionId: initialSubscriptionId,
       }),
     );
 
@@ -365,9 +411,18 @@ function* bulkLinkWorker(): Generator {
     yield call(waitForInteractions);
 
     // Step 4: Process all accounts one-by-one
-    const { linkResultsByAddress } = (yield* processAllAccounts(
-      allAccountsToLink,
-    )) as AccountLinkingResult;
+    const { linkResultsByAddress, subscriptionChanged } =
+      (yield* processAllAccounts(
+        allAccountsToLink,
+        initialSubscriptionId,
+      )) as AccountLinkingResult;
+
+    // Handle subscription change - abort with specific action
+    if (subscriptionChanged) {
+      Logger.log('Bulk link: Process aborted due to subscription ID change');
+      yield put(bulkLinkSubscriptionChanged());
+      return;
+    }
 
     // Log completion stats
     const endTime = Date.now();
@@ -397,13 +452,26 @@ function* bulkLinkWorker(): Generator {
 }
 
 /**
- * Watcher saga that listens for bulk link start actions.
+ * Watcher saga that listens for bulk link start and resume actions.
  * Supports cancellation via BULK_LINK_CANCEL action.
+ *
+ * Both START and RESUME trigger the same worker - the worker is idempotent
+ * as it always re-fetches opt-in status to determine which accounts still need linking.
+ * The difference is in the Redux state update:
+ * - START: Resets all counters and starts fresh
+ * - RESUME: Updates state via bulkLinkResumed (clears wasInterrupted flag)
  */
 export function* watchBulkLink(): Generator {
   while (true) {
-    // Wait for start action
-    yield take(BULK_LINK_START);
+    // Wait for either start or resume action
+    const action = (yield take([BULK_LINK_START, BULK_LINK_RESUME])) as {
+      type: string;
+    };
+
+    // If resuming, dispatch the resumed action to update state
+    if (action.type === BULK_LINK_RESUME) {
+      yield put(bulkLinkResumed());
+    }
 
     // Race between the worker completing and a cancel action
     yield race({

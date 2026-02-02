@@ -6,11 +6,13 @@ import {
   selectBulkLinkLinkedAccounts,
   selectBulkLinkFailedAccounts,
   selectBulkLinkAccountProgress,
+  selectBulkLinkWasInterrupted,
 } from '../../../../reducers/rewards/selectors';
 import { bulkLinkReset } from '../../../../reducers/rewards';
 import {
   startBulkLink,
   cancelBulkLink,
+  resumeBulkLink,
 } from '../../../../store/sagas/rewardsBulkLinkAccountGroups';
 
 export interface UseBulkLinkStateResult {
@@ -33,9 +35,22 @@ export interface UseBulkLinkStateResult {
   resetBulkLink: () => void;
 
   /**
+   * Resume an interrupted bulk link process.
+   * Use this when wasInterrupted is true to continue where the process left off.
+   * The saga will re-fetch opt-in status to skip already-linked accounts.
+   */
+  resumeBulkLink: () => void;
+
+  /**
    * Whether the bulk link process is currently running
    */
   isRunning: boolean;
+
+  /**
+   * Whether the bulk link process was interrupted (e.g., app closed during processing).
+   * When true, call resumeBulkLink() to continue where it left off.
+   */
+  wasInterrupted: boolean;
 
   /**
    * Whether the bulk link has completed (either all done or cancelled)
@@ -87,6 +102,7 @@ export const useBulkLinkState = (): UseBulkLinkStateResult => {
 
   // Select account-level progress (updates after each individual account)
   const isRunning = useSelector(selectBulkLinkIsRunning);
+  const wasInterrupted = useSelector(selectBulkLinkWasInterrupted);
   const totalAccounts = useSelector(selectBulkLinkTotalAccounts);
   const linkedAccounts = useSelector(selectBulkLinkLinkedAccounts);
   const failedAccounts = useSelector(selectBulkLinkFailedAccounts);
@@ -128,11 +144,20 @@ export const useBulkLinkState = (): UseBulkLinkStateResult => {
     dispatch(bulkLinkReset());
   }, [dispatch]);
 
+  const handleResumeBulkLink = useCallback(() => {
+    if (isRunning) {
+      return; // Prevent resuming if already running
+    }
+    dispatch(resumeBulkLink());
+  }, [dispatch, isRunning]);
+
   return {
     startBulkLink: handleStartBulkLink,
     cancelBulkLink: handleCancelBulkLink,
     resetBulkLink: handleResetBulkLink,
+    resumeBulkLink: handleResumeBulkLink,
     isRunning,
+    wasInterrupted,
     isCompleted,
     hasFailures,
     isFullySuccessful,

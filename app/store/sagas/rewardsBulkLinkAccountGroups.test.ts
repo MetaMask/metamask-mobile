@@ -12,7 +12,9 @@ import {
   bulkLinkCancelled,
   BULK_LINK_START,
   BULK_LINK_CANCEL,
+  BulkLinkState,
 } from '../../reducers/rewards';
+import { selectBulkLinkState } from '../../reducers/rewards/selectors';
 import {
   startBulkLink,
   cancelBulkLink,
@@ -51,6 +53,21 @@ jest.mock('../../selectors/multichainAccounts/accounts', () => ({
   selectInternalAccountsByGroupId: jest.fn(),
 }));
 
+jest.mock('../../reducers/rewards/selectors', () => ({
+  selectBulkLinkState: jest.fn(),
+}));
+
+const MOCK_SUBSCRIPTION_ID = 'test-subscription-id-123';
+
+const DEFAULT_BULK_LINK_STATE: BulkLinkState = {
+  isRunning: false,
+  totalAccounts: 0,
+  linkedAccounts: 0,
+  failedAccounts: 0,
+  wasInterrupted: false,
+  initialSubscriptionId: null,
+};
+
 describe('rewardsBulkLinkAccountGroups', () => {
   const mockControllerMessenger = Engine.controllerMessenger as jest.Mocked<
     typeof Engine.controllerMessenger
@@ -63,6 +80,9 @@ describe('rewardsBulkLinkAccountGroups', () => {
     selectInternalAccountsByGroupId as jest.MockedFunction<
       typeof selectInternalAccountsByGroupId
     >;
+  const mockSelectBulkLinkState = selectBulkLinkState as jest.MockedFunction<
+    typeof selectBulkLinkState
+  >;
   const mockInteractionManager = InteractionManager as jest.Mocked<
     typeof InteractionManager
   >;
@@ -137,6 +157,7 @@ describe('rewardsBulkLinkAccountGroups', () => {
     mockLogger.log.mockClear();
     mockLogger.error.mockClear();
     mockControllerMessenger.call.mockClear();
+    mockSelectBulkLinkState.mockReturnValue(DEFAULT_BULK_LINK_STATE);
     mockInteractionManager.runAfterInteractions.mockImplementation(
       (callback) => {
         if (callback && typeof callback === 'function') {
@@ -164,7 +185,7 @@ describe('rewardsBulkLinkAccountGroups', () => {
   });
 
   describe('watchBulkLink', () => {
-    it('should listen for BULK_LINK_START and process bulk link', async () => {
+    it('listens for BULK_LINK_START and processes bulk link', async () => {
       // Arrange
       const mockAccountGroups: AccountGroupObject[] = [mockAccountGroup1];
       const mockGetAccountsByGroupId = jest
@@ -176,9 +197,11 @@ describe('rewardsBulkLinkAccountGroups', () => {
         mockGetAccountsByGroupId,
       );
 
-      // Mock isOptInSupported to return true
       mockControllerMessenger.call.mockImplementation((...args: unknown[]) => {
         const method = args[0] as string;
+        if (method === 'RewardsController:getCandidateSubscriptionId') {
+          return MOCK_SUBSCRIPTION_ID;
+        }
         if (method === 'RewardsController:isOptInSupported') {
           return true;
         }
@@ -199,15 +222,21 @@ describe('rewardsBulkLinkAccountGroups', () => {
         .provide([
           [select(selectAccountGroups), mockAccountGroups],
           [select(selectInternalAccountsByGroupId), mockGetAccountsByGroupId],
+          [select(selectBulkLinkState), DEFAULT_BULK_LINK_STATE],
         ])
         .dispatch({ type: BULK_LINK_START })
-        .put(bulkLinkStarted({ totalAccounts: 1 }))
+        .put(
+          bulkLinkStarted({
+            totalAccounts: 1,
+            subscriptionId: MOCK_SUBSCRIPTION_ID,
+          }),
+        )
         .put(bulkLinkAccountResult({ success: true }))
         .put(bulkLinkCompleted())
         .silentRun();
     });
 
-    it('should handle cancellation when BULK_LINK_CANCEL is dispatched', async () => {
+    it('handles cancellation when BULK_LINK_CANCEL is dispatched', async () => {
       // Arrange
       const mockAccountGroups: AccountGroupObject[] = [mockAccountGroup1];
       const mockGetAccountsByGroupId = jest
@@ -219,9 +248,11 @@ describe('rewardsBulkLinkAccountGroups', () => {
         mockGetAccountsByGroupId,
       );
 
-      // Mock isOptInSupported to return true
       mockControllerMessenger.call.mockImplementation((...args: unknown[]) => {
         const method = args[0] as string;
+        if (method === 'RewardsController:getCandidateSubscriptionId') {
+          return MOCK_SUBSCRIPTION_ID;
+        }
         if (method === 'RewardsController:isOptInSupported') {
           return true;
         }
@@ -239,22 +270,36 @@ describe('rewardsBulkLinkAccountGroups', () => {
         .provide([
           [select(selectAccountGroups), mockAccountGroups],
           [select(selectInternalAccountsByGroupId), mockGetAccountsByGroupId],
+          [select(selectBulkLinkState), DEFAULT_BULK_LINK_STATE],
         ])
         .dispatch({ type: BULK_LINK_START })
         .dispatch({ type: BULK_LINK_CANCEL })
-        .put(bulkLinkStarted({ totalAccounts: 2 }))
+        .put(
+          bulkLinkStarted({
+            totalAccounts: 2,
+            subscriptionId: MOCK_SUBSCRIPTION_ID,
+          }),
+        )
         .put(bulkLinkCancelled())
         .silentRun();
     });
   });
 
   describe('bulkLinkWorker', () => {
-    it('should return early when no account groups exist', async () => {
+    it('returns early when no account groups exist', async () => {
       // Arrange
       mockSelectAccountGroups.mockReturnValue([]);
       mockSelectInternalAccountsByGroupId.mockReturnValue(
         jest.fn().mockReturnValue([]),
       );
+
+      mockControllerMessenger.call.mockImplementation((...args: unknown[]) => {
+        const method = args[0] as string;
+        if (method === 'RewardsController:getCandidateSubscriptionId') {
+          return MOCK_SUBSCRIPTION_ID;
+        }
+        return null;
+      });
 
       // Act & Assert
       await expectSaga(watchBulkLink)
@@ -264,9 +309,15 @@ describe('rewardsBulkLinkAccountGroups', () => {
             select(selectInternalAccountsByGroupId),
             jest.fn().mockReturnValue([]),
           ],
+          [select(selectBulkLinkState), DEFAULT_BULK_LINK_STATE],
         ])
         .dispatch({ type: BULK_LINK_START })
-        .not.put(bulkLinkStarted({ totalAccounts: expect.any(Number) }))
+        .not.put(
+          bulkLinkStarted({
+            totalAccounts: expect.any(Number),
+            subscriptionId: expect.any(String),
+          }),
+        )
         .silentRun();
 
       expect(mockLogger.log).toHaveBeenCalledWith(
@@ -274,7 +325,7 @@ describe('rewardsBulkLinkAccountGroups', () => {
       );
     });
 
-    it('should return early when all accounts are already opted in', async () => {
+    it('returns early when all accounts are already opted in', async () => {
       // Arrange
       const mockAccountGroups: AccountGroupObject[] = [mockAccountGroup1];
       const mockGetAccountsByGroupId = jest
@@ -286,9 +337,11 @@ describe('rewardsBulkLinkAccountGroups', () => {
         mockGetAccountsByGroupId,
       );
 
-      // Mock isOptInSupported to return true
       mockControllerMessenger.call.mockImplementation((...args: unknown[]) => {
         const method = args[0] as string;
+        if (method === 'RewardsController:getCandidateSubscriptionId') {
+          return MOCK_SUBSCRIPTION_ID;
+        }
         if (method === 'RewardsController:isOptInSupported') {
           return true;
         }
@@ -306,9 +359,15 @@ describe('rewardsBulkLinkAccountGroups', () => {
         .provide([
           [select(selectAccountGroups), mockAccountGroups],
           [select(selectInternalAccountsByGroupId), mockGetAccountsByGroupId],
+          [select(selectBulkLinkState), DEFAULT_BULK_LINK_STATE],
         ])
         .dispatch({ type: BULK_LINK_START })
-        .put(bulkLinkStarted({ totalAccounts: 0 }))
+        .put(
+          bulkLinkStarted({
+            totalAccounts: 0,
+            subscriptionId: MOCK_SUBSCRIPTION_ID,
+          }),
+        )
         .put(bulkLinkCompleted())
         .silentRun();
 
@@ -317,7 +376,7 @@ describe('rewardsBulkLinkAccountGroups', () => {
       );
     });
 
-    it('should successfully link a single account', async () => {
+    it('links a single account', async () => {
       // Arrange
       const mockAccountGroups: AccountGroupObject[] = [mockAccountGroup1];
       const mockGetAccountsByGroupId = jest
@@ -329,9 +388,11 @@ describe('rewardsBulkLinkAccountGroups', () => {
         mockGetAccountsByGroupId,
       );
 
-      // Mock isOptInSupported to return true
       mockControllerMessenger.call.mockImplementation((...args: unknown[]) => {
         const method = args[0] as string;
+        if (method === 'RewardsController:getCandidateSubscriptionId') {
+          return MOCK_SUBSCRIPTION_ID;
+        }
         if (method === 'RewardsController:isOptInSupported') {
           return true;
         }
@@ -352,9 +413,15 @@ describe('rewardsBulkLinkAccountGroups', () => {
         .provide([
           [select(selectAccountGroups), mockAccountGroups],
           [select(selectInternalAccountsByGroupId), mockGetAccountsByGroupId],
+          [select(selectBulkLinkState), DEFAULT_BULK_LINK_STATE],
         ])
         .dispatch({ type: BULK_LINK_START })
-        .put(bulkLinkStarted({ totalAccounts: 1 }))
+        .put(
+          bulkLinkStarted({
+            totalAccounts: 1,
+            subscriptionId: MOCK_SUBSCRIPTION_ID,
+          }),
+        )
         .put(bulkLinkAccountResult({ success: true }))
         .put(bulkLinkCompleted())
         .silentRun();
@@ -366,7 +433,7 @@ describe('rewardsBulkLinkAccountGroups', () => {
       );
     });
 
-    it('should successfully link multiple accounts', async () => {
+    it('links multiple accounts', async () => {
       // Arrange
       const mockAccountGroups: AccountGroupObject[] = [
         mockAccountGroup1,
@@ -389,9 +456,11 @@ describe('rewardsBulkLinkAccountGroups', () => {
         mockGetAccountsByGroupId,
       );
 
-      // Mock isOptInSupported to return true
       mockControllerMessenger.call.mockImplementation((...args: unknown[]) => {
         const method = args[0] as string;
+        if (method === 'RewardsController:getCandidateSubscriptionId') {
+          return MOCK_SUBSCRIPTION_ID;
+        }
         if (method === 'RewardsController:isOptInSupported') {
           return true;
         }
@@ -412,16 +481,22 @@ describe('rewardsBulkLinkAccountGroups', () => {
         .provide([
           [select(selectAccountGroups), mockAccountGroups],
           [select(selectInternalAccountsByGroupId), mockGetAccountsByGroupId],
+          [select(selectBulkLinkState), DEFAULT_BULK_LINK_STATE],
         ])
         .dispatch({ type: BULK_LINK_START })
-        .put(bulkLinkStarted({ totalAccounts: 2 }))
+        .put(
+          bulkLinkStarted({
+            totalAccounts: 2,
+            subscriptionId: MOCK_SUBSCRIPTION_ID,
+          }),
+        )
         .put(bulkLinkAccountResult({ success: true }))
         .put(bulkLinkAccountResult({ success: true }))
         .put(bulkLinkCompleted())
         .silentRun();
     });
 
-    it('should handle account linking failures', async () => {
+    it('handles account linking failures', async () => {
       // Arrange
       const mockAccountGroups: AccountGroupObject[] = [mockAccountGroup1];
       const mockGetAccountsByGroupId = jest
@@ -434,9 +509,11 @@ describe('rewardsBulkLinkAccountGroups', () => {
       );
 
       let linkCallCount = 0;
-      // Mock isOptInSupported to return true
       mockControllerMessenger.call.mockImplementation((...args: unknown[]) => {
         const method = args[0] as string;
+        if (method === 'RewardsController:getCandidateSubscriptionId') {
+          return MOCK_SUBSCRIPTION_ID;
+        }
         if (method === 'RewardsController:isOptInSupported') {
           return true;
         }
@@ -459,19 +536,25 @@ describe('rewardsBulkLinkAccountGroups', () => {
         .provide([
           [select(selectAccountGroups), mockAccountGroups],
           [select(selectInternalAccountsByGroupId), mockGetAccountsByGroupId],
+          [select(selectBulkLinkState), DEFAULT_BULK_LINK_STATE],
         ])
         .dispatch({ type: BULK_LINK_START })
-        .put(bulkLinkStarted({ totalAccounts: 2 }))
+        .put(
+          bulkLinkStarted({
+            totalAccounts: 2,
+            subscriptionId: MOCK_SUBSCRIPTION_ID,
+          }),
+        )
         .put(bulkLinkAccountResult({ success: false }))
         .put(bulkLinkAccountResult({ success: true }))
         .put(bulkLinkCompleted())
         .silentRun();
     });
 
-    it('should abort early after MAX_CONSECUTIVE_FAILURES', async () => {
+    it('continues processing when accounts fail to link', async () => {
       // Arrange
       const mockAccountGroups: AccountGroupObject[] = [mockAccountGroup1];
-      // Create 10 accounts to test abort logic
+      // Create 10 accounts to test failure handling
       const accounts = Array.from({ length: 10 }, (_, i) => ({
         ...mockAccount1,
         address: `0x${String(i).padStart(40, '0')}`,
@@ -485,9 +568,11 @@ describe('rewardsBulkLinkAccountGroups', () => {
         mockGetAccountsByGroupId,
       );
 
-      // Mock isOptInSupported to return true
       mockControllerMessenger.call.mockImplementation((...args: unknown[]) => {
         const method = args[0] as string;
+        if (method === 'RewardsController:getCandidateSubscriptionId') {
+          return MOCK_SUBSCRIPTION_ID;
+        }
         if (method === 'RewardsController:isOptInSupported') {
           return true;
         }
@@ -498,27 +583,32 @@ describe('rewardsBulkLinkAccountGroups', () => {
           } as OptInStatusDto;
         }
         if (method === 'RewardsController:linkAccountToSubscriptionCandidate') {
-          // First 5 accounts fail (MAX_CONSECUTIVE_FAILURES = 5)
+          // All accounts fail
           return false;
         }
         return null;
       });
 
-      // Act & Assert
+      // Act & Assert - Saga continues processing all accounts even when they fail
       await expectSaga(watchBulkLink)
         .provide([
           [select(selectAccountGroups), mockAccountGroups],
           [select(selectInternalAccountsByGroupId), mockGetAccountsByGroupId],
+          [select(selectBulkLinkState), DEFAULT_BULK_LINK_STATE],
         ])
         .dispatch({ type: BULK_LINK_START })
-        .put(bulkLinkStarted({ totalAccounts: 10 }))
-        // Should process 5 accounts (all failing)
+        .put(
+          bulkLinkStarted({
+            totalAccounts: 10,
+            subscriptionId: MOCK_SUBSCRIPTION_ID,
+          }),
+        )
+        // All 10 accounts are processed (all failing)
         .put(bulkLinkAccountResult({ success: false }))
         .put(bulkLinkAccountResult({ success: false }))
         .put(bulkLinkAccountResult({ success: false }))
         .put(bulkLinkAccountResult({ success: false }))
         .put(bulkLinkAccountResult({ success: false }))
-        // Should mark remaining 5 accounts as failed
         .put(bulkLinkAccountResult({ success: false }))
         .put(bulkLinkAccountResult({ success: false }))
         .put(bulkLinkAccountResult({ success: false }))
@@ -526,13 +616,9 @@ describe('rewardsBulkLinkAccountGroups', () => {
         .put(bulkLinkAccountResult({ success: false }))
         .put(bulkLinkCompleted())
         .silentRun();
-
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'Bulk link: 5 consecutive failures, aborting',
-      );
     });
 
-    it('should filter out unsupported accounts', async () => {
+    it('filters out unsupported accounts', async () => {
       // Arrange
       const mockAccountGroups: AccountGroupObject[] = [mockAccountGroup1];
       const mockGetAccountsByGroupId = jest
@@ -548,6 +634,9 @@ describe('rewardsBulkLinkAccountGroups', () => {
       // Mock isOptInSupported - first account supported, second not supported
       mockControllerMessenger.call.mockImplementation((...args: unknown[]) => {
         const method = args[0] as string;
+        if (method === 'RewardsController:getCandidateSubscriptionId') {
+          return MOCK_SUBSCRIPTION_ID;
+        }
         if (method === 'RewardsController:isOptInSupported') {
           isOptInSupportedCallCount++;
           return isOptInSupportedCallCount === 1; // Only first account supported
@@ -569,15 +658,21 @@ describe('rewardsBulkLinkAccountGroups', () => {
         .provide([
           [select(selectAccountGroups), mockAccountGroups],
           [select(selectInternalAccountsByGroupId), mockGetAccountsByGroupId],
+          [select(selectBulkLinkState), DEFAULT_BULK_LINK_STATE],
         ])
         .dispatch({ type: BULK_LINK_START })
-        .put(bulkLinkStarted({ totalAccounts: 1 })) // Only 1 account to link
+        .put(
+          bulkLinkStarted({
+            totalAccounts: 1,
+            subscriptionId: MOCK_SUBSCRIPTION_ID,
+          }),
+        ) // Only 1 account to link
         .put(bulkLinkAccountResult({ success: true }))
         .put(bulkLinkCompleted())
         .silentRun();
     });
 
-    it('should handle errors in bulkLinkWorker gracefully', async () => {
+    it('handles errors in bulkLinkWorker gracefully', async () => {
       // Arrange
       const mockAccountGroups: AccountGroupObject[] = [mockAccountGroup1];
       const mockGetAccountsByGroupId = jest
@@ -592,6 +687,9 @@ describe('rewardsBulkLinkAccountGroups', () => {
       // Mock getOptInStatus to throw an error (this happens in the saga generator)
       mockControllerMessenger.call.mockImplementation((...args: unknown[]) => {
         const method = args[0] as string;
+        if (method === 'RewardsController:getCandidateSubscriptionId') {
+          return MOCK_SUBSCRIPTION_ID;
+        }
         if (method === 'RewardsController:isOptInSupported') {
           return true;
         }
@@ -606,6 +704,7 @@ describe('rewardsBulkLinkAccountGroups', () => {
         .provide([
           [select(selectAccountGroups), mockAccountGroups],
           [select(selectInternalAccountsByGroupId), mockGetAccountsByGroupId],
+          [select(selectBulkLinkState), DEFAULT_BULK_LINK_STATE],
         ])
         .dispatch({ type: BULK_LINK_START })
         .put(bulkLinkCompleted()) // Should still complete even on error
@@ -614,7 +713,7 @@ describe('rewardsBulkLinkAccountGroups', () => {
       expect(mockLogger.error).toHaveBeenCalled();
     });
 
-    it('should invalidate cache on last account and every CACHE_INVALIDATION_INTERVAL accounts', async () => {
+    it('invalidates cache on last account and every CACHE_INVALIDATION_INTERVAL accounts', async () => {
       // Arrange
       const mockAccountGroups: AccountGroupObject[] = [mockAccountGroup1];
       // Create 3 accounts to test cache invalidation
@@ -626,9 +725,11 @@ describe('rewardsBulkLinkAccountGroups', () => {
         mockGetAccountsByGroupId,
       );
 
-      // Mock isOptInSupported to return true
       mockControllerMessenger.call.mockImplementation((...args: unknown[]) => {
         const method = args[0] as string;
+        if (method === 'RewardsController:getCandidateSubscriptionId') {
+          return MOCK_SUBSCRIPTION_ID;
+        }
         if (method === 'RewardsController:isOptInSupported') {
           return true;
         }
@@ -649,9 +750,15 @@ describe('rewardsBulkLinkAccountGroups', () => {
         .provide([
           [select(selectAccountGroups), mockAccountGroups],
           [select(selectInternalAccountsByGroupId), mockGetAccountsByGroupId],
+          [select(selectBulkLinkState), DEFAULT_BULK_LINK_STATE],
         ])
         .dispatch({ type: BULK_LINK_START })
-        .put(bulkLinkStarted({ totalAccounts: 3 }))
+        .put(
+          bulkLinkStarted({
+            totalAccounts: 3,
+            subscriptionId: MOCK_SUBSCRIPTION_ID,
+          }),
+        )
         .put(bulkLinkAccountResult({ success: true }))
         .put(bulkLinkAccountResult({ success: true }))
         .put(bulkLinkAccountResult({ success: true }))
@@ -676,7 +783,7 @@ describe('rewardsBulkLinkAccountGroups', () => {
       );
     });
 
-    it('should yield to UI thread every UI_YIELD_INTERVAL accounts', async () => {
+    it('yields to UI thread every UI_YIELD_INTERVAL accounts', async () => {
       // Arrange
       const mockAccountGroups: AccountGroupObject[] = [mockAccountGroup1];
       // Create 3 accounts to test UI yielding
@@ -688,9 +795,11 @@ describe('rewardsBulkLinkAccountGroups', () => {
         mockGetAccountsByGroupId,
       );
 
-      // Mock isOptInSupported to return true
       mockControllerMessenger.call.mockImplementation((...args: unknown[]) => {
         const method = args[0] as string;
+        if (method === 'RewardsController:getCandidateSubscriptionId') {
+          return MOCK_SUBSCRIPTION_ID;
+        }
         if (method === 'RewardsController:isOptInSupported') {
           return true;
         }
@@ -711,9 +820,15 @@ describe('rewardsBulkLinkAccountGroups', () => {
         .provide([
           [select(selectAccountGroups), mockAccountGroups],
           [select(selectInternalAccountsByGroupId), mockGetAccountsByGroupId],
+          [select(selectBulkLinkState), DEFAULT_BULK_LINK_STATE],
         ])
         .dispatch({ type: BULK_LINK_START })
-        .put(bulkLinkStarted({ totalAccounts: 3 }))
+        .put(
+          bulkLinkStarted({
+            totalAccounts: 3,
+            subscriptionId: MOCK_SUBSCRIPTION_ID,
+          }),
+        )
         .put(bulkLinkAccountResult({ success: true }))
         .put(bulkLinkAccountResult({ success: true }))
         .put(bulkLinkAccountResult({ success: true }))
@@ -725,7 +840,7 @@ describe('rewardsBulkLinkAccountGroups', () => {
       expect(mockInteractionManager.runAfterInteractions).toHaveBeenCalled();
     });
 
-    it('should filter out groups with no accounts', async () => {
+    it('filters out groups with no accounts', async () => {
       // Arrange
       const mockAccountGroups: AccountGroupObject[] = [
         mockAccountGroup1,
@@ -748,9 +863,11 @@ describe('rewardsBulkLinkAccountGroups', () => {
         mockGetAccountsByGroupId,
       );
 
-      // Mock isOptInSupported to return true
       mockControllerMessenger.call.mockImplementation((...args: unknown[]) => {
         const method = args[0] as string;
+        if (method === 'RewardsController:getCandidateSubscriptionId') {
+          return MOCK_SUBSCRIPTION_ID;
+        }
         if (method === 'RewardsController:isOptInSupported') {
           return true;
         }
@@ -771,9 +888,15 @@ describe('rewardsBulkLinkAccountGroups', () => {
         .provide([
           [select(selectAccountGroups), mockAccountGroups],
           [select(selectInternalAccountsByGroupId), mockGetAccountsByGroupId],
+          [select(selectBulkLinkState), DEFAULT_BULK_LINK_STATE],
         ])
         .dispatch({ type: BULK_LINK_START })
-        .put(bulkLinkStarted({ totalAccounts: 1 })) // Only 1 account from group-1
+        .put(
+          bulkLinkStarted({
+            totalAccounts: 1,
+            subscriptionId: MOCK_SUBSCRIPTION_ID,
+          }),
+        ) // Only 1 account from group-1
         .put(bulkLinkAccountResult({ success: true }))
         .put(bulkLinkCompleted())
         .silentRun();

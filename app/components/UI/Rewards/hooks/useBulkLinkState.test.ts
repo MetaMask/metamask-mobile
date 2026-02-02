@@ -7,11 +7,13 @@ import {
   selectBulkLinkLinkedAccounts,
   selectBulkLinkFailedAccounts,
   selectBulkLinkAccountProgress,
+  selectBulkLinkWasInterrupted,
 } from '../../../../reducers/rewards/selectors';
 import { bulkLinkReset } from '../../../../reducers/rewards';
 import {
   startBulkLink,
   cancelBulkLink,
+  resumeBulkLink,
 } from '../../../../store/sagas/rewardsBulkLinkAccountGroups';
 
 // Mock dependencies
@@ -26,6 +28,7 @@ jest.mock('../../../../reducers/rewards/selectors', () => ({
   selectBulkLinkLinkedAccounts: jest.fn(),
   selectBulkLinkFailedAccounts: jest.fn(),
   selectBulkLinkAccountProgress: jest.fn(),
+  selectBulkLinkWasInterrupted: jest.fn(),
 }));
 
 jest.mock('../../../../reducers/rewards', () => ({
@@ -35,6 +38,7 @@ jest.mock('../../../../reducers/rewards', () => ({
 jest.mock('../../../../store/sagas/rewardsBulkLinkAccountGroups', () => ({
   startBulkLink: jest.fn(),
   cancelBulkLink: jest.fn(),
+  resumeBulkLink: jest.fn(),
 }));
 
 describe('useBulkLinkState', () => {
@@ -66,6 +70,10 @@ describe('useBulkLinkState', () => {
     selectBulkLinkAccountProgress as jest.MockedFunction<
       typeof selectBulkLinkAccountProgress
     >;
+  const mockSelectBulkLinkWasInterrupted =
+    selectBulkLinkWasInterrupted as jest.MockedFunction<
+      typeof selectBulkLinkWasInterrupted
+    >;
 
   const mockBulkLinkReset = bulkLinkReset as jest.MockedFunction<
     typeof bulkLinkReset
@@ -76,6 +84,9 @@ describe('useBulkLinkState', () => {
   const mockCancelBulkLink = cancelBulkLink as jest.MockedFunction<
     typeof cancelBulkLink
   >;
+  const mockResumeBulkLink = resumeBulkLink as jest.MockedFunction<
+    typeof resumeBulkLink
+  >;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -83,6 +94,7 @@ describe('useBulkLinkState', () => {
 
     // Default selector values
     mockSelectBulkLinkIsRunning.mockReturnValue(false);
+    mockSelectBulkLinkWasInterrupted.mockReturnValue(false);
     mockSelectBulkLinkTotalAccounts.mockReturnValue(0);
     mockSelectBulkLinkLinkedAccounts.mockReturnValue(0);
     mockSelectBulkLinkFailedAccounts.mockReturnValue(0);
@@ -92,6 +104,9 @@ describe('useBulkLinkState', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === mockSelectBulkLinkIsRunning) {
         return mockSelectBulkLinkIsRunning({} as never);
+      }
+      if (selector === mockSelectBulkLinkWasInterrupted) {
+        return mockSelectBulkLinkWasInterrupted({} as never);
       }
       if (selector === mockSelectBulkLinkTotalAccounts) {
         return mockSelectBulkLinkTotalAccounts({} as never);
@@ -118,17 +133,22 @@ describe('useBulkLinkState', () => {
     mockCancelBulkLink.mockReturnValue({
       type: 'rewards/cancelBulkLink',
     } as never);
+    mockResumeBulkLink.mockReturnValue({
+      type: 'rewards/resumeBulkLink',
+    } as never);
   });
 
   describe('Initial State', () => {
-    it('should return correct initial state when no bulk link is running', () => {
+    it('returns correct initial state when no bulk link is running', () => {
       const { result } = renderHook(() => useBulkLinkState());
 
       expect(result.current).toEqual({
         startBulkLink: expect.any(Function),
         cancelBulkLink: expect.any(Function),
         resetBulkLink: expect.any(Function),
+        resumeBulkLink: expect.any(Function),
         isRunning: false,
+        wasInterrupted: false,
         isCompleted: false,
         hasFailures: false,
         isFullySuccessful: false,
@@ -140,10 +160,13 @@ describe('useBulkLinkState', () => {
       });
     });
 
-    it('should call all selectors on mount', () => {
+    it('calls all selectors on mount', () => {
       renderHook(() => useBulkLinkState());
 
       expect(mockUseSelector).toHaveBeenCalledWith(mockSelectBulkLinkIsRunning);
+      expect(mockUseSelector).toHaveBeenCalledWith(
+        mockSelectBulkLinkWasInterrupted,
+      );
       expect(mockUseSelector).toHaveBeenCalledWith(
         mockSelectBulkLinkTotalAccounts,
       );
@@ -160,12 +183,13 @@ describe('useBulkLinkState', () => {
   });
 
   describe('Computed Values', () => {
-    it('should calculate processedAccounts correctly', () => {
+    it('calculates processedAccounts correctly', () => {
       mockSelectBulkLinkLinkedAccounts.mockReturnValue(5);
       mockSelectBulkLinkFailedAccounts.mockReturnValue(2);
 
       mockUseSelector.mockImplementation((selector) => {
         if (selector === mockSelectBulkLinkIsRunning) return false;
+        if (selector === mockSelectBulkLinkWasInterrupted) return false;
         if (selector === mockSelectBulkLinkTotalAccounts) return 10;
         if (selector === mockSelectBulkLinkLinkedAccounts) return 5;
         if (selector === mockSelectBulkLinkFailedAccounts) return 2;
@@ -178,7 +202,7 @@ describe('useBulkLinkState', () => {
       expect(result.current.processedAccounts).toBe(7); // 5 + 2
     });
 
-    it('should calculate isCompleted correctly when all accounts are processed', () => {
+    it('calculates isCompleted correctly when all accounts are processed', () => {
       mockSelectBulkLinkIsRunning.mockReturnValue(false);
       mockSelectBulkLinkTotalAccounts.mockReturnValue(10);
       mockSelectBulkLinkLinkedAccounts.mockReturnValue(8);
@@ -186,6 +210,7 @@ describe('useBulkLinkState', () => {
 
       mockUseSelector.mockImplementation((selector) => {
         if (selector === mockSelectBulkLinkIsRunning) return false;
+        if (selector === mockSelectBulkLinkWasInterrupted) return false;
         if (selector === mockSelectBulkLinkTotalAccounts) return 10;
         if (selector === mockSelectBulkLinkLinkedAccounts) return 8;
         if (selector === mockSelectBulkLinkFailedAccounts) return 2;
@@ -199,7 +224,7 @@ describe('useBulkLinkState', () => {
       expect(result.current.processedAccounts).toBe(10); // 8 + 2
     });
 
-    it('should not be completed when bulk link is still running', () => {
+    it('returns isCompleted as false when bulk link is still running', () => {
       mockSelectBulkLinkIsRunning.mockReturnValue(true);
       mockSelectBulkLinkTotalAccounts.mockReturnValue(10);
       mockSelectBulkLinkLinkedAccounts.mockReturnValue(10);
@@ -207,6 +232,7 @@ describe('useBulkLinkState', () => {
 
       mockUseSelector.mockImplementation((selector) => {
         if (selector === mockSelectBulkLinkIsRunning) return true;
+        if (selector === mockSelectBulkLinkWasInterrupted) return false;
         if (selector === mockSelectBulkLinkTotalAccounts) return 10;
         if (selector === mockSelectBulkLinkLinkedAccounts) return 10;
         if (selector === mockSelectBulkLinkFailedAccounts) return 0;
@@ -220,7 +246,7 @@ describe('useBulkLinkState', () => {
       expect(result.current.isRunning).toBe(true);
     });
 
-    it('should not be completed when no accounts have been processed', () => {
+    it('returns isCompleted as false when no accounts have been processed', () => {
       mockSelectBulkLinkIsRunning.mockReturnValue(false);
       mockSelectBulkLinkTotalAccounts.mockReturnValue(10);
       mockSelectBulkLinkLinkedAccounts.mockReturnValue(0);
@@ -228,6 +254,7 @@ describe('useBulkLinkState', () => {
 
       mockUseSelector.mockImplementation((selector) => {
         if (selector === mockSelectBulkLinkIsRunning) return false;
+        if (selector === mockSelectBulkLinkWasInterrupted) return false;
         if (selector === mockSelectBulkLinkTotalAccounts) return 10;
         if (selector === mockSelectBulkLinkLinkedAccounts) return 0;
         if (selector === mockSelectBulkLinkFailedAccounts) return 0;
@@ -241,11 +268,12 @@ describe('useBulkLinkState', () => {
       expect(result.current.processedAccounts).toBe(0);
     });
 
-    it('should calculate hasFailures correctly', () => {
+    it('calculates hasFailures correctly when failedAccounts is greater than zero', () => {
       mockSelectBulkLinkFailedAccounts.mockReturnValue(3);
 
       mockUseSelector.mockImplementation((selector) => {
         if (selector === mockSelectBulkLinkIsRunning) return false;
+        if (selector === mockSelectBulkLinkWasInterrupted) return false;
         if (selector === mockSelectBulkLinkTotalAccounts) return 10;
         if (selector === mockSelectBulkLinkLinkedAccounts) return 5;
         if (selector === mockSelectBulkLinkFailedAccounts) return 3;
@@ -258,11 +286,12 @@ describe('useBulkLinkState', () => {
       expect(result.current.hasFailures).toBe(true);
     });
 
-    it('should not have failures when failedAccounts is 0', () => {
+    it('returns hasFailures as false when failedAccounts is 0', () => {
       mockSelectBulkLinkFailedAccounts.mockReturnValue(0);
 
       mockUseSelector.mockImplementation((selector) => {
         if (selector === mockSelectBulkLinkIsRunning) return false;
+        if (selector === mockSelectBulkLinkWasInterrupted) return false;
         if (selector === mockSelectBulkLinkTotalAccounts) return 10;
         if (selector === mockSelectBulkLinkLinkedAccounts) return 10;
         if (selector === mockSelectBulkLinkFailedAccounts) return 0;
@@ -275,7 +304,7 @@ describe('useBulkLinkState', () => {
       expect(result.current.hasFailures).toBe(false);
     });
 
-    it('should calculate isFullySuccessful correctly', () => {
+    it('calculates isFullySuccessful correctly when completed with no failures', () => {
       mockSelectBulkLinkIsRunning.mockReturnValue(false);
       mockSelectBulkLinkTotalAccounts.mockReturnValue(10);
       mockSelectBulkLinkLinkedAccounts.mockReturnValue(10);
@@ -283,6 +312,7 @@ describe('useBulkLinkState', () => {
 
       mockUseSelector.mockImplementation((selector) => {
         if (selector === mockSelectBulkLinkIsRunning) return false;
+        if (selector === mockSelectBulkLinkWasInterrupted) return false;
         if (selector === mockSelectBulkLinkTotalAccounts) return 10;
         if (selector === mockSelectBulkLinkLinkedAccounts) return 10;
         if (selector === mockSelectBulkLinkFailedAccounts) return 0;
@@ -297,7 +327,7 @@ describe('useBulkLinkState', () => {
       expect(result.current.hasFailures).toBe(false);
     });
 
-    it('should not be fully successful when there are failures', () => {
+    it('returns isFullySuccessful as false when there are failures', () => {
       mockSelectBulkLinkIsRunning.mockReturnValue(false);
       mockSelectBulkLinkTotalAccounts.mockReturnValue(10);
       mockSelectBulkLinkLinkedAccounts.mockReturnValue(8);
@@ -305,6 +335,7 @@ describe('useBulkLinkState', () => {
 
       mockUseSelector.mockImplementation((selector) => {
         if (selector === mockSelectBulkLinkIsRunning) return false;
+        if (selector === mockSelectBulkLinkWasInterrupted) return false;
         if (selector === mockSelectBulkLinkTotalAccounts) return 10;
         if (selector === mockSelectBulkLinkLinkedAccounts) return 8;
         if (selector === mockSelectBulkLinkFailedAccounts) return 2;
@@ -319,7 +350,7 @@ describe('useBulkLinkState', () => {
       expect(result.current.hasFailures).toBe(true);
     });
 
-    it('should not be fully successful when still running', () => {
+    it('returns isFullySuccessful as false when still running', () => {
       mockSelectBulkLinkIsRunning.mockReturnValue(true);
       mockSelectBulkLinkTotalAccounts.mockReturnValue(10);
       mockSelectBulkLinkLinkedAccounts.mockReturnValue(10);
@@ -327,6 +358,7 @@ describe('useBulkLinkState', () => {
 
       mockUseSelector.mockImplementation((selector) => {
         if (selector === mockSelectBulkLinkIsRunning) return true;
+        if (selector === mockSelectBulkLinkWasInterrupted) return false;
         if (selector === mockSelectBulkLinkTotalAccounts) return 10;
         if (selector === mockSelectBulkLinkLinkedAccounts) return 10;
         if (selector === mockSelectBulkLinkFailedAccounts) return 0;
@@ -339,14 +371,52 @@ describe('useBulkLinkState', () => {
       expect(result.current.isFullySuccessful).toBe(false);
       expect(result.current.isRunning).toBe(true);
     });
+
+    it('returns wasInterrupted as true when process was interrupted', () => {
+      mockSelectBulkLinkWasInterrupted.mockReturnValue(true);
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === mockSelectBulkLinkIsRunning) return false;
+        if (selector === mockSelectBulkLinkWasInterrupted) return true;
+        if (selector === mockSelectBulkLinkTotalAccounts) return 10;
+        if (selector === mockSelectBulkLinkLinkedAccounts) return 5;
+        if (selector === mockSelectBulkLinkFailedAccounts) return 0;
+        if (selector === mockSelectBulkLinkAccountProgress) return 0.5;
+        return undefined;
+      });
+
+      const { result } = renderHook(() => useBulkLinkState());
+
+      expect(result.current.wasInterrupted).toBe(true);
+      expect(result.current.isRunning).toBe(false);
+    });
+
+    it('returns wasInterrupted as false when process was not interrupted', () => {
+      mockSelectBulkLinkWasInterrupted.mockReturnValue(false);
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === mockSelectBulkLinkIsRunning) return false;
+        if (selector === mockSelectBulkLinkWasInterrupted) return false;
+        if (selector === mockSelectBulkLinkTotalAccounts) return 10;
+        if (selector === mockSelectBulkLinkLinkedAccounts) return 10;
+        if (selector === mockSelectBulkLinkFailedAccounts) return 0;
+        if (selector === mockSelectBulkLinkAccountProgress) return 1.0;
+        return undefined;
+      });
+
+      const { result } = renderHook(() => useBulkLinkState());
+
+      expect(result.current.wasInterrupted).toBe(false);
+    });
   });
 
   describe('Action Dispatchers', () => {
-    it('should dispatch startBulkLink when startBulkLink is called', () => {
+    it('dispatches startBulkLink action when startBulkLink is called', () => {
       mockSelectBulkLinkIsRunning.mockReturnValue(false);
 
       mockUseSelector.mockImplementation((selector) => {
         if (selector === mockSelectBulkLinkIsRunning) return false;
+        if (selector === mockSelectBulkLinkWasInterrupted) return false;
         if (selector === mockSelectBulkLinkTotalAccounts) return 0;
         if (selector === mockSelectBulkLinkLinkedAccounts) return 0;
         if (selector === mockSelectBulkLinkFailedAccounts) return 0;
@@ -363,11 +433,12 @@ describe('useBulkLinkState', () => {
       expect(mockDispatch).toHaveBeenCalledWith(mockStartBulkLink());
     });
 
-    it('should not dispatch startBulkLink when already running', () => {
+    it('does not dispatch startBulkLink action when already running', () => {
       mockSelectBulkLinkIsRunning.mockReturnValue(true);
 
       mockUseSelector.mockImplementation((selector) => {
         if (selector === mockSelectBulkLinkIsRunning) return true;
+        if (selector === mockSelectBulkLinkWasInterrupted) return false;
         if (selector === mockSelectBulkLinkTotalAccounts) return 10;
         if (selector === mockSelectBulkLinkLinkedAccounts) return 5;
         if (selector === mockSelectBulkLinkFailedAccounts) return 0;
@@ -384,11 +455,10 @@ describe('useBulkLinkState', () => {
         result.current.startBulkLink();
       });
 
-      // Should not dispatch when already running
       expect(mockDispatch).not.toHaveBeenCalled();
     });
 
-    it('should dispatch cancelBulkLink when cancelBulkLink is called', () => {
+    it('dispatches cancelBulkLink action when cancelBulkLink is called', () => {
       const { result } = renderHook(() => useBulkLinkState());
 
       act(() => {
@@ -398,7 +468,7 @@ describe('useBulkLinkState', () => {
       expect(mockDispatch).toHaveBeenCalledWith(mockCancelBulkLink());
     });
 
-    it('should dispatch bulkLinkReset when resetBulkLink is called', () => {
+    it('dispatches bulkLinkReset action when resetBulkLink is called', () => {
       const { result } = renderHook(() => useBulkLinkState());
 
       act(() => {
@@ -407,14 +477,64 @@ describe('useBulkLinkState', () => {
 
       expect(mockDispatch).toHaveBeenCalledWith(mockBulkLinkReset());
     });
+
+    it('dispatches resumeBulkLink action when resumeBulkLink is called', () => {
+      mockSelectBulkLinkIsRunning.mockReturnValue(false);
+      mockSelectBulkLinkWasInterrupted.mockReturnValue(true);
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === mockSelectBulkLinkIsRunning) return false;
+        if (selector === mockSelectBulkLinkWasInterrupted) return true;
+        if (selector === mockSelectBulkLinkTotalAccounts) return 10;
+        if (selector === mockSelectBulkLinkLinkedAccounts) return 5;
+        if (selector === mockSelectBulkLinkFailedAccounts) return 0;
+        if (selector === mockSelectBulkLinkAccountProgress) return 0.5;
+        return undefined;
+      });
+
+      const { result } = renderHook(() => useBulkLinkState());
+
+      act(() => {
+        result.current.resumeBulkLink();
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(mockResumeBulkLink());
+    });
+
+    it('does not dispatch resumeBulkLink action when already running', () => {
+      mockSelectBulkLinkIsRunning.mockReturnValue(true);
+      mockSelectBulkLinkWasInterrupted.mockReturnValue(true);
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === mockSelectBulkLinkIsRunning) return true;
+        if (selector === mockSelectBulkLinkWasInterrupted) return true;
+        if (selector === mockSelectBulkLinkTotalAccounts) return 10;
+        if (selector === mockSelectBulkLinkLinkedAccounts) return 5;
+        if (selector === mockSelectBulkLinkFailedAccounts) return 0;
+        if (selector === mockSelectBulkLinkAccountProgress) return 0.5;
+        return undefined;
+      });
+
+      const { result } = renderHook(() => useBulkLinkState());
+
+      // Clear previous calls
+      mockDispatch.mockClear();
+
+      act(() => {
+        result.current.resumeBulkLink();
+      });
+
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
   });
 
   describe('Edge Cases', () => {
-    it('should handle zero total accounts', () => {
+    it('handles zero total accounts', () => {
       mockSelectBulkLinkTotalAccounts.mockReturnValue(0);
 
       mockUseSelector.mockImplementation((selector) => {
         if (selector === mockSelectBulkLinkIsRunning) return false;
+        if (selector === mockSelectBulkLinkWasInterrupted) return false;
         if (selector === mockSelectBulkLinkTotalAccounts) return 0;
         if (selector === mockSelectBulkLinkLinkedAccounts) return 0;
         if (selector === mockSelectBulkLinkFailedAccounts) return 0;
@@ -429,11 +549,12 @@ describe('useBulkLinkState', () => {
       expect(result.current.isFullySuccessful).toBe(false);
     });
 
-    it('should handle progress calculation correctly', () => {
+    it('returns correct progress calculation', () => {
       mockSelectBulkLinkAccountProgress.mockReturnValue(0.75);
 
       mockUseSelector.mockImplementation((selector) => {
         if (selector === mockSelectBulkLinkIsRunning) return true;
+        if (selector === mockSelectBulkLinkWasInterrupted) return false;
         if (selector === mockSelectBulkLinkTotalAccounts) return 10;
         if (selector === mockSelectBulkLinkLinkedAccounts) return 7;
         if (selector === mockSelectBulkLinkFailedAccounts) return 1;
@@ -447,7 +568,7 @@ describe('useBulkLinkState', () => {
       expect(result.current.processedAccounts).toBe(8); // 7 + 1
     });
 
-    it('should handle partial completion correctly', () => {
+    it('handles partial completion correctly', () => {
       mockSelectBulkLinkIsRunning.mockReturnValue(true);
       mockSelectBulkLinkTotalAccounts.mockReturnValue(20);
       mockSelectBulkLinkLinkedAccounts.mockReturnValue(12);
@@ -455,6 +576,7 @@ describe('useBulkLinkState', () => {
 
       mockUseSelector.mockImplementation((selector) => {
         if (selector === mockSelectBulkLinkIsRunning) return true;
+        if (selector === mockSelectBulkLinkWasInterrupted) return false;
         if (selector === mockSelectBulkLinkTotalAccounts) return 20;
         if (selector === mockSelectBulkLinkLinkedAccounts) return 12;
         if (selector === mockSelectBulkLinkFailedAccounts) return 3;
@@ -471,7 +593,7 @@ describe('useBulkLinkState', () => {
       expect(result.current.accountProgress).toBe(0.75);
     });
 
-    it('should handle all accounts failed scenario', () => {
+    it('handles all accounts failed scenario', () => {
       mockSelectBulkLinkIsRunning.mockReturnValue(false);
       mockSelectBulkLinkTotalAccounts.mockReturnValue(5);
       mockSelectBulkLinkLinkedAccounts.mockReturnValue(0);
@@ -479,6 +601,7 @@ describe('useBulkLinkState', () => {
 
       mockUseSelector.mockImplementation((selector) => {
         if (selector === mockSelectBulkLinkIsRunning) return false;
+        if (selector === mockSelectBulkLinkWasInterrupted) return false;
         if (selector === mockSelectBulkLinkTotalAccounts) return 5;
         if (selector === mockSelectBulkLinkLinkedAccounts) return 0;
         if (selector === mockSelectBulkLinkFailedAccounts) return 5;
@@ -493,15 +616,41 @@ describe('useBulkLinkState', () => {
       expect(result.current.isFullySuccessful).toBe(false);
       expect(result.current.processedAccounts).toBe(5);
     });
+
+    it('handles interrupted state with partial progress', () => {
+      mockSelectBulkLinkIsRunning.mockReturnValue(false);
+      mockSelectBulkLinkWasInterrupted.mockReturnValue(true);
+      mockSelectBulkLinkTotalAccounts.mockReturnValue(10);
+      mockSelectBulkLinkLinkedAccounts.mockReturnValue(3);
+      mockSelectBulkLinkFailedAccounts.mockReturnValue(0);
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === mockSelectBulkLinkIsRunning) return false;
+        if (selector === mockSelectBulkLinkWasInterrupted) return true;
+        if (selector === mockSelectBulkLinkTotalAccounts) return 10;
+        if (selector === mockSelectBulkLinkLinkedAccounts) return 3;
+        if (selector === mockSelectBulkLinkFailedAccounts) return 0;
+        if (selector === mockSelectBulkLinkAccountProgress) return 0.3;
+        return undefined;
+      });
+
+      const { result } = renderHook(() => useBulkLinkState());
+
+      expect(result.current.wasInterrupted).toBe(true);
+      expect(result.current.isRunning).toBe(false);
+      expect(result.current.isCompleted).toBe(false);
+      expect(result.current.processedAccounts).toBe(3);
+    });
   });
 
   describe('Memoization', () => {
-    it('should memoize processedAccounts correctly', () => {
+    it('memoizes processedAccounts correctly with same values', () => {
       mockSelectBulkLinkLinkedAccounts.mockReturnValue(5);
       mockSelectBulkLinkFailedAccounts.mockReturnValue(2);
 
       mockUseSelector.mockImplementation((selector) => {
         if (selector === mockSelectBulkLinkIsRunning) return false;
+        if (selector === mockSelectBulkLinkWasInterrupted) return false;
         if (selector === mockSelectBulkLinkTotalAccounts) return 10;
         if (selector === mockSelectBulkLinkLinkedAccounts) return 5;
         if (selector === mockSelectBulkLinkFailedAccounts) return 2;
@@ -519,12 +668,13 @@ describe('useBulkLinkState', () => {
       expect(result.current.processedAccounts).toBe(firstProcessedAccounts);
     });
 
-    it('should update processedAccounts when linkedAccounts changes', () => {
+    it('updates processedAccounts when linkedAccounts changes', () => {
       mockSelectBulkLinkLinkedAccounts.mockReturnValue(5);
       mockSelectBulkLinkFailedAccounts.mockReturnValue(2);
 
       mockUseSelector.mockImplementation((selector) => {
         if (selector === mockSelectBulkLinkIsRunning) return false;
+        if (selector === mockSelectBulkLinkWasInterrupted) return false;
         if (selector === mockSelectBulkLinkTotalAccounts) return 10;
         if (selector === mockSelectBulkLinkLinkedAccounts) return 5;
         if (selector === mockSelectBulkLinkFailedAccounts) return 2;
@@ -540,6 +690,7 @@ describe('useBulkLinkState', () => {
       mockSelectBulkLinkLinkedAccounts.mockReturnValue(6);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === mockSelectBulkLinkIsRunning) return false;
+        if (selector === mockSelectBulkLinkWasInterrupted) return false;
         if (selector === mockSelectBulkLinkTotalAccounts) return 10;
         if (selector === mockSelectBulkLinkLinkedAccounts) return 6;
         if (selector === mockSelectBulkLinkFailedAccounts) return 2;
@@ -554,25 +705,28 @@ describe('useBulkLinkState', () => {
   });
 
   describe('Callback Stability', () => {
-    it('should maintain stable callbacks when dependencies do not change', () => {
+    it('maintains stable callbacks when dependencies do not change', () => {
       const { result, rerender } = renderHook(() => useBulkLinkState());
 
       const initialStartBulkLink = result.current.startBulkLink;
       const initialCancelBulkLink = result.current.cancelBulkLink;
       const initialResetBulkLink = result.current.resetBulkLink;
+      const initialResumeBulkLink = result.current.resumeBulkLink;
 
       rerender();
 
       expect(result.current.startBulkLink).toBe(initialStartBulkLink);
       expect(result.current.cancelBulkLink).toBe(initialCancelBulkLink);
       expect(result.current.resetBulkLink).toBe(initialResetBulkLink);
+      expect(result.current.resumeBulkLink).toBe(initialResumeBulkLink);
     });
 
-    it('should recreate startBulkLink callback when isRunning changes', () => {
+    it('recreates startBulkLink callback when isRunning changes', () => {
       mockSelectBulkLinkIsRunning.mockReturnValue(false);
 
       mockUseSelector.mockImplementation((selector) => {
         if (selector === mockSelectBulkLinkIsRunning) return false;
+        if (selector === mockSelectBulkLinkWasInterrupted) return false;
         if (selector === mockSelectBulkLinkTotalAccounts) return 0;
         if (selector === mockSelectBulkLinkLinkedAccounts) return 0;
         if (selector === mockSelectBulkLinkFailedAccounts) return 0;
@@ -588,6 +742,7 @@ describe('useBulkLinkState', () => {
       mockSelectBulkLinkIsRunning.mockReturnValue(true);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === mockSelectBulkLinkIsRunning) return true;
+        if (selector === mockSelectBulkLinkWasInterrupted) return false;
         if (selector === mockSelectBulkLinkTotalAccounts) return 0;
         if (selector === mockSelectBulkLinkLinkedAccounts) return 0;
         if (selector === mockSelectBulkLinkFailedAccounts) return 0;
@@ -597,8 +752,44 @@ describe('useBulkLinkState', () => {
 
       rerender();
 
-      // startBulkLink should be recreated because isRunning is a dependency
+      // startBulkLink is recreated because isRunning is a dependency
       expect(result.current.startBulkLink).not.toBe(initialStartBulkLink);
+    });
+
+    it('recreates resumeBulkLink callback when isRunning changes', () => {
+      mockSelectBulkLinkIsRunning.mockReturnValue(false);
+      mockSelectBulkLinkWasInterrupted.mockReturnValue(true);
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === mockSelectBulkLinkIsRunning) return false;
+        if (selector === mockSelectBulkLinkWasInterrupted) return true;
+        if (selector === mockSelectBulkLinkTotalAccounts) return 10;
+        if (selector === mockSelectBulkLinkLinkedAccounts) return 5;
+        if (selector === mockSelectBulkLinkFailedAccounts) return 0;
+        if (selector === mockSelectBulkLinkAccountProgress) return 0.5;
+        return undefined;
+      });
+
+      const { result, rerender } = renderHook(() => useBulkLinkState());
+
+      const initialResumeBulkLink = result.current.resumeBulkLink;
+
+      // Change isRunning
+      mockSelectBulkLinkIsRunning.mockReturnValue(true);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === mockSelectBulkLinkIsRunning) return true;
+        if (selector === mockSelectBulkLinkWasInterrupted) return true;
+        if (selector === mockSelectBulkLinkTotalAccounts) return 10;
+        if (selector === mockSelectBulkLinkLinkedAccounts) return 5;
+        if (selector === mockSelectBulkLinkFailedAccounts) return 0;
+        if (selector === mockSelectBulkLinkAccountProgress) return 0.5;
+        return undefined;
+      });
+
+      rerender();
+
+      // resumeBulkLink is recreated because isRunning is a dependency
+      expect(result.current.resumeBulkLink).not.toBe(initialResumeBulkLink);
     });
   });
 });
