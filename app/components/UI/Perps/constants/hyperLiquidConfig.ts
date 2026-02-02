@@ -67,7 +67,7 @@ export const METAMASK_PERPS_ICONS_BASE_URL =
 
 // Asset configurations for multichain abstraction
 export const HYPERLIQUID_ASSET_CONFIGS: HyperLiquidAssetConfigs = {
-  USDC: {
+  usdc: {
     mainnet: `${ARBITRUM_MAINNET_CAIP_CHAIN_ID}/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default`,
     testnet: `${ARBITRUM_TESTNET_CAIP_CHAIN_ID}/erc20:0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d/default`,
   },
@@ -175,7 +175,7 @@ export const BUILDER_FEE_CONFIG = {
   MaxFeeTenthsBps: BUILDER_FEE_MAX_FEE_DECIMAL * 100000,
   MaxFeeRate: `${(BUILDER_FEE_MAX_FEE_DECIMAL * 100)
     .toFixed(4)
-    .replace(/\.?0+$/, '')}%`,
+    .replace(/\.?0+$/u, '')}%`,
 };
 
 // Referral code configuration
@@ -323,14 +323,45 @@ export const HIP3_ASSET_MARKET_TYPES: Record<
   'xyz:TSLA': 'equity',
   'xyz:NVDA': 'equity',
   'xyz:XYZ100': 'equity',
+  'xyz:INTC': 'equity',
+  'xyz:MU': 'equity',
+  'xyz:CRCL': 'equity',
+  'xyz:HOOD': 'equity',
+  'xyz:SNDK': 'equity',
+  'xyz:GOOGL': 'equity',
+  'xyz:COIN': 'equity',
+  'xyz:ORCL': 'equity',
+  'xyz:AMZN': 'equity',
+  'xyz:PLTR': 'equity',
+  'xyz:AAPL': 'equity',
+  'xyz:META': 'equity',
+  'xyz:AMD': 'equity',
+  'xyz:MSFT': 'equity',
+  'xyz:BABA': 'equity',
+  'xyz:RIVN': 'equity',
+  'xyz:NFLX': 'equity',
+  'xyz:COST': 'equity',
+  'xyz:LLY': 'equity',
+  'xyz:TSM': 'equity',
+  'xyz:SKHX': 'equity',
+  'xyz:MSTR': 'equity',
+  'xyz:CRWV': 'equity',
+  'xyz:SMSN': 'equity',
 
   // xyz DEX - Commodities
   'xyz:GOLD': 'commodity',
   'xyz:SILVER': 'commodity',
   'xyz:CL': 'commodity',
   'xyz:COPPER': 'commodity',
+  'xyz:ALUMINIUM': 'commodity',
+  'xyz:URANIUM': 'commodity',
+  'xyz:USAR': 'commodity',
+  'xyz:NATGAS': 'commodity',
+  'xyz:PLATINUM': 'commodity',
 
-  // Future asset mappings as xyz adds more markets
+  // xyz DEX - Forex
+  'xyz:EUR': 'forex',
+  'xyz:JPY': 'forex',
 } as const;
 
 /**
@@ -339,8 +370,6 @@ export const HIP3_ASSET_MARKET_TYPES: Record<
  * On testnet, there are many HIP-3 DEXs (test deployments from various builders).
  * Subscribing to all of them causes connection/subscription overload and instability.
  * This configuration limits which DEXs are discovered and subscribed to on testnet.
- *
- * On mainnet, full DEX discovery continues unchanged.
  */
 export const TESTNET_HIP3_CONFIG = {
   /**
@@ -353,6 +382,25 @@ export const TESTNET_HIP3_CONFIG = {
   /**
    * Set to true to enable full HIP-3 discovery on testnet (not recommended)
    * When false, only DEXs in ENABLED_DEXS are used
+   */
+  AutoDiscoverAll: false,
+} as const;
+
+/**
+ * Mainnet-specific HIP-3 DEX configuration
+ *
+ * On mainnet, DEX filtering is dynamically determined from the allowlist markets
+ * feature flag. This avoids hardcoding DEX names and ensures consistency with
+ * the market filtering logic.
+ *
+ * When AutoDiscoverAll is false and no allowlist is provided, only the main DEX is used.
+ * When an allowlist is provided, DEXs are extracted from the allowlist patterns.
+ */
+export const MAINNET_HIP3_CONFIG = {
+  /**
+   * Set to true to enable full HIP-3 discovery on mainnet
+   * When false, DEXs are filtered based on the allowlist markets feature flag
+   * (recommended for production to reduce subscription overhead)
    */
   AutoDiscoverAll: false,
 } as const;

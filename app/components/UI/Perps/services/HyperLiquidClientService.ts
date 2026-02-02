@@ -29,10 +29,10 @@ export type ValidCandleInterval = CandlePeriod;
  * Connection states for WebSocket management
  */
 export enum WebSocketConnectionState {
-  DISCONNECTED = 'disconnected',
-  CONNECTING = 'connecting',
-  CONNECTED = 'connected',
-  DISCONNECTING = 'disconnecting',
+  Disconnected = 'disconnected',
+  Connecting = 'connecting',
+  Connected = 'connected',
+  Disconnecting = 'disconnecting',
 }
 
 /**
@@ -50,7 +50,7 @@ export class HyperLiquidClientService {
   private httpTransport?: HttpTransport;
   private isTestnet: boolean;
   private connectionState: WebSocketConnectionState =
-    WebSocketConnectionState.DISCONNECTED;
+    WebSocketConnectionState.Disconnected;
   private disconnectionPromise: Promise<void> | null = null;
   // Callback for SDK terminate event (fired when all reconnection attempts exhausted)
   private onTerminateCallback: ((error: Error) => void) | null = null;
@@ -100,7 +100,7 @@ export class HyperLiquidClientService {
     getChainId?: () => Promise<number>;
   }): Promise<void> {
     try {
-      this.updateConnectionState(WebSocketConnectionState.CONNECTING);
+      this.updateConnectionState(WebSocketConnectionState.Connecting);
       this.createTransports();
 
       // Ensure transports are created
@@ -130,7 +130,7 @@ export class HyperLiquidClientService {
       // This ensures we have a real connection, not just client objects
       await this.wsTransport.ready();
 
-      this.updateConnectionState(WebSocketConnectionState.CONNECTED);
+      this.updateConnectionState(WebSocketConnectionState.Connected);
 
       this.deps.debugLogger.log('HyperLiquid SDK clients initialized', {
         testnet: this.isTestnet,
@@ -158,7 +158,7 @@ export class HyperLiquidClientService {
       this.httpTransport = undefined;
 
       const errorInstance = ensureError(error);
-      this.updateConnectionState(WebSocketConnectionState.DISCONNECTED);
+      this.updateConnectionState(WebSocketConnectionState.Disconnected);
 
       // Log to Sentry: initialization failure blocks all Perps functionality
       this.deps.logger.error(errorInstance, {
@@ -230,7 +230,7 @@ export class HyperLiquidClientService {
         timestamp: new Date().toISOString(),
       });
 
-      this.updateConnectionState(WebSocketConnectionState.DISCONNECTED);
+      this.updateConnectionState(WebSocketConnectionState.Disconnected);
 
       if (this.onTerminateCallback) {
         const error =
@@ -526,6 +526,9 @@ export class HyperLiquidClientService {
     let currentCandleData: CandleData | null = null;
     let wsUnsubscribe: (() => void) | null = null;
     let isUnsubscribed = false;
+    // Store the subscription promise to enable cleanup even when pending
+    // This fixes a race condition where component unmounts before subscription resolves
+    let subscriptionPromise: Promise<{ unsubscribe: () => void }> | null = null;
 
     // Calculate initial fetch size dynamically based on duration and interval
     // Match main branch behavior: up to 500 candles initially
@@ -548,7 +551,8 @@ export class HyperLiquidClientService {
 
         // 2. Subscribe to WebSocket for new candles
         // HyperLiquid SDK uses 'coin' terminology
-        const subscription = subscriptionClient.candle(
+        // Store the promise so cleanup can wait for it if needed
+        subscriptionPromise = subscriptionClient.candle(
           { coin: symbol, interval }, // Map to HyperLiquid SDK's 'coin' parameter
           (candleEvent) => {
             // Don't process events if already unsubscribed
@@ -598,12 +602,12 @@ export class HyperLiquidClientService {
           },
         );
 
-        // Store cleanup function
-        subscription
+        // Store cleanup function when subscription resolves
+        subscriptionPromise
           .then((sub) => {
             wsUnsubscribe = () => sub.unsubscribe();
             // If already unsubscribed while waiting, clean up immediately
-            if (isUnsubscribed && wsUnsubscribe) {
+            if (isUnsubscribed) {
               wsUnsubscribe();
               wsUnsubscribe = null;
             }
@@ -663,8 +667,19 @@ export class HyperLiquidClientService {
     return () => {
       isUnsubscribed = true;
       if (wsUnsubscribe) {
+        // Subscription already resolved - unsubscribe directly
         wsUnsubscribe();
         wsUnsubscribe = null;
+      } else if (subscriptionPromise) {
+        // Subscription promise still pending - wait for it and clean up
+        // This prevents WebSocket subscription leaks when component unmounts
+        // before the subscription promise resolves
+        subscriptionPromise
+          .then((sub) => sub.unsubscribe())
+          .catch(() => {
+            // Ignore errors during cleanup - subscription may have failed
+          });
+        subscriptionPromise = null;
       }
     };
   }
@@ -674,20 +689,20 @@ export class HyperLiquidClientService {
    */
   private getIntervalMilliseconds(interval: CandlePeriod): number {
     const intervalMap: Record<CandlePeriod, number> = {
-      [CandlePeriod.ONE_MINUTE]: 1 * 60 * 1000,
-      [CandlePeriod.THREE_MINUTES]: 3 * 60 * 1000,
-      [CandlePeriod.FIVE_MINUTES]: 5 * 60 * 1000,
-      [CandlePeriod.FIFTEEN_MINUTES]: 15 * 60 * 1000,
-      [CandlePeriod.THIRTY_MINUTES]: 30 * 60 * 1000,
-      [CandlePeriod.ONE_HOUR]: 60 * 60 * 1000,
-      [CandlePeriod.TWO_HOURS]: 2 * 60 * 60 * 1000,
-      [CandlePeriod.FOUR_HOURS]: 4 * 60 * 60 * 1000,
-      [CandlePeriod.EIGHT_HOURS]: 8 * 60 * 60 * 1000,
-      [CandlePeriod.TWELVE_HOURS]: 12 * 60 * 60 * 1000,
-      [CandlePeriod.ONE_DAY]: 24 * 60 * 60 * 1000,
-      [CandlePeriod.THREE_DAYS]: 3 * 24 * 60 * 60 * 1000,
-      [CandlePeriod.ONE_WEEK]: 7 * 24 * 60 * 60 * 1000,
-      [CandlePeriod.ONE_MONTH]: 30 * 24 * 60 * 60 * 1000, // Approximate
+      [CandlePeriod.OneMinute]: 1 * 60 * 1000,
+      [CandlePeriod.ThreeMinutes]: 3 * 60 * 1000,
+      [CandlePeriod.FiveMinutes]: 5 * 60 * 1000,
+      [CandlePeriod.FifteenMinutes]: 15 * 60 * 1000,
+      [CandlePeriod.ThirtyMinutes]: 30 * 60 * 1000,
+      [CandlePeriod.OneHour]: 60 * 60 * 1000,
+      [CandlePeriod.TwoHours]: 2 * 60 * 60 * 1000,
+      [CandlePeriod.FourHours]: 4 * 60 * 60 * 1000,
+      [CandlePeriod.EightHours]: 8 * 60 * 60 * 1000,
+      [CandlePeriod.TwelveHours]: 12 * 60 * 60 * 1000,
+      [CandlePeriod.OneDay]: 24 * 60 * 60 * 1000,
+      [CandlePeriod.ThreeDays]: 3 * 24 * 60 * 60 * 1000,
+      [CandlePeriod.OneWeek]: 7 * 24 * 60 * 60 * 1000,
+      [CandlePeriod.OneMonth]: 30 * 24 * 60 * 60 * 1000, // Approximate
     };
 
     return intervalMap[interval];
@@ -703,7 +718,7 @@ export class HyperLiquidClientService {
     }
 
     // If already disconnected, return immediately
-    if (this.connectionState === WebSocketConnectionState.DISCONNECTED) {
+    if (this.connectionState === WebSocketConnectionState.Disconnected) {
       return;
     }
 
@@ -719,7 +734,7 @@ export class HyperLiquidClientService {
 
   private async performDisconnection(): Promise<void> {
     try {
-      this.updateConnectionState(WebSocketConnectionState.DISCONNECTING);
+      this.updateConnectionState(WebSocketConnectionState.Disconnecting);
 
       this.deps.debugLogger.log('HyperLiquid: Disconnecting SDK clients', {
         isTestnet: this.isTestnet,
@@ -770,14 +785,14 @@ export class HyperLiquidClientService {
       this.wsTransport = undefined;
       this.httpTransport = undefined;
 
-      this.updateConnectionState(WebSocketConnectionState.DISCONNECTED);
+      this.updateConnectionState(WebSocketConnectionState.Disconnected);
 
       this.deps.debugLogger.log('HyperLiquid: SDK clients fully disconnected', {
         timestamp: new Date().toISOString(),
         connectionState: this.connectionState,
       });
     } catch (error) {
-      this.updateConnectionState(WebSocketConnectionState.DISCONNECTED);
+      this.updateConnectionState(WebSocketConnectionState.Disconnected);
       this.deps.logger.error(ensureError(error), {
         context: {
           name: 'HyperLiquidClientService.performDisconnection',
@@ -799,7 +814,7 @@ export class HyperLiquidClientService {
    * Check if WebSocket is fully disconnected
    */
   public isDisconnected(): boolean {
-    return this.connectionState === WebSocketConnectionState.DISCONNECTED;
+    return this.connectionState === WebSocketConnectionState.Disconnected;
   }
 
   /**
@@ -860,13 +875,13 @@ export class HyperLiquidClientService {
     const previousState = this.connectionState;
     const stateChanged = previousState !== newState;
     const isReconnectionAttempt =
-      newState === WebSocketConnectionState.CONNECTING &&
+      newState === WebSocketConnectionState.Connecting &&
       this.reconnectionAttempt > 0;
 
     this.connectionState = newState;
 
     // Reset reconnection attempt counter when successfully connected
-    if (newState === WebSocketConnectionState.CONNECTED) {
+    if (newState === WebSocketConnectionState.Connected) {
       this.reconnectionAttempt = 0;
     }
 
@@ -938,12 +953,12 @@ export class HyperLiquidClientService {
       HyperLiquidClientService.MAX_RECONNECTION_ATTEMPTS
     ) {
       this.isReconnecting = false;
-      this.updateConnectionState(WebSocketConnectionState.DISCONNECTED);
+      this.updateConnectionState(WebSocketConnectionState.Disconnected);
       return;
     }
 
     try {
-      this.updateConnectionState(WebSocketConnectionState.CONNECTING);
+      this.updateConnectionState(WebSocketConnectionState.Connecting);
 
       // Close existing WebSocket transport and clear references
       // so createTransports() will create fresh ones
@@ -984,7 +999,7 @@ export class HyperLiquidClientService {
         this.reconnectionRetryTimeout = null;
       }
 
-      this.updateConnectionState(WebSocketConnectionState.CONNECTED);
+      this.updateConnectionState(WebSocketConnectionState.Connected);
       this.isReconnecting = false;
     } catch {
       // Reset flag before scheduling retry so the next attempt can proceed
@@ -995,7 +1010,7 @@ export class HyperLiquidClientService {
         this.reconnectionAttempt >=
         HyperLiquidClientService.MAX_RECONNECTION_ATTEMPTS
       ) {
-        this.updateConnectionState(WebSocketConnectionState.DISCONNECTED);
+        this.updateConnectionState(WebSocketConnectionState.Disconnected);
         return;
       }
 
@@ -1007,8 +1022,8 @@ export class HyperLiquidClientService {
         // and no manual reconnect() is already in progress
         // Note: State may be CONNECTING or DISCONNECTED (if terminate event fired during reconnect)
         if (
-          (this.connectionState === WebSocketConnectionState.CONNECTING ||
-            this.connectionState === WebSocketConnectionState.DISCONNECTED) &&
+          (this.connectionState === WebSocketConnectionState.Connecting ||
+            this.connectionState === WebSocketConnectionState.Disconnected) &&
           !this.disconnectionPromise &&
           !this.isReconnecting
         ) {

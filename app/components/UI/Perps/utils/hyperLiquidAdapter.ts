@@ -352,11 +352,14 @@ export function buildAssetMapping(params: {
 }
 
 /**
- * Format price according to HyperLiquid validation rules
+ * Format price according to HyperLiquid validation rules.
  * - Max 5 significant figures (uses MAX_SIGNIFICANT_FIGURES from config)
  * - Max (MAX_PRICE_DECIMALS - szDecimals) decimal places for perps
  * - Integer prices always allowed
+ *
  * @param params - Price formatting parameters
+ * @param params.price - The price value to format
+ * @param params.szDecimals - The size decimals for the asset
  * @returns Properly formatted price string
  */
 export function formatHyperLiquidPrice(params: {
@@ -393,8 +396,11 @@ export function formatHyperLiquidPrice(params: {
 }
 
 /**
- * Format order size with asset-specific decimal precision
+ * Format order size with asset-specific decimal precision.
+ *
  * @param params - Size formatting parameters
+ * @param params.size - The size value to format
+ * @param params.szDecimals - The size decimals for the asset
  * @returns Properly formatted size string with trailing zeros removed
  */
 export function formatHyperLiquidSize(params: {
@@ -420,8 +426,12 @@ export function formatHyperLiquidSize(params: {
 }
 
 /**
- * Calculate position size for a given USD value and leverage
+ * Calculate position size for a given USD value and leverage.
+ *
  * @param params - Position size calculation parameters
+ * @param params.usdValue - The USD value to invest
+ * @param params.leverage - The leverage multiplier
+ * @param params.assetPrice - The current asset price
  * @returns Raw position size (before formatting)
  */
 export function calculatePositionSize(params: {

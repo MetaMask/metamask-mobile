@@ -38,8 +38,8 @@ export const useWithdrawValidation = ({
 
     // Find USDC route
     const usdcAssetId = isTestnet
-      ? HYPERLIQUID_ASSET_CONFIGS.USDC.testnet
-      : HYPERLIQUID_ASSET_CONFIGS.USDC.mainnet;
+      ? HYPERLIQUID_ASSET_CONFIGS.usdc.testnet
+      : HYPERLIQUID_ASSET_CONFIGS.usdc.mainnet;
 
     return routes.find((route) => route.assetId === usdcAssetId);
   }, [isTestnet]);

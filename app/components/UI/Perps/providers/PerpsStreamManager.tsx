@@ -4,6 +4,7 @@ import performance from 'react-native-performance';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
+import { ensureError } from '../../../../util/errorUtils';
 import {
   trace,
   endTrace,
@@ -410,7 +411,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
         this.cleanupPrewarm();
       };
     } catch (error) {
-      Logger.error(error instanceof Error ? error : new Error(String(error)), {
+      Logger.error(ensureError(error, 'PriceStreamChannel.prewarm'), {
         context: 'PriceStreamChannel.prewarm',
       });
       // Return no-op cleanup function
@@ -621,7 +622,7 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
           DevLogger.log(
             `${PERFORMANCE_CONFIG.LoggingMarkers.WebsocketPerformance} PerpsWS: First position data received`,
             {
-              metric: PerpsMeasurementName.PERPS_WEBSOCKET_FIRST_POSITION_DATA,
+              metric: PerpsMeasurementName.PerpsWebsocketFirstPositionData,
               duration: `${firstDataDuration.toFixed(0)}ms`,
             },
           );
@@ -1181,7 +1182,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
       // Don't await - just trigger the fetch and handle errors
       this.fetchMarketData().catch((error) => {
         Logger.error(
-          error instanceof Error ? error : new Error(String(error)),
+          ensureError(error, 'PerpsStreamManager.fetchMarketData.background'),
           'PerpsStreamManager: Failed to fetch market data',
         );
       });
@@ -1238,13 +1239,10 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         });
       } catch (error) {
         const fetchTime = Date.now() - fetchStartTime;
-        Logger.error(
-          error instanceof Error ? error : new Error(String(error)),
-          {
-            context: 'PerpsStreamManager.fetchMarketData',
-            fetchTimeMs: fetchTime,
-          },
-        );
+        Logger.error(ensureError(error, 'PerpsStreamManager.fetchMarketData'), {
+          context: 'PerpsStreamManager.fetchMarketData',
+          fetchTimeMs: fetchTime,
+        });
         // Keep existing cache if fetch fails
         const existing = this.cache.get('markets');
         if (existing) {
@@ -1336,6 +1334,27 @@ export class PerpsStreamManager {
   // Future channels can be added here:
   // public readonly funding = new FundingStreamChannel();
   // public readonly trades = new TradeStreamChannel();
+
+  // UI coordination: Track if a component is actively handling deposit toasts
+  // This prevents duplicate toasts between usePerpsDepositStatus and usePerpsOrderDepositTracking
+  private activeDepositHandler = false;
+
+  /**
+   * Set whether a component is actively handling deposit toasts
+   * Used by PerpsOrderView to prevent duplicate toasts from usePerpsDepositStatus
+   * @param isActive - Whether a component is actively handling deposit toasts
+   */
+  public setActiveDepositHandler(isActive: boolean): void {
+    this.activeDepositHandler = isActive;
+  }
+
+  /**
+   * Check if a component is actively handling deposit toasts
+   * @returns true if a component is actively handling deposit toasts
+   */
+  public hasActiveDepositHandler(): boolean {
+    return this.activeDepositHandler;
+  }
 
   /**
    * Force reconnection of all stream channels after WebSocket reconnection

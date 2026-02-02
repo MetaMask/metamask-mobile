@@ -59,6 +59,11 @@ class PerpsOrderView {
     await AppwrightGestures.tap(await this.leverageOption(leverage));
     await AppwrightGestures.tap(await this.confirmLeverageButton(leverage));
   }
+
+  async checkOrderScreenVisible() {
+    const orderScreen = await this.placeOrderButton;
+    await appwrightExpect(orderScreen).toBeVisible();
+  }
 }
 
 export default new PerpsOrderView();
