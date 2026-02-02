@@ -4,6 +4,7 @@ import {
   type UserRegion,
   type Provider,
   type Country,
+  type PaymentMethodsResponse,
   type RampsControllerState,
 } from '@metamask/ramps-controller';
 import { RootState } from '../../reducers';
@@ -28,11 +29,11 @@ export const selectUserRegion = createSelector(
 );
 
 /**
- * Selects the user's preferred provider from state.
+ * Selects the user's selected provider from state.
  */
-export const selectPreferredProvider = createSelector(
+export const selectSelectedProvider = createSelector(
   selectRampsControllerState,
-  (rampsControllerState) => rampsControllerState?.preferredProvider ?? null,
+  (rampsControllerState) => rampsControllerState?.selectedProvider ?? null,
 );
 
 /**
@@ -52,25 +53,54 @@ export const selectTokens = createSelector(
 );
 
 /**
+ * Selects the user's selected token from state.
+ */
+export const selectSelectedToken = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState) => rampsControllerState?.selectedToken ?? null,
+);
+
+/**
+ * Selects the list of countries available for ramp actions.
+ */
+export const selectCountries = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState) => rampsControllerState?.countries ?? [],
+);
+
+/**
+ * Selects the payment methods available for the current context.
+ */
+export const selectPaymentMethods = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState) => rampsControllerState?.paymentMethods ?? [],
+);
+
+/**
+ * Selects the user's selected payment method from state.
+ */
+export const selectSelectedPaymentMethod = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState) => rampsControllerState?.selectedPaymentMethod ?? null,
+);
+
+/**
  * Selects the user region request state.
  */
 export const selectUserRegionRequest = createRequestSelector<
   RootState,
   UserRegion | null
->(selectRampsControllerState, 'updateUserRegion', []);
+>(selectRampsControllerState, 'init', []);
 
 /**
- * Selects the countries request state for a given action.
+ * Selects the countries request state.
  *
- * @param action - The ramp action type ('buy' or 'sell').
  * @returns Request selector for countries.
  */
-export const selectCountriesRequest = (action: 'buy' | 'sell' = 'buy') =>
-  createRequestSelector<RootState, Country[]>(
-    selectRampsControllerState,
-    'getCountries',
-    [action],
-  );
+export const selectCountriesRequest = createRequestSelector<
+  RootState,
+  Country[]
+>(selectRampsControllerState, 'getCountries', []);
 
 /**
  * Selects the tokens request state for a given region and action.
@@ -115,4 +145,25 @@ export const selectProvidersRequest = (
       options?.fiat,
       options?.payments,
     ],
+  );
+
+/**
+ * Selects the payment methods request state for a given context.
+ *
+ * @param region - The region code (e.g., "us", "fr", "us-ny").
+ * @param fiat - The fiat currency code (e.g., "usd", "eur").
+ * @param assetId - The asset ID in CAIP-19 format.
+ * @param provider - The provider ID.
+ * @returns Request selector for payment methods.
+ */
+export const selectPaymentMethodsRequest = (
+  region: string,
+  fiat: string,
+  assetId: string,
+  provider: string,
+) =>
+  createRequestSelector<RootState, PaymentMethodsResponse>(
+    selectRampsControllerState,
+    'getPaymentMethods',
+    [region.toLowerCase().trim(), fiat.toLowerCase().trim(), assetId, provider],
   );
