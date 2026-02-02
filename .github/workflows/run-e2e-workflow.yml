@@ -157,12 +157,19 @@ jobs:
           mkdir -p ${{ steps.determine-target-paths.outputs.apk-target-path }}
           mkdir -p ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
 
-      - name: Download Android build artifacts
+      - name: Download Android APK artifact
         if: ${{ inputs.platform == 'android' }}
         uses: actions/download-artifact@v4
         with:
           path: artifacts/
-          pattern: '${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release*.apk'
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
+
+      - name: Download Android Test APK artifact
+        if: ${{ inputs.platform == 'android' }}
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk
 
       - name: Move Android artifacts to expected locations
         if: ${{ inputs.platform == 'android' }}
@@ -186,7 +193,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts/
-          pattern: 'MetaMask.app'
+          name: MetaMask.app
 
       # On re-run (run_attempt > 1), download previous test results to identify failed tests
       - name: Download previous test results (on re-run)
