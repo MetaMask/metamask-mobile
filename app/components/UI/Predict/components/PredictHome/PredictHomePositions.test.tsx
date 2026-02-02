@@ -57,6 +57,20 @@ jest.mock('./PredictHomePositionList', () => {
   };
 });
 
+jest.mock('./PredictHomeFeaturedSkeleton', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ variant }: { variant: string }) => (
+      <View testID={`predict-home-featured-skeleton-${variant}`} />
+    ),
+  };
+});
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => 'carousel'),
+}));
+
 const mockUsePredictPositions = usePredictPositions as jest.MockedFunction<
   typeof usePredictPositions
 >;

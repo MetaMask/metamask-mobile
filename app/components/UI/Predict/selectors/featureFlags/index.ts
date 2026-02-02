@@ -39,24 +39,44 @@ export const selectPredictGtmOnboardingModalEnabledFlag = createSelector(
 );
 
 /**
- * Selector for Predict home featured variant
- *
- * Uses feature flag `predictHomeFeaturedVariant` from remote config.
- * Falls back to `'carousel'` if remote flag is unavailable or invalid.
- *
- * @returns {PredictHomeFeaturedVariant} The variant to display ('carousel' or 'list')
+ * Variant options for the Predict home featured section
  */
 export type PredictHomeFeaturedVariant = 'carousel' | 'list';
 
+/**
+ * Feature flag interface for Predict home featured variant
+ * Extends VersionGatedFeatureFlag to include version gating
+ */
+export interface PredictHomeFeaturedVariantFlag
+  extends VersionGatedFeatureFlag {
+  variant: PredictHomeFeaturedVariant;
+}
+
+/**
+ * Selector for Predict home featured variant
+ *
+ * Uses version-gated feature flag `predictHomeFeaturedVariant` from remote config.
+ * Falls back to `'carousel'` if remote flag is unavailable, invalid, or version
+ * requirement is not met.
+ *
+ * @returns {PredictHomeFeaturedVariant} The variant to display ('carousel' or 'list')
+ */
 export const selectPredictHomeFeaturedVariant = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): PredictHomeFeaturedVariant => {
-    const remoteFlag = remoteFeatureFlags?.predictHomeFeaturedVariant as
-      | string
-      | undefined;
-    if (remoteFlag === 'list') {
+    const remoteFlag =
+      remoteFeatureFlags?.predictHomeFeaturedVariant as unknown as PredictHomeFeaturedVariantFlag;
+
+    const isEnabled = validatedVersionGatedFeatureFlag(remoteFlag);
+
+    if (!isEnabled) {
+      return 'carousel';
+    }
+
+    if (remoteFlag?.variant === 'list') {
       return 'list';
     }
-    return 'carousel'; // default
+
+    return 'carousel';
   },
 );

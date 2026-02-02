@@ -6,11 +6,14 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useSelector } from 'react-redux';
 import Engine from '../../../../../core/Engine';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
+import { selectPredictHomeFeaturedVariant } from '../../selectors/featureFlags';
 import { PredictPositionsHeaderHandle } from '../PredictPositionsHeader';
 import PredictHomeAccountState from './PredictHomeAccountState';
 import PredictHomeFeatured from './PredictHomeFeatured';
+import PredictHomeFeaturedSkeleton from './PredictHomeFeaturedSkeleton';
 import PredictHomePositionList from './PredictHomePositionList';
 import PredictHomeSkeleton from './PredictHomeSkeleton';
 
@@ -31,6 +34,7 @@ const PredictHomePositions = forwardRef<
   const [accountStateError, setAccountStateError] = useState<string | null>(
     null,
   );
+  const featuredVariant = useSelector(selectPredictHomeFeaturedVariant);
 
   const {
     positions: activePositions,
@@ -85,10 +89,15 @@ const PredictHomePositions = forwardRef<
     setAccountStateError(error);
   }, []);
 
-  const showSkeleton = isLoading || (isRefreshing && !hasPositions);
+  const isInitialLoading = isLoading;
+  const isRefreshingEmpty = isRefreshing && !hasPositions;
 
-  if (showSkeleton) {
+  if (isInitialLoading) {
     return <PredictHomeSkeleton />;
+  }
+
+  if (isRefreshingEmpty) {
+    return <PredictHomeFeaturedSkeleton variant={featuredVariant} />;
   }
 
   if (!hasPositions) {

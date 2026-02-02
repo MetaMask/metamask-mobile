@@ -17,7 +17,7 @@ import { PredictNavigationParamList } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import PredictNewButton from '../PredictNewButton';
 import PredictPosition from '../PredictPosition/PredictPosition';
-import PredictPositionEmpty from '../PredictPositionEmpty';
+import { PredictHomeFeaturedCarousel } from '../PredictHome';
 import PredictPositionResolved from '../PredictPositionResolved/PredictPositionResolved';
 import PredictPositionSkeleton from '../PredictPositionSkeleton';
 import { PredictPositionsSelectorsIDs } from '../../Predict.testIds';
@@ -135,7 +135,7 @@ const PredictPositions = forwardRef<
             ))}
           </>
         ) : isTrulyEmpty ? (
-          <PredictPositionEmpty />
+          <PredictHomeFeaturedCarousel />
         ) : (
           <>
             {positions.map((item) => (

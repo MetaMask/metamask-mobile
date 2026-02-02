@@ -71,10 +71,12 @@ jest.mock('../PredictPosition/PredictPosition', () => {
   );
 });
 
-jest.mock('../PredictPositionEmpty', () => {
-  const ReactNative = jest.requireActual('react-native');
-  return jest.fn(() => <ReactNative.View testID="predict-position-empty" />);
-});
+jest.mock('../PredictHome', () => ({
+  PredictHomeFeaturedCarousel: jest.fn(() => {
+    const ReactNative = jest.requireActual('react-native');
+    return <ReactNative.View testID="predict-home-featured-carousel" />;
+  }),
+}));
 
 const mockResolvedOnPress = jest.fn();
 jest.mock('../PredictPositionResolved/PredictPositionResolved', () => {
@@ -464,7 +466,9 @@ describe('PredictPositions', () => {
 
       renderWithProvider(<PredictPositions />);
 
-      expect(screen.getByTestId('predict-position-empty')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-home-featured-carousel'),
+      ).toBeOnTheScreen();
     });
 
     it('hides empty state when active positions exist', () => {
@@ -481,7 +485,7 @@ describe('PredictPositions', () => {
       renderWithProvider(<PredictPositions />);
 
       expect(
-        screen.queryByTestId('predict-position-empty'),
+        screen.queryByTestId('predict-home-featured-carousel'),
       ).not.toBeOnTheScreen();
       expect(
         screen.getByTestId('predict-active-positions-list'),
@@ -504,7 +508,7 @@ describe('PredictPositions', () => {
       renderWithProvider(<PredictPositions />);
 
       expect(
-        screen.queryByTestId('predict-position-empty'),
+        screen.queryByTestId('predict-home-featured-carousel'),
       ).not.toBeOnTheScreen();
       expect(
         screen.getByTestId('predict-claimable-positions-list'),
@@ -527,7 +531,7 @@ describe('PredictPositions', () => {
       renderWithProvider(<PredictPositions />);
 
       expect(
-        screen.queryByTestId('predict-position-empty'),
+        screen.queryByTestId('predict-home-featured-carousel'),
       ).not.toBeOnTheScreen();
       expect(
         screen.getByTestId('predict-active-positions-list'),
@@ -659,7 +663,9 @@ describe('PredictPositions', () => {
         },
       });
 
-      expect(screen.getByTestId('predict-position-empty')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-home-featured-carousel'),
+      ).toBeOnTheScreen();
     });
 
     it('does not calculate fixed heights when isHomepageRedesignV1Enabled is false', () => {
