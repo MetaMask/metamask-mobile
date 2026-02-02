@@ -41,7 +41,6 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import styleSheet from './EditAccountName.styles';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { filterUndefinedValues } from '../../../util/analytics/filterUndefinedValues';
 
 interface RootNavigationParamList extends ParamListBase {
   EditAccountName: {
@@ -121,7 +120,7 @@ const EditAccountName = () => {
           const analyticsProps = await analyticsProperties();
           trackEvent(
             createEventBuilder(MetaMetricsEvents.ACCOUNT_RENAMED)
-              .addProperties(filterUndefinedValues(analyticsProps))
+              .addProperties(analyticsProps)
               .build(),
           );
         } catch {

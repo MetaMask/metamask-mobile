@@ -10,7 +10,6 @@ import {
 } from '@metamask/smart-transactions-controller';
 import type { SmartTransactionsControllerInitMessenger } from '../messengers/smart-transactions-controller-messenger';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
-import { filterUndefinedValues } from '../../../util/analytics/filterUndefinedValues';
 import { trace } from '../../../util/trace';
 import { getAllowedSmartTransactionsChainIds } from '../../../constants/smartTransactions';
 
@@ -36,10 +35,8 @@ export const smartTransactionsControllerInit: ControllerInitFunction<
   }) => {
     try {
       const event = AnalyticsEventBuilder.createEventBuilder(params.event)
-        .addProperties(filterUndefinedValues(params.properties))
-        .addSensitiveProperties(
-          filterUndefinedValues(params.sensitiveProperties),
-        )
+        .addProperties(params.properties)
+        .addSensitiveProperties(params.sensitiveProperties)
         .build();
 
       initMessenger.call('AnalyticsController:trackEvent', event);

@@ -7,7 +7,6 @@ import type {
 import type { AnalyticsUnfilteredProperties } from '../../../util/analytics/analytics.types';
 import Logger from '../../../util/Logger';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
-import { filterUndefinedValues } from '../../../util/analytics/filterUndefinedValues';
 
 /**
  * Track an analytics event using the initMessenger.
@@ -58,7 +57,7 @@ export const buildAndTrackEvent = (
 ): void => {
   try {
     const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(event)
-      .addProperties(filterUndefinedValues(properties))
+      .addProperties(properties)
       .build();
     trackEvent(initMessenger, analyticsEvent);
   } catch (error) {

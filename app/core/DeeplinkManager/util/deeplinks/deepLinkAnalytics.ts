@@ -13,7 +13,6 @@ import {
   BranchParams,
 } from '../../types/deepLinkAnalytics.types';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
-import { filterUndefinedValues } from '../../../../util/analytics/filterUndefinedValues';
 import { MetaMetricsEvents } from '../../../Analytics/MetaMetrics.events';
 import { SupportedAction } from '../../types/deepLink.types';
 import { ACTIONS } from '../../../../constants/deeplinks';
@@ -703,26 +702,23 @@ export const createDeepLinkUsedEventBuilder = async (
   // Determine interstitial state
   const interstitial = determineInterstitialState(context);
 
-  // Build the event properties, filtering out undefined values
-  const eventProperties = filterUndefinedValues({
-    route: route.toString(),
-    was_app_installed: wasAppInstalled,
-    signature: signatureStatus,
-    interstitial,
-    attribution_id: context.urlParams.attributionId,
-    utm_source: context.urlParams.utm_source,
-    utm_medium: context.urlParams.utm_medium,
-    utm_campaign: context.urlParams.utm_campaign,
-    utm_term: context.urlParams.utm_term,
-    utm_content: context.urlParams.utm_content,
-    target: route === DeepLinkRoute.INVALID ? url : undefined,
-  });
-
   // Create the AnalyticsEventBuilder with all deep link properties
   const eventBuilder = AnalyticsEventBuilder.createEventBuilder(
     MetaMetricsEvents.DEEP_LINK_USED,
   )
-    .addProperties(eventProperties)
+    .addProperties({
+      route: route.toString(),
+      was_app_installed: wasAppInstalled,
+      signature: signatureStatus,
+      interstitial,
+      attribution_id: context.urlParams.attributionId,
+      utm_source: context.urlParams.utm_source,
+      utm_medium: context.urlParams.utm_medium,
+      utm_campaign: context.urlParams.utm_campaign,
+      utm_term: context.urlParams.utm_term,
+      utm_content: context.urlParams.utm_content,
+      target: route === DeepLinkRoute.INVALID ? url : undefined,
+    })
     .addSensitiveProperties(sensitiveProperties);
 
   return eventBuilder;

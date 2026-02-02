@@ -7,7 +7,6 @@ import { DeFiPositionsControllerInitMessenger } from '../../messengers/defi-posi
 import { store } from '../../../../store';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
-import { filterUndefinedValues } from '../../../../util/analytics/filterUndefinedValues';
 import {
   DEFAULT_FEATURE_FLAG_VALUES,
   FeatureFlagNames,
@@ -49,7 +48,7 @@ export const defiPositionsControllerInit: ControllerInitFunction<
     }) => {
       try {
         const event = AnalyticsEventBuilder.createEventBuilder(params.event)
-          .addProperties(filterUndefinedValues(params.properties))
+          .addProperties(params.properties)
           .build();
 
         initMessenger.call('AnalyticsController:trackEvent', event);

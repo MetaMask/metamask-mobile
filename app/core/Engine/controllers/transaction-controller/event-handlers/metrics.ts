@@ -5,7 +5,6 @@ import { createProjectLogger } from '@metamask/utils';
 import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
 import { IMetaMetricsEvent } from '../../../../Analytics/MetaMetrics.types';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
-import { filterUndefinedValues } from '../../../../../util/analytics/filterUndefinedValues';
 import { generateEvent, retryIfEngineNotInitialized } from '../utils';
 import type {
   TransactionEventHandlerRequest,
@@ -60,10 +59,8 @@ const createTransactionEventHandler =
       const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(
         event.name,
       )
-        .addProperties(filterUndefinedValues(event.properties))
-        .addSensitiveProperties(
-          filterUndefinedValues(event.sensitiveProperties),
-        )
+        .addProperties(event.properties)
+        .addSensitiveProperties(event.sensitiveProperties)
         .setSaveDataRecording(event.saveDataRecording)
         .build();
 
@@ -125,8 +122,8 @@ export async function handleTransactionFinalizedEventForMetrics(
 
     // Convert ITrackingEvent to AnalyticsTrackingEvent and track
     const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(event.name)
-      .addProperties(filterUndefinedValues(event.properties))
-      .addSensitiveProperties(filterUndefinedValues(event.sensitiveProperties))
+      .addProperties(event.properties)
+      .addSensitiveProperties(event.sensitiveProperties)
       .setSaveDataRecording(event.saveDataRecording)
       .build();
 

@@ -3,6 +3,8 @@ import type {
   IMetaMetricsEvent,
   ITrackingEvent,
 } from '../../core/Analytics/MetaMetrics.types';
+import { filterUndefinedValues } from './filterUndefinedValues';
+import type { AnalyticsUnfilteredProperties } from './analytics.types';
 
 /**
  * Analytics tracking event structure for AnalyticsController
@@ -22,39 +24,23 @@ export interface AnalyticsTrackingEvent {
  */
 interface AnalyticsEventBuilderInterface {
   /**
-   * Add regular properties (non-sensitive) to the event
+   * Add regular properties (non-sensitive) to the event.
+   * Undefined property values are filtered out internally.
    *
-   * IMPORTANT: AnalyticsEventProperties does not allow undefined values.
-   * If your properties object can contain undefined values, use filterUndefinedValues()
-   * from 'app/util/analytics/filterUndefinedValues' before calling this method.
-   *
-   * @param properties - Properties to add to the event (no undefined values allowed)
-   * @example
-   * import { filterUndefinedValues } from '@/util/analytics/filterUndefinedValues';
-   *
-   * const props = { key: possiblyUndefinedValue };
-   * builder.addProperties(filterUndefinedValues(props));
+   * @param properties - Properties to add (undefined values are stripped)
    */
   addProperties: (
-    properties: AnalyticsEventProperties,
+    properties: AnalyticsUnfilteredProperties,
   ) => AnalyticsEventBuilderInterface;
 
   /**
-   * Add sensitive properties (will be anonymized) to the event
+   * Add sensitive properties (will be anonymized) to the event.
+   * Undefined property values are filtered out internally.
    *
-   * IMPORTANT: AnalyticsEventProperties does not allow undefined values.
-   * If your properties object can contain undefined values, use filterUndefinedValues()
-   * from 'app/util/analytics/filterUndefinedValues' before calling this method.
-   *
-   * @param properties - Sensitive properties to add to the event (no undefined values allowed)
-   * @example
-   * import { filterUndefinedValues } from '@/util/analytics/filterUndefinedValues';
-   *
-   * const sensitiveProps = { address: possiblyUndefinedAddress };
-   * builder.addSensitiveProperties(filterUndefinedValues(sensitiveProps));
+   * @param properties - Sensitive properties to add (undefined values are stripped)
    */
   addSensitiveProperties: (
-    properties: AnalyticsEventProperties,
+    properties: AnalyticsUnfilteredProperties,
   ) => AnalyticsEventBuilderInterface;
 
   /**
@@ -170,18 +156,18 @@ const createBuilderFromEvent = (
 ): AnalyticsEventBuilderInterface =>
   // Return the builder interface
   ({
-    addProperties: (properties: AnalyticsEventProperties) => {
+    addProperties: (properties: AnalyticsUnfilteredProperties) => {
       event.properties = {
         ...event.properties,
-        ...properties,
+        ...filterUndefinedValues(properties),
       };
       return createBuilderFromEvent(event);
     },
 
-    addSensitiveProperties: (properties: AnalyticsEventProperties) => {
+    addSensitiveProperties: (properties: AnalyticsUnfilteredProperties) => {
       event.sensitiveProperties = {
         ...event.sensitiveProperties,
-        ...properties,
+        ...filterUndefinedValues(properties),
       };
       return createBuilderFromEvent(event);
     },

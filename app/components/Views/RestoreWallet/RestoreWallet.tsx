@@ -21,7 +21,6 @@ import { createWalletRestoredNavDetails } from './WalletRestored';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
-import { filterUndefinedValues } from '../../../util/analytics/filterUndefinedValues';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
@@ -63,9 +62,7 @@ const RestoreWallet = () => {
       createEventBuilder(
         MetaMetricsEvents.VAULT_CORRUPTION_RESTORE_WALLET_SCREEN_VIEWED,
       )
-        .addProperties(
-          filterUndefinedValues({ ...deviceMetaData, previousScreen }),
-        )
+        .addProperties({ ...deviceMetaData, previousScreen })
         .build(),
     );
   }, [deviceMetaData, previousScreen, trackEvent, createEventBuilder]);
@@ -77,7 +74,7 @@ const RestoreWallet = () => {
       createEventBuilder(
         MetaMetricsEvents.VAULT_CORRUPTION_RESTORE_WALLET_BUTTON_PRESSED,
       )
-        .addProperties(filterUndefinedValues(deviceMetaData))
+        .addProperties(deviceMetaData)
         .build(),
     );
     const restoreResult = await EngineService.initializeVaultFromBackup();

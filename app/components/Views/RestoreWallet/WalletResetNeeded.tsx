@@ -19,7 +19,6 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { createRestoreWalletNavDetails } from './RestoreWallet';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
-import { filterUndefinedValues } from '../../../util/analytics/filterUndefinedValues';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
 export const createWalletResetNeededNavDetails = createNavigationDetails(
@@ -42,7 +41,7 @@ const WalletResetNeeded = () => {
       createEventBuilder(
         MetaMetricsEvents.VAULT_CORRUPTION_WALLET_RESET_NEEDED_SCREEN_VIEWED,
       )
-        .addProperties(filterUndefinedValues(deviceMetaData))
+        .addProperties(deviceMetaData)
         .build(),
     );
   }, [trackEvent, deviceMetaData, createEventBuilder]);
@@ -52,7 +51,7 @@ const WalletResetNeeded = () => {
       createEventBuilder(
         MetaMetricsEvents.VAULT_CORRUPTION_WALLET_RESET_NEEDED_CREATE_NEW_WALLET_BUTTON_PRESSED,
       )
-        .addProperties(filterUndefinedValues(deviceMetaData))
+        .addProperties(deviceMetaData)
         .build(),
     );
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -65,7 +64,7 @@ const WalletResetNeeded = () => {
       createEventBuilder(
         MetaMetricsEvents.VAULT_CORRUPTION_WALLET_RESET_NEEDED_TRY_AGAIN_BUTTON_PRESSED,
       )
-        .addProperties(filterUndefinedValues(deviceMetaData))
+        .addProperties(deviceMetaData)
         .build(),
     );
     navigation.replace(

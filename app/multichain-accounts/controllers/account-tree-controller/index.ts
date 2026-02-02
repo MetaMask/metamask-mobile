@@ -7,7 +7,6 @@ import { trace } from '../../../util/trace';
 import { forwardSelectedAccountGroupToSnapKeyring } from '../../../core/SnapKeyring/utils/forwardSelectedAccountGroupToSnapKeyring';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
-import { filterUndefinedValues } from '../../../util/analytics/filterUndefinedValues';
 import { AccountGroupId } from '@metamask/account-api';
 import { AccountTreeControllerInitMessenger } from '../../messengers/account-tree-controller-messenger';
 
@@ -38,7 +37,7 @@ export const accountTreeControllerInit: ControllerInitFunction<
             const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(
               MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED.category,
             )
-              .addProperties(filterUndefinedValues(event))
+              .addProperties(event)
               .build();
 
             initMessenger.call(

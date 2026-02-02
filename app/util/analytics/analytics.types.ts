@@ -5,12 +5,12 @@ import type {
 } from '@metamask/analytics-controller';
 
 /**
- * Properties that can be passed to filterUndefinedValues().
- * Accepts any object (including already-filtered AnalyticsEventProperties) that may contain undefined values.
+ * Properties that may contain undefined values.
+ * Accepted by AnalyticsEventBuilder.addProperties(), addSensitiveProperties(), and by filterUndefinedValues().
  *
  * Valid inputs:
  * - Objects with properties (already filtered or with undefined values)
- * - null or undefined (returns empty object)
+ * - null or undefined (treated as empty object)
  */
 export type AnalyticsUnfilteredProperties =
   | Record<string, unknown | undefined>
