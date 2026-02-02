@@ -12,6 +12,7 @@ import type { TronStakeResult, TronUnstakeResult } from './tron-staking-snap';
 import { TokenI } from '../../Tokens/types';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
+import { safeParseBigNumber } from '../../../../util/number/bignumber';
 import type { TronResourcesMap } from '../../../../selectors/assets/assets-list';
 
 /**
@@ -58,14 +59,11 @@ export const buildTronEarnTokenIfEligible = (
 
   // Truncate to token decimals to prevent "too many decimal places" error
   // from toTokenMinimalUnit when floating-point arithmetic produces extra decimals.
-  // Also handle empty/invalid input: new BigNumber('').toFixed() returns 'NaN',
-  // which would cause toTokenMinimalUnit to throw.
+  // safeParseBigNumber handles empty/invalid input by defaulting to BigNumber(0).
   const decimals = token.decimals ?? 6;
-  const balanceBN = new BigNumber(balanceSource);
-  const truncatedBalance =
-    !balanceSource || balanceBN.isNaN()
-      ? '0'
-      : balanceBN.decimalPlaces(decimals, BigNumber.ROUND_DOWN).toFixed();
+  const truncatedBalance = safeParseBigNumber(balanceSource)
+    .decimalPlaces(decimals, BigNumber.ROUND_DOWN)
+    .toFixed();
 
   const balanceMinimalUnit = toTokenMinimalUnit(
     truncatedBalance,

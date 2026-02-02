@@ -144,6 +144,7 @@ const createEmptyResourcesMap = () => ({
   maxBandwidth: undefined,
   stakedTrxForEnergy: undefined,
   stakedTrxForBandwidth: undefined,
+  totalStakedTrx: 0,
 });
 
 describe('EarnBalance', () => {
@@ -285,6 +286,7 @@ describe('EarnBalance', () => {
         ...createEmptyResourcesMap(),
         stakedTrxForEnergy: { symbol: 'strx-energy', balance: '1' },
         stakedTrxForBandwidth: { symbol: 'strx-bandwidth', balance: '2' },
+        totalStakedTrx: 3,
       });
 
       renderWithProvider(<EarnBalance asset={strx as TokenI} />);

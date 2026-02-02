@@ -72,23 +72,6 @@ jest.mock('./Balance', () => {
   };
 });
 
-jest.mock('../../../selectors/assets/assets-list', () => ({
-  ...jest.requireActual('../../../selectors/assets/assets-list'),
-  selectTronResourcesBySelectedAccountGroup: jest.fn().mockReturnValue({
-    energy: undefined,
-    bandwidth: undefined,
-    maxEnergy: undefined,
-    maxBandwidth: undefined,
-    stakedTrxForEnergy: undefined,
-    stakedTrxForBandwidth: undefined,
-  }),
-}));
-
-jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
-  ...jest.requireActual('../../../selectors/multichainAccounts/accounts'),
-  selectSelectedInternalAccountByScope: jest.fn(),
-}));
-
 const MOCK_CHAIN_ID = '0x1';
 
 const mockInitialState = {
@@ -312,11 +295,17 @@ jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
     mockSelectSelectedInternalAccountByScope,
 }));
 
-const mockSelectTronResourcesBySelectedAccountGroup = jest.fn();
 jest.mock('../../../selectors/assets/assets-list', () => ({
   ...jest.requireActual('../../../selectors/assets/assets-list'),
-  selectTronResourcesBySelectedAccountGroup: () =>
-    mockSelectTronResourcesBySelectedAccountGroup(),
+  selectTronResourcesBySelectedAccountGroup: jest.fn().mockReturnValue({
+    energy: undefined,
+    bandwidth: undefined,
+    maxEnergy: undefined,
+    maxBandwidth: undefined,
+    stakedTrxForEnergy: undefined,
+    stakedTrxForBandwidth: undefined,
+    totalStakedTrx: 0,
+  }),
 }));
 
 const mockSelectSelectedAccountGroup = jest.fn();
@@ -382,8 +371,19 @@ describe('AssetOverview', () => {
       type: 'eip155:eoa',
     });
 
-    // Default mock for tron resources - return empty array
-    mockSelectTronResourcesBySelectedAccountGroup.mockReturnValue([]);
+    // Default mock for tron resources
+    const { selectTronResourcesBySelectedAccountGroup } = jest.requireMock(
+      '../../../selectors/assets/assets-list',
+    );
+    selectTronResourcesBySelectedAccountGroup.mockReturnValue({
+      energy: undefined,
+      bandwidth: undefined,
+      maxEnergy: undefined,
+      maxBandwidth: undefined,
+      stakedTrxForEnergy: undefined,
+      stakedTrxForBandwidth: undefined,
+      totalStakedTrx: 0,
+    });
 
     // Default mock for unified V1 flag - disabled
     mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
@@ -1028,6 +1028,7 @@ describe('AssetOverview', () => {
       maxBandwidth: undefined,
       stakedTrxForEnergy: { symbol: 'strx-energy', balance: '10' },
       stakedTrxForBandwidth: { symbol: 'strx-bandwidth', balance: '20' },
+      totalStakedTrx: 30,
     });
 
     const tronAsset = {

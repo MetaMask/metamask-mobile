@@ -20,14 +20,17 @@ const createEmptyResourcesMap = (): TronResourcesMap => ({
 
 jest.mock('../../../../selectors/assets/assets-list', () => ({
   selectAsset: jest.fn(),
-  selectTronResourcesBySelectedAccountGroup: jest.fn(() => ({
-    energy: undefined,
-    bandwidth: undefined,
-    maxEnergy: undefined,
-    maxBandwidth: undefined,
-    stakedTrxForEnergy: undefined,
-    stakedTrxForBandwidth: undefined,
-  })),
+  selectTronResourcesBySelectedAccountGroup: jest.fn(
+    (): TronResourcesMap => ({
+      energy: undefined,
+      bandwidth: undefined,
+      maxEnergy: undefined,
+      maxBandwidth: undefined,
+      stakedTrxForEnergy: undefined,
+      stakedTrxForBandwidth: undefined,
+      totalStakedTrx: 0,
+    }),
+  ),
 }));
 
 jest.mock('../../AssetOverview/utils/createStakedTrxAsset', () => ({

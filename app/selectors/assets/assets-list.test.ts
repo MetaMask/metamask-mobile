@@ -1065,6 +1065,176 @@ describe('selectTronResourcesBySelectedAccountGroup', () => {
     expect(result.stakedTrxForBandwidth).toBeUndefined();
   });
 
+  it('maps all resource types and computes totalStakedTrx with BigNumber precision', () => {
+    const stateWithAllResources = {
+      ...mockState(),
+      engine: {
+        ...mockState().engine,
+        backgroundState: {
+          ...mockState().engine.backgroundState,
+          MultichainAssetsController: {
+            accountsAssets: {
+              '2d89e6a0-b4e6-45a8-a707-f10cef143b42': [
+                'tron:728126428/slip44:energy',
+                'tron:728126428/slip44:bandwidth',
+                'tron:728126428/slip44:max-energy',
+                'tron:728126428/slip44:max-bandwidth',
+                'tron:728126428/slip44:strx-energy',
+                'tron:728126428/slip44:strx-bandwidth',
+                'tron:728126428/slip44:195',
+              ],
+            },
+            assetsMetadata: {
+              'tron:728126428/slip44:energy': {
+                name: 'Energy',
+                symbol: 'ENERGY',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [{ name: 'Energy', symbol: 'ENERGY', decimals: 0 }],
+              },
+              'tron:728126428/slip44:bandwidth': {
+                name: 'Bandwidth',
+                symbol: 'BANDWIDTH',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [
+                  { name: 'Bandwidth', symbol: 'BANDWIDTH', decimals: 0 },
+                ],
+              },
+              'tron:728126428/slip44:max-energy': {
+                name: 'Max Energy',
+                symbol: 'MAX-ENERGY',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [
+                  { name: 'Max Energy', symbol: 'MAX-ENERGY', decimals: 0 },
+                ],
+              },
+              'tron:728126428/slip44:max-bandwidth': {
+                name: 'Max Bandwidth',
+                symbol: 'MAX-BANDWIDTH',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [
+                  {
+                    name: 'Max Bandwidth',
+                    symbol: 'MAX-BANDWIDTH',
+                    decimals: 0,
+                  },
+                ],
+              },
+              'tron:728126428/slip44:strx-energy': {
+                name: 'Staked TRX Energy',
+                symbol: 'STRX-ENERGY',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [
+                  {
+                    name: 'Staked TRX Energy',
+                    symbol: 'STRX-ENERGY',
+                    decimals: 6,
+                  },
+                ],
+              },
+              'tron:728126428/slip44:strx-bandwidth': {
+                name: 'Staked TRX Bandwidth',
+                symbol: 'STRX-BANDWIDTH',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [
+                  {
+                    name: 'Staked TRX Bandwidth',
+                    symbol: 'STRX-BANDWIDTH',
+                    decimals: 6,
+                  },
+                ],
+              },
+              'tron:728126428/slip44:195': {
+                name: 'TRON',
+                symbol: 'TRX',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [{ name: 'TRON', symbol: 'TRX', decimals: 6 }],
+              },
+            },
+            allIgnoredAssets: {},
+          },
+          MultichainBalancesController: {
+            balances: {
+              '2d89e6a0-b4e6-45a8-a707-f10cef143b42': {
+                'tron:728126428/slip44:energy': {
+                  amount: '130000',
+                  unit: 'ENERGY',
+                },
+                'tron:728126428/slip44:bandwidth': {
+                  amount: '560',
+                  unit: 'BANDWIDTH',
+                },
+                'tron:728126428/slip44:max-energy': {
+                  amount: '200000',
+                  unit: 'MAX-ENERGY',
+                },
+                'tron:728126428/slip44:max-bandwidth': {
+                  amount: '1000',
+                  unit: 'MAX-BANDWIDTH',
+                },
+                'tron:728126428/slip44:strx-energy': {
+                  amount: '65.48463',
+                  unit: 'STRX-ENERGY',
+                },
+                'tron:728126428/slip44:strx-bandwidth': {
+                  amount: '65.48463',
+                  unit: 'STRX-BANDWIDTH',
+                },
+                'tron:728126428/slip44:195': {
+                  amount: '1000',
+                  unit: 'TRX',
+                },
+              },
+            },
+          },
+          MultichainAssetsRatesController: {
+            conversionRates: {
+              'tron:728126428/slip44:195': {
+                rate: '0.12',
+                currency: 'swift:0/iso4217:USD',
+              },
+            },
+          },
+          NetworkEnablementController: {
+            enabledNetworkMap: {
+              [KnownCaipNamespace.Tron]: {
+                [TrxScope.Mainnet]: true,
+              },
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const result = selectTronResourcesBySelectedAccountGroup(
+      stateWithAllResources,
+    );
+
+    // All 6 resource types should be mapped
+    expect(result.energy?.assetId).toBe('tron:728126428/slip44:energy');
+    expect(result.bandwidth?.assetId).toBe('tron:728126428/slip44:bandwidth');
+    expect(result.maxEnergy?.assetId).toBe('tron:728126428/slip44:max-energy');
+    expect(result.maxBandwidth?.assetId).toBe(
+      'tron:728126428/slip44:max-bandwidth',
+    );
+    expect(result.stakedTrxForEnergy?.assetId).toBe(
+      'tron:728126428/slip44:strx-energy',
+    );
+    expect(result.stakedTrxForBandwidth?.assetId).toBe(
+      'tron:728126428/slip44:strx-bandwidth',
+    );
+
+    // totalStakedTrx computed via BigNumber avoids floating-point errors
+    // 65.48463 + 65.48463 = 130.96926 (not 130.96926000000002)
+    expect(result.totalStakedTrx).toBe(130.96926);
+  });
+
   it('returns empty object when Tron network is disabled', () => {
     const stateWithTronDisabled = {
       ...mockState(),

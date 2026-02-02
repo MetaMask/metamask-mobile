@@ -85,7 +85,8 @@ describe('TronEnergyBandwidthDetail', () => {
       maxBandwidth: res('max-bandwidth', 1000),
       stakedTrxForEnergy: res('strx-energy', 70000),
       stakedTrxForBandwidth: res('strx-bandwidth', 500),
-    } as unknown as SelectorReturn);
+      totalStakedTrx: 70500,
+    } as SelectorReturn);
 
     const { getByText } = renderWithProvider(<TronEnergyBandwidthDetail />, {
       state: baseState,
@@ -116,7 +117,8 @@ describe('TronEnergyBandwidthDetail', () => {
       maxBandwidth: res('max-bandwidth', '1000'),
       stakedTrxForEnergy: res('strx-energy', '500'),
       stakedTrxForBandwidth: res('strx-bandwidth', '500'),
-    } as unknown as SelectorReturn);
+      totalStakedTrx: 1000,
+    } as SelectorReturn);
 
     const { getByText } = renderWithProvider(<TronEnergyBandwidthDetail />, {
       state: baseState,

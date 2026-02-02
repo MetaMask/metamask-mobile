@@ -80,6 +80,23 @@ describe('tron utils', () => {
 
       expect(total).toBe(15);
     });
+
+    it('defaults to zero when totalStakedTrx is undefined at runtime', () => {
+      // Simulates a malformed object where totalStakedTrx is missing,
+      // exercising the ?? 0 fallback in getStakedTrxTotalFromResources
+      const resources = {
+        energy: undefined,
+        bandwidth: undefined,
+        maxEnergy: undefined,
+        maxBandwidth: undefined,
+        stakedTrxForEnergy: undefined,
+        stakedTrxForBandwidth: undefined,
+      } as unknown as TronResourcesMap;
+
+      const total = getStakedTrxTotalFromResources(resources);
+
+      expect(total).toBe(0);
+    });
   });
 
   describe('hasStakedTrxPositions', () => {
