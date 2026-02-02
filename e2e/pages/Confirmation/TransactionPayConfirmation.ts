@@ -2,8 +2,8 @@ import {
   ConfirmationRowComponentIDs,
   TransactionPayComponentIDs,
 } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
-import Matchers from '../../framework/Matchers';
-import { Assertions, Gestures } from '../../framework';
+import Matchers from '../../../tests/framework/Matchers';
+import { Assertions, Gestures } from '../../../tests/framework';
 
 class TransactionPayConfirmation {
   get bridgeTime(): DetoxElement {
@@ -64,6 +64,11 @@ class TransactionPayConfirmation {
         elemDescription: `Keyboard Key ${char}`,
       });
     }
+  }
+
+  async enterAmountAndContinue(amount: string): Promise<void> {
+    await this.tapKeyboardAmount(amount);
+    await this.tapKeyboardContinueButton();
   }
 
   async verifyBridgeTime(time: string): Promise<void> {

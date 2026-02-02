@@ -57,7 +57,7 @@ export const usePerpsClosePosition = (
         setError(null);
 
         DevLogger.log('usePerpsClosePosition: Closing position', {
-          coin: position.coin,
+          symbol: position.symbol,
           size,
           orderType,
           limitPrice,
@@ -76,7 +76,7 @@ export const usePerpsClosePosition = (
               PerpsToastOptions.positionManagement.closePosition.marketClose.full.closeFullPositionInProgress(
                 direction,
                 position.size,
-                position.coin,
+                position.symbol,
               ),
             );
           }
@@ -86,7 +86,7 @@ export const usePerpsClosePosition = (
               PerpsToastOptions.positionManagement.closePosition.marketClose.partial.closePartialPositionInProgress(
                 direction,
                 size,
-                position.coin,
+                position.symbol,
               ),
             );
           }
@@ -99,7 +99,7 @@ export const usePerpsClosePosition = (
               PerpsToastOptions.positionManagement.closePosition.limitClose.full.fullPositionCloseSubmitted(
                 direction,
                 position.size,
-                position.coin,
+                position.symbol,
               ),
             );
           }
@@ -109,7 +109,7 @@ export const usePerpsClosePosition = (
               PerpsToastOptions.positionManagement.closePosition.limitClose.partial.partialPositionCloseSubmitted(
                 direction,
                 size,
-                position.coin,
+                position.symbol,
               ),
             );
           }
@@ -117,7 +117,7 @@ export const usePerpsClosePosition = (
 
         // Close position with slippage parameters for consistent validation
         const result = await closePosition({
-          coin: position.coin,
+          symbol: position.symbol,
           size, // If undefined, will close full position
           orderType,
           price: limitPrice,
@@ -126,6 +126,8 @@ export const usePerpsClosePosition = (
           usdAmount: slippage?.usdAmount,
           priceAtCalculation: slippage?.priceAtCalculation,
           maxSlippageBps: slippage?.maxSlippageBps,
+          // Pass live position to avoid getPositions() API call (prevents 429 rate limiting)
+          position,
         });
 
         DevLogger.log('usePerpsClosePosition: Close result', result);

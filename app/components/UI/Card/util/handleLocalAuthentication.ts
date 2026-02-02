@@ -1,4 +1,3 @@
-import Logger from '../../../../util/Logger';
 import { CardLocation } from '../types';
 import {
   getCardBaanxToken,
@@ -41,9 +40,6 @@ export const handleLocalAuthentication = async ({
       // Check if access token is still valid (not expired in the next 5 minutes)
       // Using 5 minutes as buffer to avoid edge cases where token expires during requests
       if (Date.now() + 5 * 60 * 1000 > accessTokenExpiresAt) {
-        Logger.log(
-          'handleLocalAuthentication: Access token expired, clearing storage',
-        );
         await removeCardBaanxToken();
         return { isAuthenticated: false };
       }
@@ -62,9 +58,6 @@ export const handleLocalAuthentication = async ({
       refreshTokenExpiresAt &&
       Date.now() + 1 * 60 * 60 * 1000 > refreshTokenExpiresAt
     ) {
-      Logger.log(
-        'handleLocalAuthentication: Refresh token expired, clearing storage',
-      );
       await removeCardBaanxToken();
       return { isAuthenticated: false };
     }
@@ -72,9 +65,6 @@ export const handleLocalAuthentication = async ({
     // Check if access token is still fresh enough to skip refresh
     // Skip if access token has more than 5 minutes of validity remaining
     if (Date.now() + 5 * 60 * 1000 < accessTokenExpiresAt) {
-      Logger.log(
-        'handleLocalAuthentication: Access token still fresh, skipping refresh',
-      );
       return {
         isAuthenticated: true,
         userCardLocation: location,
@@ -103,16 +93,10 @@ export const handleLocalAuthentication = async ({
         userCardLocation: location,
       };
     } catch (error) {
-      Logger.log('handleLocalAuthentication: Token refresh failed:', error);
-      // If refresh fails, clear tokens and require re-authentication
       await removeCardBaanxToken();
       return { isAuthenticated: false };
     }
   } catch (error) {
-    Logger.log(
-      'handleLocalAuthentication: Authentication verification failed:',
-      error,
-    );
     return {
       isAuthenticated: false,
     };

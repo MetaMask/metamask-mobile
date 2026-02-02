@@ -1,18 +1,24 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import {
   Hex,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   CaipAssetType,
   CaipChainId,
   isCaipAssetType,
+  isCaipChainId,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/utils';
 import I18n, { strings } from '../../../../locales/i18n';
 import { TokenOverviewSelectorsIDs } from './TokenOverview.testIds';
-import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
 import {
@@ -39,7 +45,6 @@ import {
   addCurrencySymbol,
   balanceToFiatNumber,
 } from '../../../util/number';
-import { getEther } from '../../../util/transactions';
 import Text from '../../Base/Text';
 import { createWebviewNavDetails } from '../../Views/SimpleWebview';
 import useTokenHistoricalPrices, {
@@ -54,6 +59,7 @@ import Routes from '../../../constants/navigation/Routes';
 import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useScrollToMerklRewards } from './hooks/useScrollToMerklRewards';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
@@ -95,7 +101,6 @@ import {
 } from '@metamask/bridge-controller';
 import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import parseRampIntent from '../Ramp/utils/parseRampIntent';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from './TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
@@ -106,11 +111,14 @@ import { selectPerpsEnabledFlag } from '../Perps';
 import { usePerpsMarketForAsset } from '../Perps/hooks/usePerpsMarketForAsset';
 import PerpsDiscoveryBanner from '../Perps/components/PerpsDiscoveryBanner';
 import { PerpsEventValues } from '../Perps/constants/eventNames';
+import { isTokenTrustworthyForPerps } from '../Perps/constants/perpsConfig';
 import DSText, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { getTokenExchangeRate } from '../Bridge/utils/exchange-rates';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import MerklRewards from '../Earn/components/MerklRewards';
+import { selectMerklCampaignClaimingEnabledFlag } from '../Earn/selectors/featureFlags';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import {
   selectTronResourcesBySelectedAccountGroup,
@@ -122,16 +130,19 @@ import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
 import { BridgeToken } from '../Bridge/types';
+import { useRampTokens } from '../Ramp/hooks/useRampTokens';
+import { toAssetId } from '../Bridge/hooks/useAssetMetadata/utils';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import { parseCAIP19AssetId } from '../Ramp/Aggregator/utils/parseCaip19AssetId';
+import { toLowerCaseEquals } from '../../../util/general';
 
 /**
  * Determines the source and destination tokens for swap/bridge navigation.
  *
- * When the asset is a native gas token (e.g., ETH), we set sourceToken to the default
- * pair token for that chain (e.g., mUSD on mainnet) and destToken to the native token,
- * allowing the user to swap INTO the native token.
- *
  * When coming from the trending tokens list, the user likely wants to BUY the token,
- * so we configure the swap with the native token as source and the asset as destination.
+ * so we configure the swap with the asset as destination:
+ * - For native tokens (ETH, BNB, etc.): use default pair token as source
+ * - For other tokens: use native token as source
  *
  * Otherwise, we assume they want to SELL, so the asset is the source.
  *
@@ -145,6 +156,7 @@ export const getSwapTokens = (
   destToken: BridgeToken | undefined;
 } => {
   const wantsToBuyToken = isAssetFromTrending(asset);
+  const isNative = isNativeAddress(asset.address);
 
   // Build bridge token from asset
   const bridgeToken: BridgeToken = {
@@ -157,22 +169,23 @@ export const getSwapTokens = (
     image: asset.image,
   };
 
-  // If the asset is a native gas token, set source to the default pair token for that chain
-  // and dest to the native token, allowing the user to swap INTO the native token
-  if (isNativeAddress(asset.address)) {
-    return {
-      sourceToken: getDefaultDestToken(bridgeToken.chainId),
-      destToken: bridgeToken,
-    };
-  }
-
+  // Trending page: user wants to BUY the token (token as destination)
   if (wantsToBuyToken) {
+    // For native tokens, use default pair token as source (e.g., mUSD for ETH)
+    if (isNative) {
+      return {
+        sourceToken: getDefaultDestToken(bridgeToken.chainId),
+        destToken: bridgeToken,
+      };
+    }
+    // For non-native tokens, use native token as source
     return {
       sourceToken: getNativeSourceToken(bridgeToken.chainId),
       destToken: bridgeToken,
     };
   }
 
+  // Home page: user wants to SELL the token (token as source)
   return {
     sourceToken: bridgeToken,
     destToken: undefined,
@@ -211,19 +224,23 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const allTokenMarketData = useSelector(selectTokenMarketData);
   const selectedChainId = useSelector(selectEvmChainId);
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isMerklCampaignClaimingEnabled = useSelector(
+    selectMerklCampaignClaimingEnabledFlag,
+  );
   const { navigateToSendPage } = useSendNavigation();
+  const merklRewardsRef = useRef<View>(null);
+  const merklRewardsYInHeaderRef = useRef<number | null>(null);
+
+  // Scroll to MerklRewards section when navigating from "Claim bonus" CTA
+  useScrollToMerklRewards(merklRewardsYInHeaderRef);
 
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
   );
 
   const multiChainTokenBalance = useSelector(selectTokensBalances);
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
 
   const chainId = asset.chainId as Hex;
-  const ticker = nativeCurrency;
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
   const tokenResult = useSelector((state: RootState) =>
     selectTokenDisplayData(state, asset.chainId as Hex, asset.address as Hex),
@@ -275,7 +292,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const { sourceToken, destToken } = getSwapTokens(asset);
 
   const { goToSwaps, networkModal } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.TokenDetails,
+    location: SwapBridgeNavigationLocation.TokenView,
     sourcePage: 'MainView',
     sourceToken,
     destToken,
@@ -289,8 +306,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     isPerpsEnabled ? asset.symbol : null,
   );
 
+  // Check if token is trustworthy for showing Perps banner
+  const isTokenTrustworthy = isTokenTrustworthyForPerps(asset);
+
   const { styles } = useStyles(styleSheet, {});
-  const dispatch = useDispatch();
 
   useEffect(() => {
     endTrace({ name: TraceName.AssetDetails });
@@ -398,12 +417,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       await MultichainNetworkController.setActiveNetwork(
         networkClientId as string,
       );
-    }
-
-    if ((asset.isETH || asset.isNative) && ticker) {
-      dispatch(newAssetTransaction(getEther(ticker)));
-    } else {
-      dispatch(newAssetTransaction(asset));
     }
 
     navigateToSendPage({ location: InitSendLocation.AssetOverview, asset });
@@ -587,8 +600,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const exchangeRate = marketDataRate ?? fetchedRate;
 
   let balance;
-  const minimumDisplayThreshold = 0.00001;
 
+  const minimumDisplayThreshold = 0.00001;
   const isMultichainAsset = isNonEvmAsset;
   const isEthOrNative = asset.isETH || asset.isNative;
 
@@ -610,8 +623,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   }
   ///: END:ONLY_INCLUDE_IF
 
-  if (isMultichainAccountsState2Enabled && balanceSource != null) {
-    // When state2 is enabled and asset has balance, use it directly
+  if (balanceSource != null) {
     balance = balanceSource;
   } else if (isMultichainAsset) {
     balance = balanceSource
@@ -733,6 +745,36 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       ? `${balance} ${asset.isETH ? asset.ticker : asset.symbol}`
       : undefined;
 
+  const { allTokens } = useRampTokens();
+
+  const isAssetBuyable = useMemo(() => {
+    if (!allTokens) return false;
+
+    const chainIdInCaip = isCaipChainId(asset.chainId)
+      ? asset.chainId
+      : toEvmCaipChainId(asset.chainId as Hex);
+    const assetId = toAssetId(asset.address, chainIdInCaip);
+
+    const matchingToken = allTokens.find((token) => {
+      if (!token.assetId) return false;
+
+      const parsedTokenAssetId = parseCAIP19AssetId(token.assetId);
+      if (!parsedTokenAssetId) return false;
+
+      // For native assets, match by chainId and slip44 namespace
+      if (asset.isNative) {
+        return (
+          token.chainId === chainIdInCaip &&
+          parsedTokenAssetId.assetNamespace === 'slip44'
+        );
+      }
+
+      // For ERC20 tokens, match by assetId
+      return assetId && toLowerCaseEquals(token.assetId, assetId);
+    });
+    return matchingToken?.tokenSupported ?? false;
+  }, [allTokens, asset.isNative, asset.chainId, asset.address]);
+
   return (
     <View style={styles.wrapper} testID={TokenOverviewSelectorsIDs.CONTAINER}>
       {asset.hasBalanceError ? (
@@ -753,7 +795,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             {renderChartNavigationButton()}
           </View>
           <AssetDetailsActions
-            displayBuyButton={displayBuyButton}
+            displayBuyButton={displayBuyButton && isAssetBuyable}
             displaySwapsButton={displaySwapsButton}
             goToSwaps={goToSwaps}
             onBuy={onBuy}
@@ -790,21 +832,38 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             )
             ///: END:ONLY_INCLUDE_IF
           }
-          {isPerpsEnabled && hasPerpsMarket && marketData && (
-            <>
-              <View style={styles.perpsPositionHeader}>
-                <DSText variant={TextVariant.HeadingMD}>
-                  {strings('asset_overview.perps_position')}
-                </DSText>
-              </View>
-              <PerpsDiscoveryBanner
-                symbol={marketData.symbol}
-                maxLeverage={marketData.maxLeverage}
-                onPress={handlePerpsDiscoveryPress}
-                testID="perps-discovery-banner"
-              />
-            </>
+          {isMerklCampaignClaimingEnabled && (
+            <View
+              ref={merklRewardsRef}
+              testID="merkl-rewards-section"
+              onLayout={(event) => {
+                // Store Y position relative to header (which is the scroll offset)
+                // This is more reliable than measureInWindow for FlatList scrolling
+                const { y } = event.nativeEvent.layout;
+                merklRewardsYInHeaderRef.current = y;
+              }}
+            >
+              <MerklRewards asset={asset} />
+            </View>
           )}
+          {isPerpsEnabled &&
+            hasPerpsMarket &&
+            marketData &&
+            isTokenTrustworthy && (
+              <>
+                <View style={styles.perpsPositionHeader}>
+                  <DSText variant={TextVariant.HeadingMD}>
+                    {strings('asset_overview.perps_position')}
+                  </DSText>
+                </View>
+                <PerpsDiscoveryBanner
+                  symbol={marketData.symbol}
+                  maxLeverage={marketData.maxLeverage}
+                  onPress={handlePerpsDiscoveryPress}
+                  testID="perps-discovery-banner"
+                />
+              </>
+            )}
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={asset} />
           </View>

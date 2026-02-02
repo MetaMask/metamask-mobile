@@ -25,6 +25,8 @@
       "title": "Alert",
       "checkbox_label": "I have acknowledged the risk and still want to proceed",
       "got_it_btn": "Got it",
+      "acknowledge_btn": "Acknowledge",
+      "close_btn": "Close",
       "alert_details": "Alert details"
     },
     "confirm_modal": {
@@ -193,11 +195,13 @@
     "connector": "at"
   },
   "autocomplete": {
-    "placeholder": "Search by token, site or address",
+    "placeholder": "Search by site or address",
     "recents": "Recents",
     "favorites": "Favorites",
     "sites": "Sites",
-    "tokens": "Tokens"
+    "tokens": "Trending tokens",
+    "perps": "Perps",
+    "predictions": "Predictions"
   },
   "navigation": {
     "back": "Back",
@@ -1009,6 +1013,7 @@
       "set_stop_loss_subtitle": "Set stop loss at {{price}} ({{percent}})",
       "set_button": "Set"
     },
+    "confirm": "Confirm",
     "deposit": {
       "title": "Amount to deposit",
       "get_usdc_hyperliquid": "Get USDC • Hyperliquid",
@@ -1082,6 +1087,8 @@
       "error_toast": "Transaction failed",
       "error_generic": "Funds have been returned to you",
       "in_progress": "Adding funds to Perps",
+      "depositing_your_funds": "Depositing your funds",
+      "your_funds_have_arrived": "Your funds have arrived",
       "estimated_processing_time": "Est. {{time}}",
       "funds_available_momentarily": "Funds will be available momentarily",
       "your_funds_are_available_to_trade": "Your funds are available to trade",
@@ -1248,6 +1255,16 @@
           "description": "Execute only at your specified price or better"
         }
       },
+      "payment_token": "Payment token",
+      "select_payment_token": "Select payment token",
+      "select_token": "Select token",
+      "no_payment_tokens": "No payment tokens available",
+      "swap": "SWAP",
+      "swap_submitted": "Swap Submitted",
+      "transaction_id": "Transaction ID: {{txId}}",
+      "swap_failed": "Swap Failed",
+      "swap_error_message": "Failed to submit swap transaction: {{error}}",
+      "swap_converting": "Converting balance to USDC on ARBITRUM",
       "success": {
         "title": "Order placed successfully",
         "subtitle": "Your {{direction}} position for {{asset}} has been created",
@@ -1276,7 +1293,10 @@
       "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
       "order_failed": "Order failed",
       "your_funds_have_been_returned_to_you": "Your funds have been returned to you",
-      "order_cancelled_success": "{{detailedOrderType}} order cancelled"
+      "order_cancelled_success": "{{detailedOrderType}} order cancelled",
+      "pay_with_token_required": "Token selection required",
+      "select_token_to_pay_with": "Please select a token to pay with before placing your order",
+      "initializing": "Initializing order..."
     },
     "price_deviation_warning": {
       "message": "Price has deviated too much from the spot price. New positions cannot be opened at this time."
@@ -1419,6 +1439,7 @@
       "failedToEstablishAllMids": "Failed to establish global allMids subscription",
       "failedToEstablishMarketData": "Failed to establish market data subscription for {{symbol}}",
       "failed_to_toggle_network": "Failed to toggle network",
+      "failed_to_switch_provider": "Failed to switch provider",
       "noAccountSelected": "No account selected",
       "unsupportedMethod": "Unsupported method: {{method}}",
       "invalidAddressFormat": "Invalid address format: {{address}}",
@@ -1457,6 +1478,24 @@
       "orderLeverageReductionFailed": "You cannot reduce your leverage",
       "insufficientLiquidity": "Insufficient liquidity to execute order. Try using a limit order or retry in a moment.",
       "connectionTimeout": "Connection timed out. Please check your network and try again.",
+      "clientReinitializing": "Service is reinitializing. Please wait a moment and try again.",
+      "transferFailed": "Unable to transfer funds. Please try again.",
+      "swapFailed": "Unable to swap tokens. Please try again.",
+      "spotPairNotFound": "Trading pair is not available at this time.",
+      "priceUnavailable": "Price data is unavailable. Please refresh and try again.",
+      "batchCancelFailed": "Some orders couldn't be cancelled. Please try again.",
+      "batchCloseFailed": "Some positions couldn't be closed. Please try again.",
+      "insufficientMargin": "Insufficient margin to execute this trade. Consider adding more funds or reducing your position size.",
+      "reduceOnlyViolation": "This order would increase your position. Only reduce-only orders are allowed.",
+      "positionWouldFlip": "This order would flip your position direction. Please close your existing position first.",
+      "marginAdjustmentFailed": "Unable to adjust margin. Please try again.",
+      "tpslUpdateFailed": "Unable to update take profit/stop loss. Please try again.",
+      "orderRejected": "Order was rejected. Please check your parameters and try again.",
+      "slippageExceeded": "Price moved too much. Try using a limit order or increase slippage tolerance.",
+      "rateLimitExceeded": "Too many requests. Please wait a moment and try again.",
+      "serviceUnavailable": "Service is temporarily unavailable. Please try again later.",
+      "networkErrorSimple": "Network error occurred. Please check your connection and try again.",
+      "insufficientBalance": "Insufficient balance to complete this operation. Please check your available funds.",
       "connectionFailed": {
         "title": "Couldn't connect to perps",
         "description": "We're working to get it back online soon.",
@@ -1702,7 +1741,14 @@
       "retry_connection": "Retry connection",
       "retrying_connection": "Connecting...",
       "connecting_to_perps": "Connecting to Perps",
-      "timeout_title": "Connection taking longer than expected"
+      "timeout_title": "Connection taking longer than expected",
+      "websocket_disconnected": "Your connection is offline.",
+      "websocket_disconnected_message": "Data may not be up to date.",
+      "websocket_connecting": "Connecting to perps...",
+      "websocket_connecting_message": "Restoring connection... Attempt {{attempt}}",
+      "websocket_connected": "Connected",
+      "websocket_connected_message": "Live data updates resumed",
+      "websocket_retry": "Retry"
     },
     "chart": {
       "no_data": "No chart data available",
@@ -1741,14 +1787,18 @@
       "commodities": "Commodities",
       "stocks_and_commodities": "Explore stocks and commodities",
       "tabs": {
-        "all": "All",
         "crypto": "Crypto",
-        "stocks_and_commodities": "Stocks"
+        "stocks": "Stocks",
+        "commodities": "Commodities",
+        "forex": "Forex",
+        "new": "New"
       },
       "filter_by": "Filter by",
       "forex": "Forex",
       "watchlist": "Watchlist",
-      "markets": "Markets"
+      "markets": "Markets",
+      "explore_markets": "Explore markets",
+      "see_all_perps": "See all perps"
     },
     "learn_more": {
       "title": "Learn about Perps",
@@ -1814,7 +1864,11 @@
       "price_change_low_to_high": "Price change: low to high",
       "past_hour": "Past hour",
       "past_24_hours": "Past 24 hours",
-      "time": "Time"
+      "time": "Time",
+      "apply": "Apply"
+    },
+    "market_type": {
+      "filter_by": "Filter by"
     },
     "perps_markets": "Perps markets",
     "volume": "Volume",
@@ -1831,6 +1885,7 @@
     "mainnet": "Mainnet",
     "developer_options": {
       "hyperliquid_network_toggle": "Hyperliquid Network Toggle",
+      "provider_mode_toggle": "Provider Mode",
       "simulate_connection_error": "Simulate connection error"
     },
     "transactions": {
@@ -2543,6 +2598,7 @@
     "billion_abbreviation": "B",
     "trillion_abbreviation": "T",
     "million_abbreviation": "M",
+    "thousand_abbreviation": "K",
     "token_details": "Token details",
     "contract_address": "Contract address",
     "token_list": "Token list",
@@ -2554,7 +2610,8 @@
     "all_time_high": "All time high",
     "all_time_low": "All time low",
     "fully_diluted": "Fully diluted",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "stock": "Stock"
   },
   "collectible": {
     "collectible_address": "Address",
@@ -2978,6 +3035,7 @@
       "description": "Region & more...",
       "current_region": "Current region",
       "reset_region": "Reset region",
+      "change_region": "Change region",
       "no_region_selected": "No region selected",
       "sdk_activation_keys": "SDK activation keys",
       "activation_keys_description": "Activation keys will enable specific features or providers.",
@@ -3103,7 +3161,12 @@
       "generate_trace_test": "Generate trace test",
       "generate_trace_test_desc": "Generate a developer test Sentry trace.",
       "navigate_to_sample_feature": "Navigate to sample feature",
-      "sample_feature_desc": "A sample feature as a template for developers."
+      "sample_feature_desc": "A sample feature as a template for developers.",
+      "card": {
+        "title": "Card",
+        "reset_onboarding_description": "Reset Card onboarding state to start the onboarding flow from the beginning.",
+        "reset_onboarding_button": "Reset Onboarding State"
+      }
     },
     "feature_flag_override": {
       "title": "Feature flag override",
@@ -3232,8 +3295,10 @@
   "screenshot_deterrent": {
     "title": "Safety alert",
     "description": "Screenshots aren't a safe way to keep track of your {{credentialName}}. Store it somewhere that isn't backed up online to keep your account safe.",
+    "card_description": "Screenshots of your card details could be accessed by others. Never share your card number or CVV.",
     "srp_text": "Secret Recovery Phrase",
-    "priv_key_text": "Private key"
+    "priv_key_text": "Private key",
+    "card_text": "card details"
   },
   "password_reset": {
     "password_title": "Password",
@@ -3269,6 +3334,15 @@
     "bridge": "Bridge",
     "earn": "Earn",
     "convert_to_musd": "Convert to mUSD",
+    "merkl_rewards": {
+      "annual_bonus": "{{apy}}% bonus",
+      "claimable_bonus": "Claimable bonus",
+      "claimable_bonus_tooltip_description": "mUSD bonuses are claimed on Linea.",
+      "terms_apply": "Terms apply.",
+      "ok": "OK",
+      "claim": "Claim",
+      "processing_claim": "Processing claim..."
+    },
     "tron": {
       "daily_resource_new_energy": "New daily energy",
       "sufficient_to_cover": "Sufficient to cover",
@@ -3333,7 +3407,8 @@
     },
     "no_chart_data": {
       "title": "No chart data",
-      "description": "We could not fetch any data for this token"
+      "description": "We could not fetch any data for this token",
+      "insufficient_data": "Data is not available for this time period"
     },
     "your_balance": "Your balance",
     "perps_position": "Perps position",
@@ -4612,6 +4687,10 @@
   "fiat_on_ramp": {
     "buy_eth": "Buy ETH",
     "buy": "Buy {{ticker}}",
+    "on_network": "on {{networkName}}",
+    "debit_card": "Debit card",
+    "continue": "Continue",
+    "powered_by_provider": "Powered by {{provider}}",
     "purchased_currency": "Purchased {{currency}}",
     "network_not_supported": "Current network not supported",
     "switch_network": "Please switch to Mainnet",
@@ -4699,6 +4778,14 @@
         "subtitle_5": "and see how much gas costs.",
         "cta": "Continue to purchase {{ticker}}"
       }
+    },
+    "build_quote_settings_modal": {
+      "title": "Settings",
+      "view_order_history": "View order history",
+      "contact_support": "Contact support",
+      "log_out": "Log out of {{provider}}",
+      "logged_out_success": "Successfully logged out",
+      "logged_out_error": "Error logging out"
     }
   },
   "fiat_on_ramp_aggregator": {
@@ -4845,6 +4932,7 @@
       "title": "Select your region",
       "description": "The payment methods and tokens available to you are determined by our third-party integrations and may vary depending on your region and support by our integrations.",
       "sell_description": "Cash destination options and tokens may vary depending on your region.",
+      "region_variation_notice": "Payment methods and available tokens may vary based on your region and our providers.",
       "search_by_country": "Search by country",
       "search_by_state": "Search by state",
       "no_region_results": "No region matches",
@@ -5621,9 +5709,10 @@
     "error_description": "Installation of {{snap}} failed."
   },
   "earn": {
-    "bonus_tooltip": "Daily mUSD bonus added to your wallet as a reward for holding mUSD.",
+    "claimable_bonus_tooltip": "An annual bonus claimable daily from your wallet.",
     "earn_a_percentage_bonus": "Earn a {{percentage}}% bonus",
-    "bonus": "Bonus",
+    "claimable_bonus": "Claimable bonus",
+    "claim_bonus": "Claim bonus",
     "empty_state_cta": {
       "heading": "Lend {{tokenSymbol}} and earn",
       "body": "Lend your {{tokenSymbol}} with {{protocol}} and earn",
@@ -5707,7 +5796,10 @@
       "fee": "Fee"
     },
     "musd_conversion": {
-      "convert_to_musd": "Convert to mUSD",
+      "ok": "OK",
+      "continue": "Continue",
+      "convert_and_get_percentage_bonus": "Convert and get {{percentage}}%",
+      "get_a_percentage_musd_bonus": "Get {{percentage}}% mUSD bonus",
       "convert": "Convert",
       "toasts": {
         "converting": "Converting {{token}} → mUSD",
@@ -5716,15 +5808,24 @@
         "failed": "mUSD conversion failed"
       },
       "education": {
-        "heading": "Boost Earnings with mUSD",
-        "description": "Get an automatic mUSD bonus when you convert your stablecoins to mUSD, MetaMask’s dollar-backed stable.",
-        "primary_button": "Convert to mUSD",
+        "heading": "GET {{percentage}}% ON\nSTABLECOINS",
+        "description": "Convert your stablecoins to mUSD, MetaMask’s US dollar-backed stablecoin, and receive up to a {{percentage}}% bonus.",
+        "terms_apply": "Terms apply.",
+        "primary_button": "Get Started",
         "secondary_button": "Not now"
       },
       "buy_musd": "Buy mUSD",
       "get_musd": "Get mUSD",
-      "boost_title": "Boost your stablecoin balance",
-      "boost_description": "Earn a bonus every time you convert stablecoins to"
+      "boost_title": "Get {{percentage}}% on your stablecoins",
+      "boost_description": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% bonus.",
+      "powered_by_relay": "Powered by Relay"
+    },
+    "bonus_claim": {
+      "toasts": {
+        "claiming": "Your mUSD bonus is processing",
+        "delivered": "Your mUSD bonus is here!",
+        "failed": "Bonus claim failed"
+      }
     },
     "rewards": {
       "rewards_tag_label": "Rewards",
@@ -6045,7 +6146,8 @@
       },
       "title": {
         "transaction_fee": "Fees"
-      }
+      },
+      "network_fee": "Network fees depend on how busy the network is and how complex your transaction is."
     },
     "spending_cap": "Spending cap",
     "withdraw": "Withdraw",
@@ -6180,6 +6282,8 @@
     "confirm_swap": "Swap",
     "terms_and_conditions": "Terms & Conditions",
     "select_token": "Select token",
+    "no_tokens_found": "No tokens found",
+    "no_tokens_found_description": "We couldn't find any tokens with this name. Try a different search.",
     "select_network": "Select network",
     "all_networks": "All networks",
     "num_networks": "{{numNetworks}} networks",
@@ -6187,6 +6291,7 @@
     "select_all_networks": "Select all",
     "deselect_all_networks": "Deselect all",
     "see_all": "See all",
+    "all": "All",
     "apply": "Apply",
     "slippage": "Slippage",
     "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here.",
@@ -6244,7 +6349,16 @@
     "approval_tooltip_content": "You are allowing access to the specified amount, {{amount}} {{symbol}}. The contract will not access any additional funds.",
     "minimum_received": "Minimum received",
     "minimum_received_tooltip_title": "Minimum received",
-    "minimum_received_tooltip_content": "The minimum amount you'll receive if the price changes while your transaction is processing, based on your slippage tolerance. This is an estimate from our liquidity providers. Final amounts may differ."
+    "minimum_received_tooltip_content": "The minimum amount you'll receive if the price changes while your transaction is processing, based on your slippage tolerance. This is an estimate from our liquidity providers. Final amounts may differ.",
+    "submit": "Submit",
+    "default_slippage_description": "Your transaction won't go through if the price changes more than the slippage percent.",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "exceeding_upper_slippage_warning": "High slippage, this may result in a unfavourable swap",
+    "exceeding_lower_slippage_warning": "Low slippage, this may result in a unfavourable swap",
+    "exceeding_lower_slippage_error": "Enter a value greater than {{value}}%",
+    "exceeding_upper_slippage_error": "You cannot enter a value greater than {{value}}%",
+    "custom": "Custom"
   },
   "quote_expired_modal": {
     "title": "New quotes are available",
@@ -6537,10 +6651,74 @@
       "swap_description": "Swap tokens into {{symbol}} on {{chainName}}",
       "select_method": "Select method"
     },
+    "password_bottomsheet": {
+      "title": "Enter password",
+      "description": "Enter your wallet password to view card details.",
+      "placeholder": "Password",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "error_empty": "Please enter your password",
+      "error_incorrect": "Incorrect password. Please try again."
+    },
+    "choose_your_card": {
+      "title": "Choose your card",
+      "upgrade_title": "Upgrade to Metal",
+      "continue_button": "Continue",
+      "virtual_card": {
+        "name": "Orange Virtual Card",
+        "price": "Free",
+        "feature_1": "Virtual card for Apple Pay and Google Pay",
+        "feature_2": "Pay with crypto (USDC, USDT, WETH, and more)",
+        "feature_3": "1% USDC cashback on every purchase"
+      },
+      "metal_card": {
+        "name": "Metal Card",
+        "price": "$199/year",
+        "feature_1": "Engraved metal card and virtual card for Apple Pay and Google Pay",
+        "feature_2": "3% cashback on the first $10,000 spent each year, then 1% after that",
+        "feature_3": "No foreign transaction fees"
+      }
+    },
+    "review_order": {
+      "title": "Review your order",
+      "subtitle": "We can only ship to residential addresses.",
+      "shipping_address": "Shipping address",
+      "metal_card_quantity": "1 Metal Card",
+      "metal_card_price": "$199",
+      "metal_card_total": "$199 per year",
+      "fees": "Fees",
+      "fees_free": "Free",
+      "renews": "Renews",
+      "renews_annually": "Annually",
+      "total": "Total",
+      "pay": "Pay",
+      "payment_creation_error": "Failed to create payment. Please try again."
+    },
+    "order_completed": {
+      "title": "YOUR CARD\nIS ORDERED",
+      "subtitle": "It should arrive in 4 to 6 weeks.",
+      "description": "Set up your virtual card and add it to your digital wallet to start earning cashback.",
+      "set_up_card_button": "Set up card",
+      "back_to_card_button": "Back to Card"
+    },
+    "recurring_fee_modal": {
+      "title": "Recurring fee",
+      "description": "A recurring $199 fee will be transferred from your stablecoin balance each year. Make sure you have enough funds to keep your card active.",
+      "learn_more": "Learn more",
+      "got_it": "Got it"
+    },
+    "daimo_pay_modal": {
+      "load_error": "Failed to load payment page. Please try again.",
+      "timeout_error": "Payment verification timed out. Please check your transaction status.",
+      "payment_bounced_error": "Payment failed. Please try again with a different payment method.",
+      "close": "Close",
+      "try_again": "Try again"
+    },
     "card_onboarding": {
-      "title": "Spend\nand\nEarn",
-      "description": "The MetaMask Card is the fast and easy way to spend your crypto and earn up to 3% cashback.",
+      "title": "Spend\nand Earn",
+      "description": "The MetaMask Card is the fast and\neasy way to spend your crypto and\nearn up to 3% cashback.",
       "apply_now_button": "Apply now",
+      "login_button": "Log in",
       "not_now_button": "Not now",
       "sign_up": {
         "title": "Let's get started",
@@ -6569,6 +6747,7 @@
         "phone_number_label": "Enter phone number",
         "country_area_code_label": "Country area code",
         "invalid_phone_number": "Invalid phone number",
+        "invalid_us_phone_number": "Please enter a valid US phone number (10 digits) to proceed.",
         "legal_terms": "By continuing, you agree to receiving SMS to verify your phone number."
       },
       "confirm_phone_number": {
@@ -6627,8 +6806,14 @@
       },
       "kyc_failed": {
         "title": "You're not eligible for MetaMask Card right now",
-        "description": "Our partner approves based on set criteria. Learn more.",
+        "description": "Eligibility is determined by our partner's regulatory and verification checks.",
         "close_button": "Back to home"
+      },
+      "kyc_pending": {
+        "title": "Awaiting approval",
+        "description": "Our partner needs to verify your identity in order to approve your application.",
+        "footer_text": "Approvals usually take around 12 hours.\nWe'll notify you when a decision is made.",
+        "got_it_button": "Got it"
       },
       "personal_details": {
         "title": "Add your info",
@@ -6659,8 +6844,8 @@
       },
       "complete": {
         "title": "You're in!",
-        "description": "Let's set up your card so you can start spending your crypto.",
-        "confirm_button": "Set up my card"
+        "description": "Finish setting up your card so you can start spending your crypto.",
+        "confirm_button": "Finish setup"
       },
       "account_exists": {
         "title": "You already have an account",
@@ -6697,22 +6882,25 @@
       }
     },
     "card_home": {
+      "title": "Card",
+      "available_balance": "Available balance",
       "error_title": "Can't fetch data",
       "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Please check your connection or try refreshing the page.",
       "try_again": "Try again",
-      "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to {{manageCard}}",
+      "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to ",
       "add_funds": "Add funds",
       "change_asset": "Change asset",
       "enable_card_button_label": "Enable card",
       "enable_assets_button_label": "Enable assets",
       "spending_limit_warning": "You're close to your spending limit. Update to avoid declines.",
       "logout": "Log out",
-      "logout_description": "Log out from your MetaMask Card account",
       "logout_confirmation_title": "Log out of Card?",
       "logout_confirmation_message": "Are you sure you want to log out of your MetaMask Card account?",
       "logout_confirmation_cancel": "Cancel",
       "logout_confirmation_confirm": "Log out",
       "enable_card_error": "Failed to enable card. Please try again later.",
+      "view_card_details_error": "Unable to load card details. Please try again.",
+      "biometric_verification_required": "Authentication required to view card details.",
       "warnings": {
         "close_spending_limit": {
           "title": "You're close to your spending limit",
@@ -6741,6 +6929,12 @@
           "description": "Your identity verification is being reviewed. This typically takes less than 12 hours."
         }
       },
+      "messages": {
+        "card_provisioning": {
+          "title": "Card being created",
+          "description": "Your card is being created. This may take a few moments."
+        }
+      },
       "kyc_status": {
         "pending": {
           "title": "Verification in progress",
@@ -6762,15 +6956,19 @@
         "ok_button": "OK"
       },
       "manage_card_options": {
-        "manage_spending_limit": "Manage spending limit",
+        "view_card_details": "View card details",
+        "hide_card_details": "Hide card details",
+        "view_card_details_description": "Card number, expiration and CVV",
+        "manage_spending_limit": "Manage limit",
         "manage_spending_limit_description_restricted": "Limited spending is on",
         "manage_spending_limit_description_full": "Full access is on",
         "manage_card": "Manage card",
-        "advanced_card_management_description": "See card details, transactions and more",
+        "advanced_card_management_description": "See activity, cashback, freeze card, and more",
         "travel_title": "MetaMask Travel",
-        "travel_description": "Book hotels with up to 60% discounts vs. Expedia",
-        "card_tos_title": "Card Terms and Conditions",
-        "card_tos_description": "Read the card provider's terms"
+        "travel_description": "Book hotels with up to 70% discounts",
+        "card_tos_title": "Terms and conditions",
+        "order_metal_card": "Metal Card",
+        "order_metal_card_description": "Order your physical Metal Card now"
       }
     },
     "card_spending_limit": {
@@ -6837,6 +7035,7 @@
       "signup_button": "Sign up",
       "errors": {
         "invalid_credentials": "Invalid login details",
+        "invalid_otp_code": "Incorrect code, please try again",
         "unknown_error": "Unknown error, please try again later",
         "email_required": "Email is required",
         "password_required": "Password is required",
@@ -6941,7 +7140,10 @@
       "account_already_registered": "This account is already registered with another Rewards profile. Please switch account to continue.",
       "request_rejected": "You rejected the request.",
       "failed_to_claim_reward": "Failed to claim reward. Please try again shortly.",
-      "service_not_available": "Service is not available at the moment. Please try again shortly."
+      "service_not_available": "Service is not available at the moment. Please try again shortly.",
+      "invalid_referral_code": "Invalid referral code. Please check and try again.",
+      "already_referred": "You have already been referred by another user.",
+      "cannot_use_own_referral_code": "You cannot use your own referral code."
     },
     "claim_reward_error": {
       "title": "Failed to claim reward"
@@ -6979,6 +7181,8 @@
     "activity_empty_title": "No recent activity.",
     "activity_empty_description": "Use MetaMask to earn points, level up, and unlock rewards.",
     "activity_empty_link": "See ways to earn",
+    "filter_title": "Filter by activity type",
+    "filter_all": "All",
     "events": {
       "to": "to",
       "musd_deposit_for": "For {{date}}",
@@ -6998,6 +7202,7 @@
         "stop_loss": "TP/SL",
         "predict": "Prediction",
         "musd_deposit": "mUSD deposit",
+        "apply_referral_bonus": "Referral code bonus",
         "uncategorized_event": "Uncategorized event"
       },
       "date": "Date",
@@ -7092,6 +7297,14 @@
       "link_account_failed_error": "Failed to add account",
       "link_account_unknown_error": "Unknown error occurred"
     },
+    "referred_by_code": {
+      "title": "Referral Code",
+      "description_linked": "Invite code is now linked, so your referrer will earn rewards when you trade.",
+      "description_not_linked": "Signed up before your friend could send you their code? Enter it below and you'll be linked.",
+      "input_placeholder": "Enter referral code",
+      "invalid_code": "Invalid referral code",
+      "apply_button": "Apply referral code"
+    },
     "optout": {
       "title": "Opt out of Rewards",
       "description": "This will remove your accounts from the Rewards program and erase your points and progress. You won't be able to undo this.",
@@ -7109,12 +7322,12 @@
     "dashboard_modal_info": {
       "active_account": {
         "title": "Don't miss out",
-        "description": "Add your account to start earning points from your activity.",
+        "description": "Add your account to Rewards.",
         "confirm": "Add account"
       },
       "multiple_unlinked_accounts": {
-        "title": "Start earning points",
-        "description": "Add your accounts so you can track your rewards at a glance.",
+        "title": "Don't miss out",
+        "description": "Add your accounts to Rewards.",
         "confirm": "Add accounts"
       },
       "account_not_supported": {
@@ -7271,6 +7484,7 @@
   },
   "transaction_details": {
     "title": {
+      "musd_conversion": "Converted to mUSD",
       "perps_deposit": "Funded perps account",
       "predict_claim": "Claimed winnings",
       "predict_deposit": "Funded Predict account",
@@ -7294,6 +7508,7 @@
       "bridge_receive": "Receive {{targetSymbol}} on {{targetChain}}",
       "bridge_receive_loading": "Bridge receive",
       "default": "Transaction",
+      "musd_convert_send": "Sent {{sourceSymbol}} from {{sourceChain}}",
       "perps_deposit": "Add funds",
       "predict_deposit": "Add funds",
       "swap": "Swap tokens",
@@ -7327,13 +7542,13 @@
     "still_connecting_network": "Still connecting to {{networkName}}...",
     "unable_to_connect_network": "Unable to connect to {{networkName}}.",
     "update_rpc": "Update RPC",
+    "switch_to_metamask_default_rpc": "Switch to MetaMask default RPC",
     "check_network_connectivity": "Check your network connectivity.",
-    "check_network_connectivity_or": "Check your network connectivity or"
+    "check_network_connectivity_or": "Check your network connectivity or",
+    "updated_to_metamask_default": "Updated to MetaMask default"
   },
   "trending": {
     "title": "Explore",
-    "view_all": "View all",
-    "tokens": "Tokens",
     "trending_tokens": "Trending tokens",
     "price_change": "Price change",
     "all_networks": "All networks",

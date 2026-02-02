@@ -2,11 +2,13 @@
  * Unit tests for HyperLiquid Order Book Processor
  */
 
-import type { L2BookResponse } from '@nktkas/hyperliquid';
+import type { BboWsEvent, L2BookResponse } from '@nktkas/hyperliquid';
 import type { PriceUpdate } from '../controllers/types';
 import {
+  processBboData,
   processL2BookData,
   type OrderBookCacheEntry,
+  type ProcessBboDataParams,
   type ProcessL2BookDataParams,
 } from './hyperLiquidOrderBookProcessor';
 
@@ -21,7 +23,7 @@ describe('hyperLiquidOrderBookProcessor', () => {
     mockOrderBookCache = new Map();
     mockCachedPriceData = new Map();
     mockCreatePriceUpdate = jest.fn((symbol: string, price: string) => ({
-      coin: symbol,
+      symbol,
       price,
       timestamp: Date.now(),
     }));
@@ -41,7 +43,7 @@ describe('hyperLiquidOrderBookProcessor', () => {
       };
 
       mockCachedPriceData.set('BTC', {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '50000',
         timestamp: Date.now(),
       });
@@ -147,7 +149,7 @@ describe('hyperLiquidOrderBookProcessor', () => {
       };
 
       mockCachedPriceData.set('BTC', {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '50000',
         timestamp: Date.now(),
       });
@@ -179,7 +181,7 @@ describe('hyperLiquidOrderBookProcessor', () => {
       };
 
       mockCachedPriceData.set('BTC', {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '50000',
         timestamp: Date.now(),
       });
@@ -266,7 +268,7 @@ describe('hyperLiquidOrderBookProcessor', () => {
       };
 
       mockCachedPriceData.set('BTC', {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '50000',
         timestamp: Date.now(),
       });
@@ -294,7 +296,7 @@ describe('hyperLiquidOrderBookProcessor', () => {
       };
 
       mockCachedPriceData.set('ETH', {
-        coin: 'ETH',
+        symbol: 'ETH',
         price: '3000',
         timestamp: Date.now(),
       });
@@ -316,13 +318,13 @@ describe('hyperLiquidOrderBookProcessor', () => {
 
     it('updates cached price data with newly created price update', () => {
       const existingPrice: PriceUpdate = {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '50000',
         timestamp: Date.now() - 1000,
       };
 
       const newPrice: PriceUpdate = {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '50000',
         timestamp: Date.now(),
       };
@@ -369,7 +371,7 @@ describe('hyperLiquidOrderBookProcessor', () => {
       };
 
       mockCachedPriceData.set('SOL', {
-        coin: 'SOL',
+        symbol: 'SOL',
         price: '100',
         timestamp: Date.now(),
       });
@@ -401,7 +403,7 @@ describe('hyperLiquidOrderBookProcessor', () => {
       };
 
       mockCachedPriceData.set('BTC', {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '50000',
         timestamp: Date.now(),
       });
@@ -446,12 +448,12 @@ describe('hyperLiquidOrderBookProcessor', () => {
 
     it('processes multiple symbols independently', () => {
       mockCachedPriceData.set('BTC', {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '50000',
         timestamp: Date.now(),
       });
       mockCachedPriceData.set('ETH', {
-        coin: 'ETH',
+        symbol: 'ETH',
         price: '3000',
         timestamp: Date.now(),
       });
@@ -500,6 +502,143 @@ describe('hyperLiquidOrderBookProcessor', () => {
       expect(ethCache?.bestBid).toBe('2990');
       expect(ethCache?.bestAsk).toBe('3010');
       expect(mockNotifySubscribers).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('processBboData', () => {
+    it('processes valid BBO data with bid and ask', () => {
+      const symbol = 'BTC';
+      const data: BboWsEvent = {
+        coin: 'BTC',
+        time: Date.now(),
+        bbo: [
+          { px: '49900', sz: '1.5', n: 3 }, // Bid
+          { px: '50100', sz: '2.0', n: 5 }, // Ask
+        ],
+      };
+
+      mockCachedPriceData.set('BTC', {
+        symbol: 'BTC',
+        price: '50000',
+        timestamp: Date.now(),
+      });
+
+      const params: ProcessBboDataParams = {
+        symbol,
+        data,
+        orderBookCache: mockOrderBookCache,
+        cachedPriceData: mockCachedPriceData,
+        createPriceUpdate: mockCreatePriceUpdate,
+        notifySubscribers: mockNotifySubscribers,
+      };
+
+      processBboData(params);
+
+      const cacheEntry = mockOrderBookCache.get('BTC');
+      expect(cacheEntry).toBeDefined();
+      expect(cacheEntry?.bestBid).toBe('49900');
+      expect(cacheEntry?.bestAsk).toBe('50100');
+      expect(cacheEntry?.spread).toBe('200.00000');
+      expect(cacheEntry?.lastUpdated).toBeGreaterThan(0);
+      expect(mockCreatePriceUpdate).toHaveBeenCalledWith('BTC', '50000');
+      expect(mockNotifySubscribers).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns early when coin does not match symbol', () => {
+      const data: BboWsEvent = {
+        coin: 'ETH',
+        time: Date.now(),
+        bbo: [
+          { px: '2990', sz: '5.0', n: 2 },
+          { px: '3010', sz: '5.0', n: 2 },
+        ],
+      };
+
+      const params: ProcessBboDataParams = {
+        symbol: 'BTC',
+        data,
+        orderBookCache: mockOrderBookCache,
+        cachedPriceData: mockCachedPriceData,
+        createPriceUpdate: mockCreatePriceUpdate,
+        notifySubscribers: mockNotifySubscribers,
+      };
+
+      processBboData(params);
+
+      expect(mockOrderBookCache.size).toBe(0);
+      expect(mockCreatePriceUpdate).not.toHaveBeenCalled();
+      expect(mockNotifySubscribers).not.toHaveBeenCalled();
+    });
+
+    it('returns early when both bid and ask are missing', () => {
+      const data = {
+        coin: 'BTC',
+        time: Date.now(),
+        bbo: [undefined, undefined],
+      } as unknown as BboWsEvent;
+
+      const params: ProcessBboDataParams = {
+        symbol: 'BTC',
+        data,
+        orderBookCache: mockOrderBookCache,
+        cachedPriceData: mockCachedPriceData,
+        createPriceUpdate: mockCreatePriceUpdate,
+        notifySubscribers: mockNotifySubscribers,
+      };
+
+      processBboData(params);
+
+      expect(mockOrderBookCache.size).toBe(0);
+      expect(mockCreatePriceUpdate).not.toHaveBeenCalled();
+      expect(mockNotifySubscribers).not.toHaveBeenCalled();
+    });
+
+    it('returns early when bbo is a truthy non-array value', () => {
+      const data = {
+        coin: 'BTC',
+        time: Date.now(),
+        bbo: {},
+      } as unknown as BboWsEvent;
+
+      const params: ProcessBboDataParams = {
+        symbol: 'BTC',
+        data,
+        orderBookCache: mockOrderBookCache,
+        cachedPriceData: mockCachedPriceData,
+        createPriceUpdate: mockCreatePriceUpdate,
+        notifySubscribers: mockNotifySubscribers,
+      };
+
+      expect(() => processBboData(params)).not.toThrow();
+      expect(mockOrderBookCache.size).toBe(0);
+      expect(mockCreatePriceUpdate).not.toHaveBeenCalled();
+      expect(mockNotifySubscribers).not.toHaveBeenCalled();
+    });
+
+    it('updates order book cache but does not notify when no cached price exists', () => {
+      const data: BboWsEvent = {
+        coin: 'BTC',
+        time: Date.now(),
+        bbo: [
+          { px: '49900', sz: '1.5', n: 3 },
+          { px: '50100', sz: '2.0', n: 5 },
+        ],
+      };
+
+      const params: ProcessBboDataParams = {
+        symbol: 'BTC',
+        data,
+        orderBookCache: mockOrderBookCache,
+        cachedPriceData: mockCachedPriceData,
+        createPriceUpdate: mockCreatePriceUpdate,
+        notifySubscribers: mockNotifySubscribers,
+      };
+
+      processBboData(params);
+
+      expect(mockOrderBookCache.get('BTC')).toBeDefined();
+      expect(mockCreatePriceUpdate).not.toHaveBeenCalled();
+      expect(mockNotifySubscribers).not.toHaveBeenCalled();
     });
   });
 });

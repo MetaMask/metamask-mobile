@@ -14,6 +14,7 @@ import BackupAndSyncSettings from '../../Views/Settings/Identity/BackupAndSyncSe
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
+import RegionSelector from '../../Views/Settings/RegionSelector/RegionSelector';
 import NotificationsView from '../../Views/Notifications';
 import NotificationsDetails from '../../Views/Notifications/Details';
 import OptIn from '../../Views/Notifications/OptIn';
@@ -49,6 +50,7 @@ import ActivityView from '../../Views/ActivityView';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
 import ExploreSearchScreen from '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
+import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 
@@ -130,6 +132,7 @@ import {
 } from '../../Views/AddAsset/AddAsset.constants';
 import { strings } from '../../../../locales/i18n';
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
+import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -173,7 +176,7 @@ const AssetStackFlow = (props) => (
   >
     <Stack.Screen
       name={'Asset'}
-      component={Asset}
+      component={TokenDetails}
       initialParams={props.route.params}
     />
     <Stack.Screen
@@ -314,53 +317,6 @@ const ExploreHome = () => (
       component={ExploreFeed}
       options={{ headerShown: false }}
     />
-    <Stack.Screen
-      name={Routes.EXPLORE_SEARCH}
-      component={ExploreSearchScreen}
-      options={{
-        headerShown: false,
-        animationEnabled: true,
-        cardStyleInterpolator: ({ current, layouts }) => ({
-          cardStyle: {
-            transform: [
-              {
-                translateX: current.progress.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [layouts.screen.width, 0],
-                }),
-              },
-            ],
-          },
-        }),
-      }}
-    />
-    <Stack.Screen
-      name={Routes.SITES_FULL_VIEW}
-      component={SitesFullView}
-      options={{
-        headerShown: false,
-        animationEnabled: true,
-        cardStyleInterpolator: ({ current, layouts }) => ({
-          cardStyle: {
-            transform: [
-              {
-                translateX: current.progress.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [layouts.screen.width, 0],
-                }),
-              },
-            ],
-          },
-        }),
-      }}
-    />
-
-    {/* Trending Browser Stack (uses existing browser flow) */}
-    <Stack.Screen
-      name={Routes.BROWSER.HOME}
-      component={BrowserFlow}
-      options={{ headerShown: false }}
-    />
   </Stack.Navigator>
 );
 
@@ -402,12 +358,12 @@ const SettingsFlow = () => (
     <Stack.Screen
       name="Settings"
       component={Settings}
-      options={Settings.navigationOptions}
+      options={{ headerShown: false }}
     />
     <Stack.Screen
       name="GeneralSettings"
       component={GeneralSettings}
-      options={GeneralSettings.navigationOptions}
+      options={{ headerShown: false }}
     />
     <Stack.Screen
       name="AdvancedSettings"
@@ -532,6 +488,11 @@ const SettingsFlow = () => (
       component={BackupAndSyncSettings}
       options={BackupAndSyncSettings.navigationOptions}
     />
+    <Stack.Screen
+      name={Routes.SETTINGS.REGION_SELECTOR}
+      component={RegionSelector}
+      options={RegionSelector.navigationOptions}
+    />
     {
       ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
     }
@@ -635,6 +596,19 @@ const HomeTabs = () => {
             MetaMetricsEvents.NAVIGATION_TAPS_TRENDING,
           ).build(),
         );
+        // Re-enable AppState listener when returning to trending tab
+        // (it was disabled when leaving to prevent phantom sessions)
+        TrendingFeedSessionManager.getInstance().enableAppStateListener();
+        // Start a new session when returning to trending tab
+        // The session manager will ignore if a session is already active
+        TrendingFeedSessionManager.getInstance().startSession('tab_press');
+      },
+      onLeave: () => {
+        // End trending session when user switches to another tab
+        TrendingFeedSessionManager.getInstance().endSession();
+        // Disable AppState listener to prevent phantom sessions when app backgrounds/foregrounds
+        // while user is on a different tab (since TrendingView stays mounted with unmountOnBlur: false)
+        TrendingFeedSessionManager.getInstance().disableAppStateListener();
       },
       rootScreenName: Routes.TRENDING_VIEW,
       unmountOnBlur: false,
@@ -920,6 +894,10 @@ const MainNavigator = () => {
   const isPredictEnabled = useMemo(
     () => predictEnabledFlag,
     [predictEnabledFlag],
+  );
+  // Get feature flag state for conditional Trending Tokens screen registration
+  const isAssetsTrendingTokensEnabled = useSelector(
+    selectAssetsTrendingTokensEnabled,
   );
 
   return (
@@ -1236,6 +1214,70 @@ const MainNavigator = () => {
           />
         </>
       )}
+      {isAssetsTrendingTokensEnabled && (
+        <>
+          <Stack.Screen
+            name={Routes.EXPLORE_SEARCH}
+            component={ExploreSearchScreen}
+            options={{
+              headerShown: false,
+              animationEnabled: true,
+              cardStyleInterpolator: ({ current, layouts }) => ({
+                cardStyle: {
+                  transform: [
+                    {
+                      translateX: current.progress.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [layouts.screen.width, 0],
+                      }),
+                    },
+                  ],
+                },
+              }),
+            }}
+          />
+          <Stack.Screen
+            name={Routes.SITES_FULL_VIEW}
+            component={SitesFullView}
+            options={{
+              headerShown: false,
+              animationEnabled: true,
+              cardStyleInterpolator: ({ current, layouts }) => ({
+                cardStyle: {
+                  transform: [
+                    {
+                      translateX: current.progress.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [layouts.screen.width, 0],
+                      }),
+                    },
+                  ],
+                },
+              }),
+            }}
+          />
+          <Stack.Screen
+            name={Routes.BROWSER.HOME}
+            component={BrowserFlow}
+            options={{
+              headerShown: false,
+              animationEnabled: true,
+              cardStyleInterpolator: ({ current, layouts }) => ({
+                cardStyle: {
+                  transform: [
+                    {
+                      translateX: current.progress.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [layouts.screen.width, 0],
+                      }),
+                    },
+                  ],
+                },
+              }),
+            }}
+          />
+        </>
+      )}
       <Stack.Screen
         name="SetPasswordFlow"
         component={SetPasswordFlow}
@@ -1253,10 +1295,7 @@ const MainNavigator = () => {
       <Stack.Screen
         name="GeneralSettings"
         component={GeneralSettings}
-        options={{
-          headerShown: true,
-          ...GeneralSettings.navigationOptions,
-        }}
+        options={{ headerShown: false }}
       />
       {process.env.METAMASK_ENVIRONMENT !== 'production' && (
         <Stack.Screen

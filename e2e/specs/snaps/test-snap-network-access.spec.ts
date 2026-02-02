@@ -1,11 +1,11 @@
 import { FlaskBuildTests } from '../../tags';
 import { loginToApp, navigateToBrowserView } from '../../viewHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import TestSnaps from '../../pages/Browser/TestSnaps';
-import { getAnvilPortForTest } from '../../framework/fixtures/FixtureUtils';
-import { LocalNodeType } from '../../framework';
-import { defaultOptions } from '../../seeder/anvil-manager';
+import { getAnvilPortForTest } from '../../../tests/framework/fixtures/FixtureUtils';
+import { LocalNodeType } from '../../../tests/framework';
+import { defaultOptions } from '../../../tests/seeder/anvil-manager';
 
 jest.setTimeout(150_000);
 

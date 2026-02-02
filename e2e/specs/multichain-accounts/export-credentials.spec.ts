@@ -5,8 +5,8 @@ import {
   withMultichainAccountDetailsEnabledFixtures,
 } from './common';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
-import { completeSrpQuiz } from '../multisrp/utils';
-import { defaultOptions } from '../../seeder/anvil-manager';
+import { completeSrpQuiz } from '../../../tests/flows/accounts.flow.ts';
+import { defaultOptions } from '../../../tests/seeder/anvil-manager';
 import TestHelpers from '../../helpers';
 
 const exportSrp = async () => {

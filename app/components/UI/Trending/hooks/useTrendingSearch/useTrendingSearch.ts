@@ -1,10 +1,23 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
 import type { CaipChainId } from '@metamask/utils';
-import { SortTrendingBy } from '@metamask/assets-controllers';
+import { SortTrendingBy, TrendingAsset } from '@metamask/assets-controllers';
 import { useSearchRequest } from '../useSearchRequest/useSearchRequest';
 import { useTrendingRequest } from '../useTrendingRequest/useTrendingRequest';
 import { sortTrendingTokens } from '../../utils/sortTrendingTokens';
 import { PriceChangeOption } from '../../components/TrendingTokensBottomSheet';
+import { isEqual } from 'lodash';
+
+const useStableReference = <T>(value: T) => {
+  const [stableValue, setStableValue] = useState(value);
+
+  useEffect(() => {
+    if (!isEqual(stableValue, value)) {
+      setStableValue(value);
+    }
+  }, [value, stableValue]);
+
+  return stableValue;
+};
 
 /**
  * Hook for trending tokens search with optional debouncing.
@@ -15,12 +28,19 @@ import { PriceChangeOption } from '../../components/TrendingTokensBottomSheet';
  * @param enableDebounce - Whether to debounce (default: true)
  * @returns Trending/search results, loading state, and refetch function
  */
-export const useTrendingSearch = (
-  searchQuery?: string,
-  sortBy?: SortTrendingBy,
-  chainIds?: CaipChainId[] | null,
-  enableDebounce = true,
-) => {
+export const useTrendingSearch = (opts?: {
+  searchQuery?: string;
+  sortBy?: SortTrendingBy;
+  chainIds?: CaipChainId[] | null;
+  enableDebounce?: boolean;
+}) => {
+  const {
+    searchQuery,
+    sortBy,
+    chainIds,
+    enableDebounce = true,
+  } = useStableReference(opts ?? {});
+
   const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
 
   // Debounce the search query
@@ -80,6 +100,9 @@ export const useTrendingSearch = (
           priceChangePct: {
             h24: asset.pricePercentChange1d,
           },
+          rwaData: asset.rwaData as unknown as
+            | TrendingAsset['rwaData']
+            | undefined,
         });
       }
     });

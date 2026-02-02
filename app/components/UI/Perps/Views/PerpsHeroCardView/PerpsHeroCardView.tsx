@@ -30,6 +30,7 @@ import ButtonIcon, {
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectReferralCode } from '../../../../../reducers/rewards/selectors';
+import { selectPerpsRewardsReferralCodeEnabledFlag } from '../../selectors/featureFlags';
 import PerpsTokenLogo from '../../components/PerpsTokenLogo';
 import RewardsReferralCodeTag from '../../../Rewards/components/RewardsReferralCodeTag';
 import {
@@ -89,12 +90,18 @@ const PerpsHeroCardView: React.FC = () => {
   const { position, marketPrice, source } = params;
 
   const rewardsReferralCode = useSelector(selectReferralCode);
+  const isReferralEnabled = useSelector(
+    selectPerpsRewardsReferralCodeEnabledFlag,
+  );
 
   // Fetch season status to populate seasonId (required by useReferralDetails)
   useSeasonStatus({ onlyForExplicitFetch: false });
 
   // Fetch referral details to ensure code is available for display
   useReferralDetails();
+
+  // Gate referral code behind feature flag
+  const effectiveReferralCode = isReferralEnabled ? rewardsReferralCode : null;
 
   const { track } = usePerpsEventTracking();
 
@@ -110,7 +117,7 @@ const PerpsHeroCardView: React.FC = () => {
     const marketPriceParsed = parseCurrencyString(marketPrice ?? '');
 
     return {
-      asset: position.coin,
+      asset: position.symbol,
       direction,
       leverage: position.leverage.value,
       pnl: pnlValue,
@@ -126,7 +133,7 @@ const PerpsHeroCardView: React.FC = () => {
     position.unrealizedPnl,
     position.returnOnEquity,
     position.entryPrice,
-    position.coin,
+    position.symbol,
     position.leverage.value,
     marketPrice,
   ]);
@@ -147,7 +154,7 @@ const PerpsHeroCardView: React.FC = () => {
     properties: {
       [PerpsEventProperties.SCREEN_TYPE]:
         PerpsEventValues.SCREEN_TYPE.PNL_HERO_CARD,
-      [PerpsEventProperties.ASSET]: position.coin,
+      [PerpsEventProperties.ASSET]: position.symbol,
       [PerpsEventProperties.DIRECTION]:
         data.direction === 'long'
           ? PerpsEventValues.DIRECTION.LONG
@@ -165,7 +172,7 @@ const PerpsHeroCardView: React.FC = () => {
     properties: {
       [PerpsEventProperties.INTERACTION_TYPE]:
         PerpsEventValues.INTERACTION_TYPE.DISPLAY_HERO_CARD,
-      [PerpsEventProperties.ASSET]: position.coin,
+      [PerpsEventProperties.ASSET]: position.symbol,
       [PerpsEventProperties.DIRECTION]:
         data.direction === 'long'
           ? PerpsEventValues.DIRECTION.LONG
@@ -178,7 +185,7 @@ const PerpsHeroCardView: React.FC = () => {
 
   const { styles } = useStyles(styleSheet, {
     isLong: data.isLong,
-    hasReferralCode: Boolean(rewardsReferralCode),
+    hasReferralCode: Boolean(effectiveReferralCode),
   });
 
   const handleClose = () => {
@@ -250,7 +257,7 @@ const PerpsHeroCardView: React.FC = () => {
 
           <View
             style={
-              rewardsReferralCode
+              effectiveReferralCode
                 ? undefined
                 : styles.referralCodeContentContainer
             }
@@ -309,14 +316,14 @@ const PerpsHeroCardView: React.FC = () => {
             </View>
           </View>
 
-          {rewardsReferralCode && (
+          {effectiveReferralCode && (
             <>
               <View
                 style={styles.referralCodeTagContainer}
                 testID={getPerpsHeroCardViewSelector.referralCodeTag(index)}
               >
                 <RewardsReferralCodeTag
-                  referralCode={rewardsReferralCode}
+                  referralCode={effectiveReferralCode}
                   backgroundColor={darkTheme.colors.background.mutedHover}
                   fontColor={darkTheme.colors.accent04.light}
                 />
@@ -333,7 +340,7 @@ const PerpsHeroCardView: React.FC = () => {
       )),
     [
       styles,
-      rewardsReferralCode,
+      effectiveReferralCode,
       data.asset,
       data.roe,
       data.entryPrice,
@@ -390,11 +397,11 @@ const PerpsHeroCardView: React.FC = () => {
           [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.INITIATED,
         });
 
-        const message = rewardsReferralCode
+        const message = effectiveReferralCode
           ? strings('perps.pnl_hero_card.share_message_with_referral_code', {
               asset: data.asset,
-              code: rewardsReferralCode,
-              link: buildReferralUrl(rewardsReferralCode),
+              code: effectiveReferralCode,
+              link: buildReferralUrl(effectiveReferralCode),
             })
           : strings('perps.pnl_hero_card.share_message_without_referral_code', {
               asset: data.asset,
