@@ -5,7 +5,7 @@ import {
   withMultichainAccountDetailsEnabledFixtures,
 } from './common';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
-import { completeSrpQuiz } from '../multisrp/utils';
+import { completeSrpQuiz } from '../../../tests/flows/accounts.flow.ts';
 import { defaultOptions } from '../../../tests/seeder/anvil-manager';
 import TestHelpers from '../../helpers';
 

@@ -9,6 +9,7 @@ tailwind.config.js                   @MetaMask/design-system-engineers
 .github/                                                    @MetaMask/mobile-platform
 .github/CODEOWNERS                                          @MetaMask/mobile-platform
 patches/                                                    @MetaMask/mobile-platform
+.github/builds.yml                                          @MetaMask/mobile-platform
 app/core/Analytics/index.ts                                 @MetaMask/mobile-platform
 app/core/Analytics/MetaMetrics.constants.ts                 @MetaMask/mobile-platform
 app/core/Analytics/MetaMetrics.test.ts                      @MetaMask/mobile-platform
@@ -122,10 +123,6 @@ app/components/Views/Settings/NotificationsSettings @MetaMask/notifications
 # LavaMoat Team
 ses.cjs                              @MetaMask/supply-chain
 patches/react-native+0.*.patch       @MetaMask/supply-chain
-
-# Portfolio Team
-app/components/hooks/useTokenSearchDiscovery @MetaMask/portfolio
-app/core/Engine/controllers/TokenSearchDiscoveryController @MetaMask/portfolio
 
 # Core Platform Team
 **/snaps/**                          @MetaMask/core-platform
@@ -251,6 +248,8 @@ tests/framework/                               @MetaMask/qa
 e2e/pages/                                   @MetaMask/qa
 e2e/utils/                                   @MetaMask/qa
 e2e/viewHelper.ts                            @MetaMask/qa
+# Note: Test builds (main-test, flask-test) in build/builds.yml are owned by QA team
+# but the file itself is protected by mobile-platform for consistency
 
 # Co-owned by Swaps and Ramps teams
 app/util/parseAmount.ts                      @MetaMask/swaps-engineers @MetaMask/ramp
