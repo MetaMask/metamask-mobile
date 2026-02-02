@@ -242,7 +242,7 @@ describe('usePredictMarketData', () => {
       const { waitForNextUpdate } = renderHook(() =>
         usePredictMarketData({
           category: 'hot',
-          customQueryParams: '&tag_id=149&order=volume24hr',
+          customQueryParams: 'tag_id=149&order=volume24hr',
         }),
       );
 
@@ -251,7 +251,7 @@ describe('usePredictMarketData', () => {
       expect(mockGetMarkets).toHaveBeenCalledWith(
         expect.objectContaining({
           category: 'hot',
-          customQueryParams: '&tag_id=149&order=volume24hr',
+          customQueryParams: 'tag_id=149&order=volume24hr',
         }),
       );
     });
@@ -266,7 +266,7 @@ describe('usePredictMarketData', () => {
             customQueryParams,
           }),
         {
-          initialProps: { customQueryParams: '&tag_id=149' },
+          initialProps: { customQueryParams: 'tag_id=149' },
         },
       );
 
@@ -274,14 +274,14 @@ describe('usePredictMarketData', () => {
 
       expect(mockGetMarkets).toHaveBeenCalledTimes(1);
 
-      rerender({ customQueryParams: '&tag_id=200' });
+      rerender({ customQueryParams: 'tag_id=200' });
 
       await waitForNextUpdate();
 
       expect(mockGetMarkets).toHaveBeenCalledTimes(2);
       expect(mockGetMarkets).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          customQueryParams: '&tag_id=200',
+          customQueryParams: 'tag_id=200',
         }),
       );
     });

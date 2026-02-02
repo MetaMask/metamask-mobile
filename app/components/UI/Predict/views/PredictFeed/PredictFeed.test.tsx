@@ -707,7 +707,7 @@ describe('PredictFeed', () => {
     it('renders Hot tab first when flag is enabled', () => {
       mockUseSelector.mockReturnValue({
         enabled: true,
-        queryParams: '&tag_id=149&order=volume24hr',
+        queryParams: 'tag_id=149&order=volume24hr',
       });
 
       const { getByTestId } = render(<PredictFeed />);
@@ -731,7 +731,7 @@ describe('PredictFeed', () => {
     it('renders six category tabs when hot tab is enabled', () => {
       mockUseSelector.mockReturnValue({
         enabled: true,
-        queryParams: '&tag_id=149',
+        queryParams: 'tag_id=149',
       });
 
       const { getByTestId } = render(<PredictFeed />);
@@ -747,7 +747,7 @@ describe('PredictFeed', () => {
     it('renders six pager pages when hot tab is enabled', () => {
       mockUseSelector.mockReturnValue({
         enabled: true,
-        queryParams: '&tag_id=149&tag_id=100995&order=volume24hr',
+        queryParams: 'tag_id=149&tag_id=100995&order=volume24hr',
       });
 
       const { getByTestId } = render(<PredictFeed />);
@@ -763,7 +763,7 @@ describe('PredictFeed', () => {
     it('tracks tab change for hot tab when swiped to', () => {
       mockUseSelector.mockReturnValue({
         enabled: true,
-        queryParams: '&tag_id=149',
+        queryParams: 'tag_id=149',
       });
 
       const mockSetActiveIndex = jest.fn();

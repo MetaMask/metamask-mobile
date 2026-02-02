@@ -2454,7 +2454,7 @@ describe('polymarket utils', () => {
 
         const params: GetMarketsParams = {
           category: 'hot',
-          customQueryParams: '&tag_id=198',
+          customQueryParams: 'tag_id=198',
           limit: 10,
           offset: 20,
         };
@@ -2485,7 +2485,7 @@ describe('polymarket utils', () => {
 
         const params: GetMarketsParams = {
           category: 'trending',
-          customQueryParams: '&tag_id=149',
+          customQueryParams: 'tag_id=149',
           limit: 20,
           offset: 0,
         };

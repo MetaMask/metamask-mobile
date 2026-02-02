@@ -195,7 +195,7 @@ describe('Predict Feature Flag Selectors', () => {
               remoteFeatureFlags: {
                 predictHotTab: {
                   enabled: true,
-                  queryParams: '&tag_id=149&order=volume24hr',
+                  queryParams: 'tag_id=149&order=volume24hr',
                 },
               },
               cacheTimestamp: 0,
@@ -208,7 +208,7 @@ describe('Predict Feature Flag Selectors', () => {
 
       expect(result).toEqual({
         enabled: true,
-        queryParams: '&tag_id=149&order=volume24hr',
+        queryParams: 'tag_id=149&order=volume24hr',
       });
     });
 
@@ -219,6 +219,7 @@ describe('Predict Feature Flag Selectors', () => {
         enabled: false,
         queryParams:
           'active=true&archived=false&closed=false&liquidity_min=10000&volume_min=10000&tag_id=1',
+        minimumVersion: '7.64.0',
       });
     });
 
@@ -242,6 +243,7 @@ describe('Predict Feature Flag Selectors', () => {
         enabled: false,
         queryParams:
           'active=true&archived=false&closed=false&liquidity_min=10000&volume_min=10000&tag_id=1',
+        minimumVersion: '7.64.0',
       });
     });
 
@@ -260,6 +262,7 @@ describe('Predict Feature Flag Selectors', () => {
         enabled: false,
         queryParams:
           'active=true&archived=false&closed=false&liquidity_min=10000&volume_min=10000&tag_id=1',
+        minimumVersion: '7.64.0',
       });
     });
 
@@ -318,7 +321,7 @@ describe('Predict Feature Flag Selectors', () => {
               remoteFeatureFlags: {
                 predictHotTab: {
                   enabled: 'false',
-                  queryParams: '&tag_id=149',
+                  queryParams: 'tag_id=149',
                 },
               },
               cacheTimestamp: 0,
@@ -333,6 +336,7 @@ describe('Predict Feature Flag Selectors', () => {
         enabled: false,
         queryParams:
           'active=true&archived=false&closed=false&liquidity_min=10000&volume_min=10000&tag_id=1',
+        minimumVersion: '7.64.0',
       });
     });
 
@@ -344,7 +348,7 @@ describe('Predict Feature Flag Selectors', () => {
               remoteFeatureFlags: {
                 predictHotTab: {
                   enabled: 'true',
-                  queryParams: '&tag_id=149',
+                  queryParams: 'tag_id=149',
                 },
               },
               cacheTimestamp: 0,
@@ -359,6 +363,7 @@ describe('Predict Feature Flag Selectors', () => {
         enabled: false,
         queryParams:
           'active=true&archived=false&closed=false&liquidity_min=10000&volume_min=10000&tag_id=1',
+        minimumVersion: '7.64.0',
       });
     });
 
@@ -385,6 +390,7 @@ describe('Predict Feature Flag Selectors', () => {
         enabled: false,
         queryParams:
           'active=true&archived=false&closed=false&liquidity_min=10000&volume_min=10000&tag_id=1',
+        minimumVersion: '7.64.0',
       });
     });
 
@@ -398,7 +404,7 @@ describe('Predict Feature Flag Selectors', () => {
                 remoteFeatureFlags: {
                   predictHotTab: {
                     enabled: true,
-                    queryParams: '&tag_id=149',
+                    queryParams: 'tag_id=149',
                     minimumVersion: '1.0.0',
                   },
                 },
@@ -412,7 +418,7 @@ describe('Predict Feature Flag Selectors', () => {
 
         expect(result).toEqual({
           enabled: true,
-          queryParams: '&tag_id=149',
+          queryParams: 'tag_id=149',
           minimumVersion: '1.0.0',
         });
       });
@@ -426,7 +432,7 @@ describe('Predict Feature Flag Selectors', () => {
                 remoteFeatureFlags: {
                   predictHotTab: {
                     enabled: true,
-                    queryParams: '&tag_id=149',
+                    queryParams: 'tag_id=149',
                     minimumVersion: '99.0.0',
                   },
                 },
@@ -442,6 +448,7 @@ describe('Predict Feature Flag Selectors', () => {
           enabled: false,
           queryParams:
             'active=true&archived=false&closed=false&liquidity_min=10000&volume_min=10000&tag_id=1',
+          minimumVersion: '7.64.0',
         });
       });
 
@@ -453,7 +460,7 @@ describe('Predict Feature Flag Selectors', () => {
                 remoteFeatureFlags: {
                   predictHotTab: {
                     enabled: true,
-                    queryParams: '&tag_id=149',
+                    queryParams: 'tag_id=149',
                   },
                 },
                 cacheTimestamp: 0,
@@ -466,7 +473,7 @@ describe('Predict Feature Flag Selectors', () => {
 
         expect(result).toEqual({
           enabled: true,
-          queryParams: '&tag_id=149',
+          queryParams: 'tag_id=149',
         });
         expect(mockHasMinimumRequiredVersion).not.toHaveBeenCalled();
       });
@@ -479,7 +486,7 @@ describe('Predict Feature Flag Selectors', () => {
                 remoteFeatureFlags: {
                   predictHotTab: {
                     enabled: true,
-                    queryParams: '&tag_id=149',
+                    queryParams: 'tag_id=149',
                     minimumVersion: 123,
                   },
                 },
@@ -495,6 +502,7 @@ describe('Predict Feature Flag Selectors', () => {
           enabled: false,
           queryParams:
             'active=true&archived=false&closed=false&liquidity_min=10000&volume_min=10000&tag_id=1',
+          minimumVersion: '7.64.0',
         });
       });
     });
