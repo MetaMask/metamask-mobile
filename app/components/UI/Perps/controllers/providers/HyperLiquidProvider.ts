@@ -92,6 +92,7 @@ import type {
   GetMarketsParams,
   GetOrderFillsParams,
   GetOrdersParams,
+  GetOrFetchFillsParams,
   GetPositionsParams,
   GetSupportedPathsParams,
   HistoricalPortfolioResult,
@@ -191,6 +192,11 @@ interface HandleOrderErrorParams {
   symbol: string;
   orderType: 'market' | 'limit';
   isBuy: boolean;
+}
+
+interface GetOrFetchPriceParams {
+  symbol: string;
+  dexName: string | null;
 }
 
 /**
@@ -512,6 +518,115 @@ export class HyperLiquidProvider implements IPerpsProvider {
     // The promise is only reset in disconnect() for clean reconnection
     await this.ensureReadyPromise;
     this.deps.debugLogger.log('[ensureReady] Initialization complete');
+  }
+
+  /**
+   * Get current price for a symbol using WebSocket cache first, REST API fallback
+   * Centralizes the price fetching pattern used across multiple methods
+   * @param params - Parameters for fetching price
+   * @param params.symbol - The symbol to get price for
+   * @param params.dexName - Optional DEX name for REST API fallback
+   * @returns The current price as a number
+   * @throws Error if no price is available
+   */
+  private async getOrFetchPrice(
+    params: GetOrFetchPriceParams,
+  ): Promise<number> {
+    const { symbol, dexName } = params;
+
+    // OPTIMIZATION: Use WebSocket price cache first (0 weight), fall back to REST (2 weight)
+    const cachedPrice = this.subscriptionService.getCachedPrice(symbol);
+
+    if (cachedPrice) {
+      const price = parseFloat(cachedPrice);
+      // Validate cached price: must be positive and finite
+      // Covers zero, negative, NaN, and Infinity in one check
+      if (price <= 0 || !isFinite(price)) {
+        this.deps.debugLogger.log(
+          'WebSocket cached price invalid for getOrFetchPrice, falling back to REST',
+          { symbol, cachedPrice, parsedPrice: price },
+        );
+        // Fall through to REST API fallback
+      } else {
+        this.deps.debugLogger.log('Using WebSocket cached price', {
+          symbol,
+          price,
+        });
+        return price;
+      }
+    }
+
+    // Fallback to REST API if cache miss
+    this.deps.debugLogger.log(
+      'Price cache miss for getOrFetchPrice, falling back to REST allMids',
+      { symbol },
+    );
+    const infoClient = this.clientService.getInfoClient();
+    const mids = await infoClient.allMids(
+      dexName ? { dex: dexName } : undefined,
+    );
+    const price = parseFloat(mids[symbol] || '0');
+
+    // Validate REST price: must be positive and finite
+    if (price <= 0 || !isFinite(price)) {
+      throw new Error(`Invalid price for ${symbol}: ${price}`);
+    }
+
+    return price;
+  }
+
+  /**
+   * Get fills using WebSocket cache first, falling back to REST API
+   * OPTIMIZATION: Uses cached fills when available (0 API weight), only calls REST on cache miss
+   *
+   * Cache limitation: WebSocket cache is limited to ~100 most recent fills.
+   * For historical data (e.g., position-opening fills from months ago), use getOrderFills directly.
+   *
+   * @param params - Optional filter parameters (startTime, symbol)
+   * @returns Array of order fills
+   */
+  public async getOrFetchFills(
+    params?: GetOrFetchFillsParams,
+  ): Promise<OrderFill[]> {
+    // Check WebSocket cache first (0 API weight)
+    const cachedFills = this.subscriptionService.getFillsCacheIfInitialized();
+
+    if (cachedFills !== null) {
+      this.deps.debugLogger.log('Using WebSocket cached fills', {
+        count: cachedFills.length,
+        params,
+      });
+      return this.filterFills(cachedFills, params);
+    }
+
+    // Fallback to REST API when cache not initialized
+    this.deps.debugLogger.log(
+      'Fills cache miss for getOrFetchFills, falling back to REST',
+      { params },
+    );
+    const restFills = await this.getOrderFills(params);
+    // Apply symbol filter to REST results for consistent API behavior
+    // Note: getOrderFills doesn't support symbol filtering natively
+    return this.filterFills(restFills, params);
+  }
+
+  /**
+   * Filter fills array by optional startTime and symbol parameters
+   * @param fills - Array of fills to filter
+   * @param params - Optional filter parameters
+   * @returns Filtered fills array
+   */
+  private filterFills(
+    fills: OrderFill[],
+    params?: { startTime?: number; symbol?: string },
+  ): OrderFill[] {
+    if (!params) return fills;
+
+    return fills.filter((fill) => {
+      if (params.startTime && fill.timestamp < params.startTime) return false;
+      if (params.symbol && fill.symbol !== params.symbol) return false;
+      return true;
+    });
   }
 
   /**
@@ -2374,7 +2489,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
   ): Promise<GetAssetInfoResult> {
     const { symbol, dexName } = params;
 
-    const infoClient = this.clientService.getInfoClient();
     const meta = await this.getCachedMeta({ dexName });
 
     const assetInfo = meta.universe.find((asset) => asset.name === symbol);
@@ -2384,11 +2498,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
       );
     }
 
-    const mids = await infoClient.allMids({ dex: dexName ?? '' });
-    const currentPrice = parseFloat(mids[symbol] || '0');
-    if (currentPrice === 0) {
-      throw new Error(`No price available for ${symbol}`);
-    }
+    const currentPrice = await this.getOrFetchPrice({
+      symbol,
+      dexName: dexName ?? null,
+    });
 
     return { assetInfo, currentPrice, meta };
   }
@@ -2868,9 +2981,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const { dex: dexName } = parseAssetName(params.newOrder.symbol);
 
       // Get asset info and prices (uses cache to avoid redundant API calls)
-      const infoClient = this.clientService.getInfoClient();
       const meta = await this.getCachedMeta({ dexName });
-      const mids = await infoClient.allMids({ dex: dexName ?? '' });
 
       // asset.name format: "BTC" for main DEX, "xyz:XYZ100" for HIP-3
       const assetInfo = meta.universe.find(
@@ -2884,10 +2995,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
         );
       }
 
-      const currentPrice = parseFloat(mids[params.newOrder.symbol] || '0');
-      if (currentPrice === 0) {
-        throw new Error(`No price available for ${params.newOrder.symbol}`);
-      }
+      const currentPrice = await this.getOrFetchPrice({
+        symbol: params.newOrder.symbol,
+        dexName: dexName ?? null,
+      });
 
       // Calculate order parameters using the same logic as placeOrder
       let orderPrice: number;
@@ -3150,9 +3261,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
         };
       }
 
-      // Get exchange client and meta for price/size formatting
+      // Get exchange client for order submission
       const exchangeClient = this.clientService.getExchangeClient();
-      const infoClient = this.clientService.getInfoClient();
 
       // Pre-fetch meta for all unique DEXs to avoid N API calls in loop
       const uniqueDexs = [
@@ -3214,12 +3324,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
           });
         }
 
-        // Get current price for market order slippage
-        const mids = await infoClient.allMids({ dex: dexName ?? '' });
-        const currentPrice = parseFloat(mids[position.symbol] || '0');
-        if (currentPrice === 0) {
-          throw new Error(`No price available for ${position.symbol}`);
-        }
+        const currentPrice = await this.getOrFetchPrice({
+          symbol: position.symbol,
+          dexName: dexName ?? null,
+        });
 
         // Calculate order price with slippage
         const slippage =
@@ -3359,28 +3467,45 @@ export class HyperLiquidProvider implements IPerpsProvider {
     try {
       this.deps.debugLogger.log('Updating position TP/SL:', params);
 
-      const { symbol, takeProfitPrice, stopLossPrice } = params;
+      const {
+        symbol,
+        takeProfitPrice,
+        stopLossPrice,
+        position: livePosition,
+      } = params;
 
       // Explicitly ensure builder fee approval for trading
       await this.ensureReady();
       await this.ensureBuilderFeeApproval();
 
-      // Get current position to validate it exists
-      // Force fresh API data (not WebSocket cache) since we're about to mutate the position
-      let positions: Position[];
-      try {
-        positions = await this.getPositions({ skipCache: true });
-      } catch (error) {
-        this.deps.logger.error(
-          ensureError(error),
-          this.getErrorContext('updatePositionTPSL > getPositions', {
-            symbol,
-          }),
-        );
-        throw error;
-      }
+      // Use live position (from WebSocket) if available, otherwise fetch via REST
+      // Preferring WebSocket data avoids rate limiting issues with the REST API
+      let position: Position | undefined = livePosition;
 
-      const position = positions.find((p) => p.symbol === symbol);
+      if (!position) {
+        // Fallback: fetch positions via REST API (legacy behavior)
+        this.deps.debugLogger.log(
+          'No live position passed, falling back to REST API fetch',
+        );
+        let positions: Position[];
+        try {
+          positions = await this.getPositions({ skipCache: true });
+        } catch (error) {
+          this.deps.logger.error(
+            ensureError(error),
+            this.getErrorContext('updatePositionTPSL > getPositions', {
+              symbol,
+            }),
+          );
+          throw error;
+        }
+        position = positions.find((pos) => pos.symbol === symbol);
+      } else {
+        this.deps.debugLogger.log('Using live position from WebSocket', {
+          symbol: position.symbol,
+          size: position.size,
+        });
+      }
 
       if (!position) {
         throw new Error(`No position found for ${symbol}`);
@@ -3389,11 +3514,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const positionSize = Math.abs(parseFloat(position.size));
       const isLong = parseFloat(position.size) > 0;
 
-      await this.ensureReady();
-
-      // See ensureReady() - builder fee and referral are session-cached
-
-      // Get current price for the asset
+      // Get clients for API calls (ensureReady already called at method start)
       const infoClient = this.clientService.getInfoClient();
       const exchangeClient = this.clientService.getExchangeClient();
       const userAddress = await this.walletService.getUserAddressWithDefault();
@@ -3401,50 +3522,79 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // Extract DEX name for API calls (main DEX = null)
       const { dex: dexName } = parseAssetName(symbol);
 
-      // Fetch current price for this asset's DEX
-      const mids = await infoClient.allMids(
-        dexName ? { dex: dexName } : undefined,
-      );
-      const currentPrice = parseFloat(mids[symbol] || '0');
-
-      if (currentPrice === 0) {
-        throw new Error(`No price available for ${symbol}`);
+      // Cancel existing TP/SL orders for this position
+      // OPTIMIZATION: Use WebSocket cache first (0 weight), fall back to single-DEX REST (20 weight)
+      // Previously: queryUserDataAcrossDexs queried ALL DEXs (20 weight × N DEXs = 40+ weight)
+      const assetId = this.symbolToAssetId.get(symbol);
+      if (assetId === undefined) {
+        throw new Error(`Asset ID not found for ${symbol}`);
       }
 
-      // Cancel existing TP/SL orders for this position across all DEXs
-      this.deps.debugLogger.log(
-        'Fetching open orders to cancel existing TP/SL...',
-      );
-      const orderResults = await this.queryUserDataAcrossDexs(
-        { user: userAddress },
-        (p) => infoClient.frontendOpenOrders(p),
-      );
+      let cancelRequests: { a: number; o: number }[] = [];
 
-      // Combine orders from all DEXs
-      const allOrders = orderResults.flatMap((result) => result.data);
+      // Use atomic getter to prevent race condition between check and get
+      const cachedOrders =
+        this.subscriptionService.getOrdersCacheIfInitialized();
 
-      const tpslOrdersToCancel = allOrders.filter(
-        (order) =>
-          order.coin === symbol &&
-          order.reduceOnly === true &&
-          order.isPositionTpsl === !!TP_SL_CONFIG.USE_POSITION_BOUND_TPSL &&
-          order.isTrigger === true &&
-          (order.orderType.includes('Take Profit') ||
-            order.orderType.includes('Stop')),
-      );
-
-      if (tpslOrdersToCancel.length > 0) {
+      if (cachedOrders !== null) {
+        // WebSocket cache available - use it (no API call, 0 weight)
         this.deps.debugLogger.log(
-          `Canceling ${tpslOrdersToCancel.length} existing TP/SL orders for ${symbol}`,
+          'Using WebSocket cache for TP/SL orders lookup',
+          { cachedOrdersCount: cachedOrders.length },
         );
-        const assetId = this.symbolToAssetId.get(symbol);
-        if (assetId === undefined) {
-          throw new Error(`Asset ID not found for ${symbol}`);
-        }
-        const cancelRequests = tpslOrdersToCancel.map((order) => ({
+
+        // Filter using normalized Order type properties
+        // Note: Cached orders don't have isPositionTpsl, but we identify TP/SL orders by:
+        // - isTrigger === true
+        // - reduceOnly === true
+        // - detailedOrderType contains 'Take Profit' or 'Stop'
+        const tpslOrders = cachedOrders.filter(
+          (order) =>
+            order.symbol === symbol &&
+            order.reduceOnly === true &&
+            order.isTrigger === true &&
+            order.detailedOrderType &&
+            (order.detailedOrderType.includes('Take Profit') ||
+              order.detailedOrderType.includes('Stop')),
+        );
+
+        cancelRequests = tpslOrders.map((order) => ({
+          a: assetId,
+          o: parseInt(order.orderId, 10),
+        }));
+      } else {
+        // Fallback: Query only the specific DEX (20 weight instead of 40+)
+        this.deps.debugLogger.log(
+          'WebSocket cache not initialized, falling back to single-DEX REST query',
+          { dex: dexName || 'main' },
+        );
+
+        const orders = await infoClient.frontendOpenOrders({
+          user: userAddress,
+          dex: dexName || undefined,
+        });
+
+        // Filter using raw SDK response properties
+        const tpslOrders = orders.filter(
+          (order) =>
+            order.coin === symbol &&
+            order.reduceOnly === true &&
+            order.isPositionTpsl === !!TP_SL_CONFIG.USE_POSITION_BOUND_TPSL &&
+            order.isTrigger === true &&
+            (order.orderType.includes('Take Profit') ||
+              order.orderType.includes('Stop')),
+        );
+
+        cancelRequests = tpslOrders.map((order) => ({
           a: assetId,
           o: order.oid,
         }));
+      }
+
+      if (cancelRequests.length > 0) {
+        this.deps.debugLogger.log(
+          `Canceling ${cancelRequests.length} existing TP/SL orders for ${symbol}`,
+        );
 
         const cancelResult = await exchangeClient.cancel({
           cancels: cancelRequests,
@@ -3482,10 +3632,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         );
       }
 
-      const assetId = this.symbolToAssetId.get(symbol);
-      if (assetId === undefined) {
-        throw new Error(`Asset ID not found for ${symbol}`);
-      }
+      // assetId already validated above when building cancelRequests
 
       // Build orders array for TP/SL
       const orders: SDKOrderParams[] = [];
@@ -3618,8 +3765,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
       await this.ensureReady();
       await this.ensureBuilderFeeApproval();
 
-      const positions = await this.getPositions();
-      const position = positions.find((p) => p.symbol === params.symbol);
+      // Use provided position (from WebSocket) or fetch from cache
+      // This avoids unnecessary API calls and prevents 429 rate limiting
+      let position = params.position;
+      if (!position) {
+        const positions = await this.getPositions();
+        position = positions.find((pos) => pos.symbol === params.symbol);
+      }
 
       if (!position) {
         throw new Error(`No position found for ${params.symbol}`);
@@ -3756,9 +3908,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // Ensure provider is ready
       await this.ensureReady();
 
-      // Get current position to determine direction
+      // Get current position to determine direction (from cache to avoid 429 rate limiting)
       const positions = await this.getPositions();
-      const position = positions.find((p) => p.symbol === symbol);
+      const position = positions.find((pos) => pos.symbol === symbol);
 
       if (!position) {
         throw new Error(`No position found for ${symbol}`);
@@ -4184,15 +4336,16 @@ export class HyperLiquidProvider implements IPerpsProvider {
   async getOpenOrders(params?: GetOrdersParams): Promise<Order[]> {
     try {
       // Try WebSocket cache first (unless explicitly bypassed)
-      if (
-        !params?.skipCache &&
-        this.subscriptionService.isOrdersCacheInitialized()
-      ) {
-        const cachedOrders = this.subscriptionService.getCachedOrders() || [];
-        this.deps.debugLogger.log('Using cached open orders from WebSocket', {
-          count: cachedOrders.length,
-        });
-        return cachedOrders;
+      // Use atomic getter to prevent race condition between check and get
+      if (!params?.skipCache) {
+        const cachedOrders =
+          this.subscriptionService.getOrdersCacheIfInitialized();
+        if (cachedOrders !== null) {
+          this.deps.debugLogger.log('Using cached open orders from WebSocket', {
+            count: cachedOrders.length,
+          });
+          return cachedOrders;
+        }
       }
 
       // Fallback to API call
