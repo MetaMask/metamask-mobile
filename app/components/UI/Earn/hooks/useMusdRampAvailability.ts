@@ -4,8 +4,12 @@ import {
   MUSD_BUYABLE_CHAIN_IDS,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../constants/musd';
-import { useRampTokens } from '../../Ramp/hooks/useRampTokens';
 import { toLowerCaseEquals } from '../../../../util/general';
+import useRampsTokens from '../../Ramp/hooks/useRampsTokens';
+import useRampsUnifiedV2Enabled from '../../Ramp/hooks/useRampsUnifiedV2Enabled';
+import { useRampTokens } from '../../Ramp/hooks/useRampTokens';
+// import useRampsController from '../../Ramp/hooks/useRampsController';
+// import useRampsUserRegion from '../../Ramp/hooks/useRampsUserRegion';
 
 export interface MusdRampAvailability {
   isMusdBuyableOnChain: Record<Hex, boolean>;
@@ -26,11 +30,29 @@ export interface MusdRampAvailability {
  * @returns {MusdRampAvailability} Ramp availability state and helpers
  */
 export const useMusdRampAvailability = (): MusdRampAvailability => {
-  const { allTokens } = useRampTokens();
+  const isUnifiedV2Enabled = useRampsUnifiedV2Enabled();
+
+  /**
+   * useRampTokens - Legacy hook deprecated in Unified Buy v2. All tokens are fetched on mount.
+   * useRampsTokens - New hook for Unified Buy v2. Tokens are cached in RampsController.
+   */
+  const { allTokens: unifiedV1RampsTokens } = useRampTokens({
+    fetchOnMount: !isUnifiedV2Enabled,
+  });
+
+  const { tokens: unifiedV2RampsTokens } = useRampsTokens(undefined, 'buy');
+
+  const rampsTokens = useMemo(
+    () =>
+      (isUnifiedV2Enabled
+        ? unifiedV2RampsTokens?.allTokens
+        : unifiedV1RampsTokens) ?? null,
+    [isUnifiedV2Enabled, unifiedV1RampsTokens, unifiedV2RampsTokens],
+  );
 
   // Check if mUSD is buyable on a specific chain based on ramp availability
   const isMusdBuyableOnChain = useMemo(() => {
-    if (!allTokens) {
+    if (!rampsTokens) {
       return {};
     }
 
@@ -43,7 +65,7 @@ export const useMusdRampAvailability = (): MusdRampAvailability => {
         return;
       }
 
-      const musdToken = allTokens.find(
+      const musdToken = rampsTokens?.find(
         (token) =>
           toLowerCaseEquals(token.assetId, musdAssetId) &&
           token.tokenSupported === true,
@@ -53,7 +75,7 @@ export const useMusdRampAvailability = (): MusdRampAvailability => {
     });
 
     return buyableByChain;
-  }, [allTokens]);
+  }, [rampsTokens]);
 
   // Check if mUSD is buyable on any chain (for "all networks" view)
   const isMusdBuyableOnAnyChain = useMemo(

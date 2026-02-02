@@ -182,6 +182,29 @@ describe('useRampTokens', () => {
     });
   });
 
+  describe('fetchOnMount option', () => {
+    it('skips fetching tokens when fetchOnMount is false', () => {
+      const mockResponse = createMockResponse(
+        [createMockToken({ symbol: 'ETH' })],
+        [createMockToken({ symbol: 'ETH' })],
+      );
+      mockHandleFetch.mockResolvedValueOnce(mockResponse);
+
+      const { result } = renderHookWithProvider(
+        () => useRampTokens({ fetchOnMount: false }),
+        {
+          state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
+        },
+      );
+
+      expect(result.current.topTokens).toBeNull();
+      expect(result.current.allTokens).toBeNull();
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBeNull();
+      expect(mockHandleFetch).not.toHaveBeenCalled();
+    });
+  });
+
   describe('environment-based URL selection', () => {
     it('uses production URL for production environment', async () => {
       process.env.METAMASK_ENVIRONMENT = 'production';
