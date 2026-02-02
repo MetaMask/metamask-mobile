@@ -30,6 +30,8 @@ interface PriceProps {
   currentCurrency: string;
   comparePrice: number;
   isLoading: boolean;
+  /** Whether the chart is showing real-time perps data */
+  isRealtime?: boolean;
   timePeriod: TimePeriod;
 }
 
@@ -41,6 +43,7 @@ const Price = ({
   currentCurrency,
   comparePrice,
   isLoading,
+  isRealtime = false,
   timePeriod,
 }: PriceProps) => {
   const [activeChartIndex, setActiveChartIndex] = useState<number>(-1);
@@ -183,6 +186,7 @@ const Price = ({
         prices={distributedPriceData}
         priceDiff={priceDiff}
         isLoading={isLoading}
+        isRealtime={isRealtime}
         onChartIndexChange={handleChartInteraction}
       />
     </>

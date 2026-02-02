@@ -98,6 +98,7 @@ import {
   PerpsModalStack,
   PerpsTutorialCarousel,
   selectPerpsEnabledFlag,
+  PerpsStreamProvider,
 } from '../../UI/Perps';
 import {
   PredictScreenStack,
@@ -188,16 +189,18 @@ const AssetStackFlow = (props) => (
 );
 
 const AssetNavigator = (props) => (
-  <Stack.Navigator
-    initialRouteName={'AssetStackFlow'}
-    screenOptions={clearStackNavigatorOptions}
-  >
-    <Stack.Screen
-      name={'AssetStackFlow'}
-      component={AssetStackFlow}
-      initialParams={props.route.params}
-    />
-  </Stack.Navigator>
+  <PerpsStreamProvider>
+    <Stack.Navigator
+      initialRouteName={'AssetStackFlow'}
+      screenOptions={clearStackNavigatorOptions}
+    >
+      <Stack.Screen
+        name={'AssetStackFlow'}
+        component={AssetStackFlow}
+        initialParams={props.route.params}
+      />
+    </Stack.Navigator>
+  </PerpsStreamProvider>
 );
 /* eslint-enable react/prop-types */
 

@@ -50,6 +50,8 @@ interface PriceChartProps {
   prices: TokenPrice[];
   priceDiff: number;
   isLoading: boolean;
+  /** Whether the chart is showing real-time perps data */
+  isRealtime?: boolean;
   onChartIndexChange: (index: number) => void;
 }
 
@@ -57,6 +59,7 @@ const PriceChart = ({
   prices,
   priceDiff,
   isLoading,
+  isRealtime = false,
   onChartIndexChange,
 }: PriceChartProps) => {
   const { setIsChartBeingTouched } = useContext(PriceChartContext);
@@ -346,6 +349,27 @@ const PriceChart = ({
 
   const chartHasData = priceList.length > 1;
 
+  /**
+   * Realtime indicator component that shows a pulsing dot at the end of the chart line.
+   * This is rendered as an SVG component inside the AreaChart.
+   * The actual pulsing animation is handled via an overlay View with Animated.
+   */
+  const RealtimeIndicator = ({ x, y }: Partial<TooltipProps>) => {
+    if (!isRealtime || !chartHasData || positionX >= 0) {
+      // Don't show realtime indicator when tooltip is active
+      return null;
+    }
+
+    const lastIndex = priceList.length - 1;
+    const lastPrice = priceList[lastIndex];
+
+    return (
+      <G x={x?.(lastIndex)} key="realtime-indicator">
+        <Circle cy={y?.(lastPrice)} r={apx(16 / 2)} fill={chartColor} />
+      </G>
+    );
+  };
+
   return (
     <View style={styles.chart}>
       <View
@@ -358,7 +382,11 @@ const PriceChart = ({
         <AreaChart
           style={styles.chartArea}
           data={chartHasData ? priceList : placeholderData}
-          contentInset={{ top: apx(40), bottom: apx(40) }}
+          contentInset={{
+            top: apx(40),
+            bottom: apx(40),
+            right: isRealtime ? apx(16) : 0,
+          }}
           svg={
             chartHasData && !isLoading
               ? { fill: `url(#dataGradient)` }
@@ -370,6 +398,7 @@ const PriceChart = ({
           {!isLoading && <Line chartHasData={chartHasData} />}
           {chartHasData ? <Tooltip /> : <NoDataGradient />}
           {chartHasData && <DataGradient />}
+          {chartHasData && <RealtimeIndicator />}
         </AreaChart>
       </View>
     </View>
