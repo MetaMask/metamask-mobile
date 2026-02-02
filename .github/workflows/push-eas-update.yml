@@ -28,6 +28,15 @@ on:
           - rc
           - production
         default: exp
+      platform:
+        description: 'Platform to update (all, ios, android)'
+        required: true
+        type: choice
+        options:
+          - all
+          - ios
+          - android
+        default: all
 
 permissions:
   contents: read
@@ -39,6 +48,7 @@ env:
   BASE_BRANCH_REF: ${{ inputs.base_branch }}
   UPDATE_MESSAGE: ${{ inputs.message }}
   TARGET_CHANNEL: ${{ inputs.channel }}
+  OTA_PUSH_PLATFORM: ${{ inputs.platform }}
 
 jobs:
   setup-dependencies:
@@ -396,8 +406,6 @@ jobs:
           SKIP_TRANSFORM_LINT: 'true'
           # Increase Node heap to avoid OOM during Expo export in CI
           NODE_OPTIONS: '--max_old_space_size=8192'
-          # Disable LavaMoat sandbox to prevent duplicate bundle executions in CI
-          EXPO_NO_LAVAMOAT: '1'
         run: |
           echo "📦 Configuring EXPO key..."
           if [[ -z "$EXPO_KEY_PRIV_B64" ]]; then

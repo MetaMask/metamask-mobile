@@ -628,53 +628,194 @@ generateAndroidBinary() {
 	cd ..
 }
 
+createEnvFile() {
+	echo "📝 Creating .env file from environment variables..."
+
+	# List of environment variable names to export
+	local ENV_VARS=(
+		"MM_MUSD_CONVERSION_FLOW_ENABLED"
+		"MM_NETWORK_UI_REDESIGN_ENABLED"
+		"MM_NOTIFICATIONS_UI_ENABLED"
+		"MM_PERMISSIONS_SETTINGS_V1_ENABLED"
+		"MM_PERPS_BLOCKED_REGIONS"
+		"MM_PERPS_ENABLED"
+		"MM_PERPS_HIP3_ALLOWLIST_MARKETS"
+		"MM_PERPS_HIP3_BLOCKLIST_MARKETS"
+		"MM_PERPS_HIP3_ENABLED"
+		"MM_SECURITY_ALERTS_API_ENABLED"
+		"BRIDGE_USE_DEV_APIS"
+		"SEEDLESS_ONBOARDING_ENABLED"
+		"RAMP_INTERNAL_BUILD"
+		"FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN"
+		"FEATURES_ANNOUNCEMENTS_SPACE_ID"
+		"SEGMENT_WRITE_KEY"
+		"SEGMENT_PROXY_URL"
+		"SEGMENT_DELETE_API_SOURCE_ID"
+		"SEGMENT_REGULATIONS_ENDPOINT"
+		"MM_SENTRY_DSN"
+		"MM_SENTRY_AUTH_TOKEN"
+		"IOS_GOOGLE_CLIENT_ID"
+		"IOS_GOOGLE_REDIRECT_URI"
+		"ANDROID_APPLE_CLIENT_ID"
+		"ANDROID_GOOGLE_CLIENT_ID"
+		"ANDROID_GOOGLE_SERVER_CLIENT_ID"
+		"MM_INFURA_PROJECT_ID"
+		"MM_BRANCH_KEY_LIVE"
+		"MM_BRANCH_KEY_TEST"
+		"MM_CARD_BAANX_API_CLIENT_KEY"
+		"WALLET_CONNECT_PROJECT_ID"
+		"MM_FOX_CODE"
+		"FCM_CONFIG_API_KEY"
+		"FCM_CONFIG_AUTH_DOMAIN"
+		"FCM_CONFIG_STORAGE_BUCKET"
+		"FCM_CONFIG_PROJECT_ID"
+		"FCM_CONFIG_MESSAGING_SENDER_ID"
+		"FCM_CONFIG_APP_ID"
+		"FCM_CONFIG_MEASUREMENT_ID"
+		"QUICKNODE_MAINNET_URL"
+		"QUICKNODE_ARBITRUM_URL"
+		"QUICKNODE_AVALANCHE_URL"
+		"QUICKNODE_BASE_URL"
+		"QUICKNODE_LINEA_MAINNET_URL"
+		"QUICKNODE_MONAD_URL"
+		"QUICKNODE_OPTIMISM_URL"
+		"QUICKNODE_POLYGON_URL"
+	)
+
+	# Create .env file and export to GITHUB_ENV
+	> .env
+	local exported_count=0
+	for var in "${ENV_VARS[@]}"; do
+		# Check if variable is set (defined), not just non-empty
+		# This allows explicitly empty strings to be written to .env
+		if [ -n "${!var+x}" ]; then
+			value="${!var}"
+			echo "${var}=${value}" >> .env
+			
+			# Export to GITHUB_ENV if running in GitHub Actions
+			if [ -n "${GITHUB_ENV:-}" ]; then
+				echo "${var}=${value}" >> "$GITHUB_ENV"
+			fi
+			
+			exported_count=$((exported_count + 1))
+		fi
+	done
+
+	echo "📄 .env file created with ${exported_count} variables"
+}
+
 buildExpoUpdate() {
-		echo "Build Expo Update $METAMASK_BUILD_TYPE started..."
+	echo "Build Expo Update $METAMASK_BUILD_TYPE started..."
+	
+	# Create .env file and export environment variables
+	createEnvFile
+	
+	# Verify .env file was created and source it
+	if [ -f ".env" ]; then
+		echo "✅ .env file exists at $(pwd)/.env"
+		echo "📊 .env file contains $(wc -l < .env | tr -d ' ') lines"
+		# Show first few variables (without values for security)
+		echo "📝 Sample variables in .env:"
+		head -n 5 .env | cut -d= -f1 | sed 's/^/  - /'
+		
+		# Source the .env file to ensure variables are loaded
+		echo "🔄 Sourcing .env file to load variables..."
+		set -a  # automatically export all variables
+		source .env
+		set +a  # turn off automatic export
+		echo "✅ .env file sourced successfully"
+	else
+		echo "⚠️ WARNING: .env file was not created!"
+	fi
+	
+	if [ -z "${EXPO_TOKEN}" ]; then
+		echo "::error title=Missing EXPO_TOKEN::EXPO_TOKEN secret is not configured. Cannot authenticate with Expo." >&2
+		exit 1
+	fi
 
-		if [ -z "${EXPO_TOKEN}" ]; then
-			echo "EXPO_TOKEN is NOT set in build.sh env"
-		else
-			echo "EXPO_TOKEN is set in build.sh env (value masked by GitHub Actions logs)"
-		fi
-
-		# Validate required Expo Update environment variables
-		if [ -z "${EXPO_CHANNEL}" ]; then
-			echo "::error title=Missing EXPO_CHANNEL::EXPO_CHANNEL environment variable is not set. Cannot publish update." >&2
-			exit 1
-		fi
+	# Validate required Expo Update environment variables
+	if [ -z "${EXPO_CHANNEL}" ]; then
+		echo "::error title=Missing EXPO_CHANNEL::EXPO_CHANNEL environment variable is not set. Cannot publish update." >&2
+		exit 1
+	fi
 
 		if [ -z "${EXPO_KEY_PRIV}" ]; then
 			echo "::error title=Missing EXPO_KEY_PRIV::EXPO_KEY_PRIV secret is not configured. Cannot sign update." >&2
 			exit 1
 		fi
 
-		# Prepare Expo update signing key
-		mkdir -p keys
-		echo "Writing Expo private key to ./keys/private-key.pem"
-		printf '%s' "${EXPO_KEY_PRIV}" > keys/private-key.pem
+	# Prepare Expo update signing key
+	mkdir -p keys
+	echo "Writing Expo private key to ./keys/private-key.pem"
+	printf '%s' "${EXPO_KEY_PRIV}" > keys/private-key.pem
 
-		if [ ! -f keys/private-key.pem ]; then
-			echo "::error title=Missing signing key::keys/private-key.pem not found. Ensure the signing key step ran successfully." >&2
-			exit 1
-		fi
+	if [ ! -f keys/private-key.pem ]; then
+		echo "::error title=Missing signing key::keys/private-key.pem not found. Ensure the signing key step ran successfully." >&2
+		exit 1
+	fi
 
-		echo "🚀 Publishing EAS update..."
+	echo "🚀 Publishing EAS update..."
 
-		echo "ℹ️ Git head: $(git rev-parse HEAD)"
-		echo "ℹ️ Checking for eas script in package.json..."
-		if ! grep -q '"eas": "eas"' package.json; then
-			echo "::error title=Missing eas script::package.json does not include an \"eas\" script. Commit hash: $(git rev-parse HEAD)." >&2
-			exit 1
-		fi
+	echo "ℹ️ Git head: $(git rev-parse HEAD)"
+	echo "ℹ️ Checking for eas script in package.json..."
+	if ! grep -q '"eas": "eas"' package.json; then
+		echo "::error title=Missing eas script::package.json does not include an \"eas\" script. Commit hash: $(git rev-parse HEAD)." >&2
+		exit 1
+	fi
 
-		echo "ℹ️ Available yarn scripts containing eas:"
-		yarn run --json | grep '"name":"eas"' || true
+	echo "ℹ️ Available yarn scripts containing eas:"
+	yarn run --json | grep '"name":"eas"' || true
 
+	# Run platforms based on OTA_PUSH_PLATFORM environment variable (default: all)
+	# Run sequentially to avoid LavaMoat lockdown serializer conflicts
+	# when bundling multiple platforms simultaneously
+	OTA_PUSH_PLATFORM="${OTA_PUSH_PLATFORM:-all}"
+	
+	# Track exit codes to ensure failures propagate
+	local ios_exit_code=0
+	local android_exit_code=0
+	
+	if [ "$OTA_PUSH_PLATFORM" = "all" ] || [ "$OTA_PUSH_PLATFORM" = "ios" ]; then
+		echo "📱 Publishing iOS update..."
 		yarn run eas update \
+			--platform ios \
 			--channel "${EXPO_CHANNEL}" \
 			--private-key-path "./keys/private-key.pem" \
 			--message "${UPDATE_MESSAGE}" \
 			--non-interactive
+		ios_exit_code=$?
+		
+		if [ $ios_exit_code -ne 0 ]; then
+			echo "::error title=iOS update failed::iOS EAS update command failed with exit code ${ios_exit_code}" >&2
+		fi
+	fi
+
+	if [ "$OTA_PUSH_PLATFORM" = "all" ] || [ "$OTA_PUSH_PLATFORM" = "android" ]; then
+		echo "🤖 Publishing Android update..."
+		yarn run eas update \
+			--platform android \
+			--channel "${EXPO_CHANNEL}" \
+			--private-key-path "./keys/private-key.pem" \
+			--message "${UPDATE_MESSAGE}" \
+			--non-interactive
+		android_exit_code=$?
+		
+		if [ $android_exit_code -ne 0 ]; then
+			echo "::error title=Android update failed::Android EAS update command failed with exit code ${android_exit_code}" >&2
+		fi
+	fi
+
+	# Check for failures and exit accordingly
+	if [ $ios_exit_code -ne 0 ] || [ $android_exit_code -ne 0 ]; then
+		echo "::error title=EAS update failed::One or more platform updates failed. iOS exit code: ${ios_exit_code}, Android exit code: ${android_exit_code}" >&2
+		exit 1
+	fi
+	
+	if [ "$OTA_PUSH_PLATFORM" = "all" ]; then
+		echo "✅ EAS updates published for both platforms"
+	else
+		echo "✅ EAS update published for ${OTA_PUSH_PLATFORM}"
+	fi
 }
 
 buildAndroid() {
@@ -778,7 +919,8 @@ checkAuthToken() {
 	local propertiesFileName="$1"
 
 	if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
-		sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}";
+		# Use | as delimiter to avoid conflicts with special characters in auth token (e.g., /)
+		sed -i'' -e "s|auth.token.*|auth.token=${MM_SENTRY_AUTH_TOKEN}|" "./${propertiesFileName}";
 	elif ! grep -qE '^auth.token=[[:alnum:]]+$' "./${propertiesFileName}"; then
 		if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
 			printError "Missing auth token in '${propertiesFileName}'; add the token, or set it as MM_SENTRY_AUTH_TOKEN"
@@ -791,7 +933,8 @@ checkAuthToken() {
 	if [ ! -e "./${propertiesFileName}" ]; then
 		if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
 			cp "./${propertiesFileName}.example" "./${propertiesFileName}"
-			sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}";
+			# Use | as delimiter to avoid conflicts with special characters in auth token (e.g., /)
+			sed -i'' -e "s|auth.token.*|auth.token=${MM_SENTRY_AUTH_TOKEN}|" "./${propertiesFileName}";
 		else
 			if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
 				printError "Missing '${propertiesFileName}' file (see '${propertiesFileName}.example' or set MM_SENTRY_AUTH_TOKEN to generate)"
