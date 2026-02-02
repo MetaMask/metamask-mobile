@@ -118,7 +118,19 @@ export default class Assertions {
         const el = await webElement;
         const actualText = (await el.getText()) as string;
 
-        this.checkIfTextMatches(actualText, text);
+        if (actualText !== text) {
+          console.log(
+            '🚀 ~ Assertions ~ returnUtilities.executeWithRetry ~ actualText:',
+            actualText,
+          );
+          console.log(
+            '🚀 ~ Assertions ~ returnUtilities.executeWithRetry ~ text:',
+            text,
+          );
+          throw new Error(
+            `Element has text mismatch.\nExpected: "${text}"\nActual: "${actualText}"`,
+          );
+        }
       },
       {
         timeout,
