@@ -39,7 +39,7 @@ jest.mock('../metrics/useConfirmationMetricEvents');
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     TransactionPayController: {
-      setIsMaxAmount: jest.fn(),
+      setTransactionConfig: jest.fn(),
     },
   },
 }));
@@ -103,8 +103,8 @@ describe('useTransactionCustomAmount', () => {
   const useTransactionPayHasSourceAmountMock = jest.mocked(
     useTransactionPayHasSourceAmount,
   );
-  const setIsMaxAmountMock = jest.mocked(
-    Engine.context.TransactionPayController.setIsMaxAmount,
+  const setTransactionConfigMock = jest.mocked(
+    Engine.context.TransactionPayController.setTransactionConfig,
   );
   const useConfirmationMetricEventsMock = jest.mocked(
     useConfirmationMetricEvents,
@@ -419,8 +419,13 @@ describe('useTransactionCustomAmount', () => {
       });
 
       expect(result.current.amountFiat).toBe('1234.56');
-      expect(setIsMaxAmountMock).toHaveBeenCalledTimes(1);
-      expect(setIsMaxAmountMock).toHaveBeenCalledWith(expect.anything(), true);
+      expect(setTransactionConfigMock).toHaveBeenCalledTimes(1);
+
+      // Verify the callback sets isMaxAmount to true
+      const callback = setTransactionConfigMock.mock.calls[0][1];
+      const config = { isMaxAmount: false };
+      callback(config);
+      expect(config.isMaxAmount).toBe(true);
     });
 
     it('to percentage of predict balance converted to USD', async () => {
@@ -464,7 +469,11 @@ describe('useTransactionCustomAmount', () => {
         result.current.updatePendingAmountPercentage(50);
       });
 
-      expect(setIsMaxAmountMock).toHaveBeenCalledWith(expect.anything(), false);
+      // Verify the callback sets isMaxAmount to false
+      const callback = setTransactionConfigMock.mock.calls[0][1];
+      const config = { isMaxAmount: true };
+      callback(config);
+      expect(config.isMaxAmount).toBe(false);
     });
   });
 
@@ -477,6 +486,10 @@ describe('useTransactionCustomAmount', () => {
       result.current.updatePendingAmount('100');
     });
 
-    expect(setIsMaxAmountMock).toHaveBeenCalledWith(expect.anything(), false);
+    // Verify the callback sets isMaxAmount to false
+    const callback = setTransactionConfigMock.mock.calls[0][1];
+    const config = { isMaxAmount: true };
+    callback(config);
+    expect(config.isMaxAmount).toBe(false);
   });
 });

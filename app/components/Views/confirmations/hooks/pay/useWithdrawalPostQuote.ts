@@ -35,7 +35,9 @@ export function useWithdrawalPostQuote(): void {
       const { NetworkController, TransactionPayController } = Engine.context;
 
       // Set isPostQuote=true for withdrawal transactions
-      TransactionPayController.setIsPostQuote(transactionId, true);
+      TransactionPayController.setTransactionConfig(transactionId, (config) => {
+        config.isPostQuote = true;
+      });
 
       // Initialize paymentToken with the default withdrawal token (Polygon USDC.e)
       // In post-quote mode, paymentToken represents the destination token

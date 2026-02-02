@@ -91,7 +91,9 @@ export function useTransactionCustomAmount({
     (value: boolean) => {
       const { TransactionPayController } = Engine.context;
 
-      TransactionPayController.setIsMaxAmount(transactionId, value);
+      TransactionPayController.setTransactionConfig(transactionId, (config) => {
+        config.isMaxAmount = value;
+      });
     },
     [transactionId],
   );

@@ -12,7 +12,7 @@ jest.mock('../../../../../core/Engine', () => ({
       findNetworkClientIdByChainId: jest.fn(),
     },
     TransactionPayController: {
-      setIsPostQuote: jest.fn(),
+      setTransactionConfig: jest.fn(),
       updatePaymentToken: jest.fn(),
     },
   },
@@ -28,8 +28,8 @@ describe('useWithdrawalPostQuote', () => {
   const findNetworkClientIdByChainIdMock = jest.mocked(
     Engine.context.NetworkController.findNetworkClientIdByChainId,
   );
-  const setIsPostQuoteMock = jest.mocked(
-    Engine.context.TransactionPayController.setIsPostQuote,
+  const setTransactionConfigMock = jest.mocked(
+    Engine.context.TransactionPayController.setTransactionConfig,
   );
   const updatePaymentTokenMock = jest.mocked(
     Engine.context.TransactionPayController.updatePaymentToken,
@@ -48,7 +48,7 @@ describe('useWithdrawalPostQuote', () => {
 
     renderHook(() => useWithdrawalPostQuote());
 
-    expect(setIsPostQuoteMock).not.toHaveBeenCalled();
+    expect(setTransactionConfigMock).not.toHaveBeenCalled();
     expect(updatePaymentTokenMock).not.toHaveBeenCalled();
   });
 
@@ -60,7 +60,16 @@ describe('useWithdrawalPostQuote', () => {
 
     renderHook(() => useWithdrawalPostQuote());
 
-    expect(setIsPostQuoteMock).toHaveBeenCalledWith(TRANSACTION_ID_MOCK, true);
+    expect(setTransactionConfigMock).toHaveBeenCalledWith(
+      TRANSACTION_ID_MOCK,
+      expect.any(Function),
+    );
+
+    // Verify the callback sets isPostQuote to true
+    const callback = setTransactionConfigMock.mock.calls[0][1];
+    const config = { isPostQuote: false };
+    callback(config);
+    expect(config.isPostQuote).toBe(true);
   });
 
   it('initializes paymentToken with default withdrawal token', () => {
@@ -86,11 +95,11 @@ describe('useWithdrawalPostQuote', () => {
 
     const { rerender } = renderHook(() => useWithdrawalPostQuote());
 
-    expect(setIsPostQuoteMock).toHaveBeenCalledTimes(1);
+    expect(setTransactionConfigMock).toHaveBeenCalledTimes(1);
 
     rerender();
 
-    expect(setIsPostQuoteMock).toHaveBeenCalledTimes(1);
+    expect(setTransactionConfigMock).toHaveBeenCalledTimes(1);
   });
 
   it('does not update paymentToken if network client not found', () => {
@@ -102,7 +111,7 @@ describe('useWithdrawalPostQuote', () => {
 
     renderHook(() => useWithdrawalPostQuote());
 
-    expect(setIsPostQuoteMock).toHaveBeenCalled();
+    expect(setTransactionConfigMock).toHaveBeenCalled();
     expect(updatePaymentTokenMock).not.toHaveBeenCalled();
   });
 
@@ -114,6 +123,6 @@ describe('useWithdrawalPostQuote', () => {
 
     renderHook(() => useWithdrawalPostQuote());
 
-    expect(setIsPostQuoteMock).not.toHaveBeenCalled();
+    expect(setTransactionConfigMock).not.toHaveBeenCalled();
   });
 });
