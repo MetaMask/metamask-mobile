@@ -58,7 +58,7 @@ const DEFAULT_REMOTE_FEATURE_FLAG_STATE = {
     },
     predictMarketHighlights: {
       enabled: false,
-      marketIds: [],
+      highlights: [],
     },
   },
   cacheTimestamp: Date.now(),
@@ -2121,20 +2121,38 @@ describe('PredictController', () => {
     it('uses default flag when predictMarketHighlights is not in remote config', async () => {
       const regularMarkets = [createMockMarket('regular-1')];
 
-      await withController(async ({ controller }) => {
-        mockPolymarketProvider.getMarkets.mockResolvedValue(
-          regularMarkets as any,
-        );
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue(
+            regularMarkets as any,
+          );
 
-        const result = await controller.getMarkets({
-          providerId: 'polymarket',
-          category: 'trending',
-          offset: 0,
-        });
+          const result = await controller.getMarkets({
+            providerId: 'polymarket',
+            category: 'trending',
+            offset: 0,
+          });
 
-        expect(result).toHaveLength(1);
-        expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
-      });
+          expect(result).toHaveLength(1);
+          expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue({
+              remoteFeatureFlags: {
+                predictFeeCollection:
+                  DEFAULT_REMOTE_FEATURE_FLAG_STATE.remoteFeatureFlags
+                    .predictFeeCollection,
+                predictLiveSports:
+                  DEFAULT_REMOTE_FEATURE_FLAG_STATE.remoteFeatureFlags
+                    .predictLiveSports,
+                // predictMarketHighlights intentionally omitted to test fallback
+              },
+              cacheTimestamp: Date.now(),
+            }),
+          },
+        },
+      );
     });
 
     it('fetches highlights for first page when offset is undefined', async () => {
