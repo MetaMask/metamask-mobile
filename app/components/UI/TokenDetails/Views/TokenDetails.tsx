@@ -80,6 +80,7 @@ const styleSheet = (params: { theme: Theme }) => {
     bottomSheetFooter: {
       paddingVertical: 0,
       paddingHorizontal: 0,
+      gap: 12,
     },
   });
 };
@@ -304,7 +305,6 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
         >
           <BottomSheetFooter
             style={styles.bottomSheetFooter}
-            buttonGap={12}
             buttonPropsArray={[
               {
                 variant: ButtonVariants.Primary,

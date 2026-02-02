@@ -7,8 +7,6 @@ import BottomSheetFooter from './BottomSheetFooter';
 import {
   SAMPLE_BOTTOMSHEETFOOTER_PROPS,
   TESTID_BOTTOMSHEETFOOTER,
-  TESTID_BOTTOMSHEETFOOTER_BUTTON,
-  TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT,
 } from './BottomSheetFooter.constants';
 import { ButtonsAlignment } from './BottomSheetFooter.types';
 
@@ -42,16 +40,11 @@ describe('BottomSheetFooter', () => {
     ).toBe('column');
   });
 
-  it('should render the correct gap between buttons', () => {
+  it('should render the correct spacing between buttons', () => {
     const { getByTestId } = render(
       <BottomSheetFooter {...SAMPLE_BOTTOMSHEETFOOTER_PROPS} />,
     );
-    expect(
-      getByTestId(TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT).props.style
-        .marginLeft,
-    ).toBe(16);
-    expect(
-      getByTestId(TESTID_BOTTOMSHEETFOOTER_BUTTON).props.style.marginLeft,
-    ).not.toBe(16);
+    // Spacing is applied via gap on the container
+    expect(getByTestId(TESTID_BOTTOMSHEETFOOTER).props.style.gap).toBe(16);
   });
 });

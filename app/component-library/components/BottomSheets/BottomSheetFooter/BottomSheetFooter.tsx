@@ -21,14 +21,9 @@ import {
 const BottomSheetFooter: React.FC<BottomSheetFooterProps> = ({
   style,
   buttonsAlignment = DEFAULT_BOTTOMSHEETFOOTER_BUTTONSALIGNMENT,
-  buttonGap,
   buttonPropsArray,
 }) => {
-  const { styles } = useStyles(styleSheet, {
-    style,
-    buttonsAlignment,
-    buttonGap,
-  });
+  const { styles } = useStyles(styleSheet, { style, buttonsAlignment });
 
   return (
     <View style={styles.base} testID={TESTID_BOTTOMSHEETFOOTER}>
