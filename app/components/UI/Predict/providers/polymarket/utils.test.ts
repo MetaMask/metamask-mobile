@@ -2407,7 +2407,7 @@ describe('polymarket utils', () => {
 
         const params: GetMarketsParams = {
           category: 'hot',
-          customQueryParams: '&tag_id=149&tag_id=100995&order=volume24hr',
+          customQueryParams: 'tag_id=149&tag_id=100995&order=volume24hr',
           limit: 20,
           offset: 0,
         };

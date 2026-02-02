@@ -29,5 +29,5 @@ export const DEFAULT_MARKET_HIGHLIGHTS_FLAG: PredictMarketHighlightsFlag = {
 export const DEFAULT_HOT_TAB_FLAG: PredictHotTabFlag = {
   enabled: false,
   queryParams:
-    '&active=true&archived=false&closed=false&liquidity_min=10000&volume_min=10000&tag_id=1',
+    'active=true&archived=false&closed=false&liquidity_min=10000&volume_min=10000&tag_id=1',
 };

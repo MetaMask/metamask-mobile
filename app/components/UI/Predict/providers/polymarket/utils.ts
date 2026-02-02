@@ -785,7 +785,7 @@ export const getParsedMarketsFromPolymarketApi = async (
   const isHotTabWithCustomQuery = category === 'hot' && customQueryParams;
 
   if (isHotTabWithCustomQuery) {
-    queryParamsEvents = `${limitParam}&${offsetParam}${customQueryParams}`;
+    queryParamsEvents = `${limitParam}&${offsetParam}&${customQueryParams}`;
   } else {
     const active = `active=true`;
     const archived = `archived=false`;
