@@ -20,20 +20,18 @@ describe(SmokeNetworkExpansion('Tron Connect E2E - Connect'), () => {
       // 1. Connect
       await connectTronTestDapp();
 
-      const header = TronTestDApp.getHeader();
-
       // Verify we are connected
-      const account = await header.getAccount();
+      const account = await TronTestDApp.getAccount();
       await Assertions.checkIfTextMatches(account, account1Short);
-      const connectionStatus = await header.getConnectionStatus();
+      const connectionStatus = await TronTestDApp.getConnectionStatus();
       await Assertions.checkIfTextMatches(connectionStatus, 'Connected');
 
       // 2. Disconnect
-      await header.disconnect();
+      await TronTestDApp.disconnect();
 
       // Verify we are disconnected
       const connectionStatusAfterDisconnect =
-        await header.getConnectionStatus();
+        await TronTestDApp.getConnectionStatus();
       await Assertions.checkIfTextMatches(
         connectionStatusAfterDisconnect,
         'Not connected',
@@ -43,7 +41,8 @@ describe(SmokeNetworkExpansion('Tron Connect E2E - Connect'), () => {
       await connectTronTestDapp();
 
       // Verify we are connected again
-      const connectionStatusAfterConnect = await header.getConnectionStatus();
+      const connectionStatusAfterConnect =
+        await TronTestDApp.getConnectionStatus();
       await Assertions.checkIfTextMatches(
         connectionStatusAfterConnect,
         'Connected',
@@ -58,26 +57,25 @@ describe(SmokeNetworkExpansion('Tron Connect E2E - Connect'), () => {
       // 1. Connect
       await connectTronTestDapp();
 
-      const header = TronTestDApp.getHeader();
-
       // Verify we are connected
-      const account = await header.getAccount();
+      const account = await TronTestDApp.getAccount();
       await Assertions.checkIfTextMatches(account, account1Short);
-      const connectionStatus = await header.getConnectionStatus();
+      const connectionStatus = await TronTestDApp.getConnectionStatus();
       await Assertions.checkIfTextMatches(connectionStatus, 'Connected');
 
       // Refresh the page
       await TronTestDApp.reloadTronTestDApp();
 
       // Verify we are still connected
-      const connectionStatusAfterRefresh = await header.getConnectionStatus();
+      const connectionStatusAfterRefresh =
+        await TronTestDApp.getConnectionStatus();
       await Assertions.checkIfTextMatches(
         connectionStatusAfterRefresh,
         'Connected',
       );
 
       // Verify we are still connected
-      const accountAfterRefresh = await header.getAccount();
+      const accountAfterRefresh = await TronTestDApp.getAccount();
       await Assertions.checkIfTextMatches(accountAfterRefresh, account1Short);
     });
   });

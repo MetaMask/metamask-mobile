@@ -97,51 +97,48 @@ class TronTestDApp {
     await Gestures.tap(webElement);
   }
 
-  getHeader() {
-    return {
-      connect: async () => {
-        await this.tapButton(this.connectButtonSelector);
-      },
-      disconnect: async () => {
-        await this.tapButton(this.disconnectButtonDropdownSelector);
-
-        await this.tapButton(this.disconnectButtonSelector);
-      },
-      selectMetaMask: async () => {
-        await this.tapButton(this.walletButtonSelector);
-      },
-      getConnectionStatus: async () => {
-        const connectionStatusDiv = await getTestElement(
-          dataTestIds.testPage.header.connectionStatus,
-        );
-        return await connectionStatusDiv.getText();
-      },
-      getAccount: async () => {
-        const account = await getTestElement(
-          dataTestIds.testPage.header.account,
-          { extraXPath: '/div/a' },
-        );
-        return await account.getText();
-      },
-    };
+  async connect(): Promise<void> {
+    await this.tapButton(this.connectButtonSelector);
   }
 
-  getSignMessageTest() {
-    return {
-      signMessage: async () => {
-        await this.tapButton(
-          getTestElement(dataTestIds.testPage.signMessage.signMessage, {
-            tag: 'button',
-          }),
-        );
-      },
-      getSignedMessage: async () =>
-        (
-          await getTestElement(dataTestIds.testPage.signMessage.signedMessage, {
-            tag: 'pre',
-          })
-        ).getText(),
-    };
+  async disconnect(): Promise<void> {
+    await this.tapButton(this.disconnectButtonDropdownSelector);
+
+    await this.tapButton(this.disconnectButtonSelector);
+  }
+
+  async selectMetaMask(): Promise<void> {
+    await this.tapButton(this.walletButtonSelector);
+  }
+
+  async getConnectionStatus(): Promise<string> {
+    const connectionStatusDiv = await getTestElement(
+      dataTestIds.testPage.header.connectionStatus,
+    );
+    return await connectionStatusDiv.getText();
+  }
+
+  async getAccount(): Promise<string> {
+    const account = await getTestElement(dataTestIds.testPage.header.account, {
+      extraXPath: '/div/a',
+    });
+    return await account.getText();
+  }
+
+  async signMessage(): Promise<void> {
+    await this.tapButton(
+      getTestElement(dataTestIds.testPage.signMessage.signMessage, {
+        tag: 'button',
+      }),
+    );
+  }
+
+  async getSignedMessage(): Promise<string> {
+    return (
+      await getTestElement(dataTestIds.testPage.signMessage.signedMessage, {
+        tag: 'pre',
+      })
+    ).getText();
   }
 
   async confirmSignMessage(): Promise<void> {

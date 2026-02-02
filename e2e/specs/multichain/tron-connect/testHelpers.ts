@@ -24,9 +24,8 @@ export const connectTronTestDapp = async (
 ): Promise<void> => {
   const { selectAllAccounts, assert } = options;
 
-  const header = TronTestDApp.getHeader();
-  await header.connect();
-  await header.selectMetaMask();
+  await TronTestDApp.connect();
+  await TronTestDApp.selectMetaMask();
 
   if (selectAllAccounts) {
     await ConnectedAccountsModal.tapAccountListBottomSheet();

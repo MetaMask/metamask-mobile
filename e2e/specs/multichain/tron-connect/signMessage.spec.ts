@@ -21,23 +21,20 @@ describe(SmokeNetworkExpansion('Tron Connect E2E - Sign message'), () => {
       // 1. Connect
       await connectTronTestDapp();
 
-      const header = TronTestDApp.getHeader();
-
       // Verify we are connected
-      const account = await header.getAccount();
+      const account = await TronTestDApp.getAccount();
       await Assertions.checkIfTextMatches(account, account1Short);
-      const connectionStatus = await header.getConnectionStatus();
+      const connectionStatus = await TronTestDApp.getConnectionStatus();
       await Assertions.checkIfTextMatches(connectionStatus, 'Connected');
 
       // 2. Sign a message
-      await TronTestDApp.getSignMessageTest().signMessage();
+      await TronTestDApp.signMessage();
 
       // Approve the signature
       await TronTestDApp.confirmSignMessage();
 
       // Verify we are signed
-      const signedMessage =
-        await TronTestDApp.getSignMessageTest().getSignedMessage();
+      const signedMessage = await TronTestDApp.getSignedMessage();
       await Assertions.checkIfTextMatches(
         signedMessage,
         EXPECTED_SIGNED_MESSAGE,
