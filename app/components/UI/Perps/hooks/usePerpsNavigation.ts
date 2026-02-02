@@ -4,6 +4,13 @@ import Routes from '../../../../constants/navigation/Routes';
 import type { PerpsNavigationParamList } from '../types/navigation';
 import type { PerpsMarketData, Position, Order } from '../controllers/types';
 import { usePerpsTrading } from './usePerpsTrading';
+import usePerpsToasts from './usePerpsToasts';
+import { usePerpsEventTracking } from './usePerpsEventTracking';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../constants/eventNames';
+import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
@@ -129,6 +136,8 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
   );
 
   const { depositWithOrder } = usePerpsTrading();
+  const { showToast, PerpsToastOptions } = usePerpsToasts();
+  const { track } = usePerpsEventTracking();
 
   const navigateToOrder = useCallback(
     (params: PerpsNavigationParamList['PerpsOrder']) => {
@@ -140,14 +149,32 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
           );
         })
         .catch((error: unknown) => {
-          Logger.error(ensureError(error), {
+          const err = ensureError(error);
+          Logger.error(err, {
             feature: PERPS_CONSTANTS.FeatureName,
             message:
               'Failed to start one-click trade (deposit rejected or failed)',
           });
+
+          track(MetaMetricsEvents.PERPS_ERROR, {
+            [PerpsEventProperties.ERROR_TYPE]:
+              PerpsEventValues.ERROR_TYPE.BACKEND,
+            [PerpsEventProperties.ERROR_MESSAGE]: err.message,
+            [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.TRADE_ACTION,
+          });
+
+          showToast(
+            PerpsToastOptions.accountManagement.oneClickTrade.txCreationFailed,
+          );
         });
     },
-    [navigation, depositWithOrder],
+    [
+      navigation,
+      depositWithOrder,
+      showToast,
+      PerpsToastOptions.accountManagement.oneClickTrade.txCreationFailed,
+      track,
+    ],
   );
 
   const navigateToTutorial = useCallback(

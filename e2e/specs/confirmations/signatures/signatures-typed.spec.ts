@@ -6,7 +6,7 @@ import RequestTypes from '../../../pages/Browser/Confirmations/RequestTypes';
 import TestDApp from '../../../pages/Browser/TestDApp';
 import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
 import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
-import { SmokeConfirmationsRedesigned } from '../../../tags';
+import { SmokeConfirmations } from '../../../tags';
 import {
   buildPermissions,
   AnvilPort,
@@ -46,7 +46,7 @@ const SIGNATURE_LIST = [
   },
 ];
 
-describe(SmokeConfirmationsRedesigned('Typed Signature Requests'), () => {
+describe(SmokeConfirmations('Typed Signature Requests'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     await setupRemoteFeatureFlagsMock(
       mockServer,
