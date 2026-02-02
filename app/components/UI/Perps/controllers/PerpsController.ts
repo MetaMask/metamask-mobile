@@ -1628,8 +1628,10 @@ export class PerpsController extends BaseController<
           })
           .catch((error) => {
             // Check if user denied/cancelled the transaction
-            const errorMessage =
-              error instanceof Error ? error.message : String(error);
+            const errorMessage = ensureError(
+              error,
+              'PerpsController.initiateDeposit',
+            ).message;
             const userCancelled =
               errorMessage.includes('User denied') ||
               errorMessage.includes('User rejected') ||
@@ -1677,8 +1679,10 @@ export class PerpsController extends BaseController<
       };
     } catch (error) {
       // Check if user denied/cancelled the transaction
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
+      const errorMessage = ensureError(
+        error,
+        'PerpsController.initiateDeposit',
+      ).message;
       const userCancelled =
         errorMessage.includes('User denied') ||
         errorMessage.includes('User rejected') ||
@@ -2144,10 +2148,7 @@ export class PerpsController extends BaseController<
       return {
         success: false,
         isTestnet: this.state.isTestnet,
-        error:
-          error instanceof Error
-            ? error.message
-            : PERPS_ERROR_CODES.UNKNOWN_ERROR,
+        error: ensureError(error, 'PerpsController.toggleTestnet').message,
       };
     } finally {
       this.isReinitializing = false;
