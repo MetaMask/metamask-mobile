@@ -5,6 +5,7 @@ exports[`BottomSheetFooter should render snapshot correctly 1`] = `
   style={
     {
       "flexDirection": "row",
+      "gap": 16,
       "paddingHorizontal": 8,
       "paddingVertical": 4,
     }
@@ -68,8 +69,6 @@ exports[`BottomSheetFooter should render snapshot correctly 1`] = `
         "flexDirection": "row",
         "height": 40,
         "justifyContent": "center",
-        "marginLeft": 16,
-        "marginTop": 0,
         "overflow": "hidden",
         "paddingHorizontal": 16,
       }

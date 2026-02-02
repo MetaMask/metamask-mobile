@@ -19,4 +19,4 @@ export const selectTokenDetailsV2Enabled = createSelector(
  * This is used to control the new button layout in TokenDetails.
  * TODO: Remove this once the first iteration is stable.
  */
-export const isTokenDetailsRevampedEnabled = () => true;
+export const isTokenDetailsRevampedEnabled = () => false;
