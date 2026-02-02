@@ -66,6 +66,14 @@ export interface MobileOptinDto {
   referralCode?: string;
 }
 
+export interface ApplyReferralDto {
+  /**
+   * The referral code to apply
+   * @example 'ABC123'
+   */
+  referralCode: string;
+}
+
 export interface EstimateAssetDto {
   /**
    * Asset identifier in CAIP-19 format
@@ -144,6 +152,17 @@ export interface EstimatePredictContextDto {
   feeAsset: EstimateAssetDto;
 }
 
+export interface EstimateShieldContextDto {
+  /**
+   * Fee asset information, in caip19 format
+   * @example {
+   *   id: 'eip155:1/slip44:60',
+   *   amount: '1000000000000000'
+   * }
+   */
+  feeAsset: EstimateAssetDto;
+}
+
 export interface EstimatePointsContextDto {
   /**
    * Swap context data, must be present for SWAP activity
@@ -163,6 +182,11 @@ export interface EstimatePointsContextDto {
    * Predict context data, must be present for PREDICT activity
    */
   predictContext?: EstimatePredictContextDto;
+
+  /**
+   * Shield context data, must be present for SHIELD activity
+   */
+  shieldContext?: EstimateShieldContextDto;
 }
 
 /**
@@ -176,18 +200,23 @@ export type PointsEventEarnType =
   | 'REFERRAL'
   | 'SIGN_UP_BONUS'
   | 'LOYALTY_BONUS'
-  | 'ONE_TIME_BONUS';
+  | 'ONE_TIME_BONUS'
+  | 'CARD'
+  | 'MUSD_DEPOSIT'
+  | 'SHIELD';
 
 export interface GetPointsEventsDto {
   seasonId: string;
   subscriptionId: string;
   cursor: string | null;
   forceFresh?: boolean;
+  type?: PointsEventEarnType;
 }
 
 export interface GetPointsEventsLastUpdatedDto {
   seasonId: string;
   subscriptionId: string;
+  type?: PointsEventEarnType;
 }
 
 /**
@@ -498,6 +527,7 @@ export interface SeasonStatusDto {
 export interface SubscriptionSeasonReferralDetailsDto {
   referralCode: string;
   totalReferees: number;
+  referredByCode: string;
   referralPoints: number;
 }
 
@@ -573,6 +603,7 @@ export interface ClaimRewardDto {
 export type SubscriptionSeasonReferralDetailState = {
   referralCode: string;
   totalReferees: number;
+  referredByCode: string;
   referralPoints: number;
   lastFetched?: number;
 };
@@ -703,6 +734,297 @@ export type RewardsAccountState = {
   lastFreshOptInStatusCheck?: number | null;
 };
 
+/**
+ * A single entry in the points estimate history.
+ * Used by Customer Support to verify points estimates shown to users.
+ * Structure is intentionally flat to simplify debugging and log analysis.
+ */
+export interface PointsEstimateHistoryEntry {
+  /**
+   * Timestamp when the estimate was made (milliseconds since epoch)
+   */
+  timestamp: number;
+
+  /**
+   * Type of point earning activity (from request)
+   * @example 'SWAP'
+   */
+  requestActivityType: PointsEventEarnType;
+
+  /**
+   * Account address performing the activity in CAIP-10 format (from request)
+   * @example 'eip155:1:0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6'
+   */
+  requestAccount: CaipAccountId;
+
+  /**
+   * Source asset ID for swap activity in CAIP-19 format (if applicable)
+   * @example 'eip155:1/slip44:60'
+   */
+  requestSwapSrcAssetId?: CaipAssetType;
+
+  /**
+   * Source asset amount for swap activity (if applicable)
+   * @example '1000000000000000000'
+   */
+  requestSwapSrcAssetAmount?: string;
+
+  /**
+   * Source asset USD price for swap activity (if applicable)
+   * @example '4512.34'
+   */
+  requestSwapSrcAssetUsdPrice?: string;
+
+  /**
+   * Destination asset ID for swap activity in CAIP-19 format (if applicable)
+   * @example 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
+   */
+  requestSwapDestAssetId?: CaipAssetType;
+
+  /**
+   * Destination asset amount for swap activity (if applicable)
+   * @example '4500000000'
+   */
+  requestSwapDestAssetAmount?: string;
+
+  /**
+   * Destination asset USD price for swap activity (if applicable)
+   * @example '1.00'
+   */
+  requestSwapDestAssetUsdPrice?: string;
+
+  /**
+   * Fee asset ID for swap activity in CAIP-19 format (if applicable)
+   * @example 'eip155:1/slip44:60'
+   */
+  requestSwapFeeAssetId?: CaipAssetType;
+
+  /**
+   * Fee asset amount for swap activity (if applicable)
+   * @example '5000000000000000'
+   */
+  requestSwapFeeAssetAmount?: string;
+
+  /**
+   * Fee asset USD price for swap activity (if applicable)
+   * @example '4512.34'
+   */
+  requestSwapFeeAssetUsdPrice?: string;
+
+  /**
+   * Type of PERPS action (if applicable)
+   * @example 'OPEN_POSITION'
+   */
+  requestPerpsType?: EstimatePerpsContextDto['type'];
+
+  /**
+   * USD fee value for PERPS activity (if applicable)
+   * @example '12.34'
+   */
+  requestPerpsUsdFeeValue?: string;
+
+  /**
+   * Asset symbol for PERPS activity (if applicable)
+   * @example 'ETH'
+   */
+  requestPerpsCoin?: string;
+
+  /**
+   * Predict fee asset ID in CAIP-19 format (if applicable)
+   * @example 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
+   */
+  requestPredictFeeAssetId?: CaipAssetType;
+
+  /**
+   * Predict fee asset amount (if applicable)
+   * @example '1000000000000000000'
+   */
+  requestPredictFeeAssetAmount?: string;
+
+  /**
+   * Predict fee asset USD price (if applicable)
+   * @example '4512.34'
+   */
+  requestPredictFeeAssetUsdPrice?: string;
+
+  /**
+   * Shield fee asset ID in CAIP-19 format (if applicable)
+   * @example 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
+   */
+  requestShieldFeeAssetId?: CaipAssetType;
+
+  /**
+   * Shield fee asset amount (if applicable)
+   * @example '1000000000000000000'
+   */
+  requestShieldFeeAssetAmount?: string;
+
+  /**
+   * Shield fee asset USD price (if applicable)
+   * @example '4512.34'
+   */
+  requestShieldFeeAssetUsdPrice?: string;
+
+  /**
+   * Estimated points earnable for the activity (from response)
+   * @example 100
+   */
+  responsePointsEstimate: number;
+
+  /**
+   * Bonus applied to the points estimate, in basis points (from response)
+   * 100 = 1%
+   * @example 200
+   */
+  responseBonusBips: number;
+}
+
+/**
+ * Serialized version of PointsEstimateHistoryEntry for state storage.
+ * Uses plain strings instead of branded CAIP types to satisfy StateConstraint (Json-serializable).
+ * This is the type stored in RewardsControllerState.pointsEstimateHistory.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PointsEstimateHistoryEntryState = {
+  /**
+   * Timestamp when the estimate was made (milliseconds since epoch)
+   */
+  timestamp: number;
+
+  /**
+   * Type of point earning activity (from request)
+   * @example 'SWAP'
+   */
+  requestActivityType: string;
+
+  /**
+   * Account address performing the activity in CAIP-10 format (stored as plain string)
+   * @example 'eip155:1:0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6'
+   */
+  requestAccount: string;
+
+  /**
+   * Source asset ID for swap activity in CAIP-19 format (stored as plain string)
+   * @example 'eip155:1/slip44:60'
+   */
+  requestSwapSrcAssetId?: string;
+
+  /**
+   * Source asset amount for swap activity (if applicable)
+   * @example '1000000000000000000'
+   */
+  requestSwapSrcAssetAmount?: string;
+
+  /**
+   * Source asset USD price for swap activity (if applicable)
+   * @example '4512.34'
+   */
+  requestSwapSrcAssetUsdPrice?: string;
+
+  /**
+   * Destination asset ID for swap activity in CAIP-19 format (stored as plain string)
+   * @example 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
+   */
+  requestSwapDestAssetId?: string;
+
+  /**
+   * Destination asset amount for swap activity (if applicable)
+   * @example '4500000000'
+   */
+  requestSwapDestAssetAmount?: string;
+
+  /**
+   * Destination asset USD price for swap activity (if applicable)
+   * @example '1.00'
+   */
+  requestSwapDestAssetUsdPrice?: string;
+
+  /**
+   * Fee asset ID for swap activity in CAIP-19 format (stored as plain string)
+   * @example 'eip155:1/slip44:60'
+   */
+  requestSwapFeeAssetId?: string;
+
+  /**
+   * Fee asset amount for swap activity (if applicable)
+   * @example '5000000000000000'
+   */
+  requestSwapFeeAssetAmount?: string;
+
+  /**
+   * Fee asset USD price for swap activity (if applicable)
+   * @example '4512.34'
+   */
+  requestSwapFeeAssetUsdPrice?: string;
+
+  /**
+   * Type of PERPS action (stored as plain string)
+   * @example 'OPEN_POSITION'
+   */
+  requestPerpsType?: string;
+
+  /**
+   * USD fee value for PERPS activity (if applicable)
+   * @example '12.34'
+   */
+  requestPerpsUsdFeeValue?: string;
+
+  /**
+   * Asset symbol for PERPS activity (if applicable)
+   * @example 'ETH'
+   */
+  requestPerpsCoin?: string;
+
+  /**
+   * Predict fee asset ID in CAIP-19 format (stored as plain string)
+   * @example 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
+   */
+  requestPredictFeeAssetId?: string;
+
+  /**
+   * Predict fee asset amount (if applicable)
+   * @example '1000000000000000000'
+   */
+  requestPredictFeeAssetAmount?: string;
+
+  /**
+   * Predict fee asset USD price (if applicable)
+   * @example '4512.34'
+   */
+  requestPredictFeeAssetUsdPrice?: string;
+
+  /**
+   * Shield fee asset ID in CAIP-19 format (stored as plain string)
+   * @example 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
+   */
+  requestShieldFeeAssetId?: string;
+
+  /**
+   * Shield fee asset amount (if applicable)
+   * @example '1000000000000000000'
+   */
+  requestShieldFeeAssetAmount?: string;
+
+  /**
+   * Shield fee asset USD price (if applicable)
+   * @example '4512.34'
+   */
+  requestShieldFeeAssetUsdPrice?: string;
+
+  /**
+   * Estimated points earnable for the activity (from response)
+   * @example 100
+   */
+  responsePointsEstimate: number;
+
+  /**
+   * Bonus applied to the points estimate, in basis points (from response)
+   * 100 = 1%
+   * @example 200
+   */
+  responseBonusBips: number;
+};
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RewardsControllerState = {
   activeAccount: RewardsAccountState | null;
@@ -716,6 +1038,13 @@ export type RewardsControllerState = {
   activeBoosts: { [compositeId: string]: ActiveBoostsState };
   unlockedRewards: { [compositeId: string]: UnlockedRewardsState };
   pointsEvents: { [compositeId: string]: PointsEventsDtoState };
+  /**
+   * History of points estimates for Customer Support diagnostics.
+   * Stores the last N successful estimates to verify user-reported discrepancies.
+   * Array is ordered by timestamp (most recent first)
+   * Uses PointsEstimateHistoryEntryState (plain strings) to satisfy StateConstraint.
+   */
+  pointsEstimateHistory: PointsEstimateHistoryEntryState[];
 };
 
 /**
@@ -1056,6 +1385,14 @@ export interface RewardsControllerResetAllAction {
 }
 
 /**
+ * Action for applying a referral code to an existing subscription
+ */
+export interface RewardsControllerApplyReferralCodeAction {
+  type: 'RewardsController:applyReferralCode';
+  handler: (referralCode: string, subscriptionId: string) => Promise<void>;
+}
+
+/**
  * Actions that can be performed by the RewardsController
  */
 export type RewardsControllerActions =
@@ -1085,7 +1422,8 @@ export type RewardsControllerActions =
   | RewardsControllerGetUnlockedRewardsAction
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
-  | RewardsControllerResetAllAction;
+  | RewardsControllerResetAllAction
+  | RewardsControllerApplyReferralCodeAction;
 
 /**
  * Input DTO for getting opt-in status of multiple addresses

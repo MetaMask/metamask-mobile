@@ -49,10 +49,12 @@ export enum DeepLinkRoute {
   CREATE_ACCOUNT = 'create-account',
   ONBOARDING = 'onboarding',
   PREDICT = 'predict',
+  SHIELD = 'shield',
   TRENDING = 'trending',
   ENABLE_CARD_BUTTON = 'enable-card-button',
   CARD_ONBOARDING = 'card-onboarding',
   CARD_HOME = 'card-home',
+  NFT = 'nft',
   INVALID = 'invalid',
 }
 

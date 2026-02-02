@@ -1,14 +1,17 @@
 import { FlaskBuildTests } from '../../tags';
 import { loginToApp, navigateToBrowserView } from '../../viewHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import Assertions from '../../framework/Assertions';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import Assertions from '../../../tests/framework/Assertions';
 import TestSnaps from '../../pages/Browser/TestSnaps';
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
 import RequestTypes from '../../pages/Browser/Confirmations/RequestTypes';
 import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { confirmationsRedesignedFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import {
+  confirmationFeatureFlags,
+  remoteFeatureMultichainAccountsAccountDetailsV2,
+} from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 
 jest.setTimeout(150_000);
 
@@ -20,10 +23,10 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
         restartDevice: true,
         skipReactNativeReload: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            Object.assign({}, ...confirmationsRedesignedFeatureFlags),
-          );
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...Object.assign({}, ...confirmationFeatureFlags),
+            ...remoteFeatureMultichainAccountsAccountDetailsV2(false),
+          });
         },
       },
       async () => {
