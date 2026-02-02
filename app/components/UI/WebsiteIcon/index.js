@@ -33,8 +33,8 @@ const createStyles = (colors) =>
  * View that renders a website logo depending of the context
  */
 /**
- * @deprecated This `<WebsiteIcon>` component has been deprecated, any new usage of it should use Avatar with the favicon variant instead:
- * https://github.com/MetaMask/metamask-mobile/blob/34f9da127435053a32e5f4e9c69ce8aa1e37c394/app/component-library/components/Avatars/Avatar/README.md#L1
+ * @deprecated The `<WebsiteIcon>` component has been deprecated in favor of the `<AvatarFavicon>` component from `@metamask/design-system-react-native`.
+ * Please update your code to use the new `<AvatarFavicon>` component from `@metamask/design-system-react-native`.
  */
 class WebsiteIcon extends PureComponent {
   static propTypes = {
