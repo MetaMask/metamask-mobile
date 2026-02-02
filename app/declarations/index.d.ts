@@ -37,7 +37,7 @@ declare module '@react-native-community/checkbox' {
   /**
    * @deprecated The `<CheckBox />` component has been deprecated in favor of `<Checkbox>` from `@metamask/design-system-react-native`.
    *
-   * @see {@link https://github.com/MetaMask/metamask-design-system/tree/main/packages/design-system-react-native/src/components/Form/Checkbox | Checkbox component}
+   * @see {@link https://github.com/MetaMask/metamask-design-system/tree/main/packages/design-system-react-native/src/components/Checkbox | Checkbox component}
    *
    * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
    *

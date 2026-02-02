@@ -32,7 +32,7 @@ interface TextProps extends React.ComponentPropsWithoutRef<typeof RNText> {
 /**
  * @deprecated The `<Text />` component has been deprecated in favor of `<Text>` from `@metamask/design-system-react-native`.
  *
- * @see {@link https://github.com/MetaMask/metamask-design-system/tree/main/packages/design-system-react-native/src/components/Texts/Text | Text component}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/tree/main/packages/design-system-react-native/src/components/Text | Text component}
  *
  * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
  *
