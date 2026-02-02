@@ -470,6 +470,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
             biometricSetupSucceeded = true;
           } catch (error) {
             // if error, do nothing
+            Logger.log('biometric setup failed', error);
           }
         },
       );
@@ -531,6 +532,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
             });
           } catch (error) {
             // if error, do nothing
+            Logger.log('biometric setup failed', error);
           }
         },
       );
