@@ -864,20 +864,31 @@ class AuthenticationService {
           UNLOCK_WALLET_ERROR_MESSAGES.USER_NOT_AUTHENTICATED,
         )
       ) {
-        // Alert user biometric changed
-        Alert.alert(
-          strings('login.biometric_changed'),
-          strings('login.biometric_changed_alert_desc'),
-          [
-            {
-              text: strings('login.biometric_changed_alert_confirm'),
-              onPress: () => {
-                // reset biometric
-                this.resetPassword();
+        const alertPromise = new Promise((resolve) => {
+          // Alert user biometric changed
+          Alert.alert(
+            strings('login.biometric_changed'),
+            strings('login.biometric_changed_alert_desc'),
+            [
+              {
+                text: strings('login.biometric_changed_alert_confirm'),
+                onPress: async () => {
+                  // resolve on success or error
+                  try {
+                    // reset biometric
+                    await this.resetPassword();
+                    resolve(void 0);
+                  } catch (error) {
+                    resolve(error);
+                  }
+                },
               },
-            },
-          ],
-        );
+            ],
+          );
+        });
+
+        // await the alert promise to resolve
+        await alertPromise;
       }
 
       // TODO: Refactor lockApp to be more deterministic or create another clean up method.
