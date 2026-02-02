@@ -544,7 +544,7 @@ const UnifiedTransactionsView = ({
 
   // Auto-scroll to top when new transactions are added
   const { handleScroll } = useTransactionAutoScroll(data, listRef, {
-    getItemId: (item: UnifiedItem) => {
+    keyExtractor: (item: UnifiedItem) => {
       if (item.kind === TransactionKind.Evm) {
         return getTransactionId(item.tx) ?? null;
       }

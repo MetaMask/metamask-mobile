@@ -14,7 +14,7 @@ interface UseTransactionAutoScrollOptions<T> {
   /**
    * Function to extract a unique ID from an item
    */
-  getItemId: (item: T) => string | null;
+  keyExtractor: (item: T) => string | null;
 }
 
 /**
@@ -30,7 +30,7 @@ export function useTransactionAutoScroll<T>(
   listRef: RefObject<FlashListRef<T>>,
   options: UseTransactionAutoScrollOptions<T>,
 ) {
-  const { enabled = true, delay = 150, getItemId } = options;
+  const { enabled = true, delay = 150, keyExtractor } = options;
 
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isUserScrollingRef = useRef(false);
@@ -73,7 +73,7 @@ export function useTransactionAutoScroll<T>(
         if (data.length === 0) return null;
         const firstItem = data[0];
         if (!firstItem) return null;
-        return getItemId(firstItem);
+        return keyExtractor(firstItem);
       } catch (error) {
         // Gracefully handle any unexpected item structure
         Logger.error(
@@ -134,7 +134,7 @@ export function useTransactionAutoScroll<T>(
 
     previousFirstItemIdRef.current = currentFirstItemId;
     previousDataLengthRef.current = data.length;
-  }, [data, enabled, delay, getItemId, listRef]);
+  }, [data, enabled, delay, keyExtractor, listRef]);
 
   /**
    * Cleanup timeouts on unmount

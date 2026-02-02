@@ -40,12 +40,13 @@ describe('useTransactionAutoScroll', () => {
       'scrolls to top when a new $chain transaction is added',
       ({ prefix, txPrefix }) => {
         const listRef = createMockListRef<{ id: string }>();
-        const getItemId = jest.fn(
+        const keyExtractor = jest.fn(
           (item: { id: string }) => `${prefix}-${item.id}`,
         );
 
         const { rerender } = renderHook(
-          ({ data }) => useTransactionAutoScroll(data, listRef, { getItemId }),
+          ({ data }) =>
+            useTransactionAutoScroll(data, listRef, { keyExtractor }),
           {
             initialProps: {
               data: [{ id: `${txPrefix}-1` }],
@@ -66,16 +67,16 @@ describe('useTransactionAutoScroll', () => {
           offset: 0,
           animated: true,
         });
-        expect(getItemId).toHaveBeenCalled();
+        expect(keyExtractor).toHaveBeenCalled();
       },
     );
 
     it('scrolls to top when a new transaction replaces the first', () => {
       const listRef = createMockListRef<{ id: string }>();
-      const getItemId = jest.fn((item: { id: string }) => item.id);
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
 
       const { rerender } = renderHook(
-        ({ data }) => useTransactionAutoScroll(data, listRef, { getItemId }),
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
         {
           initialProps: {
             data: [{ id: 'tx-1' }],
@@ -98,10 +99,10 @@ describe('useTransactionAutoScroll', () => {
 
     it('does not scroll when no new transaction is added', () => {
       const listRef = createMockListRef<{ id: string }>();
-      const getItemId = jest.fn((item: { id: string }) => item.id);
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
 
       const { rerender } = renderHook(
-        ({ data }) => useTransactionAutoScroll(data, listRef, { getItemId }),
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
         {
           initialProps: {
             data: [{ id: 'tx-1' }],
@@ -123,12 +124,12 @@ describe('useTransactionAutoScroll', () => {
   describe('Mixed chain transactions', () => {
     it('handles mixed transactions from different chains', () => {
       const listRef = createMockListRef<{ chain: string; id: string }>();
-      const getItemId = jest.fn(
+      const keyExtractor = jest.fn(
         (item: { chain: string; id: string }) => `${item.chain}-${item.id}`,
       );
 
       const { rerender } = renderHook(
-        ({ data }) => useTransactionAutoScroll(data, listRef, { getItemId }),
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
         {
           initialProps: {
             data: [
@@ -162,10 +163,10 @@ describe('useTransactionAutoScroll', () => {
   describe('User scroll prevention', () => {
     it('does not auto-scroll when user is actively scrolling', () => {
       const listRef = createMockListRef<{ id: string }>();
-      const getItemId = jest.fn((item: { id: string }) => item.id);
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
 
       const { result, rerender } = renderHook(
-        ({ data }) => useTransactionAutoScroll(data, listRef, { getItemId }),
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
         {
           initialProps: {
             data: [{ id: 'tx-1' }],
@@ -191,10 +192,10 @@ describe('useTransactionAutoScroll', () => {
 
     it('resumes auto-scroll after user stops scrolling', () => {
       const listRef = createMockListRef<{ id: string }>();
-      const getItemId = jest.fn((item: { id: string }) => item.id);
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
 
       const { result, rerender } = renderHook(
-        ({ data }) => useTransactionAutoScroll(data, listRef, { getItemId }),
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
         {
           initialProps: {
             data: [{ id: 'tx-1' }],
@@ -228,12 +229,12 @@ describe('useTransactionAutoScroll', () => {
   });
 
   describe('Error handling', () => {
-    it('handles getItemId returning null gracefully', () => {
+    it('handles keyExtractor returning null gracefully', () => {
       const listRef = createMockListRef<{ id: string }>();
-      const getItemId = jest.fn(() => null);
+      const keyExtractor = jest.fn(() => null);
 
       const { rerender } = renderHook(
-        ({ data }) => useTransactionAutoScroll(data, listRef, { getItemId }),
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
         {
           initialProps: {
             data: [{ id: 'tx-1' }],
@@ -253,14 +254,14 @@ describe('useTransactionAutoScroll', () => {
       expect(Logger.error).not.toHaveBeenCalled();
     });
 
-    it('handles getItemId throwing an error gracefully', () => {
+    it('handles keyExtractor throwing an error gracefully', () => {
       const listRef = createMockListRef<{ id: string }>();
-      const getItemId = jest.fn(() => {
+      const keyExtractor = jest.fn(() => {
         throw new Error('Invalid transaction structure');
       });
 
       const { rerender } = renderHook(
-        ({ data }) => useTransactionAutoScroll(data, listRef, { getItemId }),
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
         {
           initialProps: {
             data: [{ id: 'tx-1' }],
@@ -284,7 +285,7 @@ describe('useTransactionAutoScroll', () => {
 
     it('handles scrollToOffset failure gracefully', () => {
       const listRef = createMockListRef<{ id: string }>();
-      const getItemId = jest.fn((item: { id: string }) => item.id);
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
 
       // Make scrollToOffset throw an error
       if (listRef.current) {
@@ -294,7 +295,7 @@ describe('useTransactionAutoScroll', () => {
       }
 
       const { rerender } = renderHook(
-        ({ data }) => useTransactionAutoScroll(data, listRef, { getItemId }),
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
         {
           initialProps: {
             data: [{ id: 'tx-1' }],
@@ -318,10 +319,10 @@ describe('useTransactionAutoScroll', () => {
 
     it('handles empty data array', () => {
       const listRef = createMockListRef<{ id: string }>();
-      const getItemId = jest.fn((item: { id: string }) => item.id);
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
 
       const { rerender } = renderHook(
-        ({ data }) => useTransactionAutoScroll(data, listRef, { getItemId }),
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
         {
           initialProps: {
             data: [] as { id: string }[],
@@ -345,13 +346,15 @@ describe('useTransactionAutoScroll', () => {
 
     it('handles undefined or null items in data array', () => {
       const listRef = createMockListRef<{ id: string } | null | undefined>();
-      const getItemId = jest.fn((item: { id: string } | null | undefined) => {
-        if (!item) return null;
-        return item.id;
-      });
+      const keyExtractor = jest.fn(
+        (item: { id: string } | null | undefined) => {
+          if (!item) return null;
+          return item.id;
+        },
+      );
 
       renderHook(
-        ({ data }) => useTransactionAutoScroll(data, listRef, { getItemId }),
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
         {
           initialProps: {
             data: [null, undefined, { id: 'tx-1' }],
@@ -367,12 +370,12 @@ describe('useTransactionAutoScroll', () => {
   describe('Configuration options', () => {
     it('respects enabled option when set to false', () => {
       const listRef = createMockListRef<{ id: string }>();
-      const getItemId = jest.fn((item: { id: string }) => item.id);
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
 
       const { rerender } = renderHook(
         ({ data }) =>
           useTransactionAutoScroll(data, listRef, {
-            getItemId,
+            keyExtractor,
             enabled: false,
           }),
         {
@@ -395,12 +398,12 @@ describe('useTransactionAutoScroll', () => {
 
     it('clears pending scroll when enabled changes from true to false', () => {
       const listRef = createMockListRef<{ id: string }>();
-      const getItemId = jest.fn((item: { id: string }) => item.id);
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
 
       const { rerender } = renderHook(
         ({ data, enabled }) =>
           useTransactionAutoScroll(data, listRef, {
-            getItemId,
+            keyExtractor,
             enabled,
           }),
         {
@@ -428,12 +431,12 @@ describe('useTransactionAutoScroll', () => {
 
     it('respects custom delay option', () => {
       const listRef = createMockListRef<{ id: string }>();
-      const getItemId = jest.fn((item: { id: string }) => item.id);
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
 
       const { rerender } = renderHook(
         ({ data }) =>
           useTransactionAutoScroll(data, listRef, {
-            getItemId,
+            keyExtractor,
             delay: 300,
           }),
         {
@@ -466,10 +469,10 @@ describe('useTransactionAutoScroll', () => {
   describe('Timeout cleanup', () => {
     it('clears scroll timeout on unmount', () => {
       const listRef = createMockListRef<{ id: string }>();
-      const getItemId = jest.fn((item: { id: string }) => item.id);
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
 
       const { unmount, rerender } = renderHook(
-        ({ data }) => useTransactionAutoScroll(data, listRef, { getItemId }),
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
         {
           initialProps: {
             data: [{ id: 'tx-1' }],
@@ -494,10 +497,10 @@ describe('useTransactionAutoScroll', () => {
 
     it('clears user scroll timeout on unmount', () => {
       const listRef = createMockListRef<{ id: string }>();
-      const getItemId = jest.fn((item: { id: string }) => item.id);
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
 
       const { result, unmount } = renderHook(
-        ({ data }) => useTransactionAutoScroll(data, listRef, { getItemId }),
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
         {
           initialProps: {
             data: [{ id: 'tx-1' }],
@@ -524,10 +527,10 @@ describe('useTransactionAutoScroll', () => {
 
     it('clears pending scroll timeout when new scroll is scheduled', () => {
       const listRef = createMockListRef<{ id: string }>();
-      const getItemId = jest.fn((item: { id: string }) => item.id);
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
 
       const { rerender } = renderHook(
-        ({ data }) => useTransactionAutoScroll(data, listRef, { getItemId }),
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
         {
           initialProps: {
             data: [{ id: 'tx-1' }],
@@ -558,10 +561,10 @@ describe('useTransactionAutoScroll', () => {
       const listRef: RefObject<FlashListRef<{ id: string }>> = {
         current: null,
       };
-      const getItemId = jest.fn((item: { id: string }) => item.id);
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
 
       const { rerender } = renderHook(
-        ({ data }) => useTransactionAutoScroll(data, listRef, { getItemId }),
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
         {
           initialProps: {
             data: [{ id: 'tx-1' }],
@@ -582,10 +585,10 @@ describe('useTransactionAutoScroll', () => {
 
     it('handles rapid successive transaction additions', () => {
       const listRef = createMockListRef<{ id: string }>();
-      const getItemId = jest.fn((item: { id: string }) => item.id);
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
 
       const { rerender } = renderHook(
-        ({ data }) => useTransactionAutoScroll(data, listRef, { getItemId }),
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
         {
           initialProps: {
             data: [{ id: 'tx-1' }],
@@ -616,10 +619,10 @@ describe('useTransactionAutoScroll', () => {
 
     it('handles transaction list length decreasing', () => {
       const listRef = createMockListRef<{ id: string }>();
-      const getItemId = jest.fn((item: { id: string }) => item.id);
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
 
       const { rerender } = renderHook(
-        ({ data }) => useTransactionAutoScroll(data, listRef, { getItemId }),
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
         {
           initialProps: {
             data: [{ id: 'tx-2' }, { id: 'tx-1' }],
@@ -639,7 +642,7 @@ describe('useTransactionAutoScroll', () => {
     });
 
     it('handles non-EVM transactions without id using chain-timestamp fallback', () => {
-      // This test verifies that getItemId implementations using chain-timestamp fallback
+      // This test verifies that keyExtractor implementations using chain-timestamp fallback
       // (like the keyExtractor pattern) work correctly for auto-scroll detection
       interface NonEvmTx {
         id?: string;
@@ -648,13 +651,13 @@ describe('useTransactionAutoScroll', () => {
       }
 
       const listRef = createMockListRef<NonEvmTx>();
-      // Simulate the getItemId implementation that uses chain-timestamp fallback
-      const getItemId = jest.fn((item: NonEvmTx) =>
+      // Simulate the keyExtractor implementation that uses chain-timestamp fallback
+      const keyExtractor = jest.fn((item: NonEvmTx) =>
         String(item.id ?? `${item.chain}-${item.timestamp ?? '0'}`),
       );
 
       const { rerender } = renderHook(
-        ({ data }) => useTransactionAutoScroll(data, listRef, { getItemId }),
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
         {
           initialProps: {
             data: [{ chain: 'solana:mainnet', timestamp: 1000 }],
@@ -680,7 +683,7 @@ describe('useTransactionAutoScroll', () => {
         animated: true,
       });
       // Verify the fallback ID format was used
-      expect(getItemId).toHaveBeenCalledWith({
+      expect(keyExtractor).toHaveBeenCalledWith({
         chain: 'solana:mainnet',
         timestamp: 2000,
       });
@@ -695,12 +698,12 @@ describe('useTransactionAutoScroll', () => {
       }
 
       const listRef = createMockListRef<NonEvmTx>();
-      const getItemId = jest.fn((item: NonEvmTx) =>
+      const keyExtractor = jest.fn((item: NonEvmTx) =>
         String(item.id ?? `${item.chain}-${item.timestamp ?? '0'}`),
       );
 
       const { rerender } = renderHook(
-        ({ data }) => useTransactionAutoScroll(data, listRef, { getItemId }),
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
         {
           initialProps: {
             data: [{ chain: 'bitcoin:mainnet', timestamp: 100 }],
