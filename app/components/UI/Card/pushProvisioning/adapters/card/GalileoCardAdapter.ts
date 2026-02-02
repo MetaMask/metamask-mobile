@@ -84,14 +84,31 @@ export class GalileoCardAdapter implements ICardProviderAdapter {
   }
 
   /**
+   * Convert Base64-encoded string to hex-encoded string
+   *
+   * PassKit provides data as Base64-encoded strings, but the API
+   * expects hex-encoded strings.
+   *
+   * @param base64 - Base64-encoded string
+   * @returns Hex-encoded string
+   */
+  private base64ToHex(base64: string): string {
+    // Use Buffer to decode Base64 and convert to hex
+    return Buffer.from(base64, 'base64').toString('hex');
+  }
+
+  /**
    * Get encrypted payload for Apple Pay in-app provisioning
    *
    * For Apple Pay, PassKit provides cryptographic data (nonce, certificates)
-   * that we send to Galileo to get the encrypted payload.
+   * as Base64-encoded strings. This method converts them to hex and sends
+   * to Galileo to get the encrypted payload.
    *
-   * @param nonce - Cryptographic nonce from PassKit
-   * @param nonceSignature - Signature of the nonce from PassKit
-   * @param certificates - Array of certificate strings from PassKit
+   * @param nonce - Cryptographic nonce from PassKit (Base64-encoded)
+   * @param nonceSignature - Signature of the nonce from PassKit (Base64-encoded)
+   * @param certificates - Array of certificate strings from PassKit (Base64-encoded)
+   * @param certificates[0] - leaf certificate
+   * @param certificates[1] - intermediate certificate
    * @returns Promise resolving to the encrypted Apple Pay payload
    */
   async getApplePayEncryptedPayload(
@@ -100,10 +117,25 @@ export class GalileoCardAdapter implements ICardProviderAdapter {
     certificates: string[],
   ): Promise<ApplePayEncryptedPayload> {
     try {
+      // Validate certificates array
+      if (!certificates || certificates.length < 2) {
+        throw new ProvisioningError(
+          ProvisioningErrorCode.ENCRYPTION_FAILED,
+          strings('card.push_provisioning.error_encryption_failed'),
+        );
+      }
+
+      // Convert Base64 to hex as required by the API
+      const leafCertificate = this.base64ToHex(certificates[0]);
+      const intermediateCertificate = this.base64ToHex(certificates[1]);
+      const nonceHex = this.base64ToHex(nonce);
+      const nonceSignatureHex = this.base64ToHex(nonceSignature);
+
       const response = await this.cardSDK.createApplePayProvisioningRequest({
-        nonce,
-        nonceSignature,
-        certificates,
+        leafCertificate,
+        intermediateCertificate,
+        nonce: nonceHex,
+        nonceSignature: nonceSignatureHex,
       });
 
       if (

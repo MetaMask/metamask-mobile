@@ -142,6 +142,10 @@ export function mapTokenizationStatus(
 
 /**
  * Create a standardized ProvisioningError from an unknown error
+ *
+ * When a defaultMessage is provided, it is used as the user-facing message
+ * to avoid exposing raw SDK error details to end users. The original error
+ * is preserved for debugging purposes but should be logged to Sentry separately.
  */
 export function createProvisioningError(
   error: unknown,
@@ -152,10 +156,11 @@ export function createProvisioningError(
     return error;
   }
 
+  // Prefer defaultMessage for user-facing errors to avoid exposing raw SDK errors
+  // The original error details are logged to Sentry via logAdapterError
   const message =
-    error instanceof Error
-      ? error.message
-      : (defaultMessage ?? 'An unknown error occurred');
+    defaultMessage ??
+    (error instanceof Error ? error.message : 'An unknown error occurred');
 
   const originalError = error instanceof Error ? error : undefined;
 
@@ -177,16 +182,43 @@ export function createErrorResult(
 }
 
 /**
- * Log an error with standardized format
+ * Log an error with standardized format and send to Sentry
+ *
+ * This logs native SDK errors (like PKPassKitErrorDomain) to Sentry for debugging
+ * while keeping them out of user-facing error messages.
  */
 export function logAdapterError(
   adapterName: string,
   methodName: string,
   error: unknown,
 ): void {
-  Logger.log(`${adapterName}.${methodName} error`, {
-    message: error instanceof Error ? error.message : String(error),
-    code: error instanceof ProvisioningError ? error.code : undefined,
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  const errorCode =
+    error instanceof ProvisioningError ? error.code : 'NATIVE_SDK_ERROR';
+
+  // Create an Error object for Sentry if not already one
+  const errorForSentry =
+    error instanceof Error
+      ? error
+      : new Error(`${adapterName}.${methodName}: ${errorMessage}`);
+
+  // Log to Sentry with searchable tags and context
+  Logger.error(errorForSentry, {
+    tags: {
+      feature: 'push_provisioning',
+      adapter: adapterName,
+      method: methodName,
+      error_code: String(errorCode),
+    },
+    context: {
+      name: 'push_provisioning_error',
+      data: {
+        adapter: adapterName,
+        method: methodName,
+        errorMessage,
+        errorCode,
+      },
+    },
   });
 }
 

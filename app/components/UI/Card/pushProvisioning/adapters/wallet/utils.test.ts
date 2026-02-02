@@ -15,6 +15,7 @@ import Logger from '../../../../../../util/Logger';
 // Mock Logger
 jest.mock('../../../../../../util/Logger', () => ({
   log: jest.fn(),
+  error: jest.fn(),
 }));
 
 describe('Wallet Adapter Utils', () => {
@@ -228,6 +229,22 @@ describe('Wallet Adapter Utils', () => {
 
       expect(result.message).toBe('Custom message');
     });
+
+    it('prefers defaultMessage over Error.message for user-facing errors', () => {
+      const error = new Error('PKPassKitErrorDomain error 2');
+      const result = createProvisioningError(
+        error,
+        ProvisioningErrorCode.UNKNOWN_ERROR,
+        'Something went wrong. Please try again.',
+      );
+
+      expect(result).toBeInstanceOf(ProvisioningError);
+      expect(result.code).toBe(ProvisioningErrorCode.UNKNOWN_ERROR);
+      // defaultMessage takes precedence to avoid exposing raw SDK errors
+      expect(result.message).toBe('Something went wrong. Please try again.');
+      // Original error is preserved for debugging
+      expect(result.originalError).toBe(error);
+    });
   });
 
   describe('createErrorResult', () => {
@@ -256,42 +273,80 @@ describe('Wallet Adapter Utils', () => {
   });
 
   describe('logAdapterError', () => {
-    it('logs error with adapter and method name', () => {
+    it('logs error to Sentry with tags and context', () => {
       const error = new Error('Test error');
       logAdapterError('GoogleWalletAdapter', 'provisionCard', error);
 
-      expect(Logger.log).toHaveBeenCalledWith(
-        'GoogleWalletAdapter.provisionCard error',
-        {
-          message: 'Test error',
-          code: undefined,
+      expect(Logger.error).toHaveBeenCalledWith(error, {
+        tags: {
+          feature: 'push_provisioning',
+          adapter: 'GoogleWalletAdapter',
+          method: 'provisionCard',
+          error_code: 'NATIVE_SDK_ERROR',
         },
-      );
+        context: {
+          name: 'push_provisioning_error',
+          data: {
+            adapter: 'GoogleWalletAdapter',
+            method: 'provisionCard',
+            errorMessage: 'Test error',
+            errorCode: 'NATIVE_SDK_ERROR',
+          },
+        },
+      });
     });
 
-    it('logs ProvisioningError with code', () => {
+    it('logs ProvisioningError with correct error code', () => {
       const error = new ProvisioningError(
         ProvisioningErrorCode.INVALID_CARD_DATA,
         'Invalid card data',
       );
       logAdapterError('AppleWalletAdapter', 'provisionCard', error);
 
-      expect(Logger.log).toHaveBeenCalledWith(
-        'AppleWalletAdapter.provisionCard error',
-        {
-          message: 'Invalid card data',
-          code: ProvisioningErrorCode.INVALID_CARD_DATA,
+      expect(Logger.error).toHaveBeenCalledWith(error, {
+        tags: {
+          feature: 'push_provisioning',
+          adapter: 'AppleWalletAdapter',
+          method: 'provisionCard',
+          error_code: ProvisioningErrorCode.INVALID_CARD_DATA,
         },
-      );
+        context: {
+          name: 'push_provisioning_error',
+          data: {
+            adapter: 'AppleWalletAdapter',
+            method: 'provisionCard',
+            errorMessage: 'Invalid card data',
+            errorCode: ProvisioningErrorCode.INVALID_CARD_DATA,
+          },
+        },
+      });
     });
 
-    it('handles non-Error values', () => {
+    it('creates Error object for non-Error values', () => {
       logAdapterError('TestAdapter', 'testMethod', 'string error');
 
-      expect(Logger.log).toHaveBeenCalledWith('TestAdapter.testMethod error', {
-        message: 'string error',
-        code: undefined,
-      });
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'TestAdapter.testMethod: string error',
+        }),
+        {
+          tags: {
+            feature: 'push_provisioning',
+            adapter: 'TestAdapter',
+            method: 'testMethod',
+            error_code: 'NATIVE_SDK_ERROR',
+          },
+          context: {
+            name: 'push_provisioning_error',
+            data: {
+              adapter: 'TestAdapter',
+              method: 'testMethod',
+              errorMessage: 'string error',
+              errorCode: 'NATIVE_SDK_ERROR',
+            },
+          },
+        },
+      );
     });
   });
 });

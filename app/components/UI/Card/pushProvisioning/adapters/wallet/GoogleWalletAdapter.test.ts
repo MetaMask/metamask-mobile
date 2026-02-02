@@ -26,6 +26,7 @@ const mockWalletModule = {
 // Mock Logger
 jest.mock('../../../../../../util/Logger', () => ({
   log: jest.fn(),
+  error: jest.fn(),
 }));
 
 // Mock i18n

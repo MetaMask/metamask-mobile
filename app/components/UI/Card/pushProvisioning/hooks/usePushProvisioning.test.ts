@@ -1,4 +1,5 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
+import { Platform } from 'react-native';
 import { usePushProvisioning } from './usePushProvisioning';
 import {
   CardDetails,
@@ -77,6 +78,14 @@ jest.mock('../../../../../core/redux/slices/card', () => ({
   selectUserCardLocation: 'selectUserCardLocation',
 }));
 
+// Mock feature flag selectors
+jest.mock('../../../../../selectors/featureFlagController/card', () => ({
+  selectGalileoAppleWalletProvisioningEnabled:
+    'selectGalileoAppleWalletProvisioningEnabled',
+  selectGalileoGoogleWalletProvisioningEnabled:
+    'selectGalileoGoogleWalletProvisioningEnabled',
+}));
+
 describe('usePushProvisioning', () => {
   const mockCardDetails: CardDetails = {
     id: 'card-123',
@@ -109,6 +118,11 @@ describe('usePushProvisioning', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === 'selectIsAuthenticatedCard') return true;
       if (selector === 'selectUserCardLocation') return 'us';
+      // Feature flags enabled by default for tests
+      if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
+        return true;
+      if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
+        return true;
       return undefined;
     });
     // Default adapter returns - use sync mock to avoid act() warnings
@@ -203,6 +217,10 @@ describe('usePushProvisioning', () => {
       mockUseSelector.mockImplementation((selector) => {
         if (selector === 'selectIsAuthenticatedCard') return false;
         if (selector === 'selectUserCardLocation') return 'us';
+        if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
+          return true;
+        if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
+          return true;
         return undefined;
       });
 
@@ -295,6 +313,203 @@ describe('usePushProvisioning', () => {
       });
 
       expect(result.current.canAddToWallet).toBe(false);
+      unmount();
+    });
+
+    it('returns false when iOS feature flag is disabled on iOS platform', async () => {
+      const originalPlatform = Platform.OS;
+      Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === 'selectIsAuthenticatedCard') return true;
+        if (selector === 'selectUserCardLocation') return 'us';
+        if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
+          return false;
+        if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
+          return true;
+        return undefined;
+      });
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.canAddToWallet).toBe(false);
+
+      Object.defineProperty(Platform, 'OS', {
+        value: originalPlatform,
+        writable: true,
+      });
+      unmount();
+    });
+
+    it('returns false when Android feature flag is disabled on Android platform', async () => {
+      const originalPlatform = Platform.OS;
+      Object.defineProperty(Platform, 'OS', {
+        value: 'android',
+        writable: true,
+      });
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === 'selectIsAuthenticatedCard') return true;
+        if (selector === 'selectUserCardLocation') return 'us';
+        if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
+          return true;
+        if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
+          return false;
+        return undefined;
+      });
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.canAddToWallet).toBe(false);
+
+      Object.defineProperty(Platform, 'OS', {
+        value: originalPlatform,
+        writable: true,
+      });
+      unmount();
+    });
+
+    it('returns true when iOS feature flag is enabled on iOS platform', async () => {
+      const originalPlatform = Platform.OS;
+      Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === 'selectIsAuthenticatedCard') return true;
+        if (selector === 'selectUserCardLocation') return 'us';
+        if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
+          return true;
+        if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
+          return false;
+        return undefined;
+      });
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.canAddToWallet).toBe(true);
+
+      Object.defineProperty(Platform, 'OS', {
+        value: originalPlatform,
+        writable: true,
+      });
+      unmount();
+    });
+
+    it('returns true when Android feature flag is enabled on Android platform', async () => {
+      const originalPlatform = Platform.OS;
+      Object.defineProperty(Platform, 'OS', {
+        value: 'android',
+        writable: true,
+      });
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === 'selectIsAuthenticatedCard') return true;
+        if (selector === 'selectUserCardLocation') return 'us';
+        if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
+          return false;
+        if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
+          return true;
+        return undefined;
+      });
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.canAddToWallet).toBe(true);
+
+      Object.defineProperty(Platform, 'OS', {
+        value: originalPlatform,
+        writable: true,
+      });
+      unmount();
+    });
+
+    it('uses iOS flag check on iOS regardless of Android flag value', async () => {
+      const originalPlatform = Platform.OS;
+      Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
+
+      // iOS flag disabled, Android flag enabled - should be false on iOS
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === 'selectIsAuthenticatedCard') return true;
+        if (selector === 'selectUserCardLocation') return 'us';
+        if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
+          return false;
+        if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
+          return true;
+        return undefined;
+      });
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.canAddToWallet).toBe(false);
+
+      Object.defineProperty(Platform, 'OS', {
+        value: originalPlatform,
+        writable: true,
+      });
+      unmount();
+    });
+
+    it('uses Android flag check on Android regardless of iOS flag value', async () => {
+      const originalPlatform = Platform.OS;
+      Object.defineProperty(Platform, 'OS', {
+        value: 'android',
+        writable: true,
+      });
+
+      // iOS flag enabled, Android flag disabled - should be false on Android
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === 'selectIsAuthenticatedCard') return true;
+        if (selector === 'selectUserCardLocation') return 'us';
+        if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
+          return true;
+        if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
+          return false;
+        return undefined;
+      });
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.canAddToWallet).toBe(false);
+
+      Object.defineProperty(Platform, 'OS', {
+        value: originalPlatform,
+        writable: true,
+      });
       unmount();
     });
   });

@@ -90,9 +90,19 @@ describe('GalileoCardAdapter', () => {
   });
 
   describe('getApplePayEncryptedPayload', () => {
-    const mockNonce = 'test-nonce';
-    const mockNonceSignature = 'test-signature';
-    const mockCertificates = ['cert1', 'cert2'];
+    // Base64-encoded test data (simulating PassKit output)
+    // "test-nonce" in Base64
+    const mockNonceBase64 = 'dGVzdC1ub25jZQ==';
+    // "test-signature" in Base64
+    const mockNonceSignatureBase64 = 'dGVzdC1zaWduYXR1cmU=';
+    // "leaf-cert" and "intermediate-cert" in Base64
+    const mockCertificatesBase64 = ['bGVhZi1jZXJ0', 'aW50ZXJtZWRpYXRlLWNlcnQ='];
+
+    // Expected hex-encoded values
+    const expectedNonceHex = '746573742d6e6f6e6365';
+    const expectedNonceSignatureHex = '746573742d7369676e6174757265';
+    const expectedLeafCertHex = '6c6561662d63657274';
+    const expectedIntermediateCertHex = '696e7465726d6564696174652d63657274';
 
     it('returns successful response with encrypted payload', async () => {
       const mockResponse = {
@@ -105,9 +115,9 @@ describe('GalileoCardAdapter', () => {
       );
 
       const result = await adapter.getApplePayEncryptedPayload(
-        mockNonce,
-        mockNonceSignature,
-        mockCertificates,
+        mockNonceBase64,
+        mockNonceSignatureBase64,
+        mockCertificatesBase64,
       );
 
       expect(result.encryptedPassData).toBe('encrypted-pass-data');
@@ -116,14 +126,38 @@ describe('GalileoCardAdapter', () => {
       expect(
         mockCardSDK.createApplePayProvisioningRequest,
       ).toHaveBeenCalledWith({
-        nonce: mockNonce,
-        nonceSignature: mockNonceSignature,
-        certificates: mockCertificates,
+        leafCertificate: expectedLeafCertHex,
+        intermediateCertificate: expectedIntermediateCertHex,
+        nonce: expectedNonceHex,
+        nonceSignature: expectedNonceSignatureHex,
+      });
+    });
+
+    it('throws ProvisioningError when certificates array is empty', async () => {
+      await expect(
+        adapter.getApplePayEncryptedPayload(
+          mockNonceBase64,
+          mockNonceSignatureBase64,
+          [],
+        ),
+      ).rejects.toMatchObject({
+        code: ProvisioningErrorCode.ENCRYPTION_FAILED,
+      });
+    });
+
+    it('throws ProvisioningError when certificates array has only one element', async () => {
+      await expect(
+        adapter.getApplePayEncryptedPayload(
+          mockNonceBase64,
+          mockNonceSignatureBase64,
+          ['bGVhZi1jZXJ0'],
+        ),
+      ).rejects.toMatchObject({
+        code: ProvisioningErrorCode.ENCRYPTION_FAILED,
       });
     });
 
     it('throws ProvisioningError when encryptedPassData is missing', async () => {
-      // Test edge case - use type assertion for testing invalid data
       mockCardSDK.createApplePayProvisioningRequest.mockResolvedValue({
         encryptedPassData: '',
         activationData: 'activation-data',
@@ -132,9 +166,9 @@ describe('GalileoCardAdapter', () => {
 
       await expect(
         adapter.getApplePayEncryptedPayload(
-          mockNonce,
-          mockNonceSignature,
-          mockCertificates,
+          mockNonceBase64,
+          mockNonceSignatureBase64,
+          mockCertificatesBase64,
         ),
       ).rejects.toMatchObject({
         code: ProvisioningErrorCode.ENCRYPTION_FAILED,
@@ -142,7 +176,6 @@ describe('GalileoCardAdapter', () => {
     });
 
     it('throws ProvisioningError when activationData is missing', async () => {
-      // Test edge case - use type assertion for testing invalid data
       mockCardSDK.createApplePayProvisioningRequest.mockResolvedValue({
         encryptedPassData: 'encrypted-pass-data',
         activationData: '',
@@ -151,9 +184,9 @@ describe('GalileoCardAdapter', () => {
 
       await expect(
         adapter.getApplePayEncryptedPayload(
-          mockNonce,
-          mockNonceSignature,
-          mockCertificates,
+          mockNonceBase64,
+          mockNonceSignatureBase64,
+          mockCertificatesBase64,
         ),
       ).rejects.toMatchObject({
         code: ProvisioningErrorCode.ENCRYPTION_FAILED,
@@ -161,7 +194,6 @@ describe('GalileoCardAdapter', () => {
     });
 
     it('throws ProvisioningError when ephemeralPublicKey is missing', async () => {
-      // Test edge case - use type assertion for testing invalid data
       mockCardSDK.createApplePayProvisioningRequest.mockResolvedValue({
         encryptedPassData: 'encrypted-pass-data',
         activationData: 'activation-data',
@@ -170,9 +202,9 @@ describe('GalileoCardAdapter', () => {
 
       await expect(
         adapter.getApplePayEncryptedPayload(
-          mockNonce,
-          mockNonceSignature,
-          mockCertificates,
+          mockNonceBase64,
+          mockNonceSignatureBase64,
+          mockCertificatesBase64,
         ),
       ).rejects.toMatchObject({
         code: ProvisioningErrorCode.ENCRYPTION_FAILED,
@@ -186,9 +218,9 @@ describe('GalileoCardAdapter', () => {
 
       await expect(
         adapter.getApplePayEncryptedPayload(
-          mockNonce,
-          mockNonceSignature,
-          mockCertificates,
+          mockNonceBase64,
+          mockNonceSignatureBase64,
+          mockCertificatesBase64,
         ),
       ).rejects.toMatchObject({
         code: ProvisioningErrorCode.ENCRYPTION_FAILED,

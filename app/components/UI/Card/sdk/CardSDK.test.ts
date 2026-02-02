@@ -4696,9 +4696,10 @@ describe('CardSDK', () => {
 
   describe('createApplePayProvisioningRequest', () => {
     const mockApplePayParams = {
+      leafCertificate: 'mock-leaf-cert-hex',
+      intermediateCertificate: 'mock-intermediate-cert-hex',
       nonce: 'mock-nonce-data',
       nonceSignature: 'mock-nonce-signature',
-      certificates: ['cert1', 'cert2'],
     };
 
     const mockApplePayResponse = {
@@ -4750,9 +4751,10 @@ describe('CardSDK', () => {
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify({
+            leafCertificate: 'mock-leaf-cert-hex',
+            intermediateCertificate: 'mock-intermediate-cert-hex',
             nonce: 'mock-nonce-data',
             nonceSignature: 'mock-nonce-signature',
-            certificates: ['cert1', 'cert2'],
           }),
         }),
       );

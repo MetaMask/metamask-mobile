@@ -2232,8 +2232,7 @@ export class CardSDK {
    * to generate an encrypted opaque payment card for Google Wallet provisioning.
    *
    * Google Wallet provisioning flow:
-   * 1. App sends card ID to card provider API
-   * 2. Card provider returns opaquePaymentCard (OPC)
+   * 1. Card provider returns opaquePaymentCard (OPC)
    *
    * @param params - The Google Wallet provisioning request parameters
    * @returns Promise resolving to the provisioning response with encrypted opaque payment card
@@ -2319,14 +2318,19 @@ export class CardSDK {
    * 4. Card provider returns encrypted payload
    * 5. App returns encrypted payload to PassKit to complete provisioning
    *
-   * @param params - The Apple Pay provisioning request parameters
+   * @param params - The Apple Pay provisioning request parameters (all values hex-encoded)
    * @returns Promise resolving to the encrypted Apple Pay payload
    * @see https://dev.api.baanx.com/v1/card/wallet/provision/apple
    */
   createApplePayProvisioningRequest = async (params: {
+    /** The leaf certificate from PassKit (hex-encoded, from PKAddPaymentPassRequest.certificates[0]) */
+    leafCertificate: string;
+    /** The intermediate certificate from PassKit (hex-encoded, from PKAddPaymentPassRequest.certificates[1]) */
+    intermediateCertificate: string;
+    /** The nonce from PassKit (hex-encoded) */
     nonce: string;
+    /** The nonce signature from PassKit (hex-encoded) */
     nonceSignature: string;
-    certificates: string[];
   }): Promise<{
     encryptedPassData: string;
     activationData: string;
@@ -2338,9 +2342,10 @@ export class CardSDK {
       fetchOptions: {
         method: 'POST',
         body: JSON.stringify({
+          leafCertificate: params.leafCertificate,
+          intermediateCertificate: params.intermediateCertificate,
           nonce: params.nonce,
           nonceSignature: params.nonceSignature,
-          certificates: params.certificates,
         }),
       },
       authenticated: true,

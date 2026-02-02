@@ -5,6 +5,7 @@
  */
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { Platform } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   ProvisioningStatus,
@@ -25,6 +26,10 @@ import {
   selectIsAuthenticatedCard,
   selectUserCardLocation,
 } from '../../../../../core/redux/slices/card';
+import {
+  selectGalileoAppleWalletProvisioningEnabled,
+  selectGalileoGoogleWalletProvisioningEnabled,
+} from '../../../../../selectors/featureFlagController/card';
 import { strings } from '../../../../../../locales/i18n';
 
 /**
@@ -70,6 +75,22 @@ export function usePushProvisioning(
   const { sdk: cardSDK, isLoading: isSDKLoading } = useCardSDK();
   const userCardLocation = useSelector(selectUserCardLocation);
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
+
+  // Get feature flags for push provisioning
+  const isAppleWalletProvisioningEnabled = useSelector(
+    selectGalileoAppleWalletProvisioningEnabled,
+  );
+  const isGoogleWalletProvisioningEnabled = useSelector(
+    selectGalileoGoogleWalletProvisioningEnabled,
+  );
+
+  // Determine if provisioning is enabled for current platform
+  const isPushProvisioningFeatureEnabled =
+    Platform.OS === 'ios'
+      ? isAppleWalletProvisioningEnabled
+      : Platform.OS === 'android'
+        ? isGoogleWalletProvisioningEnabled
+        : false;
 
   // Create the adapters based on user location and platform
   const cardAdapter = useMemo(() => {
@@ -385,6 +406,7 @@ export function usePushProvisioning(
   const isCardEligible = cardDetails?.status === 'ACTIVE';
 
   const canAddToWallet =
+    isPushProvisioningFeatureEnabled &&
     isAuthenticated &&
     !isLoading &&
     !!cardDetails &&
