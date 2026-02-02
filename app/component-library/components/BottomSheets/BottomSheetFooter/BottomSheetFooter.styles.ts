@@ -23,7 +23,7 @@ const styleSheet = (params: {
   vars: BottomSheetFooterStyleSheetVars;
 }) => {
   const { vars } = params;
-  const { style, buttonsAlignment } = vars;
+  const { style, buttonsAlignment, buttonGap = 16 } = vars;
   const buttonStyle: ViewStyle =
     buttonsAlignment === ButtonsAlignment.Horizontal
       ? { flex: 1 }
@@ -34,7 +34,6 @@ const styleSheet = (params: {
       {
         flexDirection:
           buttonsAlignment === ButtonsAlignment.Horizontal ? 'row' : 'column',
-        gap: 16,
         paddingVertical: 4,
         paddingHorizontal: 8,
       } as ViewStyle,
@@ -43,9 +42,11 @@ const styleSheet = (params: {
     button: {
       ...buttonStyle,
     },
-    // Kept for backwards compatibility - spacing is now handled by gap on container
     subsequentButton: {
       ...buttonStyle,
+      marginLeft:
+        buttonsAlignment === ButtonsAlignment.Horizontal ? buttonGap : 0,
+      marginTop: buttonsAlignment === ButtonsAlignment.Vertical ? buttonGap : 0,
     },
   });
 };

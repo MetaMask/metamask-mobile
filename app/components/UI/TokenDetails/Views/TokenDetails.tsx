@@ -76,7 +76,6 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.background.default,
       paddingHorizontal: 16,
       paddingTop: 16,
-      gap: 12,
     },
   });
 };
@@ -298,6 +297,7 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
             ...styles.bottomSheetFooter,
             paddingBottom: insets.bottom + 6,
           }}
+          buttonGap={12}
           buttonPropsArray={[
             {
               variant: ButtonVariants.Primary,
