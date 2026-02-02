@@ -578,7 +578,10 @@ export class HyperLiquidProvider implements PerpsProvider {
         {
           user: userAddress,
           network,
-          error: error instanceof Error ? error.message : String(error),
+          error: ensureError(
+            error,
+            'HyperLiquidProvider.ensureDexAbstractionEnabled',
+          ).message,
         },
       );
 
@@ -1450,7 +1453,10 @@ export class HyperLiquidProvider implements PerpsProvider {
 
       return { success: false, error: PERPS_ERROR_CODES.TRANSFER_FAILED };
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : String(error);
+      const errorMsg = ensureError(
+        error,
+        'HyperLiquidProvider.transferUSDCToPerps',
+      ).message;
       this.deps.debugLogger.log(
         'HyperLiquidProvider: USDC transfer to spot failed',
         {
@@ -1607,7 +1613,10 @@ export class HyperLiquidProvider implements PerpsProvider {
 
       return { success: true, filledSize };
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : String(error);
+      const errorMsg = ensureError(
+        error,
+        'HyperLiquidProvider.swapUSDCToUSDH',
+      ).message;
       this.deps.debugLogger.log('HyperLiquidProvider: USDC→USDH swap error', {
         error: errorMsg,
       });
@@ -1933,7 +1942,7 @@ export class HyperLiquidProvider implements PerpsProvider {
    * Map HyperLiquid API errors to standardized PERPS_ERROR_CODES
    */
   private mapError(error: unknown): Error {
-    const message = error instanceof Error ? error.message : String(error);
+    const message = ensureError(error, 'HyperLiquidProvider.mapError').message;
 
     for (const [pattern, code] of Object.entries(this.errorMappings)) {
       if (message.toLowerCase().includes(pattern.toLowerCase())) {
@@ -1942,7 +1951,7 @@ export class HyperLiquidProvider implements PerpsProvider {
     }
 
     // Return original error to preserve stack trace for unmapped errors
-    return error instanceof Error ? error : new Error(String(error));
+    return ensureError(error, 'HyperLiquidProvider.mapError');
   }
 
   /**
@@ -2166,7 +2175,10 @@ export class HyperLiquidProvider implements PerpsProvider {
         '[ensureBuilderFeeApproval] Failed, cached to prevent retries',
         {
           network,
-          error: error instanceof Error ? error.message : String(error),
+          error: ensureError(
+            error,
+            'HyperLiquidProvider.ensureBuilderFeeApproval',
+          ).message,
         },
       );
 
@@ -3143,8 +3155,10 @@ export class HyperLiquidProvider implements PerpsProvider {
     } catch (error) {
       // Retry mechanism for $10 minimum order errors
       // This handles the case where UI price feed slightly differs from HyperLiquid's orderbook price
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
+      const errorMessage = ensureError(
+        error,
+        'HyperLiquidProvider.placeOrder',
+      ).message;
       const isMinimumOrderError =
         errorMessage.includes('Order must have minimum value of $10') ||
         errorMessage.includes('Order 0: Order must have minimum value');
@@ -4216,8 +4230,9 @@ export class HyperLiquidProvider implements PerpsProvider {
         success: true,
       };
     } catch (error) {
+      const safeError = ensureError(error, 'HyperLiquidProvider.updateMargin');
       this.deps.logger.error(
-        ensureError(error),
+        safeError,
         this.getErrorContext('updateMargin', {
           symbol: params.symbol,
           amount: params.amount,
@@ -4225,7 +4240,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       );
       return {
         success: false,
-        error: error instanceof Error ? error.message : String(error),
+        error: safeError.message,
       };
     }
   }
@@ -5902,18 +5917,19 @@ export class HyperLiquidProvider implements PerpsProvider {
         error: errorMessage,
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
+      const safeError = ensureError(
+        error,
+        'HyperLiquidProvider.initiateWithdrawal',
+      );
       this.deps.debugLogger.log('HyperLiquidProvider: WITHDRAWAL EXCEPTION', {
-        error: errorMessage,
-        errorType:
-          error instanceof Error ? error.constructor.name : typeof error,
-        stack: error instanceof Error ? error.stack : undefined,
+        error: safeError.message,
+        errorType: safeError.name,
+        stack: safeError.stack,
         params,
         timestamp: new Date().toISOString(),
       });
       this.deps.logger.error(
-        ensureError(error),
+        safeError,
         this.getErrorContext('withdraw', {
           assetId: params.assetId,
           amount: params.amount,
@@ -6006,17 +6022,21 @@ export class HyperLiquidProvider implements PerpsProvider {
 
       throw new Error(PERPS_ERROR_CODES.TRANSFER_FAILED);
     } catch (error) {
+      const safeError = ensureError(
+        error,
+        'HyperLiquidProvider.transferToSpot',
+      );
       this.deps.debugLogger.log('❌ HyperLiquidProvider: TRANSFER FAILED', {
-        error: error instanceof Error ? error.message : String(error),
+        error: safeError.message,
         params,
       });
       this.deps.logger.error(
-        ensureError(error),
+        safeError,
         this.getErrorContext('transferBetweenDexs', { ...params }),
       );
       return {
         success: false,
-        error: error instanceof Error ? error.message : String(error),
+        error: safeError.message,
       };
     }
   }
@@ -6602,12 +6622,15 @@ export class HyperLiquidProvider implements PerpsProvider {
       }
     } catch (error) {
       // Silently fall back to base rates
+      const safeError = ensureError(
+        error,
+        'HyperLiquidProvider.getFeeSchedule',
+      );
       this.deps.debugLogger.log(
         'Fee API Call Failed - Falling Back to Base Rates',
         {
-          error: error instanceof Error ? error.message : String(error),
-          errorType:
-            error instanceof Error ? error.constructor.name : typeof error,
+          error: safeError.message,
+          errorType: safeError.name,
           fallbackTakerRate: FEE_RATES.taker,
           fallbackMakerRate: FEE_RATES.maker,
           userAddress: 'unknown',
@@ -7077,7 +7100,8 @@ export class HyperLiquidProvider implements PerpsProvider {
         '[ensureReferralSet] Error, cached to prevent retries',
         {
           network,
-          error: error instanceof Error ? error.message : String(error),
+          error: ensureError(error, 'HyperLiquidProvider.ensureReferralSet')
+            .message,
         },
       );
       completeInFlight();

@@ -38,6 +38,40 @@ describe('ensureError', () => {
     expect(result.message).toBe('Unknown error (no details provided)');
   });
 
+  it('includes context in message when provided with undefined', () => {
+    const result = ensureError(undefined, 'PerpsConnectionProvider.connect');
+
+    expect(result).toBeInstanceOf(Error);
+    expect(result.message).toBe(
+      'Unknown error (no details provided) [PerpsConnectionProvider.connect]',
+    );
+  });
+
+  it('includes context in message when provided with null', () => {
+    const result = ensureError(null, 'PerpsStreamManager.prewarm');
+
+    expect(result).toBeInstanceOf(Error);
+    expect(result.message).toBe(
+      'Unknown error (no details provided) [PerpsStreamManager.prewarm]',
+    );
+  });
+
+  it('does not modify Error instance when context is provided', () => {
+    const originalError = new Error('Original error');
+
+    const result = ensureError(originalError, 'SomeContext');
+
+    expect(result).toBe(originalError);
+    expect(result.message).toBe('Original error');
+  });
+
+  it('does not include context for string errors', () => {
+    const result = ensureError('String error', 'SomeContext');
+
+    expect(result).toBeInstanceOf(Error);
+    expect(result.message).toBe('String error');
+  });
+
   it('converts object to Error with stringified object as message', () => {
     const obj = { code: 'ERROR_CODE', details: 'Some details' };
 

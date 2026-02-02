@@ -8,16 +8,18 @@
  * Converts unknown/string errors to proper Error instances.
  * Handles undefined/null specially for better Sentry context.
  * @param error - The caught error (could be Error, string, or unknown)
+ * @param context - Optional context string to help identify the source of the error
  * @returns A proper Error instance
  */
-export function ensureError(error: unknown): Error {
+export function ensureError(error: unknown, context?: string): Error {
   if (error instanceof Error) {
     return error;
   }
   // Handle undefined/null specifically for better error context
   // e.g. Hyperliquid SDK may reject with undefined when AbortSignal.reason is not set
   if (error === undefined || error === null) {
-    return new Error('Unknown error (no details provided)');
+    const baseMessage = 'Unknown error (no details provided)';
+    return new Error(context ? `${baseMessage} [${context}]` : baseMessage);
   }
   return new Error(String(error));
 }
