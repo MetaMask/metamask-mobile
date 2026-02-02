@@ -204,14 +204,15 @@ expect(element).not.toBeNull(); // Use toBeOnTheScreen() instead
 | `not.toBeNull()` | `not.toBeOnTheScreen()` or `queryByTestId` returning null |
 | `toHaveLength(1)` for single element | `toBeOnTheScreen()` |
 
-## Mocking Rules - MOCK WISELY, NOT EXCESSIVELY
+## Mocking Rules
+
+### General Mocking Guidelines
 
 - **Mock external boundaries** - APIs, native modules, third-party services
-- **Avoid over-mocking** - Don't mock internal utilities or simple functions unnecessarily
-- **Prefer real implementations** when they are fast, deterministic, and side-effect free
 - **NO** use of `require` - use ES6 imports only
 - **NO** use of `any` type - use proper TypeScript types
 - **Use realistic mock data** that reflects real usage
+- **Never mock the component under test** - only mock its external dependencies
 
 ### What to Mock
 
@@ -234,49 +235,18 @@ jest.mock('@react-navigation/native', () => ({
 }));
 ```
 
-### What NOT to Mock - CRITICAL
+## UI Component Testing - TestID Guidelines - CRITICAL
 
-```ts
-// ❌ NEVER mock @metamask/design-system-react-native
-// These components already provide testID support and should render in tests
-jest.mock('@metamask/design-system-react-native', () => ({
-  Box: 'View',      // ❌ WRONG - loses all testID functionality
-  Text: 'Text',     // ❌ WRONG - loses variant behavior
-  Button: 'Button', // ❌ WRONG - loses accessibility
-}));
+**NEVER mock `@metamask/design-system-react-native` or `app/component-library` components to inject testIDs.** These components already support testIDs through props and child prop objects.
 
-// ✅ CORRECT: Let design system components render naturally
-// They work in tests and provide testID props for selection
-render(<MyComponent testID="my-button" />);
-expect(screen.getByTestId('my-button')).toBeOnTheScreen();
+### Why This Matters
 
-// ❌ AVOID: Over-mocking simple utilities
-jest.mock('../utils/formatNumber'); // Usually unnecessary
-
-// ❌ AVOID: Mocking the component under test
-jest.mock('./MyComponent'); // Never mock what you're testing
-
-// ❌ AVOID: Mocking child components excessively
-jest.mock('./Button'); // Prefer rendering real children when possible
-
-// ✅ BETTER: Test with real child components for integration confidence
-render(<ParentComponent />); // Children render naturally
-```
-
-### Why NOT to Mock @metamask/design-system-react-native
-
-The design system library provides:
-- **Built-in testID support** on Box, Text, Button, etc.
+ALL `@metamask/design-system-react-native` and `app/component-library` components provide:
+- **Built-in testID support** via the `testID` prop
 - **Child prop objects** (`closeButtonProps`, `iconProps`, etc.) for passing testIDs to internal elements
-- **Proper accessibility attributes** for testing
-- **Consistent behavior** that tests should verify
+- This eliminates the need to mock components just to inject testIDs
 
-When you mock it:
-- Tests pass but don't verify real rendering behavior
-- testID props get lost, forcing fragile text-based queries
-- You're testing mocks, not your actual component
-- Maintenance burden: mocks must match real API changes
-- **You miss the child prop objects that already exist for testID injection**
+### The Problem: Mocking to Inject TestIDs
 
 ```tsx
 // ❌ BAD: 84+ test files in the codebase do this unnecessarily
@@ -309,14 +279,12 @@ render(<MyComponent />);
 expect(screen.getByTestId('modal-close-button')).toBeOnTheScreen();
 ```
 
-### Libraries That Should NOT Be Mocked
+### Libraries That Should NOT Be Mocked for TestID Injection
 
-| Library | Why |
-|---------|-----|
-| `@metamask/design-system-react-native` | Components support testID and child prop objects |
-| `@metamask/design-system-twrnc-preset` | useTailwind works in test environment |
-| `app/component-library/*` | Support testID and child prop objects (e.g., `closeButtonProps`) |
-| Simple utility functions | No side effects, fast execution |
+| Library | TestID Support |
+|---------|----------------|
+| `@metamask/design-system-react-native` | All components support `testID` prop and child prop objects |
+| `app/component-library/*` | All components support `testID` prop and child prop objects (e.g., `closeButtonProps`, `iconProps`) |
 
 ### Why These Mocks Are Coupled (Important Context)
 
@@ -330,12 +298,12 @@ Mocking `@metamask/design-system-react-native` creates a chain reaction that for
 
 **60+ test files** in the codebase mock both libraries together for this reason. The solution is to mock **neither** - they're designed to work together in tests.
 
-### Before You Mock, Ask These Questions
+### Before You Mock for TestIDs, Ask These Questions
 
-1. **Does the component have a `testID` prop?** → Use it directly
-2. **Does the component have child prop objects?** → Pass testID through them (e.g., `closeButtonProps={{ testID: '...' }}`)
-3. **Is this a design system or component-library component?** → It almost certainly supports both - DON'T MOCK
-4. **Am I mocking just to add a testID?** → STOP - find the prop object instead
+1. **Am I mocking just to add a testID?** → STOP - the component likely already supports testID
+2. **Does the component have a `testID` prop?** → Use it directly
+3. **Does the component have child prop objects?** → Pass testID through them (e.g., `closeButtonProps={{ testID: '...' }}`)
+4. **Is this from `@metamask/design-system-react-native` or `app/component-library`?** → It supports testID - DON'T MOCK
 
 ### Correct Mocking Pattern
 
@@ -564,8 +532,9 @@ expect(result).toBe(false);
 # Quality Checklist - MANDATORY
 
 Before submitting any test file, verify:
-- [ ] **No mocking of `@metamask/design-system-react-native`** - All components support testID
-- [ ] **No mocking of `app/component-library`** - All components support testID and child prop objects
+- [ ] **No mocking components to inject testIDs** - Use `testID` props and child prop objects instead
+- [ ] **No mocking of `@metamask/design-system-react-native` for testIDs** - All components support testID
+- [ ] **No mocking of `app/component-library` for testIDs** - All components support testID and child prop objects
 - [ ] **testIDs passed via child prop objects** - Use `closeButtonProps={{ testID }}` not mocks
 - [ ] **No "should" in any test name**
 - [ ] **All tests follow AAA pattern**
@@ -578,14 +547,13 @@ Before submitting any test file, verify:
 - [ ] **Elements selected by `testID`** - NOT fragile text queries
 - [ ] **Test names are descriptive**
 - [ ] **No test duplication**
-- [ ] **Mocking is minimal** - only external APIs/native modules, not UI components
 - [ ] **Async operations wrapped in act()** when they trigger state updates
 
 # Common Mistakes to AVOID - CRITICAL
 
 - ❌ **Mocking to inject testIDs** - Check for child prop objects first (`closeButtonProps`, `iconProps`, etc.)
-- ❌ **Mocking @metamask/design-system-react-native** - NEVER. Use real components with testID.
-- ❌ **Mocking component-library components** - They support testID via child prop objects
+- ❌ **Mocking @metamask/design-system-react-native for testIDs** - Components already support testID props
+- ❌ **Mocking component-library components for testIDs** - They support testID via child prop objects
 - ❌ **Using "should" in test names** - Use action-oriented descriptions
 - ❌ **Testing multiple behaviors in one test** - One test, one behavior
 - ❌ **Sharing state between tests** - Each test must be independent
@@ -595,19 +563,17 @@ Before submitting any test file, verify:
 - ❌ **Not testing edge cases** - Test null, undefined, empty values
 - ❌ **Using weak matchers** - Use `toBeOnTheScreen()` instead of `toBeTruthy()`/`toBeDefined()`
 - ❌ **Selecting elements by text** - Use `testID` props for reliable selection
-- ❌ **Over-mocking** - Only mock external boundaries, not internal utilities
 - ❌ **Not wrapping async state updates in act()** - Causes flaky "terminated" errors
 
 # Anti-patterns to Avoid
 
-- ❌ **NEVER mock `@metamask/design-system-react-native`** - ALL components support testID and child prop objects.
-- ❌ **NEVER mock `app/component-library` components** - ALL components support testID and child prop objects.
-- ❌ **NEVER mock to inject testIDs** - The capability already exists via child prop objects (`closeButtonProps`, etc.).
+- ❌ **NEVER mock `@metamask/design-system-react-native` to inject testIDs** - ALL components support testID props and child prop objects.
+- ❌ **NEVER mock `app/component-library` components to inject testIDs** - ALL components support testID props and child prop objects.
+- ❌ **NEVER mock components just to inject testIDs** - The capability already exists via child prop objects (`closeButtonProps`, etc.).
 - ❌ Do not consider snapshot coverage as functional coverage.
 - ❌ Do not rely on code coverage percentage without real assertions.
 - ❌ Do not use weak matchers like `toBeDefined` or `toBeTruthy` to assert element presence. Use `toBeOnTheScreen()`.
 - ❌ Do not select elements by text that might change (i18n keys, copy updates). Use `testID` props instead.
-- ❌ Do not over-mock internal utilities or child components. Prefer real implementations for better integration confidence.
 - ❌ Do not mock the component or function under test - only mock its external dependencies.
 
 ### Design System & Component Library Mocking - STRICTLY PROHIBITED
