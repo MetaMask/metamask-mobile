@@ -8,6 +8,8 @@ import { useMusdConversionEligibility } from './useMusdConversionEligibility';
 import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 import { useNetworksByCustomNamespace } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useRampTokens, RampsToken } from '../../Ramp/hooks/useRampTokens';
+import useRampsTokens from '../../Ramp/hooks/useRampsTokens';
+import useRampsUnifiedV2Enabled from '../../Ramp/hooks/useRampsUnifiedV2Enabled';
 import { MUSD_TOKEN_ASSET_ID_BY_CHAIN } from '../constants/musd';
 import { createMockToken } from '../../Stake/testUtils';
 import {
@@ -28,6 +30,8 @@ jest.mock('./useMusdConversionEligibility');
 jest.mock('../../../hooks/useCurrentNetworkInfo');
 jest.mock('../../../hooks/useNetworksByNamespace/useNetworksByNamespace');
 jest.mock('../../Ramp/hooks/useRampTokens');
+jest.mock('../../Ramp/hooks/useRampsTokens');
+jest.mock('../../Ramp/hooks/useRampsUnifiedV2Enabled');
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
@@ -58,6 +62,13 @@ const mockUseNetworksByCustomNamespace =
 const mockUseRampTokens = useRampTokens as jest.MockedFunction<
   typeof useRampTokens
 >;
+const mockUseRampsTokens = useRampsTokens as jest.MockedFunction<
+  typeof useRampsTokens
+>;
+const mockUseRampsUnifiedV2Enabled =
+  useRampsUnifiedV2Enabled as jest.MockedFunction<
+    typeof useRampsUnifiedV2Enabled
+  >;
 const mockUseMusdConversionTokens =
   useMusdConversionTokens as jest.MockedFunction<
     typeof useMusdConversionTokens
@@ -177,6 +188,14 @@ describe('useMusdCtaVisibility', () => {
     mockUseNetworksByCustomNamespace.mockReturnValue(
       defaultNetworksByNamespace,
     );
+    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
+    mockUseRampsTokens.mockReturnValue({
+      tokens: null,
+      selectedToken: null,
+      setSelectedToken: jest.fn(),
+      isLoading: false,
+      error: null,
+    });
     mockUseRampTokens.mockReturnValue(defaultRampTokens);
     mockUseMusdConversionTokens.mockReturnValue({
       tokens: [],
