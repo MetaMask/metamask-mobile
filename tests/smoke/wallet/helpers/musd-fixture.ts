@@ -1,14 +1,11 @@
 import FixtureBuilder, {
   type MusdFixtureOptions,
-} from '../../../../tests/framework/fixtures/FixtureBuilder';
+} from '../../../framework/fixtures/FixtureBuilder';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
-import { AnvilPort } from '../../../../tests/framework/fixtures/FixtureUtils';
-import { AnvilManager } from '../../../../tests/seeder/anvil-manager';
-import {
-  USDC_MAINNET,
-  MUSD_MAINNET,
-} from '../../../../tests/constants/musd-mainnet';
+import { AnvilPort } from '../../../framework/fixtures/FixtureUtils';
+import { AnvilManager } from '../../../seeder/anvil-manager';
+import { USDC_MAINNET, MUSD_MAINNET } from '../../../constants/musd-mainnet';
 
 const USDC_DECIMALS = 6;
 const MUSD_DECIMALS = 6;

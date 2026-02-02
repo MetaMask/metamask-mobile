@@ -96,7 +96,6 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
           }
         },
         {
-          checkBalance: true,
           attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
         },
       );

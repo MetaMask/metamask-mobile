@@ -1,4 +1,3 @@
-import { colors } from '@metamask/design-tokens';
 import { GraphOptions } from './InteractiveTimespanChart.types';
 import { ChartButton } from './ChartTimespanButtonGroup/ChartTimespanButtonGroup.types';
 import { strings } from '../../../../../../../locales/i18n';
@@ -18,11 +17,10 @@ export const CHART_BUTTONS: ChartButton[] = [
 
 const DEFAULT_INSET = 0;
 
-export const DEFAULT_GRAPH_OPTIONS: GraphOptions = {
+export const DEFAULT_GRAPH_OPTIONS: Omit<GraphOptions, 'color'> = {
   insetTop: DEFAULT_INSET,
   insetRight: DEFAULT_INSET,
   insetBottom: DEFAULT_INSET,
   insetLeft: DEFAULT_INSET,
   timespanButtons: CHART_BUTTONS,
-  color: colors.light.success.default,
 };
