@@ -129,6 +129,24 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingBottom: 8,
       marginBottom: 0,
     },
+    // Positions header - always at top: 24px/4px
+    positionsHeader: {
+      paddingTop: 24,
+      paddingBottom: 4,
+      marginBottom: 0,
+    },
+    // Orders header: at top (no positions) - 24px/4px
+    ordersHeaderAtTop: {
+      paddingTop: 24,
+      paddingBottom: 4,
+      marginBottom: 0,
+    },
+    // Orders header: below positions - 20px/8px
+    ordersHeaderBelowPositions: {
+      paddingTop: 20,
+      paddingBottom: 8,
+      marginBottom: 0,
+    },
     exploreMarketRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
