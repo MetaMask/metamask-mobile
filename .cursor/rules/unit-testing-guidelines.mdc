@@ -204,83 +204,53 @@ expect(element).not.toBeNull(); // Use toBeOnTheScreen() instead
 | `not.toBeNull()` | `not.toBeOnTheScreen()` or `queryByTestId` returning null |
 | `toHaveLength(1)` for single element | `toBeOnTheScreen()` |
 
-## UI Component TestID Guidelines - DO NOT MOCK FOR TESTIDS
+## Mocking Rules - CRITICAL
 
-**CRITICAL: Never mock `@metamask/design-system-react-native` or `app/component-library` components just to inject testIDs.**
+### Exception: UI Components and TestIDs
 
-### The Rule
-
-All design system and component library components already support testIDs through:
+**NEVER mock `@metamask/design-system-react-native` or `app/component-library` components to inject testIDs.** All these components support testIDs via:
 - Direct `testID` prop on the component
 - Child prop objects (`closeButtonProps`, `iconProps`, etc.) for internal elements
 
-### Example: The Wrong Way vs The Right Way
-
 ```tsx
-// ❌ WRONG: 30+ lines of mock code to inject a testID
-jest.mock('BottomSheetHeader', () => {
-  return ({ onClose }) => (
-    <TouchableOpacity testID="close-button" onPress={onClose}>Close</TouchableOpacity>
-  );
-});
+// ❌ WRONG: Mocking to inject testID
+jest.mock('BottomSheetHeader', () => ({ onClose }) => (
+  <TouchableOpacity testID="close-button" onPress={onClose}>Close</TouchableOpacity>
+));
 
-// ✅ RIGHT: Use the component's built-in API
+// ✅ RIGHT: Use child prop objects
 <BottomSheetHeader
   onClose={handleClose}
   closeButtonProps={{ testID: 'modal-close-button' }}
 />
 ```
 
-### Quick Check Before Mocking
+See [PR #25548](https://github.com/MetaMask/metamask-mobile/pull/25548) for refactoring example.
 
-**Am I mocking just to add a testID?** → STOP
-- Check if component has `testID` prop → use it directly
-- Check if component has child prop objects → pass testID through them
-- From `@metamask/design-system-react-native` or `app/component-library`? → It supports testID
+### General Mocking Rules
 
-### Common Child Prop Objects
-
-```tsx
-// Most component-library components support these patterns:
-<Component
-  testID="component-id"                              // Main component
-  closeButtonProps={{ testID: 'close-btn' }}        // Close button
-  backButtonProps={{ testID: 'back-btn' }}          // Back button
-  iconProps={{ testID: 'icon' }}                    // Icons
-  startAccessoryProps={{ testID: 'start' }}         // Start accessory
-  endAccessoryProps={{ testID: 'end' }}             // End accessory
-/>
-```
-
-**See [PR #25548](https://github.com/MetaMask/metamask-mobile/pull/25548) for a complete refactoring example (eliminated 133 lines of unnecessary mocks).**
-
-## Mocking Rules
-
-### What to Mock
-
-```ts
-// ✅ MOCK: External APIs and services
-jest.mock('../services/api');
-
-// ✅ MOCK: Native modules and platform-specific code
-jest.mock('react-native-keychain');
-
-// ✅ MOCK: Non-deterministic functions
-jest.useFakeTimers();
-
-// ✅ MOCK: Navigation and routing
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ navigate: mockNavigate }),
-}));
-```
-
-### General Guidelines
-
-- **Mock external boundaries** - APIs, native modules, third-party services
-- **Never mock the component under test** - only mock its external dependencies
+- **EVERYTHING not under test MUST be mocked** - no exceptions
 - **NO** use of `require` - use ES6 imports only
 - **NO** use of `any` type - use proper TypeScript types
+- **Mock all external dependencies** including APIs, services, hooks
 - **Use realistic mock data** that reflects real usage
+
+```ts
+// ✅ CORRECT
+import { apiService } from '../services/api';
+jest.mock('../services/api');
+const mockApiService = apiService as jest.Mocked<typeof apiService>;
+
+interface MockEvent {
+  type: EventType;
+  event: string;
+  timestamp: string;
+}
+
+// ❌ WRONG
+const mockApi = require('../services/api'); // ❌ no require
+const mockApi: any = jest.fn();             // ❌ no any type
+```
 
 ## Test Isolation and Focus - MANDATORY
 
