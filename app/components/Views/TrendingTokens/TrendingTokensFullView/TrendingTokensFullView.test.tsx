@@ -35,7 +35,6 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
-  __esModule: true,
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
@@ -48,15 +47,6 @@ const mockUseTrendingRequest = jest.mocked(useTrendingRequest);
 
 jest.mock('../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch');
 const mockUseTrendingSearch = jest.mocked(useTrendingSearch);
-
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => {
-    // Returns a tagged template literal function with a style method
-    const tw = () => ({});
-    tw.style = () => ({});
-    return tw;
-  },
-}));
 
 jest.mock(
   '../../../UI/Trending/components/TrendingTokensList/TrendingTokensList',
