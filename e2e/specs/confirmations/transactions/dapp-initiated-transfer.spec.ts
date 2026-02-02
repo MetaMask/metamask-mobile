@@ -1,4 +1,4 @@
-import { SmokeConfirmationsRedesigned } from '../../../tags';
+import { SmokeConfirmations } from '../../../tags';
 import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
 import Browser from '../../../pages/Browser/BrowserView';
 import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
@@ -55,7 +55,7 @@ const expectedEventNames = [
   expectedEvents.TRANSACTION_FINALIZED,
 ];
 
-describe.skip(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
+describe.skip(SmokeConfirmations('DApp Initiated Transfer'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     await setupMockPostRequest(
       mockServer,

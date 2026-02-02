@@ -6,7 +6,7 @@ import { withMultichainAccountDetailsV2EnabledFixtures } from '../multichain-acc
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails.js';
 import AddressList from '../../pages/MultichainAccounts/AddressList.js';
 import { defaultGanacheOptions } from '../../../tests/framework/Constants.js';
-import { completeSrpQuiz } from '../multisrp/utils.js';
+import { completeSrpQuiz } from '../../../tests/flows/accounts.flow.js';
 
 // Quarantining, See open ticket here: https://github.com/MetaMask/metamask-mobile/issues/21429
 describe(SmokeAccounts('Create wallet accounts'), () => {

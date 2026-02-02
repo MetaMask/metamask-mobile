@@ -1,5 +1,11 @@
 import React, { ReactNode, useEffect } from 'react';
-import { BackHandler, TouchableWithoutFeedback, View } from 'react-native';
+import {
+  BackHandler,
+  StyleProp,
+  TouchableWithoutFeedback,
+  View,
+  ViewStyle,
+} from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 
@@ -36,6 +42,7 @@ const TRANSACTION_TYPES_DISABLE_SCROLL = [TransactionType.predictClaim];
 
 const TRANSACTION_TYPES_DISABLE_ALERT_BANNER = [
   TransactionType.perpsDeposit,
+  TransactionType.perpsDepositAndOrder,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
 ];
@@ -95,14 +102,25 @@ const ConfirmWrapped = ({
 
 interface ConfirmProps {
   route?: UnstakeConfirmationViewProps['route'];
+  /** When true, disables SafeAreaView insets when confirmation is full screen. Defaults to false. */
+  disableSafeArea?: boolean;
+  /** Optional style applied to the full-screen confirmation container. */
+  fullscreenStyle?: StyleProp<ViewStyle>;
 }
 
-export const Confirm = ({ route }: ConfirmProps) => {
+export const Confirm = ({
+  route,
+  disableSafeArea = false,
+  fullscreenStyle,
+}: ConfirmProps) => {
   const { approvalRequest } = useApprovalRequest();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const navigation = useNavigation();
   const { onReject } = useConfirmActions();
-  const { styles } = useStyles(styleSheet, { isFullScreenConfirmation });
+  const { styles } = useStyles(styleSheet, {
+    isFullScreenConfirmation,
+    disableSafeArea,
+  });
 
   useEffect(() => {
     if (approvalRequest) {
@@ -143,8 +161,8 @@ export const Confirm = ({ route }: ConfirmProps) => {
   if (isFullScreenConfirmation) {
     return (
       <SafeAreaView
-        edges={['right', 'bottom', 'left']}
-        style={styles.flatContainer}
+        edges={disableSafeArea ? [] : ['right', 'bottom', 'left']}
+        style={[styles.flatContainer, fullscreenStyle]}
         testID={ConfirmationUIType.FLAT}
       >
         <ConfirmWrapped styles={styles} route={route} />

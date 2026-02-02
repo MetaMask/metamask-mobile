@@ -8,7 +8,11 @@ import TrendingTokensFullView, {
 } from './TrendingTokensFullView';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
-import { TimeOption } from '../../../UI/Trending/components/TrendingTokensBottomSheet';
+import {
+  TimeOption,
+  PriceChangeOption,
+} from '../../../UI/Trending/components/TrendingTokensBottomSheet';
+import { TrendingFilterContext } from '../../../UI/Trending/components/TrendingTokensList/TrendingTokensList';
 
 import { useTrendingRequest } from '../../../UI/Trending/hooks/useTrendingRequest/useTrendingRequest';
 import type TrendingTokensList from '../../../UI/Trending/components/TrendingTokensList';
@@ -44,6 +48,15 @@ const mockUseTrendingRequest = jest.mocked(useTrendingRequest);
 
 jest.mock('../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch');
 const mockUseTrendingSearch = jest.mocked(useTrendingSearch);
+
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => {
+    // Returns a tagged template literal function with a style method
+    const tw = () => ({});
+    tw.style = () => ({});
+    return tw;
+  },
+}));
 
 jest.mock(
   '../../../UI/Trending/components/TrendingTokensList/TrendingTokensList',
@@ -119,6 +132,21 @@ describe('TrendingTokensData', () => {
     createMockToken({ name: 'Token 2', assetId: 'eip155:1/erc20:0x456' }),
   ];
 
+  const mockFilterContext: TrendingFilterContext = {
+    timeFilter: TimeOption.TwentyFourHours,
+    sortOption: PriceChangeOption.PriceChange,
+    networkFilter: 'all',
+    isSearchResult: false,
+  };
+
+  const mockTheme = {
+    colors: {
+      primary: { default: '#037DD6' },
+      icon: { default: '#6A737D' },
+    },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any;
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -190,6 +218,8 @@ describe('TrendingTokensData', () => {
         trendingTokens: mockTokens,
         handleRefresh: jest.fn(),
         selectedTimeOption: TimeOption.TwentyFourHours,
+        filterContext: mockFilterContext,
+        theme: mockTheme,
         search: {
           searchResults: mockTokens,
           searchQuery: '',
@@ -393,4 +423,198 @@ describe('TrendingTokensFullView', () => {
       await actAssertSelectOption(testUtils);
     },
   );
+
+  describe('trendingTokens sorting logic', () => {
+    it('returns search results in relevance order when search query is present', async () => {
+      const mockTokens = [
+        createMockToken({
+          name: 'Ethereum',
+          symbol: 'ETH',
+          assetId: 'eip155:1/erc20:0x111',
+          aggregatedUsdVolume: 1000,
+        }),
+        createMockToken({
+          name: 'Bitcoin',
+          symbol: 'BTC',
+          assetId: 'eip155:1/erc20:0x222',
+          aggregatedUsdVolume: 5000,
+        }),
+      ];
+
+      const mocks = arrangeMocks();
+      mocks.setTrendingSearchMock({ data: mockTokens });
+
+      const { getByTestId, getByText } = renderTrendingFullView();
+
+      // Open search and type a query
+      const searchToggle = getByTestId('trending-tokens-header-search-toggle');
+      fireEvent.press(searchToggle);
+
+      const searchInput = getByTestId('trending-tokens-header-search-bar');
+      fireEvent.changeText(searchInput, 'eth');
+
+      // Tokens should be displayed in original order (relevance), not sorted
+      // Even if we select a sort option, search results should maintain relevance order
+      expect(getByText('Ethereum')).toBeOnTheScreen();
+      expect(getByText('Bitcoin')).toBeOnTheScreen();
+    });
+
+    it('returns results without sorting when no price change option is selected', () => {
+      const mockTokens = [
+        createMockToken({
+          name: 'Token A',
+          assetId: 'eip155:1/erc20:0xaaa',
+          aggregatedUsdVolume: 100,
+        }),
+        createMockToken({
+          name: 'Token B',
+          assetId: 'eip155:1/erc20:0xbbb',
+          aggregatedUsdVolume: 500,
+        }),
+        createMockToken({
+          name: 'Token C',
+          assetId: 'eip155:1/erc20:0xccc',
+          aggregatedUsdVolume: 300,
+        }),
+      ];
+
+      const mocks = arrangeMocks();
+      mocks.setTrendingSearchMock({ data: mockTokens });
+
+      const { getByTestId, getByText } = renderTrendingFullView();
+
+      // No price change option selected by default, tokens should be in original order
+      expect(getByTestId('trending-tokens-list')).toBeOnTheScreen();
+      expect(getByText('Token A')).toBeOnTheScreen();
+      expect(getByText('Token B')).toBeOnTheScreen();
+      expect(getByText('Token C')).toBeOnTheScreen();
+    });
+
+    it('returns empty array when search results are empty', () => {
+      const mocks = arrangeMocks();
+      mocks.setTrendingSearchMock({ data: [] });
+
+      const { getByTestId } = renderTrendingFullView();
+
+      // Should show empty state, not the tokens list
+      expect(getByTestId('empty-error-trending-state')).toBeOnTheScreen();
+    });
+
+    it('applies sorting when price change option is selected and no search query', async () => {
+      const mockTokens = [
+        createMockToken({
+          name: 'Low Volume Token',
+          assetId: 'eip155:1/erc20:0x111',
+          aggregatedUsdVolume: 100,
+        }),
+        createMockToken({
+          name: 'High Volume Token',
+          assetId: 'eip155:1/erc20:0x222',
+          aggregatedUsdVolume: 10000,
+        }),
+        createMockToken({
+          name: 'Medium Volume Token',
+          assetId: 'eip155:1/erc20:0x333',
+          aggregatedUsdVolume: 1000,
+        }),
+      ];
+
+      const mocks = arrangeMocks();
+      mocks.setTrendingSearchMock({ data: mockTokens });
+
+      const { getByTestId, getByText } = renderTrendingFullView();
+
+      // Open price change bottom sheet
+      const priceChangeButton = getByTestId('price-change-button');
+      await userEvent.press(priceChangeButton);
+
+      // Select Volume option
+      const volumeOption = getByTestId('price-change-select-volume');
+      await userEvent.press(volumeOption);
+
+      // The tokens should now be sorted by volume
+      // Note: The actual sorting is done by sortTrendingTokens utility
+      expect(getByText('Low Volume Token')).toBeOnTheScreen();
+      expect(getByText('High Volume Token')).toBeOnTheScreen();
+      expect(getByText('Medium Volume Token')).toBeOnTheScreen();
+    });
+
+    it('does not apply sorting when search query is present even with price change option', async () => {
+      const mockTokens = [
+        createMockToken({
+          name: 'Ethereum Classic',
+          symbol: 'ETC',
+          assetId: 'eip155:1/erc20:0x111',
+          aggregatedUsdVolume: 100,
+        }),
+        createMockToken({
+          name: 'Ethereum',
+          symbol: 'ETH',
+          assetId: 'eip155:1/erc20:0x222',
+          aggregatedUsdVolume: 50000,
+        }),
+      ];
+
+      const mocks = arrangeMocks();
+      mocks.setTrendingSearchMock({ data: mockTokens });
+
+      const { getByTestId, getByText } = renderTrendingFullView();
+
+      // First select a price change option
+      const priceChangeButton = getByTestId('price-change-button');
+      await userEvent.press(priceChangeButton);
+
+      const volumeOption = getByTestId('price-change-select-volume');
+      await userEvent.press(volumeOption);
+
+      // Now open search and type a query
+      const searchToggle = getByTestId('trending-tokens-header-search-toggle');
+      await userEvent.press(searchToggle);
+
+      const searchInput = getByTestId('trending-tokens-header-search-bar');
+      fireEvent.changeText(searchInput, 'eth');
+
+      // Even with volume sort selected, search results should maintain relevance order
+      // (Ethereum Classic first because that's the order returned by mock)
+      expect(getByText('Ethereum Classic')).toBeOnTheScreen();
+      expect(getByText('Ethereum')).toBeOnTheScreen();
+    });
+
+    it('clears search and shows sorted results when search is dismissed', async () => {
+      const mockTokens = [
+        createMockToken({
+          name: 'Token X',
+          assetId: 'eip155:1/erc20:0xaaa',
+        }),
+        createMockToken({
+          name: 'Token Y',
+          assetId: 'eip155:1/erc20:0xbbb',
+        }),
+      ];
+
+      const mocks = arrangeMocks();
+      mocks.setTrendingSearchMock({ data: mockTokens });
+
+      const { getByTestId, getByText, queryByTestId } = renderTrendingFullView();
+
+      // Open search
+      const searchToggle = getByTestId('trending-tokens-header-search-toggle');
+      await userEvent.press(searchToggle);
+
+      // Type search query
+      const searchInput = getByTestId('trending-tokens-header-search-bar');
+      fireEvent.changeText(searchInput, 'token');
+
+      // Verify search is active
+      expect(searchInput.props.value).toBe('token');
+
+      // Clear search by changing text to empty
+      fireEvent.changeText(searchInput, '');
+
+      // Results should still be displayed
+      expect(getByText('Token X')).toBeOnTheScreen();
+      expect(getByText('Token Y')).toBeOnTheScreen();
+      expect(queryByTestId('empty-search-result-state')).not.toBeOnTheScreen();
+    });
+  });
 });

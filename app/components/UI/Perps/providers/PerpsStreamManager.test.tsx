@@ -2683,4 +2683,20 @@ describe('PerpsStreamManager', () => {
       pricesDisconnect.mockRestore();
     });
   });
+
+  describe('Deposit Handler Management', () => {
+    it('sets active deposit handler state', () => {
+      expect(testStreamManager.hasActiveDepositHandler()).toBe(false);
+
+      testStreamManager.setActiveDepositHandler(true);
+      expect(testStreamManager.hasActiveDepositHandler()).toBe(true);
+
+      testStreamManager.setActiveDepositHandler(false);
+      expect(testStreamManager.hasActiveDepositHandler()).toBe(false);
+    });
+
+    it('returns false by default when no active deposit handler is set', () => {
+      expect(testStreamManager.hasActiveDepositHandler()).toBe(false);
+    });
+  });
 });

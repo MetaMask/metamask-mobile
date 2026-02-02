@@ -68,10 +68,7 @@ import {
   getRequestedCaip25CaveatValue,
   mergeCaip25Values,
 } from '../../AccountConnect/utils.ts';
-import {
-  getPhishingTestResultAsync,
-  isProductSafetyDappScanningEnabled,
-} from '../../../../util/phishingDetection.ts';
+import { getPhishingTestResultAsync } from '../../../../util/phishingDetection.ts';
 import {
   CaipAccountId,
   CaipChainId,
@@ -523,7 +520,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     let url = dappUrl || channelIdOrHostname || '';
 
     const checkOrigin = async () => {
-      if (isProductSafetyDappScanningEnabled() && !isSnapId(url)) {
+      if (!isSnapId(url)) {
         url = prefixUrlWithProtocol(url);
       }
       const scanResult = await getPhishingTestResultAsync(url);
