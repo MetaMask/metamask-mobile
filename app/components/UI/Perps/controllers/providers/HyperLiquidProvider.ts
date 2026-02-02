@@ -12,6 +12,7 @@ import {
   HIP3_FEE_CONFIG,
   HIP3_MARGIN_CONFIG,
   HYPERLIQUID_WITHDRAWAL_MINUTES,
+  MAINNET_HIP3_CONFIG,
   REFERRAL_CONFIG,
   TESTNET_HIP3_CONFIG,
   TRADING_DEFAULTS,
@@ -820,9 +821,53 @@ export class HyperLiquidProvider implements IPerpsProvider {
         'HyperLiquidProvider: Testnet - AUTO_DISCOVER_ALL enabled, using all DEXs',
         { totalDexCount: availableHip3Dexs.length + 1 },
       );
+    } else {
+      // Mainnet-specific filtering: Extract allowed DEXs from the allowlist patterns
+      // This reduces WebSocket subscription overhead dynamically based on feature flags
+      const { AutoDiscoverAll } = MAINNET_HIP3_CONFIG;
+
+      if (!AutoDiscoverAll) {
+        // Extract unique DEX names from allowlist patterns
+        // Patterns like "xyz:*", "xyz:TSLA", or "xyz" all indicate DEX "xyz"
+        const allowedDexsFromAllowlist = this.extractDexsFromAllowlist();
+
+        if (allowedDexsFromAllowlist.length === 0) {
+          // No HIP-3 DEXs in allowlist - main DEX only
+          this.deps.debugLogger.log(
+            'HyperLiquidProvider: Mainnet - using main DEX only (no HIP-3 DEXs in allowlist)',
+            {
+              availableHip3Dexs: availableHip3Dexs.length,
+              allowlistMarkets: this.allowlistMarkets,
+            },
+          );
+          this.cachedValidatedDexs = [null];
+          return this.cachedValidatedDexs;
+        }
+
+        // Filter to DEXs that are both available AND in the allowlist
+        const filteredDexs = availableHip3Dexs.filter((dex) =>
+          allowedDexsFromAllowlist.includes(dex),
+        );
+        this.deps.debugLogger.log(
+          'HyperLiquidProvider: Mainnet - filtered to allowlist DEXs',
+          {
+            allowedDexsFromAllowlist,
+            filteredDexs,
+            availableHip3Dexs: availableHip3Dexs.length,
+          },
+        );
+        this.cachedValidatedDexs = [null, ...filteredDexs];
+        return this.cachedValidatedDexs;
+      }
+
+      // AUTO_DISCOVER_ALL is true - proceed with all DEXs
+      this.deps.debugLogger.log(
+        'HyperLiquidProvider: Mainnet - AUTO_DISCOVER_ALL enabled, using all DEXs',
+        { totalDexCount: availableHip3Dexs.length + 1 },
+      );
     }
 
-    // Mainnet (or testnet with AUTO_DISCOVER_ALL): Return all DEXs
+    // Fallback: Return all DEXs (when AUTO_DISCOVER_ALL is true)
     // Market filtering is applied at subscription data layer
     this.deps.debugLogger.log(
       'HyperLiquidProvider: All DEXs enabled (market filtering at data layer)',
@@ -834,6 +879,41 @@ export class HyperLiquidProvider implements IPerpsProvider {
     );
     this.cachedValidatedDexs = [null, ...availableHip3Dexs];
     return this.cachedValidatedDexs;
+  }
+
+  /**
+   * Extract unique DEX names from allowlist market patterns
+   * Patterns can be: "xyz:*" (wildcard), "xyz:TSLA" (exact), or "xyz" (DEX shorthand)
+   *
+   * @returns Array of unique DEX names from the allowlist
+   */
+  private extractDexsFromAllowlist(): string[] {
+    if (this.allowlistMarkets.length === 0) {
+      return [];
+    }
+
+    const dexNames = new Set<string>();
+
+    for (const pattern of this.allowlistMarkets) {
+      // Pattern formats:
+      // - "xyz:*" -> DEX "xyz" (wildcard)
+      // - "xyz:TSLA" -> DEX "xyz" (exact match)
+      // - "xyz" -> DEX "xyz" (shorthand)
+      const colonIndex = pattern.indexOf(':');
+      if (colonIndex > 0) {
+        // Has colon - extract DEX prefix
+        const dex = pattern.substring(0, colonIndex);
+        dexNames.add(dex);
+      } else if (pattern.length > 0 && !pattern.includes('*')) {
+        // No colon and not a wildcard - could be DEX shorthand
+        // Only add if it looks like a valid DEX name (lowercase alphanumeric)
+        if (/^[a-z][a-z0-9]*$/i.test(pattern)) {
+          dexNames.add(pattern.toLowerCase());
+        }
+      }
+    }
+
+    return Array.from(dexNames);
   }
 
   /**

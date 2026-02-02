@@ -336,8 +336,6 @@ export const HIP3_ASSET_MARKET_TYPES: Record<
  * On testnet, there are many HIP-3 DEXs (test deployments from various builders).
  * Subscribing to all of them causes connection/subscription overload and instability.
  * This configuration limits which DEXs are discovered and subscribed to on testnet.
- *
- * On mainnet, full DEX discovery continues unchanged.
  */
 export const TESTNET_HIP3_CONFIG = {
   /**
@@ -352,6 +350,25 @@ export const TESTNET_HIP3_CONFIG = {
    * When false, only DEXs in ENABLED_DEXS are used
    */
   AUTO_DISCOVER_ALL: false,
+} as const;
+
+/**
+ * Mainnet-specific HIP-3 DEX configuration
+ *
+ * On mainnet, DEX filtering is dynamically determined from the allowlist markets
+ * feature flag. This avoids hardcoding DEX names and ensures consistency with
+ * the market filtering logic.
+ *
+ * When AutoDiscoverAll is false and no allowlist is provided, only the main DEX is used.
+ * When an allowlist is provided, DEXs are extracted from the allowlist patterns.
+ */
+export const MAINNET_HIP3_CONFIG = {
+  /**
+   * Set to true to enable full HIP-3 discovery on mainnet
+   * When false, DEXs are filtered based on the allowlist markets feature flag
+   * (recommended for production to reduce subscription overhead)
+   */
+  AutoDiscoverAll: false,
 } as const;
 
 /**
