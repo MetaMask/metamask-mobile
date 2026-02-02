@@ -4652,7 +4652,9 @@
     "select_provider": "Select your preferred provider",
     "switch_network": "Please switch to mainnet or sepolia",
     "card_title": "Always show MetaMask Card button",
-    "card_desc": "MetaMask Card is only available to residents of select countries."
+    "card_desc": "MetaMask Card is only available to residents of select countries.",
+    "daimo_demo_title": "Use DaimoPay demo environment",
+    "daimo_demo_desc": "Toggle between DaimoPay demo and production environments for card payments."
   },
   "walletconnect_sessions": {
     "no_active_sessions": "You have no active sessions",
@@ -6723,20 +6725,18 @@
     "card_onboarding": {
       "title": "Spend\nand Earn",
       "description": "The MetaMask Card is the fast and\neasy way to spend your crypto and\nearn up to 3% cashback.",
-      "apply_now_button": "Apply now",
+      "apply_now_button": "Setup now",
       "login_button": "Log in",
       "not_now_button": "Not now",
       "sign_up": {
         "title": "Let's get started",
-        "description": "Create your MetaMask Card account, provided by Crypto Life. This will be separate from your MetaMask account.",
-        "i_already_have_an_account": "I already have an account",
-        "email_label": "Email",
-        "password_label": "Password",
-        "password_placeholder": "Must be 15+ characters long",
-        "confirm_password_label": "Confirm password",
+        "description": "Create an account with Crypto Life (CL) to set up your MetaMask Card. MetaMask does not see or store your personal data.",
+        "i_already_have_an_account": "I already have a MetaMask Card",
+        "email_label": "Email address",
+        "password_label": "New password for MetaMask Card",
+        "password_description": "Different from your MetaMask app unlock password. Must be at least 15 characters long.",
         "country_label": "Country of residence",
         "country_placeholder": "Select your country",
-        "password_mismatch": "Passwords must match",
         "invalid_email": "Invalid email address",
         "invalid_password": "Password must be 15+ characters long. It cannot contain non-printable characters or consecutive spaces."
       },
