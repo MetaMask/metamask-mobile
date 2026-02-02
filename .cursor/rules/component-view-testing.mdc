@@ -39,9 +39,9 @@ Follow these rules for all component-view tests. Nested, component-specific rule
   - Use yarn only (no npm/npx).
 
 - **References**
-  - Component-view framework guide: `app/util/test/component-view/README.md`
+  - Component-view framework guide: `docs/readme/component-testing.md`
   - Detailed rules: `app/util/test/component-view/COMPONENT_VIEW_TEST_RULES.md`
   - Cursor authoring rules: [Cursor Context Rules](https://cursor.com/docs/context/rules)
 
-@app/util/test/component-view/README.md
+@docs/readme/component-testing.md
 @app/util/test/component-view/COMPONENT_VIEW_TEST_RULES.md
