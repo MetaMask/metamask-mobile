@@ -21,32 +21,20 @@ describe(SmokeNetworkExpansion('Tron Connect E2E - Connect'), () => {
       await connectTronTestDapp();
 
       // Verify we are connected
-      const account = await TronTestDApp.getAccount();
-      await Assertions.checkIfTextMatches(account, account1Short);
-      const connectionStatus = await TronTestDApp.getConnectionStatus();
-      await Assertions.checkIfTextMatches(connectionStatus, 'Connected');
+      await TronTestDApp.verifyConnectedAccount(account1Short);
+      await TronTestDApp.verifyConnectionStatus('Connected');
 
       // 2. Disconnect
       await TronTestDApp.disconnect();
 
       // Verify we are disconnected
-      const connectionStatusAfterDisconnect =
-        await TronTestDApp.getConnectionStatus();
-      await Assertions.checkIfTextMatches(
-        connectionStatusAfterDisconnect,
-        'Not connected',
-      );
+      await TronTestDApp.verifyConnectionStatus('Not connected');
 
       // 3. Connect again
       await connectTronTestDapp();
 
       // Verify we are connected again
-      const connectionStatusAfterConnect =
-        await TronTestDApp.getConnectionStatus();
-      await Assertions.checkIfTextMatches(
-        connectionStatusAfterConnect,
-        'Connected',
-      );
+      await TronTestDApp.verifyConnectionStatus('Connected');
     });
   });
 

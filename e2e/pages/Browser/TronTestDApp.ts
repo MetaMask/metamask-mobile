@@ -6,7 +6,7 @@ import Browser from './BrowserView';
 import Gestures from '../../../tests/framework/Gestures';
 import { waitFor } from 'detox';
 import { TronTestDappSelectorsWebIDs } from '../../selectors/Browser/TronTestDapp.selectors';
-import Assertions from '../../../tests/framework/Assertions';
+import Utilities, { BASE_DEFAULTS } from '../../../tests/framework/Utilities';
 
 /**
  * Get a test element by data-testid
@@ -112,20 +112,48 @@ class TronTestDApp {
     await this.tapButton(this.walletButtonSelector);
   }
 
-  async getConnectionStatus(): Promise<string> {
-    const connectionStatusDiv = await getTestElement(
-      dataTestIds.testPage.header.connectionStatus,
+  async verifyConnectionStatus(connectionStatus: string): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        const connectionStatusDiv = await getTestElement(
+          dataTestIds.testPage.header.connectionStatus,
+        );
+        const actualText = await connectionStatusDiv.getText();
+
+        if (actualText !== connectionStatus) {
+          throw new Error(
+            `Expected text containing "${connectionStatus}" but got "${actualText}"`,
+          );
+        }
+      },
+      {
+        timeout: BASE_DEFAULTS.timeout,
+        description: 'Verify connection status',
+      },
     );
-    return await connectionStatusDiv.getText();
   }
 
-  async verifyConnectionStatus(connectionStatus: string): Promise<void> {
-    const connectionStatusDiv = await getTestElement(
-      dataTestIds.testPage.header.connectionStatus,
-    );
-    await Assertions.expectWebElementToHaveText(
-      connectionStatusDiv,
-      connectionStatus,
+  async verifyConnectedAccount(connectionStatus: string): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        const account = await getTestElement(
+          dataTestIds.testPage.header.account,
+          {
+            extraXPath: '/div/a',
+          },
+        );
+        const actualText = await account.getText();
+
+        if (actualText !== connectionStatus) {
+          throw new Error(
+            `Expected text containing "${connectionStatus}" but got "${actualText}"`,
+          );
+        }
+      },
+      {
+        timeout: BASE_DEFAULTS.timeout,
+        description: 'Verify connection status',
+      },
     );
   }
 

@@ -22,10 +22,8 @@ describe(SmokeNetworkExpansion('Tron Connect E2E - Sign message'), () => {
       await connectTronTestDapp();
 
       // Verify we are connected
-      const account = await TronTestDApp.getAccount();
-      await Assertions.checkIfTextMatches(account, account1Short);
-      const connectionStatus = await TronTestDApp.getConnectionStatus();
-      await Assertions.checkIfTextMatches(connectionStatus, 'Connected');
+      await TronTestDApp.verifyConnectedAccount(account1Short);
+      await TronTestDApp.verifyConnectionStatus('Connected');
 
       // 2. Sign a message
       await TronTestDApp.signMessage();

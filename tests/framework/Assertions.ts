@@ -103,34 +103,6 @@ export default class Assertions {
     );
   }
 
-  static async expectWebElementToHaveText(
-    webElement: WebElement,
-    text: string,
-    options: AssertionOptions = {},
-  ): Promise<void> {
-    const {
-      timeout = BASE_DEFAULTS.timeout,
-      description = `element has text "${text}"`,
-    } = options;
-
-    return Utilities.executeWithRetry(
-      async () => {
-        const el = await webElement;
-        const actualText = (await el.getText()) as string;
-
-        if (actualText !== text) {
-          throw new Error(
-            `Element has text mismatch.\nExpected: "${text}"\nActual: "${actualText}"`,
-          );
-        }
-      },
-      {
-        timeout,
-        description: `Assert ${description}`,
-      },
-    );
-  }
-
   /**
    * Assert element contains specific text with auto-retry
    */
