@@ -119,6 +119,19 @@ jest.mock('../../hooks/stream/usePerpsLiveOrderBook', () => ({
   usePerpsLiveOrderBook: (params: unknown) => mockUsePerpsLiveOrderBook(params),
 }));
 
+// Mock usePerpsLivePrices for live price updates in header (TAT-2441)
+const mockUsePerpsLivePrices = jest.fn(() => ({
+  BTC: {
+    price: '50000',
+    percentChange24h: '2.5',
+    symbol: 'BTC',
+  },
+}));
+
+jest.mock('../../hooks/stream/usePerpsLivePrices', () => ({
+  usePerpsLivePrices: (params: unknown) => mockUsePerpsLivePrices(params),
+}));
+
 // Mock usePerpsMeasurement
 jest.mock('../../hooks/usePerpsMeasurement', () => ({
   usePerpsMeasurement: jest.fn(),
@@ -320,6 +333,13 @@ describe('PerpsOrderBookView', () => {
       bestBid: '50000',
       bestAsk: '50001',
       spread: '1.00000',
+    });
+    mockUsePerpsLivePrices.mockReturnValue({
+      BTC: {
+        price: '50000',
+        percentChange24h: '2.5',
+        symbol: 'BTC',
+      },
     });
   });
 
@@ -1066,6 +1086,17 @@ describe('PerpsOrderBookView', () => {
       expect(mockUsePerpsLiveOrderBook).toHaveBeenCalledWith(
         expect.objectContaining({
           symbol: 'BTC',
+        }),
+      );
+    });
+
+    it('subscribes to live prices for header price display (TAT-2441)', () => {
+      renderWithProvider(<PerpsOrderBookView />, { state: initialState });
+
+      expect(mockUsePerpsLivePrices).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbols: ['BTC'],
+          throttleMs: 1000,
         }),
       );
     });
