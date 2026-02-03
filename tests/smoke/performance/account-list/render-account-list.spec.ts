@@ -10,7 +10,7 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import {
   CORE_USER_STATE,
   POWER_USER_STATE,
-} from '../../../framework/fixtures/constantss';
+} from '../../../framework/fixtures/constants';
 import {
   PerformanceTestReporter,
   PerformanceTestError,
