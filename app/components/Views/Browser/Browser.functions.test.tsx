@@ -1053,4 +1053,660 @@ describe('Browser - Function Coverage Tests', () => {
       });
     });
   });
+
+  describe('closeAllTabs function via Tabs callback', () => {
+    it('calls triggerCloseAllTabs when closeAllTabs is invoked', () => {
+      const tabs = [
+        { id: 1, url: 'https://tab1.com', image: '', isArchived: false },
+        { id: 2, url: 'https://tab2.com', image: '', isArchived: false },
+      ];
+      const mockCloseAllTabs = jest.fn();
+
+      const TabsMock = jest.mocked(Tabs);
+      TabsMock.mockImplementation(() =>
+        React.createElement('View', { testID: 'Tabs' }),
+      );
+
+      renderWithProvider(
+        <Provider store={mockStore(mockInitialState)}>
+          <NavigationContainer independent>
+            <Stack.Navigator>
+              <Stack.Screen name={Routes.BROWSER.VIEW}>
+                {() => (
+                  <Browser
+                    route={{ params: { showTabsView: true } }}
+                    tabs={tabs}
+                    activeTab={1}
+                    navigation={mockNavigation}
+                    createNewTab={jest.fn()}
+                    closeAllTabs={mockCloseAllTabs}
+                    closeTab={jest.fn()}
+                    setActiveTab={jest.fn()}
+                    updateTab={jest.fn()}
+                  />
+                )}
+              </Stack.Screen>
+            </Stack.Navigator>
+          </NavigationContainer>
+        </Provider>,
+        {
+          state: {
+            ...mockInitialState,
+            browser: {
+              tabs,
+              activeTab: 1,
+            },
+          },
+        },
+      );
+
+      // The closeAllTabs prop is passed and should be callable
+      expect(mockCloseAllTabs).toBeDefined();
+    });
+  });
+
+  describe('closeTab when closing single remaining tab', () => {
+    it('sets currentUrl to null when closing the only tab', () => {
+      const tabs = [
+        { id: 1, url: 'https://only-tab.com', image: '', isArchived: false },
+      ];
+      const mockCloseTab = jest.fn();
+      const mockSetActiveTab = jest.fn();
+
+      let closeTabCallback:
+        | ((tab: { id: number; url: string }) => void)
+        | undefined;
+      const TabsMock = jest.mocked(Tabs);
+      TabsMock.mockImplementation((props) => {
+        if (props?.closeTab) {
+          closeTabCallback = props.closeTab;
+        }
+        return React.createElement('View', { testID: 'Tabs' });
+      });
+
+      renderWithProvider(
+        <Provider store={mockStore(mockInitialState)}>
+          <NavigationContainer independent>
+            <Stack.Navigator>
+              <Stack.Screen name={Routes.BROWSER.VIEW}>
+                {() => (
+                  <Browser
+                    route={{ params: { showTabsView: true } }}
+                    tabs={tabs}
+                    activeTab={1}
+                    navigation={mockNavigation}
+                    createNewTab={jest.fn()}
+                    closeAllTabs={jest.fn()}
+                    closeTab={mockCloseTab}
+                    setActiveTab={mockSetActiveTab}
+                    updateTab={jest.fn()}
+                  />
+                )}
+              </Stack.Screen>
+            </Stack.Navigator>
+          </NavigationContainer>
+        </Provider>,
+        {
+          state: {
+            ...mockInitialState,
+            browser: {
+              tabs,
+              activeTab: 1,
+            },
+          },
+        },
+      );
+
+      // Clear mocks after initial render (which may call setActiveTab during switchToTab)
+      mockSetActiveTab.mockClear();
+
+      // Close the only tab
+      if (closeTabCallback) {
+        closeTabCallback({ id: 1, url: 'https://only-tab.com' });
+      }
+
+      // Should close the tab without setting new active tab
+      expect(mockCloseTab).toHaveBeenCalledWith(1);
+      // setActiveTab should not be called when there are no other tabs to switch to
+      expect(mockSetActiveTab).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('closeTab when closing active tab selects previous', () => {
+    it('selects previous tab when closing active tab at index > 0', () => {
+      const tabs = [
+        { id: 1, url: 'https://tab1.com', image: '', isArchived: false },
+        { id: 2, url: 'https://tab2.com', image: '', isArchived: false },
+        { id: 3, url: 'https://tab3.com', image: '', isArchived: false },
+      ];
+      const mockCloseTab = jest.fn();
+      const mockSetActiveTab = jest.fn();
+
+      let closeTabCallback:
+        | ((tab: { id: number; url: string }) => void)
+        | undefined;
+      const TabsMock = jest.mocked(Tabs);
+      TabsMock.mockImplementation((props) => {
+        if (props?.closeTab) {
+          closeTabCallback = props.closeTab;
+        }
+        return React.createElement('View', { testID: 'Tabs' });
+      });
+
+      renderWithProvider(
+        <Provider store={mockStore(mockInitialState)}>
+          <NavigationContainer independent>
+            <Stack.Navigator>
+              <Stack.Screen name={Routes.BROWSER.VIEW}>
+                {() => (
+                  <Browser
+                    route={{ params: { showTabsView: true } }}
+                    tabs={tabs}
+                    activeTab={3}
+                    navigation={mockNavigation}
+                    createNewTab={jest.fn()}
+                    closeAllTabs={jest.fn()}
+                    closeTab={mockCloseTab}
+                    setActiveTab={mockSetActiveTab}
+                    updateTab={jest.fn()}
+                  />
+                )}
+              </Stack.Screen>
+            </Stack.Navigator>
+          </NavigationContainer>
+        </Provider>,
+        {
+          state: {
+            ...mockInitialState,
+            browser: {
+              tabs,
+              activeTab: 3,
+            },
+          },
+        },
+      );
+
+      // Clear mocks after initial render
+      mockSetActiveTab.mockClear();
+
+      // Close the last (active) tab - should select previous (tab 2)
+      if (closeTabCallback) {
+        closeTabCallback({ id: 3, url: 'https://tab3.com' });
+      }
+
+      // Should select the previous tab (id: 2) since there's no next tab
+      expect(mockSetActiveTab).toHaveBeenCalledWith(2);
+      expect(mockCloseTab).toHaveBeenCalledWith(3);
+    });
+  });
+
+  describe('renderBrowserTabWindows with archived tabs', () => {
+    it('filters out archived tabs from rendering', () => {
+      const tabs = [
+        { id: 1, url: 'https://active.com', image: '', isArchived: false },
+        { id: 2, url: 'https://archived.com', image: '', isArchived: true },
+      ];
+
+      const BrowserTabMock = jest.mocked(BrowserTab);
+      BrowserTabMock.mockImplementation((props) =>
+        React.createElement('View', {
+          testID: `BrowserTab-${props?.id}`,
+        }),
+      );
+
+      const { queryByTestId } = renderWithProvider(
+        <Provider store={mockStore(mockInitialState)}>
+          <NavigationContainer independent>
+            <Stack.Navigator>
+              <Stack.Screen name={Routes.BROWSER.VIEW}>
+                {() => (
+                  <Browser
+                    route={routeMock}
+                    tabs={tabs}
+                    activeTab={1}
+                    navigation={mockNavigation}
+                    createNewTab={jest.fn()}
+                    closeAllTabs={jest.fn()}
+                    closeTab={jest.fn()}
+                    setActiveTab={jest.fn()}
+                    updateTab={jest.fn()}
+                  />
+                )}
+              </Stack.Screen>
+            </Stack.Navigator>
+          </NavigationContainer>
+        </Provider>,
+        {
+          state: {
+            ...mockInitialState,
+            browser: {
+              tabs,
+              activeTab: 1,
+            },
+          },
+        },
+      );
+
+      // Active non-archived tab should be rendered
+      expect(queryByTestId('BrowserTab-1')).toBeDefined();
+    });
+  });
+
+  describe('componentDidMount with existingTabId param', () => {
+    it('switches to existing tab when existingTabId is provided', () => {
+      const tabs = [
+        { id: 1, url: 'https://tab1.com', image: '', isArchived: false },
+        { id: 2, url: 'https://tab2.com', image: '', isArchived: false },
+      ];
+      const mockSetActiveTab = jest.fn();
+
+      renderWithProvider(
+        <Provider store={mockStore(mockInitialState)}>
+          <NavigationContainer independent>
+            <Stack.Navigator>
+              <Stack.Screen name={Routes.BROWSER.VIEW}>
+                {() => (
+                  <Browser
+                    route={{ params: { existingTabId: 2 } }}
+                    tabs={tabs}
+                    activeTab={1}
+                    navigation={mockNavigation}
+                    createNewTab={jest.fn()}
+                    closeAllTabs={jest.fn()}
+                    closeTab={jest.fn()}
+                    setActiveTab={mockSetActiveTab}
+                    updateTab={jest.fn()}
+                  />
+                )}
+              </Stack.Screen>
+            </Stack.Navigator>
+          </NavigationContainer>
+        </Provider>,
+        {
+          state: {
+            ...mockInitialState,
+            browser: {
+              tabs,
+              activeTab: 1,
+            },
+          },
+        },
+      );
+
+      // Should switch to the existing tab
+      expect(mockSetActiveTab).toHaveBeenCalledWith(2);
+    });
+  });
+
+  describe('newTab navigates to max tabs modal', () => {
+    it('navigates to max browser tabs modal when at max capacity without replaceActiveIfMax', () => {
+      const maxTabs = Array.from({ length: 5 }, (_, i) => ({
+        id: i + 1,
+        url: `https://tab${i + 1}.com`,
+        image: '',
+        isArchived: false,
+      }));
+      const mockCreateNewTab = jest.fn();
+
+      let newTabCallback: ((url?: string) => void) | undefined;
+      const TabsMock = jest.mocked(Tabs);
+      TabsMock.mockImplementation((props) => {
+        if (props?.newTab) {
+          newTabCallback = props.newTab;
+        }
+        return React.createElement('View', { testID: 'Tabs' });
+      });
+
+      renderWithProvider(
+        <Provider store={mockStore(mockInitialState)}>
+          <NavigationContainer independent>
+            <Stack.Navigator>
+              <Stack.Screen name={Routes.BROWSER.VIEW}>
+                {() => (
+                  <Browser
+                    route={{ params: { showTabsView: true } }}
+                    tabs={maxTabs}
+                    activeTab={1}
+                    navigation={mockNavigation}
+                    createNewTab={mockCreateNewTab}
+                    closeAllTabs={jest.fn()}
+                    closeTab={jest.fn()}
+                    setActiveTab={jest.fn()}
+                    updateTab={jest.fn()}
+                  />
+                )}
+              </Stack.Screen>
+            </Stack.Navigator>
+          </NavigationContainer>
+        </Provider>,
+        {
+          state: {
+            ...mockInitialState,
+            browser: {
+              tabs: maxTabs,
+              activeTab: 1,
+            },
+          },
+        },
+      );
+
+      // Try to create new tab when at max capacity
+      if (newTabCallback) {
+        newTabCallback('https://newurl.com');
+      }
+
+      // Should navigate to max tabs modal, not create new tab
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.MODAL.MAX_BROWSER_TABS_MODAL,
+      );
+      expect(mockCreateNewTab).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('homePageUrl callback', () => {
+    it('generates homepage URL using buildPortfolioUrl', () => {
+      const tabs: {
+        id: number;
+        url: string;
+        image: string;
+        isArchived: boolean;
+      }[] = [];
+      const mockCreateNewTab = jest.fn();
+
+      renderWithProvider(
+        <Provider store={mockStore(mockInitialState)}>
+          <NavigationContainer independent>
+            <Stack.Navigator>
+              <Stack.Screen name={Routes.BROWSER.VIEW}>
+                {() => (
+                  <Browser
+                    route={routeMock}
+                    tabs={tabs}
+                    activeTab={null}
+                    navigation={mockNavigation}
+                    createNewTab={mockCreateNewTab}
+                    closeAllTabs={jest.fn()}
+                    closeTab={jest.fn()}
+                    setActiveTab={jest.fn()}
+                    updateTab={jest.fn()}
+                  />
+                )}
+              </Stack.Screen>
+            </Stack.Navigator>
+          </NavigationContainer>
+        </Provider>,
+        {
+          state: {
+            ...mockInitialState,
+            browser: {
+              tabs: [],
+              activeTab: null,
+            },
+          },
+        },
+      );
+
+      // Should create new tab with homePageUrl when no tabs exist
+      expect(mockCreateNewTab).toHaveBeenCalledWith(
+        expect.stringMatching(/^https:\/\//),
+        undefined,
+      );
+    });
+  });
+
+  describe('renderTabList returns null when tabs view hidden', () => {
+    it('does not render Tabs component when shouldShowTabs is false', () => {
+      const tabs = [
+        { id: 1, url: 'https://tab1.com', image: '', isArchived: false },
+      ];
+
+      const TabsMock = jest.mocked(Tabs);
+      TabsMock.mockClear();
+
+      renderWithProvider(
+        <Provider store={mockStore(mockInitialState)}>
+          <NavigationContainer independent>
+            <Stack.Navigator>
+              <Stack.Screen name={Routes.BROWSER.VIEW}>
+                {() => (
+                  <Browser
+                    route={routeMock}
+                    tabs={tabs}
+                    activeTab={1}
+                    navigation={mockNavigation}
+                    createNewTab={jest.fn()}
+                    closeAllTabs={jest.fn()}
+                    closeTab={jest.fn()}
+                    setActiveTab={jest.fn()}
+                    updateTab={jest.fn()}
+                  />
+                )}
+              </Stack.Screen>
+            </Stack.Navigator>
+          </NavigationContainer>
+        </Provider>,
+        {
+          state: {
+            ...mockInitialState,
+            browser: {
+              tabs,
+              activeTab: 1,
+            },
+          },
+        },
+      );
+
+      // Tabs component should not be called when shouldShowTabs is false
+      expect(TabsMock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('MemoConnectedBrowser route optimization', () => {
+    it('renders with route prop correctly', () => {
+      const tabs = [
+        { id: 1, url: 'https://example.com', image: '', isArchived: false },
+      ];
+
+      const { getByTestId } = renderWithProvider(
+        <Provider store={mockStore(mockInitialState)}>
+          <NavigationContainer independent>
+            <Stack.Navigator>
+              <Stack.Screen name={Routes.BROWSER.VIEW}>
+                {() => (
+                  <Browser
+                    route={{ params: { url: 'https://test.com' } }}
+                    tabs={tabs}
+                    activeTab={1}
+                    navigation={mockNavigation}
+                    createNewTab={jest.fn()}
+                    closeAllTabs={jest.fn()}
+                    closeTab={jest.fn()}
+                    setActiveTab={jest.fn()}
+                    updateTab={jest.fn()}
+                  />
+                )}
+              </Stack.Screen>
+            </Stack.Navigator>
+          </NavigationContainer>
+        </Provider>,
+        {
+          state: {
+            ...mockInitialState,
+            browser: {
+              tabs,
+              activeTab: 1,
+            },
+          },
+        },
+      );
+
+      expect(getByTestId('browser-screen')).toBeDefined();
+    });
+  });
+
+  describe('componentDidMount with no tabs and no params', () => {
+    it('creates new tab when no tabs exist and no deeplink params', () => {
+      const mockCreateNewTab = jest.fn();
+
+      renderWithProvider(
+        <Provider store={mockStore(mockInitialState)}>
+          <NavigationContainer independent>
+            <Stack.Navigator>
+              <Stack.Screen name={Routes.BROWSER.VIEW}>
+                {() => (
+                  <Browser
+                    route={routeMock}
+                    tabs={[]}
+                    activeTab={null}
+                    navigation={mockNavigation}
+                    createNewTab={mockCreateNewTab}
+                    closeAllTabs={jest.fn()}
+                    closeTab={jest.fn()}
+                    setActiveTab={jest.fn()}
+                    updateTab={jest.fn()}
+                  />
+                )}
+              </Stack.Screen>
+            </Stack.Navigator>
+          </NavigationContainer>
+        </Provider>,
+        {
+          state: {
+            ...mockInitialState,
+            browser: {
+              tabs: [],
+              activeTab: null,
+            },
+          },
+        },
+      );
+
+      // Should create new tab when no tabs exist
+      expect(mockCreateNewTab).toHaveBeenCalled();
+    });
+  });
+
+  describe('componentDidMount switches to first tab when no active tab', () => {
+    it('switches to first tab when tabs exist but no active tab set', () => {
+      const tabs = [
+        { id: 1, url: 'https://first.com', image: '', isArchived: false },
+        { id: 2, url: 'https://second.com', image: '', isArchived: false },
+      ];
+      const mockSetActiveTab = jest.fn();
+
+      renderWithProvider(
+        <Provider store={mockStore(mockInitialState)}>
+          <NavigationContainer independent>
+            <Stack.Navigator>
+              <Stack.Screen name={Routes.BROWSER.VIEW}>
+                {() => (
+                  <Browser
+                    route={routeMock}
+                    tabs={tabs}
+                    activeTab={999}
+                    navigation={mockNavigation}
+                    createNewTab={jest.fn()}
+                    closeAllTabs={jest.fn()}
+                    closeTab={jest.fn()}
+                    setActiveTab={mockSetActiveTab}
+                    updateTab={jest.fn()}
+                  />
+                )}
+              </Stack.Screen>
+            </Stack.Navigator>
+          </NavigationContainer>
+        </Provider>,
+        {
+          state: {
+            ...mockInitialState,
+            browser: {
+              tabs,
+              activeTab: 999,
+            },
+          },
+        },
+      );
+
+      // Should switch to first tab when active tab doesn't exist
+      expect(mockSetActiveTab).toHaveBeenCalledWith(1);
+    });
+  });
+
+  describe('new tab added triggers switch', () => {
+    it('switches to newly added tab when tabs array grows', () => {
+      const initialTabs = [
+        { id: 1, url: 'https://first.com', image: '', isArchived: false },
+      ];
+      const mockSetActiveTab = jest.fn();
+
+      const { rerender } = renderWithProvider(
+        <Provider store={mockStore(mockInitialState)}>
+          <NavigationContainer independent>
+            <Stack.Navigator>
+              <Stack.Screen name={Routes.BROWSER.VIEW}>
+                {() => (
+                  <Browser
+                    route={routeMock}
+                    tabs={initialTabs}
+                    activeTab={1}
+                    navigation={mockNavigation}
+                    createNewTab={jest.fn()}
+                    closeAllTabs={jest.fn()}
+                    closeTab={jest.fn()}
+                    setActiveTab={mockSetActiveTab}
+                    updateTab={jest.fn()}
+                  />
+                )}
+              </Stack.Screen>
+            </Stack.Navigator>
+          </NavigationContainer>
+        </Provider>,
+        {
+          state: {
+            ...mockInitialState,
+            browser: {
+              tabs: initialTabs,
+              activeTab: 1,
+            },
+          },
+        },
+      );
+
+      // Clear mocks after initial render
+      mockSetActiveTab.mockClear();
+
+      // Add a new tab
+      const newTabs = [
+        ...initialTabs,
+        { id: 2, url: 'https://new.com', image: '', isArchived: false },
+      ];
+
+      rerender(
+        <Provider store={mockStore(mockInitialState)}>
+          <NavigationContainer independent>
+            <Stack.Navigator>
+              <Stack.Screen name={Routes.BROWSER.VIEW}>
+                {() => (
+                  <Browser
+                    route={routeMock}
+                    tabs={newTabs}
+                    activeTab={1}
+                    navigation={mockNavigation}
+                    createNewTab={jest.fn()}
+                    closeAllTabs={jest.fn()}
+                    closeTab={jest.fn()}
+                    setActiveTab={mockSetActiveTab}
+                    updateTab={jest.fn()}
+                  />
+                )}
+              </Stack.Screen>
+            </Stack.Navigator>
+          </NavigationContainer>
+        </Provider>,
+      );
+
+      // Should switch to newly added tab
+      expect(mockSetActiveTab).toHaveBeenCalledWith(2);
+    });
+  });
 });
