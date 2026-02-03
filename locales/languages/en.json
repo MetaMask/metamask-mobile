@@ -7268,6 +7268,7 @@
       "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",
       "step4_confirm_loading": "Claiming points...",
+      "step4_bulk_link_checkbox": "Opt-in all my accounts on this device",
       "step4_linking_accounts": "Adding accounts... ({{current}}/{{total}})",
       "step4_linking_accounts_loading": "Adding additional accounts...",
       "step4_success_description": "You have successfully signed up for MetaMask Rewards!",
@@ -7299,7 +7300,12 @@
       "link_account_error_title": "Failed to add account",
       "link_account_button": "Add",
       "link_account_failed_error": "Failed to add account",
-      "link_account_unknown_error": "Unknown error occurred"
+      "link_account_unknown_error": "Unknown error occurred",
+      "show_more": "Show more",
+      "show_less": "Show less",
+      "linking_progress": "Adding accounts... ({{current}}/{{total}})",
+      "accounts_linked_count": "{{linked}}/{{total}} enrolled",
+      "add_all_accounts": "Add all accounts"
     },
     "referred_by_code": {
       "title": "Referral Code",
