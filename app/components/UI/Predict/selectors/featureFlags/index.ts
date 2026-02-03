@@ -54,6 +54,14 @@ export const selectPredictHotTabFlag = createSelector(
       return DEFAULT_HOT_TAB_FLAG;
     }
 
+    // Validate queryParams is a string if present (prevents malformed URLs)
+    if (
+      flag.queryParams !== undefined &&
+      typeof flag.queryParams !== 'string'
+    ) {
+      return DEFAULT_HOT_TAB_FLAG;
+    }
+
     return flag;
   },
 );

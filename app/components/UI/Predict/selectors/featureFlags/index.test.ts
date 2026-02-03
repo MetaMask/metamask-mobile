@@ -383,6 +383,7 @@ describe('Predict Feature Flag Selectors', () => {
               remoteFeatureFlags: {
                 predictHotTab: {
                   enabled: true,
+                  minimumVersion: '1.0.0',
                   queryParams: 12345,
                 },
               },
