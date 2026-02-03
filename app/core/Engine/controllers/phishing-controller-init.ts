@@ -3,7 +3,6 @@ import {
   PhishingController,
   type PhishingControllerMessenger,
 } from '@metamask/phishing-controller';
-import { isProductSafetyDappScanningEnabled } from '../../../util/phishingDetection';
 
 /**
  * Initialize the phishing controller.
@@ -15,14 +14,10 @@ import { isProductSafetyDappScanningEnabled } from '../../../util/phishingDetect
 export const phishingControllerInit: ControllerInitFunction<
   PhishingController,
   PhishingControllerMessenger
-> = ({ controllerMessenger, getState }) => {
+> = ({ controllerMessenger }) => {
   const controller = new PhishingController({
     messenger: controllerMessenger,
   });
-
-  if (!isProductSafetyDappScanningEnabled(getState())) {
-    controller.maybeUpdateState();
-  }
 
   return {
     controller,

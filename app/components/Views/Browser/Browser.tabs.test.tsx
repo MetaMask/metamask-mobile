@@ -4,8 +4,9 @@
 // 1. if tabs.length > 4, show the max browser tabs modal
 // 2. if tabs.length <= 4, create a new tab
 
-import React from 'react';
-import { Browser } from './index';
+import React, { ComponentType } from 'react';
+import { BrowserPure as BrowserComponent } from './index';
+import { BrowserComponentProps } from './Browser.types';
 import Routes from '../../../constants/navigation/Routes';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -21,6 +22,8 @@ import { captureScreen } from 'react-native-view-shot';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Tabs from '../../UI/Tabs';
 import BrowserTab from '../BrowserTab/BrowserTab';
+
+const Browser = BrowserComponent as ComponentType<BrowserComponentProps>;
 
 jest.useFakeTimers();
 

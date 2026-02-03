@@ -61,12 +61,12 @@ const PerpsMarketSortDropdowns: React.FC<PerpsMarketSortDropdownsProps> = ({
         onPress={onSortPress}
         testID={`${testID}-sort-field`}
       >
-        <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
           {sortLabel}
         </Text>
         <Icon
-          name={IconName.ArrowDown}
-          size={IconSize.Xs}
+          name={IconName.SwapVertical}
+          size={IconSize.Sm}
           color={IconColor.Alternative}
         />
       </Pressable>

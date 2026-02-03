@@ -26,6 +26,7 @@ import type { ReconnectOptions } from '../types/perps-types';
 import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
 import { ensureError } from '../../../../util/errorUtils';
 import { wait } from '../utils/wait';
+import { TradingReadinessCache } from './TradingReadinessCache';
 
 /**
  * Singleton manager for Perps connection state
@@ -456,7 +457,7 @@ class PerpsConnectionManagerClass {
         await Engine.context.PerpsController.init();
         this.isInitialized = true;
         setMeasurement(
-          PerpsMeasurementName.PERPS_PROVIDER_INIT,
+          PerpsMeasurementName.PerpsProviderInit,
           performance.now() - initStart,
           'millisecond',
           traceSpan,
@@ -471,7 +472,7 @@ class PerpsConnectionManagerClass {
         const provider = Engine.context.PerpsController.getActiveProvider();
         await provider.ping();
         setMeasurement(
-          PerpsMeasurementName.PERPS_CONNECTION_HEALTH_CHECK,
+          PerpsMeasurementName.PerpsConnectionHealthCheck,
           performance.now() - healthCheckStart,
           'millisecond',
           traceSpan,
@@ -503,14 +504,13 @@ class PerpsConnectionManagerClass {
         DevLogger.log(
           `${PERFORMANCE_CONFIG.LoggingMarkers.WebsocketPerformance} PerpsConn: Connection established`,
           {
-            metric:
-              PerpsMeasurementName.PERPS_WEBSOCKET_CONNECTION_ESTABLISHMENT,
+            metric: PerpsMeasurementName.PerpsWebsocketConnectionEstablishment,
             duration: `${connectionDuration.toFixed(0)}ms`,
           },
         );
 
         setMeasurement(
-          PerpsMeasurementName.PERPS_WEBSOCKET_CONNECTION_ESTABLISHMENT,
+          PerpsMeasurementName.PerpsWebsocketConnectionEstablishment,
           connectionDuration,
           'millisecond',
           traceSpan,
@@ -522,7 +522,7 @@ class PerpsConnectionManagerClass {
         const preloadStart = performance.now();
         await this.preloadSubscriptions();
         setMeasurement(
-          PerpsMeasurementName.PERPS_SUBSCRIPTIONS_PRELOAD,
+          PerpsMeasurementName.PerpsSubscriptionsPreload,
           performance.now() - preloadStart,
           'millisecond',
           traceSpan,
@@ -535,14 +535,13 @@ class PerpsConnectionManagerClass {
         DevLogger.log(
           `${PERFORMANCE_CONFIG.LoggingMarkers.WebsocketPerformance} PerpsConn: Connection with preload completed`,
           {
-            metric:
-              PerpsMeasurementName.PERPS_WEBSOCKET_CONNECTION_WITH_PRELOAD,
+            metric: PerpsMeasurementName.PerpsWebsocketConnectionWithPreload,
             duration: `${totalConnectionDuration.toFixed(0)}ms`,
           },
         );
 
         setMeasurement(
-          PerpsMeasurementName.PERPS_WEBSOCKET_CONNECTION_WITH_PRELOAD,
+          PerpsMeasurementName.PerpsWebsocketConnectionWithPreload,
           totalConnectionDuration,
           'millisecond',
           traceSpan,
@@ -560,36 +559,31 @@ class PerpsConnectionManagerClass {
         this.clearConnectionTimeout();
 
         // Capture exception with connection context
-        captureException(
-          error instanceof Error ? error : new Error(String(error)),
-          {
-            tags: {
-              component: 'PerpsConnectionManager',
-              action: 'connection_connection',
-              operation: 'connection_management',
+        captureException(ensureError(error, 'PerpsConnectionManager.connect'), {
+          tags: {
+            component: 'PerpsConnectionManager',
+            action: 'connection_connection',
+            operation: 'connection_management',
+            provider: 'hyperliquid',
+          },
+          extra: {
+            connectionContext: {
               provider: 'hyperliquid',
-            },
-            extra: {
-              connectionContext: {
-                provider: 'hyperliquid',
-                timestamp: new Date().toISOString(),
-                isTestnet:
-                  Engine.context.PerpsController?.getCurrentNetwork?.() ===
-                  'testnet',
-              },
+              timestamp: new Date().toISOString(),
+              isTestnet:
+                Engine.context.PerpsController?.getCurrentNetwork?.() ===
+                'testnet',
             },
           },
-        );
+        });
 
         traceData = {
           success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: ensureError(error, 'PerpsConnectionManager.connect').message,
         };
 
         // Set error state for UI
-        this.setError(
-          error instanceof Error ? error : new Error(String(error)),
-        );
+        this.setError(ensureError(error, 'PerpsConnectionManager.connect'));
         DevLogger.log('PerpsConnectionManager: Connection failed', error);
         throw error;
       } finally {
@@ -697,7 +691,7 @@ class PerpsConnectionManagerClass {
       streamManager.marketData.clearCache();
       streamManager.oiCaps.clearCache();
       setMeasurement(
-        PerpsMeasurementName.PERPS_RECONNECTION_CLEANUP,
+        PerpsMeasurementName.PerpsReconnectionCleanup,
         performance.now() - cleanupStart,
         'millisecond',
         traceSpan,
@@ -714,7 +708,7 @@ class PerpsConnectionManagerClass {
       const reinitStart = performance.now();
       await Engine.context.PerpsController.init();
       setMeasurement(
-        PerpsMeasurementName.PERPS_CONTROLLER_REINIT,
+        PerpsMeasurementName.PerpsControllerReinit,
         performance.now() - reinitStart,
         'millisecond',
         traceSpan,
@@ -735,7 +729,7 @@ class PerpsConnectionManagerClass {
       const provider = Engine.context.PerpsController.getActiveProvider();
       await provider.ping();
       setMeasurement(
-        PerpsMeasurementName.PERPS_RECONNECTION_HEALTH_CHECK,
+        PerpsMeasurementName.PerpsReconnectionHealthCheck,
         performance.now() - healthCheckStart,
         'millisecond',
         traceSpan,
@@ -769,7 +763,7 @@ class PerpsConnectionManagerClass {
       const preloadStart = performance.now();
       await this.preloadSubscriptions();
       setMeasurement(
-        PerpsMeasurementName.PERPS_RECONNECTION_PRELOAD,
+        PerpsMeasurementName.PerpsReconnectionPreload,
         performance.now() - preloadStart,
         'millisecond',
         traceSpan,
@@ -782,14 +776,13 @@ class PerpsConnectionManagerClass {
       DevLogger.log(
         `${PERFORMANCE_CONFIG.LoggingMarkers.WebsocketPerformance} PerpsConn: Account switch reconnection completed`,
         {
-          metric:
-            PerpsMeasurementName.PERPS_WEBSOCKET_ACCOUNT_SWITCH_RECONNECTION,
+          metric: PerpsMeasurementName.PerpsWebsocketAccountSwitchReconnection,
           duration: `${reconnectionDuration.toFixed(0)}ms`,
         },
       );
 
       setMeasurement(
-        PerpsMeasurementName.PERPS_WEBSOCKET_ACCOUNT_SWITCH_RECONNECTION,
+        PerpsMeasurementName.PerpsWebsocketAccountSwitchReconnection,
         reconnectionDuration,
         'millisecond',
         traceSpan,
@@ -807,11 +800,11 @@ class PerpsConnectionManagerClass {
 
       traceData = {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: ensureError(error, 'PerpsConnectionManager.reconnect').message,
       };
 
       // Set error state for UI - this is critical for reliability
-      this.setError(error instanceof Error ? error : new Error(String(error)));
+      this.setError(ensureError(error, 'PerpsConnectionManager.reconnect'));
       DevLogger.log(
         'PerpsConnectionManager: Reconnection with new context failed',
         error,
@@ -983,6 +976,40 @@ class PerpsConnectionManagerClass {
    */
   isCurrentlyConnecting(): boolean {
     return this.isConnecting;
+  }
+
+  /**
+   * Clear DEX abstraction cache for a specific address
+   * Useful for debugging or allowing user to retry after rejecting signature
+   * Note: This only clears DEX abstraction state, preserving builder fee and referral states
+   */
+  clearDexAbstractionCache(
+    network: 'mainnet' | 'testnet',
+    userAddress: string,
+  ): void {
+    TradingReadinessCache.clearDexAbstraction(network, userAddress);
+    DevLogger.log('PerpsConnectionManager: DEX abstraction cache cleared', {
+      network,
+      userAddress,
+    });
+  }
+
+  /**
+   * Clear all signing operation caches for all users
+   * Useful for debugging or app-level cache resets
+   * WARNING: This clears ALL signing states (dexAbstraction, builderFee, referral) for ALL users
+   */
+  clearAllSigningCache(): void {
+    TradingReadinessCache.clearAll();
+    DevLogger.log('PerpsConnectionManager: All signing cache cleared');
+  }
+
+  /**
+   * @deprecated Use clearAllSigningCache() instead - this method name is misleading
+   * as it clears ALL signing operation states, not just DEX abstraction
+   */
+  clearAllDexAbstractionCache(): void {
+    this.clearAllSigningCache();
   }
 }
 

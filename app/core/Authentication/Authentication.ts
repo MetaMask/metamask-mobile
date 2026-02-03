@@ -19,6 +19,7 @@ import {
 import { setCompletedOnboarding } from '../../actions/onboarding';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
+import { UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
 import { UserCredentials, BIOMETRY_TYPE } from 'react-native-keychain';
 import {
   AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
@@ -1661,9 +1662,6 @@ class AuthenticationService {
     try {
       const passwordToUse = await this.reauthenticate(password);
 
-      // TODO: Check if this is really needed for IOS (if so, userEntryAuth is not calling it, and we should move the reset to storePassword)
-      await this.resetPassword();
-
       // storePassword handles all storage flag management internally
       await this.storePassword(passwordToUse.password, authType);
     } catch (e) {
@@ -1683,7 +1681,12 @@ class AuthenticationService {
         );
       }
 
-      if (errorWithMessage.message === 'Invalid password') {
+      if (
+        errorWithMessage.message === 'Invalid password' ||
+        errorWithMessage.message.includes(
+          UNLOCK_WALLET_ERROR_MESSAGES.ANDROID_WRONG_PASSWORD_2,
+        )
+      ) {
         Alert.alert(
           strings('app_settings.invalid_password'),
           strings('app_settings.invalid_password_message'),
