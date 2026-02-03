@@ -1,13 +1,13 @@
 // We are using a wrapped `withFixtures` - `withIdentityFixtures`
 // eslint-disable-next-line no-restricted-syntax
-import { loginToApp } from '../../../viewHelper';
-import TestHelpers from '../../../helpers';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent';
-import { SmokeIdentity } from '../../../tags';
-import ContactsView from '../../../pages/Settings/Contacts/ContactsView';
-import AddContactView from '../../../pages/Settings/Contacts/AddContactView';
-import SettingsView from '../../../pages/Settings/SettingsView';
-import Assertions from '../../../../tests/framework/Assertions';
+import { loginToApp } from '../../../../e2e/viewHelper';
+import TestHelpers from '../../../../e2e/helpers';
+import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
+import { SmokeIdentity } from '../../../../e2e/tags';
+import ContactsView from '../../../../e2e/pages/Settings/Contacts/ContactsView';
+import AddContactView from '../../../../e2e/pages/Settings/Contacts/AddContactView';
+import SettingsView from '../../../../e2e/pages/Settings/SettingsView';
+import Assertions from '../../../framework/Assertions';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { arrangeTestUtils } from '../utils/helpers';
 import { withIdentityFixtures } from '../utils/withIdentityFixtures';

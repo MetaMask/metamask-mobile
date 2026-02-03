@@ -1,15 +1,15 @@
-import NotificationDetailsView from '../../pages/Notifications/NotificationDetailsView';
-import NotificationMenuView from '../../pages/Notifications/NotificationMenuView';
-import WalletView from '../../pages/wallet/WalletView';
-import { SmokeNetworkAbstractions } from '../../tags';
-import Assertions from '../../../tests/framework/Assertions';
-import { loginToApp } from '../../viewHelper';
+import NotificationDetailsView from '../../../e2e/pages/Notifications/NotificationDetailsView';
+import NotificationMenuView from '../../../e2e/pages/Notifications/NotificationMenuView';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import { SmokeNetworkAbstractions } from '../../../e2e/tags';
+import Assertions from '../../framework/Assertions';
+import { loginToApp } from '../../../e2e/viewHelper';
 import {
   getMockFeatureAnnouncementItemId,
   getMockWalletNotificationItemIds,
 } from './utils/mocks';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 
 describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
   beforeAll(async () => {
