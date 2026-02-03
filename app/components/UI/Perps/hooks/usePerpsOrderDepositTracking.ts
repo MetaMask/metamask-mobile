@@ -9,6 +9,9 @@ import { ToastContext } from '../../../../component-library/components/Toast';
 import { strings } from '../../../../../locales/i18n';
 import usePerpsToasts from './usePerpsToasts';
 
+/** Delay (ms) before showing the "Deposit taking longer than usual" toast */
+const DEPOSIT_TAKING_LONGER_TOAST_DELAY_MS = 15000;
+
 /**
  * Hook to track deposit status for Perps order view
  *
@@ -63,7 +66,6 @@ export const usePerpsOrderDepositTracking = () => {
         // Replace current toast with "Trade canceled" (don't close first to avoid race)
         showToast(PerpsToastOptions.accountManagement.deposit.tradeCanceled);
       };
-      // TODO: Restore to 15000 for production; 0 for testing the "deposit taking longer" toast
       const depositLongerTimeoutId = setTimeout(() => {
         const baseClose = takingLongerToastOptions.closeButtonOptions;
         showToast({
@@ -72,7 +74,7 @@ export const usePerpsOrderDepositTracking = () => {
             ? { ...baseClose, onPress: cancelTradeOnPress }
             : undefined,
         } as Parameters<typeof showToast>[0]);
-      }, 1000);
+      }, DEPOSIT_TAKING_LONGER_TOAST_DELAY_MS);
 
       // Handle failed transactions
       const handleTransactionFailed = ({
