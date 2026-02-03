@@ -43,6 +43,10 @@ export { useWithdrawValidation } from './useWithdrawValidation';
 
 // Payment tokens hook
 export { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
+export {
+  useIsPerpsBalanceSelected,
+  PERPS_BALANCE_PLACEHOLDER_ADDRESS,
+} from './useIsPerpsBalanceSelected';
 
 // Margin adjustment hook
 export { usePerpsAdjustMarginData } from './usePerpsAdjustMarginData';

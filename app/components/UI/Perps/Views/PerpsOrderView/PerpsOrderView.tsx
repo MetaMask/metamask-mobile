@@ -19,7 +19,6 @@ import {
 import { PerpsOrderViewSelectorsIDs } from '../../Perps.testIds';
 
 import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
-import { toHex } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
@@ -57,7 +56,6 @@ import {
   PERPS_CURRENCY,
 } from '../../../../Views/confirmations/constants/perps';
 import { useAddToken } from '../../../../Views/confirmations/hooks/tokens/useAddToken';
-import { useAutomaticTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useAutomaticTransactionPayToken';
 import { useTransactionPayMetrics } from '../../../../Views/confirmations/hooks/pay/useTransactionPayMetrics';
 import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
@@ -119,6 +117,7 @@ import {
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
+import { useIsPerpsBalanceSelected } from '../../hooks/useIsPerpsBalanceSelected';
 import { usePerpsPaymentTokens } from '../../hooks/usePerpsPaymentTokens';
 import { usePerpsSavePendingConfig } from '../../hooks/usePerpsSavePendingConfig';
 import {
@@ -210,12 +209,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   useClearConfirmationOnBackSwipe();
 
-  // Disable automatic token selection - we want to show "Perps balance" by default
-  // User can explicitly select a token from the modal
-  useAutomaticTransactionPayToken({
-    disable: true, // Always disable auto-selection to show "Perps balance" by default
-    preferredToken: undefined,
-  });
+
   useTransactionPayMetrics();
 
   const styles = createStyles(colors);
@@ -242,12 +236,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     useState<PerpsTooltipContentKey | null>(null);
 
   const { payToken } = useTransactionPayToken();
-  const PERPS_BALANCE_ADDRESS =
-    '0x0000000000000000000000000000000000000001';
-  const isPayTokenPerpsBalance =
-    payToken?.address?.toLowerCase() === PERPS_BALANCE_ADDRESS.toLowerCase() &&
-    payToken?.chainId !== undefined &&
-    toHex(payToken.chainId) === CHAIN_IDS.MAINNET;
+  const isPayTokenPerpsBalance = useIsPerpsBalanceSelected();
   const hasCustomTokenSelected = Boolean(payToken && !isPayTokenPerpsBalance);
 
   const { track } = usePerpsEventTracking();
@@ -1465,7 +1454,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                       ranges: PRICE_RANGES_MINIMAL_VIEW,
                     })
                 }
-                variant={TextVariant.BodySM}
+                variant={TextVariant.BodyMD}
               />
             )}
           </View>

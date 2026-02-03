@@ -1,17 +1,10 @@
-import { toHex } from '@metamask/controller-utils';
 import {
   CHAIN_IDS,
   TransactionType,
 } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Badge, {
@@ -39,7 +32,6 @@ import {
   AlignItems,
   FlexDirection,
 } from '../../../../UI/Box/box.types';
-import { TokenIcon } from '../../../../Views/confirmations/components/token-icon';
 import {
   ConfirmationRowComponentIDs,
   TransactionPayComponentIDs,
@@ -49,10 +41,11 @@ import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pa
 import { useTokenWithBalance } from '../../../../Views/confirmations/hooks/tokens/useTokenWithBalance';
 import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { hasTransactionType } from '../../../../Views/confirmations/utils/transaction';
+import {
+  PERPS_BALANCE_PLACEHOLDER_ADDRESS,
+  useIsPerpsBalanceSelected,
+} from '../../hooks/useIsPerpsBalanceSelected';
 import { usePerpsLiveAccount } from '../../hooks/stream/usePerpsLiveAccount';
-
-const perpsBalancePlaceholder =
-  '0x0000000000000000000000000000000000000001' as Hex;
 
 const tokenIconStyles = StyleSheet.create({
   icon: {
@@ -111,43 +104,24 @@ export const PerpsPayRow = ({
   const { setConfirmationMetric } = useConfirmationMetricEvents();
   const { payToken, setPayToken } = useTransactionPayToken();
   const transactionMeta = useTransactionMetadataRequest();
+  const matchesPerpsBalance = useIsPerpsBalanceSelected();
 
-  // Display state: default to Perps balance so the box always shows "Pay with ... Perps balance"
-  // until payToken is explicitly set (e.g. from modal). payToken can be undefined or random on load.
-  const [isDisplayingPerpsBalance, setIsDisplayingPerpsBalance] =
-    useState(true);
-
-  // Sync display state from payToken whenever it changes (e.g. user picked a token in modal)
-  useEffect(() => {
-    if (payToken === undefined) {
-      return;
-    }
-    const matchesPerpsBalance =
-      payToken.address?.toLowerCase() === perpsBalancePlaceholder.toLowerCase() &&
-      payToken.chainId !== undefined &&
-      toHex(payToken.chainId) === CHAIN_IDS.MAINNET;
-    setIsDisplayingPerpsBalance(matchesPerpsBalance);
-  }, [payToken]);
-
-  // Try to set payToken to Perps balance when it's a perps order and payToken is not set.
-  // payToken can be restored from persistence later; display state still defaults to Perps balance so UI is correct.
   const hasSetDefaultPerpsBalanceRef = useRef(false);
   useEffect(() => {
     if (
       hasSetDefaultPerpsBalanceRef.current ||
       !hasTransactionType(transactionMeta, [
         TransactionType.perpsDepositAndOrder,
-      ]) ||
-      payToken !== undefined
+      ])
     ) {
       return;
     }
     hasSetDefaultPerpsBalanceRef.current = true;
     setPayToken({
-      address: perpsBalancePlaceholder,
+      address: PERPS_BALANCE_PLACEHOLDER_ADDRESS,
       chainId: CHAIN_IDS.MAINNET as Hex,
     });
-  }, [transactionMeta, payToken, setPayToken]);
+  }, [transactionMeta, setPayToken]);
 
   // Get Perps balance from live account
   usePerpsLiveAccount({ throttleMs: 1000 });
@@ -173,15 +147,15 @@ export const PerpsPayRow = ({
   ]);
 
   // Display data: use local state (defaults to Perps balance) so UI always shows "Perps balance" by default
-  const displayToken = isDisplayingPerpsBalance
+  const displayToken = matchesPerpsBalance
     ? {
-      address: perpsBalancePlaceholder,
+      address: PERPS_BALANCE_PLACEHOLDER_ADDRESS,
       tokenLookupChainId: CHAIN_IDS.MAINNET as Hex,
       networkBadgeChainId: CHAIN_IDS.MAINNET as Hex,
       symbol: strings('perps.adjust_margin.perps_balance'),
     }
     : {
-      address: payToken?.address ?? perpsBalancePlaceholder,
+      address: payToken?.address ?? PERPS_BALANCE_PLACEHOLDER_ADDRESS,
       tokenLookupChainId: payToken?.chainId ?? CHAIN_IDS.MAINNET,
       networkBadgeChainId: payToken?.chainId ?? CHAIN_IDS.MAINNET,
       symbol: payToken?.symbol ?? '',
@@ -233,7 +207,7 @@ export const PerpsPayRow = ({
         alignItems={AlignItems.center}
         gap={8}
       >
-        {isDisplayingPerpsBalance ? (
+        {matchesPerpsBalance ? (
           <Text
             variant={TextVariant.BodyMD}
             color={TextColor.Default}
@@ -260,12 +234,7 @@ export const PerpsPayRow = ({
                   style={tokenIconStyles.icon}
                 />
               </BadgeWrapper>
-            ) : (
-              <TokenIcon
-                address={displayToken.address}
-                chainId={displayToken.tokenLookupChainId}
-              />
-            )}
+            ) : null}
             <Text
               variant={TextVariant.BodyMD}
               color={TextColor.Default}

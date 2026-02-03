@@ -40,7 +40,6 @@ export function PayWithModal() {
 
   const handleTokenSelect = useCallback(
     (token: AssetType) => {
-      Alert.alert('Token selected', JSON.stringify(token));
       if (
         hasTransactionType(transactionMeta, [TransactionType.musdConversion])
       ) {

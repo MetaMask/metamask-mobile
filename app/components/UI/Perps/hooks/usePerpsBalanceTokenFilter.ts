@@ -44,7 +44,6 @@ export function usePerpsBalanceTokenFilter(): (
       }
 
       const chainId = CHAIN_IDS.MAINNET;
-      const chainId2 = HYPERLIQUID_MAINNET_CHAIN_ID;
 
       const availableBalance = perpsAccount?.availableBalance || '0';
       const balanceInSelectedCurrency = formatFiat(
@@ -54,7 +53,7 @@ export function usePerpsBalanceTokenFilter(): (
       const perpsBalanceName = strings('perps.adjust_margin.perps_balance');
 
       const perpsBalancePlaceholder =
-        '0x0000000000000000000000000000000000000001' as Hex;
+        '0x0000000000000000000000000000000000000000' as Hex;
       const isPerpsBalanceSelected =
         payToken?.address?.toLowerCase() ===
         perpsBalancePlaceholder.toLowerCase();
@@ -62,9 +61,9 @@ export function usePerpsBalanceTokenFilter(): (
       const perpsBalanceToken: AssetType = {
         address: perpsBalancePlaceholder,
         chainId,
-        tokenId: chainId2,
+        tokenId: perpsBalancePlaceholder,
         name: perpsBalanceName,
-        symbol: USDC_SYMBOL,
+        symbol: 'Perps Balance',
         balance: availableBalance,
         balanceInSelectedCurrency,
         image: USDC_TOKEN_ICON_URL,
@@ -80,7 +79,6 @@ export function usePerpsBalanceTokenFilter(): (
     [
       transactionMeta,
       payToken?.address,
-      payToken?.chainId,
       perpsAccount?.availableBalance,
       formatFiat,
     ],
