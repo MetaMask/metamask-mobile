@@ -5,7 +5,7 @@ import React, {
   useState,
   useMemo,
 } from 'react';
-import { Animated, Image, Modal, View } from 'react-native';
+import { Animated, Modal, View } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -22,7 +22,6 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { LEARN_MORE_CONFIG } from '../../constants/perpsConfig';
 import { useColorPulseAnimation, useBalanceComparison } from '../../hooks';
 import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
@@ -38,8 +37,8 @@ import { INITIAL_AMOUNT_UI_PROGRESS } from '../../constants/hyperLiquidConfig';
 import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
 import { usePerpsTransactionState } from '../../hooks/usePerpsTransactionState';
 import { convertPerpsAmountToUSD } from '../../utils/amountConversion';
-import PerpsEmptyStateIcon from '../../../../../images/perps-home-empty-state.png';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import PerpsEmptyBalance from '../PerpsEmptyBalance';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { PerpsProgressBar } from '../PerpsProgressBar';
 import { selectWithdrawalRequestsBySelectedAccount } from '../../../../../selectors/perps';
@@ -247,52 +246,10 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
         )}
         {/* Balance Section */}
         {isBalanceEmpty ? (
-          <Box twClassName="p-6">
-            <Box twClassName="items-center mb-6">
-              <Image
-                source={PerpsEmptyStateIcon}
-                style={tw.style('w-24 h-24 mb-4')}
-                resizeMode="contain"
-              />
-              <Text
-                variant={TextVariant.HeadingMD}
-                color={TextColor.Default}
-                style={tw.style('mb-2 text-center')}
-                testID={PerpsMarketBalanceActionsSelectorsIDs.EMPTY_STATE_TITLE}
-              >
-                {strings('perps.trade_perps')}
-              </Text>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                style={tw.style('text-center')}
-                testID={
-                  PerpsMarketBalanceActionsSelectorsIDs.EMPTY_STATE_DESCRIPTION
-                }
-              >
-                {strings('perps.trade_perps_description')}
-              </Text>
-            </Box>
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Lg}
-              onPress={handleAddFunds}
-              isFullWidth
-              testID={PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON}
-              style={tw.style('mb-3')}
-            >
-              {strings('perps.add_funds')}
-            </Button>
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Lg}
-              onPress={handleLearnMore}
-              isFullWidth
-              testID={PerpsMarketBalanceActionsSelectorsIDs.LEARN_MORE_BUTTON}
-            >
-              {strings(LEARN_MORE_CONFIG.TitleKey)}
-            </Button>
-          </Box>
+          <PerpsEmptyBalance
+            onAddFunds={handleAddFunds}
+            onLearnMore={handleLearnMore}
+          />
         ) : (
           <Box twClassName="px-4 pt-4 pb-4">
             <Animated.View style={[getBalanceAnimatedStyle]}>
