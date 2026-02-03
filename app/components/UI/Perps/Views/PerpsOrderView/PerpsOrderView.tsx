@@ -851,6 +851,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
         // Show deposit toast and set up tracking before confirming
         handleDepositConfirm(activeTransactionMeta, () => {
+          hasShownSubmittedToastRef.current = true;
+          showToast(
+            PerpsToastOptions.orderManagement[orderForm.type].submitted(
+              orderForm.direction,
+              positionSize,
+              orderForm.asset,
+            ),
+          );
           handlePlaceOrder(true);
         });
 
@@ -1058,6 +1066,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       executeOrder,
       showToast,
       PerpsToastOptions.formValidation.orderForm,
+      PerpsToastOptions.orderManagement,
       PerpsToastOptions.positionManagement.tpsl,
       updatePositionTPSL,
       marginRequired,

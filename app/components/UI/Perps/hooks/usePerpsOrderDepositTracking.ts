@@ -7,8 +7,6 @@ import { useCallback, useContext } from 'react';
 import Engine from '../../../../core/Engine';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { strings } from '../../../../../locales/i18n';
-import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
-import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
 import usePerpsToasts from './usePerpsToasts';
 
 /**
@@ -24,7 +22,6 @@ import usePerpsToasts from './usePerpsToasts';
  * This ensures the order is placed automatically after the deposit completes.
  */
 export const usePerpsOrderDepositTracking = () => {
-  const { account } = usePerpsLiveAccount();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
   const { toastRef } = useContext(ToastContext);
 
@@ -51,12 +48,10 @@ export const usePerpsOrderDepositTracking = () => {
   const handleDepositConfirm = useCallback(
     (transactionMeta: TransactionMeta, callback: () => void) => {
       if (
-        transactionMeta.type !== TransactionType.perpsDeposit &&
         transactionMeta.type !== TransactionType.perpsDepositAndOrder
       ) {
         return;
       }
-      getStreamManagerInstance().setActiveDepositHandler(true);
       const transactionId = transactionMeta.id;
       showProgressToast(transactionId);
 
@@ -67,13 +62,9 @@ export const usePerpsOrderDepositTracking = () => {
         transactionMeta: TransactionMeta;
       }) => {
         if (
-          failedTransactionMeta?.type === TransactionType.perpsDeposit ||
           failedTransactionMeta?.type === TransactionType.perpsDepositAndOrder
         ) {
           if (failedTransactionMeta.id === transactionId) {
-            // Unmark active handler so usePerpsDepositStatus can handle it if needed
-            getStreamManagerInstance().setActiveDepositHandler(false);
-            // Close the depositing toast
             toastRef?.current?.closeToast();
             showToast(PerpsToastOptions.accountManagement.deposit.error);
           }
@@ -92,15 +83,6 @@ export const usePerpsOrderDepositTracking = () => {
           // Unmark active handler so usePerpsDepositStatus can handle it if needed
 
           toastRef?.current?.closeToast();
-          showToast(
-            PerpsToastOptions.accountManagement.deposit.success(
-              account?.availableBalance?.toString() || '0',
-            ),
-          );
-          setTimeout(
-            () => getStreamManagerInstance().setActiveDepositHandler(false),
-            1000,
-          );
           callback?.();
         }
       };
@@ -117,7 +99,6 @@ export const usePerpsOrderDepositTracking = () => {
     [
       showToast,
       toastRef,
-      account?.availableBalance,
       showProgressToast,
       PerpsToastOptions.accountManagement.deposit,
     ],
