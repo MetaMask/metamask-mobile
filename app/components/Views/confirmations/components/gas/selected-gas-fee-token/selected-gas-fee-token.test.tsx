@@ -205,7 +205,7 @@ describe('SelectedGasFeeToken', () => {
       expect(getByTestId('gas-fee-token-modal')).toBeOnTheScreen();
 
       // Close modal
-      fireEvent.press(getByTestId('back-button'));
+      fireEvent.press(getByTestId('close-button'));
       expect(queryByTestId('gas-fee-token-modal')).toBeNull();
     });
 
