@@ -10,8 +10,8 @@ describe('getTrustSignalIcon', () => {
     const result = getTrustSignalIcon(TrustSignalDisplayState.Verified);
 
     expect(result).toEqual<TrustSignalIcon>({
-      name: IconName.Verified,
-      color: IconColor.Success,
+      name: IconName.VerifiedFilled,
+      color: IconColor.Info,
     });
   });
 
