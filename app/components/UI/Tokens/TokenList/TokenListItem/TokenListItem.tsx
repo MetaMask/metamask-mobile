@@ -48,7 +48,6 @@ import StockBadge from '../../../shared/StockBadge';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { toHex } from '@metamask/controller-utils';
 import Logger from '../../../../../util/Logger';
-import { useMusdCtaVisibility } from '../../../Earn/hooks/useMusdCtaVisibility';
 import { useNetworkName } from '../../../../Views/confirmations/hooks/useNetworkName';
 import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events';
 import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
@@ -105,6 +104,7 @@ interface TokenListItemProps {
   assetKey: FlashListAssetKey;
   showRemoveMenu: (arg: TokenI) => void;
   setShowScamWarningModal: (arg: boolean) => void;
+  shouldShowTokenListItemCta: (asset?: TokenI) => boolean;
   privacyMode: boolean;
   showPercentageChange?: boolean;
   isFullView?: boolean;
@@ -115,6 +115,7 @@ export const TokenListItem = React.memo(
     assetKey,
     showRemoveMenu,
     setShowScamWarningModal,
+    shouldShowTokenListItemCta,
     privacyMode,
     showPercentageChange = true,
     isFullView = false,
@@ -146,7 +147,6 @@ export const TokenListItem = React.memo(
 
     const earnToken = getEarnToken(asset as TokenI);
 
-    const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
     const { initiateConversion, hasSeenConversionEducationScreen } =
       useMusdConversion();
 

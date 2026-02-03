@@ -7167,10 +7167,7 @@
       "retry_button": "Retry"
     },
     "referral_rewards_title": "Referrals",
-    "points": "Points",
-    "point": "Point",
     "level": "Level",
-    "to_level_up": "To level up",
     "season_ends": "Season ends",
     "season_ended": "Season ended",
     "main_title": "Rewards",
@@ -7229,6 +7226,9 @@
       "no_end_of_season_rewards": "You didn't earn rewards this season, but there's always next time.",
       "verifying_rewards": "We're making sure everything's correct before you claim your rewards."
     },
+    "season_status": {
+      "points_earned": "Points earned"
+    },
     "onboarding": {
       "not_supported_region_title": "Region not supported",
       "not_supported_region_description": "Rewards are not supported in your region yet. We are working on expanding access, so check back later.",
@@ -7268,6 +7268,7 @@
       "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",
       "step4_confirm_loading": "Claiming points...",
+      "step4_bulk_link_checkbox": "Opt-in all my accounts on this device",
       "step4_linking_accounts": "Adding accounts... ({{current}}/{{total}})",
       "step4_linking_accounts_loading": "Adding additional accounts...",
       "step4_success_description": "You have successfully signed up for MetaMask Rewards!",
@@ -7299,7 +7300,12 @@
       "link_account_error_title": "Failed to add account",
       "link_account_button": "Add",
       "link_account_failed_error": "Failed to add account",
-      "link_account_unknown_error": "Unknown error occurred"
+      "link_account_unknown_error": "Unknown error occurred",
+      "show_more": "Show more",
+      "show_less": "Show less",
+      "linking_progress": "Adding accounts... ({{current}}/{{total}})",
+      "accounts_linked_count": "{{linked}}/{{total}} enrolled",
+      "add_all_accounts": "Add all accounts"
     },
     "referred_by_code": {
       "title": "Referral Code",
