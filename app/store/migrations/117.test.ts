@@ -182,6 +182,49 @@ describe(`Migration ${migrationVersion}`, () => {
     });
   });
 
+  it('wraps null tokens in ResourceState', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          RampsController: {
+            tokens: null,
+            selectedToken: null,
+          },
+        },
+      },
+    };
+
+    const result = migrate(state) as typeof state;
+
+    expect(result.engine.backgroundState.RampsController.tokens).toStrictEqual({
+      data: null,
+      selected: null,
+      isLoading: false,
+      error: null,
+    });
+  });
+
+  it('wraps null quotes in ResourceState', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          RampsController: {
+            quotes: null,
+          },
+        },
+      },
+    };
+
+    const result = migrate(state) as typeof state;
+
+    expect(result.engine.backgroundState.RampsController.quotes).toStrictEqual({
+      data: null,
+      selected: null,
+      isLoading: false,
+      error: null,
+    });
+  });
+
   it('leaves userRegion untouched (handled by migration 116)', () => {
     const userRegion = 'us-ca';
     const state = {

@@ -82,9 +82,9 @@ export default function migrate(state: unknown): unknown {
       );
     }
 
-    if (ramps.tokens != null && !isResourceStateShape(ramps.tokens)) {
+    if (ramps.tokens == null || !isResourceStateShape(ramps.tokens)) {
       ramps.tokens = createDefaultResourceState(
-        ramps.tokens,
+        ramps.tokens ?? null,
         selectedToken ?? null,
       );
     }
@@ -100,8 +100,8 @@ export default function migrate(state: unknown): unknown {
       ramps.countries = createDefaultResourceState(ramps.countries, null);
     }
 
-    if (ramps.quotes != null && !isResourceStateShape(ramps.quotes)) {
-      ramps.quotes = createDefaultResourceState(ramps.quotes, null);
+    if (ramps.quotes == null || !isResourceStateShape(ramps.quotes)) {
+      ramps.quotes = createDefaultResourceState(ramps.quotes ?? null, null);
     }
 
     return state;
