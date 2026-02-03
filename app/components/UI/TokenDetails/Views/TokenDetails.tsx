@@ -290,7 +290,7 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
         />
       )}
       {networkModal}
-      {!txLoading && displaySwapsButton && isTokenDetailsRevampedEnabled() && (
+      {isTokenDetailsRevampedEnabled() && !txLoading && displaySwapsButton && (
         <BottomSheetFooter
           style={{
             ...styles.bottomSheetFooter,
