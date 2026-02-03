@@ -24,6 +24,9 @@ import rewardsReducer, {
   setUnlockedRewardLoading,
   setUnlockedRewardError,
   setPointsEvents,
+  setSnapshots,
+  setSnapshotsLoading,
+  setSnapshotsError,
   bulkLinkStarted,
   bulkLinkAccountResult,
   bulkLinkCompleted,
@@ -39,6 +42,7 @@ import {
   SeasonStatusState,
   RewardClaimStatus,
   PointsEventDto,
+  SnapshotDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { AccountGroupId } from '@metamask/account-api';
 
@@ -4331,5 +4335,332 @@ describe('persist/REHYDRATE with bulk link state', () => {
     expect(state.bulkLink.isRunning).toBe(false);
     expect(state.bulkLink.wasInterrupted).toBe(false);
     expect(state.bulkLink.initialSubscriptionId).toBe(null);
+  });
+});
+
+describe('setSnapshots', () => {
+  const mockSnapshot: SnapshotDto = {
+    id: '01974010-377f-7553-a365-0c33c8130980',
+    seasonId: '7444682d-9050-43b8-9038-28a6a62d6264',
+    name: 'Monad Airdrop',
+    description: 'Earn Monad tokens by participating in the airdrop',
+    tokenSymbol: 'MONAD',
+    tokenAmount: '50000000000000000000000',
+    tokenChainId: '1',
+    tokenAddress: '0x1234567890abcdef1234567890abcdef12345678',
+    receivingBlockchain: 'Ethereum',
+    opensAt: '2025-03-01T00:00:00.000Z',
+    closesAt: '2025-03-15T00:00:00.000Z',
+    calculatedAt: '2025-03-16T00:00:00.000Z',
+    distributedAt: '2025-03-20T00:00:00.000Z',
+    backgroundImage: {
+      lightModeUrl: 'https://example.com/light.png',
+      darkModeUrl: 'https://example.com/dark.png',
+    },
+  };
+
+  it('should set snapshots array', () => {
+    // Arrange
+    const mockSnapshots: SnapshotDto[] = [mockSnapshot];
+    const action = setSnapshots(mockSnapshots);
+
+    // Act
+    const state = rewardsReducer(initialState, action);
+
+    // Assert
+    expect(state.snapshots).toEqual(mockSnapshots);
+    expect(state.snapshotsError).toBe(false);
+  });
+
+  it('should replace existing snapshots with new ones', () => {
+    // Arrange
+    const stateWithSnapshots: RewardsState = {
+      ...initialState,
+      snapshots: [mockSnapshot],
+    };
+    const newSnapshot: SnapshotDto = {
+      ...mockSnapshot,
+      id: 'new-snapshot-id',
+      name: 'New Airdrop',
+    };
+    const action = setSnapshots([newSnapshot]);
+
+    // Act
+    const state = rewardsReducer(stateWithSnapshots, action);
+
+    // Assert
+    expect(state.snapshots).toHaveLength(1);
+    expect(state.snapshots?.[0].id).toBe('new-snapshot-id');
+    expect(state.snapshots?.[0].name).toBe('New Airdrop');
+  });
+
+  it('should set snapshots to empty array', () => {
+    // Arrange
+    const stateWithSnapshots: RewardsState = {
+      ...initialState,
+      snapshots: [mockSnapshot],
+    };
+    const action = setSnapshots([]);
+
+    // Act
+    const state = rewardsReducer(stateWithSnapshots, action);
+
+    // Assert
+    expect(state.snapshots).toEqual([]);
+    expect(state.snapshotsError).toBe(false);
+  });
+
+  it('should set snapshots to null', () => {
+    // Arrange
+    const stateWithSnapshots: RewardsState = {
+      ...initialState,
+      snapshots: [mockSnapshot],
+    };
+    const action = setSnapshots(null);
+
+    // Act
+    const state = rewardsReducer(stateWithSnapshots, action);
+
+    // Assert
+    expect(state.snapshots).toBeNull();
+    expect(state.snapshotsError).toBe(false);
+  });
+
+  it('should reset snapshotsError when setting snapshots', () => {
+    // Arrange
+    const stateWithError: RewardsState = {
+      ...initialState,
+      snapshotsError: true,
+    };
+    const action = setSnapshots([mockSnapshot]);
+
+    // Act
+    const state = rewardsReducer(stateWithError, action);
+
+    // Assert
+    expect(state.snapshots).toEqual([mockSnapshot]);
+    expect(state.snapshotsError).toBe(false);
+  });
+});
+
+describe('setSnapshotsLoading', () => {
+  it('should set snapshotsLoading to true when no snapshots exist', () => {
+    // Arrange
+    const action = setSnapshotsLoading(true);
+
+    // Act
+    const state = rewardsReducer(initialState, action);
+
+    // Assert
+    expect(state.snapshotsLoading).toBe(true);
+  });
+
+  it('should not set loading to true when snapshots already exist', () => {
+    // Arrange
+    const mockSnapshot: SnapshotDto = {
+      id: '01974010-377f-7553-a365-0c33c8130980',
+      seasonId: '7444682d-9050-43b8-9038-28a6a62d6264',
+      name: 'Monad Airdrop',
+      tokenSymbol: 'MONAD',
+      tokenAmount: '50000000000000000000000',
+      tokenChainId: '1',
+      receivingBlockchain: 'Ethereum',
+      opensAt: '2025-03-01T00:00:00.000Z',
+      closesAt: '2025-03-15T00:00:00.000Z',
+      backgroundImage: {
+        lightModeUrl: 'https://example.com/light.png',
+        darkModeUrl: 'https://example.com/dark.png',
+      },
+    };
+    const stateWithSnapshots: RewardsState = {
+      ...initialState,
+      snapshots: [mockSnapshot],
+      snapshotsLoading: false,
+    };
+    const action = setSnapshotsLoading(true);
+
+    // Act
+    const state = rewardsReducer(stateWithSnapshots, action);
+
+    // Assert - loading should remain false when snapshots already loaded
+    expect(state.snapshotsLoading).toBe(false);
+  });
+
+  it('should set snapshotsLoading to false when loading is true', () => {
+    // Arrange
+    const stateWithLoading: RewardsState = {
+      ...initialState,
+      snapshotsLoading: true,
+    };
+    const action = setSnapshotsLoading(false);
+
+    // Act
+    const state = rewardsReducer(stateWithLoading, action);
+
+    // Assert
+    expect(state.snapshotsLoading).toBe(false);
+  });
+
+  it('should set snapshotsLoading to false even when snapshots exist', () => {
+    // Arrange
+    const mockSnapshot: SnapshotDto = {
+      id: '01974010-377f-7553-a365-0c33c8130980',
+      seasonId: '7444682d-9050-43b8-9038-28a6a62d6264',
+      name: 'Monad Airdrop',
+      tokenSymbol: 'MONAD',
+      tokenAmount: '50000000000000000000000',
+      tokenChainId: '1',
+      receivingBlockchain: 'Ethereum',
+      opensAt: '2025-03-01T00:00:00.000Z',
+      closesAt: '2025-03-15T00:00:00.000Z',
+      backgroundImage: {
+        lightModeUrl: 'https://example.com/light.png',
+        darkModeUrl: 'https://example.com/dark.png',
+      },
+    };
+    const stateWithSnapshotsAndLoading: RewardsState = {
+      ...initialState,
+      snapshots: [mockSnapshot],
+      snapshotsLoading: true,
+    };
+    const action = setSnapshotsLoading(false);
+
+    // Act
+    const state = rewardsReducer(stateWithSnapshotsAndLoading, action);
+
+    // Assert
+    expect(state.snapshotsLoading).toBe(false);
+    expect(state.snapshots).toHaveLength(1);
+  });
+
+  it('should not affect other state properties', () => {
+    // Arrange
+    const stateWithData: RewardsState = {
+      ...initialState,
+      activeTab: 'activity' as const,
+      referralCode: 'TEST123',
+    };
+    const action = setSnapshotsLoading(true);
+
+    // Act
+    const state = rewardsReducer(stateWithData, action);
+
+    // Assert
+    expect(state.snapshotsLoading).toBe(true);
+    expect(state.activeTab).toBe('activity');
+    expect(state.referralCode).toBe('TEST123');
+  });
+
+  it('should allow setting loading true when snapshots is empty array', () => {
+    // Arrange
+    const stateWithEmptySnapshots: RewardsState = {
+      ...initialState,
+      snapshots: [],
+      snapshotsLoading: false,
+    };
+    const action = setSnapshotsLoading(true);
+
+    // Act
+    const state = rewardsReducer(stateWithEmptySnapshots, action);
+
+    // Assert - loading should be set to true when snapshots array is empty
+    expect(state.snapshotsLoading).toBe(true);
+  });
+
+  it('should allow setting loading true when snapshots is null', () => {
+    // Arrange
+    const stateWithNullSnapshots: RewardsState = {
+      ...initialState,
+      snapshots: null,
+      snapshotsLoading: false,
+    };
+    const action = setSnapshotsLoading(true);
+
+    // Act
+    const state = rewardsReducer(stateWithNullSnapshots, action);
+
+    // Assert - loading should be set to true when snapshots is null
+    expect(state.snapshotsLoading).toBe(true);
+  });
+});
+
+describe('setSnapshotsError', () => {
+  it('should set snapshotsError to true', () => {
+    // Arrange
+    const action = setSnapshotsError(true);
+
+    // Act
+    const state = rewardsReducer(initialState, action);
+
+    // Assert
+    expect(state.snapshotsError).toBe(true);
+  });
+
+  it('should set snapshotsError to false', () => {
+    // Arrange
+    const stateWithError: RewardsState = {
+      ...initialState,
+      snapshotsError: true,
+    };
+    const action = setSnapshotsError(false);
+
+    // Act
+    const state = rewardsReducer(stateWithError, action);
+
+    // Assert
+    expect(state.snapshotsError).toBe(false);
+  });
+
+  it('should not affect other state properties', () => {
+    // Arrange
+    const mockSnapshot: SnapshotDto = {
+      id: '01974010-377f-7553-a365-0c33c8130980',
+      seasonId: '7444682d-9050-43b8-9038-28a6a62d6264',
+      name: 'Monad Airdrop',
+      tokenSymbol: 'MONAD',
+      tokenAmount: '50000000000000000000000',
+      tokenChainId: '1',
+      receivingBlockchain: 'Ethereum',
+      opensAt: '2025-03-01T00:00:00.000Z',
+      closesAt: '2025-03-15T00:00:00.000Z',
+      backgroundImage: {
+        lightModeUrl: 'https://example.com/light.png',
+        darkModeUrl: 'https://example.com/dark.png',
+      },
+    };
+    const stateWithData: RewardsState = {
+      ...initialState,
+      snapshots: [mockSnapshot],
+      snapshotsLoading: true,
+    };
+    const action = setSnapshotsError(true);
+
+    // Act
+    const state = rewardsReducer(stateWithData, action);
+
+    // Assert
+    expect(state.snapshotsError).toBe(true);
+    expect(state.snapshots).toHaveLength(1);
+    expect(state.snapshotsLoading).toBe(true);
+  });
+
+  it('should toggle error state correctly', () => {
+    // Arrange
+    let currentState = initialState;
+
+    // Act & Assert - Set error to true
+    let action = setSnapshotsError(true);
+    currentState = rewardsReducer(currentState, action);
+    expect(currentState.snapshotsError).toBe(true);
+
+    // Act & Assert - Set error back to false
+    action = setSnapshotsError(false);
+    currentState = rewardsReducer(currentState, action);
+    expect(currentState.snapshotsError).toBe(false);
+
+    // Act & Assert - Set error to true again
+    action = setSnapshotsError(true);
+    currentState = rewardsReducer(currentState, action);
+    expect(currentState.snapshotsError).toBe(true);
   });
 });

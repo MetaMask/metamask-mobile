@@ -46,6 +46,8 @@ import {
   selectBulkLinkFailedAccounts,
   selectBulkLinkWasInterrupted,
   selectBulkLinkAccountProgress,
+  selectSnapshotsLoading,
+  selectSnapshotsError,
 } from './selectors';
 import { OnboardingStep } from './types';
 import {
@@ -3062,6 +3064,66 @@ describe('Rewards selectors', () => {
         });
         // (3 + 2) / 5 = 1.0
         expect(selectBulkLinkAccountProgress(state)).toBe(1.0);
+      });
+    });
+  });
+
+  describe('selectSnapshotsLoading', () => {
+    it('returns false when snapshots are not loading', () => {
+      const mockState = { rewards: { snapshotsLoading: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSnapshotsLoading));
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when snapshots are loading', () => {
+      const mockState = { rewards: { snapshotsLoading: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSnapshotsLoading));
+      expect(result.current).toBe(true);
+    });
+
+    describe('Direct selector calls', () => {
+      it('returns false when snapshotsLoading is false', () => {
+        const state = createMockRootState({ snapshotsLoading: false });
+        expect(selectSnapshotsLoading(state)).toBe(false);
+      });
+
+      it('returns true when snapshotsLoading is true', () => {
+        const state = createMockRootState({ snapshotsLoading: true });
+        expect(selectSnapshotsLoading(state)).toBe(true);
+      });
+    });
+  });
+
+  describe('selectSnapshotsError', () => {
+    it('returns false when there is no snapshots error', () => {
+      const mockState = { rewards: { snapshotsError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSnapshotsError));
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when there is a snapshots error', () => {
+      const mockState = { rewards: { snapshotsError: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSnapshotsError));
+      expect(result.current).toBe(true);
+    });
+
+    describe('Direct selector calls', () => {
+      it('returns false when snapshotsError is false', () => {
+        const state = createMockRootState({ snapshotsError: false });
+        expect(selectSnapshotsError(state)).toBe(false);
+      });
+
+      it('returns true when snapshotsError is true', () => {
+        const state = createMockRootState({ snapshotsError: true });
+        expect(selectSnapshotsError(state)).toBe(true);
       });
     });
   });

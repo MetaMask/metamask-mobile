@@ -1028,6 +1028,76 @@ describe('RewardsDashboard', () => {
     });
   });
 
+  describe('tabComponents when isSnapshotsEnabled is false', () => {
+    beforeEach(() => {
+      mockSelectSnapshotsRewardsEnabledFlag.mockReturnValue(false);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectActiveTab)
+          return defaultSelectorValues.activeTab;
+        if (selector === selectRewardsSubscriptionId)
+          return defaultSelectorValues.subscriptionId;
+        if (selector === selectSeasonId) return currentSeasonId;
+        if (selector === selectSeasonEndDate)
+          return defaultSelectorValues.seasonEndDate;
+        if (selector === selectHideUnlinkedAccountsBanner)
+          return defaultSelectorValues.hideUnlinkedAccountsBanner;
+        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
+          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
+        if (selector === selectSelectedAccountGroup)
+          return defaultSelectorValues.selectedAccountGroup;
+        if (selector === selectSnapshotsRewardsEnabledFlag) return false;
+        return undefined;
+      });
+    });
+
+    it('renders only overview and activity tabs when snapshots is disabled', () => {
+      // Act
+      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
+
+      // Assert - verify only 2 tabs are rendered
+      expect(getByTestId('tab-headers')).toBeTruthy();
+      expect(getByTestId('tab-0')).toBeTruthy();
+      expect(getByTestId('tab-1')).toBeTruthy();
+      expect(queryByTestId('tab-2')).toBeNull();
+    });
+
+    it('does not render snapshots tab when snapshots is disabled', () => {
+      // Act
+      const { queryByTestId } = render(<RewardsDashboard />);
+
+      // Assert - snapshots tab should not be visible by default
+      expect(queryByTestId('rewards-snapshots-tab')).toBeNull();
+    });
+
+    it('renders overview tab as first tab when snapshots is disabled', () => {
+      // Act
+      const { getByTestId } = render(<RewardsDashboard />);
+
+      // Assert
+      expect(getByTestId('rewards-overview-tab')).toBeTruthy();
+    });
+
+    it('switches directly to activity tab at index 1 when snapshots is disabled', () => {
+      // Act
+      const { getByTestId } = render(<RewardsDashboard />);
+      const activityTab = getByTestId('tab-1');
+      fireEvent.press(activityTab);
+
+      // Assert - activity tab is now at index 1 instead of index 2
+      expect(getByTestId('rewards-activity-tab')).toBeTruthy();
+    });
+
+    it('dispatches setActiveTab with activity when tab-1 is pressed and snapshots is disabled', () => {
+      // Act
+      const { getByTestId } = render(<RewardsDashboard />);
+      const activityTab = getByTestId('tab-1');
+      fireEvent.press(activityTab);
+
+      // Assert - tab-1 should now be activity, not snapshots
+      expect(mockDispatch).toHaveBeenCalledWith(setActiveTab('activity'));
+    });
+  });
+
   describe('previous season summary', () => {
     it('should evaluate showPreviousSeasonSummary in useFocusEffect when screen comes into focus', () => {
       // Arrange
