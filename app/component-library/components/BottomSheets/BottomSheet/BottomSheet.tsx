@@ -2,6 +2,7 @@
 
 // Third party dependencies.
 import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import React, {
   forwardRef,
   useCallback,
@@ -17,6 +18,7 @@ import {
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
+import { RootStackParamList } from '../../../../constants/navigation/Params';
 
 // Internal dependencies.
 import styleSheet from './BottomSheet.styles';
@@ -52,7 +54,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
       screenBottomPadding,
     });
     const { y: frameY } = useSafeAreaFrame();
-    const navigation = useNavigation();
+    const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
     const onOpenCB = useCallback(() => {
       onOpen?.(!!postCallback.current);

@@ -15,7 +15,9 @@ import Animated, {
 import Text, { TextColor, TextVariant } from '../../Texts/Text';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import Routes from '../../../../constants/navigation/Routes';
+import { RootStackParamList } from '../../../../constants/navigation/Params';
 import {
   MetaMetricsEvents,
   useMetrics,
@@ -35,7 +37,7 @@ function TradeTabBarItem({ label, ...props }: TradeTabBarItemProps) {
   const [isActive, setIsActive] = useState(false);
   const { colors, themeAppearance } = useTheme();
   const tw = useTailwind(); // Gets theme from ThemeProvider context
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const [buttonLayout, setButtonLayout] = useState<LayoutRectangle>();
   const fontScale = useWindowDimensions().fontScale;
 

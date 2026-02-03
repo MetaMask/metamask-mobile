@@ -38,6 +38,8 @@ import stylesheet from './ModalMandatory.styles';
 import { TermsOfUseModalSelectorsIDs } from '../../../../util/termsOfUse/TermsOfUseModal.testIds';
 import BottomSheet, { BottomSheetRef } from '../../BottomSheets/BottomSheet';
 import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../../../../constants/navigation/Params';
 import { throttle } from 'lodash';
 
 const ModalMandatory = ({ route }: MandatoryModalProps) => {
@@ -45,7 +47,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
   const { styles } = useStyles(stylesheet, {});
   const webViewRef = useRef<WebView>(null);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   const [isWebViewLoaded, setIsWebViewLoaded] = useState<boolean>(false);
   const [isScrollEnded, setIsScrollEnded] = useState<boolean>(false);
