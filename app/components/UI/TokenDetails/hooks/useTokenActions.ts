@@ -384,30 +384,6 @@ export const useTokenActions = ({
     return null;
   }, [userAssetsMap, token.chainId, token.address]);
 
-  // Pre-compute destination token for Sell
-  // Uses getDefaultDestToken which returns:
-  // - Ethereum, Linea → mUSD
-  // - Optimism, Arbitrum, Base, Avalanche, Sei, Monad → USDC
-  // - BSC, Polygon, zkSync → USDT
-  // Falls back to native token if source === default dest
-  const sellDestToken = useMemo<BridgeToken | undefined>(() => {
-    const defaultDest = getDefaultDestToken(token.chainId as Hex | CaipChainId);
-
-    // If default dest is different from source, use it
-    if (defaultDest && !areAddressesEqual(token.address, defaultDest.address)) {
-      return defaultDest;
-    }
-
-    // Fall back to native token if source === default dest (e.g., selling mUSD)
-    const nativeDest = getNativeSourceToken(token.chainId as Hex | CaipChainId);
-    if (!areAddressesEqual(token.address, nativeDest.address)) {
-      return nativeDest;
-    }
-
-    // Edge case: source is native on unsupported chain - swap UI will handle
-    return undefined;
-  }, [token.chainId, token.address]);
-
   const handleBuyPress = useCallback(() => {
     // If user has no eligible tokens to swap with, route to on-ramp
     if (!buySourceToken) {
@@ -419,10 +395,11 @@ export const useTokenActions = ({
     goToSwaps(buySourceToken, currentTokenAsBridgeToken);
   }, [goToSwaps, goToBuy, buySourceToken, currentTokenAsBridgeToken]);
 
+  // Sell: current token as source, let swap UI compute default dest
   const handleSellPress = useCallback(() => {
     if (!goToSwaps) return;
-    goToSwaps(currentTokenAsBridgeToken, sellDestToken);
-  }, [goToSwaps, currentTokenAsBridgeToken, sellDestToken]);
+    goToSwaps(currentTokenAsBridgeToken, undefined);
+  }, [goToSwaps, currentTokenAsBridgeToken]);
 
   return {
     onBuy,

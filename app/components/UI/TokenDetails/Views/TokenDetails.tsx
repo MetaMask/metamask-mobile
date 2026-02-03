@@ -249,7 +249,6 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
       <ActivityIndicator style={styles.loader} size="small" />
     </View>
   );
-
   return (
     <View style={styles.wrapper}>
       <TokenDetailsInlineHeader
@@ -306,7 +305,7 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
               onPress: handleBuyPress,
             },
             // Only show Sell button if user has balance of this token
-            ...(token.balance && parseFloat(token.balance) > 0
+            ...(balance && parseFloat(String(balance)) > 0
               ? [
                   {
                     variant: ButtonVariants.Primary,
