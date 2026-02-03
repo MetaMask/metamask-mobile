@@ -15,7 +15,7 @@ import {
   createUserProfileTests,
   type TestResult,
 } from '../../../reporters/DetoxPerformanceTestReporter';
-import { NetworkToCaipChainId } from '../../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants.ts';
+import { NetworkToCaipChainId } from '../../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
 
 describe(SmokePerformance('Network List Load Testing'), () => {
   const reporter = new PerformanceTestReporter('Network List Load Testing');
