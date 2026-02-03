@@ -25,6 +25,8 @@ import Logger from '../../util/Logger';
 import { discoverAccounts } from '../../multichain-accounts/discovery';
 import { isMultichainAccountsState2Enabled } from '../../multichain-accounts/remote-feature-flag';
 import { captureException } from '@sentry/core';
+import { EntropySourceId } from '@metamask/keyring-api';
+import { convertMnemonicToWordlistIndices } from '../../util/mnemonic';
 
 export interface ImportNewSecretRecoveryPhraseOptions {
   shouldSelectAccount: boolean;
@@ -44,7 +46,7 @@ export async function importNewSecretRecoveryPhrase(
     options: ImportNewSecretRecoveryPhraseReturnType & { error?: Error },
   ) => Promise<void>,
 ): Promise<ImportNewSecretRecoveryPhraseReturnType> {
-  const { KeyringController } = Engine.context;
+  const { KeyringController, MultichainAccountService } = Engine.context;
   const { shouldSelectAccount } = options;
 
   // Convert input mnemonic to codepoints
@@ -53,41 +55,60 @@ export async function importNewSecretRecoveryPhrase(
     mnemonicWords.map((word) => wordlist.indexOf(word)),
   );
 
-  const hdKeyrings = (await KeyringController.getKeyringsByType(
-    ExtendedKeyringTypes.hd,
-  )) as HdKeyring[];
-
-  // TODO: This is temporary and will be removed once https://github.com/MetaMask/core/issues/5411 is resolved.
-  const alreadyImportedSRP = hdKeyrings.some((keyring) => {
-    // Compare directly with stored codepoints
-    const storedCodePoints = new Uint16Array(
-      // The mnemonic will not be undefined because there will be a keyring.
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      Buffer.from(keyring.mnemonic!).buffer,
-    );
-
-    if (inputCodePoints.length !== storedCodePoints.length) return false;
-
-    return inputCodePoints.every(
-      (code, index) => code === storedCodePoints[index],
-    );
-  });
-
-  if (alreadyImportedSRP) {
-    throw new Error('This mnemonic has already been imported.');
-  }
-
-  const newKeyring = await KeyringController.addNewKeyring(
-    ExtendedKeyringTypes.hd,
-    {
-      mnemonic,
-      numberOfAccounts: 1,
-    },
+  // Convert input mnemonic to proper buffer
+  const seedPhraseAsBuffer = Buffer.from(mnemonic, 'utf8');
+  const seedPhraseAsUint8Array = convertMnemonicToWordlistIndices(
+    seedPhraseAsBuffer,
+    wordlist,
   );
+
+  let entropySource: EntropySourceId;
+  if (isMultichainAccountsState2Enabled()) {
+    const wallet = await MultichainAccountService.createMultichainAccountWallet(
+      {
+        type: 'import',
+        mnemonic: seedPhraseAsUint8Array,
+      },
+    );
+    entropySource = wallet.entropySource;
+  } else {
+    const hdKeyrings = (await KeyringController.getKeyringsByType(
+      ExtendedKeyringTypes.hd,
+    )) as HdKeyring[];
+
+    // TODO: This is temporary and will be removed once https://github.com/MetaMask/core/issues/5411 is resolved.
+    const alreadyImportedSRP = hdKeyrings.some((keyring) => {
+      // Compare directly with stored codepoints
+      const storedCodePoints = new Uint16Array(
+        // The mnemonic will not be undefined because there will be a keyring.
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        Buffer.from(keyring.mnemonic!).buffer,
+      );
+
+      if (inputCodePoints.length !== storedCodePoints.length) return false;
+
+      return inputCodePoints.every(
+        (code, index) => code === storedCodePoints[index],
+      );
+    });
+
+    if (alreadyImportedSRP) {
+      throw new Error('This mnemonic has already been imported.');
+    }
+
+    const newKeyring = await KeyringController.addNewKeyring(
+      ExtendedKeyringTypes.hd,
+      {
+        mnemonic,
+        numberOfAccounts: 1,
+      },
+    );
+    entropySource = newKeyring.id;
+  }
 
   const [newAccountAddress] = await KeyringController.withKeyring(
     {
-      id: newKeyring.id,
+      id: entropySource,
     },
     async ({ keyring }) => keyring.getAccounts(),
   );
@@ -109,14 +130,21 @@ export async function importNewSecretRecoveryPhrase(
         seed,
         SecretType.Mnemonic,
         {
-          keyringId: newKeyring.id,
+          keyringId: entropySource,
         },
       );
       addSeedPhraseSuccess = true;
     } catch (error) {
-      // handle seedless controller import error by reverting keyring controller mnemonic import
-      // KeyringController.removeAccount will remove keyring when it's emptied, currently there are no other method in keyring controller to remove keyring
-      await KeyringController.removeAccount(newAccountAddress);
+      if (isMultichainAccountsState2Enabled()) {
+        await MultichainAccountService.removeMultichainAccountWallet(
+          entropySource,
+          newAccountAddress,
+        );
+      } else {
+        // handle seedless controller import error by reverting keyring controller mnemonic import
+        // KeyringController.removeAccount will remove keyring when it's emptied, currently there are no other method in keyring controller to remove keyring
+        await KeyringController.removeAccount(newAccountAddress);
+      }
 
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
@@ -155,7 +183,7 @@ export async function importNewSecretRecoveryPhrase(
         // We need to dispatch a full sync here since this is a new SRP
         await Engine.context.AccountTreeController.syncWithUserStorage();
         // Then we discover accounts
-        discoveredAccountsCount = await discoverAccounts(newKeyring.id);
+        discoveredAccountsCount = await discoverAccounts(entropySource);
       } catch (error) {
         capturedError = new Error(
           `Unable to sync, discover and create accounts: ${error}`,
@@ -179,7 +207,7 @@ export async function importNewSecretRecoveryPhrase(
           const snapClient =
             MultichainWalletSnapFactory.createClient(clientType);
           return await snapClient.addDiscoveredAccounts(
-            newKeyring.id,
+            entropySource,
             WALLET_SNAP_MAP[clientType].discoveryScope,
           );
         }),

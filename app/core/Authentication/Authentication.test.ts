@@ -30,7 +30,6 @@ import {
   KeyringController,
   KeyringTypes,
   AccountImportStrategy,
-  KeyringMetadata,
 } from '@metamask/keyring-controller';
 import { EncryptionKey } from '@metamask/browser-passworder';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
@@ -66,9 +65,12 @@ export type RecursivePartial<T> = {
   [P in keyof T]?: RecursivePartial<T[P]>;
 };
 
+const mockMnemonicPhraseToBytes = jest.fn();
+
 // mock mnemonicPhraseToBytes
 jest.mock('@metamask/key-tree', () => ({
-  mnemonicPhraseToBytes: jest.fn(),
+  mnemonicPhraseToBytes: (...args: unknown[]) =>
+    mockMnemonicPhraseToBytes(...args),
 }));
 
 // Mock the accountsController selector
@@ -2876,9 +2878,7 @@ describe('Authentication', () => {
         type: SecretType.Mnemonic,
       });
       expect(mockSnapClient.addDiscoveredAccounts).not.toHaveBeenCalled();
-      expect(result).toEqual({
-        id: 'test-keyring-id',
-      });
+      expect(result).toEqual('test-keyring-id');
     });
 
     it('handle KeyringController.addNewKeyring failure', async () => {
@@ -3409,7 +3409,7 @@ describe('Authentication', () => {
         .mockResolvedValue(true);
       jest
         .spyOn(Authentication, 'importSeedlessMnemonicToVault')
-        .mockResolvedValue({ id: 'test-keyring-id' } as KeyringMetadata);
+        .mockResolvedValue('test-keyring-id');
 
       // Mock convertEnglishWordlistIndicesToCodepoints
       mockConvertEnglishWordlistIndicesToCodepoints.mockReturnValue(
@@ -4849,6 +4849,164 @@ describe('Authentication', () => {
             password: passwordToUse,
           }),
         ).rejects.toThrow('Failed to sync password and unlock wallet');
+      });
+    });
+  });
+
+  describe('MultichainAccountService.createMultichainAccountWallet with state 2 enabled', () => {
+    //const { mnemonicPhraseToBytes } = jest.requireMock('@metamask/key-tree');
+    const Engine = jest.requireMock('../Engine');
+
+    let mockCreateMultichainAccountWallet: jest.Mock;
+    const mockAddress = '0x1234567890abcdef';
+    const mockEntropySource = 'test-entropy-source-id';
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+
+      // Enable state 2
+      mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
+
+      // Mock to return a fake seed
+      mockMnemonicPhraseToBytes.mockReturnValue(new Uint8Array([1, 2, 3, 4]));
+
+      // Setup mock for createMultichainAccountWallet
+      mockCreateMultichainAccountWallet = jest
+        .fn()
+        .mockResolvedValue({ entropySource: mockEntropySource });
+
+      Engine.context.MultichainAccountService = {
+        init: jest.fn().mockResolvedValue(undefined),
+        resyncAccounts: mockResyncAccounts,
+        createMultichainAccountWallet: mockCreateMultichainAccountWallet,
+        removeMultichainAccountWallet: jest.fn(),
+      };
+
+      const mockKeyring = {
+        getAccounts: jest.fn().mockResolvedValue([mockAddress]),
+      };
+      Engine.context.KeyringController = {
+        setLocked: jest.fn(),
+        isUnlocked: jest.fn(() => true),
+        withKeyring: jest.fn().mockImplementation(
+          async ({ id: _id }, callback) =>
+            await callback({
+              keyring: mockKeyring,
+            }),
+        ),
+        state: {
+          keyrings: [{ metadata: { id: mockEntropySource } }],
+        },
+      } as unknown as KeyringController;
+
+      Engine.context.SeedlessOnboardingController = {
+        addNewSecretData: jest.fn(),
+        updateBackupMetadataState: jest.fn(),
+        state: { vault: null },
+      } as unknown as SeedlessOnboardingController<EncryptionKey>;
+
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+      } as unknown as ReduxStore);
+    });
+
+    afterEach(() => {
+      mockIsMultichainAccountsState2Enabled.mockReturnValue(false);
+      jest.clearAllMocks();
+    });
+
+    describe('newWalletVaultAndRestore', () => {
+      it('calls createMultichainAccountWallet with restore type when state 2 is enabled', async () => {
+        const password = 'test-password';
+        const parsedSeed = 'test seed phrase';
+
+        await Authentication.newWalletAndRestore(
+          password,
+          { currentAuthType: AUTHENTICATION_TYPE.PASSWORD },
+          parsedSeed,
+          true,
+        );
+
+        expect(mockCreateMultichainAccountWallet).toHaveBeenCalledWith({
+          type: 'restore',
+          password,
+          mnemonic: expect.any(Uint8Array),
+        });
+      });
+    });
+
+    describe('createWalletVaultAndKeychain', () => {
+      it('calls createMultichainAccountWallet with create type when state 2 is enabled', async () => {
+        const password = 'test-password';
+
+        await Authentication.newWalletAndKeychain(password, {
+          currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+        });
+
+        expect(mockCreateMultichainAccountWallet).toHaveBeenCalledWith({
+          type: 'create',
+          password,
+        });
+      });
+    });
+
+    describe('importSeedlessMnemonicToVault', () => {
+      beforeEach(() => {
+        Engine.context.SeedlessOnboardingController.state.vault =
+          'seedless onboarding vault';
+      });
+
+      it('calls createMultichainAccountWallet with import type when state 2 is enabled', async () => {
+        const mnemonic = 'test mnemonic phrase for wallet';
+
+        const result =
+          await Authentication.importSeedlessMnemonicToVault(mnemonic);
+
+        expect(mockCreateMultichainAccountWallet).toHaveBeenCalledWith({
+          type: 'import',
+          mnemonic: expect.any(Uint8Array),
+        });
+
+        // Verify the result is the entropy source from the wallet
+        expect(result).toBe('test-entropy-source-id');
+      });
+
+      it('calls updateBackupMetadataState with correct parameters', async () => {
+        const mnemonic = 'test mnemonic phrase for wallet';
+
+        await Authentication.importSeedlessMnemonicToVault(mnemonic);
+
+        expect(
+          Engine.context.SeedlessOnboardingController.updateBackupMetadataState,
+        ).toHaveBeenCalledWith({
+          keyringId: mockEntropySource,
+          data: expect.any(Uint8Array),
+          type: SecretType.Mnemonic,
+        });
+      });
+
+      it('reverts import when updateBackupMetadataState fails', async () => {
+        const mnemonic = 'test mnemonic phrase for wallet';
+        const error = new Error('Failed to update backup metadata');
+
+        Engine.context.SeedlessOnboardingController.updateBackupMetadataState =
+          jest.fn().mockImplementation(() => {
+            throw error;
+          });
+
+        // Mock removeMultichainAccountWallet
+        Engine.context.MultichainAccountService.removeMultichainAccountWallet =
+          jest.fn();
+
+        await expect(
+          Authentication.importSeedlessMnemonicToVault(mnemonic),
+        ).rejects.toThrow('Failed to update backup metadata');
+
+        // Verify rollback was called
+        expect(
+          Engine.context.MultichainAccountService.removeMultichainAccountWallet,
+        ).toHaveBeenCalledWith('test-entropy-source-id', mockAddress);
       });
     });
   });

@@ -14,6 +14,10 @@ import { RootState } from '../../reducers';
 import { SecretType } from '@metamask/seedless-onboarding-controller';
 import { BtcScope, EntropySourceId, SolScope } from '@metamask/keyring-api';
 import { waitFor } from '@testing-library/react-native';
+import { toMultichainAccountWalletId } from '@metamask/account-api';
+import { convertMnemonicToWordlistIndices } from '../../util/mnemonic';
+
+const mockEntropySource = 'keyring-id-123';
 
 const testAddress = '0x123';
 const mockExpectedAccount = createMockInternalAccount(
@@ -32,6 +36,8 @@ const mockControllerMessenger = jest.fn();
 const mockAddDiscoveredAccounts = jest.fn();
 const mockGetAccountByAddress = jest.fn().mockReturnValue(mockExpectedAccount);
 const mockRemoveAccount = jest.fn();
+const mockCreateMultichainAccountWallet = jest.fn();
+const mockRemoveMultichainAccountWallet = jest.fn();
 const mockSyncAccountTreeWithUserStorage = jest.fn();
 
 // Mock for seedless onboarding
@@ -43,11 +49,11 @@ const mockEndTrace = jest.fn();
 const hdKeyring = {
   getAccounts: () => {
     mockGetAccounts();
-    return ['0x123'];
+    return [testAddress];
   },
   addAccounts: (n: number) => {
     mockAddAccounts(n);
-    return ['0x123'];
+    return [testAddress];
   },
 };
 
@@ -131,6 +137,12 @@ jest.mock('../../core/Engine', () => ({
     AccountTreeController: {
       syncWithUserStorage: () => mockSyncAccountTreeWithUserStorage(),
     },
+    MultichainAccountService: {
+      createMultichainAccountWallet: (...params: unknown[]) =>
+        mockCreateMultichainAccountWallet(...params),
+      removeMultichainAccountWallet: (...params: unknown[]) =>
+        mockRemoveMultichainAccountWallet(...params),
+    },
   },
   setSelectedAddress: (address: string) => mockSetSelectedAddress(address),
   setAccountLabel: (address: string, label: string) =>
@@ -143,11 +155,26 @@ jest.mocked(Engine);
 const testMnemonic =
   'verb middle giant soon wage common wide tool gentle garlic issue nut retreat until album recall expire bronze bundle live accident expect dry cook';
 
+function toMmenomicCodepoints(mnemonic: string): Uint16Array {
+  return new Uint16Array(
+    mnemonic.split(' ').map((word) => wordlist.indexOf(word)),
+  );
+}
+
+function toMmenomicUint8Array(mnemonic: string): Uint8Array {
+  return convertMnemonicToWordlistIndices(
+    Buffer.from(mnemonic, 'utf8'),
+    wordlist,
+  );
+}
+
 describe('MultiSRP Actions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAddNewSecretData.mockReset();
     mockIsMultichainAccountsState2Enabled.mockReturnValue(false);
+    mockCreateMultichainAccountWallet.mockReset();
+    mockRemoveMultichainAccountWallet.mockReset();
     mockGetSnapKeyring.mockResolvedValue(true);
   });
 
@@ -157,7 +184,7 @@ describe('MultiSRP Actions', () => {
       mockGetKeyringsByType.mockResolvedValue([]);
       mockAddNewKeyring.mockResolvedValue({
         getAccounts: () => [testAddress],
-        id: 'keyring-id-123',
+        id: mockEntropySource,
       });
       mockAddDiscoveredAccounts.mockResolvedValue(5);
       mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(false);
@@ -172,11 +199,11 @@ describe('MultiSRP Actions', () => {
       });
       expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
       expect(mockAddDiscoveredAccounts).toHaveBeenCalledWith(
-        'keyring-id-123',
+        mockEntropySource,
         BtcScope.Mainnet,
       );
       expect(mockAddDiscoveredAccounts).toHaveBeenCalledWith(
-        'keyring-id-123',
+        mockEntropySource,
         SolScope.Mainnet,
       );
       expect(result).toEqual({
@@ -187,14 +214,13 @@ describe('MultiSRP Actions', () => {
 
     it('(state 2) - successfully imports a new secret recovery phrase and returns account details', async () => {
       // Arrange
-      mockGetKeyringsByType.mockResolvedValue([]);
-      mockAddNewKeyring.mockResolvedValue({
-        getAccounts: () => [testAddress],
-        id: 'keyring-id-123',
+      mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
+      mockCreateMultichainAccountWallet.mockResolvedValue({
+        id: toMultichainAccountWalletId(mockEntropySource),
+        entropySource: mockEntropySource,
       });
       mockDiscoverAccounts.mockResolvedValue(5);
       mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(false);
-      mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
       mockGetSnapKeyring.mockResolvedValue(true);
 
       const mockCallback = jest.fn();
@@ -207,9 +233,9 @@ describe('MultiSRP Actions', () => {
       );
 
       // Assert synchronous return
-      expect(mockAddNewKeyring).toHaveBeenCalledWith(ExtendedKeyringTypes.hd, {
-        mnemonic: testMnemonic,
-        numberOfAccounts: 1,
+      expect(mockCreateMultichainAccountWallet).toHaveBeenCalledWith({
+        type: 'import',
+        mnemonic: toMmenomicUint8Array(testMnemonic),
       });
       expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
       expect(result).toEqual({
@@ -221,7 +247,7 @@ describe('MultiSRP Actions', () => {
       await waitFor(() => {
         expect(mockGetSnapKeyring).toHaveBeenCalled();
         expect(mockSyncAccountTreeWithUserStorage).toHaveBeenCalled();
-        expect(mockDiscoverAccounts).toHaveBeenCalledWith('keyring-id-123');
+        expect(mockDiscoverAccounts).toHaveBeenCalledWith(mockEntropySource);
         expect(mockCallback).toHaveBeenCalledWith({
           address: testAddress,
           discoveredAccountsCount: 5,
@@ -231,14 +257,13 @@ describe('MultiSRP Actions', () => {
 
     it('(state 2) - gracefully handle errors during discovery with new SRP', async () => {
       // Arrange
-      mockGetKeyringsByType.mockResolvedValue([]);
-      mockAddNewKeyring.mockResolvedValue({
-        getAccounts: () => [testAddress],
-        id: 'keyring-id-123',
+      mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
+      mockCreateMultichainAccountWallet.mockReturnValue({
+        id: toMultichainAccountWalletId(mockEntropySource),
+        entropySource: mockEntropySource,
       });
       mockDiscoverAccounts.mockRejectedValue(new Error('Discovery failed'));
       mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(false);
-      mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
       mockGetSnapKeyring.mockResolvedValue(true);
 
       const mockCallback = jest.fn();
@@ -260,7 +285,7 @@ describe('MultiSRP Actions', () => {
       await waitFor(() => {
         expect(mockGetSnapKeyring).toHaveBeenCalled();
         expect(mockSyncAccountTreeWithUserStorage).toHaveBeenCalled();
-        expect(mockDiscoverAccounts).toHaveBeenCalledWith('keyring-id-123');
+        expect(mockDiscoverAccounts).toHaveBeenCalledWith(mockEntropySource);
         expect(mockCallback).toHaveBeenCalledWith({
           address: testAddress,
           discoveredAccountsCount: 0, // Discovery has failed, so callback gets 0
@@ -269,11 +294,21 @@ describe('MultiSRP Actions', () => {
       });
     });
 
+    it('(state 2) - forward error from the MultichainAccountService', async () => {
+      // Arrange
+      mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
+      const mockError = new Error('Multichain wallet creation failed');
+      mockCreateMultichainAccountWallet.mockRejectedValue(mockError);
+
+      // Act & Assert
+      await expect(importNewSecretRecoveryPhrase(testMnemonic)).rejects.toThrow(
+        mockError,
+      );
+    });
+
     it('throws error when attempting to import an already imported mnemonic', async () => {
       // Arrange
-      const existingMnemonicCodePoints = new Uint16Array(
-        testMnemonic.split(' ').map((word) => wordlist.indexOf(word)),
-      );
+      const existingMnemonicCodePoints = toMmenomicCodepoints(testMnemonic);
       mockGetKeyringsByType.mockResolvedValue([
         {
           mnemonic: existingMnemonicCodePoints.buffer,
@@ -314,7 +349,7 @@ describe('MultiSRP Actions', () => {
         mockGetKeyringsByType.mockResolvedValue([]);
         mockAddNewKeyring.mockResolvedValue({
           getAccounts: () => [testAddress],
-          id: 'keyring-id-123',
+          id: mockEntropySource,
         });
         mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(true);
       });
@@ -333,7 +368,7 @@ describe('MultiSRP Actions', () => {
           expect.any(Uint8Array),
           SecretType.Mnemonic,
           {
-            keyringId: 'keyring-id-123',
+            keyringId: mockEntropySource,
           },
         );
         expect(mockEndTrace).toHaveBeenCalledWith({
@@ -361,7 +396,7 @@ describe('MultiSRP Actions', () => {
           expect.any(Uint8Array),
           SecretType.Mnemonic,
           {
-            keyringId: 'keyring-id-123',
+            keyringId: mockEntropySource,
           },
         );
         expect(mockTrace).toHaveBeenCalledWith({
@@ -376,6 +411,51 @@ describe('MultiSRP Actions', () => {
           name: TraceName.OnboardingAddSrp,
           data: { success: false },
         });
+      });
+
+      it('rollback wallet creation if seed phrase backup fails', async () => {
+        const mockError = new Error('Backup failed');
+        mockAddNewSecretData.mockRejectedValue(mockError);
+
+        await expect(
+          importNewSecretRecoveryPhrase(testMnemonic),
+        ).rejects.toThrow(mockError);
+
+        expect(mockAddNewSecretData).toHaveBeenCalledWith(
+          expect.any(Uint8Array),
+          SecretType.Mnemonic,
+          {
+            keyringId: mockEntropySource,
+          },
+        );
+        expect(mockRemoveAccount).toHaveBeenCalledWith(testAddress);
+      });
+
+      it('(state 2) - rollback wallet creation if seed phrase backup fails', async () => {
+        mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
+        mockCreateMultichainAccountWallet.mockReturnValue({
+          id: toMultichainAccountWalletId(mockEntropySource),
+          entropySource: mockEntropySource,
+        });
+
+        const mockError = new Error('Backup failed');
+        mockAddNewSecretData.mockRejectedValue(mockError);
+
+        await expect(
+          importNewSecretRecoveryPhrase(testMnemonic),
+        ).rejects.toThrow(mockError);
+
+        expect(mockAddNewSecretData).toHaveBeenCalledWith(
+          expect.any(Uint8Array),
+          SecretType.Mnemonic,
+          {
+            keyringId: mockEntropySource,
+          },
+        );
+        expect(mockRemoveMultichainAccountWallet).toHaveBeenCalledWith(
+          mockEntropySource,
+          testAddress,
+        );
       });
     });
 

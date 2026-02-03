@@ -54,7 +54,6 @@ import { cancelBulkLink } from '../../store/sagas/rewardsBulkLinkAccountGroups';
 import OAuthService from '../OAuthService/OAuthService';
 import {
   AccountImportStrategy,
-  KeyringMetadata,
   KeyringTypes,
 } from '@metamask/keyring-controller';
 import {
@@ -175,15 +174,21 @@ class AuthenticationService {
     clearEngine: boolean,
   ): Promise<void> => {
     // Restore vault with user entered password
-    const { KeyringController } = Engine.context;
     if (clearEngine) await Engine.resetState();
-    const parsedSeedUint8Array = mnemonicPhraseToBytes(parsedSeed);
-    await KeyringController.createNewVaultAndRestore(
-      password,
-      parsedSeedUint8Array,
-    );
 
-    if (!isMultichainAccountsState2Enabled()) {
+    const { MultichainAccountService } = Engine.context;
+
+    const mnemonic = mnemonicPhraseToBytes(parsedSeed);
+    if (isMultichainAccountsState2Enabled()) {
+      await MultichainAccountService.createMultichainAccountWallet({
+        type: 'restore',
+        password,
+        mnemonic,
+      });
+    } else {
+      const { KeyringController } = Engine.context;
+      await KeyringController.createNewVaultAndRestore(password, mnemonic);
+
       Promise.all(
         Object.values(WalletClientType).map(async (clientType) => {
           const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
@@ -297,13 +302,21 @@ class AuthenticationService {
   private createWalletVaultAndKeychain = async (
     password: string,
   ): Promise<void> => {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { KeyringController }: any = Engine.context;
     await Engine.resetState();
-    await KeyringController.createNewVaultAndKeychain(password);
 
-    if (!isMultichainAccountsState2Enabled()) {
+    const { MultichainAccountService } = Engine.context;
+
+    if (isMultichainAccountsState2Enabled()) {
+      await MultichainAccountService.createMultichainAccountWallet({
+        type: 'create',
+        password,
+      });
+    } else {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { KeyringController }: any = Engine.context;
+      await KeyringController.createNewVaultAndKeychain(password);
+
       Promise.all(
         Object.values(WalletClientType).map(async (clientType) => {
           const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
@@ -978,15 +991,15 @@ class AuthenticationService {
             const mnemonicToRestore = encodedSrp;
 
             // import the new mnemonic to the current vault
-            const keyringMetadata =
+            const entropySource =
               await this.importSeedlessMnemonicToVault(mnemonicToRestore);
 
             // discover multichain accounts from imported srp
             if (isMultichainAccountsState2Enabled()) {
               // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
-              this.attemptMultichainAccountWalletDiscovery(keyringMetadata.id);
+              this.attemptMultichainAccountWalletDiscovery(entropySource);
             } else {
-              this.addMultichainAccounts([keyringMetadata]);
+              this.addMultichainAccounts([entropySource]);
             }
           } else {
             Logger.error(
@@ -1008,51 +1021,74 @@ class AuthenticationService {
 
   importSeedlessMnemonicToVault = async (
     mnemonic: string,
-  ): Promise<KeyringMetadata> => {
+  ): Promise<EntropySourceId> => {
     const isSeedlessOnboardingFlow =
       Engine.context.SeedlessOnboardingController.state.vault != null;
 
     if (!isSeedlessOnboardingFlow) {
       throw new Error('Not in seedless onboarding flow');
     }
-    const { KeyringController, SeedlessOnboardingController } = Engine.context;
+    const {
+      KeyringController,
+      SeedlessOnboardingController,
+      MultichainAccountService,
+    } = Engine.context;
 
-    const keyringMetadata = await KeyringController.addNewKeyring(
-      KeyringTypes.hd,
-      {
-        mnemonic,
-        numberOfAccounts: 1,
-      },
-    );
-
-    const id = keyringMetadata.id;
-
-    const [newAccountAddress] = await KeyringController.withKeyring(
-      { id },
-      async ({ keyring }) => keyring.getAccounts(),
-    );
-
-    // if social backup is requested, add the seed phrase backup
     const seedPhraseAsBuffer = Buffer.from(mnemonic, 'utf8');
     const seedPhraseAsUint8Array = convertMnemonicToWordlistIndices(
       seedPhraseAsBuffer,
       wordlist,
     );
 
+    let entropySource: EntropySourceId;
+
+    if (isMultichainAccountsState2Enabled()) {
+      const wallet =
+        await MultichainAccountService.createMultichainAccountWallet({
+          type: 'import',
+          mnemonic: seedPhraseAsUint8Array,
+        });
+
+      entropySource = wallet.entropySource;
+    } else {
+      const keyringMetadata = await KeyringController.addNewKeyring(
+        KeyringTypes.hd,
+        {
+          mnemonic,
+          numberOfAccounts: 1,
+        },
+      );
+
+      entropySource = keyringMetadata.id;
+    }
+
+    const [newAccountAddress] = await KeyringController.withKeyring(
+      { id: entropySource },
+      async ({ keyring }) => keyring.getAccounts(),
+    );
+
+    // if social backup is requested, add the seed phrase backup
     try {
       SeedlessOnboardingController.updateBackupMetadataState({
-        keyringId: id,
+        keyringId: entropySource,
         data: seedPhraseAsUint8Array,
         type: SecretType.Mnemonic,
       });
     } catch (error) {
       // handle seedless controller import error by reverting keyring controller mnemonic import
-      // KeyringController.removeAccount will remove keyring when it's emptied, currently there are no other method in keyring controller to remove keyring
-      await KeyringController.removeAccount(newAccountAddress);
+      if (isMultichainAccountsState2Enabled()) {
+        await MultichainAccountService.removeMultichainAccountWallet(
+          entropySource,
+          newAccountAddress,
+        );
+      } else {
+        // KeyringController.removeAccount will remove keyring when it's emptied, currently there are no other method in keyring controller to remove keyring
+        await KeyringController.removeAccount(newAccountAddress);
+      }
       throw error;
     }
 
-    return keyringMetadata;
+    return entropySource;
   };
 
   addNewPrivateKeyBackup = async (
@@ -1142,16 +1178,18 @@ class AuthenticationService {
    * @param keyringMetadataList - List of keyring metadata
    */
   addMultichainAccounts = async (
-    keyringMetadataList: KeyringMetadata[],
+    entropySources: EntropySourceId[],
   ): Promise<void> => {
-    for (const keyringMetadata of keyringMetadataList) {
+    for (const entropySource of entropySources) {
       for (const clientType of Object.values(WalletClientType)) {
-        const id = keyringMetadata.id;
         const { discoveryScope } = WALLET_SNAP_MAP[clientType];
         const multichainClient =
           MultichainWalletSnapFactory.createClient(clientType);
 
-        await multichainClient.addDiscoveredAccounts(id, discoveryScope);
+        await multichainClient.addDiscoveredAccounts(
+          entropySource,
+          discoveryScope,
+        );
       }
     }
   };
@@ -1202,7 +1240,7 @@ class AuthenticationService {
 
         await this.newWalletVaultAndRestore(password, seedPhrase, false);
         // add in more srps
-        const keyringMetadataList: KeyringMetadata[] = [];
+        const entropySources: EntropySourceId[] = [];
         if (restOfSeedPhrases.length > 0) {
           for (const item of restOfSeedPhrases) {
             try {
@@ -1214,9 +1252,9 @@ class AuthenticationService {
                 });
               } else if (item.type === SecretType.Mnemonic) {
                 const mnemonic = uint8ArrayToMnemonic(item.data, wordlist);
-                const keyringMetadata =
+                const entropySource =
                   await this.importSeedlessMnemonicToVault(mnemonic);
-                keyringMetadataList.push(keyringMetadata);
+                entropySources.push(entropySource);
               } else {
                 Logger.error(
                   new Error(
@@ -1237,12 +1275,12 @@ class AuthenticationService {
         await this.syncKeyringEncryptionKey();
 
         if (isMultichainAccountsState2Enabled()) {
-          for (const { id } of keyringMetadataList) {
+          for (const entropySource of entropySources) {
             // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
-            this.attemptMultichainAccountWalletDiscovery(id);
+            this.attemptMultichainAccountWalletDiscovery(entropySource);
           }
         } else {
-          this.addMultichainAccounts(keyringMetadataList);
+          this.addMultichainAccounts(entropySources);
         }
 
         this.dispatchOauthReset();
