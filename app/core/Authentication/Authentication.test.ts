@@ -1864,7 +1864,7 @@ describe('Authentication', () => {
         uint8ArrayToMnemonic(mockSeedPhrase1, []),
         false,
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), setExistingUser, and dispatchLogin
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // setExistingUser (from rehydrateSeedPhrase), logIn (from dispatchLogin), and passwordSet (from dispatchPasswordSet)
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1941,7 +1941,7 @@ describe('Authentication', () => {
         keyringId: 'new-keyring-id',
         type: 'mnemonic',
       });
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), setExistingUser, and dispatchLogin
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // setExistingUser (from rehydrateSeedPhrase), logIn (from dispatchLogin), and passwordSet (from dispatchPasswordSet)
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1987,7 +1987,7 @@ describe('Authentication', () => {
           shouldSelectAccount: false,
         },
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), setExistingUser, and dispatchLogin
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // setExistingUser (from rehydrateSeedPhrase), logIn (from dispatchLogin), and passwordSet (from dispatchPasswordSet)
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -2017,7 +2017,7 @@ describe('Authentication', () => {
 
       expect(newWalletAndRestoreSpy).toHaveBeenCalled();
       expect(Logger.error).toHaveBeenCalledWith(expect.any(Error), 'unknown');
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), setExistingUser, and dispatchLogin
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // setExistingUser (from rehydrateSeedPhrase), logIn (from dispatchLogin), and passwordSet (from dispatchPasswordSet)
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -2056,7 +2056,7 @@ describe('Authentication', () => {
         importError,
         'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), setExistingUser, and dispatchLogin
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // setExistingUser (from rehydrateSeedPhrase), logIn (from dispatchLogin), and passwordSet (from dispatchPasswordSet)
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -2144,7 +2144,7 @@ describe('Authentication', () => {
         error,
         'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), setExistingUser, and dispatchLogin
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // setExistingUser (from rehydrateSeedPhrase), logIn (from dispatchLogin), and passwordSet (from dispatchPasswordSet)
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
