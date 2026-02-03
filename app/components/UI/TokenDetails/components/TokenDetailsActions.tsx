@@ -33,7 +33,7 @@ const styleSheet = () =>
     },
   });
 
-export interface AssetDetailsActionsProps {
+export interface TokenDetailsActionsProps {
   hasPerpsMarket: boolean;
   hasBalance: boolean;
   isBuyable: boolean;
@@ -53,7 +53,7 @@ export interface AssetDetailsActionsProps {
   moreButtonActionID?: string;
 }
 
-export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
+export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
   hasPerpsMarket,
   hasBalance,
   isBuyable,
@@ -335,4 +335,4 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   );
 };
 
-export default AssetDetailsActions;
+export default TokenDetailsActions;

@@ -33,7 +33,7 @@ import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
 import { PriceChartProvider } from '../../AssetOverview/PriceChart/PriceChart.context';
 import AssetDetailsActions from '../../../Views/AssetDetails/AssetDetailsActions';
-import { AssetDetailsActions as AssetDetailsActionsV2 } from './AssetDetailsActions';
+import { TokenDetailsActions } from './TokenDetailsActions';
 import MerklRewards from '../../Earn/components/MerklRewards';
 import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
@@ -274,7 +274,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             {renderChartNavigationButton()}
           </View>
           {isTokenDetailsV2ButtonsEnabled ? (
-            <AssetDetailsActionsV2
+            <TokenDetailsActions
               hasPerpsMarket={hasPerpsMarket}
               hasBalance={balance != null && Number(balance) > 0}
               isBuyable={isBuyable}
