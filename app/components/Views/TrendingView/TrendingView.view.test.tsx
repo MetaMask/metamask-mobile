@@ -16,6 +16,7 @@ import { fireEvent, waitFor, act, within } from '@testing-library/react-native';
 import React from 'react';
 import { getTrendingTokens } from '@metamask/assets-controllers';
 
+// Mock Perps providers to be pass-through components (Perps not under test)
 /* eslint-disable no-restricted-syntax */
 jest.mock(
   '../../../components/UI/Perps/providers/PerpsConnectionProvider',
@@ -28,20 +29,17 @@ jest.mock(
 jest.mock('../../../components/UI/Perps/providers/PerpsStreamManager', () => ({
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
     children,
-  usePerpsStream: () => ({
-    prices: {
-      subscribeToSymbols: jest.fn(() => jest.fn()),
-      subscribe: jest.fn(() => jest.fn()),
-    },
-    positions: { subscribe: jest.fn(() => jest.fn()) },
-    orders: { subscribe: jest.fn(() => jest.fn()) },
-    fills: { subscribe: jest.fn(() => jest.fn()) },
-    account: { subscribe: jest.fn(() => jest.fn()) },
-    marketData: {
-      subscribe: jest.fn(() => jest.fn()),
-      getMarkets: jest.fn(() => []),
-    },
-    oiCaps: { subscribe: jest.fn(() => jest.fn()) },
+  usePerpsStream: () => null,
+}));
+
+// Mock usePerpsMarkets hook to return empty data (Perps not under test)
+jest.mock('../../../components/UI/Perps/hooks', () => ({
+  usePerpsMarkets: () => ({
+    markets: [],
+    isLoading: false,
+    error: null,
+    refresh: jest.fn(),
+    isRefreshing: false,
   }),
 }));
 /* eslint-enable no-restricted-syntax */
