@@ -141,8 +141,11 @@ if [ -f "$SUMMARY_FILE" ]; then
             (.[0].failureReason) as $reason |
             ([.[].platform] | unique) as $platforms |
             ($platforms | join(" & ")) as $platformsLabel |
-            ([.[] | if .recordingLink != null and .recordingLink != "" then "<" + .recordingLink + "|Recording (" + .platform + ")>" else (if .sessionId != null and .sessionId != "" then "Recording (session: " + .sessionId + ")" else "—" end) end] | join(" · ")) as $recordings |
-            ($reason | if . == "quality_gates_exceeded" then "Quality gates error" elif . == "timedOut" then "Test timed out" elif . == "test_error" or . == "failed" then "Test error" else . end) as $reasonDisplay |
+            ([.[] |
+              (if .device != null and .device != "" then (if (.device | type) == "object" then ((.device.name // "") + (if .device.osVersion != null and .device.osVersion != "" then " (" + .device.osVersion + ")" else "" end)) else (.device | tostring) end) else .platform end) as $deviceLabel |
+              if .recordingLink != null and .recordingLink != "" then "<" + .recordingLink + "|Recording (" + $deviceLabel + ")>" else (if .sessionId != null and .sessionId != "" then "Recording (" + $deviceLabel + ") (session: " + .sessionId + ")" else "—" end) end
+            ] | join(" · ")) as $recordings |
+            ($reason | if . == "quality_gates_exceeded" then "Quality gates FAILED" elif . == "timedOut" then "Test timed out" elif . == "test_error" or . == "failed" then "Test error" else . end) as $reasonDisplay |
             [$mention, $name, $reasonDisplay, $platformsLabel, $recordings] | @tsv
           )
         ' "$SUMMARY_FILE" 2>/dev/null)"

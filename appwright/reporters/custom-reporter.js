@@ -1301,6 +1301,19 @@ class CustomReporter {
 
       // Generate failed tests by team report for Slack notifications
       if (Object.keys(this.failedTestsByTeam).length > 0) {
+        // Normalize failureReason: if test has failed quality gates, use quality_gates_exceeded
+        for (const teamData of Object.values(this.failedTestsByTeam)) {
+          for (const test of teamData.tests) {
+            if (
+              test.qualityGates &&
+              test.qualityGates.hasThresholds &&
+              !test.qualityGates.passed
+            ) {
+              test.failureReason = 'quality_gates_exceeded';
+            }
+          }
+        }
+
         const failedTestsReport = {
           timestamp: new Date().toISOString(),
           totalFailedTests: Object.values(this.failedTestsByTeam).reduce(

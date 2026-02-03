@@ -399,6 +399,14 @@ function createSummary(groupedResults) {
           };
         }
         
+        // Use quality_gates_exceeded when quality gates failed (for Slack "Quality gates FAILED")
+        const failureReason =
+          testInfo.qualityGates &&
+          testInfo.qualityGates.hasThresholds &&
+          !testInfo.qualityGates.passed
+            ? 'quality_gates_exceeded'
+            : (testInfo.failureReason ?? null);
+
         failedTestsByTeam[teamId].tests.push({
           testName: testInfo.testName,
           testFilePath: testInfo.testFilePath,
@@ -407,7 +415,7 @@ function createSummary(groupedResults) {
           device: testInfo.device,
           sessionId: testInfo.sessionId ?? null,
           recordingLink: testInfo.videoURL ?? null,
-          failureReason: testInfo.failureReason,
+          failureReason,
           qualityGates: testInfo.qualityGates,
           qualityGatesViolations: testInfo.qualityGatesViolations,
         });
