@@ -245,4 +245,45 @@ describe('SRPErrorScreen', () => {
       ).toBeTruthy();
     });
   });
+
+  describe('cleanup', () => {
+    it('clears timeout on unmount', async () => {
+      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+      const { getByText, unmount } = renderWithProvider(
+        <SRPErrorScreen error={mockError} />,
+      );
+
+      // Trigger copy to start a timeout
+      fireEvent.press(getByText('Copy'));
+
+      await waitFor(() => {
+        expect(getByText('Copied')).toBeTruthy();
+      });
+
+      // Unmount component
+      unmount();
+
+      // Verify clearTimeout
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+      clearTimeoutSpy.mockRestore();
+    });
+
+    it('clears previous timeout when copying multiple times', async () => {
+      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+      const { getByText } = renderWithProvider(
+        <SRPErrorScreen error={mockError} />,
+      );
+
+      fireEvent.press(getByText('Copy'));
+
+      await waitFor(() => {
+        expect(getByText('Copied')).toBeTruthy();
+      });
+
+      fireEvent.press(getByText('Copied'));
+
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+      clearTimeoutSpy.mockRestore();
+    });
+  });
 });

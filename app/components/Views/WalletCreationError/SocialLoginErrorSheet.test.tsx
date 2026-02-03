@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { Linking } from 'react-native';
+import { Linking, Image, SafeAreaView } from 'react-native';
 import SocialLoginErrorSheet from './SocialLoginErrorSheet';
 import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../../core/AppConstants';
@@ -70,6 +70,31 @@ describe('SocialLoginErrorSheet', () => {
       );
 
       expect(getByText('MetaMask Support')).toBeTruthy();
+    });
+
+    it('renders without error prop', () => {
+      const { getByText } = renderWithProvider(<SocialLoginErrorSheet />);
+
+      expect(getByText('Something went wrong')).toBeTruthy();
+      expect(getByText('Try again')).toBeTruthy();
+    });
+
+    it('renders Fox logo image', () => {
+      const { UNSAFE_getByType } = renderWithProvider(
+        <SocialLoginErrorSheet error={mockError} />,
+      );
+
+      const image = UNSAFE_getByType(Image);
+      expect(image).toBeTruthy();
+    });
+
+    it('renders SafeAreaView container', () => {
+      const { UNSAFE_getByType } = renderWithProvider(
+        <SocialLoginErrorSheet error={mockError} />,
+      );
+
+      const container = UNSAFE_getByType(SafeAreaView);
+      expect(container).toBeTruthy();
     });
   });
 
