@@ -359,6 +359,7 @@ describe('RemoteImage', () => {
     let dimensionsSpy: jest.SpyInstance;
 
     beforeEach(() => {
+      jest.useFakeTimers();
       dimensionsSpy = jest.spyOn(Dimensions, 'get').mockReturnValue({
         width: 400,
         height: 800,
@@ -368,6 +369,8 @@ describe('RemoteImage', () => {
     });
 
     afterEach(() => {
+      jest.runOnlyPendingTimers();
+      jest.useRealTimers();
       jest.restoreAllMocks();
       dimensionsSpy.mockRestore();
     });
@@ -381,6 +384,9 @@ describe('RemoteImage', () => {
           source={{ uri: 'https://example.com/image.png' }}
         />,
       );
+
+      // Clear any pending timers from the mock's automatic onLoad
+      jest.clearAllTimers();
 
       await act(async () => {
         const image = UNSAFE_getByType(Image);
@@ -406,6 +412,9 @@ describe('RemoteImage', () => {
         />,
       );
 
+      // Clear any pending timers from the mock's automatic onLoad
+      jest.clearAllTimers();
+
       await act(async () => {
         const image = UNSAFE_getByType(Image);
         image.props.onLoad({
@@ -430,6 +439,9 @@ describe('RemoteImage', () => {
         />,
       );
 
+      // Clear any pending timers from the mock's automatic onLoad
+      jest.clearAllTimers();
+
       await act(async () => {
         const image = UNSAFE_getByType(Image);
         image.props.onLoad({
@@ -453,6 +465,9 @@ describe('RemoteImage', () => {
           source={{ uri: 'https://example.com/image.png' }}
         />,
       );
+
+      // Clear any pending timers from the mock's automatic onLoad
+      jest.clearAllTimers();
 
       await act(async () => {
         const image = UNSAFE_getByType(Image);
@@ -497,6 +512,9 @@ describe('RemoteImage', () => {
           source={{ uri: 'https://example.com/image.png' }}
         />,
       );
+
+      // Clear any pending timers from the mock's automatic onLoad
+      jest.clearAllTimers();
 
       await act(async () => {
         const image = UNSAFE_getByType(Image);
