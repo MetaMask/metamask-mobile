@@ -53,6 +53,17 @@ For E2E tests, use [.cursor/rules/e2e-testing-guidelines.mdc](./.cursor/rules/e2
 
 **Full documentation index:** [README.md § Documentation](./README.md#documentation).
 
+### Test Folders (Folder-Level Agent Indexes)
+
+When working inside a test folder, use its local AGENTS.md as the index for that area:
+
+| Folder                      | AGENTS.md                            | Context                                                                                                             |
+| --------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| [e2e/](./e2e/AGENTS.md)     | [e2e/AGENTS.md](./e2e/AGENTS.md)     | E2E specs, Page Objects, selectors, Detox/Playwright config                                                         |
+| [tests/](./tests/AGENTS.md) | [tests/AGENTS.md](./tests/AGENTS.md) | E2E framework, fixtures, API/controller mocking, regression & smoke specs                                           |
+| [wdio/](./wdio/AGENTS.md)   | [wdio/AGENTS.md](./wdio/AGENTS.md)   | Legacy WebdriverIO/Appium (deprecated); see Appwright for performance tests                                         |
+| [app/](./app/AGENTS.md)     | [app/AGENTS.md](./app/AGENTS.md)     | Unit tests + component-view tests (scattered under `app/`); component-view framework in `util/test/component-view/` |
+
 ## Before Implementing
 
 1. Read **README.md** and the relevant docs above (and full list in README § Documentation).
