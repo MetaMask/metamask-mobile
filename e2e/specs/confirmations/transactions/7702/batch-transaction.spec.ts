@@ -17,7 +17,7 @@ import {
   buildPermissions,
 } from '../../../../../tests/framework/fixtures/FixtureUtils';
 import { loginToApp, navigateToBrowserView } from '../../../../viewHelper';
-import { SmokeConfirmationsRedesigned } from '../../../../tags';
+import { SmokeConfirmations } from '../../../../tags';
 import { withFixtures } from '../../../../../tests/framework/fixtures/FixtureHelper';
 import { DappVariants } from '../../../../../tests/framework/Constants';
 import {
@@ -84,7 +84,7 @@ async function connectTestDappToLocalhost() {
  * Click event on switch account toggle is not working in the e2e tests.
  * Once that is fixed, the test cases can be uncommented and unskipped.
  */
-describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
+describe(SmokeConfirmations('7702 - smart account'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     await setupMockRequest(mockServer, {
       requestMethod: 'GET',
