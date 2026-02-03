@@ -1733,6 +1733,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 protocolFeeRate: feeResults.protocolFeeRate,
                 originalMetamaskFeeRate: feeResults.originalMetamaskFeeRate,
                 feeDiscountPercentage: feeResults.feeDiscountPercentage,
+                ...(hasCustomTokenSelected &&
+                  depositFeeUsd > 0 && {
+                  bridgeFeeFormatted: formatPerpsFiat(depositFeeUsd, {
+                    ranges: PRICE_RANGES_MINIMAL_VIEW,
+                  }),
+                }),
               }
               : undefined
           }

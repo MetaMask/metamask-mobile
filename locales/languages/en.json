@@ -1087,7 +1087,7 @@
       "error_toast": "Transaction failed",
       "error_generic": "Funds have been returned to you",
       "in_progress": "Adding funds to Perps",
-      "depositing_your_funds": "Depositing your funds",
+      "depositing_your_funds": "Setting up your trade",
       "your_funds_have_arrived": "Your funds have arrived",
       "estimated_processing_time": "Est. {{time}}",
       "funds_available_momentarily": "Funds will be available momentarily",
@@ -1652,6 +1652,7 @@
         "content": "Trading fees are charged when you open or close a position.",
         "metamask_fee": "MetaMask fee",
         "provider_fee": "Provider fee",
+        "bridge_fee": "Bridge fee",
         "total": "Total fees",
         "discount_message": "You're saving {{percentage}}% with MetaMask Rewards."
       },
