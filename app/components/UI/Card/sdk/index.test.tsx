@@ -101,6 +101,7 @@ jest.mock('../util/cardTokenVault', () => ({
 
 jest.mock('../../../../util/Logger', () => ({
   log: jest.fn(),
+  error: jest.fn(),
 }));
 
 jest.mock('../util/getErrorMessage', () => ({
@@ -479,6 +480,88 @@ describe('CardSDK Context', () => {
       await expect(result.current.logoutFromProvider()).rejects.toThrow(
         'SDK not available for logout',
       );
+    });
+
+    it('clears Redux state even when sdk.logout() fails', async () => {
+      // Given: SDK logout fails
+      const mockLogout = jest
+        .fn()
+        .mockRejectedValue(new Error('Server logout failed'));
+      setupMockSDK({ logout: mockLogout });
+      setupMockUseSelector(mockCardFeatureFlag);
+
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // When: user logs out (even though server fails)
+      await act(async () => {
+        await result.current.logoutFromProvider();
+      });
+
+      // Then: Redux state should still be cleared
+      expect(mockLogout).toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'card/clearAllCache' }),
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'card/resetOnboardingState' }),
+      );
+    });
+
+    it('clears user state even when sdk.logout() fails', async () => {
+      // Given: SDK logout fails and user is set
+      const mockLogout = jest
+        .fn()
+        .mockRejectedValue(new Error('Network error'));
+      setupMockSDK({ logout: mockLogout });
+      setupMockUseSelector(mockCardFeatureFlag);
+
+      const mockUser: UserResponse = {
+        id: 'test-user-id',
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john.doe@example.com',
+        phoneNumber: '+1234567890',
+        phoneCountryCode: '+1',
+        verificationState: 'VERIFIED',
+        dateOfBirth: '1990-01-01',
+        addressLine1: '123 Main St',
+        city: 'Anytown',
+        usState: 'CA',
+        zip: '12345',
+        countryOfResidence: 'US',
+      };
+
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Set user first
+      act(() => {
+        result.current.setUser(mockUser);
+      });
+
+      expect(result.current.user).toEqual(mockUser);
+
+      // When: logout fails
+      await act(async () => {
+        await result.current.logoutFromProvider();
+      });
+
+      // Then: user should still be cleared
+      expect(result.current.user).toBe(null);
     });
   });
 

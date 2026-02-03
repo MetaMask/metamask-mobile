@@ -4495,7 +4495,7 @@ describe('CardSDK', () => {
       expect(mockRemoveCardBaanxToken).toHaveBeenCalledTimes(1);
     });
 
-    it('throws error when logout API fails', async () => {
+    it('still removes token when logout API fails', async () => {
       // Given: logout API returns error
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
@@ -4503,14 +4503,14 @@ describe('CardSDK', () => {
         json: jest.fn().mockResolvedValue({ error: 'Server error' }),
       });
 
-      // When/Then: logout should throw error
+      // When/Then: logout should throw error but still remove token
       await expect(cardSDK.logout()).rejects.toThrow();
 
-      // Token should not be removed on failure
-      expect(mockRemoveCardBaanxToken).not.toHaveBeenCalled();
+      // Token should still be removed even on failure (local cleanup always happens)
+      expect(mockRemoveCardBaanxToken).toHaveBeenCalledTimes(1);
     });
 
-    it('throws CardError with SERVER_ERROR type on failure', async () => {
+    it('throws CardError with SERVER_ERROR type after cleanup on failure', async () => {
       // Given: logout API returns error
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
@@ -4518,7 +4518,7 @@ describe('CardSDK', () => {
         json: jest.fn().mockResolvedValue({ error: 'Unauthorized' }),
       });
 
-      // When/Then: should throw CardError
+      // When/Then: should throw CardError after local cleanup
       try {
         await cardSDK.logout();
         fail('Expected error to be thrown');
@@ -4527,6 +4527,22 @@ describe('CardSDK', () => {
         expect((error as CardError).type).toBe(CardErrorType.SERVER_ERROR);
         expect((error as CardError).message).toContain('Failed to logout');
       }
+
+      // Token should still be removed (cleanup happens before re-throwing)
+      expect(mockRemoveCardBaanxToken).toHaveBeenCalledTimes(1);
+    });
+
+    it('removes token even when network request fails', async () => {
+      // Given: network error occurs
+      (global.fetch as jest.Mock).mockRejectedValueOnce(
+        new Error('Network error'),
+      );
+
+      // When/Then: logout should throw but still remove token
+      await expect(cardSDK.logout()).rejects.toThrow('Network error');
+
+      // Token should still be removed even on network failure
+      expect(mockRemoveCardBaanxToken).toHaveBeenCalledTimes(1);
     });
 
     it('sends authenticated POST request to logout endpoint', async () => {

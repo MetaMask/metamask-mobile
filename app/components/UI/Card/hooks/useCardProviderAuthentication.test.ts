@@ -651,7 +651,7 @@ describe('useCardProviderAuthentication', () => {
 
       expect(mockSdk.sendOtpLogin).toHaveBeenCalledWith({
         userId: otpParams.userId,
-        location: 'international', // Location is now included from useSelector
+        location: 'international',
       });
       expect(result.current.otpError).toBeNull();
       expect(result.current.otpLoading).toBe(false);

@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
+import Logger from '../../../../util/Logger';
 import { CardSDK } from './CardSDK';
 import {
   CardFeatureFlag,
@@ -136,7 +137,13 @@ export const CardSDKProvider = ({
       throw new Error('SDK not available for logout');
     }
 
-    await sdk.logout();
+    try {
+      await sdk.logout();
+    } catch (error) {
+      Logger.error(error as Error, {
+        message: '[CardSDK] Logout failed, clearing local state anyway',
+      });
+    }
 
     dispatch(resetAuthenticatedData());
     dispatch(clearAllCache());

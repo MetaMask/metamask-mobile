@@ -847,23 +847,46 @@ export class CardSDK {
     return data as CardLoginResponse;
   };
 
+  /**
+   * Logs out the user from the Card provider.
+   *
+   * This method always clears the local token, regardless of whether the server
+   * logout succeeds. This ensures users can always log out even if the server
+   * is unreachable or the token is already invalidated server-side.
+   *
+   * @throws {CardError} If the server logout fails (after local cleanup is done)
+   */
   logout = async (): Promise<void> => {
-    const response = await this.makeRequest('/v1/auth/logout', {
-      fetchOptions: { method: 'POST' },
-      authenticated: true,
-    });
+    let serverError: Error | null = null;
 
-    if (!response.ok) {
-      throw this.logAndCreateError(
-        CardErrorType.SERVER_ERROR,
-        'Failed to logout. Please try again.',
-        'logout',
-        'auth/logout',
-        response.status,
-      );
+    try {
+      const response = await this.makeRequest('/v1/auth/logout', {
+        fetchOptions: { method: 'POST' },
+        authenticated: true,
+      });
+
+      if (!response.ok) {
+        serverError = this.logAndCreateError(
+          CardErrorType.SERVER_ERROR,
+          'Failed to logout from server.',
+          'logout',
+          'auth/logout',
+          response.status,
+        );
+      }
+    } catch (error) {
+      Logger.error(error as Error, {
+        message:
+          '[CardSDK] Server logout failed, proceeding with local cleanup',
+      });
+      serverError = error as Error;
     }
 
     await removeCardBaanxToken();
+
+    if (serverError) {
+      throw serverError;
+    }
   };
 
   sendOtpLogin = async (body: {
