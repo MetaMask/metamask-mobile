@@ -6,7 +6,6 @@ import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import Assertions from '../../../../tests/framework/Assertions';
 
 export const account1Short = 'TLSL...nf2T';
-export const account2Short = '9Wa2...Dj2U';
 
 export const EXPECTED_SIGNED_MESSAGE =
   '0x40ed224cd55c372e99bf3796707ac785e8c8813d12d1f36f42b906571089813b5de43942fe4cd798265724900402b2df0390c0a763770c6cd700f0446625c0e01b';
@@ -44,12 +43,4 @@ export const navigateToTronTestDApp = async (): Promise<void> => {
   await TabBarComponent.tapBrowser();
   await Assertions.expectElementToBeVisible(BrowserView.browserScreenID);
   await TronTestDApp.navigateToTronTestDApp();
-};
-
-export const assertIsSignedTransaction = async (signedTransaction: string) => {
-  if (!/^.{88}$/.test(signedTransaction)) {
-    throw new Error(
-      `Signed transaction does not match regex: ${signedTransaction}`,
-    );
-  }
 };

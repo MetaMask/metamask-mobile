@@ -1942,7 +1942,7 @@ class FixtureBuilder {
     const TRON_TOKEN = 'slip44:195';
 
     this.fixture.state.engine.backgroundState.MultichainNetworkController = {
-      selectedMultichainNetworkChainId: TrxScope.Shasta,
+      selectedMultichainNetworkChainId: TrxScope.Mainnet,
       multichainNetworkConfigurationsByChainId: {
         [TrxScope.Mainnet]: {
           chainId: TrxScope.Mainnet,
