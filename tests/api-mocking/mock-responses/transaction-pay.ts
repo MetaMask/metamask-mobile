@@ -1,5 +1,6 @@
 import { Mockttp } from 'mockttp';
-import { DEFAULT_FIXTURE_ACCOUNT } from '../../framework/fixtures/FixtureBuilder.ts';
+import { USDC_MAINNET, MUSD_MAINNET } from '../../constants/musd-mainnet';
+import { DEFAULT_FIXTURE_ACCOUNT } from '../../framework/fixtures/FixtureBuilder';
 
 export const RELAY_QUOTE_MOCK = {
   steps: [
@@ -310,6 +311,86 @@ export const RELAY_QUOTE_MOCK = {
   },
 };
 
+/**
+ * Relay quote mock for Mainnet mUSD conversion (chainId 1, USDC → mUSD).
+ * TransactionPayController's normalizeQuote expects:
+ * - details.currencyIn/currencyOut with chainId matching the request (1)
+ * - steps[].items[].data.chainId = 1 so gas/network lookups use Mainnet
+ * - details.timeEstimate, details.totalImpact.usd
+ */
+export const MAINNET_MUSD_RELAY_QUOTE_MOCK = {
+  steps: [
+    {
+      id: 'deposit',
+      action: 'Confirm transaction in your wallet',
+      description: 'Convert USDC to mUSD',
+      kind: 'transaction',
+      items: [
+        {
+          status: 'incomplete',
+          data: {
+            from: DEFAULT_FIXTURE_ACCOUNT,
+            to: '0x00000000aa467eba42a3d604b3d74d63b2b6c6cb',
+            data: '0x470b5f3b22544142d6b2116ec296913046fe06578b495e602ac2fe0c87b843de',
+            value: '0',
+            chainId: 1,
+            gas: '100000',
+            maxFeePerGas: '30000000000',
+            maxPriorityFeePerGas: '1000000000',
+          },
+          check: {
+            endpoint:
+              '/intents/status?requestId=0x470b5f3b22544142d6b2116ec296913046fe06578b495e602ac2fe0c87b843de',
+            method: 'GET',
+          },
+        },
+      ],
+      requestId:
+        '0x470b5f3b22544142d6b2116ec296913046fe06578b495e602ac2fe0c87b843de',
+      depositAddress: '',
+    },
+  ],
+  details: {
+    operation: 'swap',
+    sender: DEFAULT_FIXTURE_ACCOUNT,
+    recipient: DEFAULT_FIXTURE_ACCOUNT,
+    currencyIn: {
+      currency: {
+        chainId: 1,
+        address: USDC_MAINNET,
+        symbol: 'USDC',
+        name: 'USD Coin',
+        decimals: 6,
+        metadata: { logoURI: '', verified: true },
+      },
+      amount: '100000000',
+      amountFormatted: '100',
+      amountUsd: '100',
+      minimumAmount: '100000000',
+    },
+    currencyOut: {
+      currency: {
+        chainId: 1,
+        address: MUSD_MAINNET,
+        symbol: 'MUSD',
+        name: 'MetaMask USD',
+        decimals: 6,
+        metadata: { logoURI: '', verified: true },
+      },
+      amount: '100100000',
+      amountFormatted: '100.1',
+      amountUsd: '100.1',
+      minimumAmount: '100000000',
+    },
+    totalImpact: { usd: '-0.01', percent: '-0.01' },
+    timeEstimate: 4,
+  },
+  fees: {
+    relayer: { amountUsd: '0.01' },
+  },
+  metamask: { gasLimits: [100000] },
+};
+
 export const RELAY_STATUS_MOCK = {
   status: 'success',
   txHashes: [
@@ -327,6 +408,23 @@ export async function mockRelayQuote(mockServer: Mockttp) {
     .thenCallback(() => ({
       statusCode: 200,
       json: RELAY_QUOTE_MOCK,
+    }));
+}
+
+/**
+ * Mocks Relay quote API for Mainnet mUSD conversion (chainId 1, USDC → mUSD).
+ * Use this in mUSD conversion E2E so normalizeQuote uses Mainnet for gas/rates.
+ */
+export async function mockRelayQuoteMainnetMusd(mockServer: Mockttp) {
+  await mockServer
+    .forPost('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(url?.includes('api.relay.link/quote'));
+    })
+    .thenCallback(() => ({
+      statusCode: 200,
+      json: MAINNET_MUSD_RELAY_QUOTE_MOCK,
     }));
 }
 
