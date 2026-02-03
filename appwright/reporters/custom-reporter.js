@@ -1,5 +1,6 @@
 /* eslint-disable import/no-nodejs-modules */
 import { PerformanceTracker } from './PerformanceTracker';
+import { AppProfilingDataHandler } from './AppProfilingDataHandler';
 import QualityGatesValidator from '../utils/QualityGatesValidator';
 import { getTeamInfoFromTags } from '../config/teams-config.js';
 import { clearQualityGateFailures } from '../utils/QualityGateError.js';
@@ -433,6 +434,54 @@ class CustomReporter {
           );
           if (videoURL) {
             session.videoURL = videoURL;
+          }
+
+          // Fetch profiling data from BrowserStack API
+          const appProfilingHandler = new AppProfilingDataHandler();
+          try {
+            console.log(
+              `🔍 Fetching profiling data for ${session.testTitle}...`,
+            );
+            const profilingResult =
+              await appProfilingHandler.fetchCompleteProfilingData(
+                session.sessionId,
+              );
+
+            if (profilingResult.error) {
+              console.log(`⚠️ ${profilingResult.error}`);
+              session.profilingData = {
+                error: profilingResult.error,
+                timestamp: new Date().toISOString(),
+              };
+              session.profilingSummary = {
+                error: profilingResult.error,
+                timestamp: new Date().toISOString(),
+              };
+            } else {
+              session.profilingData = profilingResult.profilingData;
+              session.profilingSummary = profilingResult.profilingSummary;
+              console.log(
+                `✅ Profiling data fetched for ${
+                  session.testTitle
+                }: ${this.getNestedProperty(
+                  session.profilingSummary,
+                  'issues',
+                  0,
+                )} issues detected`,
+              );
+            }
+          } catch (error) {
+            console.log(
+              `⚠️ Failed to fetch profiling data for ${session.testTitle}: ${error.message}`,
+            );
+            session.profilingData = {
+              error: `Failed to fetch profiling data: ${error.message}`,
+              timestamp: new Date().toISOString(),
+            };
+            session.profilingSummary = {
+              error: `Failed to fetch profiling data: ${error.message}`,
+              timestamp: new Date().toISOString(),
+            };
           }
         } catch (error) {
           console.error(`❌ Error fetching video URL for ${session.testTitle}`);
@@ -1273,66 +1322,6 @@ class CustomReporter {
         }
       } else {
         console.log(`✅ No failed tests to report by team`);
-      }
-
-      // Save network logs for each session
-      const sessionsWithNetworkLogs = this.sessions.filter(
-        (s) => s.networkLogs && s.networkLogs.length > 0,
-      );
-
-      if (sessionsWithNetworkLogs.length > 0) {
-        const networkLogsDir = path.join(reportsDir, 'network-logs');
-        if (!fs.existsSync(networkLogsDir)) {
-          fs.mkdirSync(networkLogsDir, { recursive: true });
-        }
-
-        for (const session of sessionsWithNetworkLogs) {
-          const safeTestName = session.testTitle
-            .replace(/[^a-zA-Z0-9]/g, '_')
-            .substring(0, 50);
-
-          const networkLogsReport = {
-            testTitle: session.testTitle,
-            sessionId: session.sessionId,
-            fetchedAt: new Date().toISOString(),
-            summary: session.networkLogsSummary,
-            logs: session.networkLogs,
-          };
-
-          const networkLogsPath = path.join(
-            networkLogsDir,
-            `network-logs-${safeTestName}-${session.sessionId}.json`,
-          );
-          fs.writeFileSync(
-            networkLogsPath,
-            JSON.stringify(networkLogsReport, null, 2),
-          );
-        }
-
-        console.log(
-          `🌐 Network logs saved for ${sessionsWithNetworkLogs.length} session(s) in ${networkLogsDir}`,
-        );
-
-        // Create a summary file with all network logs summaries
-        const networkLogsSummaryReport = {
-          timestamp: new Date().toISOString(),
-          totalSessions: sessionsWithNetworkLogs.length,
-          sessions: sessionsWithNetworkLogs.map((s) => ({
-            testTitle: s.testTitle,
-            sessionId: s.sessionId,
-            summary: s.networkLogsSummary,
-          })),
-        };
-
-        const summaryPath = path.join(
-          networkLogsDir,
-          'network-logs-summary.json',
-        );
-        fs.writeFileSync(
-          summaryPath,
-          JSON.stringify(networkLogsSummaryReport, null, 2),
-        );
-        console.log(`📊 Network logs summary saved: ${summaryPath}`);
       }
     } catch (error) {
       console.error('Error generating performance report:', error);

@@ -33,6 +33,7 @@ appwright/
 ├── reporters/
 │   ├── custom-reporter.js        # Custom reporter for HTML/CSV/JSON output
 │   ├── PerformanceTracker.js     # Performance metrics collector
+│   ├── AppProfilingDataHandler.js # App profiling data processor
 │   └── reports/                  # Generated per-test reports
 ├── tests/
 │   └── performance/
