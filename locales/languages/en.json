@@ -1094,6 +1094,10 @@
       "your_funds_are_available_to_trade": "Your funds are available to trade",
       "track": "Track"
     },
+    "one_click_trade": {
+      "tx_creation_failed_title": "Could not open position",
+      "tx_creation_failed_description": "Transaction creation failed. Please try again."
+    },
     "withdrawal": {
       "title": "Withdraw",
       "insufficient_funds": "Insufficient funds",
@@ -4646,7 +4650,9 @@
     "select_provider": "Select your preferred provider",
     "switch_network": "Please switch to mainnet or sepolia",
     "card_title": "Always show MetaMask Card button",
-    "card_desc": "MetaMask Card is only available to residents of select countries."
+    "card_desc": "MetaMask Card is only available to residents of select countries.",
+    "daimo_demo_title": "Use DaimoPay demo environment",
+    "daimo_demo_desc": "Toggle between DaimoPay demo and production environments for card payments."
   },
   "walletconnect_sessions": {
     "no_active_sessions": "You have no active sessions",
@@ -6349,7 +6355,16 @@
     "approval_tooltip_content": "You are allowing access to the specified amount, {{amount}} {{symbol}}. The contract will not access any additional funds.",
     "minimum_received": "Minimum received",
     "minimum_received_tooltip_title": "Minimum received",
-    "minimum_received_tooltip_content": "The minimum amount you'll receive if the price changes while your transaction is processing, based on your slippage tolerance. This is an estimate from our liquidity providers. Final amounts may differ."
+    "minimum_received_tooltip_content": "The minimum amount you'll receive if the price changes while your transaction is processing, based on your slippage tolerance. This is an estimate from our liquidity providers. Final amounts may differ.",
+    "submit": "Submit",
+    "default_slippage_description": "Your transaction won't go through if the price changes more than the slippage percent.",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "exceeding_upper_slippage_warning": "High slippage, this may result in a unfavourable swap",
+    "exceeding_lower_slippage_warning": "Low slippage, this may result in a unfavourable swap",
+    "exceeding_lower_slippage_error": "Enter a value greater than {{value}}%",
+    "exceeding_upper_slippage_error": "You cannot enter a value greater than {{value}}%",
+    "custom": "Custom"
   },
   "quote_expired_modal": {
     "title": "New quotes are available",
@@ -6708,20 +6723,18 @@
     "card_onboarding": {
       "title": "Spend\nand Earn",
       "description": "The MetaMask Card is the fast and\neasy way to spend your crypto and\nearn up to 3% cashback.",
-      "apply_now_button": "Apply now",
+      "apply_now_button": "Setup now",
       "login_button": "Log in",
       "not_now_button": "Not now",
       "sign_up": {
         "title": "Let's get started",
-        "description": "Create your MetaMask Card account, provided by Crypto Life. This will be separate from your MetaMask account.",
-        "i_already_have_an_account": "I already have an account",
-        "email_label": "Email",
-        "password_label": "Password",
-        "password_placeholder": "Must be 15+ characters long",
-        "confirm_password_label": "Confirm password",
+        "description": "Create an account with Crypto Life (CL) to set up your MetaMask Card. MetaMask does not see or store your personal data.",
+        "i_already_have_an_account": "I already have a MetaMask Card",
+        "email_label": "Email address",
+        "password_label": "New password for MetaMask Card",
+        "password_description": "Different from your MetaMask app unlock password. Must be at least 15 characters long.",
         "country_label": "Country of residence",
         "country_placeholder": "Select your country",
-        "password_mismatch": "Passwords must match",
         "invalid_email": "Invalid email address",
         "invalid_password": "Password must be 15+ characters long. It cannot contain non-printable characters or consecutive spaces."
       },
@@ -7154,10 +7167,7 @@
       "retry_button": "Retry"
     },
     "referral_rewards_title": "Referrals",
-    "points": "Points",
-    "point": "Point",
     "level": "Level",
-    "to_level_up": "To level up",
     "season_ends": "Season ends",
     "season_ended": "Season ended",
     "main_title": "Rewards",
@@ -7216,6 +7226,9 @@
       "no_end_of_season_rewards": "You didn't earn rewards this season, but there's always next time.",
       "verifying_rewards": "We're making sure everything's correct before you claim your rewards."
     },
+    "season_status": {
+      "points_earned": "Points earned"
+    },
     "onboarding": {
       "not_supported_region_title": "Region not supported",
       "not_supported_region_description": "Rewards are not supported in your region yet. We are working on expanding access, so check back later.",
@@ -7255,6 +7268,7 @@
       "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",
       "step4_confirm_loading": "Claiming points...",
+      "step4_bulk_link_checkbox": "Opt-in all my accounts on this device",
       "step4_linking_accounts": "Adding accounts... ({{current}}/{{total}})",
       "step4_linking_accounts_loading": "Adding additional accounts...",
       "step4_success_description": "You have successfully signed up for MetaMask Rewards!",
@@ -7286,7 +7300,12 @@
       "link_account_error_title": "Failed to add account",
       "link_account_button": "Add",
       "link_account_failed_error": "Failed to add account",
-      "link_account_unknown_error": "Unknown error occurred"
+      "link_account_unknown_error": "Unknown error occurred",
+      "show_more": "Show more",
+      "show_less": "Show less",
+      "linking_progress": "Adding accounts... ({{current}}/{{total}})",
+      "accounts_linked_count": "{{linked}}/{{total}} enrolled",
+      "add_all_accounts": "Add all accounts"
     },
     "referred_by_code": {
       "title": "Referral Code",

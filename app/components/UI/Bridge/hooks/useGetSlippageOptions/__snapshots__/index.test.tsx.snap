@@ -1,0 +1,460 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`useGetSlippageOptions capitalizes the label if slippage option is not a number 1`] = `
+[
+  {
+    "id": "auto",
+    "label": "Auto",
+    "onPress": [MockFunction],
+    "selected": true,
+  },
+  {
+    "id": "custom",
+    "label": "Custom",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+]
+`;
+
+exports[`useGetSlippageOptions complete output structure returns correct structure for all options with custom 1`] = `
+[
+  {
+    "id": "auto",
+    "label": "Auto",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+  {
+    "id": "1",
+    "label": "1%",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+  {
+    "id": "2",
+    "label": "2%",
+    "onPress": [MockFunction],
+    "selected": true,
+  },
+  {
+    "id": "3",
+    "label": "3%",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+  {
+    "id": "custom-slippage",
+    "label": "Custom",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+]
+`;
+
+exports[`useGetSlippageOptions complete output structure returns correct structure for all options without custom 1`] = `
+[
+  {
+    "id": "auto",
+    "label": "Auto",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+  {
+    "id": "1",
+    "label": "1%",
+    "onPress": [MockFunction],
+    "selected": true,
+  },
+  {
+    "id": "2",
+    "label": "2%",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+]
+`;
+
+exports[`useGetSlippageOptions complete output structure returns correct structure when custom is selected 1`] = `
+[
+  {
+    "id": "auto",
+    "label": "Auto",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+  {
+    "id": "1",
+    "label": "1%",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+  {
+    "id": "2",
+    "label": "2%",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+  {
+    "id": "custom-slippage",
+    "label": "Custom",
+    "onPress": [MockFunction],
+    "selected": true,
+  },
+]
+`;
+
+exports[`useGetSlippageOptions does not includes custom option if allowCustomSlippage is false 1`] = `
+[
+  {
+    "id": "auto",
+    "label": "Auto",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+  {
+    "id": "1",
+    "label": "1%",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+  {
+    "id": "2",
+    "label": "2%",
+    "onPress": [MockFunction],
+    "selected": true,
+  },
+  {
+    "id": "3",
+    "label": "3%",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+]
+`;
+
+exports[`useGetSlippageOptions does not render custom option if allowCustomSlippage is not provided 1`] = `
+[
+  {
+    "id": "auto",
+    "label": "Auto",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+  {
+    "id": "1",
+    "label": "1%",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+  {
+    "id": "2",
+    "label": "2%",
+    "onPress": [MockFunction],
+    "selected": true,
+  },
+  {
+    "id": "3",
+    "label": "3%",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+]
+`;
+
+exports[`useGetSlippageOptions does not render custom option if onCustomOptionPress is not provided 1`] = `
+[
+  {
+    "id": "auto",
+    "label": "Auto",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+  {
+    "id": "1",
+    "label": "1%",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+  {
+    "id": "2",
+    "label": "2%",
+    "onPress": [MockFunction],
+    "selected": true,
+  },
+  {
+    "id": "3",
+    "label": "3%",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+]
+`;
+
+exports[`useGetSlippageOptions edge cases handles decimal values 1`] = `
+[
+  {
+    "id": "0.5",
+    "label": "0.5%",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+  {
+    "id": "1.5",
+    "label": "1.5%",
+    "onPress": [MockFunction],
+    "selected": true,
+  },
+  {
+    "id": "2.5",
+    "label": "2.5%",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+]
+`;
+
+exports[`useGetSlippageOptions edge cases handles empty slippageOptions array 1`] = `[]`;
+
+exports[`useGetSlippageOptions edge cases handles large numbers 1`] = `
+[
+  {
+    "id": "10",
+    "label": "10%",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+  {
+    "id": "50",
+    "label": "50%",
+    "onPress": [MockFunction],
+    "selected": true,
+  },
+  {
+    "id": "100",
+    "label": "100%",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+]
+`;
+
+exports[`useGetSlippageOptions edge cases handles mixed case string options 1`] = `
+[
+  {
+    "id": "AUTO",
+    "label": "Auto",
+    "onPress": [MockFunction],
+    "selected": true,
+  },
+  {
+    "id": "custom",
+    "label": "Custom",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+  {
+    "id": "Default",
+    "label": "Default",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+]
+`;
+
+exports[`useGetSlippageOptions edge cases handles string coercion for selection 1`] = `
+[
+  {
+    "id": "1",
+    "label": "1%",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+  {
+    "id": "2",
+    "label": "2%",
+    "onPress": [MockFunction],
+    "selected": true,
+  },
+  {
+    "id": "3",
+    "label": "3%",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+]
+`;
+
+exports[`useGetSlippageOptions edge cases handles zero value 1`] = `
+[
+  {
+    "id": "0",
+    "label": "0%",
+    "onPress": [MockFunction],
+    "selected": true,
+  },
+  {
+    "id": "1",
+    "label": "1%",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+  {
+    "id": "2",
+    "label": "2%",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+]
+`;
+
+exports[`useGetSlippageOptions includes custom option if allowCustomSlippage is true 1`] = `
+[
+  {
+    "id": "auto",
+    "label": "Auto",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+  {
+    "id": "1",
+    "label": "1%",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+  {
+    "id": "2",
+    "label": "2%",
+    "onPress": [MockFunction],
+    "selected": true,
+  },
+  {
+    "id": "3",
+    "label": "3%",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+  {
+    "id": "custom-slippage",
+    "label": "Custom",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+]
+`;
+
+exports[`useGetSlippageOptions set custom slippage option if slippage value does not exist on slippageOptions array 1`] = `
+[
+  {
+    "id": "auto",
+    "label": "Auto",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+  {
+    "id": "1",
+    "label": "1%",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+  {
+    "id": "2",
+    "label": "2%",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+  {
+    "id": "3",
+    "label": "3%",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+  {
+    "id": "custom-slippage",
+    "label": "Custom",
+    "onPress": [MockFunction],
+    "selected": true,
+  },
+]
+`;
+
+exports[`useGetSlippageOptions set selected default slippage option if slippage value exist in slippageOptions array 1`] = `
+[
+  {
+    "id": "auto",
+    "label": "Auto",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+  {
+    "id": "1",
+    "label": "1%",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+  {
+    "id": "2",
+    "label": "2%",
+    "onPress": [MockFunction],
+    "selected": true,
+  },
+  {
+    "id": "3",
+    "label": "3%",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+]
+`;
+
+exports[`useGetSlippageOptions sets slippage option value as label if it is a number 1`] = `
+[
+  {
+    "id": "1",
+    "label": "1%",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+  {
+    "id": "2",
+    "label": "2%",
+    "onPress": [MockFunction],
+    "selected": true,
+  },
+  {
+    "id": "5",
+    "label": "5%",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+  {
+    "id": "10",
+    "label": "10%",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+]
+`;
+
+exports[`useGetSlippageOptions should handle "auto" as slippage option 1`] = `
+[
+  {
+    "id": "auto",
+    "label": "Auto",
+    "onPress": [MockFunction],
+    "selected": true,
+  },
+  {
+    "id": "1",
+    "label": "1%",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+  {
+    "id": "2",
+    "label": "2%",
+    "onPress": [MockFunction],
+    "selected": false,
+  },
+]
+`;
