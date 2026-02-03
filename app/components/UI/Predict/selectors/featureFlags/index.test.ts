@@ -196,6 +196,7 @@ describe('Predict Feature Flag Selectors', () => {
                 predictHotTab: {
                   enabled: true,
                   queryParams: 'tag_id=149&order=volume24hr',
+                  minimumVersion: '1.0.0',
                 },
               },
               cacheTimestamp: 0,
@@ -209,6 +210,7 @@ describe('Predict Feature Flag Selectors', () => {
       expect(result).toEqual({
         enabled: true,
         queryParams: 'tag_id=149&order=volume24hr',
+        minimumVersion: '1.0.0',
       });
     });
 
@@ -266,7 +268,7 @@ describe('Predict Feature Flag Selectors', () => {
       });
     });
 
-    it('returns disabled flag from remote when flag is disabled', () => {
+    it('returns default flag when remote flag is disabled', () => {
       const stateWithDisabledFlag = {
         engine: {
           backgroundState: {
@@ -274,6 +276,7 @@ describe('Predict Feature Flag Selectors', () => {
               remoteFeatureFlags: {
                 predictHotTab: {
                   enabled: false,
+                  minimumVersion: '1.0.0',
                 },
               },
               cacheTimestamp: 0,
@@ -286,6 +289,9 @@ describe('Predict Feature Flag Selectors', () => {
 
       expect(result).toEqual({
         enabled: false,
+        queryParams:
+          'active=true&archived=false&closed=false&liquidity_min=10000&volume_min=10000&tag_id=1',
+        minimumVersion: '7.64.0',
       });
     });
 
@@ -297,6 +303,7 @@ describe('Predict Feature Flag Selectors', () => {
               remoteFeatureFlags: {
                 predictHotTab: {
                   enabled: true,
+                  minimumVersion: '1.0.0',
                 },
               },
               cacheTimestamp: 0,
@@ -309,6 +316,7 @@ describe('Predict Feature Flag Selectors', () => {
 
       expect(result).toEqual({
         enabled: true,
+        minimumVersion: '1.0.0',
       });
       expect(result.queryParams).toBeUndefined();
     });
@@ -452,7 +460,7 @@ describe('Predict Feature Flag Selectors', () => {
         });
       });
 
-      it('returns flag when minimumVersion is not provided', () => {
+      it('returns default flag when minimumVersion is not provided', () => {
         const stateWithoutMinVersion = {
           engine: {
             backgroundState: {
@@ -472,8 +480,10 @@ describe('Predict Feature Flag Selectors', () => {
         const result = selectPredictHotTabFlag(stateWithoutMinVersion);
 
         expect(result).toEqual({
-          enabled: true,
-          queryParams: 'tag_id=149',
+          enabled: false,
+          queryParams:
+            'active=true&archived=false&closed=false&liquidity_min=10000&volume_min=10000&tag_id=1',
+          minimumVersion: '7.64.0',
         });
         expect(mockHasMinimumRequiredVersion).not.toHaveBeenCalled();
       });
