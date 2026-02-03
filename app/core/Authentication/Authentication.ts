@@ -850,15 +850,24 @@ class AuthenticationService {
     // NOTE: This does not seem necessary as it's just setting the state rather than updating the keychain.
     this.authData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
 
-    // Dispatch logout to Redux. Authentication state machine in sagas uses this action.
-    this.dispatchLogout();
-
-    // Navigate user to the login screen.
+    // Navigate user to the login screen BEFORE dispatching logout.
+    // This prevents a race condition where the logout dispatch triggers a React re-render
+    // that removes HOME_NAV from the navigator, causing it to fall back to FOX_LOADER
+    // and overriding the intended navigation to Login.
     if (navigateToLogin) {
       NavigationService.navigation?.reset({
         routes: [{ name: Routes.ONBOARDING.LOGIN, params: { locked } }],
       });
     }
+
+    // Dispatch logout to Redux AFTER navigation completes.
+    // IMPORTANT: NavigationService wraps reset() with requestAnimationFrame, so navigation
+    // is deferred to the next frame. We must also defer logout dispatch to ensure it happens
+    // AFTER navigation completes, preventing the race condition where the React re-render
+    // from logout dispatch removes HOME_NAV and causes fallback to FOX_LOADER.
+    requestAnimationFrame(() => {
+      this.dispatchLogout();
+    });
   };
 
   getType = async (): Promise<AuthData> =>
