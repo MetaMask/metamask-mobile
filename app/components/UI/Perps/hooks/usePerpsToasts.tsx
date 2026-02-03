@@ -46,6 +46,7 @@ export interface PerpsToastOptionsConfig {
         transactionId: string,
       ) => PerpsToastOptions;
       takingLonger: PerpsToastOptions;
+      tradeCanceled: PerpsToastOptions;
       error: PerpsToastOptions;
     };
     withdrawal: {
@@ -418,6 +419,20 @@ const usePerpsToasts = (): {
               variant: ButtonVariants.Secondary,
               style: { backgroundColor: theme.colors.background.muted },
               onPress: () => { },
+            },
+          },
+          tradeCanceled: {
+            ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
+            variant: ToastVariants.Icon,
+            iconName: IconName.Warning,
+            iconColor: theme.colors.error.default,
+            backgroundColor: theme.colors.error.muted,
+            hapticsType: NotificationFeedbackType.Warning,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.deposit.trade_canceled'),
+            ),
+            descriptionOptions: {
+              description: strings('perps.deposit.funds_returned_to_account'),
             },
           },
           error: {

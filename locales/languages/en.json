@@ -1090,6 +1090,8 @@
       "depositing_your_funds": "Setting up your trade",
       "deposit_taking_longer": "Deposit taking longer than usual",
       "cancel_trade": "Cancel trade",
+      "trade_canceled": "Trade canceled",
+      "funds_returned_to_account": "Funds returned to your account",
       "your_funds_have_arrived": "Your funds have arrived",
       "estimated_processing_time": "Est. {{time}}",
       "funds_available_momentarily": "Funds will be available momentarily",

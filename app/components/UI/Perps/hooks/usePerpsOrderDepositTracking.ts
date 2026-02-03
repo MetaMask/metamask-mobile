@@ -53,12 +53,25 @@ export const usePerpsOrderDepositTracking = () => {
         return;
       }
       const transactionId = transactionMeta.id;
+      let cancelTradeRequested = false;
       showProgressToast(transactionId);
 
+      const takingLongerToastOptions =
+        PerpsToastOptions.accountManagement.deposit.takingLonger;
+      const cancelTradeOnPress = () => {
+        cancelTradeRequested = true;
+        // Replace current toast with "Trade canceled" (don't close first to avoid race)
+        showToast(PerpsToastOptions.accountManagement.deposit.tradeCanceled);
+      };
       // TODO: Restore to 15000 for production; 0 for testing the "deposit taking longer" toast
       const depositLongerTimeoutId = setTimeout(() => {
-        toastRef?.current?.closeToast();
-        showToast(PerpsToastOptions.accountManagement.deposit.takingLonger);
+        const baseClose = takingLongerToastOptions.closeButtonOptions;
+        showToast({
+          ...takingLongerToastOptions,
+          closeButtonOptions: baseClose
+            ? { ...baseClose, onPress: cancelTradeOnPress }
+            : undefined,
+        } as Parameters<typeof showToast>[0]);
       }, 1000);
 
       // Handle failed transactions
@@ -89,7 +102,9 @@ export const usePerpsOrderDepositTracking = () => {
         ) {
           clearTimeout(depositLongerTimeoutId);
           toastRef?.current?.closeToast();
-          callback?.();
+          if (!cancelTradeRequested) {
+            callback?.();
+          }
         }
       };
 
