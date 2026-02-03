@@ -79,7 +79,7 @@ describe('useABTest', () => {
       });
     });
 
-    it('falls back to first variant when object name does not match any variant', () => {
+    it('falls back to control when object name does not match any variant', () => {
       mockUseSelector.mockReturnValue({
         buttonColorTest: { name: 'invalid_variant' },
       });
@@ -135,7 +135,7 @@ describe('useABTest', () => {
   });
 
   describe('with null or undefined flag value', () => {
-    it('falls back to first variant when flag is null', () => {
+    it('falls back to control when flag is null', () => {
       mockUseSelector.mockReturnValue({ buttonColorTest: null });
 
       const { result } = renderHook(() =>
@@ -147,7 +147,7 @@ describe('useABTest', () => {
       expect(result.current.isActive).toBe(false);
     });
 
-    it('falls back to first variant when flag is undefined', () => {
+    it('falls back to control when flag is undefined', () => {
       mockUseSelector.mockReturnValue({ buttonColorTest: undefined });
 
       const { result } = renderHook(() =>
@@ -159,7 +159,7 @@ describe('useABTest', () => {
       expect(result.current.isActive).toBe(false);
     });
 
-    it('falls back to first variant when flag key does not exist', () => {
+    it('falls back to control when flag key does not exist', () => {
       mockUseSelector.mockReturnValue({});
 
       const { result } = renderHook(() =>
@@ -183,7 +183,7 @@ describe('useABTest', () => {
   });
 
   describe('with invalid flag value not matching any variant', () => {
-    it('falls back to first variant when flag value is invalid', () => {
+    it('falls back to control when flag value is invalid', () => {
       mockUseSelector.mockReturnValue({
         buttonColorTest: 'invalid_variant_name',
       });
@@ -206,7 +206,7 @@ describe('useABTest', () => {
       expect(result.current.isActive).toBe(false);
     });
 
-    it('falls back to first variant when flag value is empty string', () => {
+    it('falls back to control when flag value is empty string', () => {
       mockUseSelector.mockReturnValue({ buttonColorTest: '' });
 
       const { result } = renderHook(() =>
@@ -308,7 +308,7 @@ describe('useABTest', () => {
       expect(result.current.isActive).toBe(true);
     });
 
-    it('falls back to first variant for multi-variant test when flag not set', () => {
+    it('falls back to control for multi-variant test when flag not set', () => {
       const threeVariants = {
         control: { layout: 'default' },
         treatment_a: { layout: 'compact' },
@@ -352,28 +352,28 @@ describe('useABTest', () => {
       expect(result.current.isActive).toBe(false);
     });
 
-    it('works with single variant (edge case)', () => {
-      const singleVariant = {
-        only: { value: 'single' },
+    it('works with control-only variant', () => {
+      const controlOnly = {
+        control: { value: 'default' },
       };
 
       mockUseSelector.mockReturnValue({});
 
       const { result } = renderHook(() =>
-        useABTest('singleTest', singleVariant),
+        useABTest('controlOnlyTest', controlOnly),
       );
 
-      expect(result.current.variant).toEqual({ value: 'single' });
-      expect(result.current.variantName).toBe('only');
+      expect(result.current.variant).toEqual({ value: 'default' });
+      expect(result.current.variantName).toBe('control');
       expect(result.current.isActive).toBe(false);
     });
 
     it('returns consistent variantName as string', () => {
-      mockUseSelector.mockReturnValue({ numericKeyTest: 'variant1' });
+      mockUseSelector.mockReturnValue({ numericKeyTest: 'treatment' });
 
       const variants = {
-        variant1: { id: 1 },
-        variant2: { id: 2 },
+        control: { id: 0 },
+        treatment: { id: 1 },
       };
 
       const { result } = renderHook(() =>
@@ -381,7 +381,26 @@ describe('useABTest', () => {
       );
 
       expect(typeof result.current.variantName).toBe('string');
-      expect(result.current.variantName).toBe('variant1');
+      expect(result.current.variantName).toBe('treatment');
+    });
+
+    it('uses control as fallback even when not first key', () => {
+      // Define treatment first, control second
+      const variantsWithTreatmentFirst = {
+        treatment: { color: 'blue' },
+        control: { color: 'green' },
+      };
+
+      mockUseSelector.mockReturnValue({});
+
+      const { result } = renderHook(() =>
+        useABTest('testFlag', variantsWithTreatmentFirst),
+      );
+
+      // Should use 'control' as fallback, not 'treatment'
+      expect(result.current.variant).toEqual({ color: 'green' });
+      expect(result.current.variantName).toBe('control');
+      expect(result.current.isActive).toBe(false);
     });
   });
 
@@ -392,10 +411,11 @@ describe('useABTest', () => {
         short: string;
       }
 
-      const typedVariants: Record<string, ButtonColors> = {
-        control: { long: 'green', short: 'red' },
-        monochrome: { long: 'white', short: 'white' },
-      };
+      const typedVariants: { control: ButtonColors; monochrome: ButtonColors } =
+        {
+          control: { long: 'green', short: 'red' },
+          monochrome: { long: 'white', short: 'white' },
+        };
 
       mockUseSelector.mockReturnValue({ typedTest: 'control' });
 

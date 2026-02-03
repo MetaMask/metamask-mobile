@@ -8,5 +8,4 @@
  */
 
 export { useABTest } from './useABTest';
-export type { UseABTestResult } from './useABTest';
 export { useFeatureFlagStats } from './useFeatureFlagStats';

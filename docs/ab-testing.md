@@ -88,7 +88,7 @@ function useABTest<T extends Record<string, unknown>>(
 **Parameters:**
 
 - `flagKey` - The feature flag key in LaunchDarkly (camelCase, e.g., `'buttonColorTest'`)
-- `variants` - Object mapping variant names to their data
+- `variants` - Object mapping variant names to their data. **Must include a `control` key** which is used as the fallback when the flag is not set or invalid.
 
 **Returns:**
 
@@ -315,6 +315,9 @@ No `metametricsId` → controller returns array unchanged → no variant selecti
 
 **Q: What does `isActive` mean?**
 `isActive` is `true` when the flag is set AND matches a valid variant. It's `false` when using the fallback (flag not set or invalid).
+
+**Q: Which variant is used as the fallback?**
+The `control` variant is always used as the fallback when the flag is not set, invalid, or doesn't match any defined variant. The `variants` object must include a `control` key (enforced by TypeScript). This ensures users see the default experience when the test is inactive.
 
 ---
 

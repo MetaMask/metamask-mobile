@@ -26,10 +26,15 @@ import { useSelector } from 'react-redux';
 import { selectRemoteFeatureFlags } from '../selectors/featureFlagController';
 
 /**
- * Return type for the useABTest hook
- * @template T - The type of the variants object
+ * Type constraint for variants object - must include a 'control' key
  */
-export interface UseABTestResult<T extends Record<string, unknown>> {
+export type ABTestVariants = { control: unknown } & Record<string, unknown>;
+
+/**
+ * Return type for the useABTest hook
+ * @template T - The type of the variants object (must include 'control')
+ */
+export interface UseABTestResult<T extends ABTestVariants> {
   /** The variant data for the assigned variant */
   variant: T[keyof T];
   /** The name of the assigned variant (e.g., 'control', 'treatment') */
@@ -45,9 +50,13 @@ export interface UseABTestResult<T extends Record<string, unknown>> {
  * the corresponding variant data. LaunchDarkly handles user identification,
  * variant assignment, and persistence.
  *
- * @template T - The shape of the variants object (keys are variant names, values are variant data)
+ * **Fallback behavior:** When the flag is not set, invalid, or doesn't match any variant,
+ * the hook falls back to the `control` variant. This ensures users see the default experience
+ * when the A/B test is inactive.
+ *
+ * @template T - The shape of the variants object (must include 'control' key)
  * @param flagKey - The feature flag key in LaunchDarkly (camelCase, e.g., 'buttonColorTest')
- * @param variants - Object mapping variant names to their data
+ * @param variants - Object mapping variant names to their data. Must include a `control` key for fallback.
  * @returns Object containing variant data, variant name, and active state
  *
  * @example Basic usage
@@ -100,7 +109,7 @@ export interface UseABTestResult<T extends Record<string, unknown>> {
  * });
  * ```
  */
-export function useABTest<T extends Record<string, unknown>>(
+export function useABTest<T extends ABTestVariants>(
   flagKey: string,
   variants: T,
 ): UseABTestResult<T> {
@@ -114,12 +123,10 @@ export function useABTest<T extends Record<string, unknown>>(
     typeof flagData === 'object' && flagData !== null && 'name' in flagData
       ? (flagData as { name: string }).name
       : (flagData as string | undefined);
-  // Get the first variant name as fallback
-  const variantNames = Object.keys(variants);
-  const fallback = variantNames[0];
 
-  // Determine the variant name: use flag value if it's a valid variant, otherwise fallback
-  const variantName = flagValue && flagValue in variants ? flagValue : fallback;
+  // Determine the variant name: use flag value if it's a valid variant, otherwise fallback to 'control'
+  const variantName =
+    flagValue && flagValue in variants ? flagValue : 'control';
 
   // Check if the test is active (flag is set AND matches a valid variant)
   const isActive = Boolean(flagValue && flagValue in variants);
