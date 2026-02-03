@@ -15,6 +15,7 @@ import {
   useRampsPaymentMethods,
   type UseRampsPaymentMethodsResult,
 } from './useRampsPaymentMethods';
+import { useRampsQuotes, type UseRampsQuotesResult } from './useRampsQuotes';
 
 /**
  * Result returned by the useRampsController hook.
@@ -52,6 +53,14 @@ export interface UseRampsControllerResult {
   setSelectedPaymentMethod: UseRampsPaymentMethodsResult['setSelectedPaymentMethod'];
   paymentMethodsLoading: UseRampsPaymentMethodsResult['isLoading'];
   paymentMethodsError: UseRampsPaymentMethodsResult['error'];
+
+  // Quotes
+  quotes: UseRampsQuotesResult['quotes'];
+  selectedQuote: UseRampsQuotesResult['selectedQuote'];
+  startQuotePolling: UseRampsQuotesResult['startQuotePolling'];
+  stopQuotePolling: UseRampsQuotesResult['stopQuotePolling'];
+  quotesLoading: UseRampsQuotesResult['isLoading'];
+  quotesError: UseRampsQuotesResult['error'];
 }
 
 /**
@@ -93,6 +102,14 @@ export interface UseRampsControllerResult {
  *   paymentMethodsLoading,
  *   paymentMethodsError,
  *
+ *   // Quotes
+ *   quotes,
+ *   selectedQuote,
+ *   startQuotePolling,
+ *   stopQuotePolling,
+ *   quotesLoading,
+ *   quotesError,
+ *
  * } = useRampsController();
  * ```
  */
@@ -129,6 +146,15 @@ export function useRampsController(): UseRampsControllerResult {
     error: paymentMethodsError,
   } = useRampsPaymentMethods();
 
+  const {
+    quotes,
+    selectedQuote,
+    startQuotePolling,
+    stopQuotePolling,
+    isLoading: quotesLoading,
+    error: quotesError,
+  } = useRampsQuotes();
+
   return {
     // User region
     userRegion,
@@ -160,6 +186,14 @@ export function useRampsController(): UseRampsControllerResult {
     setSelectedPaymentMethod,
     paymentMethodsLoading,
     paymentMethodsError,
+
+    // Quotes
+    quotes,
+    selectedQuote,
+    startQuotePolling,
+    stopQuotePolling,
+    quotesLoading,
+    quotesError,
   };
 }
 

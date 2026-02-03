@@ -13,6 +13,7 @@ import {
   selectCountries,
   selectPaymentMethods,
   selectRampsControllerState,
+  selectQuotes,
 } from './index';
 
 const createDefaultResourceState = <TData, TSelected = null>(
@@ -240,6 +241,89 @@ describe('RampsController Selectors', () => {
 
       const result = selectPaymentMethods(state);
       expect(result.data).toEqual([]);
+    });
+  });
+
+  describe('selectQuotes', () => {
+    it('returns quotes resource state when quotes exist', () => {
+      const mockQuotesResponse = {
+        success: [
+          {
+            provider: 'test-provider',
+            quote: {
+              amountIn: 100,
+              amountOut: 95,
+              paymentMethod: 'debit-card',
+            },
+          },
+        ],
+        sorted: [],
+        error: [],
+        customActions: [],
+      };
+      const mockQuote = mockQuotesResponse.success[0];
+      const state = createMockState({
+        quotes: {
+          data: mockQuotesResponse,
+          selected: mockQuote,
+          isLoading: false,
+          error: null,
+        },
+      });
+
+      const result = selectQuotes(state);
+
+      expect(result).toEqual({
+        data: mockQuotesResponse,
+        selected: mockQuote,
+        isLoading: false,
+        error: null,
+      });
+    });
+
+    it('returns default resource state when quotes is null', () => {
+      const state = createMockState({
+        quotes: null,
+      });
+
+      const result = selectQuotes(state);
+
+      expect(result).toEqual({
+        data: null,
+        selected: null,
+        isLoading: false,
+        error: null,
+      });
+    });
+
+    it('returns isLoading true when quotes are being fetched', () => {
+      const state = createMockState({
+        quotes: {
+          data: null,
+          selected: null,
+          isLoading: true,
+          error: null,
+        },
+      });
+
+      const result = selectQuotes(state);
+
+      expect(result.isLoading).toBe(true);
+    });
+
+    it('returns error when quotes request failed', () => {
+      const state = createMockState({
+        quotes: {
+          data: null,
+          selected: null,
+          isLoading: false,
+          error: 'Failed to fetch quotes',
+        },
+      });
+
+      const result = selectQuotes(state);
+
+      expect(result.error).toBe('Failed to fetch quotes');
     });
   });
 
