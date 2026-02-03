@@ -236,7 +236,10 @@ abstract class StreamChannel<T> {
 class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   private symbols = new Set<string>();
   private prewarmUnsubscribe?: () => void;
+  private actualPriceUnsubscribe?: () => void;
   private allMarketSymbols: string[] = [];
+  // Unique ID per prewarm cycle to detect stale promises and prevent subscription leaks
+  private prewarmCycleId: number = 0;
   // Override cache to store individual PriceUpdate objects
   protected priceCache = new Map<string, PriceUpdate>();
 
@@ -355,6 +358,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   /**
    * Pre-warm the channel by subscribing to all market prices
    * This keeps a single WebSocket connection alive with all price updates
+   * Non-blocking: Returns immediately while market fetch happens in background
    * @returns Cleanup function to call when leaving Perps environment
    */
   public async prewarm(): Promise<() => void> {
@@ -364,57 +368,104 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     }
 
     try {
-      // Get all available market symbols
       const controller = Engine.context.PerpsController;
-      const markets = await controller.getMarkets();
-      this.allMarketSymbols = markets.map((market) => market.name);
 
-      DevLogger.log('PriceStreamChannel: Pre-warming with all market symbols', {
-        symbolCount: this.allMarketSymbols.length,
-        symbols: this.allMarketSymbols.slice(0, 10), // Log first 10 for debugging
-      });
+      // Increment cycle ID to detect stale promises from previous prewarm cycles
+      // This prevents subscription leaks when user navigates: Perps → away → back quickly
+      this.prewarmCycleId++;
+      const currentCycleId = this.prewarmCycleId;
 
-      // Subscribe to all market prices
-      this.prewarmUnsubscribe = controller.subscribeToPrices({
-        symbols: this.allMarketSymbols,
-        callback: (updates: PriceUpdate[]) => {
-          // Update cache and build price map
-          const priceMap: Record<string, PriceUpdate> = {};
-          updates.forEach((update) => {
-            const priceUpdate: PriceUpdate = {
-              symbol: update.symbol,
-              price: update.price,
-              timestamp: Date.now(),
-              percentChange24h: update.percentChange24h,
-              bestBid: update.bestBid,
-              bestAsk: update.bestAsk,
-              spread: update.spread,
-              markPrice: update.markPrice,
-              funding: update.funding,
-              openInterest: update.openInterest,
-              volume24h: update.volume24h,
-            };
-            this.priceCache.set(update.symbol, priceUpdate);
-            priceMap[update.symbol] = priceUpdate;
+      // Start market fetch in background (non-blocking)
+      // We need the symbols to register subscribers, but we can return immediately
+      const marketsPromise = controller.getMarkets();
+
+      // Set up subscription once markets arrive (fire-and-forget)
+      marketsPromise
+        .then((markets) => {
+          // If this promise is from a stale cycle, don't set up subscription
+          // This prevents leaks when prewarm is called multiple times rapidly
+          if (currentCycleId !== this.prewarmCycleId) {
+            DevLogger.log('PriceStreamChannel: Skipping stale prewarm cycle', {
+              currentCycleId,
+              activeCycleId: this.prewarmCycleId,
+            });
+            return;
+          }
+
+          // If already cleaned up, don't set up subscription
+          if (this.prewarmUnsubscribe === undefined) {
+            return;
+          }
+
+          this.allMarketSymbols = markets.map((market) => market.name);
+
+          DevLogger.log(
+            'PriceStreamChannel: Pre-warming with all market symbols',
+            {
+              symbolCount: this.allMarketSymbols.length,
+              symbols: this.allMarketSymbols.slice(0, 10),
+            },
+          );
+
+          // Subscribe to all market prices
+          const unsub = controller.subscribeToPrices({
+            symbols: this.allMarketSymbols,
+            callback: (updates: PriceUpdate[]) => {
+              const priceMap: Record<string, PriceUpdate> = {};
+              updates.forEach((update) => {
+                const priceUpdate: PriceUpdate = {
+                  symbol: update.symbol,
+                  price: update.price,
+                  timestamp: Date.now(),
+                  percentChange24h: update.percentChange24h,
+                  bestBid: update.bestBid,
+                  bestAsk: update.bestAsk,
+                  spread: update.spread,
+                  markPrice: update.markPrice,
+                  funding: update.funding,
+                  openInterest: update.openInterest,
+                  volume24h: update.volume24h,
+                };
+                this.priceCache.set(update.symbol, priceUpdate);
+                priceMap[update.symbol] = priceUpdate;
+              });
+
+              if (this.subscribers.size > 0) {
+                this.notifySubscribers(priceMap);
+              }
+            },
           });
 
-          // Notify any active subscribers with all updates
+          // Store the actual unsubscribe function
+          this.actualPriceUnsubscribe = unsub;
+        })
+        .catch((error) => {
+          Logger.error(
+            ensureError(error, 'PriceStreamChannel.prewarm.backgroundFetch'),
+            {
+              context: 'PriceStreamChannel.prewarm.backgroundFetch',
+            },
+          );
+          // Reset state so subsequent prewarm/connect calls can recover
+          this.prewarmUnsubscribe = undefined;
+          this.allMarketSymbols = [];
+          // Reconnect waiting subscribers that were skipped because prewarm was pending
           if (this.subscribers.size > 0) {
-            this.notifySubscribers(priceMap);
+            this.connect();
           }
-        },
-      });
+        });
 
-      // Return a cleanup function that properly clears internal state
-      return () => {
+      // Return cleanup function immediately (before markets load)
+      this.prewarmUnsubscribe = () => {
         DevLogger.log('PriceStreamChannel: Cleaning up prewarm subscription');
         this.cleanupPrewarm();
       };
+
+      return this.prewarmUnsubscribe;
     } catch (error) {
       Logger.error(ensureError(error, 'PriceStreamChannel.prewarm'), {
         context: 'PriceStreamChannel.prewarm',
       });
-      // Return no-op cleanup function
       return () => {
         // No-op
       };
@@ -425,11 +476,12 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
    * Cleanup pre-warm subscription
    */
   public cleanupPrewarm(): void {
-    if (this.prewarmUnsubscribe) {
-      this.prewarmUnsubscribe();
-      this.prewarmUnsubscribe = undefined;
-      this.allMarketSymbols = [];
+    if (this.actualPriceUnsubscribe) {
+      this.actualPriceUnsubscribe();
+      this.actualPriceUnsubscribe = undefined;
     }
+    this.prewarmUnsubscribe = undefined;
+    this.allMarketSymbols = [];
   }
 }
 
@@ -1285,7 +1337,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   public prewarm(): () => void {
     // Fetch data immediately to populate cache
     this.fetchMarketData().catch((error) => {
-      Logger.error(error instanceof Error ? error : new Error(String(error)), {
+      Logger.error(ensureError(error, 'MarketDataChannel.prewarm'), {
         context: 'MarketDataChannel.prewarm',
       });
     });
