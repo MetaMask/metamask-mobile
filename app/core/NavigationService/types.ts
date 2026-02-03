@@ -11,9 +11,16 @@ import type { LedgerTransactionModalParams } from '../../components/UI/LedgerMod
 // Browser params
 import type { BrowserParams } from '../../components/Views/Browser/Browser.types';
 
+// Bridge params
 import type { BridgeRouteParams } from '../../components/UI/Bridge/Views/BridgeView';
 import type { BridgeTokenSelectorRouteParams } from '../../components/UI/Bridge/components/BridgeTokenSelector/BridgeTokenSelector';
 import type { DefaultSlippageModalParams } from '../../components/UI/Bridge/components/SlippageModal/types';
+import type {
+  CustomSlippageModalParams,
+  TransactionDetailsBlockExplorerParams,
+  BlockaidModalParams,
+  BridgeTransactionDetailsParams,
+} from '../../components/UI/Bridge/Bridge.types';
 
 // Manual backup params
 import type {
@@ -29,6 +36,7 @@ import type { AddressSelectorParams } from '../../components/Views/AddressSelect
 import type { AccountConnectParams } from '../../components/Views/AccountConnect/AccountConnect.types';
 import type { ShowTokenIdSheetParams } from '../../components/Views/ShowTokenIdSheet/ShowTokenIdSheet.types';
 import type { ShowIpfsGatewaySheetParams } from '../../components/Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet.types';
+import type { SuccessErrorSheetParams } from '../../components/Views/SuccessErrorSheet/interface';
 
 // Modal params
 import type { DeepLinkModalParams } from '../../components/UI/DeepLinkModal/types';
@@ -37,560 +45,157 @@ import type { OptinMetricsRouteParams } from '../../components/UI/OptinMetrics/O
 // Perps navigation params
 import type { PerpsNavigationParamList } from '../../components/UI/Perps/types/navigation';
 
-// ============================================================================
-// Types unique to NavigationService (not defined elsewhere)
-// ============================================================================
-
-/** Ramp buy/sell parameters */
-export interface RampBuySellParams {
-  showBack?: boolean;
-}
-
-/** Ramp order details parameters */
-export interface RampOrderDetailsParams {
-  orderId?: string;
-  redirectToOrders?: boolean;
-}
-
-/** Deposit navigation parameters */
-export interface DepositNavigationParams {
-  animationEnabled?: boolean;
-}
-
-/** Deposit build quote parameters */
-export interface DepositBuildQuoteParams {
-  animationEnabled?: boolean;
-}
-
-/** Webview modal parameters */
-export interface WebviewModalParams {
-  url?: string;
-  title?: string;
-}
-
-/** Options sheet parameters */
-export interface OptionsSheetParams {
-  options?: {
-    label: string;
-    onPress: () => void;
-    icon?: string;
-  }[];
-}
-
-/** QR Scanner parameters */
-export interface QRScannerParams {
-  onScanSuccess?: (data: string) => void;
-  onScanError?: (error: Error) => void;
-  origin?: string;
-}
-
-/** Transactions view parameters */
-export interface TransactionsViewParams {
-  redirectToOrders?: boolean;
-  redirectToPerpsTransactions?: boolean;
-}
-
-/** Transaction details parameters */
-export interface TransactionDetailsParams {
-  transactionId?: string;
-}
-
-/** Root modal flow parameters */
-export interface RootModalFlowParams {
-  screen: string;
-  params?: Record<string, unknown>;
-}
-
-/** Modal confirmation parameters */
-export interface ModalConfirmationParams {
-  title?: string;
-  description?: string;
-  onConfirm?: () => void;
-  onCancel?: () => void;
-}
-
-/** Modal mandatory parameters */
-export interface ModalMandatoryParams {
-  title?: string;
-  description?: string;
-  ctaText?: string;
-  onCta?: () => void;
-}
-
-/** SRP reveal quiz parameters */
-export interface SRPRevealQuizParams {
-  onQuizComplete?: () => void;
-}
-
-/** Multichain account detail actions parameters */
-export interface MultichainAccountDetailActionsParams {
-  screen: string;
-  params?: Record<string, unknown>;
-}
-
-/** Manual backup step 3 parameters */
-export interface ManualBackupStep3Params {
-  words: string[];
-  steps: string[];
-  backupFlow: boolean;
-}
-
-/** Send flow parameters */
-export interface SendFlowParams {
-  txMeta?: Record<string, unknown>;
-}
-
-/** Send amount parameters */
-export interface SendAmountParams {
-  txMeta?: Record<string, unknown>;
-  selectedAsset?: Record<string, unknown>;
-}
-
-/** Send confirm parameters */
-export interface SendConfirmParams {
-  txMeta?: Record<string, unknown>;
-}
-
-/** Account backup parameters */
-export interface AccountBackupParams {
-  words?: string[];
-}
-
-/** Contact form parameters */
-export interface ContactFormParams {
-  mode?: 'add' | 'edit';
-  address?: string;
-  name?: string;
-  onUpdate?: () => void;
-}
-
-/** Reveal private credential parameters */
-export interface RevealPrivateCredentialParams {
-  credentialName?: 'seed_phrase' | 'private_key';
-  shouldUpdateNav?: boolean;
-  selectedAddress?: string;
-}
-
-/** Region selector parameters */
-export interface RegionSelectorParams {
-  onSelect?: (regionId: string) => void;
-}
-
-/** Add account parameters */
-export interface AddAccountParams {
-  onAccountCreated?: (address: string) => void;
-}
-
-/** Ambiguous address parameters */
-export interface AmbiguousAddressParams {
-  addresses?: string[];
-  onSelect?: (address: string) => void;
-}
-
-/** SDK loading parameters */
-export interface SDKLoadingParams {
-  channelId?: string;
-}
-
-/** SDK feedback parameters */
-export interface SDKFeedbackParams {
-  channelId?: string;
-}
-
-/** SDK disconnect parameters */
-export interface SDKDisconnectParams {
-  channelId?: string;
-}
-
-/** Account permissions parameters */
-export interface AccountPermissionsParams {
-  hostInfo?: {
-    metadata?: {
-      origin?: string;
-    };
-  };
-}
-
-/** Revoke all account permissions parameters */
-export interface RevokeAllAccountPermissionsParams {
-  hostInfo?: {
-    metadata?: {
-      origin?: string;
-    };
-  };
-}
-
-/** Connection details parameters */
-export interface ConnectionDetailsParams {
-  hostInfo?: {
-    metadata?: {
-      origin?: string;
-    };
-  };
-}
-
-/** Network selector parameters */
-export interface NetworkSelectorParams {
-  onNetworkSelected?: (chainId: string) => void;
-}
-
-/** Account actions parameters */
-export interface AccountActionsParams {
-  selectedAddress?: string;
-}
-
-/** Show NFT display media parameters */
-export interface ShowNftDisplayMediaParams {
-  uri?: string;
-}
-
-/** Origin spam modal parameters */
-export interface OriginSpamModalParams {
-  origin?: string;
-}
-
-/** Select SRP parameters */
-export interface SelectSRPParams {
-  onSelect?: (keyringId: string) => void;
-}
-
-/** Seedphrase modal parameters */
-export interface SeedphraseModalParams {
-  seedPhrase?: string[];
-}
-
-/** Success/Error sheet parameters */
-export interface SuccessErrorSheetParams {
-  title?: string;
-  description?: string;
-  primaryButtonLabel?: string;
-  secondaryButtonLabel?: string;
-  onPrimaryButtonPress?: () => void;
-  onSecondaryButtonPress?: () => void;
-  type?: 'success' | 'error';
-}
-
-/** Multichain transaction details parameters */
-export interface MultichainTransactionDetailsParams {
-  transactionId?: string;
-}
-
-/** Transaction details sheet parameters */
-export interface TransactionDetailsSheetParams {
-  transactionId?: string;
-}
-
-/** Multichain account actions parameters */
-export interface MultichainAccountActionsParams {
-  address?: string;
-  accountId?: string;
-}
-
-/** Edit account name parameters */
-export interface EditAccountNameParams {
-  address?: string;
-  accountId?: string;
-}
-
-/** Edit wallet name parameters */
-export interface EditWalletNameParams {
-  keyringId?: string;
-}
-
-/** Share address parameters */
-export interface ShareAddressParams {
-  address?: string;
-}
-
-/** Share address QR parameters */
-export interface ShareAddressQRParams {
-  address?: string;
-  networkName?: string;
-  chainId?: string;
-  groupId?: string;
-}
-
-/** Delete account parameters */
-export interface DeleteAccountParams {
-  address?: string;
-  accountId?: string;
-}
-
-/** Reveal SRP credential parameters */
-export interface RevealSRPCredentialParams {
-  keyringId?: string;
-}
-
-/** Smart account parameters */
-export interface SmartAccountParams {
-  address?: string;
-}
-
-/** Asset loader parameters */
-export interface AssetLoaderParams {
-  address?: string;
-  chainId?: string;
-}
-
-/** Asset view parameters */
-export interface AssetViewParams {
-  address?: string;
-  chainId?: string;
-  symbol?: string;
-  name?: string;
-  decimals?: number;
-  image?: string;
-  pricePercentChange1d?: number;
-  isFromTrending?: boolean;
-}
-
-/** Webview parameters */
-export interface WebviewParams {
-  screen?: string;
-  params?: {
-    url?: string;
-    title?: string;
-  };
-}
-
-/** Simple webview parameters */
-export interface SimpleWebviewParams {
-  url?: string;
-  title?: string;
-}
-
-/** Add network parameters */
-export interface AddNetworkParams {
-  shouldNetworkSwitchPopToWallet?: boolean;
-  shouldShowPopularNetworks?: boolean;
-  network?: string;
-}
-
-/** Edit network parameters */
-export interface EditNetworkParams {
-  network?: string;
-  shouldNetworkSwitchPopToWallet?: boolean;
-  shouldShowPopularNetworks?: boolean;
-}
-
-/** Custom slippage modal parameters */
-export interface CustomSlippageModalParams {
-  currentSlippage?: number;
-  onSlippageChange?: (slippage: number) => void;
-}
-
-/** Transaction details block explorer parameters */
-export interface TransactionDetailsBlockExplorerParams {
-  url?: string;
-}
-
-/** Blockaid modal parameters */
-export interface BlockaidModalParams {
-  securityAlertResponse?: Record<string, unknown>;
-}
-
-/** Bridge transaction details parameters */
-export interface BridgeTransactionDetailsParams {
-  bridgeTxId?: string;
-}
-
-/** Predict market list parameters */
-export interface PredictMarketListParams {
-  entryPoint?: string;
-}
-
-/** Predict market details parameters */
-export interface PredictMarketDetailsParams {
-  marketId?: string;
-  entryPoint?: string;
-  title?: string;
-  image?: string;
-  isGame?: boolean;
-  providerId?: string;
-}
-
-/** Predict activity detail parameters */
-export interface PredictActivityDetailParams {
-  activity: Record<string, unknown>;
-}
-
-/** Predict buy preview parameters */
-export interface PredictBuyPreviewParams {
-  market: Record<string, unknown>;
-  outcome: Record<string, unknown>;
-  outcomeToken: Record<string, unknown>;
-  entryPoint?: string;
-}
-
-/** Predict sell preview parameters */
-export interface PredictSellPreviewParams {
-  market: Record<string, unknown>;
-  position: Record<string, unknown>;
-  outcome: Record<string, unknown>;
-  entryPoint?: string;
-}
-
-/** Notification details parameters */
-export interface NotificationDetailsParams {
-  notificationId?: string;
-}
-
-/** Stake parameters */
-export interface StakeParams {
-  token?: {
-    chainId?: string;
-    address?: string;
-    symbol?: string;
-    decimals?: number;
-    name?: string;
-    image?: string;
-    balance?: string;
-    balanceFiat?: string;
-    isETH?: boolean;
-  };
-}
-
-/** Stake confirmation parameters */
-export interface StakeConfirmationParams {
-  amountWei?: string;
-  amountFiat?: string;
-  annualRewardsETH?: string;
-  annualRewardsFiat?: string;
-  annualRewardRate?: string;
-  chainId?: string;
-}
-
-/** Unstake parameters */
-export interface UnstakeParams {
-  token?: Record<string, unknown>;
-}
-
-/** Unstake confirmation parameters */
-export interface UnstakeConfirmationParams {
-  amountWei?: string;
-  amountFiat?: string;
-}
-
-/** Claim parameters */
-export interface ClaimParams {
-  token?: Record<string, unknown>;
-}
-
-/** Learn more modal parameters */
-export interface LearnMoreModalParams {
-  title?: string;
-  content?: string;
-}
-
-/** Max input modal parameters */
-export interface MaxInputModalParams {
-  amountWei?: string;
-  amountFiat?: string;
-  annualRewardsETH?: string;
-  annualRewardsFiat?: string;
-  annualRewardRate?: string;
-  estimatedGasFee?: string;
-  estimatedGasFeePercentage?: string;
-  handleMaxPress?: () => void;
-}
-
-/** Gas impact modal parameters */
-export interface GasImpactModalParams {
-  estimatedGasFee?: string;
-  estimatedGasFeePercentage?: string;
-}
-
-/** Earn screens parameters */
-export interface EarnScreensParams {
-  screen?: string;
-  params?: {
-    token?: Record<string, unknown>;
-  };
-}
-
-/** Lending confirmation parameters */
-export interface LendingConfirmationParams {
-  amountWei?: string;
-  amountFiat?: string;
-}
-
-/** Lending max withdrawal modal parameters */
-export interface LendingMaxWithdrawalModalParams {
-  maxAmount?: string;
-  onMaxPress?: () => void;
-}
-
-/** Multichain account details parameters */
-export interface MultichainAccountDetailsParams {
-  address?: string;
-  accountId?: string;
-}
-
-/** Multichain account group details parameters */
-export interface MultichainAccountGroupDetailsParams {
-  groupId?: string;
-}
-
-/** Multichain wallet details parameters */
-export interface MultichainWalletDetailsParams {
-  keyringId?: string;
-}
-
-/** Multichain address list parameters */
-export interface MultichainAddressListParams {
-  accountId?: string;
-}
-
-/** Multichain private key list parameters */
-export interface MultichainPrivateKeyListParams {
-  accountId?: string;
-}
-
-/** Snap settings parameters */
-export interface SnapSettingsParams {
-  snapId?: string;
-}
-
-/** Fox loader parameters */
-export interface FoxLoaderParams {
-  loadingText?: string;
-}
-
-/** Card onboarding webview parameters */
-export interface CardOnboardingWebviewParams {
-  url?: string;
-  title?: string;
-}
-
-/** Card confirm modal parameters */
-export interface CardConfirmModalParams {
-  title?: string;
-  message?: string;
-  onConfirm?: () => void;
-  onCancel?: () => void;
-}
-
-/** Send recipient parameters */
-export interface SendRecipientParams {
-  txMeta?: Record<string, unknown>;
-}
-
-/** Send asset parameters */
-export interface SendAssetParams {
-  txMeta?: Record<string, unknown>;
-}
-
-/** Send parameters */
-export interface SendParams {
-  txMeta?: Record<string, unknown>;
-  isFromTabBar?: boolean;
-}
-
-/** Return to dapp notification parameters */
-export interface ReturnToDappNotificationParams {
-  dappName?: string;
-  dappUrl?: string;
-}
+// QR Scanner params
+import type { QRScannerParams } from '../../components/Views/QRScanner/QRScanner.types';
+
+// Ramp params
+import type {
+  RampBuySellParams,
+  RampOrderDetailsParams,
+  DepositBuildQuoteParams,
+  WebviewModalParams,
+} from '../../components/UI/Ramp/Aggregator/types/navigation';
+import type { DepositNavigationParams } from '../../components/UI/Ramp/Deposit/types/navigationParams';
+
+// Transactions params
+import type {
+  TransactionsViewParams,
+  TransactionDetailsParams,
+} from '../../components/Views/TransactionsView/TransactionsView.types';
+
+// Asset params
+import type {
+  AssetLoaderParams,
+  AssetViewParams,
+} from '../../components/Views/Asset/Asset.types';
+
+// Stake params
+import type {
+  StakeParams,
+  UnstakeParams,
+  ClaimParams,
+} from '../../components/UI/Stake/Views/StakeInputView/StakeInputView.types';
+
+// Send flow params
+import type {
+  SendFlowParams,
+  SendAmountParams,
+  SendConfirmParams,
+  SendRecipientParams,
+  SendAssetParams,
+  SendParams,
+} from '../../components/Views/SendFlow/SendFlow.types';
+
+// Predict params
+import type {
+  PredictMarketListParams,
+  PredictMarketDetailsParams,
+  PredictActivityDetailParams,
+  PredictBuyPreviewParams,
+  PredictSellPreviewParams,
+} from '../../components/UI/Predict/types/navigation';
+
+// Contact form params
+import type { ContactFormParams } from '../../components/Views/Settings/Contacts/ContactForm.types';
+
+// SDK params
+import type {
+  SDKLoadingParams,
+  SDKFeedbackParams,
+  SDKDisconnectParams,
+  ReturnToDappNotificationParams,
+} from '../../components/Views/SDK/SDK.types';
+
+// Notification params
+import type { NotificationDetailsParams } from '../../components/Views/Notifications/Notifications.types';
+
+// Network params
+import type {
+  NetworkSelectorParams,
+  AddNetworkParams,
+  EditNetworkParams,
+} from '../../components/Views/NetworkSelector/NetworkSelector.types';
+
+// Account backup params
+import type {
+  AccountBackupParams,
+  ManualBackupStep3Params,
+} from '../../components/Views/AccountBackup/AccountBackup.types';
+
+// Reveal credential params
+import type {
+  RevealPrivateCredentialParams,
+  RevealSRPCredentialParams,
+  SRPRevealQuizParams,
+} from '../../components/Views/RevealPrivateCredential/RevealPrivateCredential.types';
+
+// Card params
+import type {
+  CardOnboardingWebviewParams,
+  CardConfirmModalParams,
+} from '../../components/UI/Card/Card.types';
+
+// Account actions params
+import type {
+  AccountActionsParams,
+  AccountPermissionsParams,
+  RevokeAllAccountPermissionsParams,
+  ConnectionDetailsParams,
+  AddAccountParams,
+  AmbiguousAddressParams,
+} from '../../components/Views/AccountActions/AccountActions.types';
+
+// Multichain accounts params
+import type {
+  MultichainAccountDetailActionsParams,
+  MultichainTransactionDetailsParams,
+  MultichainAccountActionsParams,
+  EditAccountNameParams,
+  EditWalletNameParams,
+  ShareAddressParams,
+  ShareAddressQRParams,
+  DeleteAccountParams,
+  SmartAccountParams,
+  MultichainAccountDetailsParams,
+  MultichainAccountGroupDetailsParams,
+  MultichainWalletDetailsParams,
+  MultichainAddressListParams,
+  MultichainPrivateKeyListParams,
+} from '../../components/Views/MultichainAccounts/MultichainAccounts.types';
+
+// Earn params
+import type {
+  StakeConfirmationParams,
+  UnstakeConfirmationParams,
+  LearnMoreModalParams,
+  MaxInputModalParams,
+  GasImpactModalParams,
+  EarnScreensParams,
+  LendingConfirmationParams,
+  LendingMaxWithdrawalModalParams,
+} from '../../components/UI/Earn/Earn.types';
+
+// Modal params
+import type {
+  RootModalFlowParams,
+  ModalConfirmationParams,
+  ModalMandatoryParams,
+  OptionsSheetParams,
+  SelectSRPParams,
+  SeedphraseModalParams,
+  TransactionDetailsSheetParams,
+  ShowNftDisplayMediaParams,
+  OriginSpamModalParams,
+  RegionSelectorParams,
+  FoxLoaderParams,
+  SnapSettingsParams,
+} from '../../components/Views/Modals/Modals.types';
+
+// Webview params
+import type {
+  WebviewParams,
+  SimpleWebviewParams,
+} from '../../components/Views/Webview/Webview.types';
 
 // ============================================================================
 // Type Utilities
