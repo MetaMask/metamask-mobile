@@ -49,7 +49,7 @@ describe(`Migration ${migrationVersion}`, () => {
     expect(result).toStrictEqual(state);
   });
 
-  it('migrates string userRegion to null ResourceState so controller will geolocate', () => {
+  it('migrates string userRegion to null so controller will geolocate', () => {
     const state = {
       engine: {
         backgroundState: {
@@ -63,22 +63,16 @@ describe(`Migration ${migrationVersion}`, () => {
 
     const result = migrate(state) as typeof state;
 
-    expect(
-      result.engine.backgroundState.RampsController.userRegion,
-    ).toStrictEqual({
-      data: null,
-      selected: null,
-      isLoading: false,
-      error: null,
-    });
+    expect(result.engine.backgroundState.RampsController.userRegion).toBeNull();
     expect(
       result.engine.backgroundState.RampsController.providers,
     ).toStrictEqual([]);
   });
 
-  it('leaves userRegion unchanged when already an object (ResourceState)', () => {
+  it('migrates ResourceState userRegion to .data (UserRegion | null)', () => {
+    const existingData = { country: {}, state: null, regionCode: 'us-ca' };
     const existingUserRegion = {
-      data: { country: {}, state: null, regionCode: 'us-ca' },
+      data: existingData,
       selected: null,
       isLoading: false,
       error: null,
@@ -96,7 +90,7 @@ describe(`Migration ${migrationVersion}`, () => {
     const result = migrate(state) as typeof state;
 
     expect(result.engine.backgroundState.RampsController.userRegion).toBe(
-      existingUserRegion,
+      existingData,
     );
   });
 

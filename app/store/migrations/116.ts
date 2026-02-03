@@ -4,14 +4,12 @@ import { captureException } from '@sentry/react-native';
 
 export const migrationVersion = 116;
 
-const defaultUserRegionResourceState = null;
-
 /**
- * Migration 116: Migrate RampsController userRegion from legacy string to ResourceState
+ * Migration 116: Migrate RampsController userRegion to UserRegion | null
  *
- * The first iteration of RampsController stored userRegion as a string (e.g. "us-ca"). Now it uses objects.
- * If userRegion is a string, set it to null so the controller will geolocate and set the
- * correct object on init.
+ * - Legacy: userRegion was a string (e.g. "us-ca") -> set to null so controller geolocates on init.
+ * - Previous: userRegion was ResourceState (object with data, selected, isLoading, error) -> set to .data.
+ * - Current: userRegion is UserRegion | null -> leave unchanged.
  *
  * @param state - The persisted Redux state (with engine.backgroundState inflated)
  * @returns The migrated Redux state
@@ -32,11 +30,20 @@ export default function migrate(state: unknown): unknown {
       return state;
     }
 
-    if (
-      hasProperty(rampsController, 'userRegion') &&
-      typeof rampsController.userRegion === 'string'
-    ) {
-      rampsController.userRegion = defaultUserRegionResourceState;
+    if (!hasProperty(rampsController, 'userRegion')) {
+      return state;
+    }
+
+    const value = rampsController.userRegion;
+
+    if (typeof value === 'string') {
+      rampsController.userRegion = null;
+      return state;
+    }
+
+    if (isObject(value) && hasProperty(value, 'data')) {
+      rampsController.userRegion = value.data;
+      return state;
     }
 
     return state;
