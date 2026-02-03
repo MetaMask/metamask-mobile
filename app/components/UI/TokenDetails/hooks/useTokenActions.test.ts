@@ -464,6 +464,58 @@ describe('useTokenActions', () => {
         }),
       );
     });
+
+    it('allows cross-chain bridging of native tokens with same zero address', () => {
+      // Native token on Ethereum (zero address)
+      const nativeEthToken = {
+        ...defaultToken,
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x1',
+        symbol: 'ETH',
+        name: 'Ethereum',
+        isNative: true,
+      } as TokenI;
+
+      // User has native ETH on Optimism (same zero address, different chain)
+      selectorMocks.mockSelectAssetsBySelectedAccountGroup.mockReturnValue({
+        '0xa': [
+          {
+            assetId: '0x0000000000000000000000000000000000000000',
+            chainId: '0xa',
+            decimals: 18,
+            symbol: 'ETH',
+            name: 'Ethereum',
+            image: '',
+            fiat: { balance: 2000 },
+          },
+        ],
+      });
+
+      const { result } = renderHook(() =>
+        useTokenActions({
+          token: nativeEthToken,
+          networkName: 'Ethereum Mainnet',
+        }),
+      );
+
+      result.current.handleBuyPress();
+
+      // Should use Optimism ETH as source for cross-chain bridge
+      expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
+      expect(mockGoToSwaps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          address: '0x0000000000000000000000000000000000000000',
+          chainId: '0xa',
+          symbol: 'ETH',
+        }),
+        expect.objectContaining({
+          address: '0x0000000000000000000000000000000000000000',
+          chainId: '0x1',
+          symbol: 'ETH',
+        }),
+      );
+      expect(mockGoToBuy).not.toHaveBeenCalled();
+    });
   });
 
   describe('handleSellPress', () => {

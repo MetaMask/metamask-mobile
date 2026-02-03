@@ -361,10 +361,15 @@ export const useTokenActions = ({
     }
 
     // Priority 2: Find highest USD value token on any chain (with positive balance)
+    // Only exclude if BOTH address AND chainId match (same exact token)
+    // This allows cross-chain bridging of native tokens that share the zero address
     const allAssets = userAssets
       .filter(
         (a) =>
-          !areAddressesEqual(a.assetId, token.address) && hasPositiveBalance(a),
+          !(
+            areAddressesEqual(a.assetId, token.address) &&
+            a.chainId === token.chainId
+          ) && hasPositiveBalance(a),
       )
       .sort((a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0));
 
@@ -379,7 +384,6 @@ export const useTokenActions = ({
         image: asset.image,
       };
     }
-
     // No eligible tokens found - return null to trigger on-ramp flow
     return null;
   }, [userAssetsMap, token.chainId, token.address]);
