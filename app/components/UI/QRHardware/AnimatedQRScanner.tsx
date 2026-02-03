@@ -2,15 +2,8 @@
 /* eslint @typescript-eslint/no-require-imports: "off" */
 
 'use strict';
-import React, { useCallback, useMemo, useState, useEffect } from 'react';
-import {
-  SafeAreaView,
-  Image,
-  Text,
-  TouchableOpacity,
-  View,
-  StyleSheet,
-} from 'react-native';
+import React, { useCallback, useState, useEffect, useMemo } from 'react';
+import { Image, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
 import {
   Camera,
   useCameraDevice,
@@ -42,12 +35,19 @@ const createStyles = (theme: Theme) =>
       margin: 0,
     },
     container: {
-      width: '100%',
+      position: 'absolute',
+      top: 0,
+      left: 0,
       height: '100%',
+      width: '100%',
       backgroundColor: theme.brandColors.black,
     },
     preview: {
       flex: 1,
+      width: '100%',
+      height: '100%',
+      position: 'absolute',
+      zIndex: 0,
     },
     innerView: {
       position: 'absolute',
@@ -57,44 +57,59 @@ const createStyles = (theme: Theme) =>
       bottom: 0,
     },
     closeIcon: {
-      marginTop: 20,
-      marginRight: 20,
-      width: 40,
-      alignSelf: 'flex-end',
+      position: 'absolute',
+      top: 60,
+      right: 20,
+      zIndex: 10,
+    },
+    overlayContainerColumn: {
+      display: 'flex',
+      width: '100%',
+      height: '100%',
+      flexDirection: 'column',
+      position: 'absolute',
+      zIndex: 1,
+    },
+    overlayContainerRow: {
+      display: 'flex',
+      flexDirection: 'row',
+    },
+    overlay: {
+      flex: 1,
+      flexBasis: 0,
+      backgroundColor: colors.overlay,
+      flexDirection: 'column',
+      display: 'flex',
     },
     frame: {
       width: 250,
       height: 250,
       alignSelf: 'center',
       justifyContent: 'center',
-      marginTop: 100,
-      opacity: 0.5,
+      margin: -4,
     },
-    text: {
-      flex: 1,
-      fontSize: 17,
+    overlayText: {
       color: theme.brandColors.white,
+      position: 'absolute',
       textAlign: 'center',
-      justifyContent: 'center',
-      marginTop: 100,
-    },
-    hint: {
-      backgroundColor: colors.whiteTransparent,
+      textAlignVertical: 'bottom',
+      paddingBottom: 28,
       width: '100%',
-      height: 120,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    hintText: {
-      width: 240,
-      maxWidth: '80%',
-      color: theme.brandColors.black,
-      textAlign: 'center',
+      top: -40,
       fontSize: 16,
       ...fontStyles.normal,
     },
-    bold: {
-      ...fontStyles.bold,
+    scanningText: {
+      fontSize: 17,
+      color: theme.brandColors.white,
+      textAlign: 'center',
+      marginTop: 20,
+    },
+    // For no camera permission state
+    noCameraContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
   });
 
@@ -149,54 +164,44 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
     setProgress(0);
   }, []);
 
-  const hintText = useMemo(
-    () => (
-      <Text style={styles.hintText}>
-        {strings('connect_qr_hardware.hint_text')}
-        <Text style={styles.bold}>
-          {strings(
-            purpose === QrScanRequestType.PAIR
-              ? 'connect_qr_hardware.purpose_connect'
-              : 'connect_qr_hardware.purpose_sign',
-          )}
-        </Text>
-      </Text>
-    ),
-    [purpose, styles],
+  // Helper to send analytics with device name
+  const sendErrorAnalytics = useCallback(
+    (properties: Record<string, unknown>) => {
+      withQrKeyring(({ keyring }) => Promise.resolve(keyring.getName()))
+        .then((deviceName) => {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
+              .addProperties({
+                ...properties,
+                device_model: deviceName,
+                device_type: HardwareDeviceTypes.QR,
+              })
+              .build(),
+          );
+        })
+        .catch(() => {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
+              .addProperties({
+                ...properties,
+                device_model: 'Unknown',
+                device_type: HardwareDeviceTypes.QR,
+              })
+              .build(),
+          );
+        });
+    },
+    [trackEvent, createEventBuilder],
   );
 
   const onError = useCallback(
     async (error: Error) => {
       if (onScanError && error) {
-        // Get device name asynchronously without blocking error handling
-        withQrKeyring(({ keyring }) => Promise.resolve(keyring.getName()))
-          .then((deviceName) => {
-            trackEvent(
-              createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
-                .addProperties({
-                  error: error.message,
-                  device_model: deviceName,
-                  device_type: HardwareDeviceTypes.QR,
-                })
-                .build(),
-            );
-          })
-          .catch(() => {
-            // If getName fails, send analytics with 'Unknown'
-            trackEvent(
-              createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
-                .addProperties({
-                  error: error.message,
-                  device_model: 'Unknown',
-                  device_type: HardwareDeviceTypes.QR,
-                })
-                .build(),
-            );
-          });
+        sendErrorAnalytics({ error: error.message });
         onScanError(error.message);
       }
     },
-    [onScanError, trackEvent, createEventBuilder],
+    [onScanError, sendErrorAnalytics],
   );
 
   const onBarCodeRead = useCallback(
@@ -214,35 +219,8 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
         urDecoder.receivePart(content);
         setProgress(Math.ceil(urDecoder.getProgress() * 100));
 
-        // Helper to send analytics with device name
-        const sendAnalytics = (properties: Record<string, unknown>) => {
-          withQrKeyring(({ keyring }) => Promise.resolve(keyring.getName()))
-            .then((deviceName) => {
-              trackEvent(
-                createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
-                  .addProperties({
-                    ...properties,
-                    device_model: deviceName,
-                    device_type: HardwareDeviceTypes.QR,
-                  })
-                  .build(),
-              );
-            })
-            .catch(() => {
-              trackEvent(
-                createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
-                  .addProperties({
-                    ...properties,
-                    device_model: 'Unknown',
-                    device_type: HardwareDeviceTypes.QR,
-                  })
-                  .build(),
-              );
-            });
-        };
-
         if (urDecoder.isError()) {
-          sendAnalytics({ error: urDecoder.resultError() });
+          sendErrorAnalytics({ error: urDecoder.resultError() });
           onScanError(strings('transaction.unknown_qr_code'));
         } else if (urDecoder.isSuccess()) {
           const ur = urDecoder.resultUR();
@@ -251,40 +229,18 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
             setProgress(0);
             setURDecoder(new URRegistryDecoder());
           } else if (purpose === QrScanRequestType.PAIR) {
-            sendAnalytics({
+            sendErrorAnalytics({
               received_ur_type: ur.type,
               error: 'invalid `sync` qr code',
             });
             onScanError(strings('transaction.invalid_qr_code_sync'));
           } else {
-            sendAnalytics({ error: 'invalid `sign` qr code' });
+            sendErrorAnalytics({ error: 'invalid `sign` qr code' });
             onScanError(strings('transaction.invalid_qr_code_sign'));
           }
         }
       } catch (e) {
-        withQrKeyring(({ keyring }) => Promise.resolve(keyring.getName()))
-          .then((deviceName) => {
-            trackEvent(
-              createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
-                .addProperties({
-                  error: strings('transaction.unknown_qr_code'),
-                  device_model: deviceName,
-                  device_type: HardwareDeviceTypes.QR,
-                })
-                .build(),
-            );
-          })
-          .catch(() => {
-            trackEvent(
-              createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
-                .addProperties({
-                  error: strings('transaction.unknown_qr_code'),
-                  device_model: 'Unknown',
-                  device_type: HardwareDeviceTypes.QR,
-                })
-                .build(),
-            );
-          });
+        sendErrorAnalytics({ error: strings('transaction.unknown_qr_code') });
         onScanError(strings('transaction.unknown_qr_code'));
       }
     },
@@ -295,8 +251,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
       expectedURTypes,
       purpose,
       onScanSuccess,
-      trackEvent,
-      createEventBuilder,
+      sendErrorAnalytics,
     ],
   );
 
@@ -304,6 +259,19 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
     codeTypes: ['qr'],
     onCodeScanned: onBarCodeRead,
   });
+
+  const hintText = useMemo(
+    () => (
+      <Text style={styles.overlayText}>
+        {strings(
+          purpose === QrScanRequestType.PAIR
+            ? 'connect_qr_hardware.hint_text_pair'
+            : 'connect_qr_hardware.hint_text_sign',
+        )}
+      </Text>
+    ),
+    [purpose, styles],
+  );
 
   // Handle camera permission error
   useEffect(() => {
@@ -316,6 +284,8 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
     <Modal
       isVisible={visible}
       style={styles.modal}
+      coverScreen
+      statusBarTranslucent
       onModalHide={() => {
         reset();
         pauseQRCode?.(false);
@@ -333,27 +303,40 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
               torch="off"
               onError={onError}
             />
-            <SafeAreaView style={styles.innerView}>
-              <TouchableOpacity style={styles.closeIcon} onPress={hideModal}>
-                {<Icon name={IconName.Close} size={IconSize.Xl} />}
-              </TouchableOpacity>
-              <Image source={frameImage} style={styles.frame} />
-              <Text style={styles.text}>{`${strings('qr_scanner.scanning')} ${
-                progress ? `${progress.toString()}%` : ''
-              }`}</Text>
-            </SafeAreaView>
+            {/* Overlay layout matching other QR scanner */}
+            <View style={styles.overlayContainerColumn}>
+              <View style={styles.overlay} />
+
+              <View style={styles.overlayContainerRow}>
+                {hintText}
+                <View style={styles.overlay} />
+                <Image source={frameImage} style={styles.frame} />
+                <View style={styles.overlay} />
+              </View>
+
+              <View style={styles.overlay}>
+                <Text style={styles.scanningText}>{`${strings(
+                  'qr_scanner.scanning',
+                )} ${progress ? `${progress.toString()}%` : ''}`}</Text>
+              </View>
+            </View>
+            {/* Close button */}
+            <TouchableOpacity style={styles.closeIcon} onPress={hideModal}>
+              <Icon name={IconName.Close} size={IconSize.Xl} />
+            </TouchableOpacity>
           </>
         ) : (
-          <SafeAreaView style={styles.innerView}>
+          <View style={styles.innerView}>
             <TouchableOpacity style={styles.closeIcon} onPress={hideModal}>
-              {<Icon name={IconName.Close} size={IconSize.Xl} />}
+              <Icon name={IconName.Close} size={IconSize.Xl} />
             </TouchableOpacity>
-            <Text style={styles.text}>
-              {strings('transaction.no_camera_permission')}
-            </Text>
-          </SafeAreaView>
+            <View style={styles.noCameraContainer}>
+              <Text style={styles.scanningText}>
+                {strings('transaction.no_camera_permission')}
+              </Text>
+            </View>
+          </View>
         )}
-        <View style={styles.hint}>{hintText}</View>
       </View>
     </Modal>
   );
