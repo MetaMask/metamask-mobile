@@ -188,8 +188,10 @@ jobs:
         env:
           NODE_OPTIONS: '--max-old-space-size=4096'
           METRO_MAX_WORKERS: '4'
+          BUILD_NAME: ${{ inputs.build_name }}
         run: |
-          ./scripts/build.sh ${{ matrix.platform }} ${{ inputs.build_name }}
+          SCRIPT_NAME="build:${{ matrix.platform }}:${BUILD_NAME//-/:}"
+          yarn run "$SCRIPT_NAME"
 
       # Expo development builds: upload iOS .app for simulator (Runway-style artifact)
       - name: Upload iOS Expo development build
@@ -197,4 +199,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: expo-dev-ios-${{ inputs.build_name }}
-          path: ios/build/Build/Products/Release-iphonesimulator/
+          path: ios/build/Build/Products/Debug-iphonesimulator/
