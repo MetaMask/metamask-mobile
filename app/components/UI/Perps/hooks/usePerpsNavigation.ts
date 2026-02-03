@@ -145,7 +145,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
         .then(() => {
           navigation.navigate(
             Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-            params,
+            { ...params, showPerpsHeader: false },
           );
         })
         .catch((error: unknown) => {

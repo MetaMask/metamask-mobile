@@ -1,6 +1,7 @@
 import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
 import { useSelector } from 'react-redux';
+import type { PerpsNavigationParamList } from '../types/navigation';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native';
 import { IconName } from '@metamask/design-system-react-native';
@@ -37,7 +38,7 @@ import { HIP3DebugView } from '../Debug';
 import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWarningBottomSheet';
 import { useTheme } from '../../../../util/theme';
 
-const Stack = createStackNavigator();
+const Stack = createStackNavigator<PerpsNavigationParamList>();
 const ModalStack = createStackNavigator();
 
 const styles = StyleSheet.create({
@@ -45,6 +46,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
+
+function getRedesignedConfirmationsHeaderOptions({
+  showPerpsHeader = true,
+}: PerpsNavigationParamList['RedesignedConfirmations'] = {}) {
+  return showPerpsHeader
+    ? {
+        headerLeft: () => null,
+        headerShown: true,
+        title: '',
+      }
+    : { header: () => null };
+}
 
 const PerpsConfirmScreen = (props: React.ComponentProps<typeof Confirm>) => {
   const theme = useTheme();
@@ -384,9 +397,9 @@ const PerpsScreenStack = () => {
           <Stack.Screen
             name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
             component={PerpsConfirmScreen}
-            options={{
-              header: () => null,
-            }}
+            options={({ route }) =>
+              getRedesignedConfirmationsHeaderOptions(route.params)
+            }
           />
         </Stack.Navigator>
       </PerpsStreamProvider>
