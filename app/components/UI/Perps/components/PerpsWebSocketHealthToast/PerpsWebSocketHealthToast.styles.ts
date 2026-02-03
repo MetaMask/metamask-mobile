@@ -5,13 +5,13 @@ const styleSheet = (params: { theme: Theme }) => {
   const { colors } = params.theme;
 
   return StyleSheet.create({
-    // Toast container - positioned at top of screen (highest z-index so it appears above all content)
+    // Toast container - positioned at top of screen
     container: {
       position: 'absolute',
       top: 74,
       left: 12,
       right: 12,
-      zIndex: 100000000000000,
+      zIndex: 9999,
     },
     // Wrapper with default background (close wrap: same edges, radius)
     toastWrapper: {
