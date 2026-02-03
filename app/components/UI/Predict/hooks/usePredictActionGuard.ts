@@ -4,7 +4,6 @@ import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
 import { PredictNavigationParamList } from '../types/navigation';
 import { usePredictEligibility } from './usePredictEligibility';
-import { usePredictBalance } from './usePredictBalance';
 
 interface UsePredictActionGuardOptions {
   providerId: string;
@@ -12,7 +11,6 @@ interface UsePredictActionGuardOptions {
 }
 
 interface ExecuteGuardedActionOptions {
-  checkBalance?: boolean;
   attemptedAction?: string;
 }
 
@@ -22,7 +20,6 @@ interface UsePredictActionGuardResult {
     options?: ExecuteGuardedActionOptions,
   ) => void | Promise<void>;
   isEligible: boolean;
-  hasNoBalance: boolean;
 }
 
 export const usePredictActionGuard = ({
@@ -30,14 +27,13 @@ export const usePredictActionGuard = ({
   navigation,
 }: UsePredictActionGuardOptions): UsePredictActionGuardResult => {
   const { isEligible } = usePredictEligibility({ providerId });
-  const { hasNoBalance } = usePredictBalance();
 
   const executeGuardedAction = useCallback(
     (
       action: () => void | Promise<void>,
       options: ExecuteGuardedActionOptions = {},
     ) => {
-      const { checkBalance = false, attemptedAction } = options;
+      const { attemptedAction } = options;
 
       if (!isEligible) {
         // Track geo-block analytics if attemptedAction is provided
@@ -54,21 +50,13 @@ export const usePredictActionGuard = ({
         return;
       }
 
-      if (checkBalance && hasNoBalance) {
-        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-          screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-        });
-        return;
-      }
-
       return action();
     },
-    [isEligible, hasNoBalance, navigation, providerId],
+    [isEligible, navigation, providerId],
   );
 
   return {
     executeGuardedAction,
     isEligible,
-    hasNoBalance,
   };
 };

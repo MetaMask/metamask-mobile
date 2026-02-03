@@ -35,6 +35,8 @@ import AppConstants from '../../../../../core/AppConstants';
 import { getPermittedEvmAddressesByHostname } from '../../../../../core/Permissions';
 import { selectPermissionControllerState } from '../../../../../selectors/snaps/permissionController';
 import type { RootState } from '../../../../../reducers';
+import { selectIsDaimoDemo } from '../../../../../core/redux/slices/card';
+import { getDaimoEnvironment } from '../../util/getDaimoEnvironment';
 
 const POLLING_INTERVAL_MS = 5000;
 const POLLING_TIMEOUT_MS = 10 * 60 * 1000;
@@ -43,6 +45,7 @@ const { NOTIFICATION_NAMES } = AppConstants;
 export interface DaimoPayModalParams {
   payId: string;
   fromUpgrade?: boolean;
+  orderId: string;
 }
 
 const baseStyles = StyleSheet.create({
@@ -72,15 +75,14 @@ const DaimoPayModal: React.FC = () => {
 
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { payId, fromUpgrade } = useParams<DaimoPayModalParams>();
+  const { payId, fromUpgrade, orderId } = useParams<DaimoPayModalParams>();
   const tw = useTailwind();
   const [error, setError] = useState<string | null>(null);
   const [entryScriptWeb3, setEntryScriptWeb3] = useState<string>('');
-
+  const isDaimoDemo = useSelector(selectIsDaimoDemo);
   const { sdk: cardSDK } = useCardSDK();
 
   const webViewUrl = DaimoPayService.buildWebViewUrl(payId);
-  const isProduction = DaimoPayService.isProduction();
   const daimoOrigin = new URL(webViewUrl).origin;
 
   const permittedAccountsList = useSelector((state: RootState) => {
@@ -276,7 +278,10 @@ const DaimoPayModal: React.FC = () => {
   );
 
   const startPolling = useCallback(() => {
-    if (!isProduction || pollingIntervalRef.current) {
+    if (
+      getDaimoEnvironment(isDaimoDemo) !== 'production' ||
+      pollingIntervalRef.current
+    ) {
       return;
     }
 
@@ -296,7 +301,7 @@ const DaimoPayModal: React.FC = () => {
       }
 
       try {
-        const status = await DaimoPayService.pollPaymentStatus(payId, {
+        const status = await DaimoPayService.pollPaymentStatus(orderId, {
           cardSDK: cardSDK ?? undefined,
         });
 
@@ -310,8 +315,8 @@ const DaimoPayModal: React.FC = () => {
       }
     }, POLLING_INTERVAL_MS);
   }, [
-    isProduction,
-    payId,
+    isDaimoDemo,
+    orderId,
     handlePaymentSuccess,
     handlePaymentBounced,
     cardSDK,
@@ -348,7 +353,13 @@ const DaimoPayModal: React.FC = () => {
           break;
 
         case 'paymentCompleted':
-          handlePaymentSuccess(event.payload.txHash, event.payload.chainId);
+          // In demo mode, navigate immediately since there's no backend to poll.
+          // In production, let polling verify the order status since the WebView
+          // fires this when transaction is submitted, but we need to wait for
+          // the backend to confirm the order is actually completed.
+          if (getDaimoEnvironment(isDaimoDemo) === 'demo') {
+            handlePaymentSuccess(event.payload.txHash, event.payload.chainId);
+          }
           break;
 
         case 'paymentBounced': {
@@ -368,6 +379,7 @@ const DaimoPayModal: React.FC = () => {
       handlePaymentSuccess,
       handlePaymentBounced,
       startPolling,
+      isDaimoDemo,
     ],
   );
 
