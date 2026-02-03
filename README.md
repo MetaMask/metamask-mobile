@@ -12,6 +12,15 @@ To learn how to develop MetaMask-compatible applications, visit our [Developer D
 
 To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs](https://github.com/MetaMask/contributor-docs).
 
+# Detect language for linguist
+*.js linguist-language=JavaScript
+*.ts linguist-language=TypeScript
+*.tsx linguist-language=TypeScript
+*.json linguist-generated=true
+
+# Handle line endings
+* text=auto
+  
 ## Documentation
 
 - [Architecture](./docs/readme/architecture.md)
