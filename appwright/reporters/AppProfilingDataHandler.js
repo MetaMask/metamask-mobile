@@ -198,4 +198,170 @@ export class AppProfilingDataHandler {
   hasCredentials() {
     return BrowserStackCredentials.hasCredentials();
   }
+
+  /**
+   * Get network logs for a specific session
+   * @param {string} buildId - The build hashed ID
+   * @param {string} sessionId - The session ID
+   * @returns {Promise<Object>} Network logs data
+   */
+  async getNetworkLogs(buildId, sessionId) {
+    const credentials = BrowserStackCredentials.getCredentials();
+    // eslint-disable-next-line no-undef
+    const authHeader = Buffer.from(
+      `${credentials.username}:${credentials.accessKey}`,
+    ).toString('base64');
+
+    const url = `https://api-cloud.browserstack.com/app-automate/builds/${buildId}/sessions/${sessionId}/networklogs`;
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Authorization: `Basic ${authHeader}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(
+          `HTTP error! status: ${response.status}, body: ${errorBody}`,
+        );
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error getting network logs:', error.message);
+      return null;
+    }
+  }
+
+  /**
+   * Fetch network logs for a session and return summary
+   * @param {string} sessionId - The session ID
+   * @returns {Promise<Object>} Network logs with summary
+   */
+  async fetchNetworkLogs(sessionId) {
+    try {
+      console.log('Fetching network logs from BrowserStack...');
+
+      // Get session details first to extract buildId
+      const sessionDetails = await this.getSessionDetails(sessionId);
+
+      if (!sessionDetails?.buildId) {
+        return {
+          error: 'No build ID found in session details',
+          logs: null,
+          summary: null,
+        };
+      }
+
+      // Fetch network logs using the buildId
+      const networkLogs = await this.getNetworkLogs(
+        sessionDetails.buildId,
+        sessionId,
+      );
+
+      if (!networkLogs) {
+        return {
+          error: 'Failed to fetch network logs',
+          logs: null,
+          summary: null,
+        };
+      }
+
+      // Extract summary from network logs
+      const logs = networkLogs.logs || [];
+      const summary = this.extractNetworkLogsSummary(logs);
+
+      console.log(
+        `Network logs fetched: ${logs.length} requests, ${summary.failedRequests} failed`,
+      );
+
+      return {
+        logs,
+        summary,
+        fetchedAt: new Date().toISOString(),
+      };
+    } catch (error) {
+      console.log(`Failed to fetch network logs: ${error.message}`);
+      return {
+        error: `Failed to fetch network logs: ${error.message}`,
+        logs: null,
+        summary: null,
+      };
+    }
+  }
+
+  /**
+   * Extract summary statistics from network logs
+   * @param {Array} logs - Array of network log entries
+   * @returns {Object} Summary statistics
+   */
+  extractNetworkLogsSummary(logs) {
+    if (!logs || !Array.isArray(logs)) {
+      return {
+        totalRequests: 0,
+        failedRequests: 0,
+        byStatus: {},
+        byMethod: {},
+        avgResponseTime: 0,
+        slowestRequests: [],
+      };
+    }
+
+    const byStatus = {};
+    const byMethod = {};
+    let totalResponseTime = 0;
+    let failedRequests = 0;
+    const requestTimes = [];
+
+    logs.forEach((log) => {
+      // Count by status code
+      const status = log.status || 'unknown';
+      byStatus[status] = (byStatus[status] || 0) + 1;
+
+      // Count failed requests (4xx, 5xx)
+      if (status >= 400 || status === 'error') {
+        failedRequests++;
+      }
+
+      // Count by method
+      const method = log.method || 'unknown';
+      byMethod[method] = (byMethod[method] || 0) + 1;
+
+      // Track response times
+      const responseTime = log.time || log.duration || 0;
+      totalResponseTime += responseTime;
+      requestTimes.push({
+        url: log.url || log.request?.url || 'unknown',
+        method,
+        status,
+        time: responseTime,
+      });
+    });
+
+    // Sort by response time and get top 5 slowest
+    const slowestRequests = requestTimes
+      .sort((a, b) => b.time - a.time)
+      .slice(0, 5)
+      .map((req) => ({
+        url: req.url.substring(0, 100), // Truncate long URLs
+        method: req.method,
+        status: req.status,
+        time: `${req.time}ms`,
+      }));
+
+    return {
+      totalRequests: logs.length,
+      failedRequests,
+      byStatus,
+      byMethod,
+      avgResponseTime:
+        logs.length > 0 ? Math.round(totalResponseTime / logs.length) : 0,
+      slowestRequests,
+    };
+  }
 }
