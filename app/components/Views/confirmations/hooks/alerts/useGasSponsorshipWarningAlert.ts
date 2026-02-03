@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
 import type { Hex } from '@metamask/utils';
 import { SimulationData } from '@metamask/transaction-controller';
 
@@ -9,7 +8,6 @@ import { AlertKeys } from '../../constants/alerts';
 import { Alert, Severity } from '../../types/alerts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
-import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { NETWORKS_CHAIN_ID } from '../../../../../constants/network';
 
 /**
@@ -21,6 +19,8 @@ interface SponsorshipWarningRule {
   messageKey: string;
   /** The minimum balance required for sponsorship */
   minBalance: string;
+  /** The native token symbol for this chain (e.g., 'MON' for Monad) */
+  nativeCurrency: string;
   /** Array of error message patterns to match (case-insensitive) */
   matchers: string[];
 }
@@ -43,6 +43,7 @@ const GAS_SPONSORSHIP_WARNING_RULES: Partial<
   [NETWORKS_CHAIN_ID.MONAD as Hex]: {
     messageKey: 'alert_system.gas_sponsorship_reserve_balance.message',
     minBalance: '10',
+    nativeCurrency: 'MON',
     matchers: ['reserve balance violation'],
   },
 };
@@ -87,13 +88,9 @@ function hasGasSponsorshipWarning(
 export const useGasSponsorshipWarningAlert = (): Alert[] => {
   const transactionMetadata = useTransactionMetadataRequest();
   const { isSupported: isGaslessSupported } = useIsGaslessSupported();
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   const { chainId, isGasFeeSponsored, simulationData } =
     transactionMetadata ?? {};
-
-  const { nativeCurrency } =
-    networkConfigurations[(chainId as Hex) ?? ''] ?? {};
 
   const callTraceErrors = (
     simulationData as SimulationDataWithCallTraceErrors | undefined
@@ -115,7 +112,7 @@ export const useGasSponsorshipWarningAlert = (): Alert[] => {
   const shouldShow = hasWarning && !isGasFeeSponsored && isGaslessSupported;
 
   return useMemo(() => {
-    if (!shouldShow || !chainId || !nativeCurrency) {
+    if (!shouldShow || !chainId) {
       return [];
     }
 
@@ -131,11 +128,11 @@ export const useGasSponsorshipWarningAlert = (): Alert[] => {
         key: AlertKeys.GasSponsorshipReserveBalance,
         message: strings(rule.messageKey, {
           minBalance: rule.minBalance,
-          nativeTokenSymbol: nativeCurrency,
+          nativeTokenSymbol: rule.nativeCurrency,
         }),
         title: strings('alert_system.gas_sponsorship_reserve_balance.title'),
         severity: Severity.Warning,
       },
     ];
-  }, [shouldShow, chainId, nativeCurrency]);
+  }, [shouldShow, chainId]);
 };

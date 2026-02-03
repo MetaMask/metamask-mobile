@@ -9,7 +9,6 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { useGasSponsorshipWarningAlert } from './useGasSponsorshipWarningAlert';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
-import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
@@ -17,7 +16,6 @@ import { NETWORKS_CHAIN_ID } from '../../../../../constants/network';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../gas/useIsGaslessSupported');
-jest.mock('../../../../../selectors/networkController');
 
 const MONAD_CHAIN_ID = NETWORKS_CHAIN_ID.MONAD as Hex;
 const MAINNET_CHAIN_ID = '0x1' as Hex;
@@ -50,37 +48,14 @@ const createMockTransactionMeta = (
     ...overrides,
   }) as unknown as TransactionMeta;
 
-const MOCK_NETWORK_CONFIGURATIONS = {
-  [MONAD_CHAIN_ID]: {
-    nativeCurrency: 'MON',
-    chainId: MONAD_CHAIN_ID,
-    isEvm: true,
-    name: 'Monad',
-  },
-  [MAINNET_CHAIN_ID]: {
-    nativeCurrency: 'ETH',
-    chainId: MAINNET_CHAIN_ID,
-    isEvm: true,
-    name: 'Ethereum Mainnet',
-  },
-};
-
 describe('useGasSponsorshipWarningAlert', () => {
   const mockUseTransactionMetadataRequest = jest.mocked(
     useTransactionMetadataRequest,
   );
   const mockUseIsGaslessSupported = jest.mocked(useIsGaslessSupported);
-  const mockSelectNetworkConfigurations = jest.mocked(
-    selectNetworkConfigurations,
-  );
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSelectNetworkConfigurations.mockReturnValue(
-      MOCK_NETWORK_CONFIGURATIONS as ReturnType<
-        typeof selectNetworkConfigurations
-      >,
-    );
     mockUseIsGaslessSupported.mockReturnValue({
       isSupported: true,
       isSmartTransaction: false,
@@ -269,23 +244,6 @@ describe('useGasSponsorshipWarningAlert', () => {
     it('when chainId is missing from transaction metadata', () => {
       const transactionMeta = createMockTransactionMeta({
         chainId: undefined as unknown as Hex,
-        simulationData: createMockSimulationData(['reserve balance violation']),
-      });
-      mockUseTransactionMetadataRequest.mockReturnValue(transactionMeta);
-
-      const { result } = renderHookWithProvider(() =>
-        useGasSponsorshipWarningAlert(),
-      );
-
-      expect(result.current).toEqual([]);
-    });
-
-    it('when network configuration is missing for chainId', () => {
-      mockSelectNetworkConfigurations.mockReturnValue(
-        {} as ReturnType<typeof selectNetworkConfigurations>,
-      );
-      const transactionMeta = createMockTransactionMeta({
-        chainId: MONAD_CHAIN_ID,
         simulationData: createMockSimulationData(['reserve balance violation']),
       });
       mockUseTransactionMetadataRequest.mockReturnValue(transactionMeta);
