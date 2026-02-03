@@ -74,6 +74,109 @@ export interface ApplyReferralDto {
   referralCode: string;
 }
 
+/**
+ * DTO for snapshot data from the backend
+ */
+export interface SnapshotDto {
+  /**
+   * The unique identifier of the snapshot
+   * @example '01974010-377f-7553-a365-0c33c8130980'
+   */
+  id: string;
+
+  /**
+   * The season ID this snapshot belongs to
+   * @example '7444682d-9050-43b8-9038-28a6a62d6264'
+   */
+  seasonId: string;
+
+  /**
+   * The name of the snapshot/airdrop
+   * @example 'Monad Airdrop'
+   */
+  name: string;
+
+  /**
+   * Optional description of the snapshot
+   * @example 'Earn Monad tokens by participating in the airdrop'
+   */
+  description?: string;
+
+  /**
+   * The token symbol being distributed
+   * @example 'MONAD'
+   */
+  tokenSymbol: string;
+
+  /**
+   * The token amount as a serialized bigint string
+   * @example '50000000000000000000000'
+   */
+  tokenAmount: string;
+
+  /**
+   * The chain ID as a serialized bigint string
+   * @example '1'
+   */
+  tokenChainId: string;
+
+  /**
+   * Optional token contract address
+   * @example '0x1234567890abcdef1234567890abcdef12345678'
+   */
+  tokenAddress?: string;
+
+  /**
+   * The blockchain where tokens will be distributed
+   * @example 'Ethereum'
+   */
+  receivingBlockchain: string;
+
+  /**
+   * When the snapshot opens (ISO date string)
+   * @example '2025-03-01T00:00:00.000Z'
+   */
+  opensAt: string;
+
+  /**
+   * When the snapshot closes (ISO date string)
+   * @example '2025-03-15T00:00:00.000Z'
+   */
+  closesAt: string;
+
+  /**
+   * When results were calculated (ISO date string)
+   * @example '2025-03-16T00:00:00.000Z'
+   */
+  calculatedAt?: string;
+
+  /**
+   * When tokens were distributed (ISO date string)
+   * @example '2025-03-20T00:00:00.000Z'
+   */
+  distributedAt?: string;
+
+  /**
+   * Background image for the snapshot tile
+   */
+  backgroundImage: ThemeImage;
+}
+
+/**
+ * Snapshot status derived from dates
+ * - upcoming: now < opensAt
+ * - live: opensAt <= now < closesAt
+ * - calculating: closesAt <= now && !calculatedAt
+ * - distributing: calculatedAt && !distributedAt
+ * - complete: distributedAt is set
+ */
+export type SnapshotStatus =
+  | 'upcoming'
+  | 'live'
+  | 'calculating'
+  | 'distributing'
+  | 'complete';
+
 export interface EstimateAssetDto {
   /**
    * Asset identifier in CAIP-19 format
@@ -707,6 +810,30 @@ export type UnlockedRewardsState = {
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SnapshotsState = {
+  snapshots: {
+    id: string;
+    seasonId: string;
+    name: string;
+    description?: string;
+    tokenSymbol: string;
+    tokenAmount: string;
+    tokenChainId: string;
+    tokenAddress?: string;
+    receivingBlockchain: string;
+    opensAt: string;
+    closesAt: string;
+    calculatedAt?: string;
+    distributedAt?: string;
+    backgroundImage: {
+      lightModeUrl: string;
+      darkModeUrl: string;
+    };
+  }[];
+  lastFetched: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PointsEventsDtoState = {
   results: {
     id: string;
@@ -1038,6 +1165,7 @@ export type RewardsControllerState = {
   activeBoosts: { [compositeId: string]: ActiveBoostsState };
   unlockedRewards: { [compositeId: string]: UnlockedRewardsState };
   pointsEvents: { [compositeId: string]: PointsEventsDtoState };
+  snapshots: { [seasonId: string]: SnapshotsState };
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.
@@ -1360,6 +1488,14 @@ export interface RewardsControllerGetUnlockedRewardsAction {
 }
 
 /**
+ * Action for getting snapshots for a season
+ */
+export interface RewardsControllerGetSnapshotsAction {
+  type: 'RewardsController:getSnapshots';
+  handler: (seasonId: string, subscriptionId: string) => Promise<SnapshotDto[]>;
+}
+
+/**
  * Action for claiming a reward
  */
 export interface RewardsControllerClaimRewardAction {
@@ -1423,6 +1559,7 @@ export type RewardsControllerActions =
   | RewardsControllerOptOutAction
   | RewardsControllerGetActivePointsBoostsAction
   | RewardsControllerGetUnlockedRewardsAction
+  | RewardsControllerGetSnapshotsAction
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerResetAllAction
