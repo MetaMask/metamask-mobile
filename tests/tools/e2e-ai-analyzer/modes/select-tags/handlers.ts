@@ -8,32 +8,15 @@ import { smokeTags, flaskTags } from '../../../../../e2e/tags';
 import { performanceTags } from '../../../../../appwright/tags';
 
 /**
- * Tags to exclude from AI selection (broken/disabled tests)
- */
-const EXCLUDED_TAGS = [
-  'SmokeSwaps',
-  'SmokeMultiChainAPI',
-  'SmokeCore',
-  'SmokeWalletUX',
-  'SmokeAssets',
-  'SmokeStake',
-  'SmokeNotifications',
-  'SmokeMultiChainPermissions',
-  'SmokeAnalytics',
-];
-
-/**
  * Derive AI config from smokeTags and flaskTags
  * Converts tags objects to array format for AI
  */
 const allTags = { ...smokeTags, ...flaskTags };
 
-export const SELECT_TAGS_CONFIG = Object.values(allTags)
-  .map((config) => ({
-    tag: config.tag.replace(':', ''), // Remove trailing colon for AI
-    description: config.description,
-  }))
-  .filter((config) => !EXCLUDED_TAGS.includes(config.tag));
+export const SELECT_TAGS_CONFIG = Object.values(allTags).map((config) => ({
+  tag: config.tag.replace(':', ''), // Remove trailing colon for AI
+  description: config.description,
+}));
 
 /**
  * Derive AI config from performanceTags

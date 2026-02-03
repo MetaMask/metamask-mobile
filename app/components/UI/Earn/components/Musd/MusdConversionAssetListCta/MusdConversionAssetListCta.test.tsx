@@ -1,6 +1,5 @@
 import React from 'react';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
-import { Hex } from '@metamask/utils';
 
 jest.mock('../../../hooks/useMusdConversionFlowData');
 jest.mock('../../../hooks/useMusdConversion');
@@ -30,6 +29,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { useMetrics, MetaMetricsEvents } from '../../../../../hooks/useMetrics';
 import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetworkName';
 import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events';
+import { Hex } from '@metamask/utils';
 
 const mockConversionToken = {
   address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -112,7 +112,6 @@ describe('MusdConversionAssetListCta', () => {
       isEmptyWallet: false,
       getPaymentTokenForSelectedNetwork: mockGetPreferredPaymentToken,
       getChainIdForBuyFlow: mockGetChainIdForBuyFlow,
-      getMusdOutputChainId: mockGetMusdOutputChainId,
       isPopularNetworksFilterActive: false,
       selectedChainId: null,
       selectedChains: [],
@@ -191,7 +190,6 @@ describe('MusdConversionAssetListCta', () => {
         isEmptyWallet: true,
         getPaymentTokenForSelectedNetwork: mockGetPreferredPaymentToken,
         getChainIdForBuyFlow: mockGetChainIdForBuyFlow,
-        getMusdOutputChainId: mockGetMusdOutputChainId,
         isPopularNetworksFilterActive: false,
         selectedChainId: null,
         selectedChains: [],
@@ -256,7 +254,6 @@ describe('MusdConversionAssetListCta', () => {
         isEmptyWallet: true,
         getPaymentTokenForSelectedNetwork: mockGetPreferredPaymentToken,
         getChainIdForBuyFlow: mockGetChainIdForBuyFlow,
-        getMusdOutputChainId: mockGetMusdOutputChainId,
         isPopularNetworksFilterActive: false,
         selectedChainId: null,
         selectedChains: [],
@@ -304,7 +301,6 @@ describe('MusdConversionAssetListCta', () => {
 
       await waitFor(() => {
         expect(mockInitiateConversion).toHaveBeenCalledWith({
-          outputChainId: '0x1',
           preferredPaymentToken: {
             address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
             chainId: '0x1',
@@ -330,7 +326,6 @@ describe('MusdConversionAssetListCta', () => {
         isEmptyWallet: false,
         getPaymentTokenForSelectedNetwork: mockGetPreferredPaymentToken,
         getChainIdForBuyFlow: mockGetChainIdForBuyFlow,
-        getMusdOutputChainId: mockGetMusdOutputChainId,
         isPopularNetworksFilterActive: false,
         selectedChainId: CHAIN_IDS.LINEA_MAINNET,
         selectedChains: [CHAIN_IDS.LINEA_MAINNET],
@@ -364,7 +359,6 @@ describe('MusdConversionAssetListCta', () => {
 
       await waitFor(() => {
         expect(mockInitiateConversion).toHaveBeenCalledWith({
-          outputChainId: lineaToken.chainId,
           preferredPaymentToken: lineaToken,
         });
       });
@@ -387,7 +381,6 @@ describe('MusdConversionAssetListCta', () => {
         isEmptyWallet: false,
         getPaymentTokenForSelectedNetwork: mockGetPreferredPaymentToken,
         getChainIdForBuyFlow: mockGetChainIdForBuyFlow,
-        getMusdOutputChainId: mockGetMusdOutputChainId,
         isPopularNetworksFilterActive: false,
         selectedChainId: CHAIN_IDS.LINEA_MAINNET,
         selectedChains: [CHAIN_IDS.LINEA_MAINNET],
@@ -421,7 +414,6 @@ describe('MusdConversionAssetListCta', () => {
 
       await waitFor(() => {
         expect(mockInitiateConversion).toHaveBeenCalledWith({
-          outputChainId: firstToken.chainId,
           preferredPaymentToken: firstToken,
         });
       });
@@ -438,7 +430,6 @@ describe('MusdConversionAssetListCta', () => {
 
       await waitFor(() => {
         expect(mockInitiateConversion).toHaveBeenCalledWith({
-          outputChainId: '0x1',
           preferredPaymentToken: {
             address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
             chainId: '0x1',
@@ -667,7 +658,6 @@ describe('MusdConversionAssetListCta', () => {
         isEmptyWallet: true,
         getPaymentTokenForSelectedNetwork: mockGetPreferredPaymentToken,
         getChainIdForBuyFlow: mockGetChainIdForBuyFlow,
-        getMusdOutputChainId: mockGetMusdOutputChainId,
         isPopularNetworksFilterActive: false,
         selectedChainId: null,
         selectedChains: [],

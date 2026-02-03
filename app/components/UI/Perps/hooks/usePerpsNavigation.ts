@@ -3,6 +3,17 @@ import { useNavigation, NavigationProp } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import type { PerpsNavigationParamList } from '../types/navigation';
 import type { PerpsMarketData, Position, Order } from '../controllers/types';
+import { usePerpsTrading } from './usePerpsTrading';
+import usePerpsToasts from './usePerpsToasts';
+import { usePerpsEventTracking } from './usePerpsEventTracking';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../constants/eventNames';
+import { MetaMetricsEvents } from '../../../hooks/useMetrics';
+import Logger from '../../../../util/Logger';
+import { ensureError } from '../../../../util/errorUtils';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 /**
  * Navigation handler result interface
@@ -124,11 +135,46 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     [navigation],
   );
 
+  const { depositWithOrder } = usePerpsTrading();
+  const { showToast, PerpsToastOptions } = usePerpsToasts();
+  const { track } = usePerpsEventTracking();
+
   const navigateToOrder = useCallback(
     (params: PerpsNavigationParamList['PerpsOrder']) => {
-      navigation.navigate(Routes.PERPS.ORDER, params);
+      depositWithOrder()
+        .then(() => {
+          navigation.navigate(
+            Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+            params,
+          );
+        })
+        .catch((error: unknown) => {
+          const err = ensureError(error);
+          Logger.error(err, {
+            feature: PERPS_CONSTANTS.FeatureName,
+            message:
+              'Failed to start one-click trade (deposit rejected or failed)',
+          });
+
+          track(MetaMetricsEvents.PERPS_ERROR, {
+            [PerpsEventProperties.ERROR_TYPE]:
+              PerpsEventValues.ERROR_TYPE.BACKEND,
+            [PerpsEventProperties.ERROR_MESSAGE]: err.message,
+            [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.TRADE_ACTION,
+          });
+
+          showToast(
+            PerpsToastOptions.accountManagement.oneClickTrade.txCreationFailed,
+          );
+        });
     },
-    [navigation],
+    [
+      navigation,
+      depositWithOrder,
+      showToast,
+      PerpsToastOptions.accountManagement.oneClickTrade.txCreationFailed,
+      track,
+    ],
   );
 
   const navigateToTutorial = useCallback(

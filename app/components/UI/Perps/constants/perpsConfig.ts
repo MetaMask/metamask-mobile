@@ -439,8 +439,7 @@ export const MARKET_SORTING_CONFIG = {
   ] as const,
 
   // Sort options for the bottom sheet
-  // Only Price Change can be toggled for direction (similar to trending tokens pattern)
-  // Other options (volume, open interest, funding rate) use descending sort only
+  // All options support direction toggle (high-to-low / low-to-high)
   SortOptions: [
     {
       id: 'volume',
