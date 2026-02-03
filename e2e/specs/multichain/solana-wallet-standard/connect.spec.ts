@@ -14,8 +14,6 @@ import { Utilities } from '../../../../tests/framework';
 import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
 import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
-import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 import { DappVariants } from '../../../../tests/framework/Constants';
 
 describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
@@ -33,11 +31,6 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
             dappVariant: DappVariants.SOLANA_TEST_DAPP,
           },
         ],
-        testSpecificMock: async (mockServer) => {
-          await setupRemoteFeatureFlagsMock(mockServer, {
-            ...remoteFeatureMultichainAccountsAccountDetailsV2(true),
-          });
-        },
       },
       async () => {
         await loginToApp();
@@ -76,11 +69,6 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
             dappVariant: DappVariants.SOLANA_TEST_DAPP,
           },
         ],
-        testSpecificMock: async (mockServer) => {
-          await setupRemoteFeatureFlagsMock(mockServer, {
-            ...remoteFeatureMultichainAccountsAccountDetailsV2(true),
-          });
-        },
       },
       async () => {
         await loginToApp();
@@ -114,11 +102,6 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
             dappVariant: DappVariants.SOLANA_TEST_DAPP,
           },
         ],
-        testSpecificMock: async (mockServer) => {
-          await setupRemoteFeatureFlagsMock(mockServer, {
-            ...remoteFeatureMultichainAccountsAccountDetailsV2(true),
-          });
-        },
       },
       async () => {
         await loginToApp();
@@ -151,11 +134,6 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
             dappVariant: DappVariants.SOLANA_TEST_DAPP,
           },
         ],
-        testSpecificMock: async (mockServer) => {
-          await setupRemoteFeatureFlagsMock(mockServer, {
-            ...remoteFeatureMultichainAccountsAccountDetailsV2(true),
-          });
-        },
       },
       async () => {
         await loginToApp();
