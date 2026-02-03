@@ -3723,6 +3723,8 @@
     "new_tab": "New tab",
     "tabs_close_all": "Close all",
     "tabs_done": "Done",
+    "opened_tabs": "Opened tabs",
+    "add_new_tab": "Add new tab",
     "no_tabs_title": "No open tabs",
     "no_tabs_desc": "To browse the decentralized web, add a new tab",
     "got_it": "Got it",
