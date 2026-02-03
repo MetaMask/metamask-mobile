@@ -140,7 +140,9 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
         </Box>
 
         <Box twClassName="gap-4 w-full flex justify-between">
-          <Box twClassName="flex-col">{renderStepInfo()}</Box>
+          <Box twClassName="flex-col flex-grow justify-end">
+            {renderStepInfo()}
+          </Box>
 
           <Box twClassName="w-full flex-col gap-2">
             <Button
