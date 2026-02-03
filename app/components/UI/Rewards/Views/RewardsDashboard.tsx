@@ -328,7 +328,9 @@ const RewardsDashboard: React.FC = () => {
           <PreviousSeasonSummary />
         ) : (
           <>
-            <SeasonStatus />
+            <Box twClassName="mx-4">
+              <SeasonStatus />
+            </Box>
 
             {/* Tab View */}
             <TabsList {...tabsListProps}>

@@ -7167,10 +7167,7 @@
       "retry_button": "Retry"
     },
     "referral_rewards_title": "Referrals",
-    "points": "Points",
-    "point": "Point",
     "level": "Level",
-    "to_level_up": "To level up",
     "season_ends": "Season ends",
     "season_ended": "Season ended",
     "main_title": "Rewards",
@@ -7228,6 +7225,9 @@
       "points_earned": "points earned",
       "no_end_of_season_rewards": "You didn't earn rewards this season, but there's always next time.",
       "verifying_rewards": "We're making sure everything's correct before you claim your rewards."
+    },
+    "season_status": {
+      "points_earned": "Points earned"
     },
     "onboarding": {
       "not_supported_region_title": "Region not supported",
