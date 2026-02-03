@@ -103,6 +103,7 @@ import { BuildQuoteSelectors } from './BuildQuote.testIds';
 
 import { isNonEvmAddress } from '../../../../../../core/Multichain/utils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
+import Logger from '../../../../../../util/Logger';
 
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { createUnsupportedRegionModalNavigationDetails } from '../../components/UnsupportedRegionModal';
@@ -666,6 +667,11 @@ const BuildQuote = () => {
    * * Get Quote handlers
    */
   const handleGetQuotePress = useCallback(() => {
+    Logger.log(
+      '[BuildQuote] Continue pressed with selectedQuote:',
+      selectedQuote,
+    );
+
     if (!selectedAddress) {
       navigation.navigate(
         ...createIncompatibleAccountTokenModalNavigationDetails(),
@@ -726,6 +732,7 @@ const BuildQuote = () => {
     selectedAsset,
     selectedPaymentMethodId,
     trackEvent,
+    selectedQuote,
   ]);
 
   const retryMethod = useCallback(() => {
@@ -1123,24 +1130,39 @@ const BuildQuote = () => {
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
           <Row style={styles.cta}>
-            {isLoadingQuotes && amountNumber > 0 ? (
-              <SkeletonBox style={styles.buttonSkeleton} />
-            ) : (
-              <Button
-                size={ButtonSize.Lg}
-                onPress={handleGetQuotePress}
-                label={strings('fiat_on_ramp_aggregator.get_quotes')}
-                variant={ButtonVariants.Primary}
-                width={ButtonWidthTypes.Full}
-                isDisabled={
-                  amountNumber <= 0 ||
-                  isFetching ||
-                  isLoadingQuotes ||
-                  !selectedQuote
-                }
-                accessibilityRole="button"
-              />
-            )}
+            {(() => {
+              const showSkeleton = isLoadingQuotes && amountNumber > 0;
+              const isDisabled =
+                amountNumber <= 0 ||
+                isFetching ||
+                isLoadingQuotes ||
+                !selectedQuote;
+
+              Logger.log('[BuildQuote Button]', {
+                amountNumber,
+                isLoadingQuotes,
+                isFetching,
+                selectedQuote: selectedQuote ? 'set' : 'null',
+                showSkeleton,
+                isDisabled,
+              });
+
+              if (showSkeleton) {
+                return <SkeletonBox style={styles.buttonSkeleton} />;
+              }
+
+              return (
+                <Button
+                  size={ButtonSize.Lg}
+                  onPress={handleGetQuotePress}
+                  label={strings('fiat_on_ramp_aggregator.get_quotes')}
+                  variant={ButtonVariants.Primary}
+                  width={ButtonWidthTypes.Full}
+                  isDisabled={isDisabled}
+                  accessibilityRole="button"
+                />
+              );
+            })()}
           </Row>
         </ScreenLayout.Content>
       </ScreenLayout.Footer>

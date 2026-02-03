@@ -9,6 +9,7 @@ import {
   selectQuotesError,
 } from '../../../../selectors/rampsController';
 import type { QuotesResponse, Quote } from '@metamask/ramps-controller';
+import Logger from '../../../../util/Logger';
 
 const DEBOUNCE_DELAY = 500; // 500ms debounce for amount changes
 
@@ -97,10 +98,21 @@ export function useRampsQuotes(
   // This is true immediately when amount changes, before debounce fires
   // This prevents user from proceeding with stale quotes
   const isPendingNewQuotes =
-    lastPolledAmountRef.current !== amount && amount > 0;
+    lastPolledAmountRef.current !== amount && amount > 0 && !!walletAddress;
 
   // Combined loading state: true during debounce OR controller fetch
   const isLoading = isPendingNewQuotes || controllerIsLoading;
+
+  // Debug logging
+  Logger.log('[useRampsQuotes]', {
+    amount,
+    walletAddress: walletAddress ? 'set' : 'null',
+    lastPolled: lastPolledAmountRef.current,
+    isPendingNewQuotes,
+    controllerIsLoading,
+    isLoading,
+    selectedQuote: selectedQuote ? 'set' : 'null',
+  });
 
   return {
     quotes,
