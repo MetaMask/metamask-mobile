@@ -232,46 +232,48 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
         pointerEvents="box-none"
         {...panResponder.panHandlers}
       >
-        <View style={styles.toast}>
-          {/* Icon or Spinner */}
-          <View style={styles.iconContainer}>
-            {toastConfig.showSpinner ? (
-              <Spinner
-                color={ReactNativeDsIconColor.PrimaryDefault}
-                spinnerIconProps={{ size: ReactNativeDsIconSize.Md }}
-              />
-            ) : (
-              <Icon
-                name={IconName.Connect}
-                size={IconSize.Xl}
-                color={toastConfig.iconColor}
-              />
-            )}
-          </View>
+        <View style={styles.toastWrapper}>
+          <View style={styles.toast}>
+            {/* Icon or Spinner */}
+            <View style={styles.iconContainer}>
+              {toastConfig.showSpinner ? (
+                <Spinner
+                  color={ReactNativeDsIconColor.PrimaryDefault}
+                  spinnerIconProps={{ size: ReactNativeDsIconSize.Md }}
+                />
+              ) : (
+                <Icon
+                  name={IconName.Connect}
+                  size={IconSize.Xl}
+                  color={toastConfig.iconColor}
+                />
+              )}
+            </View>
 
-          {/* Text Content */}
-          <View style={styles.textContainer}>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-              {toastConfig.title}
-            </Text>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {toastConfig.description}
-            </Text>
-          </View>
+            {/* Text Content */}
+            <View style={styles.textContainer}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                {toastConfig.title}
+              </Text>
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+                {toastConfig.description}
+              </Text>
+            </View>
 
-          {/* Retry Button - only shown when disconnected */}
-          {connectionState === WebSocketConnectionState.Disconnected &&
-            onRetry && (
-              <TouchableOpacity
-                style={styles.retryButton}
-                onPress={onRetry}
-                testID={PerpsWebSocketHealthToastSelectorsIDs.RETRY_BUTTON}
-              >
-                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                  {strings('perps.connection.websocket_retry')}
-                </Text>
-              </TouchableOpacity>
-            )}
+            {/* Retry Button - only shown when disconnected */}
+            {connectionState === WebSocketConnectionState.Disconnected &&
+              onRetry && (
+                <TouchableOpacity
+                  style={styles.retryButton}
+                  onPress={onRetry}
+                  testID={PerpsWebSocketHealthToastSelectorsIDs.RETRY_BUTTON}
+                >
+                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                    {strings('perps.connection.websocket_retry')}
+                  </Text>
+                </TouchableOpacity>
+              )}
+          </View>
         </View>
       </Animated.View>
     </View>
