@@ -24,7 +24,6 @@ import { renderAccountName } from '../../../util/address';
 import { QRAccountDisplayProps } from './QRAccountDisplay.types';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
 
 const ADDRESS_PREFIX_LENGTH = 6;
 const ADDRESS_SUFFIX_LENGTH = 5;
@@ -77,7 +76,7 @@ const QRAccountDisplay = (props: QRAccountDisplayProps) => {
         createEventBuilder(EVENT_NAME.ADDRESS_COPIED)
           .addProperties({
             location: analyticsLocation,
-            ...(chainId && { chain_id_caip: formatChainIdToCaip(chainId) }),
+            ...(chainId && { chain_id_caip: chainId }),
           })
           .build(),
       );

@@ -31,7 +31,7 @@ export interface QRAccountDisplayProps {
   analyticsLocation?: string;
   /**
    * Optional chain ID for analytics tracking.
-   * Should be in hex format (will be converted to decimal for tracking).
+   * Should be in CAIP format (e.g., 'eip155:1' for Ethereum mainnet).
    */
   chainId?: string;
 }

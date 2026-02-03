@@ -28,13 +28,6 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-jest.mock('@metamask/bridge-controller', () => ({
-  __esModule: true,
-  formatChainIdToCaip: jest.fn(
-    (chainId: string) => `eip155:${parseInt(chainId, 16)}`,
-  ),
-}));
-
 const initialState = {
   engine: {
     backgroundState: {
@@ -87,10 +80,6 @@ const TestWrapper = ({
 describe('QRAccountDisplay', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockTrackEvent.mockClear();
-    mockCreateEventBuilder.mockClear();
-    mockAddProperties.mockClear();
-    mockBuild.mockClear();
   });
 
   it('render matches snapshot', () => {
@@ -344,7 +333,7 @@ describe('QRAccountDisplay', () => {
     it('includes chain_id in analytics when both analyticsLocation and chainId are provided', async () => {
       // Arrange
       const analyticsLocation = 'test_screen';
-      const chainId = '0x1';
+      const chainId = 'eip155:1'; // chainId should be in CAIP format
 
       const { getByTestId } = renderScreen(
         () => (
@@ -369,14 +358,10 @@ describe('QRAccountDisplay', () => {
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         location: analyticsLocation,
-        chain_id_caip: 'eip155:1', // CAIP format for 0x1
+        chain_id_caip: 'eip155:1',
       });
       expect(mockBuild).toHaveBeenCalled();
       expect(mockTrackEvent).toHaveBeenCalledWith({});
-      const { formatChainIdToCaip } = jest.requireMock(
-        '@metamask/bridge-controller',
-      );
-      expect(formatChainIdToCaip).toHaveBeenCalledWith(chainId);
     });
 
     it('does not include chain_id in analytics when chainId is not provided', async () => {
@@ -408,10 +393,6 @@ describe('QRAccountDisplay', () => {
       });
       expect(mockBuild).toHaveBeenCalled();
       expect(mockTrackEvent).toHaveBeenCalledWith({});
-      const { formatChainIdToCaip } = jest.requireMock(
-        '@metamask/bridge-controller',
-      );
-      expect(formatChainIdToCaip).not.toHaveBeenCalled();
     });
   });
 });
