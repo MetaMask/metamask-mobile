@@ -18,8 +18,13 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
+import { isE2E } from '../../../util/test/utils';
 
 export const IS_FPS_COUNTER_ENABLED = (() => {
+  if (isE2E) {
+    // Could break some E2E or performance tests as FPS counter can overlay some UI elements
+    return false;
+  }
   if (Platform.OS === 'ios') {
     // There is some issue on iOS in RN 0.76.x, disable until we upgrade to newer version
     return false;
