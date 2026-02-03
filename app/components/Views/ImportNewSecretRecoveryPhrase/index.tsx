@@ -25,6 +25,7 @@ import { strings } from '../../../../locales/i18n';
 import { useAppTheme } from '../../../util/theme';
 import { createStyles } from './styles';
 import { ImportSRPIDs } from './SRPImport.testIds';
+import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
 import Text, {
   TextVariant,
   TextColor,
@@ -42,6 +43,8 @@ import {
 } from '../../../component-library/components/Toast';
 import { useSelector } from 'react-redux';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
+import useMetrics from '../../hooks/useMetrics/useMetrics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
@@ -84,6 +87,7 @@ const ImportNewSecretRecoveryPhrase = () => {
   const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
 
   const hdKeyrings = useSelector(selectHDKeyrings);
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
     onFirstLoad: false,
     onTransactionComplete: false,
@@ -142,6 +146,18 @@ const ImportNewSecretRecoveryPhrase = () => {
     });
   }, [navigation]);
 
+  const trackDiscoveryEvent = (discoveredAccountsCount: number) => {
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
+      )
+        .addProperties({
+          number_of_solana_accounts_discovered: discoveredAccountsCount,
+        })
+        .build(),
+    );
+  };
+
   const onSubmit = async () => {
     const phrase = seedPhrase
       .map((item) => item.trim())
@@ -172,6 +188,14 @@ const ImportNewSecretRecoveryPhrase = () => {
         setLoading(false);
         return;
       }
+
+      await importNewSecretRecoveryPhrase(
+        phrase,
+        undefined,
+        async ({ discoveredAccountsCount }) => {
+          trackDiscoveryEvent(discoveredAccountsCount);
+        },
+      );
 
       setLoading(false);
       setSeedPhrase(['']);
