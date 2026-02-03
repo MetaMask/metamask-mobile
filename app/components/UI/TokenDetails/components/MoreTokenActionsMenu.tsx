@@ -31,7 +31,7 @@ import { Hex } from '@metamask/utils';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { TokenI } from '../../Tokens/types';
 
-export interface MoreActionsMenuParams {
+export interface MoreTokenActionsMenuParams {
   hasPerpsMarket: boolean;
   isBuyable: boolean;
   isNativeCurrency: boolean;
@@ -39,9 +39,9 @@ export interface MoreActionsMenuParams {
   onBuy?: () => void;
 }
 
-type MoreActionsMenuRouteProp = RouteProp<
-  { MoreActionsMenu: MoreActionsMenuParams },
-  'MoreActionsMenu'
+type MoreTokenActionsMenuRouteProp = RouteProp<
+  { MoreTokenActionsMenu: MoreTokenActionsMenuParams },
+  'MoreTokenActionsMenu'
 >;
 
 interface ActionConfig {
@@ -55,9 +55,9 @@ interface ActionConfig {
   onPress: () => void;
 }
 
-const MoreActionsMenu = () => {
+const MoreTokenActionsMenu = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const route = useRoute<MoreActionsMenuRouteProp>();
+  const route = useRoute<MoreTokenActionsMenuRouteProp>();
   const navigation = useNavigation();
 
   const {
@@ -131,7 +131,7 @@ const MoreActionsMenu = () => {
         createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
           .addProperties({
             text: 'Buy',
-            location: 'MoreActionsMenu',
+            location: 'MoreTokenActionsMenu',
             chain_id_destination: getChainIdForAsset(),
             ramp_type: 'UNIFIED_BUY',
             region: rampGeodetectedRegion,
@@ -164,7 +164,7 @@ const MoreActionsMenu = () => {
       createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
         .addProperties({
           text: 'Deposit',
-          location: 'MoreActionsMenu',
+          location: 'MoreTokenActionsMenu',
           chain_id_destination: getDecimalChainId(chainId),
           ramp_type: 'DEPOSIT',
           region: rampGeodetectedRegion,
@@ -201,7 +201,7 @@ const MoreActionsMenu = () => {
         createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
           .addProperties({
             text: 'Buy',
-            location: 'MoreActionsMenu',
+            location: 'MoreTokenActionsMenu',
             chain_id_destination: getChainIdForAsset(),
             ramp_type: 'BUY',
             region: rampGeodetectedRegion,
@@ -239,7 +239,7 @@ const MoreActionsMenu = () => {
       createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
         .addProperties({
           text: 'Sell',
-          location: 'MoreActionsMenu',
+          location: 'MoreTokenActionsMenu',
           chain_id_source: getDecimalChainId(chainId),
           ramp_type: 'SELL',
           region: rampGeodetectedRegion,
@@ -321,7 +321,7 @@ const MoreActionsMenu = () => {
                   .build(),
               );
             } catch (err) {
-              Logger.log(err, 'MoreActionsMenu: Failed to hide token!');
+              Logger.log(err, 'MoreTokenActionsMenu: Failed to hide token!');
             }
           },
         },
@@ -462,6 +462,6 @@ const MoreActionsMenu = () => {
   );
 };
 
-MoreActionsMenu.displayName = 'MoreActionsMenu';
+MoreTokenActionsMenu.displayName = 'MoreTokenActionsMenu';
 
-export default MoreActionsMenu;
+export default MoreTokenActionsMenu;
