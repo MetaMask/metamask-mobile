@@ -63,7 +63,7 @@ export const useMusdRampAvailability = (): MusdRampAvailability => {
         return;
       }
 
-      const musdToken = rampsTokens?.find(
+      const musdToken = rampsTokens.find(
         (token) =>
           toLowerCaseEquals(token.assetId, musdAssetId) &&
           token.tokenSupported === true,
