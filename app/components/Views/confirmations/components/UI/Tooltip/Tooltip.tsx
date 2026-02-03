@@ -9,6 +9,7 @@ import {
 } from '../../../../../../component-library/components/Icons/Icon';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
+import HeaderCenter from '../../../../../../component-library/components-temp/HeaderCenter';
 import BottomModal from '../bottom-modal';
 import styleSheet from './Tooltip.styles';
 
@@ -43,17 +44,13 @@ export const TooltipModal = ({
   return (
     <BottomModal visible={open} onClose={() => setOpen(false)} isTooltip>
       <View style={styles.modalView}>
-        <View style={styles.modalHeader}>
-          <ButtonIcon
-            iconColor={IconColor.Default}
-            iconName={IconName.ArrowLeft}
-            onPress={() => setOpen(false)}
-            size={ButtonIconSizes.Sm}
-            style={styles.closeModalBtn}
-            testID={`${tooltipTestId}-close-btn`}
-          />
-          {<Text style={styles.modalTitle}>{title ?? ''}</Text>}
-        </View>
+        <HeaderCenter
+          title={title}
+          onClose={() => setOpen(false)}
+          closeButtonProps={{
+            testID: `${tooltipTestId}-close-btn`,
+          }}
+        />
         <View style={styles.modalContent}>
           {typeof content === 'string' ? (
             <Text style={styles.modalContentValue}>{content}</Text>

@@ -57,6 +57,7 @@ import {
   type ClosePositionParams,
   type ClosePositionsParams,
   type ClosePositionsResult,
+  type DepositWithConfirmationParams,
   type EditOrderParams,
   type FeeCalculationParams,
   type FeeCalculationResult,
@@ -1484,13 +1485,12 @@ export class PerpsController extends BaseController<
   /**
    * Simplified deposit method that prepares transaction for confirmation screen
    * No complex state tracking - just sets a loading flag
-   * @param amount - Optional deposit amount
-   * @param depositAndPlaceOrder - If true, uses addTransaction instead of submit to avoid navigation
+   * @param params - Parameters for the deposit flow
+   * @param params.amount - Optional deposit amount
+   * @param params.placeOrder - If true, uses addTransaction instead of submit to avoid navigation
    */
-  async depositWithConfirmation(
-    amount?: string,
-    depositAndPlaceOrder?: boolean,
-  ) {
+  async depositWithConfirmation(params: DepositWithConfirmationParams = {}) {
+    const { amount, placeOrder } = params;
     const { controllers } = this.options.infrastructure;
 
     try {
@@ -1545,7 +1545,7 @@ export class PerpsController extends BaseController<
         skipInitialGasEstimate: true,
       };
 
-      if (depositAndPlaceOrder) {
+      if (placeOrder) {
         // Use addTransaction to create transaction without navigating to confirmation screen
         const { transactionMeta: addedTransactionMeta } = await addTransaction(
           transaction,
@@ -1577,7 +1577,7 @@ export class PerpsController extends BaseController<
       });
 
       // Track the transaction lifecycle only when using submit (deposit-only flow)
-      if (!depositAndPlaceOrder) {
+      if (!placeOrder) {
         // At this point, the confirmation modal is shown to the user
         // The result promise will resolve/reject based on user action and transaction outcome
 
@@ -1628,8 +1628,10 @@ export class PerpsController extends BaseController<
           })
           .catch((error) => {
             // Check if user denied/cancelled the transaction
-            const errorMessage =
-              error instanceof Error ? error.message : String(error);
+            const errorMessage = ensureError(
+              error,
+              'PerpsController.initiateDeposit',
+            ).message;
             const userCancelled =
               errorMessage.includes('User denied') ||
               errorMessage.includes('User rejected') ||
@@ -1677,8 +1679,10 @@ export class PerpsController extends BaseController<
       };
     } catch (error) {
       // Check if user denied/cancelled the transaction
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
+      const errorMessage = ensureError(
+        error,
+        'PerpsController.initiateDeposit',
+      ).message;
       const userCancelled =
         errorMessage.includes('User denied') ||
         errorMessage.includes('User rejected') ||
@@ -1698,10 +1702,9 @@ export class PerpsController extends BaseController<
 
   /**
    * Same as depositWithConfirmation - prepares transaction for confirmation screen.
-   * @param amount - Optional deposit amount
    */
-  async depositWithOrder(amount?: string) {
-    return this.depositWithConfirmation(amount, true);
+  async depositWithOrder() {
+    return this.depositWithConfirmation({ placeOrder: true });
   }
 
   /**
@@ -2144,10 +2147,7 @@ export class PerpsController extends BaseController<
       return {
         success: false,
         isTestnet: this.state.isTestnet,
-        error:
-          error instanceof Error
-            ? error.message
-            : PERPS_ERROR_CODES.UNKNOWN_ERROR,
+        error: ensureError(error, 'PerpsController.toggleTestnet').message,
       };
     } finally {
       this.isReinitializing = false;
