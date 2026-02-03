@@ -18,18 +18,22 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 interface PredictPositionProps {
   position: PredictPositionType;
   onPress?: (position: PredictPositionType) => void;
+  skipOptimisticRefresh?: boolean;
 }
 
 const PredictPosition: React.FC<PredictPositionProps> = ({
   position,
   onPress,
+  skipOptimisticRefresh = false,
 }: PredictPositionProps) => {
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
 
-  const currentPosition = usePredictOptimisticPositionRefresh({
+  const optimisticPosition = usePredictOptimisticPositionRefresh({
     position,
   });
+
+  const currentPosition = skipOptimisticRefresh ? position : optimisticPosition;
 
   const {
     icon,

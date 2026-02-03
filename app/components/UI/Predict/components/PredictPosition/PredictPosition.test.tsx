@@ -60,12 +60,19 @@ const basePosition: PredictPositionType = {
 const renderComponent = (
   overrides?: Partial<PredictPositionType>,
   onPress?: (position: PredictPositionType) => void,
+  skipOptimisticRefresh?: boolean,
 ) => {
   const position: PredictPositionType = {
     ...basePosition,
     ...overrides,
   } as PredictPositionType;
-  return render(<PredictPosition position={position} onPress={onPress} />);
+  return render(
+    <PredictPosition
+      position={position}
+      onPress={onPress}
+      skipOptimisticRefresh={skipOptimisticRefresh}
+    />,
+  );
 };
 
 describe('PredictPosition', () => {
@@ -473,6 +480,91 @@ describe('PredictPosition', () => {
         expect.objectContaining({
           currentValue: 2500,
           optimistic: false,
+        }),
+      );
+    });
+  });
+
+  describe('skipOptimisticRefresh', () => {
+    it('renders values from the passed position when skipOptimisticRefresh is true', async () => {
+      // Arrange
+      const updatedPosition = {
+        ...basePosition,
+        currentValue: 2500,
+        percentPnl: 10.5,
+      };
+      mockUsePredictPositions.mockReturnValue({
+        positions: [updatedPosition],
+        loadPositions: mockLoadPositions,
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+      });
+
+      // Act
+      renderComponent({ currentValue: 100, percentPnl: 1.5 }, undefined, true);
+
+      // Assert
+      expect(screen.getByText('$100')).toBeOnTheScreen();
+      expect(screen.getByText('1.5%')).toBeOnTheScreen();
+    });
+
+    it('renders values from refreshed position data when skipOptimisticRefresh is false', async () => {
+      // Arrange
+      const updatedPosition = {
+        ...basePosition,
+        currentValue: 2500,
+        percentPnl: 10.5,
+      };
+      mockUsePredictPositions.mockReturnValue({
+        positions: [updatedPosition],
+        loadPositions: mockLoadPositions,
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+      });
+
+      // Act
+      renderComponent({ currentValue: 100, percentPnl: 1.5 }, undefined, false);
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByText('$2,500')).toBeOnTheScreen();
+        expect(screen.getByText('10.5%')).toBeOnTheScreen();
+      });
+    });
+
+    it('calls onPress with the passed position when skipOptimisticRefresh is true', () => {
+      // Arrange
+      const updatedPosition = {
+        ...basePosition,
+        currentValue: 2500,
+        percentPnl: 10.5,
+      };
+      const mockOnPress = jest.fn();
+      mockUsePredictPositions.mockReturnValue({
+        positions: [updatedPosition],
+        loadPositions: mockLoadPositions,
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+      });
+
+      // Act
+      renderComponent(
+        { currentValue: 100, percentPnl: 1.5 },
+        mockOnPress,
+        true,
+      );
+      fireEvent.press(
+        screen.getByTestId(PredictPositionSelectorsIDs.CURRENT_POSITION_CARD),
+      );
+
+      // Assert
+      expect(mockOnPress).toHaveBeenCalledWith(
+        expect.objectContaining({
+          currentValue: 100,
+          percentPnl: 1.5,
         }),
       );
     });
