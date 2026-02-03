@@ -1207,6 +1207,42 @@ describe('PerpsOrderBookView', () => {
       ).toBeOnTheScreen();
     });
 
+    it('falls back to static market price when live price is invalid (NaN)', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: {
+          price: 'invalid-price',
+          percentChange24h: '2.5',
+          symbol: 'BTC',
+        },
+      });
+
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('falls back to static market price when live price is zero or negative', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: {
+          price: '0',
+          percentChange24h: '2.5',
+          symbol: 'BTC',
+        },
+      });
+
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
     it('handles invalid topOfBook values gracefully', () => {
       mockUsePerpsTopOfBook.mockReturnValue({
         bestBid: '0',

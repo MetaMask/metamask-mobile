@@ -215,9 +215,13 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   const currentPrice = useMemo(() => {
     const priceData = livePrices[symbol || ''];
     if (priceData?.price) {
-      return parseFloat(priceData.price);
+      const parsed = parseFloat(priceData.price);
+      // Validate parsed value - fallback to marketPrice if invalid
+      if (Number.isFinite(parsed) && parsed > 0) {
+        return parsed;
+      }
     }
-    // Fallback to static market price if live price not available yet
+    // Fallback to static market price if live price not available or invalid
     return marketPrice ?? 0;
   }, [livePrices, symbol, marketPrice]);
 
