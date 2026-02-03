@@ -49,6 +49,11 @@ jest.mock('../../sdk', () => ({
   }),
 }));
 
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => false),
+  useDispatch: jest.fn(() => jest.fn()),
+}));
+
 jest.mock('../../../../hooks/useMetrics', () => ({
   useMetrics: () => ({
     trackEvent: mockTrackEvent,
