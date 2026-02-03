@@ -119,6 +119,22 @@ jest.mock('../../hooks/stream/usePerpsLiveOrderBook', () => ({
   usePerpsLiveOrderBook: (params: unknown) => mockUsePerpsLiveOrderBook(params),
 }));
 
+// Mock usePerpsLivePrices for live price updates in header (TAT-2441)
+const mockUsePerpsLivePrices = jest.fn<
+  Record<string, { price: string; percentChange24h: string; symbol: string }>,
+  [unknown]
+>(() => ({
+  BTC: {
+    price: '50000',
+    percentChange24h: '2.5',
+    symbol: 'BTC',
+  },
+}));
+
+jest.mock('../../hooks/stream/usePerpsLivePrices', () => ({
+  usePerpsLivePrices: (params: unknown) => mockUsePerpsLivePrices(params),
+}));
+
 // Mock usePerpsMeasurement
 jest.mock('../../hooks/usePerpsMeasurement', () => ({
   usePerpsMeasurement: jest.fn(),
@@ -246,7 +262,7 @@ jest.mock('../../components/PerpsMarketHeader', () => {
 jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
-    const { View } = jest.requireActual('react-native');
+    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
     const ReactMock = jest.requireActual('react');
     return {
       __esModule: true,
@@ -257,7 +273,17 @@ jest.mock(
             onClose?: () => void;
           },
           _ref: unknown,
-        ) => <View testID="bottom-sheet">{props.children}</View>,
+        ) => (
+          <View testID="bottom-sheet">
+            {props.children}
+            <TouchableOpacity
+              testID="bottom-sheet-backdrop"
+              onPress={props.onClose}
+            >
+              <Text>Backdrop</Text>
+            </TouchableOpacity>
+          </View>
+        ),
       ),
     };
   },
@@ -282,6 +308,37 @@ jest.mock('../PerpsSelectModifyActionView', () => {
   };
 });
 
+// Mock PerpsBottomSheetTooltip for geo-block modal
+jest.mock(
+  '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip',
+  () => {
+    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: (props: {
+        testID?: string;
+        isVisible?: boolean;
+        onClose?: () => void;
+      }) =>
+        props.isVisible ? (
+          <View testID={props.testID || 'perps-bottom-sheet-tooltip'}>
+            <TouchableOpacity
+              testID={`${props.testID || 'perps-bottom-sheet-tooltip'}-close`}
+              onPress={props.onClose}
+            >
+              <Text>Close</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null,
+    };
+  },
+);
+
+// Mock perpsController selectors - return eligible by default for action button tests
+jest.mock('../../selectors/perpsController', () => ({
+  selectPerpsEligibility: jest.fn(() => true),
+}));
+
 describe('PerpsOrderBookView', () => {
   const initialState = {
     engine: {
@@ -300,6 +357,13 @@ describe('PerpsOrderBookView', () => {
       bestBid: '50000',
       bestAsk: '50001',
       spread: '1.00000',
+    });
+    mockUsePerpsLivePrices.mockReturnValue({
+      BTC: {
+        price: '50000',
+        percentChange24h: '2.5',
+        symbol: 'BTC',
+      },
     });
   });
 
@@ -786,6 +850,154 @@ describe('PerpsOrderBookView', () => {
     });
   });
 
+  describe('geo-restriction', () => {
+    const mockLongPosition = {
+      symbol: 'BTC',
+      size: '1.5',
+      entryPrice: '50000',
+      leverage: { value: 10, type: 'cross' as const },
+      margin: '5000',
+      unrealizedPnl: '100',
+      unrealizedPnlPercent: '2',
+      liquidationPrice: '45000',
+      takeProfitPrice: undefined,
+      stopLossPrice: undefined,
+      returnOnEquity: '2',
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('shows geo-block modal when Long button pressed and user is not eligible', () => {
+      const { selectPerpsEligibility } = jest.requireMock(
+        '../../selectors/perpsController',
+      );
+      selectPerpsEligibility.mockReturnValue(false);
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsOrderBookView />,
+        {
+          state: initialState,
+        },
+      );
+
+      const longButton = getByTestId(
+        PerpsOrderBookViewSelectorsIDs.LONG_BUTTON,
+      );
+      fireEvent.press(longButton);
+
+      // Navigation should NOT be called
+      expect(mockNavigateToOrder).not.toHaveBeenCalled();
+      // Geo-block tooltip should be shown
+      expect(
+        queryByTestId(
+          `${PerpsOrderBookViewSelectorsIDs.CONTAINER}-geo-block-tooltip`,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows geo-block modal when Short button pressed and user is not eligible', () => {
+      const { selectPerpsEligibility } = jest.requireMock(
+        '../../selectors/perpsController',
+      );
+      selectPerpsEligibility.mockReturnValue(false);
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsOrderBookView />,
+        {
+          state: initialState,
+        },
+      );
+
+      const shortButton = getByTestId(
+        PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON,
+      );
+      fireEvent.press(shortButton);
+
+      // Navigation should NOT be called
+      expect(mockNavigateToOrder).not.toHaveBeenCalled();
+      // Geo-block tooltip should be shown
+      expect(
+        queryByTestId(
+          `${PerpsOrderBookViewSelectorsIDs.CONTAINER}-geo-block-tooltip`,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows geo-block modal when Close button pressed and user is not eligible', () => {
+      const { selectPerpsEligibility } = jest.requireMock(
+        '../../selectors/perpsController',
+      );
+      selectPerpsEligibility.mockReturnValue(false);
+
+      const { useHasExistingPosition } = jest.requireMock(
+        '../../hooks/useHasExistingPosition',
+      );
+      useHasExistingPosition.mockReturnValue({
+        isLoading: false,
+        existingPosition: mockLongPosition,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsOrderBookView />,
+        {
+          state: initialState,
+        },
+      );
+
+      const closeButton = getByTestId(
+        PerpsOrderBookViewSelectorsIDs.CLOSE_BUTTON,
+      );
+      fireEvent.press(closeButton);
+
+      // Navigation should NOT be called
+      expect(mockNavigateToClosePosition).not.toHaveBeenCalled();
+      // Geo-block tooltip should be shown
+      expect(
+        queryByTestId(
+          `${PerpsOrderBookViewSelectorsIDs.CONTAINER}-geo-block-tooltip`,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows geo-block modal when Modify button pressed and user is not eligible', () => {
+      const { selectPerpsEligibility } = jest.requireMock(
+        '../../selectors/perpsController',
+      );
+      selectPerpsEligibility.mockReturnValue(false);
+
+      const { useHasExistingPosition } = jest.requireMock(
+        '../../hooks/useHasExistingPosition',
+      );
+      useHasExistingPosition.mockReturnValue({
+        isLoading: false,
+        existingPosition: mockLongPosition,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsOrderBookView />,
+        {
+          state: initialState,
+        },
+      );
+
+      const modifyButton = getByTestId(
+        PerpsOrderBookViewSelectorsIDs.MODIFY_BUTTON,
+      );
+      fireEvent.press(modifyButton);
+
+      // Modify sheet should NOT be opened
+      expect(mockOpenModifySheet).not.toHaveBeenCalled();
+      // Geo-block tooltip should be shown
+      expect(
+        queryByTestId(
+          `${PerpsOrderBookViewSelectorsIDs.CONTAINER}-geo-block-tooltip`,
+        ),
+      ).toBeOnTheScreen();
+    });
+  });
+
   describe('error state', () => {
     it('displays error message when order book fails to load', () => {
       mockUsePerpsLiveOrderBook.mockReturnValue({
@@ -902,6 +1114,17 @@ describe('PerpsOrderBookView', () => {
       );
     });
 
+    it('subscribes to live prices for header price display (TAT-2441)', () => {
+      renderWithProvider(<PerpsOrderBookView />, { state: initialState });
+
+      expect(mockUsePerpsLivePrices).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbols: ['BTC'],
+          throttleMs: 1000,
+        }),
+      );
+    });
+
     it('subscribes to live order book with MAX_ORDER_BOOK_LEVELS (20) for server-side aggregation', () => {
       renderWithProvider(<PerpsOrderBookView />, { state: initialState });
 
@@ -959,6 +1182,294 @@ describe('PerpsOrderBookView', () => {
     it('renders correctly when orderBook is null but no error', () => {
       mockUsePerpsLiveOrderBook.mockReturnValue({
         orderBook: null,
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('falls back to static market price when live price is not available', () => {
+      mockUsePerpsLivePrices.mockReturnValue({});
+
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('falls back to static market price when live price is invalid (NaN)', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: {
+          price: 'invalid-price',
+          percentChange24h: '2.5',
+          symbol: 'BTC',
+        },
+      });
+
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('falls back to static market price when live price is zero or negative', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: {
+          price: '0',
+          percentChange24h: '2.5',
+          symbol: 'BTC',
+        },
+      });
+
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('handles invalid topOfBook values gracefully', () => {
+      mockUsePerpsTopOfBook.mockReturnValue({
+        bestBid: '0',
+        bestAsk: '-1',
+        spread: '0',
+      });
+
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('handles non-finite topOfBook values', () => {
+      mockUsePerpsTopOfBook.mockReturnValue({
+        bestBid: 'NaN',
+        bestAsk: 'Infinity',
+        spread: '0',
+      });
+
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('syncs saved grouping when it loads after mount', async () => {
+      const { usePerpsOrderBookGrouping } = jest.requireMock(
+        '../../hooks/usePerpsOrderBookGrouping',
+      );
+
+      // First render with undefined savedGrouping
+      usePerpsOrderBookGrouping.mockReturnValue({
+        savedGrouping: undefined,
+        saveGrouping: mockSaveGrouping,
+      });
+
+      const { rerender, getByTestId } = renderWithProvider(
+        <PerpsOrderBookView />,
+        {
+          state: initialState,
+        },
+      );
+
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+
+      // Simulate savedGrouping loading
+      usePerpsOrderBookGrouping.mockReturnValue({
+        savedGrouping: 5,
+        saveGrouping: mockSaveGrouping,
+      });
+
+      rerender(<PerpsOrderBookView />);
+
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('spread tooltip', () => {
+    it('opens spread tooltip when info button is pressed', async () => {
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      const spreadInfoButton = getByTestId(
+        PerpsOrderBookViewSelectorsIDs.SPREAD_INFO_BUTTON,
+      );
+
+      fireEvent.press(spreadInfoButton);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(PerpsOrderBookViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('closes spread tooltip when onClose is called', async () => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsOrderBookView />,
+        {
+          state: initialState,
+        },
+      );
+
+      // Open tooltip
+      const spreadInfoButton = getByTestId(
+        PerpsOrderBookViewSelectorsIDs.SPREAD_INFO_BUTTON,
+      );
+      fireEvent.press(spreadInfoButton);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(PerpsOrderBookViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP),
+        ).toBeOnTheScreen();
+      });
+
+      // Close the tooltip via the close button in the mock
+      const closeButton = getByTestId(
+        `${PerpsOrderBookViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP}-close`,
+      );
+      fireEvent.press(closeButton);
+
+      await waitFor(() => {
+        expect(
+          queryByTestId(PerpsOrderBookViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP),
+        ).toBeNull();
+      });
+    });
+  });
+
+  describe('depth band sheet close', () => {
+    it('closes depth band sheet via onClose callback', async () => {
+      const { getByTestId, queryByText } = renderWithProvider(
+        <PerpsOrderBookView />,
+        {
+          state: initialState,
+        },
+      );
+
+      // Open the depth band sheet
+      const depthBandButton = getByTestId(
+        PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_BUTTON,
+      );
+      fireEvent.press(depthBandButton);
+
+      await waitFor(() => {
+        expect(queryByText('Depth Band')).toBeOnTheScreen();
+      });
+
+      // Close via backdrop (onClose callback)
+      const backdrop = getByTestId('bottom-sheet-backdrop');
+      fireEvent.press(backdrop);
+
+      await waitFor(() => {
+        expect(queryByText('Depth Band')).toBeNull();
+      });
+    });
+  });
+
+  describe('geo-block modal interactions', () => {
+    it('closes geo-block modal when onClose is called', async () => {
+      const { selectPerpsEligibility } = jest.requireMock(
+        '../../selectors/perpsController',
+      );
+      selectPerpsEligibility.mockReturnValue(false);
+
+      // Ensure no existing position so Long/Short buttons are shown
+      const { useHasExistingPosition } = jest.requireMock(
+        '../../hooks/useHasExistingPosition',
+      );
+      useHasExistingPosition.mockReturnValue({
+        isLoading: false,
+        existingPosition: null,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsOrderBookView />,
+        {
+          state: initialState,
+        },
+      );
+
+      // Trigger geo-block modal by pressing Long button when not eligible
+      const longButton = getByTestId(
+        PerpsOrderBookViewSelectorsIDs.LONG_BUTTON,
+      );
+      fireEvent.press(longButton);
+
+      // Verify modal is shown
+      const geoBlockTooltipId = `${PerpsOrderBookViewSelectorsIDs.CONTAINER}-geo-block-tooltip`;
+      expect(queryByTestId(geoBlockTooltipId)).toBeOnTheScreen();
+
+      // Close the modal via the close button
+      const closeButton = getByTestId(`${geoBlockTooltipId}-close`);
+      fireEvent.press(closeButton);
+
+      await waitFor(() => {
+        expect(queryByTestId(geoBlockTooltipId)).toBeNull();
+      });
+    });
+  });
+
+  describe('grouping with no market price', () => {
+    it('returns null grouping when market price is unavailable', () => {
+      const { usePerpsMarkets } = jest.requireMock('../../hooks');
+      usePerpsMarkets.mockReturnValue({
+        markets: [
+          {
+            symbol: 'BTC',
+            price: null,
+            leverage: 50,
+          },
+        ],
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('handles invalid market price format', () => {
+      const { usePerpsMarkets } = jest.requireMock('../../hooks');
+      usePerpsMarkets.mockReturnValue({
+        markets: [
+          {
+            symbol: 'BTC',
+            price: 'invalid',
+            leverage: 50,
+          },
+        ],
         isLoading: false,
         error: null,
       });

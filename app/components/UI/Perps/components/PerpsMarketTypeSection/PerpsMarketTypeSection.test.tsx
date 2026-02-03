@@ -253,7 +253,7 @@ describe('PerpsMarketTypeSection', () => {
         <PerpsMarketTypeSection
           title="Stock Markets"
           markets={mockMarkets}
-          marketType="equity"
+          marketType="stocks"
         />,
       );
 
@@ -262,7 +262,7 @@ describe('PerpsMarketTypeSection', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_LIST,
         params: {
-          defaultMarketTypeFilter: 'equity',
+          defaultMarketTypeFilter: 'stocks',
         },
       });
     });
@@ -272,7 +272,7 @@ describe('PerpsMarketTypeSection', () => {
         <PerpsMarketTypeSection
           title="Commodity Markets"
           markets={mockMarkets}
-          marketType="commodity"
+          marketType="commodities"
         />,
       );
 
@@ -281,7 +281,7 @@ describe('PerpsMarketTypeSection', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_LIST,
         params: {
-          defaultMarketTypeFilter: 'commodity',
+          defaultMarketTypeFilter: 'commodities',
         },
       });
     });
@@ -367,24 +367,24 @@ describe('PerpsMarketTypeSection', () => {
       expect(getByText('Crypto')).toBeTruthy();
     });
 
-    it('handles equity market type', () => {
+    it('handles stocks market type', () => {
       const { getByText } = render(
         <PerpsMarketTypeSection
           title="Stocks"
           markets={mockMarkets}
-          marketType="equity"
+          marketType="stocks"
         />,
       );
 
       expect(getByText('Stocks')).toBeTruthy();
     });
 
-    it('handles commodity market type', () => {
+    it('handles commodities market type', () => {
       const { getByText } = render(
         <PerpsMarketTypeSection
           title="Commodities"
           markets={mockMarkets}
-          marketType="commodity"
+          marketType="commodities"
         />,
       );
 
