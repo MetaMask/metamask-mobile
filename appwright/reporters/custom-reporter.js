@@ -108,6 +108,9 @@ class CustomReporter {
       result.status === 'failed' || result.status === 'timedOut';
     if (isActualFailure) {
       const teamId = teamInfo.teamId;
+      const sessionIdFromAnnotation = result.annotations?.find(
+        (a) => a.type === 'sessionId',
+      )?.description;
       if (!this.failedTestsByTeam[teamId]) {
         this.failedTestsByTeam[teamId] = {
           team: teamInfo,
@@ -121,6 +124,7 @@ class CustomReporter {
         status: result.status,
         duration: result.duration,
         projectName,
+        sessionId: sessionIdFromAnnotation || null,
         // Will be populated later with quality gates info if available
         qualityGates: null,
         failureReason: null,

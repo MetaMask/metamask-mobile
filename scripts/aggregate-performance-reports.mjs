@@ -401,6 +401,8 @@ function createSummary(groupedResults) {
           tags: testInfo.tags,
           platform: testInfo.platform,
           device: testInfo.device,
+          sessionId: testInfo.sessionId || null,
+          recordingLink: testInfo.videoURL || null,
           failureReason: testInfo.failureReason,
           qualityGates: testInfo.qualityGates,
           qualityGatesViolations: testInfo.qualityGatesViolations,
