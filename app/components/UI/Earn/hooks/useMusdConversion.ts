@@ -1,6 +1,11 @@
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { isEqual } from 'lodash';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { useNavigation } from '@react-navigation/native';
@@ -11,6 +16,39 @@ import { selectSelectedInternalAccountByScope } from '../../../../selectors/mult
 import { selectMusdConversionEducationSeen } from '../../../../reducers/user';
 import { trace, TraceName, TraceOperation } from '../../../../util/trace';
 import { createMusdConversionTransaction } from '../utils/musdConversionTransaction';
+import { selectPendingApprovals } from '../../../../selectors/approvalController';
+import { RootState } from '../../../../reducers';
+import { selectTransactionsByIds } from '../../../../selectors/transactionController';
+
+function findExistingPendingMusdConversion(params: {
+  pendingTransactionMetas: TransactionMeta[];
+  selectedAddress: string;
+  preferredPaymentTokenChainId: Hex;
+}) {
+  const {
+    pendingTransactionMetas,
+    selectedAddress,
+    preferredPaymentTokenChainId,
+  } = params;
+
+  return pendingTransactionMetas.find((transactionMeta) => {
+    if (transactionMeta?.type !== TransactionType.musdConversion) {
+      return false;
+    }
+
+    if (
+      transactionMeta?.chainId.toLocaleLowerCase() !==
+      preferredPaymentTokenChainId.toLocaleLowerCase()
+    ) {
+      return false;
+    }
+
+    return (
+      transactionMeta?.txParams?.from?.toLocaleLowerCase() ===
+      selectedAddress.toLocaleLowerCase()
+    );
+  });
+}
 
 /**
  * Configuration for mUSD conversion
@@ -56,6 +94,17 @@ export interface MusdConversionConfig {
 export const useMusdConversion = () => {
   const [error, setError] = useState<string | null>(null);
   const navigation = useNavigation();
+
+  const pendingApprovals = useSelector(selectPendingApprovals, isEqual);
+
+  const pendingApprovalIds = useMemo(
+    () => Object.keys(pendingApprovals ?? {}),
+    [pendingApprovals],
+  );
+
+  const pendingTransactionMetas = useSelector((state: RootState) =>
+    selectTransactionsByIds(state, pendingApprovalIds),
+  );
 
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
     EVM_SCOPE,
@@ -142,27 +191,43 @@ export const useMusdConversion = () => {
           throw new Error('No account selected');
         }
 
-        const { NetworkController } = Engine.context;
-        const networkClientId = NetworkController.findNetworkClientIdByChainId(
-          preferredPaymentToken.chainId,
+        const existingPendingMusdConversion = findExistingPendingMusdConversion(
+          {
+            pendingTransactionMetas,
+            selectedAddress,
+            preferredPaymentTokenChainId: preferredPaymentToken.chainId,
+          },
         );
 
-        if (!networkClientId) {
-          throw new Error(
-            `Network client not found for chain ID: ${preferredPaymentToken.chainId}`,
-          );
+        /**
+         * Prevents the user from creating multiple transactions.
+         * Typically caused by the user quickly clicking the CTA multiple times in quick succession.
+         */
+        if (existingPendingMusdConversion?.id) {
+          return existingPendingMusdConversion.id;
         }
 
-        /**
-         * Navigate to the confirmation screen immediately for better UX,
-         * since there can be a delay between the user's button press and
-         * transaction creation in the background.
-         */
-        navigateToConversionScreen(config);
-
         try {
-          const ZERO_HEX_VALUE = '0x0';
+          const { NetworkController } = Engine.context;
+          const networkClientId =
+            NetworkController.findNetworkClientIdByChainId(
+              preferredPaymentToken.chainId,
+            );
 
+          if (!networkClientId) {
+            throw new Error(
+              `Network client not found for chain ID: ${preferredPaymentToken.chainId}`,
+            );
+          }
+
+          /**
+           * Navigate to the confirmation screen immediately for better UX,
+           * since there can be a delay between the user's button press and
+           * transaction creation in the background.
+           */
+          navigateToConversionScreen(config);
+
+          const ZERO_HEX_VALUE = '0x0';
           const selectedAddressHex = selectedAddress as Hex;
 
           const { transactionId } = await createMusdConversionTransaction({
@@ -199,6 +264,7 @@ export const useMusdConversion = () => {
       handleEducationRedirectIfNeeded,
       navigateToConversionScreen,
       navigation,
+      pendingTransactionMetas,
       selectedAddress,
     ],
   );
