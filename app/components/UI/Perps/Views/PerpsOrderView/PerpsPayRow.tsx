@@ -5,12 +5,12 @@ import {
 } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
-import { BigNumber } from 'bignumber.js';
 import React, {
   useCallback,
   useEffect,
   useMemo,
-  useRef
+  useRef,
+  useState,
 } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -32,16 +32,13 @@ import Text, {
 import Routes from '../../../../../constants/navigation/Routes';
 import { isHardwareAccount } from '../../../../../util/address';
 import { getNetworkImageSource } from '../../../../../util/networks';
+import { useTheme } from '../../../../../util/theme';
 import BaseTokenIcon from '../../../../Base/TokenIcon';
-import { useStyles } from '../../../../hooks/useStyles';
 import { Box } from '../../../../UI/Box/Box';
 import {
   AlignItems,
   FlexDirection,
-  JustifyContent,
 } from '../../../../UI/Box/box.types';
-import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
-import styleSheet from '../../../../Views/confirmations/components/rows/pay-with-row/pay-with-row.styles';
 import { TokenIcon } from '../../../../Views/confirmations/components/token-icon';
 import {
   ConfirmationRowComponentIDs,
@@ -53,7 +50,9 @@ import { useTokenWithBalance } from '../../../../Views/confirmations/hooks/token
 import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { hasTransactionType } from '../../../../Views/confirmations/utils/transaction';
 import { usePerpsLiveAccount } from '../../hooks/stream/usePerpsLiveAccount';
-import { HYPERLIQUID_MAINNET_CHAIN_ID } from '../../constants/hyperLiquidConfig';
+
+const perpsBalancePlaceholder =
+  '0x0000000000000000000000000000000000000001' as Hex;
 
 const tokenIconStyles = StyleSheet.create({
   icon: {
@@ -63,33 +62,76 @@ const tokenIconStyles = StyleSheet.create({
   },
 });
 
+const createPayRowStyles = (colors: { background: { section: string } }) =>
+  StyleSheet.create({
+    payRowSection: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: colors.background.section,
+      borderRadius: 8,
+      padding: 12,
+      marginBottom: 12,
+    },
+    /** When embedded below another box (e.g. TP/SL), parent provides background and radius */
+    payRowEmbedded: {
+      borderRadius: 0,
+      marginBottom: 0,
+    },
+    payRowLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    infoIcon: {
+      marginLeft: 0,
+      padding: 10,
+      marginRight: -6,
+      marginTop: -10,
+      marginBottom: -10,
+    },
+  });
 
 
-export const PerpsPayRow = () => {
+
+export interface PerpsPayRowProps {
+  /** Optional callback when the info (i) icon is pressed, e.g. for tooltip */
+  onPayWithInfoPress?: () => void;
+  /** When true, row is stacked below another box (e.g. TP/SL); parent provides background and border radius */
+  embeddedInStack?: boolean;
+}
+
+export const PerpsPayRow = ({
+  onPayWithInfoPress,
+  embeddedInStack = false,
+}: PerpsPayRowProps) => {
   const navigation = useNavigation();
-  const formatFiat = useFiatFormatter({ currency: 'usd' });
-  const { styles } = useStyles(styleSheet, {});
+  const { colors } = useTheme();
+  const styles = createPayRowStyles(colors);
   const { setConfirmationMetric } = useConfirmationMetricEvents();
   const { payToken, setPayToken } = useTransactionPayToken();
   const transactionMeta = useTransactionMetadataRequest();
 
-  // Track if user has explicitly interacted with token selection
-  const initialPayTokenRef = useRef<string | null>(null);
+  // Display state: default to Perps balance so the box always shows "Pay with ... Perps balance"
+  // until payToken is explicitly set (e.g. from modal). payToken can be undefined or random on load.
+  const [isDisplayingPerpsBalance, setIsDisplayingPerpsBalance] =
+    useState(true);
 
-  // Get Perps balance from live account
-  const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
+  // Sync display state from payToken whenever it changes (e.g. user picked a token in modal)
+  useEffect(() => {
+    if (payToken === undefined) {
+      return;
+    }
+    const matchesPerpsBalance =
+      payToken.address?.toLowerCase() === perpsBalancePlaceholder.toLowerCase() &&
+      payToken.chainId !== undefined &&
+      toHex(payToken.chainId) === CHAIN_IDS.MAINNET;
+    setIsDisplayingPerpsBalance(matchesPerpsBalance);
+  }, [payToken]);
 
-  const {
-    txParams: { from },
-  } = transactionMeta ?? { txParams: {} };
-
-  const canEdit = !isHardwareAccount(from ?? '');
-
-  const PERPS_BALANCE_ADDRESS =
-    HYPERLIQUID_MAINNET_CHAIN_ID as Hex;
-
+  // Try to set payToken to Perps balance when it's a perps order and payToken is not set.
+  // payToken can be restored from persistence later; display state still defaults to Perps balance so UI is correct.
   const hasSetDefaultPerpsBalanceRef = useRef(false);
-  // Default to Perps balance when no payment token is set (ensures selection is visible)
   useEffect(() => {
     if (
       hasSetDefaultPerpsBalanceRef.current ||
@@ -102,22 +144,22 @@ export const PerpsPayRow = () => {
     }
     hasSetDefaultPerpsBalanceRef.current = true;
     setPayToken({
-      address: PERPS_BALANCE_ADDRESS,
+      address: perpsBalancePlaceholder,
       chainId: CHAIN_IDS.MAINNET as Hex,
     });
   }, [transactionMeta, payToken, setPayToken]);
 
-  // Store initial payToken on mount
-  useEffect(() => {
-    if (payToken && initialPayTokenRef.current === null) {
-      initialPayTokenRef.current = `${payToken.chainId}-${payToken.address}`;
-    }
-  }, [payToken]);
+  // Get Perps balance from live account
+  usePerpsLiveAccount({ throttleMs: 1000 });
 
+  const {
+    txParams: { from },
+  } = transactionMeta ?? { txParams: {} };
+
+  const canEdit = !isHardwareAccount(from ?? '');
 
   const handleClick = useCallback(() => {
     if (!canEdit) return;
-    // Mark that user has interacted when they open the modal
     setConfirmationMetric({
       properties: {
         mm_pay_token_list_opened: true,
@@ -130,40 +172,26 @@ export const PerpsPayRow = () => {
     setConfirmationMetric,
   ]);
 
-
-  const isSelectedPerpsBalance =
-    payToken?.address?.toLowerCase() === PERPS_BALANCE_ADDRESS.toLowerCase() &&
-    payToken?.chainId !== undefined &&
-    toHex(payToken.chainId) === CHAIN_IDS.MAINNET;
-
-  // Determine what to display based on user interaction
-  const displayToken = isSelectedPerpsBalance
+  // Display data: use local state (defaults to Perps balance) so UI always shows "Perps balance" by default
+  const displayToken = isDisplayingPerpsBalance
     ? {
-      address: PERPS_BALANCE_ADDRESS,
+      address: perpsBalancePlaceholder,
       tokenLookupChainId: CHAIN_IDS.MAINNET as Hex,
       networkBadgeChainId: CHAIN_IDS.MAINNET as Hex,
-      label: `${strings('confirm.label.pay_with')} ${strings('perps.adjust_margin.perps_balance')}`,
-      balance: perpsAccount?.totalBalance ?? '0',
+      symbol: strings('perps.adjust_margin.perps_balance'),
     }
     : {
-      address: payToken?.address as Hex,
-      tokenLookupChainId: payToken?.chainId as Hex,
-      networkBadgeChainId: payToken?.chainId as Hex,
-      label: `${strings('confirm.label.pay_with')} ${payToken?.symbol}`,
-      balance: payToken?.balanceUsd ?? '0',
+      address: payToken?.address ?? perpsBalancePlaceholder,
+      tokenLookupChainId: payToken?.chainId ?? CHAIN_IDS.MAINNET,
+      networkBadgeChainId: payToken?.chainId ?? CHAIN_IDS.MAINNET,
+      symbol: payToken?.symbol ?? '',
     };
 
-
-  console.log('displayToken', displayToken);
-  console.log('payToken', payToken);
-
-  // Get token for icon (use tokenLookupChainId to find the token)
   const token = useTokenWithBalance(
     displayToken.address,
     displayToken.tokenLookupChainId,
   );
 
-  // Get network badge image source (use networkBadgeChainId for the badge)
   const networkImageSource = useMemo(
     () =>
       getNetworkImageSource({
@@ -172,69 +200,80 @@ export const PerpsPayRow = () => {
     [displayToken.networkBadgeChainId],
   );
 
-  const balanceUsdFormatted = useMemo(
-    () => formatFiat(new BigNumber(displayToken.balance)),
-    [formatFiat, displayToken.balance],
-  );
-
   return (
     <TouchableOpacity
       onPress={handleClick}
       disabled={!canEdit}
+      activeOpacity={0.7}
+      style={[styles.payRowSection, embeddedInStack && styles.payRowEmbedded]}
       testID={ConfirmationRowComponentIDs.PAY_WITH}
     >
       <Box
         flexDirection={FlexDirection.Row}
         alignItems={AlignItems.center}
-        justifyContent={JustifyContent.center}
-        gap={12}
-        style={styles.container}
+        style={styles.payRowLeft}
       >
-        {token ? (
-          <BadgeWrapper
-            badgePosition={BadgePosition.BottomRight}
-            badgeElement={
-              <Badge
-                variant={BadgeVariant.Network}
-                imageSource={networkImageSource}
-              />
-            }
-          >
-            <BaseTokenIcon
-              testID="perps-pay-row-token-icon"
-              icon={token.image}
-              symbol={token.symbol}
-              style={tokenIconStyles.icon}
-            />
-          </BadgeWrapper>
-        ) : (
-          <TokenIcon
-            address={displayToken.address}
-            chainId={displayToken.tokenLookupChainId}
-          />
-        )}
-        <Text
-          variant={TextVariant.BodyMDMedium}
-          color={TextColor.Default}
-          testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL
-          }
-        >
-          {displayToken.label}
+        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          {strings('confirm.label.pay_with')}
         </Text>
-        <Text
-          variant={TextVariant.BodyMDMedium}
-          color={TextColor.Alternative}
-          testID={TransactionPayComponentIDs.PAY_WITH_BALANCE
-          }
+        <TouchableOpacity
+          onPress={() => onPayWithInfoPress?.()}
+          style={styles.infoIcon}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          {balanceUsdFormatted}
-        </Text>
-        {canEdit && from && (
           <Icon
-            name={IconName.ArrowDown}
+            name={IconName.Info}
             size={IconSize.Sm}
             color={IconColor.Alternative}
           />
+        </TouchableOpacity>
+      </Box>
+      <Box
+        flexDirection={FlexDirection.Row}
+        alignItems={AlignItems.center}
+        gap={8}
+      >
+        {isDisplayingPerpsBalance ? (
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Default}
+            testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
+          >
+            {strings('perps.adjust_margin.perps_balance')}
+          </Text>
+        ) : (
+          <>
+            {token ? (
+              <BadgeWrapper
+                badgePosition={BadgePosition.BottomRight}
+                badgeElement={
+                  <Badge
+                    variant={BadgeVariant.Network}
+                    imageSource={networkImageSource}
+                  />
+                }
+              >
+                <BaseTokenIcon
+                  testID="perps-pay-row-token-icon"
+                  icon={token.image}
+                  symbol={token.symbol}
+                  style={tokenIconStyles.icon}
+                />
+              </BadgeWrapper>
+            ) : (
+              <TokenIcon
+                address={displayToken.address}
+                chainId={displayToken.tokenLookupChainId}
+              />
+            )}
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Default}
+              testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
+            >
+              {displayToken.symbol}
+            </Text>
+          </>
         )}
       </Box>
     </TouchableOpacity>

@@ -54,12 +54,10 @@ export function usePerpsBalanceTokenFilter(): (
       const perpsBalanceName = strings('perps.adjust_margin.perps_balance');
 
       const perpsBalancePlaceholder =
-        HYPERLIQUID_MAINNET_CHAIN_ID as Hex;
+        '0x0000000000000000000000000000000000000001' as Hex;
       const isPerpsBalanceSelected =
         payToken?.address?.toLowerCase() ===
-        perpsBalancePlaceholder.toLowerCase() &&
-        payToken?.chainId !== undefined &&
-        toHex(payToken.chainId) === chainId;
+        perpsBalancePlaceholder.toLowerCase();
 
       const perpsBalanceToken: AssetType = {
         address: perpsBalancePlaceholder,

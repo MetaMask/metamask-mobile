@@ -369,6 +369,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     }
   }, [paymentTokens, selectedToken]);
 
+  const isPayRowVisible = Boolean(
+    isTradeWithAnyTokenEnabled &&
+      depositAmount &&
+      depositAmount.trim() !== '' &&
+      activeTransactionMeta,
+  );
+
   // Handle opening limit price modal after order type modal closes
   useEffect(() => {
     if (!isOrderTypeVisible && shouldOpenLimitPrice) {
@@ -1274,7 +1281,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
             {/* Combined TP/SL row - Hidden when modifying existing position */}
             {!hideTPSL && (
-              <View style={[styles.detailItem, styles.detailItemLast]}>
+              <View
+                style={[
+                  styles.detailItem,
+                  !isPayRowVisible && styles.detailItemLast,
+                ]}
+              >
                 <TouchableOpacity
                   onPress={handleTPSLPress}
                   testID={PerpsOrderViewSelectorsIDs.STOP_LOSS_BUTTON}
@@ -1311,6 +1323,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                     </ListItemColumn>
                   </ListItem>
                 </TouchableOpacity>
+              </View>
+            )}
+            {/* Pay with row - directly below TP/SL, same stacked box styling */}
+            {isPayRowVisible && (
+              <View style={[styles.detailItem, styles.detailItemLast]}>
+                <PerpsPayRow embeddedInStack />
               </View>
             )}
             {!hideTPSL && doesStopLossRiskLiquidation && (
@@ -1422,17 +1440,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             />
           </View>
 
-          {Boolean(
-            isTradeWithAnyTokenEnabled &&
-            depositAmount &&
-            depositAmount.trim() !== '' &&
-            activeTransactionMeta,
-          ) && (
-              <View>
-                <PerpsPayRow />
-                {hasCustomTokenSelected ? <PerpsDepositFees /> : null}
-              </View>
-            )}
+          {isPayRowVisible && hasCustomTokenSelected && <PerpsDepositFees />}
 
           {/* Rewards Points Estimation */}
           {rewardsState.shouldShowRewardsRow &&
