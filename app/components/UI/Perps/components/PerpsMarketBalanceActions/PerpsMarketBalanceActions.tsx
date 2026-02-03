@@ -1,12 +1,5 @@
-import React, {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useMemo,
-} from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { Animated, Modal, View } from 'react-native';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -21,7 +14,6 @@ import Text, {
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
-import Routes from '../../../../../constants/navigation/Routes';
 import { useColorPulseAnimation, useBalanceComparison } from '../../hooks';
 import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
@@ -30,7 +22,6 @@ import {
   formatPerpsFiat,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
-import type { PerpsNavigationParamList } from '../../controllers/types';
 import { PerpsMarketBalanceActionsSelectorsIDs } from '../../Perps.testIds';
 import { BigNumber } from 'bignumber.js';
 import { INITIAL_AMOUNT_UI_PROGRESS } from '../../constants/hyperLiquidConfig';
@@ -71,7 +62,6 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
   showActionButtons = true,
 }) => {
   const tw = useTailwind();
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { isDepositInProgress } = usePerpsDepositProgress();
 
   // Get withdrawal requests filtered by current account using memoized selector
@@ -187,12 +177,6 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
 
   const availableBalance = perpsAccount?.availableBalance || '0';
 
-  const handleLearnMore = useCallback(() => {
-    navigation.navigate(Routes.PERPS.TUTORIAL, {
-      source: PerpsEventValues.SOURCE.PERPS_HOME,
-    });
-  }, [navigation]);
-
   // Show skeleton while loading initial account data
   if (isInitialLoading) {
     return <PerpsMarketBalanceActionsSkeleton />;
@@ -207,8 +191,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
     <>
       <Box
         testID={PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}
-        twClassName={isBalanceEmpty ? 'mx-4 mt-4 mb-4 rounded-xl' : 'mb-4'}
-        style={isBalanceEmpty ? tw.style('bg-background-section') : undefined}
+        twClassName={isBalanceEmpty ? 'mt-4 mb-4 rounded-xl' : 'mb-4'}
       >
         <PerpsProgressBar
           progressAmount={INITIAL_AMOUNT_UI_PROGRESS}
@@ -246,10 +229,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
         )}
         {/* Balance Section */}
         {isBalanceEmpty ? (
-          <PerpsEmptyBalance
-            onAddFunds={handleAddFunds}
-            onLearnMore={handleLearnMore}
-          />
+          <PerpsEmptyBalance onAddFunds={handleAddFunds} />
         ) : (
           <Box twClassName="px-4 pt-4 pb-4">
             <Animated.View style={[getBalanceAnimatedStyle]}>

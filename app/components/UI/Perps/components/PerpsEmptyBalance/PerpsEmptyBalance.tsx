@@ -1,8 +1,9 @@
 import React from 'react';
-import { Image } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -11,66 +12,45 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import { strings } from '../../../../../locales/i18n';
-import { LEARN_MORE_CONFIG } from '../../constants/perpsConfig';
+import { useStyles } from '../../../../../component-library/hooks';
+import { strings } from '../../../../../../locales/i18n';
 import { PerpsMarketBalanceActionsSelectorsIDs } from '../../Perps.testIds';
-import PerpsEmptyStateIcon from '../../../../../images/perps-home-empty-state.png';
+import styleSheet from './PerpsEmptyBalance.styles';
 
 export interface PerpsEmptyBalanceProps {
   onAddFunds: () => void;
-  onLearnMore: () => void;
 }
 
 const PerpsEmptyBalance: React.FC<PerpsEmptyBalanceProps> = ({
   onAddFunds,
-  onLearnMore,
 }) => {
-  const tw = useTailwind();
+  const { styles } = useStyles(styleSheet, {});
 
   return (
-    <Box twClassName="p-6">
-      <Box twClassName="items-center mb-6">
-        <Image
-          source={PerpsEmptyStateIcon}
-          style={tw.style('w-24 h-24 mb-4')}
-          resizeMode="contain"
-        />
+    <Box twClassName="px-4 py-4">
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Between}
+        twClassName="gap-3"
+      >
         <Text
-          variant={TextVariant.HeadingMD}
+          variant={TextVariant.DisplayLG}
           color={TextColor.Default}
-          style={tw.style('mb-2 text-center')}
-          testID={PerpsMarketBalanceActionsSelectorsIDs.EMPTY_STATE_TITLE}
+          style={styles.balanceText}
+          testID={PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE}
         >
-          {strings('perps.trade_perps')}
+          $0.00
         </Text>
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
-          style={tw.style('text-center')}
-          testID={PerpsMarketBalanceActionsSelectorsIDs.EMPTY_STATE_DESCRIPTION}
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Lg}
+          onPress={onAddFunds}
+          testID={PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON}
         >
-          {strings('perps.trade_perps_description')}
-        </Text>
+          {strings('perps.add_funds')}
+        </Button>
       </Box>
-      <Button
-        variant={ButtonVariant.Primary}
-        size={ButtonSize.Lg}
-        onPress={onAddFunds}
-        isFullWidth
-        testID={PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON}
-        style={tw.style('mb-3')}
-      >
-        {strings('perps.add_funds')}
-      </Button>
-      <Button
-        variant={ButtonVariant.Secondary}
-        size={ButtonSize.Lg}
-        onPress={onLearnMore}
-        isFullWidth
-        testID={PerpsMarketBalanceActionsSelectorsIDs.LEARN_MORE_BUTTON}
-      >
-        {strings(LEARN_MORE_CONFIG.TitleKey)}
-      </Button>
     </Box>
   );
 };
