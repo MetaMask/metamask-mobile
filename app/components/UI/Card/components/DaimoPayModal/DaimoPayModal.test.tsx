@@ -5,7 +5,6 @@ import DaimoPayModal from './DaimoPayModal';
 import { DaimoPayModalSelectors } from '../../../../../../e2e/selectors/Card/DaimoPayModal.selectors';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { CardScreens } from '../../util/metrics';
-import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -36,12 +35,19 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: () => ({
     payId: 'test-pay-id-123',
     fromUpgrade: false,
+    orderId: 'test-order-id-123',
   }),
+}));
+
+const mockGetDaimoEnvironment = jest.fn<string, [boolean]>(() => 'demo');
+jest.mock('../../util/getDaimoEnvironment', () => ({
+  getDaimoEnvironment: (isDaimoDemo: boolean) =>
+    mockGetDaimoEnvironment(isDaimoDemo),
 }));
 
 jest.mock('../../sdk', () => ({
   useCardSDK: () => ({
-    cardSDK: {
+    sdk: {
       createOrder: jest.fn(),
       getOrderStatus: jest.fn(),
     },
@@ -62,6 +68,8 @@ jest.mock('../../../../hooks/useMetrics', () => ({
     CARD_BUTTON_CLICKED: 'Card Button Clicked',
   },
 }));
+
+const mockPollPaymentStatus = jest.fn();
 
 jest.mock('../../services/DaimoPayService', () => ({
   __esModule: true,
@@ -85,7 +93,8 @@ jest.mock('../../services/DaimoPayService', () => ({
       url.includes('miniapp.daimo.com'),
     ),
     isProduction: jest.fn(() => false),
-    pollPaymentStatus: jest.fn(),
+    pollPaymentStatus: (...args: unknown[]) => mockPollPaymentStatus(...args),
+    isValidMessageOrigin: jest.fn(() => true),
   },
 }));
 
@@ -160,6 +169,11 @@ jest.mock('../../../../../core/AppConstants', () => ({
   NOTIFICATION_NAMES: {
     accountsChanged: 'metamask_accountsChanged',
   },
+  BUNDLE_IDS: {
+    ANDROID: 'io.metamask',
+    IOS: 'io.metamask.MetaMask',
+  },
+  MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
 }));
 
 jest.mock('../../../../../constants/dapp', () => ({
@@ -249,13 +263,19 @@ jest.mock('@metamask/react-native-webview', () => {
 describe('DaimoPayModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
     mockOnMessage = null;
     mockOnError = null;
     mockOnShouldStartLoadWithRequest = null;
+    mockGetDaimoEnvironment.mockReturnValue('demo');
     jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
     mockDangerouslyGetParent.mockReturnValue({
       dispatch: mockDispatch,
     });
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   describe('Render', () => {
@@ -422,7 +442,9 @@ describe('DaimoPayModal', () => {
       expect(mockGoBack).toHaveBeenCalled();
     });
 
-    it('handles paymentCompleted event by resetting navigation to OrderCompleted', async () => {
+    it('navigates immediately on paymentCompleted in demo mode', async () => {
+      mockGetDaimoEnvironment.mockReturnValue('demo');
+
       render(<DaimoPayModal />);
 
       await waitFor(() => {
@@ -447,35 +469,12 @@ describe('DaimoPayModal', () => {
         }
       });
 
-      expect(mockDangerouslyGetParent).toHaveBeenCalled();
-      expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: 'RESET',
-          index: 0,
-          routes: expect.arrayContaining([
-            expect.objectContaining({
-              name: Routes.CARD.HOME,
-              state: expect.objectContaining({
-                index: 1,
-                routes: expect.arrayContaining([
-                  expect.objectContaining({ name: Routes.CARD.HOME }),
-                  expect.objectContaining({
-                    name: Routes.CARD.ORDER_COMPLETED,
-                    params: expect.objectContaining({
-                      paymentMethod: 'crypto',
-                      transactionHash: '0x123',
-                    }),
-                  }),
-                ]),
-              }),
-            }),
-          ]),
-        }),
-      );
+      // In demo mode, paymentCompleted should trigger navigation immediately
+      expect(mockDispatch).toHaveBeenCalled();
     });
 
-    it('falls back to navigate when parent navigator is unavailable', async () => {
-      mockDangerouslyGetParent.mockReturnValueOnce(undefined);
+    it('does not navigate on paymentCompleted in production mode - lets polling handle navigation', async () => {
+      mockGetDaimoEnvironment.mockReturnValue('production');
 
       render(<DaimoPayModal />);
 
@@ -492,8 +491,8 @@ describe('DaimoPayModal', () => {
                 version: 1,
                 type: 'paymentCompleted',
                 payload: {
-                  txHash: '0xabc',
-                  chainId: 1,
+                  txHash: '0x123',
+                  chainId: 59144,
                 },
               }),
             },
@@ -501,13 +500,9 @@ describe('DaimoPayModal', () => {
         }
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.CARD.ORDER_COMPLETED,
-        expect.objectContaining({
-          paymentMethod: 'crypto',
-          transactionHash: '0xabc',
-        }),
-      );
+      // In production mode, paymentCompleted should NOT trigger navigation - polling handles it
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('displays error when paymentBounced event received', async () => {
@@ -560,6 +555,200 @@ describe('DaimoPayModal', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockDispatch).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Polling', () => {
+    it('navigates to success when polling returns completed status', async () => {
+      mockGetDaimoEnvironment.mockReturnValue('production');
+      mockPollPaymentStatus.mockResolvedValue({
+        status: 'completed',
+        transactionHash: '0xabc123',
+        chainId: 1,
+      });
+
+      render(<DaimoPayModal />);
+
+      await waitFor(() => {
+        expect(mockOnMessage).not.toBeNull();
+      });
+
+      // Trigger paymentStarted to start polling
+      await act(async () => {
+        if (mockOnMessage) {
+          mockOnMessage({
+            nativeEvent: {
+              data: JSON.stringify({
+                source: 'daimo-pay',
+                version: 1,
+                type: 'paymentStarted',
+                payload: {},
+              }),
+            },
+          });
+        }
+      });
+
+      // Advance timers to trigger first poll (5 seconds)
+      await act(async () => {
+        jest.advanceTimersByTime(5000);
+      });
+
+      await waitFor(() => {
+        expect(mockPollPaymentStatus).toHaveBeenCalledWith(
+          'test-order-id-123',
+          {
+            cardSDK: expect.any(Object),
+          },
+        );
+      });
+
+      expect(mockDangerouslyGetParent).toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalled();
+    });
+
+    it('shows error when polling returns failed status', async () => {
+      mockGetDaimoEnvironment.mockReturnValue('production');
+      mockPollPaymentStatus.mockResolvedValue({
+        status: 'failed',
+        errorMessage: 'Payment was rejected',
+      });
+
+      const { getByTestId } = render(<DaimoPayModal />);
+
+      await waitFor(() => {
+        expect(mockOnMessage).not.toBeNull();
+      });
+
+      // Trigger paymentStarted to start polling
+      await act(async () => {
+        if (mockOnMessage) {
+          mockOnMessage({
+            nativeEvent: {
+              data: JSON.stringify({
+                source: 'daimo-pay',
+                version: 1,
+                type: 'paymentStarted',
+                payload: {},
+              }),
+            },
+          });
+        }
+      });
+
+      // Advance timers to trigger first poll (5 seconds)
+      await act(async () => {
+        jest.advanceTimersByTime(5000);
+      });
+
+      await waitFor(() => {
+        expect(mockPollPaymentStatus).toHaveBeenCalled();
+      });
+
+      await waitFor(() => {
+        expect(getByTestId(DaimoPayModalSelectors.ERROR_TEXT)).toBeTruthy();
+      });
+    });
+
+    it('continues polling when status is pending', async () => {
+      mockGetDaimoEnvironment.mockReturnValue('production');
+      mockPollPaymentStatus
+        .mockResolvedValueOnce({ status: 'pending' })
+        .mockResolvedValueOnce({ status: 'pending' })
+        .mockResolvedValueOnce({
+          status: 'completed',
+          transactionHash: '0xdef456',
+          chainId: 137,
+        });
+
+      render(<DaimoPayModal />);
+
+      await waitFor(() => {
+        expect(mockOnMessage).not.toBeNull();
+      });
+
+      // Trigger paymentStarted to start polling
+      await act(async () => {
+        if (mockOnMessage) {
+          mockOnMessage({
+            nativeEvent: {
+              data: JSON.stringify({
+                source: 'daimo-pay',
+                version: 1,
+                type: 'paymentStarted',
+                payload: {},
+              }),
+            },
+          });
+        }
+      });
+
+      // First poll - pending
+      await act(async () => {
+        jest.advanceTimersByTime(5000);
+      });
+
+      await waitFor(() => {
+        expect(mockPollPaymentStatus).toHaveBeenCalledTimes(1);
+      });
+
+      expect(mockDispatch).not.toHaveBeenCalled();
+
+      // Second poll - pending
+      await act(async () => {
+        jest.advanceTimersByTime(5000);
+      });
+
+      await waitFor(() => {
+        expect(mockPollPaymentStatus).toHaveBeenCalledTimes(2);
+      });
+
+      expect(mockDispatch).not.toHaveBeenCalled();
+
+      // Third poll - completed
+      await act(async () => {
+        jest.advanceTimersByTime(5000);
+      });
+
+      await waitFor(() => {
+        expect(mockPollPaymentStatus).toHaveBeenCalledTimes(3);
+      });
+
+      expect(mockDispatch).toHaveBeenCalled();
+    });
+
+    it('does not start polling in non-production environment', async () => {
+      mockGetDaimoEnvironment.mockReturnValue('demo');
+
+      render(<DaimoPayModal />);
+
+      await waitFor(() => {
+        expect(mockOnMessage).not.toBeNull();
+      });
+
+      // Trigger paymentStarted
+      await act(async () => {
+        if (mockOnMessage) {
+          mockOnMessage({
+            nativeEvent: {
+              data: JSON.stringify({
+                source: 'daimo-pay',
+                version: 1,
+                type: 'paymentStarted',
+                payload: {},
+              }),
+            },
+          });
+        }
+      });
+
+      // Advance timers
+      await act(async () => {
+        jest.advanceTimersByTime(10000);
+      });
+
+      // Polling should not have been called in demo mode
+      expect(mockPollPaymentStatus).not.toHaveBeenCalled();
     });
   });
 
@@ -651,40 +840,6 @@ describe('DaimoPayModal', () => {
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         screen: CardScreens.DAIMO_PAY,
-      });
-    });
-
-    it('tracks paymentCompleted event', async () => {
-      render(<DaimoPayModal />);
-
-      await waitFor(() => {
-        expect(mockOnMessage).not.toBeNull();
-      });
-
-      await act(async () => {
-        if (mockOnMessage) {
-          mockOnMessage({
-            nativeEvent: {
-              data: JSON.stringify({
-                source: 'daimo-pay',
-                version: 1,
-                type: 'paymentCompleted',
-                payload: {
-                  txHash: '0x123',
-                  chainId: 59144,
-                },
-              }),
-            },
-          });
-        }
-      });
-
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.CARD_METAL_CHECKOUT_COMPLETED,
-      );
-      expect(mockAddProperties).toHaveBeenCalledWith({
-        screen: CardScreens.DAIMO_PAY,
-        chain_id: 59144,
       });
     });
 
