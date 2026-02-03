@@ -40,7 +40,6 @@ import {
 import { getPreinstalledSnapsMetadata } from '../../../../selectors/snaps';
 import { OTA_VERSION } from '../../../../constants/ota';
 import { captureExceptionForced } from '../../../../util/sentry/utils';
-import { alert } from '../../../../util/alert';
 
 const createStyles = (colors) =>
   StyleSheet.create({
