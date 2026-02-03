@@ -23,16 +23,8 @@ jest.mock('../../../../hooks/useMetrics', () => ({
 }));
 
 jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
   useSelector: jest.fn(() => ({ name: 'Ethereum Mainnet' })),
-}));
-
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => {
-    const mockStrings: Record<string, string> = {
-      'asset_overview.merkl_rewards.claim': 'Claim',
-    };
-    return mockStrings[key] || key;
-  },
 }));
 
 jest.mock('./hooks/useMerklClaim', () => ({
@@ -48,7 +40,7 @@ jest.mock('../../../../../core/NavigationService', () => ({
   __esModule: true,
   default: {
     navigation: {
-      navigate: (route: string) => mockNavigate(route),
+      navigate: (...args: unknown[]) => mockNavigate(...args),
     },
   },
 }));
@@ -56,7 +48,19 @@ jest.mock('../../../../../core/NavigationService', () => ({
 jest.mock('../../../../../constants/navigation/Routes', () => ({
   WALLET: {
     HOME: 'WalletTabHome',
+    TOKENS_FULL_VIEW: 'TokensFullView',
   },
+  MODAL: {
+    ROOT_MODAL_FLOW: 'RootModalFlow',
+    CLAIM_ON_LINEA: 'ClaimOnLineaModal',
+  },
+}));
+
+const mockNavigateToModal = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    navigate: mockNavigateToModal,
+  }),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -168,17 +172,20 @@ describe('ClaimMerklRewards', () => {
     expect(getByText('Claim')).toBeTruthy();
   });
 
-  it('calls claimRewards when button is pressed', async () => {
-    mockClaimRewards.mockResolvedValue({ txHash: '0x123abc' });
-
+  it('navigates to bottom sheet modal when claim button is pressed', () => {
     const { getByText } = render(<ClaimMerklRewards asset={mockAsset} />);
-    const claimButton = getByText('Claim');
 
-    fireEvent.press(claimButton);
+    fireEvent.press(getByText('Claim'));
 
-    await waitFor(() => {
-      expect(mockClaimRewards).toHaveBeenCalledTimes(1);
-    });
+    expect(mockNavigateToModal).toHaveBeenCalledWith(
+      'RootModalFlow',
+      expect.objectContaining({
+        screen: 'ClaimOnLineaModal',
+        params: expect.objectContaining({
+          onContinue: expect.any(Function),
+        }),
+      }),
+    );
   });
 
   it('disables button when isClaiming is true', () => {
@@ -219,43 +226,49 @@ describe('ClaimMerklRewards', () => {
     expect(queryByText('Failed')).toBeNull();
   });
 
-  it('tracks analytics event when claim button is clicked', async () => {
-    mockClaimRewards.mockResolvedValue(undefined);
-
+  it('tracks analytics event when claim button is clicked', () => {
     const { getByText } = render(<ClaimMerklRewards asset={mockAsset} />);
     const claimButton = getByText('Claim');
 
     fireEvent.press(claimButton);
 
-    await waitFor(() => {
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.MUSD_CLAIM_BONUS_BUTTON_CLICKED,
-      );
-      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
-        location: 'asset_overview',
-        action_type: 'claim_bonus',
-        button_text: 'Claim',
-        network_chain_id: mockAsset.chainId,
-        network_name: 'Ethereum Mainnet',
-        asset_symbol: mockAsset.symbol,
-      });
-      expect(mockEventBuilder.build).toHaveBeenCalled();
-      expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'mock-event' });
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.MUSD_CLAIM_BONUS_BUTTON_CLICKED,
+    );
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+      location: 'asset_overview',
+      action_type: 'claim_bonus',
+      button_text: 'Claim',
+      network_chain_id: mockAsset.chainId,
+      network_name: 'Ethereum Mainnet',
+      asset_symbol: mockAsset.symbol,
     });
+    expect(mockEventBuilder.build).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'mock-event' });
   });
 
-  it('navigates to home page after successful claim submission', async () => {
+  it('navigates to home page after successful claim via onContinue callback', async () => {
     mockClaimRewards.mockResolvedValue({ txHash: '0x123abc' });
 
     const { getByText } = render(<ClaimMerklRewards asset={mockAsset} />);
-    const claimButton = getByText('Claim');
 
-    fireEvent.press(claimButton);
+    // Press claim button
+    fireEvent.press(getByText('Claim'));
+
+    // Get the onContinue callback that was passed to the modal
+    const navigateCall = mockNavigateToModal.mock.calls[0];
+    const onContinue = navigateCall[1].params.onContinue;
+
+    // Call the onContinue callback (simulating Continue button press in modal)
+    await onContinue();
 
     await waitFor(() => {
       expect(mockClaimRewards).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith('WalletTabHome');
     });
+
+    // Note: After navigation, a scroll event is also emitted via DeviceEventEmitter
+    // to scroll the token list to the Linea mUSD token (tested via integration tests)
   });
 
   it('does not navigate to home page when claim submission fails', async () => {
@@ -263,9 +276,16 @@ describe('ClaimMerklRewards', () => {
     mockClaimRewards.mockRejectedValue(error);
 
     const { getByText } = render(<ClaimMerklRewards asset={mockAsset} />);
-    const claimButton = getByText('Claim');
 
-    fireEvent.press(claimButton);
+    // Press claim button
+    fireEvent.press(getByText('Claim'));
+
+    // Get the onContinue callback
+    const navigateCall = mockNavigateToModal.mock.calls[0];
+    const onContinue = navigateCall[1].params.onContinue;
+
+    // Call onContinue (simulating Continue press)
+    await onContinue();
 
     await waitFor(() => {
       expect(mockClaimRewards).toHaveBeenCalled();
@@ -277,9 +297,16 @@ describe('ClaimMerklRewards', () => {
     mockClaimRewards.mockResolvedValue(undefined);
 
     const { getByText } = render(<ClaimMerklRewards asset={mockAsset} />);
-    const claimButton = getByText('Claim');
 
-    fireEvent.press(claimButton);
+    // Press claim button
+    fireEvent.press(getByText('Claim'));
+
+    // Get the onContinue callback
+    const navigateCall = mockNavigateToModal.mock.calls[0];
+    const onContinue = navigateCall[1].params.onContinue;
+
+    // Call onContinue
+    await onContinue();
 
     await waitFor(() => {
       expect(mockClaimRewards).toHaveBeenCalled();

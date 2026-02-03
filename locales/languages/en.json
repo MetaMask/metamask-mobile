@@ -3345,7 +3345,10 @@
       "terms_apply": "Terms apply.",
       "ok": "OK",
       "claim": "Claim",
-      "processing_claim": "Processing claim..."
+      "processing_claim": "Processing claim...",
+      "claim_on_linea_title": "Claim bonuses on Linea",
+      "claim_on_linea_description": "Your bonus will be issued on Linea, separate from your Ethereum mUSD balance.",
+      "continue": "Continue"
     },
     "tron": {
       "daily_resource_new_energy": "New daily energy",
