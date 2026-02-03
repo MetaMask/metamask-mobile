@@ -8,10 +8,7 @@ import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
 import RequestTypes from '../../pages/Browser/Confirmations/RequestTypes';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
-import {
-  confirmationFeatureFlags,
-  remoteFeatureMultichainAccountsAccountDetailsV2,
-} from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { confirmationFeatureFlags } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 import { mockGenesisBlocks } from './mocks';
 
 jest.setTimeout(150_000);
@@ -26,11 +23,7 @@ describe(FlaskBuildTests('Multichain Provider Snap Tests'), () => {
         testSpecificMock: async (mockServer: Mockttp) => {
           await setupRemoteFeatureFlagsMock(
             mockServer,
-            Object.assign(
-              {},
-              ...confirmationFeatureFlags,
-              remoteFeatureMultichainAccountsAccountDetailsV2(true),
-            ),
+            Object.assign({}, ...confirmationFeatureFlags),
           );
           await mockGenesisBlocks(mockServer);
         },

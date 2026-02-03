@@ -1178,41 +1178,44 @@ const CardHome = () => {
             />
           )}
       </Box>
-      {!isLoading && !cardSetupState.isKYCPending && !isCardProvisioning && (
-        <>
-          <ManageCardListItem
-            title={strings('card.card_home.manage_card_options.manage_card')}
-            description={strings(
-              'card.card_home.manage_card_options.advanced_card_management_description',
-            )}
-            rightIcon={IconName.Export}
-            onPress={navigateToCardPage}
-            testID={CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM}
-          />
-          {isUserEligibleForMetalCard && (
+      {!isLoading &&
+        !cardSetupState.isKYCPending &&
+        !cardSetupState.needsSetup &&
+        !isCardProvisioning && (
+          <>
             <ManageCardListItem
-              title={strings(
-                'card.card_home.manage_card_options.order_metal_card',
-              )}
+              title={strings('card.card_home.manage_card_options.manage_card')}
               description={strings(
-                'card.card_home.manage_card_options.order_metal_card_description',
+                'card.card_home.manage_card_options.advanced_card_management_description',
               )}
-              rightIcon={IconName.ArrowRight}
-              onPress={orderMetalCardAction}
-              testID={CardHomeSelectors.ORDER_METAL_CARD_ITEM}
+              rightIcon={IconName.Export}
+              onPress={navigateToCardPage}
+              testID={CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM}
             />
-          )}
-          <ManageCardListItem
-            title={strings('card.card_home.manage_card_options.travel_title')}
-            description={strings(
-              'card.card_home.manage_card_options.travel_description',
+            {isUserEligibleForMetalCard && (
+              <ManageCardListItem
+                title={strings(
+                  'card.card_home.manage_card_options.order_metal_card',
+                )}
+                description={strings(
+                  'card.card_home.manage_card_options.order_metal_card_description',
+                )}
+                rightIcon={IconName.ArrowRight}
+                onPress={orderMetalCardAction}
+                testID={CardHomeSelectors.ORDER_METAL_CARD_ITEM}
+              />
             )}
-            rightIcon={IconName.Export}
-            onPress={navigateToTravelPage}
-            testID={CardHomeSelectors.TRAVEL_ITEM}
-          />
-        </>
-      )}
+            <ManageCardListItem
+              title={strings('card.card_home.manage_card_options.travel_title')}
+              description={strings(
+                'card.card_home.manage_card_options.travel_description',
+              )}
+              rightIcon={IconName.Export}
+              onPress={navigateToTravelPage}
+              testID={CardHomeSelectors.TRAVEL_ITEM}
+            />
+          </>
+        )}
       {isAuthenticated && !isLoading && (
         <>
           <Box
