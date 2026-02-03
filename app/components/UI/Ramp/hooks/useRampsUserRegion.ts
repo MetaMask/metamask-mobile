@@ -23,7 +23,7 @@ export interface UseRampsUserRegionResult {
  * This hook assumes Engine is already initialized.
  */
 export function useRampsUserRegion(): UseRampsUserRegionResult {
-  const { data: userRegion } = useSelector(selectUserRegion);
+  const userRegion = useSelector(selectUserRegion);
 
   const setUserRegion = useCallback(
     (region: string, options?: ExecuteRequestOptions) =>

@@ -90,12 +90,7 @@ describe('ramps controller init', () => {
 
   it('uses initial state when initial state is passed in', () => {
     const initialRampsControllerState: RampsControllerState = {
-      userRegion: {
-        data: createMockUserRegion('us-ca'),
-        selected: null,
-        isLoading: false,
-        error: null,
-      },
+      userRegion: createMockUserRegion('us-ca'),
       countries: {
         data: [],
         selected: null,

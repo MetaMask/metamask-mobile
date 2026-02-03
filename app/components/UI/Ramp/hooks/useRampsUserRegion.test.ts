@@ -50,19 +50,13 @@ jest.mock('../../../../core/Engine', () => {
   };
 });
 
-const createMockStore = (userRegionState = {}) =>
+const createMockStore = (userRegion: UserRegion | null = null) =>
   configureStore({
     reducer: {
       engine: () => ({
         backgroundState: {
           RampsController: {
-            userRegion: {
-              data: null,
-              selected: null,
-              isLoading: false,
-              error: null,
-              ...userRegionState,
-            },
+            userRegion,
           },
         },
       }),
@@ -94,7 +88,7 @@ describe('useRampsUserRegion', () => {
 
   describe('userRegion state', () => {
     it('returns userRegion from state', () => {
-      const store = createMockStore({ data: mockUserRegion });
+      const store = createMockStore(mockUserRegion);
       const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });

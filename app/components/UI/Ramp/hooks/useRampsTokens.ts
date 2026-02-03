@@ -1,28 +1,11 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { selectTokens } from '../../../../selectors/rampsController';
+import {
+  type RampsToken,
+  type TokensResponse,
+} from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
-
-/**
- * Token type from the ramps controller.
- */
-interface RampsToken {
-  assetId: string;
-  chainId: string;
-  name: string;
-  symbol: string;
-  decimals: number;
-  iconUrl?: string;
-  tokenSupported: boolean;
-}
-
-/**
- * Tokens response type from the ramps controller.
- */
-interface TokensResponse {
-  topTokens: RampsToken[];
-  allTokens: RampsToken[];
-}
 
 /**
  * Result returned by the useRampsTokens hook.
