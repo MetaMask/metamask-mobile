@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useMemo,
 } from 'react';
-import { View, ScrollView, Modal, Linking } from 'react-native';
+import { View, ScrollView, Modal } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   SafeAreaView,
@@ -44,9 +44,7 @@ import {
   LEARN_MORE_CONFIG,
   SUPPORT_CONFIG,
   FEEDBACK_CONFIG,
-  PERPS_CONSTANTS,
 } from '../../constants/perpsConfig';
-import { ensureError } from '../../../../../util/errorUtils';
 import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsCard from '../../components/PerpsCard';
@@ -59,7 +57,6 @@ import HeaderCenter from '../../../../../component-library/components-temp/Heade
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import styleSheet from './PerpsHomeView.styles';
-import Logger from '../../../../../util/Logger';
 import { TraceName } from '../../../../../util/trace';
 import {
   PerpsEventProperties,
@@ -99,11 +96,17 @@ const PerpsHomeView = () => {
   const {
     handleAddFunds,
     handleWithdraw,
+    isEligible,
     isEligibilityModalVisible,
     closeEligibilityModal,
   } = usePerpsHomeActions({
     buttonLocation: PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
   });
+
+  // Separate geo-block modal state for close all / cancel all actions
+  const [isCloseAllGeoBlockVisible, setIsCloseAllGeoBlockVisible] =
+    useState(false);
+  const { track } = usePerpsEventTracking();
 
   // Section scroll tracking for analytics
   const { handleSectionLayout, handleScroll, resetTracking } =
@@ -228,9 +231,11 @@ const PerpsHomeView = () => {
         })
         .build(),
     );
-    // Navigate to MarketListView with search enabled
+    // Navigate to MarketListView with search enabled and 'all' category
+    // When user closes search, they should see all markets (not a specific category)
     perpsNavigation.navigateToMarketList({
       defaultSearchVisible: true,
+      defaultMarketTypeFilter: 'all',
       source: PerpsEventValues.SOURCE.HOMESCREEN_TAB,
       fromHome: true,
       button_clicked: PerpsEventValues.BUTTON_CLICKED.MAGNIFYING_GLASS,
@@ -296,14 +301,15 @@ const PerpsHomeView = () => {
         })
         .build(),
     );
-    // Open survey in external browser
-    Linking.openURL(FEEDBACK_CONFIG.Url).catch((error: unknown) => {
-      Logger.error(ensureError(error), {
-        feature: PERPS_CONSTANTS.FeatureName,
-        message: 'Failed to open feedback survey URL',
-      });
+    // Open survey in in-app browser (same pattern as Contact Support)
+    navigation.navigate(Routes.WEBVIEW.MAIN, {
+      screen: Routes.WEBVIEW.SIMPLE,
+      params: {
+        url: FEEDBACK_CONFIG.Url,
+        title: strings(FEEDBACK_CONFIG.TitleKey),
+      },
     });
-  }, [trackEvent, createEventBuilder]);
+  }, [trackEvent, createEventBuilder, navigation]);
 
   const navigationItems: NavigationItem[] = useMemo(() => {
     const items: NavigationItem[] = [
@@ -341,10 +347,21 @@ const PerpsHomeView = () => {
     handleGiveFeedback,
   ]);
 
-  // Bottom sheet handlers - open sheets directly
+  // Bottom sheet handlers - open sheets directly with geo-restriction check
   const handleCloseAllPress = useCallback(() => {
+    // Geo-restriction check for close all positions
+    if (!isEligible) {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PerpsEventProperties.SOURCE]:
+          PerpsEventValues.SOURCE.CLOSE_ALL_POSITIONS_BUTTON,
+      });
+      setIsCloseAllGeoBlockVisible(true);
+      return;
+    }
     setShowCloseAllSheet(true);
-  }, []);
+  }, [isEligible, track]);
 
   const handleCancelAllPress = useCallback(() => {
     setShowCancelAllSheet(true);
@@ -580,6 +597,20 @@ const PerpsHomeView = () => {
               onClose={closeEligibilityModal}
               contentKey={'geo_block'}
               testID={'perps-home-geo-block-tooltip'}
+            />
+          </Modal>
+        </View>
+      )}
+
+      {/* Close All / Cancel All Geo-Block Modal */}
+      {isCloseAllGeoBlockVisible && (
+        <View>
+          <Modal visible transparent animationType="none" statusBarTranslucent>
+            <PerpsBottomSheetTooltip
+              isVisible
+              onClose={() => setIsCloseAllGeoBlockVisible(false)}
+              contentKey={'geo_block'}
+              testID={'perps-home-close-all-geo-block-tooltip'}
             />
           </Modal>
         </View>

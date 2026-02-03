@@ -26,6 +26,7 @@ import type { ReconnectOptions } from '../types/perps-types';
 import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
 import { ensureError } from '../../../../util/errorUtils';
 import { wait } from '../utils/wait';
+import { TradingReadinessCache } from './TradingReadinessCache';
 
 /**
  * Singleton manager for Perps connection state
@@ -558,36 +559,31 @@ class PerpsConnectionManagerClass {
         this.clearConnectionTimeout();
 
         // Capture exception with connection context
-        captureException(
-          error instanceof Error ? error : new Error(String(error)),
-          {
-            tags: {
-              component: 'PerpsConnectionManager',
-              action: 'connection_connection',
-              operation: 'connection_management',
+        captureException(ensureError(error, 'PerpsConnectionManager.connect'), {
+          tags: {
+            component: 'PerpsConnectionManager',
+            action: 'connection_connection',
+            operation: 'connection_management',
+            provider: 'hyperliquid',
+          },
+          extra: {
+            connectionContext: {
               provider: 'hyperliquid',
-            },
-            extra: {
-              connectionContext: {
-                provider: 'hyperliquid',
-                timestamp: new Date().toISOString(),
-                isTestnet:
-                  Engine.context.PerpsController?.getCurrentNetwork?.() ===
-                  'testnet',
-              },
+              timestamp: new Date().toISOString(),
+              isTestnet:
+                Engine.context.PerpsController?.getCurrentNetwork?.() ===
+                'testnet',
             },
           },
-        );
+        });
 
         traceData = {
           success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: ensureError(error, 'PerpsConnectionManager.connect').message,
         };
 
         // Set error state for UI
-        this.setError(
-          error instanceof Error ? error : new Error(String(error)),
-        );
+        this.setError(ensureError(error, 'PerpsConnectionManager.connect'));
         DevLogger.log('PerpsConnectionManager: Connection failed', error);
         throw error;
       } finally {
@@ -804,11 +800,11 @@ class PerpsConnectionManagerClass {
 
       traceData = {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: ensureError(error, 'PerpsConnectionManager.reconnect').message,
       };
 
       // Set error state for UI - this is critical for reliability
-      this.setError(error instanceof Error ? error : new Error(String(error)));
+      this.setError(ensureError(error, 'PerpsConnectionManager.reconnect'));
       DevLogger.log(
         'PerpsConnectionManager: Reconnection with new context failed',
         error,
@@ -980,6 +976,40 @@ class PerpsConnectionManagerClass {
    */
   isCurrentlyConnecting(): boolean {
     return this.isConnecting;
+  }
+
+  /**
+   * Clear DEX abstraction cache for a specific address
+   * Useful for debugging or allowing user to retry after rejecting signature
+   * Note: This only clears DEX abstraction state, preserving builder fee and referral states
+   */
+  clearDexAbstractionCache(
+    network: 'mainnet' | 'testnet',
+    userAddress: string,
+  ): void {
+    TradingReadinessCache.clearDexAbstraction(network, userAddress);
+    DevLogger.log('PerpsConnectionManager: DEX abstraction cache cleared', {
+      network,
+      userAddress,
+    });
+  }
+
+  /**
+   * Clear all signing operation caches for all users
+   * Useful for debugging or app-level cache resets
+   * WARNING: This clears ALL signing states (dexAbstraction, builderFee, referral) for ALL users
+   */
+  clearAllSigningCache(): void {
+    TradingReadinessCache.clearAll();
+    DevLogger.log('PerpsConnectionManager: All signing cache cleared');
+  }
+
+  /**
+   * @deprecated Use clearAllSigningCache() instead - this method name is misleading
+   * as it clears ALL signing operation states, not just DEX abstraction
+   */
+  clearAllDexAbstractionCache(): void {
+    this.clearAllSigningCache();
   }
 }
 

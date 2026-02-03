@@ -21,6 +21,7 @@ import type {
 } from '../types';
 import { HyperLiquidProvider } from './HyperLiquidProvider';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
+import { TradingReadinessCache } from '../../services/TradingReadinessCache';
 
 jest.mock('../../services/HyperLiquidClientService');
 jest.mock('../../services/HyperLiquidWalletService');
@@ -76,6 +77,10 @@ jest.mock('../../utils/hyperLiquidAdapter', () => {
     }),
   };
 });
+
+// Mock TradingReadinessCache - global singleton for signing operation caching
+// Use jest.createMockFromModule for proper mock creation
+jest.mock('../../services/TradingReadinessCache');
 
 const MockedHyperLiquidClientService =
   HyperLiquidClientService as jest.MockedClass<typeof HyperLiquidClientService>;
@@ -236,9 +241,10 @@ const createMockInfoClient = (overrides: Record<string, unknown> = {}) => ({
   ]),
   spotMeta: jest.fn().mockResolvedValue({
     tokens: [
-      { name: 'USDC', tokenId: '0xdef456' },
-      { name: 'USDT', tokenId: '0x789abc' },
+      { name: 'USDC', tokenId: '0xdef456', index: 0 },
+      { name: 'USDT', tokenId: '0x789abc', index: 1 },
     ],
+    universe: [],
   }),
   ...overrides,
 });
@@ -307,6 +313,16 @@ describe('HyperLiquidProvider', () => {
   beforeEach(() => {
     // Reset all mocks
     jest.clearAllMocks();
+
+    // Reset TradingReadinessCache mock state (using imported mocked module)
+    const mockedCache = TradingReadinessCache as jest.Mocked<
+      typeof TradingReadinessCache
+    >;
+    mockedCache.get.mockReturnValue(undefined);
+    mockedCache.getBuilderFee.mockReturnValue(undefined);
+    mockedCache.getReferral.mockReturnValue(undefined);
+    mockedCache.isInFlight.mockReturnValue(undefined);
+    mockedCache.setInFlight.mockReturnValue(jest.fn());
 
     // Initialize mock stream manager instance
     mockStreamManagerInstance = {
@@ -4891,7 +4907,7 @@ describe('HyperLiquidProvider', () => {
       ).not.toHaveBeenCalled();
     });
 
-    it('handles builder fee approval failure', async () => {
+    it('handles builder fee approval failure (non-blocking)', async () => {
       // Mock builder fee not approved to trigger approval call
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
@@ -4918,8 +4934,11 @@ describe('HyperLiquidProvider', () => {
 
       const result = await provider.placeOrder(orderParams);
 
-      expect(result.success).toBe(false);
-      expect(result.error).toContain('Builder fee approval failed');
+      // PR #25334: Builder fee approval is now non-blocking (fire-and-forget)
+      // to prevent QR popup spam for hardware wallets.
+      // Order should proceed even if builder fee approval fails.
+      expect(result.success).toBe(true);
+      expect(result.orderId).toBeDefined();
     });
 
     it('handles referral code setup failure (non-blocking)', async () => {
@@ -5020,6 +5039,318 @@ describe('HyperLiquidProvider', () => {
       expect(result.success).toBe(true);
 
       // Should not call setReferrer when user already has a referral
+      expect(
+        mockClientService.getExchangeClient().setReferrer,
+      ).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Builder Fee Global Cache (PR #25334)', () => {
+    interface ProviderWithBuilderFee {
+      ensureBuilderFeeApproval(): Promise<void>;
+    }
+
+    let testableProvider: ProviderWithBuilderFee;
+
+    beforeEach(() => {
+      testableProvider = provider as unknown as ProviderWithBuilderFee;
+      mockWalletService.getUserAddressWithDefault = jest
+        .fn()
+        .mockResolvedValue('0x1234567890123456789012345678901234567890');
+    });
+
+    it('returns early when global cache indicates already attempted', async () => {
+      // Arrange - simulate cached state
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).getBuilderFee.mockReturnValue({
+        attempted: true,
+        success: true,
+      });
+
+      // Act
+      await testableProvider.ensureBuilderFeeApproval();
+
+      // Assert - should not call API when cached
+      expect(mockClientService.getInfoClient).not.toHaveBeenCalled();
+    });
+
+    it('waits for in-flight operation instead of duplicating request', async () => {
+      // Arrange - ensure getBuilderFee returns undefined (not cached)
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).getBuilderFee.mockReturnValue(undefined);
+
+      // Simulate in-flight operation from another provider
+      let resolveInFlight: () => void = () => undefined;
+      const inFlightPromise = new Promise<void>((resolve) => {
+        resolveInFlight = resolve;
+      });
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).isInFlight.mockReturnValue(inFlightPromise);
+
+      // Act
+      const approvalPromise = testableProvider.ensureBuilderFeeApproval();
+
+      // Resolve the in-flight operation
+      resolveInFlight();
+      await approvalPromise;
+
+      // Verify it called isInFlight to check for concurrent operations
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .isInFlight,
+      ).toHaveBeenCalledWith(
+        'builderFee',
+        'mainnet',
+        '0x1234567890123456789012345678901234567890',
+      );
+
+      // Assert - should not have set its own in-flight lock
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .setInFlight,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('caches success after successful approval', async () => {
+      // Arrange
+      const mockCompleteInFlight = jest.fn();
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).setInFlight.mockReturnValue(mockCompleteInFlight);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          maxBuilderFee: jest
+            .fn()
+            .mockResolvedValueOnce(0) // First call: not approved
+            .mockResolvedValueOnce(0.001), // Second call: approved after approval
+        }),
+      );
+
+      // Act
+      await testableProvider.ensureBuilderFeeApproval();
+
+      // Assert
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .setBuilderFee,
+      ).toHaveBeenCalledWith(
+        'mainnet',
+        '0x1234567890123456789012345678901234567890',
+        { attempted: true, success: true },
+      );
+      expect(mockCompleteInFlight).toHaveBeenCalled();
+    });
+
+    it('caches failure to prevent repeated signing requests', async () => {
+      // Arrange
+      const mockCompleteInFlight = jest.fn();
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).setInFlight.mockReturnValue(mockCompleteInFlight);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          maxBuilderFee: jest.fn().mockResolvedValue(0),
+        }),
+      );
+      mockClientService.getExchangeClient = jest.fn().mockReturnValue(
+        createMockExchangeClient({
+          approveBuilderFee: jest
+            .fn()
+            .mockRejectedValue(new Error('User rejected')),
+        }),
+      );
+
+      // Act & Assert
+      await expect(testableProvider.ensureBuilderFeeApproval()).rejects.toThrow(
+        'User rejected',
+      );
+
+      // Assert - failure should be cached
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .setBuilderFee,
+      ).toHaveBeenCalledWith(
+        'mainnet',
+        '0x1234567890123456789012345678901234567890',
+        { attempted: true, success: false },
+      );
+      expect(mockCompleteInFlight).toHaveBeenCalled();
+    });
+  });
+
+  describe('Referral Global Cache (PR #25334)', () => {
+    interface ProviderWithReferral {
+      ensureReferralSet(): Promise<void>;
+    }
+
+    let testableProvider: ProviderWithReferral;
+
+    beforeEach(() => {
+      testableProvider = provider as unknown as ProviderWithReferral;
+      mockWalletService.getUserAddressWithDefault = jest
+        .fn()
+        .mockResolvedValue('0x1234567890123456789012345678901234567890');
+    });
+
+    it('returns early when global cache indicates already attempted', async () => {
+      // Arrange - simulate cached state
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).getReferral.mockReturnValue({
+        attempted: true,
+        success: true,
+      });
+
+      // Act
+      await testableProvider.ensureReferralSet();
+
+      // Assert - should not call API when cached
+      expect(mockClientService.getInfoClient).not.toHaveBeenCalled();
+    });
+
+    it('waits for in-flight operation instead of duplicating request', async () => {
+      // Arrange - ensure getReferral returns undefined (not cached)
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).getReferral.mockReturnValue(undefined);
+
+      // Simulate in-flight operation from another provider
+      let resolveInFlight: () => void = () => undefined;
+      const inFlightPromise = new Promise<void>((resolve) => {
+        resolveInFlight = resolve;
+      });
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).isInFlight.mockReturnValue(inFlightPromise);
+
+      // Act
+      const referralPromise = testableProvider.ensureReferralSet();
+
+      // Resolve the in-flight operation
+      resolveInFlight();
+      await referralPromise;
+
+      // Verify it called isInFlight to check for concurrent operations
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .isInFlight,
+      ).toHaveBeenCalledWith(
+        'referral',
+        'mainnet',
+        '0x1234567890123456789012345678901234567890',
+      );
+
+      // Assert - should not have set its own in-flight lock
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .setInFlight,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('caches success after successful referral setup', async () => {
+      // Arrange
+      const mockCompleteInFlight = jest.fn();
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).setInFlight.mockReturnValue(mockCompleteInFlight);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          referral: jest.fn().mockResolvedValue({
+            referrerState: {
+              stage: 'ready',
+              data: { code: 'MMCSI' },
+            },
+            referredBy: null,
+          }),
+        }),
+      );
+
+      // Act
+      await testableProvider.ensureReferralSet();
+
+      // Assert
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .setReferral,
+      ).toHaveBeenCalledWith(
+        'mainnet',
+        '0x1234567890123456789012345678901234567890',
+        { attempted: true, success: true },
+      );
+      expect(mockCompleteInFlight).toHaveBeenCalled();
+    });
+
+    it('caches failure to prevent repeated signing requests', async () => {
+      // Arrange
+      const mockCompleteInFlight = jest.fn();
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).setInFlight.mockReturnValue(mockCompleteInFlight);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          referral: jest.fn().mockResolvedValue({
+            referrerState: {
+              stage: 'ready',
+              data: { code: 'MMCSI' },
+            },
+            referredBy: null,
+          }),
+        }),
+      );
+      mockClientService.getExchangeClient = jest.fn().mockReturnValue(
+        createMockExchangeClient({
+          setReferrer: jest.fn().mockRejectedValue(new Error('User rejected')),
+        }),
+      );
+
+      // Act - should not throw (referral is non-blocking)
+      await testableProvider.ensureReferralSet();
+
+      // Assert - failure should be cached
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .setReferral,
+      ).toHaveBeenCalledWith(
+        'mainnet',
+        '0x1234567890123456789012345678901234567890',
+        { attempted: true, success: false },
+      );
+      expect(mockCompleteInFlight).toHaveBeenCalled();
+    });
+
+    it('caches success when user already has referral on-chain', async () => {
+      // Arrange
+      const mockCompleteInFlight = jest.fn();
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).setInFlight.mockReturnValue(mockCompleteInFlight);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          referral: jest.fn().mockResolvedValue({
+            referrerState: {
+              stage: 'ready',
+              data: { code: 'MMCSI' },
+            },
+            referredBy: { code: 'EXISTING' }, // Already has referral
+          }),
+        }),
+      );
+
+      // Act
+      await testableProvider.ensureReferralSet();
+
+      // Assert - should cache success without calling setReferrer
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .setReferral,
+      ).toHaveBeenCalledWith(
+        'mainnet',
+        '0x1234567890123456789012345678901234567890',
+        { attempted: true, success: true },
+      );
       expect(
         mockClientService.getExchangeClient().setReferrer,
       ).not.toHaveBeenCalled();
@@ -6067,7 +6398,8 @@ describe('HyperLiquidProvider', () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
           spotMeta: jest.fn().mockResolvedValue({
-            tokens: [{ name: 'USDC', tokenId: '0xabc123' }],
+            tokens: [{ name: 'USDC', tokenId: '0xabc123', index: 0 }],
+            universe: [],
           }),
         }),
       );
@@ -6157,7 +6489,8 @@ describe('HyperLiquidProvider', () => {
     it('calls getUsdcTokenId to get correct token', async () => {
       // Arrange
       const mockSpotMeta = jest.fn().mockResolvedValue({
-        tokens: [{ name: 'USDC', tokenId: '0xspecific' }],
+        tokens: [{ name: 'USDC', tokenId: '0xspecific', index: 0 }],
+        universe: [],
       });
       mockClientService.getInfoClient = jest
         .fn()
@@ -6267,9 +6600,10 @@ describe('HyperLiquidProvider', () => {
         // Arrange
         const mockSpotMeta = {
           tokens: [
-            { name: 'USDC', tokenId: '0xdef456' },
-            { name: 'USDT', tokenId: '0x789abc' },
+            { name: 'USDC', tokenId: '0xdef456', index: 0 },
+            { name: 'USDT', tokenId: '0x789abc', index: 1 },
           ],
+          universe: [],
         };
         mockClientService.getInfoClient = jest.fn().mockReturnValue(
           createMockInfoClient({
@@ -6289,7 +6623,8 @@ describe('HyperLiquidProvider', () => {
       it('throws error when USDC token not found in metadata', async () => {
         // Arrange
         const mockSpotMeta = {
-          tokens: [{ name: 'USDT', tokenId: '0x789abc' }],
+          tokens: [{ name: 'USDT', tokenId: '0x789abc', index: 0 }],
+          universe: [],
         };
         mockClientService.getInfoClient = jest.fn().mockReturnValue(
           createMockInfoClient({
@@ -6598,28 +6933,263 @@ describe('HyperLiquidProvider', () => {
         );
       });
 
-      it('logs error when user address fetch fails', async () => {
+      it('propagates error when user address fetch fails', async () => {
         // Arrange
         const mockError = new Error('Address fetch failed');
         mockWalletService.getUserAddressWithDefault = jest
           .fn()
           .mockRejectedValue(mockError);
 
+        // Act & Assert - error propagates since getUserAddressWithDefault is called
+        // before the try-catch block that handles signing errors
+        await expect(
+          testableProvider.ensureDexAbstractionEnabled(),
+        ).rejects.toThrow('Address fetch failed');
+      });
+
+      // ===== Global Cache Tests (PR #25334) =====
+
+      it('returns early when global cache indicates already attempted', async () => {
+        // Arrange - simulate cached state
+        (
+          TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+        ).get.mockReturnValue({
+          attempted: true,
+          enabled: true,
+          timestamp: Date.now(),
+        });
+        mockWalletService.getUserAddressWithDefault = jest
+          .fn()
+          .mockResolvedValue('0xUserAddress');
+
+        // Act
+        await testableProvider.ensureDexAbstractionEnabled();
+
+        // Assert - should not call API when cached
+        expect(mockClientService.getInfoClient).not.toHaveBeenCalled();
+        expect(
+          (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+            .get,
+        ).toHaveBeenCalledWith('mainnet', '0xUserAddress');
+      });
+
+      it('waits for in-flight operation instead of duplicating request', async () => {
+        // Arrange - ensure global cache returns undefined (not cached)
+        (
+          TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+        ).get.mockReturnValue(undefined);
+
+        // Simulate in-flight operation from another provider
+        let resolveInFlight: () => void = () => undefined;
+        const inFlightPromise = new Promise<void>((resolve) => {
+          resolveInFlight = resolve;
+        });
+        (
+          TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+        ).isInFlight.mockReturnValue(inFlightPromise);
+        mockWalletService.getUserAddressWithDefault = jest
+          .fn()
+          .mockResolvedValue('0xUserAddress');
+
+        // Act - start the method (won't complete until in-flight resolves)
+        const enablePromise = testableProvider.ensureDexAbstractionEnabled();
+
+        // Resolve the in-flight operation
+        resolveInFlight();
+        await enablePromise;
+
+        // Verify it called isInFlight to check for concurrent operations
+        expect(
+          (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+            .isInFlight,
+        ).toHaveBeenCalledWith('dexAbstraction', 'mainnet', '0xUserAddress');
+
+        // Assert - should not have made its own API calls
+        expect(mockClientService.getInfoClient).not.toHaveBeenCalled();
+        expect(
+          (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+            .setInFlight,
+        ).not.toHaveBeenCalled();
+      });
+
+      it('sets in-flight lock and caches success on successful enable', async () => {
+        // Arrange
+        const mockCompleteInFlight = jest.fn();
+        (
+          TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+        ).setInFlight.mockReturnValue(mockCompleteInFlight);
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            userDexAbstraction: jest.fn().mockResolvedValue(false),
+          }),
+        );
+        mockWalletService.getUserAddressWithDefault = jest
+          .fn()
+          .mockResolvedValue('0xUserAddress');
+
         // Act
         await testableProvider.ensureDexAbstractionEnabled();
 
         // Assert
-        expect(mockPlatformDependencies.logger.error).toHaveBeenCalledWith(
-          mockError,
-          expect.objectContaining({
-            context: expect.objectContaining({
-              name: 'HyperLiquidProvider',
-              data: expect.objectContaining({
-                method: 'ensureDexAbstractionEnabled',
-              }),
-            }),
+        expect(
+          (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+            .setInFlight,
+        ).toHaveBeenCalledWith('dexAbstraction', 'mainnet', '0xUserAddress');
+        expect(
+          (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+            .set,
+        ).toHaveBeenCalledWith('mainnet', '0xUserAddress', {
+          attempted: true,
+          enabled: true,
+        });
+        expect(mockCompleteInFlight).toHaveBeenCalled();
+      });
+
+      it('caches failure to prevent repeated signing requests', async () => {
+        // Arrange
+        const mockCompleteInFlight = jest.fn();
+        (
+          TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+        ).setInFlight.mockReturnValue(mockCompleteInFlight);
+        const mockError = new Error('User rejected signing');
+        const mockExchangeClient = createMockExchangeClient();
+        mockExchangeClient.agentEnableDexAbstraction = jest
+          .fn()
+          .mockRejectedValue(mockError);
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            userDexAbstraction: jest.fn().mockResolvedValue(false),
           }),
         );
+        mockClientService.getExchangeClient = jest
+          .fn()
+          .mockReturnValue(mockExchangeClient);
+        mockWalletService.getUserAddressWithDefault = jest
+          .fn()
+          .mockResolvedValue('0xUserAddress');
+
+        // Act
+        await testableProvider.ensureDexAbstractionEnabled();
+
+        // Assert - failure should be cached to prevent QR popup spam
+        expect(
+          (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+            .set,
+        ).toHaveBeenCalledWith('mainnet', '0xUserAddress', {
+          attempted: true,
+          enabled: false,
+        });
+        expect(mockCompleteInFlight).toHaveBeenCalled();
+      });
+
+      it('caches enabled status when already enabled on-chain', async () => {
+        // Arrange
+        const mockCompleteInFlight = jest.fn();
+        (
+          TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+        ).setInFlight.mockReturnValue(mockCompleteInFlight);
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            userDexAbstraction: jest.fn().mockResolvedValue(true), // Already enabled
+          }),
+        );
+        mockWalletService.getUserAddressWithDefault = jest
+          .fn()
+          .mockResolvedValue('0xUserAddress');
+
+        // Act
+        await testableProvider.ensureDexAbstractionEnabled();
+
+        // Assert - should cache the enabled status
+        expect(
+          (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+            .set,
+        ).toHaveBeenCalledWith('mainnet', '0xUserAddress', {
+          attempted: true,
+          enabled: true,
+        });
+        expect(mockCompleteInFlight).toHaveBeenCalled();
+        // Should NOT call exchange client since already enabled
+        expect(mockClientService.getExchangeClient).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('ensureReadyForTrading', () => {
+      interface ProviderWithTradingSetup {
+        ensureReadyForTrading(): Promise<void>;
+        ensureReady(): Promise<void>;
+        tradingSetupComplete: boolean;
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-shadow
+      let testableProvider: ProviderWithTradingSetup;
+
+      beforeEach(() => {
+        testableProvider = provider as unknown as ProviderWithTradingSetup;
+        testableProvider.tradingSetupComplete = false;
+      });
+
+      it('calls ensureReady first before trading setup', async () => {
+        // Arrange - spy on ensureReady
+        const ensureReadySpy = jest
+          .spyOn(testableProvider, 'ensureReady')
+          .mockResolvedValue();
+
+        // Act
+        await testableProvider.ensureReadyForTrading();
+
+        // Assert
+        expect(ensureReadySpy).toHaveBeenCalled();
+      });
+
+      it('returns immediately when tradingSetupComplete is true', async () => {
+        // Arrange
+        testableProvider.tradingSetupComplete = true;
+        const ensureReadySpy = jest
+          .spyOn(testableProvider, 'ensureReady')
+          .mockResolvedValue();
+
+        // Act
+        await testableProvider.ensureReadyForTrading();
+
+        // Assert - should call ensureReady but skip trading setup
+        expect(ensureReadySpy).toHaveBeenCalled();
+        // No signing operations should be called
+        expect(
+          (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+            .setInFlight,
+        ).not.toHaveBeenCalled();
+      });
+
+      it('sets tradingSetupComplete to true after successful setup', async () => {
+        // Arrange
+        jest.spyOn(testableProvider, 'ensureReady').mockResolvedValue();
+        // Mock all caches as already attempted to skip signing
+        (
+          TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+        ).get.mockReturnValue({
+          attempted: true,
+          enabled: true,
+          timestamp: Date.now(),
+        });
+        (
+          TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+        ).getBuilderFee.mockReturnValue({
+          attempted: true,
+          success: true,
+        });
+        (
+          TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+        ).getReferral.mockReturnValue({
+          attempted: true,
+          success: true,
+        });
+
+        // Act
+        await testableProvider.ensureReadyForTrading();
+
+        // Assert
+        expect(testableProvider.tradingSetupComplete).toBe(true);
       });
     });
 

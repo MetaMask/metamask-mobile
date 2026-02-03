@@ -22,6 +22,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { useMusdCtaVisibility } from '../../Earn/hooks/useMusdCtaVisibility';
 
 export interface FlashListAssetKey {
   address: string;
@@ -60,6 +61,8 @@ const TokenListComponent = ({
     selectHomepageRedesignV1Enabled,
   );
 
+  const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
+
   const listRef = useRef<FlashListRef<FlashListAssetKey>>(null);
 
   const navigation = useNavigation();
@@ -96,6 +99,7 @@ const TokenListComponent = ({
         assetKey={item}
         showRemoveMenu={showRemoveMenu}
         setShowScamWarningModal={setShowScamWarningModal}
+        shouldShowTokenListItemCta={shouldShowTokenListItemCta}
         privacyMode={privacyMode}
         showPercentageChange={showPercentageChange}
         isFullView={isFullView}
@@ -104,6 +108,7 @@ const TokenListComponent = ({
     [
       showRemoveMenu,
       setShowScamWarningModal,
+      shouldShowTokenListItemCta,
       privacyMode,
       showPercentageChange,
       isFullView,
@@ -122,6 +127,7 @@ const TokenListComponent = ({
             assetKey={item}
             showRemoveMenu={showRemoveMenu}
             setShowScamWarningModal={setShowScamWarningModal}
+            shouldShowTokenListItemCta={shouldShowTokenListItemCta}
             privacyMode={privacyMode}
             showPercentageChange={showPercentageChange}
             isFullView={isFullView}
