@@ -2,14 +2,14 @@ import SendView from '../../pages/Send/RedesignedSendView';
 import SolanaTestDApp from '../../pages/Browser/SolanaTestDApp';
 import TokenOverview from '../../pages/wallet/TokenOverview';
 import WalletView from '../../pages/wallet/WalletView';
-import { SmokeConfirmationsRedesigned } from '../../tags';
+import { SmokeConfirmations } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 
 const RECIPIENT = '4Nd1mZyJY5ZqzR3n8bQF7h5L2Q9gY1yTtM6nQhc7P1Dp';
 
-describe(SmokeConfirmationsRedesigned('Send SOL token'), () => {
+describe(SmokeConfirmations('Send SOL token'), () => {
   it('should send solana to an address', async () => {
     await withFixtures(
       {
