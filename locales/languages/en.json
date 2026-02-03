@@ -509,7 +509,6 @@
     "copied": "Copied",
     "send_error_report": "Send error report",
     "try_again": "Try again",
-    "error_report_sent_toast": "Error report sent. We're investigating this problem. Try creating your wallet again.",
     "error_report_sent_title": "Error report sent",
     "error_report_sent_description": "We're investigating this problem. Try creating your wallet again."
   },

@@ -9,7 +9,7 @@ interface WalletCreationErrorParams {
   error: Error;
 }
 
-const WalletCreationError: React.FC = () => {
+const WalletCreationError = () => {
   const route =
     useRoute<RouteProp<{ params: WalletCreationErrorParams }, 'params'>>();
 

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useRef, useEffect } from 'react';
 import { View, SafeAreaView, ScrollView, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Clipboard from '@react-native-clipboard/clipboard';
@@ -29,10 +29,21 @@ interface SRPErrorScreenProps {
   error: Error;
 }
 
-const SRPErrorScreen: React.FC<SRPErrorScreenProps> = ({ error }) => {
+const SRPErrorScreen = ({ error }: SRPErrorScreenProps) => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const [copied, setCopied] = useState(false);
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(
+    () => () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+    },
+    [],
+  );
 
   const errorReport = `View: ChoosePassword\nError: ${error?.name || 'Unknown'}\n${error?.message || 'No message'}`;
 
@@ -69,7 +80,10 @@ const SRPErrorScreen: React.FC<SRPErrorScreenProps> = ({ error }) => {
   const handleCopyError = useCallback(() => {
     Clipboard.setString(errorReport);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (copyTimeoutRef.current) {
+      clearTimeout(copyTimeoutRef.current);
+    }
+    copyTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
   }, [errorReport]);
 
   const handleContactSupport = useCallback(() => {

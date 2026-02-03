@@ -28,10 +28,11 @@ import styleSheet from './SocialLoginErrorSheet.styles';
 const FOX_LOGO = require('../../../images/branding/fox.png');
 
 interface SocialLoginErrorSheetProps {
-  error: Error;
+  error?: Error;
 }
 
-const SocialLoginErrorSheet: React.FC<SocialLoginErrorSheetProps> = () => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const SocialLoginErrorSheet = ({ error }: SocialLoginErrorSheetProps) => {
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const { styles } = useStyles(styleSheet, {});
 
