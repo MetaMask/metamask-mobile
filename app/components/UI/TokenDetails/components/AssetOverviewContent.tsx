@@ -31,7 +31,7 @@ import ChartNavigationButton from '../../AssetOverview/ChartNavigationButton';
 import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
 import { PriceChartProvider } from '../../AssetOverview/PriceChart/PriceChart.context';
-import AssetDetailsActions from '../../../Views/AssetDetails/AssetDetailsActions';
+import { AssetDetailsActions } from './AssetDetailsActions';
 import MerklRewards from '../../Earn/components/MerklRewards';
 import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
@@ -108,11 +108,7 @@ export interface AssetOverviewContentProps {
   // Feature flags
   isPerpsEnabled: boolean;
   isMerklCampaignClaimingEnabled: boolean;
-
-  // Display flags
-  displayBuyButton: boolean;
-  displaySwapsButton: boolean;
-  isTokenBuyable: boolean;
+  isBuyable: boolean;
 
   // Currency
   currentCurrency: string;
@@ -121,7 +117,6 @@ export interface AssetOverviewContentProps {
   onBuy: () => void;
   onSend: () => Promise<void>;
   onReceive: () => void;
-  goToSwaps: () => void;
 
   // Tron-specific
   isTronNative?: boolean;
@@ -154,14 +149,11 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   chartNavigationButtons,
   isPerpsEnabled,
   isMerklCampaignClaimingEnabled,
-  displayBuyButton,
-  displaySwapsButton,
-  isTokenBuyable,
+  isBuyable,
   currentCurrency,
   onBuy,
   onSend,
   onReceive,
-  goToSwaps,
   isTronNative,
   stakedTrxAsset,
 }) => {
@@ -197,6 +189,19 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       });
     }
   }, [marketData, navigation]);
+
+  // Stub handlers for new V2 actions
+  const handleLong = useCallback(() => {
+    // TODO: Implement long action
+  }, []);
+
+  const handleShort = useCallback(() => {
+    // TODO: Implement short action
+  }, []);
+
+  const handleMore = useCallback(() => {
+    // TODO: Implement more menu action
+  }, []);
 
   const handleSelectTimePeriod = useCallback(
     (_timePeriod: TimePeriod) => {
@@ -259,12 +264,15 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             {renderChartNavigationButton()}
           </View>
           <AssetDetailsActions
-            displayBuyButton={displayBuyButton && isTokenBuyable}
-            displaySwapsButton={displaySwapsButton}
-            goToSwaps={goToSwaps}
+            hasPerpsMarket={hasPerpsMarket}
+            hasBalance={balance != null && Number(balance) > 0}
+            isBuyable={isBuyable}
             onBuy={onBuy}
-            onReceive={onReceive}
+            onLong={handleLong}
+            onShort={handleShort}
             onSend={onSend}
+            onReceive={onReceive}
+            onMore={handleMore}
             asset={{
               address: token.address,
               chainId,

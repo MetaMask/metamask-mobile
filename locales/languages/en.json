@@ -3324,6 +3324,10 @@
   "asset_overview": {
     "send_button": "Send",
     "buy_button": "Buy",
+    "cash_buy_button": "Cash Buy",
+    "long_button": "Long",
+    "short_button": "Short",
+    "more_button": "More",
     "token_marketplace": "Token marketplace",
     "sell_button": "Sell",
     "receive_button": "Receive",
