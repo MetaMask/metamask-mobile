@@ -1,31 +1,5 @@
 import { PredictController } from './PredictController';
 
-// Mock Engine AccountsController for selected address
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    AccountsController: {
-      getSelectedAccount: jest.fn(() => ({ address: '0xselected' })),
-    },
-    AccountTreeController: {
-      getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
-        {
-          address: '0xselected',
-          id: 'mock-account-id',
-          type: 'eip155:eoa',
-          options: {},
-          metadata: {
-            name: 'Test Account',
-            importTime: Date.now(),
-            keyring: { type: 'HD Key Tree' },
-          },
-          scopes: ['eip155:1'],
-          methods: ['eth_sendTransaction'],
-        },
-      ]),
-    },
-  },
-}));
-
 interface ActivityEntry {
   id: string;
   providerId: string;
@@ -55,6 +29,11 @@ describe('PredictController.getActivity', () => {
     ) as MockPredictController;
     controller.providers = new Map(Object.entries(providers));
     controller.update = jest.fn();
+    (
+      controller as unknown as { getSigner: () => { address: string } }
+    ).getSigner = jest.fn(() => ({
+      address: '0xselected',
+    }));
     return controller;
   };
 
