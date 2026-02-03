@@ -447,11 +447,14 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
       setLoading(true);
 
-      // standardize with login screen, always use password authentication
+      // Use password authentication for unlock (no biometric prompt during unlock)
       const authType = await componentAuthenticationType(false, false);
 
       // Only set oauth2Login for normal rehydration, not when password is outdated
       authType.oauth2Login = true;
+
+      // Get the biometric auth type based on device capability for setting up biometrics
+      const biometricAuthType = await componentAuthenticationType(true, false);
 
       // default to false for biometrics
       let biometricSetupSucceeded = false;
@@ -463,8 +466,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         async () => {
           await unlockWallet({ password, authPreference: authType });
           try {
+            // Use biometric auth type to set up biometrics by default
             await updateAuthPreference({
-              authType: authType.currentAuthType,
+              authType: biometricAuthType.currentAuthType,
               password,
             });
             biometricSetupSucceeded = true;
@@ -474,6 +478,13 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           }
         },
       );
+
+      if (!biometricSetupSucceeded) {
+        Alert.alert(
+          strings('login.biometric_setup_failed_title'),
+          strings('login.biometric_setup_failed_description'),
+        );
+      }
 
       track(MetaMetricsEvents.REHYDRATION_COMPLETED, {
         account_type: 'social',
@@ -511,13 +522,17 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
       setLoading(true);
 
-      // standardize with login screen, always use password authentication
-      // updateAuthPreference is called explicitly in the try block
+      // Use password authentication for unlock (no biometric prompt during unlock)
       const authType = await componentAuthenticationType(false, false);
 
       // Only set oauth2Login for normal rehydration, not when password is outdated
       authType.oauth2Login = false;
 
+      // Get the biometric auth type based on device capability for setting up biometrics
+      const biometricAuthType = await componentAuthenticationType(true, false);
+
+      // default to false for biometrics
+      let biometricSetupSucceeded = false;
       await trace(
         {
           name: TraceName.AuthenticateUser,
@@ -526,16 +541,25 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         async () => {
           await unlockWallet({ password, authPreference: authType });
           try {
+            // Use biometric auth type to set up biometrics by default
             await updateAuthPreference({
-              authType: authType.currentAuthType,
+              authType: biometricAuthType.currentAuthType,
               password,
             });
+            biometricSetupSucceeded = true;
           } catch (error) {
             // if error, do nothing
             Logger.log('biometric setup failed', error);
           }
         },
       );
+
+      if (!biometricSetupSucceeded) {
+        Alert.alert(
+          strings('login.biometric_setup_failed_title'),
+          strings('login.biometric_setup_failed_description'),
+        );
+      }
 
       setLoading(false);
       setError(null);

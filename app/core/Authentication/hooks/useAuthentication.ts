@@ -12,4 +12,6 @@ export default () => ({
   getAuthType: Authentication.getType,
   componentAuthenticationType: Authentication.componentAuthenticationType,
   updateAuthPreference: Authentication.updateAuthPreference,
+  checkIsSeedlessPasswordOutdated:
+    Authentication.checkIsSeedlessPasswordOutdated,
 });

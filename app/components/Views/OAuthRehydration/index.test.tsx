@@ -246,7 +246,7 @@ describe('OAuthRehydration', () => {
       });
     });
 
-    it('calls componentAuthenticationType with password-only mode (false, false)', async () => {
+    it('calls componentAuthenticationType twice: for unlock (false, false) and biometric setup (true, false)', async () => {
       // Arrange
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -257,20 +257,24 @@ describe('OAuthRehydration', () => {
         fireEvent(passwordInput, 'submitEditing');
       });
 
-      // Assert - should always use password authentication (first arg false)
+      // Assert - should call twice: once for unlock (password mode) and once for biometric setup
       await waitFor(() => {
         expect(mockComponentAuthenticationType).toHaveBeenCalledWith(
           false,
           false,
         );
+        expect(mockComponentAuthenticationType).toHaveBeenCalledWith(
+          true,
+          false,
+        );
       });
     });
 
-    it('calls updateAuthPreference with correct authType and password', async () => {
-      // Arrange
-      mockComponentAuthenticationType.mockResolvedValueOnce({
-        currentAuthType: 'biometrics',
-      });
+    it('calls updateAuthPreference with biometric authType from second componentAuthenticationType call', async () => {
+      // Arrange - mock two calls: first for unlock (password), second for biometric setup
+      mockComponentAuthenticationType
+        .mockResolvedValueOnce({ currentAuthType: 'password' }) // First call for unlock
+        .mockResolvedValueOnce({ currentAuthType: 'biometrics' }); // Second call for biometric setup
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
@@ -280,7 +284,7 @@ describe('OAuthRehydration', () => {
         fireEvent(passwordInput, 'submitEditing');
       });
 
-      // Assert - should call updateAuthPreference with authType and password
+      // Assert - should call updateAuthPreference with biometric authType from second call
       await waitFor(() => {
         expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
           authType: 'biometrics',
@@ -848,7 +852,7 @@ describe('OAuthRehydration', () => {
     });
 
     describe('password outdated login flow', () => {
-      it('calls updateAuthPreference when submitting new global password', async () => {
+      it('calls updateAuthPreference with biometric authType when submitting new global password', async () => {
         // Arrange - full setup for this test
         mockRoute.mockReturnValue({
           params: {
@@ -861,9 +865,10 @@ describe('OAuthRehydration', () => {
           isConnected: true,
           isInternetReachable: true,
         });
-        mockComponentAuthenticationType.mockResolvedValue({
-          currentAuthType: 'biometrics',
-        });
+        // Mock two calls: first for unlock (password), second for biometric setup
+        mockComponentAuthenticationType
+          .mockResolvedValueOnce({ currentAuthType: 'password' })
+          .mockResolvedValueOnce({ currentAuthType: 'biometrics' });
         mockUnlockWallet.mockResolvedValue(undefined);
         mockUpdateAuthPreference.mockResolvedValue(undefined);
 
@@ -879,7 +884,7 @@ describe('OAuthRehydration', () => {
           fireEvent(passwordInput, 'submitEditing');
         });
 
-        // Assert - check updateAuthPreference was called with correct params
+        // Assert - check updateAuthPreference was called with biometric authType from second call
         await waitFor(() => {
           expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
             authType: 'biometrics',
@@ -888,7 +893,7 @@ describe('OAuthRehydration', () => {
         });
       });
 
-      it('calls componentAuthenticationType with password-only mode for outdated password flow', async () => {
+      it('calls componentAuthenticationType twice for outdated password flow', async () => {
         // Arrange - full setup for this test
         mockRoute.mockReturnValue({
           params: {
@@ -919,10 +924,14 @@ describe('OAuthRehydration', () => {
           fireEvent(passwordInput, 'submitEditing');
         });
 
-        // Assert - check componentAuthenticationType was called with (false, false)
+        // Assert - should call twice: for unlock (false, false) and biometric setup (true, false)
         await waitFor(() => {
           expect(mockComponentAuthenticationType).toHaveBeenCalledWith(
             false,
+            false,
+          );
+          expect(mockComponentAuthenticationType).toHaveBeenCalledWith(
+            true,
             false,
           );
         });
@@ -941,9 +950,10 @@ describe('OAuthRehydration', () => {
           isConnected: true,
           isInternetReachable: true,
         });
-        mockComponentAuthenticationType.mockResolvedValue({
-          currentAuthType: 'password',
-        });
+        // Mock two calls for proper flow
+        mockComponentAuthenticationType
+          .mockResolvedValueOnce({ currentAuthType: 'password' })
+          .mockResolvedValueOnce({ currentAuthType: 'biometrics' });
         mockUnlockWallet.mockResolvedValue(undefined);
         mockUpdateAuthPreference.mockRejectedValue(
           new Error('Biometric setup failed'),

@@ -130,8 +130,14 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
 
-  const { unlockWallet, lockApp, getAuthType, componentAuthenticationType } =
-    useAuthentication();
+  const {
+    unlockWallet,
+    lockApp,
+    getAuthType,
+    componentAuthenticationType,
+    updateAuthPreference,
+    checkIsSeedlessPasswordOutdated,
+  } = useAuthentication();
 
   const track = (
     event: IMetaMetricsEvent,
@@ -315,6 +321,33 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     [handlePasswordError, handleVaultCorruption, navigation],
   );
 
+  const setupBiometricForSeedlessOnboarding = useCallback(
+    async (password: string) => {
+      const biometricAuthType = await componentAuthenticationType(true, false);
+
+      let biometricSetupSucceeded = false;
+      try {
+        // Use biometric auth type to set up biometrics by default
+        await updateAuthPreference({
+          authType: biometricAuthType.currentAuthType,
+          password,
+        });
+        biometricSetupSucceeded = true;
+      } catch (error) {
+        // if error, do nothing
+        Logger.log('biometric setup failed', error);
+      }
+
+      if (!biometricSetupSucceeded) {
+        Alert.alert(
+          strings('login.biometric_setup_failed_title'),
+          strings('login.biometric_setup_failed_description'),
+        );
+      }
+    },
+    [componentAuthenticationType, updateAuthPreference],
+  );
+
   const unlockWithPassword = useCallback(async () => {
     if (loading) return;
 
@@ -330,6 +363,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       // option to change biometry choice is removed
       const authPreference = await componentAuthenticationType(false, false);
 
+      const isGlobalPasswordOutdated =
+        await checkIsSeedlessPasswordOutdated(false);
       await trace(
         {
           name: TraceName.AuthenticateUser,
@@ -337,6 +372,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         },
         async () => {
           await unlockWallet({ password, authPreference });
+
+          // prompt for biometric setup for seedless password sync
+          if (isGlobalPasswordOutdated) {
+            await setupBiometricForSeedlessOnboarding(password);
+          }
         },
       );
     } catch (loginErr) {
@@ -350,6 +390,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     handleLoginError,
     componentAuthenticationType,
     unlockWallet,
+    setupBiometricForSeedlessOnboarding,
+    checkIsSeedlessPasswordOutdated,
   ]);
 
   const unlockWithBiometrics = useCallback(async () => {
