@@ -383,6 +383,11 @@ export const useStopLossPrompt = ({
     // Priority 2: ROE below threshold with debounce → Stop loss variant
     // But if suggested SL is too close to current price (within 3%), show add_margin instead
     if (roeDebounceComplete) {
+      // Guard: Don't show stop_loss variant if we can't calculate a valid suggested price
+      // This prevents displaying garbled banner text like "Set a stop loss at ( ROE)"
+      if (!suggestedStopLossPrice) {
+        return { shouldShowBanner: true, variant: 'add_margin' };
+      }
       if (isSuggestedSlTooClose) {
         // Safety guard: SL price too close to current price, suggest adding margin instead
         return { shouldShowBanner: true, variant: 'add_margin' };
@@ -397,6 +402,7 @@ export const useStopLossPrompt = ({
     liquidationDistance,
     roeDebounceComplete,
     isSuggestedSlTooClose,
+    suggestedStopLossPrice,
     positionAgeCheckPassed,
     roePercent,
   ]);

@@ -1082,13 +1082,17 @@ describe('useStopLossPrompt', () => {
 
   describe('safety guard: suggested SL too close to current price', () => {
     it('shows add_margin when suggested SL is within 3% of current price', () => {
-      // Position where midpoint between current and liquidation is within 3% of current
-      // Current: 50000, Liquidation: 49000 → Midpoint: 49500 → Distance: 1% from current
+      // To test the safety guard, we need:
+      // 1. Liquidation distance >= 3% (to pass Priority 1)
+      // 2. Midpoint distance < 3% (to trigger safety guard)
+      //
+      // Current: 50000, Liquidation: 47500 → liquidationDistance = 5%
+      // Midpoint = (50000 + 47500) / 2 = 48750 → midpointDistance = 2.5%
       const position = createMockPosition({
         entryPrice: '50000',
         size: '1',
         returnOnEquity: '-0.15', // Below threshold
-        liquidationPrice: '49000', // Close to current
+        liquidationPrice: '47500', // 5% from current (passes Priority 1)
         leverage: { type: 'isolated', value: 10 },
       });
 
@@ -1110,10 +1114,10 @@ describe('useStopLossPrompt', () => {
         jest.advanceTimersByTime(requiredTime);
       });
 
-      // Midpoint = (50000 + 49000) / 2 = 49500
-      // Distance from current = |50000 - 49500| / 50000 * 100 = 1%
-      // Since < 3%, should show add_margin instead of stop_loss
-      expect(result.current.suggestedStopLossPrice).toBe('49500');
+      // Midpoint = (50000 + 47500) / 2 = 48750
+      // Distance from current = |50000 - 48750| / 50000 * 100 = 2.5%
+      // Since < 3%, safety guard triggers and shows add_margin instead of stop_loss
+      expect(result.current.suggestedStopLossPrice).toBe('48750');
       expect(result.current.variant).toBe('add_margin');
     });
 
@@ -1153,7 +1157,7 @@ describe('useStopLossPrompt', () => {
       expect(result.current.variant).toBe('stop_loss');
     });
 
-    it('shows add_margin when suggested SL is exactly at 3% threshold', () => {
+    it('shows stop_loss when suggested SL is exactly at 3% threshold', () => {
       // Position where midpoint is exactly at 3% from current
       // Current: 50000, need midpoint at 48500 (3% away)
       // midpoint = (current + liq) / 2, so liq = 2*midpoint - current = 2*48500 - 50000 = 47000
@@ -1185,9 +1189,44 @@ describe('useStopLossPrompt', () => {
 
       // Midpoint = (50000 + 47000) / 2 = 48500
       // Distance from current = |50000 - 48500| / 50000 * 100 = 3%
-      // Since distance < 3% (not <=), 3% exactly is NOT within threshold, so stop_loss
+      // Since safety guard uses < 3% (not <=), exactly 3% is NOT within threshold, so stop_loss
       expect(result.current.suggestedStopLossPrice).toBe('48500');
       expect(result.current.variant).toBe('stop_loss');
+    });
+
+    it('shows add_margin when suggestedStopLossPrice is null', () => {
+      // When liquidationPrice is missing, suggestedStopLossPrice will be null
+      // The hook should fall back to add_margin to avoid showing garbled banner text
+      const position = createMockPosition({
+        entryPrice: '50000',
+        size: '1',
+        returnOnEquity: '-0.15', // Below threshold
+        liquidationPrice: undefined, // Missing - causes null suggestedStopLossPrice
+        leverage: { type: 'isolated', value: 10 },
+      });
+
+      const { result } = renderHook(() =>
+        useStopLossPrompt({
+          position,
+          currentPrice: 50000,
+        }),
+      );
+
+      // Fast-forward past both position age and debounce requirements
+      const requiredTime =
+        Math.max(
+          STOP_LOSS_PROMPT_CONFIG.RoeDebounceMs,
+          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs,
+        ) + 100;
+
+      act(() => {
+        jest.advanceTimersByTime(requiredTime);
+      });
+
+      // Without a valid liquidation price, we can't calculate a stop loss price
+      expect(result.current.suggestedStopLossPrice).toBeNull();
+      // Should show add_margin instead of stop_loss with null price
+      expect(result.current.variant).toBe('add_margin');
     });
   });
 });
