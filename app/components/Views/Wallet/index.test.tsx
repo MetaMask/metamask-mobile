@@ -198,9 +198,6 @@ jest.mock('../../../core/Engine', () => {
       TokensController: {
         addTokens: jest.fn(),
       },
-      RampsController: {
-        hydrateState: jest.fn(),
-      },
       NetworkEnablementController: {
         setEnabledNetwork: jest.fn(),
         setDisabledNetwork: jest.fn(),

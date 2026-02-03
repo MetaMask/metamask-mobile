@@ -2,6 +2,7 @@ import extractURLParams from './DeeplinkManager/utils/extractURLParams';
 import { RootState } from '../reducers';
 import { Store } from 'redux';
 import Logger from '../util/Logger';
+import type { AnalyticsUnfilteredProperties } from '../util/analytics/analytics.types';
 
 interface ProcessAttributionParams {
   currentDeeplink: string | null;
@@ -9,15 +10,14 @@ interface ProcessAttributionParams {
   store: Store<RootState, any>;
 }
 
-interface AttributionResult {
+type AttributionResult = AnalyticsUnfilteredProperties & {
   attributionId?: string;
-
   utm_source?: string;
   utm_medium?: string;
   utm_campaign?: string;
   utm_term?: string;
   utm_content?: string;
-}
+};
 
 export function processAttribution({
   currentDeeplink,
