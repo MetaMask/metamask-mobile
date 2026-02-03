@@ -48,87 +48,88 @@ test.describe(PerformancePreps, () => {
     async ({ device, performanceTracker }, testInfo) => {
       test.setTimeout(10 * 60 * 1000); // 10 minutes
 
-    const selectPerpsMainScreenTimer = new TimerHelper(
-      'Perps tutorial screen visible',
-      { ios: 2000, android: 2000 },
-      device,
-    );
+      const selectPerpsMainScreenTimer = new TimerHelper(
+        'Perps tutorial screen visible',
+        { ios: 2000, android: 2000 },
+        device,
+      );
 
-    const selectMarketTimer = new TimerHelper(
-      'Market list screen visible',
-      { ios: 7500, android: 7500 },
-      device,
-    );
-    const openOrderScreenTimer = new TimerHelper(
-      'Open Order Screen',
-      { ios: 1500, android: 1500 },
-      device,
-    );
-    const openPositionTimer = new TimerHelper(
-      'Position opened',
-      { ios: 10500, android: 20000 },
-      device,
-    );
+      const selectMarketTimer = new TimerHelper(
+        'Market list screen visible',
+        { ios: 7500, android: 7500 },
+        device,
+      );
+      const openOrderScreenTimer = new TimerHelper(
+        'Open Order Screen',
+        { ios: 1500, android: 1500 },
+        device,
+      );
+      const openPositionTimer = new TimerHelper(
+        'Position opened',
+        { ios: 10500, android: 20000 },
+        device,
+      );
 
-    const MarketDetailsScreenTimer = new TimerHelper(
-      'Market Details Screen',
-      { ios: 10000, android: 10000 },
-      device,
-    );
+      const MarketDetailsScreenTimer = new TimerHelper(
+        'Market Details Screen',
+        { ios: 10000, android: 10000 },
+        device,
+      );
 
-    await screensSetup(device);
-    await login(device);
+      await screensSetup(device);
+      await login(device);
 
       // Perps requires independent account for each device to avoid clashes when running tests in parallel
       await selectAccountDevice(device, testInfo);
 
-    await TabBarModal.tapActionButton();
-    await WalletActionModal.tapPerpsButton();
-    await selectPerpsMainScreenTimer.measure(async () => {
-      await PerpsTutorialScreen.isContainerDisplayed();
-    });
+      await TabBarModal.tapActionButton();
+      await WalletActionModal.tapPerpsButton();
+      await selectPerpsMainScreenTimer.measure(async () => {
+        await PerpsTutorialScreen.isContainerDisplayed();
+      });
 
-    await PerpsTutorialScreen.tapSkip();
-    await selectMarketTimer.measure(async () => {
-      await PerpsMarketListView.isHeaderVisible();
-    });
+      await PerpsTutorialScreen.tapSkip();
+      await selectMarketTimer.measure(async () => {
+        await PerpsMarketListView.isHeaderVisible();
+      });
 
-    await PerpsMarketListView.selectMarket('BTC');
+      await PerpsMarketListView.selectMarket('BTC');
 
-    await MarketDetailsScreenTimer.measure(
-      async () => await PerpsPositionDetailsView.isContainerDisplayed(),
-    );
-    // Check if there's an existing position and close it before continuing
-    if (await PerpsPositionDetailsView.isPositionOpen()) {
-      console.log(
-        '⚠️ Position already open, closing it before continuing with the test...',
+      await MarketDetailsScreenTimer.measure(
+        async () => await PerpsPositionDetailsView.isContainerDisplayed(),
       );
+      // Check if there's an existing position and close it before continuing
+      if (await PerpsPositionDetailsView.isPositionOpen()) {
+        console.log(
+          '⚠️ Position already open, closing it before continuing with the test...',
+        );
+        await PerpsPositionDetailsView.closePositionWithRetry();
+        console.log('✅ Existing position closed successfully');
+      }
+
+      await PerpsMarketDetailsView.tapLongButton();
+      // Open Position
+      await openOrderScreenTimer.measure(async () =>
+        PerpsOrderView.checkOrderScreenVisible(),
+      );
+
+      await PerpsOrderView.setLeverage(40);
+      await PerpsOrderView.tapPlaceOrder();
+
+      await openPositionTimer.measure(
+        async () => await PerpsPositionDetailsView.isPositionOpen(),
+      );
+
       await PerpsPositionDetailsView.closePositionWithRetry();
-      console.log('✅ Existing position closed successfully');
-    }
 
-    await PerpsMarketDetailsView.tapLongButton();
-    // Open Position
-    await openOrderScreenTimer.measure(async () =>
-      PerpsOrderView.checkOrderScreenVisible(),
-    );
-
-    await PerpsOrderView.setLeverage(40);
-    await PerpsOrderView.tapPlaceOrder();
-
-    await openPositionTimer.measure(
-      async () => await PerpsPositionDetailsView.isPositionOpen(),
-    );
-
-    await PerpsPositionDetailsView.closePositionWithRetry();
-
-    performanceTracker.addTimers(
-      selectPerpsMainScreenTimer,
-      selectMarketTimer,
-      openOrderScreenTimer,
-      openPositionTimer,
-      MarketDetailsScreenTimer,
-    );
-    await performanceTracker.attachToTest(testInfo);
-  });
-}); // End describe
+      performanceTracker.addTimers(
+        selectPerpsMainScreenTimer,
+        selectMarketTimer,
+        openOrderScreenTimer,
+        openPositionTimer,
+        MarketDetailsScreenTimer,
+      );
+      await performanceTracker.attachToTest(testInfo);
+    },
+  );
+});

@@ -337,6 +337,8 @@ function createSummary(groupedResults) {
               platform,
               device,
               team: test.team,
+              sessionId: test.sessionId || null,
+              videoURL: test.videoURL || null,
               failureReason: test.failureReason,
               qualityGates: test.qualityGates || null,
               qualityGatesViolations: test.qualityGatesViolations || null,
@@ -347,8 +349,10 @@ function createSummary(groupedResults) {
         // Track if this test has ever passed or failed
         if (test.testFailed) {
           testExecutions[uniqueKey].hasFailed = true;
-          // Update failure reason with the latest one
+          // Update failure reason and recording info with the latest execution
           testExecutions[uniqueKey].testInfo.failureReason = test.failureReason;
+          if (test.sessionId) testExecutions[uniqueKey].testInfo.sessionId = test.sessionId;
+          if (test.videoURL) testExecutions[uniqueKey].testInfo.videoURL = test.videoURL;
           // Update quality gates info if available
           if (test.qualityGates) {
             testExecutions[uniqueKey].testInfo.qualityGates = test.qualityGates;
@@ -401,8 +405,8 @@ function createSummary(groupedResults) {
           tags: testInfo.tags,
           platform: testInfo.platform,
           device: testInfo.device,
-          sessionId: testInfo.sessionId || null,
-          recordingLink: testInfo.videoURL || null,
+          sessionId: testInfo.sessionId ?? null,
+          recordingLink: testInfo.videoURL ?? null,
           failureReason: testInfo.failureReason,
           qualityGates: testInfo.qualityGates,
           qualityGatesViolations: testInfo.qualityGatesViolations,

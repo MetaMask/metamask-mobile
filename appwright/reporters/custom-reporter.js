@@ -437,11 +437,11 @@ class CustomReporter {
           }
 
           // Fetch profiling data from BrowserStack API
+          const appProfilingHandler = new AppProfilingDataHandler();
           try {
             console.log(
               `🔍 Fetching profiling data for ${session.testTitle}...`,
             );
-            const appProfilingHandler = new AppProfilingDataHandler();
             const profilingResult =
               await appProfilingHandler.fetchCompleteProfilingData(
                 session.sessionId,
@@ -482,6 +482,31 @@ class CustomReporter {
               error: `Failed to fetch profiling data: ${error.message}`,
               timestamp: new Date().toISOString(),
             };
+          }
+
+          // Fetch network logs from BrowserStack API
+          try {
+            console.log(`🌐 Fetching network logs for ${session.testTitle}...`);
+            const networkLogsResult =
+              await appProfilingHandler.fetchNetworkLogs(session.sessionId);
+
+            if (networkLogsResult.error) {
+              console.log(`⚠️ Network logs: ${networkLogsResult.error}`);
+              session.networkLogs = null;
+              session.networkLogsSummary = null;
+            } else {
+              session.networkLogs = networkLogsResult.logs;
+              session.networkLogsSummary = networkLogsResult.summary;
+              console.log(
+                `✅ Network logs fetched for ${session.testTitle}: ${networkLogsResult.summary?.totalRequests || 0} requests, ${networkLogsResult.summary?.failedRequests || 0} failed`,
+              );
+            }
+          } catch (error) {
+            console.log(
+              `⚠️ Failed to fetch network logs for ${session.testTitle}: ${error.message}`,
+            );
+            session.networkLogs = null;
+            session.networkLogsSummary = null;
           }
         } catch (error) {
           console.error(`❌ Error fetching video URL for ${session.testTitle}`);
@@ -1322,6 +1347,66 @@ class CustomReporter {
         }
       } else {
         console.log(`✅ No failed tests to report by team`);
+      }
+
+      // Save network logs for each session
+      const sessionsWithNetworkLogs = this.sessions.filter(
+        (s) => s.networkLogs && s.networkLogs.length > 0,
+      );
+
+      if (sessionsWithNetworkLogs.length > 0) {
+        const networkLogsDir = path.join(reportsDir, 'network-logs');
+        if (!fs.existsSync(networkLogsDir)) {
+          fs.mkdirSync(networkLogsDir, { recursive: true });
+        }
+
+        for (const session of sessionsWithNetworkLogs) {
+          const safeTestName = session.testTitle
+            .replace(/[^a-zA-Z0-9]/g, '_')
+            .substring(0, 50);
+
+          const networkLogsReport = {
+            testTitle: session.testTitle,
+            sessionId: session.sessionId,
+            fetchedAt: new Date().toISOString(),
+            summary: session.networkLogsSummary,
+            logs: session.networkLogs,
+          };
+
+          const networkLogsPath = path.join(
+            networkLogsDir,
+            `network-logs-${safeTestName}-${session.sessionId}.json`,
+          );
+          fs.writeFileSync(
+            networkLogsPath,
+            JSON.stringify(networkLogsReport, null, 2),
+          );
+        }
+
+        console.log(
+          `🌐 Network logs saved for ${sessionsWithNetworkLogs.length} session(s) in ${networkLogsDir}`,
+        );
+
+        // Create a summary file with all network logs summaries
+        const networkLogsSummaryReport = {
+          timestamp: new Date().toISOString(),
+          totalSessions: sessionsWithNetworkLogs.length,
+          sessions: sessionsWithNetworkLogs.map((s) => ({
+            testTitle: s.testTitle,
+            sessionId: s.sessionId,
+            summary: s.networkLogsSummary,
+          })),
+        };
+
+        const summaryPath = path.join(
+          networkLogsDir,
+          'network-logs-summary.json',
+        );
+        fs.writeFileSync(
+          summaryPath,
+          JSON.stringify(networkLogsSummaryReport, null, 2),
+        );
+        console.log(`📊 Network logs summary saved: ${summaryPath}`);
       }
     } catch (error) {
       console.error('Error generating performance report:', error);
