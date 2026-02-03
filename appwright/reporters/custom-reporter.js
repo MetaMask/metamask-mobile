@@ -434,6 +434,19 @@ class CustomReporter {
           );
           if (videoURL) {
             session.videoURL = videoURL;
+          } else {
+            // Fallback: build URL from session details when getVideoURL fails (e.g. test timed out, video not ready)
+            const appProfilingHandlerForUrl = new AppProfilingDataHandler();
+            const sessionDetails =
+              await appProfilingHandlerForUrl.getSessionDetails(
+                session.sessionId,
+              );
+            if (sessionDetails?.buildId) {
+              session.videoURL = `https://app-automate.browserstack.com/builds/${sessionDetails.buildId}/sessions/${session.sessionId}`;
+              console.log(
+                `✅ Fallback: built recording URL from session details for ${session.testTitle}`,
+              );
+            }
           }
 
           // Fetch profiling data from BrowserStack API

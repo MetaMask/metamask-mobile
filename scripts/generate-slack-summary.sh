@@ -109,55 +109,45 @@ if [ -f "$SUMMARY_FILE" ]; then
     SUMMARY+="  • iOS: $iosImportedWalletStatus\n\n"
     SUMMARY+="---------------\n\n"
     
-    # Add failed tests section if there are failures (simple format: @team, test - reason -> recording)
+    # Add failed tests section: one line per unique test name, grouped by team.
+    # Same test failing on Android and iOS shows once with "Failed on Android & iOS" and both recording links.
     if [ "$totalFailedTests" -gt 0 ]; then
         SUMMARY+="*Failed tests:*\n\n"
         
-        # Get all team IDs that have failed tests
-        teamIds=$(jq -r '.failedTestsStats.failedTestsByTeam | keys[]' "$SUMMARY_FILE" 2>/dev/null)
-        
-        for teamId in $teamIds; do
-            slackMention=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].team.slackMention // \"$teamId\"" "$SUMMARY_FILE")
-            SUMMARY+="${slackMention}:\n"
+        prevMention=""
+        while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            mention=$(echo "$line" | cut -f1)
+            name=$(echo "$line" | cut -f2)
+            reasonDisplay=$(echo "$line" | cut -f3)
+            platformsLabel=$(echo "$line" | cut -f4)
+            recordings=$(echo "$line" | cut -f5-)
             
-            testCount=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests | length" "$SUMMARY_FILE")
+            if [ "$mention" != "$prevMention" ]; then
+                SUMMARY+="${mention}:\n"
+                prevMention="$mention"
+            fi
             
-            for ((i=0; i<testCount; i++)); do
-                testName=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[$i].testName" "$SUMMARY_FILE")
-                failureReason=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[$i].failureReason // \"unknown\"" "$SUMMARY_FILE")
-                # recordingLink comes from the reporter (full BrowserStack URL from API); fallback to sessionId if missing
-                recordingLink=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[$i].recordingLink // \"\"" "$SUMMARY_FILE")
-                sessionId=$(jq -r ".failedTestsStats.failedTestsByTeam[\"$teamId\"].tests[$i].sessionId // \"\"" "$SUMMARY_FILE")
-                
-                case "$failureReason" in
-                    "quality_gates_exceeded")
-                        reasonDisplay="Quality gates error"
-                        ;;
-                    "timedOut")
-                        reasonDisplay="Test timed out"
-                        ;;
-                    "test_error"|"failed")
-                        reasonDisplay="Test error"
-                        ;;
-                    *)
-                        reasonDisplay="$failureReason"
-                        ;;
-                esac
-                
-                if [ -n "$recordingLink" ]; then
-                    recordingPart="<${recordingLink}|Recording>"
-                elif [ -n "$sessionId" ]; then
-                    recordingPart="Recording (session: ${sessionId})"
-                else
-                    recordingPart="—"
-                fi
-                
-                SUMMARY+="  - ${testName} - ${reasonDisplay} -> ${recordingPart}\n"
-            done
-            SUMMARY+="\n"
-        done
+            if [ -n "$platformsLabel" ]; then
+                SUMMARY+="  - ${name} - ${reasonDisplay} -> Failed on ${platformsLabel}: ${recordings}\n"
+            else
+                SUMMARY+="  - ${name} - ${reasonDisplay} -> ${recordings}\n"
+            fi
+        done <<< "$(jq -r '
+          .failedTestsStats.failedTestsByTeam | to_entries[] |
+          .value.team.slackMention as $mention |
+          (.value.tests | group_by(.testName)[] |
+            (.[0].testName) as $name |
+            (.[0].failureReason) as $reason |
+            ([.[].platform] | unique) as $platforms |
+            ($platforms | join(" & ")) as $platformsLabel |
+            ([.[] | if .recordingLink != null and .recordingLink != "" then "<" + .recordingLink + "|Recording (" + .platform + ")>" else (if .sessionId != null and .sessionId != "" then "Recording (session: " + .sessionId + ")" else "—" end) end] | join(" · ")) as $recordings |
+            ($reason | if . == "quality_gates_exceeded" then "Quality gates error" elif . == "timedOut" then "Test timed out" elif . == "test_error" or . == "failed" then "Test error" else . end) as $reasonDisplay |
+            [$mention, $name, $reasonDisplay, $platformsLabel, $recordings] | @tsv
+          )
+        ' "$SUMMARY_FILE" 2>/dev/null)"
         
-        SUMMARY+="---------------\n\n"
+        SUMMARY+="\n---------------\n\n"
     fi
     
     SUMMARY+="*Build Info:*\n"
