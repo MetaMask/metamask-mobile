@@ -38,10 +38,10 @@ jest.mock('../../../../util/navigation/navUtils', () => ({
 }));
 
 const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn().mockReturnValue({});
+const mockAddProperties = jest.fn().mockReturnValue({ build: mockBuild });
 const mockCreateEventBuilder = jest.fn().mockReturnValue({
-  addProperties: jest.fn().mockReturnValue({
-    build: jest.fn().mockReturnValue({}),
-  }),
+  addProperties: mockAddProperties,
 });
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
@@ -235,6 +235,8 @@ describe('AddressList', () => {
     beforeEach(() => {
       mockTrackEvent.mockClear();
       mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      mockBuild.mockClear();
     });
 
     it('tracks "Copied Address" event when copy button is pressed', async () => {
@@ -257,14 +259,13 @@ describe('AddressList', () => {
       );
 
       // Verify addProperties was called with correct properties
-      const mockEventBuilder = mockCreateEventBuilder.mock.results[0].value;
-      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+      expect(mockAddProperties).toHaveBeenCalledWith({
         location: 'address-list',
         chain_id_caip: 'eip155:1', // CAIP format chain ID
       });
 
       // Verify build was called
-      expect(mockEventBuilder.addProperties().build).toHaveBeenCalled();
+      expect(mockBuild).toHaveBeenCalled();
 
       // Verify trackEvent was called with the built event
       expect(mockTrackEvent).toHaveBeenCalled();
@@ -276,21 +277,19 @@ describe('AddressList', () => {
       // Get all copy buttons (should be multiple for different networks)
       const copyButtons = getAllByTestId('multichain-address-row-copy-button');
 
-      // Press the second copy button (Base network - 0x2105)
-      if (copyButtons.length > 1) {
-        fireEvent.press(copyButtons[1]);
+      // Ensure we have multiple copy buttons for different networks
+      expect(copyButtons.length).toBeGreaterThan(1);
 
-        await new Promise(process.nextTick);
+      // Press the second copy button (Solana Mainnet - rendered after ETH addresses)
+      fireEvent.press(copyButtons[1]);
 
-        // Verify the chain_id_caip is correctly converted to CAIP format
-        const mockEventBuilder = mockCreateEventBuilder.mock.results[1]?.value;
-        if (mockEventBuilder) {
-          expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
-            location: 'address-list',
-            chain_id_caip: 'eip155:8453', // CAIP format of 0x2105 (Base)
-          });
-        }
-      }
+      await new Promise(process.nextTick);
+
+      // Verify the chain_id_caip is correctly passed in CAIP format
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        location: 'address-list',
+        chain_id_caip: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp', // Solana Mainnet
+      });
     });
 
     it('includes location property as "address-list"', async () => {
@@ -303,8 +302,8 @@ describe('AddressList', () => {
 
       await new Promise(process.nextTick);
 
-      const mockEventBuilder = mockCreateEventBuilder.mock.results[0].value;
-      const addPropertiesCall = mockEventBuilder.addProperties.mock.calls[0][0];
+      // Access the first call from this test (now properly cleared between tests)
+      const addPropertiesCall = mockAddProperties.mock.calls[0][0];
 
       expect(addPropertiesCall).toHaveProperty('location', 'address-list');
     });
