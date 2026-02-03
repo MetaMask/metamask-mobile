@@ -112,6 +112,7 @@ const ALERTS_NAME_METRICS: AlertNameMetrics = {
   [AlertKeys.Blockaid]: 'blockaid',
   [AlertKeys.BurnAddress]: 'burn_address',
   [AlertKeys.DomainMismatch]: 'domain_mismatch',
+  [AlertKeys.FirstTimeInteraction]: 'first_time_interaction',
   [AlertKeys.GasEstimateFailed]: 'gas_estimate_failed',
   [AlertKeys.InsufficientBalance]: 'insufficient_balance',
   [AlertKeys.InsufficientPayTokenBalance]: 'insufficient_funds',
