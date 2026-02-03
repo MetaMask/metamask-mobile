@@ -10,6 +10,50 @@ They sit between unit tests and E2E tests in the testing pyramid:
 - **Faster than E2E tests**: No device/simulator needed, run in Jest
 - **State-driven**: Control what you test by setting up state, not by clicking through the UI
 
+## Unit Tests vs Component View Tests (Why "Shallow" vs "Full" Matters)
+
+Many existing unit tests in our codebase are **shallow component tests** meaning they render a single component in isolation and replace its dependencies with mocks. Component view tests take the opposite approach where they render a full screen with real app state and only mock what is strictly necessary.
+
+### What our Unit Tests Do Today
+
+Typical unit tests for screens/components in our repo often:
+
+- **Use Enzyme `shallow()`** – Renders only the top-level component; child components are replaced by placeholders. You never see the real UI tree or real selector/hook behavior.
+- **Mock heavily** – Child components, hooks, selectors, utils, Engine, navigation, and feature flags are all mocked (`jest.mock(...)`). The component under test is the only “real” code; everything it depends on is stubbed.
+- **Assert on implementation** – Tests check internal structure: `wrapper.find(SomeChild)`, `wrapper.props()`, `wrapper.state()`, or that specific subcomponents were called with certain props. That ties tests to how the component is built, not what the user sees or can do.
+- **Isolate the unit** – The goal is to test “this component in isolation.” That makes tests fast and avoids pulling in Redux/navigation, but it also means you are not testing how the component behaves with real data flow (real selectors, real hooks, real children).
+
+So “shallow” here means: **shallow rendering** (Enzyme) and **shallow integration** (lots of mocks, minimal real behavior). The component is exercised, but not in a realistic environment.
+
+### What Component View Tests Will Instead Do
+
+Component view tests will:
+
+- **Render full screens** – The entire view (e.g. BridgeView, WalletView) is mounted with React Testing Library. Real child components render; you see the same component tree the user would see (minus native/Engine side effects we explicitly mock).
+- **Mock only Engine and allowed native modules** – Only `Engine` (and `Engine/Engine`) and `react-native-device-info` may be mocked (enforced by ESLint and test setup). Hooks, selectors, and child components are **not** mocked.
+- **Drive behavior via state** – You control the scenario by building Redux state with presets and overrides (e.g. `createStateFixture()`, `initialStateBridge()`, `renderBridgeView({ overrides: { ... } })`). Selectors and hooks read from that state; the UI reacts to it. You test “when state looks like X, the user sees Y and can do Z.”
+- **Assert on user-facing behavior** – Tests use queries and matchers that reflect what the user sees and does: `getByTestId`, `findByText`, `fireEvent.press`, “confirm button is enabled,” “fiat value shows $19,000.00.” Implementation details (which child was rendered, internal state) are not the focus.
+
+So the “new” approach is **full-screen, state-driven, behavior-focused**: minimal mocks, real data flow, and assertions that match user-visible outcomes.
+
+### Side-by-Side Comparison
+
+| Aspect                    | Unit tests (current)                                                                | Component view tests                                               |
+| ------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| **Rendering**             | One component, children stubbed (e.g. Enzyme `shallow`) or many children mocked out | Full screen; real children and real component tree                 |
+| **Mocks**                 | Many: child components, hooks, selectors, Engine, nav, utils, feature flags         | Only Engine + `react-native-device-info` (enforced)                |
+| **Data source**           | Mock return values per hook/selector/util                                           | Redux state from fixture/preset/overrides                          |
+| **Assertions**            | Implementation: `wrapper.find()`, props, state, “component X was called with Y”     | Behavior: what’s on screen, what’s enabled, what happens on press  |
+| **When something breaks** | Fails can be due to refactors (e.g. renaming a child) even if behavior is correct   | Fails when user-visible behavior or state-driven outcome changes   |
+| **Best for**              | Pure logic, small units, or legacy tests that already use this style                | A full screen with different state scenarios and user interactions |
+
+### When to Use Which
+
+- **Keep or add unit tests** for: pure functions, reducers, selectors, utilities, and small units where “behavior” is just “output for given input.” No need for a full screen or Redux.
+- **Prefer component view tests** for: “Does this screen show the right thing for this state?” and “Does this interaction on this screen work?” That’s where shallow tests are brittle (many mocks, implementation-coupled) and component view tests give better confidence with state-driven, behavior-focused assertions.
+
+In short: **unit tests** = isolate one component and mock the rest; **component view tests** = render the view with real app state and minimal mocks, and assert on what the user sees and can do.
+
 ## Goals
 
 This framework provides:
