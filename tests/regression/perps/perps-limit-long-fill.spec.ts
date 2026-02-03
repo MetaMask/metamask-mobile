@@ -1,18 +1,18 @@
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { RegressionTrade } from '../../tags';
-import { loginToApp } from '../../viewHelper';
-import { PERPS_ARBITRUM_MOCKS } from '../../../tests/api-mocking/mock-responses/perps-arbitrum-mocks';
-import { PerpsHelpers } from './helpers/perps-helpers';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
-import PerpsMarketListView from '../../pages/Perps/PerpsMarketListView';
-import PerpsMarketDetailsView from '../../pages/Perps/PerpsMarketDetailsView';
-import PerpsOrderView from '../../pages/Perps/PerpsOrderView';
-import PerpsHomeView from '../../pages/Perps/PerpsHomeView';
-import PerpsView from '../../pages/Perps/PerpsView';
-import PerpsE2EModifiers from './helpers/perps-modifiers';
-import { TestSuiteParams } from '../../../tests/framework/types';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { RegressionTrade } from '../../../e2e/tags';
+import { loginToApp } from '../../../e2e/viewHelper';
+import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
+import { PerpsHelpers } from '../../helpers/perps/perps-helpers';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../../e2e/pages/wallet/WalletActionsBottomSheet';
+import PerpsMarketListView from '../../../e2e/pages/Perps/PerpsMarketListView';
+import PerpsMarketDetailsView from '../../../e2e/pages/Perps/PerpsMarketDetailsView';
+import PerpsOrderView from '../../../e2e/pages/Perps/PerpsOrderView';
+import PerpsHomeView from '../../../e2e/pages/Perps/PerpsHomeView';
+import PerpsView from '../../../e2e/pages/Perps/PerpsView';
+import PerpsE2EModifiers from '../../helpers/perps/perps-modifiers';
+import { TestSuiteParams } from '../../framework/types';
 
 describe(RegressionTrade('Perps - ETH limit long fill'), () => {
   it('creates ETH limit long at Mid, shows open order, then fills after -15%', async () => {

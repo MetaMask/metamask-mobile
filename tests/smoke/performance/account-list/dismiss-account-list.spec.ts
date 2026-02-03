@@ -1,21 +1,21 @@
-import { loginToApp } from '../../../viewHelper';
-import { SmokePerformance } from '../../../tags';
-import WalletView from '../../../pages/wallet/WalletView';
-import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
-import Assertions from '../../../../tests/framework/Assertions';
-import TestHelpers from '../../../helpers';
-import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
+import { loginToApp } from '../../../../e2e/viewHelper';
+import { SmokePerformance } from '../../../../e2e/tags';
+import WalletView from '../../../../e2e/pages/wallet/WalletView';
+import AccountListBottomSheet from '../../../../e2e/pages/wallet/AccountListBottomSheet';
+import Assertions from '../../../framework/Assertions';
+import TestHelpers from '../../../../e2e/helpers';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { toChecksumAddress } from 'ethereumjs-util';
 import {
   CORE_USER_STATE,
   POWER_USER_STATE,
-} from '../../../../tests/framework/fixtures/constants';
+} from '../../../framework/fixtures/constants';
 import {
   PerformanceTestReporter,
   createUserProfileTests,
   type TestResult,
-} from '../../../utils/PerformanceTestReporter';
+} from '../../../../e2e/utils/PerformanceTestReporter';
 
 describe(SmokePerformance('Switching Accounts to Dismiss Load Testing'), () => {
   const reporter = new PerformanceTestReporter(
