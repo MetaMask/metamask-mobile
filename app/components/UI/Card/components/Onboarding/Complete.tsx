@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Image } from 'react-native';
-import { StackActions, useNavigation } from '@react-navigation/native';
+import {
+  StackActions,
+  useNavigation,
+  useRoute,
+  RouteProp,
+} from '@react-navigation/native';
 import OnboardingStep from './OnboardingStep';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -25,12 +30,30 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
+/**
+ * Route params for Complete screen
+ * Used when navigating from deep link handlers
+ */
+type NextDestination = 'personal_details' | 'card_home';
+
+interface CompleteRouteParams {
+  /** Determines where to navigate after tapping continue
+   * - 'personal_details': Navigate to PersonalDetails (from onboarding flow KYC approval)
+   * - 'card_home': Navigate to CardHome (from authenticated flow KYC approval)
+   * - undefined: Default behavior - check token and navigate accordingly
+   */
+  nextDestination?: NextDestination;
+}
+
 const Complete = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const tw = useTailwind();
   const [isLoading, setIsLoading] = useState(false);
   const { trackEvent, createEventBuilder } = useMetrics();
+  const route =
+    useRoute<RouteProp<{ params: CompleteRouteParams }, 'params'>>();
+  const nextDestination = route.params?.nextDestination;
 
   useEffect(() => {
     trackEvent(
@@ -53,6 +76,23 @@ const Complete = () => {
     );
 
     try {
+      // Handle navigation based on nextDestination param (from deep link)
+      if (nextDestination === 'personal_details') {
+        // Coming from onboarding flow KYC approval - continue to PersonalDetails
+        navigation.dispatch(
+          StackActions.replace(Routes.CARD.ONBOARDING.PERSONAL_DETAILS),
+        );
+        return;
+      }
+
+      if (nextDestination === 'card_home') {
+        // Coming from authenticated flow KYC approval - go to CardHome
+        dispatch(resetOnboardingState());
+        navigation.dispatch(StackActions.replace(Routes.CARD.HOME));
+        return;
+      }
+
+      // Default behavior: Check token and navigate accordingly
       const token = await getCardBaanxToken();
       if (token.success && token.tokenData?.accessToken) {
         dispatch(resetOnboardingState());
