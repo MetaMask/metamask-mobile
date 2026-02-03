@@ -2,6 +2,8 @@
  * Ramp navigation parameters
  */
 
+import type { RampIntent } from '../../types';
+
 /** Ramp buy/sell parameters */
 export interface RampBuySellParams {
   showBack?: boolean;
@@ -13,9 +15,28 @@ export interface RampOrderDetailsParams {
   redirectToOrders?: boolean;
 }
 
-/** Deposit build quote parameters */
+/**
+ * Ramp Aggregator build quote parameters
+ * Used by app/components/UI/Ramp/Aggregator/Views/BuildQuote/BuildQuote.tsx
+ */
+export interface RampAggregatorBuildQuoteParams extends RampIntent {
+  showBack?: boolean;
+}
+
+/**
+ * Deposit build quote parameters
+ * Used by app/components/UI/Ramp/Deposit/Views/BuildQuote/BuildQuote.tsx
+ */
 export interface DepositBuildQuoteParams {
-  animationEnabled?: boolean;
+  shouldRouteImmediately?: boolean;
+}
+
+/**
+ * Simple Ramp build quote parameters
+ * Used by app/components/UI/Ramp/components/BuildQuote/BuildQuote.tsx
+ */
+export interface SimpleRampBuildQuoteParams {
+  assetId?: string;
 }
 
 /** Webview modal parameters */

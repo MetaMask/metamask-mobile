@@ -52,7 +52,9 @@ import type { QRScannerParams } from '../../components/Views/QRScanner/QRScanner
 import type {
   RampBuySellParams,
   RampOrderDetailsParams,
+  RampAggregatorBuildQuoteParams,
   DepositBuildQuoteParams,
+  SimpleRampBuildQuoteParams,
   WebviewModalParams,
 } from '../../components/UI/Ramp/Aggregator/types/navigation';
 import type { DepositNavigationParams } from '../../components/UI/Ramp/Deposit/types/navigationParams';
@@ -234,7 +236,15 @@ export interface RootStackParamList extends ParamListBase {
   RampSell: RampBuySellParams | undefined;
   RampTokenSelection: undefined;
   GetStarted: undefined;
-  BuildQuote: DepositBuildQuoteParams | undefined;
+  /**
+   * BuildQuote route is shared between:
+   * - Ramp Aggregator: uses RampAggregatorBuildQuoteParams (showBack, assetId, amount, currency)
+   * - Deposit: uses DepositBuildQuoteParams (shouldRouteImmediately)
+   */
+  BuildQuote:
+    | RampAggregatorBuildQuoteParams
+    | DepositBuildQuoteParams
+    | undefined;
   BuildQuoteHasStarted: undefined;
   Quotes: undefined;
   Checkout: undefined;
@@ -242,7 +252,7 @@ export interface RootStackParamList extends ParamListBase {
   SendTransaction: undefined;
   RampSettings: undefined;
   RampActivationKeyForm: undefined;
-  RampAmountInput: undefined;
+  RampAmountInput: SimpleRampBuildQuoteParams | undefined;
   RampModals: undefined;
   RampTokenSelectorModal: undefined;
   RampFiatSelectorModal: undefined;
