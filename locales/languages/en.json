@@ -2770,9 +2770,8 @@
     "description5": "1. Unlock your Keystone",
     "description6": "2. Tap the ··· Menu, then go to Sync",
     "button_continue": "Continue",
-    "hint_text": "Scan your hardware wallet to ",
-    "purpose_connect": "connect",
-    "purpose_sign": "confirm the transaction",
+    "hint_text_pair": "Scan your hardware wallet",
+    "hint_text_sign": "Scan your hardware wallet to confirm the transaction",
     "select_accounts": "Select an account"
   },
   "data_collection_modal": {
@@ -7173,8 +7172,8 @@
     "main_title": "Rewards",
     "referral_title": "Referrals",
     "tab_overview_title": "Overview",
+    "tab_snapshots_title": "Snapshots",
     "tab_activity_title": "Activity",
-    "tab_levels_title": "Levels",
     "referral_stats_earned_from_referrals": "Earned from referrals",
     "referral_stats_referrals": "Referrals",
     "loading_activity": "Loading activity...",
@@ -7486,6 +7485,33 @@
     },
     "animation": {
       "could_not_load": "Couldn't load"
+    },
+    "snapshot": {
+      "starts_date": "Starts {{date}}",
+      "ends_date": "Ends {{date}}",
+      "results_coming_soon": "Results coming soon",
+      "tokens_on_the_way": "Tokens on the way",
+      "pill_up_next": "Up next",
+      "pill_live_now": "Live now",
+      "pill_calculating": "Calculating",
+      "pill_results_ready": "Results Ready",
+      "pill_complete": "Complete"
+    },
+    "snapshots_section": {
+      "title": "Snapshots",
+      "error_title": "Unable to load snapshots",
+      "error_description": "We couldn't load the snapshots. Please try again.",
+      "retry_button": "Retry"
+    },
+    "snapshots_tab": {
+      "active_title": "Active",
+      "upcoming_title": "Upcoming",
+      "previous_title": "Previous",
+      "empty_state": "No snapshots available",
+      "error_title": "Unable to load snapshots",
+      "error_description": "We couldn't load the snapshots. Please try again.",
+      "retry_button": "Retry",
+      "refreshing": "Refreshing..."
     }
   },
   "time": {

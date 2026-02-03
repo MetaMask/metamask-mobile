@@ -66,6 +66,7 @@ import {
 } from '../../hooks';
 import { useHasExistingPosition } from '../../hooks/useHasExistingPosition';
 import { usePerpsLiveOrderBook } from '../../hooks/stream/usePerpsLiveOrderBook';
+import { usePerpsLivePrices } from '../../hooks/stream/usePerpsLivePrices';
 import { usePerpsTopOfBook } from '../../hooks/stream/usePerpsTopOfBook';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
@@ -202,6 +203,27 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   // Subscribe to top-of-book (best bid/ask) for spread display.
   // This is intentionally independent from order book aggregation/grouping.
   const topOfBook = usePerpsTopOfBook({ symbol: symbol || '' });
+
+  // Subscribe to live price updates for header display (TAT-2441)
+  // This ensures the price in the header updates in real-time
+  const livePrices = usePerpsLivePrices({
+    symbols: symbol ? [symbol] : [],
+    throttleMs: 1000,
+  });
+
+  // Current price for header - use live price with fallback to static market price
+  const currentPrice = useMemo(() => {
+    const priceData = livePrices[symbol || ''];
+    if (priceData?.price) {
+      const parsed = parseFloat(priceData.price);
+      // Validate parsed value - fallback to marketPrice if invalid
+      if (Number.isFinite(parsed) && parsed > 0) {
+        return parsed;
+      }
+    }
+    // Fallback to static market price if live price not available or invalid
+    return marketPrice ?? 0;
+  }, [livePrices, symbol, marketPrice]);
 
   const spreadMetrics = useMemo(() => {
     const bidStr = topOfBook?.bestBid;
@@ -470,7 +492,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           <PerpsMarketHeader
             market={market}
             onBackPress={handleBack}
-            currentPrice={marketPrice ?? 0}
+            currentPrice={currentPrice}
           />
         ) : (
           <View style={styles.header}>
@@ -504,7 +526,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
         <PerpsMarketHeader
           market={market}
           onBackPress={handleBack}
-          currentPrice={marketPrice ?? 0}
+          currentPrice={currentPrice}
         />
       )}
 
