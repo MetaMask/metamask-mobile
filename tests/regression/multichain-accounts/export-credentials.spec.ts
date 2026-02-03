@@ -1,13 +1,13 @@
-import { RegressionWalletPlatform } from '../../tags.js';
+import { RegressionWalletPlatform } from '../../../e2e/tags.js';
 import {
   HD_ACCOUNT,
   goToAccountDetails,
   withMultichainAccountDetailsEnabledFixtures,
-} from './common';
-import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
-import { completeSrpQuiz } from '../../../tests/flows/accounts.flow.ts';
-import { defaultOptions } from '../../../tests/seeder/anvil-manager';
-import TestHelpers from '../../helpers';
+} from '../../helpers/multichain-accounts/common';
+import AccountDetails from '../../../e2e/pages/MultichainAccounts/AccountDetails';
+import { completeSrpQuiz } from '../../flows/accounts.flow';
+import { defaultOptions } from '../../seeder/anvil-manager';
+import TestHelpers from '../../../e2e/helpers';
 
 const exportSrp = async () => {
   await AccountDetails.tapExportSrpButton();
