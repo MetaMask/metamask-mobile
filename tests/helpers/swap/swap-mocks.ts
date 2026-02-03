@@ -1,9 +1,9 @@
 import { Mockttp } from 'mockttp';
-import { TestSpecificMock } from '../../../../tests/framework';
+import { TestSpecificMock } from '../../framework';
 import {
   interceptProxyUrl,
   setupMockRequest,
-} from '../../../../tests/api-mocking/helpers/mockHelpers';
+} from '../../api-mocking/helpers/mockHelpers';
 import {
   GET_QUOTE_ETH_USDC_RESPONSE,
   GET_QUOTE_ETH_DAI_RESPONSE,

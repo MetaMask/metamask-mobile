@@ -11,10 +11,10 @@ const smokeTags = {
     description:
       'Tests account security and multi-account management within the wallet. Covers Secret Recovery Phrase (SRP) protection flows including the reveal quiz validation in Settings, SRP export from both Settings and account action menus, and wallet details credential display. Also tests multi-account workflows: creating new HD wallet accounts, adding QR-based hardware wallet accounts, importing accounts via private key, account switching and selection, account renaming, and managing account visibility in the account list. Integrates with the AccountSelector and RevealPrivateCredential components. Related to SmokeWalletPlatform for multi-SRP architecture and SmokeIdentity for account sync features.',
   },
-  smokeConfirmationsRedesigned: {
-    tag: 'SmokeConfirmationsRedesigned:',
+  smokeConfirmations: {
+    tag: 'SmokeConfirmations:',
     description:
-      'Tests the redesigned transaction and signature confirmation UI system. Covers signature request types: personal_sign messages, Sign-In with Ethereum (SIWE/EIP-4361), and typed data signing (EIP-712 V1/V3/V4). Tests Blockaid security alert integration for detecting malicious signature requests. Validates smart contract interactions including contract deployment, method calls, and token approvals (ERC-20 approve, increaseAllowance, ERC-721/ERC-1155 setApprovalForAll). Tests transaction sending for native tokens (ETH), ERC-20 tokens, and Solana SPL tokens. Covers gas fee customization (EIP-1559 and legacy), transaction simulation previews, and advanced EIP-7702 account abstraction features like batch transactions and gas fee token payments. Also tests per-dApp network selection within confirmations. Integrates with SmokeTrade for swap/bridge confirmations and SmokeNetworkExpansion for cross-chain transactions.',
+      'Tests the transaction and signature confirmation UI system. Covers signature request types: personal_sign messages, Sign-In with Ethereum (SIWE/EIP-4361), and typed data signing (EIP-712 V1/V3/V4). Tests Blockaid security alert integration for detecting malicious signature requests. Validates smart contract interactions including contract deployment, method calls, and token approvals (ERC-20 approve, increaseAllowance, ERC-721/ERC-1155 setApprovalForAll). Tests transaction sending for native tokens (ETH), ERC-20 tokens, and Solana SPL tokens. Covers gas fee customization (EIP-1559 and legacy), transaction simulation previews, and advanced EIP-7702 account abstraction features like batch transactions and gas fee token payments. Also tests per-dApp network selection within confirmations. Integrates with SmokeTrade for swap/bridge confirmations and SmokeNetworkExpansion for cross-chain transactions.',
   },
   smokeIdentity: {
     tag: 'SmokeIdentity:',
@@ -29,12 +29,12 @@ const smokeTags = {
   smokeNetworkExpansion: {
     tag: 'SmokeNetworkExpansion:',
     description:
-      'Tests non-EVM blockchain support and multi-chain provider architecture. Focuses on Solana Wallet Standard compliance: dApp connect/disconnect flows, displaying Solana account addresses to dApps, account switching with dApp notification, session persistence after page refresh, SOL token transfers, and Solana message signing. Tests the multi-chain provider system enabling simultaneous connections from a single dApp to multiple blockchain networks (e.g., EVM and Solana together). Covers initial connection permission flows for multi-chain dApps and account selection across chain types. Integrates with SmokeNetworkAbstractions for chain permissions and SmokeConfirmationsRedesigned for Solana transaction confirmations.',
+      'Tests non-EVM blockchain support and multi-chain provider architecture. Focuses on Solana Wallet Standard compliance: dApp connect/disconnect flows, displaying Solana account addresses to dApps, account switching with dApp notification, session persistence after page refresh, SOL token transfers, and Solana message signing. Tests the multi-chain provider system enabling simultaneous connections from a single dApp to multiple blockchain networks (e.g., EVM and Solana together). Covers initial connection permission flows for multi-chain dApps and account selection across chain types. Integrates with SmokeNetworkAbstractions for chain permissions and SmokeConfirmations for Solana transaction confirmations.',
   },
   smokeTrade: {
     tag: 'SmokeTrade:',
     description:
-      'Tests DeFi trading and financial features accessed via the Trade wallet actions menu. Covers token swaps: executing swaps (e.g., ETH to USDC) through the unified swap interface, quote fetching, and swap completion verification in activities. Tests cross-chain bridging between networks (e.g., Ethereum mainnet to Base). Validates gasless swap execution via Smart Transactions where users do not pay gas directly. Tests native ETH staking flows initiated from the wallet actions menu. Covers deep link navigation into swap and bridge screens from external sources. Validates analytics event tracking for swap started, swap completed, quotes received, and bridge events. The TradeWalletActions bottom sheet provides entry points to Swap, Bridge, Perps, Predictions, and Earn features. Related to SmokeConfirmationsRedesigned for transaction confirmations and SmokeWalletPlatform for activity display.',
+      'Tests DeFi trading and financial features accessed via the Trade wallet actions menu. Covers token swaps: executing swaps (e.g., ETH to USDC) through the unified swap interface, quote fetching, and swap completion verification in activities. Tests cross-chain bridging between networks (e.g., Ethereum mainnet to Base). Validates gasless swap execution via Smart Transactions where users do not pay gas directly. Tests native ETH staking flows initiated from the wallet actions menu. Covers deep link navigation into swap and bridge screens from external sources. Validates analytics event tracking for swap started, swap completed, quotes received, and bridge events. The TradeWalletActions bottom sheet provides entry points to Swap, Bridge, Perps, Predictions, and Earn features. Related to SmokeConfirmations for transaction confirmations and SmokeWalletPlatform for activity display.',
   },
   smokeWalletPlatform: {
     tag: 'SmokeWalletPlatform:',
@@ -45,11 +45,6 @@ const smokeTags = {
     tag: 'SmokeCard:',
     description:
       'Tests MetaMask Card integration for crypto-to-fiat spending. Covers the Card home screen display showing card status and balance, the Add Funds button with Deposit and Swap funding options, and Advanced Card Management which opens the external card dashboard in the browser. Tests the Card navbar button for quick navigation to Card home. Validates card-related analytics events: Card Button Viewed, Card Home Clicked, Card Add Funds Clicked, and Card Advanced Management Clicked. The Card feature is controlled by experimental feature flags. Integrates with SmokeTrade for funding via swaps.',
-  },
-  smokeRewards: {
-    tag: 'SmokeRewards:',
-    description:
-      'Tests the MetaMask Rewards incentive program. Covers the rewards opt-in onboarding flow with its multi-screen carousel, claiming sign-up bonuses, displaying reward tier levels (e.g., Level 1 "Origin"), and showing earned points balance. Tests the Activity tab displaying reward-earning actions including sign-up bonuses, perpetuals trading rewards, swap rewards, and referral activities. Note: Tests are currently skipped pending rewards system stabilization. When enabled, integrates with SmokeTrade for trading reward triggers.',
   },
   smokePerps: {
     tag: 'SmokePerps:',
@@ -85,7 +80,6 @@ const flaskTags = {
 const otherTags = {
   regressionAccounts: 'RegressionAccounts:',
   regressionConfirmations: 'RegressionConfirmations:',
-  regressionConfirmationsRedesigned: 'RegressionConfirmationsRedesigned:',
   regressionIdentity: 'RegressionIdentity:',
   regressionNetworkAbstractions: 'RegressionNetworkAbstractions:',
   regressionWalletPlatform: 'RegressionWalletPlatform:',
@@ -100,8 +94,8 @@ const otherTags = {
 // Smoke test tag functions
 const SmokeAccounts = (testName) =>
   `${smokeTags.smokeAccounts.tag} ${testName}`;
-const SmokeConfirmationsRedesigned = (testName) =>
-  `${smokeTags.smokeConfirmationsRedesigned.tag} ${testName}`;
+const SmokeConfirmations = (testName) =>
+  `${smokeTags.smokeConfirmations.tag} ${testName}`;
 const SmokeIdentity = (testName) =>
   `${smokeTags.smokeIdentity.tag} ${testName}`;
 const SmokeNetworkAbstractions = (testName) =>
@@ -112,7 +106,6 @@ const SmokeTrade = (testName) => `${smokeTags.smokeTrade.tag} ${testName}`;
 const SmokeWalletPlatform = (testName) =>
   `${smokeTags.smokeWalletPlatform.tag} ${testName}`;
 const SmokeCard = (testName) => `${smokeTags.smokeCard.tag} ${testName}`;
-const SmokeRewards = (testName) => `${smokeTags.smokeRewards.tag} ${testName}`;
 const SmokePerps = (testName) => `${smokeTags.smokePerps.tag} ${testName}`;
 const SmokeRamps = (testName) => `${smokeTags.smokeRamps.tag} ${testName}`;
 const SmokeMultiChainAPI = (testName) =>
@@ -124,8 +117,6 @@ const RegressionAccounts = (testName) =>
   `${otherTags.regressionAccounts} ${testName}`;
 const RegressionConfirmations = (testName) =>
   `${otherTags.regressionConfirmations} ${testName}`;
-const RegressionConfirmationsRedesigned = (testName) =>
-  `${otherTags.regressionConfirmationsRedesigned} ${testName}`;
 const RegressionIdentity = (testName) =>
   `${otherTags.regressionIdentity} ${testName}`;
 const RegressionNetworkAbstractions = (testName) =>
@@ -150,21 +141,19 @@ export {
   smokeTags,
   flaskTags,
   SmokeAccounts,
-  SmokeConfirmationsRedesigned,
+  SmokeConfirmations,
   SmokeIdentity,
   SmokeNetworkAbstractions,
   SmokeNetworkExpansion,
   SmokeTrade,
   SmokeWalletPlatform,
   SmokeCard,
-  SmokeRewards,
   SmokePerps,
   SmokeRamps,
   SmokeMultiChainAPI,
   SmokePredictions,
   RegressionAccounts,
   RegressionConfirmations,
-  RegressionConfirmationsRedesigned,
   RegressionIdentity,
   RegressionNetworkAbstractions,
   RegressionWalletPlatform,

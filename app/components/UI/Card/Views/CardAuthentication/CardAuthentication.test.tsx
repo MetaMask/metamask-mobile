@@ -243,6 +243,44 @@ describe('CardAuthentication Component', () => {
     });
   });
 
+  describe('Login Step - Password Visibility Toggle', () => {
+    it('renders the password visibility toggle button', () => {
+      render();
+
+      expect(
+        screen.getByTestId('password-visibility-toggle'),
+      ).toBeOnTheScreen();
+    });
+
+    it('has password hidden by default', () => {
+      render();
+      const passwordInput = screen.getByTestId('password-field');
+
+      expect(passwordInput).toHaveProp('secureTextEntry', true);
+    });
+
+    it('shows password when visibility toggle is pressed', () => {
+      render();
+      const passwordInput = screen.getByTestId('password-field');
+      const toggleButton = screen.getByTestId('password-visibility-toggle');
+
+      fireEvent.press(toggleButton);
+
+      expect(passwordInput).toHaveProp('secureTextEntry', false);
+    });
+
+    it('hides password again when visibility toggle is pressed twice', () => {
+      render();
+      const passwordInput = screen.getByTestId('password-field');
+      const toggleButton = screen.getByTestId('password-visibility-toggle');
+
+      fireEvent.press(toggleButton);
+      fireEvent.press(toggleButton);
+
+      expect(passwordInput).toHaveProp('secureTextEntry', true);
+    });
+  });
+
   describe('Login Step - Login Functionality', () => {
     it('calls login with correct parameters for international location', async () => {
       render();
