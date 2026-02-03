@@ -253,14 +253,14 @@ describe('AddressList', () => {
 
       // Verify createEventBuilder was called with correct event name
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        EVENT_NAME.WALLET_COPIED_ADDRESS,
+        EVENT_NAME.ADDRESS_COPIED,
       );
 
       // Verify addProperties was called with correct properties
       const mockEventBuilder = mockCreateEventBuilder.mock.results[0].value;
       expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
         location: 'address-list',
-        chain_id: 'eip155:1', // CAIP format chain ID
+        chain_id_caip: 'eip155:1', // CAIP format chain ID
       });
 
       // Verify build was called
@@ -282,12 +282,12 @@ describe('AddressList', () => {
 
         await new Promise(process.nextTick);
 
-        // Verify the chain_id is correctly converted to decimal
+        // Verify the chain_id_caip is correctly converted to CAIP format
         const mockEventBuilder = mockCreateEventBuilder.mock.results[1]?.value;
         if (mockEventBuilder) {
           expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
             location: 'address-list',
-            chain_id: '8453', // Decimal format of 0x2105 (Base)
+            chain_id_caip: 'eip155:8453', // CAIP format of 0x2105 (Base)
           });
         }
       }

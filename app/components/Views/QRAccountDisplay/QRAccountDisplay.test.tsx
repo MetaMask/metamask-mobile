@@ -28,9 +28,11 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-jest.mock('../../../util/networks/getDecimalChainId', () => ({
+jest.mock('@metamask/bridge-controller', () => ({
   __esModule: true,
-  default: jest.fn((chainId: string) => chainId),
+  formatChainIdToCaip: jest.fn(
+    (chainId: string) => `eip155:${parseInt(chainId, 16)}`,
+  ),
 }));
 
 const initialState = {
@@ -310,7 +312,7 @@ describe('QRAccountDisplay', () => {
 
       // Assert
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        EVENT_NAME.WALLET_COPIED_ADDRESS,
+        EVENT_NAME.ADDRESS_COPIED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         location: analyticsLocation,
@@ -363,18 +365,18 @@ describe('QRAccountDisplay', () => {
 
       // Assert
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        EVENT_NAME.WALLET_COPIED_ADDRESS,
+        EVENT_NAME.ADDRESS_COPIED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         location: analyticsLocation,
-        chain_id: chainId,
+        chain_id_caip: 'eip155:1', // CAIP format for 0x1
       });
       expect(mockBuild).toHaveBeenCalled();
       expect(mockTrackEvent).toHaveBeenCalledWith({});
-      const getDecimalChainId = jest.requireMock(
-        '../../../util/networks/getDecimalChainId',
-      ).default;
-      expect(getDecimalChainId).toHaveBeenCalledWith(chainId);
+      const { formatChainIdToCaip } = jest.requireMock(
+        '@metamask/bridge-controller',
+      );
+      expect(formatChainIdToCaip).toHaveBeenCalledWith(chainId);
     });
 
     it('does not include chain_id in analytics when chainId is not provided', async () => {
@@ -399,17 +401,17 @@ describe('QRAccountDisplay', () => {
 
       // Assert
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        EVENT_NAME.WALLET_COPIED_ADDRESS,
+        EVENT_NAME.ADDRESS_COPIED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         location: analyticsLocation,
       });
       expect(mockBuild).toHaveBeenCalled();
       expect(mockTrackEvent).toHaveBeenCalledWith({});
-      const getDecimalChainId = jest.requireMock(
-        '../../../util/networks/getDecimalChainId',
-      ).default;
-      expect(getDecimalChainId).not.toHaveBeenCalled();
+      const { formatChainIdToCaip } = jest.requireMock(
+        '@metamask/bridge-controller',
+      );
+      expect(formatChainIdToCaip).not.toHaveBeenCalled();
     });
   });
 });

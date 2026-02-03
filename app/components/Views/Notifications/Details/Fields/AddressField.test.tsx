@@ -86,7 +86,7 @@ describe('AddressField', () => {
       );
     });
 
-    it('tracks "WALLET_COPIED_ADDRESS" event when copy button is pressed', async () => {
+    it('tracks "ADDRESS_COPIED" event when copy button is pressed', async () => {
       const { getByTestId } = renderAddressField();
 
       // Find and press the copy button
@@ -97,7 +97,7 @@ describe('AddressField', () => {
 
       // Verify createEventBuilder was called with correct event name
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        EVENT_NAME.WALLET_COPIED_ADDRESS,
+        EVENT_NAME.ADDRESS_COPIED,
       );
 
       // Verify trackEvent was called

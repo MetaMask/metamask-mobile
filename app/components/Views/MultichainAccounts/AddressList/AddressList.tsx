@@ -25,7 +25,7 @@ import getHeaderCenterNavbarOptions from '../../../../component-library/componen
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { strings } from '../../../../../locales/i18n';
 import { EVENT_NAME } from '../../../../core/Analytics/MetaMetrics.events';
-import getDecimalChainId from '../../../../util/networks/getDecimalChainId';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 
 export const createAddressListNavigationDetails =
   createNavigationDetails<AddressListProps>(
@@ -57,10 +57,10 @@ export const AddressList = () => {
         await ClipboardManager.setString(item.account.address);
 
         trackEvent(
-          createEventBuilder(EVENT_NAME.WALLET_COPIED_ADDRESS)
+          createEventBuilder(EVENT_NAME.ADDRESS_COPIED)
             .addProperties({
               location: 'address-list',
-              chain_id: getDecimalChainId(item.scope),
+              chain_id_caip: formatChainIdToCaip(item.scope),
             })
             .build(),
         );

@@ -36,7 +36,7 @@ function AddressField(props: AddressFieldProps) {
     copyToClipboard(address, CopyClipboardAlertMessage.address());
 
     trackEvent(
-      createEventBuilder(EVENT_NAME.WALLET_COPIED_ADDRESS)
+      createEventBuilder(EVENT_NAME.ADDRESS_COPIED)
         .addProperties({
           location: 'notification-details',
         })
