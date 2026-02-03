@@ -2094,7 +2094,8 @@
       "new": "New",
       "sports": "Sports",
       "crypto": "Crypto",
-      "politics": "Politics"
+      "politics": "Politics",
+      "hot": "Hot"
     },
     "search_placeholder": "Search prediction markets",
     "search_cancel": "Cancel",

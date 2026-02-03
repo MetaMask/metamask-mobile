@@ -4,6 +4,8 @@ import {
   VersionGatedFeatureFlag,
   validatedVersionGatedFeatureFlag,
 } from '../../../../../util/remoteFeatureFlag';
+import { PredictHotTabFlag } from '../../types/flags';
+import { DEFAULT_HOT_TAB_FLAG } from '../../constants/flags';
 
 /**
  * Selector for Predict trading feature enablement
@@ -35,5 +37,31 @@ export const selectPredictGtmOnboardingModalEnabledFlag = createSelector(
 
     // Fallback to local flag if remote flag is not available
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+export const selectPredictHotTabFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): PredictHotTabFlag => {
+    const flag =
+      remoteFeatureFlags?.predictHotTab as unknown as PredictHotTabFlag;
+
+    if (
+      !validatedVersionGatedFeatureFlag(
+        flag as unknown as VersionGatedFeatureFlag,
+      )
+    ) {
+      return DEFAULT_HOT_TAB_FLAG;
+    }
+
+    // Validate queryParams is a string if present (prevents malformed URLs)
+    if (
+      flag.queryParams !== undefined &&
+      typeof flag.queryParams !== 'string'
+    ) {
+      return DEFAULT_HOT_TAB_FLAG;
+    }
+
+    return flag;
   },
 );
