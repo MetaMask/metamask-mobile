@@ -1,14 +1,14 @@
-import { RegressionWalletPlatform } from '../../tags';
-import Assertions from '../../../tests/framework/Assertions';
-import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
-import EditAccountName from '../../pages/MultichainAccounts/EditAccountName';
-import ShareAddress from '../../pages/MultichainAccounts/ShareAddress';
+import { RegressionWalletPlatform } from '../../../e2e/tags';
+import Assertions from '../../framework/Assertions';
+import AccountDetails from '../../../e2e/pages/MultichainAccounts/AccountDetails';
+import EditAccountName from '../../../e2e/pages/MultichainAccounts/EditAccountName';
+import ShareAddress from '../../../e2e/pages/MultichainAccounts/ShareAddress';
 import {
   HD_ACCOUNT,
   goToAccountDetails,
   withMultichainAccountDetailsEnabledFixtures,
-} from './common';
-import TestHelpers from '../../helpers';
+} from '../../helpers/multichain-accounts/common';
+import TestHelpers from '../../../e2e/helpers';
 
 const checkAddress = async (expectedAddress: string) => {
   await AccountDetails.tapShareAddress();

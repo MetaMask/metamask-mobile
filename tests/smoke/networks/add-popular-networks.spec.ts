@@ -1,12 +1,12 @@
-import { SmokeNetworkAbstractions } from '../../tags';
-import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import WalletView from '../../pages/wallet/WalletView';
-import NetworkListModal from '../../pages/Network/NetworkListModal';
-import Assertions from '../../../tests/framework/Assertions';
-import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { SmokeNetworkAbstractions } from '../../../e2e/tags';
+import { loginToApp } from '../../../e2e/viewHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import NetworkListModal from '../../../e2e/pages/Network/NetworkListModal';
+import Assertions from '../../framework/Assertions';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 describe(SmokeNetworkAbstractions('Add all popular networks'), () => {
   beforeAll(async () => {
