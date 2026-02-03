@@ -193,6 +193,10 @@ describe('Confirm', () => {
   });
 
   it('renders a flat confirmation for specified type(s): staking deposit', () => {
+    jest.mocked(useFullScreenConfirmation).mockReturnValue({
+      isFullScreenConfirmation: true,
+    });
+
     const { getByTestId } = renderWithProvider(<Confirm />, {
       state: stakingDepositConfirmationState,
     });
@@ -200,6 +204,10 @@ describe('Confirm', () => {
   });
 
   it('renders a flat confirmation for specified type(s): staking withdrawal', () => {
+    jest.mocked(useFullScreenConfirmation).mockReturnValue({
+      isFullScreenConfirmation: true,
+    });
+
     const { getByTestId } = renderWithProvider(<Confirm />, {
       state: stakingWithdrawalConfirmationState,
     });
