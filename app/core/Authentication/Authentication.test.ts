@@ -134,7 +134,9 @@ jest.mock('../Engine', () => ({
       removeAccount: jest.fn(),
       verifyPassword: jest.fn(),
       state: {
-        keyrings: [{ metadata: { id: 'test-keyring-id' } }],
+        keyrings: [
+          { type: 'HD Key Tree', metadata: { id: 'test-keyring-id' } },
+        ],
       },
     },
 
@@ -1150,6 +1152,11 @@ describe('Authentication', () => {
       });
 
       it('resyncs accounts after login', async () => {
+        const Engine = jest.requireMock('../Engine');
+        Engine.context.KeyringController.state.keyrings = [
+          { type: KeyringTypes.hd, metadata: { id: 'test-keyring-id' } },
+        ];
+
         const mockCredentials = { username: 'test', password: 'test' };
         SecureKeychain.getGenericPassword = jest
           .fn()
@@ -1585,7 +1592,7 @@ describe('Authentication', () => {
           ),
         state: {
           keyrings: [
-            { name: 'HD Key Tree', metadata: { id: 'test-keyring-id' } },
+            { type: KeyringTypes.hd, metadata: { id: 'test-keyring-id' } },
           ],
         },
         exportEncryptionKey: jest.fn(),
@@ -2485,6 +2492,11 @@ describe('Authentication', () => {
       Engine.context.KeyringController = {
         submitPassword: jest.fn(),
         verifyPassword: jest.fn().mockResolvedValue(undefined),
+        state: {
+          keyrings: [
+            { type: KeyringTypes.hd, metadata: { id: 'test-keyring-id' } },
+          ],
+        },
       } as unknown as KeyringController;
 
       // Mock MetaMetrics.getInstance to return true for isEnabled
