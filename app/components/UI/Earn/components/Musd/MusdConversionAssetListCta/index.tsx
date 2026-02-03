@@ -22,7 +22,10 @@ import { EARN_TEST_IDS } from '../../../constants/testIds';
 import Logger from '../../../../../../util/Logger';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { useMusdConversion } from '../../../hooks/useMusdConversion';
-import { useMusdCtaVisibility } from '../../../hooks/useMusdCtaVisibility';
+import {
+  BUY_GET_MUSD_CTA_VARIANT,
+  useMusdCtaVisibility,
+} from '../../../hooks/useMusdCtaVisibility';
 import { useMusdConversionFlowData } from '../../../hooks/useMusdConversionFlowData';
 import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
@@ -42,11 +45,8 @@ const MusdConversionAssetListCta = () => {
 
   const { goToBuy } = useRampNavigation();
 
-  const {
-    isEmptyWallet,
-    getPaymentTokenForSelectedNetwork,
-    getChainIdForBuyFlow,
-  } = useMusdConversionFlowData();
+  const { getPaymentTokenForSelectedNetwork, getChainIdForBuyFlow } =
+    useMusdConversionFlowData();
 
   const { initiateConversion, hasSeenConversionEducationScreen } =
     useMusdConversion();
@@ -55,20 +55,21 @@ const MusdConversionAssetListCta = () => {
 
   const { trackEvent, createEventBuilder } = useMetrics();
 
-  const { shouldShowCta, showNetworkIcon, selectedChainId } =
+  const { shouldShowCta, showNetworkIcon, selectedChainId, variant } =
     shouldShowBuyGetMusdCta();
 
   const networkName = useNetworkName(selectedChainId ?? undefined);
 
-  const buttonText = isEmptyWallet
-    ? strings('earn.musd_conversion.buy_musd')
-    : strings('earn.musd_conversion.get_musd');
+  const buttonText =
+    variant === BUY_GET_MUSD_CTA_VARIANT.BUY
+      ? strings('earn.musd_conversion.buy_musd')
+      : strings('earn.musd_conversion.get_musd');
 
   const submitCtaPressedEvent = (source: 'cta_button' | 'cta_text') => {
     const { MUSD_CTA_TYPES, EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
     const getRedirectLocation = () => {
-      if (isEmptyWallet) {
+      if (variant === BUY_GET_MUSD_CTA_VARIANT.BUY) {
         return EVENT_LOCATIONS.BUY_SCREEN;
       }
 
@@ -101,7 +102,7 @@ const MusdConversionAssetListCta = () => {
   const handlePress = async (source: 'cta_button' | 'cta_text') => {
     submitCtaPressedEvent(source);
 
-    if (isEmptyWallet) {
+    if (variant === BUY_GET_MUSD_CTA_VARIANT.BUY) {
       const chainId = getChainIdForBuyFlow();
       const rampIntent: RampIntent = {
         assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId],

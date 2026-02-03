@@ -12,6 +12,7 @@ import { TokenI } from '../../Tokens/types';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
 import { toHex } from '@metamask/controller-utils';
 import { BigNumber } from 'bignumber.js';
+import { Hex } from '@metamask/utils';
 
 export const useMusdConversionTokens = () => {
   const musdConversionPaymentTokensAllowlist = useSelector(
@@ -81,6 +82,12 @@ export const useMusdConversionTokens = () => {
     [allTokens, filterAllowedTokens],
   );
 
+  const hasConvertibleTokensByChainId = useCallback(
+    (chainId: Hex) =>
+      conversionTokens.some((token) => token.chainId === chainId),
+    [conversionTokens],
+  );
+
   const isConversionToken = (token?: AssetType | TokenI) => {
     if (!token) return false;
 
@@ -100,6 +107,7 @@ export const useMusdConversionTokens = () => {
     filterAllowedTokens,
     isConversionToken,
     isMusdSupportedOnChain,
+    hasConvertibleTokensByChainId,
     tokens: conversionTokens,
   };
 };
