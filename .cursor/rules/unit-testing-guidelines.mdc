@@ -49,6 +49,7 @@ it('returns false for email without domain', () => {
 ```
 
 **Helper Functions**:
+
 ```ts
 const createTestEvent = (overrides = {}) => ({
   type: EventType.TrackEvent,
@@ -64,21 +65,16 @@ const createTestEvent = (overrides = {}) => ({
 - **Use `getByTestId`** as the primary query method for reliable element selection
 - **Add `testID` props** to components when writing new code or updating existing code
 - **Avoid selecting by text** when the text might change (i18n, copy updates)
-- **Use semantic queries** (`getByRole`, `getByLabelText`) for accessibility-critical elements
 
 ```tsx
 // ✅ CORRECT - Use testID for reliable selection
 <Button testID="submit-button" onPress={handleSubmit}>
   {t('common.submit')}
-</Button>
+</Button>;
 
 // In test:
 const submitButton = screen.getByTestId('submit-button');
 expect(submitButton).toBeOnTheScreen();
-
-// ✅ ALSO GOOD - Semantic queries for accessibility
-const input = screen.getByRole('textbox', { name: 'Email' });
-const checkbox = screen.getByLabelText('Accept terms');
 
 // ✅ ALSO GOOD - Locale keys (safe from content updates)
 const button = screen.getByText(strings('common.submit'));
@@ -93,6 +89,7 @@ const input = screen.getByPlaceholderText('Enter email'); // Fragile
 **ALL `@metamask/design-system-react-native` and `app/component-library` components support child prop objects for passing testIDs to internal elements.** This is a universal design pattern - prefer not to mock these components just to inject testIDs.
 
 Common child prop object patterns:
+
 - `closeButtonProps` - for close/dismiss buttons
 - `backButtonProps` - for back navigation buttons
 - `startAccessoryProps` / `endAccessoryProps` - for accessory elements
@@ -134,10 +131,10 @@ fireEvent.press(closeButton);
 
 ### This Is Universal - No Exceptions
 
-| Library | testID Support |
-|---------|----------------|
+| Library                                | testID Support                                                 |
+| -------------------------------------- | -------------------------------------------------------------- |
 | `@metamask/design-system-react-native` | ✅ All components support `testID` prop AND child prop objects |
-| `app/component-library/*` | ✅ All components support `testID` prop AND child prop objects |
+| `app/component-library/*`              | ✅ All components support `testID` prop AND child prop objects |
 
 **If you need to add a testID to one of these components, check for child prop objects first.** Most components support this functionality. If not available, consider adjusting the component to support it.
 
@@ -151,7 +148,6 @@ fireEvent.press(closeButton);
 // Example: BottomSheetHeader TypeScript interface shows:
 // - closeButtonProps?: ButtonIconProps
 // - backButtonProps?: ButtonIconProps
-// - startAccessory?: React.ReactNode
 
 // Example: Design system Button with icon
 <Button
@@ -190,39 +186,42 @@ expect(screen.queryByTestId('error-message')).not.toBeOnTheScreen();
 expect(screen.getByTestId('balance-text')).toHaveTextContent('100 ETH');
 
 // ❌ WRONG - Weak matchers that don't verify presence properly
-expect(screen.getByTestId('submit-button')).toBeTruthy();  // Misleading
+expect(screen.getByTestId('submit-button')).toBeTruthy(); // Misleading
 expect(screen.getByTestId('submit-button')).toBeDefined(); // Doesn't verify render
 expect(element).not.toBeNull(); // Use toBeOnTheScreen() instead
 ```
 
 ### Recommended Matchers
 
-| Instead of | Use |
-|------------|-----|
-| `toBeTruthy()` for elements | `toBeOnTheScreen()` |
-| `toBeDefined()` for elements | `toBeOnTheScreen()` |
-| `not.toBeNull()` | `not.toBeOnTheScreen()` or `queryByTestId` returning null |
-| `toHaveLength(1)` for single element | `toBeOnTheScreen()` |
+| Instead of                           | Use                                                       |
+| ------------------------------------ | --------------------------------------------------------- |
+| `toBeTruthy()` for elements          | `toBeOnTheScreen()`                                       |
+| `toBeDefined()` for elements         | `toBeOnTheScreen()`                                       |
+| `not.toBeNull()`                     | `not.toBeOnTheScreen()` or `queryByTestId` returning null |
+| `toHaveLength(1)` for single element | `toBeOnTheScreen()`                                       |
 
 ## Mocking Rules - CRITICAL
 
 ### Exception: UI Components and TestIDs
 
 **Prefer not to mock `@metamask/design-system-react-native` or `app/component-library` components just to inject testIDs.** All these components support testIDs via:
+
 - Direct `testID` prop on the component
 - Child prop objects (`closeButtonProps`, `iconProps`, etc.) for internal elements
 
 ```tsx
 // ❌ WRONG: Mocking to inject testID
 jest.mock('BottomSheetHeader', () => ({ onClose }) => (
-  <TouchableOpacity testID="close-button" onPress={onClose}>Close</TouchableOpacity>
+  <TouchableOpacity testID="close-button" onPress={onClose}>
+    Close
+  </TouchableOpacity>
 ));
 
 // ✅ RIGHT: Use child prop objects
 <BottomSheetHeader
   onClose={handleClose}
   closeButtonProps={{ testID: 'modal-close-button' }}
-/>
+/>;
 ```
 
 See [PR #25548](https://github.com/MetaMask/metamask-mobile/pull/25548) for refactoring example.
@@ -249,7 +248,7 @@ interface MockEvent {
 
 // ❌ WRONG
 const mockApi = require('../services/api'); // ❌ no require
-const mockApi: any = jest.fn();             // ❌ no any type
+const mockApi: any = jest.fn(); // ❌ no any type
 ```
 
 ## Test Isolation and Focus - MANDATORY
@@ -291,6 +290,7 @@ describe('MetaMetricsCustomTimestampPlugin', () => {
 ## Test Coverage (MANDATORY)
 
 **EVERY component MUST test:**
+
 - ✅ **Happy path** - normal expected behavior
 - ✅ **Edge cases** - null, undefined, empty values, boundary conditions
 - ✅ **Error conditions** - invalid inputs, failure scenarios
@@ -361,6 +361,7 @@ jest.setSystemTime(new Date('2024-01-01'));
 ### When to Use act()
 
 Use `act()` when you:
+
 - Call async functions via component props (e.g., `onRefresh`, `onPress` with async handlers)
 - Invoke functions that perform state updates asynchronously
 - Test pull-to-refresh or other async interactions
@@ -368,6 +369,7 @@ Use `act()` when you:
 ### Symptoms of Missing act()
 
 Tests fail intermittently with:
+
 - `TypeError: terminated`
 - `SocketError: other side closed`
 - Warnings about state updates not being wrapped in act()
@@ -430,12 +432,14 @@ await act(async () => {
 ### Why This Matters
 
 Without `act()`:
+
 1. Async function starts executing
 2. Test continues and waits only for specific assertion
 3. Jest cleanup/termination happens while promises are still pending
 4. Results in "terminated" or "other side closed" errors
 
 With `act()`:
+
 1. React Testing Library waits for all state updates
 2. All promises resolve before test proceeds
 3. Clean, deterministic test execution
@@ -443,10 +447,12 @@ With `act()`:
 # Reviewer Responsibilities
 
 - Validate that tests fail when the code is broken (test the test).
+
 ```ts
 // Break the SuT and make sure this test fails
 expect(result).toBe(false);
 ```
+
 - Ensure tests use proper matchers (`toBeOnTheScreen` vs `toBeDefined`).
 - Do not approve PRs without reviewing snapshot diffs, it can reveal errors.
 - Reject tests with complex names combining multiple logical conditions (AND/OR).
@@ -460,6 +466,7 @@ expect(result).toBe(false);
 # Quality Checklist - MANDATORY
 
 Before submitting any test file, verify:
+
 - [ ] **No mocking to inject testIDs** - Use component's built-in testID support
 - [ ] **testIDs via child prop objects** - Use `closeButtonProps={{ testID }}` not mocks
 - [ ] **No "should" in any test name**
@@ -498,6 +505,7 @@ Before submitting any test file, verify:
 ## Testing Commands
 
 ### Single File Testing
+
 ```shell
 # Use this command for testing a specific file
 yarn jest <filename>
@@ -511,13 +519,14 @@ yarn jest utils/helpers.test.ts
 ```
 
 ### Coverage Reports
+
 ```shell
 # Use this command for coverage reports
 yarn test:unit:coverage
 ```
 
-
 ## Workflow Requirements
+
 - Confirm all tests are passing before commit.
 - When a snapshot update is detected, confirm the changes are expected.
 - Do not blindly update snapshots without understanding the differences.
@@ -525,6 +534,7 @@ yarn test:unit:coverage
 # Reference Code Examples
 
 **Proper AAA**:
+
 ```ts
 it('indicates expired milk when past due date', () => {
   const today = new Date('2025-06-01');
@@ -537,6 +547,7 @@ it('indicates expired milk when past due date', () => {
 ```
 
 ## ❌ Brittle Snapshot
+
 ```ts
 it('renders the button', () => {
   const { container } = render(<MyButton />);
@@ -545,6 +556,7 @@ it('renders the button', () => {
 ```
 
 ## ✅ Robust UI Assertion
+
 ```ts
 it('displays error message when API fails', async () => {
   mockApi.failOnce();
@@ -555,12 +567,13 @@ it('displays error message when API fails', async () => {
 ```
 
 **Test the Test**:
+
 ```ts
 it('hides selector when disabled', () => {
   const { queryByTestId } = render(<Selector enabled={false} />);
 
   expect(queryByTestId('IPFS_GATEWAY_SELECTED')).toBeNull();
-  
+
   // Break test: change enabled={false} to enabled={true} and verify test fails
 });
 ```
@@ -571,10 +584,10 @@ Validate tests fail when code breaks • Ensure proper matchers • Review snaps
 
 ```ts
 // OK
-it('renders button when enabled')
+it('renders button when enabled');
 
 // NOT OK
-it('renders and disables button when input is empty or missing required field')
+it('renders and disables button when input is empty or missing required field');
 ```
 
 ## Workflow
