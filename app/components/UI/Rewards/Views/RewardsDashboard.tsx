@@ -39,6 +39,7 @@ import {
   useRewardDashboardModals,
   RewardsDashboardModalType,
 } from '../hooks/useRewardDashboardModals';
+import { useBulkLinkState } from '../hooks/useBulkLinkState';
 import RewardsOverview from '../components/Tabs/RewardsOverview';
 import RewardsLevels from '../components/Tabs/RewardsLevels';
 import RewardsActivity from '../components/Tabs/RewardsActivity';
@@ -99,6 +100,9 @@ const RewardsDashboard: React.FC = () => {
     currentAccountGroupPartiallySupported,
     currentAccountGroupOptedInStatus,
   } = useRewardOptinSummary();
+
+  // Use the bulk link state hook for resuming interrupted opt-in processes
+  const { wasInterrupted, isRunning, resumeBulkLink } = useBulkLinkState();
 
   const totalOptedInAccountsSelectedGroup = useMemo(
     () => optInBySelectedAccountGroup?.optedInAccounts?.length,
@@ -193,6 +197,17 @@ const RewardsDashboard: React.FC = () => {
   const [showPreviousSeasonSummary, setShowPreviousSeasonSummary] = useState<
     boolean | null
   >(null);
+
+  // Auto-resume interrupted bulk link process when screen comes into focus.
+  // This handles the case where the app was closed during a bulk opt-in process.
+  // The saga is idempotent - it re-fetches opt-in status to skip already-linked accounts.
+  useFocusEffect(
+    useCallback(() => {
+      if (wasInterrupted && !isRunning) {
+        resumeBulkLink();
+      }
+    }, [wasInterrupted, isRunning, resumeBulkLink]),
+  );
 
   // Evaluate showPreviousSeasonSummary when screen comes into focus
   useFocusEffect(
@@ -328,7 +343,9 @@ const RewardsDashboard: React.FC = () => {
           <PreviousSeasonSummary />
         ) : (
           <>
-            <SeasonStatus />
+            <Box twClassName="mx-4">
+              <SeasonStatus />
+            </Box>
 
             {/* Tab View */}
             <TabsList {...tabsListProps}>
