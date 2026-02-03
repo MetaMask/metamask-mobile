@@ -1,6 +1,12 @@
 import { renderHook, waitFor, act } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import { useExploreSearch } from './useExploreSearch';
-import { SECTIONS_ARRAY } from '../sections.config';
+import { useSectionsArray } from '../sections.config';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
 
 const mockTrendingTokens = [
   { assetId: '1', symbol: 'BTC', name: 'Bitcoin' },
@@ -92,8 +98,13 @@ jest.mock('../../../UI/Sites/hooks/useSiteData/useSitesData', () => ({
 }));
 
 describe('useExploreSearch', () => {
+  const mockUseSelector = useSelector as jest.MockedFunction<
+    typeof useSelector
+  >;
+
   beforeEach(() => {
     jest.useFakeTimers();
+    mockUseSelector.mockReturnValue(true);
 
     // Reset to default values
     mockTrendingData = mockTrendingTokens;
@@ -216,8 +227,9 @@ describe('useExploreSearch', () => {
 
   it('processes all sections defined in config', () => {
     const { result } = renderHook(() => useExploreSearch(''));
+    const { result: sectionsResult } = renderHook(() => useSectionsArray());
 
-    SECTIONS_ARRAY.forEach((section) => {
+    sectionsResult.current.forEach((section) => {
       expect(result.current.data[section.id]).toBeDefined();
       expect(result.current.isLoading[section.id]).toBeDefined();
     });
@@ -225,9 +237,10 @@ describe('useExploreSearch', () => {
 
   it('returns default sectionsOrder when no options provided', () => {
     const { result } = renderHook(() => useExploreSearch(''));
+    const { result: sectionsResult } = renderHook(() => useSectionsArray());
 
     expect(result.current.sectionsOrder).toEqual(
-      SECTIONS_ARRAY.map((s) => s.id),
+      sectionsResult.current.map((s) => s.id),
     );
   });
 

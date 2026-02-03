@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
-  SECTIONS_ARRAY,
+  useSectionsArray,
   useSectionsData,
   type SectionId,
 } from '../sections.config';
@@ -14,7 +14,7 @@ export interface ExploreSearchResult {
 export interface ExploreSearchOptions {
   /**
    * Custom order of sections for display.
-   * Defaults to SECTIONS_ARRAY order (tokens, perps, predictions, sites).
+ * Defaults to useSectionsArray order (tokens, perps, predictions, sites).
    * Browser uses ['sites', 'tokens', 'perps', 'predictions'] to show Sites first.
    */
   sectionsOrder?: SectionId[];
@@ -37,9 +37,18 @@ export const useExploreSearch = (
   query: string,
   options?: ExploreSearchOptions,
 ): ExploreSearchResult => {
+  const sectionsArray = useSectionsArray();
   const sectionsOrder = useMemo(
-    () => options?.sectionsOrder ?? SECTIONS_ARRAY.map((s) => s.id),
-    [options?.sectionsOrder],
+    () => {
+      const defaultOrder = sectionsArray.map((s) => s.id);
+      const providedOrder = options?.sectionsOrder ?? defaultOrder;
+      const availableSectionIds = new Set(defaultOrder);
+
+      return providedOrder.filter((sectionId) =>
+        availableSectionIds.has(sectionId),
+      );
+    },
+    [options?.sectionsOrder, sectionsArray],
   );
   const [debouncedQuery, setDebouncedQuery] = useState(query);
 
@@ -70,7 +79,7 @@ export const useExploreSearch = (
     const shouldShowTopItems = !debouncedQuery.trim();
 
     // Process each section generically
-    SECTIONS_ARRAY.forEach((section) => {
+    sectionsArray.forEach((section) => {
       const sectionData = allSectionsData[section.id];
       // If we're debouncing, show loading state immediately
       // Otherwise, use the actual loading state from the data fetch
@@ -86,7 +95,13 @@ export const useExploreSearch = (
     });
 
     return { data, isLoading, sectionsOrder };
-  }, [debouncedQuery, allSectionsData, isDebouncing, sectionsOrder]);
+  }, [
+    debouncedQuery,
+    allSectionsData,
+    isDebouncing,
+    sectionsOrder,
+    sectionsArray,
+  ]);
 
   return filteredResults;
 };

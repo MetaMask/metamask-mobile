@@ -22,6 +22,7 @@ import SiteRowItemWrapper from '../../UI/Sites/components/SiteRowItemWrapper/Sit
 import SiteSkeleton from '../../UI/Sites/components/SiteSkeleton/SiteSkeleton';
 import { useSitesData } from '../../UI/Sites/hooks/useSiteData/useSitesData';
 import { useTrendingSearch } from '../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
+import { useSelector } from 'react-redux';
 import {
   TimeOption,
   PriceChangeOption,
@@ -31,6 +32,7 @@ import { filterMarketsByQuery } from '../../UI/Perps/utils/marketUtils';
 import PredictMarketRowItem from '../../UI/Predict/components/PredictMarketRowItem';
 import SectionCard from './components/Sections/SectionTypes/SectionCard';
 import SectionCarrousel from './components/Sections/SectionTypes/SectionCarrousel';
+import { selectPerpsEnabledFlag } from '../../UI/Perps';
 
 export type SectionId = 'predictions' | 'tokens' | 'perps' | 'sites';
 
@@ -120,7 +122,7 @@ const PREDICTIONS_FUSE_OPTIONS: FuseOptions<PredictMarketType> = {
  *
  * To add a new section (EVERYTHING IN THIS FILE):
  * 1. Add the section ID to the SectionId type above
- * 2. Add the config to SECTIONS_CONFIG, HOME_SECTIONS_ARRAY, and SECTIONS_ARRAY below
+ * 2. Add the config to SECTIONS_CONFIG, useHomeSectionsArray, and useSectionsArray below
  * 3. Add the hook to useSectionsData below
  *
  * The section will automatically appear in:
@@ -309,21 +311,37 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   },
 };
 
+type SectionsArray = (SectionConfig & { id: SectionId })[];
+
 // Sorted by order on the main screen
-export const HOME_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
-  SECTIONS_CONFIG.predictions,
-  SECTIONS_CONFIG.tokens,
-  SECTIONS_CONFIG.perps,
-  SECTIONS_CONFIG.sites,
-];
+export const useHomeSectionsArray = (): SectionsArray => {
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+
+  return useMemo(
+    () => [
+      SECTIONS_CONFIG.predictions,
+      SECTIONS_CONFIG.tokens,
+      ...(isPerpsEnabled ? [SECTIONS_CONFIG.perps] : []),
+      SECTIONS_CONFIG.sites,
+    ],
+    [isPerpsEnabled],
+  );
+};
 
 // Sorted by order on the QuickAction buttons and SearchResults
-export const SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
-  SECTIONS_CONFIG.tokens,
-  SECTIONS_CONFIG.perps,
-  SECTIONS_CONFIG.predictions,
-  SECTIONS_CONFIG.sites,
-];
+export const useSectionsArray = (): SectionsArray => {
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+
+  return useMemo(
+    () => [
+      SECTIONS_CONFIG.tokens,
+      ...(isPerpsEnabled ? [SECTIONS_CONFIG.perps] : []),
+      SECTIONS_CONFIG.predictions,
+      SECTIONS_CONFIG.sites,
+    ],
+    [isPerpsEnabled],
+  );
+};
 
 /**
  * Centralized hook that fetches data for all sections.
