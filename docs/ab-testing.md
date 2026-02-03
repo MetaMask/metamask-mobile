@@ -20,8 +20,14 @@ MetaMask does **NOT use LaunchDarkly's percentage rollout targeting**. Instead, 
 
 ```json
 [
-  { "name": "control", "scope": { "type": "percentage_rollout", "value": 0.5 }, "value": {...} },
-  { "name": "treatment", "scope": { "type": "percentage_rollout", "value": 1.0 }, "value": {...} }
+  {
+    "name": "control",
+    "scope": { "type": "percentage_rollout", "value": 0.5 }
+  },
+  {
+    "name": "treatment",
+    "scope": { "type": "percentage_rollout", "value": 1.0 }
+  }
 ]
 ```
 
@@ -43,9 +49,11 @@ When detected, the controller:
 
 1. Computes `sha256(metametricsId + flagName)` → deterministic threshold (0-1)
 2. Finds first array item where `threshold <= scope.value`
-3. Stores the selected variant's `name` in `state.remoteFeatureFlags`
+3. Stores `{ name, value }` object in `state.remoteFeatureFlags` (value is optional/undefined if not in LD config)
 
 The `scope.type` field (e.g., `"percentage_rollout"`) is metadata only - the controller just checks for presence of `scope`.
+
+The `useABTest` hook reads the `name` property from this stored object and maps it to your locally-defined variant data.
 
 ---
 
@@ -188,13 +196,11 @@ The variation value is an **array** with cumulative thresholds:
 [
   {
     "name": "control",
-    "scope": { "type": "percentage_rollout", "value": 0.5 },
-    "value": { "buttonColor": "green" }
+    "scope": { "type": "percentage_rollout", "value": 0.5 }
   },
   {
     "name": "treatment",
-    "scope": { "type": "percentage_rollout", "value": 1.0 },
-    "value": { "buttonColor": "blue" }
+    "scope": { "type": "percentage_rollout", "value": 1.0 }
   }
 ]
 ```

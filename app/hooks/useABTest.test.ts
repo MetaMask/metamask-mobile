@@ -34,8 +34,68 @@ describe('useABTest', () => {
     jest.resetAllMocks();
   });
 
-  describe('with valid flag value matching a variant', () => {
-    it('returns correct variant data when flag matches control variant', () => {
+  describe('with object format { name } from controller', () => {
+    it('returns correct variant data when flag is object with name property', () => {
+      mockUseSelector.mockReturnValue({
+        buttonColorTest: { name: 'control' },
+      });
+
+      const { result } = renderHook(() =>
+        useABTest('buttonColorTest', buttonColorVariants),
+      );
+
+      expect(result.current.variant).toEqual({ long: 'green', short: 'red' });
+      expect(result.current.variantName).toBe('control');
+      expect(result.current.isActive).toBe(true);
+    });
+
+    it('returns correct variant data for treatment variant in object format', () => {
+      mockUseSelector.mockReturnValue({
+        buttonColorTest: { name: 'monochrome' },
+      });
+
+      const { result } = renderHook(() =>
+        useABTest('buttonColorTest', buttonColorVariants),
+      );
+
+      expect(result.current.variant).toEqual({ long: 'white', short: 'white' });
+      expect(result.current.variantName).toBe('monochrome');
+      expect(result.current.isActive).toBe(true);
+    });
+
+    it('handles object format with optional value property', () => {
+      mockUseSelector.mockReturnValue({
+        swapsQuoteLayout: { name: 'expanded', value: undefined },
+      });
+
+      const { result } = renderHook(() =>
+        useABTest('swapsQuoteLayout', quoteLayoutVariants),
+      );
+
+      expect(result.current.isActive).toBe(true);
+      expect(result.current.variant).toEqual({
+        showFees: true,
+        layout: 'expanded',
+      });
+    });
+
+    it('falls back to first variant when object name does not match any variant', () => {
+      mockUseSelector.mockReturnValue({
+        buttonColorTest: { name: 'invalid_variant' },
+      });
+
+      const { result } = renderHook(() =>
+        useABTest('buttonColorTest', buttonColorVariants),
+      );
+
+      expect(result.current.variant).toEqual({ long: 'green', short: 'red' });
+      expect(result.current.variantName).toBe('control');
+      expect(result.current.isActive).toBe(false);
+    });
+  });
+
+  describe('with legacy string format (backward compatibility)', () => {
+    it('returns correct variant data when flag is a string', () => {
       mockUseSelector.mockReturnValue({ buttonColorTest: 'control' });
 
       const { result } = renderHook(() =>

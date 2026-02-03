@@ -105,8 +105,15 @@ export function useABTest<T extends Record<string, unknown>>(
   variants: T,
 ): UseABTestResult<T> {
   const flags = useSelector(selectRemoteFeatureFlags);
-  const flagValue = flags?.[flagKey] as string | undefined;
+  const flagData = flags?.[flagKey];
 
+  // Handle both object format { name } from controller and legacy string format
+  // The RemoteFeatureFlagController stores A/B test results as { name: "variant_name" }
+  // after processing array-based flags with scope thresholds
+  const flagValue =
+    typeof flagData === 'object' && flagData !== null && 'name' in flagData
+      ? (flagData as { name: string }).name
+      : (flagData as string | undefined);
   // Get the first variant name as fallback
   const variantNames = Object.keys(variants);
   const fallback = variantNames[0];
