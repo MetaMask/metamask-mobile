@@ -534,6 +534,24 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     positionSize,
   ]);
 
+  const hasInsufficientPayTokenBalance = useMemo(() => {
+    if (
+      !hasCustomTokenSelected ||
+      marginRequired == null ||
+      !payToken
+    ) {
+      return false;
+    }
+    const requiredUsd = Number(marginRequired) + Number(combinedFees);
+    const balanceUsd = Number(payToken.balanceUsd ?? 0);
+    return requiredUsd > balanceUsd;
+  }, [
+    hasCustomTokenSelected,
+    marginRequired,
+    combinedFees,
+    payToken,
+  ]);
+
   const { updatePositionTPSL } = usePerpsTrading();
 
   // Order execution using new hook
@@ -1353,6 +1371,16 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             {isPayRowVisible && (
               <View style={[styles.detailItem, styles.detailItemLast]}>
                 <PerpsPayRow embeddedInStack />
+              </View>
+            )}
+            {hasInsufficientPayTokenBalance && (
+              <View style={styles.insufficientPayTokenWarning}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  style={{ color: colors.warning.default }}
+                >
+                  {strings('perps.order.validation.insufficient_funds_to_cover_trade')}
+                </Text>
               </View>
             )}
             {!hideTPSL && doesStopLossRiskLiquidation && (
