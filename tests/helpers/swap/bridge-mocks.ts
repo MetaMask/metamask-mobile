@@ -1,7 +1,7 @@
 import { Mockttp } from 'mockttp';
-import { TestSpecificMock } from '../../../../tests/framework';
-import { setupMockRequest } from '../../../../tests/api-mocking/helpers/mockHelpers';
-import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { TestSpecificMock } from '../../framework';
+import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
   GET_TOKENS_MAINNET_RESPONSE,
   GET_TOKENS_SOLANA_RESPONSE,
