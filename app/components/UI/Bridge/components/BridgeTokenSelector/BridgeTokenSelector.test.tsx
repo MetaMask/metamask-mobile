@@ -139,11 +139,15 @@ jest.mock('../../hooks/useBalancesByAssetId', () => ({
 
 jest.mock('../../hooks/useTokensWithBalances', () => ({
   useTokensWithBalances: (tokens: Record<string, unknown>[]) =>
-    tokens.map((token) => ({
-      ...token,
-      address: (token as { address?: string }).address ?? '0x1234',
-      chainId: (token as { chainId?: string }).chainId ?? '0x1',
-    })),
+    tokens.map((token) => {
+      const { iconUrl, ...tokenWithoutIconUrl } = token as { iconUrl?: string };
+      return {
+        ...tokenWithoutIconUrl,
+        address: (token as { address?: string }).address ?? '0x1234',
+        chainId: (token as { chainId?: string }).chainId ?? '0x1',
+        image: iconUrl, // Map API's iconUrl to BridgeToken's image
+      };
+    }),
 }));
 
 const mockHandleTokenPress = jest.fn();
@@ -659,7 +663,7 @@ describe('BridgeTokenSelector', () => {
           symbol: 'USDC',
           name: 'USD Coin',
           assetId: 'eip155:1/erc20:0x1234567890123456789012345678901234567890',
-          chainId: 'eip155:1',
+          chainId: '0x1',
           decimals: 18,
           image: 'https://example.com/token.png',
         }),

@@ -169,6 +169,8 @@ describe('usePerpsTPSLUpdate', () => {
       symbol: 'ETH',
       takeProfitPrice,
       stopLossPrice,
+      trackingData: undefined,
+      position,
     });
   });
 
@@ -251,6 +253,8 @@ describe('usePerpsTPSLUpdate', () => {
       symbol: 'ETH',
       takeProfitPrice: undefined,
       stopLossPrice: undefined,
+      trackingData: undefined,
+      position,
     });
   });
 

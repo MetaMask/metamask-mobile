@@ -8,11 +8,8 @@ import React, {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+import { TextColor } from '../../../../../component-library/components/Texts/Text';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import { View } from 'react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './EarnTokenList.styles';
@@ -22,7 +19,8 @@ import { FlatList } from 'react-native-gesture-handler';
 import { Hex } from '@metamask/utils';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { EVENT_NAME } from '../../../../../core/Analytics/MetaMetrics.events';
 import {
   EVENT_LOCATIONS,
   EVENT_PROVIDERS,
@@ -102,7 +100,7 @@ const EarnTokenList = () => {
 
   // Temp: Used as workaround for BadgeNetwork not properly anchoring to its parent BadgeWrapper.
   const [, forceUpdate] = useReducer((x) => x + 1, 0);
-  const { createEventBuilder, trackEvent } = useMetrics();
+  const { createEventBuilder, trackEvent } = useAnalytics();
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
   const { params } = useRoute<EarnTokenListProps['route']>();
@@ -209,7 +207,7 @@ const EarnTokenList = () => {
     }
 
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.EARN_TOKEN_LIST_ITEM_CLICKED)
+      createEventBuilder(EVENT_NAME.EARN_TOKEN_LIST_ITEM_CLICKED)
         .addProperties({
           provider: EVENT_PROVIDERS.CONSENSYS,
           location: EVENT_LOCATIONS.WALLET_ACTIONS_BOTTOM_SHEET,
@@ -376,15 +374,21 @@ const EarnTokenList = () => {
     return <EarnTokenListSkeletonPlaceholder />;
   }, [earnTokens?.length]);
 
+  const handleClose = useCallback(() => {
+    bottomSheetRef.current?.onCloseBottomSheet();
+  }, []);
+
   return (
     <BottomSheet ref={bottomSheetRef}>
-      <BottomSheetHeader>
-        <Text variant={TextVariant.HeadingSM}>
-          {params?.onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.WITHDRAW
+      <HeaderCenter
+        title={
+          params?.onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.WITHDRAW
             ? strings('stake.select_a_token_to_withdraw')
-            : strings('stake.select_a_token_to_deposit')}
-        </Text>
-      </BottomSheetHeader>
+            : strings('stake.select_a_token_to_deposit')
+        }
+        onClose={handleClose}
+        closeButtonProps={{ testID: 'earn-token-list-close-button' }}
+      />
       <View style={styles.flatList}>
         <FlatList
           data={filteredTokens}

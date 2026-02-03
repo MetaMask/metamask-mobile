@@ -49,8 +49,7 @@
     "allDetectedTokens": {}
   },
   "TokenListController": {
-    "tokensChainsCache": {},
-    "preventPollingOnNetworkRestart": false
+    "tokensChainsCache": {}
   },
   "CurrencyRateController": {
     "currentCurrency": "usd",
@@ -341,10 +340,6 @@
   },
   "TokenRatesController": {
     "marketData": {}
-  },
-  "TokenSearchDiscoveryController": {
-    "lastSearchTimestamp": null,
-    "recentSearches": []
   },
   "TokenSearchDiscoveryDataController": {
     "tokenDisplayData": []
@@ -738,6 +733,7 @@
     "accounts": {},
     "activeAccount": null,
     "activeBoosts": {},
+    "pointsEstimateHistory": [],
     "pointsEvents": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
