@@ -497,13 +497,13 @@ describe('Confirm', () => {
     expect(getByTestId('confirm-loader-default')).toBeDefined();
   });
 
-  it('sets navigation options with header hidden for modal confirmations', () => {
+  it('sets navigation options with header shown for full screen confirmations', () => {
     renderWithProvider(<Confirm />, {
       state: typedSignV1ConfirmationState,
     });
 
     expect(mockSetOptions).toHaveBeenCalledWith({
-      headerShown: false,
+      headerShown: true,
       gestureEnabled: true,
     });
   });

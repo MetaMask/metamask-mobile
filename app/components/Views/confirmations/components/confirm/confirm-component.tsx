@@ -126,14 +126,19 @@ export const Confirm = ({
 
   useEffect(() => {
     if (approvalRequest) {
-      navigation.setOptions({
-        // HeaderCenter is used for full screen confirmations, so we don't need React Navigation's header
+      const options = {
         headerShown: false,
         // If there is an approvalRequest, we need to allow the user to swipe to reject the confirmation
         gestureEnabled: true,
-      });
+      };
+
+      if (isFullScreenConfirmation) {
+        // If the confirmation is full screen, we need to show the header
+        options.headerShown = true;
+      }
+      navigation.setOptions(options);
     }
-  }, [approvalRequest, navigation]);
+  }, [approvalRequest, isFullScreenConfirmation, navigation]);
 
   useEffect(() => {
     if (!approvalRequest) {
@@ -162,11 +167,6 @@ export const Confirm = ({
         style={[styles.flatContainer, fullscreenStyle]}
         testID={ConfirmationUIType.FLAT}
       >
-        <HeaderCenter
-          title={strings('stake.review')}
-          onBack={onReject}
-          includesTopInset
-        />
         <ConfirmWrapped styles={styles} route={route} />
       </SafeAreaView>
     );
