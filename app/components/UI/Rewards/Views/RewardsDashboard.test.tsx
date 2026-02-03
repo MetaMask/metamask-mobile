@@ -1096,6 +1096,63 @@ describe('RewardsDashboard', () => {
       // Assert - tab-1 should now be activity, not snapshots
       expect(mockDispatch).toHaveBeenCalledWith(setActiveTab('activity'));
     });
+
+    it('resets activeTab to overview when snapshots tab becomes unavailable', () => {
+      // Arrange - activeTab is 'snapshots' but isSnapshotsEnabled is false
+      mockSelectActiveTab.mockReturnValue('snapshots');
+      mockSelectSnapshotsRewardsEnabledFlag.mockReturnValue(false);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectActiveTab) return 'snapshots';
+        if (selector === selectRewardsSubscriptionId)
+          return defaultSelectorValues.subscriptionId;
+        if (selector === selectSeasonId) return currentSeasonId;
+        if (selector === selectSeasonEndDate)
+          return defaultSelectorValues.seasonEndDate;
+        if (selector === selectHideUnlinkedAccountsBanner)
+          return defaultSelectorValues.hideUnlinkedAccountsBanner;
+        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
+          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
+        if (selector === selectSelectedAccountGroup)
+          return defaultSelectorValues.selectedAccountGroup;
+        if (selector === selectSnapshotsRewardsEnabledFlag) return false;
+        return undefined;
+      });
+
+      // Act
+      render(<RewardsDashboard />);
+
+      // Assert - should dispatch setActiveTab('overview') to reset the invalid tab
+      expect(mockDispatch).toHaveBeenCalledWith(setActiveTab('overview'));
+    });
+
+    it('does not reset activeTab when current tab is still available', () => {
+      // Arrange - activeTab is 'activity' and isSnapshotsEnabled is false
+      // activity tab should still be available
+      mockSelectActiveTab.mockReturnValue('activity');
+      mockSelectSnapshotsRewardsEnabledFlag.mockReturnValue(false);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectActiveTab) return 'activity';
+        if (selector === selectRewardsSubscriptionId)
+          return defaultSelectorValues.subscriptionId;
+        if (selector === selectSeasonId) return currentSeasonId;
+        if (selector === selectSeasonEndDate)
+          return defaultSelectorValues.seasonEndDate;
+        if (selector === selectHideUnlinkedAccountsBanner)
+          return defaultSelectorValues.hideUnlinkedAccountsBanner;
+        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
+          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
+        if (selector === selectSelectedAccountGroup)
+          return defaultSelectorValues.selectedAccountGroup;
+        if (selector === selectSnapshotsRewardsEnabledFlag) return false;
+        return undefined;
+      });
+
+      // Act
+      render(<RewardsDashboard />);
+
+      // Assert - should NOT dispatch setActiveTab since 'activity' is still valid
+      expect(mockDispatch).not.toHaveBeenCalledWith(setActiveTab('overview'));
+    });
   });
 
   describe('previous season summary', () => {

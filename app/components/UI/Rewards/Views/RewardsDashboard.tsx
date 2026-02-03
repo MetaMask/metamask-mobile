@@ -168,6 +168,17 @@ const RewardsDashboard: React.FC = () => {
     [tabOptions, activeTab],
   );
 
+  // Reset activeTab to 'overview' if current tab becomes unavailable (e.g., snapshots disabled)
+  // This ensures Redux state stays in sync with the visible tab and analytics events are accurate
+  useEffect(() => {
+    const isCurrentTabAvailable = tabOptions.some(
+      (tab) => tab.value === activeTab,
+    );
+    if (!isCurrentTabAvailable) {
+      dispatch(setActiveTab('overview'));
+    }
+  }, [tabOptions, activeTab, dispatch]);
+
   // Sync TabsList with Redux state changes
   useEffect(() => {
     const activeIndex = tabOptions.findIndex((tab) => tab.value === activeTab);
