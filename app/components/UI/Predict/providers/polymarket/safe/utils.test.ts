@@ -479,7 +479,7 @@ describe('safe utils', () => {
       expect(mockSignTypedMessage).toHaveBeenCalled();
     });
 
-    it('handles error gracefully', async () => {
+    it('throws error when signing fails', async () => {
       const signer = buildSigner();
       mockSignTypedMessage.mockRejectedValue(new Error('Signature rejected'));
       const consoleErrorSpy = jest
@@ -488,10 +488,27 @@ describe('safe utils', () => {
           // Mock implementation to suppress console output
         });
 
-      const result = await getDeployProxyWalletTransaction({ signer });
+      await expect(getDeployProxyWalletTransaction({ signer })).rejects.toThrow(
+        'Failed to generate deploy proxy wallet transaction: Signature rejected',
+      );
 
-      expect(result).toBeUndefined();
       expect(consoleErrorSpy).toHaveBeenCalled();
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('throws error with "Unknown error" when non-Error is thrown', async () => {
+      const signer = buildSigner();
+      mockSignTypedMessage.mockRejectedValue('string error');
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {
+          // Mock implementation to suppress console output
+        });
+
+      await expect(getDeployProxyWalletTransaction({ signer })).rejects.toThrow(
+        'Failed to generate deploy proxy wallet transaction: Unknown error',
+      );
+
       consoleErrorSpy.mockRestore();
     });
   });
@@ -984,6 +1001,28 @@ describe('safe utils', () => {
 
       // Then signer's signPersonalMessage is called
       expect(mockSignPersonalMessage).toHaveBeenCalled();
+    });
+
+    it('throws error when signing fails', async () => {
+      const signer = buildSigner();
+
+      mockNetworkController();
+      mockQuery
+        .mockResolvedValueOnce(
+          '0x0000000000000000000000000000000000000000000000000000000000000001',
+        )
+        .mockResolvedValueOnce(
+          '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+        );
+      mockSignPersonalMessage.mockRejectedValueOnce(
+        new Error('User rejected signing'),
+      );
+
+      await expect(
+        getProxyWalletAllowancesTransaction({ signer }),
+      ).rejects.toThrow(
+        'Failed to generate proxy wallet allowances transaction: User rejected signing',
+      );
     });
   });
 

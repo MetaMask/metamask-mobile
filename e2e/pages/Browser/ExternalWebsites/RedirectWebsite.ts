@@ -1,5 +1,5 @@
 import { BrowserViewSelectorsIDs } from '../../../../app/components/Views/BrowserTab/BrowserView.testIds';
-import Matchers from '../../../framework/Matchers.ts';
+import Matchers from '../../../../tests/framework/Matchers.ts';
 
 class RedirectWebsite {
   /**

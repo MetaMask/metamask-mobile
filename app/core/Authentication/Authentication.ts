@@ -10,8 +10,6 @@ import {
   PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
 } from '../../constants/storage';
 import {
-  authSuccess,
-  authError,
   logIn,
   logOut,
   passwordSet,
@@ -21,11 +19,10 @@ import {
 import { setCompletedOnboarding } from '../../actions/onboarding';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
+import { UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
 import { UserCredentials, BIOMETRY_TYPE } from 'react-native-keychain';
 import {
-  AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
   AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-  AUTHENTICATION_FAILED_TO_LOGIN,
   AUTHENTICATION_FAILED_WALLET_CREATION,
   AUTHENTICATION_RESET_PASSWORD_FAILED,
   AUTHENTICATION_RESET_PASSWORD_FAILED_MESSAGE,
@@ -53,6 +50,7 @@ import {
 } from '../../util/mnemonic';
 import Logger from '../../util/Logger';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
+import { cancelBulkLink } from '../../store/sagas/rewardsBulkLinkAccountGroups';
 import OAuthService from '../OAuthService/OAuthService';
 import {
   AccountImportStrategy,
@@ -75,10 +73,8 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
 import { renewSeedlessControllerRefreshTokens } from '../OAuthService/SeedlessControllerHelper';
 import { EntropySourceId } from '@metamask/keyring-api';
-import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
 import MetaMetrics from '../Analytics/MetaMetrics';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
-import { handlePasswordSubmissionError } from './utils';
 import { setAllowLoginWithRememberMe } from '../../actions/security';
 import { Alert } from 'react-native';
 import { strings } from '../../../locales/i18n';
@@ -428,6 +424,8 @@ class AuthenticationService {
             password,
             SecureKeychain.TYPES.BIOMETRICS,
           );
+
+          // TODO: Remove this once we have a proper way to handle biometrics
           await StorageWrapper.removeItem(BIOMETRY_CHOICE_DISABLED);
           await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
 
@@ -437,8 +435,11 @@ class AuthenticationService {
             password,
             SecureKeychain.TYPES.PASSCODE,
           );
+
+          // TODO: Remove this once we have a proper way to handle biometrics
           await StorageWrapper.removeItem(PASSCODE_DISABLED);
           await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+
           break;
         case AUTHENTICATION_TYPE.REMEMBER_ME: {
           // Store the current auth type before switching to remember me
@@ -457,12 +458,16 @@ class AuthenticationService {
             password,
             SecureKeychain.TYPES.REMEMBER_ME,
           );
-          // SecureKeychain.setGenericPassword handles flag management for REMEMBER_ME
-          // (sets BIOMETRY_CHOICE_DISABLED and PASSCODE_DISABLED to disable biometric/passcode)
+
+          // TODO: Remove this once we have a proper way to handle biometrics
+          await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
+          await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+
           break;
         }
         case AUTHENTICATION_TYPE.PASSWORD: {
           await SecureKeychain.setGenericPassword(password, undefined);
+
           // Password only: disable both biometrics and passcode
           await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
           await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
@@ -480,6 +485,7 @@ class AuthenticationService {
         }
         default:
           await SecureKeychain.setGenericPassword(password, undefined);
+
           // Default to password behavior: disable both
           await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
           await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
@@ -681,64 +687,6 @@ class AuthenticationService {
   };
 
   /**
-   * Manual user password entry for login
-   * @param password - password provided by user
-   * @param authData - type of authentication required to fetch password from keychain
-   */
-  userEntryAuth = async (
-    password: string,
-    authData: AuthData,
-  ): Promise<void> => {
-    try {
-      trace({
-        name: TraceName.VaultCreation,
-        op: TraceOperation.VaultCreation,
-      });
-
-      if (authData.oauth2Login) {
-        // if seedless flow - rehydrate
-        await this.rehydrateSeedPhrase(password);
-      } else if (await this.checkIsSeedlessPasswordOutdated(false)) {
-        // if seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
-        await this.syncPasswordAndUnlockWallet(password);
-      } else {
-        // else srp flow
-        await this.loginVaultCreation(password);
-      }
-
-      endTrace({ name: TraceName.VaultCreation });
-
-      await this.storePassword(password, authData.currentAuthType);
-      await this.dispatchLogin();
-      this.authData = authData;
-
-      // We run some post-login operations asynchronously to make login feels smoother and faster (re-sync,
-      // discovery...).
-      // NOTE: We do not await on purpose, to run those operations in the background.
-      // eslint-disable-next-line no-void
-      void this.postLoginAsyncOperations();
-
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (e: any) {
-      if (e instanceof SeedlessOnboardingControllerError) {
-        throw e;
-      }
-
-      if ((e as Error).message.includes('SeedlessOnboardingController')) {
-        throw e;
-      }
-
-      throw new AuthenticationError(
-        (e as Error).message,
-        AUTHENTICATION_FAILED_TO_LOGIN,
-        this.authData,
-      );
-    }
-    password = this.wipeSensitiveData();
-  };
-
-  /**
    * Method for unlocking the wallet.
    *
    * If the user exists, it will try to derive the password from biometric credentials and navigate to the wallet if successful.
@@ -765,10 +713,11 @@ class AuthenticationService {
     try {
       const existingUser = selectExistingUser(ReduxService.store.getState());
 
-      if (existingUser) {
+      if (existingUser || authPreference?.oauth2Login) {
         // User exists. Attempt to unlock wallet.
+        // existing user is always false when user try to rehydrate
 
-        if (password) {
+        if (password !== undefined) {
           // Explicitly provided password.
           passwordToUse = password;
         } else {
@@ -803,10 +752,31 @@ class AuthenticationService {
           this.dispatchPasswordSet();
           void this.postLoginAsyncOperations();
 
-          // Authentication successful.Navigate to home screen.
-          NavigationService.navigation?.reset({
-            routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-          });
+          // TODO: Refactor this orchestration to sagas.
+          // Navigate to optin metrics or home screen based on metrics consent and UI seen.
+          const isMetricsEnabled = MetaMetrics.getInstance().isEnabled();
+          const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
+            OPTIN_META_METRICS_UI_SEEN,
+          );
+          if (!isOptinMetaMetricsUISeen && !isMetricsEnabled) {
+            NavigationService.navigation?.reset({
+              routes: [
+                {
+                  name: Routes.ONBOARDING.ROOT_NAV,
+                  params: {
+                    screen: Routes.ONBOARDING.NAV,
+                    params: {
+                      screen: Routes.ONBOARDING.OPTIN_METRICS,
+                    },
+                  },
+                },
+              ],
+            });
+          } else {
+            NavigationService.navigation?.reset({
+              routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+            });
+          }
         } else {
           // No password provided or derived. Navigate to login.
           NavigationService.navigation?.reset({
@@ -823,87 +793,28 @@ class AuthenticationService {
           routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
         });
       }
+      // eslint-disable-next-line no-useless-catch
     } catch (error) {
       // Error while submitting password.
-      handlePasswordSubmissionError(error as Error);
+
+      // TODO: Refactor lockApp to be more deterministic or create another clean up method.
+      try {
+        await this.lockApp({ reset: false, navigateToLogin: false });
+      } catch (lockError) {
+        // Log but don't replace the original error
+        Logger.error(
+          lockError as Error,
+          'Failed to lock app during unlockWallet error condition.',
+        );
+      }
+
+      // TODO: Use handlePasswordSubmissionError once we have a standard way of displaying error messages in the UI.
+      // handlePasswordSubmissionError(error as Error);
+      throw error;
     } finally {
       // Wipe sensitive data.
       password = this.wipeSensitiveData();
       passwordToUse = this.wipeSensitiveData();
-    }
-  };
-
-  /**
-   * Attempts to use biometric/pin code/remember me to login
-   * @param bioStateMachineId - ID associated with each biometric session.
-   * @param disableAutoLogout - Boolean that determines if the function should auto-lock when error is thrown.
-   */
-  appTriggeredAuth = async (
-    options: {
-      bioStateMachineId?: string;
-      disableAutoLogout?: boolean;
-    } = {},
-  ): Promise<void> => {
-    const bioStateMachineId = options?.bioStateMachineId;
-    const disableAutoLogout = options?.disableAutoLogout;
-    try {
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const credentials: any = await SecureKeychain.getGenericPassword();
-      const password = credentials?.password;
-      if (!password) {
-        throw new AuthenticationError(
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-          AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
-          this.authData,
-        );
-      }
-      trace({
-        name: TraceName.VaultCreation,
-        op: TraceOperation.VaultCreation,
-      });
-      // check for seedless password outdated
-      const isSeedlessPasswordOutdated =
-        await this.checkIsSeedlessPasswordOutdated(false);
-      if (isSeedlessPasswordOutdated) {
-        throw new AuthenticationError(
-          'Seedless password is outdated',
-          AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
-          this.authData,
-        );
-      } else {
-        await this.loginVaultCreation(password);
-      }
-      endTrace({ name: TraceName.VaultCreation });
-
-      await this.dispatchLogin();
-      ReduxService.store.dispatch(authSuccess(bioStateMachineId));
-      this.dispatchPasswordSet();
-
-      // We run some post-login operations asynchronously to make login feels smoother and faster (re-sync,
-      // discovery...).
-      // NOTE: We do not await on purpose, to run those operations in the background.
-      // eslint-disable-next-line no-void
-      void this.postLoginAsyncOperations();
-
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (e: any) {
-      const errorMessage = (e as Error).message;
-
-      // Track authentication failures that could indicate vault/keychain issues to Segment
-      trackVaultCorruption(errorMessage, {
-        error_type: 'authentication_service_failure',
-        context: 'app_triggered_auth_failed',
-      });
-
-      ReduxService.store.dispatch(authError(bioStateMachineId));
-      !disableAutoLogout && this.lockApp({ reset: false });
-      throw new AuthenticationError(
-        errorMessage,
-        AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
-        this.authData,
-      );
     }
   };
 
@@ -1568,6 +1479,9 @@ class AuthenticationService {
 
         await depositResetProviderToken();
 
+        // Cancel any running bulk link saga before resetting rewards state
+        ReduxService.store.dispatch(cancelBulkLink());
+
         await Engine.controllerMessenger.call('RewardsController:resetAll');
 
         // Lock the app and navigate to onboarding
@@ -1622,9 +1536,6 @@ class AuthenticationService {
     try {
       const passwordToUse = await this.reauthenticate(password);
 
-      // TODO: Check if this is really needed for IOS (if so, userEntryAuth is not calling it, and we should move the reset to storePassword)
-      await this.resetPassword();
-
       // storePassword handles all storage flag management internally
       await this.storePassword(passwordToUse.password, authType);
     } catch (e) {
@@ -1644,7 +1555,12 @@ class AuthenticationService {
         );
       }
 
-      if (errorWithMessage.message === 'Invalid password') {
+      if (
+        errorWithMessage.message === 'Invalid password' ||
+        errorWithMessage.message.includes(
+          UNLOCK_WALLET_ERROR_MESSAGES.ANDROID_WRONG_PASSWORD_2,
+        )
+      ) {
         Alert.alert(
           strings('app_settings.invalid_password'),
           strings('app_settings.invalid_password_message'),

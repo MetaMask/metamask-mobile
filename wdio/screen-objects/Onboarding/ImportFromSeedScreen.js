@@ -1,8 +1,8 @@
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 import { ImportFromSeedSelectorsIDs } from '../../../app/components/Views/ImportFromSecretRecoveryPhrase/ImportFromSeed.testIds';
-import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
-import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
+import AppwrightGestures from '../../../tests/framework/AppwrightGestures';
+import AppwrightSelectors from '../../../tests/framework/AppwrightSelectors';
 import { expect as appwrightExpect } from 'appwright';
 
 class ImportFromSeedScreen {
@@ -55,7 +55,7 @@ class ImportFromSeedScreen {
         return `import-from-seed-screen-seed-phrase-input-id_${String(srpIndex)}`;
       } else {
         return `//XCUIElementTypeOther[@name="textfield" and @label="${String(srpIndex)}."]`;
-        
+
       }
     }
     else {
@@ -66,7 +66,7 @@ class ImportFromSeedScreen {
       }
     }
    }
- 
+
 
   async isScreenTitleVisible(onboarding = true) {
     if (!this._device) {
@@ -94,11 +94,11 @@ class ImportFromSeedScreen {
 
         await AppwrightGestures.typeText(form, `${firstWord} `);
         for (let i = 1; i < phraseArray.length - 1; i++) {
-          let index = i;  
+          let index = i;
           if (AppwrightSelectors.isIOS(this._device)) { // SRP fields on iOS starts from 1
             index = i + 1;
           }
-          
+
           const wordElement = await this.inputOfIndex(index);
           let input;
           if (AppwrightSelectors.isAndroid(this._device))
@@ -158,12 +158,7 @@ class ImportFromSeedScreen {
     } else if (!this._device)
         await Gestures.waitAndTap(this.screenTitle);
     else {
-        if (AppwrightSelectors.isIOS(this._device)) {
-          const element = await AppwrightSelectors.getElementByText(this.device, 'Import a wallet');
-          await AppwrightGestures.tap(element);
-        } else {
-          await AppwrightGestures.hideKeyboard(this.device);
-        }
+      await AppwrightGestures.hideKeyboard(this.device);
     }
   }
 }

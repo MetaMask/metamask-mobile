@@ -30,6 +30,43 @@ export default {
   BRIDGE: {
     ACTIVE: true,
     URL: `${PORTFOLIO_URL}/bridge`,
+    // Check app/components/UI/Bridge/types.ts
+    // for interface definition.
+    SLIPPAGE_CONFIG: {
+      __default__: {
+        input_step: 0.1,
+        max_amount: 100,
+        min_amount: 0,
+        input_max_decimals: 2,
+        lower_allowed_slippage_threshold: {
+          messageId: 'bridge.exceeding_lower_slippage_error',
+          value: 0.1,
+          inclusive: true,
+        },
+        lower_suggested_slippage_threshold: {
+          messageId: 'bridge.exceeding_lower_slippage_warning',
+          value: 0.5,
+          inclusive: false,
+        },
+        upper_suggested_slippage_threshold: {
+          messageId: 'bridge.exceeding_upper_slippage_warning',
+          value: 5,
+          inclusive: false,
+        },
+        upper_allowed_slippage_threshold: {
+          messageId: 'bridge.exceeding_upper_slippage_error',
+          value: 100,
+          inclusive: false,
+        },
+        default_slippage_options: ['0.5', '2', '3'],
+        has_custom_slippage_option: true,
+      },
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+          default_slippage_options: ['auto', '0.5', '2'],
+        },
+      },
+    },
   },
   STAKE: {
     URL: `${PORTFOLIO_URL}/stake`,
@@ -164,6 +201,8 @@ export default {
     PRIVACY_NOTICE: 'https://consensys.io/privacy-notice',
     MULTICHAIN_ACCOUNTS:
       'https://support.metamask.io/configure/accounts/multichain-accounts/',
+    MUSD_CONVERSION_BONUS_TERMS_OF_USE:
+      'https://metamask.io/musd-bonus-terms-of-use',
   },
   // URL set at build time via builds.yml
   DECODING_API_URL:

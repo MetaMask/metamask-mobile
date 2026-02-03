@@ -19,4 +19,13 @@ export const CardHomeSelectors = {
     'add-funds-bottom-sheet-deposit-option',
   ADD_FUNDS_BOTTOM_SHEET_SWAP_OPTION: 'add-funds-bottom-sheet-swap-option',
   SPENDING_LIMIT_PROGRESS_BAR_SKELETON: 'spending-limit-progress-bar-skeleton',
+  VIEW_CARD_DETAILS_BUTTON: 'view-card-details-button',
+  CARD_DETAILS_IMAGE: 'card-details-image',
+  CARD_DETAILS_IMAGE_SKELETON: 'card-details-image-skeleton',
+  PASSWORD_BOTTOM_SHEET: 'password-bottom-sheet',
+  PASSWORD_INPUT: 'password-input',
+  PASSWORD_ERROR: 'password-error',
+  PASSWORD_CANCEL_BUTTON: 'password-cancel-button',
+  PASSWORD_CONFIRM_BUTTON: 'password-confirm-button',
+  ORDER_METAL_CARD_ITEM: 'order-metal-card-item',
 };

@@ -45,6 +45,7 @@ app/core/Engine/controllers/remote-feature-flag-controller/ @MetaMask/mobile-pla
 app/core/DeeplinkManager                                    @MetaMask/mobile-platform
 scripts/build.sh                                            @MetaMask/mobile-platform
 fingerprint.config.js                                       @MetaMask/mobile-platform
+.github/workflows/push-eas-update.yml                       @MetaMask/mobile-admins
 scripts/update-expo-channel.js                              @MetaMask/mobile-admins
 certs/certificate.pem                                       @MetaMask/mobile-admins
 ios/fastlane/                                               @MetaMask/mobile-admins
@@ -123,10 +124,6 @@ app/components/Views/Settings/NotificationsSettings @MetaMask/notifications
 ses.cjs                              @MetaMask/supply-chain
 patches/react-native+0.*.patch       @MetaMask/supply-chain
 
-# Portfolio Team
-app/components/hooks/useTokenSearchDiscovery @MetaMask/portfolio
-app/core/Engine/controllers/TokenSearchDiscoveryController @MetaMask/portfolio
-
 # Core Platform Team
 **/snaps/**                          @MetaMask/core-platform
 **/Snaps/**                          @MetaMask/core-platform
@@ -187,6 +184,7 @@ app/components/UI/CollectibleOverview @MetaMask/metamask-assets
 app/components/UI/ConfirmAddAsset @MetaMask/metamask-assets
 app/components/UI/DeFiPositions @MetaMask/metamask-assets
 app/components/UI/Tokens @MetaMask/metamask-assets
+app/components/UI/TokenDetails @MetaMask/metamask-assets
 app/components/Views/AddAsset @MetaMask/metamask-assets
 app/components/Views/Asset @MetaMask/metamask-assets
 app/components/Views/AssetDetails @MetaMask/metamask-assets
@@ -244,9 +242,9 @@ app/core/Engine/controllers/gator-permissions-controller              @MetaMask/
 app/core/Engine/messengers/gator-permissions-controller-messenger     @MetaMask/delegation
 
 # QA Team - E2E Framework
-e2e/api-mocking/                             @MetaMask/qa
+tests/api-mocking/                             @MetaMask/qa
 e2e/fixtures/                                @MetaMask/qa
-e2e/framework/                               @MetaMask/qa
+tests/framework/                               @MetaMask/qa
 e2e/pages/                                   @MetaMask/qa
 e2e/utils/                                   @MetaMask/qa
 e2e/viewHelper.ts                            @MetaMask/qa

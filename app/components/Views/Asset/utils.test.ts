@@ -3,8 +3,6 @@ import { getIsSwapsAssetAllowed } from './utils';
 import { SolScope } from '@metamask/keyring-api';
 
 describe('getIsSwapsAssetAllowed', () => {
-  const mockSearchDiscoverySwapsTokens = ['0xtoken3', '0xtoken4'];
-
   describe('EVM assets', () => {
     it('should return true for ETH assets', () => {
       const result = getIsSwapsAssetAllowed({
@@ -14,7 +12,6 @@ describe('getIsSwapsAssetAllowed', () => {
           address: '0x0',
           chainId: '0x1',
         },
-        searchDiscoverySwapsTokens: mockSearchDiscoverySwapsTokens,
       });
       expect(result).toBe(true);
     });
@@ -27,7 +24,6 @@ describe('getIsSwapsAssetAllowed', () => {
           address: '0x0',
           chainId: '0x1',
         },
-        searchDiscoverySwapsTokens: mockSearchDiscoverySwapsTokens,
       });
       expect(result).toBe(true);
     });
@@ -41,7 +37,6 @@ describe('getIsSwapsAssetAllowed', () => {
           chainId: '0x1',
           isFromSearch: true,
         },
-        searchDiscoverySwapsTokens: mockSearchDiscoverySwapsTokens,
       });
       expect(result).toBe(true);
     });
@@ -54,7 +49,6 @@ describe('getIsSwapsAssetAllowed', () => {
           address: '0xtoken1',
           chainId: '0x1',
         },
-        searchDiscoverySwapsTokens: mockSearchDiscoverySwapsTokens,
       });
       expect(result).toBe(true);
     });
@@ -69,7 +63,6 @@ describe('getIsSwapsAssetAllowed', () => {
           address: 'any-address',
           chainId: SolScope.Mainnet,
         },
-        searchDiscoverySwapsTokens: mockSearchDiscoverySwapsTokens,
       });
       expect(result).toBe(true);
     });

@@ -231,7 +231,6 @@ describe('PredictSportCardFooter', () => {
     mockUsePredictActionGuard.mockReturnValue({
       executeGuardedAction: mockExecuteGuardedAction,
       isEligible: true,
-      hasNoBalance: false,
     });
 
     mockUsePredictClaim.mockReturnValue({
@@ -417,13 +416,13 @@ describe('PredictSportCardFooter', () => {
       expect(screen.getByText('Claim $50')).toBeOnTheScreen();
     });
 
-    it('renders positions with claim button when claimable', () => {
+    it('renders claimable positions with claim button when claimable', () => {
       const market = createMockMarket({ status: PredictMarketStatus.RESOLVED });
       const claimablePositions = [
         createMockPosition({ claimable: true, currentValue: 50 }),
       ];
       setupPositionsMock({
-        activePositions: claimablePositions,
+        activePositions: [],
         claimablePositions,
       });
 
@@ -510,7 +509,6 @@ describe('PredictSportCardFooter', () => {
         expect(mockExecuteGuardedAction).toHaveBeenCalledWith(
           expect.any(Function),
           {
-            checkBalance: true,
             attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
           },
         );
@@ -583,6 +581,34 @@ describe('PredictSportCardFooter', () => {
             entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
           }),
         );
+      });
+    });
+
+    it('navigates through PREDICT.ROOT when entry point is CAROUSEL', async () => {
+      mockIsFromTrending.mockReturnValue(false);
+      const market = createMockMarket();
+      setupPositionsMock();
+      mockExecuteGuardedAction.mockImplementation((callback) => callback());
+
+      render(
+        <PredictSportCardFooter
+          market={market}
+          entryPoint={PredictEventValues.ENTRY_POINT.CAROUSEL}
+          testID="footer"
+        />,
+      );
+      fireEvent.press(screen.getByTestId('footer-action-buttons-bet-yes'));
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+          params: {
+            market,
+            outcome: market.outcomes[0],
+            outcomeToken: market.outcomes[0].tokens[0],
+            entryPoint: PredictEventValues.ENTRY_POINT.CAROUSEL,
+          },
+        });
       });
     });
   });
@@ -670,6 +696,32 @@ describe('PredictSportCardFooter', () => {
       render(<PredictSportCardFooter market={market} />);
 
       expect(screen.getByTestId('mock-action-buttons')).toBeOnTheScreen();
+    });
+
+    it('renders picks without testID when testID prop is not provided', () => {
+      const market = createMockMarket({ status: PredictMarketStatus.OPEN });
+      const positions = [createMockPosition({ claimable: false })];
+      setupPositionsMock({ activePositions: positions });
+
+      render(<PredictSportCardFooter market={market} />);
+
+      expect(screen.getByTestId('mock-picks-for-card')).toBeOnTheScreen();
+    });
+
+    it('renders claim button without testID when testID prop is not provided', () => {
+      const market = createMockMarket({ status: PredictMarketStatus.RESOLVED });
+      const claimablePositions = [
+        createMockPosition({ claimable: true, currentValue: 50 }),
+      ];
+      setupPositionsMock({
+        activePositions: claimablePositions,
+        claimablePositions,
+      });
+
+      render(<PredictSportCardFooter market={market} />);
+
+      expect(screen.getByTestId('mock-action-buttons')).toBeOnTheScreen();
+      expect(screen.getByText('Claim $50')).toBeOnTheScreen();
     });
   });
 });

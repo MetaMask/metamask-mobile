@@ -11,7 +11,6 @@ import {
 ///: END:ONLY_INCLUDE_IF
 import { CodefiTokenPricesServiceV2 } from '@metamask/assets-controllers';
 import { AccountsController } from '@metamask/accounts-controller';
-import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
   KeyringControllerState,
@@ -50,6 +49,7 @@ import {
 import NotificationManager from '../NotificationManager';
 import Logger from '../../util/Logger';
 import { isZero } from '../../util/lodash';
+import { initializeRpcProviderDomains } from '../../util/rpc-domain-utils';
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { notificationServicesControllerInit } from './controllers/notifications/notification-services-controller-init';
@@ -69,6 +69,7 @@ import {
   parseCaipAssetType,
 } from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
+import { captureException } from '@sentry/react-native';
 
 import {
   networkIdUpdated,
@@ -105,14 +106,9 @@ import {
   RootExtendedMessenger,
   EngineState,
   EngineContext,
-  StatefulControllers,
   getRootExtendedMessenger,
-  RootMessenger,
 } from './types';
-import {
-  BACKGROUND_STATE_CHANGE_EVENT_NAMES,
-  STATELESS_NON_CONTROLLER_NAMES,
-} from './constants';
+import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
 import { getGlobalChainId } from '../../util/networks/global-network';
 import { logEngineCreation } from './utils/logger';
 import { initModularizedControllers } from './utils';
@@ -154,7 +150,6 @@ import { tokenSearchDiscoveryDataControllerInit } from './controllers/token-sear
 import { assetsContractControllerInit } from './controllers/assets-contract-controller-init';
 import { tokensControllerInit } from './controllers/tokens-controller-init';
 import { tokenListControllerInit } from './controllers/token-list-controller-init';
-import { tokenSearchDiscoveryControllerInit } from './controllers/token-search-discovery-controller-init';
 import { tokenDetectionControllerInit } from './controllers/token-detection-controller-init';
 import { tokenBalancesControllerInit } from './controllers/token-balances-controller-init';
 import { tokenRatesControllerInit } from './controllers/token-rates-controller-init';
@@ -180,7 +175,6 @@ import { profileMetricsControllerInit } from './controllers/profile-metrics-cont
 import { profileMetricsServiceInit } from './controllers/profile-metrics-service-init';
 import { rampsServiceInit } from './controllers/ramps-controller/ramps-service-init';
 import { rampsControllerInit } from './controllers/ramps-controller/ramps-controller-init';
-import { Messenger, MessengerEvents } from '@metamask/messenger';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -207,10 +201,6 @@ export class Engine {
    * The global controller messenger.
    */
   controllerMessenger: RootExtendedMessenger;
-  /**
-   * ComposableController reference containing all child controllers
-   */
-  datamodel: ComposableController<EngineState, StatefulControllers>;
 
   /**
    * Object containing the info for the latest incoming tx block
@@ -320,13 +310,15 @@ export class Engine {
         EarnController: earnControllerInit,
         TokensController: tokensControllerInit,
         TokenBalancesController: tokenBalancesControllerInit,
+        // MultichainNetworkController and NetworkEnablementController must be initialized before TokenRatesController
+        // because TokenRatesController depends on NetworkEnablementController:getState during construction.
+        MultichainNetworkController: multichainNetworkControllerInit,
+        NetworkEnablementController: networkEnablementControllerInit,
         TokenRatesController: tokenRatesControllerInit,
         TokenListController: tokenListControllerInit,
         TokenDetectionController: tokenDetectionControllerInit,
-        TokenSearchDiscoveryController: tokenSearchDiscoveryControllerInit,
         TokenSearchDiscoveryDataController:
           tokenSearchDiscoveryDataControllerInit,
-        MultichainNetworkController: multichainNetworkControllerInit,
         DeFiPositionsController: defiPositionsControllerInit,
         BridgeController: bridgeControllerInit,
         BridgeStatusController: bridgeStatusControllerInit,
@@ -360,7 +352,6 @@ export class Engine {
         ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
         SamplePetnamesController: samplePetnamesControllerInit,
         ///: END:ONLY_INCLUDE_IF
-        NetworkEnablementController: networkEnablementControllerInit,
         PerpsController: perpsControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
@@ -432,8 +423,6 @@ export class Engine {
     const tokenRatesController = controllersByName.TokenRatesController;
     const tokenListController = controllersByName.TokenListController;
     const tokenDetectionController = controllersByName.TokenDetectionController;
-    const tokenSearchDiscoveryController =
-      controllersByName.TokenSearchDiscoveryController;
     const tokenSearchDiscoveryDataController =
       controllersByName.TokenSearchDiscoveryDataController;
     const bridgeController = controllersByName.BridgeController;
@@ -482,6 +471,12 @@ export class Engine {
       controllersByName.NetworkEnablementController;
     networkEnablementController.init();
 
+    // Initialize RPC domain validation cache for analytics
+    // This runs asynchronously and doesn't block Engine initialization
+    initializeRpcProviderDomains().catch((error) => {
+      captureException(error);
+    });
+
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     snapController.init();
     cronjobController.init();
@@ -520,7 +515,6 @@ export class Engine {
       RemoteFeatureFlagController: remoteFeatureFlagController,
       SelectedNetworkController: selectedNetworkController,
       SignatureController: signatureController,
-      TokenSearchDiscoveryController: tokenSearchDiscoveryController,
       LoggingController: loggingController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       CronjobController: cronjobController,
@@ -572,28 +566,6 @@ export class Engine {
         delete childControllers[name];
       }
     });
-    const composableControllerMessenger = new Messenger<
-      'ComposableController',
-      never,
-      MessengerEvents<RootMessenger>,
-      RootMessenger
-    >({
-      namespace: 'ComposableController',
-      parent: this.controllerMessenger,
-    });
-
-    this.controllerMessenger.delegate({
-      actions: [],
-      events: Array.from(BACKGROUND_STATE_CHANGE_EVENT_NAMES),
-      messenger: composableControllerMessenger,
-    });
-
-    this.datamodel = new ComposableController<EngineState, StatefulControllers>(
-      {
-        controllers: childControllers as StatefulControllers,
-        messenger: composableControllerMessenger,
-      },
-    );
 
     this.controllerMessenger.subscribe(
       'TransactionController:incomingTransactionsReceived',
@@ -1332,13 +1304,11 @@ export default {
       SelectedNetworkController,
       SignatureController,
       SmartTransactionsController,
-      SnapInterfaceController,
       SwapsController,
       TokenBalancesController,
       TokenListController,
       TokenRatesController,
       TokensController,
-      TokenSearchDiscoveryController,
       TokenSearchDiscoveryDataController,
       TransactionController,
       TransactionPayController,
@@ -1349,6 +1319,7 @@ export default {
       NotificationServicesController,
       NotificationServicesPushController,
       SnapController,
+      SnapInterfaceController,
       SnapsRegistry,
       SubjectMetadataController,
       UserStorageController,
@@ -1360,79 +1331,75 @@ export default {
       MultichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
       ProfileMetricsController,
-    } = instance.datamodel.state;
+    } = instance.context;
 
     return {
       ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-      SamplePetnamesController,
+      SamplePetnamesController: SamplePetnamesController.state,
       ///: END:ONLY_INCLUDE_IF
-      AccountsController,
-      AccountTrackerController,
-      AccountTreeController,
-      AddressBookController,
-      AppMetadataController,
-      AnalyticsController,
-      ApprovalController,
-      BridgeController,
-      BridgeStatusController,
-      ConnectivityController,
-      CurrencyRateController,
-      DeFiPositionsController,
-      DelegationController,
-      EarnController,
-      GasFeeController,
-      GatorPermissionsController,
-      KeyringController,
-      LoggingController,
-      MultichainNetworkController,
-      NetworkController,
-      NetworkEnablementController,
-      NftController,
-      PermissionController,
-      PerpsController,
-      PhishingController,
-      PredictController,
-      PreferencesController,
-      RemoteFeatureFlagController,
-      RewardsController,
-      SeedlessOnboardingController,
-      SelectedNetworkController,
-      SignatureController,
-      SmartTransactionsController,
-      SnapInterfaceController,
-      SwapsController,
-      TokenBalancesController,
-      TokenListController,
-      TokenRatesController,
-      TokensController,
-      TokenSearchDiscoveryController,
-      TokenSearchDiscoveryDataController,
-      TransactionController,
-      TransactionPayController,
-      RampsController,
+      AccountsController: AccountsController.state,
+      AccountTrackerController: AccountTrackerController.state,
+      AccountTreeController: AccountTreeController.state,
+      AddressBookController: AddressBookController.state,
+      AppMetadataController: AppMetadataController.state,
+      AnalyticsController: AnalyticsController.state,
+      ApprovalController: ApprovalController.state,
+      BridgeController: BridgeController.state,
+      BridgeStatusController: BridgeStatusController.state,
+      ConnectivityController: ConnectivityController.state,
+      CurrencyRateController: CurrencyRateController.state,
+      DeFiPositionsController: DeFiPositionsController.state,
+      DelegationController: DelegationController.state,
+      EarnController: EarnController.state,
+      GasFeeController: GasFeeController.state,
+      GatorPermissionsController: GatorPermissionsController.state,
+      KeyringController: KeyringController.state,
+      LoggingController: LoggingController.state,
+      MultichainNetworkController: MultichainNetworkController.state,
+      NetworkController: NetworkController.state,
+      NetworkEnablementController: NetworkEnablementController.state,
+      NftController: NftController.state,
+      PermissionController: PermissionController.state,
+      PerpsController: PerpsController.state,
+      PhishingController: PhishingController.state,
+      PredictController: PredictController.state,
+      PreferencesController: PreferencesController.state,
+      RemoteFeatureFlagController: RemoteFeatureFlagController.state,
+      RewardsController: RewardsController.state,
+      SeedlessOnboardingController: SeedlessOnboardingController.state,
+      SelectedNetworkController: SelectedNetworkController.state,
+      SignatureController: SignatureController.state,
+      SmartTransactionsController: SmartTransactionsController.state,
+      SwapsController: SwapsController.state,
+      TokenBalancesController: TokenBalancesController.state,
+      TokenListController: TokenListController.state,
+      TokenRatesController: TokenRatesController.state,
+      TokensController: TokensController.state,
+      TokenSearchDiscoveryDataController:
+        TokenSearchDiscoveryDataController.state,
+      TransactionController: TransactionController.state,
+      TransactionPayController: TransactionPayController.state,
+      RampsController: RampsController.state,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-      AuthenticationController,
-      CronjobController,
-      NotificationServicesController,
-      NotificationServicesPushController,
-      SnapController,
-      SnapsRegistry,
-      SubjectMetadataController,
-      UserStorageController,
+      AuthenticationController: AuthenticationController.state,
+      CronjobController: CronjobController.state,
+      NotificationServicesController: NotificationServicesController.state,
+      NotificationServicesPushController:
+        NotificationServicesPushController.state,
+      SnapController: SnapController.state,
+      SnapInterfaceController: SnapInterfaceController.state,
+      SnapsRegistry: SnapsRegistry.state,
+      SubjectMetadataController: SubjectMetadataController.state,
+      UserStorageController: UserStorageController.state,
       ///: END:ONLY_INCLUDE_IF
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      MultichainAssetsController,
-      MultichainAssetsRatesController,
-      MultichainBalancesController,
-      MultichainTransactionsController,
+      MultichainAssetsController: MultichainAssetsController.state,
+      MultichainAssetsRatesController: MultichainAssetsRatesController.state,
+      MultichainBalancesController: MultichainBalancesController.state,
+      MultichainTransactionsController: MultichainTransactionsController.state,
       ///: END:ONLY_INCLUDE_IF
-      ProfileMetricsController,
+      ProfileMetricsController: ProfileMetricsController.state,
     };
-  },
-
-  get datamodel() {
-    assertEngineExists(instance);
-    return instance.datamodel;
   },
 
   getTotalEvmFiatAccountBalance(account?: InternalAccount) {

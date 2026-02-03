@@ -53,8 +53,8 @@ export function determinePreferredProvider(
     if (providerId) {
       const foundProvider = availableProviders.find(
         (provider) =>
-          provider.id.toLowerCase() === providerId.toLowerCase() ||
-          provider.name.toLowerCase() === providerId.toLowerCase(),
+          provider.id?.toLowerCase() === providerId?.toLowerCase() ||
+          provider.name?.toLowerCase() === providerId?.toLowerCase(),
       );
 
       if (foundProvider) {
@@ -65,8 +65,8 @@ export function determinePreferredProvider(
 
   const transakProvider = availableProviders.find(
     (provider) =>
-      provider.id.toLowerCase().includes('transak') ||
-      provider.name.toLowerCase().includes('transak'),
+      provider.id?.toLowerCase().includes('transak') ||
+      provider.name?.toLowerCase().includes('transak'),
   );
 
   if (transakProvider) {

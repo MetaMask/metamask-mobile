@@ -568,7 +568,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         });
       },
       {
-        checkBalance: true,
         attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
       },
     );
@@ -630,6 +629,13 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         marketTags: market.tags,
         entryPoint: entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_FEED,
         marketDetailsViewed: tabKey,
+        marketSlug: market.slug,
+        gameId: market.game?.id,
+        gameStartTime: market.game?.startTime,
+        gameLeague: market.game?.league,
+        gameStatus: market.game?.status,
+        gamePeriod: market.game?.period,
+        gameClock: market.game?.elapsed,
       });
     },
     [market, entryPoint],
@@ -787,7 +793,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           </Text>
         </Box>
         <Box twClassName="pr-2">
-          <PredictShareButton marketId={market?.id} />
+          <PredictShareButton marketId={market?.id} marketSlug={market?.slug} />
         </Box>
       </Box>
     );

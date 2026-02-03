@@ -8,11 +8,18 @@ import React, {
 import { View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
 
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
+import { AnimationDuration } from '../../../../../../component-library/constants/animation.constants';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -57,19 +64,40 @@ export const createRegionSelectorModalNavigationDetails =
 
 function RegionSelectorModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const listRef = useRef<FlatList<Region>>(null);
+  const countryListRef = useRef<FlatList<Region>>(null);
+  const stateListRef = useRef<FlatList<Region>>(null);
 
   const { selectedRegion, setSelectedRegion, isBuy } = useRampSDK();
   const { regions } = useParams<RegionSelectorModalParams>();
   const [searchString, setSearchString] = useState('');
   const [activeView, setActiveView] = useState(RegionViewType.COUNTRY);
   const [currentData, setCurrentData] = useState<Region[]>(regions || []);
+  const [stateData, setStateData] = useState<Region[]>([]);
   const [regionInTransit, setRegionInTransit] = useState<Region | null>(null);
-  const { height: screenHeight } = useWindowDimensions();
+  const { height: screenHeight, width: screenWidth } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
     screenHeight,
   });
   const trackEvent = useAnalytics();
+
+  // Animation shared value for horizontal slide
+  const translateX = useSharedValue(0);
+
+  // Animate between views
+  useEffect(() => {
+    const animationConfig = {
+      duration: AnimationDuration.Regularly,
+      easing: Easing.out(Easing.ease),
+    };
+
+    if (activeView === RegionViewType.STATE) {
+      // Slide to state view (container moves left)
+      translateX.value = withTiming(-screenWidth, animationConfig);
+    } else {
+      // Slide to country view (container at origin)
+      translateX.value = withTiming(0, animationConfig);
+    }
+  }, [activeView, screenWidth, translateX]);
 
   useEffect(() => {
     if (regions && activeView === RegionViewType.COUNTRY) {
@@ -77,7 +105,9 @@ function RegionSelectorModal() {
     }
   }, [regions, activeView]);
 
-  const fuseData = useMemo(() => {
+  // Fuse search for country list
+  const countryFuseData = useMemo(() => {
+    if (!currentData?.length) return null;
     const flatRegions: Region[] = currentData.reduce(
       (acc: Region[], region: Region) => [
         ...acc,
@@ -97,9 +127,24 @@ function RegionSelectorModal() {
     });
   }, [currentData]);
 
-  const dataSearchResults = useMemo(() => {
-    if (searchString.length > 0) {
-      const results = fuseData
+  // Fuse search for state list
+  const stateFuseData = useMemo(() => {
+    if (!stateData?.length) return null;
+    return new Fuse(stateData, {
+      shouldSort: true,
+      threshold: 0.2,
+      location: 0,
+      distance: 100,
+      maxPatternLength: 32,
+      minMatchCharLength: 1,
+      keys: ['name'],
+    });
+  }, [stateData]);
+
+  // Search results for country list
+  const countrySearchResults = useMemo(() => {
+    if (searchString.length > 0 && countryFuseData) {
+      const results = countryFuseData
         .search(searchString)
         ?.slice(0, MAX_REGION_RESULTS);
 
@@ -122,25 +167,58 @@ function RegionSelectorModal() {
       if (!a.recommended && b.recommended) return 1;
       return 0;
     });
-  }, [searchString, fuseData, currentData]);
+  }, [searchString, countryFuseData, currentData]);
+
+  // Search results for state list
+  const stateSearchResults = useMemo(() => {
+    if (searchString.length > 0 && stateFuseData) {
+      const results = stateFuseData
+        .search(searchString)
+        ?.slice(0, MAX_REGION_RESULTS);
+
+      const mappedResults: Region[] =
+        results
+          ?.map((result) =>
+            typeof result === 'object' && result !== null && 'item' in result
+              ? result.item
+              : result,
+          )
+          .filter((item): item is Region => Boolean(item)) || [];
+
+      return mappedResults;
+    }
+
+    if (!stateData?.length) return [];
+
+    return [...stateData].sort((a, b) => {
+      if (a.recommended && !b.recommended) return -1;
+      if (!a.recommended && b.recommended) return 1;
+      return 0;
+    });
+  }, [searchString, stateFuseData, stateData]);
 
   const scrollToTop = useCallback(() => {
-    if (listRef?.current) {
-      listRef.current.scrollToOffset({
+    if (activeView === RegionViewType.COUNTRY && countryListRef?.current) {
+      countryListRef.current.scrollToOffset({
         animated: false,
         offset: 0,
       });
     }
-  }, []);
+    if (activeView === RegionViewType.STATE && stateListRef?.current) {
+      stateListRef.current.scrollToOffset({
+        animated: false,
+        offset: 0,
+      });
+    }
+  }, [activeView]);
 
   const handleOnRegionPressCallback = useCallback(
     async (region: Region) => {
       if (region.states && region.states.length > 0) {
         setActiveView(RegionViewType.STATE);
         setRegionInTransit(region);
-        setCurrentData(region.states as Region[]);
+        setStateData(region.states as Region[]);
         setSearchString('');
-        scrollToTop();
         return;
       }
 
@@ -151,11 +229,10 @@ function RegionSelectorModal() {
         is_unsupported_onramp: !region.support.buy,
         is_unsupported_offramp: !region.support.sell,
       });
-
       setSelectedRegion(region);
       sheetRef.current?.onCloseBottomSheet();
     },
-    [setSelectedRegion, trackEvent, regionInTransit, scrollToTop, isBuy],
+    [setSelectedRegion, trackEvent, regionInTransit, isBuy],
   );
 
   const renderRegionItem = useCallback(
@@ -223,10 +300,10 @@ function RegionSelectorModal() {
   const handleRegionBackButton = useCallback(() => {
     setActiveView(RegionViewType.COUNTRY);
     setCurrentData(regions || []);
+    setStateData([]);
     setRegionInTransit(null);
     setSearchString('');
-    scrollToTop();
-  }, [regions, scrollToTop]);
+  }, [regions]);
 
   const onBackButtonPress = useCallback(() => {
     if (activeView === RegionViewType.STATE) {
@@ -240,8 +317,14 @@ function RegionSelectorModal() {
     setActiveView(RegionViewType.COUNTRY);
     setRegionInTransit(null);
     setCurrentData(regions || []);
+    setStateData([]);
     setSearchString('');
   }, [regions]);
+
+  // Animated style for container
+  const animatedContainerStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
 
   return (
     <BottomSheet
@@ -293,17 +376,41 @@ function RegionSelectorModal() {
           )}
         />
       </View>
-      <FlatList
-        ref={listRef}
-        style={styles.list}
-        data={dataSearchResults}
-        renderItem={renderRegionItem}
-        extraData={selectedRegion?.id}
-        keyExtractor={(item) => item?.id}
-        ListEmptyComponent={renderEmptyList}
-        keyboardDismissMode="none"
-        keyboardShouldPersistTaps="always"
-      />
+      <View style={styles.listContainerOuter}>
+        <Animated.View
+          style={[styles.listContainerInner, animatedContainerStyle]}
+        >
+          {/* Country List Panel */}
+          <View style={styles.listPanel}>
+            <FlatList
+              ref={countryListRef}
+              style={styles.list}
+              data={countrySearchResults}
+              renderItem={renderRegionItem}
+              extraData={selectedRegion?.id}
+              keyExtractor={(item) => item?.id}
+              ListEmptyComponent={renderEmptyList}
+              keyboardDismissMode="none"
+              keyboardShouldPersistTaps="always"
+            />
+          </View>
+
+          {/* State List Panel */}
+          <View style={styles.listPanel}>
+            <FlatList
+              ref={stateListRef}
+              style={styles.list}
+              data={stateSearchResults}
+              renderItem={renderRegionItem}
+              extraData={selectedRegion?.id}
+              keyExtractor={(item) => item?.id}
+              ListEmptyComponent={renderEmptyList}
+              keyboardDismissMode="none"
+              keyboardShouldPersistTaps="always"
+            />
+          </View>
+        </Animated.View>
+      </View>
     </BottomSheet>
   );
 }

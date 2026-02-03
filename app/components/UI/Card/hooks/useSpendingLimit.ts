@@ -85,6 +85,10 @@ export interface UseSpendingLimitReturn {
   // Validation
   isValid: boolean;
   isSolanaSelected: boolean;
+
+  // Faucet state
+  needsFaucet: boolean;
+  isFaucetCheckLoading: boolean;
 }
 
 /**
@@ -119,12 +123,17 @@ const useSpendingLimit = ({
   const [limitType, setLimitType] = useState<LimitType>('full');
   const [customLimit, setCustomLimitState] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   const isOnboardingFlow = flow === 'onboarding';
 
-  // Delegation hook
-  const { submitDelegation, isLoading: isDelegationLoading } =
-    useCardDelegation(selectedToken);
+  // Delegation hook (includes faucet check)
+  const {
+    submitDelegation,
+    isLoading: isDelegationLoading,
+    needsFaucet,
+    isFaucetCheckLoading,
+  } = useCardDelegation(selectedToken);
 
   const isLoading = isDelegationLoading || isProcessing;
 
@@ -178,32 +187,38 @@ const useSpendingLimit = ({
   );
 
   // Initialize selected token from initial or priority token, fallback to mUSD
+  // Only runs once on mount to avoid overwriting user selections from AssetSelectionBottomSheet
   useEffect(() => {
+    if (hasInitialized) return;
+
     if (initialToken) {
       setSelectedToken(initialToken);
+      setHasInitialized(true);
       return;
     }
 
-    if (!selectedToken && priorityToken) {
+    if (priorityToken) {
       const isPriorityTokenSolana =
         priorityToken?.caipChainId === SolScope.Mainnet ||
         priorityToken?.caipChainId?.startsWith('solana:');
 
       if (!isPriorityTokenSolana) {
         setSelectedToken(priorityToken);
+        setHasInitialized(true);
         return;
       }
     }
 
-    if (!selectedToken && quickSelectTokens.length > 0) {
+    if (quickSelectTokens.length > 0) {
       const musdToken = quickSelectTokens.find(
         (qt) => qt.symbol.toUpperCase() === 'MUSD',
       )?.token;
       if (musdToken) {
         setSelectedToken(musdToken);
+        setHasInitialized(true);
       }
     }
-  }, [initialToken, priorityToken, selectedToken, quickSelectTokens]);
+  }, [hasInitialized, initialToken, priorityToken, quickSelectTokens]);
 
   // Handle returned token from AssetSelectionBottomSheet
   useFocusEffect(
@@ -213,6 +228,7 @@ const useSpendingLimit = ({
         | undefined;
       if (params?.returnedSelectedToken) {
         setSelectedToken(params.returnedSelectedToken);
+        setHasInitialized(true);
         navigation.setParams({
           returnedSelectedToken: undefined,
           selectedToken: undefined,
@@ -482,6 +498,10 @@ const useSpendingLimit = ({
     // Validation
     isValid,
     isSolanaSelected,
+
+    // Faucet state
+    needsFaucet,
+    isFaucetCheckLoading,
   };
 };
 

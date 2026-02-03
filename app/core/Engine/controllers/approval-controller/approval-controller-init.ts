@@ -3,6 +3,7 @@ import {
   ApprovalControllerMessenger,
 } from '@metamask/approval-controller';
 import { ApprovalType } from '@metamask/controller-utils';
+import { DIALOG_APPROVAL_TYPES } from '@metamask/snaps-rpc-methods';
 
 import Logger from '../../../../util/Logger';
 import { ApprovalTypes } from '../../../RPCMethods/RPCMethodMiddleware';
@@ -22,6 +23,7 @@ export const ApprovalControllerInit: ControllerInitFunction<
         ApprovalType.Transaction,
         ApprovalType.WatchAsset,
         ApprovalTypes.SMART_TRANSACTION_STATUS,
+        DIALOG_APPROVAL_TYPES.default,
       ],
     });
 

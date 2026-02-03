@@ -9,28 +9,9 @@ import {
   type SmartTransactionsControllerMessenger,
 } from '@metamask/smart-transactions-controller';
 import type { SmartTransactionsControllerInitMessenger } from '../messengers/smart-transactions-controller-messenger';
-import { selectSwapsChainFeatureFlags } from '../../../reducers/swaps';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { trace } from '../../../util/trace';
 import { getAllowedSmartTransactionsChainIds } from '../../../constants/smartTransactions';
-import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
-
-/**
- * Filter out undefined values from an object to make it compatible with AnalyticsEventProperties.
- *
- * @param obj - The object to filter.
- * @returns A new object without undefined values.
- */
-function filterUndefinedValues(
-  obj: Record<string, unknown> | undefined,
-): AnalyticsEventProperties {
-  if (!obj) {
-    return {};
-  }
-  return Object.fromEntries(
-    Object.entries(obj).filter(([, value]) => value !== undefined),
-  ) as AnalyticsEventProperties;
-}
 
 /**
  * Initialize the smart transactions controller.
@@ -43,7 +24,7 @@ export const smartTransactionsControllerInit: ControllerInitFunction<
   SmartTransactionsController,
   SmartTransactionsControllerMessenger,
   SmartTransactionsControllerInitMessenger
-> = ({ controllerMessenger, initMessenger, persistedState, getState }) => {
+> = ({ controllerMessenger, initMessenger, persistedState }) => {
   const trackMetaMetricsEvent = (params: {
     event: MetaMetricsEventName;
     category: MetaMetricsEventCategory;
@@ -54,10 +35,8 @@ export const smartTransactionsControllerInit: ControllerInitFunction<
   }) => {
     try {
       const event = AnalyticsEventBuilder.createEventBuilder(params.event)
-        .addProperties(filterUndefinedValues(params.properties))
-        .addSensitiveProperties(
-          filterUndefinedValues(params.sensitiveProperties),
-        )
+        .addProperties(params.properties)
+        .addSensitiveProperties(params.sensitiveProperties)
         .build();
 
       initMessenger.call('AnalyticsController:trackEvent', event);
@@ -72,8 +51,6 @@ export const smartTransactionsControllerInit: ControllerInitFunction<
     state: persistedState.SmartTransactionsController,
     supportedChainIds: getAllowedSmartTransactionsChainIds(),
     clientId: ClientId.Mobile,
-    getFeatureFlags: () => selectSwapsChainFeatureFlags(getState()),
-
     // TODO: Return MetaMetrics props once we enable HW wallets for smart
     // transactions.
     getMetaMetricsProps: () => Promise.resolve({}),

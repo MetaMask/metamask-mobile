@@ -61,7 +61,7 @@ describe('Rewards Utils', () => {
     };
 
     describe('successful conversion', () => {
-      it('should convert Ethereum account to CAIP account ID successfully', () => {
+      it('converts Ethereum account to CAIP account ID', () => {
         // Arrange
         const expectedNamespace = 'eip155';
         const expectedReference = '1';
@@ -88,7 +88,7 @@ describe('Rewards Utils', () => {
         expect(mockLogger.log).not.toHaveBeenCalled();
       });
 
-      it('should convert Solana account to CAIP account ID successfully', () => {
+      it('converts Solana account to CAIP account ID', () => {
         // Arrange
         const solanaAccount: InternalAccount = {
           ...mockAccount,
@@ -122,7 +122,7 @@ describe('Rewards Utils', () => {
         expect(mockLogger.log).not.toHaveBeenCalled();
       });
 
-      it('should use the first scope when account has multiple scopes', () => {
+      it('uses the first scope when account has multiple scopes', () => {
         // Arrange
         const multiScopeAccount: InternalAccount = {
           ...mockAccount,
@@ -154,7 +154,7 @@ describe('Rewards Utils', () => {
     });
 
     describe('error handling', () => {
-      it('should return null and log error when parseCaipChainId throws', () => {
+      it('returns null and logs error when parseCaipChainId throws', () => {
         // Arrange
         const parseError = new Error('Invalid CAIP chain ID format');
         mockParseCaipChainId.mockImplementation(() => {
@@ -174,7 +174,7 @@ describe('Rewards Utils', () => {
         expect(mockToCaipAccountId).not.toHaveBeenCalled();
       });
 
-      it('should return null and log error when toCaipAccountId throws', () => {
+      it('returns null and logs error when toCaipAccountId throws', () => {
         // Arrange
         const convertError = new Error('Invalid account address format');
         mockParseCaipChainId.mockReturnValue({
@@ -205,7 +205,7 @@ describe('Rewards Utils', () => {
   });
 
   describe('SOLANA_SIGNUP_NOT_SUPPORTED constant', () => {
-    it('should export the correct message for Solana signup not supported', () => {
+    it('exports the correct message for Solana signup not supported', () => {
       // Arrange & Act & Assert
       expect(SOLANA_SIGNUP_NOT_SUPPORTED).toBe(
         'Signing in to Rewards with Solana accounts is not supported yet. Please use an Ethereum account instead.',
@@ -215,7 +215,7 @@ describe('Rewards Utils', () => {
 
   describe('handleRewardsErrorMessage', () => {
     describe('when error is not an object', () => {
-      it('should return default error message for null error', () => {
+      it('returns default error message for null error', () => {
         // Arrange
         const error = null;
 
@@ -226,7 +226,7 @@ describe('Rewards Utils', () => {
         expect(result).toBe('Something went wrong. Please try again shortly.');
       });
 
-      it('should return default error message for string error', () => {
+      it('returns default error message for string error', () => {
         // Arrange
         const error = 'some string error';
 
@@ -237,7 +237,7 @@ describe('Rewards Utils', () => {
         expect(result).toBe('Something went wrong. Please try again shortly.');
       });
 
-      it('should return default error message for number error', () => {
+      it('returns default error message for number error', () => {
         // Arrange
         const error = 123;
 
@@ -248,7 +248,7 @@ describe('Rewards Utils', () => {
         expect(result).toBe('Something went wrong. Please try again shortly.');
       });
 
-      it('should return default error message for boolean error', () => {
+      it('returns default error message for boolean error', () => {
         // Arrange
         const error = true;
 
@@ -261,7 +261,7 @@ describe('Rewards Utils', () => {
     });
 
     describe('when error object has no message', () => {
-      it('should return default error message for empty object', () => {
+      it('returns default error message for empty object', () => {
         // Arrange
         const error = {};
 
@@ -272,7 +272,7 @@ describe('Rewards Utils', () => {
         expect(result).toBe('Something went wrong. Please try again shortly.');
       });
 
-      it('should return default error message when both data.message and message are undefined', () => {
+      it('returns default error message when both data.message and message are undefined', () => {
         // Arrange
         const error = { someOtherProperty: 'value' };
 
@@ -283,7 +283,7 @@ describe('Rewards Utils', () => {
         expect(result).toBe('Something went wrong. Please try again shortly.');
       });
 
-      it('should return default error message when data.message is empty string', () => {
+      it('returns default error message when data.message is empty string', () => {
         // Arrange
         const error = { data: { message: '' } };
 
@@ -296,7 +296,7 @@ describe('Rewards Utils', () => {
     });
 
     describe('when error contains "already registered"', () => {
-      it('should return account already registered message for data.message', () => {
+      it('returns account already registered message for data.message', () => {
         // Arrange
         const error = {
           data: { message: 'User is already registered with this account' },
@@ -311,7 +311,7 @@ describe('Rewards Utils', () => {
         );
       });
 
-      it('should return account already registered message for direct message', () => {
+      it('returns account already registered message for direct message', () => {
         // Arrange
         const error = { message: 'Account already registered in system' };
 
@@ -326,7 +326,7 @@ describe('Rewards Utils', () => {
     });
 
     describe('when error contains "rejected the request"', () => {
-      it('should return rejection message for data.message', () => {
+      it('returns rejection message for data.message', () => {
         // Arrange
         const error = {
           data: { message: 'User rejected the request from the application' },
@@ -339,7 +339,7 @@ describe('Rewards Utils', () => {
         expect(result).toBe('You rejected the request.');
       });
 
-      it('should return rejection message for direct message', () => {
+      it('returns rejection message for direct message', () => {
         // Arrange
         const error = { message: 'The user rejected the request' };
 
@@ -352,7 +352,7 @@ describe('Rewards Utils', () => {
     });
 
     describe('when error contains "No keyring found"', () => {
-      it('should return Solana not supported message for data.message', () => {
+      it('returns Solana not supported message for data.message', () => {
         // Arrange
         const error = {
           data: { message: 'No keyring found for this account' },
@@ -365,7 +365,7 @@ describe('Rewards Utils', () => {
         expect(result).toBe(SOLANA_SIGNUP_NOT_SUPPORTED);
       });
 
-      it('should return Solana not supported message for direct message', () => {
+      it('returns Solana not supported message for direct message', () => {
         // Arrange
         const error = { message: 'No keyring found' };
 
@@ -378,7 +378,7 @@ describe('Rewards Utils', () => {
     });
 
     describe('when error contains service unavailable indicators', () => {
-      it('should return service unavailable message for "not available"', () => {
+      it('returns service unavailable message for "not available"', () => {
         // Arrange
         const error = { data: { message: 'Service not available' } };
 
@@ -391,7 +391,7 @@ describe('Rewards Utils', () => {
         );
       });
 
-      it('should return service unavailable message for "Network request failed"', () => {
+      it('returns service unavailable message for "Network request failed"', () => {
         // Arrange
         const error = { message: 'Network request failed due to timeout' };
 
@@ -405,8 +405,80 @@ describe('Rewards Utils', () => {
       });
     });
 
+    describe('when error contains referral code errors', () => {
+      it('returns invalid referral code message for "Invalid referral code"', () => {
+        // Arrange
+        const error = { message: 'Invalid referral code' };
+
+        // Act
+        const result = handleRewardsErrorMessage(error);
+
+        // Assert
+        expect(result).toBe(
+          'Invalid referral code. Please check and try again.',
+        );
+      });
+
+      it('returns invalid referral code message case-insensitively', () => {
+        // Arrange
+        const error = { message: 'INVALID REFERRAL CODE provided' };
+
+        // Act
+        const result = handleRewardsErrorMessage(error);
+
+        // Assert
+        expect(result).toBe(
+          'Invalid referral code. Please check and try again.',
+        );
+      });
+
+      it('returns already referred message for "Already referred by another user"', () => {
+        // Arrange
+        const error = { message: 'Already referred by another user' };
+
+        // Act
+        const result = handleRewardsErrorMessage(error);
+
+        // Assert
+        expect(result).toBe('You have already been referred by another user.');
+      });
+
+      it('returns already referred message case-insensitively', () => {
+        // Arrange
+        const error = { message: 'User was ALREADY REFERRED previously' };
+
+        // Act
+        const result = handleRewardsErrorMessage(error);
+
+        // Assert
+        expect(result).toBe('You have already been referred by another user.');
+      });
+
+      it('returns own referral code message for "Cannot use your own referral code"', () => {
+        // Arrange
+        const error = { message: 'Cannot use your own referral code' };
+
+        // Act
+        const result = handleRewardsErrorMessage(error);
+
+        // Assert
+        expect(result).toBe('You cannot use your own referral code.');
+      });
+
+      it('returns own referral code message case-insensitively', () => {
+        // Arrange
+        const error = { message: 'CANNOT USE YOUR OWN REFERRAL CODE' };
+
+        // Act
+        const result = handleRewardsErrorMessage(error);
+
+        // Assert
+        expect(result).toBe('You cannot use your own referral code.');
+      });
+    });
+
     describe('when error has custom message not matching specific cases', () => {
-      it('should return the original message from data.message', () => {
+      it('returns the original message from data.message', () => {
         // Arrange
         const customMessage = 'Custom API error occurred';
         const error = { data: { message: customMessage } };
@@ -418,7 +490,7 @@ describe('Rewards Utils', () => {
         expect(result).toBe(customMessage);
       });
 
-      it('should return the original message from direct message', () => {
+      it('returns the original message from direct message', () => {
         // Arrange
         const customMessage = 'Validation failed for input';
         const error = { message: customMessage };
@@ -430,7 +502,7 @@ describe('Rewards Utils', () => {
         expect(result).toBe(customMessage);
       });
 
-      it('should prioritize data.message over direct message', () => {
+      it('prioritizes data.message over direct message', () => {
         // Arrange
         const dataMessage = 'Error from data.message';
         const directMessage = 'Error from message';
@@ -446,7 +518,7 @@ describe('Rewards Utils', () => {
         expect(result).toBe(dataMessage);
       });
 
-      it('should fall back to direct message when data.message is undefined', () => {
+      it('falls back to direct message when data.message is undefined', () => {
         // Arrange
         const directMessage = 'Error from direct message';
         const error = {
@@ -463,7 +535,7 @@ describe('Rewards Utils', () => {
     });
 
     describe('error message matching is case sensitive', () => {
-      it('should not match "ALREADY REGISTERED" in uppercase', () => {
+      it('does not match "ALREADY REGISTERED" in uppercase', () => {
         // Arrange
         const error = { message: 'USER ALREADY REGISTERED' };
 
@@ -474,7 +546,7 @@ describe('Rewards Utils', () => {
         expect(result).toBe('USER ALREADY REGISTERED');
       });
 
-      it('should not match "REJECTED THE REQUEST" in uppercase', () => {
+      it('does not match "REJECTED THE REQUEST" in uppercase', () => {
         // Arrange
         const error = { message: 'USER REJECTED THE REQUEST' };
 

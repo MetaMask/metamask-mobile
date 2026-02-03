@@ -62,6 +62,9 @@ module.exports.transform = async ({ src, filename, options }) => {
     return svgTransformer.transform({ src, filename, options });
   }
 
+  const environment = process.env.METAMASK_ENVIRONMENT ?? 'production';
+  const shouldLintFencedFiles = environment === 'production';
+
   /**
    * Params based on builds we're code splitting
    * i.e: flavorDimensions "version" productFlavors from android/app/build.gradle
@@ -75,7 +78,7 @@ module.exports.transform = async ({ src, filename, options }) => {
       active: getBuildTypeFeatures(),
     });
 
-    if (didModify) {
+    if (shouldLintFencedFiles && didModify) {
       await lintTransformedFile(getESLintInstance(), filename, processedSource);
     }
     return defaultTransformer.transform({

@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import {
   ActivityIndicator,
+  DeviceEventEmitter,
   FlatList,
   InteractionManager,
   RefreshControl,
@@ -57,6 +58,7 @@ import {
 } from '../../../util/transaction-controller';
 import { validateTransactionActionBalance } from '../../../util/transactions';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
+import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
 import UpdateEIP1559Tx from '../../Views/confirmations/legacy/components/UpdateEIP1559Tx';
 import PriceChartContext, {
   PriceChartProvider,
@@ -245,10 +247,52 @@ class Transactions extends PureComponent {
     this.setState({
       isQRHardwareAccount: isHardwareAccount(this.props.selectedAddress),
     });
+
+    // Listen for scroll to MerklRewards event
+    // Use a debounce mechanism to prevent multiple rapid scrolls
+    this.scrollToMerklRewardsListener = DeviceEventEmitter.addListener(
+      'scrollToMerklRewards',
+      ({ y }) => {
+        if (this.flatList?.current && y !== undefined && this.mounted) {
+          // Clear any pending scroll
+          if (this.scrollTimeout) {
+            clearTimeout(this.scrollTimeout);
+          }
+
+          // Debounce scroll to prevent multiple rapid calls
+          this.scrollTimeout = setTimeout(() => {
+            try {
+              // Check if FlatList is still mounted and ready
+              if (this.flatList?.current && this.mounted) {
+                // Ensure we have a valid offset
+                const scrollOffset = Math.max(0, y);
+                this.flatList.current.scrollToOffset({
+                  offset: scrollOffset,
+                  animated: true,
+                });
+              }
+            } catch (error) {
+              // Log error for debugging but don't crash
+              Logger.error(error, 'Failed to scroll to MerklRewards', { y });
+            }
+          }, 100); // Small delay to ensure FlatList is ready
+        }
+      },
+    );
   };
 
   componentWillUnmount() {
     this.mounted = false;
+    // Remove the scroll listener
+    if (this.scrollToMerklRewardsListener) {
+      this.scrollToMerklRewardsListener.remove();
+      this.scrollToMerklRewardsListener = null;
+    }
+    // Clear any pending scroll timeouts
+    if (this.scrollTimeout) {
+      clearTimeout(this.scrollTimeout);
+      this.scrollTimeout = null;
+    }
   }
 
   updateBlockExplorer = () => {
@@ -562,9 +606,18 @@ class Transactions extends PureComponent {
     }
   };
 
-  signQRTransaction = async (tx) => {
-    const { ApprovalController } = Engine.context;
-    await ApprovalController.accept(tx.id, undefined, { waitForResult: true });
+  signQRTransaction = async (transactionMeta) => {
+    const { TransactionController } = Engine.context;
+    this.props.navigation.navigate(
+      ...createQRSigningTransactionModalNavDetails({
+        transactionId: transactionMeta.id,
+        onConfirmationComplete: (confirmed) => {
+          if (!confirmed) {
+            TransactionController.cancelTransaction(transactionMeta.id);
+          }
+        },
+      }),
+    );
   };
 
   signLedgerTransaction = async (transaction) => {
