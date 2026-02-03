@@ -359,6 +359,10 @@ jest.mock('../hooks/useRewardDashboardModals', () => ({
   useRewardDashboardModals: jest.fn(),
 }));
 
+jest.mock('../hooks/useBulkLinkState', () => ({
+  useBulkLinkState: jest.fn(),
+}));
+
 jest.mock('../utils', () => ({
   convertInternalAccountToCaipAccountId: jest.fn(),
 }));
@@ -544,6 +548,7 @@ jest.spyOn(Alert, 'alert').mockImplementation(mockAlert);
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
 import { useLinkAccountGroup } from '../hooks/useLinkAccountGroup';
 import { useRewardDashboardModals } from '../hooks/useRewardDashboardModals';
+import { useBulkLinkState } from '../hooks/useBulkLinkState';
 import { convertInternalAccountToCaipAccountId } from '../utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
@@ -558,6 +563,9 @@ const mockUseRewardDashboardModals =
   useRewardDashboardModals as jest.MockedFunction<
     typeof useRewardDashboardModals
   >;
+const mockUseBulkLinkState = useBulkLinkState as jest.MockedFunction<
+  typeof useBulkLinkState
+>;
 const mockConvertInternalAccountToCaipAccountId =
   convertInternalAccountToCaipAccountId as jest.MockedFunction<
     typeof convertInternalAccountToCaipAccountId
@@ -571,6 +579,10 @@ describe('RewardsDashboard', () => {
   const mockShowNotSupportedModal = jest.fn();
   const mockHasShownModal = jest.fn();
   const mockResetSessionTracking = jest.fn();
+  const mockResumeBulkLink = jest.fn();
+  const mockStartBulkLink = jest.fn();
+  const mockCancelBulkLink = jest.fn();
+  const mockResetBulkLink = jest.fn();
 
   const mockSelectedAccount = {
     id: 'account-1',
@@ -637,6 +649,22 @@ describe('RewardsDashboard', () => {
       resetSessionTrackingForCurrentAccountGroup: jest.fn(),
       resetAllSessionTracking: jest.fn(),
     },
+    useBulkLinkState: {
+      startBulkLink: mockStartBulkLink,
+      cancelBulkLink: mockCancelBulkLink,
+      resetBulkLink: mockResetBulkLink,
+      resumeBulkLink: mockResumeBulkLink,
+      isRunning: false,
+      wasInterrupted: false,
+      isCompleted: false,
+      hasFailures: false,
+      isFullySuccessful: false,
+      totalAccounts: 0,
+      linkedAccounts: 0,
+      failedAccounts: 0,
+      accountProgress: 0,
+      processedAccounts: 0,
+    },
   };
 
   beforeEach(() => {
@@ -648,6 +676,10 @@ describe('RewardsDashboard', () => {
     mockShowNotSupportedModal.mockClear();
     mockHasShownModal.mockClear();
     mockResetSessionTracking.mockClear();
+    mockResumeBulkLink.mockClear();
+    mockStartBulkLink.mockClear();
+    mockCancelBulkLink.mockClear();
+    mockResetBulkLink.mockClear();
     mockTrackEvent.mockClear();
     mockCreateEventBuilder.mockClear();
     mockBuild.mockClear();
@@ -693,6 +725,7 @@ describe('RewardsDashboard', () => {
     mockUseRewardDashboardModals.mockReturnValue(
       defaultHookValues.useRewardDashboardModals,
     );
+    mockUseBulkLinkState.mockReturnValue(defaultHookValues.useBulkLinkState);
     mockConvertInternalAccountToCaipAccountId.mockReturnValue('eip155:1:0x123');
 
     // Setup default modal hook behavior - return false for all modal types by default
@@ -2255,17 +2288,94 @@ describe('RewardsDashboard', () => {
   });
 
   describe('component lifecycle', () => {
-    it('should render without crashing', () => {
+    it('renders without crashing', () => {
       // Act & Assert
       expect(() => render(<RewardsDashboard />)).not.toThrow();
     });
 
-    it('should cleanup properly when unmounted', () => {
+    it('cleans up properly when unmounted', () => {
       // Act
       const { unmount } = render(<RewardsDashboard />);
 
       // Assert
       expect(() => unmount()).not.toThrow();
+    });
+  });
+
+  describe('bulk link auto-resume', () => {
+    it('calls resumeBulkLink when wasInterrupted is true and isRunning is false', () => {
+      // Arrange
+      mockUseBulkLinkState.mockReturnValue({
+        ...defaultHookValues.useBulkLinkState,
+        wasInterrupted: true,
+        isRunning: false,
+      });
+
+      // Act
+      render(<RewardsDashboard />);
+
+      // Assert
+      expect(mockResumeBulkLink).toHaveBeenCalled();
+    });
+
+    it('does not call resumeBulkLink when wasInterrupted is false', () => {
+      // Arrange
+      mockUseBulkLinkState.mockReturnValue({
+        ...defaultHookValues.useBulkLinkState,
+        wasInterrupted: false,
+        isRunning: false,
+      });
+
+      // Act
+      render(<RewardsDashboard />);
+
+      // Assert
+      expect(mockResumeBulkLink).not.toHaveBeenCalled();
+    });
+
+    it('does not call resumeBulkLink when isRunning is true', () => {
+      // Arrange
+      mockUseBulkLinkState.mockReturnValue({
+        ...defaultHookValues.useBulkLinkState,
+        wasInterrupted: true,
+        isRunning: true,
+      });
+
+      // Act
+      render(<RewardsDashboard />);
+
+      // Assert
+      expect(mockResumeBulkLink).not.toHaveBeenCalled();
+    });
+
+    it('does not call resumeBulkLink when both wasInterrupted and isRunning are false', () => {
+      // Arrange
+      mockUseBulkLinkState.mockReturnValue({
+        ...defaultHookValues.useBulkLinkState,
+        wasInterrupted: false,
+        isRunning: false,
+      });
+
+      // Act
+      render(<RewardsDashboard />);
+
+      // Assert
+      expect(mockResumeBulkLink).not.toHaveBeenCalled();
+    });
+
+    it('does not call resumeBulkLink when both wasInterrupted and isRunning are true', () => {
+      // Arrange
+      mockUseBulkLinkState.mockReturnValue({
+        ...defaultHookValues.useBulkLinkState,
+        wasInterrupted: true,
+        isRunning: true,
+      });
+
+      // Act
+      render(<RewardsDashboard />);
+
+      // Assert
+      expect(mockResumeBulkLink).not.toHaveBeenCalled();
     });
   });
 });

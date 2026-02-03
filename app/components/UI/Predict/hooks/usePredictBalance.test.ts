@@ -125,21 +125,21 @@ describe('usePredictBalance', () => {
 
       // Assert
       expect(result.current.balance).toBe(0);
-      expect(result.current.isLoading).toBe(true);
+      expect(result.current.isLoading).toBe(false);
       expect(result.current.isRefreshing).toBe(false);
       expect(result.current.error).toBeNull();
-      expect(result.current.hasNoBalance).toBe(false);
+      expect(result.current.hasNoBalance).toBe(true);
       expect(typeof result.current.loadBalance).toBe('function');
     });
 
-    it('returns hasNoBalance as false when loading', () => {
-      // Given loading is true and balance is 0
+    it('returns hasNoBalance as true when not loading and balance is zero', () => {
+      // Given loading is false and balance is 0
       const { result } = renderHook(() =>
         usePredictBalance({ loadOnMount: false }),
       );
 
-      // Then hasNoBalance should be false
-      expect(result.current.hasNoBalance).toBe(false);
+      // Then hasNoBalance should be true
+      expect(result.current.hasNoBalance).toBe(true);
     });
   });
 
@@ -229,13 +229,14 @@ describe('usePredictBalance', () => {
       );
 
       // When loadBalance is called without isRefresh flag
-      const loadPromise = result.current.loadBalance();
+      act(() => {
+        result.current.loadBalance();
+      });
 
       // Then isLoading should be true
-      expect(result.current.isLoading).toBe(true);
-      expect(result.current.isRefreshing).toBe(false);
-
-      await loadPromise;
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(true);
+      });
     });
 
     it('sets isRefreshing to true when loading with refresh flag', async () => {
@@ -537,7 +538,7 @@ describe('usePredictBalance', () => {
 
       // Then default options should be applied (loadOnMount and refreshOnFocus are false by default)
       expect(result.current.balance).toBe(0);
-      expect(result.current.isLoading).toBe(true);
+      expect(result.current.isLoading).toBe(false);
       expect(result.current.isRefreshing).toBe(false);
       expect(result.current.error).toBeNull();
 
