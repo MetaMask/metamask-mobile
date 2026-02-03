@@ -517,7 +517,7 @@ enum EVENT_NAME {
   NetworkConnectionBannerRpcUpdated = 'Network Connection Banner RPC Updated',
 
   // Deep Link Analytics - Consolidated Event
-  DEEP_LINK_USED = 'Deep link Used',
+  DEEP_LINK_USED = 'Deep Link Used',
 
   // What's New Link Clicked
   WHATS_NEW_LINK_CLICKED = "What's New Link Clicked",
