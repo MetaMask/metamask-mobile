@@ -15,6 +15,12 @@ const FALLBACK_TYPES = [
   TransactionType.predictWithdraw,
 ];
 
+const RECEIVE_TYPES = [
+  TransactionType.musdClaim,
+  TransactionType.predictClaim,
+  TransactionType.predictWithdraw,
+];
+
 export function TransactionDetailsTotalRow() {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const { transactionMeta } = useTransactionDetails();
@@ -34,11 +40,7 @@ export function TransactionDetailsTotalRow() {
     return null;
   }
 
-  const label = hasTransactionType(transactionMeta, [
-    TransactionType.musdClaim,
-    TransactionType.predictClaim,
-    TransactionType.predictWithdraw,
-  ])
+  const label = hasTransactionType(transactionMeta, RECEIVE_TYPES)
     ? strings('transaction_details.label.received_total')
     : strings('transaction_details.label.total');
 

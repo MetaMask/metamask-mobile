@@ -26,8 +26,8 @@ import { TransactionDetailsRetry } from '../transaction-details-retry';
 import { TransactionDetailsAccountRow } from '../transaction-details-account-row';
 
 export const SUMMARY_SECTION_TYPES = [
-  TransactionType.musdConversion,
   TransactionType.musdClaim,
+  TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.predictDeposit,
 ];

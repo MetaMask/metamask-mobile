@@ -25,8 +25,8 @@ import {
 } from '../../../../../UI/Earn/components/MerklRewards/constants';
 
 const SUPPORTED_TYPES = [
-  TransactionType.musdConversion,
   TransactionType.musdClaim,
+  TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,

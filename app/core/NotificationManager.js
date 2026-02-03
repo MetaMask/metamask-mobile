@@ -22,12 +22,12 @@ import { endTrace, trace, TraceName } from '../util/trace';
 import { hasTransactionType } from '../components/Views/confirmations/utils/transaction';
 
 export const SKIP_NOTIFICATION_TRANSACTION_TYPES = [
+  TransactionType.musdClaim,
+  TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.predictDeposit,
   TransactionType.predictClaim,
   TransactionType.predictWithdraw,
-  TransactionType.musdConversion,
-  TransactionType.musdClaim,
 ];
 
 export const IN_PROGRESS_SKIP_STATUS = [
