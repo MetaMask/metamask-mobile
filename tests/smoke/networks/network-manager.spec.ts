@@ -1,10 +1,10 @@
-import { SmokeNetworkAbstractions } from '../../tags';
-import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import NetworkManager from '../../pages/wallet/NetworkManager';
+import { SmokeNetworkAbstractions } from '../../../e2e/tags';
+import { loginToApp } from '../../../e2e/viewHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import NetworkManager from '../../../e2e/pages/wallet/NetworkManager';
 import { NetworkToCaipChainId } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
-import Assertions from '../../../tests/framework/Assertions';
+import Assertions from '../../framework/Assertions';
 
 describe(SmokeNetworkAbstractions('Network Manager'), () => {
   beforeAll(async () => {

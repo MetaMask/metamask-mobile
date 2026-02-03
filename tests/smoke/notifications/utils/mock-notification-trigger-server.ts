@@ -4,7 +4,7 @@ import {
   getMockUpdateOnChainNotifications,
 } from '@metamask/notification-services-controller/notification-services/mocks';
 import { getDecodedProxiedURL } from './helpers';
-import { createLogger } from '../../../../tests/framework/logger';
+import { createLogger } from '../../../framework/logger';
 
 const GET_CONFIG_URL = getMockOnChainNotificationsConfig().url;
 const UPDATE_CONFIG_URL = getMockUpdateOnChainNotifications().url;

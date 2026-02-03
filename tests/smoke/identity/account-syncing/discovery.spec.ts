@@ -1,8 +1,8 @@
-import { loginToApp } from '../../../viewHelper';
-import WalletView from '../../../pages/wallet/WalletView';
-import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
-import Assertions from '../../../../tests/framework/Assertions';
-import { SmokeIdentity } from '../../../tags';
+import { loginToApp } from '../../../../e2e/viewHelper';
+import WalletView from '../../../../e2e/pages/wallet/WalletView';
+import AccountListBottomSheet from '../../../../e2e/pages/wallet/AccountListBottomSheet';
+import Assertions from '../../../framework/Assertions';
+import { SmokeIdentity } from '../../../../e2e/tags';
 import { withIdentityFixtures } from '../utils/withIdentityFixtures';
 import { arrangeTestUtils } from '../utils/helpers';
 import {
@@ -12,13 +12,13 @@ import {
 import {
   DEFAULT_FIXTURE_ACCOUNT,
   DEFAULT_FIXTURE_ACCOUNT_2,
-} from '../../../../tests/framework/fixtures/FixtureBuilder';
+} from '../../../framework/fixtures/FixtureBuilder';
 import { createUserStorageController } from '../utils/mocks';
 import {
   USER_STORAGE_GROUPS_FEATURE_KEY,
   USER_STORAGE_WALLETS_FEATURE_KEY,
 } from '@metamask/account-tree-controller';
-import TestHelpers from '../../../helpers';
+import TestHelpers from '../../../../e2e/helpers';
 
 describe(SmokeIdentity('Account syncing - Accounts with activity'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
