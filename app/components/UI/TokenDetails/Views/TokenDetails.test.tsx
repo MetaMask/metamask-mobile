@@ -53,12 +53,9 @@ jest.mock('../hooks/useTokenPrice', () => ({
   }),
 }));
 
+const mockUseTokenBalance = jest.fn();
 jest.mock('../hooks/useTokenBalance', () => ({
-  useTokenBalance: () => ({
-    balance: '1.5',
-    fiatBalance: '$150.00',
-    tokenFormattedBalance: '1.5 ETH',
-  }),
+  useTokenBalance: () => mockUseTokenBalance(),
 }));
 
 jest.mock('../hooks/useTokenBuyability', () => ({
@@ -176,6 +173,13 @@ describe('TokenDetails', () => {
     jest.clearAllMocks();
     mockIsTokenDetailsRevampedEnabled.mockReturnValue(true);
 
+    // Setup default useTokenBalance mock
+    mockUseTokenBalance.mockReturnValue({
+      balance: '1.5',
+      fiatBalance: '$150.00',
+      tokenFormattedBalance: '1.5 ETH',
+    });
+
     // Setup default selector returns
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectTokenDetailsV2Enabled) return true;
@@ -211,27 +215,27 @@ describe('TokenDetails', () => {
     });
 
     it('shows both Buy and Sell buttons when token has balance > 0', () => {
-      const tokenWithBalance = {
-        ...defaultToken,
+      mockUseTokenBalance.mockReturnValue({
         balance: '10.5',
-      };
+        fiatBalance: '$1050.00',
+        tokenFormattedBalance: '10.5 DAI',
+      });
 
-      const { getByText } = render(
-        <TokenDetails route={{ params: tokenWithBalance }} />,
-      );
+      const { getByText } = render(<TokenDetails {...defaultProps} />);
 
       expect(getByText('Buy')).toBeOnTheScreen();
       expect(getByText('Sell')).toBeOnTheScreen();
     });
 
     it('shows only Buy button when token has no balance', () => {
-      const tokenWithNoBalance = {
-        ...defaultToken,
+      mockUseTokenBalance.mockReturnValue({
         balance: '0',
-      };
+        fiatBalance: '$0.00',
+        tokenFormattedBalance: '0 DAI',
+      });
 
       const { getByText, queryByText } = render(
-        <TokenDetails route={{ params: tokenWithNoBalance }} />,
+        <TokenDetails {...defaultProps} />,
       );
 
       expect(getByText('Buy')).toBeOnTheScreen();
@@ -239,13 +243,14 @@ describe('TokenDetails', () => {
     });
 
     it('shows only Buy button when token balance is undefined', () => {
-      const tokenWithUndefinedBalance = {
-        ...defaultToken,
+      mockUseTokenBalance.mockReturnValue({
         balance: undefined,
-      } as unknown as TokenI;
+        fiatBalance: undefined,
+        tokenFormattedBalance: undefined,
+      });
 
       const { getByText, queryByText } = render(
-        <TokenDetails route={{ params: tokenWithUndefinedBalance }} />,
+        <TokenDetails {...defaultProps} />,
       );
 
       expect(getByText('Buy')).toBeOnTheScreen();
