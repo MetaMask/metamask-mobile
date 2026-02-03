@@ -45,6 +45,7 @@ export interface PerpsToastOptionsConfig {
         processingTimeInSeconds: number | undefined,
         transactionId: string,
       ) => PerpsToastOptions;
+      takingLonger: PerpsToastOptions;
       error: PerpsToastOptions;
     };
     withdrawal: {
@@ -268,6 +269,14 @@ const usePerpsToasts = (): {
         backgroundColor: theme.colors.accent01.light,
         hapticsType: NotificationFeedbackType.Error,
       },
+      warning: {
+        ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
+        variant: ToastVariants.Icon,
+        iconName: IconName.Warning,
+        iconColor: theme.colors.warning.default,
+        backgroundColor: theme.colors.warning.muted,
+        hapticsType: NotificationFeedbackType.Warning,
+      },
     }),
     [theme],
   );
@@ -390,6 +399,26 @@ const usePerpsToasts = (): {
               ),
               closeButtonOptions,
             };
+          },
+          takingLonger: {
+            ...perpsBaseToastOptions.warning,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.deposit.deposit_taking_longer'),
+            ),
+            hasNoTimeout: true,
+            closeButtonOptions: {
+              label: (
+                <Text
+                  variant={TextVariant.BodyMd}
+                  style={{ color: theme.colors.error.default }}
+                >
+                  {strings('perps.deposit.cancel_trade')}
+                </Text>
+              ),
+              variant: ButtonVariants.Secondary,
+              style: { backgroundColor: theme.colors.background.muted },
+              onPress: () => { },
+            },
           },
           error: {
             ...perpsBaseToastOptions.error,

@@ -55,6 +55,12 @@ export const usePerpsOrderDepositTracking = () => {
       const transactionId = transactionMeta.id;
       showProgressToast(transactionId);
 
+      // TODO: Restore to 15000 for production; 0 for testing the "deposit taking longer" toast
+      const depositLongerTimeoutId = setTimeout(() => {
+        toastRef?.current?.closeToast();
+        showToast(PerpsToastOptions.accountManagement.deposit.takingLonger);
+      }, 1000);
+
       // Handle failed transactions
       const handleTransactionFailed = ({
         transactionMeta: failedTransactionMeta,
@@ -65,6 +71,7 @@ export const usePerpsOrderDepositTracking = () => {
           failedTransactionMeta?.type === TransactionType.perpsDepositAndOrder
         ) {
           if (failedTransactionMeta.id === transactionId) {
+            clearTimeout(depositLongerTimeoutId);
             toastRef?.current?.closeToast();
             showToast(PerpsToastOptions.accountManagement.deposit.error);
           }
@@ -80,8 +87,7 @@ export const usePerpsOrderDepositTracking = () => {
           updatedTransactionMeta.id === transactionId &&
           updatedTransactionMeta.status === TransactionStatus.confirmed
         ) {
-          // Unmark active handler so usePerpsDepositStatus can handle it if needed
-
+          clearTimeout(depositLongerTimeoutId);
           toastRef?.current?.closeToast();
           callback?.();
         }
