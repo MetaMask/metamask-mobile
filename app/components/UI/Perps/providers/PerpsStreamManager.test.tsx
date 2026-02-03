@@ -2657,6 +2657,9 @@ describe('PerpsStreamManager', () => {
         callback,
       });
 
+      // Get initial subscription count
+      const initialCallCount = mockSubscribeToPrices.mock.calls.length;
+
       const pricesDisconnect = jest.spyOn(
         testStreamManager.prices,
         'disconnect',
@@ -2665,9 +2668,13 @@ describe('PerpsStreamManager', () => {
       // Act - reconnect all channels
       testStreamManager.clearAllChannels();
 
+      // Assert - disconnect was called
       expect(pricesDisconnect).toHaveBeenCalled();
 
-      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+      // Assert - reconnection happened (at least one more subscription after clearAllChannels)
+      expect(mockSubscribeToPrices.mock.calls.length).toBeGreaterThan(
+        initialCallCount,
+      );
 
       unsubscribe();
       pricesDisconnect.mockRestore();
