@@ -10,7 +10,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { SECTIONS_ARRAY, SectionId } from '../../sections.config';
+import { SectionId, useSectionsArray } from '../../sections.config';
 import { TrendingViewSelectorsIDs } from '../../TrendingView.testIds';
 
 interface QuickActionsProps {
@@ -26,8 +26,9 @@ interface QuickActionsProps {
 const QuickActions: React.FC<QuickActionsProps> = ({ emptySections }) => {
   const navigation = useNavigation();
   const tw = useTailwind();
+  const sections = useSectionsArray();
 
-  const visibleSections = SECTIONS_ARRAY.filter(
+  const visibleSections = sections.filter(
     (s) => !emptySections.has(s.id),
   );
 

@@ -1,6 +1,6 @@
 import { renderHook, waitFor, act } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import { useExploreSearch } from './useExploreSearch';
-import { SECTIONS_ARRAY } from '../sections.config';
 
 const mockTrendingTokens = [
   { assetId: '1', symbol: 'BTC', name: 'Bitcoin' },
@@ -54,6 +54,21 @@ let mockPredictionsData = mockPredictionMarkets;
 let mockPredictionsLoading = false;
 let mockSitesData = mockSites;
 let mockSitesLoading = false;
+let mockPerpsEnabled = true;
+
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+
+const DEFAULT_SECTIONS_ORDER = [
+  'tokens',
+  'perps',
+  'predictions',
+  'sites',
+] as const;
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
 
 jest.mock(
   '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch',
@@ -104,6 +119,8 @@ describe('useExploreSearch', () => {
     mockPredictionsLoading = false;
     mockSitesData = mockSites;
     mockSitesLoading = false;
+    mockPerpsEnabled = true;
+    mockUseSelector.mockImplementation(() => mockPerpsEnabled);
   });
 
   afterEach(() => {
@@ -217,18 +234,16 @@ describe('useExploreSearch', () => {
   it('processes all sections defined in config', () => {
     const { result } = renderHook(() => useExploreSearch(''));
 
-    SECTIONS_ARRAY.forEach((section) => {
-      expect(result.current.data[section.id]).toBeDefined();
-      expect(result.current.isLoading[section.id]).toBeDefined();
+    result.current.sectionsOrder.forEach((sectionId) => {
+      expect(result.current.data[sectionId]).toBeDefined();
+      expect(result.current.isLoading[sectionId]).toBeDefined();
     });
   });
 
   it('returns default sectionsOrder when no options provided', () => {
     const { result } = renderHook(() => useExploreSearch(''));
 
-    expect(result.current.sectionsOrder).toEqual(
-      SECTIONS_ARRAY.map((s) => s.id),
-    );
+    expect(result.current.sectionsOrder).toEqual(DEFAULT_SECTIONS_ORDER);
   });
 
   it('returns custom sectionsOrder when provided in options', () => {
@@ -247,5 +262,18 @@ describe('useExploreSearch', () => {
     expect(result.current.data).toBeDefined();
     expect(result.current.isLoading).toBeDefined();
     expect(result.current.sectionsOrder).toBeDefined();
+  });
+
+  it('filters perps section when feature flag is disabled', () => {
+    mockPerpsEnabled = false;
+
+    const { result } = renderHook(() => useExploreSearch(''));
+
+    expect(result.current.sectionsOrder).toEqual([
+      'tokens',
+      'predictions',
+      'sites',
+    ]);
+    expect(result.current.data.perps).toBeUndefined();
   });
 });

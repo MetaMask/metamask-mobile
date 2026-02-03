@@ -1,4 +1,5 @@
 import React, { PropsWithChildren, useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import Fuse, { type FuseOptions } from 'fuse.js';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
@@ -28,6 +29,7 @@ import {
 } from '../../UI/Trending/components/TrendingTokensBottomSheet';
 import type { TrendingFilterContext } from '../../UI/Trending/components/TrendingTokensList/TrendingTokensList';
 import { filterMarketsByQuery } from '../../UI/Perps/utils/marketUtils';
+import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import PredictMarketRowItem from '../../UI/Predict/components/PredictMarketRowItem';
 import SectionCard from './components/Sections/SectionTypes/SectionCard';
 import SectionCarrousel from './components/Sections/SectionTypes/SectionCarrousel';
@@ -120,7 +122,8 @@ const PREDICTIONS_FUSE_OPTIONS: FuseOptions<PredictMarketType> = {
  *
  * To add a new section (EVERYTHING IN THIS FILE):
  * 1. Add the section ID to the SectionId type above
- * 2. Add the config to SECTIONS_CONFIG, HOME_SECTIONS_ARRAY, and SECTIONS_ARRAY below
+ * 2. Add the config to SECTIONS_CONFIG and the base arrays used by
+ *    useHomeSections/useSectionsArray below
  * 3. Add the hook to useSectionsData below
  *
  * The section will automatically appear in:
@@ -310,7 +313,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
 };
 
 // Sorted by order on the main screen
-export const HOME_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
+const HOME_SECTIONS_BASE: (SectionConfig & { id: SectionId })[] = [
   SECTIONS_CONFIG.predictions,
   SECTIONS_CONFIG.tokens,
   SECTIONS_CONFIG.perps,
@@ -318,12 +321,32 @@ export const HOME_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
 ];
 
 // Sorted by order on the QuickAction buttons and SearchResults
-export const SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
+const SECTIONS_BASE: (SectionConfig & { id: SectionId })[] = [
   SECTIONS_CONFIG.tokens,
   SECTIONS_CONFIG.perps,
   SECTIONS_CONFIG.predictions,
   SECTIONS_CONFIG.sites,
 ];
+
+const usePerpsFilteredSections = (
+  sections: (SectionConfig & { id: SectionId })[],
+) => {
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+
+  return useMemo(
+    () =>
+      isPerpsEnabled
+        ? sections
+        : sections.filter((section) => section.id !== 'perps'),
+    [isPerpsEnabled, sections],
+  );
+};
+
+export const useHomeSections = () =>
+  usePerpsFilteredSections(HOME_SECTIONS_BASE);
+
+export const useSectionsArray = () =>
+  usePerpsFilteredSections(SECTIONS_BASE);
 
 /**
  * Centralized hook that fetches data for all sections.
