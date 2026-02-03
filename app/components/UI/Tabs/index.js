@@ -231,9 +231,13 @@ class Tabs extends PureComponent {
 
   onNewTabPress = () => {
     const { tabs, newTab, closeTabsView } = this.props;
-    newTab(); // No URL = opens empty DiscoveryTab
+    const tabCreated = newTab(); // No URL = opens empty DiscoveryTab, returns false if max tabs modal shown
     this.trackNewTabEvent(tabs.length);
-    closeTabsView(); // Dismiss tabs view after creating new tab
+    // Only dismiss tabs view if a tab was actually created
+    // If max tabs modal is shown, keep tabs view open so user can close tabs
+    if (tabCreated) {
+      closeTabsView();
+    }
   };
 
   trackNewTabEvent = (tabsNumber) => {
@@ -259,7 +263,7 @@ class Tabs extends PureComponent {
           size={ButtonIconSizes.Lg}
           onPress={closeTabsView}
           testID={BrowserViewSelectorsIDs.TABS_BACK_BUTTON}
-          accessibilityLabel={strings('browser.back')}
+          accessibilityLabel={strings('browser.go_back')}
         />
         <Text variant={TextVariant.HeadingMD} style={styles.topBarTitle}>
           {strings('browser.opened_tabs')}

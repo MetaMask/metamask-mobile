@@ -128,7 +128,7 @@ const mockTabs = [
 ];
 
 describe('Tabs', () => {
-  const mockNewTab = jest.fn();
+  const mockNewTab = jest.fn().mockReturnValue(true);
   const mockCloseTab = jest.fn();
   const mockCloseTabsView = jest.fn();
   const mockSwitchToTab = jest.fn();
@@ -271,6 +271,28 @@ describe('Tabs', () => {
 
       expect(mockNewTab).toHaveBeenCalledTimes(1);
       expect(mockCloseTabsView).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not close tabs view when newTab returns false (max tabs modal shown)', () => {
+      const mockNewTabReturnsFalse = jest.fn().mockReturnValue(false);
+
+      const { getByTestId } = renderWithProvider(
+        <Tabs
+          tabs={mockTabs}
+          activeTab={1}
+          newTab={mockNewTabReturnsFalse}
+          closeTab={mockCloseTab}
+          closeTabsView={mockCloseTabsView}
+          switchToTab={mockSwitchToTab}
+        />,
+        { state: mockInitialState },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.ADD_NEW_TAB));
+
+      expect(mockNewTabReturnsFalse).toHaveBeenCalledTimes(1);
+      // closeTabsView should NOT be called when max tabs modal is shown
+      expect(mockCloseTabsView).not.toHaveBeenCalled();
     });
 
     it('tracks analytics event when add button is pressed', () => {

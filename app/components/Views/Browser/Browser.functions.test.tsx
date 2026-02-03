@@ -196,7 +196,6 @@ describe('Browser - Function Coverage Tests', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={jest.fn()}
                     updateTab={mockUpdateTab}
@@ -266,7 +265,6 @@ describe('Browser - Function Coverage Tests', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={jest.fn()}
                     updateTab={jest.fn()}
@@ -332,7 +330,6 @@ describe('Browser - Function Coverage Tests', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={mockCloseTab}
                     setActiveTab={mockSetActiveTab}
                     updateTab={jest.fn()}
@@ -394,7 +391,6 @@ describe('Browser - Function Coverage Tests', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={mockCloseTab}
                     setActiveTab={mockSetActiveTab}
                     updateTab={jest.fn()}
@@ -458,7 +454,6 @@ describe('Browser - Function Coverage Tests', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={mockCreateNewTab}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={jest.fn()}
                     updateTab={mockUpdateTab}
@@ -506,7 +501,6 @@ describe('Browser - Function Coverage Tests', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={jest.fn()}
                     updateTab={jest.fn()}
@@ -561,7 +555,6 @@ describe('Browser - Function Coverage Tests', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={jest.fn()}
                     updateTab={jest.fn()}
@@ -599,7 +592,6 @@ describe('Browser - Function Coverage Tests', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={jest.fn()}
                     updateTab={jest.fn()}
@@ -653,7 +645,6 @@ describe('Browser - Function Coverage Tests', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={jest.fn()}
                     updateTab={jest.fn()}
@@ -685,53 +676,6 @@ describe('Browser - Function Coverage Tests', () => {
 
       // Error should be logged because activeTabUrl is undefined
       expect(mockLoggerError).toHaveBeenCalled();
-    });
-  });
-
-  describe('closeAllTabs function', () => {
-    it('calls triggerCloseAllTabs and sets currentUrl to null', () => {
-      const tabs = [
-        { id: 1, url: 'https://tab1.com', image: '', isArchived: false },
-      ];
-      const mockCloseAllTabs = jest.fn();
-
-      // We can't directly call closeAllTabs, but it's part of the component's callbacks
-      // This test verifies the function is set up correctly
-      renderWithProvider(
-        <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
-            <Stack.Navigator>
-              <Stack.Screen name={Routes.BROWSER.VIEW}>
-                {() => (
-                  <Browser
-                    route={routeMock}
-                    tabs={tabs}
-                    activeTab={1}
-                    navigation={mockNavigation}
-                    createNewTab={jest.fn()}
-                    closeAllTabs={mockCloseAllTabs}
-                    closeTab={jest.fn()}
-                    setActiveTab={jest.fn()}
-                    updateTab={jest.fn()}
-                  />
-                )}
-              </Stack.Screen>
-            </Stack.Navigator>
-          </NavigationContainer>
-        </Provider>,
-        {
-          state: {
-            ...mockInitialState,
-            browser: {
-              tabs,
-              activeTab: 1,
-            },
-          },
-        },
-      );
-
-      // The closeAllTabs function is defined and wired correctly
-      expect(mockCloseAllTabs).toBeDefined();
     });
   });
 
@@ -768,7 +712,6 @@ describe('Browser - Function Coverage Tests', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={mockSetActiveTab}
                     updateTab={mockUpdateTab}
@@ -838,7 +781,6 @@ describe('Browser - Function Coverage Tests', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={jest.fn()}
                     updateTab={mockUpdateTab}
@@ -905,7 +847,6 @@ describe('Browser - Function Coverage Tests', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={mockCreateNewTab}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={jest.fn()}
                     updateTab={jest.fn()}
@@ -955,7 +896,6 @@ describe('Browser - Function Coverage Tests', () => {
                     activeTab={null}
                     navigation={mockNavigation}
                     createNewTab={mockCreateNewTab}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={jest.fn()}
                     updateTab={jest.fn()}
@@ -1016,7 +956,6 @@ describe('Browser - Function Coverage Tests', () => {
                     activeTab={2}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={jest.fn()}
                     updateTab={mockUpdateTab}
@@ -1054,57 +993,6 @@ describe('Browser - Function Coverage Tests', () => {
     });
   });
 
-  describe('closeAllTabs function via Tabs callback', () => {
-    it('calls triggerCloseAllTabs when closeAllTabs is invoked', () => {
-      const tabs = [
-        { id: 1, url: 'https://tab1.com', image: '', isArchived: false },
-        { id: 2, url: 'https://tab2.com', image: '', isArchived: false },
-      ];
-      const mockCloseAllTabs = jest.fn();
-
-      const TabsMock = jest.mocked(Tabs);
-      TabsMock.mockImplementation(() =>
-        React.createElement('View', { testID: 'Tabs' }),
-      );
-
-      renderWithProvider(
-        <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
-            <Stack.Navigator>
-              <Stack.Screen name={Routes.BROWSER.VIEW}>
-                {() => (
-                  <Browser
-                    route={{ params: { showTabsView: true } }}
-                    tabs={tabs}
-                    activeTab={1}
-                    navigation={mockNavigation}
-                    createNewTab={jest.fn()}
-                    closeAllTabs={mockCloseAllTabs}
-                    closeTab={jest.fn()}
-                    setActiveTab={jest.fn()}
-                    updateTab={jest.fn()}
-                  />
-                )}
-              </Stack.Screen>
-            </Stack.Navigator>
-          </NavigationContainer>
-        </Provider>,
-        {
-          state: {
-            ...mockInitialState,
-            browser: {
-              tabs,
-              activeTab: 1,
-            },
-          },
-        },
-      );
-
-      // The closeAllTabs prop is passed and should be callable
-      expect(mockCloseAllTabs).toBeDefined();
-    });
-  });
-
   describe('closeTab when closing single remaining tab', () => {
     it('sets currentUrl to null when closing the only tab', () => {
       const tabs = [
@@ -1136,7 +1024,6 @@ describe('Browser - Function Coverage Tests', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={mockCloseTab}
                     setActiveTab={mockSetActiveTab}
                     updateTab={jest.fn()}
@@ -1205,7 +1092,6 @@ describe('Browser - Function Coverage Tests', () => {
                     activeTab={3}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={mockCloseTab}
                     setActiveTab={mockSetActiveTab}
                     updateTab={jest.fn()}
@@ -1266,7 +1152,6 @@ describe('Browser - Function Coverage Tests', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={jest.fn()}
                     updateTab={jest.fn()}
@@ -1312,7 +1197,6 @@ describe('Browser - Function Coverage Tests', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={mockSetActiveTab}
                     updateTab={jest.fn()}
@@ -1369,7 +1253,6 @@ describe('Browser - Function Coverage Tests', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={mockCreateNewTab}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={jest.fn()}
                     updateTab={jest.fn()}
@@ -1425,7 +1308,6 @@ describe('Browser - Function Coverage Tests', () => {
                     activeTab={null}
                     navigation={mockNavigation}
                     createNewTab={mockCreateNewTab}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={jest.fn()}
                     updateTab={jest.fn()}
@@ -1475,7 +1357,6 @@ describe('Browser - Function Coverage Tests', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={jest.fn()}
                     updateTab={jest.fn()}
@@ -1519,7 +1400,6 @@ describe('Browser - Function Coverage Tests', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={jest.fn()}
                     updateTab={jest.fn()}
@@ -1560,7 +1440,6 @@ describe('Browser - Function Coverage Tests', () => {
                     activeTab={null}
                     navigation={mockNavigation}
                     createNewTab={mockCreateNewTab}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={jest.fn()}
                     updateTab={jest.fn()}
@@ -1606,7 +1485,6 @@ describe('Browser - Function Coverage Tests', () => {
                     activeTab={999}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={mockSetActiveTab}
                     updateTab={jest.fn()}
@@ -1651,7 +1529,6 @@ describe('Browser - Function Coverage Tests', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={mockSetActiveTab}
                     updateTab={jest.fn()}
@@ -1693,7 +1570,6 @@ describe('Browser - Function Coverage Tests', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={mockSetActiveTab}
                     updateTab={jest.fn()}
