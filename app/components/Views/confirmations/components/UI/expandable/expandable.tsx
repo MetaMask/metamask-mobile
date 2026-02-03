@@ -1,15 +1,8 @@
 import React, { ReactNode, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../../component-library/components/Buttons/ButtonIcon';
-import {
-  IconColor,
-  IconName,
-} from '../../../../../../component-library/components/Icons/Icon';
-import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
+import HeaderCenter from '../../../../../../component-library/components-temp/HeaderCenter';
 import BottomModal from '../bottom-modal';
 import styleSheet from './expandable.styles';
 
@@ -52,19 +45,14 @@ const Expandable = ({
       {expanded && (
         <BottomModal onClose={() => setExpanded(false)}>
           <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <ButtonIcon
-                iconColor={IconColor.Default}
-                size={ButtonIconSizes.Sm}
-                onPress={() => setExpanded(false)}
-                iconName={IconName.ArrowLeft}
-                testID={collapseButtonTestID ?? 'collapseButtonTestID'}
-              />
-              <Text style={styles.expandedContentTitle}>
-                {expandedContentTitle}
-              </Text>
-            </View>
-            {expandedContent}
+            <HeaderCenter
+              title={expandedContentTitle}
+              onClose={() => setExpanded(false)}
+              closeButtonProps={{
+                testID: collapseButtonTestID ?? 'collapseButtonTestID',
+              }}
+            />
+            <View style={styles.modalExpandedContent}>{expandedContent}</View>
           </View>
         </BottomModal>
       )}

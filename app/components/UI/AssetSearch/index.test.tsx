@@ -52,7 +52,6 @@ jest.mock('../../../core/Engine', () => ({
           ],
         },
       },
-      preventPollingOnNetworkRestart: false,
     },
   },
 }));
