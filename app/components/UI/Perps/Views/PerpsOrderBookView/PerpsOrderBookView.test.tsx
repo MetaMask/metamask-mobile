@@ -120,7 +120,10 @@ jest.mock('../../hooks/stream/usePerpsLiveOrderBook', () => ({
 }));
 
 // Mock usePerpsLivePrices for live price updates in header (TAT-2441)
-const mockUsePerpsLivePrices = jest.fn(() => ({
+const mockUsePerpsLivePrices = jest.fn<
+  Record<string, { price: string; percentChange24h: string; symbol: string }>,
+  [unknown]
+>(() => ({
   BTC: {
     price: '50000',
     percentChange24h: '2.5',
