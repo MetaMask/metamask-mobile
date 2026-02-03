@@ -499,6 +499,20 @@
     "marketing_opt_in_description": "Get product updates, tips, and news including by email. We may use your interactions to improve what we share.",
     "loose_password_description": "If I lose this password, MetaMask can’t reset it."
   },
+  "wallet_creation_error": {
+    "title": "Something went wrong",
+    "social_login_description_part1": "An error occurred while creating your wallet. Try again and if the issue persists, contact",
+    "srp_description_part1": "Send us an anonymous error report to help fix the problem and improve MetaMask. If the issue persists, contact",
+    "metamask_support": "MetaMask Support",
+    "error_report": "Error report",
+    "copy": "Copy",
+    "copied": "Copied",
+    "send_error_report": "Send error report",
+    "try_again": "Try again",
+    "error_report_sent_toast": "Error report sent. We're investigating this problem. Try creating your wallet again.",
+    "error_report_sent_title": "Error report sent",
+    "error_report_sent_description": "We're investigating this problem. Try creating your wallet again."
+  },
   "reset_password": {
     "title": "Change password",
     "subtitle": "This password will unlock your MetaMask wallet only on this device.",

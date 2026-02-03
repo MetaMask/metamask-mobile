@@ -22,6 +22,12 @@ jest.mock('../../../core/BackupVault', () => ({
 jest.mock('../../UI/FoxAnimation/FoxAnimation');
 jest.mock('../../UI/OnboardingAnimation/OnboardingAnimation');
 
+jest.mock('react-native-elevated-view', () => ({
+  __esModule: true,
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  default: jest.requireActual('react-native').View,
+}));
+
 import React from 'react';
 import {
   InteractionManager,
@@ -2054,6 +2060,48 @@ describe('Onboarding', () => {
           name: 'Error Screen Viewed',
         }),
       );
+    });
+  });
+
+  describe('Error Report Sent Notification', () => {
+    beforeEach(() => {
+      mockRoute.params = { showErrorReportSentToast: true };
+    });
+
+    afterEach(() => {
+      mockRoute.params = {};
+    });
+
+    it('displays notification when showErrorReportSentToast param is true', async () => {
+      const { getByText } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      await waitFor(() => {
+        expect(getByText('Error report sent')).toBeTruthy();
+      });
+    });
+
+    it('displays notification description when showErrorReportSentToast param is true', async () => {
+      const { getByText } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      await waitFor(() => {
+        expect(
+          getByText(
+            "We're investigating this problem. Try creating your wallet again.",
+          ),
+        ).toBeTruthy();
+      });
     });
   });
 });

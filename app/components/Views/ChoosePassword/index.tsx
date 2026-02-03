@@ -6,7 +6,6 @@ import React, {
   useContext,
 } from 'react';
 import {
-  Alert,
   View,
   TouchableOpacity,
   Platform,
@@ -27,7 +26,6 @@ import {
   passwordSet as passwordSetAction,
   passwordUnset as passwordUnsetAction,
   seedphraseNotBackedUp,
-  setExistingUser,
 } from '../../../actions/user';
 import { setLockTime as setLockTimeAction } from '../../../actions/settings';
 import Engine from '../../../core/Engine';
@@ -99,8 +97,6 @@ import {
   ParamListBase,
 } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-
-const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 
 interface ErrorWithMessage {
   message?: string;
@@ -435,24 +431,17 @@ const ChoosePassword = () => {
   );
 
   const handleWalletCreationError = useCallback(
-    async (caughtError: Error) => {
+    async (caughtError: Error, isSocialLogin: boolean) => {
       try {
         await recreateVault('');
       } catch (e) {
         Logger.error(e as Error);
       }
 
-      dispatch(setExistingUser(true));
+      // Reset state - don't set existing user since wallet creation failed
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       dispatch(passwordUnsetAction());
       dispatch(setLockTimeAction(-1));
-
-      if (caughtError.toString() === PASSCODE_NOT_SET_ERROR) {
-        Alert.alert(
-          strings('choose_password.security_alert_title'),
-          strings('choose_password.security_alert_message'),
-        );
-      }
       setLoading(false);
 
       track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
@@ -470,8 +459,31 @@ const ChoosePassword = () => {
         });
         endTrace({ name: TraceName.OnboardingPasswordSetupError });
       }
+
+      // For social login, auto-report error
+      if (isSocialLogin && metrics.isEnabled()) {
+        captureException(caughtError, {
+          tags: {
+            view: 'ChoosePassword',
+            context: 'OAuth password creation failed - auto reported',
+          },
+        });
+      }
+
+      // Navigate to error screen
+      navigation.reset({
+        routes: [
+          {
+            name: Routes.ONBOARDING.WALLET_CREATION_ERROR,
+            params: {
+              isSocialLogin,
+              error: caughtError,
+            },
+          },
+        ],
+      });
     },
-    [recreateVault, dispatch, track, route.params],
+    [recreateVault, dispatch, track, route.params, metrics, navigation],
   );
 
   const onPressCreate = useCallback(async () => {
@@ -480,6 +492,7 @@ const ChoosePassword = () => {
 
     const provider = route.params?.provider;
     const accountType = provider ? `metamask_${provider}` : 'metamask';
+    const isSocialLogin = getOauth2LoginSuccess();
 
     track(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED, {
       account_type: accountType,
@@ -493,7 +506,7 @@ const ChoosePassword = () => {
         true,
         false,
       );
-      authType.oauth2Login = getOauth2LoginSuccess();
+      authType.oauth2Login = isSocialLogin;
 
       const onboardingTraceCtx = route.params?.onboardingTraceCtx;
       if (onboardingTraceCtx) {
@@ -533,7 +546,7 @@ const ChoosePassword = () => {
       });
       endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
     } catch (err) {
-      await handleWalletCreationError(err as Error);
+      await handleWalletCreationError(err as Error, isSocialLogin ?? false);
     }
   }, [
     validatePasswordSubmission,

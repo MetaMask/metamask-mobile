@@ -6,6 +6,7 @@ import {
   PREVIOUS_SCREEN,
   PROTECT,
 } from '../../../constants/navigation';
+import Routes from '../../../constants/navigation/Routes';
 import { Provider } from 'react-redux';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
@@ -17,7 +18,7 @@ import StorageWrapper from '../../../store/storage-wrapper';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { Authentication } from '../../../core';
-import { InteractionManager, Alert, Platform } from 'react-native';
+import { InteractionManager, Platform } from 'react-native';
 import { EVENT_NAME } from '../../../core/Analytics';
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
@@ -994,15 +995,14 @@ describe('ChoosePassword', () => {
     mockNewWalletAndKeychain.mockRestore();
   });
 
-  it('should show alert when passcode not set error occurs', async () => {
+  it('navigates to error screen when passcode not set error occurs', async () => {
     jest.spyOn(Device, 'isIos').mockReturnValue(false);
+    const passcodeError = new Error('Passcode not set.');
     const mockComponentAuthenticationType = jest.spyOn(
       Authentication,
       'componentAuthenticationType',
     );
-    mockComponentAuthenticationType.mockRejectedValueOnce(
-      new Error('Passcode not set.'),
-    );
+    mockComponentAuthenticationType.mockRejectedValueOnce(passcodeError);
 
     const component = renderWithProviders(<ChoosePassword />);
 
@@ -1041,10 +1041,17 @@ describe('ChoosePassword', () => {
       await new Promise((resolve) => setTimeout(resolve, 200));
     });
 
-    expect(Alert.alert).toHaveBeenCalledWith(
-      strings('choose_password.security_alert_title'),
-      strings('choose_password.security_alert_message'),
-    );
+    expect(mockNavigation.reset).toHaveBeenCalledWith({
+      routes: [
+        {
+          name: Routes.ONBOARDING.WALLET_CREATION_ERROR,
+          params: expect.objectContaining({
+            isSocialLogin: false,
+            error: passcodeError,
+          }),
+        },
+      ],
+    });
 
     jest.spyOn(Device, 'isIos').mockRestore();
     mockComponentAuthenticationType.mockClear();

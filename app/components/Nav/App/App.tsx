@@ -84,6 +84,7 @@ import SDKSessionModal from '../../Views/SDK/SDKSessionModal/SDKSessionModal';
 import ExperienceEnhancerModal from '../../../../app/components/Views/ExperienceEnhancerModal';
 import LedgerSelectAccount from '../../Views/LedgerSelectAccount';
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
+import WalletCreationError from '../../Views/WalletCreationError';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
 import OnboardingGeneralSettings from '../../Views/OnboardingSuccess/OnboardingGeneralSettings';
 import OnboardingAssetsSettings from '../../Views/OnboardingSuccess/OnboardingAssetsSettings';
@@ -277,6 +278,11 @@ const OnboardingNav = () => (
     <Stack.Screen
       name="Rehydrate"
       component={OAuthRehydration}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.ONBOARDING.WALLET_CREATION_ERROR}
+      component={WalletCreationError}
       options={{ headerShown: false }}
     />
   </Stack.Navigator>

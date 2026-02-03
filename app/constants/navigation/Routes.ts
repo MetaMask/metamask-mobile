@@ -142,6 +142,7 @@ const Routes = {
     OPTIN_METRICS: 'OptinMetrics',
     SOCIAL_LOGIN_SUCCESS_EXISTING_USER: 'SocialLoginSuccessExistingUser',
     REHYDRATE: 'Rehydrate',
+    WALLET_CREATION_ERROR: 'WalletCreationError',
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',
