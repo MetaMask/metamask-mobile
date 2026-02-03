@@ -27,13 +27,13 @@ import {
 } from '../../../../../util/test/renderWithProvider';
 import { flushPromises } from '../../../../../util/test/utils';
 import useMetrics from '../../../../hooks/useMetrics/useMetrics';
-import { getStakingNavbar } from '../../../Navbar';
 import {
   MOCK_ETH_MAINNET_ASSET,
   MOCK_GET_VAULT_RESPONSE,
 } from '../../../Stake/__mocks__/stakeMockData';
 import { MOCK_VAULT_APY_AVERAGES } from '../../../Stake/components/PoolStakingLearnMoreModal/mockVaultRewards';
 import { EVENT_PROVIDERS } from '../../../Stake/constants/events';
+import { EVENT_LOCATIONS } from '../../constants/events/earnEvents';
 // eslint-disable-next-line import/no-namespace
 import * as useBalance from '../../../Stake/hooks/useBalance';
 import usePoolStakedDeposit from '../../../Stake/hooks/usePoolStakedDeposit';
@@ -115,9 +115,7 @@ jest.mock('../../hooks/useEarnTokens', () => ({
 
 jest.mock('../../../../hooks/useMetrics/useMetrics');
 
-jest.mock('../../../Navbar', () => ({
-  getStakingNavbar: jest.fn().mockReturnValue({}),
-}));
+const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -127,6 +125,7 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockNavigate,
       setOptions: mockSetOptions,
       reset: mockReset,
+      goBack: mockGoBack,
       dangerouslyGetParent: () => ({
         pop: mockPop,
       }),
@@ -361,7 +360,6 @@ describe('EarnInputView', () => {
   };
   const mockTrackEvent = jest.fn();
   const useMetricsMock = jest.mocked(useMetrics);
-  const mockGetStakingNavbar = jest.mocked(getStakingNavbar);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -527,15 +525,8 @@ describe('EarnInputView', () => {
         name: 'params',
       });
 
-      expect(mockGetStakingNavbar).toHaveBeenCalledWith(
-        'Supply USDC',
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        null,
-      );
+      // Verify the title is rendered in the HeaderCenter component
+      expect(getByText('Supply USDC')).toBeTruthy();
 
       // "0" in the input display and on the keypad
       expect(getAllByText('0').length).toBe(2);
@@ -1206,26 +1197,11 @@ describe('EarnInputView', () => {
 
   describe('title bar', () => {
     it('displays "Stake <token name>" for staking', () => {
-      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+      // Default mock returns ETH with POOLED_STAKING experience
+      const { getByText } = renderComponent();
 
-      render(EarnInputView, {
-        params: {
-          ...baseProps.route.params,
-          token: MOCK_USDC_MAINNET_ASSET,
-        },
-        key: Routes.STAKING.STAKE,
-        name: 'params',
-      });
-
-      expect(mockGetStakingNavbar).toHaveBeenCalledWith(
-        'Stake ETH',
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        null,
-      );
+      // Verify the title is rendered in the HeaderCenter component
+      expect(getByText('Stake ETH')).toBeTruthy();
     });
   });
 
@@ -1861,6 +1837,147 @@ describe('EarnInputView', () => {
             is_max: false,
             mode: 'native',
             experience: EARN_EXPERIENCES.POOLED_STAKING,
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('HeaderCenter interactions', () => {
+    it('tracks STAKE_CANCEL_CLICKED event with token property when back button is pressed for staking', async () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(false);
+
+      const { getByTestId } = renderComponent();
+
+      mockTrackEvent.mockClear();
+
+      const backButton = getByTestId('button-icon');
+      await act(async () => {
+        fireEvent.press(backButton);
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Stake Cancel Clicked',
+          properties: expect.objectContaining({
+            selected_provider: EVENT_PROVIDERS.CONSENSYS,
+            location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
+            experience: EARN_EXPERIENCES.POOLED_STAKING,
+            token: 'Ethereum',
+          }),
+        }),
+      );
+    });
+
+    it('tracks EARN_INPUT_BACK_BUTTON_CLICKED event when back button is pressed for stablecoin lending', async () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+
+      (useEarnTokens as jest.Mock).mockReturnValue({
+        getEarnToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          balance: '100',
+          balanceFiat: '$100',
+          balanceMinimalUnit: '100000000',
+          balanceFormatted: '100 USDC',
+          balanceFiatNumber: 100,
+          symbol: 'USDC',
+          experience: {
+            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            apr: '4.5%',
+          },
+        })),
+        getOutputToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          name: 'aUSDC',
+          symbol: 'aUSDC',
+        })),
+      });
+
+      const routeParamsWithUSDC: EarnInputViewProps['route'] = {
+        params: {
+          token: MOCK_USDC_MAINNET_ASSET,
+        },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      };
+
+      const { getAllByTestId } = render(EarnInputView, routeParamsWithUSDC);
+
+      mockTrackEvent.mockClear();
+
+      // First button-icon is the back button
+      const buttonIcons = getAllByTestId('button-icon');
+      const backButton = buttonIcons[0];
+      await act(async () => {
+        fireEvent.press(backButton);
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Earn Input Back Button Clicked',
+          properties: expect.objectContaining({
+            selected_provider: EVENT_PROVIDERS.CONSENSYS,
+            location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
+            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            token: 'USDC',
+          }),
+        }),
+      );
+    });
+
+    it('tracks TOOLTIP_OPENED event when info button is pressed for stablecoin lending', async () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+
+      (useEarnTokens as jest.Mock).mockReturnValue({
+        getEarnToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          balance: '100',
+          balanceFiat: '$100',
+          balanceMinimalUnit: '100000000',
+          balanceFormatted: '100 USDC',
+          balanceFiatNumber: 100,
+          symbol: 'USDC',
+          experience: {
+            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            apr: '4.5%',
+          },
+        })),
+        getOutputToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          name: 'aUSDC',
+          symbol: 'aUSDC',
+        })),
+      });
+
+      const routeParamsWithUSDC: EarnInputViewProps['route'] = {
+        params: {
+          token: MOCK_USDC_MAINNET_ASSET,
+        },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      };
+
+      const { getAllByTestId } = render(EarnInputView, routeParamsWithUSDC);
+
+      mockTrackEvent.mockClear();
+
+      // Second button-icon is the info button (when stablecoin lending is enabled)
+      const buttonIcons = getAllByTestId('button-icon');
+      const infoButton = buttonIcons[1];
+      await act(async () => {
+        fireEvent.press(infoButton);
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Tooltip Opened',
+          properties: expect.objectContaining({
+            selected_provider: EVENT_PROVIDERS.CONSENSYS,
+            text: 'Tooltip Opened',
+            location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
+            tooltip_name: 'Lending Historic Market APY Graph',
+            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            token: 'USDC',
           }),
         }),
       );

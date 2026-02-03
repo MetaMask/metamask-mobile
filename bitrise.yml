@@ -356,8 +356,8 @@ stages:
       - run_network_expansion_swimlane_android_smoke: {}
       - run_wallet_platform_swimlane_ios_smoke: {}
       - run_wallet_platform_swimlane_android_smoke: {}
-      - run_tag_smoke_confirmations_redesigned_android: {}
-      - run_tag_smoke_confirmations_redesigned_ios: {}
+      - run_tag_smoke_confirmations_android: {}
+      - run_tag_smoke_confirmations_ios: {}
       - run_tag_flask_build_tests_ios: {}
       - run_tag_flask_build_tests_android: {}
       - run_tag_smoke_accounts_ios: {}
@@ -380,7 +380,7 @@ stages:
       # - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_identity_ios: {}
       # - run_tag_smoke_identity_android: {}
-      - run_tag_smoke_confirmations_redesigned_ios: {}
+      - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_multichain_api_ios: {}
       - run_tag_smoke_accounts_ios: {}
       # - run_tag_smoke_accounts_android: {}
@@ -448,8 +448,8 @@ stages:
       - run_network_abstraction_swimlane_android_smoke: {}
       - run_wallet_platform_swimlane_ios_smoke: {}
       - run_wallet_platform_swimlane_android_smoke: {}
-      - run_tag_smoke_confirmations_redesigned_android: {}
-      - run_tag_smoke_confirmations_redesigned_ios: {}
+      - run_tag_smoke_confirmations_android: {}
+      - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_multichain_api_ios: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
@@ -1161,18 +1161,18 @@ workflows:
   run_ios_api_specs:
     after_run:
       - ios_api_specs
-  run_tag_smoke_confirmations_redesigned_android:
+  run_tag_smoke_confirmations_android:
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE_TAG: 'SmokeConfirmationsRedesigned '
+      - TEST_SUITE_TAG: 'SmokeConfirmations'
     after_run:
       - android_e2e_test
-  run_tag_smoke_confirmations_redesigned_ios:
+  run_tag_smoke_confirmations_ios:
     envs:
-      - TEST_SUITE_TAG: 'SmokeConfirmationsRedesigned'
+      - TEST_SUITE_TAG: 'SmokeConfirmations'
     after_run:
       - ios_e2e_test
   run_tag_smoke_performance_ios:
@@ -3552,13 +3552,13 @@ app:
       VERSION_NAME: 7.65.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 3600
+      VERSION_NUMBER: 3609
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.65.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 3600
+      FLASK_VERSION_NUMBER: 3609
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
