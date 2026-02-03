@@ -530,11 +530,12 @@ describe('useStopLossPrompt', () => {
   });
 
   describe('suggested stop loss calculations', () => {
-    it('calculates suggested stop loss price for long position', () => {
+    it('calculates suggested stop loss price as midpoint between current price and liquidation for long position', () => {
       const position = createMockPosition({
         entryPrice: '50000',
         size: '1', // Long position
         leverage: { type: 'isolated', value: 10 },
+        liquidationPrice: '45000',
       });
 
       const { result } = renderHook(() =>
@@ -544,17 +545,17 @@ describe('useStopLossPrompt', () => {
         }),
       );
 
-      // With -50% target ROE and 10x leverage:
-      // priceChange = (-0.50 * 50000) / 10 / 1 = -2500
-      // slPrice = 50000 + (-2500) = 47500
-      expect(result.current.suggestedStopLossPrice).toBe('47500');
+      // Midpoint between current (48000) and liquidation (45000):
+      // midpoint = (48000 + 45000) / 2 = 46500
+      expect(result.current.suggestedStopLossPrice).toBe('46500');
     });
 
-    it('calculates suggested stop loss price for short position', () => {
+    it('calculates suggested stop loss price as midpoint between current price and liquidation for short position', () => {
       const position = createMockPosition({
         entryPrice: '50000',
         size: '-1', // Short position
         leverage: { type: 'isolated', value: 10 },
+        liquidationPrice: '55000',
       });
 
       const { result } = renderHook(() =>
@@ -564,17 +565,17 @@ describe('useStopLossPrompt', () => {
         }),
       );
 
-      // With -50% target ROE and 10x leverage for short:
-      // priceChange = (-0.50 * 50000) / 10 / -1 = 2500
-      // slPrice = 50000 + 2500 = 52500
-      expect(result.current.suggestedStopLossPrice).toBe('52500');
+      // Midpoint between current (52000) and liquidation (55000):
+      // midpoint = (52000 + 55000) / 2 = 53500
+      expect(result.current.suggestedStopLossPrice).toBe('53500');
     });
 
-    it('returns target ROE as suggested stop loss percent', () => {
+    it('calculates ROE at the midpoint stop loss price for long position', () => {
       const position = createMockPosition({
         entryPrice: '50000',
         size: '1',
         leverage: { type: 'isolated', value: 10 },
+        liquidationPrice: '45000',
       });
 
       const { result } = renderHook(() =>
@@ -584,10 +585,31 @@ describe('useStopLossPrompt', () => {
         }),
       );
 
-      // Should return the configured target ROE (-50%), not the price change (-5%)
-      expect(result.current.suggestedStopLossPercent).toBe(
-        STOP_LOSS_PROMPT_CONFIG.SuggestedStopLossRoe,
+      // Midpoint SL price = 46500
+      // ROE = (priceChange / entryPrice) * leverage * direction
+      // ROE = ((46500 - 50000) / 50000) * 10 * 1 * 100 = -70%
+      expect(result.current.suggestedStopLossPercent).toBe(-70);
+    });
+
+    it('calculates ROE at the midpoint stop loss price for short position', () => {
+      const position = createMockPosition({
+        entryPrice: '50000',
+        size: '-1',
+        leverage: { type: 'isolated', value: 10 },
+        liquidationPrice: '55000',
+      });
+
+      const { result } = renderHook(() =>
+        useStopLossPrompt({
+          position,
+          currentPrice: 52000,
+        }),
       );
+
+      // Midpoint SL price = 53500
+      // ROE = (priceChange / entryPrice) * leverage * direction
+      // ROE = ((53500 - 50000) / 50000) * 10 * -1 * 100 = -70%
+      expect(result.current.suggestedStopLossPercent).toBe(-70);
     });
 
     it('returns null for suggested price when no position', () => {
@@ -595,6 +617,44 @@ describe('useStopLossPrompt', () => {
         useStopLossPrompt({
           position: null,
           currentPrice: 48000,
+        }),
+      );
+
+      expect(result.current.suggestedStopLossPrice).toBeNull();
+      expect(result.current.suggestedStopLossPercent).toBeNull();
+    });
+
+    it('returns null for suggested price when no liquidation price', () => {
+      const position = createMockPosition({
+        entryPrice: '50000',
+        size: '1',
+        leverage: { type: 'isolated', value: 10 },
+        liquidationPrice: undefined,
+      });
+
+      const { result } = renderHook(() =>
+        useStopLossPrompt({
+          position,
+          currentPrice: 48000,
+        }),
+      );
+
+      expect(result.current.suggestedStopLossPrice).toBeNull();
+      expect(result.current.suggestedStopLossPercent).toBeNull();
+    });
+
+    it('returns null for suggested price when current price is zero', () => {
+      const position = createMockPosition({
+        entryPrice: '50000',
+        size: '1',
+        leverage: { type: 'isolated', value: 10 },
+        liquidationPrice: '45000',
+      });
+
+      const { result } = renderHook(() =>
+        useStopLossPrompt({
+          position,
+          currentPrice: 0,
         }),
       );
 
@@ -957,11 +1017,14 @@ describe('useStopLossPrompt', () => {
       );
 
       expect(result.current.liquidationDistance).toBeNull();
+      expect(result.current.suggestedStopLossPrice).toBeNull();
+      expect(result.current.suggestedStopLossPercent).toBeNull();
     });
 
-    it('handles missing entry price', () => {
+    it('handles missing entry price - still calculates SL price but not percent', () => {
       const position = createMockPosition({
         entryPrice: undefined as unknown as string,
+        liquidationPrice: '45000',
       });
 
       const { result } = renderHook(() =>
@@ -971,7 +1034,11 @@ describe('useStopLossPrompt', () => {
         }),
       );
 
-      expect(result.current.suggestedStopLossPrice).toBeNull();
+      // SL price uses currentPrice and liquidationPrice (doesn't need entryPrice)
+      // Midpoint = (48000 + 45000) / 2 = 46500
+      expect(result.current.suggestedStopLossPrice).toBe('46500');
+      // But percent needs entryPrice to calculate ROE
+      expect(result.current.suggestedStopLossPercent).toBeNull();
     });
 
     it('prioritizes add_margin over stop_loss when both conditions met', () => {
@@ -996,6 +1063,117 @@ describe('useStopLossPrompt', () => {
 
       // add_margin takes priority
       expect(result.current.variant).toBe('add_margin');
+    });
+  });
+
+  describe('safety guard: suggested SL too close to current price', () => {
+    it('shows add_margin when suggested SL is within 3% of current price', () => {
+      // Position where midpoint between current and liquidation is within 3% of current
+      // Current: 50000, Liquidation: 49000 → Midpoint: 49500 → Distance: 1% from current
+      const position = createMockPosition({
+        entryPrice: '50000',
+        size: '1',
+        returnOnEquity: '-0.15', // Below threshold
+        liquidationPrice: '49000', // Close to current
+        leverage: { type: 'isolated', value: 10 },
+      });
+
+      const { result } = renderHook(() =>
+        useStopLossPrompt({
+          position,
+          currentPrice: 50000,
+        }),
+      );
+
+      // Fast-forward past both position age and debounce requirements
+      const requiredTime =
+        Math.max(
+          STOP_LOSS_PROMPT_CONFIG.RoeDebounceMs,
+          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs,
+        ) + 100;
+
+      act(() => {
+        jest.advanceTimersByTime(requiredTime);
+      });
+
+      // Midpoint = (50000 + 49000) / 2 = 49500
+      // Distance from current = |50000 - 49500| / 50000 * 100 = 1%
+      // Since < 3%, should show add_margin instead of stop_loss
+      expect(result.current.suggestedStopLossPrice).toBe('49500');
+      expect(result.current.variant).toBe('add_margin');
+    });
+
+    it('shows stop_loss when suggested SL is more than 3% from current price', () => {
+      // Position where midpoint is safely away from current price
+      // Current: 50000, Liquidation: 40000 → Midpoint: 45000 → Distance: 10% from current
+      const position = createMockPosition({
+        entryPrice: '50000',
+        size: '1',
+        returnOnEquity: '-0.15', // Below threshold
+        liquidationPrice: '40000', // Far from current
+        leverage: { type: 'isolated', value: 10 },
+      });
+
+      const { result } = renderHook(() =>
+        useStopLossPrompt({
+          position,
+          currentPrice: 50000,
+        }),
+      );
+
+      // Fast-forward past both position age and debounce requirements
+      const requiredTime =
+        Math.max(
+          STOP_LOSS_PROMPT_CONFIG.RoeDebounceMs,
+          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs,
+        ) + 100;
+
+      act(() => {
+        jest.advanceTimersByTime(requiredTime);
+      });
+
+      // Midpoint = (50000 + 40000) / 2 = 45000
+      // Distance from current = |50000 - 45000| / 50000 * 100 = 10%
+      // Since > 3%, should show stop_loss
+      expect(result.current.suggestedStopLossPrice).toBe('45000');
+      expect(result.current.variant).toBe('stop_loss');
+    });
+
+    it('shows add_margin when suggested SL is exactly at 3% threshold', () => {
+      // Position where midpoint is exactly at 3% from current
+      // Current: 50000, need midpoint at 48500 (3% away)
+      // midpoint = (current + liq) / 2, so liq = 2*midpoint - current = 2*48500 - 50000 = 47000
+      const position = createMockPosition({
+        entryPrice: '50000',
+        size: '1',
+        returnOnEquity: '-0.15', // Below threshold
+        liquidationPrice: '47000',
+        leverage: { type: 'isolated', value: 10 },
+      });
+
+      const { result } = renderHook(() =>
+        useStopLossPrompt({
+          position,
+          currentPrice: 50000,
+        }),
+      );
+
+      // Fast-forward past both position age and debounce requirements
+      const requiredTime =
+        Math.max(
+          STOP_LOSS_PROMPT_CONFIG.RoeDebounceMs,
+          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs,
+        ) + 100;
+
+      act(() => {
+        jest.advanceTimersByTime(requiredTime);
+      });
+
+      // Midpoint = (50000 + 47000) / 2 = 48500
+      // Distance from current = |50000 - 48500| / 50000 * 100 = 3%
+      // Since distance < 3% (not <=), 3% exactly is NOT within threshold, so stop_loss
+      expect(result.current.suggestedStopLossPrice).toBe('48500');
+      expect(result.current.variant).toBe('stop_loss');
     });
   });
 });

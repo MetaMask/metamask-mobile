@@ -548,7 +548,7 @@ export const STOP_LOSS_PROMPT_CONFIG = {
 
   // Minimum position age before showing any banner (milliseconds)
   // Prevents banner from appearing immediately after opening a position
-  PositionMinAgeMs: 60_000, // 60 seconds
+  PositionMinAgeMs: 120_000, // 2 minutes
 
   // Suggested stop loss ROE percentage
   // When suggesting a stop loss, calculate price at this ROE from entry
