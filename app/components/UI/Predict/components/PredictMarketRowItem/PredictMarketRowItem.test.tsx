@@ -511,7 +511,7 @@ describe('PredictMarketRowItem', () => {
 
     const { getByText } = renderWithProvider(
       <PredictEntryPointProvider
-        entryPoint={PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED}
+        entryPoint={PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST}
       >
         <PredictMarketRowItem market={market} />
       </PredictEntryPointProvider>,
@@ -525,7 +525,7 @@ describe('PredictMarketRowItem', () => {
       screen: Routes.PREDICT.MARKET_DETAILS,
       params: {
         marketId: 'test-market-1',
-        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED,
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST,
         title: 'Monad FDV one day after launch?',
         image: 'https://example.com/monad.jpg',
       },
@@ -537,7 +537,7 @@ describe('PredictMarketRowItem', () => {
 
     const { getByText } = renderWithProvider(
       <PredictEntryPointProvider
-        entryPoint={PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED}
+        entryPoint={PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST}
       >
         <PredictMarketRowItem
           market={market}
@@ -554,7 +554,7 @@ describe('PredictMarketRowItem', () => {
       screen: Routes.PREDICT.MARKET_DETAILS,
       params: {
         marketId: 'test-market-1',
-        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED,
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST,
         title: 'Monad FDV one day after launch?',
         image: 'https://example.com/monad.jpg',
       },
