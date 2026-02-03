@@ -1044,6 +1044,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
           privacyMode={false}
           shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,
@@ -1072,6 +1073,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
           privacyMode={false}
           shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,

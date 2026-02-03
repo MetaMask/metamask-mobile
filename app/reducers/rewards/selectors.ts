@@ -115,3 +115,35 @@ export const selectPointsEvents = (state: RootState) =>
 
 export const selectSeasonShouldInstallNewVersion = (state: RootState) =>
   state.rewards.seasonShouldInstallNewVersion;
+
+// Bulk link selectors
+export const selectBulkLinkState = (state: RootState) => state.rewards.bulkLink;
+
+export const selectBulkLinkIsRunning = (state: RootState) =>
+  state.rewards.bulkLink.isRunning;
+
+export const selectBulkLinkTotalAccounts = (state: RootState) =>
+  state.rewards.bulkLink.totalAccounts;
+
+export const selectBulkLinkLinkedAccounts = (state: RootState) =>
+  state.rewards.bulkLink.linkedAccounts;
+
+export const selectBulkLinkFailedAccounts = (state: RootState) =>
+  state.rewards.bulkLink.failedAccounts;
+
+/**
+ * Returns whether the bulk link process was interrupted (e.g., app closed during processing).
+ * When true, the user can resume the process by dispatching resumeBulkLink().
+ */
+export const selectBulkLinkWasInterrupted = (state: RootState) =>
+  state.rewards.bulkLink.wasInterrupted;
+
+/**
+ * Returns account-level progress as a percentage (0-1)
+ */
+export const selectBulkLinkAccountProgress = (state: RootState) => {
+  const { linkedAccounts, failedAccounts, totalAccounts } =
+    state.rewards.bulkLink;
+  if (totalAccounts === 0) return 0;
+  return (linkedAccounts + failedAccounts) / totalAccounts;
+};
