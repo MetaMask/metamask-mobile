@@ -21,8 +21,6 @@ jest.mock(
 jest.mock('./useRampsUserRegion', () => ({
   useRampsUserRegion: jest.fn(() => ({
     userRegion: null,
-    isLoading: false,
-    error: null,
     setUserRegion: jest.fn(),
   })),
 }));

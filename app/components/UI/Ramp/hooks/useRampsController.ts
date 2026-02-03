@@ -23,9 +23,6 @@ import {
 export interface UseRampsControllerResult {
   // User region
   userRegion: UseRampsUserRegionResult['userRegion'];
-  userRegionLoading: UseRampsUserRegionResult['isLoading'];
-  userRegionError: UseRampsUserRegionResult['error'];
-  fetchUserRegion: UseRampsUserRegionResult['fetchUserRegion'];
   setUserRegion: UseRampsUserRegionResult['setUserRegion'];
 
   // Selected provider
@@ -68,9 +65,6 @@ export interface UseRampsControllerResult {
  * const {
  *   // User region
  *   userRegion,
- *   userRegionLoading,
- *   userRegionError,
- *   fetchUserRegion,
  *   setUserRegion,
  *
  *   // Providers
@@ -103,13 +97,7 @@ export interface UseRampsControllerResult {
  * ```
  */
 export function useRampsController(): UseRampsControllerResult {
-  const {
-    userRegion,
-    isLoading: userRegionLoading,
-    error: userRegionError,
-    fetchUserRegion,
-    setUserRegion,
-  } = useRampsUserRegion();
+  const { userRegion, setUserRegion } = useRampsUserRegion();
 
   const {
     providers,
@@ -144,9 +132,6 @@ export function useRampsController(): UseRampsControllerResult {
   return {
     // User region
     userRegion,
-    userRegionLoading,
-    userRegionError,
-    fetchUserRegion,
     setUserRegion,
 
     // Selected provider

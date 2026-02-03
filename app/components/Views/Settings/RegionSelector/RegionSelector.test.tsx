@@ -24,7 +24,6 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const mockSetUserRegion = jest.fn().mockResolvedValue(undefined);
-const mockFetchUserRegion = jest.fn().mockResolvedValue(null);
 const mockSetSelectedProvider = jest.fn();
 
 const createMockCountry = (
@@ -94,9 +93,6 @@ const mockUseRampsControllerInitialValues: ReturnType<
   typeof useRampsController
 > = {
   userRegion: null,
-  userRegionLoading: false,
-  userRegionError: null,
-  fetchUserRegion: mockFetchUserRegion,
   setUserRegion: mockSetUserRegion,
   selectedProvider: null,
   setSelectedProvider: mockSetSelectedProvider,
