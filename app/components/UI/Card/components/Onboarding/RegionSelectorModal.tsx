@@ -217,13 +217,13 @@ function RegionSelectorModal() {
       <HeaderCenter
         title={strings('card.card_onboarding.region_selector.title')}
         onClose={handleClose}
-        closeButtonProps={{ testID: 'region-selector-close-button' }}
       />
       <Box twClassName="px-4 pb-4">
         <TextFieldSearch
           value={searchString}
           showClearButton={searchString.length > 0}
           onPressClearButton={clearSearchText}
+          clearButtonProps={{ testID: 'region-selector-clear-button' }}
           onFocus={scrollToTop}
           onChangeText={handleSearchTextChange}
           autoComplete="one-time-code"
