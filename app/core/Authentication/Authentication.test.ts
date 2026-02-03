@@ -51,6 +51,7 @@ import MetaMetrics from '../Analytics/MetaMetrics';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import { Engine as EngineClass } from '../Engine/Engine';
+import { cancelBulkLink } from '../../store/sagas/rewardsBulkLinkAccountGroups';
 import Logger from '../../util/Logger';
 import { Alert } from 'react-native';
 import { strings } from '../../../locales/i18n';
@@ -74,6 +75,11 @@ jest.mock('../../selectors/accountsController', () => ({
   selectSelectedInternalAccountAddress: jest.fn(),
   selectSelectedInternalAccount: jest.fn(),
   selectSelectedInternalAccountId: jest.fn(),
+}));
+
+// Mock the bulk link saga to avoid import chain issues
+jest.mock('../../store/sagas/rewardsBulkLinkAccountGroups', () => ({
+  cancelBulkLink: jest.fn(() => ({ type: 'rewards/bulkLink/CANCEL' })),
 }));
 
 jest.useFakeTimers();
@@ -1396,14 +1402,14 @@ describe('Authentication', () => {
 
   describe('lockApp', () => {
     let Engine: typeof import('../Engine').default;
-    let mockDispatch: jest.Mock;
+    let lockAppMockDispatch: jest.Mock;
 
     beforeEach(() => {
       Engine = jest.requireMock('../Engine');
-      mockDispatch = jest.fn();
+      lockAppMockDispatch = jest.fn();
 
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-        dispatch: mockDispatch,
+        dispatch: lockAppMockDispatch,
         getState: () => ({
           security: { allowLoginWithRememberMe: true },
           engine: {
@@ -1445,7 +1451,7 @@ describe('Authentication', () => {
     it('dispatches setAllowLoginWithRememberMe with false when allowRememberMe is false', async () => {
       await Authentication.lockApp({ allowRememberMe: false });
 
-      expect(mockDispatch).toHaveBeenCalledWith(
+      expect(lockAppMockDispatch).toHaveBeenCalledWith(
         setAllowLoginWithRememberMe(false),
       );
     });
@@ -1453,7 +1459,7 @@ describe('Authentication', () => {
     it('does not dispatch setAllowLoginWithRememberMe when allowRememberMe is not provided', async () => {
       await Authentication.lockApp();
 
-      expect(mockDispatch).not.toHaveBeenCalledWith(
+      expect(lockAppMockDispatch).not.toHaveBeenCalledWith(
         setAllowLoginWithRememberMe(false),
       );
     });
@@ -1461,7 +1467,7 @@ describe('Authentication', () => {
     it('does not dispatch setAllowLoginWithRememberMe when allowRememberMe is true', async () => {
       await Authentication.lockApp({ allowRememberMe: true });
 
-      expect(mockDispatch).not.toHaveBeenCalledWith(
+      expect(lockAppMockDispatch).not.toHaveBeenCalledWith(
         setAllowLoginWithRememberMe(false),
       );
     });
@@ -1469,7 +1475,7 @@ describe('Authentication', () => {
     it('dispatches setAllowLoginWithRememberMe before calling resetPassword when allowRememberMe is false', async () => {
       const callOrder: string[] = [];
 
-      mockDispatch.mockImplementation(() => {
+      lockAppMockDispatch.mockImplementation(() => {
         callOrder.push('dispatch');
       });
 
@@ -3446,7 +3452,7 @@ describe('Authentication', () => {
 
   describe('deleteWallet', () => {
     let Engine: typeof import('../Engine').default;
-    let mockDispatch: jest.Mock;
+    let deleteWalletMockDispatch: jest.Mock;
     let mockMetaMetricsInstance: {
       createDataDeletionTask: jest.MockedFunction<() => Promise<unknown>>;
     };
@@ -3455,13 +3461,13 @@ describe('Authentication', () => {
       Engine = jest.requireMock('../Engine');
       jest.clearAllMocks();
       EngineClass.disableAutomaticVaultBackup = false;
-      mockDispatch = jest.fn();
+      deleteWalletMockDispatch = jest.fn();
       mockMetaMetricsInstance = {
         createDataDeletionTask: jest.fn().mockResolvedValue(undefined),
       };
 
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-        dispatch: mockDispatch,
+        dispatch: deleteWalletMockDispatch,
         getState: () => ({ security: { allowLoginWithRememberMe: true } }),
       } as unknown as ReduxStore);
 
@@ -3531,12 +3537,16 @@ describe('Authentication', () => {
       // Assert
       expect(clearVaultSpy).toHaveBeenCalledTimes(1);
       expect(clearStateSpy).toHaveBeenCalledTimes(1);
-      expect(mockDispatch).toHaveBeenCalledWith(setExistingUser(false));
+      expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
+        setExistingUser(false),
+      );
       expect(
         mockMetaMetricsInstance.createDataDeletionTask,
       ).toHaveBeenCalledTimes(1);
       expect(removeItemSpy).toHaveBeenCalledWith(OPTIN_META_METRICS_UI_SEEN);
-      expect(mockDispatch).toHaveBeenCalledWith(setCompletedOnboarding(false));
+      expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
+        setCompletedOnboarding(false),
+      );
       expect(EngineClass.disableAutomaticVaultBackup).toBe(false);
     });
   });
@@ -3679,23 +3689,40 @@ describe('Authentication', () => {
         expect.stringContaining('Failed to createNewVaultAndKeychain'),
       );
     });
+
+    it('dispatches cancelBulkLink action to cancel running bulk link saga', async () => {
+      // Arrange
+      const localDispatch = jest.fn();
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: localDispatch,
+        getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+      } as unknown as ReduxStore);
+
+      // Act
+      await (
+        Authentication as unknown as { resetWalletState: () => Promise<void> }
+      ).resetWalletState();
+
+      // Assert
+      expect(localDispatch).toHaveBeenCalledWith(cancelBulkLink());
+    });
   });
 
   describe('deleteUser', () => {
-    let mockDispatch: jest.Mock;
+    let deleteUserMockDispatch: jest.Mock;
     let mockMetaMetricsInstance: {
       createDataDeletionTask: jest.MockedFunction<() => Promise<unknown>>;
     };
 
     beforeEach(() => {
       jest.clearAllMocks();
-      mockDispatch = jest.fn();
+      deleteUserMockDispatch = jest.fn();
       mockMetaMetricsInstance = {
         createDataDeletionTask: jest.fn().mockResolvedValue(undefined),
       };
 
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-        dispatch: mockDispatch,
+        dispatch: deleteUserMockDispatch,
         getState: () => ({ security: { allowLoginWithRememberMe: true } }),
       } as unknown as ReduxStore);
 
@@ -3711,7 +3738,9 @@ describe('Authentication', () => {
       ).deleteUser();
 
       // Assert
-      expect(mockDispatch).toHaveBeenCalledWith(setExistingUser(false));
+      expect(deleteUserMockDispatch).toHaveBeenCalledWith(
+        setExistingUser(false),
+      );
       expect(
         mockMetaMetricsInstance.createDataDeletionTask,
       ).toHaveBeenCalledTimes(1);
@@ -3765,7 +3794,7 @@ describe('Authentication', () => {
     it('logs error when Redux dispatch fails', async () => {
       // Arrange
       const error = new Error('Dispatch failed');
-      mockDispatch.mockImplementation(() => {
+      deleteUserMockDispatch.mockImplementation(() => {
         throw error;
       });
       const loggerSpy = jest.spyOn(Logger, 'log');
@@ -3787,15 +3816,15 @@ describe('Authentication', () => {
     const mockPassword = 'test-password-123';
 
     let Engine: typeof import('../Engine').default;
-    let mockDispatch: jest.Mock;
+    let updateAuthMockDispatch: jest.Mock;
 
     beforeEach(() => {
       Engine = jest.requireMock('../Engine');
-      mockDispatch = jest.fn();
+      updateAuthMockDispatch = jest.fn();
       jest.clearAllMocks();
 
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-        dispatch: mockDispatch,
+        dispatch: updateAuthMockDispatch,
         getState: () => ({
           settings: { lockTime: 30000 },
           security: { allowLoginWithRememberMe: true },
@@ -3847,7 +3876,7 @@ describe('Authentication', () => {
       );
       expect(removeItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED);
       expect(setItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED, TRUE);
-      expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
+      expect(updateAuthMockDispatch).toHaveBeenCalledWith(passwordSet());
     });
 
     it('updates auth preference to BIOMETRIC with provided password', async () => {
@@ -3869,7 +3898,7 @@ describe('Authentication', () => {
       );
       expect(removeItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED);
       expect(setItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED, TRUE);
-      expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
+      expect(updateAuthMockDispatch).toHaveBeenCalledWith(passwordSet());
     });
 
     it('updates auth preference to PASSCODE with password from keychain', async () => {
@@ -3889,7 +3918,7 @@ describe('Authentication', () => {
       );
       expect(removeItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED);
       expect(setItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED, TRUE);
-      expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
+      expect(updateAuthMockDispatch).toHaveBeenCalledWith(passwordSet());
     });
 
     it('updates auth preference to PASSWORD with password from keychain', async () => {
@@ -3908,7 +3937,7 @@ describe('Authentication', () => {
       );
       expect(setItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED, TRUE);
       expect(setItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED, TRUE);
-      expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
+      expect(updateAuthMockDispatch).toHaveBeenCalledWith(passwordSet());
     });
 
     it('shows alert and tracks error when password is invalid', async () => {
@@ -4028,7 +4057,7 @@ describe('Authentication', () => {
       );
       expect(removeItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED);
       expect(setItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED, TRUE);
-      expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
+      expect(updateAuthMockDispatch).toHaveBeenCalledWith(passwordSet());
     });
   });
   describe('checkAndShowSeedlessPasswordOutdatedModal', () => {

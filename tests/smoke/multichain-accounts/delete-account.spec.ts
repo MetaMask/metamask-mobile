@@ -1,18 +1,21 @@
 import { Mockttp } from 'mockttp';
-import { SmokeWalletPlatform } from '../../tags';
-import { SIMPLE_KEYPAIR_ACCOUNT, goToAccountDetails } from './common';
-import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
-import DeleteAccount from '../../pages/MultichainAccounts/DeleteAccount';
-import Assertions from '../../../tests/framework/Assertions';
-import Matchers from '../../../tests/framework/Matchers';
-import WalletView from '../../pages/wallet/WalletView';
-import TestHelpers from '../../helpers';
-import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import { loginToApp } from '../../viewHelper';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
-import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { SmokeWalletPlatform } from '../../../e2e/tags';
+import {
+  SIMPLE_KEYPAIR_ACCOUNT,
+  goToAccountDetails,
+} from '../../helpers/multichain-accounts/common';
+import AccountDetails from '../../../e2e/pages/MultichainAccounts/AccountDetails';
+import DeleteAccount from '../../../e2e/pages/MultichainAccounts/DeleteAccount';
+import Assertions from '../../framework/Assertions';
+import Matchers from '../../framework/Matchers';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import TestHelpers from '../../../e2e/helpers';
+import AccountListBottomSheet from '../../../e2e/pages/wallet/AccountListBottomSheet';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { loginToApp } from '../../../e2e/viewHelper';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 const deleteAccount = async () => {
   await AccountDetails.tapDeleteAccountLink();

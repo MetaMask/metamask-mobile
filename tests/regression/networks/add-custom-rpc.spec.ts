@@ -1,15 +1,15 @@
-import { RegressionAssets } from '../../tags';
-import NetworkView from '../../pages/Settings/NetworksView';
-import WalletView from '../../pages/wallet/WalletView';
-import ToastModal from '../../pages/wallet/ToastModal';
-import NetworkListModal from '../../pages/Network/NetworkListModal';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
-import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import Assertions from '../../../tests/framework/Assertions';
-import { CustomNetworks } from '../../../tests/resources/networks.e2e';
-import TestHelpers from '../../helpers';
+import { RegressionAssets } from '../../../e2e/tags';
+import NetworkView from '../../../e2e/pages/Settings/NetworksView';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import ToastModal from '../../../e2e/pages/wallet/ToastModal';
+import NetworkListModal from '../../../e2e/pages/Network/NetworkListModal';
+import NetworkEducationModal from '../../../e2e/pages/Network/NetworkEducationModal';
+import { loginToApp } from '../../../e2e/viewHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import Assertions from '../../framework/Assertions';
+import { CustomNetworks } from '../../resources/networks.e2e';
+import TestHelpers from '../../../e2e/helpers';
 
 describe.skip(RegressionAssets('Custom RPC Tests'), () => {
   beforeEach(() => {

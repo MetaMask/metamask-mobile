@@ -1,14 +1,14 @@
-import { SmokeNetworkAbstractions } from '../../tags';
-import Assertions from '../../../tests/framework/Assertions';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import { SmokeNetworkAbstractions } from '../../../e2e/tags';
+import Assertions from '../../framework/Assertions';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
-} from '../../../tests/framework/fixtures/FixtureBuilder';
-import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import SettingsView from '../../pages/Settings/SettingsView';
-import NotificationSettingsView from '../../pages/Notifications/NotificationSettingsView';
-import { Gestures } from '../../../tests/framework';
+} from '../../framework/fixtures/FixtureBuilder';
+import { loginToApp } from '../../../e2e/viewHelper';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import SettingsView from '../../../e2e/pages/Settings/SettingsView';
+import NotificationSettingsView from '../../../e2e/pages/Notifications/NotificationSettingsView';
+import { Gestures } from '../../framework';
 
 describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
   beforeAll(async () => {
