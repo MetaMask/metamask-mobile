@@ -79,6 +79,7 @@ import { strings } from '../../../locales/i18n';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { IconName } from '../../component-library/components/Icons/Icon';
 import { ReauthenticateErrorType } from './types';
+import { trackUnlockWalletErrorAsAnalytics } from './utils';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -805,9 +806,10 @@ class AuthenticationService {
           'Failed to lock app during unlockWallet error condition.',
         );
       }
-
-      // TODO: Use handlePasswordSubmissionError once we have a standard way of displaying error messages in the UI.
-      // handlePasswordSubmissionError(error as Error);
+      
+      // NOTE: Only tracks errors as analytics for now.
+      // TODO: Use handlePasswordSubmissionError to map errors to displayable error messages in the UI.
+      trackUnlockWalletErrorAsAnalytics(error as Error);
       throw error;
     } finally {
       // Wipe sensitive data.
