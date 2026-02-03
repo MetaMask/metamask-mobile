@@ -59,7 +59,6 @@ import {
 import { selectEvmChainId } from '../../../selectors/networkController';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../NetworkMultiSelector/NetworkMultiSelector.constants';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/index.ts';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../selectors/featureFlagController/gasFeesSponsored/index.ts';
 import { strings } from '../../../../locales/i18n';
 
@@ -102,9 +101,6 @@ const NetworkMultiSelectList = ({
   const selectedChainIdCaip = isEvmSelected
     ? formatChainIdToCaip(evmChainId)
     : (nonEvmChainId ?? formatChainIdToCaip(evmChainId));
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
   const isGasFeesSponsoredNetworkEnabled = useSelector(
     getGasFeesSponsoredNetworkEnabled,
   );
@@ -142,10 +138,7 @@ const NetworkMultiSelectList = ({
       data.push(...filteredNetworks);
     }
 
-    if (
-      (selectAllNetworksComponent && isEvmSelected) ||
-      isMultichainAccountsState2Enabled
-    ) {
+    if (selectAllNetworksComponent) {
       data.unshift({
         id: SELECT_ALL_NETWORKS_SECTION_ID,
         type: NetworkListItemType.SelectAllNetworksListItem,
@@ -166,8 +159,6 @@ const NetworkMultiSelectList = ({
     processedNetworks,
     additionalNetworksComponent,
     selectAllNetworksComponent,
-    isEvmSelected,
-    isMultichainAccountsState2Enabled,
   ]);
 
   const debouncedSelectNetwork = useMemo(

@@ -360,6 +360,7 @@ enum EVENT_NAME {
   EARN_LENDING_DEPOSIT_MORE_BUTTON_CLICKED = 'Earn Lending Deposit More Button Clicked',
   EARN_LENDING_WITHDRAW_BUTTON_CLICKED = 'Earn Lending Withdraw Button Clicked',
   EARN_LENDING_WITHDRAW_CONFIRMATION_BACK_CLICKED = 'Earn Lending Withdraw Confirmation Back Clicked',
+  MUSD_CLAIM_BONUS_BUTTON_CLICKED = 'mUSD Claim Bonus Button Clicked',
 
   // Stake
   STAKE_BUTTON_CLICKED = 'Stake Button Clicked',
@@ -511,6 +512,7 @@ enum EVENT_NAME {
   // NETWORK CONNECTION BANNER
   NETWORK_CONNECTION_BANNER_SHOWN = 'Network Connection Banner Shown',
   NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED = 'Network Connection Banner Update RPC Clicked',
+  NETWORK_CONNECTION_BANNER_SWITCH_TO_METAMASK_DEFAULT_RPC_CLICKED = 'Network Connection Banner Switch To MetaMask Default RPC Clicked',
   NetworkConnectionBannerRpcUpdated = 'Network Connection Banner RPC Updated',
 
   // Deep Link Analytics - Consolidated Event
@@ -543,6 +545,11 @@ enum EVENT_NAME {
   CARD_DELEGATION_PROCESS_COMPLETED = 'Card Delegation Process Completed',
   CARD_DELEGATION_PROCESS_FAILED = 'Card Delegation Process Failed',
   CARD_DELEGATION_PROCESS_USER_CANCELED = 'Card Delegation Process User Canceled',
+  CARD_METAL_CHECKOUT_VIEWED = 'Card Metal Checkout Viewed',
+  CARD_METAL_CHECKOUT_STARTED = 'Card Metal Checkout Started',
+  CARD_METAL_CHECKOUT_COMPLETED = 'Card Metal Checkout Completed',
+  CARD_METAL_CHECKOUT_FAILED = 'Card Metal Checkout Failed',
+  CARD_METAL_CHECKOUT_USER_CANCELED = 'Card Metal Checkout User Canceled',
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED = 'Rewards Account Linking Started',
   REWARDS_ACCOUNT_LINKING_COMPLETED = 'Rewards Account Linking Completed',
@@ -1268,6 +1275,9 @@ const events = {
   EARN_LENDING_WITHDRAW_CONFIRMATION_BACK_CLICKED: generateOpt(
     EVENT_NAME.EARN_LENDING_WITHDRAW_CONFIRMATION_BACK_CLICKED,
   ),
+  MUSD_CLAIM_BONUS_BUTTON_CLICKED: generateOpt(
+    EVENT_NAME.MUSD_CLAIM_BONUS_BUTTON_CLICKED,
+  ),
   // Stake
   REVIEW_STAKE_BUTTON_CLICKED: generateOpt(
     EVENT_NAME.REVIEW_STAKE_BUTTON_CLICKED,
@@ -1364,6 +1374,9 @@ const events = {
   NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED: generateOpt(
     EVENT_NAME.NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED,
   ),
+  NETWORK_CONNECTION_BANNER_SWITCH_TO_METAMASK_DEFAULT_RPC_CLICKED: generateOpt(
+    EVENT_NAME.NETWORK_CONNECTION_BANNER_SWITCH_TO_METAMASK_DEFAULT_RPC_CLICKED,
+  ),
   NetworkConnectionBannerRpcUpdated: generateOpt(
     EVENT_NAME.NetworkConnectionBannerRpcUpdated,
   ),
@@ -1427,6 +1440,21 @@ const events = {
   ),
   CARD_DELEGATION_PROCESS_USER_CANCELED: generateOpt(
     EVENT_NAME.CARD_DELEGATION_PROCESS_USER_CANCELED,
+  ),
+  CARD_METAL_CHECKOUT_VIEWED: generateOpt(
+    EVENT_NAME.CARD_METAL_CHECKOUT_VIEWED,
+  ),
+  CARD_METAL_CHECKOUT_STARTED: generateOpt(
+    EVENT_NAME.CARD_METAL_CHECKOUT_STARTED,
+  ),
+  CARD_METAL_CHECKOUT_COMPLETED: generateOpt(
+    EVENT_NAME.CARD_METAL_CHECKOUT_COMPLETED,
+  ),
+  CARD_METAL_CHECKOUT_FAILED: generateOpt(
+    EVENT_NAME.CARD_METAL_CHECKOUT_FAILED,
+  ),
+  CARD_METAL_CHECKOUT_USER_CANCELED: generateOpt(
+    EVENT_NAME.CARD_METAL_CHECKOUT_USER_CANCELED,
   ),
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED: generateOpt(
@@ -1536,6 +1564,9 @@ enum DESCRIPTION {
   DAPP_HOME = 'Home',
   DAPP_ADD_TO_FAVORITE = 'Add to Favorites',
   DAPP_OPEN_IN_BROWSER = 'Open in Browser',
+  BROWSER_SWIPE_BACK = 'Browser Swipe Back',
+  BROWSER_SWIPE_FORWARD = 'Browser Swipe Forward',
+  BROWSER_PULL_REFRESH = 'Browser Pull Refresh',
   // Wallet
   WALLET_TOKENS = 'Tokens',
   WALLET_COLLECTIBLES = 'Collectibles',
@@ -1672,6 +1703,21 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.DAPP_VIEW,
     ACTIONS.DAPP_VIEW,
     DESCRIPTION.DAPP_OPEN_IN_BROWSER,
+  ),
+  BROWSER_SWIPE_BACK: generateOpt(
+    EVENT_NAME.DAPP_VIEW,
+    ACTIONS.DAPP_VIEW,
+    DESCRIPTION.BROWSER_SWIPE_BACK,
+  ),
+  BROWSER_SWIPE_FORWARD: generateOpt(
+    EVENT_NAME.DAPP_VIEW,
+    ACTIONS.DAPP_VIEW,
+    DESCRIPTION.BROWSER_SWIPE_FORWARD,
+  ),
+  BROWSER_PULL_REFRESH: generateOpt(
+    EVENT_NAME.DAPP_VIEW,
+    ACTIONS.DAPP_VIEW,
+    DESCRIPTION.BROWSER_PULL_REFRESH,
   ),
   // Wallet
   WALLET_TOKENS: generateOpt(

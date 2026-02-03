@@ -49,6 +49,7 @@ import {
 import NotificationManager from '../NotificationManager';
 import Logger from '../../util/Logger';
 import { isZero } from '../../util/lodash';
+import { initializeRpcProviderDomains } from '../../util/rpc-domain-utils';
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { notificationServicesControllerInit } from './controllers/notifications/notification-services-controller-init';
@@ -68,6 +69,7 @@ import {
   parseCaipAssetType,
 } from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
+import { captureException } from '@sentry/react-native';
 
 import {
   networkIdUpdated,
@@ -148,7 +150,6 @@ import { tokenSearchDiscoveryDataControllerInit } from './controllers/token-sear
 import { assetsContractControllerInit } from './controllers/assets-contract-controller-init';
 import { tokensControllerInit } from './controllers/tokens-controller-init';
 import { tokenListControllerInit } from './controllers/token-list-controller-init';
-import { tokenSearchDiscoveryControllerInit } from './controllers/token-search-discovery-controller-init';
 import { tokenDetectionControllerInit } from './controllers/token-detection-controller-init';
 import { tokenBalancesControllerInit } from './controllers/token-balances-controller-init';
 import { tokenRatesControllerInit } from './controllers/token-rates-controller-init';
@@ -309,13 +310,15 @@ export class Engine {
         EarnController: earnControllerInit,
         TokensController: tokensControllerInit,
         TokenBalancesController: tokenBalancesControllerInit,
+        // MultichainNetworkController and NetworkEnablementController must be initialized before TokenRatesController
+        // because TokenRatesController depends on NetworkEnablementController:getState during construction.
+        MultichainNetworkController: multichainNetworkControllerInit,
+        NetworkEnablementController: networkEnablementControllerInit,
         TokenRatesController: tokenRatesControllerInit,
         TokenListController: tokenListControllerInit,
         TokenDetectionController: tokenDetectionControllerInit,
-        TokenSearchDiscoveryController: tokenSearchDiscoveryControllerInit,
         TokenSearchDiscoveryDataController:
           tokenSearchDiscoveryDataControllerInit,
-        MultichainNetworkController: multichainNetworkControllerInit,
         DeFiPositionsController: defiPositionsControllerInit,
         BridgeController: bridgeControllerInit,
         BridgeStatusController: bridgeStatusControllerInit,
@@ -349,7 +352,6 @@ export class Engine {
         ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
         SamplePetnamesController: samplePetnamesControllerInit,
         ///: END:ONLY_INCLUDE_IF
-        NetworkEnablementController: networkEnablementControllerInit,
         PerpsController: perpsControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
@@ -421,8 +423,6 @@ export class Engine {
     const tokenRatesController = controllersByName.TokenRatesController;
     const tokenListController = controllersByName.TokenListController;
     const tokenDetectionController = controllersByName.TokenDetectionController;
-    const tokenSearchDiscoveryController =
-      controllersByName.TokenSearchDiscoveryController;
     const tokenSearchDiscoveryDataController =
       controllersByName.TokenSearchDiscoveryDataController;
     const bridgeController = controllersByName.BridgeController;
@@ -471,6 +471,12 @@ export class Engine {
       controllersByName.NetworkEnablementController;
     networkEnablementController.init();
 
+    // Initialize RPC domain validation cache for analytics
+    // This runs asynchronously and doesn't block Engine initialization
+    initializeRpcProviderDomains().catch((error) => {
+      captureException(error);
+    });
+
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     snapController.init();
     cronjobController.init();
@@ -509,7 +515,6 @@ export class Engine {
       RemoteFeatureFlagController: remoteFeatureFlagController,
       SelectedNetworkController: selectedNetworkController,
       SignatureController: signatureController,
-      TokenSearchDiscoveryController: tokenSearchDiscoveryController,
       LoggingController: loggingController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       CronjobController: cronjobController,
@@ -1304,7 +1309,6 @@ export default {
       TokenListController,
       TokenRatesController,
       TokensController,
-      TokenSearchDiscoveryController,
       TokenSearchDiscoveryDataController,
       TransactionController,
       TransactionPayController,
@@ -1371,7 +1375,6 @@ export default {
       TokenListController: TokenListController.state,
       TokenRatesController: TokenRatesController.state,
       TokensController: TokensController.state,
-      TokenSearchDiscoveryController: TokenSearchDiscoveryController.state,
       TokenSearchDiscoveryDataController:
         TokenSearchDiscoveryDataController.state,
       TransactionController: TransactionController.state,

@@ -231,7 +231,6 @@ describe('PredictSportCardFooter', () => {
     mockUsePredictActionGuard.mockReturnValue({
       executeGuardedAction: mockExecuteGuardedAction,
       isEligible: true,
-      hasNoBalance: false,
     });
 
     mockUsePredictClaim.mockReturnValue({
@@ -417,13 +416,13 @@ describe('PredictSportCardFooter', () => {
       expect(screen.getByText('Claim $50')).toBeOnTheScreen();
     });
 
-    it('renders positions with claim button when claimable', () => {
+    it('renders claimable positions with claim button when claimable', () => {
       const market = createMockMarket({ status: PredictMarketStatus.RESOLVED });
       const claimablePositions = [
         createMockPosition({ claimable: true, currentValue: 50 }),
       ];
       setupPositionsMock({
-        activePositions: claimablePositions,
+        activePositions: [],
         claimablePositions,
       });
 
@@ -510,7 +509,6 @@ describe('PredictSportCardFooter', () => {
         expect(mockExecuteGuardedAction).toHaveBeenCalledWith(
           expect.any(Function),
           {
-            checkBalance: true,
             attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
           },
         );

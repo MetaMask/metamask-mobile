@@ -164,7 +164,7 @@ const PerpsPositionsView: React.FC = () => {
                 ? formatPerpsFiat(account.totalBalance, {
                     ranges: PRICE_RANGES_MINIMAL_VIEW,
                   })
-                : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
+                : PERPS_CONSTANTS.FallbackDataDisplay}
             </Text>
           </View>
 
@@ -178,7 +178,7 @@ const PerpsPositionsView: React.FC = () => {
                 ? formatPerpsFiat(account.availableBalance, {
                     ranges: PRICE_RANGES_MINIMAL_VIEW,
                   })
-                : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
+                : PERPS_CONSTANTS.FallbackDataDisplay}
             </Text>
           </View>
 
@@ -191,7 +191,7 @@ const PerpsPositionsView: React.FC = () => {
                 ? formatPerpsFiat(account.marginUsed, {
                     ranges: PRICE_RANGES_MINIMAL_VIEW,
                   })
-                : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
+                : PERPS_CONSTANTS.FallbackDataDisplay}
             </Text>
           </View>
 

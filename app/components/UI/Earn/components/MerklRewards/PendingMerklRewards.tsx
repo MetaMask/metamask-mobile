@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { useCallback } from 'react';
+import { Linking } from 'react-native';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  ButtonIcon,
+  ButtonIconSize,
   Icon,
+  IconColor,
   IconName,
   IconSize,
   Text,
@@ -12,10 +16,10 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { TokenI } from '../../../Tokens/types';
+import useTooltipModal from '../../../../hooks/useTooltipModal';
+import AppConstants from '../../../../../core/AppConstants';
 
 interface PendingMerklRewardsProps {
-  asset: TokenI;
   claimableReward: string | null;
 }
 
@@ -23,9 +27,34 @@ interface PendingMerklRewardsProps {
  * Component to display pending Merkl rewards information (annual bonus and claimable bonus)
  */
 const PendingMerklRewards: React.FC<PendingMerklRewardsProps> = ({
-  asset,
   claimableReward,
 }) => {
+  const { openTooltipModal } = useTooltipModal();
+
+  const handleTermsPress = useCallback(() => {
+    Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
+  }, []);
+
+  const handleInfoPress = useCallback(() => {
+    openTooltipModal(
+      strings('asset_overview.merkl_rewards.claimable_bonus'),
+      <Text variant={TextVariant.BodyMd}>
+        {strings(
+          'asset_overview.merkl_rewards.claimable_bonus_tooltip_description',
+        )}{' '}
+        <Text
+          variant={TextVariant.BodyMd}
+          onPress={handleTermsPress}
+          twClassName="underline"
+        >
+          {strings('asset_overview.merkl_rewards.terms_apply')}
+        </Text>
+      </Text>,
+      undefined,
+      strings('asset_overview.merkl_rewards.ok'),
+    );
+  }, [openTooltipModal, handleTermsPress]);
+
   // Don't render anything if there's no claimable reward
   if (!claimableReward) {
     return null;
@@ -59,13 +88,26 @@ const PendingMerklRewards: React.FC<PendingMerklRewardsProps> = ({
 
           {/* Claimable Bonus Text and Amount */}
           <Box twClassName="flex-1">
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              twClassName="text-text-default mb-1"
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="mb-1"
             >
-              {strings('asset_overview.merkl_rewards.claimable_bonus')}
-            </Text>
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                twClassName="text-text-default"
+              >
+                {strings('asset_overview.merkl_rewards.claimable_bonus')}
+              </Text>
+              <ButtonIcon
+                iconName={IconName.Info}
+                size={ButtonIconSize.Sm}
+                iconProps={{ color: IconColor.IconAlternative }}
+                onPress={handleInfoPress}
+                testID="claimable-bonus-info-button"
+              />
+            </Box>
             <Text
               variant={TextVariant.BodySm}
               twClassName="text-primary-default"
@@ -82,14 +124,13 @@ const PendingMerklRewards: React.FC<PendingMerklRewardsProps> = ({
         <Box
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="px-4 py-2 rounded-xl border border-default bg-default"
         >
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             twClassName="text-text-default"
           >
-            {claimableReward} {asset.symbol}
+            ${claimableReward}
           </Text>
         </Box>
       </Box>

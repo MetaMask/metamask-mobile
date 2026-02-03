@@ -97,6 +97,7 @@ const PersonalDetails = () => {
       } else {
         setDateOfBirth('');
       }
+
       setNationalityKey(userData.countryOfNationality || '');
       setSSN(userData.ssn || '');
     }
@@ -318,6 +319,7 @@ const PersonalDetails = () => {
           onChangeText={setFirstName}
           numberOfLines={1}
           size={TextFieldSize.Lg}
+          autoComplete="one-time-code"
           value={firstName}
           keyboardType="default"
           maxLength={255}
@@ -338,6 +340,7 @@ const PersonalDetails = () => {
           onChangeText={setLastName}
           numberOfLines={1}
           size={TextFieldSize.Lg}
+          autoComplete="one-time-code"
           value={lastName}
           keyboardType="default"
           maxLength={255}
@@ -390,6 +393,7 @@ const PersonalDetails = () => {
             size={TextFieldSize.Lg}
             value={SSN}
             keyboardType="number-pad"
+            autoComplete="one-time-code"
             secureTextEntry
             maxLength={9}
             accessibilityLabel={strings(

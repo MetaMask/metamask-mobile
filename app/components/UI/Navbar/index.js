@@ -995,10 +995,7 @@ export function getWalletNavbarOptions(
                 <View
                   testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
                 >
-                  <AddressCopy
-                    account={selectedInternalAccount}
-                    hitSlop={innerStyles.touchAreaSlop}
-                  />
+                  <AddressCopy hitSlop={innerStyles.touchAreaSlop} />
                 </View>
                 {shouldDisplayCardButton && (
                   <CardButton
@@ -1749,44 +1746,6 @@ export const getEditAccountNameNavBarOptions = (goBack, themeColors) => {
         size={ButtonIconSize.Lg}
         onPress={goBack}
         style={styles.closeButton}
-      />
-    ),
-    ...innerStyles,
-  };
-};
-
-export const getSettingsNavigationOptions = (
-  title,
-  themeColors,
-  navigation,
-) => {
-  const innerStyles = StyleSheet.create({
-    headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-    accessories: {
-      marginHorizontal: 8,
-    },
-  });
-  return {
-    headerLeft: null,
-    headerTitle: () => (
-      <MorphText
-        variant={TextVariant.HeadingMD}
-        testID={SettingsViewSelectorsIDs.SETTINGS_HEADER}
-      >
-        {title}
-      </MorphText>
-    ),
-    headerRight: () => (
-      <ButtonIcon
-        size={ButtonIconSize.Lg}
-        iconName={IconName.Close}
-        onPress={() => navigation?.goBack()}
-        style={innerStyles.accessories}
-        testID={NetworksViewSelectorsIDs.CLOSE_ICON}
       />
     ),
     ...innerStyles,
