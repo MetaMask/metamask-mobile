@@ -59,6 +59,7 @@ import { RampType } from '../../UI/Ramp/Aggregator/types';
 import RampSettings from '../../UI/Ramp/Aggregator/Views/Settings';
 import RampActivationKeyForm from '../../UI/Ramp/Aggregator/Views/Settings/ActivationKeyForm';
 import TokenListRoutes from '../../UI/Ramp/routes';
+import DummyPage from '../../UI/Ramp/components/DummyPage';
 
 import DepositOrderDetails from '../../UI/Ramp/Deposit/Views/DepositOrderDetails/DepositOrderDetails';
 import DepositRoutes from '../../UI/Ramp/Deposit/routes';
@@ -1078,6 +1079,10 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.RAMP.TOKEN_SELECTION}
         component={TokenListRoutes}
+      />
+      <Stack.Screen
+        name={Routes.RAMP.DUMMY_PAGE}
+        component={DummyPage}
       />
       <Stack.Screen name={Routes.RAMP.BUY}>
         {() => <RampRoutes rampType={RampType.BUY} />}

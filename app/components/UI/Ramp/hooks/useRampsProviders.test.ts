@@ -5,6 +5,7 @@ import React from 'react';
 import { useRampsProviders } from './useRampsProviders';
 import { type Provider as RampProvider } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
+import { determinePreferredProvider } from '../utils/determinePreferredProvider';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -12,6 +13,18 @@ jest.mock('../../../../core/Engine', () => ({
       setSelectedProvider: jest.fn(),
     },
   },
+}));
+
+jest.mock('../../../../reducers/fiatOrders', () => {
+  const orders: never[] = [];
+  return {
+    ...jest.requireActual('../../../../reducers/fiatOrders'),
+    getOrders: jest.fn(() => orders),
+  };
+});
+
+jest.mock('../utils/determinePreferredProvider', () => ({
+  determinePreferredProvider: jest.fn(),
 }));
 
 const mockProviders: RampProvider[] = [
@@ -179,6 +192,78 @@ describe('useRampsProviders', () => {
       expect(
         Engine.context.RampsController.setSelectedProvider,
       ).toHaveBeenCalledWith(null);
+    });
+  });
+
+  describe('preferred provider useEffect', () => {
+    it('sets selectedProvider to preferred provider when providers load and none selected', () => {
+      (determinePreferredProvider as jest.Mock).mockReturnValue(mockProviders[0]);
+      const store = createMockStore({
+        data: mockProviders,
+        selected: null,
+        isLoading: false,
+      });
+      renderHook(() => useRampsProviders(), {
+        wrapper: wrapper(store),
+      });
+      expect(determinePreferredProvider).toHaveBeenCalledWith(
+        [],
+        mockProviders,
+      );
+      expect(
+        Engine.context.RampsController.setSelectedProvider,
+      ).toHaveBeenCalledWith(mockProviders[0].id);
+    });
+
+    it('does not set selectedProvider when one is already selected', () => {
+      (determinePreferredProvider as jest.Mock).mockReturnValue(mockProviders[1]);
+      const store = createMockStore({
+        data: mockProviders,
+        selected: mockProviders[0],
+        isLoading: false,
+      });
+      renderHook(() => useRampsProviders(), {
+        wrapper: wrapper(store),
+      });
+      expect(determinePreferredProvider).not.toHaveBeenCalled();
+      expect(
+        Engine.context.RampsController.setSelectedProvider,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('does not set selectedProvider when providers are still loading', () => {
+      (determinePreferredProvider as jest.Mock).mockReturnValue(mockProviders[0]);
+      const store = createMockStore({
+        data: mockProviders,
+        selected: null,
+        isLoading: true,
+      });
+      renderHook(() => useRampsProviders(), {
+        wrapper: wrapper(store),
+      });
+      expect(determinePreferredProvider).not.toHaveBeenCalled();
+      expect(
+        Engine.context.RampsController.setSelectedProvider,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('does not set selectedProvider when preferred is null', () => {
+      (determinePreferredProvider as jest.Mock).mockReturnValue(null);
+      const store = createMockStore({
+        data: mockProviders,
+        selected: null,
+        isLoading: false,
+      });
+      renderHook(() => useRampsProviders(), {
+        wrapper: wrapper(store),
+      });
+      expect(determinePreferredProvider).toHaveBeenCalledWith(
+        [],
+        mockProviders,
+      );
+      expect(
+        Engine.context.RampsController.setSelectedProvider,
+      ).not.toHaveBeenCalled();
     });
   });
 });

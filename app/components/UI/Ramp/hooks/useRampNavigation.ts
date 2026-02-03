@@ -17,6 +17,7 @@ import {
 } from '../../../../reducers/fiatOrders';
 import { createRampUnsupportedModalNavigationDetails } from '../components/RampUnsupportedModal/RampUnsupportedModal';
 import { createEligibilityFailedModalNavigationDetails } from '../components/EligibilityFailedModal/EligibilityFailedModal';
+import Routes from '../../../../constants/navigation/Routes';
 
 enum RampMode {
   AGGREGATOR = 'AGGREGATOR',
@@ -46,6 +47,9 @@ export const useRampNavigation = () => {
         overrideUnifiedRouting?: boolean;
       },
     ) => {
+      navigation.navigate(Routes.RAMP.DUMMY_PAGE);
+      return;
+
       const { mode = RampMode.AGGREGATOR, overrideUnifiedRouting = false } =
         options || {};
 

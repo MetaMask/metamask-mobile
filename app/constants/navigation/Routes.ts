@@ -8,6 +8,7 @@ const Routes = {
     ID: 'Ramp',
     BUY: 'RampBuy',
     SELL: 'RampSell',
+    DUMMY_PAGE: 'RampDummyPage',
     TOKEN_SELECTION: 'RampTokenSelection',
     GET_STARTED: 'GetStarted',
     BUILD_QUOTE: 'BuildQuote',
