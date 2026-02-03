@@ -133,7 +133,7 @@ export const useStopLossPrompt = ({
   // Reset hasBeenShownRef when position changes (from main)
   useEffect(() => {
     hasBeenShownRef.current = false;
-  }, [position?.coin, position?.liquidationPrice, position?.entryPrice]);
+  }, [position?.symbol, position?.liquidationPrice, position?.entryPrice]);
 
   // Server timestamp bypass effect (from main)
   // If positionOpenedTimestamp shows position is >2 minutes old, bypass debounce AND position age check
