@@ -66,6 +66,7 @@ jobs:
   # Build
   build:
     needs: [prepare]
+    timeout-minutes: 90
     strategy:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
@@ -155,6 +156,30 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      # iOS: Cache CocoaPods
+      - name: Cache CocoaPods
+        if: matrix.platform == 'ios'
+        uses: actions/cache@v4
+        with:
+          path: |
+            ios/Pods
+            ~/Library/Caches/CocoaPods
+            ~/.cocoapods
+          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
+      # iOS: Cache DerivedData to speed up Xcode builds
+      - name: Cache iOS DerivedData
+        if: matrix.platform == 'ios'
+        uses: actions/cache@v4
+        with:
+          path: ios/build
+          key: ${{ runner.os }}-ios-derived-${{ hashFiles('ios/Podfile.lock') }}-${{ hashFiles('**/*.m', '**/*.mm', '**/*.swift') }}
+          restore-keys: |
+            ${{ runner.os }}-ios-derived-${{ hashFiles('ios/Podfile.lock') }}-
+            ${{ runner.os }}-ios-derived-
+
       # Android qa signing (exp-test-e2e): skip for Expo dev builds (main-dev, flask-dev, qa-dev use debug keystore)
       - name: Configure Android signing certificates
         if: matrix.platform == 'android' && inputs.build_name != 'main-dev' && inputs.build_name != 'flask-dev' && inputs.build_name != 'qa-dev'
@@ -185,13 +210,18 @@ jobs:
         run: cp android/gradle.properties.github android/gradle.properties
 
       - name: Build ${{ matrix.platform }}
-        env:
-          NODE_OPTIONS: '--max-old-space-size=4096'
-          METRO_MAX_WORKERS: '4'
-          BUILD_NAME: ${{ inputs.build_name }}
-        run: |
-          SCRIPT_NAME="build:${{ matrix.platform }}:${BUILD_NAME//-/:}"
-          yarn run "$SCRIPT_NAME"
+        timeout-minutes: 60
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 60
+          max_attempts: 2
+          retry_wait_seconds: 60
+          command: |
+            export NODE_OPTIONS='--max-old-space-size=4096'
+            export METRO_MAX_WORKERS='4'
+            BUILD_NAME="${{ inputs.build_name }}"
+            SCRIPT_NAME="build:${{ matrix.platform }}:${BUILD_NAME//-/:}"
+            yarn run "$SCRIPT_NAME"
 
       # Expo development builds: upload iOS .app for simulator (Runway-style artifact)
       - name: Upload iOS Expo development build
