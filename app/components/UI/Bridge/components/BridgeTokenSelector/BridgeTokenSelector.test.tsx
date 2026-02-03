@@ -139,11 +139,15 @@ jest.mock('../../hooks/useBalancesByAssetId', () => ({
 
 jest.mock('../../hooks/useTokensWithBalances', () => ({
   useTokensWithBalances: (tokens: Record<string, unknown>[]) =>
-    tokens.map((token) => ({
-      ...token,
-      address: (token as { address?: string }).address ?? '0x1234',
-      chainId: (token as { chainId?: string }).chainId ?? '0x1',
-    })),
+    tokens.map((token) => {
+      const { iconUrl, ...tokenWithoutIconUrl } = token as { iconUrl?: string };
+      return {
+        ...tokenWithoutIconUrl,
+        address: (token as { address?: string }).address ?? '0x1234',
+        chainId: (token as { chainId?: string }).chainId ?? '0x1',
+        image: iconUrl, // Map API's iconUrl to BridgeToken's image
+      };
+    }),
 }));
 
 const mockHandleTokenPress = jest.fn();
@@ -392,7 +396,9 @@ describe('tokenToIncludeAsset', () => {
     const result = tokenToIncludeAsset(token);
 
     expect(result).toEqual({
+      address: '0x1234567890123456789012345678901234567890',
       assetId: 'eip155:1/erc20:0xabcd',
+      chainId: '0x1',
       name: 'USD Coin',
       symbol: 'USDC',
       decimals: 6,
@@ -405,6 +411,7 @@ describe('tokenToIncludeAsset', () => {
     );
     mockIsNonEvmChainId.mockReturnValue(true);
     const token = createMockToken({
+      address: 'bc1qe0vuqc0338sxdjz3jncel3wfa5xut48m4yv5wv',
       symbol: 'BTC',
       name: 'Bitcoin',
       decimals: 8,
@@ -414,7 +421,9 @@ describe('tokenToIncludeAsset', () => {
     const result = tokenToIncludeAsset(token);
 
     expect(result).toEqual({
+      address: 'bc1qe0vuqc0338sxdjz3jncel3wfa5xut48m4yv5wv',
       assetId: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+      chainId: 'bip122:000000000019d6689c085ae165831e93',
       name: 'Bitcoin',
       symbol: 'BTC',
       decimals: 8,
@@ -654,7 +663,7 @@ describe('BridgeTokenSelector', () => {
           symbol: 'USDC',
           name: 'USD Coin',
           assetId: 'eip155:1/erc20:0x1234567890123456789012345678901234567890',
-          chainId: 'eip155:1',
+          chainId: '0x1',
           decimals: 18,
           image: 'https://example.com/token.png',
         }),

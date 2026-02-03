@@ -1,4 +1,6 @@
 import { AccountsControllerGetSelectedAccountAction } from '@metamask/accounts-controller';
+import { AccountTreeControllerGetAccountsFromSelectedAccountGroupAction } from '@metamask/account-tree-controller';
+import { isEvmAccountType } from '@metamask/keyring-api';
 import {
   BaseController,
   ControllerGetStateAction,
@@ -11,8 +13,14 @@ import {
   PersonalMessageParams,
   SignTypedDataVersion,
   TypedMessageParams,
+  KeyringControllerSignTypedMessageAction,
+  KeyringControllerSignPersonalMessageAction,
 } from '@metamask/keyring-controller';
-import { NetworkControllerGetStateAction } from '@metamask/network-controller';
+import {
+  NetworkControllerGetStateAction,
+  NetworkControllerFindNetworkClientIdByChainIdAction,
+  NetworkControllerGetNetworkClientByIdAction,
+} from '@metamask/network-controller';
 import {
   TransactionControllerEstimateGasAction,
   TransactionControllerTransactionConfirmedEvent,
@@ -22,11 +30,14 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
+import {
+  RemoteFeatureFlagControllerGetStateAction,
+  RemoteFeatureFlagControllerStateChangeEvent,
+} from '@metamask/remote-feature-flag-controller';
 import { Hex, hexToNumber, numberToHex } from '@metamask/utils';
 import performance from 'react-native-performance';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
-import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
 import {
@@ -82,7 +93,6 @@ import {
 } from '../types';
 import { ensureError } from '../utils/predictErrorHandler';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
-import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
 import { MATIC_CONTRACTS } from '../providers/polymarket/constants';
 import {
@@ -228,8 +238,14 @@ export type PredictControllerActions =
  */
 type AllowedActions =
   | AccountsControllerGetSelectedAccountAction
+  | AccountTreeControllerGetAccountsFromSelectedAccountGroupAction
   | NetworkControllerGetStateAction
-  | TransactionControllerEstimateGasAction;
+  | NetworkControllerFindNetworkClientIdByChainIdAction
+  | NetworkControllerGetNetworkClientByIdAction
+  | TransactionControllerEstimateGasAction
+  | KeyringControllerSignTypedMessageAction
+  | KeyringControllerSignPersonalMessageAction
+  | RemoteFeatureFlagControllerGetStateAction;
 
 /**
  * External events the PredictController can subscribe to
@@ -238,7 +254,8 @@ type AllowedEvents =
   | TransactionControllerTransactionSubmittedEvent
   | TransactionControllerTransactionConfirmedEvent
   | TransactionControllerTransactionFailedEvent
-  | TransactionControllerTransactionRejectedEvent;
+  | TransactionControllerTransactionRejectedEvent
+  | RemoteFeatureFlagControllerStateChangeEvent;
 
 /**
  * PredictController messenger constraints
@@ -407,27 +424,42 @@ export class PredictController extends BaseController<
    * @private
    */
   private getSigner(address?: string): Signer {
-    const { KeyringController } = Engine.context;
-    const selectedAddress =
-      address ?? getEvmAccountFromSelectedAccountGroup()?.address ?? '0x0';
+    const selectedAddress = address ?? this.getEvmAccountAddress();
     return {
       address: selectedAddress,
       signTypedMessage: (
         _params: TypedMessageParams,
         _version: SignTypedDataVersion,
-      ) => KeyringController.signTypedMessage(_params, _version),
+      ) =>
+        this.messenger.call(
+          'KeyringController:signTypedMessage',
+          _params,
+          _version,
+        ),
       signPersonalMessage: (_params: PersonalMessageParams) =>
-        KeyringController.signPersonalMessage(_params),
+        this.messenger.call('KeyringController:signPersonalMessage', _params),
     };
   }
 
+  private getEvmAccountAddress(): string {
+    const accounts = this.messenger.call(
+      'AccountTreeController:getAccountsFromSelectedAccountGroup',
+    );
+    const evmAccount = accounts.find(
+      (account) => account && isEvmAccountType(account.type),
+    );
+    return evmAccount?.address ?? '0x0';
+  }
+
   private async invalidateQueryCache(chainId: number) {
-    const { NetworkController } = Engine.context;
-    const networkClientId = NetworkController.findNetworkClientIdByChainId(
+    const networkClientId = this.messenger.call(
+      'NetworkController:findNetworkClientIdByChainId',
       numberToHex(chainId),
     );
-    const networkClient =
-      NetworkController.getNetworkClientById(networkClientId);
+    const networkClient = this.messenger.call(
+      'NetworkController:getNetworkClientById',
+      networkClientId,
+    );
     try {
       await networkClient.blockTracker.checkForLatestBlock();
     } catch (error) {
@@ -474,9 +506,11 @@ export class PredictController extends BaseController<
         throw new Error('Provider not available');
       }
 
-      const { RemoteFeatureFlagController } = Engine.context;
+      const remoteFeatureFlagState = this.messenger.call(
+        'RemoteFeatureFlagController:getState',
+      );
       const liveSportsFlag =
-        (RemoteFeatureFlagController.state.remoteFeatureFlags
+        (remoteFeatureFlagState.remoteFeatureFlags
           .predictLiveSports as unknown as PredictLiveSportsFlag | undefined) ??
         DEFAULT_LIVE_SPORTS_FLAG;
       const liveSportsLeagues = liveSportsFlag.enabled
@@ -484,7 +518,7 @@ export class PredictController extends BaseController<
         : [];
 
       const marketHighlightsFlag =
-        (RemoteFeatureFlagController.state.remoteFeatureFlags
+        (remoteFeatureFlagState.remoteFeatureFlags
           .predictMarketHighlights as unknown as
           | PredictMarketHighlightsFlag
           | undefined) ?? DEFAULT_MARKET_HIGHLIGHTS_FLAG;
@@ -619,9 +653,11 @@ export class PredictController extends BaseController<
         throw new Error('Provider not available');
       }
 
-      const { RemoteFeatureFlagController } = Engine.context;
+      const remoteFeatureFlagState = this.messenger.call(
+        'RemoteFeatureFlagController:getState',
+      );
       const liveSportsFlag =
-        (RemoteFeatureFlagController.state.remoteFeatureFlags
+        (remoteFeatureFlagState.remoteFeatureFlags
           .predictLiveSports as unknown as PredictLiveSportsFlag | undefined) ??
         DEFAULT_LIVE_SPORTS_FLAG;
       const liveSportsLeagues = liveSportsFlag.enabled
@@ -1427,9 +1463,11 @@ export class PredictController extends BaseController<
         throw new Error('Provider not available');
       }
 
-      const { RemoteFeatureFlagController } = Engine.context;
+      const remoteFeatureFlagState = this.messenger.call(
+        'RemoteFeatureFlagController:getState',
+      );
       const feeCollection =
-        (RemoteFeatureFlagController.state.remoteFeatureFlags
+        (remoteFeatureFlagState.remoteFeatureFlags
           .predictFeeCollection as unknown as
           | PredictFeeCollection
           | undefined) ?? DEFAULT_FEE_COLLECTION_FLAG;
@@ -1683,8 +1721,8 @@ export class PredictController extends BaseController<
       }
 
       // Find network client - can fail if chain is not supported
-      const { NetworkController } = Engine.context;
-      const networkClientId = NetworkController.findNetworkClientIdByChainId(
+      const networkClientId = this.messenger.call(
+        'NetworkController:findNetworkClientIdByChainId',
         numberToHex(chainId),
       );
 
@@ -1953,7 +1991,7 @@ export class PredictController extends BaseController<
         throw new Error('Deposit preparation returned undefined');
       }
 
-      const { transactions, chainId, gasFeeToken } = depositPreparation;
+      const { transactions, chainId } = depositPreparation;
 
       if (!transactions || transactions.length === 0) {
         throw new Error('No transactions returned from deposit preparation');
@@ -1977,9 +2015,10 @@ export class PredictController extends BaseController<
         providerId: params.providerId,
       });
 
-      const { NetworkController } = Engine.context;
-      const networkClientId =
-        NetworkController.findNetworkClientIdByChainId(chainId);
+      const networkClientId = this.messenger.call(
+        'NetworkController:findNetworkClientIdByChainId',
+        chainId,
+      );
 
       if (!networkClientId) {
         throw new Error(`Network client not found for chain ID: ${chainId}`);
@@ -2000,7 +2039,6 @@ export class PredictController extends BaseController<
         disableUpgrade: true,
         skipInitialGasEstimate: true,
         transactions,
-        gasFeeToken,
       });
 
       if (!batchResult?.batchId) {
@@ -2223,13 +2261,13 @@ export class PredictController extends BaseController<
         };
       });
 
-      const { NetworkController } = Engine.context;
-
       const { batchId } = await addTransactionBatch({
         from: signer.address as Hex,
         origin: ORIGIN_METAMASK,
-        networkClientId:
-          NetworkController.findNetworkClientIdByChainId(chainId),
+        networkClientId: this.messenger.call(
+          'NetworkController:findNetworkClientIdByChainId',
+          chainId,
+        ),
         disableHook: true,
         disableSequential: true,
         requireApproval: true,
@@ -2325,8 +2363,8 @@ export class PredictController extends BaseController<
 
     const chainId = this.state.withdrawTransaction.chainId;
 
-    const { NetworkController } = Engine.context;
-    const networkClientId = NetworkController.findNetworkClientIdByChainId(
+    const networkClientId = this.messenger.call(
+      'NetworkController:findNetworkClientIdByChainId',
       numberToHex(chainId),
     );
 

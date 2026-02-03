@@ -1,4 +1,3 @@
-import { toHex } from '@metamask/controller-utils';
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
@@ -20,11 +19,11 @@ import {
 import { getDecimalChainId } from '../../../../../util/networks';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
-import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
+import { useStablecoinLendingRedirect } from '../../../Earn/hooks/useStablecoinLendingRedirect';
 import { TokenI } from '../../../Tokens/types';
 import { EVENT_LOCATIONS } from '../../constants/events';
 import useStakingChain from '../../hooks/useStakingChain';
@@ -38,6 +37,10 @@ import { isTronChainId } from '../../../../../core/Multichain/utils';
 import useTronStakeApy from '../../../Earn/hooks/useTronStakeApy';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
 ///: END:ONLY_INCLUDE_IF
+import BigNumber from 'bignumber.js';
+import { MINIMUM_BALANCE_FOR_EARN_CTA } from '../../../Earn/constants/token';
+import useEarnToken from '../../../Earn/hooks/useEarnToken';
+import { EarnTokenDetails } from '../../../Earn/types/lending.types';
 
 const styles = StyleSheet.create({
   stakeButton: {
@@ -48,12 +51,13 @@ const styles = StyleSheet.create({
     marginRight: 2,
   },
 });
-interface StakeButtonProps {
-  asset: TokenI;
+
+interface StakeButtonContentProps {
+  earnToken: EarnTokenDetails;
 }
 
 // TODO: Rename to EarnCta to better describe this component's purpose.
-const StakeButtonContent = ({ asset }: StakeButtonProps) => {
+const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
   const chainId = useSelector(selectEvmChainId);
@@ -66,18 +70,16 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
-  const isTronNative = asset?.isNative && isTronChainId(asset.chainId as Hex);
+  const isTronNative =
+    earnToken?.isNative && isTronChainId(earnToken.chainId as Hex);
   const { apyPercent: tronApyPercent } = useTronStakeApy();
   ///: END:ONLY_INCLUDE_IF
   const network = useSelector((state: RootState) =>
-    selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
+    selectNetworkConfigurationByChainId(state, earnToken?.chainId as Hex),
   );
 
-  const { getEarnToken } = useEarnTokens();
-  const earnToken = getEarnToken(asset);
-
   const primaryExperienceType = useSelector((state: RootState) =>
-    earnSelectors.selectPrimaryEarnExperienceTypeForAsset(state, asset),
+    earnSelectors.selectPrimaryEarnExperienceTypeForAsset(state, earnToken),
   );
 
   const areEarnExperiencesDisabled =
@@ -90,11 +92,11 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.STAKE_BUTTON_CLICKED)
           .addProperties({
-            chain_id: getDecimalChainId(asset.chainId as Hex),
+            chain_id: getDecimalChainId(earnToken.chainId as Hex),
             location: EVENT_LOCATIONS.HOME_SCREEN,
             action_type: 'deposit',
             text: 'Earn',
-            token: asset.symbol,
+            token: earnToken.symbol,
             network: network?.name,
             experience: EARN_EXPERIENCES.POOLED_STAKING,
           })
@@ -104,7 +106,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       navigation.navigate('StakeScreens', {
         screen: Routes.STAKING.STAKE,
         params: {
-          token: asset,
+          token: earnToken,
         },
       });
       return;
@@ -124,7 +126,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
           location: EVENT_LOCATIONS.HOME_SCREEN,
           action_type: 'deposit',
           text: 'Earn',
-          token: asset.symbol,
+          token: earnToken.symbol,
           network: network?.name,
           url: AppConstants.STAKE.URL,
           experience: EARN_EXPERIENCES.POOLED_STAKING,
@@ -135,49 +137,15 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.STAKE,
       params: {
-        token: asset,
+        token: earnToken,
       },
     });
   };
 
-  const handleLendingRedirect = async () => {
-    if (!asset?.chainId) return;
-
-    const networkClientId =
-      Engine.context.NetworkController.findNetworkClientIdByChainId(
-        toHex(asset.chainId),
-      );
-
-    if (!networkClientId) {
-      console.error(
-        `EarnTokenListItem redirect failed: could not retrieve networkClientId for chainId: ${asset.chainId}`,
-      );
-      return;
-    }
-
-    trace({ name: TraceName.EarnDepositScreen });
-    await Engine.context.NetworkController.setActiveNetwork(networkClientId);
-
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.EARN_BUTTON_CLICKED)
-        .addProperties({
-          action_type: 'deposit',
-          location: EVENT_LOCATIONS.HOME_SCREEN,
-          network: network?.name,
-          text: 'Earn',
-          token: asset.symbol,
-          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
-        })
-        .build(),
-    );
-
-    navigation.navigate('StakeScreens', {
-      screen: Routes.STAKING.STAKE,
-      params: {
-        token: asset,
-      },
-    });
-  };
+  const handleLendingRedirect = useStablecoinLendingRedirect({
+    asset: earnToken,
+    location: EVENT_LOCATIONS.HOME_SCREEN,
+  });
 
   const onEarnButtonPress = async () => {
     if (primaryExperienceType === EARN_EXPERIENCES.POOLED_STAKING) {
@@ -229,15 +197,29 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   );
 };
 
+interface StakeButtonProps {
+  asset: TokenI;
+}
+
 export const StakeButton = (props: StakeButtonProps) => {
   const { isEligible } = useStakingEligibility();
+  const { earnToken } = useEarnToken(props.asset);
 
-  if (!isEligible) {
+  if (!isEligible || !earnToken) {
     return null;
   }
+
+  if (
+    new BigNumber(earnToken?.balanceFiatNumber || '0').lt(
+      MINIMUM_BALANCE_FOR_EARN_CTA,
+    )
+  ) {
+    return null;
+  }
+
   return (
     <StakeSDKProvider>
-      <StakeButtonContent {...props} />
+      <StakeButtonContent earnToken={earnToken} />
     </StakeSDKProvider>
   );
 };

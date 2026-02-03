@@ -21,6 +21,7 @@ import {
   type PointsBoostDto,
   type PointsEventDto,
   type RewardDto,
+  type PointsEstimateHistoryEntry,
   ClaimRewardDto,
   PointsEventsDtoState,
   GetPointsEventsLastUpdatedDto,
@@ -47,8 +48,14 @@ import {
   toCaipAccountId,
 } from '@metamask/utils';
 import { base58 } from 'ethers/lib/utils';
-import { isNonEvmAddress } from '../../../Multichain/utils';
+import {
+  isNonEvmAddress,
+  isBtcAccount,
+  isTronAccount,
+} from '../../../Multichain/utils';
 import { signSolanaRewardsMessage } from './utils/solana-snap';
+import { signBitcoinRewardsMessage } from './utils/bitcoin-snap';
+import { signTronRewardsMessage } from './utils/tron-snap';
 import {
   AuthorizationFailedError,
   InvalidTimestampError,
@@ -87,6 +94,9 @@ const POINTS_EVENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache
 
 // Opt-in status stale threshold for not opted-in accounts to force a fresh check
 const NOT_OPTED_IN_OIS_STALE_CACHE_THRESHOLD_MS = 1000 * 60 * 60; // 1 hour
+
+// Maximum number of points estimate history entries to keep for Customer Support diagnostics
+const MAX_POINTS_ESTIMATE_HISTORY_ENTRIES = 50;
 
 /**
  * State metadata for the RewardsController
@@ -146,6 +156,12 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
+  pointsEstimateHistory: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: false,
+  },
 };
 
 /**
@@ -161,6 +177,7 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   activeBoosts: {},
   unlockedRewards: {},
   pointsEvents: {},
+  pointsEstimateHistory: [],
 });
 
 export const defaultRewardsControllerState = getRewardsControllerDefaultState();
@@ -253,6 +270,8 @@ export class RewardsController extends BaseController<
 > {
   #geoLocation: GeoRewardsMetadata | null = null;
   #isDisabled: () => boolean;
+  #isBitcoinOptinEnabled: () => boolean;
+  #isTronOptinEnabled: () => boolean;
 
   /**
    * Calculate tier status and next tier information
@@ -395,10 +414,14 @@ export class RewardsController extends BaseController<
     messenger,
     state,
     isDisabled,
+    isBitcoinOptinEnabled,
+    isTronOptinEnabled,
   }: {
     messenger: RewardsControllerMessenger;
     state?: Partial<RewardsControllerState>;
     isDisabled?: () => boolean;
+    isBitcoinOptinEnabled?: () => boolean;
+    isTronOptinEnabled?: () => boolean;
   }) {
     super({
       name: controllerName,
@@ -411,6 +434,8 @@ export class RewardsController extends BaseController<
     });
 
     this.#isDisabled = isDisabled ?? (() => false);
+    this.#isBitcoinOptinEnabled = isBitcoinOptinEnabled ?? (() => false);
+    this.#isTronOptinEnabled = isTronOptinEnabled ?? (() => false);
 
     this.#registerActionHandlers();
     this.#initializeEventSubscriptions();
@@ -524,6 +549,10 @@ export class RewardsController extends BaseController<
       'RewardsController:getSeasonOneLineaRewardTokens',
       this.getSeasonOneLineaRewardTokens.bind(this),
     );
+    this.messenger.registerActionHandler(
+      'RewardsController:applyReferralCode',
+      this.applyReferralCode.bind(this),
+    );
   }
 
   /**
@@ -613,7 +642,7 @@ export class RewardsController extends BaseController<
   /**
    * Sign a message for rewards authentication
    */
-  async #signRewardsMessage(
+  async signRewardsMessage(
     account: InternalAccount,
     timestamp: number,
   ): Promise<string> {
@@ -627,6 +656,24 @@ export class RewardsController extends BaseController<
       return `0x${Buffer.from(base58.decode(result.signature)).toString(
         'hex',
       )}`;
+    } else if (isBtcAccount(account)) {
+      const result = await signBitcoinRewardsMessage(
+        account.id,
+        Buffer.from(message, 'utf8').toString('base64'),
+      );
+      // Bitcoin signatures are already in hex format, just ensure 0x prefix
+      return result.signature.startsWith('0x')
+        ? result.signature
+        : `0x${result.signature}`;
+    } else if (isTronAccount(account)) {
+      const result = await signTronRewardsMessage(
+        account.id,
+        Buffer.from(message, 'utf8').toString('base64'),
+      );
+      // Tron signatures are already in hex format, just ensure 0x prefix
+      return result.signature.startsWith('0x')
+        ? result.signature
+        : `0x${result.signature}`;
     } else if (!isNonEvmAddress(account.address)) {
       const result = await this.#signEvmMessage(account, message);
       return result;
@@ -717,6 +764,7 @@ export class RewardsController extends BaseController<
             );
             if (subscriptionId && !successAccount) {
               successAccount = account;
+              break;
             }
           } catch {
             // Continue to next account
@@ -731,7 +779,7 @@ export class RewardsController extends BaseController<
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
-      if (errorMessage && !errorMessage?.includes('Engine does not exis')) {
+      if (errorMessage && !errorMessage?.includes('Engine does not exist')) {
         Logger.log(
           'RewardsController: Silent authentication failed:',
           error instanceof Error ? error.message : String(error),
@@ -798,7 +846,17 @@ export class RewardsController extends BaseController<
         return true;
       }
 
-      // If it's neither Solana nor EVM, opt-in is not supported
+      // Check if it's a Bitcoin account (gated by feature flag)
+      if (isBtcAccount(account)) {
+        return this.#isBitcoinOptinEnabled();
+      }
+
+      // Check if it's a Tron account (gated by feature flag)
+      if (isTronAccount(account)) {
+        return this.#isTronOptinEnabled();
+      }
+
+      // If it's neither Solana, Bitcoin, Tron, nor EVM, opt-in is not supported
       return false;
     } catch (error) {
       // If there's an exception (e.g., checking hardware wallet status fails),
@@ -932,7 +990,7 @@ export class RewardsController extends BaseController<
       const MAX_RETRY_ATTEMPTS = 1;
 
       try {
-        signature = await this.#signRewardsMessage(internalAccount, timestamp);
+        signature = await this.signRewardsMessage(internalAccount, timestamp);
       } catch (signError) {
         Logger.log(
           'RewardsController: Failed to generate signature:',
@@ -981,7 +1039,7 @@ export class RewardsController extends BaseController<
             );
             // Use the timestamp from the error for retry
             timestamp = error.timestamp;
-            signature = await this.#signRewardsMessage(
+            signature = await this.signRewardsMessage(
               internalAccount,
               timestamp,
             );
@@ -1444,10 +1502,14 @@ export class RewardsController extends BaseController<
     }
 
     // First page: use cached data with SWR background refresh
-    const cacheKey = this.#createSeasonSubscriptionCompositeKey(
+    // Include type in cache key so different filters have separate cache entries
+    const baseCacheKey = this.#createSeasonSubscriptionCompositeKey(
       params.seasonId,
       params.subscriptionId,
     );
+    const cacheKey = params.type
+      ? `${baseCacheKey}:${params.type}`
+      : baseCacheKey;
 
     const result = await wrapWithCache<PaginatedPointsEventsDto>({
       key: cacheKey,
@@ -1464,10 +1526,11 @@ export class RewardsController extends BaseController<
       fetchFresh: async () => {
         try {
           Logger.log(
-            'RewardsController: Fetching fresh points events data via API call for seasonId & subscriptionId & page cursor',
+            'RewardsController: Fetching fresh points events data via API call for seasonId & subscriptionId & type & page cursor',
             {
               seasonId: params.seasonId,
               subscriptionId: params.subscriptionId,
+              type: params.type,
               cursor: params.cursor,
             },
           );
@@ -1514,10 +1577,13 @@ export class RewardsController extends BaseController<
   async getPointsEventsIfChanged(
     params: GetPointsEventsDto,
   ): Promise<PaginatedPointsEventsDto> {
-    const cacheKey = this.#createSeasonSubscriptionCompositeKey(
+    const baseCacheKey = this.#createSeasonSubscriptionCompositeKey(
       params.seasonId,
       params.subscriptionId,
     );
+    const cacheKey = params.type
+      ? `${baseCacheKey}:${params.type}`
+      : baseCacheKey;
 
     const hasPointsEventsChanged = await this.hasPointsEventsChanged(params);
 
@@ -1570,13 +1636,15 @@ export class RewardsController extends BaseController<
     const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) return false;
 
-    const cached =
-      this.state.pointsEvents[
-        this.#createSeasonSubscriptionCompositeKey(
-          params.seasonId,
-          params.subscriptionId,
-        )
-      ];
+    const baseCacheKey = this.#createSeasonSubscriptionCompositeKey(
+      params.seasonId,
+      params.subscriptionId,
+    );
+    const cacheKey = params.type
+      ? `${baseCacheKey}:${params.type}`
+      : baseCacheKey;
+
+    const cached = this.state.pointsEvents[cacheKey];
 
     const cachedLatestUpdatedAt = cached?.results?.[0]?.updatedAt;
     // If the cache is empty, we need to fetch fresh data
@@ -1611,6 +1679,19 @@ export class RewardsController extends BaseController<
         request,
       );
 
+      // Track successful estimate in history for Customer Support diagnostics.
+      // History tracking is a diagnostic side effect and should not affect the main functionality.
+      try {
+        this.addPointsEstimateToHistory(request, estimatedPoints);
+      } catch (historyError) {
+        Logger.log(
+          'RewardsController: Failed to add points estimate to history:',
+          historyError instanceof Error
+            ? historyError.message
+            : String(historyError),
+        );
+      }
+
       return estimatedPoints;
     } catch (error) {
       Logger.log(
@@ -1619,6 +1700,82 @@ export class RewardsController extends BaseController<
       );
       throw error;
     }
+  }
+
+  /**
+   * Add a successful points estimate to the history for Customer Support diagnostics.
+   * Maintains a bounded history of the last N estimates.
+   * @param request - The estimate request containing activity details
+   * @param response - The estimated points response
+   */
+  addPointsEstimateToHistory(
+    request: EstimatePointsDto,
+    response: EstimatedPointsDto,
+  ): void {
+    const { activityContext } = request;
+
+    const entry: PointsEstimateHistoryEntry = {
+      timestamp: Date.now(),
+      requestActivityType: request.activityType,
+      requestAccount: request.account,
+      // Swap context fields (if applicable) - flattened for easier diagnostics
+      ...(activityContext.swapContext && {
+        requestSwapSrcAssetId: activityContext.swapContext.srcAsset.id,
+        requestSwapSrcAssetAmount: activityContext.swapContext.srcAsset.amount,
+        requestSwapSrcAssetUsdPrice:
+          activityContext.swapContext.srcAsset.usdPrice,
+        requestSwapDestAssetId: activityContext.swapContext.destAsset.id,
+        requestSwapDestAssetAmount:
+          activityContext.swapContext.destAsset.amount,
+        requestSwapDestAssetUsdPrice:
+          activityContext.swapContext.destAsset.usdPrice,
+        requestSwapFeeAssetId: activityContext.swapContext.feeAsset.id,
+        requestSwapFeeAssetAmount: activityContext.swapContext.feeAsset.amount,
+        requestSwapFeeAssetUsdPrice:
+          activityContext.swapContext.feeAsset.usdPrice,
+      }),
+      // Perps context fields (if applicable)
+      ...(activityContext.perpsContext &&
+        !Array.isArray(activityContext.perpsContext) && {
+          requestPerpsType: activityContext.perpsContext.type,
+          requestPerpsUsdFeeValue: activityContext.perpsContext.usdFeeValue,
+          requestPerpsCoin: activityContext.perpsContext.coin,
+        }),
+      // Predict context fields (if applicable) - flattened for easier diagnostics
+      ...(activityContext.predictContext && {
+        requestPredictFeeAssetId: activityContext.predictContext.feeAsset.id,
+        requestPredictFeeAssetAmount:
+          activityContext.predictContext.feeAsset.amount,
+        requestPredictFeeAssetUsdPrice:
+          activityContext.predictContext.feeAsset.usdPrice,
+      }),
+      // Shield context fields (if applicable) - flattened for easier diagnostics
+      ...(activityContext.shieldContext && {
+        requestShieldFeeAssetId: activityContext.shieldContext.feeAsset.id,
+        requestShieldFeeAssetAmount:
+          activityContext.shieldContext.feeAsset.amount,
+        requestShieldFeeAssetUsdPrice:
+          activityContext.shieldContext.feeAsset.usdPrice,
+      }),
+      // Response fields
+      responsePointsEstimate: response.pointsEstimate,
+      responseBonusBips: response.bonusBips,
+    };
+
+    this.update((state: RewardsControllerState) => {
+      // Add new entry at the beginning (most recent first)
+      state.pointsEstimateHistory.unshift(entry);
+
+      // Keep only the last N entries
+      if (
+        state.pointsEstimateHistory.length > MAX_POINTS_ESTIMATE_HISTORY_ENTRIES
+      ) {
+        state.pointsEstimateHistory = state.pointsEstimateHistory.slice(
+          0,
+          MAX_POINTS_ESTIMATE_HISTORY_ENTRIES,
+        );
+      }
+    });
   }
 
   /**
@@ -1805,7 +1962,6 @@ export class RewardsController extends BaseController<
             season,
             seasonState,
           );
-
           return this.#convertSeasonStatusToSubscriptionState(seasonStatus);
         } catch (error) {
           if (error instanceof AuthorizationFailedError) {
@@ -1874,7 +2030,7 @@ export class RewardsController extends BaseController<
                 error instanceof Error ? error.message : String(error),
               );
               this.invalidateSubscriptionCache(subscriptionId);
-              await this.invalidateAccountsAndSubscriptions();
+              await this.invalidateSubscriptionAndAccounts(subscriptionId);
               throw error;
             }
           } else if (error instanceof SeasonNotFoundError) {
@@ -1901,24 +2057,52 @@ export class RewardsController extends BaseController<
     return result;
   }
 
-  async invalidateAccountsAndSubscriptions() {
+  /**
+   * Invalidate a specific subscription and its linked accounts
+   * This is a surgical approach that only affects the specified subscription,
+   * preserving other subscriptions' state.
+   * @param subscriptionId - The subscription ID to invalidate
+   */
+  async invalidateSubscriptionAndAccounts(
+    subscriptionId: string,
+  ): Promise<void> {
     this.update((state: RewardsControllerState) => {
-      if (state.activeAccount) {
+      // Remove the failing subscription
+      delete state.subscriptions[subscriptionId];
+
+      // Clear accounts linked to this subscription only
+      Object.entries(state.accounts).forEach(([caipAccount, accountState]) => {
+        if (accountState.subscriptionId === subscriptionId) {
+          state.accounts[caipAccount as CaipAccountId] = {
+            ...accountState,
+            hasOptedIn: false,
+            subscriptionId: null,
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+            lastFreshOptInStatusCheck: null,
+          };
+        }
+      });
+
+      // Reset activeAccount only if it's linked to this subscription
+      if (state.activeAccount?.subscriptionId === subscriptionId) {
         state.activeAccount = {
           ...state.activeAccount,
-          lastPerpsDiscountRateFetched: null,
-          perpsFeeDiscount: null,
           hasOptedIn: false,
           subscriptionId: null,
+          perpsFeeDiscount: null,
+          lastPerpsDiscountRateFetched: null,
           lastFreshOptInStatusCheck: null,
-          account: state.activeAccount.account, // Ensure account is always present (never undefined)
         };
       }
-      state.accounts = {};
-      state.subscriptions = {};
     });
-    await resetAllSubscriptionTokens();
-    Logger.log('RewardsController: Invalidated accounts and subscriptions');
+
+    // Remove only this subscription's token
+    await removeSubscriptionToken(subscriptionId);
+    Logger.log(
+      'RewardsController: Invalidated subscription and accounts',
+      subscriptionId,
+    );
   }
 
   /**
@@ -1962,6 +2146,7 @@ export class RewardsController extends BaseController<
             referralCode: referralDetails.referralCode,
             totalReferees: referralDetails.totalReferees,
             referralPoints: referralDetails.referralPoints,
+            referredByCode: referralDetails.referredByCode,
             lastFetched: Date.now(),
           };
         } catch (error) {
@@ -2093,7 +2278,7 @@ export class RewardsController extends BaseController<
     });
     // Generate timestamp and sign the message for mobile optin
     let timestamp = Math.floor(Date.now() / 1000);
-    let signature = await this.#signRewardsMessage(account, timestamp);
+    let signature = await this.signRewardsMessage(account, timestamp);
     let retryAttempt = 0;
     const MAX_RETRY_ATTEMPTS = 1;
     const executeMobileOptin = async (
@@ -2120,7 +2305,7 @@ export class RewardsController extends BaseController<
           });
           // Use the timestamp from the error for retry
           timestamp = error.timestamp;
-          signature = await this.#signRewardsMessage(account, timestamp);
+          signature = await this.signRewardsMessage(account, timestamp);
           return await executeMobileOptin(timestamp, signature);
         }
 
@@ -2552,7 +2737,7 @@ export class RewardsController extends BaseController<
     try {
       // Generate timestamp and sign the message for mobile join
       let timestamp = Math.floor(Date.now() / 1000);
-      let signature = await this.#signRewardsMessage(account, timestamp);
+      let signature = await this.signRewardsMessage(account, timestamp);
       let retryAttempt = 0;
       const MAX_RETRY_ATTEMPTS = 1;
 
@@ -2584,7 +2769,7 @@ export class RewardsController extends BaseController<
             });
             // Use the timestamp from the error for retry
             timestamp = error.timestamp;
-            signature = await this.#signRewardsMessage(account, timestamp);
+            signature = await this.signRewardsMessage(account, timestamp);
             return await executeMobileJoin(timestamp, signature);
           }
 
@@ -2752,23 +2937,9 @@ export class RewardsController extends BaseController<
       );
 
       if (result.success) {
-        const currentActiveAccount = this.state.activeAccount?.account;
-        this.resetState();
-        this.update((state: RewardsControllerState) => {
-          if (currentActiveAccount) {
-            state.activeAccount = {
-              account: currentActiveAccount,
-              hasOptedIn: false,
-              subscriptionId: null,
-              perpsFeeDiscount: null,
-              lastPerpsDiscountRateFetched: null,
-              lastFreshOptInStatusCheck: null,
-            };
-          }
-        });
-
-        // Remove subscription token from secure storage
-        await removeSubscriptionToken(subscriptionId);
+        // Invalidate caches and subscription-specific state
+        this.invalidateSubscriptionCache(subscriptionId);
+        await this.invalidateSubscriptionAndAccounts(subscriptionId);
 
         Logger.log(
           'RewardsController: Successfully opted out of rewards program',
@@ -2982,6 +3153,64 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Apply a referral code to an existing subscription.
+   * @param referralCode - The referral code to apply.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns Promise that resolves when the referral code is applied successfully.
+   * @throws Error with the error message from the API response.
+   */
+  async applyReferralCode(
+    referralCode: string,
+    subscriptionId: string,
+  ): Promise<void> {
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) {
+      throw new Error('Rewards are not enabled');
+    }
+
+    try {
+      await this.messenger.call(
+        'RewardsDataService:applyReferralCode',
+        { referralCode },
+        subscriptionId,
+      );
+
+      // Invalidate referral details cache for this subscription
+      this.invalidateReferralDetailsCache(subscriptionId);
+
+      Logger.log(
+        'RewardsController: Successfully applied referral code',
+        subscriptionId,
+      );
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to apply referral code:',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Invalidate referral details cache for a subscription
+   * @param subscriptionId - The subscription ID to invalidate cache for
+   */
+  invalidateReferralDetailsCache(subscriptionId: string): void {
+    this.update((state: RewardsControllerState) => {
+      Object.keys(state.subscriptionReferralDetails).forEach((key) => {
+        if (key.includes(subscriptionId)) {
+          delete state.subscriptionReferralDetails[key];
+        }
+      });
+    });
+
+    Logger.log(
+      'RewardsController: Invalidated referral details cache for subscription',
+      subscriptionId,
+    );
+  }
+
+  /**
    * Invalidate cached data for a subscription
    * @param subscriptionId - The subscription ID to invalidate cache for
    * @param seasonId - The season ID (defaults to current season)
@@ -2998,6 +3227,7 @@ export class RewardsController extends BaseController<
         delete state.unlockedRewards[compositeKey];
         delete state.activeBoosts[compositeKey];
         delete state.pointsEvents[compositeKey];
+        delete state.subscriptionReferralDetails[compositeKey];
       });
     } else {
       // Invalidate all seasons for this subscription
@@ -3020,6 +3250,11 @@ export class RewardsController extends BaseController<
         Object.keys(state.pointsEvents).forEach((key) => {
           if (key.includes(subscriptionId)) {
             delete state.pointsEvents[key];
+          }
+        });
+        Object.keys(state.subscriptionReferralDetails).forEach((key) => {
+          if (key.includes(subscriptionId)) {
+            delete state.subscriptionReferralDetails[key];
           }
         });
       });

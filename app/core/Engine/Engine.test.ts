@@ -67,8 +67,7 @@ jest.mock('../../selectors/settings', () => ({
   selectBasicFunctionalityEnabled: jest.fn().mockReturnValue(true),
 }));
 jest.mock('../../util/phishingDetection', () => ({
-  isProductSafetyDappScanningEnabled: jest.fn().mockReturnValue(false),
-  getPhishingTestResult: jest.fn().mockReturnValue({ result: true }),
+  getPhishingTestResultAsync: jest.fn().mockResolvedValue({ result: true }),
 }));
 
 jest.mock('@metamask/assets-controllers', () => {
@@ -971,6 +970,7 @@ describe('Engine', () => {
               '0x38': false,
             },
           },
+          nativeAssetIdentifiers: {},
         });
 
       const findNetworkClientIdByChainIdSpy = jest
@@ -1017,6 +1017,7 @@ describe('Engine', () => {
               '0x38': false,
             },
           },
+          nativeAssetIdentifiers: {},
         });
 
       await engine.lookupEnabledNetworks();
@@ -1047,6 +1048,7 @@ describe('Engine', () => {
           enabledNetworkMap: {
             [KnownCaipNamespace.Eip155]: {},
           },
+          nativeAssetIdentifiers: {},
         });
 
       await engine.lookupEnabledNetworks();
@@ -1075,6 +1077,7 @@ describe('Engine', () => {
             string,
             Record<string, boolean>
           >,
+          nativeAssetIdentifiers: {},
         });
 
       await engine.lookupEnabledNetworks();
@@ -1100,6 +1103,7 @@ describe('Engine', () => {
         .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
         .mockReturnValue({
           enabledNetworkMap: {},
+          nativeAssetIdentifiers: {},
         });
 
       await engine.lookupEnabledNetworks();
@@ -1133,6 +1137,7 @@ describe('Engine', () => {
               '0x38': false,
             },
           },
+          nativeAssetIdentifiers: {},
         });
 
       await engine.lookupEnabledNetworks();
@@ -1163,6 +1168,7 @@ describe('Engine', () => {
               '0x38': false,
             },
           },
+          nativeAssetIdentifiers: {},
         });
 
       await engine.lookupEnabledNetworks();
@@ -1200,6 +1206,7 @@ describe('Engine', () => {
               '0xa': true,
             },
           },
+          nativeAssetIdentifiers: {},
         });
 
       await engine.lookupEnabledNetworks();

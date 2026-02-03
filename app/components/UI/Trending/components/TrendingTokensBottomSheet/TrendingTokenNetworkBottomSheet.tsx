@@ -3,10 +3,7 @@ import { StyleSheet, ScrollView } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import Icon, {
   IconName,
   IconSize,
@@ -33,15 +30,6 @@ export interface TrendingTokenNetworkBottomSheetProps {
   onNetworkSelect?: (chainIds: CaipChainId[] | null) => void;
   selectedNetwork?: CaipChainId[] | null;
 }
-
-const closeButtonStyle = StyleSheet.create({
-  closeButton: {
-    width: 24,
-    height: 24,
-    flexShrink: 0,
-    marginTop: -12,
-  },
-});
 
 const TrendingTokenNetworkBottomSheet: React.FC<
   TrendingTokenNetworkBottomSheetProps
@@ -75,7 +63,7 @@ const TrendingTokenNetworkBottomSheet: React.FC<
 
   const optionStyles = StyleSheet.create({
     optionsList: {
-      paddingBottom: 32,
+      paddingBottom: 16,
     },
   });
 
@@ -128,15 +116,13 @@ const TrendingTokenNetworkBottomSheet: React.FC<
       shouldNavigateBack={false}
       ref={sheetRef}
       onClose={handleSheetClose}
+      testID="trending-token-network-bottom-sheet"
     >
-      <BottomSheetHeader
+      <HeaderCenter
+        title={strings('trending.networks')}
         onClose={handleClose}
-        closeButtonProps={{ style: closeButtonStyle.closeButton }}
-      >
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('trending.networks')}
-        </Text>
-      </BottomSheetHeader>
+        closeButtonProps={{ testID: 'close-button' }}
+      />
       <ScrollView style={optionStyles.optionsList}>
         <Cell
           variant={CellVariant.Select}
@@ -157,6 +143,7 @@ const TrendingTokenNetworkBottomSheet: React.FC<
           const isSelected = isNetworkSelected(network);
           return (
             <Cell
+              testID={`network-select-${network.caipChainId}`}
               key={network.caipChainId}
               variant={CellVariant.Select}
               title={network.name}

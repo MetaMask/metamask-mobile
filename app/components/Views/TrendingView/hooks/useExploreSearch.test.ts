@@ -222,4 +222,30 @@ describe('useExploreSearch', () => {
       expect(result.current.isLoading[section.id]).toBeDefined();
     });
   });
+
+  it('returns default sectionsOrder when no options provided', () => {
+    const { result } = renderHook(() => useExploreSearch(''));
+
+    expect(result.current.sectionsOrder).toEqual(
+      SECTIONS_ARRAY.map((s) => s.id),
+    );
+  });
+
+  it('returns custom sectionsOrder when provided in options', () => {
+    const customOrder = ['sites', 'tokens', 'perps', 'predictions'] as const;
+    const { result } = renderHook(() =>
+      useExploreSearch('', { sectionsOrder: [...customOrder] }),
+    );
+
+    expect(result.current.sectionsOrder).toEqual(customOrder);
+  });
+
+  it('maintains backward compatibility - works without options parameter', () => {
+    const { result } = renderHook(() => useExploreSearch('test'));
+
+    // Should not throw and should return expected structure
+    expect(result.current.data).toBeDefined();
+    expect(result.current.isLoading).toBeDefined();
+    expect(result.current.sectionsOrder).toBeDefined();
+  });
 });
