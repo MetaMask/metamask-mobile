@@ -59,18 +59,9 @@ export function BridgeFeeRow() {
     );
   }
 
-  // For withdrawals, show separate Network fees and Provider fee rows with negative values
+  // For withdrawals, only show provider fee (network fee is negligible on Polygon)
   if (isWithdrawal) {
-    return (
-      <>
-        <WithdrawalNetworkFeeRow
-          totals={totals}
-          hasAlert={hasAlert}
-          isLoading={isLoading}
-        />
-        <WithdrawalProviderFeeRow totals={totals} isLoading={isLoading} />
-      </>
-    );
+    return <WithdrawalProviderFeeRow totals={totals} isLoading={isLoading} />;
   }
 
   return (
@@ -226,54 +217,7 @@ function MetaMaskFeeRow({
 }
 
 /**
- * Network fees row for withdrawals - shows negative value
- */
-function WithdrawalNetworkFeeRow({
-  totals,
-  hasAlert,
-  isLoading,
-}: {
-  totals?: TransactionPayTotals;
-  hasAlert: boolean;
-  isLoading: boolean;
-}) {
-  const formatFiat = useFiatFormatter({ currency: 'usd' });
-
-  const networkFeeUsd = useMemo(() => {
-    const networkFeeUsdBN = getNetworkFeeUsdBN({ totals });
-    if (!networkFeeUsdBN || networkFeeUsdBN.isZero()) return '';
-    // Format as negative value for withdrawals
-    return `-${formatFiat(networkFeeUsdBN)}`;
-  }, [totals, formatFiat]);
-
-  if (isLoading)
-    return <InfoRowSkeleton testId="withdrawal-network-fee-row-skeleton" />;
-
-  if (!networkFeeUsd) return null;
-
-  return (
-    <AlertRow
-      testID="withdrawal-network-fee-row"
-      label={strings('confirm.label.network_fees')}
-      alertField={RowAlertKey.PayWithFee}
-      tooltipTitle={strings('confirm.label.network_fees')}
-      tooltip={strings('confirm.tooltip.network_fee')}
-      tooltipColor={IconColor.Alternative}
-      rowVariant={InfoRowVariant.Small}
-    >
-      <Text
-        variant={TextVariant.BodyMD}
-        color={hasAlert ? TextColor.Error : TextColor.Alternative}
-        testID={ConfirmationRowComponentIDs.NETWORK_FEE}
-      >
-        {networkFeeUsd}
-      </Text>
-    </AlertRow>
-  );
-}
-
-/**
- * Provider fee row for withdrawals - shows negative value
+ * Transaction fee row for withdrawals.
  */
 function WithdrawalProviderFeeRow({
   totals,
@@ -284,27 +228,26 @@ function WithdrawalProviderFeeRow({
 }) {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
 
-  const providerFeeUsd = useMemo(() => {
+  const transactionFeeUsd = useMemo(() => {
     if (!totals?.fees?.provider?.usd) return '';
     const providerFee = new BigNumber(totals.fees.provider.usd);
     if (providerFee.isZero()) return '';
-    // Format as negative value for withdrawals
-    return `-${formatFiat(providerFee)}`;
+    return formatFiat(providerFee);
   }, [totals, formatFiat]);
 
   if (isLoading)
-    return <InfoRowSkeleton testId="withdrawal-provider-fee-row-skeleton" />;
+    return <InfoRowSkeleton testId="withdrawal-transaction-fee-row-skeleton" />;
 
-  if (!providerFeeUsd) return null;
+  if (!transactionFeeUsd) return null;
 
   return (
     <InfoRow
-      testID="withdrawal-provider-fee-row"
-      label={strings('confirm.label.provider_fee')}
+      testID="withdrawal-transaction-fee-row"
+      label={strings('confirm.label.transaction_fee')}
       rowVariant={InfoRowVariant.Small}
     >
       <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-        {providerFeeUsd}
+        {transactionFeeUsd}
       </Text>
     </InfoRow>
   );
