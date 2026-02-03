@@ -54,7 +54,10 @@ import {
   GetOrderStatusResponse,
 } from '../types';
 import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
-import { getCardBaanxToken } from '../util/cardTokenVault';
+import {
+  getCardBaanxToken,
+  removeCardBaanxToken,
+} from '../util/cardTokenVault';
 import { CaipChainId } from '@metamask/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { isZeroValue } from '../../../../util/number';
@@ -842,6 +845,25 @@ export class CardSDK {
 
     const data = await response.json();
     return data as CardLoginResponse;
+  };
+
+  logout = async (): Promise<void> => {
+    const response = await this.makeRequest('/v1/auth/logout', {
+      fetchOptions: { method: 'POST' },
+      authenticated: true,
+    });
+
+    if (!response.ok) {
+      throw this.logAndCreateError(
+        CardErrorType.SERVER_ERROR,
+        'Failed to logout. Please try again.',
+        'logout',
+        'auth/logout',
+        response.status,
+      );
+    }
+
+    await removeCardBaanxToken();
   };
 
   sendOtpLogin = async (body: {

@@ -2,7 +2,6 @@ import { handleCardKycNotification } from '../handleCardKycNotification';
 import ReduxService from '../../../../redux';
 import NavigationService from '../../../../NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
-import DevLogger from '../../../../SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
 import {
   selectIsAuthenticatedCard,
@@ -31,7 +30,6 @@ jest.mock('../../../../redux', () => ({
 jest.mock('../../../../NavigationService');
 jest.mock('../../../../redux/slices/card');
 jest.mock('../../../../../selectors/featureFlagController/card');
-jest.mock('../../../../SDKConnect/utils/DevLogger');
 jest.mock('../../../../../util/Logger');
 jest.mock('../../../../../components/UI/Card/sdk/CardSDK');
 jest.mock('../../../../../components/UI/Card/util/mapCountryToLocation');
@@ -39,7 +37,6 @@ jest.mock('../../../../../components/UI/Card/util/mapCountryToLocation');
 describe('handleCardKycNotification', () => {
   const mockGetState = jest.fn();
   const mockNavigate = jest.fn();
-  const mockDevLogger = DevLogger.log as jest.Mock;
   const mockLoggerError = Logger.error as jest.Mock;
   const mockLoggerLog = Logger.log as jest.Mock;
   const mockMapCountryToLocation = mapCountryToLocation as jest.Mock;
@@ -112,7 +109,7 @@ describe('handleCardKycNotification', () => {
       await handleCardKycNotification();
 
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockDevLogger).toHaveBeenCalledWith(
+      expect(mockLoggerLog).toHaveBeenCalledWith(
         '[handleCardKycNotification] Card feature is not enabled, skipping',
       );
     });
@@ -165,9 +162,12 @@ describe('handleCardKycNotification', () => {
         jest.runAllTimers();
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.ONBOARDING.ROOT,
+          screen: Routes.CARD.HOME,
           params: {
-            screen: Routes.CARD.ONBOARDING.KYC_FAILED,
+            screen: Routes.CARD.ONBOARDING.ROOT,
+            params: {
+              screen: Routes.CARD.ONBOARDING.KYC_FAILED,
+            },
           },
         });
       });
@@ -175,7 +175,7 @@ describe('handleCardKycNotification', () => {
       it('logs the rejection', async () => {
         await handleCardKycNotification();
 
-        expect(mockDevLogger).toHaveBeenCalledWith(
+        expect(mockLoggerLog).toHaveBeenCalledWith(
           '[handleCardKycNotification] Registration status:',
           'REJECTED',
         );
@@ -194,14 +194,46 @@ describe('handleCardKycNotification', () => {
         jest.runAllTimers();
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.ONBOARDING.ROOT,
+          screen: Routes.CARD.HOME,
           params: {
-            screen: Routes.CARD.ONBOARDING.COMPLETE,
+            screen: Routes.CARD.ONBOARDING.ROOT,
             params: {
-              nextDestination: 'personal_details',
+              screen: Routes.CARD.ONBOARDING.COMPLETE,
+              params: {
+                nextDestination: 'personal_details',
+              },
             },
           },
         });
+      });
+    });
+
+    describe('when user is UNVERIFIED', () => {
+      beforeEach(() => {
+        mockGetRegistrationStatus.mockResolvedValue({
+          verificationState: 'UNVERIFIED',
+        });
+      });
+
+      it('navigates to Onboarding ROOT', async () => {
+        await handleCardKycNotification();
+        jest.runAllTimers();
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+          screen: Routes.CARD.HOME,
+          params: {
+            screen: Routes.CARD.ONBOARDING.ROOT,
+          },
+        });
+      });
+
+      it('logs the unverified state', async () => {
+        await handleCardKycNotification();
+        jest.runAllTimers();
+
+        expect(mockLoggerLog).toHaveBeenCalledWith(
+          '[handleCardKycNotification] User unverified, navigating to Onboarding',
+        );
       });
     });
 
@@ -217,9 +249,32 @@ describe('handleCardKycNotification', () => {
         jest.runAllTimers();
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.ONBOARDING.ROOT,
+          screen: Routes.CARD.HOME,
           params: {
-            screen: Routes.CARD.ONBOARDING.KYC_PENDING,
+            screen: Routes.CARD.ONBOARDING.ROOT,
+            params: {
+              screen: Routes.CARD.ONBOARDING.KYC_PENDING,
+            },
+          },
+        });
+      });
+    });
+
+    describe('when verification state is unknown/undefined', () => {
+      beforeEach(() => {
+        mockGetRegistrationStatus.mockResolvedValue({
+          verificationState: undefined,
+        });
+      });
+
+      it('navigates to Onboarding ROOT as default', async () => {
+        await handleCardKycNotification();
+        jest.runAllTimers();
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+          screen: Routes.CARD.HOME,
+          params: {
+            screen: Routes.CARD.ONBOARDING.ROOT,
           },
         });
       });
@@ -300,9 +355,12 @@ describe('handleCardKycNotification', () => {
         jest.runAllTimers();
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.ONBOARDING.ROOT,
+          screen: Routes.CARD.HOME,
           params: {
-            screen: Routes.CARD.ONBOARDING.KYC_FAILED,
+            screen: Routes.CARD.ONBOARDING.ROOT,
+            params: {
+              screen: Routes.CARD.ONBOARDING.KYC_FAILED,
+            },
           },
         });
       });
@@ -320,12 +378,36 @@ describe('handleCardKycNotification', () => {
         jest.runAllTimers();
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.ONBOARDING.ROOT,
+          screen: Routes.CARD.HOME,
           params: {
-            screen: Routes.CARD.ONBOARDING.COMPLETE,
+            screen: Routes.CARD.ONBOARDING.ROOT,
             params: {
-              nextDestination: 'card_home',
+              screen: Routes.CARD.ONBOARDING.COMPLETE,
+              params: {
+                nextDestination: 'card_home',
+              },
             },
+          },
+        });
+      });
+    });
+
+    describe('when user is UNVERIFIED', () => {
+      beforeEach(() => {
+        mockGetUserDetails.mockResolvedValue({
+          verificationState: 'UNVERIFIED',
+        });
+      });
+
+      it('navigates to Onboarding ROOT', async () => {
+        await handleCardKycNotification();
+        jest.runAllTimers();
+
+        // UNVERIFIED always navigates to Onboarding ROOT regardless of flow type
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+          screen: Routes.CARD.HOME,
+          params: {
+            screen: Routes.CARD.ONBOARDING.ROOT,
           },
         });
       });
@@ -344,6 +426,29 @@ describe('handleCardKycNotification', () => {
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
           screen: Routes.CARD.HOME,
+          params: {
+            screen: Routes.CARD.HOME,
+          },
+        });
+      });
+    });
+
+    describe('when verification state is unknown/undefined', () => {
+      beforeEach(() => {
+        mockGetUserDetails.mockResolvedValue({
+          verificationState: undefined,
+        });
+      });
+
+      it('navigates to CardHome as default for authenticated users', async () => {
+        await handleCardKycNotification();
+        jest.runAllTimers();
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+          screen: Routes.CARD.HOME,
+          params: {
+            screen: Routes.CARD.HOME,
+          },
         });
       });
     });
@@ -396,14 +501,17 @@ describe('handleCardKycNotification', () => {
       await handleCardKycNotification();
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-        screen: Routes.CARD.WELCOME,
+        screen: Routes.CARD.HOME,
+        params: {
+          screen: Routes.CARD.WELCOME,
+        },
       });
     });
 
     it('logs the fallback navigation', async () => {
       await handleCardKycNotification();
 
-      expect(mockDevLogger).toHaveBeenCalledWith(
+      expect(mockLoggerLog).toHaveBeenCalledWith(
         '[handleCardKycNotification] No onboarding or auth state, navigating to Welcome',
       );
     });
@@ -425,16 +533,16 @@ describe('handleCardKycNotification', () => {
         });
       });
 
-      it('logs error with DevLogger', async () => {
+      it('logs error with Logger.log', async () => {
         await handleCardKycNotification();
 
-        expect(mockDevLogger).toHaveBeenCalledWith(
+        expect(mockLoggerLog).toHaveBeenCalledWith(
           '[handleCardKycNotification] Failed to handle deeplink:',
           mockError,
         );
       });
 
-      it('logs error with Logger', async () => {
+      it('logs error with Logger.error', async () => {
         await handleCardKycNotification();
 
         expect(mockLoggerError).toHaveBeenCalledWith(
@@ -447,7 +555,10 @@ describe('handleCardKycNotification', () => {
         await handleCardKycNotification();
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.WELCOME,
+          screen: Routes.CARD.HOME,
+          params: {
+            screen: Routes.CARD.WELCOME,
+          },
         });
       });
     });
@@ -470,7 +581,10 @@ describe('handleCardKycNotification', () => {
           '[handleCardKycNotification] Error handling card KYC notification deeplink',
         );
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.WELCOME,
+          screen: Routes.CARD.HOME,
+          params: {
+            screen: Routes.CARD.WELCOME,
+          },
         });
       });
     });
@@ -493,7 +607,10 @@ describe('handleCardKycNotification', () => {
           '[handleCardKycNotification] Error handling card KYC notification deeplink',
         );
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.WELCOME,
+          screen: Routes.CARD.HOME,
+          params: {
+            screen: Routes.CARD.WELCOME,
+          },
         });
       });
     });
@@ -534,7 +651,7 @@ describe('handleCardKycNotification', () => {
     it('logs starting message', async () => {
       await handleCardKycNotification();
 
-      expect(mockDevLogger).toHaveBeenCalledWith(
+      expect(mockLoggerLog).toHaveBeenCalledWith(
         '[handleCardKycNotification] Starting card KYC notification deeplink handling',
       );
     });
@@ -552,7 +669,7 @@ describe('handleCardKycNotification', () => {
 
       await handleCardKycNotification();
 
-      expect(mockDevLogger).toHaveBeenCalledWith(
+      expect(mockLoggerLog).toHaveBeenCalledWith(
         '[handleCardKycNotification] User state:',
         {
           hasOnboardingId: true,

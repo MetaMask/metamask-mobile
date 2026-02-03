@@ -177,6 +177,7 @@ describe('CardSDK Context', () => {
     getSupportedTokensAllowances: jest.fn(),
     getPriorityToken: jest.fn(),
     getRegistrationStatus: jest.fn(),
+    logout: jest.fn().mockResolvedValue(undefined),
     ...overrides,
   });
 
@@ -367,6 +368,30 @@ describe('CardSDK Context', () => {
   describe('Logout Functionality', () => {
     it('logs out user successfully', async () => {
       // Given: SDK available
+      const mockLogout = jest.fn().mockResolvedValue(undefined);
+      setupMockSDK({ logout: mockLogout });
+      setupMockUseSelector(mockCardFeatureFlag);
+
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // When: user logs out
+      await act(async () => {
+        await result.current.logoutFromProvider();
+      });
+
+      // Then: SDK logout should be called and Redux actions dispatched
+      expect(mockLogout).toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalled();
+    });
+
+    it('dispatches resetAuthenticatedData action on logout', async () => {
+      // Given: SDK available
       setupMockSDK();
       setupMockUseSelector(mockCardFeatureFlag);
 
@@ -383,9 +408,58 @@ describe('CardSDK Context', () => {
         await result.current.logoutFromProvider();
       });
 
-      // Then: token should be removed and authentication data cleared
-      expect(mockRemoveCardBaanxToken).toHaveBeenCalled();
-      expect(mockDispatch).toHaveBeenCalled();
+      // Then: should dispatch resetAuthenticatedData
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
+      );
+    });
+
+    it('dispatches clearAllCache action on logout', async () => {
+      // Given: SDK available
+      setupMockSDK();
+      setupMockUseSelector(mockCardFeatureFlag);
+
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // When: user logs out
+      await act(async () => {
+        await result.current.logoutFromProvider();
+      });
+
+      // Then: should dispatch clearAllCache
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'card/clearAllCache' }),
+      );
+    });
+
+    it('dispatches resetOnboardingState action on logout', async () => {
+      // Given: SDK available
+      setupMockSDK();
+      setupMockUseSelector(mockCardFeatureFlag);
+
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // When: user logs out
+      await act(async () => {
+        await result.current.logoutFromProvider();
+      });
+
+      // Then: should dispatch resetOnboardingState
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'card/resetOnboardingState' }),
+      );
     });
 
     it('throws error when SDK is unavailable for logout', async () => {

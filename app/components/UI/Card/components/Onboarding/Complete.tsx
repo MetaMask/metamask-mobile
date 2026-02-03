@@ -88,7 +88,11 @@ const Complete = () => {
       if (nextDestination === 'card_home') {
         // Coming from authenticated flow KYC approval - go to CardHome
         dispatch(resetOnboardingState());
-        navigation.dispatch(StackActions.replace(Routes.CARD.HOME));
+        navigation.dispatch(
+          StackActions.replace(Routes.CARD.SPENDING_LIMIT, {
+            flow: 'onboarding',
+          }),
+        );
         return;
       }
 

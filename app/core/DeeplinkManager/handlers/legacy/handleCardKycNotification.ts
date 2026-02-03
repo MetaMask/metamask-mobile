@@ -259,7 +259,6 @@ function navigateBasedOnVerificationState(
         break;
 
       case 'PENDING':
-      default:
         if (flowType === 'onboarding') {
           Logger.log(
             '[handleCardKycNotification] User still pending (onboarding), navigating to KYCPending',
@@ -281,6 +280,42 @@ function navigateBasedOnVerificationState(
             screen: Routes.CARD.HOME,
             params: {
               screen: Routes.CARD.HOME,
+            },
+          });
+        }
+        break;
+
+      case 'UNVERIFIED':
+        Logger.log(
+          '[handleCardKycNotification] User unverified, navigating to Onboarding',
+        );
+        NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
+          screen: Routes.CARD.HOME,
+          params: {
+            screen: Routes.CARD.ONBOARDING.ROOT,
+          },
+        });
+        break;
+
+      default:
+        if (flowType === 'authenticated') {
+          Logger.log(
+            '[handleCardKycNotification] Unknown verification state (authenticated), navigating to CardHome',
+          );
+          NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
+            screen: Routes.CARD.HOME,
+            params: {
+              screen: Routes.CARD.HOME,
+            },
+          });
+        } else {
+          Logger.log(
+            '[handleCardKycNotification] Unknown verification state, navigating to Onboarding',
+          );
+          NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
+            screen: Routes.CARD.HOME,
+            params: {
+              screen: Routes.CARD.ONBOARDING.ROOT,
             },
           });
         }

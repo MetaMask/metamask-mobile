@@ -6746,8 +6746,8 @@
         "resend_cooldown": "Resend available in {{seconds}} seconds"
       },
       "set_phone_number": {
-        "title": "Confirm your phone number",
-        "description": "Enter your phone number. We'll send you a confirmation code there.",
+        "title": "Enter your phone number",
+        "description": "We'll send you a confirmation code there.",
         "phone_number_label": "Enter phone number",
         "country_area_code_label": "Country area code",
         "invalid_phone_number": "Invalid phone number",
@@ -6887,6 +6887,7 @@
     },
     "card_home": {
       "title": "Card",
+      "authentication_error": "Your session has expired. Please log in again.",
       "available_balance": "Available balance",
       "error_title": "Can't fetch data",
       "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Please check your connection or try refreshing the page.",

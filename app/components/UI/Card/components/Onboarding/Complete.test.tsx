@@ -567,7 +567,7 @@ describe('Complete Component', () => {
       });
     });
 
-    it('navigates to CardHome when nextDestination is card_home', async () => {
+    it('navigates to SpendingLimit when nextDestination is card_home', async () => {
       (useRoute as jest.Mock).mockReturnValue({
         params: { nextDestination: 'card_home' },
       });
@@ -577,9 +577,12 @@ describe('Complete Component', () => {
       fireEvent.press(button);
 
       await waitFor(() => {
-        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME);
+        expect(mockStackReplace).toHaveBeenCalledWith(
+          Routes.CARD.SPENDING_LIMIT,
+          { flow: 'onboarding' },
+        );
         expect(mockNavigationDispatch).toHaveBeenCalledWith(
-          expect.objectContaining({ routeName: Routes.CARD.HOME }),
+          expect.objectContaining({ routeName: Routes.CARD.SPENDING_LIMIT }),
         );
       });
     });
