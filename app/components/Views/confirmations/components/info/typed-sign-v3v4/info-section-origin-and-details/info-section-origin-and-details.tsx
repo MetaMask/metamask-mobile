@@ -30,8 +30,13 @@ import Text, {
 
 export const InfoSectionOriginAndDetails = () => {
   const { styles } = useStyles(styleSheet, {});
-  const { approvalRequest } = useApprovalRequest();
+  const { approvalRequest, pageMeta } = useApprovalRequest();
   const origin = approvalRequest?.origin as string;
+
+  // Get the request source to determine if the origin is verifiable
+  const requestSource = pageMeta?.analytics?.request_source as
+    | string
+    | undefined;
 
   const signatureRequest = useSignatureRequest();
   const isPermit = isRecognizedPermit(signatureRequest);
@@ -66,7 +71,7 @@ export const InfoSectionOriginAndDetails = () => {
         label={strings('confirm.label.request_from')}
         tooltip={strings('confirm.personal_sign_tooltip')}
       >
-        <DisplayURL url={origin} />
+        <DisplayURL url={origin} requestSource={requestSource} />
       </InfoRow>
       <InfoRow label={strings('transactions.network')}>
         <View style={styles.networkRowContainer}>

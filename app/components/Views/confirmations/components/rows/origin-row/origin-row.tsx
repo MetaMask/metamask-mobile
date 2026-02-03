@@ -15,10 +15,15 @@ import Address from '../../UI/info-row/info-value/address';
 import DisplayURL from '../../UI/info-row/info-value/display-url';
 
 const OriginRow = () => {
-  const { approvalRequest } = useApprovalRequest();
+  const { approvalRequest, pageMeta } = useApprovalRequest();
   const signatureRequest = useSignatureRequest();
   const transactionMetadata = useTransactionMetadataRequest();
   const { chainId, fromAddress, isSIWEMessage, url } = useApprovalInfo() ?? {};
+
+  // Get the request source to determine if the origin is verifiable
+  const requestSource = pageMeta?.analytics?.request_source as
+    | string
+    | undefined;
 
   if (!approvalRequest) {
     return null;
@@ -40,7 +45,7 @@ const OriginRow = () => {
             : 'confirm.transaction_tooltip',
         )}
       >
-        <DisplayURL url={url ?? ''} />
+        <DisplayURL url={url ?? ''} requestSource={requestSource} />
       </AlertRow>
       {signatureRequest && isSIWEMessage && (
         <InfoRow

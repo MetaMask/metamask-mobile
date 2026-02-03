@@ -31,6 +31,9 @@ const styleSheet = (params: { theme: Theme }) => {
       color: theme.colors.error.default,
       marginLeft: 4,
     },
+    trustSignalIcon: {
+      marginRight: 4,
+    },
   });
 };
 
