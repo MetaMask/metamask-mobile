@@ -79,6 +79,9 @@ const PerpsMarketListView = ({
   const fadeAnimation = useRef(new Animated.Value(0)).current;
   const [isSortFieldSheetVisible, setIsSortFieldSheetVisible] = useState(false);
 
+  // Store the market type filter before entering search, so we can restore it when exiting
+  const preSearchFilterRef = useRef<MarketTypeFilter>(defaultMarketTypeFilter);
+
   // Use the combined market list view hook for all business logic
   const {
     markets: filteredMarkets,
@@ -186,16 +189,26 @@ const PerpsMarketListView = ({
     toggleSearchVisibility();
 
     if (isSearchVisible) {
-      // When disabling search, clear the query
+      // When disabling search, clear the query and restore the filter to what it was before search
       clearSearch();
+      setMarketTypeFilter(preSearchFilterRef.current);
     } else {
-      // When enabling search, track the event
+      // When enabling search, store the current filter so we can restore it when exiting
+      preSearchFilterRef.current = marketTypeFilter;
+      // Track the event
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PerpsEventProperties.INTERACTION_TYPE]:
           PerpsEventValues.INTERACTION_TYPE.SEARCH_CLICKED,
       });
     }
-  }, [isSearchVisible, toggleSearchVisibility, clearSearch, track]);
+  }, [
+    isSearchVisible,
+    toggleSearchVisibility,
+    clearSearch,
+    track,
+    setMarketTypeFilter,
+    marketTypeFilter,
+  ]);
 
   // Performance tracking: Measure screen load time until market data is displayed
   usePerpsMeasurement({
