@@ -118,12 +118,9 @@ jest.mock('../../Bridge/hooks/useSwapBridgeNavigation', () => ({
   isAssetFromTrending: jest.fn(() => false),
 }));
 
-const mockGetDefaultDestToken = jest.fn();
-const mockGetNativeSourceToken = jest.fn();
 jest.mock('../../Bridge/utils/tokenUtils', () => ({
-  getDefaultDestToken: (...args: unknown[]) => mockGetDefaultDestToken(...args),
-  getNativeSourceToken: (...args: unknown[]) =>
-    mockGetNativeSourceToken(...args),
+  getDefaultDestToken: jest.fn(),
+  getNativeSourceToken: jest.fn(),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -228,31 +225,12 @@ describe('useTokenActions', () => {
     };
   };
 
-  const mockMusdToken = {
-    address: '0x866e82a600a1414e583f7f13623f1ac5d58b0afa',
-    chainId: '0x1',
-    decimals: 18,
-    symbol: 'mUSD',
-    name: 'MetaMask USD',
-  };
-
-  const mockNativeToken = {
-    address: '0x0000000000000000000000000000000000000000',
-    chainId: '0x1',
-    decimals: 18,
-    symbol: 'ETH',
-    name: 'Ethereum',
-  };
-
   // Store mocks returned from setupDefaultMocks for per-test overrides
   let selectorMocks: ReturnType<typeof setupDefaultMocks>;
 
   beforeEach(() => {
     jest.clearAllMocks();
     selectorMocks = setupDefaultMocks();
-    // Default mock implementations for tokenUtils
-    mockGetDefaultDestToken.mockReturnValue(mockMusdToken);
-    mockGetNativeSourceToken.mockReturnValue(mockNativeToken);
   });
 
   describe('getSwapTokens', () => {
@@ -489,7 +467,7 @@ describe('useTokenActions', () => {
   });
 
   describe('handleSellPress', () => {
-    it('calls goToSwaps with current token as source and default dest token', () => {
+    it('calls goToSwaps with current token as source and undefined dest (swap UI handles dest selection)', () => {
       const { result } = renderHook(() =>
         useTokenActions({
           token: defaultToken,
@@ -506,146 +484,7 @@ describe('useTokenActions', () => {
           chainId: defaultToken.chainId,
           symbol: defaultToken.symbol,
         }),
-        expect.objectContaining({
-          address: mockMusdToken.address,
-          symbol: 'mUSD',
-        }),
-      );
-    });
-
-    it('falls back to native token when selling mUSD (source === default dest)', () => {
-      const musdToken: TokenI = {
-        address: '0x866e82a600a1414e583f7f13623f1ac5d58b0afa',
-        chainId: '0x1',
-        symbol: 'mUSD',
-        decimals: 18,
-        name: 'MetaMask USD',
-        isETH: false,
-        isNative: false,
-      } as TokenI;
-
-      const { result } = renderHook(() =>
-        useTokenActions({
-          token: musdToken,
-          networkName: 'Ethereum Mainnet',
-        }),
-      );
-
-      result.current.handleSellPress();
-
-      // Should fall back to native token since source === default dest
-      expect(mockGoToSwaps).toHaveBeenCalledWith(
-        expect.objectContaining({
-          address: musdToken.address,
-          symbol: 'mUSD',
-        }),
-        expect.objectContaining({
-          address: mockNativeToken.address,
-          symbol: 'ETH',
-        }),
-      );
-    });
-
-    it('returns undefined dest when source is native and no default dest exists', () => {
-      const nativeToken: TokenI = {
-        address: '0x0000000000000000000000000000000000000000',
-        chainId: '0x89', // Polygon (unsupported in default dest)
-        symbol: 'MATIC',
-        decimals: 18,
-        name: 'Matic',
-        isETH: false,
-        isNative: true,
-      } as TokenI;
-
-      // No default dest for this chain
-      mockGetDefaultDestToken.mockReturnValue(undefined);
-      // Native token is the same as source
-      mockGetNativeSourceToken.mockReturnValue({
-        address: '0x0000000000000000000000000000000000000000',
-        chainId: '0x89',
-        decimals: 18,
-        symbol: 'MATIC',
-        name: 'Matic',
-      });
-
-      const { result } = renderHook(() =>
-        useTokenActions({
-          token: nativeToken,
-          networkName: 'Polygon',
-        }),
-      );
-
-      result.current.handleSellPress();
-
-      // destToken should be undefined - swap UI will handle
-      expect(mockGoToSwaps).toHaveBeenCalledWith(
-        expect.objectContaining({
-          address: nativeToken.address,
-          symbol: 'MATIC',
-        }),
         undefined,
-      );
-    });
-  });
-
-  describe('sellDestToken logic', () => {
-    it('uses getDefaultDestToken for supported chains (Ethereum -> mUSD)', () => {
-      const { result } = renderHook(() =>
-        useTokenActions({
-          token: defaultToken,
-          networkName: 'Ethereum Mainnet',
-        }),
-      );
-
-      // Verify getDefaultDestToken was called with the token's chainId
-      expect(mockGetDefaultDestToken).toHaveBeenCalledWith('0x1');
-
-      result.current.handleSellPress();
-
-      expect(mockGoToSwaps).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.objectContaining({
-          symbol: 'mUSD',
-        }),
-      );
-    });
-
-    it('uses native token when getDefaultDestToken returns same as source', () => {
-      // Simulate selling mUSD - getDefaultDestToken returns mUSD
-      mockGetDefaultDestToken.mockReturnValue({
-        address: '0x866e82a600a1414e583f7f13623f1ac5d58b0afa',
-        chainId: '0x1',
-        decimals: 18,
-        symbol: 'mUSD',
-        name: 'MetaMask USD',
-      });
-
-      const musdToken: TokenI = {
-        address: '0x866e82a600a1414e583f7f13623f1ac5d58b0afa',
-        chainId: '0x1',
-        symbol: 'mUSD',
-        decimals: 18,
-        name: 'MetaMask USD',
-        isETH: false,
-        isNative: false,
-      } as TokenI;
-
-      const { result } = renderHook(() =>
-        useTokenActions({
-          token: musdToken,
-          networkName: 'Ethereum Mainnet',
-        }),
-      );
-
-      result.current.handleSellPress();
-
-      // Should use native token as fallback
-      expect(mockGoToSwaps).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.objectContaining({
-          symbol: 'ETH',
-          address: '0x0000000000000000000000000000000000000000',
-        }),
       );
     });
   });
