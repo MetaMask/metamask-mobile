@@ -5,9 +5,16 @@ import {
   StateMetadata,
 } from '@metamask/base-controller';
 import type { Messenger } from '@metamask/messenger';
-import type { NetworkControllerGetStateAction } from '@metamask/network-controller';
+import type {
+  NetworkControllerGetStateAction,
+  NetworkControllerGetNetworkClientByIdAction,
+  NetworkControllerFindNetworkClientIdByChainIdAction,
+} from '@metamask/network-controller';
+import type { AccountsControllerGetSelectedAccountAction } from '@metamask/accounts-controller';
+import type { KeyringControllerSignTypedMessageAction } from '@metamask/keyring-controller';
 import type { AuthenticationController } from '@metamask/profile-sync-controller';
 import {
+  TransactionControllerAddTransactionAction,
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerTransactionFailedEvent,
   TransactionControllerTransactionSubmittedEvent,
@@ -627,12 +634,17 @@ export type PerpsControllerActions =
     };
 
 /**
- * External actions the PerpsController can call
+ * External actions the PerpsController can call via messenger
  */
 export type AllowedActions =
   | NetworkControllerGetStateAction
   | AuthenticationController.AuthenticationControllerGetBearerToken
-  | RemoteFeatureFlagControllerGetStateAction;
+  | RemoteFeatureFlagControllerGetStateAction
+  | AccountsControllerGetSelectedAccountAction
+  | KeyringControllerSignTypedMessageAction
+  | NetworkControllerGetNetworkClientByIdAction
+  | NetworkControllerFindNetworkClientIdByChainIdAction
+  | TransactionControllerAddTransactionAction;
 
 /**
  * External events the PerpsController can subscribe to
@@ -750,18 +762,20 @@ export class PerpsController extends BaseController<
       infrastructure,
     };
 
-    // Instantiate services with platform dependencies
+    // Instantiate services with platform dependencies and messenger
+    // Services that need inter-controller communication receive the messenger
     this.tradingService = new TradingService(infrastructure);
     this.marketDataService = new MarketDataService(infrastructure);
-    this.accountService = new AccountService(infrastructure);
+    this.accountService = new AccountService(infrastructure, messenger);
     this.eligibilityService = new EligibilityService(infrastructure);
-    this.dataLakeService = new DataLakeService(infrastructure);
-    this.depositService = new DepositService(infrastructure);
+    this.dataLakeService = new DataLakeService(infrastructure, messenger);
+    this.depositService = new DepositService(infrastructure, messenger);
     this.featureFlagConfigurationService = new FeatureFlagConfigurationService(
       infrastructure,
     );
     this.rewardsIntegrationService = new RewardsIntegrationService(
       infrastructure,
+      messenger,
     );
 
     // Set HIP-3 fallback configuration from client (will be updated if remote flags available)
@@ -842,6 +856,63 @@ export class PerpsController extends BaseController<
    */
   private getMetrics(): PerpsPlatformDependencies['metrics'] {
     return this.options.infrastructure.metrics;
+  }
+
+  // ============================================================================
+  // Messenger-based Controller Access
+  // These methods use the messenger pattern for inter-controller communication
+  // ============================================================================
+
+  /**
+   * Get selected EVM account via messenger
+   */
+  private getSelectedEvmAccount(): { address: string } | undefined {
+    const account = this.messenger.call(
+      'AccountsController:getSelectedAccount',
+    );
+    // Filter for EVM accounts (eip155:eoa or eip155:erc4337)
+    if (account?.type === 'eip155:eoa' || account?.type === 'eip155:erc4337') {
+      return { address: account.address };
+    }
+    return undefined;
+  }
+
+  /**
+   * Find network client ID for a given chain via messenger
+   */
+  private findNetworkClientIdForChain(chainId: string): string | undefined {
+    return this.messenger.call(
+      'NetworkController:findNetworkClientIdByChainId',
+      chainId as `0x${string}`,
+    );
+  }
+
+  /**
+   * Submit a transaction via messenger (shows confirmation screen)
+   */
+  private async submitTransaction(
+    txParams: {
+      from: string;
+      to?: string;
+      value?: string;
+      data?: string;
+      gas?: string;
+    },
+    options: {
+      networkClientId: string;
+      origin?: string;
+      type?: TransactionType;
+      skipInitialGasEstimate?: boolean;
+    },
+  ): Promise<{
+    result: Promise<string>;
+    transactionMeta: { id: string; hash?: string };
+  }> {
+    return this.messenger.call(
+      'TransactionController:addTransaction',
+      txParams,
+      options,
+    );
   }
 
   /**
@@ -1093,6 +1164,7 @@ export class PerpsController extends BaseController<
           allowlistMarkets: this.hip3AllowlistMarkets,
           blocklistMarkets: this.hip3BlocklistMarkets,
           platformDependencies: this.options.infrastructure,
+          messenger: this.messenger,
         });
         this.providers.set('hyperliquid', hyperLiquidProvider);
 
@@ -1251,13 +1323,10 @@ export class PerpsController extends BaseController<
 
   /**
    * Ensure TradingService has controller dependencies set.
-   * Uses injectable dependencies from infrastructure for core migration compatibility.
+   * RewardsIntegrationService uses messenger internally for controller access.
    */
   private ensureTradingServiceDeps(): void {
-    const { controllers } = this.options.infrastructure;
     this.tradingService.setControllerDependencies({
-      controllers,
-      messenger: this.messenger,
       rewardsIntegrationService: this.rewardsIntegrationService,
     });
   }
@@ -1491,7 +1560,6 @@ export class PerpsController extends BaseController<
    */
   async depositWithConfirmation(params: DepositWithConfirmationParams = {}) {
     const { amount, placeOrder } = params;
-    const { controllers } = this.options.infrastructure;
 
     try {
       // Clear any stale results when starting a new deposit flow
@@ -1502,13 +1570,12 @@ export class PerpsController extends BaseController<
       const { transaction, assetChainId, currentDepositId } =
         await this.depositService.prepareTransaction({ provider });
 
+      // Get current account address via messenger (outside of update() for proper typing)
+      const evmAccount = this.getSelectedEvmAccount();
+      const accountAddress = evmAccount?.address || 'unknown';
+
       this.update((state) => {
         state.lastDepositResult = null;
-
-        // Get current account address via infrastructure
-        const evmAccount =
-          this.options.infrastructure.controllers.accounts.getSelectedEvmAccount();
-        const accountAddress = evmAccount?.address || 'unknown';
 
         // Add deposit request to tracking
         const depositRequest = {
@@ -1527,8 +1594,7 @@ export class PerpsController extends BaseController<
         state.depositRequests.unshift(depositRequest); // Add to beginning of array
       });
 
-      const networkClientId =
-        controllers.network.findNetworkClientIdForChain(assetChainId);
+      const networkClientId = this.findNetworkClientIdForChain(assetChainId);
 
       if (!networkClientId) {
         throw new Error(
@@ -1563,7 +1629,7 @@ export class PerpsController extends BaseController<
       } else {
         // submit shows the confirmation screen and returns a promise
         // The promise will resolve when transaction completes or reject if cancelled/failed
-        const submitResult = await controllers.transaction.submit(transaction, {
+        const submitResult = await this.submitTransaction(transaction, {
           ...defaultTransactionOptions,
           type: TransactionType.perpsDeposit,
         });
@@ -1953,6 +2019,7 @@ export class PerpsController extends BaseController<
         allowlistMarkets: this.hip3AllowlistMarkets,
         blocklistMarkets: this.hip3BlocklistMarkets,
         platformDependencies: this.options.infrastructure,
+        messenger: this.messenger,
       });
       return provider.getMarkets(params);
     }

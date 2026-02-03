@@ -8,13 +8,11 @@ import {
   PerpsEventValues,
 } from '../../constants/eventNames';
 import type { ServiceContext } from './ServiceContext';
-import type { PerpsControllerMessenger } from '../PerpsController';
 import {
   PerpsAnalyticsEvent,
   PerpsTraceNames,
   PerpsTraceOperations,
   type PerpsProvider,
-  type PerpsControllerAccess,
   type OrderParams,
   type OrderResult,
   type EditOrderParams,
@@ -36,8 +34,6 @@ import {
  * These are singletons that don't change per-call, injected once via setControllerDependencies().
  */
 export interface TradingServiceControllerDeps {
-  controllers: PerpsControllerAccess;
-  messenger: PerpsControllerMessenger;
   rewardsIntegrationService: RewardsIntegrationService;
 }
 
@@ -724,17 +720,13 @@ export class TradingService {
       return undefined;
     }
 
-    const { controllers, messenger, rewardsIntegrationService } =
-      this.controllerDeps;
+    const { rewardsIntegrationService } = this.controllerDeps;
 
     const orderExecutionFeeDiscountStartTime = this.deps.performance.now();
 
-    // Calculate fee discount using injected controllers
+    // Calculate fee discount using messenger pattern (service handles controller access internally)
     const discountBips =
-      await rewardsIntegrationService.calculateUserFeeDiscount({
-        controllers,
-        messenger,
-      });
+      await rewardsIntegrationService.calculateUserFeeDiscount();
 
     const orderExecutionFeeDiscountDuration =
       this.deps.performance.now() - orderExecutionFeeDiscountStartTime;

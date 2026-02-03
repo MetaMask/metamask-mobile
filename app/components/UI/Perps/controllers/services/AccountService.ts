@@ -9,6 +9,7 @@ import {
   type WithdrawResult,
   type PerpsPlatformDependencies,
 } from '../types';
+import type { PerpsControllerMessenger } from '../PerpsController';
 import type { TransactionStatus } from '../../types/transactionTypes';
 import { v4 as uuidv4 } from 'uuid';
 import {
@@ -25,17 +26,38 @@ import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
  * Stateless service that delegates to provider.
  * Controller handles state updates and analytics.
  *
- * Instance-based service with constructor injection of platform dependencies.
+ * Instance-based service with constructor injection of platform dependencies
+ * and messenger for inter-controller communication.
  */
 export class AccountService {
   private readonly deps: PerpsPlatformDependencies;
+  private readonly messenger: PerpsControllerMessenger;
 
   /**
    * Create a new AccountService instance
    * @param deps - Platform dependencies for logging, metrics, etc.
+   * @param messenger - Messenger for inter-controller communication
    */
-  constructor(deps: PerpsPlatformDependencies) {
+  constructor(
+    deps: PerpsPlatformDependencies,
+    messenger: PerpsControllerMessenger,
+  ) {
     this.deps = deps;
+    this.messenger = messenger;
+  }
+
+  /**
+   * Get selected EVM account via messenger
+   */
+  private getSelectedEvmAccount(): { address: string } | undefined {
+    const account = this.messenger.call(
+      'AccountsController:getSelectedAccount',
+    );
+    // Filter for EVM accounts (eip155:eoa or eip155:erc4337)
+    if (account?.type === 'eip155:eoa' || account?.type === 'eip155:erc4337') {
+      return { address: account.address };
+    }
+    return undefined;
   }
 
   /**
@@ -98,9 +120,8 @@ export class AccountService {
           const feeAmount = 1.0; // HyperLiquid withdrawal fee is $1 USDC
           const netAmount = Math.max(0, grossAmount - feeAmount);
 
-          // Get current account address via controllers.accounts
-          const evmAccount =
-            this.deps.controllers.accounts.getSelectedEvmAccount();
+          // Get current account address via messenger
+          const evmAccount = this.getSelectedEvmAccount();
           const accountAddress = evmAccount?.address || 'unknown';
 
           this.deps.debugLogger.log(

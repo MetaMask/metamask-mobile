@@ -8,6 +8,7 @@ import {
   PerpsTraceOperations,
   type PerpsPlatformDependencies,
 } from '../types';
+import type { PerpsControllerMessenger } from '../PerpsController';
 
 /**
  * DataLakeService
@@ -16,17 +17,45 @@ import {
  * Implements exponential backoff retry logic and performance tracing.
  * Stateless service that operates purely on external API calls.
  *
- * Instance-based service with constructor injection of platform dependencies.
+ * Instance-based service with constructor injection of platform dependencies
+ * and messenger for inter-controller communication.
  */
 export class DataLakeService {
   private readonly deps: PerpsPlatformDependencies;
+  private readonly messenger: PerpsControllerMessenger;
 
   /**
    * Create a new DataLakeService instance
    * @param deps - Platform dependencies for logging, metrics, etc.
+   * @param messenger - Messenger for inter-controller communication
    */
-  constructor(deps: PerpsPlatformDependencies) {
+  constructor(
+    deps: PerpsPlatformDependencies,
+    messenger: PerpsControllerMessenger,
+  ) {
     this.deps = deps;
+    this.messenger = messenger;
+  }
+
+  /**
+   * Get selected EVM account via messenger
+   */
+  private getSelectedEvmAccount(): { address: string } | undefined {
+    const account = this.messenger.call(
+      'AccountsController:getSelectedAccount',
+    );
+    // Filter for EVM accounts (eip155:eoa or eip155:erc4337)
+    if (account?.type === 'eip155:eoa' || account?.type === 'eip155:erc4337') {
+      return { address: account.address };
+    }
+    return undefined;
+  }
+
+  /**
+   * Get bearer token via messenger
+   */
+  private async getBearerToken(): Promise<string> {
+    return this.messenger.call('AuthenticationController:getBearerToken');
   }
 
   /**
@@ -124,8 +153,8 @@ export class DataLakeService {
     const apiCallStartTime = this.deps.performance.now();
 
     try {
-      const token = await this.deps.controllers.authentication.getBearerToken();
-      const evmAccount = this.deps.controllers.accounts.getSelectedEvmAccount();
+      const token = await this.getBearerToken();
+      const evmAccount = this.getSelectedEvmAccount();
 
       if (!evmAccount || !token) {
         this.deps.debugLogger.log('DataLake API: Missing requirements', {

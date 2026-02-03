@@ -6,6 +6,7 @@ import type { TransactionParams } from '@metamask/transaction-controller';
 import { generateTransferData } from '../../../../../util/transactions';
 import { generateDepositId } from '../../utils/idUtils';
 import type { PerpsProvider, PerpsPlatformDependencies } from '../types';
+import type { PerpsControllerMessenger } from '../PerpsController';
 
 // Temporary to avoid estimation failures due to insufficient balance
 const DEPOSIT_GAS_LIMIT = toHex(100000);
@@ -17,17 +18,38 @@ const DEPOSIT_GAS_LIMIT = toHex(100000);
  * Stateless service that prepares transaction data for TransactionController.
  * Controller handles TransactionController integration and promise lifecycle.
  *
- * Instance-based service with constructor injection of platform dependencies.
+ * Instance-based service with constructor injection of platform dependencies
+ * and messenger for inter-controller communication.
  */
 export class DepositService {
   private readonly deps: PerpsPlatformDependencies;
+  private readonly messenger: PerpsControllerMessenger;
 
   /**
    * Create a new DepositService instance
    * @param deps - Platform dependencies for logging, metrics, etc.
+   * @param messenger - Messenger for inter-controller communication
    */
-  constructor(deps: PerpsPlatformDependencies) {
+  constructor(
+    deps: PerpsPlatformDependencies,
+    messenger: PerpsControllerMessenger,
+  ) {
     this.deps = deps;
+    this.messenger = messenger;
+  }
+
+  /**
+   * Get selected EVM account via messenger
+   */
+  private getSelectedEvmAccount(): { address: string } | undefined {
+    const account = this.messenger.call(
+      'AccountsController:getSelectedAccount',
+    );
+    // Filter for EVM accounts (eip155:eoa or eip155:erc4337)
+    if (account?.type === 'eip155:eoa' || account?.type === 'eip155:erc4337') {
+      return { address: account.address };
+    }
+    return undefined;
   }
 
   /**
@@ -61,8 +83,8 @@ export class DepositService {
       amount: '0x0',
     });
 
-    // Get EVM account from selected account group via dependency injection
-    const evmAccount = this.deps.controllers.accounts.getSelectedEvmAccount();
+    // Get EVM account from selected account group via messenger
+    const evmAccount = this.getSelectedEvmAccount();
     if (!evmAccount) {
       throw new Error(
         'No EVM-compatible account found in selected account group',
