@@ -21,9 +21,9 @@ export interface UseRampsTokensResult {
   selectedToken: RampsToken | null;
   /**
    * Sets the selected token by asset ID.
-   * @param token - The token to select, or null to clear selection.
+   * @param assetId - The asset ID of the token to select.
    */
-  setSelectedToken: (token: RampsToken | null) => void;
+  setSelectedToken: (assetId: string) => void;
   /**
    * Whether the tokens request is currently loading.
    */
@@ -49,8 +49,8 @@ export function useRampsTokens(): UseRampsTokensResult {
   } = useSelector(selectTokens);
 
   const setSelectedToken = useCallback(
-    (token: RampsToken | null) =>
-      Engine.context.RampsController.setSelectedToken(token?.assetId),
+    (assetId: string) =>
+      Engine.context.RampsController.setSelectedToken(assetId),
     [],
   );
 

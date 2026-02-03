@@ -146,29 +146,15 @@ describe('useRampsTokens', () => {
       const { result } = renderHook(() => useRampsTokens(), {
         wrapper: wrapper(store),
       });
+      const assetId = mockSelectedToken.assetId;
 
       act(() => {
-        result.current.setSelectedToken(mockSelectedToken);
+        result.current.setSelectedToken(assetId);
       });
 
       expect(
         Engine.context.RampsController.setSelectedToken,
-      ).toHaveBeenCalledWith(mockSelectedToken.assetId);
-    });
-
-    it('calls Engine.context.RampsController.setSelectedToken with undefined when token is null', () => {
-      const store = createMockStore();
-      const { result } = renderHook(() => useRampsTokens(), {
-        wrapper: wrapper(store),
-      });
-
-      act(() => {
-        result.current.setSelectedToken(null);
-      });
-
-      expect(
-        Engine.context.RampsController.setSelectedToken,
-      ).toHaveBeenCalledWith(undefined);
+      ).toHaveBeenCalledWith(assetId);
     });
   });
 });
