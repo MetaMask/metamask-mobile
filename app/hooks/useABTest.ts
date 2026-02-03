@@ -126,10 +126,10 @@ export function useABTest<T extends ABTestVariants>(
 
   // Determine the variant name: use flag value if it's a valid variant, otherwise fallback to 'control'
   const variantName =
-    flagValue && flagValue in variants ? flagValue : 'control';
+    flagValue && Object.hasOwn(variants, flagValue) ? flagValue : 'control';
 
   // Check if the test is active (flag is set AND matches a valid variant)
-  const isActive = Boolean(flagValue && flagValue in variants);
+  const isActive = Boolean(flagValue && Object.hasOwn(variants, flagValue));
 
   return {
     variant: variants[variantName as keyof T],
