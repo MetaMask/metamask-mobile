@@ -37,6 +37,7 @@ import PerpsStreamBridge from '../components/PerpsStreamBridge';
 import { HIP3DebugView } from '../Debug';
 import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWarningBottomSheet';
 import { useTheme } from '../../../../util/theme';
+import { RouteProp, useRoute } from '@react-navigation/native';
 
 const Stack = createStackNavigator<PerpsNavigationParamList>();
 const ModalStack = createStackNavigator();
@@ -47,8 +48,10 @@ const styles = StyleSheet.create({
   },
 });
 
+const DEFAULT_SHOW_PERPS_HEADER = true;
+
 function getRedesignedConfirmationsHeaderOptions({
-  showPerpsHeader = true,
+  showPerpsHeader = DEFAULT_SHOW_PERPS_HEADER,
 }: PerpsNavigationParamList['RedesignedConfirmations'] = {}) {
   return showPerpsHeader
     ? {
@@ -59,12 +62,21 @@ function getRedesignedConfirmationsHeaderOptions({
     : { header: () => null };
 }
 
-const PerpsConfirmScreen = (props: React.ComponentProps<typeof Confirm>) => {
+const PerpsConfirmScreen = (
+  props: React.ComponentProps<typeof Confirm> & {
+    route: RouteProp<PerpsNavigationParamList, 'RedesignedConfirmations'>;
+  },
+) => {
   const theme = useTheme();
+  const params =
+    useRoute<RouteProp<PerpsNavigationParamList, 'RedesignedConfirmations'>>();
+  const showPerpsHeader =
+    params?.params?.showPerpsHeader ?? DEFAULT_SHOW_PERPS_HEADER;
+
   return (
     <Confirm
       {...props}
-      disableSafeArea
+      disableSafeArea={!showPerpsHeader}
       fullscreenStyle={{
         backgroundColor: theme.colors.background.default,
       }}
