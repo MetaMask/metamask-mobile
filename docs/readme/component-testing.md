@@ -10,7 +10,7 @@ They sit between unit tests and E2E tests in the testing pyramid:
 - **Faster than E2E tests**: No device/simulator needed, run in Jest
 - **State-driven**: Control what you test by setting up state, not by clicking through the UI
 
-## Unit Tests vs Component View Tests (Why "Shallow" vs "Full" Matters)
+## Unit Tests vs Component View Tests
 
 Many existing unit tests in our codebase are **shallow component tests** meaning they render a single component in isolation and replace its dependencies with mocks. Component view tests take the opposite approach where they render a full screen with real app state and only mock what is strictly necessary.
 
@@ -26,9 +26,9 @@ Typical unit tests for screens/components in our repo often:
 
 So “shallow” here means: **shallow rendering** (Enzyme) and **shallow integration** (lots of mocks, minimal real behavior). The component is exercised, but not in a realistic environment.
 
-### What Component View Tests Will Instead Do
+### What Component View Tests Will Do Instead
 
-Component view tests will:
+The Component view tests will:
 
 - **Render full screens** – The entire view (e.g. BridgeView, WalletView) is mounted with React Testing Library. Real child components render; you see the same component tree the user would see (minus native/Engine side effects we explicitly mock).
 - **Mock only Engine and allowed native modules** – Only `Engine` (and `Engine/Engine`) and `react-native-device-info` may be mocked (enforced by ESLint and test setup). Hooks, selectors, and child components are **not** mocked.
