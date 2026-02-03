@@ -13,6 +13,15 @@ import { toChecksumAddress } from '../../../../util/address';
 import { createStakedTrxAsset } from '../../AssetOverview/utils/createStakedTrxAsset';
 ///: END:ONLY_INCLUDE_IF
 
+// Only checksum valid EVM addresses (0x prefix, 42 chars)
+// Returns original address for non-EVM chains (Tron, Solana, etc.)
+const normalizeAddress = (address: string): string => {
+  if (address?.startsWith('0x') && address.length === 42) {
+    return toChecksumAddress(address);
+  }
+  return address;
+};
+
 export interface UseTokenBalanceResult {
   balance: string | undefined;
   fiatBalance: string | undefined;
@@ -26,7 +35,7 @@ export interface UseTokenBalanceResult {
 export const useTokenBalance = (token: TokenI): UseTokenBalanceResult => {
   const processedAsset = useSelector((state: RootState) =>
     selectAsset(state, {
-      address: toChecksumAddress(token.address),
+      address: normalizeAddress(token.address),
       chainId: token.chainId as Hex,
       isStaked: Boolean(token.isStaked),
     }),
