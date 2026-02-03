@@ -103,7 +103,6 @@ import { BuildQuoteSelectors } from './BuildQuote.testIds';
 
 import { isNonEvmAddress } from '../../../../../../core/Multichain/utils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
-import Logger from '../../../../../../util/Logger';
 
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { createUnsupportedRegionModalNavigationDetails } from '../../components/UnsupportedRegionModal';
@@ -667,10 +666,13 @@ const BuildQuote = () => {
    * * Get Quote handlers
    */
   const handleGetQuotePress = useCallback(() => {
-    Logger.log(
-      '[BuildQuote] Continue pressed with selectedQuote:',
-      selectedQuote,
-    );
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.log(
+        '[BuildQuote] Continue pressed with selectedQuote:',
+        selectedQuote,
+      );
+    }
 
     if (!selectedAddress) {
       navigation.navigate(
@@ -1138,14 +1140,17 @@ const BuildQuote = () => {
                 isLoadingQuotes ||
                 !selectedQuote;
 
-              Logger.log('[BuildQuote Button]', {
-                amountNumber,
-                isLoadingQuotes,
-                isFetching,
-                selectedQuote: selectedQuote ? 'set' : 'null',
-                showSkeleton,
-                isDisabled,
-              });
+              if (__DEV__) {
+                // eslint-disable-next-line no-console
+                console.log('[BuildQuote Button]', {
+                  amountNumber,
+                  isLoadingQuotes,
+                  isFetching,
+                  selectedQuote: selectedQuote ? 'set' : 'null',
+                  showSkeleton,
+                  isDisabled,
+                });
+              }
 
               if (showSkeleton) {
                 return <SkeletonBox style={styles.buttonSkeleton} />;

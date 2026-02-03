@@ -9,7 +9,6 @@ import {
   selectQuotesError,
 } from '../../../../selectors/rampsController';
 import type { QuotesResponse, Quote } from '@metamask/ramps-controller';
-import Logger from '../../../../util/Logger';
 
 const DEBOUNCE_DELAY = 500; // 500ms debounce for amount changes
 
@@ -104,15 +103,18 @@ export function useRampsQuotes(
   const isLoading = isPendingNewQuotes || controllerIsLoading;
 
   // Debug logging
-  Logger.log('[useRampsQuotes]', {
-    amount,
-    walletAddress: walletAddress ? 'set' : 'null',
-    lastPolled: lastPolledAmountRef.current,
-    isPendingNewQuotes,
-    controllerIsLoading,
-    isLoading,
-    selectedQuote: selectedQuote ? 'set' : 'null',
-  });
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.log('[useRampsQuotes]', {
+      amount,
+      walletAddress: walletAddress ? 'set' : 'null',
+      lastPolled: lastPolledAmountRef.current,
+      isPendingNewQuotes,
+      controllerIsLoading,
+      isLoading,
+      selectedQuote: selectedQuote ? 'set' : 'null',
+    });
+  }
 
   return {
     quotes,
