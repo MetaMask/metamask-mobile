@@ -160,6 +160,47 @@ describe('PerpsWebSocketHealthToast.context', () => {
         expect(result.current.state.reconnectionAttempt).toBe(2);
         expect(result.current.state.isVisible).toBe(false);
       });
+
+      it('when hide({ userDismissed: true }), subsequent show() does not show until Connected', () => {
+        const { result } = renderHook(() => useWebSocketHealthToastContext(), {
+          wrapper,
+        });
+
+        act(() => {
+          result.current.show(WebSocketConnectionState.Disconnected, 1);
+        });
+        expect(result.current.state.isVisible).toBe(true);
+
+        act(() => {
+          result.current.hide({ userDismissed: true });
+        });
+        expect(result.current.state.isVisible).toBe(false);
+
+        // Showing Disconnected or Connecting again should not show (user dismissed)
+        act(() => {
+          result.current.show(WebSocketConnectionState.Disconnected, 2);
+        });
+        expect(result.current.state.isVisible).toBe(false);
+
+        act(() => {
+          result.current.show(WebSocketConnectionState.Connecting, 3);
+        });
+        expect(result.current.state.isVisible).toBe(false);
+
+        // Showing Connected clears userDismissed; next Disconnected will show again
+        act(() => {
+          result.current.show(WebSocketConnectionState.Connected, 0);
+        });
+        expect(result.current.state.isVisible).toBe(true);
+
+        act(() => {
+          result.current.hide();
+        });
+        act(() => {
+          result.current.show(WebSocketConnectionState.Disconnected, 4);
+        });
+        expect(result.current.state.isVisible).toBe(true);
+      });
     });
 
     describe('setOnRetry()', () => {

@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useMemo,
+} from 'react';
 import { WebSocketConnectionState } from '../../controllers/types';
 
 /** No-op function for context defaults */
@@ -13,6 +19,12 @@ export interface WebSocketHealthToastState {
   reconnectionAttempt: number;
 }
 
+/** Options for hiding the toast (e.g. user swipe dismiss) */
+export interface WebSocketHealthToastHideOptions {
+  /** When true, toast will not be shown again until connection is restored (Connected state) */
+  userDismissed?: boolean;
+}
+
 /**
  * Context params for controlling the WebSocket health toast.
  */
@@ -22,7 +34,7 @@ export interface WebSocketHealthToastContextParams {
     connectionState: WebSocketConnectionState,
     reconnectionAttempt?: number,
   ) => void;
-  hide: () => void;
+  hide: (options?: WebSocketHealthToastHideOptions) => void;
   onRetry?: () => void;
   setOnRetry: (callback: () => void) => void;
 }
@@ -50,22 +62,34 @@ export const WebSocketHealthToastProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
   const [state, setState] = useState<WebSocketHealthToastState>(defaultState);
-  const [onRetry, setOnRetryCallback] = useState<(() => void) | undefined>(
-    undefined,
-  );
+  const [userDismissed, setUserDismissed] = useState(false);
+  const [onRetryCallback, setOnRetryCallback] = useState<
+    (() => void) | undefined
+  >(undefined);
 
   const show = useCallback(
     (connectionState: WebSocketConnectionState, reconnectionAttempt = 0) => {
+      // When connection is restored, clear userDismissed so toast can show again on next disconnect
+      if (connectionState === WebSocketConnectionState.Connected) {
+        setUserDismissed(false);
+      }
+      // Don't show if user previously dismissed the toast (until connection is restored)
+      if (userDismissed) {
+        return;
+      }
       setState({
         isVisible: true,
         connectionState,
         reconnectionAttempt,
       });
     },
-    [],
+    [userDismissed],
   );
 
-  const hide = useCallback(() => {
+  const hide = useCallback((options?: WebSocketHealthToastHideOptions) => {
+    if (options?.userDismissed) {
+      setUserDismissed(true);
+    }
     setState((prev) => ({ ...prev, isVisible: false }));
   }, []);
 
@@ -73,10 +97,19 @@ export const WebSocketHealthToastProvider: React.FC<{
     setOnRetryCallback(() => callback);
   }, []);
 
+  const contextValue = useMemo(
+    () => ({
+      state,
+      show,
+      hide,
+      onRetry: onRetryCallback,
+      setOnRetry,
+    }),
+    [state, show, hide, onRetryCallback, setOnRetry],
+  );
+
   return (
-    <WebSocketHealthToastContext.Provider
-      value={{ state, show, hide, onRetry, setOnRetry }}
-    >
+    <WebSocketHealthToastContext.Provider value={contextValue}>
       {children}
     </WebSocketHealthToastContext.Provider>
   );
