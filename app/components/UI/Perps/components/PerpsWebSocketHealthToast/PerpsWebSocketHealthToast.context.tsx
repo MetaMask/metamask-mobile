@@ -69,12 +69,15 @@ export const WebSocketHealthToastProvider: React.FC<{
 
   const show = useCallback(
     (connectionState: WebSocketConnectionState, reconnectionAttempt = 0) => {
+      const isConnected =
+        connectionState === WebSocketConnectionState.Connected;
       // When connection is restored, clear userDismissed so toast can show again on next disconnect
-      if (connectionState === WebSocketConnectionState.Connected) {
+      if (isConnected) {
         setUserDismissed(false);
       }
-      // Don't show if user previously dismissed the toast (until connection is restored)
-      if (userDismissed) {
+      // Don't show Disconnected/Connecting if user previously dismissed (until connection is restored).
+      // Connected state always shows to avoid stale-closure: setUserDismissed(false) is async.
+      if (userDismissed && !isConnected) {
         return;
       }
       setState({
