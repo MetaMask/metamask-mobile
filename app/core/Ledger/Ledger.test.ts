@@ -328,6 +328,125 @@ describe('Ledger core', () => {
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
       ).rejects.toThrow('Unspecified error when connect Ledger Hardware,');
     });
+
+    it('throws ETH app not open error when TransportStatusError with 0x6e01', async () => {
+      const transportError = new Error('TransportStatusError');
+      transportError.name = 'TransportStatusError';
+      // @ts-expect-error statusCode is a custom property on TransportStatusError
+      transportError.statusCode = 0x6e01;
+      ledgerKeyring.getFirstPage.mockRejectedValueOnce(transportError);
+
+      await expect(
+        getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
+      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+    });
+
+    it('throws ETH app not open error when TransportStatusError with 0x6511', async () => {
+      const transportError = new Error('TransportStatusError');
+      transportError.name = 'TransportStatusError';
+      // @ts-expect-error statusCode is a custom property on TransportStatusError
+      transportError.statusCode = 0x6511;
+      ledgerKeyring.getPreviousPage.mockRejectedValueOnce(transportError);
+
+      await expect(
+        getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_PREVIOUS_PAGE),
+      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+    });
+
+    it('throws ETH app not open error when TransportStatusError with 0x6700', async () => {
+      const transportError = new Error('TransportStatusError');
+      transportError.name = 'TransportStatusError';
+      // @ts-expect-error statusCode is a custom property on TransportStatusError
+      transportError.statusCode = 0x6700;
+      ledgerKeyring.getFirstPage.mockRejectedValueOnce(transportError);
+
+      await expect(
+        getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
+      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+    });
+
+    it('throws ETH app not open error when error message contains 0x6511', async () => {
+      const error = new Error('Ledger device: APP_NOT_OPEN (0x6511)');
+      ledgerKeyring.getFirstPage.mockRejectedValueOnce(error);
+
+      await expect(
+        getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
+      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+    });
+
+    it('throws ETH app not open error when error message contains 0x6d00', async () => {
+      const error = new Error('TransportError: CLA_NOT_SUPPORTED (0x6d00)');
+      ledgerKeyring.getNextPage.mockRejectedValueOnce(error);
+
+      await expect(
+        getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_NEXT_PAGE),
+      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+    });
+
+    it('throws ETH app not open error when error message contains 0x6e00', async () => {
+      const error = new Error('TransportError: INS_NOT_SUPPORTED (0x6e00)');
+      ledgerKeyring.getFirstPage.mockRejectedValueOnce(error);
+
+      await expect(
+        getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
+      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+    });
+
+    it('throws ETH app not open error when error message contains 0x6e01', async () => {
+      const error = new Error('Ledger: INS_NOT_SUPPORTED variant (0x6e01)');
+      ledgerKeyring.getFirstPage.mockRejectedValueOnce(error);
+
+      await expect(
+        getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
+      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+    });
+
+    it('throws ETH app not open error when error message contains 0x6700', async () => {
+      const error = new Error('Ledger: INCORRECT_LENGTH (0x6700)');
+      ledgerKeyring.getFirstPage.mockRejectedValueOnce(error);
+
+      await expect(
+        getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
+      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+    });
+
+    it('throws ETH app not open error for unknown_error pattern with 0x650f', async () => {
+      const error = new Error('ledger device: unknown_error (0x650f)');
+      ledgerKeyring.getFirstPage.mockRejectedValueOnce(error);
+
+      await expect(
+        getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
+      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+    });
+
+    it('throws ETH app not open error for unknown_error pattern with 0x6511', async () => {
+      const error = new Error('ledger device: unknown_error (0x6511)');
+      ledgerKeyring.getFirstPage.mockRejectedValueOnce(error);
+
+      await expect(
+        getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
+      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+    });
+
+    it('does not throw ETH app not open error for non-matching status codes', async () => {
+      const transportError = new Error('TransportStatusError');
+      transportError.name = 'TransportStatusError';
+      // @ts-expect-error statusCode is a custom property on TransportStatusError
+      transportError.statusCode = 0x1234; // Non-matching code
+      ledgerKeyring.getFirstPage.mockRejectedValueOnce(transportError);
+
+      await expect(
+        getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
+      ).rejects.toThrow('Unspecified error when connect Ledger Hardware,');
+    });
+
+    it('does not throw ETH app not open error for non-Error objects', async () => {
+      ledgerKeyring.getFirstPage.mockRejectedValueOnce('string error');
+
+      await expect(
+        getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
+      ).rejects.toThrow('Unspecified error when connect Ledger Hardware,');
+    });
   });
 
   describe('ledgerSignTypedMessage', () => {
@@ -408,6 +527,93 @@ describe('Ledger core', () => {
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
         'Please open the Ethereum app on your Ledger device.',
+      );
+    });
+
+    it('throws ETH app not open error when TransportStatusError with 0x6e01', async () => {
+      const transportError = new Error('TransportStatusError');
+      transportError.name = 'TransportStatusError';
+      // @ts-expect-error statusCode is a custom property on TransportStatusError
+      transportError.statusCode = 0x6e01;
+      ledgerKeyring.addAccounts.mockRejectedValueOnce(transportError);
+
+      await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
+        'Please open the Ethereum app on your Ledger device.',
+      );
+    });
+
+    it('throws ETH app not open error when TransportStatusError with 0x6511', async () => {
+      const transportError = new Error('TransportStatusError');
+      transportError.name = 'TransportStatusError';
+      // @ts-expect-error statusCode is a custom property on TransportStatusError
+      transportError.statusCode = 0x6511;
+      ledgerKeyring.addAccounts.mockRejectedValueOnce(transportError);
+
+      await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
+        'Please open the Ethereum app on your Ledger device.',
+      );
+    });
+
+    it('throws ETH app not open error when TransportStatusError with 0x6700', async () => {
+      const transportError = new Error('TransportStatusError');
+      transportError.name = 'TransportStatusError';
+      // @ts-expect-error statusCode is a custom property on TransportStatusError
+      transportError.statusCode = 0x6700;
+      ledgerKeyring.addAccounts.mockRejectedValueOnce(transportError);
+
+      await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
+        'Please open the Ethereum app on your Ledger device.',
+      );
+    });
+
+    it('throws ETH app not open error when TransportStatusError with 0x650f', async () => {
+      const transportError = new Error('TransportStatusError');
+      transportError.name = 'TransportStatusError';
+      // @ts-expect-error statusCode is a custom property on TransportStatusError
+      transportError.statusCode = 0x650f;
+      ledgerKeyring.addAccounts.mockRejectedValueOnce(transportError);
+
+      await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
+        'Please open the Ethereum app on your Ledger device.',
+      );
+    });
+
+    it('throws ETH app not open error when error message contains 0x650f', async () => {
+      const error = new Error('Ledger device: UNKNOWN_ERROR (0x650f)');
+      ledgerKeyring.addAccounts.mockRejectedValueOnce(error);
+
+      await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
+        'Please open the Ethereum app on your Ledger device.',
+      );
+    });
+
+    it('throws ETH app not open error when error message contains 0x6511', async () => {
+      const error = new Error('Ledger device: APP_NOT_OPEN (0x6511)');
+      ledgerKeyring.addAccounts.mockRejectedValueOnce(error);
+
+      await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
+        'Please open the Ethereum app on your Ledger device.',
+      );
+    });
+
+    it('throws original error for non-ETH app not open errors', async () => {
+      const error = new Error('Some other error');
+      ledgerKeyring.addAccounts.mockRejectedValueOnce(error);
+
+      await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
+        'Some other error',
+      );
+    });
+
+    it('does not throw ETH app not open error for non-matching status codes', async () => {
+      const transportError = new Error('TransportStatusError');
+      transportError.name = 'TransportStatusError';
+      // @ts-expect-error statusCode is a custom property on TransportStatusError
+      transportError.statusCode = 0x1234; // Non-matching code
+      ledgerKeyring.addAccounts.mockRejectedValueOnce(transportError);
+
+      await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
+        'TransportStatusError',
       );
     });
   });

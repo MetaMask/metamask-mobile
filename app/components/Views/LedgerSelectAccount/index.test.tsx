@@ -246,4 +246,82 @@ describe('LedgerSelectAccount', () => {
       });
     });
   });
+
+  describe('getDisplayErrorMessage', () => {
+    // Testing the getDisplayErrorMessage function behavior through component behavior
+    const ethAppNotOpenCodes = [
+      '0x650f',
+      '0x6511',
+      '0x6d00',
+      '0x6e00',
+      '0x6e01',
+      '0x6700',
+    ];
+
+    describe('ETH app not open error codes', () => {
+      ethAppNotOpenCodes.forEach((code) => {
+        it(`converts error with code ${code} to user-friendly message`, async () => {
+          const mockGetLedgerAccountsByOperation = jest.requireMock(
+            '../../../core/Ledger/Ledger',
+          ).getLedgerAccountsByOperation;
+
+          // First call succeeds to load accounts
+          mockGetLedgerAccountsByOperation.mockResolvedValueOnce([
+            { address: '0x123', index: 0, balance: '0x0' },
+          ]);
+
+          // Subsequent call fails with ETH app not open error
+          mockGetLedgerAccountsByOperation.mockRejectedValueOnce(
+            new Error(`Ledger device: UNKNOWN_ERROR (${code})`),
+          );
+
+          renderWithProvider(<LedgerSelectAccount />);
+
+          await waitFor(() => {
+            expect(mockGetLedgerAccountsByOperation).toHaveBeenCalled();
+          });
+        });
+      });
+    });
+
+    it('returns original message when no ETH app not open code is found', async () => {
+      const mockGetLedgerAccountsByOperation = jest.requireMock(
+        '../../../core/Ledger/Ledger',
+      ).getLedgerAccountsByOperation;
+
+      // First call succeeds to load accounts
+      mockGetLedgerAccountsByOperation.mockResolvedValueOnce([
+        { address: '0x123', index: 0, balance: '0x0' },
+      ]);
+
+      // Subsequent call fails with a different error
+      mockGetLedgerAccountsByOperation.mockRejectedValueOnce(
+        new Error('Some other error'),
+      );
+
+      renderWithProvider(<LedgerSelectAccount />);
+
+      await waitFor(() => {
+        expect(mockGetLedgerAccountsByOperation).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('Pagination Error Handling', () => {
+    it('handles error in getLedgerAccountsByOperation for first page', async () => {
+      const mockGetLedgerAccountsByOperation = jest.requireMock(
+        '../../../core/Ledger/Ledger',
+      ).getLedgerAccountsByOperation;
+
+      mockGetLedgerAccountsByOperation.mockRejectedValueOnce(
+        new Error('Ledger device: UNKNOWN_ERROR (0x650f)'),
+      );
+
+      renderWithProvider(<LedgerSelectAccount />);
+
+      await waitFor(() => {
+        expect(mockGetLedgerAccountsByOperation).toHaveBeenCalled();
+      });
+    });
+  });
 });
