@@ -13,7 +13,7 @@ describe(SmokeNetworkExpansion('Tron Connect E2E - Connect'), () => {
     jest.setTimeout(150000);
   });
 
-  it('Connects, disconnects and connects again', async () => {
+  it('Disconnects and connects again', async () => {
     await withTronAccountEnabled({}, async () => {
       await navigateToTronTestDApp();
 
