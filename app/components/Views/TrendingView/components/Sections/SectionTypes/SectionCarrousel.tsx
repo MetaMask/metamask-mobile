@@ -49,7 +49,11 @@ const SectionCarrousel: React.FC<SectionCarrouselProps> = ({
                 {isLoading ? (
                   <section.Skeleton />
                 ) : (
-                  <section.RowItem item={item} navigation={navigation} />
+                  <section.RowItem
+                    item={item}
+                    index={index}
+                    navigation={navigation}
+                  />
                 )}
               </Box>
             </Box>

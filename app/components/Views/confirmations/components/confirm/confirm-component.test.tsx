@@ -14,8 +14,6 @@ import {
   upgradeAccountConfirmation,
 } from '../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-// eslint-disable-next-line import/no-namespace
-import * as ConfirmationRedesignEnabled from '../../hooks/useConfirmationRedesignEnabled';
 import { Confirm, ConfirmationLoader } from './confirm-component';
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
@@ -40,20 +38,6 @@ jest.mock('../../../../../components/hooks/useEditNonce', () => ({
 jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
   AssetPollingProvider: () => null,
 }));
-
-jest.mock(
-  '../../../../../selectors/featureFlagController/confirmations',
-  () => ({
-    ...jest.requireActual(
-      '../../../../../selectors/featureFlagController/confirmations',
-    ),
-    selectConfirmationRedesignFlags: () => ({
-      signatures: true,
-      staking_confirmations: true,
-      contract_interaction: true,
-    }),
-  }),
-);
 
 jest.mock('../../hooks/gas/useGasFeeToken');
 jest.mock('../../hooks/tokens/useTokenWithBalance');
@@ -186,10 +170,6 @@ describe('Confirm', () => {
       onConfirm: jest.fn(),
     });
 
-    jest
-      .spyOn(ConfirmationRedesignEnabled, 'useConfirmationRedesignEnabled')
-      .mockReturnValue({ isRedesignedEnabled: true });
-
     jest.mocked(useConfirmationAlerts).mockReturnValue([]);
   });
 
@@ -296,10 +276,6 @@ describe('Confirm', () => {
   });
 
   it('renders information for contract interaction', async () => {
-    jest
-      .spyOn(ConfirmationRedesignEnabled, 'useConfirmationRedesignEnabled')
-      .mockReturnValue({ isRedesignedEnabled: true });
-
     const { getByText } = renderWithProvider(<Confirm />, {
       state: generateContractInteractionState,
     });
@@ -313,10 +289,6 @@ describe('Confirm', () => {
   });
 
   it('renders splash page if present', async () => {
-    jest
-      .spyOn(ConfirmationRedesignEnabled, 'useConfirmationRedesignEnabled')
-      .mockReturnValue({ isRedesignedEnabled: true });
-
     const { getByText } = renderWithProvider(<Confirm />, {
       state: getAppStateForConfirmation(upgradeAccountConfirmation, {
         PreferencesController: { smartAccountOptIn: false },
@@ -536,13 +508,13 @@ describe('Confirm', () => {
     });
   });
 
-  it('sets navigation options with header shown for full screen confirmations', () => {
+  it('sets navigation options with header hidden for full screen confirmations', () => {
     renderWithProvider(<Confirm />, {
       state: stakingDepositConfirmationState,
     });
 
     expect(mockSetOptions).toHaveBeenCalledWith({
-      headerShown: true,
+      headerShown: false,
       gestureEnabled: true,
     });
   });

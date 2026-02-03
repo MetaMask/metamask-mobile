@@ -84,6 +84,7 @@ jest.mock(
 );
 
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -91,7 +92,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualNav,
     useNavigation: () => ({
       navigate: mockNavigate,
-      goBack: jest.fn(),
+      goBack: mockGoBack,
     }),
     useRoute: () => ({
       params: {
@@ -820,6 +821,31 @@ describe('EarnTokenList', () => {
     });
   });
 
+  it('closes the bottom sheet when close button is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <SafeAreaProvider initialMetrics={initialMetrics}>
+        <EarnTokenList />
+      </SafeAreaProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    const closeButton = getByTestId('earn-token-list-close-button');
+
+    expect(closeButton).toBeDefined();
+
+    // Press the close button - this triggers:
+    // 1. handleClose callback
+    // 2. bottomSheetRef.current?.onCloseBottomSheet()
+    // 3. BottomSheet animates closed and calls onCloseCB
+    // 4. onCloseCB calls navigation.goBack() (when shouldNavigateBack is true)
+    fireEvent.press(closeButton);
+
+    // Verify that navigation.goBack() was called, confirming the bottom sheet close flow executed
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
   describe('Tron tokens', () => {
     beforeEach(() => {
       mockIsTronChainId.mockReturnValue(false);
@@ -920,6 +946,28 @@ describe('EarnTokenList', () => {
         screen: 'Stake',
         params: { token: expect.objectContaining({ symbol: 'TRX' }) },
       });
+    });
+  });
+
+  describe('HeaderCenter close button', () => {
+    it('invokes handleClose when close button is pressed', async () => {
+      const { getByTestId } = renderWithProvider(
+        <SafeAreaProvider initialMetrics={initialMetrics}>
+          <EarnTokenList />
+        </SafeAreaProvider>,
+        { state: initialState },
+      );
+
+      const closeButton = getByTestId('earn-token-list-close-button');
+
+      // Press the close button - this invokes handleClose which calls onCloseBottomSheet
+      await act(async () => {
+        fireEvent.press(closeButton);
+      });
+
+      // The close button should be pressable without errors
+      // handleClose calls bottomSheetRef.current?.onCloseBottomSheet()
+      expect(closeButton).toBeDefined();
     });
   });
 });

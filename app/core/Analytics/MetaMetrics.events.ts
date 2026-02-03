@@ -516,7 +516,7 @@ enum EVENT_NAME {
   NetworkConnectionBannerRpcUpdated = 'Network Connection Banner RPC Updated',
 
   // Deep Link Analytics - Consolidated Event
-  DEEP_LINK_USED = 'Deep link Used',
+  DEEP_LINK_USED = 'Deep Link Used',
 
   // What's New Link Clicked
   WHATS_NEW_LINK_CLICKED = "What's New Link Clicked",
@@ -545,6 +545,11 @@ enum EVENT_NAME {
   CARD_DELEGATION_PROCESS_COMPLETED = 'Card Delegation Process Completed',
   CARD_DELEGATION_PROCESS_FAILED = 'Card Delegation Process Failed',
   CARD_DELEGATION_PROCESS_USER_CANCELED = 'Card Delegation Process User Canceled',
+  CARD_METAL_CHECKOUT_VIEWED = 'Card Metal Checkout Viewed',
+  CARD_METAL_CHECKOUT_STARTED = 'Card Metal Checkout Started',
+  CARD_METAL_CHECKOUT_COMPLETED = 'Card Metal Checkout Completed',
+  CARD_METAL_CHECKOUT_FAILED = 'Card Metal Checkout Failed',
+  CARD_METAL_CHECKOUT_USER_CANCELED = 'Card Metal Checkout User Canceled',
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED = 'Rewards Account Linking Started',
   REWARDS_ACCOUNT_LINKING_COMPLETED = 'Rewards Account Linking Completed',
@@ -1435,6 +1440,21 @@ const events = {
   ),
   CARD_DELEGATION_PROCESS_USER_CANCELED: generateOpt(
     EVENT_NAME.CARD_DELEGATION_PROCESS_USER_CANCELED,
+  ),
+  CARD_METAL_CHECKOUT_VIEWED: generateOpt(
+    EVENT_NAME.CARD_METAL_CHECKOUT_VIEWED,
+  ),
+  CARD_METAL_CHECKOUT_STARTED: generateOpt(
+    EVENT_NAME.CARD_METAL_CHECKOUT_STARTED,
+  ),
+  CARD_METAL_CHECKOUT_COMPLETED: generateOpt(
+    EVENT_NAME.CARD_METAL_CHECKOUT_COMPLETED,
+  ),
+  CARD_METAL_CHECKOUT_FAILED: generateOpt(
+    EVENT_NAME.CARD_METAL_CHECKOUT_FAILED,
+  ),
+  CARD_METAL_CHECKOUT_USER_CANCELED: generateOpt(
+    EVENT_NAME.CARD_METAL_CHECKOUT_USER_CANCELED,
   ),
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED: generateOpt(

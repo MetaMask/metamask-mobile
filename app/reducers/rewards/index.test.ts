@@ -24,6 +24,17 @@ import rewardsReducer, {
   setUnlockedRewardLoading,
   setUnlockedRewardError,
   setPointsEvents,
+  setSnapshots,
+  setSnapshotsLoading,
+  setSnapshotsError,
+  bulkLinkStarted,
+  bulkLinkAccountResult,
+  bulkLinkCompleted,
+  bulkLinkCancelled,
+  bulkLinkSubscriptionChanged,
+  bulkLinkReset,
+  bulkLinkResumed,
+  BULK_LINK_CANCEL,
   RewardsState,
 } from '.';
 import { OnboardingStep } from './types';
@@ -31,6 +42,7 @@ import {
   SeasonStatusState,
   RewardClaimStatus,
   PointsEventDto,
+  SnapshotDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { AccountGroupId } from '@metamask/account-api';
 
@@ -39,54 +51,7 @@ const initialState: RewardsState = rewardsReducer(undefined, {
 } as Action);
 
 describe('rewardsReducer', () => {
-  const initialState: RewardsState = {
-    activeTab: 'overview',
-    seasonStatusLoading: false,
-    seasonStatusError: null,
-
-    seasonId: null,
-    seasonName: null,
-    seasonStartDate: null,
-    seasonEndDate: null,
-    seasonTiers: [],
-    seasonActivityTypes: [],
-    seasonShouldInstallNewVersion: null,
-
-    referralDetailsLoading: false,
-    referralDetailsError: false,
-    referralCode: null,
-    refereeCount: 0,
-
-    currentTier: null,
-    nextTier: null,
-    nextTierPointsNeeded: null,
-
-    balanceTotal: 0,
-    balanceRefereePortion: 0,
-    balanceUpdatedAt: null,
-
-    onboardingActiveStep: OnboardingStep.INTRO,
-    onboardingReferralCode: null,
-    candidateSubscriptionId: 'pending',
-    geoLocation: null,
-    optinAllowedForGeo: null,
-    optinAllowedForGeoLoading: false,
-    optinAllowedForGeoError: false,
-    hideUnlinkedAccountsBanner: false,
-    hideCurrentAccountNotOptedInBanner: [],
-
-    activeBoosts: null,
-    activeBoostsLoading: false,
-    activeBoostsError: false,
-
-    pointsEvents: null,
-
-    unlockedRewards: null,
-    unlockedRewardLoading: false,
-    unlockedRewardError: false,
-  };
-
-  it('should return the initial state', () => {
+  it('returns the initial state', () => {
     // Arrange & Act
     const state = rewardsReducer(undefined, { type: 'unknown' } as Action);
 
@@ -115,17 +80,6 @@ describe('rewardsReducer', () => {
 
       // Assert
       expect(state.activeTab).toBe('activity');
-    });
-
-    it('should set active tab to levels', () => {
-      // Arrange
-      const action = setActiveTab('levels');
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.activeTab).toBe('levels');
     });
 
     it('should set active tab to overview when invalid value provided', () => {
@@ -652,39 +606,39 @@ describe('rewardsReducer', () => {
       expect(state.referralDetailsLoading).toBe(false);
     });
 
-    it('updates balanceRefereePortion when referralPoints is provided', () => {
+    it('updates referredByCode when provided', () => {
       // Arrange
-      const action = setReferralDetails({ referralPoints: 500 });
+      const action = setReferralDetails({ referredByCode: 'REFERRER500' });
 
       // Act
       const state = rewardsReducer(initialState, action);
 
       // Assert
-      expect(state.balanceRefereePortion).toBe(500);
+      expect(state.referredByCode).toBe('REFERRER500');
       expect(state.referralDetailsLoading).toBe(false);
     });
 
-    it('updates balanceRefereePortion with zero value', () => {
+    it('updates referredByCode with empty string', () => {
       // Arrange
-      const stateWithPoints = {
+      const stateWithCode = {
         ...initialState,
-        balanceRefereePortion: 300,
+        referredByCode: 'PREVIOUS300',
       };
-      const action = setReferralDetails({ referralPoints: 0 });
+      const action = setReferralDetails({ referredByCode: '' });
 
       // Act
-      const state = rewardsReducer(stateWithPoints, action);
+      const state = rewardsReducer(stateWithCode, action);
 
       // Assert
-      expect(state.balanceRefereePortion).toBe(0);
+      expect(state.referredByCode).toBe('');
     });
 
-    it('updates all fields including referralPoints when provided together', () => {
+    it('updates all fields including referredByCode when provided together', () => {
       // Arrange
       const action = setReferralDetails({
         referralCode: 'COMBO123',
         refereeCount: 15,
-        referralPoints: 750,
+        referredByCode: 'REFERRER750',
       });
 
       // Act
@@ -693,57 +647,24 @@ describe('rewardsReducer', () => {
       // Assert
       expect(state.referralCode).toBe('COMBO123');
       expect(state.refereeCount).toBe(15);
-      expect(state.balanceRefereePortion).toBe(750);
+      expect(state.referredByCode).toBe('REFERRER750');
       expect(state.referralDetailsLoading).toBe(false);
     });
 
-    it('preserves balanceRefereePortion when referralPoints is not provided', () => {
+    it('preserves referredByCode when not provided', () => {
       // Arrange
-      const stateWithPoints = {
+      const stateWithCode = {
         ...initialState,
-        balanceRefereePortion: 200,
+        referredByCode: 'EXISTING200',
       };
       const action = setReferralDetails({ referralCode: 'TEST456' });
 
       // Act
-      const state = rewardsReducer(stateWithPoints, action);
+      const state = rewardsReducer(stateWithCode, action);
 
       // Assert
-      expect(state.balanceRefereePortion).toBe(200);
+      expect(state.referredByCode).toBe('EXISTING200');
       expect(state.referralCode).toBe('TEST456');
-    });
-
-    it('handles negative referralPoints value', () => {
-      // Arrange
-      const action = setReferralDetails({ referralPoints: -50 });
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.balanceRefereePortion).toBe(-50);
-    });
-
-    it('handles large referralPoints value', () => {
-      // Arrange
-      const action = setReferralDetails({ referralPoints: 999999 });
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.balanceRefereePortion).toBe(999999);
-    });
-
-    it('handles decimal referralPoints value', () => {
-      // Arrange
-      const action = setReferralDetails({ referralPoints: 125.75 });
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.balanceRefereePortion).toBe(125.75);
     });
   });
 
@@ -2044,6 +1965,7 @@ describe('rewardsReducer', () => {
         referralDetailsLoading: false,
         referralCode: 'TEST123',
         refereeCount: 10,
+        referredByCode: null,
         currentTier: {
           id: 'tier-platinum',
           name: 'Platinum',
@@ -2123,6 +2045,17 @@ describe('rewardsReducer', () => {
         unlockedRewardError: false,
         referralDetailsError: false,
         optinAllowedForGeoError: false,
+        bulkLink: {
+          isRunning: false,
+          totalAccounts: 0,
+          linkedAccounts: 0,
+          failedAccounts: 0,
+          wasInterrupted: false,
+          initialSubscriptionId: null,
+        },
+        snapshots: null,
+        snapshotsLoading: false,
+        snapshotsError: false,
       };
       const action = resetRewardsState();
 
@@ -2144,6 +2077,7 @@ describe('rewardsReducer', () => {
         referralDetailsLoading: false,
         referralCode: 'PERSISTED123',
         refereeCount: 15,
+        referredByCode: null,
         currentTier: {
           id: 'tier-diamond',
           name: 'Diamond',
@@ -2213,6 +2147,17 @@ describe('rewardsReducer', () => {
         unlockedRewardError: false,
         referralDetailsError: false,
         optinAllowedForGeoError: false,
+        bulkLink: {
+          isRunning: false,
+          totalAccounts: 0,
+          linkedAccounts: 0,
+          failedAccounts: 0,
+          wasInterrupted: false,
+          initialSubscriptionId: null,
+        },
+        snapshots: null,
+        snapshotsLoading: false,
+        snapshotsError: false,
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -2410,7 +2355,7 @@ describe('rewardsReducer', () => {
         ...initialState,
         nextTierPointsNeeded: 500, // This should be preserved
         balanceRefereePortion: 100, // This should be preserved
-        activeTab: 'levels' as const, // This should be reset to initial
+        activeTab: 'activity' as const, // This should be reset to initial
         seasonStatusLoading: true, // This should be reset to initial
         onboardingActiveStep: OnboardingStep.STEP_3, // This should be reset to initial
         onboardingReferralCode: 'CURRENT_REF', // This should be reset to initial
@@ -2952,7 +2897,7 @@ describe('setUnlockedRewards', () => {
     // Arrange
     const stateWithData = {
       ...initialState,
-      activeTab: 'levels' as const,
+      activeTab: 'activity' as const,
       referralCode: 'TEST123',
       balanceTotal: 1000,
       activeBoostsLoading: true,
@@ -2971,7 +2916,7 @@ describe('setUnlockedRewards', () => {
 
     // Assert
     expect(state.unlockedRewards).toEqual(mockRewards);
-    expect(state.activeTab).toBe('levels');
+    expect(state.activeTab).toBe('activity');
     expect(state.referralCode).toBe('TEST123');
     expect(state.balanceTotal).toBe(1000);
     expect(state.activeBoostsLoading).toBe(true);
@@ -3120,7 +3065,7 @@ describe('setUnlockedRewardError', () => {
     // Arrange
     const stateWithData = {
       ...initialState,
-      activeTab: 'levels' as const,
+      activeTab: 'activity' as const,
       referralCode: 'TEST789',
       balanceTotal: 2000,
       unlockedRewardLoading: true,
@@ -3132,7 +3077,7 @@ describe('setUnlockedRewardError', () => {
 
     // Assert
     expect(state.unlockedRewardError).toBe(true);
-    expect(state.activeTab).toBe('levels');
+    expect(state.activeTab).toBe('activity');
     expect(state.referralCode).toBe('TEST789');
     expect(state.balanceTotal).toBe(2000);
     expect(state.unlockedRewardLoading).toBe(true); // Should remain unchanged
@@ -3494,5 +3439,1228 @@ describe('setPointsEvents', () => {
     expect(state.pointsEvents?.[3]?.type).toBe('SIGN_UP_BONUS');
     expect(state.pointsEvents?.[4]?.type).toBe('LOYALTY_BONUS');
     expect(state.pointsEvents?.[5]?.type).toBe('ONE_TIME_BONUS');
+  });
+});
+
+describe('bulkLinkStarted', () => {
+  it('should set bulk link state to running with total accounts and subscription id', () => {
+    // Arrange
+    const action = bulkLinkStarted({
+      totalAccounts: 10,
+      subscriptionId: 'sub-123',
+    });
+
+    // Act
+    const state = rewardsReducer(initialState, action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(true);
+    expect(state.bulkLink.totalAccounts).toBe(10);
+    expect(state.bulkLink.linkedAccounts).toBe(0);
+    expect(state.bulkLink.failedAccounts).toBe(0);
+    expect(state.bulkLink.wasInterrupted).toBe(false);
+    expect(state.bulkLink.initialSubscriptionId).toBe('sub-123');
+  });
+
+  it('should reset linked and failed accounts when starting', () => {
+    // Arrange
+    const stateWithProgress = {
+      ...initialState,
+      bulkLink: {
+        isRunning: false,
+        totalAccounts: 5,
+        linkedAccounts: 3,
+        failedAccounts: 1,
+        wasInterrupted: true,
+        initialSubscriptionId: 'old-sub',
+      },
+    };
+    const action = bulkLinkStarted({
+      totalAccounts: 8,
+      subscriptionId: 'new-sub-456',
+    });
+
+    // Act
+    const state = rewardsReducer(stateWithProgress, action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(true);
+    expect(state.bulkLink.totalAccounts).toBe(8);
+    expect(state.bulkLink.linkedAccounts).toBe(0);
+    expect(state.bulkLink.failedAccounts).toBe(0);
+    expect(state.bulkLink.wasInterrupted).toBe(false);
+    expect(state.bulkLink.initialSubscriptionId).toBe('new-sub-456');
+  });
+
+  it('should clear wasInterrupted flag when starting fresh', () => {
+    // Arrange
+    const stateWithInterruption = {
+      ...initialState,
+      bulkLink: {
+        isRunning: false,
+        totalAccounts: 5,
+        linkedAccounts: 2,
+        failedAccounts: 1,
+        wasInterrupted: true,
+        initialSubscriptionId: 'interrupted-sub',
+      },
+    };
+    const action = bulkLinkStarted({
+      totalAccounts: 10,
+      subscriptionId: 'fresh-sub',
+    });
+
+    // Act
+    const state = rewardsReducer(stateWithInterruption, action);
+
+    // Assert
+    expect(state.bulkLink.wasInterrupted).toBe(false);
+    expect(state.bulkLink.initialSubscriptionId).toBe('fresh-sub');
+  });
+
+  it('should not affect other state properties', () => {
+    // Arrange
+    const stateWithData = {
+      ...initialState,
+      activeTab: 'activity' as const,
+      referralCode: 'TEST123',
+      balanceTotal: 1000,
+    };
+    const action = bulkLinkStarted({
+      totalAccounts: 5,
+      subscriptionId: 'test-sub',
+    });
+
+    // Act
+    const state = rewardsReducer(stateWithData, action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(true);
+    expect(state.bulkLink.totalAccounts).toBe(5);
+    expect(state.bulkLink.initialSubscriptionId).toBe('test-sub');
+    expect(state.activeTab).toBe('activity');
+    expect(state.referralCode).toBe('TEST123');
+    expect(state.balanceTotal).toBe(1000);
+  });
+});
+
+describe('bulkLinkAccountResult', () => {
+  it('should increment linkedAccounts when success is true', () => {
+    // Arrange
+    const stateWithBulkLink = {
+      ...initialState,
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 10,
+        linkedAccounts: 3,
+        failedAccounts: 1,
+        wasInterrupted: false,
+        initialSubscriptionId: null,
+      },
+    };
+    const action = bulkLinkAccountResult({ success: true });
+
+    // Act
+    const state = rewardsReducer(stateWithBulkLink, action);
+
+    // Assert
+    expect(state.bulkLink.linkedAccounts).toBe(4);
+    expect(state.bulkLink.failedAccounts).toBe(1);
+    expect(state.bulkLink.isRunning).toBe(true);
+    expect(state.bulkLink.totalAccounts).toBe(10);
+  });
+
+  it('should increment failedAccounts when success is false', () => {
+    // Arrange
+    const stateWithBulkLink = {
+      ...initialState,
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 10,
+        linkedAccounts: 3,
+        failedAccounts: 1,
+        wasInterrupted: false,
+        initialSubscriptionId: null,
+      },
+    };
+    const action = bulkLinkAccountResult({ success: false });
+
+    // Act
+    const state = rewardsReducer(stateWithBulkLink, action);
+
+    // Assert
+    expect(state.bulkLink.failedAccounts).toBe(2);
+    expect(state.bulkLink.linkedAccounts).toBe(3);
+    expect(state.bulkLink.isRunning).toBe(true);
+    expect(state.bulkLink.totalAccounts).toBe(10);
+  });
+
+  it('handles multiple account results', () => {
+    // Arrange
+    let currentState: RewardsState = {
+      ...initialState,
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 5,
+        linkedAccounts: 0,
+        failedAccounts: 0,
+        wasInterrupted: false,
+        initialSubscriptionId: null,
+      },
+    };
+
+    // Act & Assert - First account succeeds
+    currentState = rewardsReducer(
+      currentState,
+      bulkLinkAccountResult({ success: true }),
+    );
+    expect(currentState.bulkLink.linkedAccounts).toBe(1);
+    expect(currentState.bulkLink.failedAccounts).toBe(0);
+
+    // Act & Assert - Second account succeeds
+    currentState = rewardsReducer(
+      currentState,
+      bulkLinkAccountResult({ success: true }),
+    );
+    expect(currentState.bulkLink.linkedAccounts).toBe(2);
+    expect(currentState.bulkLink.failedAccounts).toBe(0);
+
+    // Act & Assert - Third account fails
+    currentState = rewardsReducer(
+      currentState,
+      bulkLinkAccountResult({ success: false }),
+    );
+    expect(currentState.bulkLink.linkedAccounts).toBe(2);
+    expect(currentState.bulkLink.failedAccounts).toBe(1);
+
+    // Act & Assert - Fourth account succeeds
+    currentState = rewardsReducer(
+      currentState,
+      bulkLinkAccountResult({ success: true }),
+    );
+    expect(currentState.bulkLink.linkedAccounts).toBe(3);
+    expect(currentState.bulkLink.failedAccounts).toBe(1);
+  });
+
+  it('should not affect other state properties', () => {
+    // Arrange
+    const stateWithData = {
+      ...initialState,
+      activeTab: 'activity' as const,
+      referralCode: 'TEST456',
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 5,
+        linkedAccounts: 2,
+        failedAccounts: 1,
+        wasInterrupted: false,
+        initialSubscriptionId: null,
+      },
+    };
+    const action = bulkLinkAccountResult({ success: true });
+
+    // Act
+    const state = rewardsReducer(stateWithData, action);
+
+    // Assert
+    expect(state.bulkLink.linkedAccounts).toBe(3);
+    expect(state.activeTab).toBe('activity');
+    expect(state.referralCode).toBe('TEST456');
+  });
+});
+
+describe('bulkLinkCompleted', () => {
+  it('sets isRunning to false', () => {
+    // Arrange
+    const stateWithBulkLink = {
+      ...initialState,
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 10,
+        linkedAccounts: 8,
+        failedAccounts: 2,
+        wasInterrupted: false,
+        initialSubscriptionId: null,
+      },
+    };
+    const action = bulkLinkCompleted();
+
+    // Act
+    const state = rewardsReducer(stateWithBulkLink, action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(false);
+    expect(state.bulkLink.totalAccounts).toBe(10);
+    expect(state.bulkLink.linkedAccounts).toBe(8);
+    expect(state.bulkLink.failedAccounts).toBe(2);
+  });
+
+  it('preserves progress when completing', () => {
+    // Arrange
+    const stateWithBulkLink = {
+      ...initialState,
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 5,
+        linkedAccounts: 4,
+        failedAccounts: 1,
+        wasInterrupted: false,
+        initialSubscriptionId: null,
+      },
+    };
+    const action = bulkLinkCompleted();
+
+    // Act
+    const state = rewardsReducer(stateWithBulkLink, action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(false);
+    expect(state.bulkLink.totalAccounts).toBe(5);
+    expect(state.bulkLink.linkedAccounts).toBe(4);
+    expect(state.bulkLink.failedAccounts).toBe(1);
+  });
+
+  it('does not affect other state properties', () => {
+    // Arrange
+    const stateWithData = {
+      ...initialState,
+      activeTab: 'overview' as const,
+      balanceTotal: 500,
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 3,
+        linkedAccounts: 2,
+        failedAccounts: 0,
+        wasInterrupted: false,
+        initialSubscriptionId: null,
+      },
+    };
+    const action = bulkLinkCompleted();
+
+    // Act
+    const state = rewardsReducer(stateWithData, action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(false);
+    expect(state.activeTab).toBe('overview');
+    expect(state.balanceTotal).toBe(500);
+  });
+});
+
+describe('bulkLinkCancelled', () => {
+  it('sets isRunning to false', () => {
+    // Arrange
+    const stateWithBulkLink = {
+      ...initialState,
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 10,
+        linkedAccounts: 5,
+        failedAccounts: 1,
+        wasInterrupted: false,
+        initialSubscriptionId: null,
+      },
+    };
+    const action = bulkLinkCancelled();
+
+    // Act
+    const state = rewardsReducer(stateWithBulkLink, action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(false);
+    expect(state.bulkLink.totalAccounts).toBe(10);
+    expect(state.bulkLink.linkedAccounts).toBe(5);
+    expect(state.bulkLink.failedAccounts).toBe(1);
+  });
+
+  it('preserves progress when cancelling', () => {
+    // Arrange
+    const stateWithBulkLink = {
+      ...initialState,
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 8,
+        linkedAccounts: 3,
+        failedAccounts: 2,
+        wasInterrupted: false,
+        initialSubscriptionId: null,
+      },
+    };
+    const action = bulkLinkCancelled();
+
+    // Act
+    const state = rewardsReducer(stateWithBulkLink, action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(false);
+    expect(state.bulkLink.totalAccounts).toBe(8);
+    expect(state.bulkLink.linkedAccounts).toBe(3);
+    expect(state.bulkLink.failedAccounts).toBe(2);
+  });
+
+  it('does not affect other state properties', () => {
+    // Arrange
+    const stateWithData = {
+      ...initialState,
+      referralCode: 'CANCEL_TEST',
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 4,
+        linkedAccounts: 1,
+        failedAccounts: 0,
+        wasInterrupted: false,
+        initialSubscriptionId: null,
+      },
+    };
+    const action = bulkLinkCancelled();
+
+    // Act
+    const state = rewardsReducer(stateWithData, action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(false);
+    expect(state.referralCode).toBe('CANCEL_TEST');
+  });
+});
+
+describe('bulkLinkReset', () => {
+  it('resets bulk link state to initial values', () => {
+    // Arrange
+    const stateWithBulkLink = {
+      ...initialState,
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 10,
+        linkedAccounts: 7,
+        failedAccounts: 2,
+        wasInterrupted: false,
+        initialSubscriptionId: null,
+      },
+    };
+    const action = bulkLinkReset();
+
+    // Act
+    const state = rewardsReducer(stateWithBulkLink, action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(false);
+    expect(state.bulkLink.totalAccounts).toBe(0);
+    expect(state.bulkLink.linkedAccounts).toBe(0);
+    expect(state.bulkLink.failedAccounts).toBe(0);
+  });
+
+  it('resets even when not running', () => {
+    // Arrange
+    const stateWithBulkLink = {
+      ...initialState,
+      bulkLink: {
+        isRunning: false,
+        totalAccounts: 5,
+        linkedAccounts: 3,
+        failedAccounts: 1,
+        wasInterrupted: false,
+        initialSubscriptionId: null,
+      },
+    };
+    const action = bulkLinkReset();
+
+    // Act
+    const state = rewardsReducer(stateWithBulkLink, action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(false);
+    expect(state.bulkLink.totalAccounts).toBe(0);
+    expect(state.bulkLink.linkedAccounts).toBe(0);
+    expect(state.bulkLink.failedAccounts).toBe(0);
+  });
+
+  it('does not affect other state properties', () => {
+    // Arrange
+    const stateWithData = {
+      ...initialState,
+      activeTab: 'activity' as const,
+      balanceTotal: 2000,
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 6,
+        linkedAccounts: 4,
+        failedAccounts: 1,
+        wasInterrupted: false,
+        initialSubscriptionId: 'test-subscription-id',
+      },
+    };
+    const action = bulkLinkReset();
+
+    // Act
+    const state = rewardsReducer(stateWithData, action);
+
+    // Assert
+    expect(state.bulkLink).toEqual({
+      isRunning: false,
+      totalAccounts: 0,
+      linkedAccounts: 0,
+      failedAccounts: 0,
+      wasInterrupted: false,
+      initialSubscriptionId: null,
+    });
+    expect(state.activeTab).toBe('activity');
+    expect(state.balanceTotal).toBe(2000);
+  });
+});
+
+describe('BULK_LINK_CANCEL extraReducer', () => {
+  it('sets isRunning to false when BULK_LINK_CANCEL action is dispatched', () => {
+    // Arrange
+    const stateWithBulkLink = {
+      ...initialState,
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 10,
+        linkedAccounts: 5,
+        failedAccounts: 1,
+        wasInterrupted: false,
+        initialSubscriptionId: null,
+      },
+    };
+    const action = { type: BULK_LINK_CANCEL };
+
+    // Act
+    const state = rewardsReducer(stateWithBulkLink, action as Action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(false);
+    expect(state.bulkLink.totalAccounts).toBe(10);
+    expect(state.bulkLink.linkedAccounts).toBe(5);
+    expect(state.bulkLink.failedAccounts).toBe(1);
+  });
+
+  it('preserves progress when cancelling via BULK_LINK_CANCEL', () => {
+    // Arrange
+    const stateWithBulkLink = {
+      ...initialState,
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 8,
+        linkedAccounts: 3,
+        failedAccounts: 2,
+        wasInterrupted: false,
+        initialSubscriptionId: null,
+      },
+    };
+    const action = { type: BULK_LINK_CANCEL };
+
+    // Act
+    const state = rewardsReducer(stateWithBulkLink, action as Action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(false);
+    expect(state.bulkLink.totalAccounts).toBe(8);
+    expect(state.bulkLink.linkedAccounts).toBe(3);
+    expect(state.bulkLink.failedAccounts).toBe(2);
+  });
+
+  it('does not affect other state properties', () => {
+    // Arrange
+    const stateWithData = {
+      ...initialState,
+      referralCode: 'CANCEL_EXTRA_TEST',
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 4,
+        linkedAccounts: 2,
+        failedAccounts: 0,
+        wasInterrupted: false,
+        initialSubscriptionId: null,
+      },
+    };
+    const action = { type: BULK_LINK_CANCEL };
+
+    // Act
+    const state = rewardsReducer(stateWithData, action as Action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(false);
+    expect(state.referralCode).toBe('CANCEL_EXTRA_TEST');
+  });
+});
+
+describe('bulkLinkSubscriptionChanged', () => {
+  it('sets isRunning, wasInterrupted to false and clears initialSubscriptionId when subscription changes', () => {
+    // Arrange
+    const stateWithBulkLink = {
+      ...initialState,
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 10,
+        linkedAccounts: 5,
+        failedAccounts: 1,
+        wasInterrupted: false,
+        initialSubscriptionId: 'original-sub',
+      },
+    };
+    const action = bulkLinkSubscriptionChanged();
+
+    // Act
+    const state = rewardsReducer(stateWithBulkLink, action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(false);
+    expect(state.bulkLink.wasInterrupted).toBe(false);
+    expect(state.bulkLink.initialSubscriptionId).toBeNull();
+    // Preserves other fields
+    expect(state.bulkLink.totalAccounts).toBe(10);
+    expect(state.bulkLink.linkedAccounts).toBe(5);
+    expect(state.bulkLink.failedAccounts).toBe(1);
+  });
+
+  it('clears wasInterrupted flag and initialSubscriptionId when subscription changes during interrupted state', () => {
+    // Arrange
+    const stateWithInterruptedBulkLink = {
+      ...initialState,
+      bulkLink: {
+        isRunning: false,
+        totalAccounts: 8,
+        linkedAccounts: 3,
+        failedAccounts: 2,
+        wasInterrupted: true,
+        initialSubscriptionId: 'interrupted-sub',
+      },
+    };
+    const action = bulkLinkSubscriptionChanged();
+
+    // Act
+    const state = rewardsReducer(stateWithInterruptedBulkLink, action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(false);
+    expect(state.bulkLink.wasInterrupted).toBe(false);
+    expect(state.bulkLink.initialSubscriptionId).toBeNull();
+  });
+
+  it('preserves other state properties while clearing subscription data', () => {
+    // Arrange
+    const stateWithData = {
+      ...initialState,
+      referralCode: 'SUB_CHANGED_TEST',
+      balanceTotal: 5000,
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 6,
+        linkedAccounts: 2,
+        failedAccounts: 0,
+        wasInterrupted: false,
+        initialSubscriptionId: 'test-sub',
+      },
+    };
+    const action = bulkLinkSubscriptionChanged();
+
+    // Act
+    const state = rewardsReducer(stateWithData, action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(false);
+    expect(state.bulkLink.wasInterrupted).toBe(false);
+    expect(state.bulkLink.initialSubscriptionId).toBeNull();
+    expect(state.referralCode).toBe('SUB_CHANGED_TEST');
+    expect(state.balanceTotal).toBe(5000);
+  });
+});
+
+describe('bulkLinkResumed', () => {
+  it('should set isRunning to true and wasInterrupted to false when resuming', () => {
+    // Arrange
+    const stateWithInterruptedBulkLink = {
+      ...initialState,
+      bulkLink: {
+        isRunning: false,
+        totalAccounts: 10,
+        linkedAccounts: 4,
+        failedAccounts: 1,
+        wasInterrupted: true,
+        initialSubscriptionId: 'interrupted-sub',
+      },
+    };
+    const action = bulkLinkResumed();
+
+    // Act
+    const state = rewardsReducer(stateWithInterruptedBulkLink, action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(true);
+    expect(state.bulkLink.wasInterrupted).toBe(false);
+    // Preserves progress counts (saga will recalculate based on current opt-in status)
+    expect(state.bulkLink.linkedAccounts).toBe(4);
+    expect(state.bulkLink.failedAccounts).toBe(1);
+    expect(state.bulkLink.totalAccounts).toBe(10);
+    expect(state.bulkLink.initialSubscriptionId).toBe('interrupted-sub');
+  });
+
+  it('should preserve subscription ID for validation on resume', () => {
+    // Arrange
+    const stateWithInterruptedBulkLink = {
+      ...initialState,
+      bulkLink: {
+        isRunning: false,
+        totalAccounts: 5,
+        linkedAccounts: 2,
+        failedAccounts: 0,
+        wasInterrupted: true,
+        initialSubscriptionId: 'sub-to-validate',
+      },
+    };
+    const action = bulkLinkResumed();
+
+    // Act
+    const state = rewardsReducer(stateWithInterruptedBulkLink, action);
+
+    // Assert
+    expect(state.bulkLink.initialSubscriptionId).toBe('sub-to-validate');
+  });
+
+  it('should not reset counts when resuming', () => {
+    // Arrange - state where some accounts were already linked before interruption
+    const stateWithProgress = {
+      ...initialState,
+      bulkLink: {
+        isRunning: false,
+        totalAccounts: 15,
+        linkedAccounts: 8,
+        failedAccounts: 2,
+        wasInterrupted: true,
+        initialSubscriptionId: 'progress-sub',
+      },
+    };
+    const action = bulkLinkResumed();
+
+    // Act
+    const state = rewardsReducer(stateWithProgress, action);
+
+    // Assert - counts should be preserved
+    expect(state.bulkLink.linkedAccounts).toBe(8);
+    expect(state.bulkLink.failedAccounts).toBe(2);
+    expect(state.bulkLink.totalAccounts).toBe(15);
+  });
+
+  it('should not affect other state properties', () => {
+    // Arrange
+    const stateWithData = {
+      ...initialState,
+      referralCode: 'RESUME_TEST',
+      balanceTotal: 3000,
+      bulkLink: {
+        isRunning: false,
+        totalAccounts: 5,
+        linkedAccounts: 2,
+        failedAccounts: 1,
+        wasInterrupted: true,
+        initialSubscriptionId: 'resume-sub',
+      },
+    };
+    const action = bulkLinkResumed();
+
+    // Act
+    const state = rewardsReducer(stateWithData, action);
+
+    // Assert
+    expect(state.bulkLink.isRunning).toBe(true);
+    expect(state.bulkLink.wasInterrupted).toBe(false);
+    expect(state.referralCode).toBe('RESUME_TEST');
+    expect(state.balanceTotal).toBe(3000);
+  });
+});
+
+describe('persist/REHYDRATE with bulk link state', () => {
+  it('should set wasInterrupted to true when rehydrating with isRunning true', () => {
+    // Arrange - simulates app was closed while bulk link was in progress
+    const persistedRewardsState: RewardsState = {
+      ...initialState,
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 10,
+        linkedAccounts: 5,
+        failedAccounts: 1,
+        wasInterrupted: false,
+        initialSubscriptionId: 'running-sub',
+      },
+    };
+    const rehydrateAction = {
+      type: 'persist/REHYDRATE',
+      payload: {
+        rewards: persistedRewardsState,
+      },
+    };
+
+    // Act
+    const state = rewardsReducer(initialState, rehydrateAction);
+
+    // Assert
+    expect(state.bulkLink.wasInterrupted).toBe(true);
+    expect(state.bulkLink.isRunning).toBe(false);
+    expect(state.bulkLink.linkedAccounts).toBe(5);
+    expect(state.bulkLink.failedAccounts).toBe(1);
+    expect(state.bulkLink.initialSubscriptionId).toBe('running-sub');
+  });
+
+  it('should preserve progress counts when rehydrating interrupted bulk link', () => {
+    // Arrange
+    const persistedRewardsState: RewardsState = {
+      ...initialState,
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 20,
+        linkedAccounts: 12,
+        failedAccounts: 3,
+        wasInterrupted: false,
+        initialSubscriptionId: 'progress-sub',
+      },
+    };
+    const rehydrateAction = {
+      type: 'persist/REHYDRATE',
+      payload: {
+        rewards: persistedRewardsState,
+      },
+    };
+
+    // Act
+    const state = rewardsReducer(initialState, rehydrateAction);
+
+    // Assert - progress should be preserved for UI display
+    expect(state.bulkLink.linkedAccounts).toBe(12);
+    expect(state.bulkLink.failedAccounts).toBe(3);
+    expect(state.bulkLink.totalAccounts).toBe(0); // Note: totalAccounts is reset to 0 per current implementation
+  });
+
+  it('should preserve subscription ID for resume validation', () => {
+    // Arrange
+    const persistedRewardsState: RewardsState = {
+      ...initialState,
+      bulkLink: {
+        isRunning: true,
+        totalAccounts: 5,
+        linkedAccounts: 2,
+        failedAccounts: 0,
+        wasInterrupted: false,
+        initialSubscriptionId: 'validate-sub',
+      },
+    };
+    const rehydrateAction = {
+      type: 'persist/REHYDRATE',
+      payload: {
+        rewards: persistedRewardsState,
+      },
+    };
+
+    // Act
+    const state = rewardsReducer(initialState, rehydrateAction);
+
+    // Assert
+    expect(state.bulkLink.initialSubscriptionId).toBe('validate-sub');
+  });
+
+  it('should not set wasInterrupted when rehydrating with isRunning false', () => {
+    // Arrange - bulk link was completed normally before app was closed
+    const persistedRewardsState: RewardsState = {
+      ...initialState,
+      bulkLink: {
+        isRunning: false,
+        totalAccounts: 10,
+        linkedAccounts: 8,
+        failedAccounts: 2,
+        wasInterrupted: false,
+        initialSubscriptionId: 'completed-sub',
+      },
+    };
+    const rehydrateAction = {
+      type: 'persist/REHYDRATE',
+      payload: {
+        rewards: persistedRewardsState,
+      },
+    };
+
+    // Act
+    const state = rewardsReducer(initialState, rehydrateAction);
+
+    // Assert
+    expect(state.bulkLink.wasInterrupted).toBe(false);
+    expect(state.bulkLink.isRunning).toBe(false);
+  });
+
+  it('should reset bulk link state to initial values when not interrupted', () => {
+    // Arrange
+    const persistedRewardsState: RewardsState = {
+      ...initialState,
+      bulkLink: {
+        isRunning: false,
+        totalAccounts: 5,
+        linkedAccounts: 4,
+        failedAccounts: 1,
+        wasInterrupted: false,
+        initialSubscriptionId: 'old-sub',
+      },
+    };
+    const rehydrateAction = {
+      type: 'persist/REHYDRATE',
+      payload: {
+        rewards: persistedRewardsState,
+      },
+    };
+
+    // Act
+    const state = rewardsReducer(initialState, rehydrateAction);
+
+    // Assert - should reset to initial values when not interrupted
+    expect(state.bulkLink.linkedAccounts).toBe(0);
+    expect(state.bulkLink.failedAccounts).toBe(0);
+    expect(state.bulkLink.initialSubscriptionId).toBe(null);
+  });
+
+  it('should handle undefined bulk link state in persisted data', () => {
+    // Arrange - older persisted data without bulk link state
+    const persistedRewardsState = {
+      ...initialState,
+      referralCode: 'TEST123',
+      bulkLink: undefined,
+    } as unknown as RewardsState;
+    const rehydrateAction = {
+      type: 'persist/REHYDRATE',
+      payload: {
+        rewards: persistedRewardsState,
+      },
+    };
+
+    // Act
+    const state = rewardsReducer(initialState, rehydrateAction);
+
+    // Assert - should use initial bulk link state
+    expect(state.bulkLink.isRunning).toBe(false);
+    expect(state.bulkLink.wasInterrupted).toBe(false);
+    expect(state.bulkLink.initialSubscriptionId).toBe(null);
+  });
+});
+
+describe('setSnapshots', () => {
+  const mockSnapshot: SnapshotDto = {
+    id: '01974010-377f-7553-a365-0c33c8130980',
+    seasonId: '7444682d-9050-43b8-9038-28a6a62d6264',
+    name: 'Monad Airdrop',
+    description: 'Earn Monad tokens by participating in the airdrop',
+    tokenSymbol: 'MONAD',
+    tokenAmount: '50000000000000000000000',
+    tokenChainId: '1',
+    tokenAddress: '0x1234567890abcdef1234567890abcdef12345678',
+    receivingBlockchain: 'Ethereum',
+    opensAt: '2025-03-01T00:00:00.000Z',
+    closesAt: '2025-03-15T00:00:00.000Z',
+    calculatedAt: '2025-03-16T00:00:00.000Z',
+    distributedAt: '2025-03-20T00:00:00.000Z',
+    backgroundImage: {
+      lightModeUrl: 'https://example.com/light.png',
+      darkModeUrl: 'https://example.com/dark.png',
+    },
+  };
+
+  it('should set snapshots array', () => {
+    // Arrange
+    const mockSnapshots: SnapshotDto[] = [mockSnapshot];
+    const action = setSnapshots(mockSnapshots);
+
+    // Act
+    const state = rewardsReducer(initialState, action);
+
+    // Assert
+    expect(state.snapshots).toEqual(mockSnapshots);
+    expect(state.snapshotsError).toBe(false);
+  });
+
+  it('should replace existing snapshots with new ones', () => {
+    // Arrange
+    const stateWithSnapshots: RewardsState = {
+      ...initialState,
+      snapshots: [mockSnapshot],
+    };
+    const newSnapshot: SnapshotDto = {
+      ...mockSnapshot,
+      id: 'new-snapshot-id',
+      name: 'New Airdrop',
+    };
+    const action = setSnapshots([newSnapshot]);
+
+    // Act
+    const state = rewardsReducer(stateWithSnapshots, action);
+
+    // Assert
+    expect(state.snapshots).toHaveLength(1);
+    expect(state.snapshots?.[0].id).toBe('new-snapshot-id');
+    expect(state.snapshots?.[0].name).toBe('New Airdrop');
+  });
+
+  it('should set snapshots to empty array', () => {
+    // Arrange
+    const stateWithSnapshots: RewardsState = {
+      ...initialState,
+      snapshots: [mockSnapshot],
+    };
+    const action = setSnapshots([]);
+
+    // Act
+    const state = rewardsReducer(stateWithSnapshots, action);
+
+    // Assert
+    expect(state.snapshots).toEqual([]);
+    expect(state.snapshotsError).toBe(false);
+  });
+
+  it('should set snapshots to null', () => {
+    // Arrange
+    const stateWithSnapshots: RewardsState = {
+      ...initialState,
+      snapshots: [mockSnapshot],
+    };
+    const action = setSnapshots(null);
+
+    // Act
+    const state = rewardsReducer(stateWithSnapshots, action);
+
+    // Assert
+    expect(state.snapshots).toBeNull();
+    expect(state.snapshotsError).toBe(false);
+  });
+
+  it('should reset snapshotsError when setting snapshots', () => {
+    // Arrange
+    const stateWithError: RewardsState = {
+      ...initialState,
+      snapshotsError: true,
+    };
+    const action = setSnapshots([mockSnapshot]);
+
+    // Act
+    const state = rewardsReducer(stateWithError, action);
+
+    // Assert
+    expect(state.snapshots).toEqual([mockSnapshot]);
+    expect(state.snapshotsError).toBe(false);
+  });
+});
+
+describe('setSnapshotsLoading', () => {
+  it('should set snapshotsLoading to true when no snapshots exist', () => {
+    // Arrange
+    const action = setSnapshotsLoading(true);
+
+    // Act
+    const state = rewardsReducer(initialState, action);
+
+    // Assert
+    expect(state.snapshotsLoading).toBe(true);
+  });
+
+  it('should not set loading to true when snapshots already exist', () => {
+    // Arrange
+    const mockSnapshot: SnapshotDto = {
+      id: '01974010-377f-7553-a365-0c33c8130980',
+      seasonId: '7444682d-9050-43b8-9038-28a6a62d6264',
+      name: 'Monad Airdrop',
+      tokenSymbol: 'MONAD',
+      tokenAmount: '50000000000000000000000',
+      tokenChainId: '1',
+      receivingBlockchain: 'Ethereum',
+      opensAt: '2025-03-01T00:00:00.000Z',
+      closesAt: '2025-03-15T00:00:00.000Z',
+      backgroundImage: {
+        lightModeUrl: 'https://example.com/light.png',
+        darkModeUrl: 'https://example.com/dark.png',
+      },
+    };
+    const stateWithSnapshots: RewardsState = {
+      ...initialState,
+      snapshots: [mockSnapshot],
+      snapshotsLoading: false,
+    };
+    const action = setSnapshotsLoading(true);
+
+    // Act
+    const state = rewardsReducer(stateWithSnapshots, action);
+
+    // Assert - loading should remain false when snapshots already loaded
+    expect(state.snapshotsLoading).toBe(false);
+  });
+
+  it('should set snapshotsLoading to false when loading is true', () => {
+    // Arrange
+    const stateWithLoading: RewardsState = {
+      ...initialState,
+      snapshotsLoading: true,
+    };
+    const action = setSnapshotsLoading(false);
+
+    // Act
+    const state = rewardsReducer(stateWithLoading, action);
+
+    // Assert
+    expect(state.snapshotsLoading).toBe(false);
+  });
+
+  it('should set snapshotsLoading to false even when snapshots exist', () => {
+    // Arrange
+    const mockSnapshot: SnapshotDto = {
+      id: '01974010-377f-7553-a365-0c33c8130980',
+      seasonId: '7444682d-9050-43b8-9038-28a6a62d6264',
+      name: 'Monad Airdrop',
+      tokenSymbol: 'MONAD',
+      tokenAmount: '50000000000000000000000',
+      tokenChainId: '1',
+      receivingBlockchain: 'Ethereum',
+      opensAt: '2025-03-01T00:00:00.000Z',
+      closesAt: '2025-03-15T00:00:00.000Z',
+      backgroundImage: {
+        lightModeUrl: 'https://example.com/light.png',
+        darkModeUrl: 'https://example.com/dark.png',
+      },
+    };
+    const stateWithSnapshotsAndLoading: RewardsState = {
+      ...initialState,
+      snapshots: [mockSnapshot],
+      snapshotsLoading: true,
+    };
+    const action = setSnapshotsLoading(false);
+
+    // Act
+    const state = rewardsReducer(stateWithSnapshotsAndLoading, action);
+
+    // Assert
+    expect(state.snapshotsLoading).toBe(false);
+    expect(state.snapshots).toHaveLength(1);
+  });
+
+  it('should not affect other state properties', () => {
+    // Arrange
+    const stateWithData: RewardsState = {
+      ...initialState,
+      activeTab: 'activity' as const,
+      referralCode: 'TEST123',
+    };
+    const action = setSnapshotsLoading(true);
+
+    // Act
+    const state = rewardsReducer(stateWithData, action);
+
+    // Assert
+    expect(state.snapshotsLoading).toBe(true);
+    expect(state.activeTab).toBe('activity');
+    expect(state.referralCode).toBe('TEST123');
+  });
+
+  it('should allow setting loading true when snapshots is empty array', () => {
+    // Arrange
+    const stateWithEmptySnapshots: RewardsState = {
+      ...initialState,
+      snapshots: [],
+      snapshotsLoading: false,
+    };
+    const action = setSnapshotsLoading(true);
+
+    // Act
+    const state = rewardsReducer(stateWithEmptySnapshots, action);
+
+    // Assert - loading should be set to true when snapshots array is empty
+    expect(state.snapshotsLoading).toBe(true);
+  });
+
+  it('should allow setting loading true when snapshots is null', () => {
+    // Arrange
+    const stateWithNullSnapshots: RewardsState = {
+      ...initialState,
+      snapshots: null,
+      snapshotsLoading: false,
+    };
+    const action = setSnapshotsLoading(true);
+
+    // Act
+    const state = rewardsReducer(stateWithNullSnapshots, action);
+
+    // Assert - loading should be set to true when snapshots is null
+    expect(state.snapshotsLoading).toBe(true);
+  });
+});
+
+describe('setSnapshotsError', () => {
+  it('should set snapshotsError to true', () => {
+    // Arrange
+    const action = setSnapshotsError(true);
+
+    // Act
+    const state = rewardsReducer(initialState, action);
+
+    // Assert
+    expect(state.snapshotsError).toBe(true);
+  });
+
+  it('should set snapshotsError to false', () => {
+    // Arrange
+    const stateWithError: RewardsState = {
+      ...initialState,
+      snapshotsError: true,
+    };
+    const action = setSnapshotsError(false);
+
+    // Act
+    const state = rewardsReducer(stateWithError, action);
+
+    // Assert
+    expect(state.snapshotsError).toBe(false);
+  });
+
+  it('should not affect other state properties', () => {
+    // Arrange
+    const mockSnapshot: SnapshotDto = {
+      id: '01974010-377f-7553-a365-0c33c8130980',
+      seasonId: '7444682d-9050-43b8-9038-28a6a62d6264',
+      name: 'Monad Airdrop',
+      tokenSymbol: 'MONAD',
+      tokenAmount: '50000000000000000000000',
+      tokenChainId: '1',
+      receivingBlockchain: 'Ethereum',
+      opensAt: '2025-03-01T00:00:00.000Z',
+      closesAt: '2025-03-15T00:00:00.000Z',
+      backgroundImage: {
+        lightModeUrl: 'https://example.com/light.png',
+        darkModeUrl: 'https://example.com/dark.png',
+      },
+    };
+    const stateWithData: RewardsState = {
+      ...initialState,
+      snapshots: [mockSnapshot],
+      snapshotsLoading: true,
+    };
+    const action = setSnapshotsError(true);
+
+    // Act
+    const state = rewardsReducer(stateWithData, action);
+
+    // Assert
+    expect(state.snapshotsError).toBe(true);
+    expect(state.snapshots).toHaveLength(1);
+    expect(state.snapshotsLoading).toBe(true);
+  });
+
+  it('should toggle error state correctly', () => {
+    // Arrange
+    let currentState = initialState;
+
+    // Act & Assert - Set error to true
+    let action = setSnapshotsError(true);
+    currentState = rewardsReducer(currentState, action);
+    expect(currentState.snapshotsError).toBe(true);
+
+    // Act & Assert - Set error back to false
+    action = setSnapshotsError(false);
+    currentState = rewardsReducer(currentState, action);
+    expect(currentState.snapshotsError).toBe(false);
+
+    // Act & Assert - Set error to true again
+    action = setSnapshotsError(true);
+    currentState = rewardsReducer(currentState, action);
+    expect(currentState.snapshotsError).toBe(true);
   });
 });

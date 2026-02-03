@@ -27,14 +27,21 @@ export function getPredictControllerMessenger(
   rootExtendedMessenger.delegate({
     actions: [
       'AccountsController:getSelectedAccount',
+      'AccountTreeController:getAccountsFromSelectedAccountGroup',
       'NetworkController:getState',
+      'NetworkController:findNetworkClientIdByChainId',
+      'NetworkController:getNetworkClientById',
       'TransactionController:estimateGas',
+      'KeyringController:signTypedMessage',
+      'KeyringController:signPersonalMessage',
+      'RemoteFeatureFlagController:getState',
     ],
     events: [
       'TransactionController:transactionSubmitted',
       'TransactionController:transactionConfirmed',
       'TransactionController:transactionFailed',
       'TransactionController:transactionRejected',
+      'RemoteFeatureFlagController:stateChange',
     ],
     messenger,
   });

@@ -136,7 +136,8 @@ class LoginScreen {
       const element = await this.unlockButton;
       await element.click();
     } else {
-      await AppwrightGestures.tap(await this.unlockButton);
+      // expectScreenChange: tap on Unlock navigates away, so element will disappear
+      await AppwrightGestures.tap(await this.unlockButton, { expectScreenChange: true });
     }
   }
 
