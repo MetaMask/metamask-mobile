@@ -106,18 +106,7 @@ jest.mock('../../store/storage-wrapper', () => ({
   }),
 }));
 
-const mockSnapClient = {
-  addDiscoveredAccounts: jest.fn(),
-};
-
 const mockResyncAccounts = jest.fn().mockResolvedValue(undefined);
-
-jest.mock('../SnapKeyring/MultichainWalletSnapClient', () => ({
-  ...jest.requireActual('../SnapKeyring/MultichainWalletSnapClient'),
-  MultichainWalletSnapFactory: {
-    createClient: () => mockSnapClient,
-  },
-}));
 
 jest.mock('../Engine', () => ({
   resetState: jest.fn(),
@@ -1057,7 +1046,6 @@ describe('Authentication', () => {
         jest.spyOn(console, 'log').mockImplementation();
         jest.spyOn(console, 'error').mockImplementation();
         jest.clearAllMocks();
-        mockSnapClient.addDiscoveredAccounts.mockClear();
 
         mockAttemptMultichainAccountWalletDiscovery = jest
           .spyOn(
@@ -2568,9 +2556,6 @@ describe('Authentication', () => {
       // Mock Engine.setSelectedAddress
       Engine.setSelectedAddress = jest.fn();
 
-      // Mock multichain client
-      mockSnapClient.addDiscoveredAccounts.mockResolvedValue(2);
-
       // Setup default Redux store mock
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
         getState: () => ({
@@ -2651,7 +2636,6 @@ describe('Authentication', () => {
         data: new Uint8Array([1, 2, 3, 4]),
         type: SecretType.Mnemonic,
       });
-      expect(mockSnapClient.addDiscoveredAccounts).not.toHaveBeenCalled();
       expect(result).toEqual({
         id: 'test-keyring-id',
       });

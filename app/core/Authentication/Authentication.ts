@@ -35,11 +35,6 @@ import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
 import { discoverAccounts } from '../../multichain-accounts/discovery';
 import ReduxService from '../redux';
 import { retryWithExponentialDelay } from '../../util/exponential-retry';
-import {
-  WALLET_SNAP_MAP,
-  MultichainWalletSnapFactory,
-  WalletClientType,
-} from '../SnapKeyring/MultichainWalletSnapClient';
 
 import { selectExistingUser } from '../../reducers/user/selectors';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
@@ -1054,27 +1049,6 @@ class AuthenticationService {
       name: TraceName.ImportEvmAccount,
     });
     return true;
-  };
-
-  /**
-   * Temporary function until the attempt discovery support multi srp acccount discovery
-   * Add multichain accounts to the keyring
-   *
-   * @param keyringMetadataList - List of keyring metadata
-   */
-  addMultichainAccounts = async (
-    keyringMetadataList: KeyringMetadata[],
-  ): Promise<void> => {
-    for (const keyringMetadata of keyringMetadataList) {
-      for (const clientType of Object.values(WalletClientType)) {
-        const id = keyringMetadata.id;
-        const { discoveryScope } = WALLET_SNAP_MAP[clientType];
-        const multichainClient =
-          MultichainWalletSnapFactory.createClient(clientType);
-
-        await multichainClient.addDiscoveredAccounts(id, discoveryScope);
-      }
-    }
   };
 
   rehydrateSeedPhrase = async (password: string): Promise<void> => {
