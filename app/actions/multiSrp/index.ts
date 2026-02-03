@@ -135,9 +135,8 @@ export async function importNewSecretRecoveryPhrase(
     }
   }
 
-  // If state 2 is enabled, this function will return 0 discovered account
-  // immediately, so we have to use the `callback` instead to get this
-  // information.
+  // This function will return 0 discovered account immediately, so we have to use
+  // the `callback` instead to get this information.
   let discoveredAccountsCount: number = 0;
   // We use an IIFE to be able to use async/await but not block the main thread.
   (async () => {
