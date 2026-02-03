@@ -36,45 +36,45 @@ test.describe(PerformancePredict, () => {
       PredictMarketListScreen.device = device;
       PredictDetailsScreen.device = device;
 
-    // Login to the app
-    await login(device);
-    console.log('Tap Action Button');
-    await TabBarModal.tapActionButton();
-    console.log('Tapped Action Button');
+      // Login to the app
+      await login(device);
+      console.log('Tap Action Button');
+      await TabBarModal.tapActionButton();
+      console.log('Tapped Action Button');
 
-    // Timer 2: Open predictions tab (threshold: 5000ms + 10% = 5500ms)
-    const timer2 = new TimerHelper(
-      'Time since user taps Predict button until Predict Market List is displayed',
-      { ios: 2800, android: 4000 },
-      device,
-    );
-    await WalletActionModal.tapPredictButton();
-    await timer2.measure(async () => {
-      await PredictMarketListScreen.isContainerDisplayed();
-    });
+      // Timer 2: Open predictions tab (threshold: 5000ms + 10% = 5500ms)
+      const timer2 = new TimerHelper(
+        'Time since user taps Predict button until Predict Market List is displayed',
+        { ios: 2800, android: 4000 },
+        device,
+      );
+      await WalletActionModal.tapPredictButton();
+      await timer2.measure(async () => {
+        await PredictMarketListScreen.isContainerDisplayed();
+      });
 
-    // Timer 3: Open market details (threshold: 5000ms + 10% = 5500ms)
-    const timer3 = new TimerHelper(
-      'Time since user taps market card until Market Details screen is visible',
-      { ios: 17000, android: 13000 },
-      device,
-    );
-    await PredictMarketListScreen.tapMarketCard('trending', 2); // second card to avoid flakiness for a promoted card
-    await timer3.measure(async () => {
-      await PredictDetailsScreen.isVisible();
-    });
+      // Timer 3: Open market details (threshold: 5000ms + 10% = 5500ms)
+      const timer3 = new TimerHelper(
+        'Time since user taps market card until Market Details screen is visible',
+        { ios: 17000, android: 13000 },
+        device,
+      );
+      await PredictMarketListScreen.tapMarketCard('trending', 2); // second card to avoid flakiness for a promoted card
+      await timer3.measure(async () => {
+        await PredictDetailsScreen.isVisible();
+      });
 
-    // Timer 4: Load About tab (threshold: 3000ms + 10% = 3300ms)
-    const timer4 = new TimerHelper(
-      'Time since user taps About tab until About tab content is loaded and Volume text is visible',
-      { ios: 7800, android: 7800 },
-      device,
-    );
-    await PredictDetailsScreen.tapAboutTab();
-    await timer4.measure(async () => {
-      await PredictDetailsScreen.isAboutTabContentDisplayed();
-      await PredictDetailsScreen.verifyVolumeTextDisplayed();
-    });
+      // Timer 4: Load About tab (threshold: 3000ms + 10% = 3300ms)
+      const timer4 = new TimerHelper(
+        'Time since user taps About tab until About tab content is loaded and Volume text is visible',
+        { ios: 7800, android: 7800 },
+        device,
+      );
+      await PredictDetailsScreen.tapAboutTab();
+      await timer4.measure(async () => {
+        await PredictDetailsScreen.isAboutTabContentDisplayed();
+        await PredictDetailsScreen.verifyVolumeTextDisplayed();
+      });
 
       // Timer 5: Load Outcomes tab (threshold: 3000ms + 10% = 3300ms)
       const timer5 = new TimerHelper(
