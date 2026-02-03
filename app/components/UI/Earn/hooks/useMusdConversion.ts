@@ -38,7 +38,7 @@ const inFlightInitiationPromises = new Map<string, Promise<string | void>>();
 
 function getInitiationKey(params: { selectedAddress: string; chainId: Hex }) {
   const { selectedAddress, chainId } = params;
-  return `${selectedAddress.toLocaleLowerCase()}_${chainId.toLocaleLowerCase()}`;
+  return `${selectedAddress.toLowerCase()}_${chainId.toLowerCase()}`;
 }
 
 function findExistingPendingMusdConversion(params: {
@@ -58,15 +58,15 @@ function findExistingPendingMusdConversion(params: {
     }
 
     if (
-      transactionMeta?.chainId.toLocaleLowerCase() !==
-      preferredPaymentTokenChainId.toLocaleLowerCase()
+      transactionMeta?.chainId.toLowerCase() !==
+      preferredPaymentTokenChainId.toLowerCase()
     ) {
       return false;
     }
 
     return (
-      transactionMeta?.txParams?.from?.toLocaleLowerCase() ===
-      selectedAddress.toLocaleLowerCase()
+      transactionMeta?.txParams?.from?.toLowerCase() ===
+      selectedAddress.toLowerCase()
     );
   });
 }
@@ -242,26 +242,26 @@ export const useMusdConversion = () => {
         }
 
         const initiationPromise = (async () => {
+          const { NetworkController } = Engine.context;
+          const networkClientId =
+            NetworkController.findNetworkClientIdByChainId(
+              preferredPaymentToken.chainId,
+            );
+
+          if (!networkClientId) {
+            throw new Error(
+              `Network client not found for chain ID: ${preferredPaymentToken.chainId}`,
+            );
+          }
+
+          /**
+           * Navigate to the confirmation screen immediately for better UX,
+           * since there can be a delay between the user's button press and
+           * transaction creation in the background.
+           */
+          navigateToConversionScreen(config);
+
           try {
-            const { NetworkController } = Engine.context;
-            const networkClientId =
-              NetworkController.findNetworkClientIdByChainId(
-                preferredPaymentToken.chainId,
-              );
-
-            if (!networkClientId) {
-              throw new Error(
-                `Network client not found for chain ID: ${preferredPaymentToken.chainId}`,
-              );
-            }
-
-            /**
-             * Navigate to the confirmation screen immediately for better UX,
-             * since there can be a delay between the user's button press and
-             * transaction creation in the background.
-             */
-            navigateToConversionScreen(config);
-
             const ZERO_HEX_VALUE = '0x0';
             const selectedAddressHex = selectedAddress as Hex;
 
