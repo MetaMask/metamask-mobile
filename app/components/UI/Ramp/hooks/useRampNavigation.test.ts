@@ -5,7 +5,6 @@ import { useRampNavigation } from './useRampNavigation';
 import { createRampNavigationDetails } from '../Aggregator/routes/utils';
 import { createDepositNavigationDetails } from '../Deposit/routes/utils';
 import { createTokenSelectionNavDetails } from '../components/TokenSelection/TokenSelection';
-import { createBuildQuoteNavDetails } from '../components/BuildQuote';
 import { RampType as AggregatorRampType } from '../Aggregator/types';
 import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
 import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
@@ -31,12 +30,6 @@ jest.mock('../components/TokenSelection/TokenSelection', () => {
     ...actual,
     createTokenSelectionNavDetails: mockFn,
     createTokenSelectionNavigationDetails: mockFn, // Alias for hook compatibility
-  };
-});
-jest.mock('../components/BuildQuote', () => {
-  const mockFn = jest.fn();
-  return {
-    createBuildQuoteNavDetails: mockFn,
   };
 });
 jest.mock('./useRampsUnifiedV1Enabled');
@@ -70,10 +63,6 @@ const mockCreateTokenSelectionNavigationDetails =
   createTokenSelectionNavDetails as jest.MockedFunction<
     typeof createTokenSelectionNavDetails
   >;
-const mockCreateBuildQuoteNavDetails =
-  createBuildQuoteNavDetails as jest.MockedFunction<
-    typeof createBuildQuoteNavDetails
-  >;
 const mockGetRampRoutingDecision =
   getRampRoutingDecision as jest.MockedFunction<typeof getRampRoutingDecision>;
 
@@ -101,11 +90,6 @@ describe('useRampNavigation', () => {
     mockCreateTokenSelectionNavigationDetails.mockReturnValue([
       Routes.RAMP.TOKEN_SELECTION,
     ] as unknown as ReturnType<typeof createTokenSelectionNavDetails>);
-
-    mockCreateBuildQuoteNavDetails.mockReturnValue([
-      Routes.RAMP.AMOUNT_INPUT,
-      { assetId: 'eip155:1/erc20:0x123' },
-    ] as unknown as ReturnType<typeof createBuildQuoteNavDetails>);
   });
 
   describe('goToBuy', () => {
@@ -114,22 +98,17 @@ describe('useRampNavigation', () => {
         mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
       });
 
-      it('navigates to BuildQuote when assetId is provided', () => {
+      it('navigates to BuildQuote (nested under TokenSelection) when assetId is provided', () => {
         const intent = { assetId: 'eip155:1/erc20:0x123' };
-        const mockNavDetails = [
-          Routes.RAMP.AMOUNT_INPUT,
-          { assetId: intent.assetId },
-        ] as const;
-        mockCreateBuildQuoteNavDetails.mockReturnValue(mockNavDetails);
 
         const { result } = renderHookWithProvider(() => useRampNavigation());
 
         result.current.goToBuy(intent);
 
-        expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
-          assetId: intent.assetId,
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.TOKEN_SELECTION, {
+          screen: Routes.RAMP.AMOUNT_INPUT,
+          params: { assetId: intent.assetId },
         });
-        expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
         expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
         expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
       });
@@ -148,7 +127,6 @@ describe('useRampNavigation', () => {
 
         result.current.goToBuy();
 
-        expect(mockCreateBuildQuoteNavDetails).not.toHaveBeenCalled();
         expect(mockCreateTokenSelectionNavigationDetails).toHaveBeenCalled();
         expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
       });
@@ -162,7 +140,12 @@ describe('useRampNavigation', () => {
 
         result.current.goToBuy(intent, { overrideUnifiedRouting: true });
 
-        expect(mockCreateBuildQuoteNavDetails).not.toHaveBeenCalled();
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          Routes.RAMP.TOKEN_SELECTION,
+          expect.objectContaining({
+            screen: Routes.RAMP.AMOUNT_INPUT,
+          }),
+        );
         expect(mockCreateRampNavigationDetails).toHaveBeenCalledWith(
           AggregatorRampType.BUY,
           intent,
@@ -176,20 +159,15 @@ describe('useRampNavigation', () => {
           UnifiedRampRoutingType.DEPOSIT,
         );
         const intent = { assetId: 'eip155:1/erc20:0x123' };
-        const mockNavDetails = [
-          Routes.RAMP.AMOUNT_INPUT,
-          { assetId: intent.assetId },
-        ] as const;
-        mockCreateBuildQuoteNavDetails.mockReturnValue(mockNavDetails);
 
         const { result } = renderHookWithProvider(() => useRampNavigation());
 
         result.current.goToBuy(intent);
 
-        expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
-          assetId: intent.assetId,
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.TOKEN_SELECTION, {
+          screen: Routes.RAMP.AMOUNT_INPUT,
+          params: { assetId: intent.assetId },
         });
-        expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
         expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
       });
 
@@ -206,7 +184,6 @@ describe('useRampNavigation', () => {
           result.current.goToBuy(intent);
 
           expect(mockNavigate).toHaveBeenCalledWith(...navDetails);
-          expect(mockCreateBuildQuoteNavDetails).not.toHaveBeenCalled();
         });
 
         it('navigates to unsupported modal when routing decision is UNSUPPORTED', () => {
@@ -221,7 +198,6 @@ describe('useRampNavigation', () => {
           result.current.goToBuy(intent);
 
           expect(mockNavigate).toHaveBeenCalledWith(...navDetails);
-          expect(mockCreateBuildQuoteNavDetails).not.toHaveBeenCalled();
         });
       });
     });
