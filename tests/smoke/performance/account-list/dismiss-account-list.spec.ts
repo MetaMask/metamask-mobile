@@ -15,7 +15,7 @@ import {
   PerformanceTestReporter,
   createUserProfileTests,
   type TestResult,
-} from '../../../../e2e/utils/PerformanceTestReporter';
+} from '../../../reporters/DetoxPerformanceTestReporter';
 
 describe(SmokePerformance('Switching Accounts to Dismiss Load Testing'), () => {
   const reporter = new PerformanceTestReporter(

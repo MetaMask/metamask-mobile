@@ -14,7 +14,7 @@ import {
   PerformanceTestReporter,
   createUserProfileTests,
   type TestResult,
-} from '../../../../e2e/utils/PerformanceTestReporter';
+} from '../../../reporters/DetoxPerformanceTestReporter';
 import { NetworkToCaipChainId } from '../../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants.ts';
 
 describe(SmokePerformance('Network List Load Testing'), () => {

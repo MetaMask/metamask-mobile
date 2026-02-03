@@ -16,7 +16,7 @@ import {
   PerformanceTestError,
   createUserProfileTests,
   type TestResult,
-} from '../../../../e2e/utils/PerformanceTestReporter';
+} from '../../../reporters/DetoxPerformanceTestReporter';
 
 describe(SmokePerformance('Account List Load Testing'), () => {
   const reporter = new PerformanceTestReporter('Account List Load Testing');
