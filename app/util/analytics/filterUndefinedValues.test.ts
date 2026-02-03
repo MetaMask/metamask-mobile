@@ -57,16 +57,12 @@ describe('filterUndefinedValues', () => {
 
   describe('handling null/undefined input', () => {
     it('returns empty object for null input', () => {
-      const result = filterUndefinedValues(
-        null as unknown as Record<string, unknown>,
-      );
+      const result = filterUndefinedValues(null);
       expect(result).toEqual({});
     });
 
     it('returns empty object for undefined input', () => {
-      const result = filterUndefinedValues(
-        undefined as unknown as Record<string, unknown>,
-      );
+      const result = filterUndefinedValues(undefined);
       expect(result).toEqual({});
     });
 
