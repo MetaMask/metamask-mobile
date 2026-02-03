@@ -24,12 +24,14 @@ import {
 import { formatNumber, formatTimeRemaining } from '../../utils/formatUtils';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import { useSeasonStatus } from '../../hooks/useSeasonStatus';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 const SeasonStatus: React.FC = () => {
   const theme = useTheme();
   const { fetchSeasonStatus } = useSeasonStatus({
     onlyForExplicitFetch: false,
   });
+  const tw = useTailwind();
   const balanceTotal = useSelector(selectBalanceTotal);
   const seasonStatusLoading = useSelector(selectSeasonStatusLoading);
   const seasonStatusError = useSelector(selectSeasonStatusError);
@@ -81,9 +83,16 @@ const SeasonStatus: React.FC = () => {
           name="MetamaskRewardsPoints"
           width={24}
           height={24}
+          style={tw.style('mt-0.5')}
         />
         <Box flexDirection={BoxFlexDirection.Column}>
-          <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
+          <Text
+            variant={TextVariant.HeadingMd}
+            fontWeight={FontWeight.Bold}
+            style={tw.style({
+              fontSize: 22,
+            })}
+          >
             {formatNumber(balanceTotal)}
           </Text>
           <Text variant={TextVariant.BodySm} twClassName="text-alternative">

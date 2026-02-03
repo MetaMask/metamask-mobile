@@ -49,7 +49,7 @@ jest.mock('../../utils/formatUtils', () => ({
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
-      'rewards.previous_season_summary.points_earned': 'Points earned',
+      'rewards.season_status.points_earned': 'Points earned',
       'rewards.season_status_error.error_fetching_title':
         "Season balance couldn't be loaded",
       'rewards.season_status_error.error_fetching_description':
