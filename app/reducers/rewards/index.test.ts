@@ -78,17 +78,6 @@ describe('rewardsReducer', () => {
       expect(state.activeTab).toBe('activity');
     });
 
-    it('should set active tab to levels', () => {
-      // Arrange
-      const action = setActiveTab('levels');
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.activeTab).toBe('levels');
-    });
-
     it('should set active tab to overview when invalid value provided', () => {
       // Arrange
       const stateWithActiveTab = {
@@ -2060,6 +2049,9 @@ describe('rewardsReducer', () => {
           wasInterrupted: false,
           initialSubscriptionId: null,
         },
+        snapshots: null,
+        snapshotsLoading: false,
+        snapshotsError: false,
       };
       const action = resetRewardsState();
 
@@ -2159,6 +2151,9 @@ describe('rewardsReducer', () => {
           wasInterrupted: false,
           initialSubscriptionId: null,
         },
+        snapshots: null,
+        snapshotsLoading: false,
+        snapshotsError: false,
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -2356,7 +2351,7 @@ describe('rewardsReducer', () => {
         ...initialState,
         nextTierPointsNeeded: 500, // This should be preserved
         balanceRefereePortion: 100, // This should be preserved
-        activeTab: 'levels' as const, // This should be reset to initial
+        activeTab: 'activity' as const, // This should be reset to initial
         seasonStatusLoading: true, // This should be reset to initial
         onboardingActiveStep: OnboardingStep.STEP_3, // This should be reset to initial
         onboardingReferralCode: 'CURRENT_REF', // This should be reset to initial
@@ -2898,7 +2893,7 @@ describe('setUnlockedRewards', () => {
     // Arrange
     const stateWithData = {
       ...initialState,
-      activeTab: 'levels' as const,
+      activeTab: 'activity' as const,
       referralCode: 'TEST123',
       balanceTotal: 1000,
       activeBoostsLoading: true,
@@ -2917,7 +2912,7 @@ describe('setUnlockedRewards', () => {
 
     // Assert
     expect(state.unlockedRewards).toEqual(mockRewards);
-    expect(state.activeTab).toBe('levels');
+    expect(state.activeTab).toBe('activity');
     expect(state.referralCode).toBe('TEST123');
     expect(state.balanceTotal).toBe(1000);
     expect(state.activeBoostsLoading).toBe(true);
@@ -3066,7 +3061,7 @@ describe('setUnlockedRewardError', () => {
     // Arrange
     const stateWithData = {
       ...initialState,
-      activeTab: 'levels' as const,
+      activeTab: 'activity' as const,
       referralCode: 'TEST789',
       balanceTotal: 2000,
       unlockedRewardLoading: true,
@@ -3078,7 +3073,7 @@ describe('setUnlockedRewardError', () => {
 
     // Assert
     expect(state.unlockedRewardError).toBe(true);
-    expect(state.activeTab).toBe('levels');
+    expect(state.activeTab).toBe('activity');
     expect(state.referralCode).toBe('TEST789');
     expect(state.balanceTotal).toBe(2000);
     expect(state.unlockedRewardLoading).toBe(true); // Should remain unchanged
@@ -3647,7 +3642,7 @@ describe('bulkLinkAccountResult', () => {
     // Arrange
     const stateWithData = {
       ...initialState,
-      activeTab: 'levels' as const,
+      activeTab: 'activity' as const,
       referralCode: 'TEST456',
       bulkLink: {
         isRunning: true,
@@ -3665,7 +3660,7 @@ describe('bulkLinkAccountResult', () => {
 
     // Assert
     expect(state.bulkLink.linkedAccounts).toBe(3);
-    expect(state.activeTab).toBe('levels');
+    expect(state.activeTab).toBe('activity');
     expect(state.referralCode).toBe('TEST456');
   });
 });

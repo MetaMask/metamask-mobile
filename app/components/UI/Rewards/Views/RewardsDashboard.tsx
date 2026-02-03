@@ -34,6 +34,7 @@ import {
 } from '../../../../reducers/rewards/selectors';
 import SeasonStatus from '../components/SeasonStatus/SeasonStatus';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import { selectSnapshotsRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
 import {
   useRewardDashboardModals,
@@ -41,7 +42,7 @@ import {
 } from '../hooks/useRewardDashboardModals';
 import { useBulkLinkState } from '../hooks/useBulkLinkState';
 import RewardsOverview from '../components/Tabs/RewardsOverview';
-import RewardsLevels from '../components/Tabs/RewardsLevels';
+import RewardsSnapshots from '../components/Tabs/RewardsSnapshots';
 import RewardsActivity from '../components/Tabs/RewardsActivity';
 import { TabsList } from '../../../../component-library/components-temp/Tabs';
 import { TabsListRef } from '../../../../component-library/components-temp/Tabs/TabsList/TabsList.types';
@@ -66,6 +67,7 @@ const RewardsDashboard: React.FC = () => {
   );
   const seasonId = useSelector(selectSeasonId);
   const seasonEndDate = useSelector(selectSeasonEndDate);
+  const isSnapshotsEnabled = useSelector(selectSnapshotsRewardsEnabledFlag);
   const hideCurrentAccountNotOptedInBannerMap = useSelector(
     selectHideCurrentAccountNotOptedInBannerArray,
   );
@@ -135,23 +137,31 @@ const RewardsDashboard: React.FC = () => {
     );
   }, [colors, navigation]);
 
-  const tabOptions = useMemo(
-    () => [
+  const tabOptions = useMemo(() => {
+    const options: {
+      value: 'overview' | 'snapshots' | 'activity';
+      label: string;
+    }[] = [
       {
         value: 'overview' as const,
         label: strings('rewards.tab_overview_title'),
       },
-      {
-        value: 'levels' as const,
-        label: strings('rewards.tab_levels_title'),
-      },
-      {
-        value: 'activity' as const,
-        label: strings('rewards.tab_activity_title'),
-      },
-    ],
-    [],
-  );
+    ];
+
+    if (isSnapshotsEnabled) {
+      options.push({
+        value: 'snapshots' as const,
+        label: strings('rewards.tab_snapshots_title'),
+      });
+    }
+
+    options.push({
+      value: 'activity' as const,
+      label: strings('rewards.tab_activity_title'),
+    });
+
+    return options;
+  }, [isSnapshotsEnabled]);
 
   const getActiveIndex = useCallback(
     () => tabOptions.findIndex((tab) => tab.value === activeTab),
@@ -193,6 +203,33 @@ const RewardsDashboard: React.FC = () => {
     }),
     [getActiveIndex, handleTabChange],
   );
+
+  const tabComponents = useMemo(() => {
+    const tabs: React.ReactElement[] = [
+      <RewardsOverview
+        key="overview"
+        tabLabel={strings('rewards.tab_overview_title')}
+      />,
+    ];
+
+    if (isSnapshotsEnabled) {
+      tabs.push(
+        <RewardsSnapshots
+          key="snapshots"
+          tabLabel={strings('rewards.tab_snapshots_title')}
+        />,
+      );
+    }
+
+    tabs.push(
+      <RewardsActivity
+        key="activity"
+        tabLabel={strings('rewards.tab_activity_title')}
+      />,
+    );
+
+    return tabs;
+  }, [isSnapshotsEnabled]);
 
   const [showPreviousSeasonSummary, setShowPreviousSeasonSummary] = useState<
     boolean | null
@@ -348,20 +385,7 @@ const RewardsDashboard: React.FC = () => {
             </Box>
 
             {/* Tab View */}
-            <TabsList {...tabsListProps}>
-              <RewardsOverview
-                key="overview"
-                tabLabel={strings('rewards.tab_overview_title')}
-              />
-              <RewardsLevels
-                key="levels"
-                tabLabel={strings('rewards.tab_levels_title')}
-              />
-              <RewardsActivity
-                key="activity"
-                tabLabel={strings('rewards.tab_activity_title')}
-              />
-            </TabsList>
+            <TabsList {...tabsListProps}>{tabComponents}</TabsList>
           </>
         )}
       </Box>

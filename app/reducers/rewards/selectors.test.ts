@@ -93,20 +93,20 @@ describe('Rewards selectors', () => {
       expect(result.current).toBe('overview');
     });
 
+    it('returns snapshots tab when set', () => {
+      const mockState = { rewards: { activeTab: 'snapshots' as const } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectActiveTab));
+      expect(result.current).toBe('snapshots');
+    });
+
     it('returns activity tab when set', () => {
       const mockState = { rewards: { activeTab: 'activity' as const } };
       mockedUseSelector.mockImplementation((selector) => selector(mockState));
 
       const { result } = renderHook(() => useSelector(selectActiveTab));
       expect(result.current).toBe('activity');
-    });
-
-    it('returns levels tab when set', () => {
-      const mockState = { rewards: { activeTab: 'levels' as const } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() => useSelector(selectActiveTab));
-      expect(result.current).toBe('levels');
     });
   });
 
