@@ -1,7 +1,11 @@
 import React, { useCallback } from 'react';
-import { View } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PredictPosition as PredictPositionType } from '../../types';
@@ -44,7 +48,7 @@ const PredictHomePositionList: React.FC<PredictHomePositionListProps> = ({
 
   return (
     <>
-      <View testID={PredictPositionsSelectorsIDs.ACTIVE_POSITIONS_LIST}>
+      <Box testID={PredictPositionsSelectorsIDs.ACTIVE_POSITIONS_LIST}>
         {activePositions.map((item) => (
           <PredictPosition
             key={`${item.outcomeId}:${item.outcomeIndex}`}
@@ -52,7 +56,7 @@ const PredictHomePositionList: React.FC<PredictHomePositionListProps> = ({
             onPress={() => handlePositionPress(item.marketId)}
           />
         ))}
-      </View>
+      </Box>
 
       <PredictNewButton />
 
@@ -61,12 +65,13 @@ const PredictHomePositionList: React.FC<PredictHomePositionListProps> = ({
           <Box>
             <Text
               variant={TextVariant.BodyMd}
-              twClassName="text-alternative mb-4"
+              color={TextColor.TextAlternative}
+              twClassName="mb-4"
             >
               {strings('predict.tab.resolved_markets')}
             </Text>
           </Box>
-          <View testID={PredictPositionsSelectorsIDs.CLAIMABLE_POSITIONS_LIST}>
+          <Box testID={PredictPositionsSelectorsIDs.CLAIMABLE_POSITIONS_LIST}>
             {sortedClaimablePositions.map((item) => (
               <PredictPositionResolved
                 key={`${item.outcomeId}:${item.outcomeIndex}`}
@@ -74,7 +79,7 @@ const PredictHomePositionList: React.FC<PredictHomePositionListProps> = ({
                 onPress={() => handlePositionPress(item.marketId)}
               />
             ))}
-          </View>
+          </Box>
         </>
       )}
     </>

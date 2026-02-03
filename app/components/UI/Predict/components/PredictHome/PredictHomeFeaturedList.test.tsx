@@ -297,4 +297,41 @@ describe('PredictHomeFeaturedList', () => {
       expect(screen.getByTestId('custom-test-id')).toBeOnTheScreen();
     });
   });
+
+  describe('error handling', () => {
+    it('returns null when error occurs and no data available', () => {
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: [],
+        isFetching: false,
+        isFetchingMore: false,
+        error: 'Network error',
+        hasMore: false,
+        refetch: jest.fn(),
+        fetchMore: jest.fn(),
+      });
+
+      const { queryByTestId } = render(<PredictHomeFeaturedList />);
+
+      expect(queryByTestId('predict-home-featured-list')).toBeNull();
+    });
+
+    it('renders market items when data exists despite error', () => {
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: [mockMarket],
+        isFetching: false,
+        isFetchingMore: false,
+        error: 'Partial error',
+        hasMore: false,
+        refetch: jest.fn(),
+        fetchMore: jest.fn(),
+      });
+
+      render(<PredictHomeFeaturedList />);
+
+      expect(
+        screen.getByTestId('predict-home-featured-list'),
+      ).toBeOnTheScreen();
+      expect(screen.getByTestId('mock-market-row-item')).toBeOnTheScreen();
+    });
+  });
 });

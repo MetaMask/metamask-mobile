@@ -1,7 +1,11 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { render, act } from '@testing-library/react-native';
-import React from 'react';
+import React, { Ref } from 'react';
 import { PredictTabViewSelectorsIDs } from '../../Predict.testIds';
+import { PredictHomePositionsHandle } from '../../components/PredictHome/PredictHomePositions';
+
+interface MockPredictHomePositionsProps {
+  onError?: (error: string | null) => void;
+}
 
 jest.mock('../../hooks/usePredictDepositToasts', () => ({
   usePredictDepositToasts: jest.fn(),
@@ -24,16 +28,21 @@ jest.mock('../../components/PredictHome', () => {
   const { View, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    PredictHomePositions: ReactLib.forwardRef((_props: unknown, ref: any) => {
-      ReactLib.useImperativeHandle(ref, () => ({
-        refresh: jest.fn(),
-      }));
-      return (
-        <View testID="predict-home-positions">
-          <Text>Home Positions</Text>
-        </View>
-      );
-    }),
+    PredictHomePositions: ReactLib.forwardRef(
+      (
+        _props: MockPredictHomePositionsProps,
+        ref: Ref<PredictHomePositionsHandle>,
+      ) => {
+        ReactLib.useImperativeHandle(ref, () => ({
+          refresh: jest.fn(),
+        }));
+        return (
+          <View testID="predict-home-positions">
+            <Text>Home Positions</Text>
+          </View>
+        );
+      },
+    ),
   };
 });
 
@@ -74,6 +83,18 @@ jest.mock('../../components/PredictOffline', () => {
   };
 });
 
+interface MockScrollViewProps {
+  refreshControl?: React.ReactElement;
+  testID?: string;
+  [key: string]: unknown;
+}
+
+interface MockConditionalScrollViewProps {
+  children: React.ReactNode;
+  scrollViewProps?: MockScrollViewProps;
+  isScrollEnabled?: boolean;
+}
+
 jest.mock(
   '../../../../../component-library/components-temp/ConditionalScrollView',
   () => {
@@ -83,15 +104,8 @@ jest.mock(
       __esModule: true,
       default: ReactLib.forwardRef(
         (
-          {
-            children,
-            scrollViewProps,
-          }: {
-            children: React.ReactNode;
-            scrollViewProps?: any;
-            isScrollEnabled?: boolean;
-          },
-          ref: any,
+          { children, scrollViewProps }: MockConditionalScrollViewProps,
+          ref: Ref<typeof ScrollView>,
         ) => (
           <ScrollView ref={ref} {...scrollViewProps}>
             {children}
@@ -166,7 +180,10 @@ describe('PredictTabView', () => {
     const mockRefresh = jest.fn().mockResolvedValue(undefined);
     const PredictHomeMock = jest.requireMock('../../components/PredictHome');
     PredictHomeMock.PredictHomePositions = React.forwardRef(
-      (_props: unknown, ref: any) => {
+      (
+        _props: MockPredictHomePositionsProps,
+        ref: Ref<PredictHomePositionsHandle>,
+      ) => {
         const { View, Text } = jest.requireActual('react-native');
         React.useImperativeHandle(ref, () => ({
           refresh: mockRefresh,
@@ -217,8 +234,8 @@ describe('PredictTabView', () => {
       const PredictHomeMock = jest.requireMock('../../components/PredictHome');
       PredictHomeMock.PredictHomePositions = React.forwardRef(
         (
-          { onError }: { onError?: (error: string | null) => void },
-          ref: any,
+          { onError }: MockPredictHomePositionsProps,
+          ref: Ref<PredictHomePositionsHandle>,
         ) => {
           const { View, Text } = jest.requireActual('react-native');
           React.useImperativeHandle(ref, () => ({
@@ -249,8 +266,8 @@ describe('PredictTabView', () => {
       let capturedOnError: ((error: string | null) => void) | undefined;
       PredictHomeMock.PredictHomePositions = React.forwardRef(
         (
-          { onError }: { onError?: (error: string | null) => void },
-          ref: any,
+          { onError }: MockPredictHomePositionsProps,
+          ref: Ref<PredictHomePositionsHandle>,
         ) => {
           const { View, Text } = jest.requireActual('react-native');
           React.useImperativeHandle(ref, () => ({
@@ -282,8 +299,8 @@ describe('PredictTabView', () => {
       let capturedOnError: ((error: string | null) => void) | undefined;
       PredictHomeMock.PredictHomePositions = React.forwardRef(
         (
-          { onError }: { onError?: (error: string | null) => void },
-          ref: any,
+          { onError }: MockPredictHomePositionsProps,
+          ref: Ref<PredictHomePositionsHandle>,
         ) => {
           const { View, Text } = jest.requireActual('react-native');
           React.useImperativeHandle(ref, () => ({

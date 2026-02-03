@@ -263,4 +263,74 @@ describe('PredictHomePositions', () => {
 
     expect(mockOnError).toHaveBeenCalledWith('Claimable positions error');
   });
+
+  it('renders featured skeleton when refreshing with no positions', () => {
+    mockUsePredictPositions
+      .mockReturnValueOnce({
+        ...defaultMockReturn,
+        positions: [],
+        isRefreshing: true,
+      })
+      .mockReturnValueOnce({
+        ...defaultMockReturn,
+        positions: [],
+        isRefreshing: true,
+      });
+
+    const { getByTestId, queryByTestId } = render(<PredictHomePositions />);
+
+    expect(
+      getByTestId('predict-home-featured-skeleton-carousel'),
+    ).toBeOnTheScreen();
+    expect(queryByTestId('predict-home-skeleton')).not.toBeOnTheScreen();
+    expect(queryByTestId('predict-home-featured')).not.toBeOnTheScreen();
+  });
+
+  it('tracks position viewed when visible and not loading', () => {
+    const mockTrackPositionViewed = jest.fn();
+    jest
+      .requireMock('../../../../../core/Engine')
+      .context.PredictController.trackPositionViewed.mockImplementation(
+        mockTrackPositionViewed,
+      );
+    const positions = [createMockPosition()];
+    mockUsePredictPositions
+      .mockReturnValueOnce({
+        ...defaultMockReturn,
+        positions,
+      })
+      .mockReturnValueOnce({
+        ...defaultMockReturn,
+        positions: [],
+      });
+
+    render(<PredictHomePositions isVisible />);
+
+    expect(mockTrackPositionViewed).toHaveBeenCalledWith({
+      openPositionsCount: 1,
+    });
+  });
+
+  it('does not track position viewed when not visible', () => {
+    const mockTrackPositionViewed = jest.fn();
+    jest
+      .requireMock('../../../../../core/Engine')
+      .context.PredictController.trackPositionViewed.mockImplementation(
+        mockTrackPositionViewed,
+      );
+    const positions = [createMockPosition()];
+    mockUsePredictPositions
+      .mockReturnValueOnce({
+        ...defaultMockReturn,
+        positions,
+      })
+      .mockReturnValueOnce({
+        ...defaultMockReturn,
+        positions: [],
+      });
+
+    render(<PredictHomePositions isVisible={false} />);
+
+    expect(mockTrackPositionViewed).not.toHaveBeenCalled();
+  });
 });

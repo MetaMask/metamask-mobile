@@ -45,7 +45,7 @@ describe('PredictHomeFeatured', () => {
   });
 
   describe('variant routing', () => {
-    it('renders carousel when variant is carousel', () => {
+    it('renders carousel component when variant is carousel', () => {
       mockSelectPredictHomeFeaturedVariant.mockReturnValue('carousel');
 
       render(<PredictHomeFeatured />);
@@ -53,7 +53,7 @@ describe('PredictHomeFeatured', () => {
       expect(screen.getByText('Carousel')).toBeOnTheScreen();
     });
 
-    it('renders list when variant is list', () => {
+    it('renders list component when variant is list', () => {
       mockSelectPredictHomeFeaturedVariant.mockReturnValue('list');
 
       render(<PredictHomeFeatured />);
@@ -61,7 +61,7 @@ describe('PredictHomeFeatured', () => {
       expect(screen.getByText('List')).toBeOnTheScreen();
     });
 
-    it('defaults to carousel when variant is undefined', () => {
+    it('renders carousel component when variant is undefined', () => {
       mockSelectPredictHomeFeaturedVariant.mockReturnValue(undefined);
 
       render(<PredictHomeFeatured />);
@@ -71,7 +71,7 @@ describe('PredictHomeFeatured', () => {
   });
 
   describe('testID prop', () => {
-    it('passes testID to carousel component', () => {
+    it('forwards testID to carousel component', () => {
       mockSelectPredictHomeFeaturedVariant.mockReturnValue('carousel');
 
       render(<PredictHomeFeatured testID="custom-test-id" />);
@@ -79,7 +79,7 @@ describe('PredictHomeFeatured', () => {
       expect(screen.getByTestId('custom-test-id')).toBeOnTheScreen();
     });
 
-    it('passes testID to list component', () => {
+    it('forwards testID to list component', () => {
       mockSelectPredictHomeFeaturedVariant.mockReturnValue('list');
 
       render(<PredictHomeFeatured testID="custom-test-id" />);
