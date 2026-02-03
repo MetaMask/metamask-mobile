@@ -46,11 +46,6 @@ const smokeTags = {
     description:
       'Tests MetaMask Card integration for crypto-to-fiat spending. Covers the Card home screen display showing card status and balance, the Add Funds button with Deposit and Swap funding options, and Advanced Card Management which opens the external card dashboard in the browser. Tests the Card navbar button for quick navigation to Card home. Validates card-related analytics events: Card Button Viewed, Card Home Clicked, Card Add Funds Clicked, and Card Advanced Management Clicked. The Card feature is controlled by experimental feature flags. Integrates with SmokeTrade for funding via swaps.',
   },
-  smokeRewards: {
-    tag: 'SmokeRewards:',
-    description:
-      'Tests the MetaMask Rewards incentive program. Covers the rewards opt-in onboarding flow with its multi-screen carousel, claiming sign-up bonuses, displaying reward tier levels (e.g., Level 1 "Origin"), and showing earned points balance. Tests the Activity tab displaying reward-earning actions including sign-up bonuses, perpetuals trading rewards, swap rewards, and referral activities. Note: Tests are currently skipped pending rewards system stabilization. When enabled, integrates with SmokeTrade for trading reward triggers.',
-  },
   smokePerps: {
     tag: 'SmokePerps:',
     description:
@@ -111,7 +106,6 @@ const SmokeTrade = (testName) => `${smokeTags.smokeTrade.tag} ${testName}`;
 const SmokeWalletPlatform = (testName) =>
   `${smokeTags.smokeWalletPlatform.tag} ${testName}`;
 const SmokeCard = (testName) => `${smokeTags.smokeCard.tag} ${testName}`;
-const SmokeRewards = (testName) => `${smokeTags.smokeRewards.tag} ${testName}`;
 const SmokePerps = (testName) => `${smokeTags.smokePerps.tag} ${testName}`;
 const SmokeRamps = (testName) => `${smokeTags.smokeRamps.tag} ${testName}`;
 const SmokeMultiChainAPI = (testName) =>
@@ -154,7 +148,6 @@ export {
   SmokeTrade,
   SmokeWalletPlatform,
   SmokeCard,
-  SmokeRewards,
   SmokePerps,
   SmokeRamps,
   SmokeMultiChainAPI,

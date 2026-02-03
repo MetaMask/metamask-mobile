@@ -790,7 +790,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "tokenBalances": {},
       },
       "TokenListController": {
-        "preventPollingOnNetworkRestart": false,
         "tokensChainsCache": {},
       },
       "TokenRatesController": {
@@ -1596,7 +1595,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "tokenBalances": {},
       },
       "TokenListController": {
-        "preventPollingOnNetworkRestart": false,
         "tokensChainsCache": {},
       },
       "TokenRatesController": {
