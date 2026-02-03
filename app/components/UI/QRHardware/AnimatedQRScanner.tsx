@@ -166,30 +166,31 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 
   // Helper to send analytics with device name
   const sendErrorAnalytics = useCallback(
-    (properties: Record<string, unknown>) => {
-      withQrKeyring(({ keyring }) => Promise.resolve(keyring.getName()))
-        .then((deviceName) => {
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
-              .addProperties({
-                ...properties,
-                device_model: deviceName,
-                device_type: HardwareDeviceTypes.QR,
-              })
-              .build(),
-          );
-        })
-        .catch(() => {
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
-              .addProperties({
-                ...properties,
-                device_model: 'Unknown',
-                device_type: HardwareDeviceTypes.QR,
-              })
-              .build(),
-          );
-        });
+    async (properties: Record<string, unknown>) => {
+      try {
+        const deviceName = await withQrKeyring(async ({ keyring }) =>
+          keyring.getName(),
+        );
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
+            .addProperties({
+              ...properties,
+              device_model: deviceName,
+              device_type: HardwareDeviceTypes.QR,
+            })
+            .build(),
+        );
+      } catch (e) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
+            .addProperties({
+              ...properties,
+              device_model: 'Unknown',
+              device_type: HardwareDeviceTypes.QR,
+            })
+            .build(),
+        );
+      }
     },
     [trackEvent, createEventBuilder],
   );
