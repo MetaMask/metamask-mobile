@@ -35,7 +35,7 @@ test.afterAll(async () => {
   await PlaygroundDappServer.stop();
 });
 
-test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser Playground ', async ({
+test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser Playground', async ({
   device,
 }) => {
   const platform = device.getPlatform?.() || 'android';

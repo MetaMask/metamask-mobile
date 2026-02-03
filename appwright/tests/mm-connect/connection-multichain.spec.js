@@ -26,7 +26,7 @@ test.afterAll(async () => {
   await PlaygroundDappServer.stop();
 });
 
-test.skip('@metamask/connect-multichain - Connect via Multichain API to Local Browser Playground', async ({
+test('@metamask/connect-multichain - Connect via Multichain API to Local Browser Playground', async ({
   device,
 }) => {
   // Get platform-specific URL
@@ -45,9 +45,9 @@ test.skip('@metamask/connect-multichain - Connect via Multichain API to Local Br
     shouldWaitForQuiescence: false,
   });
 
-  // ============================================================
-  // LOGIN AND NAVIGATE TO DAPP
-  // ============================================================
+  //
+  // Login and navigate to dapp
+  //
 
   await AppwrightHelpers.withNativeAction(device, async () => {
     await login(device);
@@ -58,9 +58,9 @@ test.skip('@metamask/connect-multichain - Connect via Multichain API to Local Br
 
   await new Promise((resolve) => setTimeout(resolve, 5000));
 
-  // ============================================================
-  // CONNECT VIA MULTICHAIN API
-  // ============================================================
+  //
+  // Connect via Multichain API
+  //
 
   // Tap the Connect button (multichain API - default scopes)
   await AppwrightHelpers.withWebAction(
@@ -82,9 +82,9 @@ test.skip('@metamask/connect-multichain - Connect via Multichain API to Local Br
   await launchMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  // ============================================================
-  // VERIFY CONNECTION
-  // ============================================================
+  //
+  // Verify connection
+  //
 
   await AppwrightHelpers.withWebAction(
     device,
@@ -98,9 +98,9 @@ test.skip('@metamask/connect-multichain - Connect via Multichain API to Local Br
     DAPP_URL,
   );
 
-  // ============================================================
-  // CLEANUP - DISCONNECT
-  // ============================================================
+  //
+  // Cleanup - disconnect
+  //
 
   await AppwrightHelpers.withWebAction(
     device,

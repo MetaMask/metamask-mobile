@@ -58,9 +58,9 @@ test('@metamask/connect-wagmi - Connect via Wagmi to Local Browser Playground', 
     shouldWaitForQuiescence: false,
   });
 
-  // ============================================================
-  // LOGIN AND NAVIGATE TO DAPP
-  // ============================================================
+  //
+  // Login and navigate to dapp
+  //
 
   await AppwrightHelpers.withNativeAction(device, async () => {
     await login(device);
@@ -70,9 +70,9 @@ test('@metamask/connect-wagmi - Connect via Wagmi to Local Browser Playground', 
 
   await new Promise((resolve) => setTimeout(resolve, 5000));
 
-  // ============================================================
-  // CONNECT VIA WAGMI
-  // ============================================================
+  //
+  // Connect via WAGMI
+  //
 
   await AppwrightHelpers.withWebAction(
     device,
@@ -156,9 +156,9 @@ test('@metamask/connect-wagmi - Connect via Wagmi to Local Browser Playground', 
   await launchMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  // ============================================================
-  // SWITCH TO OP MAINNET (requires approval since unselected earlier)
-  // ============================================================
+  //
+  // Switch to OP Mainnet (requires approval since unselected earlier)
+  //
 
   await AppwrightHelpers.withWebAction(
     device,
@@ -206,9 +206,9 @@ test('@metamask/connect-wagmi - Connect via Wagmi to Local Browser Playground', 
   await launchMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  // ============================================================
-  // VERIFY ACCOUNT CHANGE AND ADD CELO CHAIN
-  // ============================================================
+  //
+  // Verify account change and add CELO chain
+  //
 
   await AppwrightHelpers.withWebAction(
     device,
@@ -251,9 +251,9 @@ test('@metamask/connect-wagmi - Connect via Wagmi to Local Browser Playground', 
   await launchMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  // ============================================================
-  // RESUME FROM REFRESH
-  // ============================================================
+  //
+  // Resume from refresh
+  //
 
   await AppwrightHelpers.withNativeAction(device, async () => {
     await refreshMobileBrowser(device);
@@ -282,9 +282,9 @@ test('@metamask/connect-wagmi - Connect via Wagmi to Local Browser Playground', 
   await launchMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  // ============================================================
-  // DISCONNECT AND RECONNECT
-  // ============================================================
+  //
+  // Terminate and connect
+  //
 
   await AppwrightHelpers.withWebAction(
     device,
@@ -315,9 +315,9 @@ test('@metamask/connect-wagmi - Connect via Wagmi to Local Browser Playground', 
     DAPP_URL,
   );
 
-  // ============================================================
-  // INCOMPLETE SESSION TIMEOUT TEST
-  // ============================================================
+  //
+  // Wait for incomplete session timeout on refresh and reconnect after
+  //
 
   await AppwrightHelpers.withWebAction(
     device,
@@ -373,9 +373,9 @@ test('@metamask/connect-wagmi - Connect via Wagmi to Local Browser Playground', 
     DAPP_URL,
   );
 
-  // ============================================================
-  // CLEANUP - DISCONNECT
-  // ============================================================
+  //
+  // Reset dapp state
+  //
 
   await AppwrightHelpers.withWebAction(
     device,
