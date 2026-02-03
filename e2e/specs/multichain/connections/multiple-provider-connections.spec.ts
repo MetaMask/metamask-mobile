@@ -19,8 +19,6 @@ import {
 import { DappVariants } from '../../../../tests/framework/Constants';
 import { createLogger } from '../../../../tests/framework/logger';
 import { requestPermissions } from './helpers';
-import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 
 const logger = createLogger({
   name: 'multiple-provider-connections.spec.ts',
@@ -64,12 +62,6 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
           })
           .build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeatureMultichainAccountsAccountDetailsV2(true),
-          );
-        },
       },
       async () => {
         await loginToApp();
@@ -103,12 +95,6 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
           },
         ],
         restartDevice: true,
-        testSpecificMock: async (mockServer) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeatureMultichainAccountsAccountDetailsV2(true),
-          );
-        },
       },
       async () => {
         await loginToApp();
@@ -152,12 +138,6 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
           },
         ],
         restartDevice: true,
-        testSpecificMock: async (mockServer) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeatureMultichainAccountsAccountDetailsV2(true),
-          );
-        },
       },
       async () => {
         await loginToApp();
