@@ -611,6 +611,10 @@ const PredictFeed: React.FC = () => {
   const headerRef = useRef<View>(null);
   const tabBarRef = useRef<View>(null);
 
+  // Capture the initial tab key at mount to avoid re-triggering the analytics
+  // session when tabs array changes due to async feature flag loading
+  const initialTabKeyRef = useRef(tabs[0].key);
+
   const [isSearchVisible, setIsSearchVisible] = useState(false);
 
   const handleBackPress = useCallback(() => {
@@ -642,13 +646,16 @@ const PredictFeed: React.FC = () => {
 
   useEffect(() => {
     sessionManager.enableAppStateListener();
-    sessionManager.startSession(route.params?.entryPoint, tabs[0].key);
+    sessionManager.startSession(
+      route.params?.entryPoint,
+      initialTabKeyRef.current,
+    );
 
     return () => {
       sessionManager.endSession();
       sessionManager.disableAppStateListener();
     };
-  }, [route.params?.entryPoint, sessionManager, tabs]);
+  }, [route.params?.entryPoint, sessionManager]);
 
   useFocusEffect(
     useCallback(() => {
