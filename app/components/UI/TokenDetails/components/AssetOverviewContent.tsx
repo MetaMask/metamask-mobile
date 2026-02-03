@@ -161,7 +161,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const navigation = useNavigation();
   const merklRewardsRef = useRef<View>(null);
   const merklRewardsYInHeaderRef = useRef<number | null>(null);
-  const chainId = token.chainId;
 
   useScrollToMerklRewards(merklRewardsYInHeaderRef);
 
@@ -190,17 +189,13 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     }
   }, [marketData, navigation]);
 
-  // Stub handlers for new V2 actions
+  // Stub handlers for perps actions
   const handleLong = useCallback(() => {
     // TODO: Implement long action
   }, []);
 
   const handleShort = useCallback(() => {
     // TODO: Implement short action
-  }, []);
-
-  const handleMore = useCallback(() => {
-    // TODO: Implement more menu action
   }, []);
 
   const handleSelectTimePeriod = useCallback(
@@ -267,16 +262,13 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             hasPerpsMarket={hasPerpsMarket}
             hasBalance={balance != null && Number(balance) > 0}
             isBuyable={isBuyable}
+            isNativeCurrency={token.isETH || token.isNative || false}
+            token={token}
             onBuy={onBuy}
             onLong={handleLong}
             onShort={handleShort}
             onSend={onSend}
             onReceive={onReceive}
-            onMore={handleMore}
-            asset={{
-              address: token.address,
-              chainId,
-            }}
           />
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)

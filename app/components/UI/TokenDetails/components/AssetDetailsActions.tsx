@@ -17,6 +17,7 @@ import {
   ActionLocation,
   ActionPosition,
 } from '../../../../util/analytics/actionButtonTracking';
+import { TokenI } from '../../Tokens/types';
 
 const styleSheet = () =>
   StyleSheet.create({
@@ -36,17 +37,13 @@ export interface AssetDetailsActionsProps {
   hasPerpsMarket: boolean;
   hasBalance: boolean;
   isBuyable: boolean;
+  isNativeCurrency: boolean;
+  token: TokenI;
   onBuy?: () => void;
   onLong?: () => void;
   onShort?: () => void;
   onSend: () => void;
   onReceive: () => void;
-  onMore: () => void;
-  asset?: {
-    assetId?: string;
-    address?: string;
-    chainId?: string;
-  };
   // Optional custom action IDs
   buyButtonActionID?: string;
   longButtonActionID?: string;
@@ -60,13 +57,13 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   hasPerpsMarket,
   hasBalance,
   isBuyable,
+  isNativeCurrency,
+  token,
   onBuy,
   onLong,
   onShort,
   onSend,
   onReceive,
-  onMore,
-  asset,
   buyButtonActionID = TokenOverviewSelectorsIDs.BUY_BUTTON,
   longButtonActionID = TokenOverviewSelectorsIDs.LONG_BUTTON,
   shortButtonActionID = TokenOverviewSelectorsIDs.SHORT_BUTTON,
@@ -125,7 +122,10 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
         screen: Routes.MODAL.FUND_ACTION_MENU,
         params: {
           onBuy,
-          asset,
+          asset: {
+            address: token.address,
+            chainId: token.chainId,
+          },
         },
       });
     });
@@ -135,7 +135,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
     createEventBuilder,
     navigate,
     onBuy,
-    asset,
+    token,
   ]);
 
   const handleLongPress = useCallback(() => {
@@ -159,8 +159,27 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   }, [withNavigationLock, onReceive]);
 
   const handleMorePress = useCallback(() => {
-    withNavigationLock(onMore);
-  }, [withNavigationLock, onMore]);
+    withNavigationLock(() => {
+      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.MORE_ACTIONS_MENU,
+        params: {
+          hasPerpsMarket,
+          isBuyable,
+          isNativeCurrency,
+          asset: token,
+          onBuy,
+        },
+      });
+    });
+  }, [
+    withNavigationLock,
+    navigate,
+    hasPerpsMarket,
+    isBuyable,
+    isNativeCurrency,
+    token,
+    onBuy,
+  ]);
 
   // Determine which buttons to display based on perps market and balance
   // IF no perps market:
