@@ -71,42 +71,39 @@ export default function migrate(state: unknown): unknown {
       ? (ramps.selectedPaymentMethod as unknown)
       : null;
 
-    const normalized: Record<string, unknown> = { ...ramps };
-    delete normalized.selectedProvider;
-    delete normalized.selectedToken;
-    delete normalized.selectedPaymentMethod;
+    delete ramps.selectedProvider;
+    delete ramps.selectedToken;
+    delete ramps.selectedPaymentMethod;
 
     if (Array.isArray(ramps.providers)) {
-      normalized.providers = createDefaultResourceState(
+      ramps.providers = createDefaultResourceState(
         ramps.providers,
         selectedProvider ?? null,
       );
     }
 
     if (ramps.tokens != null && !isResourceStateShape(ramps.tokens)) {
-      normalized.tokens = createDefaultResourceState(
+      ramps.tokens = createDefaultResourceState(
         ramps.tokens,
         selectedToken ?? null,
       );
     }
 
     if (Array.isArray(ramps.paymentMethods)) {
-      normalized.paymentMethods = createDefaultResourceState(
+      ramps.paymentMethods = createDefaultResourceState(
         ramps.paymentMethods,
         selectedPaymentMethod ?? null,
       );
     }
 
     if (Array.isArray(ramps.countries)) {
-      normalized.countries = createDefaultResourceState(ramps.countries, null);
+      ramps.countries = createDefaultResourceState(ramps.countries, null);
     }
 
     if (ramps.quotes != null && !isResourceStateShape(ramps.quotes)) {
-      normalized.quotes = createDefaultResourceState(ramps.quotes, null);
+      ramps.quotes = createDefaultResourceState(ramps.quotes, null);
     }
 
-    (state.engine.backgroundState as Record<string, unknown>).RampsController =
-      normalized;
     return state;
   } catch (error) {
     captureException(

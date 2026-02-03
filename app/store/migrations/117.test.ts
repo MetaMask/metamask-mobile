@@ -8,14 +8,20 @@ jest.mock('./util', () => ({
   ensureValidState: jest.fn((_state: unknown, _version: number) => true),
 }));
 
+const mockedEnsureValidState = jest.mocked(
+  jest.requireMock<{ ensureValidState: (s: unknown, v: number) => boolean }>(
+    './util',
+  ).ensureValidState,
+);
+
 describe(`Migration ${migrationVersion}`, () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockedEnsureValidState.mockReturnValue(true);
   });
 
   it('returns state unchanged if state is invalid', () => {
-    const { ensureValidState } = jest.requireMock('./util');
-    (ensureValidState as jest.Mock).mockReturnValue(false);
+    mockedEnsureValidState.mockReturnValue(false);
     const invalidState = null;
     const result = migrate(invalidState);
     expect(result).toBe(invalidState);
