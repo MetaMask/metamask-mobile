@@ -101,7 +101,6 @@ import {
 } from '@metamask/bridge-controller';
 import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import parseRampIntent from '../Ramp/utils/parseRampIntent';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from './TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
@@ -244,9 +243,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   );
 
   const multiChainTokenBalance = useSelector(selectTokensBalances);
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
 
   const chainId = asset.chainId as Hex;
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
@@ -625,8 +621,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const exchangeRate = marketDataRate ?? fetchedRate;
 
   let balance;
-  const minimumDisplayThreshold = 0.00001;
 
+  const minimumDisplayThreshold = 0.00001;
   const isMultichainAsset = isNonEvmAsset;
   const isEthOrNative = asset.isETH || asset.isNative;
 
@@ -648,8 +644,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   }
   ///: END:ONLY_INCLUDE_IF
 
-  if (isMultichainAccountsState2Enabled && balanceSource != null) {
-    // When state2 is enabled and asset has balance, use it directly
+  if (balanceSource != null) {
     balance = balanceSource;
   } else if (isMultichainAsset) {
     balance = balanceSource

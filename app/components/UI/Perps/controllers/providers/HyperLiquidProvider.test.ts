@@ -241,9 +241,10 @@ const createMockInfoClient = (overrides: Record<string, unknown> = {}) => ({
   ]),
   spotMeta: jest.fn().mockResolvedValue({
     tokens: [
-      { name: 'USDC', tokenId: '0xdef456' },
-      { name: 'USDT', tokenId: '0x789abc' },
+      { name: 'USDC', tokenId: '0xdef456', index: 0 },
+      { name: 'USDT', tokenId: '0x789abc', index: 1 },
     ],
+    universe: [],
   }),
   ...overrides,
 });
@@ -6397,7 +6398,8 @@ describe('HyperLiquidProvider', () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
           spotMeta: jest.fn().mockResolvedValue({
-            tokens: [{ name: 'USDC', tokenId: '0xabc123' }],
+            tokens: [{ name: 'USDC', tokenId: '0xabc123', index: 0 }],
+            universe: [],
           }),
         }),
       );
@@ -6487,7 +6489,8 @@ describe('HyperLiquidProvider', () => {
     it('calls getUsdcTokenId to get correct token', async () => {
       // Arrange
       const mockSpotMeta = jest.fn().mockResolvedValue({
-        tokens: [{ name: 'USDC', tokenId: '0xspecific' }],
+        tokens: [{ name: 'USDC', tokenId: '0xspecific', index: 0 }],
+        universe: [],
       });
       mockClientService.getInfoClient = jest
         .fn()
@@ -6597,9 +6600,10 @@ describe('HyperLiquidProvider', () => {
         // Arrange
         const mockSpotMeta = {
           tokens: [
-            { name: 'USDC', tokenId: '0xdef456' },
-            { name: 'USDT', tokenId: '0x789abc' },
+            { name: 'USDC', tokenId: '0xdef456', index: 0 },
+            { name: 'USDT', tokenId: '0x789abc', index: 1 },
           ],
+          universe: [],
         };
         mockClientService.getInfoClient = jest.fn().mockReturnValue(
           createMockInfoClient({
@@ -6619,7 +6623,8 @@ describe('HyperLiquidProvider', () => {
       it('throws error when USDC token not found in metadata', async () => {
         // Arrange
         const mockSpotMeta = {
-          tokens: [{ name: 'USDT', tokenId: '0x789abc' }],
+          tokens: [{ name: 'USDT', tokenId: '0x789abc', index: 0 }],
+          universe: [],
         };
         mockClientService.getInfoClient = jest.fn().mockReturnValue(
           createMockInfoClient({
