@@ -312,14 +312,21 @@ describe('useStopLossPrompt', () => {
       // Should NOT show immediately (position too new)
       expect(result.current.shouldShowBanner).toBe(false);
 
-      // Should still require full debounce period
+      // Should still require full debounce period AND position age
+      // Need to wait for max of both: RoeDebounceMs (60s) and PositionMinAgeMs (120s)
+      const requiredTime =
+        Math.max(
+          STOP_LOSS_PROMPT_CONFIG.RoeDebounceMs,
+          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs,
+        ) + 100;
+
       act(() => {
-        jest.advanceTimersByTime(STOP_LOSS_PROMPT_CONFIG.RoeDebounceMs - 100);
+        jest.advanceTimersByTime(requiredTime - 200);
       });
 
       expect(result.current.shouldShowBanner).toBe(false);
 
-      // After full debounce, should show
+      // After full time passes, should show
       act(() => {
         jest.advanceTimersByTime(200);
       });
@@ -443,9 +450,16 @@ describe('useStopLossPrompt', () => {
       // Should NOT show immediately (no timestamp provided)
       expect(result.current.shouldShowBanner).toBe(false);
 
-      // Should require full debounce period
+      // Should require full debounce period AND position age
+      // Need to wait for max of both: RoeDebounceMs (60s) and PositionMinAgeMs (120s)
+      const requiredTime =
+        Math.max(
+          STOP_LOSS_PROMPT_CONFIG.RoeDebounceMs,
+          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs,
+        ) + 100;
+
       act(() => {
-        jest.advanceTimersByTime(STOP_LOSS_PROMPT_CONFIG.RoeDebounceMs + 100);
+        jest.advanceTimersByTime(requiredTime);
       });
 
       expect(result.current.shouldShowBanner).toBe(true);
