@@ -43,7 +43,7 @@ const PredictHomeFeaturedList: React.FC<PredictHomeFeaturedListProps> = ({
     navigation.navigate(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
       params: {
-        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED,
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST,
       },
     });
   }, [navigation]);
@@ -104,13 +104,13 @@ const PredictHomeFeaturedList: React.FC<PredictHomeFeaturedListProps> = ({
       </TouchableOpacity>
 
       <PredictEntryPointProvider
-        entryPoint={PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED}
+        entryPoint={PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST}
       >
         {marketData.map((market) => (
           <PredictMarketRowItem
             key={market.id}
             market={market}
-            entryPoint={PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED}
+            entryPoint={PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST}
           />
         ))}
       </PredictEntryPointProvider>

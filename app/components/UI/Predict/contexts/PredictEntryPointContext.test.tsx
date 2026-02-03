@@ -23,14 +23,14 @@ describe('PredictEntryPointContext', () => {
     it('returns entry point value when provider is present', () => {
       const { getByTestId } = render(
         <PredictEntryPointProvider
-          entryPoint={PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED}
+          entryPoint={PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_CAROUSEL}
         >
           <TestComponent />
         </PredictEntryPointProvider>,
       );
 
       expect(getByTestId('entry-point').props.children).toBe(
-        'homepage_featured',
+        'homepage_featured_carousel',
       );
     });
   });
@@ -68,7 +68,7 @@ describe('PredictEntryPointContext', () => {
           entryPoint={PredictEventValues.ENTRY_POINT.PREDICT_FEED}
         >
           <PredictEntryPointProvider
-            entryPoint={PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED}
+            entryPoint={PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST}
           >
             <TestComponent />
           </PredictEntryPointProvider>
@@ -76,7 +76,7 @@ describe('PredictEntryPointContext', () => {
       );
 
       expect(getByTestId('entry-point').props.children).toBe(
-        'homepage_featured',
+        'homepage_featured_list',
       );
     });
 
@@ -89,7 +89,8 @@ describe('PredictEntryPointContext', () => {
         PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
         PredictEventValues.ENTRY_POINT.HOMEPAGE_NEW_PREDICTION,
         PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
-        PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED,
+        PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_CAROUSEL,
+        PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST,
         PredictEventValues.ENTRY_POINT.TRENDING,
       ];
 

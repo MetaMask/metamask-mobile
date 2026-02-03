@@ -188,7 +188,8 @@ describe('PredictHomeFeaturedCarousel', () => {
         {
           screen: Routes.PREDICT.MARKET_LIST,
           params: {
-            entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED,
+            entryPoint:
+              PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_CAROUSEL,
           },
         },
       );

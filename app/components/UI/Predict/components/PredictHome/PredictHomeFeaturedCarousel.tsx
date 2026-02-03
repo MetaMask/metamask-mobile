@@ -46,7 +46,7 @@ const PredictHomeFeaturedCarousel: React.FC<
     navigation.navigate(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
       params: {
-        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED,
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_CAROUSEL,
       },
     });
   }, [navigation]);
@@ -74,7 +74,7 @@ const PredictHomeFeaturedCarousel: React.FC<
         </Box>
       </TouchableOpacity>
       <PredictEntryPointProvider
-        entryPoint={PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED}
+        entryPoint={PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_CAROUSEL}
       >
         <Section
           sectionId={section.id}

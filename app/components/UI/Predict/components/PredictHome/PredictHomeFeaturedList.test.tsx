@@ -209,7 +209,7 @@ describe('PredictHomeFeaturedList', () => {
         {
           screen: Routes.PREDICT.MARKET_LIST,
           params: {
-            entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED,
+            entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST,
           },
         },
       );
@@ -263,7 +263,7 @@ describe('PredictHomeFeaturedList', () => {
 
       expect(mockPredictMarketRowItem).toHaveBeenCalledWith(
         expect.objectContaining({
-          entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED,
+          entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST,
         }),
       );
     });
