@@ -2065,10 +2065,13 @@ describe('Onboarding', () => {
 
   describe('Error Report Sent Notification', () => {
     beforeEach(() => {
+      jest.useFakeTimers();
       mockRoute.params = { showErrorReportSentToast: true };
     });
 
     afterEach(() => {
+      jest.runOnlyPendingTimers();
+      jest.useRealTimers();
       mockRoute.params = {};
     });
 
@@ -2081,9 +2084,11 @@ describe('Onboarding', () => {
         },
       );
 
-      await waitFor(() => {
-        expect(getByText('Error report sent')).toBeTruthy();
+      await act(async () => {
+        jest.advanceTimersByTime(100);
       });
+
+      expect(getByText('Error report sent')).toBeTruthy();
     });
 
     it('displays notification description when showErrorReportSentToast param is true', async () => {
@@ -2095,13 +2100,15 @@ describe('Onboarding', () => {
         },
       );
 
-      await waitFor(() => {
-        expect(
-          getByText(
-            "We're investigating this problem. Try creating your wallet again.",
-          ),
-        ).toBeTruthy();
+      await act(async () => {
+        jest.advanceTimersByTime(100);
       });
+
+      expect(
+        getByText(
+          "We're investigating this problem. Try creating your wallet again.",
+        ),
+      ).toBeTruthy();
     });
   });
 });
