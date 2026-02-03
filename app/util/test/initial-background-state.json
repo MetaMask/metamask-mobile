@@ -752,12 +752,7 @@
     "accountMeta": {}
   },
   "RampsController": {
-    "userRegion": {
-      "data": null,
-      "selected": null,
-      "isLoading": false,
-      "error": null
-    },
+    "userRegion": null,
     "countries": {
       "data": [],
       "selected": null,
