@@ -235,11 +235,6 @@ let mockUseBalanceValues: Partial<ReturnType<typeof useBalance>> = {
 
 jest.mock('../../hooks/useBalance', () => jest.fn(() => mockUseBalanceValues));
 
-const mockFetchQuotes = jest.fn();
-const mockDebouncedFetchQuotes = Object.assign(jest.fn(), {
-  cancel: jest.fn(),
-});
-
 const mockUseRampsQuotesInitialValue = {
   quotes: {
     success: [
@@ -256,10 +251,16 @@ const mockUseRampsQuotesInitialValue = {
     error: [],
     customActions: [],
   },
-  isFetchingQuotes: false,
-  quotesError: null,
-  fetchQuotes: mockFetchQuotes,
-  debouncedFetchQuotes: mockDebouncedFetchQuotes,
+  selectedQuote: {
+    provider: '/providers/test-provider',
+    quote: {
+      amountIn: 100,
+      amountOut: 0.025,
+      paymentMethod: '/payments/credit-card',
+    },
+  },
+  isLoading: false,
+  error: null,
 };
 
 const mockUseRampsQuotesValues = {

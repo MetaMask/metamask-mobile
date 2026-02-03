@@ -231,7 +231,7 @@ const BuildQuote = () => {
     isAmountValid,
   } = useLimits();
 
-  // Determine which amount to use for quote fetching:
+  // Determine which amount to use for quote polling:
   // - When user hasn't entered anything (amountNumber === 0), use defaultAmountForQuote
   // - Once user enters an amount (amountNumber > 0), use amountNumber
   const defaultAmountForQuote = userRegion?.country?.defaultAmount ?? 0;
@@ -239,19 +239,11 @@ const BuildQuote = () => {
   const amountForQuote =
     amountNumber > 0 ? amountNumber : defaultAmountForQuote;
 
-  const { quotes, isFetchingQuotes, fetchQuotes, debouncedFetchQuotes } =
-    useRampsQuotes({
-      assetId: selectedAsset?.id,
-      amount: amountForQuote,
-      walletAddress: selectedAddress ?? undefined,
-      region: selectedRegion?.id,
-      fiat: currentFiatCurrency?.id,
-      paymentMethods: selectedPaymentMethodId
-        ? [selectedPaymentMethodId]
-        : undefined,
-      action: isBuy ? 'buy' : 'sell',
-      enabled: !isFetchingLimits && !!selectedAsset && !!selectedAddress,
-    });
+  const { selectedQuote, isLoading: isLoadingQuotes } = useRampsQuotes({
+    walletAddress: selectedAddress ?? undefined,
+    amount: amountForQuote,
+    redirectUrl: undefined,
+  });
 
   useIntentAmount(
     setAmount,
@@ -264,62 +256,6 @@ const BuildQuote = () => {
     setAmount('0');
     setAmountNumber(0);
   }, [selectedRegion]);
-
-  // Fetch initial quote when prerequisites are ready (using defaultAmountForQuote)
-  // Note: displayed amount remains 0, this is just for pre-warming quotes
-  useEffect(() => {
-    const isFetching =
-      isFetchingRegions ||
-      isFetchingFiatCurrency ||
-      isFetchingCryptoCurrencies ||
-      isFetchingPaymentMethods ||
-      isFetchingLimits;
-
-    if (
-      !isFetching &&
-      defaultAmountForQuote > 0 &&
-      selectedAsset?.id &&
-      selectedAddress &&
-      selectedPaymentMethodId
-    ) {
-      fetchQuotes();
-    }
-  }, [
-    isFetchingRegions,
-    isFetchingFiatCurrency,
-    isFetchingCryptoCurrencies,
-    isFetchingPaymentMethods,
-    isFetchingLimits,
-    defaultAmountForQuote,
-    selectedAsset?.id,
-    selectedAddress,
-    selectedPaymentMethodId,
-    fetchQuotes,
-  ]);
-
-  // Re-fetch quotes when user changes the amount (debounced)
-  // Only trigger when amountNumber > 0 (user has entered something)
-  useEffect(() => {
-    const isFetching =
-      isFetchingRegions ||
-      isFetchingFiatCurrency ||
-      isFetchingCryptoCurrencies ||
-      isFetchingPaymentMethods ||
-      isFetchingLimits;
-
-    if (amountNumber > 0 && !isFetching) {
-      debouncedFetchQuotes();
-    }
-    return () => debouncedFetchQuotes.cancel();
-  }, [
-    amountNumber,
-    isFetchingRegions,
-    isFetchingFiatCurrency,
-    isFetchingCryptoCurrencies,
-    isFetchingPaymentMethods,
-    isFetchingLimits,
-    debouncedFetchQuotes,
-  ]);
 
   const shouldShowUnsupportedModal = useMemo(
     () =>
@@ -1187,7 +1123,7 @@ const BuildQuote = () => {
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
           <Row style={styles.cta}>
-            {isFetchingQuotes && amountNumber > 0 ? (
+            {isLoadingQuotes && amountNumber > 0 ? (
               <SkeletonBox style={styles.buttonSkeleton} />
             ) : (
               <Button
@@ -1199,8 +1135,8 @@ const BuildQuote = () => {
                 isDisabled={
                   amountNumber <= 0 ||
                   isFetching ||
-                  isFetchingQuotes ||
-                  !(quotes?.success && quotes.success.length > 0)
+                  isLoadingQuotes ||
+                  !selectedQuote
                 }
                 accessibilityRole="button"
               />

@@ -6,6 +6,8 @@ import {
   type Country,
   type RampsControllerState,
   type QuotesResponse,
+  type ResourceState,
+  type Quote,
 } from '@metamask/ramps-controller';
 import { RootState } from '../../reducers';
 
@@ -119,52 +121,52 @@ export const selectProvidersRequest = (
   );
 
 /**
- * Selects the quotes from state.
+ * Selects the quotes ResourceState from state.
+ * Returns the full ResourceState with data, selected, isLoading, and error.
  */
-export const selectQuotes = createSelector(
+export const selectQuotesState = createSelector(
   selectRampsControllerState,
-  (rampsControllerState) => rampsControllerState?.quotes ?? null,
+  (rampsControllerState): ResourceState<QuotesResponse | null, Quote | null> =>
+    rampsControllerState?.quotes ?? {
+      data: null,
+      selected: null,
+      isLoading: false,
+      error: null,
+    },
 );
 
 /**
- * Selects the quotes request state for given parameters.
- * Note: The cache key includes region, fiat, assetId, amount, walletAddress, paymentMethods, provider, redirectUrl, and action.
- *
- * @param params - The parameters used to fetch quotes.
- * @param params.region - The region code (e.g., "us", "fr", "us-ny").
- * @param params.fiat - The fiat currency code (e.g., "usd", "eur").
- * @param params.assetId - CAIP-19 cryptocurrency identifier.
- * @param params.amount - The amount for the quote.
- * @param params.walletAddress - The destination wallet address.
- * @param params.paymentMethods - Array of payment method IDs.
- * @param params.provider - Optional provider ID to filter quotes.
- * @param params.redirectUrl - Optional redirect URL after order completion.
- * @param params.action - The ramp action type ('buy' or 'sell').
- * @returns Request selector for quotes.
+ * Selects the quotes data from state.
+ * Returns QuotesResponse | null.
  */
-export const selectQuotesRequest = (params: {
-  region: string;
-  fiat: string;
-  assetId: string;
-  amount: number;
-  walletAddress: string;
-  paymentMethods: string[];
-  provider?: string;
-  redirectUrl?: string;
-  action?: 'buy' | 'sell';
-}) =>
-  createRequestSelector<RootState, QuotesResponse>(
-    selectRampsControllerState,
-    'getQuotes',
-    [
-      params.region.toLowerCase().trim(),
-      params.fiat.toLowerCase().trim(),
-      params.assetId,
-      params.amount,
-      params.walletAddress,
-      [...params.paymentMethods].sort().join(','),
-      params.provider,
-      params.redirectUrl,
-      params.action ?? 'buy',
-    ],
-  );
+export const selectQuotes = createSelector(
+  selectQuotesState,
+  (quotesState) => quotesState.data,
+);
+
+/**
+ * Selects the currently selected quote from state.
+ * Auto-selected by the controller when exactly 1 quote is returned.
+ */
+export const selectSelectedQuote = createSelector(
+  selectQuotesState,
+  (quotesState) => quotesState.selected,
+);
+
+/**
+ * Selects the quotes loading state.
+ * Returns true when quotes are being fetched.
+ */
+export const selectQuotesIsLoading = createSelector(
+  selectQuotesState,
+  (quotesState) => quotesState.isLoading,
+);
+
+/**
+ * Selects the quotes error state.
+ * Returns error message or null.
+ */
+export const selectQuotesError = createSelector(
+  selectQuotesState,
+  (quotesState) => quotesState.error,
+);
