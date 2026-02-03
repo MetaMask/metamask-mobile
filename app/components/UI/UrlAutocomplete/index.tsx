@@ -439,7 +439,7 @@ const UrlAutocomplete = forwardRef<
   const [searchQuery, setSearchQuery] = useState('');
 
   const resultsRef = useRef<View | null>(null);
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet);
 
   // Empty state: show Recents and Favorites from browser history/bookmarks
   const emptyStateResults: ResultsWithCategory[] = useMemo(() => {
@@ -621,4 +621,7 @@ const UrlAutocomplete = forwardRef<
   );
 });
 
-export default UrlAutocomplete;
+const UrlAutocompleteMemoized = React.memo(UrlAutocomplete);
+UrlAutocompleteMemoized.displayName = 'UrlAutocomplete';
+
+export default UrlAutocompleteMemoized;

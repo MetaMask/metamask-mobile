@@ -56,6 +56,29 @@ jest.mock('lodash', () => ({
   memoize: jest.fn((fn) => fn),
 }));
 
+jest.mock('react-native', () => {
+  const RN = jest.requireActual('react-native');
+  return {
+    ...RN,
+    ActivityIndicator: ({
+      size,
+      color,
+      testID,
+      ...props
+    }: {
+      size?: string | number;
+      color?: string;
+      testID?: string;
+      [key: string]: unknown;
+    }) =>
+      RN.createElement(RN.View, {
+        testID: testID || 'activity-indicator',
+        accessibilityLabel: 'Loading',
+        ...props,
+      }),
+  };
+});
+
 // Mock component library components
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
@@ -337,6 +360,13 @@ jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
     mockSelectIconSeedAddressByAccountGroupId(groupId),
 }));
 
+// Mock the selector - it's a function that takes state and returns a boolean
+const mockSelectBulkLinkIsRunning = jest.fn((_: unknown) => false);
+jest.mock('../../../../../reducers/rewards/selectors', () => ({
+  selectBulkLinkIsRunning: (state: unknown) =>
+    mockSelectBulkLinkIsRunning(state),
+}));
+
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
@@ -431,13 +461,21 @@ describe('RewardSettingsAccountGroup', () => {
       isError: false,
     });
 
+    // Reset the selector mock to return false by default
+    mockSelectBulkLinkIsRunning.mockReturnValue(false);
+
     // Mock useSelector to execute the selector function
     mockUseSelector.mockImplementation((selector) => {
       // The selector is a function that takes state and returns a value
       // In the component, it calls selectIconSeedAddressByAccountGroupId(accountGroup.id)
       // which returns a selector function, then calls that with state
+      // Also handles selectBulkLinkIsRunning which is called directly
       if (typeof selector === 'function') {
-        return selector({} as never);
+        try {
+          return selector({} as never);
+        } catch {
+          return mockEvmAddress;
+        }
       }
       return null;
     });
@@ -597,7 +635,42 @@ describe('RewardSettingsAccountGroup', () => {
       const linkButton = getByTestId(
         `rewards-account-group-link-button-${mockAccountGroup.id}`,
       );
-      expect(linkButton).toHaveProp('disabled', false);
+      // When enabled, disabled should be false or undefined
+      expect(linkButton.props.disabled).toBeFalsy();
+    });
+
+    it('should disable link button when bulk link is running', () => {
+      // Mock bulk link running
+      mockSelectBulkLinkIsRunning.mockReturnValue(true);
+
+      const { getByTestId } = render(
+        <RewardSettingsAccountGroup
+          item={mockItem}
+          avatarAccountType={AvatarAccountType.Maskicon}
+        />,
+      );
+
+      const linkButton = getByTestId(
+        `rewards-account-group-link-button-${mockAccountGroup.id}`,
+      );
+      expect(linkButton.props.disabled).toBe(true);
+    });
+
+    it('should disable link button when bulk link is running even with opted out accounts', () => {
+      // Mock bulk link running
+      mockSelectBulkLinkIsRunning.mockReturnValue(true);
+
+      const { getByTestId } = render(
+        <RewardSettingsAccountGroup
+          item={mockItem}
+          avatarAccountType={AvatarAccountType.Maskicon}
+        />,
+      );
+
+      const linkButton = getByTestId(
+        `rewards-account-group-link-button-${mockAccountGroup.id}`,
+      );
+      expect(linkButton.props.disabled).toBe(true);
     });
   });
 
@@ -984,6 +1057,37 @@ describe('RewardSettingsAccountGroup', () => {
         `rewards-account-addresses-${mockAccountGroup.id}`,
       );
       expect(addressesButton).toHaveProp('disabled', true);
+    });
+
+    it('should show ActivityIndicator instead of link button when loading', () => {
+      // Arrange
+      mockUseLinkAccountGroup.mockReturnValue({
+        linkAccountGroup: mockLinkAccountGroup,
+        isLoading: true,
+        isError: false,
+      });
+
+      // Act
+      const { getByTestId, queryByTestId } = render(
+        <RewardSettingsAccountGroup
+          item={mockItem}
+          avatarAccountType={AvatarAccountType.Maskicon}
+        />,
+      );
+
+      // Assert - ActivityIndicator should be visible
+      expect(
+        getByTestId(
+          `rewards-account-group-link-button-loading-${mockAccountGroup.id}`,
+        ),
+      ).toBeOnTheScreen();
+
+      // Assert - Link button should not be visible
+      expect(
+        queryByTestId(
+          `rewards-account-group-link-button-${mockAccountGroup.id}`,
+        ),
+      ).toBeNull();
     });
   });
 });

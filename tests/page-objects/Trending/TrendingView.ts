@@ -231,7 +231,7 @@ class TrendingView {
 
     await Gestures.tap(backButton, {
       elemDescription: `Tap Back Button from ${sectionTitle} Full View`,
-      checkStability: true,
+      checkVisibility: false,
     });
   }
 

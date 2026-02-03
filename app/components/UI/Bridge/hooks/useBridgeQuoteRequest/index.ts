@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useMemo } from 'react';
 import Engine from '../../../../../core/Engine';
 import {
   formatAddressToCaipReference,
@@ -43,6 +43,7 @@ export const useBridgeQuoteRequest = () => {
     decimals: sourceToken?.decimals,
     chainId: sourceToken?.chainId,
   });
+
   const insufficientBal = useIsInsufficientBalance({
     amount: sourceAmount,
     token: sourceToken,
@@ -52,13 +53,6 @@ export const useBridgeQuoteRequest = () => {
   const { gasIncluded, gasIncluded7702 } = useSelector(
     selectGasIncludedQuoteParams,
   );
-
-  // Prevents infinite requests when user select max balance on
-  // source token input.
-  const insufficientBalRef = useRef(insufficientBal);
-  useEffect(() => {
-    insufficientBalRef.current = insufficientBal;
-  }, [insufficientBal]);
 
   /**
    * Updates quote parameters in the bridge controller
@@ -93,7 +87,7 @@ export const useBridgeQuoteRequest = () => {
       destWalletAddress: destAddress ?? walletAddress,
       gasIncluded,
       gasIncluded7702,
-      insufficientBal: insufficientBalRef.current,
+      insufficientBal,
     };
 
     await Engine.context.BridgeController.updateBridgeQuoteRequestParams(
@@ -111,6 +105,7 @@ export const useBridgeQuoteRequest = () => {
     context,
     gasIncluded,
     gasIncluded7702,
+    insufficientBal,
   ]);
 
   // Create a stable debounced function that persists across renders
