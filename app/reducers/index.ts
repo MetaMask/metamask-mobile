@@ -57,8 +57,8 @@ export type StateFromReducer<reducer> =
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     any
   >
-    ? State
-    : never;
+  ? State
+  : never;
 
 // TODO: Convert all reducers to valid TypeScript Redux reducers, and add them
 // to this type. Once that is complete, we can automatically generate this type

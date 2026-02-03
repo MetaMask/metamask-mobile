@@ -69,7 +69,7 @@ export function useTransactionPayToken(): {
         const isNewPayTokenRequiredToken =
           newPayToken.chainId === primaryRequiredToken?.chainId &&
           newPayToken.address.toLowerCase() ===
-            primaryRequiredToken?.address.toLowerCase();
+          primaryRequiredToken?.address.toLowerCase();
 
         const updatedTx: TransactionMeta = {
           ...transactionMeta,

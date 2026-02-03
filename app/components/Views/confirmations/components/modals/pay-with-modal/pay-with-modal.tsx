@@ -16,6 +16,8 @@ import { hasTransactionType } from '../../../utils/transaction';
 import { useMusdConversionTokens } from '../../../../../UI/Earn/hooks/useMusdConversionTokens';
 import { HIDE_NETWORK_FILTER_TYPES } from '../../../constants/confirmations';
 import { useMusdPaymentToken } from '../../../../../UI/Earn/hooks/useMusdPaymentToken';
+import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
+import { Alert } from 'react-native';
 
 export function PayWithModal() {
   const transactionMeta = useTransactionMetadataRequest();
@@ -29,6 +31,7 @@ export function PayWithModal() {
   const { filterAllowedTokens: musdTokenFilter } = useMusdConversionTokens();
   const { onPaymentTokenChange: onMusdPaymentTokenChange } =
     useMusdPaymentToken();
+  const perpsBalanceTokenFilter = usePerpsBalanceTokenFilter();
 
   const close = useCallback((onClosed?: () => void) => {
     // Called after the bottom sheet's closing animation completes.
@@ -37,6 +40,7 @@ export function PayWithModal() {
 
   const handleTokenSelect = useCallback(
     (token: AssetType) => {
+      Alert.alert('Token selected', JSON.stringify(token));
       if (
         hasTransactionType(transactionMeta, [TransactionType.musdConversion])
       ) {
@@ -68,9 +72,13 @@ export function PayWithModal() {
         return musdTokenFilter(availableTokens);
       }
 
+      if (hasTransactionType(transactionMeta, [TransactionType.perpsDepositAndOrder])) {
+        return perpsBalanceTokenFilter(availableTokens);
+      }
+
       return availableTokens;
     },
-    [musdTokenFilter, payToken, requiredTokens, transactionMeta],
+    [musdTokenFilter, payToken, requiredTokens, transactionMeta, perpsBalanceTokenFilter],
   );
 
   return (

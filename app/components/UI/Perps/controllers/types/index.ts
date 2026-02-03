@@ -701,7 +701,7 @@ export interface SubscribeOrdersParams {
 }
 
 export interface SubscribeAccountParams {
-  callback: (account: AccountState) => void;
+  callback: (account: AccountState | null) => void;
   accountId?: CaipAccountId; // Optional: defaults to selected account
 }
 
