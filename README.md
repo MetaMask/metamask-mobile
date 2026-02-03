@@ -12,6 +12,9 @@ To learn how to develop MetaMask-compatible applications, visit our [Developer D
 
 To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs](https://github.com/MetaMask/contributor-docs).
 
+- **Node.js**: `v18.x` or later (recommended)
+- **Yarn**: `v1.22.x` (classic)
+
 ## Documentation
 
 - [Architecture](./docs/readme/architecture.md)
