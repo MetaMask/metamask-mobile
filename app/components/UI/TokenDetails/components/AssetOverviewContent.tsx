@@ -6,6 +6,7 @@ import {
   TextStyle,
   ViewStyle,
 } from 'react-native';
+import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { Theme } from '@metamask/design-tokens';
 import { strings } from '../../../../../locales/i18n';
@@ -31,11 +32,13 @@ import ChartNavigationButton from '../../AssetOverview/ChartNavigationButton';
 import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
 import { PriceChartProvider } from '../../AssetOverview/PriceChart/PriceChart.context';
-import { AssetDetailsActions } from './AssetDetailsActions';
+import AssetDetailsActions from '../../../Views/AssetDetails/AssetDetailsActions';
+import { AssetDetailsActions as AssetDetailsActionsV2 } from './AssetDetailsActions';
 import MerklRewards from '../../Earn/components/MerklRewards';
 import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
 import { useScrollToMerklRewards } from '../../AssetOverview/hooks/useScrollToMerklRewards';
+import { selectTokenDetailsV2ButtonsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsV2';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
 ///: END:ONLY_INCLUDE_IF
@@ -108,6 +111,10 @@ export interface AssetOverviewContentProps {
   // Feature flags
   isPerpsEnabled: boolean;
   isMerklCampaignClaimingEnabled: boolean;
+
+  // Display flags
+  displayBuyButton: boolean;
+  displaySwapsButton: boolean;
   isBuyable: boolean;
 
   // Currency
@@ -117,6 +124,7 @@ export interface AssetOverviewContentProps {
   onBuy: () => void;
   onSend: () => Promise<void>;
   onReceive: () => void;
+  goToSwaps: () => void;
 
   // Tron-specific
   isTronNative?: boolean;
@@ -149,11 +157,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   chartNavigationButtons,
   isPerpsEnabled,
   isMerklCampaignClaimingEnabled,
+  displayBuyButton,
+  displaySwapsButton,
   isBuyable,
   currentCurrency,
   onBuy,
   onSend,
   onReceive,
+  goToSwaps,
   isTronNative,
   stakedTrxAsset,
 }) => {
@@ -169,6 +180,10 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   );
 
   const isTokenTrustworthy = isTokenTrustworthyForPerps(token);
+
+  const isTokenDetailsV2ButtonsEnabled = useSelector(
+    selectTokenDetailsV2ButtonsEnabled,
+  );
 
   const goToBrowserUrl = (url: string) => {
     const [screen, params] = createWebviewNavDetails({
@@ -258,18 +273,34 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           <View style={styles.chartNavigationWrapper}>
             {renderChartNavigationButton()}
           </View>
-          <AssetDetailsActions
-            hasPerpsMarket={hasPerpsMarket}
-            hasBalance={balance != null && Number(balance) > 0}
-            isBuyable={isBuyable}
-            isNativeCurrency={token.isETH || token.isNative || false}
-            token={token}
-            onBuy={onBuy}
-            onLong={handleLong}
-            onShort={handleShort}
-            onSend={onSend}
-            onReceive={onReceive}
-          />
+          {isTokenDetailsV2ButtonsEnabled ? (
+            <AssetDetailsActionsV2
+              hasPerpsMarket={hasPerpsMarket}
+              hasBalance={balance != null && Number(balance) > 0}
+              isBuyable={isBuyable}
+              isNativeCurrency={token.isETH || token.isNative || false}
+              token={token}
+              onBuy={onBuy}
+              onLong={handleLong}
+              onShort={handleShort}
+              onSend={onSend}
+              onReceive={onReceive}
+            />
+          ) : (
+            <AssetDetailsActions
+              displayBuyButton={displayBuyButton && isBuyable}
+              displaySwapsButton={displaySwapsButton}
+              goToSwaps={goToSwaps}
+              onBuy={onBuy}
+              onReceive={onReceive}
+              onSend={onSend}
+              asset={{
+                address: token.address,
+                chainId: token.chainId,
+              }}
+            />
+          )}
+
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
             isTronNative && <TronEnergyBandwidthDetail />

@@ -128,7 +128,7 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
     ///: END:ONLY_INCLUDE_IF
   } = useTokenBalance(token);
 
-  const isTokenBuyable = useTokenBuyability(token);
+  const isBuyable = useTokenBuyability(token);
 
   const { onBuy, onSend, onReceive, goToSwaps, networkModal } = useTokenActions(
     {
@@ -200,7 +200,7 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
         isMerklCampaignClaimingEnabled={isMerklCampaignClaimingEnabled}
         displayBuyButton={displayBuyButton}
         displaySwapsButton={displaySwapsButton}
-        isTokenBuyable={isTokenBuyable}
+        isBuyable={isBuyable}
         currentCurrency={currentCurrency}
         onBuy={onBuy}
         onSend={onSend}
