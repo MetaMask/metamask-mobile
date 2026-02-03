@@ -22,11 +22,6 @@ export interface BottomSheetFooterProps extends ViewProps {
    */
   buttonsAlignment?: ButtonsAlignment;
   /**
-   * Optional prop to control the gap between buttons.
-   * @default 16
-   */
-  buttonGap?: number;
-  /**
    * Array of buttons that will be displayed in the footer
    */
   buttonPropsArray: ButtonProps[];
@@ -37,5 +32,5 @@ export interface BottomSheetFooterProps extends ViewProps {
  */
 export type BottomSheetFooterStyleSheetVars = Pick<
   BottomSheetFooterProps,
-  'style' | 'buttonsAlignment' | 'buttonGap'
+  'style' | 'buttonsAlignment'
 >;

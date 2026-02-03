@@ -296,7 +296,6 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
             ...styles.bottomSheetFooter,
             paddingBottom: insets.bottom + 6,
           }}
-          buttonGap={12}
           buttonPropsArray={[
             {
               variant: ButtonVariants.Primary,
