@@ -2094,7 +2094,8 @@
       "new": "New",
       "sports": "Sports",
       "crypto": "Crypto",
-      "politics": "Politics"
+      "politics": "Politics",
+      "hot": "Hot"
     },
     "search_placeholder": "Search prediction markets",
     "search_cancel": "Cancel",
@@ -2770,9 +2771,8 @@
     "description5": "1. Unlock your Keystone",
     "description6": "2. Tap the ··· Menu, then go to Sync",
     "button_continue": "Continue",
-    "hint_text": "Scan your hardware wallet to ",
-    "purpose_connect": "connect",
-    "purpose_sign": "confirm the transaction",
+    "hint_text_pair": "Scan your hardware wallet",
+    "hint_text_sign": "Scan your hardware wallet to confirm the transaction",
     "select_accounts": "Select an account"
   },
   "data_collection_modal": {
@@ -3724,6 +3724,8 @@
     "new_tab": "New tab",
     "tabs_close_all": "Close all",
     "tabs_done": "Done",
+    "opened_tabs": "Opened tabs",
+    "add_new_tab": "Add new tab",
     "no_tabs_title": "No open tabs",
     "no_tabs_desc": "To browse the decentralized web, add a new tab",
     "got_it": "Got it",
@@ -7167,17 +7169,14 @@
       "retry_button": "Retry"
     },
     "referral_rewards_title": "Referrals",
-    "points": "Points",
-    "point": "Point",
     "level": "Level",
-    "to_level_up": "To level up",
     "season_ends": "Season ends",
     "season_ended": "Season ended",
     "main_title": "Rewards",
     "referral_title": "Referrals",
     "tab_overview_title": "Overview",
+    "tab_snapshots_title": "Snapshots",
     "tab_activity_title": "Activity",
-    "tab_levels_title": "Levels",
     "referral_stats_earned_from_referrals": "Earned from referrals",
     "referral_stats_referrals": "Referrals",
     "loading_activity": "Loading activity...",
@@ -7229,6 +7228,9 @@
       "no_end_of_season_rewards": "You didn't earn rewards this season, but there's always next time.",
       "verifying_rewards": "We're making sure everything's correct before you claim your rewards."
     },
+    "season_status": {
+      "points_earned": "Points earned"
+    },
     "onboarding": {
       "not_supported_region_title": "Region not supported",
       "not_supported_region_description": "Rewards are not supported in your region yet. We are working on expanding access, so check back later.",
@@ -7268,6 +7270,7 @@
       "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",
       "step4_confirm_loading": "Claiming points...",
+      "step4_bulk_link_checkbox": "Opt-in all my accounts on this device",
       "step4_linking_accounts": "Adding accounts... ({{current}}/{{total}})",
       "step4_linking_accounts_loading": "Adding additional accounts...",
       "step4_success_description": "You have successfully signed up for MetaMask Rewards!",
@@ -7299,7 +7302,12 @@
       "link_account_error_title": "Failed to add account",
       "link_account_button": "Add",
       "link_account_failed_error": "Failed to add account",
-      "link_account_unknown_error": "Unknown error occurred"
+      "link_account_unknown_error": "Unknown error occurred",
+      "show_more": "Show more",
+      "show_less": "Show less",
+      "linking_progress": "Adding accounts... ({{current}}/{{total}})",
+      "accounts_linked_count": "{{linked}}/{{total}} enrolled",
+      "add_all_accounts": "Add all accounts"
     },
     "referred_by_code": {
       "title": "Referral Code",
@@ -7480,6 +7488,33 @@
     },
     "animation": {
       "could_not_load": "Couldn't load"
+    },
+    "snapshot": {
+      "starts_date": "Starts {{date}}",
+      "ends_date": "Ends {{date}}",
+      "results_coming_soon": "Results coming soon",
+      "tokens_on_the_way": "Tokens on the way",
+      "pill_up_next": "Up next",
+      "pill_live_now": "Live now",
+      "pill_calculating": "Calculating",
+      "pill_results_ready": "Results Ready",
+      "pill_complete": "Complete"
+    },
+    "snapshots_section": {
+      "title": "Snapshots",
+      "error_title": "Unable to load snapshots",
+      "error_description": "We couldn't load the snapshots. Please try again.",
+      "retry_button": "Retry"
+    },
+    "snapshots_tab": {
+      "active_title": "Active",
+      "upcoming_title": "Upcoming",
+      "previous_title": "Previous",
+      "empty_state": "No snapshots available",
+      "error_title": "Unable to load snapshots",
+      "error_description": "We couldn't load the snapshots. Please try again.",
+      "retry_button": "Retry",
+      "refreshing": "Refreshing..."
     }
   },
   "time": {
