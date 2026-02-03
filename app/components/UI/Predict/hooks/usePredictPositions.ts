@@ -74,7 +74,7 @@ export function usePredictPositions(
   // `positions` state only stores active positions
   const [positions, setPositions] = useState<PredictPosition[]>([]);
 
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(loadOnMount);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dataLoadedForAddress, setDataLoadedForAddress] = useState<
@@ -225,7 +225,9 @@ export function usePredictPositions(
     };
   }, [autoRefreshTimeout]);
 
-  const isDataStale = dataLoadedForAddress !== selectedInternalAccountAddress;
+  const isDataStale =
+    dataLoadedForAddress !== null &&
+    dataLoadedForAddress !== selectedInternalAccountAddress;
 
   return {
     // Get claimable positions from controller state if claimable is true.
