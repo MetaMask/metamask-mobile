@@ -5,13 +5,13 @@ const styleSheet = (params: { theme: Theme }) => {
   const { colors } = params.theme;
 
   return StyleSheet.create({
-    // Toast container - positioned at top of screen
+    // Toast container - positioned at top of screen (highest z-index so it appears above all content)
     container: {
       position: 'absolute',
       top: 74,
       left: 12,
       right: 12,
-      zIndex: 9999,
+      zIndex: 100000000000000,
     },
     // Inner toast content
     toast: {
@@ -21,7 +21,7 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 12,
       paddingHorizontal: 16,
       borderRadius: 12,
-      backgroundColor: colors.background.default,
+      backgroundColor: colors.background.muted,
       // Shadow for elevation
       shadowColor: colors.shadow.default,
       shadowOffset: {
