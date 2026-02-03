@@ -41,6 +41,7 @@ import ListItem from '../../../../../component-library/components/List/ListItem'
 import ListItemColumn, {
   WidthType,
 } from '../../../../../component-library/components/List/ListItemColumn';
+import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import Text, {
   TextColor,
   TextVariant,
@@ -1452,17 +1453,21 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 />
               </TouchableOpacity>
             </View>
-            <PerpsFeesDisplay
-              feeDiscountPercentage={rewardsState.feeDiscountPercentage}
-              formatFeeText={
-                !hasValidAmount || isFeesLoading
-                  ? PERPS_CONSTANTS.FallbackDataDisplay
-                  : formatPerpsFiat(feesToDisplay, {
-                    ranges: PRICE_RANGES_MINIMAL_VIEW,
-                  })
-              }
-              variant={TextVariant.BodySM}
-            />
+            {isFeesLoading ? (
+              <Skeleton height={16} width={60} />
+            ) : (
+              <PerpsFeesDisplay
+                feeDiscountPercentage={rewardsState.feeDiscountPercentage}
+                formatFeeText={
+                  !hasValidAmount
+                    ? PERPS_CONSTANTS.FallbackDataDisplay
+                    : formatPerpsFiat(feesToDisplay, {
+                      ranges: PRICE_RANGES_MINIMAL_VIEW,
+                    })
+                }
+                variant={TextVariant.BodySM}
+              />
+            )}
           </View>
 
           {/* Rewards Points Estimation */}
@@ -1595,7 +1600,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 !orderValidation.isValid ||
                 isPlacingOrder ||
                 doesStopLossRiskLiquidation ||
-                isAtOICap
+                isAtOICap ||
+                isFeesLoading
               }
               loading={isPlacingOrder}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
@@ -1614,7 +1620,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 !orderValidation.isValid ||
                 isPlacingOrder ||
                 doesStopLossRiskLiquidation ||
-                isAtOICap
+                isAtOICap ||
+                isFeesLoading
               }
               isLoading={isPlacingOrder}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
