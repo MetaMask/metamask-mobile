@@ -193,10 +193,6 @@ class TronTestDApp {
   async confirmSignMessage(): Promise<void> {
     await Gestures.waitAndTap(this.confirmSignMessageButtonSelector);
   }
-
-  async tapCancelButton(): Promise<void> {
-    await Gestures.waitAndTap(this.cancelButtonSelector);
-  }
 }
 
 export default new TronTestDApp();
