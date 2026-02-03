@@ -9217,7 +9217,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/remote-feature-flag-controller@npm:^4.0.0":
+"@metamask/remote-feature-flag-controller@npm:4.0.0":
   version: 4.0.0
   resolution: "@metamask/remote-feature-flag-controller@npm:4.0.0"
   dependencies:
@@ -9227,6 +9227,19 @@ __metadata:
     "@metamask/utils": "npm:^11.9.0"
     uuid: "npm:^8.3.2"
   checksum: 10/5cb0e380d9b68666564f8e34add9a3c4cab1907bc3e0abddf37d1c06a6311f07cc6718baf4091aeab44c2d2cde378bb072e07a713546be3d5c9358fda5d75ab8
+  languageName: node
+  linkType: hard
+
+"@metamask/remote-feature-flag-controller@patch:@metamask/remote-feature-flag-controller@npm%3A4.0.0#~/.yarn/patches/@metamask-remote-feature-flag-controller-npm-4.0.0-59b92a524c.patch":
+  version: 4.0.0
+  resolution: "@metamask/remote-feature-flag-controller@patch:@metamask/remote-feature-flag-controller@npm%3A4.0.0#~/.yarn/patches/@metamask-remote-feature-flag-controller-npm-4.0.0-59b92a524c.patch::version=4.0.0&hash=f45413"
+  dependencies:
+    "@metamask/base-controller": "npm:^9.0.0"
+    "@metamask/controller-utils": "npm:^11.17.0"
+    "@metamask/messenger": "npm:^0.3.0"
+    "@metamask/utils": "npm:^11.9.0"
+    uuid: "npm:^8.3.2"
+  checksum: 10/401291cb6e6b17f331cd691b5e66112307e309a32bb8d331a9ad2eff02b4db67c996e0ea30991e20c21e89c7789b821815eb7e0efbb5090ecf1ced808118603c
   languageName: node
   linkType: hard
 
@@ -34790,7 +34803,7 @@ __metadata:
     "@metamask/react-native-payments": "npm:^2.0.0"
     "@metamask/react-native-search-api": "npm:1.0.1"
     "@metamask/react-native-webview": "patch:@metamask/react-native-webview@npm%3A14.5.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.5.0-b34fed6d50.patch"
-    "@metamask/remote-feature-flag-controller": "npm:^4.0.0"
+    "@metamask/remote-feature-flag-controller": "patch:@metamask/remote-feature-flag-controller@npm%3A4.0.0#~/.yarn/patches/@metamask-remote-feature-flag-controller-npm-4.0.0-59b92a524c.patch"
     "@metamask/rpc-errors": "npm:^7.0.2"
     "@metamask/sample-controllers": "npm:^3.0.0"
     "@metamask/scure-bip39": "npm:^2.1.0"

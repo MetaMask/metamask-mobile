@@ -1,0 +1,132 @@
+diff --git a/dist/remote-feature-flag-controller.cjs b/dist/remote-feature-flag-controller.cjs
+index 387c6cf7aabcca8d604a92048f46a23914290f11..d7c63005ae1f688a64dd479f449ce8778c111270 100644
+--- a/dist/remote-feature-flag-controller.cjs
++++ b/dist/remote-feature-flag-controller.cjs
+@@ -51,6 +51,12 @@ const remoteFeatureFlagControllerMetadata = {
+         includeInDebugSnapshot: false,
+         usedInUi: false,
+     },
++    cachedClientVersion: {
++        includeInStateLogs: true,
++        persist: true,
++        includeInDebugSnapshot: true,
++        usedInUi: false,
++    },
+ };
+ /**
+  * Returns the default state for the RemoteFeatureFlagController.
+@@ -63,6 +69,7 @@ function getDefaultRemoteFeatureFlagControllerState() {
+         localOverrides: {},
+         rawRemoteFeatureFlags: {},
+         cacheTimestamp: 0,
++        cachedClientVersion: undefined,
+     };
+ }
+ exports.getDefaultRemoteFeatureFlagControllerState = getDefaultRemoteFeatureFlagControllerState;
+@@ -193,6 +200,12 @@ class RemoteFeatureFlagController extends base_controller_1.BaseController {
+ }
+ exports.RemoteFeatureFlagController = RemoteFeatureFlagController;
+ _RemoteFeatureFlagController_fetchInterval = new WeakMap(), _RemoteFeatureFlagController_disabled = new WeakMap(), _RemoteFeatureFlagController_clientConfigApiService = new WeakMap(), _RemoteFeatureFlagController_inProgressFlagUpdate = new WeakMap(), _RemoteFeatureFlagController_getMetaMetricsId = new WeakMap(), _RemoteFeatureFlagController_clientVersion = new WeakMap(), _RemoteFeatureFlagController_instances = new WeakSet(), _RemoteFeatureFlagController_isCacheExpired = function _RemoteFeatureFlagController_isCacheExpired() {
++    // Invalidate cache if clientVersion changed (e.g., after app upgrade)
++    const currentClientVersion = __classPrivateFieldGet(this, _RemoteFeatureFlagController_clientVersion, "f");
++    const cachedClientVersion = this.state.cachedClientVersion;
++    if (cachedClientVersion !== undefined && cachedClientVersion !== currentClientVersion) {
++        return true;
++    }
+     return Date.now() - this.state.cacheTimestamp > __classPrivateFieldGet(this, _RemoteFeatureFlagController_fetchInterval, "f");
+ }, _RemoteFeatureFlagController_updateCache = 
+ /**
+@@ -220,6 +233,7 @@ async function _RemoteFeatureFlagController_updateCache(remoteFeatureFlags) {
+         }
+     }
+     // Single state update with all changes batched together
++    const currentClientVersion = __classPrivateFieldGet(this, _RemoteFeatureFlagController_clientVersion, "f");
+     this.update(() => {
+         return {
+             ...this.state,
+@@ -227,6 +241,7 @@ async function _RemoteFeatureFlagController_updateCache(remoteFeatureFlags) {
+             rawRemoteFeatureFlags: remoteFeatureFlags,
+             cacheTimestamp: Date.now(),
+             thresholdCache: updatedThresholdCache,
++            cachedClientVersion: currentClientVersion,
+         };
+     });
+ }, _RemoteFeatureFlagController_processVersionBasedFlag = function _RemoteFeatureFlagController_processVersionBasedFlag(flagValue) {
+diff --git a/dist/remote-feature-flag-controller.d.cts b/dist/remote-feature-flag-controller.d.cts
+index 41005bb7b753b130766909d949d00d92c19b4b0c..fbe7764b7d159a6e7c88357c5f2667628a49d4ea 100644
+--- a/dist/remote-feature-flag-controller.d.cts
++++ b/dist/remote-feature-flag-controller.d.cts
+@@ -12,6 +12,7 @@ export type RemoteFeatureFlagControllerState = {
+     rawRemoteFeatureFlags?: FeatureFlags;
+     cacheTimestamp: number;
+     thresholdCache?: Record<string, number>;
++    cachedClientVersion?: string;
+ };
+ /**
+  * The action to retrieve the state of the {@link RemoteFeatureFlagController}.
+diff --git a/dist/remote-feature-flag-controller.d.mts b/dist/remote-feature-flag-controller.d.mts
+index a67a1daa804cc89b1d69b2b0dda699f01eb02bc2..7d5c054f74556b2ddb49f73181bb421ebfebef1c 100644
+--- a/dist/remote-feature-flag-controller.d.mts
++++ b/dist/remote-feature-flag-controller.d.mts
+@@ -12,6 +12,7 @@ export type RemoteFeatureFlagControllerState = {
+     rawRemoteFeatureFlags?: FeatureFlags;
+     cacheTimestamp: number;
+     thresholdCache?: Record<string, number>;
++    cachedClientVersion?: string;
+ };
+ /**
+  * The action to retrieve the state of the {@link RemoteFeatureFlagController}.
+diff --git a/dist/remote-feature-flag-controller.mjs b/dist/remote-feature-flag-controller.mjs
+index be983f82f494531626d2fab65ddcd9c6a9068952..ffdbdb49c1a611dbcefa213ff596ede3da31f759 100644
+--- a/dist/remote-feature-flag-controller.mjs
++++ b/dist/remote-feature-flag-controller.mjs
+@@ -48,6 +48,12 @@ const remoteFeatureFlagControllerMetadata = {
+         includeInDebugSnapshot: false,
+         usedInUi: false,
+     },
++    cachedClientVersion: {
++        includeInStateLogs: true,
++        persist: true,
++        includeInDebugSnapshot: true,
++        usedInUi: false,
++    },
+ };
+ /**
+  * Returns the default state for the RemoteFeatureFlagController.
+@@ -60,6 +66,7 @@ export function getDefaultRemoteFeatureFlagControllerState() {
+         localOverrides: {},
+         rawRemoteFeatureFlags: {},
+         cacheTimestamp: 0,
++        cachedClientVersion: undefined,
+     };
+ }
+ /**
+@@ -188,6 +195,12 @@ export class RemoteFeatureFlagController extends BaseController {
+     }
+ }
+ _RemoteFeatureFlagController_fetchInterval = new WeakMap(), _RemoteFeatureFlagController_disabled = new WeakMap(), _RemoteFeatureFlagController_clientConfigApiService = new WeakMap(), _RemoteFeatureFlagController_inProgressFlagUpdate = new WeakMap(), _RemoteFeatureFlagController_getMetaMetricsId = new WeakMap(), _RemoteFeatureFlagController_clientVersion = new WeakMap(), _RemoteFeatureFlagController_instances = new WeakSet(), _RemoteFeatureFlagController_isCacheExpired = function _RemoteFeatureFlagController_isCacheExpired() {
++    // Invalidate cache if clientVersion changed (e.g., after app upgrade)
++    const currentClientVersion = __classPrivateFieldGet(this, _RemoteFeatureFlagController_clientVersion, "f");
++    const cachedClientVersion = this.state.cachedClientVersion;
++    if (cachedClientVersion !== undefined && cachedClientVersion !== currentClientVersion) {
++        return true;
++    }
+     return Date.now() - this.state.cacheTimestamp > __classPrivateFieldGet(this, _RemoteFeatureFlagController_fetchInterval, "f");
+ }, _RemoteFeatureFlagController_updateCache = 
+ /**
+@@ -215,6 +228,7 @@ async function _RemoteFeatureFlagController_updateCache(remoteFeatureFlags) {
+         }
+     }
+     // Single state update with all changes batched together
++    const currentClientVersion = __classPrivateFieldGet(this, _RemoteFeatureFlagController_clientVersion, "f");
+     this.update(() => {
+         return {
+             ...this.state,
+@@ -222,6 +236,7 @@ async function _RemoteFeatureFlagController_updateCache(remoteFeatureFlags) {
+             rawRemoteFeatureFlags: remoteFeatureFlags,
+             cacheTimestamp: Date.now(),
+             thresholdCache: updatedThresholdCache,
++            cachedClientVersion: currentClientVersion,
+         };
+     });
+ }, _RemoteFeatureFlagController_processVersionBasedFlag = function _RemoteFeatureFlagController_processVersionBasedFlag(flagValue) {
