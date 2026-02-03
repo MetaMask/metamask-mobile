@@ -182,6 +182,45 @@ describe('useMusdConversion', () => {
       });
     });
 
+    it('returns same transaction ID for concurrent initiations before approval exists', async () => {
+      setupUseSelectorMock();
+
+      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
+        'mainnet',
+      );
+
+      let resolveAddTransaction!: (value: {
+        transactionMeta: { id: string };
+      }) => void;
+      const addTransactionPromise = new Promise<{
+        transactionMeta: { id: string };
+      }>((resolve) => {
+        resolveAddTransaction = resolve;
+      });
+      mockTransactionController.addTransaction.mockReturnValue(
+        addTransactionPromise,
+      );
+
+      const { result } = renderHook(() => useMusdConversion());
+
+      let transactionIds!: [string | void, string | void];
+      await act(async () => {
+        const firstCall = result.current.initiateConversion(mockConfig);
+        const secondCall = result.current.initiateConversion(mockConfig);
+
+        resolveAddTransaction({ transactionMeta: { id: 'tx-123' } });
+
+        transactionIds = await Promise.all([firstCall, secondCall]);
+      });
+
+      expect(transactionIds).toEqual(['tx-123', 'tx-123']);
+      expect(
+        mockNetworkController.findNetworkClientIdByChainId,
+      ).toHaveBeenCalledTimes(1);
+      expect(mockTransactionController.addTransaction).toHaveBeenCalledTimes(1);
+      expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
+    });
+
     it('returns existing pending musdConversion transaction ID for same account and chain', async () => {
       setupUseSelectorMock({
         pendingApprovals: {
@@ -205,7 +244,7 @@ describe('useMusdConversion', () => {
       });
 
       expect(transactionId).toBe('tx-existing');
-      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+      expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
       expect(
         mockNetworkController.findNetworkClientIdByChainId,
       ).not.toHaveBeenCalled();
@@ -242,6 +281,7 @@ describe('useMusdConversion', () => {
       });
 
       expect(transactionId).toBe('tx-existing');
+      expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
       expect(mockTransactionController.addTransaction).not.toHaveBeenCalled();
     });
 

@@ -20,6 +20,27 @@ import { selectPendingApprovals } from '../../../../selectors/approvalController
 import { RootState } from '../../../../reducers';
 import { selectTransactionsByIds } from '../../../../selectors/transactionController';
 
+/**
+ * Why do we have BOTH `existingPendingMusdConversion` AND `inFlightInitiationPromises`?
+ *
+ * These protect against two *different* duplication mechanisms:
+ *
+ * 1) `existingPendingMusdConversion` (post-approval creation / observable state):
+ * Once a `musdConversion` transaction is added, it becomes a pending approval in Redux.
+ * Subsequent CTA presses should **re-enter that existing flow** rather than creating a new tx.
+ *
+ * 2) `inFlightInitiationPromises` (pre-approval creation race window):
+ * There is a short window after the CTA press where we have started the async initiation
+ * but the pending approval is not yet observable in Redux. Rapid spam during that window
+ * can otherwise create multiple transactions before (1) can detect an existing pending tx.
+ */
+const inFlightInitiationPromises = new Map<string, Promise<string | void>>();
+
+function getInitiationKey(params: { selectedAddress: string; chainId: Hex }) {
+  const { selectedAddress, chainId } = params;
+  return `${selectedAddress.toLocaleLowerCase()}_${chainId.toLocaleLowerCase()}`;
+}
+
 function findExistingPendingMusdConversion(params: {
   pendingTransactionMetas: TransactionMeta[];
   selectedAddress: string;
@@ -204,45 +225,67 @@ export const useMusdConversion = () => {
          * Typically caused by the user quickly clicking the CTA multiple times in quick succession.
          */
         if (existingPendingMusdConversion?.id) {
+          navigateToConversionScreen(config);
           return existingPendingMusdConversion.id;
         }
 
-        try {
-          const { NetworkController } = Engine.context;
-          const networkClientId =
-            NetworkController.findNetworkClientIdByChainId(
-              preferredPaymentToken.chainId,
-            );
+        const initiationKey = getInitiationKey({
+          selectedAddress,
+          chainId: preferredPaymentToken.chainId,
+        });
 
-          if (!networkClientId) {
-            throw new Error(
-              `Network client not found for chain ID: ${preferredPaymentToken.chainId}`,
-            );
+        const inFlightInitiation =
+          inFlightInitiationPromises.get(initiationKey);
+
+        if (inFlightInitiation) {
+          return await inFlightInitiation;
+        }
+
+        const initiationPromise = (async () => {
+          try {
+            const { NetworkController } = Engine.context;
+            const networkClientId =
+              NetworkController.findNetworkClientIdByChainId(
+                preferredPaymentToken.chainId,
+              );
+
+            if (!networkClientId) {
+              throw new Error(
+                `Network client not found for chain ID: ${preferredPaymentToken.chainId}`,
+              );
+            }
+
+            /**
+             * Navigate to the confirmation screen immediately for better UX,
+             * since there can be a delay between the user's button press and
+             * transaction creation in the background.
+             */
+            navigateToConversionScreen(config);
+
+            const ZERO_HEX_VALUE = '0x0';
+            const selectedAddressHex = selectedAddress as Hex;
+
+            const { transactionId } = await createMusdConversionTransaction({
+              chainId: preferredPaymentToken.chainId,
+              fromAddress: selectedAddressHex,
+              recipientAddress: selectedAddressHex,
+              amountHex: ZERO_HEX_VALUE,
+              networkClientId,
+            });
+
+            return transactionId;
+          } catch (err) {
+            // Prevent the user from being stuck on the confirmation screen without a transaction.
+            navigation.goBack();
+            throw err;
           }
+        })();
 
-          /**
-           * Navigate to the confirmation screen immediately for better UX,
-           * since there can be a delay between the user's button press and
-           * transaction creation in the background.
-           */
-          navigateToConversionScreen(config);
-
-          const ZERO_HEX_VALUE = '0x0';
-          const selectedAddressHex = selectedAddress as Hex;
-
-          const { transactionId } = await createMusdConversionTransaction({
-            chainId: preferredPaymentToken.chainId,
-            fromAddress: selectedAddressHex,
-            recipientAddress: selectedAddressHex,
-            amountHex: ZERO_HEX_VALUE,
-            networkClientId,
-          });
-
-          return transactionId;
-        } catch (err) {
-          // Prevent the user from being stuck on the confirmation screen without a transaction.
-          navigation.goBack();
-          throw err;
+        inFlightInitiationPromises.set(initiationKey, initiationPromise);
+        try {
+          return await initiationPromise;
+        } finally {
+          inFlightInitiationPromises.delete(initiationKey);
         }
       } catch (err) {
         const errorMessage =
