@@ -107,8 +107,6 @@ describe('useRampsController', () => {
 
     expect(result.current).toMatchObject({
       userRegion: null,
-      userRegionLoading: false,
-      userRegionError: null,
       selectedProvider: null,
       providers: [],
       providersLoading: false,

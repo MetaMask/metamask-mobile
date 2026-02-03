@@ -70,6 +70,7 @@ export interface UseRampsControllerResult {
  *   userRegion,
  *   userRegionLoading,
  *   userRegionError,
+ *   fetchUserRegion,
  *   setUserRegion,
  *
  *   // Providers

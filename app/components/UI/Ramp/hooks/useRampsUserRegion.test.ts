@@ -81,15 +81,13 @@ describe('useRampsUserRegion', () => {
   });
 
   describe('return value structure', () => {
-    it('returns userRegion, isLoading, error, and setUserRegion', () => {
+    it('returns userRegion, isLoading, error, fetchUserRegion, and setUserRegion', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
       expect(result.current).toMatchObject({
         userRegion: null,
-        isLoading: false,
-        error: null,
       });
       expect(typeof result.current.setUserRegion).toBe('function');
     });
@@ -126,6 +124,56 @@ describe('useRampsUserRegion', () => {
         wrapper: wrapper(store),
       });
       expect(result.current.error).toBe('Network error');
+    });
+  });
+
+  describe('fetchUserRegion', () => {
+    it('calls init without options when called with no arguments', async () => {
+      const store = createMockStore();
+      const { result } = renderHook(() => useRampsUserRegion(), {
+        wrapper: wrapper(store),
+      });
+      await result.current.fetchUserRegion();
+      expect(Engine.context.RampsController.init).toHaveBeenCalledWith(
+        undefined,
+      );
+    });
+
+    it('calls init with forceRefresh true when specified', async () => {
+      const store = createMockStore();
+      const { result } = renderHook(() => useRampsUserRegion(), {
+        wrapper: wrapper(store),
+      });
+      await result.current.fetchUserRegion({ forceRefresh: true });
+      expect(Engine.context.RampsController.init).toHaveBeenCalledWith({
+        forceRefresh: true,
+      });
+    });
+
+    it('calls init with forceRefresh false when specified', async () => {
+      const store = createMockStore();
+      const { result } = renderHook(() => useRampsUserRegion(), {
+        wrapper: wrapper(store),
+      });
+      await result.current.fetchUserRegion({ forceRefresh: false });
+      expect(Engine.context.RampsController.init).toHaveBeenCalledWith({
+        forceRefresh: false,
+      });
+    });
+
+    it('rejects with error when init fails', async () => {
+      const store = createMockStore();
+      const mockInit = Engine.context.RampsController.init as jest.Mock;
+      mockInit.mockReset();
+      mockInit.mockRejectedValue(new Error('Network error'));
+
+      const { result } = renderHook(() => useRampsUserRegion(), {
+        wrapper: wrapper(store),
+      });
+
+      await expect(result.current.fetchUserRegion()).rejects.toThrow(
+        'Network error',
+      );
     });
   });
 

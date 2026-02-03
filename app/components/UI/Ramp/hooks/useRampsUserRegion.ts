@@ -16,11 +16,11 @@ export interface UseRampsUserRegionResult {
    */
   userRegion: UserRegion | null;
   /**
-   * Whether the user region request is currently loading.
+   * Whether the user region is currently loading.
    */
   isLoading: boolean;
   /**
-   * The error message if the request failed, or null.
+   * Error message if user region fetch failed.
    */
   error: string | null;
   /**
