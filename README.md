@@ -191,6 +191,12 @@ yarn start:ios
 ```bash
 yarn start:android
 ```
+### Security Audit
+
+To ensure all third-party dependencies are secure and up to date, it is recommended to run a security audit periodically:
+
+```bash
+yarn audit
 
 ## Development Tools
 
