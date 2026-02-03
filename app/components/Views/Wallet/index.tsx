@@ -182,6 +182,10 @@ import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvi
 import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
+import HomepageSectionCard from '../../UI/HomepageSectionCard';
+
+// PoC flag - set to true to enable tabless homepage (TMCU-402)
+const POC_REMOVE_HOMEPAGE_TABS = true;
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -381,6 +385,22 @@ const WalletTokensTabView = forwardRef<
   // Expose refresh method to parent
   useImperativeHandle(ref, () => ({
     refresh: async (onBalanceRefresh: () => Promise<void>) => {
+      // PoC: When tabs are removed, refresh all visible sections
+      if (POC_REMOVE_HOMEPAGE_TABS) {
+        const promises = [
+          onBalanceRefresh(),
+          tokensRef.current?.refresh(),
+          nftsRef.current?.refresh(),
+          predictRef.current?.refresh(),
+          // Note: Perps uses WebSocket (no manual refresh needed)
+          // Note: DeFi uses Redux selectors (refreshed via balance refresh)
+        ].filter(Boolean);
+
+        await Promise.all(promises);
+        return;
+      }
+
+      // Default: Only refresh the active tab
       const activeTabRef = getTabRefByIndex(currentTabIndex);
 
       // Always refresh balance + tab-specific content if available
@@ -538,6 +558,92 @@ const WalletTokensTabView = forwardRef<
     enabledNetworksIsSolana,
   ]);
 
+  // Navigation handlers for "View All" buttons
+  const handleViewAllTokens = useCallback(() => {
+    navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
+  }, [navigation]);
+
+  const handleViewAllDefi = useCallback(() => {
+    // DeFi doesn't have a full view yet, could navigate to a details screen
+    // For now, this is a placeholder
+  }, []);
+
+  const handleViewAllNfts = useCallback(() => {
+    navigation.navigate(Routes.WALLET.NFTS_FULL_VIEW);
+  }, [navigation]);
+
+  const handleViewAllPerps = useCallback(() => {
+    navigation.navigate(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.PERPS_HOME,
+    });
+  }, [navigation]);
+
+  const handleViewAllPredict = useCallback(() => {
+    // Predict doesn't have a full view yet
+    // For now, this is a placeholder
+  }, []);
+
+  // PoC: Render sections vertically without tabs
+  if (POC_REMOVE_HOMEPAGE_TABS) {
+    return (
+      <View>
+        {/* Tokens Section */}
+        <HomepageSectionCard
+          title={strings('wallet.tokens')}
+          onViewAll={handleViewAllTokens}
+        >
+          <Tokens ref={tokensRef} />
+        </HomepageSectionCard>
+
+        {/* Perps Section */}
+        {isPerpsEnabled && (
+          <HomepageSectionCard
+            title={strings('wallet.perps')}
+            onViewAll={handleViewAllPerps}
+          >
+            <PerpsTabView
+              isVisible
+              onVisibilityChange={(callback) => {
+                perpsVisibilityCallback.current = callback;
+              }}
+            />
+          </HomepageSectionCard>
+        )}
+
+        {/* Predict Section */}
+        {isPredictEnabled && (
+          <HomepageSectionCard
+            title={strings('wallet.predict')}
+            onViewAll={handleViewAllPredict}
+          >
+            <PredictTabView ref={predictRef} isVisible />
+          </HomepageSectionCard>
+        )}
+
+        {/* DeFi Section */}
+        {!enabledNetworksIsSolana && defiEnabled && (
+          <HomepageSectionCard
+            title={strings('wallet.defi')}
+            onViewAll={handleViewAllDefi}
+          >
+            <DeFiPositionsList tabLabel={strings('wallet.defi')} />
+          </HomepageSectionCard>
+        )}
+
+        {/* NFTs Section */}
+        {!enabledNetworksIsSolana && collectiblesEnabled && (
+          <HomepageSectionCard
+            title={strings('wallet.collectibles')}
+            onViewAll={handleViewAllNfts}
+          >
+            <NftGrid ref={nftsRef} />
+          </HomepageSectionCard>
+        )}
+      </View>
+    );
+  }
+
+  // Default: Render with tabs
   return (
     <View style={styles.tabContainer}>
       <TabsList
@@ -1301,12 +1407,16 @@ const Wallet = ({
     basicFunctionalityEnabled &&
     assetsDefiPositionsEnabled;
 
+  // PoC: Enable scroll when tabs are removed
+  const shouldEnableParentScroll =
+    isHomepageRedesignV1Enabled || POC_REMOVE_HOMEPAGE_TABS;
+
   const scrollViewContentStyle = useMemo(
     () => [
       styles.wrapper,
-      isHomepageRedesignV1Enabled && { flex: undefined, flexGrow: 0 },
+      shouldEnableParentScroll && { flex: undefined, flexGrow: 0 },
     ],
-    [styles.wrapper, isHomepageRedesignV1Enabled],
+    [styles.wrapper, shouldEnableParentScroll],
   );
 
   const handleRefresh = useCallback(async () => {
@@ -1398,11 +1508,11 @@ const Wallet = ({
             testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
           >
             <ConditionalScrollView
-              isScrollEnabled={isHomepageRedesignV1Enabled}
+              isScrollEnabled={shouldEnableParentScroll}
               scrollViewProps={{
                 contentContainerStyle: scrollViewContentStyle,
                 showsVerticalScrollIndicator: false,
-                refreshControl: isHomepageRedesignV1Enabled ? (
+                refreshControl: shouldEnableParentScroll ? (
                   <RefreshControl
                     colors={[colors.primary.default]}
                     tintColor={colors.icon.default}
