@@ -1,4 +1,3 @@
-import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import ReduxService from '../../../redux';
 import NavigationService from '../../../NavigationService';
@@ -49,7 +48,7 @@ import {
  * - https://metamask.app.link/card-kyc-notification
  */
 export const handleCardKycNotification = async () => {
-  DevLogger.log(
+  Logger.log(
     '[handleCardKycNotification] Starting card KYC notification deeplink handling',
   );
 
@@ -70,7 +69,7 @@ export const handleCardKycNotification = async () => {
         displayCardButtonFeatureFlag);
 
     if (!shouldOnboardingBeEnabled) {
-      DevLogger.log(
+      Logger.log(
         '[handleCardKycNotification] Card feature is not enabled, skipping',
       );
       return;
@@ -81,7 +80,7 @@ export const handleCardKycNotification = async () => {
     const isAuthenticated = selectIsAuthenticatedCard(state);
     const cardFeatureFlag = selectCardFeatureFlag(state);
 
-    DevLogger.log('[handleCardKycNotification] User state:', {
+    Logger.log('[handleCardKycNotification] User state:', {
       hasOnboardingId: !!onboardingId,
       isAuthenticated,
     });
@@ -103,17 +102,17 @@ export const handleCardKycNotification = async () => {
     }
 
     // Fallback: User is not in onboarding and not authenticated
-    DevLogger.log(
+    Logger.log(
       '[handleCardKycNotification] No onboarding or auth state, navigating to Welcome',
     );
     NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
-      screen: Routes.CARD.WELCOME,
+      screen: Routes.CARD.HOME,
+      params: {
+        screen: Routes.CARD.WELCOME,
+      },
     });
   } catch (error) {
-    DevLogger.log(
-      '[handleCardKycNotification] Failed to handle deeplink:',
-      error,
-    );
+    Logger.log('[handleCardKycNotification] Failed to handle deeplink:', error);
     Logger.error(
       error as Error,
       '[handleCardKycNotification] Error handling card KYC notification deeplink',
@@ -122,7 +121,10 @@ export const handleCardKycNotification = async () => {
     // Fallback: Navigate to Card Welcome screen
     try {
       NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
-        screen: Routes.CARD.WELCOME,
+        screen: Routes.CARD.HOME,
+        params: {
+          screen: Routes.CARD.WELCOME,
+        },
       });
     } catch (navError) {
       Logger.error(
@@ -142,7 +144,7 @@ async function handleOnboardingFlow(
   onboardingId: string,
   cardFeatureFlag: CardFeatureFlag | Record<string, never>,
 ): Promise<void> {
-  DevLogger.log(
+  Logger.log(
     '[handleCardKycNotification] Handling onboarding flow for onboardingId:',
     onboardingId,
   );
@@ -153,7 +155,7 @@ async function handleOnboardingFlow(
     selectedCountry?.key ?? null,
   );
 
-  DevLogger.log('[handleCardKycNotification] Determined location:', {
+  Logger.log('[handleCardKycNotification] Determined location:', {
     selectedCountryKey: selectedCountry?.key,
     location,
   });
@@ -168,7 +170,7 @@ async function handleOnboardingFlow(
   const registrationStatus = await sdk.getRegistrationStatus(onboardingId);
   const verificationState = registrationStatus.verificationState;
 
-  DevLogger.log(
+  Logger.log(
     '[handleCardKycNotification] Registration status:',
     verificationState,
   );
@@ -184,12 +186,12 @@ async function handleAuthenticatedFlow(
   state: ReturnType<typeof ReduxService.store.getState>,
   cardFeatureFlag: CardFeatureFlag | Record<string, never>,
 ): Promise<void> {
-  DevLogger.log('[handleCardKycNotification] Handling authenticated flow');
+  Logger.log('[handleCardKycNotification] Handling authenticated flow');
 
   // Get location directly from userCardLocation (already stored for authenticated users)
   const userCardLocation = selectUserCardLocation(state);
 
-  DevLogger.log(
+  Logger.log(
     '[handleCardKycNotification] User card location:',
     userCardLocation,
   );
@@ -204,7 +206,7 @@ async function handleAuthenticatedFlow(
   const userDetails = await sdk.getUserDetails();
   const verificationState = userDetails.verificationState;
 
-  DevLogger.log(
+  Logger.log(
     '[handleCardKycNotification] User verification state:',
     verificationState,
   );
@@ -223,28 +225,34 @@ function navigateBasedOnVerificationState(
   setTimeout(() => {
     switch (verificationState) {
       case 'REJECTED':
-        DevLogger.log(
+        Logger.log(
           '[handleCardKycNotification] User rejected, navigating to KYCFailed',
         );
         NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
-          screen: Routes.CARD.ONBOARDING.ROOT,
+          screen: Routes.CARD.HOME,
           params: {
-            screen: Routes.CARD.ONBOARDING.KYC_FAILED,
+            screen: Routes.CARD.ONBOARDING.ROOT,
+            params: {
+              screen: Routes.CARD.ONBOARDING.KYC_FAILED,
+            },
           },
         });
         break;
 
       case 'VERIFIED':
-        DevLogger.log(
+        Logger.log(
           '[handleCardKycNotification] User verified, navigating to Complete',
         );
         NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
-          screen: Routes.CARD.ONBOARDING.ROOT,
+          screen: Routes.CARD.HOME,
           params: {
-            screen: Routes.CARD.ONBOARDING.COMPLETE,
+            screen: Routes.CARD.ONBOARDING.ROOT,
             params: {
-              nextDestination:
-                flowType === 'onboarding' ? 'personal_details' : 'card_home',
+              screen: Routes.CARD.ONBOARDING.COMPLETE,
+              params: {
+                nextDestination:
+                  flowType === 'onboarding' ? 'personal_details' : 'card_home',
+              },
             },
           },
         });
@@ -253,21 +261,27 @@ function navigateBasedOnVerificationState(
       case 'PENDING':
       default:
         if (flowType === 'onboarding') {
-          DevLogger.log(
+          Logger.log(
             '[handleCardKycNotification] User still pending (onboarding), navigating to KYCPending',
           );
           NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
-            screen: Routes.CARD.ONBOARDING.ROOT,
+            screen: Routes.CARD.HOME,
             params: {
-              screen: Routes.CARD.ONBOARDING.KYC_PENDING,
+              screen: Routes.CARD.ONBOARDING.ROOT,
+              params: {
+                screen: Routes.CARD.ONBOARDING.KYC_PENDING,
+              },
             },
           });
         } else {
-          DevLogger.log(
+          Logger.log(
             '[handleCardKycNotification] User still pending (authenticated), navigating to CardHome',
           );
           NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
             screen: Routes.CARD.HOME,
+            params: {
+              screen: Routes.CARD.HOME,
+            },
           });
         }
         break;
