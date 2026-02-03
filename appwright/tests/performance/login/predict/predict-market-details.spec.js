@@ -38,9 +38,7 @@ test.describe(PerformancePredict, () => {
 
       // Login to the app
       await login(device);
-      console.log('Tap Action Button');
       await TabBarModal.tapActionButton();
-      console.log('Tapped Action Button');
 
       // Timer 2: Open predictions tab (threshold: 5000ms + 10% = 5500ms)
       const timer2 = new TimerHelper(
@@ -53,7 +51,6 @@ test.describe(PerformancePredict, () => {
         await PredictMarketListScreen.isContainerDisplayed();
       });
 
-      // Timer 3: Open market details (threshold: 5000ms + 10% = 5500ms)
       const timer3 = new TimerHelper(
         'Time since user taps market card until Market Details screen is visible',
         { ios: 17000, android: 13000 },
@@ -64,7 +61,6 @@ test.describe(PerformancePredict, () => {
         await PredictDetailsScreen.isVisible();
       });
 
-      // Timer 4: Load About tab (threshold: 3000ms + 10% = 3300ms)
       const timer4 = new TimerHelper(
         'Time since user taps About tab until About tab content is loaded and Volume text is visible',
         { ios: 7800, android: 7800 },
@@ -76,19 +72,31 @@ test.describe(PerformancePredict, () => {
         await PredictDetailsScreen.verifyVolumeTextDisplayed();
       });
 
-      // Timer 5: Load Outcomes tab (threshold: 3000ms + 10% = 3300ms)
-      const timer5 = new TimerHelper(
-        'Time since user taps Outcomes tab until Outcomes tab content is loaded and Yes/No options are visible',
-        { ios: 6000, android: 6000 },
-        device,
-      );
-      await PredictDetailsScreen.tapOutcomesTab();
-      await timer5.measure(async () => {
-        await PredictDetailsScreen.isOutcomesTabContentDisplayed();
-      });
+      const timersToAdd = [timer2, timer3, timer4];
+      let totalDuration =
+        timer2.getDuration() + timer3.getDuration() + timer4.getDuration();
+
+      if (await PredictDetailsScreen.hasOutcomesTab()) {
+        // Yes/No-only markets have no Outcomes tab
+        const timer5 = new TimerHelper(
+          'Time since user taps Outcomes tab until Outcomes tab content is loaded and Yes/No options are visible',
+          { ios: 6000, android: 6000 },
+          device,
+        );
+        await PredictDetailsScreen.tapOutcomesTab();
+        await timer5.measure(async () => {
+          await PredictDetailsScreen.isOutcomesTabContentDisplayed();
+        });
+        timersToAdd.push(timer5);
+        totalDuration += timer5.getDuration();
+      } else {
+        console.log(
+          '⏭️ Outcomes tab not present (Yes/No-only market); skipping Timer 5',
+        );
+      }
 
       // Add all timers to performance tracker
-      performanceTracker.addTimers(timer2, timer3, timer4, timer5);
+      performanceTracker.addTimers(...timersToAdd);
 
       // Attach performance metrics to test report
       await performanceTracker.attachToTest(testInfo);
@@ -97,10 +105,10 @@ test.describe(PerformancePredict, () => {
       console.log(`📊 Modal to Market List: ${timer2.getDuration()}ms`);
       console.log(`📊 Market List to Details: ${timer3.getDuration()}ms`);
       console.log(`📊 About Tab Load: ${timer4.getDuration()}ms`);
-      console.log(`📊 Outcomes Tab Load: ${timer5.getDuration()}ms`);
-      console.log(
-        `📊 Total Time: ${timer2.getDuration() + timer3.getDuration() + timer4.getDuration() + timer5.getDuration()}ms`,
-      );
+      if (timersToAdd.length > 3) {
+        console.log(`📊 Outcomes Tab Load: ${timersToAdd[3].getDuration()}ms`);
+      }
+      console.log(`📊 Total Time: ${totalDuration}ms`);
     },
   );
 });
