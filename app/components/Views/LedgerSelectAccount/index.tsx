@@ -44,6 +44,31 @@ import { AccountsController } from '@metamask/accounts-controller';
 import { toFormattedAddress } from '../../../util/address';
 import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytics';
 
+/**
+ * Status codes that indicate the Ethereum app is not running on the Ledger device.
+ */
+const ETH_APP_NOT_OPEN_ERROR_CODES = [
+  '0x650f',
+  '0x6511',
+  '0x6d00',
+  '0x6e00',
+  '0x6e01',
+  '0x6700',
+];
+
+/**
+ * Check if error message indicates ETH app is not open and return user-friendly message
+ */
+const getDisplayErrorMessage = (errorMessage: string): string => {
+  const lowerMessage = errorMessage.toLowerCase();
+  for (const code of ETH_APP_NOT_OPEN_ERROR_CODES) {
+    if (lowerMessage.includes(code)) {
+      return strings('ledger.eth_app_not_open_message');
+    }
+  }
+  return errorMessage;
+};
+
 interface OptionType {
   key: string;
   label: string;
@@ -187,7 +212,7 @@ const LedgerSelectAccount = () => {
           setAccounts(_accounts);
         })
         .catch((e) => {
-          setErrorMsg(e.message);
+          setErrorMsg(getDisplayErrorMessage(e.message));
         })
         .finally(() => {
           setBlockingModalVisible(false);
@@ -197,20 +222,30 @@ const LedgerSelectAccount = () => {
 
   const nextPage = useCallback(async () => {
     showLoadingModal();
-    const _accounts = await getLedgerAccountsByOperation(
-      PAGINATION_OPERATIONS.GET_NEXT_PAGE,
-    );
-    setAccounts(_accounts);
-    setBlockingModalVisible(false);
+    try {
+      const _accounts = await getLedgerAccountsByOperation(
+        PAGINATION_OPERATIONS.GET_NEXT_PAGE,
+      );
+      setAccounts(_accounts);
+    } catch (e) {
+      setErrorMsg(getDisplayErrorMessage((e as Error).message));
+    } finally {
+      setBlockingModalVisible(false);
+    }
   }, []);
 
   const prevPage = useCallback(async () => {
     showLoadingModal();
-    const _accounts = await getLedgerAccountsByOperation(
-      PAGINATION_OPERATIONS.GET_PREVIOUS_PAGE,
-    );
-    setAccounts(_accounts);
-    setBlockingModalVisible(false);
+    try {
+      const _accounts = await getLedgerAccountsByOperation(
+        PAGINATION_OPERATIONS.GET_PREVIOUS_PAGE,
+      );
+      setAccounts(_accounts);
+    } catch (e) {
+      setErrorMsg(getDisplayErrorMessage((e as Error).message));
+    } finally {
+      setBlockingModalVisible(false);
+    }
   }, []);
 
   const updateNewLegacyAccountsLabel = useCallback(async () => {
@@ -278,7 +313,7 @@ const LedgerSelectAccount = () => {
             })
             .build(),
         );
-        setErrorMsg((err as Error).message);
+        setErrorMsg(getDisplayErrorMessage((err as Error).message));
       } finally {
         setBlockingModalVisible(false);
       }

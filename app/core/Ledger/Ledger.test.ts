@@ -273,6 +273,61 @@ describe('Ledger core', () => {
       await getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE);
       expect(ledgerKeyring.getFirstPage).toHaveBeenCalled();
     });
+
+    it('throws ETH app not open error when TransportStatusError with 0x6d00', async () => {
+      const transportError = new Error('TransportStatusError');
+      transportError.name = 'TransportStatusError';
+      // @ts-expect-error statusCode is a custom property on TransportStatusError
+      transportError.statusCode = 0x6d00;
+      ledgerKeyring.getFirstPage.mockRejectedValueOnce(transportError);
+
+      await expect(
+        getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
+      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+    });
+
+    it('throws ETH app not open error when TransportStatusError with 0x6e00', async () => {
+      const transportError = new Error('TransportStatusError');
+      transportError.name = 'TransportStatusError';
+      // @ts-expect-error statusCode is a custom property on TransportStatusError
+      transportError.statusCode = 0x6e00;
+      ledgerKeyring.getNextPage.mockRejectedValueOnce(transportError);
+
+      await expect(
+        getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_NEXT_PAGE),
+      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+    });
+
+    it('throws ETH app not open error when TransportStatusError with 0x650f', async () => {
+      const transportError = new Error('TransportStatusError');
+      transportError.name = 'TransportStatusError';
+      // @ts-expect-error statusCode is a custom property on TransportStatusError
+      transportError.statusCode = 0x650f;
+      ledgerKeyring.getFirstPage.mockRejectedValueOnce(transportError);
+
+      await expect(
+        getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
+      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+    });
+
+    it('throws ETH app not open error when error message contains 0x650f', async () => {
+      const error = new Error('Ledger device: UNKNOWN_ERROR (0x650f)');
+      ledgerKeyring.getFirstPage.mockRejectedValueOnce(error);
+
+      await expect(
+        getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
+      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+    });
+
+    it('throws unspecified error for other errors', async () => {
+      ledgerKeyring.getFirstPage.mockRejectedValueOnce(
+        new Error('Some other error'),
+      );
+
+      await expect(
+        getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
+      ).rejects.toThrow('Unspecified error when connect Ledger Hardware,');
+    });
   });
 
   describe('ledgerSignTypedMessage', () => {
@@ -330,6 +385,30 @@ describe('Ledger core', () => {
         expect(err).toBeInstanceOf(Error);
         expect((err as Error).message).toBe(`Account Ledger 1 already exists`);
       }
+    });
+
+    it('throws ETH app not open error when TransportStatusError with 0x6d00', async () => {
+      const transportError = new Error('TransportStatusError');
+      transportError.name = 'TransportStatusError';
+      // @ts-expect-error statusCode is a custom property on TransportStatusError
+      transportError.statusCode = 0x6d00;
+      ledgerKeyring.addAccounts.mockRejectedValueOnce(transportError);
+
+      await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
+        'Please open the Ethereum app on your Ledger device.',
+      );
+    });
+
+    it('throws ETH app not open error when TransportStatusError with 0x6e00', async () => {
+      const transportError = new Error('TransportStatusError');
+      transportError.name = 'TransportStatusError';
+      // @ts-expect-error statusCode is a custom property on TransportStatusError
+      transportError.statusCode = 0x6e00;
+      ledgerKeyring.addAccounts.mockRejectedValueOnce(transportError);
+
+      await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
+        'Please open the Ethereum app on your Ledger device.',
+      );
     });
   });
 });

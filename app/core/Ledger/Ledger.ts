@@ -20,6 +20,61 @@ import { keyringTypeToName } from '@metamask/accounts-controller';
 import { removeAccountsFromPermissions } from '../Permissions';
 
 /**
+ * Status codes that indicate the Ethereum app is not running on the Ledger device.
+ * - 0x6d00: CLA_NOT_SUPPORTED - wrong app class
+ * - 0x6e00: INS_NOT_SUPPORTED - instruction not supported by current app
+ * - 0x6e01: INS_NOT_SUPPORTED variant
+ * - 0x6511: APP_NOT_OPEN - app is not open
+ * - 0x6700: INCORRECT_LENGTH - can occur when wrong app is open
+ * - 0x650f: UNKNOWN_ERROR - often indicates app not ready/open
+ */
+const ETH_APP_NOT_OPEN_STATUS_CODES = [
+  0x6d00, 0x6e00, 0x6e01, 0x6511, 0x6700, 0x650f,
+];
+
+/**
+ * Check if error is due to Ethereum app not being open on Ledger device.
+ *
+ * @param error - The error to check
+ * @returns True if error indicates ETH app is not open
+ */
+const isEthAppNotOpenError = (error: unknown): boolean => {
+  // Check for TransportStatusError with specific status codes
+  if (
+    error &&
+    typeof error === 'object' &&
+    'name' in error &&
+    error.name === 'TransportStatusError' &&
+    'statusCode' in error
+  ) {
+    const statusCode = (error as { statusCode: number }).statusCode;
+    return ETH_APP_NOT_OPEN_STATUS_CODES.includes(statusCode);
+  }
+
+  // Check for error messages that indicate ETH app is not open
+  // The keyring library may format errors as "Ledger device: UNKNOWN_ERROR (0x650f)"
+  if (error instanceof Error) {
+    const message = error.message.toLowerCase();
+    // Check if message contains status codes that indicate ETH app not open
+    for (const code of ETH_APP_NOT_OPEN_STATUS_CODES) {
+      const hexCode = `0x${code.toString(16)}`;
+      if (message.includes(hexCode)) {
+        return true;
+      }
+    }
+    // Also check for common patterns
+    if (
+      message.includes('unknown_error') &&
+      (message.includes('0x650f') || message.includes('0x6511'))
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+/**
  * Perform an operation with the Ledger keyring.
  *
  * If no Ledger keyring is found, one is created.
@@ -188,6 +243,9 @@ export const getLedgerAccountsByOperation = async (
     }));
   } catch (e) {
     /* istanbul ignore next */
+    if (isEthAppNotOpenError(e)) {
+      throw new Error(strings('ledger.eth_app_not_open_message'));
+    }
     throw new Error(strings('ledger.unspecified_error_during_connect'));
   }
 };
@@ -241,31 +299,38 @@ export const checkAccountNameExists = async (accountName: string) => {
  */
 export const unlockLedgerWalletAccount = async (index: number) => {
   const accountsController = Engine.context.AccountsController;
-  const { unlockAccount, name } = await withLedgerKeyring(
-    async ({ keyring }) => {
-      const existingAccounts = await keyring.getAccounts();
-      const keyringName = keyringTypeToName(ExtendedKeyringTypes.ledger);
-      const accountName = `${keyringName} ${existingAccounts.length + 1}`;
+  try {
+    const { unlockAccount, name } = await withLedgerKeyring(
+      async ({ keyring }) => {
+        const existingAccounts = await keyring.getAccounts();
+        const keyringName = keyringTypeToName(ExtendedKeyringTypes.ledger);
+        const accountName = `${keyringName} ${existingAccounts.length + 1}`;
 
-      if (await checkAccountNameExists(accountName)) {
-        throw new Error(
-          strings('ledger.account_name_existed', { accountName }),
-        );
-      }
+        if (await checkAccountNameExists(accountName)) {
+          throw new Error(
+            strings('ledger.account_name_existed', { accountName }),
+          );
+        }
 
-      keyring.setAccountToUnlock(index);
-      const accounts = await keyring.addAccounts(1);
-      return {
-        unlockAccount: accounts[accounts.length - 1],
-        name: accountName,
-      };
-    },
-  );
+        keyring.setAccountToUnlock(index);
+        const accounts = await keyring.addAccounts(1);
+        return {
+          unlockAccount: accounts[accounts.length - 1],
+          name: accountName,
+        };
+      },
+    );
 
-  const account = accountsController.getAccountByAddress(unlockAccount);
+    const account = accountsController.getAccountByAddress(unlockAccount);
 
-  if (account && name !== account.metadata.name) {
-    accountsController.setAccountName(account.id, name);
+    if (account && name !== account.metadata.name) {
+      accountsController.setAccountName(account.id, name);
+    }
+    Engine.setSelectedAddress(unlockAccount);
+  } catch (e) {
+    if (isEthAppNotOpenError(e)) {
+      throw new Error(strings('ledger.eth_app_not_open_message'));
+    }
+    throw e;
   }
-  Engine.setSelectedAddress(unlockAccount);
 };

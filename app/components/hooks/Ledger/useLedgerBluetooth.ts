@@ -215,7 +215,11 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
             break;
           case 0x6d00:
           case 0x6e00:
-            // CLA_NOT_SUPPORTED or INS_NOT_SUPPORTED - ETH app is not running
+          case 0x6e01:
+          case 0x6511:
+          case 0x6700:
+          case 0x650f:
+            // ETH app is not running - various status codes indicate this
             setLedgerError(LedgerCommunicationErrors.EthAppNotOpen);
             break;
           default:
@@ -241,6 +245,15 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
         )
       ) {
         setLedgerError(LedgerCommunicationErrors.BlindSignError);
+      } else if (
+        // Check for error messages that contain ETH app not open status codes
+        e.message &&
+        (e.message.includes('0x650f') ||
+          e.message.includes('0x6511') ||
+          e.message.includes('0x6d00') ||
+          e.message.includes('0x6e00'))
+      ) {
+        setLedgerError(LedgerCommunicationErrors.EthAppNotOpen);
       } else {
         setLedgerError(LedgerCommunicationErrors.UnknownError);
       }
