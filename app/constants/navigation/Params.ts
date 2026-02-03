@@ -1,6 +1,11 @@
 import { ParamListBase } from '@react-navigation/native';
 import type { LedgerMessageSignModalParams } from '../../components/UI/LedgerModals/LedgerMessageSignModal';
 import type { LedgerTransactionModalParams } from '../../components/UI/LedgerModals/LedgerTransactionModal';
+import type {
+  BridgeToken,
+  BridgeViewMode,
+  TokenSelectorType,
+} from '../../components/UI/Bridge/types';
 
 // Re-export Ledger modal params for convenience
 export type { LedgerMessageSignModalParams, LedgerTransactionModalParams };
@@ -382,7 +387,7 @@ export interface RouteParams {
     WALLET_DETAILS: MultichainWalletDetailsParams | undefined;
     ADDRESS_LIST: MultichainAddressListParams | undefined;
     PRIVATE_KEY_LIST: MultichainPrivateKeyListParams | undefined;
-    ACCOUNT_CELL_ACTIONS: MultichainAccountCellActionsParams | undefined;
+    ACCOUNT_CELL_ACTIONS: MultichainAccountActionsParams | undefined;
   };
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   SNAPS: {
@@ -874,17 +879,18 @@ export interface EditNetworkParams {
   shouldShowPopularNetworks?: boolean;
 }
 
-/** Bridge parameters */
+/** Bridge parameters - matches BridgeRouteParams from BridgeView */
 export interface BridgeParams {
-  sourceToken?: string;
-  destToken?: string;
-  sourceChainId?: string;
-  destChainId?: string;
+  sourcePage: string;
+  bridgeViewMode: BridgeViewMode;
+  sourceToken?: BridgeToken;
+  destToken?: BridgeToken;
+  sourceAmount?: string;
 }
 
-/** Bridge token selector parameters */
+/** Bridge token selector parameters - matches BridgeTokenSelectorRouteParams */
 export interface BridgeTokenSelectorParams {
-  isSource?: boolean;
+  type: TokenSelectorType;
 }
 
 /** Custom slippage modal parameters */
@@ -1198,12 +1204,6 @@ export interface MultichainAddressListParams {
 
 /** Multichain private key list parameters */
 export interface MultichainPrivateKeyListParams {
-  accountId?: string;
-}
-
-/** Multichain account cell actions parameters */
-export interface MultichainAccountCellActionsParams {
-  address?: string;
   accountId?: string;
 }
 
@@ -1625,17 +1625,21 @@ export interface RootStackParamList extends ParamListBase {
   MultichainAddressList: MultichainAddressListParams | undefined;
   MultichainPrivateKeyList: MultichainPrivateKeyListParams | undefined;
 
-  // Snaps routes (conditional)
+  ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
+  // Snaps routes
   SnapsSettingsList: undefined;
   SnapSettings: SnapSettingsParams | undefined;
+  ///: END:ONLY_INCLUDE_IF
 
   // Misc routes
   FoxLoader: FoxLoaderParams | undefined;
   SetPasswordFlow: undefined;
   EditAccountName: EditAccountNameParams | undefined;
 
-  // Sample feature (conditional)
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  // Sample feature
   SampleFeature: undefined;
+  ///: END:ONLY_INCLUDE_IF
 
   // Card routes
   CardScreens: undefined;
