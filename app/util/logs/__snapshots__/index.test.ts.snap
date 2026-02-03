@@ -618,12 +618,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
           "isLoading": false,
           "selected": null,
         },
-        "userRegion": {
-          "data": null,
-          "error": null,
-          "isLoading": false,
-          "selected": null,
-        },
+        "userRegion": null,
       },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,
@@ -1441,12 +1436,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           "isLoading": false,
           "selected": null,
         },
-        "userRegion": {
-          "data": null,
-          "error": null,
-          "isLoading": false,
-          "selected": null,
-        },
+        "userRegion": null,
       },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,
