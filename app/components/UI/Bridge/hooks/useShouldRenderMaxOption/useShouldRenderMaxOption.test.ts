@@ -467,4 +467,128 @@ describe('useShouldRenderMaxOption', () => {
       });
     });
   });
+
+  describe('Non-EVM native token scenarios', () => {
+    const solanaToken: BridgeToken = {
+      address: '0x0000000000000000000000000000000000000000',
+      symbol: 'SOL',
+      decimals: 9,
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp', // Solana mainnet CAIP-2
+    };
+
+    const bitcoinToken: BridgeToken = {
+      address: '0x0000000000000000000000000000000000000000',
+      symbol: 'BTC',
+      decimals: 8,
+      chainId: 'bip122:000000000019d6689c085ae165831e93', // Bitcoin mainnet CAIP-2
+    };
+
+    beforeEach(() => {
+      mockIsNativeAddress.mockReturnValue(true);
+    });
+
+    it('returns false for Solana native token even with gasless enabled', () => {
+      mockUseTokenAddress.mockReturnValue(solanaToken.address);
+      let callCount = 0;
+      mockUseSelector.mockImplementation(() => {
+        callCount++;
+        // First call: isGaslessSwapEnabled = true
+        // Second call: stxEnabled = false (non-EVM chain)
+        if (callCount === 1) {
+          return true; // gasless enabled
+        }
+        return false; // stxEnabled is false for non-EVM
+      });
+
+      const { result } = renderHook(() =>
+        useShouldRenderMaxOption(solanaToken, '100', false),
+      );
+
+      // Should return false because stxEnabled is false for non-EVM chains
+      expect(result.current).toBe(false);
+    });
+
+    it('returns false for Solana native token even with sponsored quote', () => {
+      mockUseTokenAddress.mockReturnValue(solanaToken.address);
+      mockUseSelector.mockImplementation(
+        () =>
+          // First call: isGaslessSwapEnabled = false
+          // Second call: stxEnabled = false (non-EVM chain)
+          false,
+      );
+
+      const { result } = renderHook(
+        () => useShouldRenderMaxOption(solanaToken, '50', true), // sponsored = true
+      );
+
+      // Should return false because stxEnabled is false for non-EVM chains
+      expect(result.current).toBe(false);
+    });
+
+    it('returns false for Solana native token with both gasless and sponsored enabled', () => {
+      mockUseTokenAddress.mockReturnValue(solanaToken.address);
+      let callCount = 0;
+      mockUseSelector.mockImplementation(() => {
+        callCount++;
+        // First call: isGaslessSwapEnabled = true
+        // Second call: stxEnabled = false (non-EVM chain)
+        if (callCount === 1) {
+          return true; // gasless enabled
+        }
+        return false; // stxEnabled is false for non-EVM
+      });
+
+      const { result } = renderHook(
+        () => useShouldRenderMaxOption(solanaToken, '25.5', true), // sponsored = true
+      );
+
+      // Should return false because stxEnabled is false for non-EVM chains
+      expect(result.current).toBe(false);
+    });
+
+    it('returns false for Bitcoin native token with gasless enabled', () => {
+      mockUseTokenAddress.mockReturnValue(bitcoinToken.address);
+      let callCount = 0;
+      mockUseSelector.mockImplementation(() => {
+        callCount++;
+        // First call: isGaslessSwapEnabled = true
+        // Second call: stxEnabled = false (non-EVM chain)
+        if (callCount === 1) {
+          return true; // gasless enabled
+        }
+        return false; // stxEnabled is false for non-EVM
+      });
+
+      const { result } = renderHook(() =>
+        useShouldRenderMaxOption(bitcoinToken, '1.5', false),
+      );
+
+      // Should return false because stxEnabled is false for non-EVM chains
+      expect(result.current).toBe(false);
+    });
+
+    it('returns false for Bitcoin native token without any flags enabled', () => {
+      mockUseTokenAddress.mockReturnValue(bitcoinToken.address);
+      mockUseSelector.mockReturnValue(false); // All flags disabled
+
+      const { result } = renderHook(() =>
+        useShouldRenderMaxOption(bitcoinToken, '0.5', false),
+      );
+
+      // Should return false because stxEnabled is false for non-EVM chains
+      expect(result.current).toBe(false);
+    });
+
+    it('returns false for non-EVM native token with zero balance', () => {
+      mockUseTokenAddress.mockReturnValue(solanaToken.address);
+      mockUseSelector.mockReturnValue(false);
+
+      const { result } = renderHook(() =>
+        useShouldRenderMaxOption(solanaToken, '0', false),
+      );
+
+      // Should return false due to zero balance (checked before non-EVM logic)
+      expect(result.current).toBe(false);
+    });
+  });
 });
