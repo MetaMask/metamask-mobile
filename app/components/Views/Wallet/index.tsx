@@ -183,6 +183,8 @@ import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvi
 import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
+// OAuth Demo - DEV ONLY
+import useBaanxOAuth2Demo from '../../UI/Card/hooks/useBaanxOAuth2Demo';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -211,6 +213,9 @@ const createStyles = ({ colors }: Theme) =>
     },
     carousel: {
       overflow: 'hidden', // Allow for smooth height animations
+    },
+    oauthDemo: {
+      marginBottom: 8,
     },
   });
 
@@ -788,6 +793,48 @@ const Wallet = ({
   const accountGroupName = useAccountGroupName();
 
   useSafeChains();
+
+  // OAuth Demo - DEV ONLY
+  // Using the hook-based approach with warmUpAsync for better browser handling
+  const {
+    request: oauthRequest,
+    authorize: oauthAuthorize,
+    exchangeToken: oauthExchangeToken,
+    loading: oauthLoading,
+  } = useBaanxOAuth2Demo();
+  const [oauthCodeVerifier, setOauthCodeVerifier] = useState<string | null>(
+    null,
+  );
+
+  const handleOAuthDemo = useCallback(async () => {
+    if (__DEV__) {
+      try {
+        Logger.log('[OAuth Demo] Starting authorization...');
+        Logger.log('[OAuth Demo] Request ready:', !!oauthRequest);
+        const result = await oauthAuthorize();
+        Logger.log('[OAuth Demo] Auth result:', result);
+
+        if (result.codeVerifier) {
+          setOauthCodeVerifier(result.codeVerifier);
+          Logger.log('[OAuth Demo] Code verifier saved. After you copy the');
+          Logger.log(
+            '[OAuth Demo] ?code=XXX from webhook.site, call exchangeToken.',
+          );
+        }
+
+        if (result.success && result.code && result.codeVerifier) {
+          // Auto exchange if we got the code back (won't happen with webhook.site)
+          const tokens = await oauthExchangeToken(
+            result.code,
+            result.codeVerifier,
+          );
+          Logger.log('[OAuth Demo] Tokens received:', tokens);
+        }
+      } catch (error) {
+        Logger.error(error as Error, '[OAuth Demo] Error');
+      }
+    }
+  }, [oauthRequest, oauthAuthorize, oauthExchangeToken]);
 
   const displayName = accountGroupName || accountName;
   useAccountsWithNetworkActivitySync();
@@ -1370,6 +1417,31 @@ const Wallet = ({
         />
 
         {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
+
+        {/* OAuth Demo Button - DEV ONLY */}
+        {__DEV__ && (
+          <View style={[styles.base, styles.oauthDemo]}>
+            <BannerAlert
+              severity={BannerAlertSeverity.Info}
+              title="OAuth 2.0 PKCE Demo (Hook-based)"
+              description={
+                <CustomText
+                  color={TextColor.Info}
+                  onPress={oauthRequest ? handleOAuthDemo : undefined}
+                  suppressHighlighting={oauthLoading || !oauthRequest}
+                >
+                  {!oauthRequest
+                    ? 'Initializing auth request...'
+                    : oauthLoading
+                      ? 'Loading...'
+                      : oauthCodeVerifier
+                        ? 'Tap to restart OAuth flow'
+                        : 'Tap to start Baanx OAuth flow'}
+                </CustomText>
+              }
+            />
+          </View>
+        )}
 
         <WalletTokensTabView
           ref={walletTokensTabViewRef}
