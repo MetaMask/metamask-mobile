@@ -13,7 +13,7 @@ import type {
  * - null or undefined (treated as empty object)
  */
 export type AnalyticsUnfilteredProperties =
-  | Record<string, unknown | undefined>
+  | Record<string, unknown>
   | null
   | undefined;
 
