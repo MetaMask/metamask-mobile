@@ -142,9 +142,12 @@ import {
   calculateRoEForPrice,
   isStopLossSafeFromLiquidation,
 } from '../../utils/tpslValidation';
-import { PerpsDepositFees } from '../../../../Views/confirmations/components/info/external/perps';
 import createStyles from './PerpsOrderView.styles';
 import { PerpsPayRow } from './PerpsPayRow';
+import {
+  useIsTransactionPayQuoteLoading,
+  useTransactionPayTotals,
+} from '../../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { useTransactionConfirm } from '../../../../Views/confirmations/hooks/transactions/useTransactionConfirm';
 import { useTransactionCustomAmount } from '../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount';
 import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
@@ -371,9 +374,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const isPayRowVisible = Boolean(
     isTradeWithAnyTokenEnabled &&
-      depositAmount &&
-      depositAmount.trim() !== '' &&
-      activeTransactionMeta,
+    depositAmount &&
+    depositAmount.trim() !== '' &&
+    activeTransactionMeta,
   );
 
   // Handle opening limit price modal after order type modal closes
@@ -450,6 +453,28 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   });
 
   const estimatedFees = feeResults.totalFee;
+
+  // Deposit/bridge fees from transaction pay (when paying with custom token)
+  const payTotals = useTransactionPayTotals();
+  const isPayTotalsLoading = useIsTransactionPayQuoteLoading();
+  const depositFeeUsd = useMemo(() => {
+    if (!hasCustomTokenSelected || !payTotals?.fees) return 0;
+    const { provider, sourceNetwork, targetNetwork } = payTotals.fees;
+    return new BigNumber(provider?.usd ?? 0)
+      .plus(sourceNetwork?.estimate?.usd ?? 0)
+      .plus(targetNetwork?.usd ?? 0)
+      .toNumber();
+  }, [hasCustomTokenSelected, payTotals]);
+
+  const combinedFees = useMemo(
+    () => estimatedFees + depositFeeUsd,
+    [estimatedFees, depositFeeUsd],
+  );
+
+  const feesToDisplay = hasCustomTokenSelected ? combinedFees : estimatedFees;
+  const isFeesLoading =
+    feeResults.isLoadingMetamaskFee ||
+    (hasCustomTokenSelected && isPayTotalsLoading);
 
   // Simple boolean calculation - no need for expensive memoization
   const hasValidAmount = parseFloat(orderForm.amount) > 0;
@@ -1430,17 +1455,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             <PerpsFeesDisplay
               feeDiscountPercentage={rewardsState.feeDiscountPercentage}
               formatFeeText={
-                !hasValidAmount || feeResults.isLoadingMetamaskFee
+                !hasValidAmount || isFeesLoading
                   ? PERPS_CONSTANTS.FallbackDataDisplay
-                  : formatPerpsFiat(estimatedFees, {
+                  : formatPerpsFiat(feesToDisplay, {
                     ranges: PRICE_RANGES_MINIMAL_VIEW,
                   })
               }
               variant={TextVariant.BodySM}
             />
           </View>
-
-          {isPayRowVisible && hasCustomTokenSelected && <PerpsDepositFees />}
 
           {/* Rewards Points Estimation */}
           {rewardsState.shouldShowRewardsRow &&
