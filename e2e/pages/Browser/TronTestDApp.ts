@@ -52,12 +52,6 @@ class TronTestDApp {
     );
   }
 
-  get endpointSelector(): WebElement {
-    return getTestElement(dataTestIds.testPage.header.endpoint, {
-      tag: 'input',
-    });
-  }
-
   get walletButtonSelector(): WebElement {
     return Matchers.getElementByCSS(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
@@ -157,6 +151,30 @@ class TronTestDApp {
     );
   }
 
+  async verifySignedMessage(signedMessage: string): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        const signedMessageElement = await getTestElement(
+          dataTestIds.testPage.signMessage.signedMessage,
+          {
+            tag: 'pre',
+          },
+        );
+        const actualText = await signedMessageElement.getText();
+
+        if (actualText !== signedMessage) {
+          throw new Error(
+            `Expected text containing "${signedMessage}" but got "${actualText}"`,
+          );
+        }
+      },
+      {
+        timeout: BASE_DEFAULTS.timeout,
+        description: 'Verify signed message',
+      },
+    );
+  }
+
   async getAccount(): Promise<string> {
     const account = await getTestElement(dataTestIds.testPage.header.account, {
       extraXPath: '/div/a',
@@ -170,14 +188,6 @@ class TronTestDApp {
         tag: 'button',
       }),
     );
-  }
-
-  async getSignedMessage(): Promise<string> {
-    return (
-      await getTestElement(dataTestIds.testPage.signMessage.signedMessage, {
-        tag: 'pre',
-      })
-    ).getText();
   }
 
   async confirmSignMessage(): Promise<void> {

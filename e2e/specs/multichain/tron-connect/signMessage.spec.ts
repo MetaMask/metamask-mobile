@@ -1,5 +1,4 @@
 import { SmokeNetworkExpansion } from '../../../tags';
-import Assertions from '../../../../tests/framework/Assertions';
 import TronTestDApp from '../../../pages/Browser/TronTestDApp';
 import {
   account1Short,
@@ -31,12 +30,8 @@ describe(SmokeNetworkExpansion('Tron Connect E2E - Sign message'), () => {
       // Approve the signature
       await TronTestDApp.confirmSignMessage();
 
-      // Verify we are signed
-      const signedMessage = await TronTestDApp.getSignedMessage();
-      await Assertions.checkIfTextMatches(
-        signedMessage,
-        EXPECTED_SIGNED_MESSAGE,
-      );
+      // Verify signature
+      await TronTestDApp.verifySignedMessage(EXPECTED_SIGNED_MESSAGE);
     });
   });
 });
