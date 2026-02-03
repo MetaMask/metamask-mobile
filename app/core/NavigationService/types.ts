@@ -199,24 +199,6 @@ import type {
   SimpleWebviewParams,
 } from '../../components/Views/Webview/Webview.types';
 
-// ============================================================================
-// Type Utilities
-// ============================================================================
-
-/**
- * Helper type to get params for a specific route
- */
-export type GetRouteParams<T extends keyof RouteParams> = RouteParams[T];
-
-/**
- * Unified route params type - combines all param types
- */
-export interface RouteParams {
-  BrowserParams: BrowserParams;
-  BridgeRouteParams: BridgeRouteParams;
-  BridgeTokenSelectorRouteParams: BridgeTokenSelectorRouteParams;
-}
-
 /**
  * Flattened param list for React Navigation compatibility.
  * Maps actual route name strings to their parameter types.

@@ -37,7 +37,6 @@ export interface PredictMarketDetailsParams {
   title?: string;
   image?: string;
   isGame?: boolean;
-  providerId?: string;
 }
 
 /** Predict activity detail parameters */
