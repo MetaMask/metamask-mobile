@@ -86,6 +86,9 @@ const styleSheet = (params: { theme: Theme }) => {
     headerStyle: {
       width: '100%',
     },
+    footerPadding: {
+      paddingHorizontal: 16,
+    },
   });
 };
 export default styleSheet;

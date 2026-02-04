@@ -446,6 +446,7 @@ const NetworkVerificationInfo = ({
         {renderNetworkInfo()}
       </ScrollView>
       <BottomSheetFooter
+        style={styles.footerPadding}
         buttonPropsArray={[
           {
             onPress: onReject,
