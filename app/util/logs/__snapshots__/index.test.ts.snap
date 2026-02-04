@@ -514,6 +514,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
           "optionId": "volume",
         },
         "perpsBalances": {},
+        "selectedPaymentToken": null,
         "tradeConfigurations": {
           "mainnet": {},
           "testnet": {},
@@ -1306,6 +1307,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           "optionId": "volume",
         },
         "perpsBalances": {},
+        "selectedPaymentToken": null,
         "tradeConfigurations": {
           "mainnet": {},
           "testnet": {},
