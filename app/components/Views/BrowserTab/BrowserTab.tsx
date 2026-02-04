@@ -1564,7 +1564,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                         // E2E Testing: Enable native request interception on Android
                         // @ts-expect-error - Custom E2E props not in WebView types
                         e2eMode={isE2E}
-                        // @ts-expect-error - Custom E2E props not in WebView types
                         mockServerUrl={
                           isE2E
                             ? EntryScriptProxyE2E.getMockServerUrl()
