@@ -10,8 +10,9 @@ This document serves as a comprehensive guide for the TradingView Advanced Chart
 
 ## Preview
 
-<img width="356" height="736" alt="Screenshot 2026-02-04 at 09 58 08" src="https://github.com/user-attachments/assets/19fdf045-1714-4702-abf3-28f3f9ca5ee8" />
-
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/19fdf045-1714-4702-abf3-28f3f9ca5ee8" width="350" alt="TradingView Advanced Charts Preview" />
+</p>
 
 _TradingView Advanced Charts with drawing toolbar, candlestick chart, volume, and indicator toggles._
 
