@@ -106,7 +106,7 @@ describe('MultichainAccountSelectorList', () => {
             },
             AccountTreeController: {
               accountTree: {
-                selectedAccountGroup: null,
+                selectedAccountGroup: undefined,
                 wallets: {},
               },
             },
