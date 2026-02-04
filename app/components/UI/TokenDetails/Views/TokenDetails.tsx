@@ -17,7 +17,6 @@ import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader
 import AssetOverviewContent from '../components/AssetOverviewContent';
 import { useTokenPrice } from '../hooks/useTokenPrice';
 import { useTokenBalance } from '../hooks/useTokenBalance';
-import { useTokenBuyability } from '../hooks/useTokenBuyability';
 import { useTokenActions } from '../hooks/useTokenActions';
 import { useTokenTransactions } from '../hooks/useTokenTransactions';
 import { selectPerpsEnabledFlag } from '../../Perps';
@@ -128,8 +127,6 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
     ///: END:ONLY_INCLUDE_IF
   } = useTokenBalance(token);
 
-  const isBuyable = useTokenBuyability(token);
-
   const { onBuy, onSend, onReceive, goToSwaps, networkModal } = useTokenActions(
     {
       token,
@@ -200,7 +197,6 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
         isMerklCampaignClaimingEnabled={isMerklCampaignClaimingEnabled}
         displayBuyButton={displayBuyButton}
         displaySwapsButton={displaySwapsButton}
-        isBuyable={isBuyable}
         currentCurrency={currentCurrency}
         onBuy={onBuy}
         onSend={onSend}

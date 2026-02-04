@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../../component-library/hooks';
 import MainActionButton from '../../../../component-library/components-temp/MainActionButton';
+import { Skeleton } from '../../../../component-library/components/Skeleton';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
@@ -19,6 +20,9 @@ import {
 } from '../../../../util/analytics/actionButtonTracking';
 import { TokenI } from '../../Tokens/types';
 
+// Height of MainActionButton: paddingVertical (16 * 2) + Icon (24px) + label marginTop (2) + label lineHeight (~16)
+const SKELETON_BUTTON_HEIGHT = 74;
+
 const styleSheet = () =>
   StyleSheet.create({
     activitiesButton: {
@@ -30,6 +34,9 @@ const styleSheet = () =>
     buttonContainer: {
       flex: 1,
       overflow: 'hidden',
+    },
+    skeletonButton: {
+      borderRadius: 12,
     },
   });
 
@@ -44,14 +51,31 @@ export interface TokenDetailsActionsProps {
   onShort?: () => void;
   onSend: () => void;
   onReceive: () => void;
-  // Optional custom action IDs
-  buyButtonActionID?: string;
-  longButtonActionID?: string;
-  shortButtonActionID?: string;
-  sendButtonActionID?: string;
-  receiveButtonActionID?: string;
-  moreButtonActionID?: string;
+  isLoading?: boolean;
 }
+
+/**
+ * Skeleton component for TokenDetailsActions.
+ * Displays 4 skeleton buttons (maximum button count) to prevent layout shift during loading.
+ */
+export const TokenDetailsActionsSkeleton: React.FC = () => {
+  const { styles } = useStyles(styleSheet, {});
+  const skeletonCount = 4; // Maximum number of buttons to prevent layout shift
+
+  return (
+    <View style={styles.activitiesButton}>
+      {Array.from({ length: skeletonCount }).map((_, index) => (
+        <View key={`skeleton-${index}`} style={styles.buttonContainer}>
+          <Skeleton
+            width="100%"
+            height={SKELETON_BUTTON_HEIGHT}
+            style={styles.skeletonButton}
+          />
+        </View>
+      ))}
+    </View>
+  );
+};
 
 export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
   hasPerpsMarket,
@@ -64,12 +88,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
   onShort,
   onSend,
   onReceive,
-  buyButtonActionID = TokenOverviewSelectorsIDs.BUY_BUTTON,
-  longButtonActionID = TokenOverviewSelectorsIDs.LONG_BUTTON,
-  shortButtonActionID = TokenOverviewSelectorsIDs.SHORT_BUTTON,
-  sendButtonActionID = TokenOverviewSelectorsIDs.SEND_BUTTON,
-  receiveButtonActionID = TokenOverviewSelectorsIDs.RECEIVE_BUTTON,
-  moreButtonActionID = TokenOverviewSelectorsIDs.MORE_BUTTON,
+  isLoading = false,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const canSignTransactions = useSelector(selectCanSignTransactions);
@@ -95,19 +114,17 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
     return unsubscribe;
   }, [navigation]);
 
-  // Check if FundActionMenu would be empty
-  const { isDepositEnabled } = useDepositEnabled();
-  const isBuyMenuAvailable = isDepositEnabled || true;
-
-  // Button should be enabled if we have standard funding options OR a custom onBuy function
-  const isBuyingAvailable = isBuyMenuAvailable || !!onBuy;
-
   // Wrapper to prevent rapid navigation clicks
   const withNavigationLock = useCallback((callback: () => void) => {
     if (navigationLockRef.current) return;
     navigationLockRef.current = true;
     callback();
   }, []);
+
+  const { isDepositEnabled } = useDepositEnabled();
+  const isBuyMenuAvailable = isDepositEnabled || true;
+
+  const isBuyingAvailable = isBuyMenuAvailable || !!onBuy;
 
   const handleBuyPress = useCallback(() => {
     withNavigationLock(() => {
@@ -203,7 +220,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
           label: strings('asset_overview.cash_buy_button'),
           onPress: handleBuyPress,
           isDisabled: !isBuyingAvailable,
-          testID: buyButtonActionID,
+          testID: TokenOverviewSelectorsIDs.BUY_BUTTON,
         });
       }
 
@@ -214,7 +231,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
           label: strings('asset_overview.send_button'),
           onPress: handleSendPress,
           isDisabled: !canSignTransactions,
-          testID: sendButtonActionID,
+          testID: TokenOverviewSelectorsIDs.SEND_BUTTON,
         },
         {
           key: 'receive',
@@ -222,7 +239,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
           label: strings('asset_overview.receive_button'),
           onPress: handleReceivePress,
           isDisabled: false,
-          testID: receiveButtonActionID,
+          testID: TokenOverviewSelectorsIDs.RECEIVE_BUTTON,
         },
         {
           key: 'more',
@@ -230,7 +247,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
           label: strings('asset_overview.more_button'),
           onPress: handleMorePress,
           isDisabled: false,
-          testID: moreButtonActionID,
+          testID: TokenOverviewSelectorsIDs.MORE_BUTTON,
         },
       );
 
@@ -245,7 +262,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
         label: strings('asset_overview.long_button'),
         onPress: handleLongPress,
         isDisabled: !onLong,
-        testID: longButtonActionID,
+        testID: TokenOverviewSelectorsIDs.LONG_BUTTON,
       },
       {
         key: 'short',
@@ -253,7 +270,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
         label: strings('asset_overview.short_button'),
         onPress: handleShortPress,
         isDisabled: !onShort,
-        testID: shortButtonActionID,
+        testID: TokenOverviewSelectorsIDs.SHORT_BUTTON,
       },
     ];
 
@@ -267,7 +284,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
           label: strings('asset_overview.send_button'),
           onPress: handleSendPress,
           isDisabled: !canSignTransactions,
-          testID: sendButtonActionID,
+          testID: TokenOverviewSelectorsIDs.SEND_BUTTON,
         },
         {
           key: 'more',
@@ -275,7 +292,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
           label: strings('asset_overview.more_button'),
           onPress: handleMorePress,
           isDisabled: false,
-          testID: moreButtonActionID,
+          testID: TokenOverviewSelectorsIDs.MORE_BUTTON,
         },
       ];
     }
@@ -289,7 +306,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
         label: strings('asset_overview.receive_button'),
         onPress: handleReceivePress,
         isDisabled: false,
-        testID: receiveButtonActionID,
+        testID: TokenOverviewSelectorsIDs.RECEIVE_BUTTON,
       },
       {
         key: 'more',
@@ -297,7 +314,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
         label: strings('asset_overview.more_button'),
         onPress: handleMorePress,
         isDisabled: false,
-        testID: moreButtonActionID,
+        testID: TokenOverviewSelectorsIDs.MORE_BUTTON,
       },
     ];
   }, [
@@ -314,13 +331,11 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
     canSignTransactions,
     onLong,
     onShort,
-    buyButtonActionID,
-    longButtonActionID,
-    shortButtonActionID,
-    sendButtonActionID,
-    receiveButtonActionID,
-    moreButtonActionID,
   ]);
+
+  if (isLoading) {
+    return <TokenDetailsActionsSkeleton />;
+  }
 
   return (
     <View style={styles.activitiesButton}>

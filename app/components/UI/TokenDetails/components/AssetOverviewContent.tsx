@@ -40,6 +40,7 @@ import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
 import { useScrollToMerklRewards } from '../../AssetOverview/hooks/useScrollToMerklRewards';
 import { selectTokenDetailsV2ButtonsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsV2';
+import useTokenBuyability from '../hooks/useTokenBuyability';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
 ///: END:ONLY_INCLUDE_IF
@@ -116,7 +117,6 @@ export interface AssetOverviewContentProps {
   // Display flags
   displayBuyButton: boolean;
   displaySwapsButton: boolean;
-  isBuyable: boolean;
 
   // Currency
   currentCurrency: string;
@@ -160,7 +160,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   isMerklCampaignClaimingEnabled,
   displayBuyButton,
   displaySwapsButton,
-  isBuyable,
   currentCurrency,
   onBuy,
   onSend,
@@ -176,9 +175,15 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
   useScrollToMerklRewards(merklRewardsYInHeaderRef);
 
-  const { hasPerpsMarket, marketData } = usePerpsMarketForAsset(
-    isPerpsEnabled ? token.symbol : null,
-  );
+  const {
+    hasPerpsMarket,
+    marketData,
+    isLoading: isPerpsLoading,
+  } = usePerpsMarketForAsset(isPerpsEnabled ? token.symbol : null);
+
+  const { isBuyable, isLoading: isBuyableLoading } = useTokenBuyability(token);
+
+  const isButtonsLoading = isBuyableLoading || isPerpsLoading;
 
   const isTokenTrustworthy = isTokenTrustworthyForPerps(token);
 
@@ -280,6 +285,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               onShort={handlePerpsAction}
               onSend={onSend}
               onReceive={onReceive}
+              isLoading={isButtonsLoading}
             />
           ) : (
             <AssetDetailsActions
