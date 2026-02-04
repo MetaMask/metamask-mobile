@@ -2,6 +2,8 @@ import { containsErrorMessage } from '../../util/errorHandling';
 import { UnlockWalletErrorType } from './types';
 import { MIN_PASSWORD_LENGTH, UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
 import { SeedlessOnboardingControllerError } from '../Engine/controllers/seedless-onboarding-controller/error';
+import { AuthenticationType } from 'expo-local-authentication';
+import { Platform } from 'react-native';
 
 /**
  * Handles password submission errors by throwing the appropriate error.
@@ -71,6 +73,52 @@ export const handlePasswordSubmissionError = (error: Error) => {
       `${UnlockWalletErrorType.UNRECOGNIZED_ERROR}: ${loginErrorMessage}`,
     );
   }
+};
+
+/**
+ * Gets a human-readable label for the authentication toggle based on device capabilities.
+ * Prioritizes biometrics first, then device passcode, with platform-specific labels.
+ *
+ * iOS: "Face ID" | "Touch ID" | "Device Passcode" | ""
+ * Android: "Biometrics" | "Device PIN/Pattern" | ""
+ */
+export const getAuthToggleLabel = ({
+  isBiometricsAvailable,
+  supportedOSAuthenticationTypes,
+  passcodeAvailable,
+}: {
+  isBiometricsAvailable: boolean;
+  supportedOSAuthenticationTypes: AuthenticationType[];
+  passcodeAvailable: boolean;
+}): string => {
+  // Priority 1: Biometrics (if available)
+  if (isBiometricsAvailable && supportedOSAuthenticationTypes.length > 0) {
+    if (Platform.OS === 'ios') {
+      if (
+        supportedOSAuthenticationTypes.includes(
+          AuthenticationType.FACIAL_RECOGNITION,
+        )
+      ) {
+        return 'Face ID';
+      }
+      if (
+        supportedOSAuthenticationTypes.includes(AuthenticationType.FINGERPRINT)
+      ) {
+        return 'Touch ID';
+      }
+    } else {
+      // Android uses generic "Biometrics" label
+      return 'Biometrics';
+    }
+  }
+
+  // Priority 2: Device passcode (if available)
+  if (passcodeAvailable) {
+    return Platform.OS === 'ios' ? 'Device Passcode' : 'Device PIN/Pattern';
+  }
+
+  // Priority 3: No OS authentication available
+  return '';
 };
 
 /**

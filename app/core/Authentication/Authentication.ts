@@ -80,7 +80,10 @@ import { Alert } from 'react-native';
 import { strings } from '../../../locales/i18n';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { IconName } from '../../component-library/components/Icons/Icon';
-import { ReauthenticateErrorType } from './types';
+import { AuthCapabilities, ReauthenticateErrorType } from './types';
+import * as LocalAuthentication from 'expo-local-authentication';
+import { SecurityLevel } from 'expo-local-authentication';
+import { getAuthToggleLabel } from './utils';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -684,6 +687,81 @@ class AuthenticationService {
     }
     password = this.wipeSensitiveData();
     parsedSeed = this.wipeSensitiveData();
+  };
+
+  /**
+   * Fetches the authentication capabilities of the device.
+   * Prioritizes biometrics first, then passcode/pincode/pattern, then password.
+   * iOS: "Face ID" | "Touch ID" | "Device Passcode"
+   * Android: "Biometrics" | "Device PIN/Pattern"
+   *
+   * @param osAuthEnabled - Whether the OS-level authentication is enabled from user settings (from user preference state in Redux)
+   * @returns {AuthCapabilities} - The authentication capabilities of the device.
+   */
+  getAuthCapabilities = async (
+    osAuthEnabled: boolean,
+  ): Promise<AuthCapabilities> => {
+    try {
+      // Fetch all capabilities in parallel
+      const [
+        // hasHardware,
+        isBiometricsAvailable,
+        supportedOSAuthenticationTypes,
+        capabilitySecurityLevel,
+      ] = await Promise.all([
+        // LocalAuthentication.hasHardwareAsync(),
+        LocalAuthentication.isEnrolledAsync(),
+        LocalAuthentication.supportedAuthenticationTypesAsync(),
+        LocalAuthentication.getEnrolledLevelAsync(),
+      ]);
+
+      // Device supports biometrics but they're not available
+      // iOS: user denied permission for this app
+      // Android: user hasn't enrolled biometrics on device
+      const biometricsDisabledOnOS =
+        !isBiometricsAvailable && supportedOSAuthenticationTypes.length > 0;
+
+      // Check if passcode is available
+      // iOS: if passcode is available
+      // Android: if pincode/pattern is available
+      const passcodeAvailable = capabilitySecurityLevel >= SecurityLevel.SECRET;
+
+      const isAuthToggleVisible = isBiometricsAvailable || passcodeAvailable;
+
+      // Derive the authentication type for keychain storage based on capabilities + user preference
+      let authStorageType: AUTHENTICATION_TYPE;
+
+      if (isBiometricsAvailable && osAuthEnabled) {
+        authStorageType = AUTHENTICATION_TYPE.BIOMETRIC;
+      } else if (passcodeAvailable && osAuthEnabled) {
+        authStorageType = AUTHENTICATION_TYPE.PASSCODE;
+      } else {
+        authStorageType = AUTHENTICATION_TYPE.PASSWORD;
+      }
+
+      return {
+        isBiometricsAvailable,
+        biometricsDisabledOnOS,
+        isAuthToggleVisible,
+        authToggleLabel: getAuthToggleLabel({
+          isBiometricsAvailable,
+          supportedOSAuthenticationTypes,
+          passcodeAvailable,
+        }),
+        osAuthEnabled,
+        authStorageType,
+      };
+    } catch (error) {
+      // On error, default to no capabilities
+      return {
+        isBiometricsAvailable: false,
+        biometricsDisabledOnOS: false,
+        isAuthToggleVisible: false,
+        authToggleLabel: '',
+        osAuthEnabled: false,
+        authStorageType: AUTHENTICATION_TYPE.PASSWORD,
+      };
+    }
   };
 
   /**
