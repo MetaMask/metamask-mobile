@@ -6422,41 +6422,41 @@ describe('PredictController', () => {
         });
       });
 
-      it('logs error when showConfirmedToast fails', () => {
+      it('logs error when showSuccessToast fails', () => {
         withController(({ controller }) => {
           mockShowToast.mockImplementationOnce(() => {
             throw new Error('Toast error');
           });
 
           expect(() => {
-            (controller as any).showConfirmedToast({
+            (controller as any).showSuccessToast({
               title: 'Test',
               description: 'Test description',
             });
           }).not.toThrow();
 
           expect(DevLogger.log).toHaveBeenCalledWith(
-            'PredictController: Failed to show confirmed toast',
+            'PredictController: Failed to show success toast',
             expect.objectContaining({ error: 'Toast error' }),
           );
         });
       });
 
-      it('logs error when showErrorToast fails', () => {
+      it('logs error when showFailureToast fails', () => {
         withController(({ controller }) => {
           mockShowToast.mockImplementationOnce(() => {
             throw new Error('Toast error');
           });
 
           expect(() => {
-            (controller as any).showErrorToast({
+            (controller as any).showFailureToast({
               title: 'Test',
               description: 'Test description',
             });
           }).not.toThrow();
 
           expect(DevLogger.log).toHaveBeenCalledWith(
-            'PredictController: Failed to show error toast',
+            'PredictController: Failed to show failure toast',
             expect.objectContaining({ error: 'Toast error' }),
           );
         });

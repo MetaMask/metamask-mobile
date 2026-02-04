@@ -465,7 +465,7 @@ export class PredictController extends BaseController<
         break;
       case TransactionStatus.confirmed:
         this.clearPendingDeposit({ providerId: 'polymarket' });
-        this.showConfirmedToast({
+        this.showSuccessToast({
           title: strings('predict.deposit.ready_to_trade'),
           description: strings('predict.deposit.account_ready_description', {
             amount: this.getDepositAmount(transactionMeta),
@@ -475,7 +475,7 @@ export class PredictController extends BaseController<
         break;
       case TransactionStatus.failed:
         this.clearPendingDeposit({ providerId: 'polymarket' });
-        this.showErrorToast({
+        this.showFailureToast({
           title: strings('predict.deposit.error_title'),
           description: strings('predict.deposit.error_description'),
         });
@@ -502,7 +502,7 @@ export class PredictController extends BaseController<
         break;
       case TransactionStatus.confirmed:
         this.clearWithdrawTransaction();
-        this.showConfirmedToast({
+        this.showSuccessToast({
           title: strings('predict.withdraw.withdraw_completed'),
           description: strings('predict.withdraw.withdraw_completed_subtitle', {
             amount: this.getWithdrawAmount(),
@@ -512,7 +512,7 @@ export class PredictController extends BaseController<
         break;
       case TransactionStatus.failed:
         this.clearWithdrawTransaction();
-        this.showErrorToast({
+        this.showFailureToast({
           title: strings('predict.withdraw.error_title'),
           description: strings('predict.withdraw.error_description'),
         });
@@ -542,7 +542,7 @@ export class PredictController extends BaseController<
         break;
       case TransactionStatus.confirmed:
         this.confirmClaim({ providerId: 'polymarket' });
-        this.showConfirmedToast({
+        this.showSuccessToast({
           title: strings('predict.deposit.account_ready'),
           description: strings('predict.deposit.account_ready_description', {
             amount: claimableAmount,
@@ -552,7 +552,7 @@ export class PredictController extends BaseController<
         this.refreshPositionsAfterTransaction();
         break;
       case TransactionStatus.failed:
-        this.showErrorToast({
+        this.showFailureToast({
           title: strings('predict.claim.toasts.error.title'),
           description: strings('predict.claim.toasts.error.description'),
         });
@@ -610,7 +610,7 @@ export class PredictController extends BaseController<
     }
   }
 
-  private showConfirmedToast({
+  private showSuccessToast({
     title,
     description,
   }: {
@@ -629,13 +629,13 @@ export class PredictController extends BaseController<
         hasNoTimeout: false,
       });
     } catch (error) {
-      DevLogger.log('PredictController: Failed to show confirmed toast', {
+      DevLogger.log('PredictController: Failed to show success toast', {
         error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
 
-  private showErrorToast({
+  private showFailureToast({
     title,
     description,
   }: {
@@ -654,7 +654,7 @@ export class PredictController extends BaseController<
         hasNoTimeout: false,
       });
     } catch (error) {
-      DevLogger.log('PredictController: Failed to show error toast', {
+      DevLogger.log('PredictController: Failed to show failure toast', {
         error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
