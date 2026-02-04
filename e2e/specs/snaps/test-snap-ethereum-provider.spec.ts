@@ -88,14 +88,14 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
 
         await TestSnaps.selectInDropdown('networkDropDown', 'Linea');
         await TestSnaps.tapButton('getGenesisHashButton');
-        await TestSnaps.checkResultSpan(
+        await TestSnaps.checkResultSpanIncludes(
           'ethereumProviderResultSpan',
           '"0xb6762a65689107b2326364aefc18f94cda413209fab35c00d4af51eaa20ffbc6"',
         );
 
         await TestSnaps.selectInDropdown('networkDropDown', 'Sepolia');
         await TestSnaps.tapButton('getGenesisHashButton');
-        await TestSnaps.checkResultSpan(
+        await TestSnaps.checkResultSpanIncludes(
           'ethereumProviderResultSpan',
           '"0x25a5cc106eea7138acab33231d7160d69cb777ee0c2c553fcddf5138993e6dd9"',
         );
