@@ -47,12 +47,13 @@ export const AmountKeyboard = ({
   const { gotToSendScreen } = useSendScreenNavigation();
   const { isMaxAmountSupported, getPercentageAmount } = usePercentageAmount();
   const { amountError, validateNonEvmAmountAsync } = useAmountValidation();
-  const { asset, updateValue, updateTo } = useSendContext();
+  const { asset, updateValue, updateTo, submitError } = useSendContext();
   const { handleSubmitPress } = useSendActions();
   const { isNonEvmSendType } = useSendType();
   const isNFT = asset?.standard === TokenStandard.ERC1155;
+  const hasError = Boolean(amountError) || Boolean(submitError);
   const { styles } = useStyles(styleSheet, {
-    amountError: Boolean(amountError),
+    amountError: hasError,
     submitDisabled: isNFT && !amount,
   });
   const { captureAmountSelected, setAmountInputMethodPressedMax } =
@@ -135,9 +136,10 @@ export const AmountKeyboard = ({
       additionalRow={
         amount.length > 0 || isNFT ? (
           <Button
-            disabled={Boolean(amountError) || !amount}
+            disabled={hasError || !amount}
             label={
               amountError ??
+              submitError ??
               (isNFT ? strings('send.next') : strings('send.continue'))
             }
             onPress={goToNextPage}

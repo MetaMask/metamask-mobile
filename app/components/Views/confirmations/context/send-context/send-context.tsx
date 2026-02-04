@@ -5,6 +5,7 @@ import React, {
   useContext,
   useState,
   useCallback,
+  useMemo,
 } from 'react';
 import { useSelector } from 'react-redux';
 import { isAddress as isEvmAddress } from 'ethers/lib/utils';
@@ -21,8 +22,10 @@ export interface SendContextType {
   fromAccount?: InternalAccount;
   from?: string;
   maxValueMode: boolean;
+  submitError?: string;
   to?: string;
   updateAsset: (asset?: AssetType | Nft) => void;
+  updateSubmitError: (error: string | undefined) => void;
   updateTo: (to: string) => void;
   updateValue: (value: string, maxMode?: boolean) => void;
   value?: string;
@@ -34,8 +37,10 @@ export const SendContext = createContext<SendContextType>({
   fromAccount: {} as InternalAccount,
   from: '',
   maxValueMode: false,
+  submitError: undefined,
   to: undefined,
   updateAsset: () => undefined,
+  updateSubmitError: () => undefined,
   updateTo: () => undefined,
   updateValue: () => undefined,
   value: undefined,
@@ -45,7 +50,8 @@ export const SendContextProvider: React.FC<{
   children: ReactElement[] | ReactElement;
 }> = ({ children }) => {
   const [asset, updateAsset] = useState<AssetType | Nft>();
-  const [to, updateTo] = useState<string>();
+  const [submitError, updateSubmitError] = useState<string>();
+  const [to, setTo] = useState<string>();
   const [maxValueMode, setMaxValueMode] = useState(false);
   const [value, setValue] = useState<string>();
   const [fromAccount, updateFromAccount] = useState<InternalAccount>();
@@ -56,8 +62,19 @@ export const SendContextProvider: React.FC<{
     (val: string, maxMode?: boolean) => {
       setMaxValueMode(maxMode ?? false);
       setValue(val);
+      // Clear submit error when user changes amount
+      updateSubmitError(undefined);
     },
     [setMaxValueMode, setValue],
+  );
+
+  const updateTo = useCallback(
+    (newTo: string) => {
+      setTo(newTo);
+      // Clear submit error when user changes recipient
+      updateSubmitError(undefined);
+    },
+    [setTo],
   );
 
   const handleUpdateAsset = useCallback(
@@ -103,23 +120,37 @@ export const SendContextProvider: React.FC<{
       ? toHex(asset.chainId)
       : asset?.chainId;
 
+  const contextValue = useMemo(
+    () => ({
+      asset,
+      chainId: chainId as string | undefined,
+      fromAccount,
+      from: fromAccount?.address as string,
+      maxValueMode,
+      submitError,
+      to,
+      updateAsset: handleUpdateAsset,
+      updateSubmitError,
+      updateTo,
+      updateValue,
+      value,
+    }),
+    [
+      asset,
+      chainId,
+      fromAccount,
+      maxValueMode,
+      submitError,
+      to,
+      handleUpdateAsset,
+      updateTo,
+      updateValue,
+      value,
+    ],
+  );
+
   return (
-    <SendContext.Provider
-      value={{
-        asset,
-        chainId: chainId as string | undefined,
-        fromAccount,
-        from: fromAccount?.address as string,
-        maxValueMode,
-        to,
-        updateAsset: handleUpdateAsset,
-        updateTo,
-        updateValue,
-        value,
-      }}
-    >
-      {children}
-    </SendContext.Provider>
+    <SendContext.Provider value={contextValue}>{children}</SendContext.Provider>
   );
 };
 
