@@ -71,6 +71,7 @@ enum EVENT_NAME {
 
   // Wallet
   WALLET_OPENED = 'Wallet Opened',
+  ADDRESS_COPIED = 'Address Copied',
   TOKEN_ADDED = 'Token Added',
   COLLECTIBLE_ADDED = 'Collectible Added',
   NFT_DETAILS_OPENED = 'NFT Details Opened',
@@ -517,7 +518,7 @@ enum EVENT_NAME {
   NetworkConnectionBannerRpcUpdated = 'Network Connection Banner RPC Updated',
 
   // Deep Link Analytics - Consolidated Event
-  DEEP_LINK_USED = 'Deep link Used',
+  DEEP_LINK_USED = 'Deep Link Used',
 
   // What's New Link Clicked
   WHATS_NEW_LINK_CLICKED = "What's New Link Clicked",
@@ -714,6 +715,7 @@ const events = {
   PROCEED_ANYWAY_CLICKED: generateOpt(EVENT_NAME.PROCEED_ANYWAY_CLICKED),
 
   WALLET_OPENED: generateOpt(EVENT_NAME.WALLET_OPENED),
+  ADDRESS_COPIED: generateOpt(EVENT_NAME.ADDRESS_COPIED),
   TOKEN_ADDED: generateOpt(EVENT_NAME.TOKEN_ADDED),
   COLLECTIBLE_ADDED: generateOpt(EVENT_NAME.COLLECTIBLE_ADDED),
   NFT_DETAILS_OPENED: generateOpt(EVENT_NAME.NFT_DETAILS_OPENED),

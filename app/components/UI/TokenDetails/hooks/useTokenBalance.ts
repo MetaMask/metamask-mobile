@@ -8,6 +8,7 @@ import {
   selectTronResourcesBySelectedAccountGroup,
   ///: END:ONLY_INCLUDE_IF
 } from '../../../../selectors/assets/assets-list';
+import { toFormattedAddress } from '../../../../util/address';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { createStakedTrxAsset } from '../../AssetOverview/utils/createStakedTrxAsset';
 ///: END:ONLY_INCLUDE_IF
@@ -25,9 +26,9 @@ export interface UseTokenBalanceResult {
 export const useTokenBalance = (token: TokenI): UseTokenBalanceResult => {
   const processedAsset = useSelector((state: RootState) =>
     selectAsset(state, {
-      address: token.address,
+      address: toFormattedAddress(token.address),
       chainId: token.chainId as Hex,
-      isStaked: false,
+      isStaked: Boolean(token.isStaked),
     }),
   );
 
