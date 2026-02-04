@@ -213,7 +213,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
           iconName: IconName.AttachMoney,
           label: strings('asset_overview.cash_buy_button'),
           onPress: handleBuyPress,
-          isDisabled: !!onBuy,
+          isDisabled: !onBuy,
           testID: TokenOverviewSelectorsIDs.BUY_BUTTON,
         });
       }
