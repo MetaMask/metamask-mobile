@@ -37,7 +37,7 @@ permissions:
   id-token: write
 
 jobs:
-  # Load config 
+  # Load config
   prepare:
     runs-on: ubuntu-latest
     outputs:
@@ -79,6 +79,22 @@ jobs:
           node-version: '20'
           cache: 'yarn'
       - run: yarn install --immutable
+
+      # TapAndPay SDK Setup (Android only)
+      - name: Setup SSH for TapAndPay SDK
+        if: matrix.platform == 'android'
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.TAP_AND_PAY_SDK_SSH_KEY }}
+
+      - name: Clone TapAndPay SDK
+        if: matrix.platform == 'android'
+        run: |
+          echo "📦 Cloning TapAndPay SDK into android/libs/..."
+          git clone --depth 1 "$TAP_AND_PAY_SDK_REPO_SSH" /tmp/tap-and-pay-sdk
+          cp -r /tmp/tap-and-pay-sdk/* android/libs/
+          rm -rf /tmp/tap-and-pay-sdk
+          echo "✅ TapAndPay SDK installed to android/libs/"
 
       - name: Apply build config
         run: |
