@@ -1,1 +1,0 @@
-export { PerpsBalanceIcon } from './PerpsBalanceIcon';
