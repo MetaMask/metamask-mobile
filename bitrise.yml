@@ -87,6 +87,7 @@ pipelines:
     stages:
       - build_e2e_ios_android_stage: {}
       - run_release_e2e_ios_android_stage: {}
+      - report_results_stage: {}
       - notify: {}
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   pr_smoke_e2e_pipeline:
@@ -463,6 +464,9 @@ stages:
     workflows:
       - ios_run_regression_network_abstraction_tests_gns_disabled: {}
 
+  report_results_stage:
+    workflows:
+      - run_testrail_update_automated_test_results: {}
   # TODO: Remove this stage since it's not used anymore
   run_e2e_ios_android_stage:
     workflows:
@@ -1076,6 +1080,18 @@ workflows:
         machine_type_id: elite-xl
     after_run:
       - android_e2e_build
+  ### Report automated test results to TestRail
+  run_testrail_update_automated_test_results:
+    before_run:
+      - code_setup
+    steps:
+      - script@1:
+          title: 'Add Automated Test Results to TestRail'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                echo 'REPORT AUTOMATED TEST RESULTS TO TESTRAIL'
+                node ./scripts/testrail/testrail.api.js
 
   ### Separating workflows so they run concurrently during smoke runs
   run_tag_smoke_multichain_api_ios:
@@ -2244,6 +2260,19 @@ workflows:
             - source: $KEYSTORE_FILE_PATH
             - destination: $KEYSTORE_PATH
           run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
+      # TapAndPay SDK Setup
+      - script@1:
+          title: Clone TapAndPay SDK
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -euo pipefail
+                echo "📦 Cloning TapAndPay SDK into android/libs/..."
+                git clone --depth 1 "$TAP_AND_PAY_SDK_REPO_SSH" /tmp/tap-and-pay-sdk
+                cp -r /tmp/tap-and-pay-sdk/* android/libs/
+                rm -rf /tmp/tap-and-pay-sdk
+                echo "✅ TapAndPay SDK installed to android/libs/"
+                ls -la android/libs/com/google/android/gms/ || echo "SDK structure check"
       - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
