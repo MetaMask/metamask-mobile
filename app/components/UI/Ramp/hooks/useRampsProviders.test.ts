@@ -6,7 +6,7 @@ import { useRampsProviders } from './useRampsProviders';
 import { type Provider as RampProvider } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
 import { determinePreferredProvider } from '../utils/determinePreferredProvider';
-import { getOrders } from '../../../../reducers/fiatOrders';
+import { getOrders, type FiatOrder } from '../../../../reducers/fiatOrders';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -20,7 +20,7 @@ jest.mock('../utils/determinePreferredProvider', () => ({
   determinePreferredProvider: jest.fn(),
 }));
 
-const emptyOrders: unknown[] = [];
+const emptyOrders: FiatOrder[] = [];
 jest.mock('../../../../reducers/fiatOrders', () => ({
   ...jest.requireActual('../../../../reducers/fiatOrders'),
   getOrders: jest.fn((_state: unknown) => emptyOrders),
