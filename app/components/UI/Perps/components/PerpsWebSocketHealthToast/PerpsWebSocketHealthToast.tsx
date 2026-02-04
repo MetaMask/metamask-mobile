@@ -1,5 +1,12 @@
 import React, { memo, useEffect, useRef, useMemo, useState } from 'react';
-import { Animated, TouchableOpacity, View, StyleSheet } from 'react-native';
+import {
+  Animated,
+  PanResponder,
+  TouchableOpacity,
+  View,
+  StyleSheet,
+  Dimensions,
+} from 'react-native';
 import {
   IconColor as ReactNativeDsIconColor,
   IconSize as ReactNativeDsIconSize,
@@ -27,6 +34,9 @@ const ANIMATION_DURATION_MS = 300;
 /** Duration to show the success toast before auto-hiding */
 const SUCCESS_TOAST_DURATION_MS = 3000;
 
+/** Minimum horizontal swipe distance (px) to trigger dismiss */
+const SWIPE_DISMISS_THRESHOLD = 80;
+
 /**
  * PerpsWebSocketHealthToast
  *
@@ -53,9 +63,61 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
   // Animation value for slide-in/out effect (negative = slide from top)
   const slideAnim = useRef(new Animated.Value(-100)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
+  // Horizontal swipe for dismiss (left or right)
+  const swipeAnim = useRef(new Animated.Value(0)).current;
 
   // Track if we should auto-hide for success state
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Ref to read latest connection state in swipe completion (avoids race: connection
+  // can restore during 300ms exit animation; we only apply userDismissed if still offline/connecting)
+  const connectionStateRef = useRef(connectionState);
+  connectionStateRef.current = connectionState;
+
+  const screenWidth = Dimensions.get('window').width;
+
+  // PanResponder for horizontal swipe-to-dismiss (left or right)
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => false,
+        onMoveShouldSetPanResponder: (_, gestureState) =>
+          Math.abs(gestureState.dx) > 10,
+        onPanResponderMove: (_, gestureState) => {
+          swipeAnim.setValue(gestureState.dx);
+        },
+        onPanResponderRelease: (_, gestureState) => {
+          const dx = gestureState.dx;
+          if (Math.abs(dx) >= SWIPE_DISMISS_THRESHOLD) {
+            const exitDirection = dx > 0 ? 1 : -1;
+            Animated.timing(swipeAnim, {
+              toValue: exitDirection * screenWidth,
+              duration: ANIMATION_DURATION_MS,
+              useNativeDriver: true,
+            }).start(({ finished }) => {
+              if (finished) {
+                const stateWhenDone = connectionStateRef.current;
+                const stillOffline =
+                  stateWhenDone === WebSocketConnectionState.Disconnected ||
+                  stateWhenDone === WebSocketConnectionState.Connecting;
+                if (stillOffline) {
+                  hide({ userDismissed: true });
+                }
+                // If connection restored during animation, do nothing: leave Connected toast visible
+              }
+            });
+          } else {
+            Animated.spring(swipeAnim, {
+              toValue: 0,
+              useNativeDriver: true,
+              tension: 65,
+              friction: 11,
+            }).start();
+          }
+        },
+      }),
+    [hide, screenWidth, swipeAnim],
+  );
 
   // Get toast configuration based on connection state
   const toastConfig = useMemo(() => {
@@ -99,6 +161,8 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
   // Handle visibility animation
   useEffect(() => {
     if (isVisible) {
+      // Reset swipe position when showing
+      swipeAnim.setValue(0);
       // Show the component immediately, then animate in
       setShouldRender(true);
       Animated.parallel([
@@ -136,7 +200,7 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
     // Note: shouldRender is intentionally excluded from deps to prevent animation restart.
     // We only want to react to isVisible changes - shouldRender is internal lifecycle state.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isVisible, slideAnim, opacityAnim]);
+  }, [isVisible, slideAnim, opacityAnim, swipeAnim]);
 
   // Auto-hide for success state
   useEffect(() => {
@@ -172,53 +236,56 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
         style={[
           styles.container,
           {
-            transform: [{ translateY: slideAnim }],
+            transform: [{ translateY: slideAnim }, { translateX: swipeAnim }],
             opacity: opacityAnim,
           },
         ]}
         testID={PerpsWebSocketHealthToastSelectorsIDs.TOAST}
         pointerEvents="box-none"
+        {...panResponder.panHandlers}
       >
-        <View style={styles.toast}>
-          {/* Icon or Spinner */}
-          <View style={styles.iconContainer}>
-            {toastConfig.showSpinner ? (
-              <Spinner
-                color={ReactNativeDsIconColor.PrimaryDefault}
-                spinnerIconProps={{ size: ReactNativeDsIconSize.Md }}
-              />
-            ) : (
-              <Icon
-                name={IconName.Connect}
-                size={IconSize.Xl}
-                color={toastConfig.iconColor}
-              />
-            )}
-          </View>
+        <View style={styles.toastWrapper}>
+          <View style={styles.toast}>
+            {/* Icon or Spinner */}
+            <View style={styles.iconContainer}>
+              {toastConfig.showSpinner ? (
+                <Spinner
+                  color={ReactNativeDsIconColor.PrimaryDefault}
+                  spinnerIconProps={{ size: ReactNativeDsIconSize.Md }}
+                />
+              ) : (
+                <Icon
+                  name={IconName.Connect}
+                  size={IconSize.Xl}
+                  color={toastConfig.iconColor}
+                />
+              )}
+            </View>
 
-          {/* Text Content */}
-          <View style={styles.textContainer}>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-              {toastConfig.title}
-            </Text>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {toastConfig.description}
-            </Text>
-          </View>
+            {/* Text Content */}
+            <View style={styles.textContainer}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                {toastConfig.title}
+              </Text>
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+                {toastConfig.description}
+              </Text>
+            </View>
 
-          {/* Retry Button - only shown when disconnected */}
-          {connectionState === WebSocketConnectionState.Disconnected &&
-            onRetry && (
-              <TouchableOpacity
-                style={styles.retryButton}
-                onPress={onRetry}
-                testID={PerpsWebSocketHealthToastSelectorsIDs.RETRY_BUTTON}
-              >
-                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                  {strings('perps.connection.websocket_retry')}
-                </Text>
-              </TouchableOpacity>
-            )}
+            {/* Retry Button - only shown when disconnected */}
+            {connectionState === WebSocketConnectionState.Disconnected &&
+              onRetry && (
+                <TouchableOpacity
+                  style={styles.retryButton}
+                  onPress={onRetry}
+                  testID={PerpsWebSocketHealthToastSelectorsIDs.RETRY_BUTTON}
+                >
+                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                    {strings('perps.connection.websocket_retry')}
+                  </Text>
+                </TouchableOpacity>
+              )}
+          </View>
         </View>
       </Animated.View>
     </View>
