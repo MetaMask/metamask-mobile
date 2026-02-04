@@ -21,6 +21,7 @@ import {
   type PointsBoostDto,
   type PointsEventDto,
   type RewardDto,
+  type SnapshotDto,
   type PointsEstimateHistoryEntry,
   ClaimRewardDto,
   PointsEventsDtoState,
@@ -89,6 +90,9 @@ const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 // Unlocked rewards cache threshold
 const UNLOCKED_REWARDS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
+// Snapshots cache threshold
+const SNAPSHOTS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+
 // Points events cache threshold (first page only)
 const POINTS_EVENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache
 
@@ -156,6 +160,12 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
+  snapshots: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
   pointsEstimateHistory: {
     includeInStateLogs: true,
     persist: true,
@@ -177,6 +187,7 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   activeBoosts: {},
   unlockedRewards: {},
   pointsEvents: {},
+  snapshots: {},
   pointsEstimateHistory: [],
 });
 
@@ -272,6 +283,7 @@ export class RewardsController extends BaseController<
   #isDisabled: () => boolean;
   #isBitcoinOptinEnabled: () => boolean;
   #isTronOptinEnabled: () => boolean;
+  #isSnapshotsEnabled: () => boolean;
 
   /**
    * Calculate tier status and next tier information
@@ -416,12 +428,14 @@ export class RewardsController extends BaseController<
     isDisabled,
     isBitcoinOptinEnabled,
     isTronOptinEnabled,
+    isSnapshotsEnabled,
   }: {
     messenger: RewardsControllerMessenger;
     state?: Partial<RewardsControllerState>;
     isDisabled?: () => boolean;
     isBitcoinOptinEnabled?: () => boolean;
     isTronOptinEnabled?: () => boolean;
+    isSnapshotsEnabled?: () => boolean;
   }) {
     super({
       name: controllerName,
@@ -436,6 +450,7 @@ export class RewardsController extends BaseController<
     this.#isDisabled = isDisabled ?? (() => false);
     this.#isBitcoinOptinEnabled = isBitcoinOptinEnabled ?? (() => false);
     this.#isTronOptinEnabled = isTronOptinEnabled ?? (() => false);
+    this.#isSnapshotsEnabled = isSnapshotsEnabled ?? (() => false);
 
     this.#registerActionHandlers();
     this.#initializeEventSubscriptions();
@@ -524,6 +539,10 @@ export class RewardsController extends BaseController<
     this.messenger.registerActionHandler(
       'RewardsController:getUnlockedRewards',
       this.getUnlockedRewards.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:getSnapshots',
+      this.getSnapshots.bind(this),
     );
     this.messenger.registerActionHandler(
       'RewardsController:claimReward',
@@ -764,6 +783,7 @@ export class RewardsController extends BaseController<
             );
             if (subscriptionId && !successAccount) {
               successAccount = account;
+              break;
             }
           } catch {
             // Continue to next account
@@ -778,7 +798,7 @@ export class RewardsController extends BaseController<
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
-      if (errorMessage && !errorMessage?.includes('Engine does not exis')) {
+      if (errorMessage && !errorMessage?.includes('Engine does not exist')) {
         Logger.log(
           'RewardsController: Silent authentication failed:',
           error instanceof Error ? error.message : String(error),
@@ -2029,7 +2049,7 @@ export class RewardsController extends BaseController<
                 error instanceof Error ? error.message : String(error),
               );
               this.invalidateSubscriptionCache(subscriptionId);
-              await this.invalidateAccountsAndSubscriptions();
+              await this.invalidateSubscriptionAndAccounts(subscriptionId);
               throw error;
             }
           } else if (error instanceof SeasonNotFoundError) {
@@ -2056,24 +2076,52 @@ export class RewardsController extends BaseController<
     return result;
   }
 
-  async invalidateAccountsAndSubscriptions() {
+  /**
+   * Invalidate a specific subscription and its linked accounts
+   * This is a surgical approach that only affects the specified subscription,
+   * preserving other subscriptions' state.
+   * @param subscriptionId - The subscription ID to invalidate
+   */
+  async invalidateSubscriptionAndAccounts(
+    subscriptionId: string,
+  ): Promise<void> {
     this.update((state: RewardsControllerState) => {
-      if (state.activeAccount) {
+      // Remove the failing subscription
+      delete state.subscriptions[subscriptionId];
+
+      // Clear accounts linked to this subscription only
+      Object.entries(state.accounts).forEach(([caipAccount, accountState]) => {
+        if (accountState.subscriptionId === subscriptionId) {
+          state.accounts[caipAccount as CaipAccountId] = {
+            ...accountState,
+            hasOptedIn: false,
+            subscriptionId: null,
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+            lastFreshOptInStatusCheck: null,
+          };
+        }
+      });
+
+      // Reset activeAccount only if it's linked to this subscription
+      if (state.activeAccount?.subscriptionId === subscriptionId) {
         state.activeAccount = {
           ...state.activeAccount,
-          lastPerpsDiscountRateFetched: null,
-          perpsFeeDiscount: null,
           hasOptedIn: false,
           subscriptionId: null,
+          perpsFeeDiscount: null,
+          lastPerpsDiscountRateFetched: null,
           lastFreshOptInStatusCheck: null,
-          account: state.activeAccount.account, // Ensure account is always present (never undefined)
         };
       }
-      state.accounts = {};
-      state.subscriptions = {};
     });
-    await resetAllSubscriptionTokens();
-    Logger.log('RewardsController: Invalidated accounts and subscriptions');
+
+    // Remove only this subscription's token
+    await removeSubscriptionToken(subscriptionId);
+    Logger.log(
+      'RewardsController: Invalidated subscription and accounts',
+      subscriptionId,
+    );
   }
 
   /**
@@ -2908,23 +2956,9 @@ export class RewardsController extends BaseController<
       );
 
       if (result.success) {
-        const currentActiveAccount = this.state.activeAccount?.account;
-        this.resetState();
-        this.update((state: RewardsControllerState) => {
-          if (currentActiveAccount) {
-            state.activeAccount = {
-              account: currentActiveAccount,
-              hasOptedIn: false,
-              subscriptionId: null,
-              perpsFeeDiscount: null,
-              lastPerpsDiscountRateFetched: null,
-              lastFreshOptInStatusCheck: null,
-            };
-          }
-        });
-
-        // Remove subscription token from secure storage
-        await removeSubscriptionToken(subscriptionId);
+        // Invalidate caches and subscription-specific state
+        this.invalidateSubscriptionCache(subscriptionId);
+        await this.invalidateSubscriptionAndAccounts(subscriptionId);
 
         Logger.log(
           'RewardsController: Successfully opted out of rewards program',
@@ -3055,6 +3089,67 @@ export class RewardsController extends BaseController<
         this.update((state: RewardsControllerState) => {
           state.unlockedRewards[key] = {
             rewards: payload,
+            lastFetched: Date.now(),
+          };
+        });
+      },
+    });
+
+    return result;
+  }
+
+  /**
+   * Get snapshots for a season with caching
+   * @param seasonId - The season ID
+   * @param subscriptionId - The subscription ID for authentication
+   * @returns Promise<SnapshotDto[]> - The snapshots data
+   */
+  async getSnapshots(
+    seasonId: string,
+    subscriptionId: string,
+  ): Promise<SnapshotDto[]> {
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) {
+      return [];
+    }
+    if (!this.#isSnapshotsEnabled()) {
+      throw new Error('Snapshots feature is not enabled');
+    }
+    const result = await wrapWithCache<SnapshotDto[]>({
+      key: seasonId,
+      ttl: SNAPSHOTS_CACHE_THRESHOLD_MS,
+      readCache: (key) => {
+        const cachedSnapshots = this.state.snapshots[key] || undefined;
+        if (!cachedSnapshots) return;
+        return {
+          payload: cachedSnapshots.snapshots,
+          lastFetched: cachedSnapshots.lastFetched,
+        };
+      },
+      fetchFresh: async () => {
+        try {
+          Logger.log(
+            'RewardsController: Fetching fresh snapshots data via API call for seasonId',
+            seasonId,
+          );
+          const response = (await this.messenger.call(
+            'RewardsDataService:getSnapshots',
+            seasonId,
+            subscriptionId,
+          )) as SnapshotDto[];
+          return response || [];
+        } catch (error) {
+          Logger.log(
+            'RewardsController: Failed to get snapshots:',
+            error instanceof Error ? error.message : String(error),
+          );
+          throw error;
+        }
+      },
+      writeCache: (key, payload) => {
+        this.update((state: RewardsControllerState) => {
+          state.snapshots[key] = {
+            snapshots: payload,
             lastFetched: Date.now(),
           };
         });

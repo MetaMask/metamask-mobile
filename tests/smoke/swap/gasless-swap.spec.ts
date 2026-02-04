@@ -11,6 +11,7 @@ import { AnvilManager } from '../../seeder/anvil-manager';
 import QuoteView from '../../../e2e/pages/swaps/QuoteView';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 import { GASLESS_SWAP_QUOTES_ETH_MUSD } from '../../helpers/swap/constants';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 
 describe(SmokeTrade('Gasless Swap - '), (): void => {
   const chainId = '0x1';
@@ -40,9 +41,6 @@ describe(SmokeTrade('Gasless Swap - '), (): void => {
               },
             })
             .withMetaMetricsOptIn()
-            .withPreferencesController({
-              smartTransactionsOptInStatus: true,
-            })
             .build();
         },
         localNodeOptions: [
@@ -60,6 +58,19 @@ describe(SmokeTrade('Gasless Swap - '), (): void => {
             url: /getQuote.*destTokenAddress=0xacA92E438df0B2401fF60dA7E4337B687a2435DA/i,
             response: GASLESS_SWAP_QUOTES_ETH_MUSD,
             responseCode: 200,
+          });
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            smartTransactionsNetworks: {
+              '0x1': {
+                mobileActiveIOS: true,
+                sentinelUrl:
+                  'https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io',
+                expectedDeadline: 45,
+                maxDeadline: 160,
+                mobileActive: true,
+                mobileActiveAndroid: true,
+              },
+            },
           });
         },
         restartDevice: true,

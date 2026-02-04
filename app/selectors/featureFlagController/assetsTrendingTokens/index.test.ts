@@ -12,6 +12,10 @@ jest.mock('../../../core/Engine', () => ({
   init: () => mockedEngine.init(),
 }));
 
+jest.mock('../../../util/test/utils', () => ({
+  isE2E: true,
+}));
+
 beforeEach(() => {
   jest.clearAllMocks();
 });
