@@ -441,6 +441,12 @@ export class PredictController extends BaseController<
       TransactionType.predictClaim,
     ];
 
+    // Check if the main transaction type is a predict type
+    if (predictTypes.includes(transactionMeta.type as TransactionType)) {
+      return transactionMeta.type as TransactionType;
+    }
+
+    // Check nested transactions for predict types (used by deposit batches)
     const nestedType = transactionMeta?.nestedTransactions?.find((tx) =>
       predictTypes.includes(tx.type as TransactionType),
     )?.type as TransactionType | undefined;
