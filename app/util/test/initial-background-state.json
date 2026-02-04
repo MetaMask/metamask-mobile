@@ -49,8 +49,7 @@
     "allDetectedTokens": {}
   },
   "TokenListController": {
-    "tokensChainsCache": {},
-    "preventPollingOnNetworkRestart": false
+    "tokensChainsCache": {}
   },
   "CurrencyRateController": {
     "currentCurrency": "usd",
@@ -734,7 +733,9 @@
     "accounts": {},
     "activeAccount": null,
     "activeBoosts": {},
+    "pointsEstimateHistory": [],
     "pointsEvents": {},
+    "snapshots": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
     "seasons": {},
@@ -752,11 +753,13 @@
     "accountMeta": {}
   },
   "RampsController": {
+    "countries": [],
     "paymentMethods": [],
     "userRegion": null,
-    "preferredProvider": null,
+    "selectedProvider": null,
     "providers": [],
     "selectedPaymentMethod": null,
+    "selectedToken": null,
     "tokens": null,
     "requests": {}
   }
