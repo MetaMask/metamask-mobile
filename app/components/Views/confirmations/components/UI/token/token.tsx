@@ -14,6 +14,7 @@ import { KeyringAccountType } from '@metamask/keyring-api';
 
 import I18n from '../../../../../../../locales/i18n';
 import NetworkAssetLogo from '../../../../../../components/UI/NetworkAssetLogo';
+import { PerpsBalanceIcon } from '../../../../../../components/UI/Perps/components/PerpsBalanceIcon';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import BadgeWrapper from '../../../../../../component-library/components/Badges/BadgeWrapper';
 import Badge from '../../../../../../component-library/components/Badges/Badge/Badge';
@@ -66,7 +67,11 @@ export function Token({ asset, onPress }: TokenProps) {
               ) : undefined
             }
           >
-            {asset.isNative ? (
+            {asset.description === 'perps-balance' ? (
+              <Box twClassName="w-10 h-10 items-center justify-center rounded-full bg-default overflow-hidden">
+                <PerpsBalanceIcon size={40} />
+              </Box>
+            ) : asset.isNative ? (
               <NetworkAssetLogo
                 big={false}
                 biggest={false}
