@@ -45,6 +45,7 @@ export { useWithdrawValidation } from './useWithdrawValidation';
 export { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
 export {
   useIsPerpsBalanceSelected,
+  PERPS_BALANCE_CHAIN_ID,
   PERPS_BALANCE_PLACEHOLDER_ADDRESS,
 } from './useIsPerpsBalanceSelected';
 

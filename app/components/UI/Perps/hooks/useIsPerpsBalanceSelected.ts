@@ -8,8 +8,11 @@ import { useTransactionPayToken } from '../../../Views/confirmations/hooks/pay/u
 export const PERPS_BALANCE_PLACEHOLDER_ADDRESS =
   '0x0000000000000000000000000000000000000000' as Hex;
 
+/** Chain id used for the "Perps balance" payment option. */
+export const PERPS_BALANCE_CHAIN_ID = CHAIN_IDS.MAINNET as Hex;
+
 /**
- * Returns true when the current transaction pay token is the synthetic "Perps balance" option
+ * Returns whether the current transaction pay token is the synthetic "Perps balance" option
  * (placeholder address + MAINNET chain).
  */
 export function useIsPerpsBalanceSelected(): boolean {

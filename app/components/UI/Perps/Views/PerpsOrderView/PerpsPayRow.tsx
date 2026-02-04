@@ -2,7 +2,6 @@ import {
   CHAIN_IDS,
   TransactionType,
 } from '@metamask/transaction-controller';
-import type { Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
@@ -42,6 +41,7 @@ import { useTokenWithBalance } from '../../../../Views/confirmations/hooks/token
 import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { hasTransactionType } from '../../../../Views/confirmations/utils/transaction';
 import {
+  PERPS_BALANCE_CHAIN_ID,
   PERPS_BALANCE_PLACEHOLDER_ADDRESS,
   useIsPerpsBalanceSelected,
 } from '../../hooks/useIsPerpsBalanceSelected';
@@ -119,7 +119,7 @@ export const PerpsPayRow = ({
     hasSetDefaultPerpsBalanceRef.current = true;
     setPayToken({
       address: PERPS_BALANCE_PLACEHOLDER_ADDRESS,
-      chainId: CHAIN_IDS.MAINNET as Hex,
+      chainId: PERPS_BALANCE_CHAIN_ID,
     });
   }, [transactionMeta, setPayToken]);
 
@@ -150,8 +150,8 @@ export const PerpsPayRow = ({
   const displayToken = matchesPerpsBalance
     ? {
       address: PERPS_BALANCE_PLACEHOLDER_ADDRESS,
-      tokenLookupChainId: CHAIN_IDS.MAINNET as Hex,
-      networkBadgeChainId: CHAIN_IDS.MAINNET as Hex,
+      tokenLookupChainId: PERPS_BALANCE_CHAIN_ID,
+      networkBadgeChainId: PERPS_BALANCE_CHAIN_ID,
       symbol: strings('perps.adjust_margin.perps_balance'),
     }
     : {
