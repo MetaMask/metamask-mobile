@@ -20,11 +20,8 @@ export interface UsePerpsActionsResult {
  * Provides navigation handlers for opening long/short perps positions
  * from the token details screen.
  *
- * Both Long and Short buttons navigate to Market Details page where
- * users can complete the full trading flow within the Perps stack.
- *
- * @param params - Token symbol and perps feature flag
- * @returns Object with hasPerpsMarket, handleLong, handleShort
+ * @param params - Token symbol
+ * @returns Object with hasPerpsMarket, isLoading, handlePerpsAction
  */
 export const usePerpsActions = ({
   symbol,
@@ -37,13 +34,13 @@ export const usePerpsActions = ({
   const navigateToMarketDetails = useCallback(() => {
     if (!marketData) return;
 
-    navigation.navigate(Routes.PERPS.ROOT as never, {
+    navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_DETAILS,
       params: {
         market: marketData,
         source: PerpsEventValues.SOURCE.ASSET_DETAIL_SCREEN,
       },
-    } as never);
+    });
   }, [navigation, marketData]);
 
   return useMemo(
