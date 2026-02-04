@@ -2,9 +2,11 @@
  * Account actions navigation parameters
  */
 
+import type { InternalAccount } from '@metamask/keyring-internal-api';
+
 /** Account actions parameters */
 export interface AccountActionsParams {
-  selectedAddress?: string;
+  selectedAccount: InternalAccount;
 }
 
 /** Account permissions parameters */

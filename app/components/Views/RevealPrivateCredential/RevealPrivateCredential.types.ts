@@ -2,11 +2,13 @@
  * Reveal private credential navigation parameters
  */
 
+import type { InternalAccount } from '@metamask/keyring-internal-api';
+
 /** Reveal private credential parameters */
 export interface RevealPrivateCredentialParams {
-  credentialName?: 'seed_phrase' | 'private_key';
   shouldUpdateNav?: boolean;
-  selectedAddress?: string;
+  selectedAccount?: InternalAccount;
+  keyringId?: string;
 }
 
 /** Reveal SRP credential parameters */
