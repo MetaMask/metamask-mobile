@@ -424,8 +424,8 @@ const BridgeView = () => {
   ]);
   const isRWATokenSelected = useMemo(
     () =>
-      isStockToken(sourceToken as BridgeToken) ||
-      isStockToken(destToken as BridgeToken),
+      (sourceToken && isStockToken(sourceToken as BridgeToken)) ||
+      (destToken && isStockToken(destToken as BridgeToken)),
     [isStockToken, sourceToken, destToken],
   );
   const genericErrorMessage = isRWATokenSelected
