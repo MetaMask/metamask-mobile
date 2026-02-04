@@ -53,6 +53,12 @@ Performance tests measure app responsiveness and render times. Select performanc
 - App startup and initialization (Engine, background services, navigation)
 - Changes to the appwright/ directory (performance test infrastructure)`;
 
+  const trendingWalletPlatformSection = `TRENDING AND WALLET PLATFORM (IMPORTANT):
+Trending is the connecting point between all discovery subsections: Perps, Tokens, Predictions, and Sites. The Trending tab (SmokeWalletPlatform) embeds and navigates to these sections. Therefore:
+- When changes touch Perps views (e.g. app/components/UI/Perps/, PerpsHomeView, PerpsMarketListView, PerpsWithdrawView, Perps headers or shared components), also select SmokeWalletPlatform, because Perps is a section inside the Trending tab and header/UI changes affect the Trending experience.
+- When changes touch Predictions or Tokens UI that is also shown inside Trending, also select SmokeWalletPlatform.
+- When you select SmokePerps for Perps-related changes, also select SmokeWalletPlatform.`;
+
   const prompt = [
     role,
     goal,
@@ -64,6 +70,7 @@ Performance tests measure app responsiveness and render times. Select performanc
     buildRiskAssessmentSection(),
     guidanceSection,
     performanceGuidanceSection,
+    trendingWalletPlatformSection,
   ]
     .filter((section) => section) // Remove empty sections
     .join('\n\n');
