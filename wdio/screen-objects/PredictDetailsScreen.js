@@ -8,6 +8,8 @@ import {
 } from '../../app/components/UI/Predict/Predict.testIds';
 import { expect as appwrightExpect } from 'appwright';
 
+const TAB_BAR_TAB_ID_PREFIX = 'predict-market-details-tab-bar-tab';
+
 class PredictDetailsScreen {
 
   get device() {
@@ -37,25 +39,35 @@ class PredictDetailsScreen {
   get aboutTab() {
     if (!this._device) {
       return Selectors.getXpathElementByText(PredictMarketDetailsSelectorsText.ABOUT_TAB_TEXT);
-    } else {
-      return AppwrightSelectors.getElementByText(this._device, PredictMarketDetailsSelectorsText.ABOUT_TAB_TEXT);
     }
+    // Tab bar tab ID varies (tab-0, tab-1, tab-2); find by ID prefix + text
+    const text = PredictMarketDetailsSelectorsText.ABOUT_TAB_TEXT;
+    const xpath = AppwrightSelectors.isAndroid(this._device)
+      ? `//*[contains(@resource-id,'${TAB_BAR_TAB_ID_PREFIX}') and (@text='${text}' or @content-desc='${text}')]`
+      : `//*[contains(@name,'${TAB_BAR_TAB_ID_PREFIX}') and (@label='${text}' or contains(@label,'${text}'))]`;
+    return AppwrightSelectors.getElementByXpath(this._device, xpath);
   }
 
   get positionsTab() {
     if (!this._device) {
       return Selectors.getXpathElementByText(PredictMarketDetailsSelectorsText.POSITIONS_TAB_TEXT);
-    } else {
-      return AppwrightSelectors.getElementByText(this._device, PredictMarketDetailsSelectorsText.POSITIONS_TAB_TEXT);
     }
+    const text = PredictMarketDetailsSelectorsText.POSITIONS_TAB_TEXT;
+    const xpath = AppwrightSelectors.isAndroid(this._device)
+      ? `//*[contains(@resource-id,'${TAB_BAR_TAB_ID_PREFIX}') and (@text='${text}' or @content-desc='${text}')]`
+      : `//*[contains(@name,'${TAB_BAR_TAB_ID_PREFIX}') and (@label='${text}' or contains(@label,'${text}'))]`;
+    return AppwrightSelectors.getElementByXpath(this._device, xpath);
   }
 
   get outcomesTab() {
     if (!this._device) {
       return Selectors.getXpathElementByText(PredictMarketDetailsSelectorsText.OUTCOMES_TAB_TEXT);
-    } else {
-      return AppwrightSelectors.getElementByText(this._device, PredictMarketDetailsSelectorsText.OUTCOMES_TAB_TEXT);
     }
+    const text = PredictMarketDetailsSelectorsText.OUTCOMES_TAB_TEXT;
+    const xpath = AppwrightSelectors.isAndroid(this._device)
+      ? `//*[contains(@resource-id,'${TAB_BAR_TAB_ID_PREFIX}') and (@text='${text}' or @content-desc='${text}')]`
+      : `//*[contains(@name,'${TAB_BAR_TAB_ID_PREFIX}') and (@label='${text}' or contains(@label,'${text}'))]`;
+    return AppwrightSelectors.getElementByXpath(this._device, xpath);
   }
 
   get aboutTabContent() {
@@ -108,6 +120,29 @@ class PredictDetailsScreen {
       await Gestures.waitAndTap(positionsTab);
     } else {
       await AppwrightGestures.tap(await this.positionsTab);
+    }
+  }
+
+  /**
+   * Returns true if the Outcomes tab is visible (market has multiple outcomes).
+   * Yes/No-only markets do not show the Outcomes tab.
+   */
+  async hasOutcomesTab() {
+    if (!this._device) {
+      try {
+        const outcomesTab = await this.outcomesTab;
+        await outcomesTab.waitForDisplayed({ timeout: 2000 });
+        return true;
+      } catch {
+        return false;
+      }
+    }
+    try {
+      const outcomesTab = await this.outcomesTab;
+      await appwrightExpect(outcomesTab).toBeVisible({ timeout: 2000 });
+      return true;
+    } catch {
+      return false;
     }
   }
 

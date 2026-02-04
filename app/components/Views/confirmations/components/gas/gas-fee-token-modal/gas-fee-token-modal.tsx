@@ -7,11 +7,7 @@ import { updateSelectedGasFeeToken } from '../../../../../../util/transaction-co
 import BottomModal from '../../UI/bottom-modal';
 import { View } from 'react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
-import Text, {
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
-import { IconName } from '../../../../../../component-library/components/Icons/Icon';
-import ButtonIcon from '../../../../../../component-library/components/Buttons/ButtonIcon';
+import HeaderCenter from '../../../../../../component-library/components-temp/HeaderCenter';
 import styleSheet from './gas-fee-token-modal.styles';
 import { GasFeeTokenListItem } from '../gas-fee-token-list-item';
 import { Hex } from '@metamask/utils';
@@ -60,18 +56,11 @@ export function GasFeeTokenModal({ onClose }: { onClose?: () => void }) {
       }
     >
       <View style={styles.modalContainer}>
-        <View style={styles.container}>
-          <View style={styles.backButton}>
-            <ButtonIcon
-              iconName={IconName.ArrowLeft}
-              onPress={onClose}
-              testID="back-button"
-            />
-          </View>
-          <Text variant={TextVariant.HeadingMD} style={styles.title}>
-            {strings('gas_fee_token_modal.title')}
-          </Text>
-        </View>
+        <HeaderCenter
+          title={strings('gas_fee_token_modal.title')}
+          onClose={onClose}
+          closeButtonProps={{ testID: 'close-button' }}
+        />
         <View style={styles.contentContainer}>
           {gasFeeTokenAddresses.map((tokenAddress: Hex) => (
             <GasFeeTokenListItem

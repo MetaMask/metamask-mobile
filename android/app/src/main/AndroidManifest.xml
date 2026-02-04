@@ -203,5 +203,12 @@
 				android:resource="@xml/filepaths"
 			/>
 		</provider>
+
+		<!-- Disable Notifee's BlockStateBroadcastReceiver to prevent crash during cold start -->
+		<!-- This receiver tries to access React Native before it's initialized -->
+		<receiver
+			android:name="app.notifee.core.BlockStateBroadcastReceiver"
+			android:enabled="false"
+			tools:node="remove" />
 	</application>
 </manifest>

@@ -20,7 +20,7 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 import { capitalize } from '../../../../util/general';
 import { useAppThemeFromContext } from '../../../../util/theme';
-import { PerpsEventValues } from '../constants/eventNames';
+import { PERPS_EVENT_VALUE } from '../constants/eventNames';
 import { OrderDirection } from '../types/perps-types';
 import { formatPerpsFiat } from '../utils/formatUtils';
 import { handlePerpsError } from '../utils/translatePerpsError';
@@ -46,6 +46,9 @@ export interface PerpsToastOptionsConfig {
         transactionId: string,
       ) => PerpsToastOptions;
       error: PerpsToastOptions;
+    };
+    oneClickTrade: {
+      txCreationFailed: PerpsToastOptions;
     };
     withdrawal: {
       withdrawalInProgress: PerpsToastOptions;
@@ -295,7 +298,7 @@ const usePerpsToasts = (): {
         navigation.navigate(Routes.PERPS.PNL_HERO_CARD, {
           position,
           marketPrice,
-          source: PerpsEventValues.SOURCE.CLOSE_TOAST,
+          source: PERPS_EVENT_VALUE.SOURCE.CLOSE_TOAST,
         });
       },
     }),
@@ -396,6 +399,15 @@ const usePerpsToasts = (): {
             labelOptions: getPerpsToastLabels(
               strings('perps.deposit.deposit_failed'),
               strings('perps.deposit.error_generic'),
+            ),
+          },
+        },
+        oneClickTrade: {
+          txCreationFailed: {
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.one_click_trade.tx_creation_failed_title'),
+              strings('perps.one_click_trade.tx_creation_failed_description'),
             ),
           },
         },

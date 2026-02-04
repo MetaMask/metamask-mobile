@@ -1,32 +1,1018 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`GeneralSettings should render correctly 1`] = `
-<ContextProvider
-  value={
+<RNCSafeAreaView
+  edges={
     {
-      "getServerState": undefined,
-      "noopCheck": "once",
-      "stabilityCheck": "once",
-      "store": {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "off",
+    }
+  }
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
     }
   }
 >
-  <Component />
-</ContextProvider>
+  <View
+    style={
+      [
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "gap": 16,
+          "height": 56,
+          "paddingLeft": 8,
+          "paddingRight": 8,
+        },
+        {
+          "marginTop": 0,
+        },
+        undefined,
+      ]
+    }
+    testID="header"
+  >
+    <View>
+      <View
+        onLayout={[Function]}
+      >
+        <View
+          style={
+            [
+              {
+                "transform": [
+                  {
+                    "scale": 1,
+                  },
+                ],
+              },
+              {
+                "alignItems": "center",
+                "justifyContent": "center",
+              },
+            ]
+          }
+        >
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "transparent",
+                  "borderRadius": 2,
+                  "height": 32,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "width": 32,
+                },
+                undefined,
+              ]
+            }
+            testID="button-icon"
+          >
+            <SvgMock
+              fill="currentColor"
+              name="ArrowLeft"
+              style={
+                [
+                  {
+                    "color": "#121314",
+                    "height": 20,
+                    "width": 20,
+                  },
+                  undefined,
+                ]
+              }
+            />
+          </View>
+        </View>
+      </View>
+    </View>
+    <View
+      style={
+        [
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "flexBasis": "0%",
+            "flexGrow": 1,
+            "flexShrink": 1,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        style={
+          [
+            {
+              "alignItems": "center",
+              "display": "flex",
+            },
+            undefined,
+          ]
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            [
+              {
+                "color": "#121314",
+                "fontFamily": "Geist-Bold",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
+          }
+        >
+          General
+        </Text>
+      </View>
+    </View>
+    <View>
+      <View
+        onLayout={[Function]}
+      />
+    </View>
+  </View>
+  <RCTScrollView
+    style={
+      {
+        "flex": 1,
+        "padding": 16,
+      }
+    }
+  >
+    <View>
+      <View
+        style={
+          {
+            "paddingBottom": 100,
+          }
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "marginTop": 30,
+              },
+              {
+                "marginTop": 0,
+              },
+            ]
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 18,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Currency conversion
+          </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "marginTop": 8,
+              }
+            }
+          >
+            Display fiat values in using a specific currency throughout the application.
+          </Text>
+          <View
+            style={
+              {
+                "marginTop": 16,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 5,
+                  "borderWidth": 2,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                >
+                  <TouchableOpacity
+                    onPress={[Function]}
+                  >
+                    <View
+                      style={
+                        {
+                          "flexDirection": "row",
+                        }
+                      }
+                    >
+                      <Text
+                        numberOfLines={1}
+                        style={
+                          {
+                            "alignSelf": "flex-start",
+                            "color": "#121314",
+                            "flex": 1,
+                            "fontFamily": "Geist-Regular",
+                            "fontSize": 14,
+                            "paddingBottom": 10,
+                            "paddingHorizontal": 15,
+                            "paddingTop": 10,
+                          }
+                        }
+                      >
+                        USD - United States Dollar
+                      </Text>
+                      <Text
+                        allowFontScaling={false}
+                        selectable={false}
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "fontSize": 24,
+                            },
+                            {
+                              "height": 25,
+                              "justifyContent": "flex-end",
+                              "marginRight": 10,
+                              "marginTop": 7,
+                              "textAlign": "right",
+                            },
+                            {
+                              "fontFamily": "Material Icons",
+                              "fontStyle": "normal",
+                              "fontWeight": "normal",
+                            },
+                            {},
+                          ]
+                        }
+                      >
+                        
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                  <View />
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "marginTop": 30,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 18,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Primary currency
+          </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "marginTop": 8,
+              }
+            }
+          >
+            Select Native to prioritize displaying values in the native currency of the chain (e.g. ETH). Select Fiat to prioritize displaying values in your selected fiat currency.
+          </Text>
+          <View
+            style={
+              {
+                "marginTop": 16,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flex": 1,
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  disabled={false}
+                  onPress={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "height": 24,
+                      "opacity": 1,
+                    }
+                  }
+                >
+                  <View
+                    accessibilityRole="radio"
+                    style={
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "#b7bbc8",
+                        "borderRadius": 99,
+                        "borderWidth": 2,
+                        "height": 20,
+                        "justifyContent": "center",
+                        "width": 20,
+                      }
+                    }
+                  />
+                  <View
+                    style={
+                      {
+                        "marginLeft": 12,
+                      }
+                    }
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#121314",
+                          "fontFamily": "Geist-Regular",
+                          "fontSize": 16,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        }
+                      }
+                    >
+                      Native
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  disabled={false}
+                  onPress={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "height": 24,
+                      "opacity": 1,
+                    }
+                  }
+                >
+                  <View
+                    accessibilityRole="radio"
+                    style={
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "#b7bbc8",
+                        "borderRadius": 99,
+                        "borderWidth": 2,
+                        "height": 20,
+                        "justifyContent": "center",
+                        "width": 20,
+                      }
+                    }
+                  />
+                  <View
+                    style={
+                      {
+                        "marginLeft": 12,
+                      }
+                    }
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#121314",
+                          "fontFamily": "Geist-Regular",
+                          "fontSize": 16,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        }
+                      }
+                    >
+                      Fiat
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "marginTop": 30,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 18,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Current language
+          </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "marginTop": 8,
+              }
+            }
+          >
+            Translate the application to a different supported language.
+          </Text>
+          <View
+            style={
+              {
+                "marginTop": 16,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 5,
+                  "borderWidth": 2,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                >
+                  <TouchableOpacity
+                    onPress={[Function]}
+                  >
+                    <View
+                      style={
+                        {
+                          "flexDirection": "row",
+                        }
+                      }
+                    >
+                      <Text
+                        numberOfLines={1}
+                        style={
+                          {
+                            "alignSelf": "flex-start",
+                            "color": "#121314",
+                            "flex": 1,
+                            "fontFamily": "Geist-Regular",
+                            "fontSize": 14,
+                            "paddingBottom": 10,
+                            "paddingHorizontal": 15,
+                            "paddingTop": 10,
+                          }
+                        }
+                      >
+                        English
+                      </Text>
+                      <Text
+                        allowFontScaling={false}
+                        selectable={false}
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "fontSize": 24,
+                            },
+                            {
+                              "height": 25,
+                              "justifyContent": "flex-end",
+                              "marginRight": 10,
+                              "marginTop": 7,
+                              "textAlign": "right",
+                            },
+                            {
+                              "fontFamily": "Material Icons",
+                              "fontStyle": "normal",
+                              "fontWeight": "normal",
+                            },
+                            {},
+                          ]
+                        }
+                      >
+                        
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                  <View />
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "marginTop": 30,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 18,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Search engine
+          </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "marginTop": 8,
+              }
+            }
+          >
+            Change the default search engine used when entering search terms in the URL bar.
+          </Text>
+          <View
+            style={
+              {
+                "marginTop": 16,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 5,
+                  "borderWidth": 2,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                >
+                  <TouchableOpacity
+                    onPress={[Function]}
+                  >
+                    <View
+                      style={
+                        {
+                          "flexDirection": "row",
+                        }
+                      }
+                    >
+                      <Text
+                        numberOfLines={1}
+                        style={
+                          {
+                            "alignSelf": "flex-start",
+                            "color": "#121314",
+                            "flex": 1,
+                            "fontFamily": "Geist-Regular",
+                            "fontSize": 14,
+                            "paddingBottom": 10,
+                            "paddingHorizontal": 15,
+                            "paddingTop": 10,
+                          }
+                        }
+                      >
+                        Google
+                      </Text>
+                      <Text
+                        allowFontScaling={false}
+                        selectable={false}
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "fontSize": 24,
+                            },
+                            {
+                              "height": 25,
+                              "justifyContent": "flex-end",
+                              "marginRight": 10,
+                              "marginTop": 7,
+                              "textAlign": "right",
+                            },
+                            {
+                              "fontFamily": "Material Icons",
+                              "fontStyle": "normal",
+                              "fontWeight": "normal",
+                            },
+                            {},
+                          ]
+                        }
+                      >
+                        
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                  <View />
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "marginTop": 30,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "flex": 1,
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 18,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Hide tokens without balance
+            </Text>
+            <View
+              style={
+                {
+                  "marginLeft": 16,
+                }
+              }
+            >
+              <RCTSwitch
+                accessibilityRole="switch"
+                onChange={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                onTintColor="#4459ff"
+                style={
+                  [
+                    {
+                      "height": 31,
+                      "width": 51,
+                    },
+                    [
+                      {
+                        "alignSelf": "flex-start",
+                      },
+                      {
+                        "backgroundColor": "#b7bbc866",
+                        "borderRadius": 16,
+                      },
+                    ],
+                  ]
+                }
+                thumbTintColor="#ffffff"
+                tintColor="#b7bbc866"
+                value={false}
+              />
+            </View>
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "marginTop": 8,
+              }
+            }
+          >
+            Prevents tokens with no balance from displaying in your token listing.
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "marginTop": 30,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 18,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Account icon
+          </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "marginTop": 8,
+              }
+            }
+          >
+            Choose from three different styles of unique icons that can help you identify accounts at a glance.
+          </Text>
+          <View
+            style={
+              {
+                "marginTop": 16,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "column",
+                    "width": "33%",
+                  }
+                }
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "borderRadius": 12,
+                        "borderWidth": 2,
+                        "height": 44,
+                        "justifyContent": "center",
+                        "width": 44,
+                      },
+                      {
+                        "borderColor": "#4459ff",
+                      },
+                    ]
+                  }
+                />
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                      "marginTop": 12,
+                    }
+                  }
+                >
+                  Polycons
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "column",
+                    "width": "33%",
+                  }
+                }
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "borderRadius": 12,
+                        "borderWidth": 2,
+                        "height": 44,
+                        "justifyContent": "center",
+                        "width": 44,
+                      },
+                      {
+                        "borderColor": "transparent",
+                      },
+                    ]
+                  }
+                />
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                      "marginTop": 12,
+                    }
+                  }
+                >
+                  Jazzicons
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "column",
+                    "width": "33%",
+                  }
+                }
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "borderRadius": 12,
+                        "borderWidth": 2,
+                        "height": 44,
+                        "justifyContent": "center",
+                        "width": 44,
+                      },
+                      {
+                        "borderColor": "transparent",
+                      },
+                    ]
+                  }
+                />
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                      "marginTop": 12,
+                    }
+                  }
+                >
+                  Blockies
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+  </RCTScrollView>
+</RNCSafeAreaView>
 `;

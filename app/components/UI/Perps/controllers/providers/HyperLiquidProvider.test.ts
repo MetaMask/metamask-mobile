@@ -1,6 +1,9 @@
 import type { CaipAssetId, Hex } from '@metamask/utils';
 import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
-import { createMockInfrastructure } from '../../__mocks__/serviceMocks';
+import {
+  createMockInfrastructure,
+  createMockMessenger,
+} from '../../__mocks__/serviceMocks';
 import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscriptionService';
 import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
 import { REFERRAL_CONFIG } from '../../constants/hyperLiquidConfig';
@@ -241,9 +244,10 @@ const createMockInfoClient = (overrides: Record<string, unknown> = {}) => ({
   ]),
   spotMeta: jest.fn().mockResolvedValue({
     tokens: [
-      { name: 'USDC', tokenId: '0xdef456' },
-      { name: 'USDT', tokenId: '0x789abc' },
+      { name: 'USDC', tokenId: '0xdef456', index: 0 },
+      { name: 'USDT', tokenId: '0x789abc', index: 1 },
     ],
+    universe: [],
   }),
   ...overrides,
 });
@@ -285,6 +289,7 @@ const createMockExchangeClient = (overrides: Record<string, unknown> = {}) => ({
 // Create shared mock platform dependencies for provider tests
 const mockPlatformDependencies: PerpsPlatformDependencies =
   createMockInfrastructure();
+const mockMessenger = createMockMessenger();
 
 /**
  * Helper to create HyperLiquidProvider with mock platform dependencies
@@ -301,6 +306,7 @@ const createTestProvider = (
   new HyperLiquidProvider({
     ...options,
     platformDependencies: mockPlatformDependencies,
+    messenger: mockMessenger,
   });
 
 describe('HyperLiquidProvider', () => {
@@ -6397,7 +6403,8 @@ describe('HyperLiquidProvider', () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
           spotMeta: jest.fn().mockResolvedValue({
-            tokens: [{ name: 'USDC', tokenId: '0xabc123' }],
+            tokens: [{ name: 'USDC', tokenId: '0xabc123', index: 0 }],
+            universe: [],
           }),
         }),
       );
@@ -6487,7 +6494,8 @@ describe('HyperLiquidProvider', () => {
     it('calls getUsdcTokenId to get correct token', async () => {
       // Arrange
       const mockSpotMeta = jest.fn().mockResolvedValue({
-        tokens: [{ name: 'USDC', tokenId: '0xspecific' }],
+        tokens: [{ name: 'USDC', tokenId: '0xspecific', index: 0 }],
+        universe: [],
       });
       mockClientService.getInfoClient = jest
         .fn()
@@ -6597,9 +6605,10 @@ describe('HyperLiquidProvider', () => {
         // Arrange
         const mockSpotMeta = {
           tokens: [
-            { name: 'USDC', tokenId: '0xdef456' },
-            { name: 'USDT', tokenId: '0x789abc' },
+            { name: 'USDC', tokenId: '0xdef456', index: 0 },
+            { name: 'USDT', tokenId: '0x789abc', index: 1 },
           ],
+          universe: [],
         };
         mockClientService.getInfoClient = jest.fn().mockReturnValue(
           createMockInfoClient({
@@ -6619,7 +6628,8 @@ describe('HyperLiquidProvider', () => {
       it('throws error when USDC token not found in metadata', async () => {
         // Arrange
         const mockSpotMeta = {
-          tokens: [{ name: 'USDT', tokenId: '0x789abc' }],
+          tokens: [{ name: 'USDT', tokenId: '0x789abc', index: 0 }],
+          universe: [],
         };
         mockClientService.getInfoClient = jest.fn().mockReturnValue(
           createMockInfoClient({

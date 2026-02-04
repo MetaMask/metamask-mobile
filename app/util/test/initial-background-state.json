@@ -49,8 +49,7 @@
     "allDetectedTokens": {}
   },
   "TokenListController": {
-    "tokensChainsCache": {},
-    "preventPollingOnNetworkRestart": false
+    "tokensChainsCache": {}
   },
   "CurrencyRateController": {
     "currentCurrency": "usd",
@@ -341,10 +340,6 @@
   },
   "TokenRatesController": {
     "marketData": {}
-  },
-  "TokenSearchDiscoveryController": {
-    "lastSearchTimestamp": null,
-    "recentSearches": []
   },
   "TokenSearchDiscoveryDataController": {
     "tokenDisplayData": []
@@ -738,7 +733,9 @@
     "accounts": {},
     "activeAccount": null,
     "activeBoosts": {},
+    "pointsEstimateHistory": [],
     "pointsEvents": {},
+    "snapshots": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
     "seasons": {},
@@ -756,12 +753,37 @@
     "accountMeta": {}
   },
   "RampsController": {
-    "paymentMethods": [],
     "userRegion": null,
-    "preferredProvider": null,
-    "providers": [],
-    "selectedPaymentMethod": null,
-    "tokens": null,
+    "countries": {
+      "data": [],
+      "selected": null,
+      "isLoading": false,
+      "error": null
+    },
+    "providers": {
+      "data": [],
+      "selected": null,
+      "isLoading": false,
+      "error": null
+    },
+    "tokens": {
+      "data": null,
+      "selected": null,
+      "isLoading": false,
+      "error": null
+    },
+    "paymentMethods": {
+      "data": [],
+      "selected": null,
+      "isLoading": false,
+      "error": null
+    },
+    "quotes": {
+      "data": null,
+      "selected": null,
+      "isLoading": false,
+      "error": null
+    },
     "requests": {}
   }
 }

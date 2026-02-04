@@ -257,8 +257,12 @@ const BridgeView = () => {
   const isError = isNoQuotesAvailable || quoteFetchError;
 
   // Primary condition for keypad visibility - when input is focused or we don't have valid inputs
+  // Also hide the keypad when a new quote is loading and input field is not focused like after
+  // user changing the slippage value.
   const shouldDisplayKeypad =
-    isInputFocused || !hasValidBridgeInputs || (!activeQuote && !isError);
+    isInputFocused ||
+    !hasValidBridgeInputs ||
+    (!activeQuote && !isError && !isLoading);
   // Hide quote whenever the keypad is displayed
   const shouldDisplayQuoteDetails = activeQuote && !shouldDisplayKeypad;
 
@@ -600,6 +604,7 @@ const BridgeView = () => {
                 token={sourceToken}
                 tokenBalance={latestSourceBalance}
                 onMaxPress={handleSourceMaxPress}
+                isQuoteSponsored={isQuoteSponsored}
               />
             ) : null}
           </Box>
