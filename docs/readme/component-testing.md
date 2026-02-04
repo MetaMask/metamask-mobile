@@ -93,7 +93,7 @@ Component tests sit between unit tests and E2E tests in the testing pyramid. Use
 | Testing a screen with different state       | ❌   | ✅        | ❌  |
 | Testing button click behavior on one screen | ❌   | ✅        | ❌  |
 | Testing form validation display             | ❌   | ✅        | ❌  |
-| Testing multi-screen flow                   | ❌   | ❌        | ✅  |
+| Testing multi-screen flow                   | ❌   | ✅        | ✅  |
 | Testing native features (biometrics, etc.)  | ❌   | ❌        | ✅  |
 | Testing dApp connection                     | ❌   | ❌        | ✅  |
 | Fast feedback in CI                         | ✅   | ✅        | ❌  |
