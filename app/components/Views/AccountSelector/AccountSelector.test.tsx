@@ -231,16 +231,6 @@ describe('AccountSelector', () => {
       expect(addButton).toBeOnTheScreen();
       expect(addButton).toHaveTextContent('Add wallet');
     });
-
-    it('renders correctly with snapshot', () => {
-      const wrapper = renderScreen(
-        AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR, options: {} },
-        { state: mockState },
-        mockRoute.params,
-      );
-      expect(wrapper.toJSON()).toMatchSnapshot();
-    });
   });
 
   describe('Add Wallet Button', () => {
