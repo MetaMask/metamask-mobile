@@ -9552,6 +9552,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/storage-service@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@metamask/storage-service@npm:1.0.0"
+  dependencies:
+    "@metamask/messenger": "npm:^0.3.0"
+    "@metamask/utils": "npm:^11.9.0"
+  checksum: 10/506b681f9f678102f8dd700d3c0531a35894d2a810431bdbcaaf1089d6dcfdb869ee3118b0375012498ba20e4fe8d2682d2695082268bb1dab3b774c9044d329
+  languageName: node
+  linkType: hard
+
 "@metamask/superstruct@npm:^3.0.0, @metamask/superstruct@npm:^3.1.0, @metamask/superstruct@npm:^3.2.1":
   version: 3.2.1
   resolution: "@metamask/superstruct@npm:3.2.1"
@@ -34755,7 +34765,7 @@ __metadata:
     "@metamask/solana-wallet-snap": "npm:^2.6.1"
     "@metamask/solana-wallet-standard": "npm:^0.6.0"
     "@metamask/stake-sdk": "npm:^3.4.0"
-    "@metamask/storage-service": "npm:^0.0.1"
+    "@metamask/storage-service": "npm:^1.0.0"
     "@metamask/swappable-obj-proxy": "npm:^2.1.0"
     "@metamask/swaps-controller": "npm:^15.0.0"
     "@metamask/test-dapp": "npm:9.5.0"

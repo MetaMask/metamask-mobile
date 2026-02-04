@@ -143,7 +143,7 @@ describe('DeepLinkModal', () => {
           }),
           build: jest.fn().mockImplementation(function (this: MockBuilder) {
             return {
-              name: 'Deep link Used',
+              name: 'Deep Link Used',
               properties: {
                 route: 'invalid',
                 was_app_installed: true,

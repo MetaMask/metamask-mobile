@@ -53,6 +53,7 @@ import { getAddressUrl } from '../../../core/Multichain/utils';
 import UpdateEIP1559Tx from '../confirmations/legacy/components/UpdateEIP1559Tx';
 import styleSheet from './UnifiedTransactionsView.styles';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
+import { useTransactionAutoScroll } from './useTransactionAutoScroll';
 import useBlockExplorer from '../../hooks/useBlockExplorer';
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
 import { TabEmptyState } from '../../../component-library/components-temp/TabEmptyState';
@@ -541,6 +542,20 @@ const UnifiedTransactionsView = ({
 
   const listRef = useRef<FlashListRef<UnifiedItem>>(null);
 
+  // Auto-scroll to top when new transactions are added
+  const { handleScroll } = useTransactionAutoScroll(data, listRef, {
+    keyExtractor: (item: UnifiedItem) => {
+      if (item.kind === TransactionKind.Evm) {
+        return getTransactionId(item.tx) ?? null;
+      }
+      // For non-EVM (Solana, Bitcoin, Tron, etc.)
+      // Use same fallback as keyExtractor to ensure consistency
+      return String(
+        item.tx?.id ?? `${item.tx?.chain}-${item.tx?.timestamp ?? '0'}`,
+      );
+    },
+  });
+
   const renderEmptyList = () => (
     <View style={styles.emptyList}>
       <TabEmptyState description={strings('wallet.no_transactions')} />
@@ -632,6 +647,8 @@ const UnifiedTransactionsView = ({
                   tintColor={colors.icon.default}
                 />
               }
+              onScroll={handleScroll}
+              scrollEventThrottle={16}
               scrollEnabled={!isChartBeingTouched}
             />
           )}

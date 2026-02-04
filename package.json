@@ -294,7 +294,7 @@
     "@metamask/solana-wallet-snap": "^2.6.1",
     "@metamask/solana-wallet-standard": "^0.6.0",
     "@metamask/stake-sdk": "^3.4.0",
-    "@metamask/storage-service": "^0.0.1",
+    "@metamask/storage-service": "^1.0.0",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^15.0.0",
     "@metamask/transaction-controller": "patch:@metamask/transaction-controller@npm%3A62.10.0#~/.yarn/patches/@metamask-transaction-controller-npm-62.10.0-e1d24e7db5.patch",
