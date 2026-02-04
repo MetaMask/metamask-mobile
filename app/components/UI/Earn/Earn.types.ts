@@ -2,6 +2,8 @@
  * Earn navigation parameters
  */
 
+import type { Hex } from '@metamask/utils';
+
 /** Stake confirmation parameters */
 export interface StakeConfirmationParams {
   amountWei?: string;
@@ -20,8 +22,7 @@ export interface UnstakeConfirmationParams {
 
 /** Learn more modal parameters */
 export interface LearnMoreModalParams {
-  title?: string;
-  content?: string;
+  chainId?: Hex;
 }
 
 /** Max input modal parameters */
