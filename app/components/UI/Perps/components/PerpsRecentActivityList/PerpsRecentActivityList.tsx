@@ -21,7 +21,7 @@ import styleSheet from './PerpsRecentActivityList.styles';
 import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
 import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
-import { PerpsEventValues } from '../../constants/eventNames';
+import { PERPS_EVENT_VALUE } from '../../constants/eventNames';
 
 interface PerpsRecentActivityListProps {
   transactions: PerpsTransaction[];
@@ -105,7 +105,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
                 </Text>
                 <PerpsFillTag
                   transaction={item}
-                  screenName={PerpsEventValues.SCREEN_NAME.PERPS_HOME}
+                  screenName={PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_HOME}
                 />
               </View>
               {!!item.subtitle && (

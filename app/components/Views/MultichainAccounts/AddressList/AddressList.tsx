@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
 
 import { useStyles } from '../../../hooks/useStyles';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectInternalAccountListSpreadByScopesByGroupId } from '../../../../selectors/multichainAccounts/accounts';
 import { IconName } from '@metamask/design-system-react-native';
 import MultichainAddressRow, {
@@ -23,6 +24,7 @@ import ClipboardManager from '../../../../core/ClipboardManager';
 import getHeaderCenterNavbarOptions from '../../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { strings } from '../../../../../locales/i18n';
+import { EVENT_NAME } from '../../../../core/Analytics/MetaMetrics.events';
 
 export const createAddressListNavigationDetails =
   createNavigationDetails<AddressListProps>(
@@ -38,6 +40,7 @@ export const AddressList = () => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const { toastRef } = useContext(ToastContext);
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const { groupId, title, onLoad } = useParams<AddressListProps>();
 
@@ -51,6 +54,15 @@ export const AddressList = () => {
     ({ item }: { item: AddressItem }) => {
       const copyAddressToClipboard = async () => {
         await ClipboardManager.setString(item.account.address);
+
+        trackEvent(
+          createEventBuilder(EVENT_NAME.ADDRESS_COPIED)
+            .addProperties({
+              location: 'address-list',
+              chain_id_caip: item.scope,
+            })
+            .build(),
+        );
       };
       return (
         <MultichainAddressRow
@@ -86,7 +98,7 @@ export const AddressList = () => {
         />
       );
     },
-    [navigation, groupId, toastRef],
+    [navigation, groupId, toastRef, trackEvent, createEventBuilder],
   );
 
   useLayoutEffect(() => {
