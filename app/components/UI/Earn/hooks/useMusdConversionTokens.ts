@@ -14,6 +14,16 @@ import { toHex } from '@metamask/controller-utils';
 import { BigNumber } from 'bignumber.js';
 import { Hex } from '@metamask/utils';
 
+/**
+ * The source of truth for the tokens that are eligible for mUSD conversion.
+ *
+ * @returns Object containing:
+ * - filterAllowedTokens(tokens: AssetType[]): AssetType[] - Filters tokens based on allowlist and blocklist rules.
+ * - isConversionToken(token: AssetType | TokenI): boolean - Checks if a token is eligible for mUSD conversion.
+ * - isMusdSupportedOnChain(chainId: Hex): boolean - Checks if mUSD is supported on a given chain.
+ * - hasConvertibleTokensByChainId(chainId: Hex): boolean - Checks if there are convertible tokens on a given chain.
+ * - tokens: AssetType[] - The tokens that are eligible for mUSD conversion.
+ */
 export const useMusdConversionTokens = () => {
   const musdConversionPaymentTokensAllowlist = useSelector(
     selectMusdConversionPaymentTokensAllowlist,
