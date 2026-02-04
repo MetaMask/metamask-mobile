@@ -40,6 +40,7 @@ import { useNetworkName } from '../../../hooks/useNetworkName';
 import { TransactionDetailsStatus } from '../transaction-details-status';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 import { POLYGON_USDCE } from '../../../constants/predict';
+import { MusdConversionSummary } from '../musd-conversion-details-summary';
 
 export function TransactionDetailsSummary() {
   const { styles } = useStyles(styleSheet, {});
@@ -67,6 +68,11 @@ export function TransactionDetailsSummary() {
   const transactions = useSelector((state: RootState) =>
     selectTransactionsByIds(state, transactionIds),
   );
+
+  // For mUSD conversion, always show exactly 2 lines (Sent + Receive)
+  if (hasTransactionType(transactionMeta, [TransactionType.musdConversion])) {
+    return <MusdConversionSummary transactionMeta={transactionMeta} />;
+  }
 
   return (
     <Box gap={12}>
@@ -161,7 +167,7 @@ function TransactionSummary({
   );
 }
 
-function SummaryLine({
+export function SummaryLine({
   chainId,
   isBridgeReceive,
   isLast,
@@ -262,7 +268,7 @@ function getLineTitle({
   approvalBridgeHistory,
   isReceive,
   networkName,
-  parentTransaction,
+  parentTransaction: _parentTransaction,
   symbol,
   transactionMeta,
 }: {
@@ -274,7 +280,6 @@ function getLineTitle({
   transactionMeta: TransactionMeta;
 }): string | undefined {
   const { type } = transactionMeta;
-  const { type: parentType } = parentTransaction ?? {};
   const approveSymbol = approvalBridgeHistory?.quote?.srcAsset?.symbol;
 
   if (isReceive) {
@@ -287,12 +292,6 @@ function getLineTitle({
   }
 
   if (symbol && networkName) {
-    if (parentType === TransactionType.musdConversion) {
-      return strings('transaction_details.summary_title.musd_convert_send', {
-        sourceSymbol: symbol,
-        sourceChain: networkName,
-      });
-    }
     return strings('transaction_details.summary_title.bridge_send', {
       sourceSymbol: symbol,
       sourceChain: networkName,
@@ -356,15 +355,6 @@ function useBridgeReceiveData(
   const sourceNetworkName = useNetworkName(transaction.chainId);
   const targetNetworkName = useNetworkName(chainId);
 
-  if (hasTransactionType(transaction, [TransactionType.musdConversion])) {
-    return {
-      chainId: transaction.chainId,
-      isReceiveOnly: true,
-      targetNetworkName: sourceNetworkName,
-      targetSymbol: 'mUSD',
-    };
-  }
-
   if (hasTransactionType(transaction, [TransactionType.perpsDeposit])) {
     return {
       chainId: CHAIN_IDS.ARBITRUM,
@@ -385,7 +375,6 @@ function useBridgeReceiveData(
 
   if (
     hasTransactionType(parentTransaction, [
-      TransactionType.musdConversion,
       TransactionType.perpsDeposit,
       TransactionType.predictDeposit,
     ])

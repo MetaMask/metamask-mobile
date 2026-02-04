@@ -184,6 +184,11 @@ const AssetStackFlow = (props) => (
       component={AssetDetails}
       initialParams={{ address: props.route.params?.address }}
     />
+    <Stack.Screen
+      name={Routes.TRANSACTION_DETAILS}
+      component={TransactionDetails}
+      options={{ headerShown: true }}
+    />
   </Stack.Navigator>
 );
 
