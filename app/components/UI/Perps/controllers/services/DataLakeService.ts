@@ -46,20 +46,6 @@ export class DataLakeService {
   }
 
   /**
-   * Error context helper for consistent logging
-   */
-  private getErrorContext(
-    method: string,
-    additionalContext?: Record<string, unknown>,
-  ): Record<string, unknown> {
-    return {
-      controller: 'DataLakeService',
-      method,
-      ...additionalContext,
-    };
-  }
-
-  /**
    * Report order events to data lake API with retry (non-blocking)
    * Implements exponential backoff retry logic (max 3 retries)
    *
