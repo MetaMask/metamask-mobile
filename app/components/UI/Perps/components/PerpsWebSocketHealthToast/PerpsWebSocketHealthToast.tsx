@@ -69,6 +69,11 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
   // Track if we should auto-hide for success state
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Ref to read latest connection state in swipe completion (avoids race: connection
+  // can restore during 300ms exit animation; we only apply userDismissed if still offline/connecting)
+  const connectionStateRef = useRef(connectionState);
+  connectionStateRef.current = connectionState;
+
   const screenWidth = Dimensions.get('window').width;
 
   // PanResponder for horizontal swipe-to-dismiss (left or right)
@@ -91,7 +96,13 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
               useNativeDriver: true,
             }).start(({ finished }) => {
               if (finished) {
-                hide({ userDismissed: true });
+                const stateWhenDone = connectionStateRef.current;
+                const stillOffline =
+                  stateWhenDone === WebSocketConnectionState.Disconnected;
+                if (stillOffline) {
+                  hide({ userDismissed: true });
+                }
+                // If connection restored during animation, do nothing: leave Connected toast visible
               }
             });
           } else {
