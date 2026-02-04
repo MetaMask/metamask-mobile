@@ -23,5 +23,7 @@
 		<string>merchant.io.metamask.wyre.test</string>
 		<string>merchant.io.metamask.banxa.test</string>
 	</array>
+	<key>com.apple.developer.payment-pass-provisioning</key>
+	<true/>
 </dict>
 </plist>
