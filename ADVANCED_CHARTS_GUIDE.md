@@ -385,6 +385,88 @@ interface OHLCVBar {
 
 ---
 
+## Migration Plan for Token Details Charts
+
+### Current State: Three Chart Libraries
+
+| Library | Location | Usage |
+|---------|----------|-------|
+| `react-native-svg-charts` | Token Details (`PriceChart.tsx`) | Simple line/area chart, no indicators |
+| `Lightweight Charts` | Perps (`TradingViewChart.tsx`) | Candlestick + volume, no indicators |
+| `Advanced Charts` | New integration | Full feature set: indicators, drawing tools |
+
+**Goal:** Consolidate to a single library (Advanced Charts) to reduce bundle size, maintenance burden, and loading overhead.
+
+---
+
+### Migration Strategy
+
+#### Two Independent Feature Flags
+
+Use two separate remote feature flags - one for each surface:
+
+```typescript
+// selectors/featureFlagController/advancedCharts/index.ts
+export const selectAdvancedChartsTokenDetailsEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => remoteFeatureFlags.advancedChartsTokenDetailsEnabled ?? false,
+);
+
+export const selectAdvancedChartsPerpsEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => remoteFeatureFlags.advancedChartsPerpsEnabled ?? false,
+);
+```
+
+Each surface checks its own flag:
+
+```tsx
+// Token Details
+const advancedChartsEnabled = useSelector(selectAdvancedChartsTokenDetailsEnabled);
+return advancedChartsEnabled ? <AdvancedChart /> : <PriceChart />;
+
+// Perps Market Details
+const advancedChartsEnabled = useSelector(selectAdvancedChartsPerpsEnabled);
+return advancedChartsEnabled ? <AdvancedChart /> : <TradingViewChart />;
+```
+
+#### Why Two Flags Instead of One?
+
+A single shared flag creates operational risk:
+- If Token Details has a chart bug, disabling the flag would also break Perps charts
+- If Perps needs to roll back, Token Details would regress too
+- Different surfaces may have different readiness timelines
+
+Two independent flags provide:
+- **Independent rollout**: Enable Perps first (aligns with full-screen mode priority), Token Details later
+- **Independent rollback**: Fix issues on one surface without affecting the other
+- **No complex override logic**: Simple boolean checks, easy to understand
+- **Same end goal**: Once both flags are `true` and stable, legacy libraries can be removed
+
+---
+
+### Rollout Phases
+
+#### Phase 1: Feature Flag Integration (Mobile)
+- Add `advancedChartsTokenDetailsEnabled` flag (default: `false`)
+- Add `advancedChartsPerpsEnabled` flag (default: `false`)
+- Integrate Advanced Charts behind flags in both surfaces
+- Internal testing with flags enabled independently
+
+#### Phase 2: Staged Rollout
+- **Perps**: Enable `advancedChartsPerpsEnabled` for internal users, then production
+  - Aligns with Perps full-screen mode priority
+  - Coordinate with Extension v1 release
+- **Token Details**: Enable `advancedChartsTokenDetailsEnabled` after Perps is stable
+- Monitor performance metrics and crash reports for each surface
+
+#### Phase 3: Both Enabled + Cleanup
+- Both flags `true` in production
+- Remove legacy chart components
+- Remove feature flags once stable (hardcode to Advanced Charts)
+
+---
+
 ## References
 
 - [TradingView Charting Library Documentation](https://www.tradingview.com/charting-library-docs/)
