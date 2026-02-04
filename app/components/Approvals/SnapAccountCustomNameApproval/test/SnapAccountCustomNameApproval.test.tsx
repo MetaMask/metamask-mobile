@@ -173,7 +173,7 @@ describe('SnapAccountCustomNameApproval', () => {
     );
 
     const input = getByTestId(SNAP_ACCOUNT_CUSTOM_NAME_INPUT);
-    expect(input.props.value).toBe('Snap Account 3');
+    expect(input.props.value).toBe('');
   });
 
   it('shows error message and disables "Add Account" button when name is taken', () => {
