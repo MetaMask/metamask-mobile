@@ -6,7 +6,7 @@
 /**
  * Event property keys - ensures consistent property naming
  */
-export const PerpsEventProperties = {
+export const PERPS_EVENT_PROPERTY = {
   // Common properties
   TIMESTAMP: 'timestamp',
   ASSET: 'asset',
@@ -139,7 +139,7 @@ export const PerpsEventProperties = {
 /**
  * Property value constants
  */
-export const PerpsEventValues = {
+export const PERPS_EVENT_VALUE = {
   DIRECTION: {
     LONG: 'long',
     SHORT: 'short',

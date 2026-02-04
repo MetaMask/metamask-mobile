@@ -2,13 +2,13 @@ import { useRef, useCallback } from 'react';
 import { LayoutChangeEvent, NativeScrollEvent } from 'react-native';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
 } from '../constants/eventNames';
 
 /**
  * Section identifiers for home screen tracking
- * Maps to PerpsEventValues.SOURCE values for consistency
+ * Maps to PERPS_EVENT_VALUE.SOURCE values for consistency
  */
 export type HomeSectionId = 'explore_crypto' | 'explore_stocks' | 'activity';
 
@@ -54,11 +54,11 @@ export function usePerpsHomeSectionTracking() {
   const getSectionSource = (sectionId: HomeSectionId): string => {
     switch (sectionId) {
       case 'explore_crypto':
-        return PerpsEventValues.SOURCE.PERPS_HOME_EXPLORE_CRYPTO;
+        return PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_EXPLORE_CRYPTO;
       case 'explore_stocks':
-        return PerpsEventValues.SOURCE.PERPS_HOME_EXPLORE_STOCKS;
+        return PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_EXPLORE_STOCKS;
       case 'activity':
-        return PerpsEventValues.SOURCE.PERPS_HOME_ACTIVITY;
+        return PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_ACTIVITY;
       default:
         return sectionId;
     }
@@ -78,12 +78,12 @@ export function usePerpsHomeSectionTracking() {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.PERPS_UI_INTERACTION)
             .addProperties({
-              [PerpsEventProperties.INTERACTION_TYPE]:
-                PerpsEventValues.INTERACTION_TYPE.SLIDE,
-              [PerpsEventProperties.SECTION_VIEWED]:
+              [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+                PERPS_EVENT_VALUE.INTERACTION_TYPE.SLIDE,
+              [PERPS_EVENT_PROPERTY.SECTION_VIEWED]:
                 getSectionSource(sectionId),
-              [PerpsEventProperties.LOCATION]:
-                PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+              [PERPS_EVENT_PROPERTY.LOCATION]:
+                PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
             })
             .build(),
         );

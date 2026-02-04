@@ -84,8 +84,8 @@ import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
 } from '../../constants/eventNames';
 import {
   DECIMAL_PRECISION_CONFIG,
@@ -377,14 +377,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     properties: {
-      [PerpsEventProperties.SCREEN_TYPE]: PerpsEventValues.SCREEN_TYPE.TRADING,
-      [PerpsEventProperties.ASSET]: orderForm.asset,
-      [PerpsEventProperties.DIRECTION]:
+      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
+      [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+      [PERPS_EVENT_PROPERTY.DIRECTION]:
         orderForm.direction === 'long'
-          ? PerpsEventValues.DIRECTION.LONG
-          : PerpsEventValues.DIRECTION.SHORT,
+          ? PERPS_EVENT_VALUE.DIRECTION.LONG
+          : PERPS_EVENT_VALUE.DIRECTION.SHORT,
       ...(isButtonColorTestEnabled && {
-        [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+        [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
       }),
     },
   });
@@ -478,18 +478,18 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     eventName: MetaMetricsEvents.PERPS_UI_INTERACTION,
     conditions: [!!(orderForm.amount && parseFloat(orderForm.amount) > 0)],
     properties: {
-      [PerpsEventProperties.INTERACTION_TYPE]:
-        PerpsEventValues.INTERACTION_TYPE.ORDER_TYPE_VIEWED,
-      [PerpsEventProperties.ASSET]: orderForm.asset,
-      [PerpsEventProperties.DIRECTION]:
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.ORDER_TYPE_VIEWED,
+      [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+      [PERPS_EVENT_PROPERTY.DIRECTION]:
         orderForm.direction === 'long'
-          ? PerpsEventValues.DIRECTION.LONG
-          : PerpsEventValues.DIRECTION.SHORT,
-      [PerpsEventProperties.ORDER_SIZE]: parseFloat(orderForm.amount || '0'),
-      [PerpsEventProperties.LEVERAGE_USED]: parseFloat(
+          ? PERPS_EVENT_VALUE.DIRECTION.LONG
+          : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+      [PERPS_EVENT_PROPERTY.ORDER_SIZE]: parseFloat(orderForm.amount || '0'),
+      [PERPS_EVENT_PROPERTY.LEVERAGE_USED]: parseFloat(
         String(orderForm.leverage),
       ),
-      [PerpsEventProperties.ORDER_TYPE]: orderForm.type,
+      [PERPS_EVENT_PROPERTY.ORDER_TYPE]: orderForm.type,
     },
   });
 
@@ -880,14 +880,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       // Track Place Order button press with A/B test context
       if (isButtonColorTestEnabled) {
         track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-          [PerpsEventProperties.INTERACTION_TYPE]:
-            PerpsEventValues.INTERACTION_TYPE.TAP,
-          [PerpsEventProperties.ASSET]: orderForm.asset,
-          [PerpsEventProperties.DIRECTION]:
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+          [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+          [PERPS_EVENT_PROPERTY.DIRECTION]:
             orderForm.direction === 'long'
-              ? PerpsEventValues.DIRECTION.LONG
-              : PerpsEventValues.DIRECTION.SHORT,
-          [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+              ? PERPS_EVENT_VALUE.DIRECTION.LONG
+              : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+          [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
         });
       }
 
@@ -903,13 +903,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
           // Track validation failure as error encountered
           track(MetaMetricsEvents.PERPS_ERROR, {
-            [PerpsEventProperties.ERROR_TYPE]:
-              PerpsEventValues.ERROR_TYPE.VALIDATION,
-            [PerpsEventProperties.ERROR_MESSAGE]: firstError,
-            [PerpsEventProperties.SCREEN_NAME]:
-              PerpsEventValues.SCREEN_NAME.PERPS_ORDER,
-            [PerpsEventProperties.SCREEN_TYPE]:
-              PerpsEventValues.SCREEN_TYPE.TRADING,
+            [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
+              PERPS_EVENT_VALUE.ERROR_TYPE.VALIDATION,
+            [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: firstError,
+            [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
+              PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_ORDER,
+            [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+              PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
           });
 
           isSubmittingRef.current = false; // Reset flag on early return
@@ -923,14 +923,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           });
 
           track(MetaMetricsEvents.PERPS_ERROR, {
-            [PerpsEventProperties.ERROR_TYPE]:
-              PerpsEventValues.ERROR_TYPE.VALIDATION,
-            [PerpsEventProperties.ERROR_MESSAGE]:
+            [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
+              PERPS_EVENT_VALUE.ERROR_TYPE.VALIDATION,
+            [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]:
               'Cross margin position detected',
-            [PerpsEventProperties.SCREEN_NAME]:
-              PerpsEventValues.SCREEN_NAME.PERPS_ORDER,
-            [PerpsEventProperties.SCREEN_TYPE]:
-              PerpsEventValues.SCREEN_TYPE.TRADING,
+            [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
+              PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_ORDER,
+            [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+              PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
           });
 
           isSubmittingRef.current = false;
@@ -1667,29 +1667,29 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
           // Track leverage change (consolidated here to avoid duplicate tracking)
           const eventProperties: Record<string, string | number> = {
-            [PerpsEventProperties.ASSET]: orderForm.asset,
-            [PerpsEventProperties.DIRECTION]:
+            [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+            [PERPS_EVENT_PROPERTY.DIRECTION]:
               orderForm.direction === 'long'
-                ? PerpsEventValues.DIRECTION.LONG
-                : PerpsEventValues.DIRECTION.SHORT,
-            [PerpsEventProperties.LEVERAGE_USED]: leverage,
+                ? PERPS_EVENT_VALUE.DIRECTION.LONG
+                : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+            [PERPS_EVENT_PROPERTY.LEVERAGE_USED]: leverage,
             previousLeverage: orderForm.leverage,
           };
 
           // Add input method if provided
           if (inputMethod) {
-            eventProperties[PerpsEventProperties.INPUT_METHOD] =
+            eventProperties[PERPS_EVENT_PROPERTY.INPUT_METHOD] =
               inputMethod === 'slider'
-                ? PerpsEventValues.INPUT_METHOD.SLIDER
-                : PerpsEventValues.INPUT_METHOD.PRESET;
+                ? PERPS_EVENT_VALUE.INPUT_METHOD.SLIDER
+                : PERPS_EVENT_VALUE.INPUT_METHOD.PRESET;
           }
 
           track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
             ...eventProperties,
-            [PerpsEventProperties.INTERACTION_TYPE]:
-              PerpsEventValues.INTERACTION_TYPE.LEVERAGE_CHANGED,
-            [PerpsEventProperties.SETTING_TYPE]:
-              PerpsEventValues.SETTING_TYPE.LEVERAGE,
+            [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+              PERPS_EVENT_VALUE.INTERACTION_TYPE.LEVERAGE_CHANGED,
+            [PERPS_EVENT_PROPERTY.SETTING_TYPE]:
+              PERPS_EVENT_VALUE.SETTING_TYPE.LEVERAGE,
           });
         }}
         leverage={orderForm.leverage}
