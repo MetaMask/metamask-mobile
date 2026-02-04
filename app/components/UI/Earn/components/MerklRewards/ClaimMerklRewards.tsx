@@ -108,18 +108,6 @@ const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({ asset }) => {
     });
   }, [trackClaimButtonClicked, handleContinueClaim, navigation]);
 
-  // TODO: Remove this test button before merging
-  const handleTestScroll = useCallback(() => {
-    // Navigate to homepage and scroll to Linea mUSD token
-    NavigationService.navigation.navigate(Routes.WALLET.HOME);
-    setTimeout(() => {
-      DeviceEventEmitter?.emit?.(SCROLL_TO_TOKEN_EVENT, {
-        address: MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET],
-        chainId: CHAIN_IDS.LINEA_MAINNET,
-      });
-    }, 500);
-  }, []);
-
   return (
     <View style={styles.claimButtonContainer}>
       <Button
@@ -132,16 +120,6 @@ const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({ asset }) => {
         isLoading={isLoading}
       >
         {strings('asset_overview.merkl_rewards.claim')}
-      </Button>
-      {/* TODO: Remove this test button before merging */}
-      <Button
-        testID="test-scroll-button"
-        variant={ButtonVariant.Link}
-        size={ButtonSize.Sm}
-        twClassName="mt-2"
-        onPress={handleTestScroll}
-      >
-        Test Scroll to Linea mUSD
       </Button>
       {claimError && (
         <Text
