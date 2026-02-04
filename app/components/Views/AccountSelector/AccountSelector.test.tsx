@@ -764,6 +764,9 @@ describe('AccountSelector', () => {
     });
 
     it('renders BottomSheet when feature flag is disabled', () => {
+      // Use real timers for this test to avoid animation timing issues
+      jest.useRealTimers();
+
       mockSelectFullPageAccountListEnabledFlag.mockReturnValue(false);
 
       renderScreen(
@@ -783,6 +786,9 @@ describe('AccountSelector', () => {
       expect(
         screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
       ).toBeDefined();
+
+      // Restore fake timers for other tests
+      jest.useFakeTimers();
     });
 
     it('renders full-page modal when feature flag is enabled', () => {
