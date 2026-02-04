@@ -72,6 +72,13 @@ const createStyles = (colors: Colors) =>
       fontSize: 14,
       ...fontStyles.normal,
     },
+    loadingContainer: {
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    loadingText: {
+      marginTop: 16,
+    },
   });
 
 export default createStyles;

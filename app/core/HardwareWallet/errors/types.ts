@@ -11,10 +11,8 @@ import { HardwareWalletType } from '../helpers';
 export enum RecoveryAction {
   /** User acknowledges the error and continues (shows "Continue" button) */
   ACKNOWLEDGE = 'acknowledge',
-  /** Open app settings (via react-native-permissions openSettings) */
-  OPEN_APP_SETTINGS = 'open_app_settings',
-  /** Open Bluetooth settings specifically (iOS uses App-Prefs:Bluetooth) */
-  OPEN_BLUETOOTH_SETTINGS = 'open_bluetooth_settings',
+  /** Retry the failed operation */
+  RETRY = 'retry',
 }
 
 /**

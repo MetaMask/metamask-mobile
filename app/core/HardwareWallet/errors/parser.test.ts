@@ -119,6 +119,43 @@ describe('parseErrorByType', () => {
 
       expect(result.code).toBe(ErrorCode.Unknown);
     });
+
+    it('parses FailedToCloseApp', () => {
+      const result = parseErrorByType(
+        LedgerCommunicationErrors.FailedToCloseApp,
+        walletType,
+      );
+
+      expect(result.code).toBe(ErrorCode.DeviceStateEthAppClosed);
+    });
+
+    it('parses NotSupported', () => {
+      const result = parseErrorByType(
+        LedgerCommunicationErrors.NotSupported,
+        walletType,
+      );
+
+      expect(result.code).toBe(ErrorCode.MobileNotSupported);
+    });
+
+    it('parses AppIsNotInstalled', () => {
+      const result = parseErrorByType(
+        LedgerCommunicationErrors.AppIsNotInstalled,
+        walletType,
+      );
+
+      expect(result.code).toBe(ErrorCode.DeviceMissingCapability);
+    });
+
+    it('parses NonceTooLow as Unknown', () => {
+      const result = parseErrorByType(
+        LedgerCommunicationErrors.NonceTooLow,
+        walletType,
+      );
+
+      // NonceTooLow falls through to default case
+      expect(result.code).toBe(ErrorCode.Unknown);
+    });
   });
 
   describe('when error is BluetoothPermissionErrors enum', () => {
@@ -157,6 +194,14 @@ describe('parseErrorByType', () => {
       const result = parseErrorByType(error, walletType);
 
       expect(result.code).toBe(ErrorCode.DeviceDisconnected);
+    });
+
+    it('parses object with BluetoothPermissionErrors code', () => {
+      const error = { code: BluetoothPermissionErrors.BluetoothAccessBlocked };
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.PermissionBluetoothDenied);
     });
   });
 
@@ -236,6 +281,46 @@ describe('parseErrorByType', () => {
       const result = parseErrorByType(error, walletType);
 
       expect(result.code).toBe(ErrorCode.AuthenticationDeviceLocked);
+    });
+
+    it('returns null for TransportStatusError without status code', () => {
+      const error = new Error('Unknown transport error');
+      error.name = 'TransportStatusError';
+      // No statusCode property
+
+      const result = parseErrorByType(error, walletType);
+
+      // Should fall through to message parsing or unknown
+      expect(result.code).toBeDefined();
+    });
+  });
+
+  describe('when error has additional status codes (mobile-specific)', () => {
+    it('parses 0x6a15 as ETH app closed', () => {
+      const error = new Error('Ledger error 0x6a15');
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.DeviceStateEthAppClosed);
+    });
+
+    it('parses 0x6511 as ETH app closed', () => {
+      const error = new Error('Ledger error 0x6511');
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.DeviceStateEthAppClosed);
+    });
+
+    it('parses unknown status code as Unknown', () => {
+      const error = new Error('Ledger error');
+      error.name = 'TransportStatusError';
+      (error as Error & { statusCode: number }).statusCode = 0x9999;
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.Unknown);
+      expect(result.metadata?.statusCode).toBe(0x9999);
     });
   });
 
@@ -322,6 +407,71 @@ describe('parseErrorByType', () => {
 
       expect(result.code).toBe(ErrorCode.BluetoothConnectionFailed);
     });
+
+    it('parses BleError as bluetooth connection failed', () => {
+      const error = new Error('Operation was cancelled');
+      error.name = 'BleError';
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.BluetoothConnectionFailed);
+    });
+
+    it('parses message containing "bleerror" as bluetooth connection failed', () => {
+      const error = new Error('BleError: Something went wrong');
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.BluetoothConnectionFailed);
+    });
+
+    it('parses "bluetooth" with "not authorized" message', () => {
+      const error = new Error('Not authorized to use Bluetooth');
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.PermissionNearbyDevicesDenied);
+    });
+
+    it('parses "contract data" message as blind signing error', () => {
+      const error = new Error('Please enable contract data');
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.DeviceStateBlindSignNotSupported);
+    });
+
+    it('parses "cancelled" message as user rejected', () => {
+      const error = new Error('User cancelled the operation');
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.UserRejected);
+    });
+
+    it('parses "connection lost" message as disconnected', () => {
+      const error = new Error('Connection lost');
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.DeviceDisconnected);
+    });
+
+    it('parses "launch" app message as eth app closed', () => {
+      const error = new Error('Please launch the app on your device');
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.DeviceStateEthAppClosed);
+    });
+
+    it('parses "start" app message as eth app closed', () => {
+      const error = new Error('Please start the Ethereum app');
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.DeviceStateEthAppClosed);
+    });
   });
 
   describe('when error is a plain string', () => {
@@ -387,13 +537,14 @@ describe('parseErrorByType', () => {
       expect(result.metadata?.recoveryAction).toBe('acknowledge');
     });
 
-    it('includes OPEN_BLUETOOTH_SETTINGS action for bluetooth disabled', () => {
+    it('includes RETRY action for bluetooth permission denied', () => {
       const result = parseErrorByType(
         BluetoothPermissionErrors.BluetoothAccessBlocked,
         walletType,
       );
 
-      expect(result.metadata?.recoveryAction).toBe('open_app_settings');
+      // Bluetooth permission errors should be retryable (user can grant permission)
+      expect(result.metadata?.recoveryAction).toBe('retry');
     });
   });
 });

@@ -23,7 +23,7 @@ export const MOBILE_ERROR_EXTENSIONS: Partial<
 > = {
   // Authentication
   [ErrorCode.AuthenticationDeviceLocked]: {
-    recoveryAction: RecoveryAction.ACKNOWLEDGE,
+    recoveryAction: RecoveryAction.RETRY,
     icon: IconName.Lock,
     iconColor: IconColor.Error,
     getLocalizedTitle: (walletType) =>
@@ -36,7 +36,7 @@ export const MOBILE_ERROR_EXTENSIONS: Partial<
       }),
   },
   [ErrorCode.AuthenticationDeviceBlocked]: {
-    recoveryAction: RecoveryAction.ACKNOWLEDGE,
+    recoveryAction: RecoveryAction.RETRY,
     icon: IconName.Lock,
     iconColor: IconColor.Error,
     getLocalizedTitle: (walletType) =>
@@ -51,14 +51,14 @@ export const MOBILE_ERROR_EXTENSIONS: Partial<
 
   // Device State
   [ErrorCode.DeviceStateEthAppClosed]: {
-    recoveryAction: RecoveryAction.ACKNOWLEDGE,
+    recoveryAction: RecoveryAction.RETRY,
     icon: IconName.Setting,
     iconColor: IconColor.Error,
     getLocalizedTitle: () => strings('hardware_wallet.error.app_not_open'),
     getLocalizedMessage: () => strings('hardware_wallet.errors.app_not_open'),
   },
   [ErrorCode.DeviceDisconnected]: {
-    recoveryAction: RecoveryAction.ACKNOWLEDGE,
+    recoveryAction: RecoveryAction.RETRY,
     icon: IconName.Plug,
     iconColor: IconColor.Error,
     getLocalizedTitle: (walletType) =>
@@ -71,7 +71,7 @@ export const MOBILE_ERROR_EXTENSIONS: Partial<
       }),
   },
   [ErrorCode.DeviceNotFound]: {
-    recoveryAction: RecoveryAction.ACKNOWLEDGE,
+    recoveryAction: RecoveryAction.RETRY,
     icon: IconName.Search,
     iconColor: IconColor.Error,
     getLocalizedTitle: (walletType) =>
@@ -84,7 +84,7 @@ export const MOBILE_ERROR_EXTENSIONS: Partial<
       }),
   },
   [ErrorCode.DeviceNotReady]: {
-    recoveryAction: RecoveryAction.ACKNOWLEDGE,
+    recoveryAction: RecoveryAction.RETRY,
     icon: IconName.Clock,
     iconColor: IconColor.Error,
     getLocalizedTitle: () =>
@@ -93,7 +93,7 @@ export const MOBILE_ERROR_EXTENSIONS: Partial<
       strings('hardware_wallet.errors.device_not_ready'),
   },
   [ErrorCode.DeviceMissingCapability]: {
-    recoveryAction: RecoveryAction.ACKNOWLEDGE,
+    recoveryAction: RecoveryAction.RETRY,
     icon: IconName.Setting,
     iconColor: IconColor.Error,
     getLocalizedTitle: () => strings('hardware_wallet.error.app_not_open'),
@@ -108,7 +108,7 @@ export const MOBILE_ERROR_EXTENSIONS: Partial<
     getLocalizedMessage: () => strings('hardware_wallet.errors.blind_signing'),
   },
   [ErrorCode.DeviceUnresponsive]: {
-    recoveryAction: RecoveryAction.ACKNOWLEDGE,
+    recoveryAction: RecoveryAction.RETRY,
     icon: IconName.Clock,
     iconColor: IconColor.Error,
     getLocalizedTitle: () =>
@@ -119,7 +119,7 @@ export const MOBILE_ERROR_EXTENSIONS: Partial<
 
   // Connection
   [ErrorCode.ConnectionClosed]: {
-    recoveryAction: RecoveryAction.ACKNOWLEDGE,
+    recoveryAction: RecoveryAction.RETRY,
     icon: IconName.Close,
     iconColor: IconColor.Error,
     getLocalizedTitle: () => strings('hardware_wallet.error.connection_closed'),
@@ -127,7 +127,7 @@ export const MOBILE_ERROR_EXTENSIONS: Partial<
       strings('hardware_wallet.errors.connection_closed'),
   },
   [ErrorCode.ConnectionTimeout]: {
-    recoveryAction: RecoveryAction.ACKNOWLEDGE,
+    recoveryAction: RecoveryAction.RETRY,
     icon: IconName.Clock,
     iconColor: IconColor.Error,
     getLocalizedTitle: () =>
@@ -152,7 +152,7 @@ export const MOBILE_ERROR_EXTENSIONS: Partial<
     getLocalizedMessage: () => strings('hardware_wallet.errors.user_cancelled'),
   },
   [ErrorCode.UserConfirmationRequired]: {
-    recoveryAction: RecoveryAction.ACKNOWLEDGE,
+    recoveryAction: RecoveryAction.RETRY,
     icon: IconName.SecurityTick,
     iconColor: IconColor.Warning,
     getLocalizedTitle: () =>
@@ -161,9 +161,9 @@ export const MOBILE_ERROR_EXTENSIONS: Partial<
       strings('hardware_wallet.errors.pending_confirmation'),
   },
 
-  // BLE/Permission - these need OPEN_APP_SETTINGS action
+  // BLE/Permission
   [ErrorCode.PermissionBluetoothDenied]: {
-    recoveryAction: RecoveryAction.OPEN_APP_SETTINGS,
+    recoveryAction: RecoveryAction.RETRY,
     icon: IconName.Connect,
     iconColor: IconColor.Error,
     getLocalizedTitle: () =>
@@ -172,7 +172,7 @@ export const MOBILE_ERROR_EXTENSIONS: Partial<
       strings('hardware_wallet.errors.bluetooth_permission_denied'),
   },
   [ErrorCode.PermissionLocationDenied]: {
-    recoveryAction: RecoveryAction.OPEN_APP_SETTINGS,
+    recoveryAction: RecoveryAction.RETRY,
     icon: IconName.Location,
     iconColor: IconColor.Error,
     getLocalizedTitle: () =>
@@ -181,7 +181,7 @@ export const MOBILE_ERROR_EXTENSIONS: Partial<
       strings('hardware_wallet.errors.location_permission_denied'),
   },
   [ErrorCode.PermissionNearbyDevicesDenied]: {
-    recoveryAction: RecoveryAction.OPEN_APP_SETTINGS,
+    recoveryAction: RecoveryAction.RETRY,
     icon: IconName.Connect,
     iconColor: IconColor.Error,
     getLocalizedTitle: () =>
@@ -189,9 +189,8 @@ export const MOBILE_ERROR_EXTENSIONS: Partial<
     getLocalizedMessage: () =>
       strings('hardware_wallet.errors.nearby_permission_denied'),
   },
-  // Bluetooth disabled needs OPEN_BLUETOOTH_SETTINGS (platform-specific handling)
   [ErrorCode.BluetoothDisabled]: {
-    recoveryAction: RecoveryAction.OPEN_BLUETOOTH_SETTINGS,
+    recoveryAction: RecoveryAction.RETRY,
     icon: IconName.Connect,
     iconColor: IconColor.Error,
     getLocalizedTitle: () =>
@@ -199,7 +198,7 @@ export const MOBILE_ERROR_EXTENSIONS: Partial<
     getLocalizedMessage: () => strings('hardware_wallet.errors.bluetooth_off'),
   },
   [ErrorCode.BluetoothScanFailed]: {
-    recoveryAction: RecoveryAction.ACKNOWLEDGE,
+    recoveryAction: RecoveryAction.RETRY,
     icon: IconName.Connect,
     iconColor: IconColor.Error,
     getLocalizedTitle: () => strings('hardware_wallet.error.scan_failed'),
@@ -207,7 +206,7 @@ export const MOBILE_ERROR_EXTENSIONS: Partial<
       strings('hardware_wallet.errors.bluetooth_scan_failed'),
   },
   [ErrorCode.BluetoothConnectionFailed]: {
-    recoveryAction: RecoveryAction.ACKNOWLEDGE,
+    recoveryAction: RecoveryAction.RETRY,
     icon: IconName.Connect,
     iconColor: IconColor.Error,
     getLocalizedTitle: () => strings('hardware_wallet.error.connection_closed'),
@@ -217,7 +216,7 @@ export const MOBILE_ERROR_EXTENSIONS: Partial<
 
   // Mobile-specific
   [ErrorCode.MobileNotSupported]: {
-    recoveryAction: RecoveryAction.ACKNOWLEDGE,
+    recoveryAction: RecoveryAction.RETRY,
     icon: IconName.Danger,
     iconColor: IconColor.Error,
     getLocalizedTitle: () =>
@@ -227,7 +226,7 @@ export const MOBILE_ERROR_EXTENSIONS: Partial<
 
   // Unknown
   [ErrorCode.Unknown]: {
-    recoveryAction: RecoveryAction.ACKNOWLEDGE,
+    recoveryAction: RecoveryAction.RETRY,
     icon: IconName.Danger,
     iconColor: IconColor.Error,
     getLocalizedTitle: () =>
@@ -258,6 +257,8 @@ export const ERROR_NAME_MAPPINGS: Record<string, ErrorCode> = {
   UserRefusedOnDevice: ErrorCode.UserRejected,
   DeviceSocketFail: ErrorCode.BluetoothConnectionFailed,
   DeviceSocketNoBulkStatus: ErrorCode.BluetoothConnectionFailed,
+  EthAppPleaseEnableContractData: ErrorCode.DeviceStateBlindSignNotSupported,
+  BleError: ErrorCode.BluetoothConnectionFailed,
 };
 
 /**

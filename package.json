@@ -197,6 +197,7 @@
     "@keystonehq/bc-ur-registry-eth": "^0.21.0",
     "@keystonehq/ur-decoder": "^0.12.2",
     "@lavamoat/react-native-lockdown": "^0.0.2",
+    "@ledgerhq/hw-app-eth": "^6.42.0",
     "@ledgerhq/react-native-hw-transport-ble": "^6.34.1",
     "@metamask/abi-utils": "^3.0.0",
     "@metamask/account-api": "^0.12.0",

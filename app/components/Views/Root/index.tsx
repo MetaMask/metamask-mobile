@@ -16,7 +16,7 @@ import ControllersGate from '../../Nav/ControllersGate';
 import { isTest } from '../../../util/test/utils';
 import { FeatureFlagOverrideProvider } from '../../../contexts/FeatureFlagOverrideContext';
 import { ScreenOrientationService } from '../../../core/ScreenOrientation';
-import { HardwareWalletErrorProvider } from '../../../core/HardwareWallet';
+import { HardwareWalletProvider } from '../../../core/HardwareWallet';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
@@ -82,12 +82,12 @@ const Root = ({ foxCode }: RootProps) => {
               <NavigationProvider>
                 <ControllersGate>
                   <ToastContextWrapper>
-                    <HardwareWalletErrorProvider>
+                    <HardwareWalletProvider>
                       <ErrorBoundary view="Root">
                         <ReducedMotionConfig mode={ReduceMotion.Never} />
                         <App />
                       </ErrorBoundary>
-                    </HardwareWalletErrorProvider>
+                    </HardwareWalletProvider>
                   </ToastContextWrapper>
                 </ControllersGate>
               </NavigationProvider>

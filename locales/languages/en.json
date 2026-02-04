@@ -7638,6 +7638,35 @@
       "qr": "QR Hardware Wallet",
       "hardware_wallet": "Hardware Wallet"
     },
+    "common": {
+      "cancel": "Cancel",
+      "continue": "Continue"
+    },
+    "connecting": {
+      "title": "Connect your {{device}}",
+      "searching": "Looking for {{device}}...",
+      "tips_header": "To continue, make sure:",
+      "tip_unlock": "Your {{device}} is unlocked",
+      "tip_open_app": "The Ethereum app is open",
+      "tip_enable_bluetooth": "Bluetooth is turned on",
+      "tip_dnd_off": "Do Not Disturb is turned off",
+      "tip_bluetooth_permission": "Location and Bluetooth permission is granted",
+      "tip_bluetooth_permission_v12": "Nearby devices permission is granted",
+      "tip_stay_close": "Your device stays close to your phone"
+    },
+    "awaiting_app": {
+      "title": "Open {{app}}",
+      "message": "Please open the {{app}} app on your {{device}}",
+      "current_app": "Currently open: {{app}}"
+    },
+    "awaiting_confirmation": {
+      "title_transaction": "Confirm on {{device}}",
+      "title_message": "Sign on {{device}}",
+      "message": "Review and confirm on your {{device}}"
+    },
+    "success": {
+      "title": "{{device}} connected"
+    },
     "errors": {
       "device_locked": "Unlock it and try again to continue",
       "app_not_open": "Please open the Ethereum app on your device",
@@ -7659,8 +7688,10 @@
       "unknown_error": "Make sure your {{device}} is set up with the Secret Recovery Phrase or passphrase for this account"
     },
     "error": {
+      "title": "Something went wrong",
       "default_title": "An error occurred",
       "continue": "Continue",
+      "retry": "Retry",
       "view_settings": "View Settings",
       "device_locked_title": "{{device}} locked",
       "device_disconnected_title": "{{device}} disconnected",
@@ -7677,6 +7708,17 @@
       "nearby_devices_permission_denied": "Nearby Devices Permission Required",
       "scan_failed": "Scan Failed",
       "something_went_wrong": "Something went wrong"
+    },
+    "device_selection": {
+      "title": "Select {{device}}",
+      "scanning": "Scanning for devices...",
+      "no_devices_found": "No devices found",
+      "no_devices_hint": "Make sure your {{device}} is unlocked and Bluetooth is enabled",
+      "tips": "Unlock your {{device}}, open Bluetooth settings, and keep it close to your phone",
+      "connect": "Connect",
+      "rescan": "Scan Again",
+      "unknown_device": "Unknown Device",
+      "signal_strength": "Signal: {{rssi}} dBm"
     }
   }
 }

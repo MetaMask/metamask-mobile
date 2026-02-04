@@ -1,341 +1,123 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { SafeAreaView, StyleSheet, View } from 'react-native';
-import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
-import { strings } from '../../../../locales/i18n';
-import { Colors } from '../../../util/theme/models';
-import useLedgerBluetooth from '../../hooks/Ledger/useLedgerBluetooth';
-import useBluetooth from '../../hooks/Ledger/useBluetooth';
-import useBluetoothPermissions from '../../../components/hooks/useBluetoothPermissions';
-import ConfirmationStep from './Steps/ConfirmationStep';
-import ErrorStep from './Steps/ErrorStep';
-import OpenETHAppStep from './Steps/OpenETHAppStep';
-import SearchingForDeviceStep from './Steps/SearchingForDeviceStep';
+import { useEffect, useRef, useCallback } from 'react';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import {
-  BluetoothPermissionErrors,
-  LedgerCommunicationErrors,
-} from '../../../core/Ledger/ledgerErrors';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
-
-const createStyles = (colors: Colors) =>
-  StyleSheet.create({
-    wrapper: {
-      backgroundColor: colors.background.default,
-      borderTopLeftRadius: 10,
-      borderTopRightRadius: 10,
-      height: 450,
-    },
-    contentWrapper: {
-      flex: 1,
-      alignItems: 'center',
-      marginTop: 35,
-    },
-  });
+import {
+  useHardwareWalletActions,
+  isUserCancellation,
+} from '../../../core/HardwareWallet';
 
 export interface LedgerConfirmationModalProps {
   onConfirmation: () => Promise<void>;
   onRejection: () => void;
   deviceId: string;
+  /** The type of operation - affects the "Awaiting confirmation" UI text */
+  operationType?: 'transaction' | 'message';
 }
 
 const LedgerConfirmationModal = ({
   onConfirmation,
   onRejection,
   deviceId,
+  operationType = 'transaction',
 }: LedgerConfirmationModalProps) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
-  const styles = useMemo(() => createStyles(colors), [colors]);
   const { trackEvent, createEventBuilder } = useMetrics();
-  const [delayClose, setDelayClose] = useState(false);
-  const [completeClose, setCompleteClose] = useState(false);
-  const [permissionErrorShown, setPermissionErrorShown] = useState(false);
-  const {
-    isSendingLedgerCommands,
-    isAppLaunchConfirmationNeeded,
-    ledgerLogicToRun,
-    error: ledgerError,
-  } = useLedgerBluetooth(deviceId);
-  const [errorDetails, setErrorDetails] = useState<{
-    title: string;
-    subtitle: string;
-  }>();
+  const hasStartedRef = useRef(false);
 
   const {
-    hasBluetoothPermissions,
-    bluetoothPermissionError,
-    checkPermissions,
-  } = useBluetoothPermissions();
-  const { bluetoothOn, bluetoothConnectionError } = useBluetooth(
-    hasBluetoothPermissions,
-  );
+    ensureDeviceReady,
+    showAwaitingConfirmation,
+    hideAwaitingConfirmation,
+    showHardwareWalletError,
+  } = useHardwareWalletActions();
 
-  const connectLedger = () => {
-    try {
-      ledgerLogicToRun(async () => {
-        await onConfirmation();
-      });
-    } catch (_e) {
-      // Handle a super edge case of the user starting a transaction with the device connected
-      // After arriving to confirmation the ETH app is not installed anymore this causes a crash.
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
-          .addProperties({
-            device_type: HardwareDeviceTypes.LEDGER,
-            error: 'LEDGER_ETH_APP_NOT_INSTALLED',
-          })
-          .build(),
-      );
-    }
-  };
-
-  // In case of manual rejection
-  const onReject = () => {
-    try {
-      onRejection();
-    } finally {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED)
-          .addProperties({
-            device_type: HardwareDeviceTypes.LEDGER,
-          })
-          .build(),
-      );
-    }
-  };
-
-  const onRetry = async () => {
-    setPermissionErrorShown(false);
-
-    if (!hasBluetoothPermissions) {
-      await checkPermissions();
-    }
-
-    if (hasBluetoothPermissions && bluetoothOn) {
-      connectLedger();
-    }
-  };
-
-  useEffect(() => {
-    hasBluetoothPermissions &&
-      bluetoothOn &&
-      !permissionErrorShown &&
-      connectLedger();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasBluetoothPermissions, bluetoothOn]);
-
-  useEffect(() => {
-    if (isSendingLedgerCommands && !delayClose && !completeClose) {
-      setDelayClose(true);
-      setTimeout(() => {
-        setDelayClose(false);
-        setCompleteClose(true);
-      }, 2000);
-    }
-  }, [completeClose, delayClose, isSendingLedgerCommands]);
-
-  useEffect(() => {
-    if (ledgerError) {
-      switch (ledgerError) {
-        case LedgerCommunicationErrors.FailedToOpenApp:
-          setErrorDetails({
-            title: strings('ledger.failed_to_open_eth_app'),
-            subtitle: strings('ledger.ethereum_app_open_error'),
-          });
-          break;
-        case LedgerCommunicationErrors.FailedToCloseApp:
-          setErrorDetails({
-            title: strings('ledger.running_app_close'),
-            subtitle: strings('ledger.running_app_close_error'),
-          });
-          break;
-        case LedgerCommunicationErrors.AppIsNotInstalled:
-          setErrorDetails({
-            title: strings('ledger.ethereum_app_not_installed'),
-            subtitle: strings('ledger.ethereum_app_not_installed_error'),
-          });
-          break;
-        case LedgerCommunicationErrors.LedgerIsLocked:
-          setErrorDetails({
-            title: strings('ledger.ledger_is_locked'),
-            subtitle: strings('ledger.unlock_ledger_message'),
-          });
-          break;
-        case LedgerCommunicationErrors.BlindSignError:
-          setErrorDetails({
-            title: strings('ledger.blind_sign_error'),
-            subtitle: strings('ledger.blind_sign_error_message'),
-          });
-          break;
-        case LedgerCommunicationErrors.UserRefusedConfirmation:
-          setErrorDetails({
-            title: strings('ledger.user_reject_transaction'),
-            subtitle: strings('ledger.user_reject_transaction_message'),
-          });
-          break;
-        case LedgerCommunicationErrors.LedgerHasPendingConfirmation:
-          setErrorDetails({
-            title: strings('ledger.ledger_pending_confirmation'),
-            subtitle: strings('ledger.ledger_pending_confirmation_error'),
-          });
-          break;
-        case LedgerCommunicationErrors.NotSupported:
-          setErrorDetails({
-            title: strings('ledger.not_supported'),
-            subtitle: strings('ledger.not_supported_error'),
-          });
-          break;
-        case LedgerCommunicationErrors.UnknownError:
-          setErrorDetails({
-            title: strings('ledger.unknown_error'),
-            subtitle: strings('ledger.unknown_error_message'),
-          });
-          break;
-        case LedgerCommunicationErrors.NonceTooLow:
-          setErrorDetails({
-            title: strings('ledger.nonce_too_low'),
-            subtitle: strings('ledger.nonce_too_low_error'),
-          });
-          break;
-        case LedgerCommunicationErrors.LedgerDisconnected:
-        default:
-          setErrorDetails({
-            title: strings('ledger.ledger_disconnected'),
-            subtitle: strings('ledger.ledger_disconnected_error'),
-          });
-          break;
-      }
-      if (ledgerError !== LedgerCommunicationErrors.UserRefusedConfirmation) {
+  // Track rejection for analytics
+  const handleRejection = useCallback(
+    (error?: unknown) => {
+      // Track analytics for non-user-initiated rejections
+      if (error && !isUserCancellation(error)) {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
             .addProperties({
               device_type: HardwareDeviceTypes.LEDGER,
-              error: `${ledgerError}`,
+              error: error instanceof Error ? error.message : String(error),
+            })
+            .build(),
+        );
+      } else if (!error) {
+        // User manually rejected (e.g., pressed reject on device)
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED)
+            .addProperties({
+              device_type: HardwareDeviceTypes.LEDGER,
             })
             .build(),
         );
       }
-    }
 
-    if (bluetoothPermissionError && !permissionErrorShown) {
-      switch (bluetoothPermissionError) {
-        case BluetoothPermissionErrors.LocationAccessBlocked:
-          setErrorDetails({
-            title: strings('ledger.location_access_blocked'),
-            subtitle: strings('ledger.location_access_blocked_error'),
-          });
-          break;
-        case BluetoothPermissionErrors.NearbyDevicesAccessBlocked:
-          setErrorDetails({
-            title: strings('ledger.nearbyDevices_access_blocked'),
-            subtitle: strings('ledger.nearbyDevices_access_blocked_message'),
-          });
-          break;
-        case BluetoothPermissionErrors.BluetoothAccessBlocked:
-          setErrorDetails({
-            title: strings('ledger.bluetooth_access_blocked'),
-            subtitle: strings('ledger.bluetooth_access_blocked_message'),
-          });
-          break;
+      onRejection();
+    },
+    [onRejection, trackEvent, createEventBuilder],
+  );
+
+  // Main flow - runs once on mount
+  useEffect(() => {
+    // Prevent double execution
+    if (hasStartedRef.current) {
+      return;
+    }
+    hasStartedRef.current = true;
+
+    const runSigningFlow = async () => {
+      try {
+        const isReady = await ensureDeviceReady(deviceId);
+
+        if (!isReady) {
+          // User cancelled during connection or device not available
+          handleRejection();
+          return;
+        }
+
+        showAwaitingConfirmation(operationType, () => {
+          handleRejection();
+        });
+
+        try {
+          await onConfirmation();
+
+          hideAwaitingConfirmation();
+        } catch (signingError) {
+          hideAwaitingConfirmation();
+
+          // Don't show error UI for user cancellation on device
+          if (!isUserCancellation(signingError)) {
+            showHardwareWalletError(signingError);
+          }
+
+          handleRejection(signingError);
+        }
+      } catch (connectionError) {
+        if (!isUserCancellation(connectionError)) {
+          showHardwareWalletError(connectionError);
+        }
+        handleRejection(connectionError);
       }
-      setPermissionErrorShown(true);
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
-          .addProperties({
-            device_type: HardwareDeviceTypes.LEDGER,
-            error: 'LEDGER_BLUETOOTH_PERMISSION_ERR',
-          })
-          .build(),
-      );
-    }
+    };
 
-    if (bluetoothConnectionError) {
-      setErrorDetails({
-        title: strings('ledger.bluetooth_off'),
-        subtitle: strings('ledger.bluetooth_off_message'),
-      });
-
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
-          .addProperties({
-            device_type: HardwareDeviceTypes.LEDGER,
-            error: 'LEDGER_BLUETOOTH_CONNECTION_ERR',
-          })
-          .build(),
-      );
-    }
-
-    if (
-      !ledgerError &&
-      !bluetoothPermissionError &&
-      !bluetoothConnectionError &&
-      !permissionErrorShown
-    ) {
-      setErrorDetails(undefined);
-    }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    runSigningFlow();
   }, [
-    ledgerError,
-    bluetoothConnectionError,
-    bluetoothPermissionError,
-    permissionErrorShown,
+    deviceId,
+    operationType,
+    ensureDeviceReady,
+    showAwaitingConfirmation,
+    hideAwaitingConfirmation,
+    showHardwareWalletError,
+    onConfirmation,
+    handleRejection,
   ]);
 
-  if (errorDetails) {
-    return (
-      <SafeAreaView style={styles.wrapper}>
-        <View style={styles.contentWrapper}>
-          <ErrorStep
-            onReject={onReject}
-            onRetry={onRetry}
-            title={errorDetails?.title}
-            subTitle={errorDetails?.subtitle}
-            showViewSettings={
-              permissionErrorShown ||
-              !!bluetoothConnectionError ||
-              !!bluetoothPermissionError
-            }
-            isRetryHide={
-              ledgerError === LedgerCommunicationErrors.UnknownError ||
-              ledgerError === LedgerCommunicationErrors.NonceTooLow ||
-              ledgerError === LedgerCommunicationErrors.NotSupported ||
-              ledgerError === LedgerCommunicationErrors.BlindSignError ||
-              ledgerError === LedgerCommunicationErrors.UserRefusedConfirmation
-            }
-          />
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (!isSendingLedgerCommands || !completeClose) {
-    return (
-      <SafeAreaView style={styles.wrapper}>
-        <View style={styles.contentWrapper}>
-          <SearchingForDeviceStep />
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (isAppLaunchConfirmationNeeded) {
-    return (
-      <SafeAreaView style={styles.wrapper}>
-        <View style={styles.contentWrapper}>
-          <OpenETHAppStep onReject={onReject} />
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  return (
-    <SafeAreaView style={styles.wrapper}>
-      <View style={styles.contentWrapper}>
-        <ConfirmationStep onReject={onReject} />
-      </View>
-    </SafeAreaView>
-  );
+  // This component renders nothing - all UI is handled by HardwareWalletBottomSheet
+  return null;
 };
 
-export default React.memo(LedgerConfirmationModal);
+export default LedgerConfirmationModal;

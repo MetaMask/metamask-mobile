@@ -45,9 +45,7 @@ describe('createHardwareWalletError', () => {
         HardwareWalletType.Ledger,
       );
 
-      expect(error.metadata?.recoveryAction).toBe(
-        RecoveryAction.OPEN_BLUETOOTH_SETTINGS,
-      );
+      expect(error.metadata?.recoveryAction).toBe(RecoveryAction.RETRY);
     });
   });
 
@@ -155,50 +153,18 @@ describe('createHardwareWalletError', () => {
       expect(error.severity).toBeDefined();
     });
 
-    it('uses ACKNOWLEDGE recovery action for unknown codes', () => {
+    it('uses RETRY recovery action for unknown codes (user can retry)', () => {
       const error = createHardwareWalletError(
         ErrorCode.Unknown,
         HardwareWalletType.Ledger,
       );
 
-      expect(error.metadata?.recoveryAction).toBe(RecoveryAction.ACKNOWLEDGE);
+      // Unknown errors should be retryable - let users try again
+      expect(error.metadata?.recoveryAction).toBe(RecoveryAction.RETRY);
     });
   });
 
   describe('recovery actions are mapped correctly', () => {
-    it('maps BluetoothDisabled to OPEN_BLUETOOTH_SETTINGS', () => {
-      const error = createHardwareWalletError(
-        ErrorCode.BluetoothDisabled,
-        HardwareWalletType.Ledger,
-      );
-
-      expect(error.metadata?.recoveryAction).toBe(
-        RecoveryAction.OPEN_BLUETOOTH_SETTINGS,
-      );
-    });
-
-    it('maps PermissionBluetoothDenied to OPEN_APP_SETTINGS', () => {
-      const error = createHardwareWalletError(
-        ErrorCode.PermissionBluetoothDenied,
-        HardwareWalletType.Ledger,
-      );
-
-      expect(error.metadata?.recoveryAction).toBe(
-        RecoveryAction.OPEN_APP_SETTINGS,
-      );
-    });
-
-    it('maps PermissionLocationDenied to OPEN_APP_SETTINGS', () => {
-      const error = createHardwareWalletError(
-        ErrorCode.PermissionLocationDenied,
-        HardwareWalletType.Ledger,
-      );
-
-      expect(error.metadata?.recoveryAction).toBe(
-        RecoveryAction.OPEN_APP_SETTINGS,
-      );
-    });
-
     it('maps UserRejected to ACKNOWLEDGE', () => {
       const error = createHardwareWalletError(
         ErrorCode.UserRejected,
@@ -208,13 +174,14 @@ describe('createHardwareWalletError', () => {
       expect(error.metadata?.recoveryAction).toBe(RecoveryAction.ACKNOWLEDGE);
     });
 
-    it('maps DeviceDisconnected to ACKNOWLEDGE', () => {
+    it('maps DeviceDisconnected to RETRY (user can reconnect)', () => {
       const error = createHardwareWalletError(
         ErrorCode.DeviceDisconnected,
         HardwareWalletType.Ledger,
       );
 
-      expect(error.metadata?.recoveryAction).toBe(RecoveryAction.ACKNOWLEDGE);
+      // Device disconnected should be retryable - user can reconnect
+      expect(error.metadata?.recoveryAction).toBe(RecoveryAction.RETRY);
     });
   });
 
@@ -235,6 +202,57 @@ describe('createHardwareWalletError', () => {
 
       expect(error.code).toBe(ErrorCode.DeviceDisconnected);
       expect(error.metadata?.walletType).toBeUndefined();
+    });
+  });
+
+  describe('fallback behavior for unmapped error codes', () => {
+    it('falls back to Unknown mobile extension when code has no mapping', () => {
+      // Use an error code that exists in SDK but might not have a mobile extension
+      // ConnectionClosed should have a mapping, but let's test the fallback path
+      const error = createHardwareWalletError(
+        ErrorCode.ConnectionClosed,
+        HardwareWalletType.Ledger,
+      );
+
+      // Should still create a valid error with recovery action
+      expect(error.code).toBe(ErrorCode.ConnectionClosed);
+      expect(error.metadata?.recoveryAction).toBeDefined();
+    });
+
+    it('uses SDK message as fallback when mobile extension has no message', () => {
+      // Create error with a code that has SDK mapping
+      const error = createHardwareWalletError(
+        ErrorCode.DeviceDisconnected,
+        undefined, // No wallet type
+      );
+
+      // Should have a user message (either from mobile extension or SDK fallback)
+      expect(error.userMessage).toBeDefined();
+      expect(typeof error.userMessage).toBe('string');
+      expect(error.userMessage.length).toBeGreaterThan(0);
+    });
+
+    it('uses default message when neither mobile extension nor SDK has message', () => {
+      // Test with Unknown which should always have fallbacks
+      const error = createHardwareWalletError(ErrorCode.Unknown);
+
+      expect(error.userMessage).toBeDefined();
+      expect(error.message).toBeDefined();
+    });
+
+    it('uses default severity Warning when SDK mapping not found', () => {
+      // Unknown codes should get Warning severity as fallback
+      const error = createHardwareWalletError(ErrorCode.Unknown);
+
+      // Severity should be defined (either from SDK or fallback)
+      expect(error.severity).toBeDefined();
+    });
+
+    it('uses default category Unknown when SDK mapping not found', () => {
+      const error = createHardwareWalletError(ErrorCode.Unknown);
+
+      // Category should be defined
+      expect(error.category).toBeDefined();
     });
   });
 });

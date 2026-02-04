@@ -9,6 +9,7 @@ export {
   getIconForErrorCode,
   getIconColorForErrorCode,
   getTitleForErrorCode,
+  getRecoveryActionForErrorCode,
 } from './helpers';
 
 export { parseErrorByType } from './parser';

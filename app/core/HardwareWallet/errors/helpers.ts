@@ -12,6 +12,7 @@ import {
 } from '../../../component-library/components/Icons/Icon';
 import { HardwareWalletType } from '../helpers';
 import { MOBILE_ERROR_EXTENSIONS } from './mappings';
+import { RecoveryAction } from './types';
 
 /**
  * Check if an error is a HardwareWalletError
@@ -73,4 +74,17 @@ export function getTitleForErrorCode(
     ext?.getLocalizedTitle(walletType) ??
     strings('hardware_wallet.error.something_went_wrong')
   );
+}
+
+/**
+ * Get the recovery action for a hardware wallet error code
+ *
+ * @param errorCode - The error code
+ * @returns The recovery action
+ */
+export function getRecoveryActionForErrorCode(
+  errorCode: ErrorCode,
+): RecoveryAction {
+  const ext = MOBILE_ERROR_EXTENSIONS[errorCode];
+  return ext?.recoveryAction ?? RecoveryAction.RETRY;
 }
