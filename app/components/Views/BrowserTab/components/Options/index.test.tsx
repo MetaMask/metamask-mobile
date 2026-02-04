@@ -24,7 +24,6 @@ describe('Options', () => {
     onNewTabPress: jest.fn(),
     toggleOptionsIfNeeded: jest.fn(),
     activeUrl: 'https://test.com',
-    isHomepage: jest.fn(() => false),
     getMaskedUrl: jest.fn(),
     onSubmitEditing: jest.fn(),
     title: { current: 'Test Title' },

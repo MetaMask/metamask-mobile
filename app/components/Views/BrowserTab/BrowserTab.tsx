@@ -23,7 +23,6 @@ import {
   trustedProtocolToDeeplink,
   getAlertMessage,
   allowLinkOpen,
-  getUrlObj,
 } from '../../../util/browser';
 import {
   SPA_urlChangeListener,
@@ -65,15 +64,12 @@ import useFavicon from '../../hooks/useFavicon/useFavicon';
 import {
   HOMEPAGE_HOST,
   IPFS_GATEWAY_DISABLED_ERROR,
-  OLD_HOMEPAGE_URL_HOST,
   NOTIFICATION_NAMES,
-  MM_MIXPANEL_TOKEN,
 } from './constants';
 import GestureWebViewWrapper from './GestureWebViewWrapper';
 import { regex } from '../../../../app/util/regex';
 import { selectEvmChainId } from '../../../selectors/networkController';
 import { BrowserViewSelectorsIDs } from './BrowserView.testIds';
-import { useMetrics } from '../../../components/hooks/useMetrics';
 import { trackDappViewedEvent } from '../../../util/metrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
@@ -138,7 +134,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     linkType,
     updateTabInfo,
     addToBrowserHistory,
-    bookmarks,
     initialUrl,
     ipfsGateway,
     newTab,
@@ -203,7 +198,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       onDisconnect: () => void;
       onMessage: (message: Record<string, unknown>) => void;
     }>();
-    const fromHomepage = useRef(false);
     const searchEngine = useSelector(selectSearchEngine);
     const isAssetsTrendingTokensEnabled = useSelector(
       selectAssetsTrendingTokensEnabled,
@@ -241,7 +235,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     );
 
     const { faviconURI: favicon } = useFavicon(resolvedUrlRef.current);
-    const { isEnabled, getMetaMetricsId } = useMetrics();
+
     /**
      * Is the current tab the active tab
      */
@@ -255,18 +249,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const whitelist = useSelector(
       (state: RootState) => state.browser.whitelist,
     );
-
-    /**
-     * Checks if a given url or the current url is the homepage
-     */
-    const isHomepage = useCallback((checkUrl?: string | null) => {
-      const currentPage = checkUrl || resolvedUrlRef.current;
-      const prefixedUrl = prefixUrlWithProtocol(currentPage);
-      const { host: currentHost } = getUrlObj(prefixedUrl);
-      return (
-        currentHost === HOMEPAGE_HOST || currentHost === OLD_HOMEPAGE_URL_HOST
-      );
-    }, []);
 
     const notifyAllConnections = useCallback((payload: unknown) => {
       backgroundBridgeRef.current?.sendNotificationEip1193(payload);
@@ -588,36 +570,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     }, [goBack, isTabActive, navigation]);
 
     /**
-     * Inject home page scripts to get the favourites and set analytics key
-     */
-    const injectHomePageScripts = useCallback(
-      async (injectedBookmarks?: string[]) => {
-        const { current } = webviewRef;
-        const analyticsEnabled = isEnabled();
-        const disctinctId = await getMetaMetricsId();
-        const homepageScripts = `
-              window.__mmFavorites = ${JSON.stringify(
-                injectedBookmarks || bookmarks,
-              )};
-              window.__mmSearchEngine = "${searchEngine}";
-              window.__mmMetametrics = ${analyticsEnabled};
-              window.__mmDistinctId = "${disctinctId}";
-              window.__mmMixpanelToken = "${MM_MIXPANEL_TOKEN}";
-              (function () {
-                  try {
-                      window.dispatchEvent(new Event('metamask_onHomepageScriptsInjected'));
-                  } catch (e) {
-                      //Nothing to do
-                  }
-              })()
-          `;
-
-        current?.injectJavaScript(homepageScripts);
-      },
-      [isEnabled, getMetaMetricsId, bookmarks, searchEngine],
-    );
-
-    /**
      * Handles error for example, ssl certificate error or cannot open page
      */
     const handleError = useCallback(
@@ -923,10 +875,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       [checkIFrameUrls, scrollY],
     );
 
-    const toggleUrlModal = useCallback(() => {
-      urlBarRef.current?.focus();
-    }, []);
-
     const initializeBackgroundBridge = useCallback(
       (urlBridge: string, isMainFrame: boolean) => {
         // First disconnect and reset bridge
@@ -950,13 +898,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
               url: resolvedUrlRef,
               title: titleRef,
               icon: iconRef,
-              // Bookmarks
-              isHomepage,
-              // Show autocomplete
-              fromHomepage,
-              toggleUrlModal,
               tabId,
-              injectHomePageScripts,
               // TODO: This properties were missing, and were not optional
               isWalletConnect: false,
               isMMSDK: false,
@@ -966,7 +908,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         });
         backgroundBridgeRef.current = newBridge;
       },
-      [navigation, isHomepage, toggleUrlModal, tabId, injectHomePageScripts],
+      [navigation, tabId],
     );
 
     const sendActiveAccount = useCallback(
@@ -1047,9 +989,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         sendActiveAccount(nativeEvent.url);
 
         iconRef.current = undefined;
-        if (isHomepage(nativeEvent.url)) {
-          injectHomePageScripts();
-        }
 
         initializeBackgroundBridge(urlOrigin, true);
       },
@@ -1057,8 +996,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         isAllowedOrigin,
         handleNotAllowedUrl,
         sendActiveAccount,
-        isHomepage,
-        injectHomePageScripts,
         initializeBackgroundBridge,
       ],
     );
@@ -1592,7 +1529,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 );
 
 const mapStateToProps = (state: RootState) => ({
-  bookmarks: state.bookmarks,
   ipfsGateway: selectIpfsGateway(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),

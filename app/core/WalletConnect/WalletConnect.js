@@ -404,14 +404,10 @@ class WalletConnect {
           url: this.url,
           title: this.title,
           icon: this.icon,
-          // Bookmarks
-          isHomepage: false,
-          // Show autocomplete
-          fromHomepage: false,
-          toggleUrlModal: () => null,
-
           tabId: false,
           isWalletConnect: true,
+          isMMSDK: false,
+          analytics: {},
         }),
       isMainFrame: true,
     });
