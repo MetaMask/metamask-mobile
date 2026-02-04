@@ -17,7 +17,7 @@ import { useMusdConversionTokens } from '../../../../../UI/Earn/hooks/useMusdCon
 import { HIDE_NETWORK_FILTER_TYPES } from '../../../constants/confirmations';
 import { useMusdPaymentToken } from '../../../../../UI/Earn/hooks/useMusdPaymentToken';
 import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
-import { usePerpsPaymentToken } from '../../../../../UI/Perps/contexts/PerpsPaymentTokenContext';
+import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 
 export function PayWithModal() {
   const transactionMeta = useTransactionMetadataRequest();

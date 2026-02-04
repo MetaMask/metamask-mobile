@@ -5,12 +5,12 @@ import type { SelectedPaymentTokenSnapshot } from '../controllers/PerpsControlle
 import { selectPerpsSelectedPaymentToken } from '../selectors/perpsController';
 import Engine from '../../../../core/Engine';
 
-export interface PerpsPaymentTokenContextType {
+export interface UsePerpsPaymentTokenResult {
   selectedToken: SelectedPaymentTokenSnapshot | null;
   onPaymentTokenChange: (token: AssetType | null) => void;
 }
 
-export function usePerpsPaymentToken(): PerpsPaymentTokenContextType {
+export function usePerpsPaymentToken(): UsePerpsPaymentTokenResult {
   const selectedTokenRaw = useSelector(selectPerpsSelectedPaymentToken);
   const selectedToken = selectedTokenRaw as SelectedPaymentTokenSnapshot | null;
   const onPaymentTokenChange = useCallback((token: AssetType | null) => {
