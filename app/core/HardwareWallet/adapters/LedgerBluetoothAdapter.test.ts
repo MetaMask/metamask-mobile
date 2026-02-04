@@ -14,11 +14,25 @@ const mockTransportInstance = {
   close: jest.fn().mockResolvedValue(undefined),
 };
 
+// Capture the BLE state observer so tests can trigger state changes
+let capturedBleStateObserver: {
+  next?: (event: { type: string; available: boolean }) => void;
+  error?: (error: Error) => void;
+  complete?: () => void;
+} | null = null;
+
 jest.mock('@ledgerhq/react-native-hw-transport-ble', () => ({
   __esModule: true,
   default: {
     open: jest.fn(),
-    observeState: jest.fn(() => mockBleStateSubscription),
+    observeState: jest.fn((observer) => {
+      capturedBleStateObserver = observer;
+      // Immediately trigger with PoweredOn state for most tests
+      if (observer.next) {
+        observer.next({ type: 'PoweredOn', available: true });
+      }
+      return mockBleStateSubscription;
+    }),
     listen: jest.fn(() => mockListenSubscription),
   },
 }));
@@ -358,10 +372,26 @@ describe('LedgerBluetoothAdapter', () => {
 
   describe('isTransportAvailable', () => {
     it('should return current Bluetooth state', async () => {
-      // Default state should be false (BLE monitoring starts but hasn't fired)
+      // Mock fires with PoweredOn immediately, so should return true
       const result = await adapter.isTransportAvailable();
 
-      expect(typeof result).toBe('boolean');
+      expect(result).toBe(true);
+    });
+
+    it('should return false when Bluetooth is off', async () => {
+      // Create a new adapter and manually trigger PoweredOff state
+      const newAdapter = new LedgerBluetoothAdapter(mockOptions);
+
+      // The mock triggers PoweredOn by default, but we can check the behavior
+      // by verifying the adapter responds to state changes
+      if (capturedBleStateObserver?.next) {
+        capturedBleStateObserver.next({ type: 'PoweredOff', available: false });
+      }
+
+      const result = await newAdapter.isTransportAvailable();
+      expect(result).toBe(false);
+
+      newAdapter.destroy();
     });
   });
 

@@ -66,6 +66,12 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
   // ============ BLE State Management ============
   /** Current Bluetooth enabled state */
   private isBluetoothOn = false;
+  /** Whether we've received the initial BLE state from the observer */
+  private hasReceivedInitialBleState = false;
+  /** Promise that resolves when initial BLE state is received */
+  private initialBleStatePromise: Promise<void>;
+  /** Resolver for the initial BLE state promise */
+  private resolveInitialBleState: (() => void) | null = null;
   /** Subscription for BLE state monitoring (Ledger returns its own subscription type) */
   private bleStateSubscription: { unsubscribe: () => void } | null = null;
   /** Subscription for BLE device scanning */
@@ -78,6 +84,10 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
 
   constructor(options: HardwareWalletAdapterOptions) {
     this.options = options;
+    // Create promise for initial BLE state
+    this.initialBleStatePromise = new Promise((resolve) => {
+      this.resolveInitialBleState = resolve;
+    });
     // Start monitoring Bluetooth state immediately
     this.startBluetoothMonitoring();
   }
@@ -324,9 +334,19 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
   }
 
   /**
-   * Check if Bluetooth is available
+   * Check if Bluetooth is available.
+   * Waits for the initial BLE state if it hasn't been received yet.
    */
   async isTransportAvailable(): Promise<boolean> {
+    // Wait for initial BLE state if not yet received
+    if (!this.hasReceivedInitialBleState) {
+      console.log('[LedgerBluetoothAdapter] Waiting for initial BLE state...');
+      await this.initialBleStatePromise;
+      console.log(
+        '[LedgerBluetoothAdapter] Initial BLE state received:',
+        this.isBluetoothOn,
+      );
+    }
     return this.isBluetoothOn;
   }
 
@@ -682,6 +702,8 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
     this.bleStateSubscription = TransportBLE.observeState({
       next: (event) => {
         const wasOn = this.isBluetoothOn;
+        const isFirstState = !this.hasReceivedInitialBleState;
+
         // Compare as string to avoid BleState type issues
         this.isBluetoothOn =
           event.available && event.type === BleState.PoweredOn;
@@ -695,14 +717,33 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
           this.isBluetoothOn,
         );
 
-        // Notify listeners if state changed
-        if (wasOn !== this.isBluetoothOn) {
+        // Resolve initial state promise on first update
+        if (isFirstState) {
+          this.hasReceivedInitialBleState = true;
+          if (this.resolveInitialBleState) {
+            this.resolveInitialBleState();
+            this.resolveInitialBleState = null;
+          }
+        }
+
+        // Notify listeners if state changed (or on first state)
+        if (wasOn !== this.isBluetoothOn || isFirstState) {
           this.notifyTransportStateChange();
         }
       },
       error: (error: Error) => {
         console.error('[LedgerBluetoothAdapter] BLE state error:', error);
         this.isBluetoothOn = false;
+
+        // Also resolve initial state promise on error
+        if (!this.hasReceivedInitialBleState) {
+          this.hasReceivedInitialBleState = true;
+          if (this.resolveInitialBleState) {
+            this.resolveInitialBleState();
+            this.resolveInitialBleState = null;
+          }
+        }
+
         this.notifyTransportStateChange();
       },
       complete: () => {

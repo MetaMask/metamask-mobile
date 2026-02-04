@@ -714,15 +714,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       // Reset flow complete flag so errors can be shown for this new flow
       flowCompleteRef.current = false;
 
-      // Reset adapter flow state so errors can be shown
-      const adapter = refs.adapterRef.current;
-      if (adapter?.resetFlowState) {
-        adapter.resetFlowState();
-      }
-
       // Wallet type is derived from current account or previously set via setTargetWalletType
-      // effectiveWalletType = targetWalletType ?? walletType (from account)
-      // This matches extension's pattern where wallet type comes from account, not parameters
       const targetWalletType = effectiveWalletType ?? HardwareWalletType.Ledger;
 
       // If targetDeviceId is explicitly provided, use it
@@ -730,9 +722,81 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       const shouldStartFresh = targetDeviceId === undefined;
       const deviceIdToUse = shouldStartFresh ? undefined : targetDeviceId;
 
-      // Create the promise that will be resolved when:
-      // - Success: device is ready, success screen dismissed
-      // - Cancel: user swipes down to dismiss
+      // Ensure we have the correct adapter type BEFORE any checks
+      // The existing adapter might be NonHardwareAdapter if effectiveWalletType was null
+      const existingAdapter = refs.adapterRef.current;
+      const needsNewAdapter =
+        !existingAdapter || existingAdapter.walletType !== targetWalletType;
+
+      const adapter = needsNewAdapter
+        ? (() => {
+            console.log(
+              '[HardwareWalletProvider] Creating adapter for:',
+              targetWalletType,
+              '(existing was:',
+              existingAdapter?.walletType,
+              ')',
+            );
+            const newAdapter = createAdapter(targetWalletType, {
+              onDisconnect: (error) => {
+                if (error) {
+                  handleError(error);
+                } else {
+                  updateConnectionState(ConnectionState.disconnected());
+                }
+              },
+              onDeviceEvent: handleDeviceEvent,
+            });
+            refs.adapterRef.current = newAdapter;
+            return newAdapter;
+          })()
+        : existingAdapter;
+
+      // Reset adapter flow state so errors can be shown
+      if (adapter.resetFlowState) {
+        adapter.resetFlowState();
+      }
+
+      // Track operation for retry BEFORE any checks
+      lastOperationRef.current = {
+        type: 'ensureReady',
+        deviceId: deviceIdToUse,
+      };
+
+      // Check Bluetooth availability BEFORE proceeding (await it!)
+      console.log(
+        '[HardwareWalletProvider] Checking Bluetooth availability...',
+      );
+      const isBluetoothOn = await adapter.isTransportAvailable();
+      console.log(
+        '[HardwareWalletProvider] Bluetooth available:',
+        isBluetoothOn,
+      );
+
+      if (!isBluetoothOn) {
+        console.log(
+          '[HardwareWalletProvider] Bluetooth is OFF - showing error immediately',
+        );
+        const btError = createHardwareWalletError(
+          ErrorCode.BluetoothDisabled,
+          targetWalletType,
+        );
+        updateConnectionState(ConnectionState.error(btError));
+
+        // Return a promise that waits for retry or cancel
+        // Don't resolve with false - that would trigger "user cancelled" in caller
+        return new Promise<boolean>((resolve) => {
+          pendingReadyResolveRef.current = resolve;
+          connectionSuccessCallbackRef.current = () => {
+            if (pendingReadyResolveRef.current === resolve) {
+              pendingReadyResolveRef.current = null;
+              resolve(true);
+            }
+          };
+        });
+      }
+
+      // Bluetooth is ON - proceed with the normal flow
       return new Promise<boolean>((resolve) => {
         pendingReadyResolveRef.current = resolve;
 
@@ -752,48 +816,16 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
           console.log(
             '[HardwareWalletProvider] No device ID - starting device selection',
           );
-
-          // Note: We don't check isTransportAvailable here because the state may be stale.
-          // The scanning effect will call adapter.startDeviceDiscovery which handles
-          // BLE availability internally. If BLE is unavailable, the error callback
-          // will transition to error state.
-
-          // Start scanning - user will select device, then connect() continues the flow
           updateConnectionState(ConnectionState.scanning());
           return;
         }
 
-        // Have device ID - check if we have an adapter
+        // Have device ID - proceed with connection
         console.log(
           '[HardwareWalletProvider] Have device ID, checking readiness...',
         );
 
-        let adapter = refs.adapterRef.current;
-
-        // If no adapter exists yet, create one
-        if (!adapter) {
-          console.log(
-            '[HardwareWalletProvider] No adapter - creating one for:',
-            targetWalletType,
-          );
-          adapter = createAdapter(targetWalletType, {
-            onDisconnect: (error) => {
-              if (error) {
-                handleError(error);
-              } else {
-                updateConnectionState(ConnectionState.disconnected());
-              }
-            },
-            onDeviceEvent: handleDeviceEvent,
-          });
-          refs.adapterRef.current = adapter;
-        }
-
         updateConnectionState(ConnectionState.connecting());
-        lastOperationRef.current = {
-          type: 'ensureReady',
-          deviceId: deviceIdToUse,
-        };
 
         // Do the readiness check
         (async () => {
@@ -811,9 +843,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
 
             if (isReady) {
               // Success! Set success state
-              if (adapter.markFlowComplete) {
-                adapter.markFlowComplete();
-              }
+              adapter.markFlowComplete();
               updateConnectionState(ConnectionState.success(deviceIdToUse));
               // Promise will be resolved when success screen dismisses (via callback)
             }
@@ -900,7 +930,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       adapter.resetFlowState();
     }
 
-    // Clear error state and show connecting UI immediately
+    // Clear error state
     clearErrorState();
 
     const lastOp = lastOperationRef.current;
@@ -908,30 +938,48 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       return;
     }
 
-    // Set connecting state BEFORE starting the operation
-    // This ensures the bottom sheet shows "Connecting..." instead of closing
-    updateConnectionState(ConnectionState.connecting());
+    // Check Bluetooth before retrying - fail fast with correct error
+    if (adapter) {
+      const isBluetoothOn = await adapter.isTransportAvailable();
+      if (!isBluetoothOn) {
+        console.log('[HardwareWalletProvider] Retry: Bluetooth is still OFF');
+        const btError = createHardwareWalletError(
+          ErrorCode.BluetoothDisabled,
+          effectiveWalletType ?? HardwareWalletType.Ledger,
+        );
+        updateConnectionState(ConnectionState.error(btError));
+        return;
+      }
+    }
 
-    // For ensureReady operations, we directly call the adapter instead of
-    // going through ensureDeviceReady() again - this avoids creating a new
-    // promise and losing the original caller's reference
-    if (lastOp.type === 'ensureReady' && lastOp.deviceId && adapter) {
-      try {
-        const isReady = await adapter.ensureDeviceReady(lastOp.deviceId);
-        if (isReady) {
-          // Success! Transition to Success state to show success screen
-          if (adapter.markFlowComplete) {
-            adapter.markFlowComplete();
+    // For ensureReady operations, handle both with and without deviceId
+    if (lastOp.type === 'ensureReady') {
+      if (lastOp.deviceId && adapter) {
+        // Have device ID → retry connection to that device (skip device selection)
+        updateConnectionState(ConnectionState.connecting());
+        try {
+          const isReady = await adapter.ensureDeviceReady(lastOp.deviceId);
+          if (isReady) {
+            // Success! Transition to Success state to show success screen
+            if (adapter.markFlowComplete) {
+              adapter.markFlowComplete();
+            }
+            updateConnectionState(ConnectionState.success(lastOp.deviceId));
+            // The promise will be resolved when success screen dismisses
+            // via connectionSuccessCallbackRef (already set up by ensureDeviceReady)
+            return;
           }
-          updateConnectionState(ConnectionState.success(lastOp.deviceId));
-          // The promise will be resolved when success screen dismisses
-          // via connectionSuccessCallbackRef (already set up by ensureDeviceReady)
-          return;
+          // Not ready (shouldn't happen if no error) - stay in error state for retry
+        } catch (error) {
+          // Error during retry - show error, user can retry again
+          handleError(error);
         }
-        // Not ready (shouldn't happen if no error) - stay in error state for retry
-      } catch (error) {
-        // Error during retry - show error, user can retry again
-        handleError(error);
+      } else {
+        // No device ID → restart from device selection (scanning)
+        console.log(
+          '[HardwareWalletProvider] Retry: No deviceId - restarting device selection',
+        );
+        updateConnectionState(ConnectionState.scanning());
       }
       return;
     }
@@ -946,7 +994,14 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       default:
         break;
     }
-  }, [connect, clearErrorState, handleError, updateConnectionState, refs]);
+  }, [
+    connect,
+    clearErrorState,
+    handleError,
+    updateConnectionState,
+    refs,
+    effectiveWalletType,
+  ]);
 
   /**
    * Request Bluetooth permissions
