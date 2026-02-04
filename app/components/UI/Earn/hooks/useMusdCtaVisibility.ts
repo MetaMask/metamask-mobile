@@ -17,10 +17,34 @@ import { isTokenInWildcardList } from '../utils/wildcardTokenList';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import { useMusdConversionFlowData } from './useMusdConversionFlowData';
 
+/**
+ * Variant for the primary mUSD CTA.
+ *
+ * Consumers should treat this as the source of truth for:
+ * - CTA label ("Buy mUSD" vs "Get mUSD")
+ * - CTA behavior (Ramp buy flow vs conversion flow)
+ */
 export enum BUY_GET_MUSD_CTA_VARIANT {
   BUY = 'buy',
   GET = 'get',
 }
+
+// Invariant: if `shouldShowCta === true`, then `variant !== null`.
+export type BuyGetMusdCtaState =
+  | {
+      shouldShowCta: false;
+      showNetworkIcon: false;
+      selectedChainId: null;
+      isEmptyWallet: boolean;
+      variant: null;
+    }
+  | {
+      shouldShowCta: true;
+      showNetworkIcon: boolean;
+      selectedChainId: Hex | null;
+      isEmptyWallet: boolean;
+      variant: BUY_GET_MUSD_CTA_VARIANT;
+    };
 
 /**
  * Hook exposing helpers that decide whether to show various mUSD-related CTAs.
@@ -34,7 +58,7 @@ export enum BUY_GET_MUSD_CTA_VARIANT {
  * wallet balance state, and the configured wildcard token list for conversion CTAs.
  *
  * @returns Object containing:
- * - shouldShowBuyGetMusdCta(): { shouldShowCta, showNetworkIcon, selectedChainId, isEmptyWallet }
+ * - shouldShowBuyGetMusdCta(): BuyGetMusdCtaState
  * - shouldShowTokenListItemCta(asset?): boolean
  * - shouldShowAssetOverviewCta(asset?): boolean
  */
@@ -96,15 +120,8 @@ export const useMusdCtaVisibility = () => {
     },
     [tokensWithCTAs],
   );
-  interface BuyGetMusdCtaState {
-    shouldShowCta: boolean;
-    showNetworkIcon: boolean;
-    selectedChainId: Hex | null;
-    isEmptyWallet: boolean;
-    variant: BUY_GET_MUSD_CTA_VARIANT | null;
-  }
   const shouldShowBuyMusdCta = useCallback((): BuyGetMusdCtaState => {
-    const hiddenResult = {
+    const hiddenResult: BuyGetMusdCtaState = {
       shouldShowCta: false,
       showNetworkIcon: false,
       selectedChainId: null,
@@ -128,8 +145,15 @@ export const useMusdCtaVisibility = () => {
     }
 
     if (isPopularNetworksFilterActive) {
+      const shouldShowCta =
+        isMusdBuyableOnAnyChain && !hasMusdBalanceOnAnyChain;
+
+      if (!shouldShowCta) {
+        return hiddenResult;
+      }
+
       return {
-        shouldShowCta: isMusdBuyableOnAnyChain && !hasMusdBalanceOnAnyChain,
+        shouldShowCta: true,
         showNetworkIcon: false,
         selectedChainId: null,
         isEmptyWallet,
@@ -174,7 +198,7 @@ export const useMusdCtaVisibility = () => {
   ]);
 
   const shouldShowGetMusdCta = useCallback((): BuyGetMusdCtaState => {
-    const hiddenResult = {
+    const hiddenResult: BuyGetMusdCtaState = {
       shouldShowCta: false,
       showNetworkIcon: false,
       selectedChainId: null,
@@ -255,7 +279,7 @@ export const useMusdCtaVisibility = () => {
    * Consumers should use the returned `variant` to determine CTA label + action.
    */
   const shouldShowBuyGetMusdCta = useCallback((): BuyGetMusdCtaState => {
-    const hiddenDefault = {
+    const hiddenDefault: BuyGetMusdCtaState = {
       shouldShowCta: false,
       showNetworkIcon: false,
       selectedChainId: null,
