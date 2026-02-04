@@ -9,7 +9,12 @@ import {
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
-import type { PriceUpdate, PerpsMarketData, Order } from '../controllers/types';
+import type {
+  PriceUpdate,
+  PerpsMarketData,
+  Order,
+  AccountState,
+} from '../controllers/types';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 
 jest.mock('../../../../core/Engine');
@@ -762,6 +767,36 @@ describe('PerpsStreamManager', () => {
       expect(cleanupPrewarmSpy).toHaveBeenCalled();
 
       cleanupPrewarmSpy.mockRestore();
+    });
+
+    it('returns early when account subscription callback receives null', async () => {
+      let accountCallback: ((account: AccountState | null) => void) | null =
+        null;
+      mockSubscribeToAccount.mockImplementation(
+        (params: { callback: (account: AccountState | null) => void }) => {
+          accountCallback = params.callback;
+          return jest.fn();
+        },
+      );
+
+      const subscriberCallback = jest.fn();
+      const unsubscribe = testStreamManager.account.subscribe({
+        callback: subscriberCallback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockSubscribeToAccount).toHaveBeenCalled();
+      });
+
+      act(() => {
+        accountCallback?.(null);
+      });
+
+      expect(subscriberCallback).not.toHaveBeenCalled();
+      expect(mockLogger.error).not.toHaveBeenCalled();
+
+      unsubscribe();
     });
 
     it('should reset all prewarm state when clearing price cache', async () => {

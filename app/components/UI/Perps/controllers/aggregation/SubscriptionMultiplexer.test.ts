@@ -20,7 +20,7 @@ interface MockProviderWithEmit extends jest.Mocked<Partial<PerpsProvider>> {
   _emitPositions: (positions: Position[]) => void;
   _emitOrders: (orders: Order[]) => void;
   _emitFills: (fills: OrderFill[], isSnapshot?: boolean) => void;
-  _emitAccount: (account: AccountState) => void;
+  _emitAccount: (account: AccountState | null) => void;
 }
 
 // Mock provider factory
@@ -30,7 +30,7 @@ const createMockProvider = (providerId: string): MockProviderWithEmit => {
   const orderCallbacks: ((orders: Order[]) => void)[] = [];
   const fillCallbacks: ((fills: OrderFill[], isSnapshot?: boolean) => void)[] =
     [];
-  const accountCallbacks: ((account: AccountState) => void)[] = [];
+  const accountCallbacks: ((account: AccountState | null) => void)[] = [];
 
   return {
     protocolId: providerId,
@@ -82,7 +82,7 @@ const createMockProvider = (providerId: string): MockProviderWithEmit => {
     _emitFills: (fills: OrderFill[], isSnapshot?: boolean) => {
       fillCallbacks.forEach((cb) => cb(fills, isSnapshot));
     },
-    _emitAccount: (account: AccountState) => {
+    _emitAccount: (account: AccountState | null) => {
       accountCallbacks.forEach((cb) => cb(account));
     },
   } as MockProviderWithEmit;
@@ -478,6 +478,28 @@ describe('SubscriptionMultiplexer', () => {
           providerId: 'myx',
         }),
       );
+    });
+
+    it('removes provider from cache and invokes callback when provider emits null', () => {
+      const callback = jest.fn();
+
+      mux.subscribeToAccount({
+        providers: [
+          ['hyperliquid', mockHLProvider as unknown as PerpsProvider],
+        ],
+        callback,
+      });
+
+      mockHLProvider._emitAccount(createMockAccount('10000'));
+      expect(callback).toHaveBeenLastCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({ providerId: 'hyperliquid' }),
+        ]),
+      );
+
+      mockHLProvider._emitAccount(null);
+
+      expect(callback).toHaveBeenLastCalledWith([]);
     });
   });
 
