@@ -1,0 +1,34 @@
+diff --git a/dist/TransactionController.cjs b/dist/TransactionController.cjs
+index 88203b572578477512d6c474149e05c3f0275f48..ec2f692a3fdf695c674f9489d140847d8c6fcedb 100644
+--- a/dist/TransactionController.cjs
++++ b/dist/TransactionController.cjs
+@@ -97,6 +97,12 @@ const metadata = {
+         includeInDebugSnapshot: false,
+         usedInUi: false,
+     },
++    swapsTransactions: {
++        includeInStateLogs: true,
++        persist: true,
++        includeInDebugSnapshot: false,
++        usedInUi: true,
++    },
+ };
+ /**
+  * Multiplier used to determine a transaction's increased gas fee during cancellation
+diff --git a/dist/TransactionController.mjs b/dist/TransactionController.mjs
+index 0ea5bf2c4f54d770e5891369f069af3e294db48d..984dba93e8d1f5682f4954db8492e101fa29dbf5 100644
+--- a/dist/TransactionController.mjs
++++ b/dist/TransactionController.mjs
+@@ -99,6 +99,12 @@ const metadata = {
+         includeInDebugSnapshot: false,
+         usedInUi: false,
+     },
++    swapsTransactions: {
++        includeInStateLogs: true,
++        persist: true,
++        includeInDebugSnapshot: false,
++        usedInUi: true,
++    },
+ };
+ /**
+  * Multiplier used to determine a transaction's increased gas fee during cancellation
