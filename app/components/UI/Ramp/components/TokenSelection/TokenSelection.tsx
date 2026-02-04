@@ -1,6 +1,7 @@
 import React, {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -8,7 +9,7 @@ import React, {
 import { ActivityIndicator } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { CaipChainId } from '@metamask/utils';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
@@ -28,6 +29,7 @@ import { useRampTokens, RampsToken } from '../../hooks/useRampTokens';
 import { useDepositCryptoCurrencyNetworkName } from '../../Deposit/hooks/useDepositCryptoCurrencyNetworkName';
 import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
 import { useRampsController } from '../../hooks/useRampsController';
+import { useRampsTokens } from '../../hooks/useRampsTokens';
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
 import { getDepositNavbarOptions } from '../../../Navbar';
@@ -53,7 +55,9 @@ function TokenSelection() {
   );
   const theme = useTheme();
   const navigation = useNavigation();
+  const route = useRoute();
   const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
+  const { setSelectedToken } = useRampsTokens();
 
   const {
     tokens: controllerTokens,
@@ -122,6 +126,32 @@ function TokenSelection() {
   const { goToBuy } = useRampNavigation();
   const isRampsUnifiedV2Enabled = useRampsUnifiedV2Enabled();
 
+  const openBuildQuoteWithAssetId = (route.params as { openBuildQuoteWithAssetId?: string } | undefined)?.openBuildQuoteWithAssetId;
+  const lastHandledOpenBuildQuoteRef = useRef<string | null>(null);
+
+  useLayoutEffect(() => {
+    if (!openBuildQuoteWithAssetId || !isRampsUnifiedV2Enabled) return;
+    if (lastHandledOpenBuildQuoteRef.current === openBuildQuoteWithAssetId)
+      return;
+    lastHandledOpenBuildQuoteRef.current = openBuildQuoteWithAssetId;
+    setSelectedToken(openBuildQuoteWithAssetId);
+    navigation.reset({
+      index: 1,
+      routes: [
+        {
+          name: Routes.RAMP.TOKEN_SELECTION,
+          params: { openBuildQuoteWithAssetId: undefined },
+        },
+        { name: Routes.RAMP.AMOUNT_INPUT, params: {} },
+      ],
+    });
+  }, [
+    openBuildQuoteWithAssetId,
+    isRampsUnifiedV2Enabled,
+    setSelectedToken,
+    navigation,
+  ]);
+
   const handleSelectAssetIdCallback = useCallback(
     (assetId: string) => {
       const selectedToken = supportedTokens.find(
@@ -144,12 +174,13 @@ function TokenSelection() {
           ramp_routing: rampRoutingDecision ?? undefined,
         });
       }
-      // V1 flow: close the modal before navigating to Deposit/Aggregator
-      // V2 flow: navigate within the same stack, no need to close modal
       if (!isRampsUnifiedV2Enabled) {
         navigation.dangerouslyGetParent()?.goBack();
+        goToBuy({ assetId });
+      } else {
+        setSelectedToken(assetId);
+        navigation.navigate(Routes.RAMP.AMOUNT_INPUT);
       }
-      goToBuy({ assetId });
     },
     [
       supportedTokens,
@@ -160,6 +191,7 @@ function TokenSelection() {
       isRampsUnifiedV2Enabled,
       navigation,
       goToBuy,
+      setSelectedToken,
     ],
   );
 

@@ -18,7 +18,11 @@ const clearStackNavigatorOptions = {
   animationEnabled: false,
 };
 
-const MainRoutes = () => (
+const MainRoutes = ({
+  route,
+}: {
+  route?: { params?: { openBuildQuoteWithAssetId?: string } };
+}) => (
   <Stack.Navigator
     initialRouteName={Routes.RAMP.TOKEN_SELECTION}
     headerMode="screen"
@@ -26,6 +30,7 @@ const MainRoutes = () => (
     <Stack.Screen
       name={Routes.RAMP.TOKEN_SELECTION}
       component={TokenSelection}
+      initialParams={route?.params}
     />
     <Stack.Screen name={Routes.RAMP.AMOUNT_INPUT} component={BuildQuote} />
   </Stack.Navigator>

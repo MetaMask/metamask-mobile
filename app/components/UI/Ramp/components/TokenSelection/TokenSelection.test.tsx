@@ -9,9 +9,13 @@ import { MOCK_CRYPTOCURRENCIES } from '../../Deposit/testUtils';
 import { UnifiedRampRoutingType } from '../../../../../reducers/fiatOrders/types';
 import { useRampTokens } from '../../hooks/useRampTokens';
 import { useRampsController } from '../../hooks/useRampsController';
+import { useRampsTokens } from '../../hooks/useRampsTokens';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
+const mockSetParams = jest.fn();
+const mockReset = jest.fn();
 const mockGoBack = jest.fn();
 const mockParentGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -19,6 +23,8 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
     setOptions: mockSetOptions,
+    setParams: mockSetParams,
+    reset: mockReset,
     goBack: mockGoBack,
     dangerouslyGetParent: () => ({
       goBack: mockParentGoBack,
@@ -35,6 +41,7 @@ interface CustomTestState {
 function renderWithProvider(
   component: React.ComponentType,
   customState?: CustomTestState,
+  initialParams?: Record<string, unknown>,
 ) {
   return renderScreen(
     component,
@@ -53,6 +60,7 @@ function renderWithProvider(
         },
       },
     },
+    initialParams ?? {},
   );
 }
 
@@ -78,6 +86,17 @@ jest.mock('../../hooks/useRampTokens', () => ({
 
 jest.mock('../../hooks/useRampsController', () => ({
   useRampsController: jest.fn(),
+}));
+
+const mockSetSelectedToken = jest.fn();
+jest.mock('../../hooks/useRampsTokens', () => ({
+  useRampsTokens: () => ({
+    tokens: null,
+    selectedToken: null,
+    setSelectedToken: mockSetSelectedToken,
+    isLoading: false,
+    error: null,
+  }),
 }));
 
 const mockTrackEvent = jest.fn();
@@ -234,7 +253,7 @@ describe('TokenSelection Component', () => {
     });
   });
 
-  it('calls goToBuy without closing modal when token is pressed (V2 flow)', () => {
+  it('calls setSelectedToken and navigates to BuildQuote when token is pressed (V2 flow)', () => {
     mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
     const { getByTestId } = renderWithProvider(TokenSelection);
 
@@ -242,8 +261,31 @@ describe('TokenSelection Component', () => {
     fireEvent.press(firstToken);
 
     expect(mockParentGoBack).not.toHaveBeenCalled();
-    expect(mockGoToBuy).toHaveBeenCalledWith({
-      assetId: mockTokens[0].assetId,
+    expect(mockSetSelectedToken).toHaveBeenCalledWith(mockTokens[0].assetId);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.AMOUNT_INPUT);
+    expect(mockGoToBuy).not.toHaveBeenCalled();
+  });
+
+  it('when openBuildQuoteWithAssetId is in params (V2), sets selectedToken and resets stack to BuildQuote', async () => {
+    const assetId = 'eip155:1/erc20:0x123';
+    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
+
+    renderWithProvider(TokenSelection, undefined, {
+      openBuildQuoteWithAssetId: assetId,
+    });
+
+    await waitFor(() => {
+      expect(mockSetSelectedToken).toHaveBeenCalledWith(assetId);
+    });
+    expect(mockReset).toHaveBeenCalledWith({
+      index: 1,
+      routes: [
+        {
+          name: Routes.RAMP.TOKEN_SELECTION,
+          params: { openBuildQuoteWithAssetId: undefined },
+        },
+        { name: Routes.RAMP.AMOUNT_INPUT, params: {} },
+      ],
     });
   });
 

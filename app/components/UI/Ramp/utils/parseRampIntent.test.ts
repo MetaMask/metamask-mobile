@@ -72,7 +72,7 @@ describe('parseRampIntent', () => {
       };
       const result = parseRampIntent(pathParams);
       expect(result).toEqual({
-        assetId: 'eip155:1/slip44:.',
+        assetId: 'eip155:1/slip44:60',
         amount: '10',
         currency: 'usd',
       });
@@ -102,7 +102,7 @@ describe('parseRampIntent', () => {
       };
       const result = parseRampIntent(pathParams);
       expect(result).toEqual({
-        assetId: 'eip155:56/slip44:.',
+        assetId: 'eip155:56/slip44:714',
         amount: '10',
         currency: 'usd',
       });
@@ -116,7 +116,7 @@ describe('parseRampIntent', () => {
       };
       const result = parseRampIntent(pathParams);
       expect(result).toEqual({
-        assetId: 'eip155:56/slip44:.',
+        assetId: 'eip155:56/slip44:714',
         amount: '10',
         currency: 'usd',
       });
@@ -175,7 +175,7 @@ describe('parseRampIntent', () => {
       };
       const result = parseRampIntent(pathParams);
       expect(result).toEqual({
-        assetId: 'eip155:56/slip44:.',
+        assetId: 'eip155:56/slip44:714',
       });
     });
   });

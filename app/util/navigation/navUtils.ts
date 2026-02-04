@@ -4,6 +4,21 @@ import { RouteProp, useRoute } from '@react-navigation/native';
 
 type NavigationParams = object | undefined;
 
+type NavWithParent = {
+  navigate: (...args: unknown[]) => void;
+  getParent?: () => NavWithParent | undefined;
+};
+
+export function getRootNavigation(navigation: NavWithParent): NavWithParent {
+  let root: NavWithParent = navigation;
+  while (root?.getParent?.()) {
+    const parent = root.getParent();
+    if (parent) root = parent;
+    else break;
+  }
+  return root;
+}
+
 export type NavigationDetails<T extends NavigationParams = NavigationParams> =
   readonly [string, T];
 

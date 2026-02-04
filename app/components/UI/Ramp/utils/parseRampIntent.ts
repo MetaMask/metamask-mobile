@@ -1,8 +1,17 @@
+import { getNativeAssetForChainId } from '@metamask/bridge-controller';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { RampIntent } from '../types';
 import { toHex } from '@metamask/controller-utils';
 import { NATIVE_ADDRESS } from '../../../../constants/on-ramp';
 import { toChecksumAddress } from '../../../../util/address';
+
+function getNativeAssetIdForChain(chainIdDecimal: string): string {
+  try {
+    return getNativeAssetForChainId(chainIdDecimal).assetId;
+  } catch {
+    return `${toEvmCaipChainId(toHex(chainIdDecimal))}/slip44:60`;
+  }
+}
 
 export default function parseRampIntent(
   pathParams: Record<string, string | undefined>,
@@ -40,8 +49,10 @@ export default function parseRampIntent(
     let assetIdAssetReference = rampIntentCandidate.address;
 
     if (!assetIdAssetReference || assetIdAssetReference === NATIVE_ADDRESS) {
-      // TODO: replace slip44 with the actual slip44 value for the chain
-      assetIdAssetReference = 'slip44:.';
+      const chainIdDecimal = rampIntentCandidate.chainId ?? '1';
+      rampIntentCandidate.assetId = getNativeAssetIdForChain(chainIdDecimal);
+      delete rampIntentCandidate.address;
+      delete rampIntentCandidate.chainId;
     } else {
       try {
         const checksumAddress = toChecksumAddress(assetIdAssetReference);
@@ -53,11 +64,15 @@ export default function parseRampIntent(
       }
     }
 
-    if (assetIdAssetReference && assetIdNamespace) {
+    if (
+      !rampIntentCandidate.assetId &&
+      assetIdAssetReference &&
+      assetIdNamespace
+    ) {
       rampIntentCandidate.assetId = `${assetIdNamespace}/${assetIdAssetReference}`;
       delete rampIntentCandidate.address;
       delete rampIntentCandidate.chainId;
-    } else {
+    } else if (!rampIntentCandidate.assetId) {
       delete rampIntentCandidate.assetId;
     }
   } else {
