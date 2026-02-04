@@ -78,6 +78,10 @@ const createStyles = (colors: Colors) =>
     badge: {
       marginTop: 8,
     },
+    assetNameContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
     assetName: {
       flexDirection: 'row',
       gap: 8,
@@ -399,11 +403,17 @@ export const TokenListItem = React.memo(
            * The reason for this is that the wallet_watchAsset doesn't return the name
            * more info: https://docs.metamask.io/guide/rpc-api.html#wallet-watchasset
            */}
-          <View style={styles.assetName}>
-            <Text variant={TextVariant.BodyMDMedium} numberOfLines={1}>
-              {asset.name || asset.symbol}
-            </Text>
-            {label && <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />}
+          <View style={styles.assetNameContainer}>
+            <View style={styles.assetName}>
+              <Text variant={TextVariant.BodyMDMedium} numberOfLines={1}>
+                {asset.name || asset.symbol}
+              </Text>
+              {label && (
+                <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />
+              )}
+            </View>
+
+            {renderEarnCta()}
           </View>
           <View style={styles.percentageChange}>
             {
@@ -419,7 +429,6 @@ export const TokenListItem = React.memo(
             {isStockToken(asset as BridgeToken) && (
               <StockBadge style={styles.stockBadgeWrapper} token={asset} />
             )}
-            {renderEarnCta()}
           </View>
         </View>
         <ScamWarningIcon

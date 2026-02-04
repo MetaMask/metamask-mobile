@@ -17,8 +17,6 @@ import ConnectedAccountsModal from '../../../pages/Browser/ConnectedAccountsModa
 import NetworkConnectMultiSelector from '../../../pages/Browser/NetworkConnectMultiSelector';
 import Assertions from '../../../../tests/framework/Assertions';
 import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
-import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 
 describe(
   RegressionNetworkExpansion('Multiple Provider Connections [Regression]'),
@@ -77,12 +75,6 @@ describe(
             },
           ],
           restartDevice: true,
-          testSpecificMock: async (mockServer) => {
-            await setupRemoteFeatureFlagsMock(
-              mockServer,
-              remoteFeatureMultichainAccountsAccountDetailsV2(true),
-            );
-          },
         },
         async () => {
           await loginToApp();
@@ -119,12 +111,6 @@ describe(
             },
           ],
           restartDevice: true,
-          testSpecificMock: async (mockServer) => {
-            await setupRemoteFeatureFlagsMock(
-              mockServer,
-              remoteFeatureMultichainAccountsAccountDetailsV2(true),
-            );
-          },
         },
         async () => {
           await loginToApp();

@@ -58,7 +58,7 @@ jobs:
       test-apk-target-path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
 
     env:
-      PREBUILT_IOS_APP_PATH: artifacts/MetaMask.app
+      PREBUILT_IOS_APP_PATH: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
       METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
       METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
