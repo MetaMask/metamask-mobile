@@ -7,10 +7,8 @@ import { useCallback, useContext } from 'react';
 import Engine from '../../../../core/Engine';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { strings } from '../../../../../locales/i18n';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import usePerpsToasts from './usePerpsToasts';
-
-/** Delay (ms) before showing the "Deposit taking longer than usual" toast */
-const DEPOSIT_TAKING_LONGER_TOAST_DELAY_MS = 15000;
 
 /**
  * Hook to track deposit status for Perps order view
@@ -72,7 +70,7 @@ export const usePerpsOrderDepositTracking = () => {
             ? { ...baseClose, onPress: cancelTradeOnPress }
             : undefined,
         } as Parameters<typeof showToast>[0]);
-      }, DEPOSIT_TAKING_LONGER_TOAST_DELAY_MS);
+      }, PERPS_CONSTANTS.DepositTakingLongerToastDelayMs);
 
       // Handle failed transactions
       const handleTransactionFailed = ({

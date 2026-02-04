@@ -35,6 +35,9 @@ export const PERPS_CONSTANTS = {
   BalanceUpdateThrottleMs: 15000, // Update at most every 15 seconds to reduce state updates in PerpsConnectionManager
   InitialDataDelayMs: 100, // Delay to allow initial data to load after connection establishment
 
+  // Deposit toast timing
+  DepositTakingLongerToastDelayMs: 15_000, // Delay before showing "Deposit taking longer than usual" toast
+
   DefaultAssetPreviewLimit: 5,
   DefaultMaxLeverage: 3 as number, // Default fallback max leverage when market data is unavailable - conservative default
   FallbackPriceDisplay: '$---', // Display when price data is unavailable
