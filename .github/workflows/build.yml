@@ -71,6 +71,9 @@ jobs:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
     runs-on: ${{ matrix.platform == 'ios' && 'macos-latest' || 'ubuntu-latest' }}
+    env:
+      # So bundle exec (in yarn pod:install) finds ios/Gemfile when running from repo root
+      BUNDLE_GEMFILE: ${{ matrix.platform == 'ios' && 'ios/Gemfile' || '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -89,7 +92,11 @@ jobs:
       - name: Setup project
         run: |
           echo "🔧 Running setup for GitHub CI..."
-          yarn setup:github-ci
+          if [ "${{ matrix.platform }}" = "ios" ]; then
+            yarn setup:github-ci --build-ios --no-build-android
+          else
+            yarn setup:github-ci --no-build-ios
+          fi
 
       - name: Verify setup completed
         run: |
