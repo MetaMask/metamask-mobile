@@ -498,7 +498,7 @@ describe('usePredictPlaceOrder', () => {
     const ZERO_BALANCE = 0;
     const EXACT_BALANCE_MATCH = 100;
 
-    it('triggers deposit when balance is insufficient for BUY order', async () => {
+    it('triggers deposit with analytics properties when balance is insufficient for BUY order', async () => {
       mockUsePredictBalance.mockReturnValue({
         balance: INSUFFICIENT_BALANCE,
         hasNoBalance: false,
@@ -515,8 +515,51 @@ describe('usePredictPlaceOrder', () => {
       });
 
       expect(mockDeposit).toHaveBeenCalledTimes(1);
+      expect(mockDeposit).toHaveBeenCalledWith({
+        amountUsd: mockOrderParams.preview.maxAmountSpent,
+        analyticsProperties: {
+          marketId: mockOrderParams.preview.marketId,
+          entryPoint: 'buy_preview',
+        },
+      });
       expect(mockPlaceOrder).not.toHaveBeenCalled();
       expect(mockToastRef.current?.showToast).not.toHaveBeenCalled();
+    });
+
+    it('triggers deposit with merged analytics properties when orderParams has analyticsProperties', async () => {
+      mockUsePredictBalance.mockReturnValue({
+        balance: INSUFFICIENT_BALANCE,
+        hasNoBalance: false,
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        loadBalance: jest.fn(),
+      });
+
+      const orderParamsWithAnalytics = {
+        ...mockOrderParams,
+        analyticsProperties: {
+          marketTitle: 'Test Market',
+          marketCategory: 'sports',
+        },
+      };
+
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(orderParamsWithAnalytics);
+      });
+
+      expect(mockDeposit).toHaveBeenCalledTimes(1);
+      expect(mockDeposit).toHaveBeenCalledWith({
+        amountUsd: mockOrderParams.preview.maxAmountSpent,
+        analyticsProperties: {
+          marketTitle: 'Test Market',
+          marketCategory: 'sports',
+          marketId: mockOrderParams.preview.marketId,
+          entryPoint: 'buy_preview',
+        },
+      });
     });
 
     it('does not trigger deposit when balance is sufficient for BUY order', async () => {

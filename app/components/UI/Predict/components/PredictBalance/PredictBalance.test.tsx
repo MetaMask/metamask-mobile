@@ -293,7 +293,7 @@ describe('PredictBalance', () => {
       expect(queryByText(/Withdraw/i)).not.toBeOnTheScreen();
     });
 
-    it('calls deposit function when Add Funds button is pressed', () => {
+    it('calls deposit function with analytics properties when Add Funds button is pressed', () => {
       // Arrange
       const mockDeposit = jest.fn();
       mockUsePredictBalance.mockReturnValue({
@@ -318,6 +318,11 @@ describe('PredictBalance', () => {
 
       // Assert
       expect(mockDeposit).toHaveBeenCalledTimes(1);
+      expect(mockDeposit).toHaveBeenCalledWith({
+        analyticsProperties: {
+          entryPoint: 'homepage_balance',
+        },
+      });
     });
 
     it('calls executeGuardedAction when Add Funds button is pressed', () => {

@@ -86,10 +86,14 @@ export const PredictEventValues = {
     BACKGROUND: 'background',
     TRENDING_SEARCH: 'trending_search',
     TRENDING: 'trending',
+    BUY_PREVIEW: 'buy_preview',
   },
   TRANSACTION_TYPE: {
     MM_PREDICT_BUY: 'mm_predict_buy',
     MM_PREDICT_SELL: 'mm_predict_sell',
+    MM_PREDICT_DEPOSIT: 'mm_predict_deposit',
+    MM_PREDICT_WITHDRAW: 'mm_predict_withdraw',
+    MM_PREDICT_CLAIM: 'mm_predict_claim',
   },
   MARKET_TYPE: {
     BINARY: 'binary',

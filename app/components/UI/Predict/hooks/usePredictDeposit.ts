@@ -5,6 +5,7 @@ import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
+import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
@@ -15,9 +16,19 @@ import { PredictNavigationParamList } from '../types/navigation';
 import { ensureError } from '../utils/predictErrorHandler';
 import { usePredictTrading } from './usePredictTrading';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
+import {
+  PredictEventValues,
+  PredictTradeStatus,
+} from '../constants/eventNames';
+import { PlaceOrderParams } from '../providers/types';
 
 interface UsePredictDepositParams {
   providerId?: string;
+}
+
+interface PredictDepositAnalyticsParams {
+  amountUsd?: number;
+  analyticsProperties?: PlaceOrderParams['analyticsProperties'];
 }
 
 export const usePredictDeposit = ({
@@ -41,34 +52,74 @@ export const usePredictDeposit = ({
     }),
   );
 
-  const deposit = useCallback(async () => {
-    try {
-      navigateToConfirmation({
-        loader: ConfirmationLoader.CustomAmount,
-      });
-
-      depositWithConfirmation({
-        providerId,
-      }).catch((err) => {
-        console.error('Failed to initialize deposit:', err);
-
-        // Log error with deposit initialization context
-        Logger.error(ensureError(err), {
-          tags: {
-            feature: PREDICT_CONSTANTS.FEATURE_NAME,
-            component: 'usePredictDeposit',
-          },
-          context: {
-            name: 'usePredictDeposit',
-            data: {
-              method: 'deposit',
-              action: 'deposit_initialization',
-              operation: 'financial_operations',
-              providerId,
-            },
-          },
+  const deposit = useCallback(
+    async (params?: PredictDepositAnalyticsParams) => {
+      try {
+        navigateToConfirmation({
+          loader: ConfirmationLoader.CustomAmount,
         });
+
+        const { amountUsd, analyticsProperties } = params ?? {};
+
+        if (analyticsProperties) {
+          Engine.context.PredictController.trackPredictOrderEvent({
+            status: PredictTradeStatus.INITIATED,
+            providerId,
+            amountUsd,
+            analyticsProperties: {
+              ...analyticsProperties,
+              transactionType:
+                PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
+            },
+          });
+        }
+
+        depositWithConfirmation({
+          providerId,
+        }).catch((err) => {
+          console.error('Failed to initialize deposit:', err);
+
+          // Log error with deposit initialization context
+          Logger.error(ensureError(err), {
+            tags: {
+              feature: PREDICT_CONSTANTS.FEATURE_NAME,
+              component: 'usePredictDeposit',
+            },
+            context: {
+              name: 'usePredictDeposit',
+              data: {
+                method: 'deposit',
+                action: 'deposit_initialization',
+                operation: 'financial_operations',
+                providerId,
+              },
+            },
+          });
+          navigation.goBack();
+          toastRef?.current?.showToast({
+            variant: ToastVariants.Icon,
+            labelOptions: [
+              { label: strings('predict.deposit.error_title'), isBold: true },
+              { label: '\n', isBold: false },
+              {
+                label: strings('predict.deposit.error_description'),
+                isBold: false,
+              },
+            ],
+            iconName: IconName.Error,
+            iconColor: theme.colors.error.default,
+            backgroundColor: theme.colors.accent04.normal,
+            hasNoTimeout: false,
+            linkButtonOptions: {
+              label: strings('predict.deposit.try_again'),
+              onPress: () => deposit(),
+            },
+          });
+        });
+      } catch (err) {
+        console.error('Failed to proceed with deposit:', err);
         navigation.goBack();
+        // Re-throw to allow testing of this error path
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
           labelOptions: [
@@ -88,57 +139,35 @@ export const usePredictDeposit = ({
             onPress: () => deposit(),
           },
         });
-      });
-    } catch (err) {
-      console.error('Failed to proceed with deposit:', err);
-      navigation.goBack();
-      // Re-throw to allow testing of this error path
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [
-          { label: strings('predict.deposit.error_title'), isBold: true },
-          { label: '\n', isBold: false },
-          {
-            label: strings('predict.deposit.error_description'),
-            isBold: false,
-          },
-        ],
-        iconName: IconName.Error,
-        iconColor: theme.colors.error.default,
-        backgroundColor: theme.colors.accent04.normal,
-        hasNoTimeout: false,
-        linkButtonOptions: {
-          label: strings('predict.deposit.try_again'),
-          onPress: () => deposit(),
-        },
-      });
 
-      // Log error with deposit navigation context
-      Logger.error(ensureError(err), {
-        tags: {
-          feature: PREDICT_CONSTANTS.FEATURE_NAME,
-          component: 'usePredictDeposit',
-        },
-        context: {
-          name: 'usePredictDeposit',
-          data: {
-            method: 'deposit',
-            action: 'deposit_navigation',
-            operation: 'financial_operations',
-            providerId,
+        // Log error with deposit navigation context
+        Logger.error(ensureError(err), {
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            component: 'usePredictDeposit',
           },
-        },
-      });
-    }
-  }, [
-    depositWithConfirmation,
-    navigateToConfirmation,
-    navigation,
-    providerId,
-    theme.colors.accent04.normal,
-    theme.colors.error.default,
-    toastRef,
-  ]);
+          context: {
+            name: 'usePredictDeposit',
+            data: {
+              method: 'deposit',
+              action: 'deposit_navigation',
+              operation: 'financial_operations',
+              providerId,
+            },
+          },
+        });
+      }
+    },
+    [
+      depositWithConfirmation,
+      navigateToConfirmation,
+      navigation,
+      providerId,
+      theme.colors.accent04.normal,
+      theme.colors.error.default,
+      toastRef,
+    ],
+  );
 
   return {
     deposit,
