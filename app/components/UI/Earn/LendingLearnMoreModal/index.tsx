@@ -4,11 +4,12 @@ import { useStyles } from '../../../hooks/useStyles';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCenter from '../../../../component-library/components-temp/HeaderCenter';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
+import { useTheme } from '../../../../util/theme';
 import { Linking, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import BottomSheetFooter, {
@@ -137,6 +138,7 @@ const CHART_HEIGHT = 300; // Adjust to your chart's height
 
 export const LendingLearnMoreModal = () => {
   const { styles } = useStyles(styleSheet, {});
+  const { colors } = useTheme();
   const [assetSymbol, setAssetSymbol] = useState<string | null>(null);
   const route = useRoute<EarnLendingLearnMoreModalRouteProp>();
 
@@ -285,11 +287,10 @@ export const LendingLearnMoreModal = () => {
 
   return (
     <BottomSheet ref={sheetRef} isInteractable={false}>
-      <BottomSheetHeader onClose={handleClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('earn.how_it_works')}
-        </Text>
-      </BottomSheetHeader>
+      <HeaderCenter
+        title={strings('earn.how_it_works')}
+        onClose={handleClose}
+      />
       <Animated.View style={animatedChartContainerStyle}>
         {showChart && (
           <InteractiveTimespanChart
@@ -333,6 +334,7 @@ export const LendingLearnMoreModal = () => {
                   value: 90,
                 },
               ],
+              color: colors.success.default,
             }}
             isLoading={isLoadingMarketApys}
           />

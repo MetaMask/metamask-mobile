@@ -23,13 +23,13 @@ const createMockUserRegion = (regionCode: string): UserRegion => {
       name: countryCode,
       phone: { prefix: '', placeholder: '', template: '' },
       currency: '',
-      supported: true,
+      supported: { buy: true, sell: true },
     },
     state: stateCode
       ? {
           stateId: stateCode,
           name: stateCode,
-          supported: true,
+          supported: { buy: true, sell: true },
         }
       : null,
     regionCode: regionCode.toLowerCase(),
@@ -91,12 +91,14 @@ describe('ramps controller init', () => {
   it('uses initial state when initial state is passed in', () => {
     const initialRampsControllerState: RampsControllerState = {
       userRegion: createMockUserRegion('us-ca'),
-      preferredProvider: null,
+      selectedProvider: null,
       providers: [],
       tokens: null,
+      selectedToken: null,
       requests: {},
       paymentMethods: [],
       selectedPaymentMethod: null,
+      countries: [],
     };
 
     initRequestMock.persistedState = {

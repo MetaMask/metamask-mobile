@@ -47,6 +47,9 @@ export interface PerpsToastOptionsConfig {
       ) => PerpsToastOptions;
       error: PerpsToastOptions;
     };
+    oneClickTrade: {
+      txCreationFailed: PerpsToastOptions;
+    };
     withdrawal: {
       withdrawalInProgress: PerpsToastOptions;
       withdrawalSuccess: (
@@ -396,6 +399,15 @@ const usePerpsToasts = (): {
             labelOptions: getPerpsToastLabels(
               strings('perps.deposit.deposit_failed'),
               strings('perps.deposit.error_generic'),
+            ),
+          },
+        },
+        oneClickTrade: {
+          txCreationFailed: {
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.one_click_trade.tx_creation_failed_title'),
+              strings('perps.one_click_trade.tx_creation_failed_description'),
             ),
           },
         },
