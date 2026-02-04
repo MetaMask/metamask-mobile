@@ -256,7 +256,9 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
         networkName={networkName ?? ''}
         onBackPress={() => navigation.goBack()}
         onOptionsPress={
-          shouldShowMoreOptionsInNavBar ? openAssetOptions : undefined
+          shouldShowMoreOptionsInNavBar && !isTokenDetailsV2ButtonsEnabled
+            ? openAssetOptions
+            : undefined
         }
       />
       {txLoading ? (
