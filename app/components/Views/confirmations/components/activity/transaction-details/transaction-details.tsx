@@ -42,7 +42,7 @@ export function TransactionDetails() {
 
   useEffect(() => {
     navigation.setOptions(
-      getNavigationOptionsTitle(title, navigation, true, colors),
+      getNavigationOptionsTitle(title, navigation, false, colors),
     );
   }, [colors, navigation, theme, title]);
 
