@@ -29,8 +29,8 @@ import NavigationService from '../../../../../core/NavigationService';
 import { EXTERNAL_LINK_TYPE } from '../../../../../constants/browser';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
 } from '../../constants/eventNames';
 
 import { usePerpsFirstTimeUser } from '../../hooks';
@@ -175,10 +175,10 @@ const PerpsTutorialCarousel: React.FC = () => {
   useEffect(() => {
     if (!hasTrackedViewed.current) {
       track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PerpsEventProperties.SCREEN_TYPE]:
-          PerpsEventValues.SCREEN_TYPE.TUTORIAL,
-        [PerpsEventProperties.SOURCE]:
-          PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.TUTORIAL,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON,
       });
       hasTrackedViewed.current = true;
     }
@@ -222,16 +222,16 @@ const PerpsTutorialCarousel: React.FC = () => {
       // Only track if tab actually changed (user swipe)
       if (newTab !== previousTab) {
         track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-          [PerpsEventProperties.INTERACTION_TYPE]:
-            PerpsEventValues.INTERACTION_TYPE.TUTORIAL_NAVIGATION,
-          [PerpsEventProperties.PREVIOUS_SCREEN]:
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.TUTORIAL_NAVIGATION,
+          [PERPS_EVENT_PROPERTY.PREVIOUS_SCREEN]:
             tutorialScreens[previousTab]?.id || 'unknown',
-          [PerpsEventProperties.CURRENT_SCREEN]:
+          [PERPS_EVENT_PROPERTY.CURRENT_SCREEN]:
             tutorialScreens[newTab]?.id || 'unknown',
-          [PerpsEventProperties.SCREEN_POSITION]: newTab + 1,
-          [PerpsEventProperties.TOTAL_SCREENS]: tutorialScreens.length,
-          [PerpsEventProperties.NAVIGATION_METHOD]:
-            PerpsEventValues.NAVIGATION_METHOD.SWIPE,
+          [PERPS_EVENT_PROPERTY.SCREEN_POSITION]: newTab + 1,
+          [PERPS_EVENT_PROPERTY.TOTAL_SCREENS]: tutorialScreens.length,
+          [PERPS_EVENT_PROPERTY.NAVIGATION_METHOD]:
+            PERPS_EVENT_VALUE.NAVIGATION_METHOD.SWIPE,
         });
 
         previousTabRef.current = newTab;
@@ -242,10 +242,10 @@ const PerpsTutorialCarousel: React.FC = () => {
       // Track tutorial started when user moves to second screen
       if (newTab === 1 && !hasTrackedStarted.current) {
         track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-          [PerpsEventProperties.INTERACTION_TYPE]:
-            PerpsEventValues.INTERACTION_TYPE.TUTORIAL_STARTED,
-          [PerpsEventProperties.SOURCE]:
-            PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.TUTORIAL_STARTED,
+          [PERPS_EVENT_PROPERTY.SOURCE]:
+            PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON,
         });
         hasTrackedStarted.current = true;
       }
@@ -274,13 +274,13 @@ const PerpsTutorialCarousel: React.FC = () => {
       // Track tutorial completed
       const completionDuration = Date.now() - tutorialStartTime.current;
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-        [PerpsEventProperties.INTERACTION_TYPE]:
-          PerpsEventValues.INTERACTION_TYPE.TUTORIAL_COMPLETED,
-        [PerpsEventProperties.SOURCE]:
-          PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
-        [PerpsEventProperties.COMPLETION_DURATION_TUTORIAL]: completionDuration,
-        [PerpsEventProperties.STEPS_VIEWED]: currentTab + 1,
-        [PerpsEventProperties.VIEW_OCCURRENCES]: 1,
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.TUTORIAL_COMPLETED,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON,
+        [PERPS_EVENT_PROPERTY.COMPLETION_DURATION_TUTORIAL]: completionDuration,
+        [PERPS_EVENT_PROPERTY.STEPS_VIEWED]: currentTab + 1,
+        [PERPS_EVENT_PROPERTY.VIEW_OCCURRENCES]: 1,
       });
 
       // Mark tutorial as completed
@@ -294,16 +294,16 @@ const PerpsTutorialCarousel: React.FC = () => {
       // Track carousel navigation via continue button (immediate, no debounce needed for button clicks)
       if (nextTab !== currentTab) {
         track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-          [PerpsEventProperties.INTERACTION_TYPE]:
-            PerpsEventValues.INTERACTION_TYPE.TUTORIAL_NAVIGATION,
-          [PerpsEventProperties.PREVIOUS_SCREEN]:
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.TUTORIAL_NAVIGATION,
+          [PERPS_EVENT_PROPERTY.PREVIOUS_SCREEN]:
             tutorialScreens[currentTab]?.id || 'unknown',
-          [PerpsEventProperties.CURRENT_SCREEN]:
+          [PERPS_EVENT_PROPERTY.CURRENT_SCREEN]:
             tutorialScreens[nextTab]?.id || 'unknown',
-          [PerpsEventProperties.SCREEN_POSITION]: nextTab + 1,
-          [PerpsEventProperties.TOTAL_SCREENS]: tutorialScreens.length,
-          [PerpsEventProperties.NAVIGATION_METHOD]:
-            PerpsEventValues.NAVIGATION_METHOD.CONTINUE_BUTTON,
+          [PERPS_EVENT_PROPERTY.SCREEN_POSITION]: nextTab + 1,
+          [PERPS_EVENT_PROPERTY.TOTAL_SCREENS]: tutorialScreens.length,
+          [PERPS_EVENT_PROPERTY.NAVIGATION_METHOD]:
+            PERPS_EVENT_VALUE.NAVIGATION_METHOD.CONTINUE_BUTTON,
         });
       }
 
@@ -314,10 +314,10 @@ const PerpsTutorialCarousel: React.FC = () => {
       // Track tutorial started on first continue
       if (currentTab === 0 && !hasTrackedStarted.current) {
         track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-          [PerpsEventProperties.INTERACTION_TYPE]:
-            PerpsEventValues.INTERACTION_TYPE.TUTORIAL_STARTED,
-          [PerpsEventProperties.SOURCE]:
-            PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.TUTORIAL_STARTED,
+          [PERPS_EVENT_PROPERTY.SOURCE]:
+            PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON,
         });
         hasTrackedStarted.current = true;
       }
@@ -336,13 +336,13 @@ const PerpsTutorialCarousel: React.FC = () => {
       // Track tutorial completed when skipping from last screen
       const completionDuration = Date.now() - tutorialStartTime.current;
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-        [PerpsEventProperties.INTERACTION_TYPE]:
-          PerpsEventValues.INTERACTION_TYPE.TUTORIAL_COMPLETED,
-        [PerpsEventProperties.SOURCE]:
-          PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
-        [PerpsEventProperties.COMPLETION_DURATION_TUTORIAL]: completionDuration,
-        [PerpsEventProperties.STEPS_VIEWED]: currentTab + 1,
-        [PerpsEventProperties.VIEW_OCCURRENCES]: 1,
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.TUTORIAL_COMPLETED,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON,
+        [PERPS_EVENT_PROPERTY.COMPLETION_DURATION_TUTORIAL]: completionDuration,
+        [PERPS_EVENT_PROPERTY.STEPS_VIEWED]: currentTab + 1,
+        [PERPS_EVENT_PROPERTY.VIEW_OCCURRENCES]: 1,
       });
     }
 
