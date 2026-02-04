@@ -2683,5 +2683,4 @@ describe('PerpsStreamManager', () => {
       pricesDisconnect.mockRestore();
     });
   });
-
 });

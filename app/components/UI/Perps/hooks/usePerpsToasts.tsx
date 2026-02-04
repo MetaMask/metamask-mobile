@@ -418,7 +418,9 @@ const usePerpsToasts = (): {
               ),
               variant: ButtonVariants.Secondary,
               style: { backgroundColor: theme.colors.background.muted },
-              onPress: () => { },
+              onPress: () => {
+                /* no-op */
+              },
             },
           },
           tradeCanceled: {
@@ -961,8 +963,11 @@ const usePerpsToasts = (): {
       perpsBaseToastOptions.inProgress,
       perpsBaseToastOptions.info,
       perpsBaseToastOptions.success,
+      perpsBaseToastOptions.warning,
       perpsToastButtonOptions,
+      theme.colors.background.muted,
       theme.colors.error.default,
+      theme.colors.error.muted,
       theme.colors.success.default,
     ],
   );

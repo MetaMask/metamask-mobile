@@ -78,7 +78,6 @@ export const usePerpsDepositStatus = () => {
         transactionMeta.type === TransactionType.perpsDeposit &&
         transactionMeta.status === TransactionStatus.approved
       ) {
-
         expectingDepositRef.current = true;
         prevAvailableBalanceRef.current = liveAccount?.availableBalance || '0';
 

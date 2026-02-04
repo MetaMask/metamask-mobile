@@ -50,9 +50,7 @@ export const usePerpsOrderDepositTracking = () => {
   // Callback to show toast when user confirms the deposit
   const handleDepositConfirm = useCallback(
     (transactionMeta: TransactionMeta, callback: () => void) => {
-      if (
-        transactionMeta.type !== TransactionType.perpsDepositAndOrder
-      ) {
+      if (transactionMeta.type !== TransactionType.perpsDepositAndOrder) {
         return;
       }
       const transactionId = transactionMeta.id;
