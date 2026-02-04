@@ -518,7 +518,7 @@ describe('musdClaim transactions', () => {
     });
 
   it('decodes and returns correct amount for musdClaim transaction', async () => {
-    const claimAmount = '50000000000000000000'; // 50 mUSD
+    const claimAmount = '50000000'; // 50 mUSD (6 decimals)
     const claimData = encodeClaimData(claimAmount);
 
     const { result } = renderHookWithProvider(() => useTokenAmount(), {
@@ -541,7 +541,7 @@ describe('musdClaim transactions', () => {
   });
 
   it('handles fractional mUSD amounts correctly', async () => {
-    const claimAmount = '12345000000000000000'; // 12.345 mUSD
+    const claimAmount = '12345000'; // 12.345 mUSD (6 decimals)
     const claimData = encodeClaimData(claimAmount);
 
     const { result } = renderHookWithProvider(() => useTokenAmount(), {
@@ -564,7 +564,7 @@ describe('musdClaim transactions', () => {
   });
 
   it('handles very small mUSD amounts', async () => {
-    const claimAmount = '100000000000000'; // 0.0001 mUSD
+    const claimAmount = '100'; // 0.0001 mUSD (6 decimals)
     const claimData = encodeClaimData(claimAmount);
 
     const { result } = renderHookWithProvider(() => useTokenAmount(), {
@@ -585,7 +585,7 @@ describe('musdClaim transactions', () => {
   });
 
   it('handles large mUSD amounts', async () => {
-    const claimAmount = '100000000000000000000000'; // 100,000 mUSD
+    const claimAmount = '100000000000'; // 100,000 mUSD (6 decimals)
     const claimData = encodeClaimData(claimAmount);
 
     const { result } = renderHookWithProvider(() => useTokenAmount(), {

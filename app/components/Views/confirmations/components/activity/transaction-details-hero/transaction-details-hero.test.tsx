@@ -171,7 +171,7 @@ describe('TransactionDetailsHero', () => {
   it('renders claim amount for musdClaim with valid claim data', () => {
     const USER_ADDRESS = '0x1234567890123456789012345678901234567890';
     const TOKEN_ADDRESS = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
-    const claimAmount = '75500000000000000000'; // 75.5 mUSD
+    const claimAmount = '75500000'; // 75.5 mUSD (6 decimals)
 
     const contractInterface = new Interface(DISTRIBUTOR_CLAIM_ABI);
     const claimData = contractInterface.encodeFunctionData('claim', [
