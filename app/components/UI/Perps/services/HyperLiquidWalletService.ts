@@ -12,6 +12,7 @@ import { getChainId } from '../constants/hyperLiquidConfig';
 import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
 import type { PerpsPlatformDependencies } from '../controllers/types';
 import type { PerpsControllerMessenger } from '../controllers/PerpsController';
+import { getEvmAccountFromAccountGroup } from '../utils/accountUtils';
 
 /**
  * Service for MetaMask wallet integration with HyperLiquid SDK
@@ -40,14 +41,10 @@ export class HyperLiquidWalletService {
    * Get selected EVM account via messenger
    */
   private getSelectedEvmAccount(): { address: string } | undefined {
-    const account = this.messenger.call(
-      'AccountsController:getSelectedAccount',
+    const accounts = this.messenger.call(
+      'AccountTreeController:getAccountsFromSelectedAccountGroup',
     );
-    // Filter for EVM accounts (eip155:eoa or eip155:erc4337)
-    if (account?.type === 'eip155:eoa' || account?.type === 'eip155:erc4337') {
-      return { address: account.address };
-    }
-    return undefined;
+    return getEvmAccountFromAccountGroup(accounts);
   }
 
   /**

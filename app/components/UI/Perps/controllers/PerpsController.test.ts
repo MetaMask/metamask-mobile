@@ -10,7 +10,6 @@ import {
   getDefaultPerpsControllerState,
   InitializationState,
   type PerpsControllerState,
-  type PerpsControllerMessenger,
 } from './PerpsController';
 import { PERPS_ERROR_CODES } from './perpsErrorCodes';
 import {
@@ -24,7 +23,10 @@ import type {
 } from './types';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import { createMockHyperLiquidProvider } from '../__mocks__/providerMocks';
-import { createMockInfrastructure } from '../__mocks__/serviceMocks';
+import {
+  createMockInfrastructure,
+  createMockMessenger,
+} from '../__mocks__/serviceMocks';
 import Engine from '../../../../core/Engine';
 
 jest.mock('./providers/HyperLiquidProvider');
@@ -366,28 +368,6 @@ class TestablePerpsController extends PerpsController {
   public testReportOrderToDataLake(data: any): Promise<any> {
     return this.reportOrderToDataLake(data);
   }
-}
-
-/**
- * Factory function to create a properly typed mock messenger
- * Encapsulates the type assertion in one place
- * Note: Uses 'as unknown as' because PerpsControllerMessenger has private properties
- */
-function createMockMessenger(
-  overrides?: Partial<PerpsControllerMessenger>,
-): PerpsControllerMessenger {
-  const base = {
-    call: jest.fn(),
-    publish: jest.fn(),
-    subscribe: jest.fn(),
-    registerActionHandler: jest.fn(),
-    registerEventHandler: jest.fn(),
-    registerInitialEventPayload: jest.fn(),
-    unregisterActionHandler: jest.fn(),
-    unregisterEventHandler: jest.fn(),
-    clearEventSubscriptions: jest.fn(),
-  };
-  return { ...base, ...overrides } as unknown as PerpsControllerMessenger;
 }
 
 describe('PerpsController', () => {
@@ -2335,11 +2315,15 @@ describe('PerpsController', () => {
             transactionMeta: mockTransactionMeta,
           });
         }
-        if (action === 'AccountsController:getSelectedAccount') {
-          return {
-            address: mockTransaction.from,
-            type: 'eip155:eoa',
-          };
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [
+            {
+              address: mockTransaction.from,
+              type: 'eip155:eoa',
+            },
+          ];
         }
         return undefined;
       });
@@ -2492,8 +2476,10 @@ describe('PerpsController', () => {
         if (action === 'NetworkController:findNetworkClientIdByChainId') {
           throw mockError;
         }
-        if (action === 'AccountsController:getSelectedAccount') {
-          return { address: mockTransaction.from, type: 'eip155:eoa' };
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [{ address: mockTransaction.from, type: 'eip155:eoa' }];
         }
         return undefined;
       });
@@ -2516,8 +2502,10 @@ describe('PerpsController', () => {
         if (action === 'TransactionController:addTransaction') {
           return Promise.reject(mockError);
         }
-        if (action === 'AccountsController:getSelectedAccount') {
-          return { address: mockTransaction.from, type: 'eip155:eoa' };
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [{ address: mockTransaction.from, type: 'eip155:eoa' }];
         }
         return undefined;
       });
@@ -2543,8 +2531,10 @@ describe('PerpsController', () => {
         if (action === 'TransactionController:addTransaction') {
           return Promise.reject(mockError);
         }
-        if (action === 'AccountsController:getSelectedAccount') {
-          return { address: mockTransaction.from, type: 'eip155:eoa' };
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [{ address: mockTransaction.from, type: 'eip155:eoa' }];
         }
         return undefined;
       });
@@ -2572,8 +2562,10 @@ describe('PerpsController', () => {
         if (action === 'TransactionController:addTransaction') {
           return Promise.reject(mockError);
         }
-        if (action === 'AccountsController:getSelectedAccount') {
-          return { address: mockTransaction.from, type: 'eip155:eoa' };
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [{ address: mockTransaction.from, type: 'eip155:eoa' }];
         }
         return undefined;
       });
@@ -2801,8 +2793,10 @@ describe('PerpsController', () => {
             transactionMeta: mockTransactionMeta,
           });
         }
-        if (action === 'AccountsController:getSelectedAccount') {
-          return { address: mockTransaction.from, type: 'eip155:eoa' };
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [{ address: mockTransaction.from, type: 'eip155:eoa' }];
         }
         return undefined;
       });
@@ -2865,8 +2859,11 @@ describe('PerpsController', () => {
               transactionMeta: mockTransactionMeta,
             });
           }
-          if (action === 'AccountsController:getSelectedAccount') {
-            return { address: mockTransaction.from, type: 'eip155:eoa' };
+          if (
+            action ===
+            'AccountTreeController:getAccountsFromSelectedAccountGroup'
+          ) {
+            return [{ address: mockTransaction.from, type: 'eip155:eoa' }];
           }
           return undefined;
         });

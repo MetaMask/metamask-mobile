@@ -7,6 +7,7 @@ import { generateTransferData } from '../../../../../util/transactions';
 import { generateDepositId } from '../../utils/idUtils';
 import type { PerpsProvider, PerpsPlatformDependencies } from '../types';
 import type { PerpsControllerMessenger } from '../PerpsController';
+import { getEvmAccountFromAccountGroup } from '../../utils/accountUtils';
 
 // Temporary to avoid estimation failures due to insufficient balance
 const DEPOSIT_GAS_LIMIT = toHex(100000);
@@ -42,14 +43,10 @@ export class DepositService {
    * Get selected EVM account via messenger
    */
   private getSelectedEvmAccount(): { address: string } | undefined {
-    const account = this.messenger.call(
-      'AccountsController:getSelectedAccount',
+    const accounts = this.messenger.call(
+      'AccountTreeController:getAccountsFromSelectedAccountGroup',
     );
-    // Filter for EVM accounts (eip155:eoa or eip155:erc4337)
-    if (account?.type === 'eip155:eoa' || account?.type === 'eip155:erc4337') {
-      return { address: account.address };
-    }
-    return undefined;
+    return getEvmAccountFromAccountGroup(accounts);
   }
 
   /**

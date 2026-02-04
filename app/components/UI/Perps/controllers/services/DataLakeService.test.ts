@@ -40,8 +40,10 @@ describe('DataLakeService', () => {
 
     // Configure messenger to return expected values
     (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
-      if (action === 'AccountsController:getSelectedAccount') {
-        return mockEvmAccount;
+      if (
+        action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+      ) {
+        return [mockEvmAccount];
       }
       if (action === 'AuthenticationController:getBearerToken') {
         return Promise.resolve(mockToken);
@@ -144,8 +146,10 @@ describe('DataLakeService', () => {
 
     it('returns error when account is missing', async () => {
       (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
-        if (action === 'AccountsController:getSelectedAccount') {
-          return null;
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [];
         }
         if (action === 'AuthenticationController:getBearerToken') {
           return Promise.resolve(mockToken);
@@ -173,8 +177,10 @@ describe('DataLakeService', () => {
 
     it('returns error when token is missing', async () => {
       (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
-        if (action === 'AccountsController:getSelectedAccount') {
-          return mockEvmAccount;
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockEvmAccount];
         }
         if (action === 'AuthenticationController:getBearerToken') {
           return Promise.resolve(null);

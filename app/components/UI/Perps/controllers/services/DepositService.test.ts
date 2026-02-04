@@ -61,8 +61,10 @@ describe('DepositService', () => {
 
     // Setup mock EVM account via messenger
     (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
-      if (action === 'AccountsController:getSelectedAccount') {
-        return mockEvmAccount;
+      if (
+        action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+      ) {
+        return [mockEvmAccount];
       }
       return undefined;
     });
@@ -166,14 +168,16 @@ describe('DepositService', () => {
       });
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
-        'AccountsController:getSelectedAccount',
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
       );
     });
 
     it('throws error when no EVM account is found', async () => {
       (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
-        if (action === 'AccountsController:getSelectedAccount') {
-          return null;
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [];
         }
         return undefined;
       });

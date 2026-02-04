@@ -9,6 +9,7 @@ import {
   type PerpsPlatformDependencies,
 } from '../types';
 import type { PerpsControllerMessenger } from '../PerpsController';
+import { getEvmAccountFromAccountGroup } from '../../utils/accountUtils';
 
 /**
  * DataLakeService
@@ -41,14 +42,10 @@ export class DataLakeService {
    * Get selected EVM account via messenger
    */
   private getSelectedEvmAccount(): { address: string } | undefined {
-    const account = this.messenger.call(
-      'AccountsController:getSelectedAccount',
+    const accounts = this.messenger.call(
+      'AccountTreeController:getAccountsFromSelectedAccountGroup',
     );
-    // Filter for EVM accounts (eip155:eoa or eip155:erc4337)
-    if (account?.type === 'eip155:eoa' || account?.type === 'eip155:erc4337') {
-      return { address: account.address };
-    }
-    return undefined;
+    return getEvmAccountFromAccountGroup(accounts);
   }
 
   /**

@@ -31,8 +31,10 @@ describe('RewardsIntegrationService', () => {
 
       // Configure messenger to return expected values
       (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
-        if (action === 'AccountsController:getSelectedAccount') {
-          return mockEvmAccount;
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockEvmAccount];
         }
         if (action === 'NetworkController:getState') {
           return { selectedNetworkClientId: 'mainnet' };
@@ -63,8 +65,10 @@ describe('RewardsIntegrationService', () => {
 
     it('returns undefined when no discount available', async () => {
       (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
-        if (action === 'AccountsController:getSelectedAccount') {
-          return mockEvmAccount;
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockEvmAccount];
         }
         if (action === 'NetworkController:getState') {
           return { selectedNetworkClientId: 'mainnet' };
@@ -83,8 +87,10 @@ describe('RewardsIntegrationService', () => {
 
     it('returns undefined when no EVM account found', async () => {
       (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
-        if (action === 'AccountsController:getSelectedAccount') {
-          return null;
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [];
         }
         return undefined;
       });
@@ -100,8 +106,10 @@ describe('RewardsIntegrationService', () => {
 
     it('returns undefined when chain ID not found', async () => {
       (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
-        if (action === 'AccountsController:getSelectedAccount') {
-          return mockEvmAccount;
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockEvmAccount];
         }
         if (action === 'NetworkController:getState') {
           return { selectedNetworkClientId: 'mainnet' };
@@ -122,8 +130,10 @@ describe('RewardsIntegrationService', () => {
       const mockError = new Error('Rewards API error');
 
       (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
-        if (action === 'AccountsController:getSelectedAccount') {
-          return mockEvmAccount;
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockEvmAccount];
         }
         if (action === 'NetworkController:getState') {
           return { selectedNetworkClientId: 'mainnet' };
@@ -154,8 +164,10 @@ describe('RewardsIntegrationService', () => {
       const mockError = new Error('Network error');
 
       (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
-        if (action === 'AccountsController:getSelectedAccount') {
-          return mockEvmAccount;
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockEvmAccount];
         }
         if (action === 'NetworkController:getState') {
           throw mockError;
@@ -185,8 +197,11 @@ describe('RewardsIntegrationService', () => {
 
         (mockMessenger.call as jest.Mock).mockImplementation(
           (action: string) => {
-            if (action === 'AccountsController:getSelectedAccount') {
-              return mockEvmAccount;
+            if (
+              action ===
+              'AccountTreeController:getAccountsFromSelectedAccountGroup'
+            ) {
+              return [mockEvmAccount];
             }
             if (action === 'NetworkController:getState') {
               return { selectedNetworkClientId: chain.name.toLowerCase() };
@@ -219,8 +234,11 @@ describe('RewardsIntegrationService', () => {
 
         (mockMessenger.call as jest.Mock).mockImplementation(
           (action: string) => {
-            if (action === 'AccountsController:getSelectedAccount') {
-              return mockEvmAccount;
+            if (
+              action ===
+              'AccountTreeController:getAccountsFromSelectedAccountGroup'
+            ) {
+              return [mockEvmAccount];
             }
             if (action === 'NetworkController:getState') {
               return { selectedNetworkClientId: 'mainnet' };
@@ -254,10 +272,12 @@ describe('RewardsIntegrationService', () => {
       const mockMessenger2 = createMockMessenger();
       const service2 = new RewardsIntegrationService(mockDeps2, mockMessenger2);
 
-      // First service - mock messenger to return null
+      // First service - mock messenger to return empty array (no EVM account)
       (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
-        if (action === 'AccountsController:getSelectedAccount') {
-          return null;
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [];
         }
         return undefined;
       });
@@ -266,8 +286,11 @@ describe('RewardsIntegrationService', () => {
       // Second service - uses same mock pattern
       (mockMessenger2.call as jest.Mock).mockImplementation(
         (action: string) => {
-          if (action === 'AccountsController:getSelectedAccount') {
-            return null;
+          if (
+            action ===
+            'AccountTreeController:getAccountsFromSelectedAccountGroup'
+          ) {
+            return [];
           }
           return undefined;
         },
