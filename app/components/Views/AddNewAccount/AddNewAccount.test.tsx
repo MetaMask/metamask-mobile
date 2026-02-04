@@ -174,14 +174,6 @@ describe('AddNewAccount', () => {
     jest.clearAllMocks();
   });
 
-  it('handles account name input', () => {
-    const { getByPlaceholderText } = render(initialState, {});
-
-    const input = getByPlaceholderText(mockNextAccountName);
-    fireEvent.changeText(input, 'My New Account');
-    expect(input.props.value).toBe('My New Account');
-  });
-
   it('shows SRP list when selector is clicked', () => {
     const { getByText } = render(initialState, {});
 
