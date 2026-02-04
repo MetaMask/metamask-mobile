@@ -25,7 +25,6 @@ import {
   TokenPrice,
 } from '../../../hooks/useTokenHistoricalPrices';
 import { TokenI } from '../../Tokens/types';
-import { usePerpsMarketForAsset } from '../../Perps/hooks/usePerpsMarketForAsset';
 import { PerpsEventValues } from '../../Perps/constants/eventNames';
 import { usePerpsActions } from '../hooks/usePerpsActions';
 import Price from '../../AssetOverview/Price';
@@ -179,7 +178,10 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     hasPerpsMarket,
     marketData,
     isLoading: isPerpsLoading,
-  } = usePerpsMarketForAsset(isPerpsEnabled ? token.symbol : null);
+    handlePerpsAction,
+  } = usePerpsActions({
+    symbol: isPerpsEnabled ? token.symbol : null,
+  });
 
   const { isBuyable, isLoading: isBuyableLoading } = useTokenBuyability(token);
 
@@ -190,10 +192,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const isTokenDetailsV2ButtonsEnabled = useSelector(
     selectTokenDetailsV2ButtonsEnabled,
   );
-
-  const { handlePerpsAction } = usePerpsActions({
-    symbol: token.symbol,
-  });
 
   const goToBrowserUrl = (url: string) => {
     const [screen, params] = createWebviewNavDetails({
