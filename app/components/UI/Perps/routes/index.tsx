@@ -38,6 +38,7 @@ import { HIP3DebugView } from '../Debug';
 import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWarningBottomSheet';
 import { useTheme } from '../../../../util/theme';
 import { RouteProp, useRoute } from '@react-navigation/native';
+import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 
 const Stack = createStackNavigator<PerpsNavigationParamList>();
 const ModalStack = createStackNavigator();
@@ -48,10 +49,8 @@ const styles = StyleSheet.create({
   },
 });
 
-const DEFAULT_SHOW_PERPS_HEADER = true;
-
 function getRedesignedConfirmationsHeaderOptions({
-  showPerpsHeader = DEFAULT_SHOW_PERPS_HEADER,
+  showPerpsHeader = CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader,
 }: PerpsNavigationParamList['RedesignedConfirmations'] = {}) {
   return showPerpsHeader
     ? {
@@ -71,7 +70,8 @@ const PerpsConfirmScreen = (
   const params =
     useRoute<RouteProp<PerpsNavigationParamList, 'RedesignedConfirmations'>>();
   const showPerpsHeader =
-    params?.params?.showPerpsHeader ?? DEFAULT_SHOW_PERPS_HEADER;
+    params?.params?.showPerpsHeader ??
+    CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader;
 
   return (
     <Confirm
