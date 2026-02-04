@@ -110,7 +110,7 @@ import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
 import { selectPerpsEnabledFlag } from '../Perps';
 import { usePerpsMarketForAsset } from '../Perps/hooks/usePerpsMarketForAsset';
 import PerpsDiscoveryBanner from '../Perps/components/PerpsDiscoveryBanner';
-import { PerpsEventValues } from '../Perps/constants/eventNames';
+import { PERPS_EVENT_VALUE } from '../Perps/constants/eventNames';
 import { isTokenTrustworthyForPerps } from '../Perps/constants/perpsConfig';
 import DSText, {
   TextVariant,
@@ -481,7 +481,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         screen: Routes.PERPS.MARKET_DETAILS,
         params: {
           market: marketData,
-          source: PerpsEventValues.SOURCE.ASSET_DETAIL_SCREEN,
+          source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
         },
       });
     }
