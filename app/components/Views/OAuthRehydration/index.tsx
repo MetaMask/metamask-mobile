@@ -484,7 +484,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
       track(MetaMetricsEvents.REHYDRATION_COMPLETED, {
         account_type: 'social',
-        biometrics: true,
+        biometrics: biometryChoice,
         failed_attempts: rehydrationFailedAttempts,
       });
 
@@ -590,7 +590,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     const getBiometryType = async () => {
       const authType = await Authentication.getType();
 
-      if (route.params?.oauthLoginSuccess) {
+      if (route.params?.oauthLoginSuccess && authType.availableBiometryType) {
         setBiometryType(AUTHENTICATION_TYPE.BIOMETRIC);
       } else if (
         authType.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC ||
