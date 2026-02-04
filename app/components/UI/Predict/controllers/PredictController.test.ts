@@ -10,6 +10,10 @@ import {
 
 import type { NetworkState } from '@metamask/network-controller';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
+import {
+  TransactionStatus,
+  TransactionType,
+} from '@metamask/transaction-controller';
 
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
@@ -77,6 +81,18 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
     log: jest.fn(),
   },
 }));
+
+// Mock ToastService
+jest.mock('../../../../core/ToastService', () => ({
+  __esModule: true,
+  default: {
+    showToast: jest.fn(),
+    closeToast: jest.fn(),
+  },
+}));
+
+// Import ToastService for test assertions
+import ToastService from '../../../../core/ToastService';
 
 // Mock successfulFetch for geo location testing
 jest.mock('@metamask/controller-utils', () => {
@@ -330,6 +346,7 @@ describe('PredictController', () => {
         'TransactionController:transactionConfirmed',
         'TransactionController:transactionFailed',
         'TransactionController:transactionRejected',
+        'TransactionController:transactionStatusUpdated',
         'RemoteFeatureFlagController:stateChange',
       ],
       messenger,
@@ -5779,6 +5796,683 @@ describe('PredictController', () => {
             sportsConnected: false,
             marketConnected: false,
           });
+        });
+      });
+    });
+  });
+
+  describe('transaction event handling', () => {
+    const mockShowToast = ToastService.showToast as jest.MockedFunction<
+      typeof ToastService.showToast
+    >;
+
+    beforeEach(() => {
+      mockShowToast.mockClear();
+    });
+
+    function createTransactionMeta(
+      type: TransactionType,
+      status: TransactionStatus,
+      overrides: Record<string, unknown> = {},
+    ) {
+      return {
+        id: 'tx-123',
+        status,
+        nestedTransactions: [{ type }],
+        ...overrides,
+      };
+    }
+
+    describe('getPredictTransactionType', () => {
+      it('returns null for non-predict transactions', () => {
+        withController(({ controller }) => {
+          const transactionMeta = {
+            id: 'tx-123',
+            status: TransactionStatus.confirmed,
+            nestedTransactions: [{ type: TransactionType.swap }],
+          };
+
+          const result = (controller as any).getPredictTransactionType(
+            transactionMeta,
+          );
+
+          expect(result).toBeNull();
+        });
+      });
+
+      it('returns predictDeposit type for deposit transactions', () => {
+        withController(({ controller }) => {
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictDeposit,
+            TransactionStatus.confirmed,
+          );
+
+          const result = (controller as any).getPredictTransactionType(
+            transactionMeta,
+          );
+
+          expect(result).toBe(TransactionType.predictDeposit);
+        });
+      });
+
+      it('returns predictWithdraw type for withdraw transactions', () => {
+        withController(({ controller }) => {
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictWithdraw,
+            TransactionStatus.confirmed,
+          );
+
+          const result = (controller as any).getPredictTransactionType(
+            transactionMeta,
+          );
+
+          expect(result).toBe(TransactionType.predictWithdraw);
+        });
+      });
+
+      it('returns predictClaim type for claim transactions', () => {
+        withController(({ controller }) => {
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictClaim,
+            TransactionStatus.confirmed,
+          );
+
+          const result = (controller as any).getPredictTransactionType(
+            transactionMeta,
+          );
+
+          expect(result).toBe(TransactionType.predictClaim);
+        });
+      });
+
+      it('returns null when nestedTransactions is empty', () => {
+        withController(({ controller }) => {
+          const transactionMeta = {
+            id: 'tx-123',
+            status: TransactionStatus.confirmed,
+            nestedTransactions: [],
+          };
+
+          const result = (controller as any).getPredictTransactionType(
+            transactionMeta,
+          );
+
+          expect(result).toBeNull();
+        });
+      });
+
+      it('returns null when nestedTransactions is undefined', () => {
+        withController(({ controller }) => {
+          const transactionMeta = {
+            id: 'tx-123',
+            status: TransactionStatus.confirmed,
+          };
+
+          const result = (controller as any).getPredictTransactionType(
+            transactionMeta,
+          );
+
+          expect(result).toBeNull();
+        });
+      });
+    });
+
+    describe('handleDepositTransactionUpdate', () => {
+      it('shows pending toast when deposit is approved', () => {
+        withController(({ controller }) => {
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictDeposit,
+            TransactionStatus.approved,
+          );
+
+          (controller as any).handleDepositTransactionUpdate(transactionMeta);
+
+          expect(mockShowToast).toHaveBeenCalledTimes(1);
+          expect(mockShowToast).toHaveBeenCalledWith(
+            expect.objectContaining({
+              iconName: 'Loading',
+              iconColor: '#190066',
+              backgroundColor: '#89b0ff',
+            }),
+          );
+        });
+      });
+
+      it('shows confirmed toast and clears pending deposit when deposit is confirmed', () => {
+        withController(({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.pendingDeposits = {
+              polymarket: {
+                '0x1234567890123456789012345678901234567890': '100',
+              },
+            };
+          });
+
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictDeposit,
+            TransactionStatus.confirmed,
+            {
+              metamaskPay: {
+                totalFiat: '100.00',
+                bridgeFeeFiat: '1.00',
+                networkFeeFiat: '0.50',
+              },
+            },
+          );
+
+          (controller as any).handleDepositTransactionUpdate(transactionMeta);
+
+          expect(mockShowToast).toHaveBeenCalledTimes(1);
+          expect(mockShowToast).toHaveBeenCalledWith(
+            expect.objectContaining({
+              iconName: 'Confirmation',
+              iconColor: '#457a39',
+              backgroundColor: 'transparent',
+            }),
+          );
+          expect(
+            controller.state.pendingDeposits.polymarket?.[
+              '0x1234567890123456789012345678901234567890'
+            ],
+          ).toBeUndefined();
+        });
+      });
+
+      it('shows error toast and clears pending deposit when deposit fails', () => {
+        withController(({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.pendingDeposits = {
+              polymarket: {
+                '0x1234567890123456789012345678901234567890': '100',
+              },
+            };
+          });
+
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictDeposit,
+            TransactionStatus.failed,
+          );
+
+          (controller as any).handleDepositTransactionUpdate(transactionMeta);
+
+          expect(mockShowToast).toHaveBeenCalledTimes(1);
+          expect(mockShowToast).toHaveBeenCalledWith(
+            expect.objectContaining({
+              iconName: 'Danger',
+              iconColor: '#ca3542',
+              backgroundColor: '#89b0ff',
+            }),
+          );
+          expect(
+            controller.state.pendingDeposits.polymarket?.[
+              '0x1234567890123456789012345678901234567890'
+            ],
+          ).toBeUndefined();
+        });
+      });
+
+      it('clears pending deposit without toast when deposit is rejected', () => {
+        withController(({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.pendingDeposits = {
+              polymarket: {
+                '0x1234567890123456789012345678901234567890': '100',
+              },
+            };
+          });
+
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictDeposit,
+            TransactionStatus.rejected,
+          );
+
+          (controller as any).handleDepositTransactionUpdate(transactionMeta);
+
+          expect(mockShowToast).not.toHaveBeenCalled();
+          expect(
+            controller.state.pendingDeposits.polymarket?.[
+              '0x1234567890123456789012345678901234567890'
+            ],
+          ).toBeUndefined();
+        });
+      });
+    });
+
+    describe('handleWithdrawTransactionUpdate', () => {
+      it('shows pending toast when withdraw is approved', () => {
+        withController(({ controller }) => {
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictWithdraw,
+            TransactionStatus.approved,
+          );
+
+          (controller as any).handleWithdrawTransactionUpdate(transactionMeta);
+
+          expect(mockShowToast).toHaveBeenCalledTimes(1);
+          expect(mockShowToast).toHaveBeenCalledWith(
+            expect.objectContaining({
+              iconName: 'Loading',
+            }),
+          );
+        });
+      });
+
+      it('shows confirmed toast and clears withdraw transaction when withdraw is confirmed', () => {
+        withController(({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.withdrawTransaction = {
+              status: PredictWithdrawStatus.PENDING,
+              amount: 50.0,
+            } as any;
+          });
+
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictWithdraw,
+            TransactionStatus.confirmed,
+          );
+
+          (controller as any).handleWithdrawTransactionUpdate(transactionMeta);
+
+          expect(mockShowToast).toHaveBeenCalledTimes(1);
+          expect(mockShowToast).toHaveBeenCalledWith(
+            expect.objectContaining({
+              iconName: 'Confirmation',
+            }),
+          );
+          expect(controller.state.withdrawTransaction).toBeNull();
+        });
+      });
+
+      it('shows error toast and clears withdraw transaction when withdraw fails', () => {
+        withController(({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.withdrawTransaction = {
+              status: PredictWithdrawStatus.PENDING,
+              amount: 50.0,
+            } as any;
+          });
+
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictWithdraw,
+            TransactionStatus.failed,
+          );
+
+          (controller as any).handleWithdrawTransactionUpdate(transactionMeta);
+
+          expect(mockShowToast).toHaveBeenCalledTimes(1);
+          expect(mockShowToast).toHaveBeenCalledWith(
+            expect.objectContaining({
+              iconName: 'Danger',
+            }),
+          );
+          expect(controller.state.withdrawTransaction).toBeNull();
+        });
+      });
+
+      it('clears withdraw transaction without toast when withdraw is rejected', () => {
+        withController(({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.withdrawTransaction = {
+              status: PredictWithdrawStatus.PENDING,
+              amount: 50.0,
+            } as any;
+          });
+
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictWithdraw,
+            TransactionStatus.rejected,
+          );
+
+          (controller as any).handleWithdrawTransactionUpdate(transactionMeta);
+
+          expect(mockShowToast).not.toHaveBeenCalled();
+          expect(controller.state.withdrawTransaction).toBeNull();
+        });
+      });
+    });
+
+    describe('handleClaimTransactionUpdate', () => {
+      it('shows pending toast when claim is approved', () => {
+        withController(({ controller }) => {
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictClaim,
+            TransactionStatus.approved,
+          );
+
+          (controller as any).handleClaimTransactionUpdate(transactionMeta);
+
+          expect(mockShowToast).toHaveBeenCalledTimes(1);
+          expect(mockShowToast).toHaveBeenCalledWith(
+            expect.objectContaining({
+              iconName: 'Loading',
+            }),
+          );
+        });
+      });
+
+      it('shows confirmed toast when claim is confirmed', () => {
+        withController(({ controller }) => {
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictClaim,
+            TransactionStatus.confirmed,
+          );
+
+          (controller as any).handleClaimTransactionUpdate(transactionMeta);
+
+          expect(mockShowToast).toHaveBeenCalledTimes(1);
+          expect(mockShowToast).toHaveBeenCalledWith(
+            expect.objectContaining({
+              iconName: 'Confirmation',
+            }),
+          );
+        });
+      });
+
+      it('shows error toast when claim fails', () => {
+        withController(({ controller }) => {
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictClaim,
+            TransactionStatus.failed,
+          );
+
+          (controller as any).handleClaimTransactionUpdate(transactionMeta);
+
+          expect(mockShowToast).toHaveBeenCalledTimes(1);
+          expect(mockShowToast).toHaveBeenCalledWith(
+            expect.objectContaining({
+              iconName: 'Danger',
+            }),
+          );
+        });
+      });
+
+      it('does not show toast when claim is rejected', () => {
+        withController(({ controller }) => {
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictClaim,
+            TransactionStatus.rejected,
+          );
+
+          (controller as any).handleClaimTransactionUpdate(transactionMeta);
+
+          expect(mockShowToast).not.toHaveBeenCalled();
+        });
+      });
+    });
+
+    describe('handleTransactionStatusUpdate', () => {
+      it('routes deposit transactions to handleDepositTransactionUpdate', () => {
+        withController(({ controller }) => {
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictDeposit,
+            TransactionStatus.approved,
+          );
+
+          (controller as any).handleTransactionStatusUpdate({
+            transactionMeta,
+          });
+
+          expect(mockShowToast).toHaveBeenCalledTimes(1);
+        });
+      });
+
+      it('routes withdraw transactions to handleWithdrawTransactionUpdate', () => {
+        withController(({ controller }) => {
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictWithdraw,
+            TransactionStatus.approved,
+          );
+
+          (controller as any).handleTransactionStatusUpdate({
+            transactionMeta,
+          });
+
+          expect(mockShowToast).toHaveBeenCalledTimes(1);
+        });
+      });
+
+      it('routes claim transactions to handleClaimTransactionUpdate', () => {
+        withController(({ controller }) => {
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictClaim,
+            TransactionStatus.approved,
+          );
+
+          (controller as any).handleTransactionStatusUpdate({
+            transactionMeta,
+          });
+
+          expect(mockShowToast).toHaveBeenCalledTimes(1);
+        });
+      });
+
+      it('ignores non-predict transactions', () => {
+        withController(({ controller }) => {
+          const transactionMeta = {
+            id: 'tx-123',
+            status: TransactionStatus.confirmed,
+            nestedTransactions: [{ type: TransactionType.swap }],
+          };
+
+          (controller as any).handleTransactionStatusUpdate({
+            transactionMeta,
+          });
+
+          expect(mockShowToast).not.toHaveBeenCalled();
+        });
+      });
+    });
+
+    describe('getDepositAmount', () => {
+      it('calculates net deposit amount from fiat values', () => {
+        withController(({ controller }) => {
+          const transactionMeta = {
+            metamaskPay: {
+              totalFiat: '100.00',
+              bridgeFeeFiat: '2.50',
+              networkFeeFiat: '0.50',
+            },
+          };
+
+          const result = (controller as any).getDepositAmount(transactionMeta);
+
+          expect(result).toBe('$97.00');
+        });
+      });
+
+      it('returns "Balance" when totalFiat is missing', () => {
+        withController(({ controller }) => {
+          const transactionMeta = {
+            metamaskPay: {},
+          };
+
+          const result = (controller as any).getDepositAmount(transactionMeta);
+
+          expect(result).toBe('Balance');
+        });
+      });
+
+      it('handles missing fee values', () => {
+        withController(({ controller }) => {
+          const transactionMeta = {
+            metamaskPay: {
+              totalFiat: '100.00',
+            },
+          };
+
+          const result = (controller as any).getDepositAmount(transactionMeta);
+
+          expect(result).toBe('$100.00');
+        });
+      });
+    });
+
+    describe('getWithdrawAmount', () => {
+      it('returns formatted withdraw amount from state', () => {
+        withController(({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.withdrawTransaction = {
+              status: PredictWithdrawStatus.PENDING,
+              amount: 75.5,
+            } as any;
+          });
+
+          const result = (controller as any).getWithdrawAmount();
+
+          expect(result).toBe('$75.5');
+        });
+      });
+
+      it('returns "$0.00" when withdrawTransaction is null', () => {
+        withController(({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.withdrawTransaction = null;
+          });
+
+          const result = (controller as any).getWithdrawAmount();
+
+          expect(result).toBe('$0.00');
+        });
+      });
+
+      it('returns "$0.00" when amount is missing', () => {
+        withController(({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.withdrawTransaction = {
+              status: PredictWithdrawStatus.PENDING,
+            } as any;
+          });
+
+          const result = (controller as any).getWithdrawAmount();
+
+          expect(result).toBe('$0.00');
+        });
+      });
+    });
+
+    describe('getClaimableAmount', () => {
+      it('calculates total claimable amount from positions', () => {
+        withController(({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.claimablePositions = {
+              '0x1234567890123456789012345678901234567890': [
+                { currentValue: 25.5 } as PredictPosition,
+                { currentValue: 30.25 } as PredictPosition,
+              ],
+            };
+          });
+
+          const result = (controller as any).getClaimableAmount();
+
+          expect(result).toBe('$55.75');
+        });
+      });
+
+      it('returns "$0.00" when no claimable positions exist', () => {
+        withController(({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.claimablePositions = {};
+          });
+
+          const result = (controller as any).getClaimableAmount();
+
+          expect(result).toBe('$0.00');
+        });
+      });
+
+      it('handles positions with undefined currentValue', () => {
+        withController(({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.claimablePositions = {
+              '0x1234567890123456789012345678901234567890': [
+                { currentValue: 25 } as PredictPosition,
+                { currentValue: undefined } as any,
+              ],
+            };
+          });
+
+          const result = (controller as any).getClaimableAmount();
+
+          expect(result).toBe('$25.00');
+        });
+      });
+    });
+
+    describe('toast error handling', () => {
+      it('logs error when showPendingToast fails', () => {
+        withController(({ controller }) => {
+          mockShowToast.mockImplementationOnce(() => {
+            throw new Error('Toast error');
+          });
+
+          expect(() => {
+            (controller as any).showPendingToast({
+              title: 'Test',
+              description: 'Test description',
+            });
+          }).not.toThrow();
+
+          expect(DevLogger.log).toHaveBeenCalledWith(
+            'PredictController: Failed to show pending toast',
+            expect.objectContaining({ error: 'Toast error' }),
+          );
+        });
+      });
+
+      it('logs error when showConfirmedToast fails', () => {
+        withController(({ controller }) => {
+          mockShowToast.mockImplementationOnce(() => {
+            throw new Error('Toast error');
+          });
+
+          expect(() => {
+            (controller as any).showConfirmedToast({
+              title: 'Test',
+              description: 'Test description',
+            });
+          }).not.toThrow();
+
+          expect(DevLogger.log).toHaveBeenCalledWith(
+            'PredictController: Failed to show confirmed toast',
+            expect.objectContaining({ error: 'Toast error' }),
+          );
+        });
+      });
+
+      it('logs error when showErrorToast fails', () => {
+        withController(({ controller }) => {
+          mockShowToast.mockImplementationOnce(() => {
+            throw new Error('Toast error');
+          });
+
+          expect(() => {
+            (controller as any).showErrorToast({
+              title: 'Test',
+              description: 'Test description',
+            });
+          }).not.toThrow();
+
+          expect(DevLogger.log).toHaveBeenCalledWith(
+            'PredictController: Failed to show error toast',
+            expect.objectContaining({ error: 'Toast error' }),
+          );
+        });
+      });
+    });
+
+    describe('transaction event subscription', () => {
+      it('subscribes to transactionStatusUpdated event in constructor', () => {
+        withController(({ controller: _controller, messenger }) => {
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictDeposit,
+            TransactionStatus.approved,
+          );
+
+          messenger.publish('TransactionController:transactionStatusUpdated', {
+            transactionMeta: transactionMeta as any,
+          });
+
+          expect(mockShowToast).toHaveBeenCalledTimes(1);
         });
       });
     });

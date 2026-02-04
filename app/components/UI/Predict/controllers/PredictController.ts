@@ -27,7 +27,9 @@ import {
   TransactionControllerTransactionFailedEvent,
   TransactionControllerTransactionRejectedEvent,
   TransactionControllerTransactionSubmittedEvent,
+  TransactionControllerTransactionStatusUpdatedEvent,
   TransactionMeta,
+  TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
 import {
@@ -35,8 +37,13 @@ import {
   RemoteFeatureFlagControllerStateChangeEvent,
 } from '@metamask/remote-feature-flag-controller';
 import { Hex, hexToNumber, numberToHex } from '@metamask/utils';
+import { lightTheme } from '@metamask/design-tokens';
 import performance from 'react-native-performance';
+import { strings } from '../../../../../locales/i18n';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
+import ToastService from '../../../../core/ToastService';
+import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
@@ -255,6 +262,7 @@ type AllowedEvents =
   | TransactionControllerTransactionConfirmedEvent
   | TransactionControllerTransactionFailedEvent
   | TransactionControllerTransactionRejectedEvent
+  | TransactionControllerTransactionStatusUpdatedEvent
   | RemoteFeatureFlagControllerStateChangeEvent;
 
 /**
@@ -335,6 +343,9 @@ export class PredictController extends BaseController<
         }),
       );
     });
+
+    // Setup transaction event listeners for toast notifications
+    this.setupTransactionEventListeners();
   }
 
   /**
@@ -380,6 +391,318 @@ export class PredictController extends BaseController<
     DevLogger.log('PredictController: Providers initialized successfully', {
       providerCount: this.providers.size,
       timestamp: new Date().toISOString(),
+    });
+  }
+
+  private setupTransactionEventListeners(): void {
+    this.messenger.subscribe(
+      'TransactionController:transactionStatusUpdated',
+      this.handleTransactionStatusUpdate.bind(this),
+    );
+  }
+
+  private handleTransactionStatusUpdate({
+    transactionMeta,
+  }: {
+    transactionMeta: TransactionMeta;
+  }): void {
+    const predictTransactionType =
+      this.getPredictTransactionType(transactionMeta);
+
+    if (!predictTransactionType) {
+      return;
+    }
+
+    switch (predictTransactionType) {
+      case TransactionType.predictDeposit:
+        this.handleDepositTransactionUpdate(transactionMeta);
+        break;
+      case TransactionType.predictWithdraw:
+        this.handleWithdrawTransactionUpdate(transactionMeta);
+        break;
+      case TransactionType.predictClaim:
+        this.handleClaimTransactionUpdate(transactionMeta);
+        break;
+      default:
+        break;
+    }
+  }
+
+  private getPredictTransactionType(
+    transactionMeta: TransactionMeta,
+  ): TransactionType | null {
+    const predictTypes = [
+      TransactionType.predictDeposit,
+      TransactionType.predictWithdraw,
+      TransactionType.predictClaim,
+    ];
+
+    const nestedType = transactionMeta?.nestedTransactions?.find((tx) =>
+      predictTypes.includes(tx.type as TransactionType),
+    )?.type as TransactionType | undefined;
+
+    return nestedType ?? null;
+  }
+
+  private handleDepositTransactionUpdate(
+    transactionMeta: TransactionMeta,
+  ): void {
+    const { status } = transactionMeta;
+
+    switch (status) {
+      case TransactionStatus.approved:
+        this.showPendingToast({
+          title: strings('predict.deposit.adding_funds'),
+          description: strings('predict.deposit.available_in_minutes', {
+            minutes: 1,
+          }),
+        });
+        break;
+      case TransactionStatus.confirmed:
+        this.clearPendingDeposit({ providerId: 'polymarket' });
+        this.showConfirmedToast({
+          title: strings('predict.deposit.ready_to_trade'),
+          description: strings('predict.deposit.account_ready_description', {
+            amount: this.getDepositAmount(transactionMeta),
+          }),
+        });
+        this.refreshBalanceAfterTransaction();
+        break;
+      case TransactionStatus.failed:
+        this.clearPendingDeposit({ providerId: 'polymarket' });
+        this.showErrorToast({
+          title: strings('predict.deposit.error_title'),
+          description: strings('predict.deposit.error_description'),
+        });
+        break;
+      case TransactionStatus.rejected:
+        this.clearPendingDeposit({ providerId: 'polymarket' });
+        break;
+      default:
+        break;
+    }
+  }
+
+  private handleWithdrawTransactionUpdate(
+    transactionMeta: TransactionMeta,
+  ): void {
+    const { status } = transactionMeta;
+
+    switch (status) {
+      case TransactionStatus.approved:
+        this.showPendingToast({
+          title: strings('predict.withdraw.withdrawing'),
+          description: strings('predict.withdraw.withdrawing_subtitle'),
+        });
+        break;
+      case TransactionStatus.confirmed:
+        this.clearWithdrawTransaction();
+        this.showConfirmedToast({
+          title: strings('predict.withdraw.withdraw_completed'),
+          description: strings('predict.withdraw.withdraw_completed_subtitle', {
+            amount: this.getWithdrawAmount(),
+          }),
+        });
+        this.refreshBalanceAfterTransaction();
+        break;
+      case TransactionStatus.failed:
+        this.clearWithdrawTransaction();
+        this.showErrorToast({
+          title: strings('predict.withdraw.error_title'),
+          description: strings('predict.withdraw.error_description'),
+        });
+        break;
+      case TransactionStatus.rejected:
+        this.clearWithdrawTransaction();
+        break;
+      default:
+        break;
+    }
+  }
+
+  private handleClaimTransactionUpdate(transactionMeta: TransactionMeta): void {
+    const { status } = transactionMeta;
+    const claimableAmount = this.getClaimableAmount();
+
+    switch (status) {
+      case TransactionStatus.approved:
+        this.showPendingToast({
+          title: strings('predict.claim.toasts.pending.title', {
+            amount: claimableAmount,
+          }),
+          description: strings('predict.claim.toasts.pending.description', {
+            time: 5,
+          }),
+        });
+        break;
+      case TransactionStatus.confirmed:
+        this.confirmClaim({ providerId: 'polymarket' });
+        this.showConfirmedToast({
+          title: strings('predict.deposit.account_ready'),
+          description: strings('predict.deposit.account_ready_description', {
+            amount: claimableAmount,
+          }),
+        });
+        this.refreshBalanceAfterTransaction();
+        this.refreshPositionsAfterTransaction();
+        break;
+      case TransactionStatus.failed:
+        this.showErrorToast({
+          title: strings('predict.claim.toasts.error.title'),
+          description: strings('predict.claim.toasts.error.description'),
+        });
+        break;
+      case TransactionStatus.rejected:
+        break;
+      default:
+        break;
+    }
+  }
+
+  private showPendingToast({
+    title,
+    description,
+  }: {
+    title: string;
+    description: string;
+  }): void {
+    try {
+      ToastService.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          { label: title, isBold: true },
+          { label: '\n', isBold: false },
+          { label: description, isBold: false },
+        ],
+        iconName: IconName.Loading,
+        iconColor: lightTheme.colors.accent04.dark,
+        backgroundColor: lightTheme.colors.accent04.normal,
+        hasNoTimeout: false,
+      });
+    } catch (error) {
+      DevLogger.log('PredictController: Failed to show pending toast', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  private showConfirmedToast({
+    title,
+    description,
+  }: {
+    title: string;
+    description: string;
+  }): void {
+    try {
+      ToastService.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          { label: title, isBold: true },
+          { label: '\n', isBold: false },
+          { label: description, isBold: false },
+        ],
+        iconName: IconName.Confirmation,
+        iconColor: lightTheme.colors.success.default,
+        backgroundColor: 'transparent',
+        hasNoTimeout: false,
+      });
+    } catch (error) {
+      DevLogger.log('PredictController: Failed to show confirmed toast', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  private showErrorToast({
+    title,
+    description,
+  }: {
+    title: string;
+    description: string;
+  }): void {
+    try {
+      ToastService.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          { label: title, isBold: true },
+          { label: '\n', isBold: false },
+          { label: description, isBold: false },
+        ],
+        iconName: IconName.Danger,
+        iconColor: lightTheme.colors.error.default,
+        backgroundColor: lightTheme.colors.accent04.normal,
+        hasNoTimeout: false,
+      });
+    } catch (error) {
+      DevLogger.log('PredictController: Failed to show error toast', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  private getDepositAmount(transactionMeta: TransactionMeta): string {
+    const totalFiat = transactionMeta.metamaskPay?.totalFiat;
+    const bridgeFeeFiat = transactionMeta.metamaskPay?.bridgeFeeFiat;
+    const networkFeeFiat = transactionMeta.metamaskPay?.networkFeeFiat;
+
+    if (!totalFiat) {
+      return 'Balance';
+    }
+
+    const total = parseFloat(totalFiat);
+    const bridgeFee = bridgeFeeFiat ? parseFloat(bridgeFeeFiat) : 0;
+    const networkFee = networkFeeFiat ? parseFloat(networkFeeFiat) : 0;
+    const netAmount = total - bridgeFee - networkFee;
+
+    return `$${netAmount.toFixed(2)}`;
+  }
+
+  private getWithdrawAmount(): string {
+    const withdrawTransaction = this.state.withdrawTransaction;
+    if (!withdrawTransaction?.amount) {
+      return '$0.00';
+    }
+    return `$${withdrawTransaction.amount}`;
+  }
+
+  private getClaimableAmount(): string {
+    const address = this.getEvmAccountAddress();
+    const claimablePositions = this.state.claimablePositions[address] ?? [];
+    const totalClaimable = claimablePositions.reduce(
+      (sum, position) => sum + (position.currentValue ?? 0),
+      0,
+    );
+    return `$${totalClaimable.toFixed(2)}`;
+  }
+
+  private refreshBalanceAfterTransaction(): void {
+    const address = this.getEvmAccountAddress();
+    this.getBalance({
+      providerId: 'polymarket',
+      address,
+    }).catch((error) => {
+      DevLogger.log(
+        'PredictController: Failed to refresh balance after transaction',
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+      );
+    });
+  }
+
+  private refreshPositionsAfterTransaction(): void {
+    const address = this.getEvmAccountAddress();
+    this.getPositions({
+      providerId: 'polymarket',
+      address,
+      claimable: true,
+    }).catch((error) => {
+      DevLogger.log(
+        'PredictController: Failed to refresh positions after transaction',
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+      );
     });
   }
 
