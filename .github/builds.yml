@@ -9,10 +9,12 @@
 # Structure:
 #   - env: sets environment variables directly (servers, build config, etc.)
 #   - secrets: maps env var names to GitHub Secret names
+#   - signing: (optional) AWS role + secret for code signing (omit for dev/simulator builds)
 #   - code_fencing: features to include via code fencing
 #   - remote_feature_flags: build-time defaults for LaunchDarkly flags (seeded into RemoteFeatureFlagController)
 #
 # GitHub Environment determines actual secret values - builds.yml just maps the names.
+# Signing: AWS Secrets Manager (Account 363762752069) - see Mobile Signer Roles & Secrets doc.
 
 # =============================================================================
 # YAML Anchors (reusable config blocks)
@@ -74,6 +76,29 @@ _secrets: &secrets
   # Card/Baanx
   MM_CARD_BAANX_API_CLIENT_KEY: "MM_CARD_BAANX_API_CLIENT_KEY"
 
+# Signing config (AWS Secrets Manager) - omit for dev/simulator builds
+# android_keystore_path: filename in android/keystores/ (build.gradle expects fixed paths)
+_signing_prod: &signing_prod
+  aws_role: "arn:aws:iam::363762752069:role/metamask-mobile-prod-signer"
+  aws_secret: "metamask-mobile-main-prod-signer"
+  android_keystore_path: "release.keystore"
+_signing_rc: &signing_rc
+  aws_role: "arn:aws:iam::363762752069:role/metamask-mobile-rc-signer"
+  aws_secret: "metamask-mobile-main-rc-signer"
+  android_keystore_path: "rc.keystore"
+_signing_uat: &signing_uat
+  aws_role: "arn:aws:iam::363762752069:role/metamask-mobile-uat-signer"
+  aws_secret: "metamask-mobile-main-uat-signer"
+  android_keystore_path: "internalRelease.keystore"
+_signing_flask_prod: &signing_flask_prod
+  aws_role: "arn:aws:iam::363762752069:role/metamask-mobile-prod-signer"
+  aws_secret: "metamask-mobile-flask-prod-signer"
+  android_keystore_path: "flaskRelease.keystore"
+_signing_flask_uat: &signing_flask_uat
+  aws_role: "arn:aws:iam::363762752069:role/metamask-mobile-uat-signer"
+  aws_secret: "metamask-mobile-flask-uat-signer"
+  android_keystore_path: "flask-uat.keystore"
+
 # Main code fencing features
 _code_fencing_main: &code_fencing_main
   - preinstalled-snaps
@@ -132,6 +157,7 @@ builds:
   # Production release (App Store)
   main-prod:
     github_environment: build-production
+    signing: *signing_prod
     env:
       METAMASK_ENVIRONMENT: "production"
       METAMASK_BUILD_TYPE: "main"
@@ -147,6 +173,7 @@ builds:
   # Release candidate
   main-rc:
     github_environment: build-rc
+    signing: *signing_rc
     env:
       METAMASK_ENVIRONMENT: "rc"
       METAMASK_BUILD_TYPE: "main"
@@ -161,6 +188,7 @@ builds:
   # Test builds (QA)
   main-test:
     github_environment: build-test
+    signing: *signing_uat
     env:
       METAMASK_ENVIRONMENT: "test"
       METAMASK_BUILD_TYPE: "main"
@@ -182,6 +210,7 @@ builds:
   # E2E test builds (no Sentry)
   main-e2e:
     github_environment: build-e2e
+    signing: *signing_uat
     env:
       METAMASK_ENVIRONMENT: "e2e"
       METAMASK_BUILD_TYPE: "main"
@@ -202,6 +231,7 @@ builds:
   # Experimental builds
   main-exp:
     github_environment: build-exp
+    signing: *signing_uat
     env:
       METAMASK_ENVIRONMENT: "exp"
       METAMASK_BUILD_TYPE: "main"
@@ -272,6 +302,7 @@ builds:
   # Flask production release
   flask-prod:
     github_environment: build-production
+    signing: *signing_flask_prod
     env:
       METAMASK_ENVIRONMENT: "production"
       METAMASK_BUILD_TYPE: "flask"
@@ -286,6 +317,7 @@ builds:
   # Flask test builds (QA)
   flask-test:
     github_environment: build-test
+    signing: *signing_flask_uat
     env:
       METAMASK_ENVIRONMENT: "test"
       METAMASK_BUILD_TYPE: "flask"
@@ -306,6 +338,7 @@ builds:
   # Flask E2E test builds (no Sentry)
   flask-e2e:
     github_environment: build-e2e
+    signing: *signing_flask_uat
     env:
       METAMASK_ENVIRONMENT: "e2e"
       METAMASK_BUILD_TYPE: "flask"
@@ -365,6 +398,7 @@ builds:
   # QA production build
   qa-prod:
     github_environment: build-qa
+    signing: *signing_uat
     env:
       METAMASK_ENVIRONMENT: "production"
       METAMASK_BUILD_TYPE: "qa"

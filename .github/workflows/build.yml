@@ -43,6 +43,9 @@ jobs:
     outputs:
       github_environment: ${{ steps.config.outputs.github_environment }}
       secrets_json: ${{ steps.config.outputs.secrets_json }}
+      signing_aws_role: ${{ steps.config.outputs.signing_aws_role }}
+      signing_aws_secret: ${{ steps.config.outputs.signing_aws_secret }}
+      signing_android_keystore_path: ${{ steps.config.outputs.signing_android_keystore_path }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -61,6 +64,10 @@ jobs:
           const build = config.builds['${{ inputs.build_name }}'];
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'github_environment=' + build.github_environment + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'secrets_json=' + JSON.stringify(build.secrets || {}) + '\n');
+          const signing = build.signing;
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_role=' + (signing ? signing.aws_role || '' : '') + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_secret=' + (signing ? signing.aws_secret || '' : '') + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_android_keystore_path=' + (signing && signing.android_keystore_path ? signing.android_keystore_path : '') + '\n');
           "
 
   # Build
@@ -155,15 +162,16 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # Android qa signing (exp-test-e2e): skip for Expo dev builds (main-dev, flask-dev, qa-dev use debug keystore)
-      - name: Configure Android signing certificates
-        if: matrix.platform == 'android' && inputs.build_name != 'main-dev' && inputs.build_name != 'flask-dev' && inputs.build_name != 'qa-dev'
-        uses: MetaMask/github-tools/.github/actions/configure-keystore@0259e8a920318b02a8860e178d79796eaa08de02
+      # Signing: uses role + secret from builds.yml (skip for dev builds - main-dev, flask-dev, qa-dev use debug/simulator)
+      - name: Configure signing certificates
+        if: needs.prepare.outputs.signing_aws_role != ''
+        uses: ./.github/actions/configure-signing
         with:
-          aws-role-to-assume: 'arn:aws:iam::363762752069:role/metamask-mobile-build-signer-qa'
+          aws-role-to-assume: ${{ needs.prepare.outputs.signing_aws_role }}
           aws-region: 'us-east-2'
-          platform: 'android'
-          target: ${{ startsWith(inputs.build_name, 'flask') && 'flask' || 'qa' }}
+          platform: ${{ matrix.platform }}
+          aws-secret-name: ${{ needs.prepare.outputs.signing_aws_secret }}
+          android-keystore-path: ${{ needs.prepare.outputs.signing_android_keystore_path }}
 
       - name: Setup project dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2

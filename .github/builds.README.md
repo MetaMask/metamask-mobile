@@ -414,6 +414,24 @@ export const selectPerpsEnabledFlag = createSelector(
 
 ---
 
+## Signing Configuration (AWS Secrets Manager)
+
+Builds that produce signed device binaries (not simulator/debug) use AWS Secrets Manager for code signing. The `signing` section in `builds.yml` maps each build to an AWS role and secret.
+
+| Build type                             | AWS Role                    | AWS Secret                        | Android keystore         |
+| -------------------------------------- | --------------------------- | --------------------------------- | ------------------------ |
+| main-prod                              | metamask-mobile-prod-signer | metamask-mobile-main-prod-signer  | release.keystore         |
+| main-rc                                | metamask-mobile-rc-signer   | metamask-mobile-main-rc-signer    | rc.keystore              |
+| main-test, main-e2e, main-exp, qa-prod | metamask-mobile-uat-signer  | metamask-mobile-main-uat-signer   | internalRelease.keystore |
+| flask-prod                             | metamask-mobile-prod-signer | metamask-mobile-flask-prod-signer | flaskRelease.keystore    |
+| flask-test, flask-e2e                  | metamask-mobile-uat-signer  | metamask-mobile-flask-uat-signer  | flask-uat.keystore       |
+
+**Dev builds** (main-dev, flask-dev, qa-dev) omit `signing` — they use simulator/debug and require no certificates.
+
+**AWS secret structure** (per build.gradle expectations): The secret must contain keys such as `ANDROID_KEYSTORE` (base64), `BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD`, `BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS`, `BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD` for UAT builds; adjust for prod/rc/flask variants.
+
+---
+
 ## YAML Anchors
 
 `builds.yml` uses YAML anchors to avoid repetition. The pattern is: **single anchor with production defaults, override in specific builds as needed**.

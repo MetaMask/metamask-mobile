@@ -1,0 +1,109 @@
+# Configure code signing from AWS Secrets Manager
+# Uses role + secret name from builds.yml (per Mobile Signer Roles & Secrets doc)
+name: 'Configure Signing'
+description: 'Assume AWS role and fetch signing certificates from Secrets Manager'
+
+inputs:
+  aws-role-to-assume:
+    description: 'The AWS IAM role to assume'
+    required: true
+  aws-region:
+    description: 'The AWS region where the secret is stored'
+    required: true
+    default: 'us-east-2'
+  platform:
+    description: 'Platform (android or ios)'
+    required: true
+  aws-secret-name:
+    description: 'AWS Secrets Manager secret name (e.g. metamask-mobile-main-uat-signer)'
+    required: true
+  android-keystore-path:
+    description: 'Target path in android/keystores/ (e.g. internalRelease.keystore). Required for Android.'
+    required: false
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ inputs.aws-role-to-assume }}
+        aws-region: ${{ inputs.aws-region }}
+
+    - name: Fetch secret and export as environment variables
+      shell: bash
+      env:
+        AWS_REGION: ${{ inputs.aws-region }}
+        AWS_SECRET_NAME: ${{ inputs.aws-secret-name }}
+      run: |
+        echo "🔐 Fetching secret from Secrets Manager..."
+        secret_json=$(aws secretsmanager get-secret-value \
+          --region "$AWS_REGION" \
+          --secret-id "$AWS_SECRET_NAME" \
+          --query SecretString \
+          --output text)
+
+        keys=$(echo "$secret_json" | jq -r 'keys[]')
+        for key in $keys; do
+          value=$(echo "$secret_json" | jq -r --arg k "$key" '.[$k]')
+          echo "::add-mask::$value"
+          echo "$key=$(printf '%s' "$value")" >> "$GITHUB_ENV"
+          echo "✅ Set secret for key: $key"
+        done
+
+    - name: Configure Android Signing Certificates
+      if: inputs.platform == 'android'
+      shell: bash
+      env:
+        ANDROID_KEYSTORE_TARGET: ${{ inputs.android-keystore-path }}
+      run: |
+        echo "📦 Configuring Android keystore..."
+        if [[ -z "$ANDROID_KEYSTORE" ]]; then
+          echo "⚠️ ANDROID_KEYSTORE is not set. Skipping keystore decoding."
+          exit 1
+        fi
+
+        KEYSTORE_PATH="${ANDROID_KEYSTORE_PATH:-/tmp/android.keystore}"
+        echo "$ANDROID_KEYSTORE" | base64 --decode > "$KEYSTORE_PATH"
+        echo "✅ Android keystore decoded to $KEYSTORE_PATH"
+
+        if [[ -n "$ANDROID_KEYSTORE_TARGET" ]]; then
+          mkdir -p android/keystores
+          cp "$KEYSTORE_PATH" "android/keystores/$ANDROID_KEYSTORE_TARGET"
+          echo "✅ Android keystore copied to android/keystores/$ANDROID_KEYSTORE_TARGET"
+        fi
+
+    - name: Configure iOS Signing Certificates
+      if: inputs.platform == 'ios'
+      shell: bash
+      run: |
+        echo "📦 Configuring iOS code signing..."
+
+        CERT_PATH="$RUNNER_TEMP/build_certificate.p12"
+        PROFILE_PATH="$RUNNER_TEMP/build_pp.mobileprovision"
+        KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+        CERT_PW="${IOS_SIGNING_KEYSTORE_PASSWORD}"
+
+        echo "$IOS_SIGNING_KEYSTORE" | base64 --decode > "$CERT_PATH"
+        echo "$IOS_SIGNING_PROFILE" | base64 --decode > "$PROFILE_PATH"
+        echo "✅ Decoded .p12 and provisioning profile"
+
+        security create-keychain -p "$CERT_PW" "$KEYCHAIN_PATH"
+        security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+        security unlock-keychain -p "$CERT_PW" "$KEYCHAIN_PATH"
+
+        echo "🔐 Importing certificate..."
+        if ! security import "$CERT_PATH" -P "$CERT_PW" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"; then
+          echo "❌ Failed to import certificate."
+          exit 1
+        fi
+        echo "✅ Certificate imported"
+
+        security set-key-partition-list -S apple-tool:,apple: -k "$CERT_PW" "$KEYCHAIN_PATH" 2>/dev/null || true
+
+        mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+        cp "$PROFILE_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/
+        echo "✅ Installed provisioning profile"
+
+        security default-keychain -s "$KEYCHAIN_PATH"
+        echo "✅ Default keychain set"
