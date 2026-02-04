@@ -286,7 +286,7 @@ export interface RootStackParamList extends ParamListBase {
 
   // Misc top-level routes
   OptionsSheet: OptionsSheetParams | undefined;
-  QRScanner: QRScannerParams | undefined;
+  QRScanner: QRScannerParams;
   TransactionsView: TransactionsViewParams | undefined;
   TransactionDetails: TransactionDetailsParams | undefined;
   RewardsView: undefined;
@@ -349,7 +349,7 @@ export interface RootStackParamList extends ParamListBase {
   SocialLoginSuccessNewUser: undefined;
   ManualBackupStep1: ManualBackupStep1Params | undefined;
   ManualBackupStep2: ManualBackupStep2Params | undefined;
-  ManualBackupStep3: ManualBackupStep3Params | undefined;
+  ManualBackupStep3: ManualBackupStep3Params;
   ImportFromSecretRecoveryPhrase: undefined;
   ChoosePassword: ChoosePasswordRouteParams | undefined;
   OptinMetrics: OptinMetricsRouteParams | undefined;
@@ -396,7 +396,7 @@ export interface RootStackParamList extends ParamListBase {
   ConnectionDetails: ConnectionDetailsParams | undefined;
   PermittedNetworksInfoSheet: undefined;
   NetworkSelector: NetworkSelectorParams | undefined;
-  AccountActions: AccountActionsParams | undefined;
+  AccountActions: AccountActionsParams;
   SettingsAdvancedFiatOnTestnetsFriction: undefined;
   ShowIpfs: ShowIpfsGatewaySheetParams | undefined;
   ShowNftDisplayMedia: ShowNftDisplayMediaParams | undefined;
@@ -465,7 +465,7 @@ export interface RootStackParamList extends ParamListBase {
     | TransactionDetailsBlockExplorerParams
     | undefined;
   QuoteExpiredModal: undefined;
-  BlockaidModal: BlockaidModalParams | undefined;
+  BlockaidModal: BlockaidModalParams;
   RecipientSelectorModal: undefined;
   BridgeTransactionDetails: BridgeTransactionDetailsParams | undefined;
 
@@ -505,10 +505,10 @@ export interface RootStackParamList extends ParamListBase {
   Predict: undefined;
   PredictMarketList: PredictMarketListParams | undefined;
   PredictMarketDetails: PredictMarketDetailsParams | undefined;
-  PredictActivityDetail: PredictActivityDetailParams | undefined;
+  PredictActivityDetail: PredictActivityDetailParams;
   PredictModals: undefined;
-  PredictBuyPreview: PredictBuyPreviewParams | undefined;
-  PredictSellPreview: PredictSellPreviewParams | undefined;
+  PredictBuyPreview: PredictBuyPreviewParams;
+  PredictSellPreview: PredictSellPreviewParams;
   PredictUnavailable: undefined;
   PredictAddFundsSheet: undefined;
   PredictGTMModal: undefined;
@@ -536,8 +536,8 @@ export interface RootStackParamList extends ParamListBase {
   Claim: ClaimParams | undefined;
   LearnMore: LearnMoreModalParams | undefined;
   TrxLearnMore: undefined;
-  MaxInput: MaxInputModalParams | undefined;
-  GasImpact: GasImpactModalParams | undefined;
+  MaxInput: MaxInputModalParams;
+  GasImpact: GasImpactModalParams;
   EarnTokenList: undefined;
 
   // Earn routes
