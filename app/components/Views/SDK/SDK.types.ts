@@ -15,6 +15,11 @@ export interface SDKFeedbackParams {
 /** SDK disconnect parameters */
 export interface SDKDisconnectParams {
   channelId?: string;
+  account?: string;
+  accountName?: string;
+  dapp?: string;
+  accountsLength?: number;
+  isV2?: boolean;
 }
 
 /** Return to dapp notification parameters */
