@@ -10,6 +10,7 @@ import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { PerpsConnectionProvider } from '../providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../providers/PerpsStreamManager';
+import { PerpsPaymentTokenProvider } from '../contexts/PerpsPaymentTokenContext';
 import PerpsHomeView from '../Views/PerpsHomeView/PerpsHomeView';
 import PerpsMarketDetailsView from '../Views/PerpsMarketDetailsView';
 import PerpsMarketListView from '../Views/PerpsMarketListView';
@@ -78,24 +79,25 @@ const PerpsModalStack = () => {
   return (
     <PerpsConnectionProvider isFullScreen>
       <PerpsStreamProvider>
-        <ModalStack.Navigator
-          mode="modal"
-          screenOptions={{
-            headerShown: false,
-            cardStyle: {
-              backgroundColor: 'transparent',
-            },
-            cardStyleInterpolator: () => ({
-              overlayStyle: {
-                opacity: 0,
+        <PerpsPaymentTokenProvider>
+          <ModalStack.Navigator
+            mode="modal"
+            screenOptions={{
+              headerShown: false,
+              cardStyle: {
+                backgroundColor: 'transparent',
               },
-            }),
-          }}
-        >
-          <ModalStack.Screen
-            name={Routes.PERPS.MODALS.QUOTE_EXPIRED_MODAL}
-            component={PerpsQuoteExpiredModal}
-          />
+              cardStyleInterpolator: () => ({
+                overlayStyle: {
+                  opacity: 0,
+                },
+              }),
+            }}
+          >
+            <ModalStack.Screen
+              name={Routes.PERPS.MODALS.QUOTE_EXPIRED_MODAL}
+              component={PerpsQuoteExpiredModal}
+            />
           <ModalStack.Screen
             name={Routes.PERPS.MODALS.GTM_MODAL}
             component={PerpsGTMModal}
@@ -143,7 +145,8 @@ const PerpsModalStack = () => {
               cardStyle: { backgroundColor: 'transparent' },
             }}
           />
-        </ModalStack.Navigator>
+          </ModalStack.Navigator>
+        </PerpsPaymentTokenProvider>
       </PerpsStreamProvider>
     </PerpsConnectionProvider>
   );

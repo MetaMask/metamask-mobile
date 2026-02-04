@@ -8,4 +8,9 @@ export {
 } from './selectors/featureFlags';
 export { PERPS_CONSTANTS } from './constants/perpsConfig';
 
+export {
+  PerpsPaymentTokenProvider,
+  usePerpsPaymentToken,
+} from './contexts/PerpsPaymentTokenContext';
+
 export * from './types/perps-types';

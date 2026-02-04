@@ -17,7 +17,7 @@ import { useMusdConversionTokens } from '../../../../../UI/Earn/hooks/useMusdCon
 import { HIDE_NETWORK_FILTER_TYPES } from '../../../constants/confirmations';
 import { useMusdPaymentToken } from '../../../../../UI/Earn/hooks/useMusdPaymentToken';
 import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
-import { Alert } from 'react-native';
+import { usePerpsPaymentToken } from '../../../../../UI/Perps/contexts/PerpsPaymentTokenContext';
 
 export function PayWithModal() {
   const transactionMeta = useTransactionMetadataRequest();
@@ -31,6 +31,8 @@ export function PayWithModal() {
   const { filterAllowedTokens: musdTokenFilter } = useMusdConversionTokens();
   const { onPaymentTokenChange: onMusdPaymentTokenChange } =
     useMusdPaymentToken();
+  const { onPaymentTokenChange: onPerpsPaymentTokenChange } =
+    usePerpsPaymentToken();
   const perpsBalanceTokenFilter = usePerpsBalanceTokenFilter();
 
   const close = useCallback((onClosed?: () => void) => {
@@ -47,6 +49,19 @@ export function PayWithModal() {
         return;
       }
 
+      if (
+        hasTransactionType(transactionMeta, [TransactionType.perpsDepositAndOrder])
+      ) {
+        close(() => {
+          onPerpsPaymentTokenChange(token);
+          setPayToken({
+            address: token.address as Hex,
+            chainId: token.chainId as Hex,
+          });
+        });
+        return;
+      }
+
       close(() => {
         setPayToken({
           address: token.address as Hex,
@@ -54,7 +69,13 @@ export function PayWithModal() {
         });
       });
     },
-    [close, onMusdPaymentTokenChange, setPayToken, transactionMeta],
+    [
+      close,
+      onMusdPaymentTokenChange,
+      onPerpsPaymentTokenChange,
+      setPayToken,
+      transactionMeta,
+    ],
   );
 
   const tokenFilter = useCallback(

@@ -1,21 +1,21 @@
-import { toHex } from '@metamask/controller-utils';
-import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
-import type { Hex } from '@metamask/utils';
+import { TransactionType } from '@metamask/transaction-controller';
 import { BigNumber } from 'bignumber.js';
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import useFiatFormatter from '../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
-import { useTransactionPayToken } from '../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
 import {
-  HYPERLIQUID_MAINNET_CHAIN_ID,
-  USDC_SYMBOL,
   USDC_TOKEN_ICON_URL
 } from '../constants/hyperLiquidConfig';
 import { selectPerpsAccountState } from '../selectors/perpsController';
+import {
+  PERPS_BALANCE_CHAIN_ID,
+  PERPS_BALANCE_PLACEHOLDER_ADDRESS,
+  useIsPerpsBalanceSelected,
+} from './useIsPerpsBalanceSelected';
 
 /**
  * Returns a filter that prepends a synthetic "Perps balance" token to the list
@@ -29,7 +29,7 @@ export function usePerpsBalanceTokenFilter(): (
   tokens: AssetType[],
 ) => AssetType[] {
   const transactionMeta = useTransactionMetadataRequest();
-  const { payToken } = useTransactionPayToken();
+  const isPerpsBalanceSelected = useIsPerpsBalanceSelected();
   const perpsAccount = useSelector(selectPerpsAccountState);
   const formatFiat = useFiatFormatter({ currency: 'usd' });
 
@@ -43,7 +43,7 @@ export function usePerpsBalanceTokenFilter(): (
         return tokens;
       }
 
-      const chainId = CHAIN_IDS.MAINNET;
+      const chainId = PERPS_BALANCE_CHAIN_ID;
 
       const availableBalance = perpsAccount?.availableBalance || '0';
       const balanceInSelectedCurrency = formatFiat(
@@ -52,18 +52,12 @@ export function usePerpsBalanceTokenFilter(): (
 
       const perpsBalanceName = strings('perps.adjust_margin.perps_balance');
 
-      const perpsBalancePlaceholder =
-        '0x0000000000000000000000000000000000000000' as Hex;
-      const isPerpsBalanceSelected =
-        payToken?.address?.toLowerCase() ===
-        perpsBalancePlaceholder.toLowerCase();
-
       const perpsBalanceToken: AssetType = {
-        address: perpsBalancePlaceholder,
+        address: PERPS_BALANCE_PLACEHOLDER_ADDRESS,
         chainId,
-        tokenId: perpsBalancePlaceholder,
+        tokenId: PERPS_BALANCE_PLACEHOLDER_ADDRESS,
         name: perpsBalanceName,
-        symbol: 'Perps Balance',
+        symbol: 'USD',
         balance: availableBalance,
         balanceInSelectedCurrency,
         image: USDC_TOKEN_ICON_URL,
@@ -72,13 +66,14 @@ export function usePerpsBalanceTokenFilter(): (
         isETH: false,
         isNative: false,
         isSelected: isPerpsBalanceSelected,
+        description: 'perps-balance'
       };
 
       return [perpsBalanceToken, ...tokens];
     },
     [
       transactionMeta,
-      payToken?.address,
+      isPerpsBalanceSelected,
       perpsAccount?.availableBalance,
       formatFiat,
     ],
