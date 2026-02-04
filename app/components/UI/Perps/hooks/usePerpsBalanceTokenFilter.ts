@@ -14,10 +14,10 @@ import {
   PERPS_BALANCE_PLACEHOLDER_ADDRESS,
   PERPS_CONSTANTS,
 } from '../constants/perpsConfig';
-
-const PERPS_BALANCE_ICON_URI = Image.resolveAssetSource(perpsPayTokenIcon).uri;
 import { selectPerpsAccountState } from '../selectors/perpsController';
 import { useIsPerpsBalanceSelected } from './useIsPerpsBalanceSelected';
+
+const PERPS_BALANCE_ICON_URI = Image.resolveAssetSource(perpsPayTokenIcon).uri;
 
 /**
  * Returns a filter that prepends a synthetic "Perps balance" token to the list
