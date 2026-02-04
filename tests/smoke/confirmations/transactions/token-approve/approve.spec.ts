@@ -1,28 +1,31 @@
 import { SMART_CONTRACTS } from '../../../../../app/util/test/smart-contracts';
-import { SmokeConfirmations } from '../../../../tags';
-import { loginToApp, navigateToBrowserView } from '../../../../viewHelper';
-import FixtureBuilder from '../../../../../tests/framework/fixtures/FixtureBuilder';
-import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
-import Browser from '../../../../pages/Browser/BrowserView';
-import ConfirmationUITypes from '../../../../pages/Browser/Confirmations/ConfirmationUITypes';
-import FooterActions from '../../../../pages/Browser/Confirmations/FooterActions';
-import Assertions from '../../../../../tests/framework/Assertions';
-import { withFixtures } from '../../../../../tests/framework/fixtures/FixtureHelper';
+import { SmokeConfirmations } from '../../../../../e2e/tags';
+import {
+  loginToApp,
+  navigateToBrowserView,
+} from '../../../../../e2e/viewHelper';
+import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
+import TabBarComponent from '../../../../../e2e/pages/wallet/TabBarComponent';
+import Browser from '../../../../../e2e/pages/Browser/BrowserView';
+import ConfirmationUITypes from '../../../../../e2e/pages/Browser/Confirmations/ConfirmationUITypes';
+import FooterActions from '../../../../../e2e/pages/Browser/Confirmations/FooterActions';
+import Assertions from '../../../../framework/Assertions';
+import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
 import {
   buildPermissions,
   AnvilPort,
-} from '../../../../../tests/framework/fixtures/FixtureUtils';
-import RowComponents from '../../../../pages/Browser/Confirmations/RowComponents';
-import TokenApproveConfirmation from '../../../../pages/Confirmation/TokenApproveConfirmation';
-import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../../tests/api-mocking/mock-responses/simulations';
-import TestDApp from '../../../../pages/Browser/TestDApp';
-import { DappVariants } from '../../../../../tests/framework/Constants';
-import { setupMockRequest } from '../../../../../tests/api-mocking/helpers/mockHelpers';
+} from '../../../../framework/fixtures/FixtureUtils';
+import RowComponents from '../../../../../e2e/pages/Browser/Confirmations/RowComponents';
+import TokenApproveConfirmation from '../../../../../e2e/pages/Confirmation/TokenApproveConfirmation';
+import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-responses/simulations';
+import TestDApp from '../../../../../e2e/pages/Browser/TestDApp';
+import { DappVariants } from '../../../../framework/Constants';
+import { setupMockRequest } from '../../../../api-mocking/helpers/mockHelpers';
 import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
-import { confirmationFeatureFlags } from '../../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
-import { LocalNode } from '../../../../../tests/framework/types';
-import { AnvilManager } from '../../../../../tests/seeder/anvil-manager';
+import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationFeatureFlags } from '../../../../api-mocking/mock-responses/feature-flags-mocks';
+import { LocalNode } from '../../../../framework/types';
+import { AnvilManager } from '../../../../seeder/anvil-manager';
 
 describe(SmokeConfirmations('Token Approve - approve method'), () => {
   const ERC_20_CONTRACT = SMART_CONTRACTS.HST;

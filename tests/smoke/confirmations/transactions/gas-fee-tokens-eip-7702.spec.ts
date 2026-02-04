@@ -1,35 +1,35 @@
-import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
-import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
-import SendView from '../../../pages/Send/RedesignedSendView';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent';
-import WalletView from '../../../pages/wallet/WalletView';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import FooterActions from '../../../../e2e/pages/Browser/Confirmations/FooterActions';
+import SendView from '../../../../e2e/pages/Send/RedesignedSendView';
+import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
+import WalletView from '../../../../e2e/pages/wallet/WalletView';
 import {
   Assertions,
   LocalNode,
   LocalNodeType,
   Matchers,
-} from '../../../../tests/framework';
-import { SmokeConfirmations } from '../../../tags';
-import { loginToApp } from '../../../viewHelper';
-import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
-import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
-import { AnvilManager, Hardfork } from '../../../../tests/seeder/anvil-manager';
+} from '../../../framework';
+import { SmokeConfirmations } from '../../../../e2e/tags';
+import { loginToApp } from '../../../../e2e/viewHelper';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import RowComponents from '../../../../e2e/pages/Browser/Confirmations/RowComponents';
+import { AnvilManager, Hardfork } from '../../../seeder/anvil-manager';
 import {
   setupMockPostRequest,
   setupMockRequest,
-} from '../../../../tests/api-mocking/helpers/mockHelpers';
-import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../tests/api-mocking/mock-responses/simulations';
-import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureEip7702 } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+} from '../../../api-mocking/helpers/mockHelpers';
+import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../api-mocking/mock-responses/simulations';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureEip7702 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
 import {
   TRANSACTION_RELAY_STATUS_NETWORKS_MOCK,
   TRANSACTION_RELAY_SUBMIT_NETWORKS_MOCK,
-} from '../../../../tests/api-mocking/mock-responses/transaction-relay-mocks';
+} from '../../../api-mocking/mock-responses/transaction-relay-mocks';
 import { RelayStatus } from '../../../../app/util/transactions/transaction-relay';
-import TransactionConfirmView from '../../../pages/Send/TransactionConfirmView';
-import GasFeeTokenModal from '../../../pages/Confirmation/GasFeeTokenModal';
-import { AnvilPort } from '../../../../tests/framework/fixtures/FixtureUtils';
+import TransactionConfirmView from '../../../../e2e/pages/Send/TransactionConfirmView';
+import GasFeeTokenModal from '../../../../e2e/pages/Confirmation/GasFeeTokenModal';
+import { AnvilPort } from '../../../framework/fixtures/FixtureUtils';
 
 const TRANSACTION_UUID_MOCK = '1234-5678';
 const SENDER_ADDRESS_MOCK = '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3';
@@ -202,7 +202,7 @@ describe(
         options: {
           hardfork: 'prague' as Hardfork,
           loadState:
-            './e2e/specs/confirmations/transactions/7702/withDelegatorContracts.json',
+            './tests/smoke/confirmations/transactions/7702/withDelegatorContracts.json',
         },
       },
     ];

@@ -1,13 +1,13 @@
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
-import SendView from '../../pages/Send/RedesignedSendView';
-import WalletView from '../../pages/wallet/WalletView';
-import { DappVariants } from '../../../tests/framework/Constants';
-import { SmokeConfirmations } from '../../tags';
-import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
-import { loginToApp } from '../../viewHelper';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import { AnvilManager } from '../../../tests/seeder/anvil-manager';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import FooterActions from '../../../../e2e/pages/Browser/Confirmations/FooterActions';
+import SendView from '../../../../e2e/pages/Send/RedesignedSendView';
+import WalletView from '../../../../e2e/pages/wallet/WalletView';
+import { DappVariants } from '../../../framework/Constants';
+import { SmokeConfirmations } from '../../../../e2e/tags';
+import { AnvilPort } from '../../../framework/fixtures/FixtureUtils';
+import { loginToApp } from '../../../../e2e/viewHelper';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import { AnvilManager } from '../../../seeder/anvil-manager';
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 

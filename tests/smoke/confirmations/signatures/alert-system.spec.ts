@@ -1,29 +1,29 @@
-import Assertions from '../../../../tests/framework/Assertions';
-import Browser from '../../../pages/Browser/BrowserView';
-import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
-import RequestTypes from '../../../pages/Browser/Confirmations/RequestTypes';
-import AlertSystem from '../../../pages/Browser/Confirmations/AlertSystem';
-import TestDApp from '../../../pages/Browser/TestDApp';
-import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
-import { SmokeConfirmations } from '../../../tags';
-import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
-import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
+import Assertions from '../../../framework/Assertions';
+import Browser from '../../../../e2e/pages/Browser/BrowserView';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import RequestTypes from '../../../../e2e/pages/Browser/Confirmations/RequestTypes';
+import AlertSystem from '../../../../e2e/pages/Browser/Confirmations/AlertSystem';
+import TestDApp from '../../../../e2e/pages/Browser/TestDApp';
+import { loginToApp, navigateToBrowserView } from '../../../../e2e/viewHelper';
+import { SmokeConfirmations } from '../../../../e2e/tags';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import FooterActions from '../../../../e2e/pages/Browser/Confirmations/FooterActions';
 import {
   buildPermissions,
   getTestDappLocalUrl,
-} from '../../../../tests/framework/fixtures/FixtureUtils';
-import { DappVariants } from '../../../../tests/framework/Constants';
+} from '../../../framework/fixtures/FixtureUtils';
+import { DappVariants } from '../../../framework/Constants';
 import { Mockttp } from 'mockttp';
 import {
   setupMockRequest,
   setupMockPostRequest,
-} from '../../../../tests/api-mocking/helpers/mockHelpers';
+} from '../../../api-mocking/helpers/mockHelpers';
 import {
   SECURITY_ALERTS_BENIGN_RESPONSE,
   securityAlertsUrl,
-} from '../../../../tests/api-mocking/mock-responses/security-alerts-mock';
-import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
-import { confirmationFeatureFlags } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+} from '../../../api-mocking/mock-responses/security-alerts-mock';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 
 const typedSignRequestBody = {
   method: 'eth_signTypedData',
