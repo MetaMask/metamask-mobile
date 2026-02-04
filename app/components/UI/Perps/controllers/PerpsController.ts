@@ -113,10 +113,19 @@ import type {
   RemoteFeatureFlagControllerStateChangeEvent,
   RemoteFeatureFlagControllerGetStateAction,
 } from '@metamask/remote-feature-flag-controller';
-import type { Json } from '@metamask/utils';
 import { wait } from '../utils/wait';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import type { AssetType } from '../../../Views/confirmations/types/token';
+
+/**
+ * Minimal payment token stored in PerpsController state.
+ * Only required fields for identification and Perps balance detection.
+ */
+export interface SelectedPaymentTokenSnapshot {
+  description?: string;
+  address: string;
+  chainId: string;
+}
 
 // Re-export error codes from separate file to avoid circular dependencies
 export { PERPS_ERROR_CODES, type PerpsErrorCode } from './perpsErrorCodes';
@@ -282,7 +291,7 @@ export type PerpsControllerState = {
   hip3ConfigVersion: number;
 
   // Selected payment token for Perps order/deposit flow (null = Perps balance). Stored as Json for controller state constraint.
-  selectedPaymentToken: Json | null;
+  selectedPaymentToken: SelectedPaymentTokenSnapshot | null;
 };
 
 /**
@@ -2923,17 +2932,21 @@ export class PerpsController extends BaseController<
   /**
    * Set the selected payment token for the Perps order/deposit flow.
    * Pass null or a token with description PERPS_CONSTANTS.PerpsBalanceTokenDescription to select Perps balance.
-   * Stored as Json to satisfy controller state constraint.
+   * Only required fields (description, address, chainId) are stored in state.
    */
   setSelectedPaymentToken(token: AssetType | null): void {
     const normalized =
       token?.description === PERPS_CONSTANTS.PerpsBalanceTokenDescription
         ? null
         : (token ?? null);
-    const snapshot: Json | null =
+    const snapshot: SelectedPaymentTokenSnapshot | null =
       normalized === null
         ? null
-        : (JSON.parse(JSON.stringify(normalized)) as unknown as Json);
+        : ({
+            description: normalized.description,
+            address: normalized.address,
+            chainId: normalized.chainId,
+          } as SelectedPaymentTokenSnapshot);
     this.update((state) => {
       state.selectedPaymentToken = snapshot;
     });

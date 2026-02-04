@@ -1,17 +1,18 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { AssetType } from '../../../Views/confirmations/types/token';
+import type { SelectedPaymentTokenSnapshot } from '../controllers/PerpsController';
 import { selectPerpsSelectedPaymentToken } from '../selectors/perpsController';
 import Engine from '../../../../core/Engine';
 
 export interface PerpsPaymentTokenContextType {
-  selectedToken: AssetType | null;
+  selectedToken: SelectedPaymentTokenSnapshot | null;
   onPaymentTokenChange: (token: AssetType | null) => void;
 }
 
 export function usePerpsPaymentToken(): PerpsPaymentTokenContextType {
   const selectedTokenRaw = useSelector(selectPerpsSelectedPaymentToken);
-  const selectedToken = selectedTokenRaw as AssetType | null;
+  const selectedToken = selectedTokenRaw as SelectedPaymentTokenSnapshot | null;
   const onPaymentTokenChange = useCallback((token: AssetType | null) => {
     Engine.context.PerpsController?.setSelectedPaymentToken?.(token);
   }, []);
