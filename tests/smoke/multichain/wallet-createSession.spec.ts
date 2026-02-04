@@ -2,12 +2,12 @@
  * E2E tests for wallet_createSession API
  * Tests creating sessions with different scope combinations and verifying permissions
  */
-import { DappVariants } from '../../../tests/framework/Constants';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
-import { SmokeMultiChainAPI } from '../../tags';
-import MultichainUtilities from '../../utils/MultichainUtilities';
+import { DappVariants } from '../../framework/Constants';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import MultichainTestDApp from '../../../e2e/pages/Browser/MultichainTestDApp';
+import { SmokeMultiChainAPI } from '../../../e2e/tags';
+import MultichainUtilities from '../../../e2e/utils/MultichainUtilities';
 
 describe(SmokeMultiChainAPI('wallet_createSession'), () => {
   it('should create a session with Ethereum mainnet scope', async () => {
