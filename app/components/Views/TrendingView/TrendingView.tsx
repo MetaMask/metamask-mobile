@@ -36,6 +36,17 @@ import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
  * Custom hook to track boolean state for each section
  * Returns the Set of sections with that state and callbacks to update them
  */
+function applySectionState(
+  current: Set<SectionId>,
+  sectionId: SectionId,
+  isActive: boolean,
+): Set<SectionId> {
+  const next = new Set(current);
+  if (isActive) next.add(sectionId);
+  else next.delete(sectionId);
+  return next;
+}
+
 const useSectionStateTracker = (
   sections: { id: SectionId }[],
 ): {
@@ -51,17 +62,9 @@ const useSectionStateTracker = (
 
     sections.forEach((section) => {
       result[section.id] = (isActive: boolean) => {
-        setActiveSections((currentSections) => {
-          const updatedSections = new Set(currentSections);
-
-          if (isActive) {
-            updatedSections.add(section.id);
-          } else {
-            updatedSections.delete(section.id);
-          }
-
-          return updatedSections;
-        });
+        setActiveSections((current) =>
+          applySectionState(current, section.id, isActive),
+        );
       };
     });
 
