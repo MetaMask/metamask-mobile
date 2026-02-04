@@ -388,5 +388,5 @@ interface OHLCVBar {
 ## References
 
 - [TradingView Charting Library Documentation](https://www.tradingview.com/charting-library-docs/)
-- [React Native WebView](https://github.com/react-native-webview/react-native-webview)
+  react-native-webview)
 - [Lightweight Charts](https://tradingview.github.io/lightweight-charts/)
