@@ -69,7 +69,12 @@ export function usePerpsBalanceTokenFilter(): (
         description: 'perps-balance'
       };
 
-      return [perpsBalanceToken, ...tokens];
+      const mappedTokens = tokens.map((token) => ({
+        ...token,
+        isSelected: token.isSelected && isPerpsBalanceSelected ? false : token.isSelected,
+      }));
+
+      return [perpsBalanceToken, ...mappedTokens];
     },
     [
       transactionMeta,

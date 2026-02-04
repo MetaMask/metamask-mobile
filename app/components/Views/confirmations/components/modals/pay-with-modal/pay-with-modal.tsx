@@ -18,6 +18,7 @@ import { HIDE_NETWORK_FILTER_TYPES } from '../../../constants/confirmations';
 import { useMusdPaymentToken } from '../../../../../UI/Earn/hooks/useMusdPaymentToken';
 import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/contexts/PerpsPaymentTokenContext';
+import { Alert } from 'react-native';
 
 export function PayWithModal() {
   const transactionMeta = useTransactionMetadataRequest();
@@ -52,13 +53,13 @@ export function PayWithModal() {
       if (
         hasTransactionType(transactionMeta, [TransactionType.perpsDepositAndOrder])
       ) {
-        close(() => {
-          onPerpsPaymentTokenChange(token);
-          setPayToken({
-            address: token.address as Hex,
-            chainId: token.chainId as Hex,
-          });
+        Alert.alert('token', JSON.stringify(token));
+        onPerpsPaymentTokenChange(token);
+        setPayToken({
+          address: token.address as Hex,
+          chainId: token.chainId as Hex,
         });
+        close();
         return;
       }
 

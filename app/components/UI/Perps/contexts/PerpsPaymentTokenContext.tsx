@@ -7,12 +7,11 @@ import React, {
   ReactNode,
 } from 'react';
 import { AssetType } from '../../../Views/confirmations/types/token';
+import { Alert } from 'react-native';
 
 export interface PerpsPaymentTokenContextType {
   selectedToken: AssetType | null;
   onPaymentTokenChange: (token: AssetType | null) => void;
-  /** True when inside PerpsPaymentTokenProvider; false when using default (e.g. outside Perps modal stack). */
-  isInsideProvider: boolean;
 }
 
 const PerpsPaymentTokenContext =
@@ -28,8 +27,10 @@ export const PerpsPaymentTokenProvider = ({
   const [selectedToken, setSelectedToken] = useState<AssetType | null>(null);
 
   const onPaymentTokenChange = useCallback((token: AssetType | null) => {
+    const isPerpsBalance = token?.description === 'perps-balance';
+    Alert.alert('isPerpsBalance', isPerpsBalance.toString());
     setSelectedToken(
-      token?.description === 'perps-balance' ? null : token,
+      isPerpsBalance ? null : token,
     );
   }, []);
 
@@ -37,7 +38,6 @@ export const PerpsPaymentTokenProvider = ({
     () => ({
       selectedToken,
       onPaymentTokenChange,
-      isInsideProvider: true,
     }),
     [selectedToken, onPaymentTokenChange],
   );
@@ -52,9 +52,8 @@ export const PerpsPaymentTokenProvider = ({
 const defaultPerpsPaymentTokenContext: PerpsPaymentTokenContextType = {
   selectedToken: null,
   onPaymentTokenChange: (_token: AssetType | null) => {
-    // No-op when used outside PerpsPaymentTokenProvider
+    Alert.alert('onPaymentTokenChange', 'No-op when used outside PerpsPaymentTokenProvider');
   },
-  isInsideProvider: false,
 };
 
 export function usePerpsPaymentToken(): PerpsPaymentTokenContextType {
