@@ -143,6 +143,7 @@ jest.mock('../../core/Authentication', () => ({
   default: {
     unlockWallet: jest.fn().mockResolvedValue(undefined),
     lockApp: jest.fn().mockResolvedValue(undefined),
+    checkIsSeedlessPasswordOutdated: jest.fn().mockResolvedValue(false),
   },
 }));
 

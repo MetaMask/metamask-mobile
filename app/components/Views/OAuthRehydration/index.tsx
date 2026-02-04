@@ -586,7 +586,10 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   useEffect(() => {
     const getBiometryType = async () => {
       const authType = await Authentication.getType();
-      if (
+
+      if (route.params?.oauthLoginSuccess) {
+        setBiometryType(AUTHENTICATION_TYPE.BIOMETRIC);
+      } else if (
         authType.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC ||
         authType.currentAuthType === AUTHENTICATION_TYPE.PASSCODE
       ) {
@@ -596,7 +599,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       }
     };
     getBiometryType();
-  }, [componentAuthenticationType]);
+  }, [componentAuthenticationType, route.params?.oauthLoginSuccess]);
 
   const handleUseOtherMethod = () => {
     track(MetaMetricsEvents.USE_DIFFERENT_LOGIN_METHOD_CLICKED, {
