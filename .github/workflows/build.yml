@@ -86,6 +86,21 @@ jobs:
           node-version: '20'
           cache: 'yarn'
 
+      # iOS: Cache Ruby gems for faster bundle install
+      - name: Cache Ruby gems
+        if: matrix.platform == 'ios'
+        uses: actions/cache@v4
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('ios/Gemfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-gems-
+
+      # iOS: Configure bundler to use vendor/bundle
+      - name: Configure bundler
+        if: matrix.platform == 'ios'
+        run: bundle config set --local path 'vendor/bundle'
+
       - name: Install dependencies (NO SECRETS)
         run: yarn install --immutable
 
@@ -251,6 +266,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pods-
 
+      # iOS: Cache Ruby gems
+      - name: Cache Ruby gems
+        if: matrix.platform == 'ios'
+        uses: actions/cache@v4
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('ios/Gemfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-gems-
+
       # iOS: Restore CocoaPods cache from setup job
       - name: Restore CocoaPods cache
         if: matrix.platform == 'ios'
@@ -306,6 +331,13 @@ jobs:
           aws-region: 'us-east-2'
           platform: 'android'
           target: ${{ startsWith(inputs.build_name, 'flask') && 'flask' || 'qa' }}
+
+      # iOS: Install Ruby gems (CocoaPods, fastlane)
+      - name: Install Ruby gems
+        if: matrix.platform == 'ios'
+        run: |
+          bundle config set --local path 'vendor/bundle'
+          bundle install
 
       # iOS: Install/update CocoaPods (fast with cache, paths need to be correct for this machine)
       - name: Install CocoaPods dependencies
