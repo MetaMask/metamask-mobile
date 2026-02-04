@@ -3,7 +3,10 @@ import TransactionElement from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { fireEvent, waitFor } from '@testing-library/react-native';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  WalletDevice,
+} from '@metamask/transaction-controller';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -143,6 +146,90 @@ describe('TransactionElement', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTION_DETAILS, {
         transactionId: musdConversionTx.id,
       });
+    });
+  });
+
+  describe('renderTxTime - "from this device" label', () => {
+    it('renders "from this device" label with nonce when nonce exists', () => {
+      const txWithNonce = {
+        id: 'tx-with-nonce-123',
+        chainId: '0x1',
+        status: 'confirmed',
+        time: Date.now(),
+        deviceConfirmedOn: WalletDevice.MM_MOBILE,
+        txParams: {
+          to: '0x456',
+          from: '0x123',
+          nonce: '0x3', // nonce exists
+        },
+      };
+
+      const component = renderWithProvider(
+        <Provider store={store}>
+          <TransactionElement
+            tx={txWithNonce}
+            selectedInternalAccount={{ address: '0x123' }}
+            navigation={{ navigate: mockNavigate }}
+          />
+        </Provider>,
+      );
+
+      expect(component).toMatchSnapshot();
+    });
+
+    it('renders "from this device" label without nonce for EIP-7702 transactions', () => {
+      const eip7702Tx = {
+        id: 'eip7702-tx-123',
+        chainId: '0x1',
+        status: 'confirmed',
+        time: Date.now(),
+        deviceConfirmedOn: WalletDevice.MM_MOBILE,
+        txParams: {
+          to: '0x456',
+          from: '0x123',
+          // nonce is intentionally undefined for EIP-7702 transactions
+        },
+      };
+
+      const component = renderWithProvider(
+        <Provider store={store}>
+          <TransactionElement
+            tx={eip7702Tx}
+            selectedInternalAccount={{ address: '0x123' }}
+            navigation={{ navigate: mockNavigate }}
+          />
+        </Provider>,
+      );
+
+      // The component should render without "#NaN"
+      expect(component).toMatchSnapshot();
+    });
+
+    it('renders date only when deviceConfirmedOn is not MM_MOBILE', () => {
+      const txWithoutDevice = {
+        id: 'tx-without-device-123',
+        chainId: '0x1',
+        status: 'confirmed',
+        time: Date.now(),
+        // deviceConfirmedOn is not set
+        txParams: {
+          to: '0x456',
+          from: '0x123',
+          nonce: '0x3',
+        },
+      };
+
+      const component = renderWithProvider(
+        <Provider store={store}>
+          <TransactionElement
+            tx={txWithoutDevice}
+            selectedInternalAccount={{ address: '0x123' }}
+            navigation={{ navigate: mockNavigate }}
+          />
+        </Provider>,
+      );
+
+      expect(component).toMatchSnapshot();
     });
   });
 });

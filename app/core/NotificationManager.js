@@ -52,16 +52,34 @@ export const constructTitleAndMessage = (notification) => {
       message = strings('notifications.pending_withdrawal_message');
       break;
     case NotificationTransactionTypes.success:
-      title = strings('notifications.success_title', {
-        nonce: notification?.transaction?.nonce || '',
-      });
-      message = strings('notifications.success_message');
+      {
+        const nonce = notification?.transaction?.nonce;
+        if (nonce) {
+          title = strings('notifications.success_title', { nonce });
+        } else {
+          // For transactions without nonce (e.g., EIP-7702), show without nonce
+          title = strings('notifications.success_title', { nonce: '' })
+            .replace(' #', ' ')
+            .replace('{{nonce}}', '')
+            .trim();
+        }
+        message = strings('notifications.success_message');
+      }
       break;
     case NotificationTransactionTypes.speedup:
-      title = strings('notifications.speedup_title', {
-        nonce: notification?.transaction?.nonce || '',
-      });
-      message = strings('notifications.speedup_message');
+      {
+        const nonce = notification?.transaction?.nonce;
+        if (nonce) {
+          title = strings('notifications.speedup_title', { nonce });
+        } else {
+          // For transactions without nonce, show without nonce
+          title = strings('notifications.speedup_title', { nonce: '' })
+            .replace(' #', ' ')
+            .replace('{{nonce}}', '')
+            .trim();
+        }
+        message = strings('notifications.speedup_message');
+      }
       break;
     case NotificationTransactionTypes.success_withdrawal:
       title = strings('notifications.success_withdrawal_title');
@@ -216,14 +234,22 @@ class NotificationManager {
           });
         // Clean up
         this._removeListeners(transactionMeta.id);
-        delete this._transactionsWatchTable[transactionMeta.txParams.nonce];
+        if (transactionMeta.txParams?.nonce !== undefined) {
+          delete this._transactionsWatchTable[transactionMeta.txParams.nonce];
+        }
       }, 2000);
   };
 
   _confirmedCallback = (transactionMeta, originalTransaction) => {
     // Once it's confirmed we hide the pending tx notification
     this._removeNotificationById(transactionMeta.id);
-    this._transactionsWatchTable[transactionMeta.txParams.nonce].length &&
+    const nonce = transactionMeta.txParams?.nonce;
+    const hasNonce = nonce !== undefined && nonce !== null;
+    const shouldShowNotification =
+      !hasNonce ||
+      (this._transactionsWatchTable[nonce]?.length &&
+        this._transactionsWatchTable[nonce].length);
+    shouldShowNotification &&
       setTimeout(() => {
         // Then we show the success notification
         !this.#shouldSkipNotification(transactionMeta) &&
@@ -232,7 +258,7 @@ class NotificationManager {
             autoHide: true,
             transaction: {
               id: transactionMeta.id,
-              nonce: `${hexToBN(transactionMeta.txParams.nonce).toString()}`,
+              nonce: hasNonce ? `${hexToBN(nonce).toString()}` : undefined,
             },
             duration: 5000,
           });
