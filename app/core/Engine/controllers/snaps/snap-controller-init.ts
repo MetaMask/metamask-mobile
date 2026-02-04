@@ -21,8 +21,8 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { store, runSaga } from '../../../../store';
 import PREINSTALLED_SNAPS from '../../../../lib/snaps/preinstalled-snaps';
-import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
-import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
+import { buildAndTrackEvent } from '../../utils/analytics';
+import type { AnalyticsUnfilteredProperties } from '../../../../util/analytics/analytics.types';
 import { take } from 'redux-saga/effects';
 import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
 import {
@@ -172,16 +172,11 @@ export const snapControllerInit: ControllerInitFunction<
       event: string;
       properties?: Record<string, unknown>;
     }) => {
-      try {
-        const event = AnalyticsEventBuilder.createEventBuilder(params.event)
-          .addProperties((params.properties ?? {}) as AnalyticsEventProperties)
-          .build();
-
-        initMessenger.call('AnalyticsController:trackEvent', event);
-      } catch (error) {
-        // Analytics tracking failures should not break snap functionality
-        // Error is logged but not thrown
-      }
+      buildAndTrackEvent(
+        initMessenger,
+        params.event,
+        params.properties as AnalyticsUnfilteredProperties,
+      );
     },
   });
 

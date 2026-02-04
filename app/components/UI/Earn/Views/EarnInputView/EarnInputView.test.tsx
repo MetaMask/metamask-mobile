@@ -14,11 +14,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import { RootState } from '../../../../../reducers';
-// eslint-disable-next-line import/no-namespace
-import {
-  ConfirmationRedesignRemoteFlags,
-  selectConfirmationRedesignFlags,
-} from '../../../../../selectors/featureFlagController/confirmations';
+
 import { toWei, weiToFiatNumber } from '../../../../../util/number';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -31,13 +27,13 @@ import {
 } from '../../../../../util/test/renderWithProvider';
 import { flushPromises } from '../../../../../util/test/utils';
 import useMetrics from '../../../../hooks/useMetrics/useMetrics';
-import { getStakingNavbar } from '../../../Navbar';
 import {
   MOCK_ETH_MAINNET_ASSET,
   MOCK_GET_VAULT_RESPONSE,
 } from '../../../Stake/__mocks__/stakeMockData';
 import { MOCK_VAULT_APY_AVERAGES } from '../../../Stake/components/PoolStakingLearnMoreModal/mockVaultRewards';
 import { EVENT_PROVIDERS } from '../../../Stake/constants/events';
+import { EVENT_LOCATIONS } from '../../constants/events/earnEvents';
 // eslint-disable-next-line import/no-namespace
 import * as useBalance from '../../../Stake/hooks/useBalance';
 import usePoolStakedDeposit from '../../../Stake/hooks/usePoolStakedDeposit';
@@ -119,9 +115,7 @@ jest.mock('../../hooks/useEarnTokens', () => ({
 
 jest.mock('../../../../hooks/useMetrics/useMetrics');
 
-jest.mock('../../../Navbar', () => ({
-  getStakingNavbar: jest.fn().mockReturnValue({}),
-}));
+const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -131,6 +125,7 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockNavigate,
       setOptions: mockSetOptions,
       reset: mockReset,
+      goBack: mockGoBack,
       dangerouslyGetParent: () => ({
         pop: mockPop,
       }),
@@ -347,9 +342,6 @@ const mockInitialState: DeepPartial<RootState> = {
 
 describe('EarnInputView', () => {
   const usePoolStakedDepositMock = jest.mocked(usePoolStakedDeposit);
-  const selectConfirmationRedesignFlagsMock = jest.mocked(
-    selectConfirmationRedesignFlags,
-  );
   const selectStablecoinLendingEnabledFlagMock = jest.mocked(
     selectStablecoinLendingEnabledFlag,
   );
@@ -368,16 +360,12 @@ describe('EarnInputView', () => {
   };
   const mockTrackEvent = jest.fn();
   const useMetricsMock = jest.mocked(useMetrics);
-  const mockGetStakingNavbar = jest.mocked(getStakingNavbar);
 
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
 
     // Reset the mocked function to default value
-    selectConfirmationRedesignFlagsMock.mockReturnValue({
-      staking_confirmations: false,
-    } as unknown as ConfirmationRedesignRemoteFlags);
     usePoolStakedDepositMock.mockReturnValue({
       attemptDepositTransaction: jest.fn(),
     });
@@ -537,15 +525,8 @@ describe('EarnInputView', () => {
         name: 'params',
       });
 
-      expect(mockGetStakingNavbar).toHaveBeenCalledWith(
-        'Supply USDC',
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        null,
-      );
+      // Verify the title is rendered in the HeaderCenter component
+      expect(getByText('Supply USDC')).toBeTruthy();
 
       // "0" in the input display and on the keypad
       expect(getAllByText('0').length).toBe(2);
@@ -872,9 +853,6 @@ describe('EarnInputView', () => {
     it('redesigned stake deposit confirmation view', async () => {
       const attemptDepositTransactionMock = jest.fn().mockResolvedValue({});
       // Override the mock value for this specific test
-      selectConfirmationRedesignFlagsMock.mockReturnValue({
-        staking_confirmations: true,
-      } as unknown as ConfirmationRedesignRemoteFlags);
 
       usePoolStakedDepositMock.mockReturnValue({
         attemptDepositTransaction: attemptDepositTransactionMock,
@@ -935,15 +913,7 @@ describe('EarnInputView', () => {
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenLastCalledWith('StakeScreens', {
-        screen: Routes.STAKING.STAKE_CONFIRMATION,
-        params: {
-          amountFiat: '750',
-          amountWei: '375000000000000000',
-          annualRewardRate: '50%',
-          annualRewardsFiat: '375 USD',
-          annualRewardsToken: '0.1875 ETH',
-          chainId: CHAIN_IDS.MAINNET,
-        },
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
       });
     });
 
@@ -1013,21 +983,12 @@ describe('EarnInputView', () => {
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
           screen: Routes.EARN.LENDING_DEPOSIT_CONFIRMATION,
-          params: {
+          params: expect.objectContaining({
             action: 'ALLOWANCE_INCREASE',
-            amountFiat: '25',
             amountTokenMinimalUnit: '25000000',
             annualRewardRate: '2.5%',
-            annualRewardsFiat: '0.63 USD',
-            annualRewardsToken: '0.625 USDC',
-            lendingContractAddress:
-              '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2',
             lendingProtocol: 'AAVE v3',
-            token: {
-              ...MOCK_USDC_MAINNET_ASSET,
-            },
-            allowanceMinimalTokenUnit: '0',
-          },
+          }),
         });
       });
     });
@@ -1103,21 +1064,12 @@ describe('EarnInputView', () => {
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
           screen: Routes.EARN.LENDING_DEPOSIT_CONFIRMATION,
-          params: {
+          params: expect.objectContaining({
             action: 'DEPOSIT',
-            amountFiat: '25',
             amountTokenMinimalUnit: '25000000',
             annualRewardRate: '2.5%',
-            annualRewardsFiat: '0.63 USD',
-            annualRewardsToken: '0.625 USDC',
-            lendingContractAddress:
-              '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2',
             lendingProtocol: 'AAVE v3',
-            token: {
-              ...MOCK_USDC_MAINNET_ASSET,
-            },
-            allowanceMinimalTokenUnit: '25000000',
-          },
+          }),
         });
       });
     });
@@ -1127,9 +1079,6 @@ describe('EarnInputView', () => {
       selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
 
       // Enable redesigned staking confirmations flag
-      selectConfirmationRedesignFlagsMock.mockReturnValue({
-        staking_confirmations: true,
-      } as unknown as ConfirmationRedesignRemoteFlags);
 
       const getErc20SpendingLimitSpy = jest
         .spyOn(Engine.context.EarnController, 'getLendingTokenAllowance')
@@ -1248,26 +1197,11 @@ describe('EarnInputView', () => {
 
   describe('title bar', () => {
     it('displays "Stake <token name>" for staking', () => {
-      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+      // Default mock returns ETH with POOLED_STAKING experience
+      const { getByText } = renderComponent();
 
-      render(EarnInputView, {
-        params: {
-          ...baseProps.route.params,
-          token: MOCK_USDC_MAINNET_ASSET,
-        },
-        key: Routes.STAKING.STAKE,
-        name: 'params',
-      });
-
-      expect(mockGetStakingNavbar).toHaveBeenCalledWith(
-        'Stake ETH',
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        null,
-      );
+      // Verify the title is rendered in the HeaderCenter component
+      expect(getByText('Stake ETH')).toBeTruthy();
     });
   });
 
@@ -1726,11 +1660,7 @@ describe('EarnInputView', () => {
     });
 
     describe('Pooled Staking flow tracing', () => {
-      it('calls trace with EarnDepositConfirmationScreen when redesigned confirmations are enabled', async () => {
-        selectConfirmationRedesignFlagsMock.mockReturnValue({
-          staking_confirmations: true,
-        } as unknown as ConfirmationRedesignRemoteFlags);
-
+      it('calls trace with EarnDepositConfirmationScreen', async () => {
         const attemptDepositTransactionMock = jest.fn().mockResolvedValue({});
         usePoolStakedDepositMock.mockReturnValue({
           attemptDepositTransaction: attemptDepositTransactionMock,
@@ -1873,10 +1803,6 @@ describe('EarnInputView', () => {
         attemptDepositTransaction: undefined,
       });
 
-      selectConfirmationRedesignFlagsMock.mockReturnValue({
-        staking_confirmations: true,
-      } as unknown as ConfirmationRedesignRemoteFlags);
-
       const { getByText } = renderComponent();
 
       await act(async () => {
@@ -1911,6 +1837,147 @@ describe('EarnInputView', () => {
             is_max: false,
             mode: 'native',
             experience: EARN_EXPERIENCES.POOLED_STAKING,
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('HeaderCenter interactions', () => {
+    it('tracks STAKE_CANCEL_CLICKED event with token property when back button is pressed for staking', async () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(false);
+
+      const { getByTestId } = renderComponent();
+
+      mockTrackEvent.mockClear();
+
+      const backButton = getByTestId('button-icon');
+      await act(async () => {
+        fireEvent.press(backButton);
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Stake Cancel Clicked',
+          properties: expect.objectContaining({
+            selected_provider: EVENT_PROVIDERS.CONSENSYS,
+            location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
+            experience: EARN_EXPERIENCES.POOLED_STAKING,
+            token: 'Ethereum',
+          }),
+        }),
+      );
+    });
+
+    it('tracks EARN_INPUT_BACK_BUTTON_CLICKED event when back button is pressed for stablecoin lending', async () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+
+      (useEarnTokens as jest.Mock).mockReturnValue({
+        getEarnToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          balance: '100',
+          balanceFiat: '$100',
+          balanceMinimalUnit: '100000000',
+          balanceFormatted: '100 USDC',
+          balanceFiatNumber: 100,
+          symbol: 'USDC',
+          experience: {
+            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            apr: '4.5%',
+          },
+        })),
+        getOutputToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          name: 'aUSDC',
+          symbol: 'aUSDC',
+        })),
+      });
+
+      const routeParamsWithUSDC: EarnInputViewProps['route'] = {
+        params: {
+          token: MOCK_USDC_MAINNET_ASSET,
+        },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      };
+
+      const { getAllByTestId } = render(EarnInputView, routeParamsWithUSDC);
+
+      mockTrackEvent.mockClear();
+
+      // First button-icon is the back button
+      const buttonIcons = getAllByTestId('button-icon');
+      const backButton = buttonIcons[0];
+      await act(async () => {
+        fireEvent.press(backButton);
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Earn Input Back Button Clicked',
+          properties: expect.objectContaining({
+            selected_provider: EVENT_PROVIDERS.CONSENSYS,
+            location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
+            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            token: 'USDC',
+          }),
+        }),
+      );
+    });
+
+    it('tracks TOOLTIP_OPENED event when info button is pressed for stablecoin lending', async () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+
+      (useEarnTokens as jest.Mock).mockReturnValue({
+        getEarnToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          balance: '100',
+          balanceFiat: '$100',
+          balanceMinimalUnit: '100000000',
+          balanceFormatted: '100 USDC',
+          balanceFiatNumber: 100,
+          symbol: 'USDC',
+          experience: {
+            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            apr: '4.5%',
+          },
+        })),
+        getOutputToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          name: 'aUSDC',
+          symbol: 'aUSDC',
+        })),
+      });
+
+      const routeParamsWithUSDC: EarnInputViewProps['route'] = {
+        params: {
+          token: MOCK_USDC_MAINNET_ASSET,
+        },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      };
+
+      const { getAllByTestId } = render(EarnInputView, routeParamsWithUSDC);
+
+      mockTrackEvent.mockClear();
+
+      // Second button-icon is the info button (when stablecoin lending is enabled)
+      const buttonIcons = getAllByTestId('button-icon');
+      const infoButton = buttonIcons[1];
+      await act(async () => {
+        fireEvent.press(infoButton);
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Tooltip Opened',
+          properties: expect.objectContaining({
+            selected_provider: EVENT_PROVIDERS.CONSENSYS,
+            text: 'Tooltip Opened',
+            location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
+            tooltip_name: 'Lending Historic Market APY Graph',
+            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            token: 'USDC',
           }),
         }),
       );

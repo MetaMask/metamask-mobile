@@ -4,26 +4,30 @@ import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import TestSnaps from '../../pages/Browser/TestSnaps';
 import Assertions from '../../../tests/framework/Assertions';
-import { getEventsPayloads } from '../analytics/helpers';
+import { getEventsPayloads } from '../../../tests/helpers/analytics/helpers';
 import TestHelpers from '../../helpers';
 
 jest.setTimeout(150_000);
 
+const eventToTrack = 'Test Event';
+
 describe(FlaskBuildTests('Preinstalled Snap Tests'), () => {
   it.todo('displays the Snap settings page');
 
-  it('uses `initialConnections` to allow JSON-RPC', async () => {
+  /**
+   * We're combining the 2 tests as currently we don't have a way to share the mockServer instance between the 2 tests.
+   */
+  it('uses `initialConnections` to allow JSON-RPC and tracks an event in Segment with `snap_trackEvent`', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withMetaMetricsOptIn().build(),
         restartDevice: true,
         skipReactNativeReload: true,
       },
-      async () => {
+      async ({ mockServer }) => {
         await loginToApp();
         await navigateToBrowserView();
         await TestSnaps.navigateToTestSnap();
-
         await TestSnaps.tapButton('showPreinstalledDialogButton');
 
         await Assertions.expectTextDisplayed(
@@ -31,26 +35,14 @@ describe(FlaskBuildTests('Preinstalled Snap Tests'), () => {
         );
 
         await TestSnaps.tapCancelButton();
-      },
-    );
-  });
 
-  it.todo('tracks an error in Sentry with `snap_trackError`');
-
-  it('tracks an event in Segment with `snap_trackEvent`', async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().withMetaMetricsOptIn().build(),
-        skipReactNativeReload: true,
-      },
-      async ({ mockServer }) => {
         await TestSnaps.tapButton('trackEventButton');
         await TestHelpers.delay(1000);
 
-        const events = await getEventsPayloads(mockServer);
+        const events = await getEventsPayloads(mockServer, [eventToTrack]);
 
         await Assertions.checkIfObjectsMatch(events[0], {
-          event: 'Test Event',
+          event: eventToTrack,
           properties: {
             test_property: 'test value',
           },
@@ -58,6 +50,8 @@ describe(FlaskBuildTests('Preinstalled Snap Tests'), () => {
       },
     );
   });
+
+  it.todo('tracks an error in Sentry with `snap_trackError`');
 
   it.todo(
     'starts and ends a performance trace in Sentry with `snap_startTrace` and `snap_endTrace`',

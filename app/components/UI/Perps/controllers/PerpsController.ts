@@ -43,6 +43,7 @@ import { DepositService } from './services/DepositService';
 import { FeatureFlagConfigurationService } from './services/FeatureFlagConfigurationService';
 import { RewardsIntegrationService } from './services/RewardsIntegrationService';
 import type { ServiceContext } from './services/ServiceContext';
+import { addTransaction } from '../../../../util/transaction-controller';
 import { type PerpsStreamChannelKey } from '../providers/PerpsStreamManager';
 import { WebSocketConnectionState } from '../services/HyperLiquidClientService';
 import {
@@ -56,6 +57,7 @@ import {
   type ClosePositionParams,
   type ClosePositionsParams,
   type ClosePositionsResult,
+  type DepositWithConfirmationParams,
   type EditOrderParams,
   type FeeCalculationParams,
   type FeeCalculationResult,
@@ -68,7 +70,7 @@ import {
   type GetOrderFillsParams,
   type GetOrdersParams,
   type GetPositionsParams,
-  type IPerpsProvider,
+  type PerpsProvider,
   type LiquidationPriceParams,
   type LiveDataConfig,
   type MaintenanceMarginParams,
@@ -98,20 +100,21 @@ import {
   type HistoricalPortfolioResult,
   type OrderType,
   // Platform dependencies interface for core migration (bundles all platform-specific deps)
-  type IPerpsPlatformDependencies,
-  type IPerpsLogger,
+  type PerpsPlatformDependencies,
+  type PerpsLogger,
   type PerpsActiveProviderMode,
   type PerpsProviderType,
 } from './types';
 
-/** Derived type for logger options from IPerpsLogger interface */
-type PerpsLoggerOptions = Parameters<IPerpsLogger['error']>[1];
+/** Derived type for logger options from PerpsLogger interface */
+type PerpsLoggerOptions = Parameters<PerpsLogger['error']>[1];
 import type {
   RemoteFeatureFlagControllerState,
   RemoteFeatureFlagControllerStateChangeEvent,
   RemoteFeatureFlagControllerGetStateAction,
 } from '@metamask/remote-feature-flag-controller';
 import { wait } from '../utils/wait';
+import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 
 // Re-export error codes from separate file to avoid circular dependencies
 export { PERPS_ERROR_CODES, type PerpsErrorCode } from './perpsErrorCodes';
@@ -120,10 +123,10 @@ export { PERPS_ERROR_CODES, type PerpsErrorCode } from './perpsErrorCodes';
  * Initialization state enum for state machine tracking
  */
 export enum InitializationState {
-  UNINITIALIZED = 'uninitialized',
-  INITIALIZING = 'initializing',
-  INITIALIZED = 'initialized',
-  FAILED = 'failed',
+  Uninitialized = 'uninitialized',
+  Initializing = 'initializing',
+  Initialized = 'initialized',
+  Failed = 'failed',
 }
 
 /**
@@ -288,7 +291,7 @@ export type PerpsControllerState = {
 export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   activeProvider: 'hyperliquid',
   isTestnet: false, // Default to mainnet
-  initializationState: InitializationState.UNINITIALIZED,
+  initializationState: InitializationState.Uninitialized,
   initializationError: null,
   initializationAttempts: 0,
   accountState: null,
@@ -325,8 +328,8 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
     mainnet: {},
   },
   marketFilterPreferences: {
-    optionId: MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
-    direction: MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+    optionId: MARKET_SORTING_CONFIG.DefaultSortOptionId,
+    direction: MARKET_SORTING_CONFIG.DefaultDirection,
   },
   hip3ConfigVersion: 0,
 });
@@ -661,7 +664,7 @@ export interface PerpsControllerOptions {
    * Provides logging, metrics, tracing, stream management, and account utilities.
    * Must be provided by the platform (mobile/extension) at instantiation time.
    */
-  infrastructure: IPerpsPlatformDependencies;
+  infrastructure: PerpsPlatformDependencies;
 }
 
 interface BlockedRegionList {
@@ -682,7 +685,7 @@ export class PerpsController extends BaseController<
   PerpsControllerState,
   PerpsControllerMessenger
 > {
-  protected providers: Map<PerpsProviderType, IPerpsProvider>;
+  protected providers: Map<PerpsProviderType, PerpsProvider>;
   protected isInitialized = false;
   private initializationPromise: Promise<void> | null = null;
   private isReinitializing = false;
@@ -711,7 +714,7 @@ export class PerpsController extends BaseController<
    * When activeProvider is 'hyperliquid' or 'myx': points to specific provider directly
    * When activeProvider is 'aggregated': points to AggregatedPerpsProvider wrapper
    */
-  protected activeProviderInstance: IPerpsProvider | null = null;
+  protected activeProviderInstance: PerpsProvider | null = null;
 
   // Store options for dependency injection (allows core package to inject platform-specific services)
   private readonly options: PerpsControllerOptions;
@@ -837,7 +840,7 @@ export class PerpsController extends BaseController<
   /**
    * Get metrics instance from platform dependencies
    */
-  private getMetrics(): IPerpsPlatformDependencies['metrics'] {
+  private getMetrics(): PerpsPlatformDependencies['metrics'] {
     return this.options.infrastructure.metrics;
   }
 
@@ -1037,7 +1040,7 @@ export class PerpsController extends BaseController<
     const baseDelay = 1000;
 
     this.update((state) => {
-      state.initializationState = InitializationState.INITIALIZING;
+      state.initializationState = InitializationState.Initializing;
       state.initializationError = null;
       state.initializationAttempts = 0;
     });
@@ -1126,11 +1129,11 @@ export class PerpsController extends BaseController<
         // - Some might not need auth at all: new DydxProvider()
 
         // Wait for WebSocket transport to be ready before marking as initialized
-        await wait(PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS);
+        await wait(PERPS_CONSTANTS.ReconnectionCleanupDelayMs);
 
         this.isInitialized = true;
         this.update((state) => {
-          state.initializationState = InitializationState.INITIALIZED;
+          state.initializationState = InitializationState.Initialized;
           state.initializationError = null;
         });
 
@@ -1171,7 +1174,7 @@ export class PerpsController extends BaseController<
 
     this.isInitialized = false;
     this.update((state) => {
-      state.initializationState = InitializationState.FAILED;
+      state.initializationState = InitializationState.Failed;
       state.initializationError = lastError?.message ?? 'Unknown error';
     });
     this.initializationPromise = null; // Clear promise to allow retry
@@ -1203,7 +1206,7 @@ export class PerpsController extends BaseController<
   ): PerpsLoggerOptions {
     return {
       tags: {
-        feature: PERPS_CONSTANTS.FEATURE_NAME,
+        feature: PERPS_CONSTANTS.FeatureName,
         provider: this.state.activeProvider,
         network: this.state.isTestnet ? 'testnet' : 'mainnet',
       },
@@ -1267,7 +1270,7 @@ export class PerpsController extends BaseController<
    * @returns The active provider (aggregated wrapper or direct provider based on mode)
    * @throws Error if provider is not initialized or reinitializing
    */
-  getActiveProvider(): IPerpsProvider {
+  getActiveProvider(): PerpsProvider {
     // Check if we're in the middle of reinitializing
     if (this.isReinitializing) {
       this.update((state) => {
@@ -1279,11 +1282,11 @@ export class PerpsController extends BaseController<
 
     // Check if not initialized
     if (
-      this.state.initializationState !== InitializationState.INITIALIZED ||
+      this.state.initializationState !== InitializationState.Initialized ||
       !this.isInitialized
     ) {
       const errorMessage =
-        this.state.initializationState === InitializationState.FAILED
+        this.state.initializationState === InitializationState.Failed
           ? `${PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED}: ${this.state.initializationError || 'Initialization failed'}`
           : PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED;
 
@@ -1304,6 +1307,30 @@ export class PerpsController extends BaseController<
     }
 
     return this.activeProviderInstance;
+  }
+
+  /**
+   * Get the currently active provider, returning null if not available
+   * Use this method when the caller can gracefully handle a missing provider
+   * (e.g., UI components during initialization or reconnection)
+   * @returns The active provider, or null if not initialized/reinitializing
+   */
+  getActiveProviderOrNull(): PerpsProvider | null {
+    // Return null during reinitialization
+    if (this.isReinitializing) {
+      return null;
+    }
+
+    // Return null if not initialized
+    if (
+      this.state.initializationState !== InitializationState.Initialized ||
+      !this.isInitialized
+    ) {
+      return null;
+    }
+
+    // Return the active provider instance or null if not found
+    return this.activeProviderInstance || null;
   }
 
   /**
@@ -1458,8 +1485,12 @@ export class PerpsController extends BaseController<
   /**
    * Simplified deposit method that prepares transaction for confirmation screen
    * No complex state tracking - just sets a loading flag
+   * @param params - Parameters for the deposit flow
+   * @param params.amount - Optional deposit amount
+   * @param params.placeOrder - If true, uses addTransaction instead of submit to avoid navigation
    */
-  async depositWithConfirmation(amount?: string) {
+  async depositWithConfirmation(params: DepositWithConfirmationParams = {}) {
+    const { amount, placeOrder } = params;
     const { controllers } = this.options.infrastructure;
 
     try {
@@ -1505,100 +1536,71 @@ export class PerpsController extends BaseController<
         );
       }
 
-      // submit shows the confirmation screen and returns a promise
-      // The promise will resolve when transaction completes or reject if cancelled/failed
-      const { result, transactionMeta } = await controllers.transaction.submit(
-        transaction,
-        {
-          networkClientId,
-          origin: 'metamask',
+      let result: Promise<string>;
+      let transactionMeta: { id: string };
+
+      const defaultTransactionOptions = {
+        networkClientId,
+        origin: ORIGIN_METAMASK,
+        skipInitialGasEstimate: true,
+      };
+
+      if (placeOrder) {
+        // Use addTransaction to create transaction without navigating to confirmation screen
+        const { transactionMeta: addedTransactionMeta } = await addTransaction(
+          transaction,
+          {
+            ...defaultTransactionOptions,
+            type: TransactionType.perpsDepositAndOrder,
+          },
+        );
+        transactionMeta = addedTransactionMeta;
+        // For addTransaction, we don't get a result promise - transaction will be confirmed via useTransactionConfirm
+        // Return a resolved promise that never resolves (transaction handled via confirmation flow)
+        result = new Promise(() => {
+          // Never resolves - transaction handled via confirmation flow
+        });
+      } else {
+        // submit shows the confirmation screen and returns a promise
+        // The promise will resolve when transaction completes or reject if cancelled/failed
+        const submitResult = await controllers.transaction.submit(transaction, {
+          ...defaultTransactionOptions,
           type: TransactionType.perpsDeposit,
-          skipInitialGasEstimate: true,
-        },
-      );
+        });
+        result = submitResult.result;
+        transactionMeta = submitResult.transactionMeta;
+      }
 
       // Store the transaction ID and try to get amount from transaction
       this.update((state) => {
         state.lastDepositTransactionId = transactionMeta.id;
       });
 
-      // At this point, the confirmation modal is shown to the user
-      // The result promise will resolve/reject based on user action and transaction outcome
+      // Track the transaction lifecycle only when using submit (deposit-only flow)
+      if (!placeOrder) {
+        // At this point, the confirmation modal is shown to the user
+        // The result promise will resolve/reject based on user action and transaction outcome
 
-      // Track the transaction lifecycle
-      // The result promise will resolve/reject based on user action and transaction outcome
-      // Note: We intentionally don't set depositInProgress immediately to avoid
-      // showing toasts before the user confirms the transaction
+        // Track the transaction lifecycle
+        // The result promise will resolve/reject based on user action and transaction outcome
+        // Note: We intentionally don't set depositInProgress immediately to avoid
+        // showing toasts before the user confirms the transaction
 
-      // TODO: @abretonc7s Find a better way to trigger our custom toast notification then having to toggle the state
-      // How to replace the system notifications?
-      result
-        .then((actualTxHash) => {
-          // Transaction was successfully completed
-          // Set depositInProgress to true temporarily to show success
-          this.update((state) => {
-            state.depositInProgress = true;
-            state.lastDepositResult = {
-              success: true,
-              txHash: actualTxHash,
-              amount: amount || '0',
-              asset: USDC_SYMBOL, // Default asset for deposits
-              timestamp: Date.now(),
-              error: '',
-            };
-
-            // Update the deposit request by request ID to avoid race conditions
-            if (state.depositRequests.length > 0) {
-              const requestToUpdate = state.depositRequests.find(
-                (req) => req.id === currentDepositId,
-              );
-              if (requestToUpdate) {
-                // For deposits, we have a txHash immediately, so mark as completed
-                // (the transaction hash means the deposit was successful)
-                requestToUpdate.status = 'completed' as TransactionStatus;
-                requestToUpdate.success = true;
-                requestToUpdate.txHash = actualTxHash;
-              }
-            }
-          });
-
-          // Clear depositInProgress after a short delay
-          setTimeout(() => {
+        // TODO: @abretonc7s Find a better way to trigger our custom toast notification then having to toggle the state
+        // How to replace the system notifications?
+        result
+          .then((actualTxHash) => {
+            // Transaction was successfully completed
+            // Set depositInProgress to true temporarily to show success
             this.update((state) => {
-              state.depositInProgress = false;
-              state.lastDepositTransactionId = null;
-            });
-          }, 100);
-        })
-        .catch((error) => {
-          // Check if user denied/cancelled the transaction
-          const errorMessage =
-            error instanceof Error ? error.message : String(error);
-          const userCancelled =
-            errorMessage.includes('User denied') ||
-            errorMessage.includes('User rejected') ||
-            errorMessage.includes('User cancelled') ||
-            errorMessage.includes('User canceled');
-
-          if (userCancelled) {
-            // User cancelled - clear any state, no toast
-            this.update((state) => {
-              state.depositInProgress = false;
-              state.lastDepositTransactionId = null;
-              // Don't set lastDepositResult - no toast needed
-            });
-          } else {
-            // Transaction failed after confirmation - show error toast
-            this.update((state) => {
-              state.depositInProgress = false;
-              state.lastDepositTransactionId = null;
+              state.depositInProgress = true;
               state.lastDepositResult = {
-                success: false,
-                error: errorMessage,
+                success: true,
+                txHash: actualTxHash,
                 amount: amount || '0',
                 asset: USDC_SYMBOL, // Default asset for deposits
                 timestamp: Date.now(),
-                txHash: '',
+                error: '',
               };
 
               // Update the deposit request by request ID to avoid race conditions
@@ -1607,21 +1609,80 @@ export class PerpsController extends BaseController<
                   (req) => req.id === currentDepositId,
                 );
                 if (requestToUpdate) {
-                  requestToUpdate.status = 'failed' as TransactionStatus;
-                  requestToUpdate.success = false;
+                  // For deposits, we have a txHash immediately, so mark as completed
+                  // (the transaction hash means the deposit was successful)
+                  requestToUpdate.status = 'completed' as TransactionStatus;
+                  requestToUpdate.success = true;
+                  requestToUpdate.txHash = actualTxHash;
                 }
               }
             });
-          }
-        });
+
+            // Clear depositInProgress after a short delay
+            setTimeout(() => {
+              this.update((state) => {
+                state.depositInProgress = false;
+                state.lastDepositTransactionId = null;
+              });
+            }, 100);
+          })
+          .catch((error) => {
+            // Check if user denied/cancelled the transaction
+            const errorMessage = ensureError(
+              error,
+              'PerpsController.initiateDeposit',
+            ).message;
+            const userCancelled =
+              errorMessage.includes('User denied') ||
+              errorMessage.includes('User rejected') ||
+              errorMessage.includes('User cancelled') ||
+              errorMessage.includes('User canceled');
+
+            if (userCancelled) {
+              // User cancelled - clear any state, no toast
+              this.update((state) => {
+                state.depositInProgress = false;
+                state.lastDepositTransactionId = null;
+                // Don't set lastDepositResult - no toast needed
+              });
+            } else {
+              // Transaction failed after confirmation - show error toast
+              this.update((state) => {
+                state.depositInProgress = false;
+                state.lastDepositTransactionId = null;
+                state.lastDepositResult = {
+                  success: false,
+                  error: errorMessage,
+                  amount: amount || '0',
+                  asset: USDC_SYMBOL, // Default asset for deposits
+                  timestamp: Date.now(),
+                  txHash: '',
+                };
+
+                // Update the deposit request by request ID to avoid race conditions
+                if (state.depositRequests.length > 0) {
+                  const requestToUpdate = state.depositRequests.find(
+                    (req) => req.id === currentDepositId,
+                  );
+                  if (requestToUpdate) {
+                    requestToUpdate.status = 'failed' as TransactionStatus;
+                    requestToUpdate.success = false;
+                  }
+                }
+              });
+            }
+          });
+      }
 
       return {
         result,
       };
     } catch (error) {
       // Check if user denied/cancelled the transaction
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
+      const errorMessage = ensureError(
+        error,
+        'PerpsController.initiateDeposit',
+      ).message;
       const userCancelled =
         errorMessage.includes('User denied') ||
         errorMessage.includes('User rejected') ||
@@ -1637,6 +1698,13 @@ export class PerpsController extends BaseController<
       }
       throw error;
     }
+  }
+
+  /**
+   * Same as depositWithConfirmation - prepares transaction for confirmation screen.
+   */
+  async depositWithOrder() {
+    return this.depositWithConfirmation({ placeOrder: true });
   }
 
   /**
@@ -2079,10 +2147,7 @@ export class PerpsController extends BaseController<
       return {
         success: false,
         isTestnet: this.state.isTestnet,
-        error:
-          error instanceof Error
-            ? error.message
-            : PERPS_ERROR_CODES.UNKNOWN_ERROR,
+        error: ensureError(error, 'PerpsController.toggleTestnet').message,
       };
     } finally {
       this.isReinitializing = false;
@@ -2134,10 +2199,10 @@ export class PerpsController extends BaseController<
         return provider.getWebSocketConnectionState();
       }
       // Fallback for providers that don't support this method
-      return WebSocketConnectionState.DISCONNECTED;
+      return WebSocketConnectionState.Disconnected;
     } catch {
       // If no provider is active, return disconnected
-      return WebSocketConnectionState.DISCONNECTED;
+      return WebSocketConnectionState.Disconnected;
     }
   }
 
@@ -2166,7 +2231,7 @@ export class PerpsController extends BaseController<
       };
     } catch {
       // If no provider is active, call with disconnected and return no-op
-      listener(WebSocketConnectionState.DISCONNECTED, 0);
+      listener(WebSocketConnectionState.Disconnected, 0);
       return () => {
         // No-op
       };
@@ -2782,15 +2847,15 @@ export class PerpsController extends BaseController<
       // Handle other simple legacy strings (e.g., 'volume', 'openInterest', etc.)
       return {
         optionId: pref as SortOptionId,
-        direction: MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+        direction: MARKET_SORTING_CONFIG.DefaultDirection,
       };
     }
 
     // Return new object format or default
     return (
       pref ?? {
-        optionId: MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
-        direction: MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+        optionId: MARKET_SORTING_CONFIG.DefaultSortOptionId,
+        direction: MARKET_SORTING_CONFIG.DefaultDirection,
       }
     );
   }

@@ -1,13 +1,11 @@
-import type { IPerpsProvider, Position, MarketInfo, Order } from '../types';
+import type { PerpsProvider, Position, MarketInfo, Order } from '../types';
 import { createMockInfrastructure } from '../../__mocks__/serviceMocks';
 import { AggregatedPerpsProvider } from './AggregatedPerpsProvider';
 import { CandlePeriod } from '../../constants/chartConfig';
 
 // Create a comprehensive mock provider
-const createMockProvider = (
-  providerId: string,
-): jest.Mocked<IPerpsProvider> => {
-  const mockProvider: jest.Mocked<IPerpsProvider> = {
+const createMockProvider = (providerId: string): jest.Mocked<PerpsProvider> => {
+  const mockProvider: jest.Mocked<PerpsProvider> = {
     protocolId: providerId,
 
     // Asset routes
@@ -152,8 +150,8 @@ const createMockOrder = (orderId: string, symbol: string): Order =>
 
 describe('AggregatedPerpsProvider', () => {
   let aggregatedProvider: AggregatedPerpsProvider;
-  let mockHLProvider: jest.Mocked<IPerpsProvider>;
-  let mockMYXProvider: jest.Mocked<IPerpsProvider>;
+  let mockHLProvider: jest.Mocked<PerpsProvider>;
+  let mockMYXProvider: jest.Mocked<PerpsProvider>;
   let mockInfrastructure: ReturnType<typeof createMockInfrastructure>;
 
   beforeEach(() => {
@@ -731,7 +729,7 @@ describe('AggregatedPerpsProvider', () => {
 
       aggregatedProvider.subscribeToCandles({
         symbol: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
+        interval: CandlePeriod.OneHour,
         callback,
       });
 

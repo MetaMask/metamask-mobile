@@ -9,7 +9,6 @@ import { MOCK_CRYPTOCURRENCIES } from '../../Deposit/testUtils';
 import { UnifiedRampRoutingType } from '../../../../../reducers/fiatOrders/types';
 import { useRampTokens } from '../../hooks/useRampTokens';
 import { useRampsController } from '../../hooks/useRampsController';
-import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
@@ -67,6 +66,12 @@ jest.mock('../../hooks/useRampNavigation', () => ({
   }),
 }));
 
+const mockUseRampsUnifiedV2Enabled = jest.fn();
+jest.mock('../../hooks/useRampsUnifiedV2Enabled', () => ({
+  __esModule: true,
+  default: () => mockUseRampsUnifiedV2Enabled(),
+}));
+
 jest.mock('../../hooks/useRampTokens', () => ({
   useRampTokens: jest.fn(),
 }));
@@ -74,8 +79,6 @@ jest.mock('../../hooks/useRampTokens', () => ({
 jest.mock('../../hooks/useRampsController', () => ({
   useRampsController: jest.fn(),
 }));
-
-jest.mock('../../hooks/useRampsUnifiedV2Enabled', () => jest.fn());
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
@@ -118,10 +121,6 @@ const mockUseRampTokens = useRampTokens as jest.MockedFunction<
 const mockUseRampsController = useRampsController as jest.MockedFunction<
   typeof useRampsController
 >;
-const mockUseRampsUnifiedV2Enabled =
-  useRampsUnifiedV2Enabled as jest.MockedFunction<
-    typeof useRampsUnifiedV2Enabled
-  >;
 
 // Convert MockDepositCryptoCurrency to RampsToken format
 const convertToRampsTokens = (tokens: typeof mockTokens) =>
@@ -135,6 +134,7 @@ describe('TokenSelection Component', () => {
     jest.clearAllMocks();
     (useSearchTokenResults as jest.Mock).mockReturnValue(mockTokens);
     mockGetNetworkName.mockReturnValue('Ethereum Mainnet');
+    mockUseRampsUnifiedV2Enabled.mockReturnValue(false); // Default to V1 behavior
 
     const rampsTokens = convertToRampsTokens(mockTokens);
 
@@ -152,6 +152,8 @@ describe('TokenSelection Component', () => {
         topTokens: rampsTokens,
         allTokens: rampsTokens,
       },
+      selectedToken: null,
+      setSelectedToken: jest.fn(),
       tokensLoading: false,
       tokensError: null,
       userRegion: null,
@@ -159,17 +161,19 @@ describe('TokenSelection Component', () => {
       userRegionError: null,
       fetchUserRegion: jest.fn(),
       setUserRegion: jest.fn(),
-      preferredProvider: null,
-      setPreferredProvider: jest.fn(),
+      selectedProvider: null,
+      setSelectedProvider: jest.fn(),
       providers: [],
       providersLoading: false,
       providersError: null,
-      fetchProviders: jest.fn(),
-      fetchTokens: jest.fn(),
-      countries: null,
+      countries: [],
       countriesLoading: false,
       countriesError: null,
-      fetchCountries: jest.fn(),
+      paymentMethods: [],
+      selectedPaymentMethod: null,
+      setSelectedPaymentMethod: jest.fn(),
+      paymentMethodsLoading: false,
+      paymentMethodsError: null,
     });
   });
 
@@ -220,16 +224,30 @@ describe('TokenSelection Component', () => {
     });
   });
 
-  it('calls goToBuy when token is pressed', () => {
+  it('calls goToBuy and closes modal when token is pressed (V1 flow)', () => {
+    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
     const { getByTestId } = renderWithProvider(TokenSelection);
 
     const firstToken = getByTestId(`token-list-item-${mockTokens[0].assetId}`);
     fireEvent.press(firstToken);
 
+    expect(mockParentGoBack).toHaveBeenCalled();
     expect(mockGoToBuy).toHaveBeenCalledWith({
       assetId: mockTokens[0].assetId,
     });
-    expect(mockParentGoBack).toHaveBeenCalled();
+  });
+
+  it('calls goToBuy without closing modal when token is pressed (V2 flow)', () => {
+    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
+    const { getByTestId } = renderWithProvider(TokenSelection);
+
+    const firstToken = getByTestId(`token-list-item-${mockTokens[0].assetId}`);
+    fireEvent.press(firstToken);
+
+    expect(mockParentGoBack).not.toHaveBeenCalled();
+    expect(mockGoToBuy).toHaveBeenCalledWith({
+      assetId: mockTokens[0].assetId,
+    });
   });
 
   it('navigates to unsupported token modal when info button is pressed', () => {
@@ -262,6 +280,8 @@ describe('TokenSelection Component', () => {
     mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
     mockUseRampsController.mockReturnValue({
       tokens: null,
+      selectedToken: null,
+      setSelectedToken: jest.fn(),
       tokensLoading: true,
       tokensError: null,
       userRegion: null,
@@ -269,17 +289,19 @@ describe('TokenSelection Component', () => {
       userRegionError: null,
       fetchUserRegion: jest.fn(),
       setUserRegion: jest.fn(),
-      preferredProvider: null,
-      setPreferredProvider: jest.fn(),
+      selectedProvider: null,
+      setSelectedProvider: jest.fn(),
       providers: [],
       providersLoading: false,
       providersError: null,
-      fetchProviders: jest.fn(),
-      fetchTokens: jest.fn(),
-      countries: null,
+      countries: [],
       countriesLoading: false,
       countriesError: null,
-      fetchCountries: jest.fn(),
+      paymentMethods: [],
+      selectedPaymentMethod: null,
+      setSelectedPaymentMethod: jest.fn(),
+      paymentMethodsLoading: false,
+      paymentMethodsError: null,
     });
 
     const { UNSAFE_getByType } = renderWithProvider(TokenSelection);
@@ -306,6 +328,8 @@ describe('TokenSelection Component', () => {
     mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
     mockUseRampsController.mockReturnValue({
       tokens: null,
+      selectedToken: null,
+      setSelectedToken: jest.fn(),
       tokensLoading: false,
       tokensError: 'Network error',
       userRegion: null,
@@ -313,17 +337,19 @@ describe('TokenSelection Component', () => {
       userRegionError: null,
       fetchUserRegion: jest.fn(),
       setUserRegion: jest.fn(),
-      preferredProvider: null,
-      setPreferredProvider: jest.fn(),
+      selectedProvider: null,
+      setSelectedProvider: jest.fn(),
       providers: [],
       providersLoading: false,
       providersError: null,
-      fetchProviders: jest.fn(),
-      fetchTokens: jest.fn(),
-      countries: null,
+      countries: [],
       countriesLoading: false,
       countriesError: null,
-      fetchCountries: jest.fn(),
+      paymentMethods: [],
+      selectedPaymentMethod: null,
+      setSelectedPaymentMethod: jest.fn(),
+      paymentMethodsLoading: false,
+      paymentMethodsError: null,
     });
 
     const { getByText } = renderWithProvider(TokenSelection);
@@ -362,6 +388,8 @@ describe('TokenSelection Component', () => {
         topTokens,
         allTokens,
       },
+      selectedToken: null,
+      setSelectedToken: jest.fn(),
       tokensLoading: false,
       tokensError: null,
       userRegion: null,
@@ -369,17 +397,19 @@ describe('TokenSelection Component', () => {
       userRegionError: null,
       fetchUserRegion: jest.fn(),
       setUserRegion: jest.fn(),
-      preferredProvider: null,
-      setPreferredProvider: jest.fn(),
+      selectedProvider: null,
+      setSelectedProvider: jest.fn(),
       providers: [],
       providersLoading: false,
       providersError: null,
-      fetchProviders: jest.fn(),
-      fetchTokens: jest.fn(),
-      countries: null,
+      countries: [],
       countriesLoading: false,
       countriesError: null,
-      fetchCountries: jest.fn(),
+      paymentMethods: [],
+      selectedPaymentMethod: null,
+      setSelectedPaymentMethod: jest.fn(),
+      paymentMethodsLoading: false,
+      paymentMethodsError: null,
     });
 
     renderWithProvider(TokenSelection);
@@ -428,6 +458,8 @@ describe('TokenSelection Component', () => {
         topTokens,
         allTokens,
       },
+      selectedToken: null,
+      setSelectedToken: jest.fn(),
       tokensLoading: false,
       tokensError: null,
       userRegion: null,
@@ -435,17 +467,19 @@ describe('TokenSelection Component', () => {
       userRegionError: null,
       fetchUserRegion: jest.fn(),
       setUserRegion: jest.fn(),
-      preferredProvider: null,
-      setPreferredProvider: jest.fn(),
+      selectedProvider: null,
+      setSelectedProvider: jest.fn(),
       providers: [],
       providersLoading: false,
       providersError: null,
-      fetchProviders: jest.fn(),
-      fetchTokens: jest.fn(),
-      countries: null,
+      countries: [],
       countriesLoading: false,
       countriesError: null,
-      fetchCountries: jest.fn(),
+      paymentMethods: [],
+      selectedPaymentMethod: null,
+      setSelectedPaymentMethod: jest.fn(),
+      paymentMethodsLoading: false,
+      paymentMethodsError: null,
     });
 
     const { getByPlaceholderText } = renderWithProvider(TokenSelection);
@@ -498,6 +532,8 @@ describe('TokenSelection Component', () => {
         topTokens,
         allTokens,
       },
+      selectedToken: null,
+      setSelectedToken: jest.fn(),
       tokensLoading: false,
       tokensError: null,
       userRegion: null,
@@ -505,17 +541,19 @@ describe('TokenSelection Component', () => {
       userRegionError: null,
       fetchUserRegion: jest.fn(),
       setUserRegion: jest.fn(),
-      preferredProvider: null,
-      setPreferredProvider: jest.fn(),
+      selectedProvider: null,
+      setSelectedProvider: jest.fn(),
       providers: [],
       providersLoading: false,
       providersError: null,
-      fetchProviders: jest.fn(),
-      fetchTokens: jest.fn(),
-      countries: null,
+      countries: [],
       countriesLoading: false,
       countriesError: null,
-      fetchCountries: jest.fn(),
+      paymentMethods: [],
+      selectedPaymentMethod: null,
+      setSelectedPaymentMethod: jest.fn(),
+      paymentMethodsLoading: false,
+      paymentMethodsError: null,
     });
 
     const { getByPlaceholderText } = renderWithProvider(TokenSelection);
@@ -570,6 +608,8 @@ describe('TokenSelection Component', () => {
         topTokens: allTokensWithUnconfiguredNetwork,
         allTokens: allTokensWithUnconfiguredNetwork,
       },
+      selectedToken: null,
+      setSelectedToken: jest.fn(),
       tokensLoading: false,
       tokensError: null,
       userRegion: null,
@@ -577,17 +617,19 @@ describe('TokenSelection Component', () => {
       userRegionError: null,
       fetchUserRegion: jest.fn(),
       setUserRegion: jest.fn(),
-      preferredProvider: null,
-      setPreferredProvider: jest.fn(),
+      selectedProvider: null,
+      setSelectedProvider: jest.fn(),
       providers: [],
       providersLoading: false,
       providersError: null,
-      fetchProviders: jest.fn(),
-      fetchTokens: jest.fn(),
-      countries: null,
+      countries: [],
       countriesLoading: false,
       countriesError: null,
-      fetchCountries: jest.fn(),
+      paymentMethods: [],
+      selectedPaymentMethod: null,
+      setSelectedPaymentMethod: jest.fn(),
+      paymentMethodsLoading: false,
+      paymentMethodsError: null,
     });
 
     renderWithProvider(TokenSelection);

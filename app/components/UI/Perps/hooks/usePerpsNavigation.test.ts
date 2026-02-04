@@ -1,10 +1,32 @@
 import { renderHook } from '@testing-library/react-hooks';
+import { waitFor } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { usePerpsNavigation } from './usePerpsNavigation';
+import { usePerpsTrading } from './usePerpsTrading';
+import usePerpsToasts from './usePerpsToasts';
+import { usePerpsEventTracking } from './usePerpsEventTracking';
 import Routes from '../../../../constants/navigation/Routes';
+import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
+}));
+
+const mockDepositWithOrder = jest.fn();
+const mockShowToast = jest.fn();
+const mockTrack = jest.fn();
+
+jest.mock('./usePerpsTrading', () => ({
+  usePerpsTrading: jest.fn(),
+}));
+
+jest.mock('./usePerpsToasts', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+jest.mock('./usePerpsEventTracking', () => ({
+  usePerpsEventTracking: jest.fn(),
 }));
 
 describe('usePerpsNavigation', () => {
@@ -14,10 +36,36 @@ describe('usePerpsNavigation', () => {
   const mockUseNavigation = useNavigation as jest.MockedFunction<
     typeof useNavigation
   >;
+  const mockUsePerpsTrading = usePerpsTrading as jest.MockedFunction<
+    typeof usePerpsTrading
+  >;
+  const mockUsePerpsToasts = usePerpsToasts as jest.MockedFunction<
+    typeof usePerpsToasts
+  >;
+  const mockUsePerpsEventTracking =
+    usePerpsEventTracking as jest.MockedFunction<typeof usePerpsEventTracking>;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockCanGoBack.mockReturnValue(true);
+    mockDepositWithOrder.mockResolvedValue({ result: Promise.resolve('') });
+    mockUsePerpsTrading.mockReturnValue({
+      depositWithOrder: mockDepositWithOrder,
+    } as Partial<ReturnType<typeof usePerpsTrading>> as ReturnType<
+      typeof usePerpsTrading
+    >);
+    mockUsePerpsToasts.mockReturnValue({
+      showToast: mockShowToast,
+      PerpsToastOptions: {
+        accountManagement: {
+          deposit: { error: {} },
+          oneClickTrade: { txCreationFailed: {} },
+        },
+      },
+    } as unknown as ReturnType<typeof usePerpsToasts>);
+    mockUsePerpsEventTracking.mockReturnValue({
+      track: mockTrack,
+    });
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
       canGoBack: mockCanGoBack,
@@ -162,13 +210,41 @@ describe('usePerpsNavigation', () => {
       );
     });
 
-    it('navigates to order screen with direction and asset', () => {
+    it('navigates to order screen with direction and asset', async () => {
       const { result } = renderHook(() => usePerpsNavigation());
       const params = { direction: 'long' as const, asset: 'BTC' };
 
       result.current.navigateToOrder(params);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ORDER, params);
+      await waitFor(() => {
+        expect(mockDepositWithOrder).toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          {
+            ...params,
+            showPerpsHeader:
+              CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
+          },
+        );
+      });
+    });
+
+    it('does not navigate when depositWithOrder rejects (e.g. user cancellation)', async () => {
+      const rejectionError = new Error('User denied');
+      mockDepositWithOrder.mockRejectedValue(rejectionError);
+
+      const { result } = renderHook(() => usePerpsNavigation());
+      const params = { direction: 'short' as const, asset: 'ETH' };
+
+      result.current.navigateToOrder(params);
+
+      await waitFor(() => {
+        expect(mockDepositWithOrder).toHaveBeenCalled();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalledWith({});
+      expect(mockTrack).toHaveBeenCalled();
     });
 
     it('navigates to tutorial without params', () => {
