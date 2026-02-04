@@ -187,8 +187,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
   const isTokenTrustworthy = isTokenTrustworthyForPerps(token);
 
-  const isTokenDetailsV2ButtonsEnabled =
-    useSelector(selectTokenDetailsV2ButtonsEnabled) || true;
+  const isTokenDetailsV2ButtonsEnabled = useSelector(
+    selectTokenDetailsV2ButtonsEnabled,
+  );
 
   const { handlePerpsAction } = usePerpsActions({
     symbol: token.symbol,

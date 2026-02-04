@@ -122,9 +122,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
   }, []);
 
   const { isDepositEnabled } = useDepositEnabled();
-  const isBuyMenuAvailable = isDepositEnabled || true;
-
-  const isBuyingAvailable = isBuyMenuAvailable || !!onBuy;
+  const isBuyingAvailable = isDepositEnabled || !!onBuy;
 
   const handleBuyPress = useCallback(() => {
     withNavigationLock(() => {
