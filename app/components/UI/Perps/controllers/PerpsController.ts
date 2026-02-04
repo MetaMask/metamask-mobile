@@ -113,8 +113,10 @@ import type {
   RemoteFeatureFlagControllerStateChangeEvent,
   RemoteFeatureFlagControllerGetStateAction,
 } from '@metamask/remote-feature-flag-controller';
+import type { Json } from '@metamask/utils';
 import { wait } from '../utils/wait';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
+import type { AssetType } from '../../../Views/confirmations/types/token';
 
 // Re-export error codes from separate file to avoid circular dependencies
 export { PERPS_ERROR_CODES, type PerpsErrorCode } from './perpsErrorCodes';
@@ -278,6 +280,9 @@ export type PerpsControllerState = {
   // HIP-3 Configuration Version (incremented when HIP-3 remote flags change)
   // Used to trigger reconnection and cache invalidation in ConnectionManager
   hip3ConfigVersion: number;
+
+  // Selected payment token for Perps order/deposit flow (null = Perps balance). Stored as Json for controller state constraint.
+  selectedPaymentToken: Json | null;
 };
 
 /**
@@ -332,6 +337,7 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
     direction: MARKET_SORTING_CONFIG.DefaultDirection,
   },
   hip3ConfigVersion: 0,
+  selectedPaymentToken: null,
 });
 
 /**
@@ -482,6 +488,12 @@ const metadata: StateMetadata<PerpsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: false,
   },
+  selectedPaymentToken: {
+    includeInStateLogs: false,
+    persist: false,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
 };
 
 /**
@@ -498,133 +510,137 @@ export type PerpsControllerEvents = ControllerStateChangeEvent<
 export type PerpsControllerActions =
   | ControllerGetStateAction<'PerpsController', PerpsControllerState>
   | {
-    type: 'PerpsController:placeOrder';
-    handler: PerpsController['placeOrder'];
-  }
+      type: 'PerpsController:placeOrder';
+      handler: PerpsController['placeOrder'];
+    }
   | {
-    type: 'PerpsController:editOrder';
-    handler: PerpsController['editOrder'];
-  }
+      type: 'PerpsController:editOrder';
+      handler: PerpsController['editOrder'];
+    }
   | {
-    type: 'PerpsController:cancelOrder';
-    handler: PerpsController['cancelOrder'];
-  }
+      type: 'PerpsController:cancelOrder';
+      handler: PerpsController['cancelOrder'];
+    }
   | {
-    type: 'PerpsController:cancelOrders';
-    handler: PerpsController['cancelOrders'];
-  }
+      type: 'PerpsController:cancelOrders';
+      handler: PerpsController['cancelOrders'];
+    }
   | {
-    type: 'PerpsController:closePosition';
-    handler: PerpsController['closePosition'];
-  }
+      type: 'PerpsController:closePosition';
+      handler: PerpsController['closePosition'];
+    }
   | {
-    type: 'PerpsController:closePositions';
-    handler: PerpsController['closePositions'];
-  }
+      type: 'PerpsController:closePositions';
+      handler: PerpsController['closePositions'];
+    }
   | {
-    type: 'PerpsController:withdraw';
-    handler: PerpsController['withdraw'];
-  }
+      type: 'PerpsController:withdraw';
+      handler: PerpsController['withdraw'];
+    }
   | {
-    type: 'PerpsController:getPositions';
-    handler: PerpsController['getPositions'];
-  }
+      type: 'PerpsController:getPositions';
+      handler: PerpsController['getPositions'];
+    }
   | {
-    type: 'PerpsController:getOrderFills';
-    handler: PerpsController['getOrderFills'];
-  }
+      type: 'PerpsController:getOrderFills';
+      handler: PerpsController['getOrderFills'];
+    }
   | {
-    type: 'PerpsController:getOrders';
-    handler: PerpsController['getOrders'];
-  }
+      type: 'PerpsController:getOrders';
+      handler: PerpsController['getOrders'];
+    }
   | {
-    type: 'PerpsController:getOpenOrders';
-    handler: PerpsController['getOpenOrders'];
-  }
+      type: 'PerpsController:getOpenOrders';
+      handler: PerpsController['getOpenOrders'];
+    }
   | {
-    type: 'PerpsController:getFunding';
-    handler: PerpsController['getFunding'];
-  }
+      type: 'PerpsController:getFunding';
+      handler: PerpsController['getFunding'];
+    }
   | {
-    type: 'PerpsController:getAccountState';
-    handler: PerpsController['getAccountState'];
-  }
+      type: 'PerpsController:getAccountState';
+      handler: PerpsController['getAccountState'];
+    }
   | {
-    type: 'PerpsController:getMarkets';
-    handler: PerpsController['getMarkets'];
-  }
+      type: 'PerpsController:getMarkets';
+      handler: PerpsController['getMarkets'];
+    }
   | {
-    type: 'PerpsController:refreshEligibility';
-    handler: PerpsController['refreshEligibility'];
-  }
+      type: 'PerpsController:refreshEligibility';
+      handler: PerpsController['refreshEligibility'];
+    }
   | {
-    type: 'PerpsController:toggleTestnet';
-    handler: PerpsController['toggleTestnet'];
-  }
+      type: 'PerpsController:toggleTestnet';
+      handler: PerpsController['toggleTestnet'];
+    }
   | {
-    type: 'PerpsController:disconnect';
-    handler: PerpsController['disconnect'];
-  }
+      type: 'PerpsController:disconnect';
+      handler: PerpsController['disconnect'];
+    }
   | {
-    type: 'PerpsController:calculateFees';
-    handler: PerpsController['calculateFees'];
-  }
+      type: 'PerpsController:calculateFees';
+      handler: PerpsController['calculateFees'];
+    }
   | {
-    type: 'PerpsController:markTutorialCompleted';
-    handler: PerpsController['markTutorialCompleted'];
-  }
+      type: 'PerpsController:markTutorialCompleted';
+      handler: PerpsController['markTutorialCompleted'];
+    }
   | {
-    type: 'PerpsController:markFirstOrderCompleted';
-    handler: PerpsController['markFirstOrderCompleted'];
-  }
+      type: 'PerpsController:markFirstOrderCompleted';
+      handler: PerpsController['markFirstOrderCompleted'];
+    }
   | {
-    type: 'PerpsController:getHistoricalPortfolio';
-    handler: PerpsController['getHistoricalPortfolio'];
-  }
+      type: 'PerpsController:getHistoricalPortfolio';
+      handler: PerpsController['getHistoricalPortfolio'];
+    }
   | {
-    type: 'PerpsController:resetFirstTimeUserState';
-    handler: PerpsController['resetFirstTimeUserState'];
-  }
+      type: 'PerpsController:resetFirstTimeUserState';
+      handler: PerpsController['resetFirstTimeUserState'];
+    }
   | {
-    type: 'PerpsController:clearPendingTransactionRequests';
-    handler: PerpsController['clearPendingTransactionRequests'];
-  }
+      type: 'PerpsController:clearPendingTransactionRequests';
+      handler: PerpsController['clearPendingTransactionRequests'];
+    }
   | {
-    type: 'PerpsController:saveTradeConfiguration';
-    handler: PerpsController['saveTradeConfiguration'];
-  }
+      type: 'PerpsController:saveTradeConfiguration';
+      handler: PerpsController['saveTradeConfiguration'];
+    }
   | {
-    type: 'PerpsController:getTradeConfiguration';
-    handler: PerpsController['getTradeConfiguration'];
-  }
+      type: 'PerpsController:getTradeConfiguration';
+      handler: PerpsController['getTradeConfiguration'];
+    }
   | {
-    type: 'PerpsController:saveMarketFilterPreferences';
-    handler: PerpsController['saveMarketFilterPreferences'];
-  }
+      type: 'PerpsController:saveMarketFilterPreferences';
+      handler: PerpsController['saveMarketFilterPreferences'];
+    }
   | {
-    type: 'PerpsController:getMarketFilterPreferences';
-    handler: PerpsController['getMarketFilterPreferences'];
-  }
+      type: 'PerpsController:getMarketFilterPreferences';
+      handler: PerpsController['getMarketFilterPreferences'];
+    }
   | {
-    type: 'PerpsController:savePendingTradeConfiguration';
-    handler: PerpsController['savePendingTradeConfiguration'];
-  }
+      type: 'PerpsController:savePendingTradeConfiguration';
+      handler: PerpsController['savePendingTradeConfiguration'];
+    }
   | {
-    type: 'PerpsController:getPendingTradeConfiguration';
-    handler: PerpsController['getPendingTradeConfiguration'];
-  }
+      type: 'PerpsController:getPendingTradeConfiguration';
+      handler: PerpsController['getPendingTradeConfiguration'];
+    }
   | {
-    type: 'PerpsController:clearPendingTradeConfiguration';
-    handler: PerpsController['clearPendingTradeConfiguration'];
-  }
+      type: 'PerpsController:clearPendingTradeConfiguration';
+      handler: PerpsController['clearPendingTradeConfiguration'];
+    }
   | {
-    type: 'PerpsController:getOrderBookGrouping';
-    handler: PerpsController['getOrderBookGrouping'];
-  }
+      type: 'PerpsController:getOrderBookGrouping';
+      handler: PerpsController['getOrderBookGrouping'];
+    }
   | {
-    type: 'PerpsController:saveOrderBookGrouping';
-    handler: PerpsController['saveOrderBookGrouping'];
-  };
+      type: 'PerpsController:saveOrderBookGrouping';
+      handler: PerpsController['saveOrderBookGrouping'];
+    }
+  | {
+      type: 'PerpsController:setSelectedPaymentToken';
+      handler: PerpsController['setSelectedPaymentToken'];
+    };
 
 /**
  * External actions the PerpsController can call
@@ -1242,8 +1258,9 @@ export class PerpsController extends BaseController<
         method,
       },
       stateManager: {
-        update: (updater) => this.update(updater),
-        getState: () => this.state,
+        update: (updater: (state: PerpsControllerState) => void) =>
+          this.update(updater),
+        getState: (): PerpsControllerState => this.state,
       },
       ...additionalContext,
     };
@@ -2761,13 +2778,13 @@ export class PerpsController extends BaseController<
    */
   getPendingTradeConfiguration(symbol: string):
     | {
-      amount?: string;
-      leverage?: number;
-      takeProfitPrice?: string;
-      stopLossPrice?: string;
-      limitPrice?: string;
-      orderType?: OrderType;
-    }
+        amount?: string;
+        leverage?: number;
+        takeProfitPrice?: string;
+        stopLossPrice?: string;
+        limitPrice?: string;
+        orderType?: OrderType;
+      }
     | undefined {
     const network = this.state.isTestnet ? 'testnet' : 'mainnet';
     const config =
@@ -2891,6 +2908,23 @@ export class PerpsController extends BaseController<
 
     this.update((state) => {
       state.marketFilterPreferences = { optionId, direction };
+    });
+  }
+
+  /**
+   * Set the selected payment token for the Perps order/deposit flow.
+   * Pass null or a token with description 'perps-balance' to select Perps balance.
+   * Stored as Json to satisfy controller state constraint.
+   */
+  setSelectedPaymentToken(token: AssetType | null): void {
+    const normalized =
+      token?.description === 'perps-balance' ? null : (token ?? null);
+    const snapshot: Json | null =
+      normalized === null
+        ? null
+        : (JSON.parse(JSON.stringify(normalized)) as unknown as Json);
+    this.update((state) => {
+      state.selectedPaymentToken = snapshot;
     });
   }
 
