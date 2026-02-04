@@ -45,6 +45,7 @@ import StockBadge from '../../../shared/StockBadge';
 import { useAddPopularNetwork } from '../../../../hooks/useAddPopularNetwork';
 import TrendingFeedSessionManager from '../../services/TrendingFeedSessionManager';
 import type { TrendingFilterContext } from '../TrendingTokensList/TrendingTokensList';
+import { BridgeToken } from '../../../Bridge/types';
 
 /**
  * Extracts CAIP chain ID from asset ID
@@ -327,7 +328,7 @@ const TrendingTokenRowItem = ({
             token.aggregatedUsdVolume ?? 0,
           )}
         </Text>
-        {isStockToken(token) && (
+        {isStockToken(token as unknown as BridgeToken) && (
           <StockBadge style={styles.stockBadgeWrapper} token={token} />
         )}
       </View>

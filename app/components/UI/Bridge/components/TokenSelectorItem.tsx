@@ -269,7 +269,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             >
               {token.name}
             </Text>
-            {isStockToken(token) && <StockBadge token={token} />}
+            {isStockToken(token as BridgeToken) && <StockBadge token={token} />}
           </Box>
 
           {/* Token balance and fiat value */}

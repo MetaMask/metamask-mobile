@@ -41,15 +41,12 @@ export const useTokenSelection = (type: TokenSelectorType) => {
         token.address === otherToken.address &&
         token.chainId === otherToken.chainId;
 
-      if (isStockToken(token)) {
-        const isTradingOpen = await isTokenTradingOpen(token);
-        if (!isTradingOpen) {
-          // Show market closed bottom sheet
-          navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-            screen: Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL,
-          });
-          return;
-        }
+      if (isStockToken(token) && !isTokenTradingOpen(token)) {
+        // Show market closed bottom sheet
+        navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+          screen: Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL,
+        });
+        return;
       }
 
       if (isSelectingOtherToken && sourceToken && destToken) {
