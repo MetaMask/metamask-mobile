@@ -7,11 +7,8 @@ import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { strings } from '../../../../../../locales/i18n';
 import { selectInternalAccounts } from '../../../../../selectors/accountsController';
-import { useAddressTrustSignals } from '../useAddressTrustSignals';
-import {
-  TrustSignalDisplayState,
-  AddressTrustSignalRequest,
-} from '../../types/trustSignals';
+import { useAddressTrustSignal } from '../useAddressTrustSignals';
+import { TrustSignalDisplayState } from '../../types/trustSignals';
 
 export function useFirstTimeInteractionAlert(): Alert[] {
   const transactionMetadata =
@@ -30,34 +27,13 @@ export function useFirstTimeInteractionAlert(): Alert[] {
     );
   }, [internalAccounts, recipient]);
 
-  const addressesToScan = useMemo((): AddressTrustSignalRequest[] => {
-    if (!chainId || !recipient) {
-      return [];
-    }
-    return [
-      {
-        address: recipient,
-        chainId,
-      },
-    ];
-  }, [recipient, chainId]);
+  const trustSignalResult = useAddressTrustSignal(recipient ?? '', chainId);
 
-  const trustSignalResults = useAddressTrustSignals(addressesToScan);
+  const isVerifiedAddress =
+    trustSignalResult.state === TrustSignalDisplayState.Verified;
 
-  const isVerifiedAddress = useMemo(() => {
-    if (trustSignalResults.length === 0) {
-      return false;
-    }
-    const result = trustSignalResults[0];
-    return result.state === TrustSignalDisplayState.Verified;
-  }, [trustSignalResults]);
-
-  const isTrustSignalLoading = useMemo(() => {
-    if (trustSignalResults.length === 0) {
-      return false;
-    }
-    return trustSignalResults[0].state === TrustSignalDisplayState.Loading;
-  }, [trustSignalResults]);
+  const isTrustSignalLoading =
+    trustSignalResult.state === TrustSignalDisplayState.Loading;
 
   const isFirstTimeInteraction = transactionMetadata?.isFirstTimeInteraction;
 

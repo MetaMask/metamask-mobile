@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useAddressTrustSignals } from '../useAddressTrustSignals';
+import { useAddressTrustSignal } from '../useAddressTrustSignals';
 import { useFirstTimeInteractionAlert } from './useFirstTimeInteractionAlert';
 import { AlertKeys } from '../../constants/alerts';
 import { Severity } from '../../types/alerts';
@@ -16,14 +16,14 @@ jest.mock('../transactions/useTransactionMetadataRequest', () => ({
 }));
 
 jest.mock('../useAddressTrustSignals', () => ({
-  useAddressTrustSignals: jest.fn(),
+  useAddressTrustSignal: jest.fn(),
 }));
 
 describe('useFirstTimeInteractionAlert', () => {
   const mockUseSelector = useSelector as jest.Mock;
   const mockUseTransactionMetadataRequest =
     useTransactionMetadataRequest as jest.Mock;
-  const mockUseAddressTrustSignals = useAddressTrustSignals as jest.Mock;
+  const mockUseAddressTrustSignal = useAddressTrustSignal as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -33,7 +33,7 @@ describe('useFirstTimeInteractionAlert', () => {
       txParams: { to: '0xRecipient' },
       isFirstTimeInteraction: false,
     });
-    mockUseAddressTrustSignals.mockReturnValue([]);
+    mockUseAddressTrustSignal.mockReturnValue({});
   });
 
   it('returns empty array if no recipient', () => {
@@ -74,9 +74,9 @@ describe('useFirstTimeInteractionAlert', () => {
       txParams: { to: '0xRecipient' },
       isFirstTimeInteraction: true,
     });
-    mockUseAddressTrustSignals.mockReturnValue([
-      { state: TrustSignalDisplayState.Verified },
-    ]);
+    mockUseAddressTrustSignal.mockReturnValue({
+      state: TrustSignalDisplayState.Verified,
+    });
 
     const { result } = renderHook(() => useFirstTimeInteractionAlert());
     expect(result.current).toEqual([]);
@@ -88,9 +88,9 @@ describe('useFirstTimeInteractionAlert', () => {
       txParams: { to: '0xRecipient' },
       isFirstTimeInteraction: true,
     });
-    mockUseAddressTrustSignals.mockReturnValue([
-      { state: TrustSignalDisplayState.Loading },
-    ]);
+    mockUseAddressTrustSignal.mockReturnValue({
+      state: TrustSignalDisplayState.Loading,
+    });
 
     const { result } = renderHook(() => useFirstTimeInteractionAlert());
     expect(result.current).toEqual([]);
@@ -103,7 +103,7 @@ describe('useFirstTimeInteractionAlert', () => {
       isFirstTimeInteraction: true,
     });
     // Assuming 'Neutral' or undefined state triggers the alert (as long as not Verified/Loading)
-    mockUseAddressTrustSignals.mockReturnValue([{ state: 'SomeOtherState' }]);
+    mockUseAddressTrustSignal.mockReturnValue({ state: 'SomeOtherState' });
 
     const { result } = renderHook(() => useFirstTimeInteractionAlert());
 
@@ -114,16 +114,5 @@ describe('useFirstTimeInteractionAlert', () => {
       title: `1st interaction`,
       message: `You're interacting with this address for the first time. Make sure that it's correct before you continue.`,
     });
-  });
-
-  it('returns empty array when address is not in txParams.to ', () => {
-    mockUseTransactionMetadataRequest.mockReturnValue({
-      chainId: '0x1',
-      txParams: { to: undefined },
-      isFirstTimeInteraction: true,
-    });
-
-    const { result } = renderHook(() => useFirstTimeInteractionAlert());
-    expect(result.current).toEqual([]);
   });
 });
