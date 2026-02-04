@@ -121,6 +121,7 @@ describe('perps controller init', () => {
       initializationState: InitializationState.Uninitialized,
       initializationError: null,
       initializationAttempts: 0,
+      selectedPaymentToken: null,
     };
 
     initRequestMock.persistedState = {

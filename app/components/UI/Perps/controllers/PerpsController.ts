@@ -1237,6 +1237,14 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Returns current controller state as PerpsControllerState.
+   * Used by createServiceContext to avoid deep type instantiation when building stateManager.
+   */
+  private getControllerState(): PerpsControllerState {
+    return this.state as unknown as PerpsControllerState;
+  }
+
+  /**
    * Create a ServiceContext for dependency injection into services
    * Provides all orchestration dependencies (tracing, analytics, state management)
    *
@@ -1259,11 +1267,12 @@ export class PerpsController extends BaseController<
       },
       stateManager: {
         update: (updater: (state: PerpsControllerState) => void) =>
+          // @ts-expect-error TS2589 - excessively deep instantiation when inferring stateManager from BaseController
           this.update(updater),
-        getState: (): PerpsControllerState => this.state,
+        getState: (): PerpsControllerState => this.getControllerState(),
       },
       ...additionalContext,
-    };
+    } as ServiceContext;
   }
 
   /**
@@ -2913,12 +2922,14 @@ export class PerpsController extends BaseController<
 
   /**
    * Set the selected payment token for the Perps order/deposit flow.
-   * Pass null or a token with description 'perps-balance' to select Perps balance.
+   * Pass null or a token with description PERPS_CONSTANTS.PerpsBalanceTokenDescription to select Perps balance.
    * Stored as Json to satisfy controller state constraint.
    */
   setSelectedPaymentToken(token: AssetType | null): void {
     const normalized =
-      token?.description === 'perps-balance' ? null : (token ?? null);
+      token?.description === PERPS_CONSTANTS.PerpsBalanceTokenDescription
+        ? null
+        : (token ?? null);
     const snapshot: Json | null =
       normalized === null
         ? null

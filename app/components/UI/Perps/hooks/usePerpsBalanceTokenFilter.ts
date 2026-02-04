@@ -8,14 +8,13 @@ import { useTransactionMetadataRequest } from '../../../Views/confirmations/hook
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
 import {
-  USDC_TOKEN_ICON_URL
-} from '../constants/hyperLiquidConfig';
-import { selectPerpsAccountState } from '../selectors/perpsController';
-import {
   PERPS_BALANCE_CHAIN_ID,
   PERPS_BALANCE_PLACEHOLDER_ADDRESS,
-  useIsPerpsBalanceSelected,
-} from './useIsPerpsBalanceSelected';
+  PERPS_CONSTANTS,
+} from '../constants/perpsConfig';
+import { USDC_TOKEN_ICON_URL } from '../constants/hyperLiquidConfig';
+import { selectPerpsAccountState } from '../selectors/perpsController';
+import { useIsPerpsBalanceSelected } from './useIsPerpsBalanceSelected';
 
 /**
  * Returns a filter that prepends a synthetic "Perps balance" token to the list
@@ -66,12 +65,13 @@ export function usePerpsBalanceTokenFilter(): (
         isETH: false,
         isNative: false,
         isSelected: isPerpsBalanceSelected,
-        description: 'perps-balance'
+        description: PERPS_CONSTANTS.PerpsBalanceTokenDescription,
       };
 
       const mappedTokens = tokens.map((token) => ({
         ...token,
-        isSelected: token.isSelected && isPerpsBalanceSelected ? false : token.isSelected,
+        isSelected:
+          token.isSelected && isPerpsBalanceSelected ? false : token.isSelected,
       }));
 
       return [perpsBalanceToken, ...mappedTokens];

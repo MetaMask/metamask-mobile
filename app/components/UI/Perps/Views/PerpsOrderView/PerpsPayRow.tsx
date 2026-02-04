@@ -1,9 +1,6 @@
-import {
-  CHAIN_IDS,
-  TransactionType,
-} from '@metamask/transaction-controller';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Badge, {
@@ -27,10 +24,7 @@ import { getNetworkImageSource } from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
 import BaseTokenIcon from '../../../../Base/TokenIcon';
 import { Box } from '../../../../UI/Box/Box';
-import {
-  AlignItems,
-  FlexDirection,
-} from '../../../../UI/Box/box.types';
+import { AlignItems, FlexDirection } from '../../../../UI/Box/box.types';
 import {
   ConfirmationRowComponentIDs,
   TransactionPayComponentIDs,
@@ -39,12 +33,11 @@ import { useConfirmationMetricEvents } from '../../../../Views/confirmations/hoo
 import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { useTokenWithBalance } from '../../../../Views/confirmations/hooks/tokens/useTokenWithBalance';
 import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
-import { hasTransactionType } from '../../../../Views/confirmations/utils/transaction';
 import {
   PERPS_BALANCE_CHAIN_ID,
   PERPS_BALANCE_PLACEHOLDER_ADDRESS,
-  useIsPerpsBalanceSelected,
-} from '../../hooks/useIsPerpsBalanceSelected';
+} from '../../constants/perpsConfig';
+import { useIsPerpsBalanceSelected } from '../../hooks/useIsPerpsBalanceSelected';
 import { usePerpsLiveAccount } from '../../hooks/stream/usePerpsLiveAccount';
 import { Hex } from '@metamask/utils';
 
@@ -86,8 +79,6 @@ const createPayRowStyles = (colors: { background: { section: string } }) =>
     },
   });
 
-
-
 export interface PerpsPayRowProps {
   /** Optional callback when the info (i) icon is pressed, e.g. for tooltip */
   onPayWithInfoPress?: () => void;
@@ -124,26 +115,22 @@ export const PerpsPayRow = ({
       },
     });
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
-  }, [
-    canEdit,
-    navigation,
-    setConfirmationMetric,
-  ]);
+  }, [canEdit, navigation, setConfirmationMetric]);
 
   // Display data: use local state (defaults to Perps balance) so UI always shows "Perps balance" by default
   const displayToken = matchesPerpsBalance
     ? {
-      address: PERPS_BALANCE_PLACEHOLDER_ADDRESS,
-      tokenLookupChainId: PERPS_BALANCE_CHAIN_ID,
-      networkBadgeChainId: PERPS_BALANCE_CHAIN_ID,
-      symbol: strings('perps.adjust_margin.perps_balance'),
-    }
+        address: PERPS_BALANCE_PLACEHOLDER_ADDRESS,
+        tokenLookupChainId: PERPS_BALANCE_CHAIN_ID,
+        networkBadgeChainId: PERPS_BALANCE_CHAIN_ID,
+        symbol: strings('perps.adjust_margin.perps_balance'),
+      }
     : {
-      address: payToken?.address ?? PERPS_BALANCE_PLACEHOLDER_ADDRESS,
-      tokenLookupChainId: payToken?.chainId ?? CHAIN_IDS.MAINNET,
-      networkBadgeChainId: payToken?.chainId ?? CHAIN_IDS.MAINNET,
-      symbol: payToken?.symbol ?? '',
-    };
+        address: payToken?.address ?? PERPS_BALANCE_PLACEHOLDER_ADDRESS,
+        tokenLookupChainId: payToken?.chainId ?? CHAIN_IDS.MAINNET,
+        networkBadgeChainId: payToken?.chainId ?? CHAIN_IDS.MAINNET,
+        symbol: payToken?.symbol ?? '',
+      };
 
   const token = useTokenWithBalance(
     displayToken.address as unknown as Hex,

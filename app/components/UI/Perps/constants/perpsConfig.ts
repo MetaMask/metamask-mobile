@@ -1,4 +1,12 @@
+import type { Hex } from '@metamask/utils';
 import { TokenI } from '../../Tokens/types';
+
+/** Address used to represent "Perps balance" as the payment token (synthetic option). */
+export const PERPS_BALANCE_PLACEHOLDER_ADDRESS =
+  '0x0000000000000000000000000000000000000000' as Hex;
+
+/** Chain id used for the "Perps balance" payment option. */
+export { ARBITRUM_CHAIN_ID as PERPS_BALANCE_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 
 /**
  * Perps feature constants
@@ -6,6 +14,8 @@ import { TokenI } from '../../Tokens/types';
 export const PERPS_CONSTANTS = {
   FeatureFlagKey: 'perpsEnabled',
   FeatureName: 'perps', // Constant for Sentry error filtering - enables "feature:perps" dashboard queries
+  /** Token description used to identify the synthetic "Perps balance" option in pay-with token lists */
+  PerpsBalanceTokenDescription: 'perps-balance',
   WebsocketTimeout: 5000, // 5 seconds
   WebsocketCleanupDelay: 1000, // 1 second
   BackgroundDisconnectDelay: 20_000, // 20 seconds delay before disconnecting when app is backgrounded or when user exits perps UX

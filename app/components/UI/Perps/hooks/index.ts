@@ -44,10 +44,10 @@ export { useWithdrawValidation } from './useWithdrawValidation';
 // Payment tokens hook
 export { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
 export {
-  useIsPerpsBalanceSelected,
   PERPS_BALANCE_CHAIN_ID,
   PERPS_BALANCE_PLACEHOLDER_ADDRESS,
-} from './useIsPerpsBalanceSelected';
+} from '../constants/perpsConfig';
+export { useIsPerpsBalanceSelected } from './useIsPerpsBalanceSelected';
 
 // Margin adjustment hook
 export { usePerpsAdjustMarginData } from './usePerpsAdjustMarginData';
