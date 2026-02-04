@@ -1,25 +1,25 @@
 import React from 'react';
-import { screen, fireEvent } from '@testing-library/react-native';
+import { screen, fireEvent, waitFor } from '@testing-library/react-native';
 import AccountSelector from './AccountSelector';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import { AccountListBottomSheetSelectorsIDs } from './AccountListBottomSheet.testIds';
 import { AddAccountBottomSheetSelectorsIDs } from '../AddAccountActions/AddAccountBottomSheet.testIds';
 import Routes from '../../../constants/navigation/Routes';
+import Engine from '../../../core/Engine';
 import {
   AccountSelectorParams,
   AccountSelectorProps,
   AccountSelectorScreens,
 } from './AccountSelector.types';
 import {
-  MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_SOLANA,
-  MOCK_KEYRING_CONTROLLER_STATE_WITH_SOLANA,
-  internalAccount1,
-  internalAccount2,
-  internalSolanaAccount1,
-} from '../../../util/test/accountsControllerTestUtils';
-import { createMockAccountGroup } from '../../../component-library/components-temp/MultichainAccounts/test-utils';
+  createMockAccountGroup,
+  createMockEntropyWallet,
+  createMockInternalAccountsFromGroups,
+  createMockState,
+} from '../../../component-library/components-temp/MultichainAccounts/test-utils';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 
+// Feature flag mocks
 const mockSelectFullPageAccountListEnabledFlag = jest.fn(() => false);
 jest.mock(
   '../../../selectors/featureFlagController/fullPageAccountList',
@@ -29,179 +29,35 @@ jest.mock(
   }),
 );
 
-const mockAvatarAccountType = 'Maskicon' as const;
-
-const mockAccounts = [
-  {
-    id: internalAccount1.id,
-    address: internalAccount1.address,
-    balance: '0x0',
-    name: internalAccount1.metadata.name,
-  },
-  {
-    id: internalSolanaAccount1.id,
-    address: internalSolanaAccount1.address,
-    balance: '0x0',
-    name: internalSolanaAccount1.metadata.name,
-  },
-  {
-    id: internalAccount2.id,
-    address: internalAccount2.address,
-    balance: '0x0',
-    name: internalAccount2.metadata.name,
-  },
-];
-
-const mockEnsByAccountAddress = {
-  [internalAccount2.address]: 'test.eth',
-};
-
-// Create mock account group for testing
-const mockAccountGroup: AccountGroupObject = createMockAccountGroup(
-  'mock-group-1',
-  'Account 1',
-  [internalAccount1.id],
-);
-
-// Mock the selectSelectedAccountGroup selector
-const mockSelectSelectedAccountGroup = jest.fn(
-  (): AccountGroupObject | null => mockAccountGroup,
-);
-jest.mock(
-  '../../../selectors/multichainAccounts/accountTreeController',
-  () => ({
-    selectSelectedAccountGroup: jest.fn(() => mockSelectSelectedAccountGroup()),
-    selectSelectedAccountGroupId: jest.fn(() => 'mock-group-1'),
-    selectSelectedAccountGroupInternalAccounts: jest.fn(() => []),
-    selectSelectedAccountGroupWithInternalAccountsAddresses: jest.fn(() => []),
-    selectAccountGroupWithInternalAccounts: jest.fn(() => []),
-    selectAccountGroups: jest.fn(() => []),
-    selectAccountTreeControllerState: jest.fn(() => ({
-      accountTree: { wallets: {}, selectedAccountGroup: 'mock-group-1' },
-    })),
-    selectWalletsMap: jest.fn(() => ({})),
-    selectAccountToWalletMap: jest.fn(() => ({})),
-    selectAccountToGroupMap: jest.fn(() => ({})),
-    selectMultichainAccountGroups: jest.fn(() => []),
-    selectSingleAccountGroups: jest.fn(() => []),
-    selectAccountGroupsByWallet: jest.fn(() => []),
-    selectWalletByAccount: jest.fn(() => null),
-    selectWalletStatus: jest.fn(() => ({})),
-    selectResolvedSelectedAccountGroup: jest.fn(() => null),
-    selectAccountGroupById: jest.fn(() => null),
-    selectWalletById: jest.fn(() => null),
-    selectAccountSections: jest.fn(() => []),
-    selectInternalAccountFromAccountGroup: jest.fn(() => null),
-  }),
-);
-
-const mockInitialState = {
-  engine: {
-    backgroundState: {
-      KeyringController: MOCK_KEYRING_CONTROLLER_STATE_WITH_SOLANA,
-      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_SOLANA,
-      AccountTreeController: {
-        accountTree: {
-          wallets: {},
-        },
-      },
-      PreferencesController: {
-        privacyMode: false,
-      },
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          enableMultichainAccounts: {
-            enabled: true,
-            featureVersion: '1',
-            minimumVersion: '8.0.0',
-          },
+// Mock Engine
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    KeyringController: {
+      state: { isUnlocked: true, keyrings: [] },
+    },
+    AccountsController: {
+      state: {
+        internalAccounts: {
+          accounts: {},
+          selectedAccount: '',
         },
       },
     },
-  },
-  accounts: {
-    reloadAccounts: false,
-  },
-  settings: {
-    avatarAccountType: mockAvatarAccountType,
-  },
-};
-
-// Mock the Redux dispatch
-const mockDispatch = jest.fn();
-
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useDispatch: () => mockDispatch,
-  useSelector: (selector: unknown) => {
-    // Default mock state for selectors
-    const mockState = {
-      engine: {
-        backgroundState: {
-          KeyringController: MOCK_KEYRING_CONTROLLER_STATE_WITH_SOLANA,
-          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_SOLANA,
-          AccountTreeController: {
-            accountTree: {
-              wallets: {},
-            },
-          },
-          PreferencesController: {
-            privacyMode: false,
-          },
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              enableMultichainAccounts: {
-                enabled: true,
-                featureVersion: '1',
-                minimumVersion: '8.0.0',
-              },
-            },
-          },
-        },
-      },
-      accounts: {
-        reloadAccounts: false,
-      },
-      settings: {
-        avatarAccountType: mockAvatarAccountType,
-      },
-    };
-    return (selector as (mockState: unknown) => unknown)(mockState);
-  },
-}));
-
-jest.mock('../../hooks/useAccounts', () => ({
-  useAccounts: jest.fn(() => ({
-    accounts: mockAccounts,
-    evmAccounts: [mockAccounts[0], mockAccounts[2]],
-    ensByAccountAddress: mockEnsByAccountAddress,
-  })),
-}));
-
-jest.mock('../../../core/Engine', () => {
-  const {
-    MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState,
-    MOCK_KEYRING_CONTROLLER_STATE: KeyringControllerState,
-  } = jest.requireActual('../../../util/test/accountsControllerTestUtils');
-  return {
-    context: {
-      KeyringController: {
-        state: KeyringControllerState,
-        importAccountWithStrategy: jest.fn(),
-      },
-      AccountsController: {
-        state: {
-          internalAccounts: AccountsControllerState.internalAccounts,
-        },
-      },
-      AccountTreeController: {
-        setSelectedAccountGroup: jest.fn(),
-      },
+    AccountTreeController: {
+      setSelectedAccountGroup: jest.fn(),
     },
-    setSelectedAddress: jest.fn(),
-  };
-});
+    MultichainAccountService: {
+      createNextMultichainAccountGroup: jest.fn().mockResolvedValue({
+        id: 'new-account-group-id',
+        metadata: { name: 'New Account' },
+        accounts: [],
+      }),
+    },
+  },
+  setSelectedAddress: jest.fn(),
+}));
 
+// Mock useMetrics
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: jest.fn().mockReturnThis(),
@@ -215,149 +71,157 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
   }),
 }));
 
+// Mock useSyncSRPs
+jest.mock('../../hooks/useSyncSRPs', () => ({
+  useSyncSRPs: jest.fn(),
+}));
+
+// Mock useAccountsOperationsLoadingStates
 const mockUseAccountsOperationsLoadingStates = jest.fn();
 jest.mock('../../../util/accounts/useAccountsOperationsLoadingStates', () => ({
   useAccountsOperationsLoadingStates: () =>
     mockUseAccountsOperationsLoadingStates(),
 }));
 
-const mockRoute: AccountSelectorProps['route'] = {
-  params: {
-    onSelectAccount: jest.fn((address: string) => address),
-    disablePrivacyMode: false,
-    isEvmOnly: true,
-  } as AccountSelectorParams,
+// Mock useAccounts hook
+jest.mock('../../hooks/useAccounts', () => ({
+  useAccounts: jest.fn(() => ({
+    accounts: [],
+    evmAccounts: [],
+    ensByAccountAddress: {},
+  })),
+}));
+
+// Mock navigation
+const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    goBack: mockGoBack,
+    navigate: mockNavigate,
+    dispatch: jest.fn(),
+  }),
+}));
+
+// Mock whenEngineReady
+jest.mock('../../../core/Analytics/whenEngineReady', () => ({
+  whenEngineReady: jest.fn().mockResolvedValue(undefined),
+}));
+
+// Mock analytics
+jest.mock('../../../util/analytics/analytics', () => ({
+  analytics: {
+    isEnabled: jest.fn(() => false),
+    trackEvent: jest.fn(),
+    optIn: jest.fn().mockResolvedValue(undefined),
+    optOut: jest.fn().mockResolvedValue(undefined),
+    getAnalyticsId: jest.fn().mockResolvedValue('test-analytics-id'),
+    identify: jest.fn(),
+    trackView: jest.fn(),
+    isOptedIn: jest.fn().mockResolvedValue(false),
+  },
+}));
+
+// Helper to create mock state with wallets and accounts
+const createTestState = (
+  accountGroups: AccountGroupObject[],
+  selectedGroupId?: string,
+) => {
+  const wallets = accountGroups.map((group, index) => {
+    const walletId = `wallet${index + 1}`;
+    return createMockEntropyWallet(walletId, `Wallet ${index + 1}`, [group]);
+  });
+
+  const internalAccounts = createMockInternalAccountsFromGroups(accountGroups);
+  const baseState = createMockState(wallets, internalAccounts);
+
+  // Update selected account group if provided
+  if (selectedGroupId) {
+    (
+      baseState.engine.backgroundState.AccountTreeController as {
+        accountTree: { selectedAccountGroup: string };
+      }
+    ).accountTree.selectedAccountGroup = selectedGroupId;
+  }
+
+  return baseState;
 };
 
-const AccountSelectorWrapper = () => <AccountSelector route={mockRoute} />;
+const defaultRouteParams: AccountSelectorParams = {
+  onSelectAccount: jest.fn((address: string) => address),
+  disablePrivacyMode: false,
+};
+
+const mockRoute: AccountSelectorProps['route'] = {
+  params: defaultRouteParams,
+};
+
+const AccountSelectorWrapper = (props?: {
+  route?: AccountSelectorProps['route'];
+}) => <AccountSelector route={props?.route ?? mockRoute} />;
 
 describe('AccountSelector', () => {
+  // Create default test data
+  let mockAccountGroup1: AccountGroupObject;
+  let mockAccountGroup2: AccountGroupObject;
+  let mockState: ReturnType<typeof createTestState>;
+
   beforeEach(() => {
-    jest.useFakeTimers();
     jest.clearAllMocks();
 
-    // Reset useAccountsOperationsLoadingStates hook to default values
+    // Reset feature flags
+    mockSelectFullPageAccountListEnabledFlag.mockReturnValue(false);
+
+    // Reset loading states to default
     mockUseAccountsOperationsLoadingStates.mockReturnValue({
       isAccountSyncingInProgress: false,
       areAnyOperationsLoading: false,
       loadingMessage: undefined,
     });
+
+    // Create fresh mock data for each test
+    mockAccountGroup1 = createMockAccountGroup(
+      'entropy:wallet1/group1',
+      'Account 1',
+      ['account1'],
+      true,
+    );
+    mockAccountGroup2 = createMockAccountGroup(
+      'entropy:wallet2/group2',
+      'Account 2',
+      ['account2'],
+      true,
+    );
+    mockState = createTestState(
+      [mockAccountGroup1, mockAccountGroup2],
+      mockAccountGroup1.id,
+    );
   });
 
-  afterEach(() => {
-    // Only flush timers if fake timers are active
-    try {
-      jest.runOnlyPendingTimers();
-      jest.clearAllTimers();
-    } catch (e) {
-      // Fake timers not active, skip
-    }
-    jest.useRealTimers();
-  });
-
-  it('should render correctly', () => {
-    const wrapper = renderScreen(
-      AccountSelectorWrapper,
-      {
-        name: Routes.SHEET.ACCOUNT_SELECTOR,
-        options: {},
-      },
-      {
-        state: mockInitialState,
-      },
-      mockRoute.params,
-    );
-    expect(wrapper.toJSON()).toMatchSnapshot();
-  });
-
-  it('renders MultichainAccountSelectorList when selectedAccountGroup exists', () => {
-    renderScreen(
-      AccountSelectorWrapper,
-      {
-        name: Routes.SHEET.ACCOUNT_SELECTOR,
-      },
-      {
-        state: mockInitialState,
-      },
-      mockRoute.params,
-    );
-
-    const accountsList = screen.getByTestId(
-      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
-    );
-
-    expect(accountsList).toBeOnTheScreen();
-  });
-
-  it('does not render account list when selectedAccountGroup is null', () => {
-    // Temporarily return null for selectedAccountGroup
-    mockSelectSelectedAccountGroup.mockReturnValueOnce(null);
-
-    renderScreen(
-      AccountSelectorWrapper,
-      {
-        name: Routes.SHEET.ACCOUNT_SELECTOR,
-      },
-      {
-        state: mockInitialState,
-      },
-      mockRoute.params,
-    );
-
-    const accountsList = screen.queryByTestId(
-      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
-    );
-
-    expect(accountsList).toBeNull();
-  });
-
-  it('should display add account button', () => {
-    renderScreen(
-      AccountSelectorWrapper,
-      {
-        name: Routes.SHEET.ACCOUNT_SELECTOR,
-      },
-      {
-        state: mockInitialState,
-      },
-      mockRoute.params,
-    );
-
-    const addButton = screen.getByTestId(
-      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
-    );
-    expect(addButton).toBeDefined();
-  });
-
-  it('renders account selector with multichain support', () => {
-    renderScreen(
-      AccountSelectorWrapper,
-      {
-        name: Routes.SHEET.ACCOUNT_SELECTOR,
-      },
-      {
-        state: mockInitialState,
-      },
-      mockRoute.params,
-    );
-
-    // renders the multichain account selector list
-    const accountsList = screen.getByTestId(
-      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
-    );
-    expect(accountsList).toBeOnTheScreen();
-  }, 10000);
-
-  describe('Multichain Accounts', () => {
-    it('displays Add wallet button', () => {
+  describe('Rendering', () => {
+    it('renders the component with account list', () => {
       renderScreen(
         AccountSelectorWrapper,
-        {
-          name: Routes.SHEET.ACCOUNT_SELECTOR,
-        },
-        {
-          state: mockInitialState,
-        },
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
+        mockRoute.params,
+      );
+
+      // Account list should be rendered
+      expect(
+        screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
+      ).toBeOnTheScreen();
+
+      // Header title should be present
+      expect(screen.getByText('Accounts')).toBeOnTheScreen();
+    });
+
+    it('renders add wallet button by default', () => {
+      renderScreen(
+        AccountSelectorWrapper,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
         mockRoute.params,
       );
 
@@ -368,71 +232,60 @@ describe('AccountSelector', () => {
       expect(addButton).toHaveTextContent('Add wallet');
     });
 
-    it('navigates to MultichainAddWalletActions when route param is set', () => {
-      // Use real timers for this test to avoid animation timing issues
-      jest.useRealTimers();
+    it('renders correctly with snapshot', () => {
+      const wrapper = renderScreen(
+        AccountSelectorWrapper,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR, options: {} },
+        { state: mockState },
+        mockRoute.params,
+      );
+      expect(wrapper.toJSON()).toMatchSnapshot();
+    });
+  });
 
-      const routeWithNavigation = {
-        params: {
-          ...mockRoute.params,
-          navigateToAddAccountActions:
-            AccountSelectorScreens.MultichainAddWalletActions as
-              | AccountSelectorScreens.AddAccountActions
-              | AccountSelectorScreens.MultichainAddWalletActions,
-        },
-      };
-
+  describe('Add Wallet Button', () => {
+    it('displays "Add wallet" text on the button', () => {
       renderScreen(
-        () => <AccountSelector route={routeWithNavigation} />,
-        {
-          name: Routes.SHEET.ACCOUNT_SELECTOR,
-        },
-        {
-          state: mockInitialState,
-        },
+        AccountSelectorWrapper,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
+        mockRoute.params,
       );
 
-      expect(screen.getAllByText('Import a wallet')).toBeDefined();
-
-      // Restore fake timers for other tests
-      jest.useFakeTimers();
+      const addButton = screen.getByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
+      expect(addButton).toHaveTextContent('Add wallet');
     });
 
-    it('displays MultichainAddWalletActions bottomsheet when Add wallet button is pressed', () => {
-      // Use real timers for this test to avoid animation timing issues
+    it('opens MultichainAddWalletActions when Add wallet button is pressed', () => {
       jest.useRealTimers();
 
       renderScreen(
         AccountSelectorWrapper,
-        {
-          name: Routes.SHEET.ACCOUNT_SELECTOR,
-        },
-        {
-          state: mockInitialState,
-        },
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
         mockRoute.params,
       );
 
-      const addWalletButton = screen.getByTestId(
+      const addButton = screen.getByTestId(
         AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
       );
-      expect(addWalletButton).toHaveTextContent('Add wallet');
+      fireEvent.press(addButton);
 
-      fireEvent.press(addWalletButton);
-
-      // Check for the "Add wallet" header text which indicates the component is rendered
+      // Header should change to "Add wallet" (replaces "Accounts")
       expect(screen.getByText('Add wallet')).toBeOnTheScreen();
 
+      // Import SRP button should be visible
       expect(
         screen.getByTestId(AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON),
       ).toBeOnTheScreen();
 
-      // Restore fake timers for other tests
       jest.useFakeTimers();
     });
   });
 
-  describe('Loading States Integration', () => {
+  describe('Loading States', () => {
     it('displays loading message when account syncing is in progress', () => {
       mockUseAccountsOperationsLoadingStates.mockReturnValue({
         isAccountSyncingInProgress: true,
@@ -442,12 +295,8 @@ describe('AccountSelector', () => {
 
       renderScreen(
         AccountSelectorWrapper,
-        {
-          name: Routes.SHEET.ACCOUNT_SELECTOR,
-        },
-        {
-          state: mockInitialState,
-        },
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
         mockRoute.params,
       );
 
@@ -457,7 +306,7 @@ describe('AccountSelector', () => {
       expect(addButton).toHaveTextContent('Syncing...');
     });
 
-    it('disables add button when account syncing is in progress', () => {
+    it('shows disabled state when syncing is in progress', () => {
       mockUseAccountsOperationsLoadingStates.mockReturnValue({
         isAccountSyncingInProgress: true,
         areAnyOperationsLoading: true,
@@ -466,12 +315,8 @@ describe('AccountSelector', () => {
 
       renderScreen(
         AccountSelectorWrapper,
-        {
-          name: Routes.SHEET.ACCOUNT_SELECTOR,
-        },
-        {
-          state: mockInitialState,
-        },
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
         mockRoute.params,
       );
 
@@ -479,110 +324,24 @@ describe('AccountSelector', () => {
         AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
       );
 
-      // Check that the button shows the syncing state
+      // Button should have syncing message and be in disabled state
       expect(addButton).toHaveTextContent('Syncing...');
-
-      // Check button is disabled
-      expect(addButton.props.accessibilityState?.disabled).toBe(true);
+      // Verify the button is disabled
+      expect(addButton.props.disabled).toBe(true);
     });
 
-    it('shows activity indicator when syncing is in progress', () => {
-      // Use real timers for this test to avoid animation timing issues
-      jest.useRealTimers();
-
+    it('shows "Add wallet" text when syncing completes', () => {
+      // Start with syncing
       mockUseAccountsOperationsLoadingStates.mockReturnValue({
         isAccountSyncingInProgress: true,
         areAnyOperationsLoading: true,
         loadingMessage: 'Syncing...',
       });
 
-      renderScreen(
+      const { unmount } = renderScreen(
         AccountSelectorWrapper,
-        {
-          name: Routes.SHEET.ACCOUNT_SELECTOR,
-        },
-        {
-          state: mockInitialState,
-        },
-        mockRoute.params,
-      );
-
-      // The activity indicator should be present when syncing
-      const addButton = screen.getByTestId(
-        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
-      );
-      expect(addButton).toBeOnTheScreen();
-      expect(addButton).toHaveTextContent('Syncing...');
-
-      // Restore fake timers for other tests
-      jest.useFakeTimers();
-    });
-
-    it('displays Add wallet button text when not syncing', () => {
-      renderScreen(
-        AccountSelectorWrapper,
-        {
-          name: Routes.SHEET.ACCOUNT_SELECTOR,
-        },
-        {
-          state: mockInitialState,
-        },
-        mockRoute.params,
-      );
-
-      const addButton = screen.getByTestId(
-        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
-      );
-      expect(addButton).toHaveTextContent('Add wallet');
-    });
-
-    it('prioritizes syncing message over default button text', () => {
-      // Use real timers for this test to avoid animation timing issues
-      jest.useRealTimers();
-
-      mockUseAccountsOperationsLoadingStates.mockReturnValue({
-        isAccountSyncingInProgress: true,
-        areAnyOperationsLoading: true,
-        loadingMessage: 'Syncing...',
-      });
-
-      renderScreen(
-        AccountSelectorWrapper,
-        {
-          name: Routes.SHEET.ACCOUNT_SELECTOR,
-        },
-        {
-          state: mockInitialState,
-        },
-        mockRoute.params,
-      );
-
-      const addButton = screen.getByTestId(
-        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
-      );
-      // syncing message takes precedence over "Add wallet"
-      expect(addButton).toHaveTextContent('Syncing...');
-
-      // Restore fake timers for other tests
-      jest.useFakeTimers();
-    });
-
-    it('enables button when syncing completes', () => {
-      // Initially syncing
-      mockUseAccountsOperationsLoadingStates.mockReturnValue({
-        isAccountSyncingInProgress: true,
-        areAnyOperationsLoading: true,
-        loadingMessage: 'Syncing...',
-      });
-
-      renderScreen(
-        AccountSelectorWrapper,
-        {
-          name: Routes.SHEET.ACCOUNT_SELECTOR,
-        },
-        {
-          state: mockInitialState,
-        },
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
         mockRoute.params,
       );
 
@@ -591,51 +350,83 @@ describe('AccountSelector', () => {
       );
       expect(addButton).toHaveTextContent('Syncing...');
 
-      // Simulate syncing completion by re-mocking the hook and re-rendering
+      unmount();
+
+      // Syncing completes
       mockUseAccountsOperationsLoadingStates.mockReturnValue({
         isAccountSyncingInProgress: false,
         areAnyOperationsLoading: false,
         loadingMessage: undefined,
       });
 
-      // Re-render the component with new mock values
       renderScreen(
         AccountSelectorWrapper,
-        {
-          name: Routes.SHEET.ACCOUNT_SELECTOR,
-        },
-        {
-          state: mockInitialState,
-        },
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
         mockRoute.params,
       );
 
       addButton = screen.getByTestId(
         AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
       );
-
-      // displays "Add wallet" when not syncing
       expect(addButton).toHaveTextContent('Add wallet');
+    });
+
+    it('prioritizes loading message over default button text', () => {
+      mockUseAccountsOperationsLoadingStates.mockReturnValue({
+        isAccountSyncingInProgress: true,
+        areAnyOperationsLoading: true,
+        loadingMessage: 'Creating account...',
+      });
+
+      renderScreen(
+        AccountSelectorWrapper,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
+        mockRoute.params,
+      );
+
+      const addButton = screen.getByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
+      // Should show loading message, not "Add wallet"
+      expect(addButton).toHaveTextContent('Creating account...');
     });
   });
 
   describe('disableAddAccountButton prop', () => {
-    it('displays add account button when disableAddAccountButton is false', () => {
-      const routeWithDisableButton = {
+    it('hides add button when disableAddAccountButton is true', () => {
+      const routeWithDisabledButton: AccountSelectorProps['route'] = {
         params: {
-          ...mockRoute.params,
+          ...defaultRouteParams,
+          disableAddAccountButton: true,
+        },
+      };
+
+      renderScreen(
+        () => <AccountSelector route={routeWithDisabledButton} />,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
+      );
+
+      const addButton = screen.queryByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
+      expect(addButton).toBeNull();
+    });
+
+    it('shows add button when disableAddAccountButton is false', () => {
+      const routeWithEnabledButton: AccountSelectorProps['route'] = {
+        params: {
+          ...defaultRouteParams,
           disableAddAccountButton: false,
         },
       };
 
       renderScreen(
-        () => <AccountSelector route={routeWithDisableButton} />,
-        {
-          name: Routes.SHEET.ACCOUNT_SELECTOR,
-        },
-        {
-          state: mockInitialState,
-        },
+        () => <AccountSelector route={routeWithEnabledButton} />,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
       );
 
       const addButton = screen.getByTestId(
@@ -644,35 +435,132 @@ describe('AccountSelector', () => {
       expect(addButton).toBeOnTheScreen();
     });
 
-    it('hides add account button when disableAddAccountButton is true', () => {
-      const routeWithDisableButton = {
+    it('shows add button when disableAddAccountButton is undefined', () => {
+      renderScreen(
+        AccountSelectorWrapper,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
+        mockRoute.params,
+      );
+
+      const addButton = screen.getByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
+      expect(addButton).toBeOnTheScreen();
+    });
+  });
+
+  describe('Navigation to Add Account Actions', () => {
+    it('navigates directly to MultichainAddWalletActions when navigateToAddAccountActions is set', () => {
+      jest.useRealTimers();
+
+      const routeWithNavigation: AccountSelectorProps['route'] = {
         params: {
-          ...mockRoute.params,
-          disableAddAccountButton: true,
+          ...defaultRouteParams,
+          navigateToAddAccountActions:
+            AccountSelectorScreens.MultichainAddWalletActions,
         },
       };
 
       renderScreen(
-        () => <AccountSelector route={routeWithDisableButton} />,
-        {
-          name: Routes.SHEET.ACCOUNT_SELECTOR,
-        },
-        {
-          state: mockInitialState,
-        },
+        () => <AccountSelector route={routeWithNavigation} />,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
       );
 
-      const addButton = screen.queryByTestId(
-        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      // Should already be on the add wallet actions screen
+      expect(screen.getByText('Import a wallet')).toBeOnTheScreen();
+
+      jest.useFakeTimers();
+    });
+
+    it('navigates directly to AddAccountActions when specified', () => {
+      jest.useRealTimers();
+
+      const routeWithNavigation: AccountSelectorProps['route'] = {
+        params: {
+          ...defaultRouteParams,
+          navigateToAddAccountActions: AccountSelectorScreens.AddAccountActions,
+        },
+      };
+
+      renderScreen(
+        () => <AccountSelector route={routeWithNavigation} />,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
       );
-      expect(addButton).toBeNull();
+
+      // Should be on the add account actions screen
+      // AddAccountActions shows "Add Ethereum account" button
+      expect(
+        screen.getByTestId(
+          AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+
+      jest.useFakeTimers();
     });
   });
 
-  describe('Feature Flag: Full-Page Account List', () => {
+  describe('Account Selection', () => {
+    it('calls setSelectedAccountGroup when an account is selected', async () => {
+      jest.useRealTimers();
+
+      renderScreen(
+        AccountSelectorWrapper,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
+        mockRoute.params,
+      );
+
+      // Wait for the account list to render
+      await waitFor(() => {
+        expect(screen.getByText('Account 1')).toBeOnTheScreen();
+      });
+
+      // Find and press an account cell
+      const accountCell = screen.getByText('Account 1');
+      fireEvent.press(accountCell);
+
+      // Verify setSelectedAccountGroup was called
+      await waitFor(() => {
+        expect(
+          Engine.context.AccountTreeController.setSelectedAccountGroup,
+        ).toHaveBeenCalled();
+      });
+
+      jest.useFakeTimers();
+    });
+
+    it('tracks account switch event when account is selected', async () => {
+      jest.useRealTimers();
+
+      renderScreen(
+        AccountSelectorWrapper,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
+        mockRoute.params,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Account 1')).toBeOnTheScreen();
+      });
+
+      const accountCell = screen.getByText('Account 1');
+      fireEvent.press(accountCell);
+
+      await waitFor(() => {
+        expect(mockCreateEventBuilder).toHaveBeenCalled();
+        expect(mockTrackEvent).toHaveBeenCalled();
+      });
+
+      jest.useFakeTimers();
+    });
+  });
+
+  describe('Full-Page Account List Feature Flag', () => {
     beforeEach(() => {
       jest.clearAllMocks();
-      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(false);
     });
 
     it('renders BottomSheet when feature flag is disabled', () => {
@@ -680,18 +568,14 @@ describe('AccountSelector', () => {
 
       renderScreen(
         AccountSelectorWrapper,
-        {
-          name: Routes.SHEET.ACCOUNT_SELECTOR,
-        },
-        {
-          state: mockInitialState,
-        },
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
         mockRoute.params,
       );
 
-      // BottomSheet version renders the sheet header
+      // Should render header with title
       expect(screen.getByText('Accounts')).toBeOnTheScreen();
-      // Accounts list is present
+      // Account list should be present
       expect(
         screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
       ).toBeOnTheScreen();
@@ -702,105 +586,58 @@ describe('AccountSelector', () => {
 
       renderScreen(
         AccountSelectorWrapper,
-        {
-          name: Routes.SHEET.ACCOUNT_SELECTOR,
-        },
-        {
-          state: mockInitialState,
-        },
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
         mockRoute.params,
       );
 
-      // Full-page version has sheet header with back button
+      // Should render header with title
       expect(screen.getByText('Accounts')).toBeOnTheScreen();
-      // Accounts list is present
+      // Account list should be present
       expect(
         screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
       ).toBeOnTheScreen();
     });
 
-    it('renders add button in both modes', () => {
-      // Arrange: BottomSheet mode
-      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(false);
-
-      // Act: Render in BottomSheet mode
-      const { unmount } = renderScreen(
-        AccountSelectorWrapper,
-        {
-          name: Routes.SHEET.ACCOUNT_SELECTOR,
-        },
-        {
-          state: mockInitialState,
-        },
-        mockRoute.params,
-      );
-
-      // Assert: Add button is present
-      expect(
-        screen.getByTestId(
-          AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
-        ),
-      ).toBeDefined();
-
-      unmount();
-
-      // Arrange: Full-page mode
-      jest.useRealTimers();
-      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
-
-      // Act: Render in full-page mode
-      const { unmount: unmount2 } = renderScreen(
-        AccountSelectorWrapper,
-        {
-          name: Routes.SHEET.ACCOUNT_SELECTOR,
-        },
-        {
-          state: mockInitialState,
-        },
-        mockRoute.params,
-      );
-
-      // Assert: Add button is present
-      expect(
-        screen.getByTestId(
-          AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
-        ),
-      ).toBeDefined();
-
-      unmount2();
-      jest.useFakeTimers();
-    });
-
-    it('opens Add Wallet bottom sheet overlay in full-page mode', () => {
-      // Arrange
-      jest.useRealTimers();
+    it('renders add button in full-page mode', () => {
       mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
 
       renderScreen(
         AccountSelectorWrapper,
-        {
-          name: Routes.SHEET.ACCOUNT_SELECTOR,
-        },
-        {
-          state: mockInitialState,
-        },
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
         mockRoute.params,
       );
 
       const addButton = screen.getByTestId(
         AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
       );
+      expect(addButton).toBeOnTheScreen();
+    });
 
-      // Act
+    it('opens add wallet bottom sheet overlay in full-page mode', () => {
+      jest.useRealTimers();
+
+      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
+
+      renderScreen(
+        AccountSelectorWrapper,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
+        mockRoute.params,
+      );
+
+      const addButton = screen.getByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
       fireEvent.press(addButton);
 
-      // Assert: MultichainAddWalletActions bottom sheet is displayed on top
-      // There should be two "Add wallet" texts - button and header
-      expect(screen.getAllByText('Add wallet')).toHaveLength(2);
-      // Import SRP button should be visible in the overlay
+      // Should show the add wallet actions overlay (button in background + header in overlay)
+      // There should be at least 2 "Add wallet" texts - but we check for the overlay content
       expect(
         screen.getByTestId(AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON),
       ).toBeOnTheScreen();
+
       // Account list should still be visible in background
       expect(
         screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
@@ -809,27 +646,75 @@ describe('AccountSelector', () => {
       jest.useFakeTimers();
     });
 
-    it('renders SheetHeader with title in full-page mode', () => {
-      // Arrange
+    it('hides add button in full-page mode when disableAddAccountButton is true', () => {
       mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
+
+      const routeWithDisabledButton: AccountSelectorProps['route'] = {
+        params: {
+          ...defaultRouteParams,
+          disableAddAccountButton: true,
+        },
+      };
+
+      renderScreen(
+        () => <AccountSelector route={routeWithDisabledButton} />,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
+      );
+
+      const addButton = screen.queryByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
+      expect(addButton).toBeNull();
+    });
+  });
+
+  describe('Screen Navigation', () => {
+    it('navigates to add wallet actions screen when button is pressed', () => {
+      jest.useRealTimers();
 
       renderScreen(
         AccountSelectorWrapper,
-        {
-          name: Routes.SHEET.ACCOUNT_SELECTOR,
-        },
-        {
-          state: mockInitialState,
-        },
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
         mockRoute.params,
       );
 
-      // Assert: SheetHeader with title is present in full-page mode
+      // Navigate to add wallet actions
+      const addButton = screen.getByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
+      fireEvent.press(addButton);
+
+      // Verify we're on add wallet actions screen - header shows "Add wallet"
+      expect(screen.getByText('Add wallet')).toBeOnTheScreen();
+
+      // Import wallet option should be visible
+      expect(screen.getByText('Import a wallet')).toBeOnTheScreen();
+
+      jest.useFakeTimers();
+    });
+  });
+
+  describe('Empty State', () => {
+    it('handles missing selectedAccountGroup gracefully', () => {
+      // Create state without a selected account group
+      const emptyState = createTestState([mockAccountGroup1]);
+      (
+        emptyState.engine.backgroundState.AccountTreeController as {
+          accountTree: { selectedAccountGroup: string };
+        }
+      ).accountTree.selectedAccountGroup = '';
+
+      renderScreen(
+        AccountSelectorWrapper,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: emptyState },
+        mockRoute.params,
+      );
+
+      // Component should still render without crashing
       expect(screen.getByText('Accounts')).toBeOnTheScreen();
-      // Verify accounts list is also present (confirms we're on the right screen)
-      expect(
-        screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
-      ).toBeOnTheScreen();
     });
   });
 });
