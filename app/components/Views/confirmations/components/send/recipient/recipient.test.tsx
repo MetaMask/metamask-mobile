@@ -194,6 +194,7 @@ describe('Recipient', () => {
       from: '',
       maxValueMode: false,
       updateAsset: jest.fn(),
+      updateSubmitError: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,
     });
@@ -258,6 +259,7 @@ describe('Recipient', () => {
       from: '',
       maxValueMode: false,
       updateAsset: jest.fn(),
+      updateSubmitError: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,
     });
@@ -322,6 +324,7 @@ describe('Recipient', () => {
       from: '',
       maxValueMode: false,
       updateAsset: jest.fn(),
+      updateSubmitError: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,
     });
@@ -375,6 +378,7 @@ describe('Recipient', () => {
       from: '',
       maxValueMode: false,
       updateAsset: jest.fn(),
+      updateSubmitError: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,
     });
@@ -413,6 +417,7 @@ describe('Recipient', () => {
       from: '',
       maxValueMode: false,
       updateAsset: jest.fn(),
+      updateSubmitError: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,
     });
@@ -440,6 +445,7 @@ describe('Recipient', () => {
       from: '',
       maxValueMode: false,
       updateAsset: jest.fn(),
+      updateSubmitError: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,
     });
@@ -477,6 +483,7 @@ describe('Recipient', () => {
       from: '',
       maxValueMode: false,
       updateAsset: jest.fn(),
+      updateSubmitError: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,
     });
@@ -513,6 +520,7 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       from: '',
       maxValueMode: false,
       updateAsset: jest.fn(),
+      updateSubmitError: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,
     });
@@ -605,6 +613,7 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       from: '',
       maxValueMode: false,
       updateAsset: jest.fn(),
+      updateSubmitError: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,
     });
@@ -642,6 +651,7 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       from: '',
       maxValueMode: false,
       updateAsset: jest.fn(),
+      updateSubmitError: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,
     });
@@ -679,6 +689,7 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       from: '',
       maxValueMode: false,
       updateAsset: jest.fn(),
+      updateSubmitError: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,
     });

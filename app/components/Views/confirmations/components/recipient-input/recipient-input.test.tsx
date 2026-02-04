@@ -72,6 +72,7 @@ describe('RecipientInput', () => {
       from: '',
       maxValueMode: false,
       updateAsset: jest.fn(),
+      updateSubmitError: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,
     });
@@ -136,6 +137,7 @@ describe('RecipientInput', () => {
       from: '',
       maxValueMode: false,
       updateAsset: jest.fn(),
+      updateSubmitError: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,
     });
@@ -162,6 +164,7 @@ describe('RecipientInput', () => {
       from: '',
       maxValueMode: false,
       updateAsset: jest.fn(),
+      updateSubmitError: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,
     });
@@ -309,6 +312,7 @@ describe('RecipientInput', () => {
       from: '',
       maxValueMode: false,
       updateAsset: jest.fn(),
+      updateSubmitError: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,
     });
@@ -340,6 +344,7 @@ describe('RecipientInput', () => {
       from: '',
       maxValueMode: false,
       updateAsset: jest.fn(),
+      updateSubmitError: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,
     });
@@ -385,6 +390,7 @@ describe('RecipientInput', () => {
       from: '',
       maxValueMode: false,
       updateAsset: jest.fn(),
+      updateSubmitError: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,
     });
