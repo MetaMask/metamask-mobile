@@ -232,6 +232,14 @@ describe('TransactionDetails', () => {
         }),
       );
     });
+
+    it('configures navigation with back arrow on left instead of close button on right', () => {
+      render();
+
+      const navOptions = mockSetOptions.mock.calls[0][0];
+      expect(navOptions.headerLeft).toBeDefined();
+      expect(navOptions.headerRight()).toBeNull();
+    });
   });
 
   describe('SUMMARY_SECTION_TYPES', () => {
