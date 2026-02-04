@@ -16,10 +16,10 @@ import {
 } from '../../../../selectors/featureFlagController/deposit';
 
 // Mock feature flags
-const mockTokenDetailsV2ButtonsEnabled = jest.fn(() => true);
+const mockSelectTokenDetailsV2ButtonsEnabled = jest.fn().mockReturnValue(true);
 jest.mock('../../../../selectors/featureFlagController/tokenDetailsV2', () => ({
   selectTokenDetailsV2Enabled: jest.fn(() => true),
-  selectTokenDetailsV2ButtonsEnabled,
+  selectTokenDetailsV2ButtonsEnabled: mockSelectTokenDetailsV2ButtonsEnabled,
 }));
 
 // Mock react-redux with proper selector handling
@@ -174,7 +174,7 @@ describe('TokenDetails', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockTokenDetailsV2ButtonsEnabled.mockReturnValue(true);
+    mockSelectTokenDetailsV2ButtonsEnabled.mockReturnValue(true);
 
     // Setup default useTokenBalance mock
     mockUseTokenBalance.mockReturnValue({
@@ -186,6 +186,8 @@ describe('TokenDetails', () => {
     // Setup default selector returns
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectTokenDetailsV2Enabled) return true;
+      if (selector === selectTokenDetailsV2ButtonsEnabled)
+        return mockSelectTokenDetailsV2ButtonsEnabled();
       if (selector === selectNetworkConfigurationByChainId)
         return { name: 'Ethereum' };
       if (selector === selectPerpsEnabledFlag) return false;
@@ -198,9 +200,7 @@ describe('TokenDetails', () => {
   });
 
   describe('Buy/Sell sticky buttons', () => {
-    it('shows sticky buttons when isTokenDetailsRevampedEnabled is true', () => {
-      mockTokenDetailsV2ButtonsEnabled.mockReturnValue(true);
-
+    it('shows sticky buttons when selectTokenDetailsV2ButtonsEnabled is true', () => {
       const { getByTestId, getByText } = render(
         <TokenDetails {...defaultProps} />,
       );
@@ -209,8 +209,8 @@ describe('TokenDetails', () => {
       expect(getByText('Buy')).toBeOnTheScreen();
     });
 
-    it('does not show sticky buttons when isTokenDetailsRevampedEnabled is false', () => {
-      mockTokenDetailsV2ButtonsEnabled.mockReturnValue(false);
+    it('does not show sticky buttons when selectTokenDetailsV2ButtonsEnabled is false', () => {
+      mockSelectTokenDetailsV2ButtonsEnabled.mockReturnValue(false);
 
       const { queryByTestId } = render(<TokenDetails {...defaultProps} />);
 
