@@ -588,7 +588,7 @@ export class PredictController extends BaseController<
                 }, 100);
               }
             },
-            variant: ButtonVariants.Link,
+            variant: ButtonVariants.Secondary,
           }
         : undefined;
 
