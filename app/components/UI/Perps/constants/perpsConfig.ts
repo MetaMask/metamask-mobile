@@ -129,6 +129,17 @@ export const ORDER_SLIPPAGE_CONFIG = {
 } as const;
 
 /**
+ * Redesigned confirmations screen header configuration (Perps)
+ * Controls whether the Perps header is shown when navigating to the confirmation screen
+ */
+export const CONFIRMATION_HEADER_CONFIG = {
+  /** Default: show Perps header when opening confirmations from Perps flows */
+  DefaultShowPerpsHeader: true,
+  /** Hide Perps header when navigating from deposit-and-trade flow */
+  ShowPerpsHeaderForDepositAndTrade: false,
+} as const;
+
+/**
  * Performance optimization constants
  * These values control debouncing and throttling for better performance
  */
@@ -439,8 +450,7 @@ export const MARKET_SORTING_CONFIG = {
   ] as const,
 
   // Sort options for the bottom sheet
-  // Only Price Change can be toggled for direction (similar to trending tokens pattern)
-  // Other options (volume, open interest, funding rate) use descending sort only
+  // All options support direction toggle (high-to-low / low-to-high)
   SortOptions: [
     {
       id: 'volume',

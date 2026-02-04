@@ -587,11 +587,13 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "syncQueue": {},
       },
       "RampsController": {
+        "countries": [],
         "paymentMethods": [],
-        "preferredProvider": null,
         "providers": [],
         "requests": {},
         "selectedPaymentMethod": null,
+        "selectedProvider": null,
+        "selectedToken": null,
         "tokens": null,
         "userRegion": null,
       },
@@ -609,6 +611,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "pointsEvents": {},
         "seasonStatuses": {},
         "seasons": {},
+        "snapshots": {},
         "subscriptionReferralDetails": {},
         "subscriptions": {},
         "unlockedRewards": {},
@@ -760,7 +763,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "tokenBalances": {},
       },
       "TokenListController": {
-        "preventPollingOnNetworkRestart": false,
         "tokensChainsCache": {},
       },
       "TokenRatesController": {
@@ -1380,11 +1382,13 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "syncQueue": {},
       },
       "RampsController": {
+        "countries": [],
         "paymentMethods": [],
-        "preferredProvider": null,
         "providers": [],
         "requests": {},
         "selectedPaymentMethod": null,
+        "selectedProvider": null,
+        "selectedToken": null,
         "tokens": null,
         "userRegion": null,
       },
@@ -1402,6 +1406,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "pointsEvents": {},
         "seasonStatuses": {},
         "seasons": {},
+        "snapshots": {},
         "subscriptionReferralDetails": {},
         "subscriptions": {},
         "unlockedRewards": {},
@@ -1536,7 +1541,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "tokenBalances": {},
       },
       "TokenListController": {
-        "preventPollingOnNetworkRestart": false,
         "tokensChainsCache": {},
       },
       "TokenRatesController": {
