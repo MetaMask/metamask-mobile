@@ -113,6 +113,7 @@ import type {
   RemoteFeatureFlagControllerStateChangeEvent,
   RemoteFeatureFlagControllerGetStateAction,
 } from '@metamask/remote-feature-flag-controller';
+import type { Json } from '@metamask/utils';
 import { wait } from '../utils/wait';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import type { AssetType } from '../../../Views/confirmations/types/token';
@@ -290,8 +291,8 @@ export type PerpsControllerState = {
   // Used to trigger reconnection and cache invalidation in ConnectionManager
   hip3ConfigVersion: number;
 
-  // Selected payment token for Perps order/deposit flow (null = Perps balance). Stored as Json for controller state constraint.
-  selectedPaymentToken: SelectedPaymentTokenSnapshot | null;
+  // Selected payment token for Perps order/deposit flow (null = Perps balance). Stored as Json (minimal shape: description, address, chainId).
+  selectedPaymentToken: Json | null;
 };
 
 /**
@@ -2939,14 +2940,14 @@ export class PerpsController extends BaseController<
       token?.description === PERPS_CONSTANTS.PerpsBalanceTokenDescription
         ? null
         : (token ?? null);
-    const snapshot: SelectedPaymentTokenSnapshot | null =
+    const snapshot: Json | null =
       normalized === null
         ? null
         : ({
             description: normalized.description,
             address: normalized.address,
             chainId: normalized.chainId,
-          } as SelectedPaymentTokenSnapshot);
+          } as unknown as Json);
     this.update((state) => {
       state.selectedPaymentToken = snapshot;
     });
