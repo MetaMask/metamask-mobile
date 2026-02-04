@@ -50,6 +50,7 @@ import {
 } from '../../util/mnemonic';
 import Logger from '../../util/Logger';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
+import { cancelBulkLink } from '../../store/sagas/rewardsBulkLinkAccountGroups';
 import OAuthService from '../OAuthService/OAuthService';
 import {
   AccountImportStrategy,
@@ -1482,6 +1483,9 @@ class AuthenticationService {
         Engine.context.SeedlessOnboardingController.clearState();
 
         await depositResetProviderToken();
+
+        // Cancel any running bulk link saga before resetting rewards state
+        ReduxService.store.dispatch(cancelBulkLink());
 
         await Engine.controllerMessenger.call('RewardsController:resetAll');
 
