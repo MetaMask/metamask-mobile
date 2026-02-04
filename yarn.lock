@@ -21394,7 +21394,7 @@ __metadata:
 
 "appwright@patch:appwright@npm%3A0.1.45#~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch::version=0.1.45&hash=3beae4":
   version: 0.1.45
-  resolution: "appwright@patch:appwright@npm%3A0.1.45#~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch::version=0.1.45&hash=3beae4"
+  resolution: "appwright@patch:appwright@npm%3A0.1.45#~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch::version=0.1.45&hash=fe2da7"
   dependencies:
     "@empiricalrun/llm": "npm:^0.9.25"
     "@ffmpeg-installer/ffmpeg": "npm:^1.1.0"
@@ -21410,13 +21410,13 @@ __metadata:
     webdriver: "npm:^8.36.1"
   bin:
     appwright: dist/bin/index.js
-  checksum: 10/a7b98dc4bcdc19660a976927d6b508779b40ac22b786f90e96559ee8a3fa9df331ff85f8a0bdf28c16ea729011b38a95409b9f07e88e0695fff982735518c71b
+  checksum: 10/b6fc9278b1b25eb775e5bfdeec63533764bf38e2d3304396d783a6c75f1d7beed6411b35cfddfa812c2b02204d5a5a596bf2a9f619f45436722c8a48b95eddf3
   languageName: node
   linkType: hard
 
 "appwright@patch:appwright@patch%3Aappwright@npm%253A0.1.45%23~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%3A%3Aversion=0.1.45&hash=3beae4#~/.yarn/patches/appwright-patch-685d6e06a0.patch":
   version: 0.1.45
-  resolution: "appwright@patch:appwright@patch%3Aappwright@npm%253A0.1.45%23~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%3A%3Aversion=0.1.45&hash=3beae4#~/.yarn/patches/appwright-patch-685d6e06a0.patch::version=0.1.45&hash=2d02ee"
+  resolution: "appwright@patch:appwright@patch%3Aappwright@npm%253A0.1.45%23~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%3A%3Aversion=0.1.45&hash=fe2da7#~/.yarn/patches/appwright-patch-685d6e06a0.patch::version=0.1.45&hash=2d02ee"
   dependencies:
     "@empiricalrun/llm": "npm:^0.9.25"
     "@ffmpeg-installer/ffmpeg": "npm:^1.1.0"
@@ -21432,7 +21432,7 @@ __metadata:
     webdriver: "npm:^8.36.1"
   bin:
     appwright: dist/bin/index.js
-  checksum: 10/1ccf9e933937b35aaf15c152353596070dcd7175a5670def418ef0b3a124b750bc23ea4eed16ced52e2e5d631a9833a35be75553618b5ee8b0b88d17c4c9ba37
+  checksum: 10/6dcd6c9f0fdb7bf2f2a8e8d27137036e1cf3de94d864a23da630a6459aeeb7284652a7ff833a5a16b7f76b116cb76a315553aae7098c973adba88ac71c5f7768
   languageName: node
   linkType: hard
 
