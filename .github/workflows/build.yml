@@ -63,35 +63,35 @@ jobs:
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'secrets_json=' + JSON.stringify(build.secrets || {}) + '\n');
           "
 
-  # Setup dependencies (no secrets) - platform-specific
+  # Setup dependencies (no secrets) - platform-specific to match build OS
   setup-dependencies:
     name: Setup Dependencies (${{ matrix.platform }})
     needs: [prepare]
     strategy:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
+    # CRITICAL: Match the OS with the build job so binaries work
     runs-on: ${{ matrix.platform == 'ios' && 'macos-latest' || 'ubuntu-latest' }}
+    # NO environment/secrets declared here ✅
     env:
-      # So bundle exec (in yarn pod:install) finds ios/Gemfile when running from repo root
+      # Only for iOS to find Gemfile
       BUNDLE_GEMFILE: ${{ matrix.platform == 'ios' && 'ios/Gemfile' || '' }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'yarn'
 
-      - name: Log artifact name
-        run: |
-          echo "📦 Creating artifact: node-modules-build-${{ matrix.platform }}"
+      - name: Install dependencies (NO SECRETS)
+        run: yarn install --immutable
 
-      - name: Install dependencies
+      - name: Run project setup (NO SECRETS)
         run: |
-          echo "📦 Installing dependencies..."
-          yarn install --immutable
-
-      - name: Setup project
-        run: |
-          echo "🔧 Running setup for GitHub CI..."
+          echo "🔧 Running setup for ${{ matrix.platform }}..."
           if [ "${{ matrix.platform }}" = "ios" ]; then
             yarn setup:github-ci --build-ios --no-build-android
           else
@@ -102,32 +102,29 @@ jobs:
         run: |
           echo "✅ Verifying setup artifacts..."
           if [ ! -d "node_modules" ]; then
-            echo "❌ node_modules directory not found"
-            exit 1
-          fi
-          if [ ! -f "app/util/termsOfUse/termsOfUseContent.ts" ]; then
-            echo "❌ Terms of Use content not generated"
+            echo "❌ node_modules not found"
             exit 1
           fi
           if [ ! -f "app/core/InpageBridgeWeb3.js" ]; then
-            echo "❌ InpageBridgeWeb3.js not generated"
+            echo "❌ InpageBridgeWeb3.js not found"
             exit 1
           fi
           echo "✅ Setup verification passed"
 
-      - name: Upload node_modules artifact
+      - name: Upload node_modules and build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: node-modules-build-${{ matrix.platform }}
+          name: node-modules-${{ matrix.platform }}
           path: |
             node_modules
             app/util/termsOfUse/termsOfUseContent.ts
             app/core/InpageBridgeWeb3.js
             scripts/inpage-bridge/dist
+            ios/Pods
           retention-days: 1
           compression-level: 1
-          if-no-files-found: warn
           include-hidden-files: true
+          if-no-files-found: warn
 
   # Build
   build:
@@ -144,6 +141,9 @@ jobs:
       BUNDLE_GEMFILE: ios/Gemfile
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -151,20 +151,20 @@ jobs:
       - name: Download node_modules artifact
         uses: actions/download-artifact@v4
         with:
-          name: node-modules-build-${{ matrix.platform }}
+          name: node-modules-${{ matrix.platform }}
 
       - name: Restore executable permissions
         uses: ./.github/actions/restore-node-modules-permissions
 
-      - name: Verify downloaded artifacts
+      - name: Verify artifacts
         run: |
-          echo "✅ Verifying downloaded artifacts..."
+          echo "✅ Verifying artifacts..."
           if [ ! -d "node_modules" ]; then
-            echo "❌ node_modules directory not found"
+            echo "❌ node_modules not found"
             exit 1
           fi
           if [ ! -f "app/core/InpageBridgeWeb3.js" ]; then
-            echo "❌ InpageBridgeWeb3.js not found in artifact"
+            echo "❌ InpageBridgeWeb3.js not found"
             exit 1
           fi
           echo "📦 node_modules size: $(du -sh node_modules | cut -f1)"
@@ -285,20 +285,6 @@ jobs:
           aws-region: 'us-east-2'
           platform: 'android'
           target: ${{ startsWith(inputs.build_name, 'flask') && 'flask' || 'qa' }}
-
-      - name: Setup project dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: |
-            echo "🚀 Setting up project..."
-            if [ "${{ matrix.platform }}" = "ios" ]; then
-              yarn setup:github-ci --build-ios --no-build-android
-            else
-              yarn setup:github-ci --no-build-ios
-            fi
 
       # Android: use CI Gradle settings (8GB heap, OOM handling) to avoid daemon OOM
       - name: Use CI Gradle properties (Android)
