@@ -76,7 +76,7 @@ export function TransactionDetailsSummary() {
 
   return (
     <Box gap={12}>
-      <Text color={TextColor.Alternative}>Summary</Text>
+      {/* <Text color={TextColor.Alternative}>Summary</Text> */}
       <Box gap={1} style={styles.lineContainer}>
         {transactions.map((item, index) => (
           <TransactionSummary

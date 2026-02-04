@@ -13,7 +13,10 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 import { useNetworkName } from '../../../hooks/useNetworkName';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 import { SummaryLine } from '../transaction-details-summary/transaction-details-summary';
-import { findMusdSendTransaction } from './musd-conversion-details-summary.utils';
+import {
+  findMusdReceiveTransaction,
+  findMusdSendTransaction,
+} from './musd-conversion-details-summary.utils';
 
 /**
  * Component for rendering mUSD conversion summary with exactly 2 lines:
@@ -42,9 +45,22 @@ export function MusdConversionSummary({
     selectTransactionsByIds(state, requiredTransactionIds ?? []),
   );
 
-  // Find the send transaction (swap/transfer of source stablecoin)
-  const musdSendTx = findMusdSendTransaction(requiredTransactions, chainId);
+  // Find the send transaction (relay deposit)
+  const musdSendTx = findMusdSendTransaction(requiredTransactions);
   const sendHash = musdSendTx?.hash;
+
+  // Find the receive transaction (mUSD token receive)
+  // Falls back to undefined when send/receive are in the same tx
+  const musdReceiveTx = findMusdReceiveTransaction(
+    requiredTransactions,
+    chainId,
+  );
+  const fallbackHash =
+    transactionMeta.hash && transactionMeta.hash !== '0x0'
+      ? transactionMeta.hash
+      : undefined;
+  const receiveHash = musdReceiveTx?.hash ?? fallbackHash;
+
   const sendTitle = sourceToken?.symbol
     ? strings('transaction_details.summary_title.musd_convert_send', {
         sourceSymbol: sourceToken.symbol,
@@ -81,7 +97,7 @@ export function MusdConversionSummary({
           time={time}
           title={receiveTitle}
           transaction={transactionMeta}
-          transactionHash={undefined}
+          transactionHash={receiveHash}
         />
       </Box>
     </Box>

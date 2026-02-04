@@ -137,7 +137,7 @@ describe('MusdConversionSummary', () => {
           id: MUSD_SEND_TX_ID,
           chainId: SOURCE_CHAIN_ID_MOCK,
           hash: SEND_HASH,
-          type: TransactionType.swap,
+          type: TransactionType.relayDeposit,
         },
         {
           id: MUSD_RECEIVE_TX_ID,
@@ -189,14 +189,14 @@ describe('MusdConversionSummary', () => {
     ).toBeDefined();
   });
 
-  it('renders receive line without block explorer link', () => {
+  it('uses receive transaction hash for receive line block explorer link', () => {
     render({
       transactions: [
         {
           id: MUSD_SEND_TX_ID,
           chainId: SOURCE_CHAIN_ID_MOCK,
           hash: SEND_HASH,
-          type: TransactionType.swap,
+          type: TransactionType.relayDeposit,
         },
         {
           id: MUSD_RECEIVE_TX_ID,
@@ -211,7 +211,77 @@ describe('MusdConversionSummary', () => {
       ],
     });
 
-    // Receive line has no transaction hash (undefined)
+    // Receive line uses the mUSD receive transaction hash
+    expect(useMultichainBlockExplorerTxUrlMock).toHaveBeenCalledWith({
+      chainId: Number(SOURCE_CHAIN_ID_MOCK),
+      txHash: MUSD_RECEIVE_HASH,
+    });
+  });
+
+  it('falls back to transactionMeta.hash when no separate receive transaction exists', () => {
+    const PARENT_TX_HASH = '0xparenthash' as Hex;
+
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        id: transactionIdMock,
+        chainId: SOURCE_CHAIN_ID_MOCK,
+        submittedTime: TRANSACTION_META_MOCK.submittedTime,
+        type: TransactionType.musdConversion,
+        requiredTransactionIds: [MUSD_SEND_TX_ID],
+        hash: PARENT_TX_HASH,
+        metamaskPay: {
+          chainId: SOURCE_CHAIN_ID_MOCK,
+          tokenAddress: '0x123',
+        },
+      } as unknown as TransactionMeta,
+    });
+
+    render({
+      transactions: [
+        {
+          id: MUSD_SEND_TX_ID,
+          chainId: SOURCE_CHAIN_ID_MOCK,
+          hash: SEND_HASH,
+          type: TransactionType.relayDeposit,
+        },
+      ],
+    });
+
+    // Falls back to transactionMeta.hash when no mUSD receive transaction exists
+    expect(useMultichainBlockExplorerTxUrlMock).toHaveBeenCalledWith({
+      chainId: Number(SOURCE_CHAIN_ID_MOCK),
+      txHash: PARENT_TX_HASH,
+    });
+  });
+
+  it('renders receive line without block explorer link when hash is 0x0', () => {
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        id: transactionIdMock,
+        chainId: SOURCE_CHAIN_ID_MOCK,
+        submittedTime: TRANSACTION_META_MOCK.submittedTime,
+        type: TransactionType.musdConversion,
+        requiredTransactionIds: [MUSD_SEND_TX_ID],
+        hash: '0x0',
+        metamaskPay: {
+          chainId: SOURCE_CHAIN_ID_MOCK,
+          tokenAddress: '0x123',
+        },
+      } as unknown as TransactionMeta,
+    });
+
+    render({
+      transactions: [
+        {
+          id: MUSD_SEND_TX_ID,
+          chainId: SOURCE_CHAIN_ID_MOCK,
+          hash: SEND_HASH,
+          type: TransactionType.relayDeposit,
+        },
+      ],
+    });
+
+    // No fallback when hash is 0x0
     expect(useMultichainBlockExplorerTxUrlMock).toHaveBeenCalledWith({
       chainId: Number(SOURCE_CHAIN_ID_MOCK),
       txHash: undefined,
@@ -225,7 +295,7 @@ describe('MusdConversionSummary', () => {
           id: MUSD_SEND_TX_ID,
           chainId: SOURCE_CHAIN_ID_MOCK,
           hash: SEND_HASH,
-          type: TransactionType.swap,
+          type: TransactionType.relayDeposit,
         },
         {
           id: MUSD_RECEIVE_TX_ID,
