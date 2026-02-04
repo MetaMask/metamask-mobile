@@ -62,6 +62,7 @@ export function useFirstTimeInteractionAlert(): Alert[] {
   const isFirstTimeInteraction = transactionMetadata?.isFirstTimeInteraction;
 
   const showAlert =
+    Boolean(recipient) &&
     !isInternalAccount &&
     isFirstTimeInteraction &&
     !isVerifiedAddress &&

@@ -115,4 +115,15 @@ describe('useFirstTimeInteractionAlert', () => {
       message: `You're interacting with this address for the first time. Make sure that it's correct before you continue.`,
     });
   });
+
+  it('returns empty array when address is not in txParams.to ', () => {
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      chainId: '0x1',
+      txParams: { to: undefined },
+      isFirstTimeInteraction: true,
+    });
+
+    const { result } = renderHook(() => useFirstTimeInteractionAlert());
+    expect(result.current).toEqual([]);
+  });
 });
