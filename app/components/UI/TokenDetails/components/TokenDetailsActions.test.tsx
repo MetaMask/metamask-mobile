@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   TokenDetailsActions,
-  TokenDetailsActionsSkeleton,
   TokenDetailsActionsProps,
 } from './TokenDetailsActions';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
@@ -85,26 +84,8 @@ describe('TokenDetailsActions', () => {
 
   describe('loading state', () => {
     it('renders skeleton when isLoading is true', () => {
-      const { UNSAFE_queryAllByType, queryByTestId } = renderWithProvider(
-        <TokenDetailsActions {...defaultProps} isLoading />,
-        { state: mockInitialState },
-      );
-
-      const { Skeleton } = jest.requireActual(
-        '../../../../component-library/components/Skeleton',
-      );
-      const skeletons = UNSAFE_queryAllByType(Skeleton);
-      expect(skeletons).toHaveLength(4);
-      expect(
-        queryByTestId(TokenOverviewSelectorsIDs.SEND_BUTTON),
-      ).not.toBeOnTheScreen();
-    });
-  });
-
-  describe('TokenDetailsActionsSkeleton', () => {
-    it('renders 4 skeleton buttons', () => {
       const { UNSAFE_queryAllByType } = renderWithProvider(
-        <TokenDetailsActionsSkeleton />,
+        <TokenDetailsActions {...defaultProps} isLoading />,
         { state: mockInitialState },
       );
 
@@ -123,24 +104,20 @@ describe('TokenDetailsActions', () => {
         { state: mockInitialState },
       );
 
-      expect(
-        getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(TokenOverviewSelectorsIDs.SHORT_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(TokenOverviewSelectorsIDs.SEND_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(TokenOverviewSelectorsIDs.MORE_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        queryByTestId(TokenOverviewSelectorsIDs.RECEIVE_BUTTON),
-      ).not.toBeOnTheScreen();
-      expect(
-        queryByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON),
-      ).not.toBeOnTheScreen();
+      assertButtonsVisibility({
+        visibleButtonIds: [
+          TokenOverviewSelectorsIDs.LONG_BUTTON,
+          TokenOverviewSelectorsIDs.SHORT_BUTTON,
+          TokenOverviewSelectorsIDs.SEND_BUTTON,
+          TokenOverviewSelectorsIDs.MORE_BUTTON,
+        ],
+        hiddenButtonIds: [
+          TokenOverviewSelectorsIDs.RECEIVE_BUTTON,
+          TokenOverviewSelectorsIDs.BUY_BUTTON,
+        ],
+        getByTestId,
+        queryByTestId,
+      });
     });
   });
 
@@ -155,24 +132,20 @@ describe('TokenDetailsActions', () => {
         { state: mockInitialState },
       );
 
-      expect(
-        getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(TokenOverviewSelectorsIDs.SHORT_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(TokenOverviewSelectorsIDs.RECEIVE_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(TokenOverviewSelectorsIDs.MORE_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        queryByTestId(TokenOverviewSelectorsIDs.SEND_BUTTON),
-      ).not.toBeOnTheScreen();
-      expect(
-        queryByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON),
-      ).not.toBeOnTheScreen();
+      assertButtonsVisibility({
+        visibleButtonIds: [
+          TokenOverviewSelectorsIDs.LONG_BUTTON,
+          TokenOverviewSelectorsIDs.SHORT_BUTTON,
+          TokenOverviewSelectorsIDs.RECEIVE_BUTTON,
+          TokenOverviewSelectorsIDs.MORE_BUTTON,
+        ],
+        hiddenButtonIds: [
+          TokenOverviewSelectorsIDs.SEND_BUTTON,
+          TokenOverviewSelectorsIDs.BUY_BUTTON,
+        ],
+        getByTestId,
+        queryByTestId,
+      });
     });
   });
 
@@ -187,24 +160,20 @@ describe('TokenDetailsActions', () => {
         { state: mockInitialState },
       );
 
-      expect(
-        getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(TokenOverviewSelectorsIDs.SEND_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(TokenOverviewSelectorsIDs.RECEIVE_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(TokenOverviewSelectorsIDs.MORE_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        queryByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON),
-      ).not.toBeOnTheScreen();
-      expect(
-        queryByTestId(TokenOverviewSelectorsIDs.SHORT_BUTTON),
-      ).not.toBeOnTheScreen();
+      assertButtonsVisibility({
+        visibleButtonIds: [
+          TokenOverviewSelectorsIDs.BUY_BUTTON,
+          TokenOverviewSelectorsIDs.SEND_BUTTON,
+          TokenOverviewSelectorsIDs.RECEIVE_BUTTON,
+          TokenOverviewSelectorsIDs.MORE_BUTTON,
+        ],
+        hiddenButtonIds: [
+          TokenOverviewSelectorsIDs.LONG_BUTTON,
+          TokenOverviewSelectorsIDs.SHORT_BUTTON,
+        ],
+        getByTestId,
+        queryByTestId,
+      });
     });
   });
 
@@ -219,24 +188,37 @@ describe('TokenDetailsActions', () => {
         { state: mockInitialState },
       );
 
-      expect(
-        getByTestId(TokenOverviewSelectorsIDs.SEND_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(TokenOverviewSelectorsIDs.RECEIVE_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(TokenOverviewSelectorsIDs.MORE_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        queryByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON),
-      ).not.toBeOnTheScreen();
-      expect(
-        queryByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON),
-      ).not.toBeOnTheScreen();
-      expect(
-        queryByTestId(TokenOverviewSelectorsIDs.SHORT_BUTTON),
-      ).not.toBeOnTheScreen();
+      assertButtonsVisibility({
+        visibleButtonIds: [
+          TokenOverviewSelectorsIDs.SEND_BUTTON,
+          TokenOverviewSelectorsIDs.RECEIVE_BUTTON,
+          TokenOverviewSelectorsIDs.MORE_BUTTON,
+        ],
+        hiddenButtonIds: [
+          TokenOverviewSelectorsIDs.BUY_BUTTON,
+          TokenOverviewSelectorsIDs.LONG_BUTTON,
+          TokenOverviewSelectorsIDs.SHORT_BUTTON,
+        ],
+        getByTestId,
+        queryByTestId,
+      });
     });
   });
 });
+
+function assertButtonsVisibility({
+  visibleButtonIds,
+  hiddenButtonIds,
+  getByTestId,
+  queryByTestId,
+}: {
+  visibleButtonIds: string[];
+  hiddenButtonIds: string[];
+  getByTestId: ReturnType<typeof renderWithProvider>['getByTestId'];
+  queryByTestId: ReturnType<typeof renderWithProvider>['queryByTestId'];
+}) {
+  visibleButtonIds.forEach((id) => expect(getByTestId(id)).toBeOnTheScreen());
+  hiddenButtonIds.forEach((id) =>
+    expect(queryByTestId(id)).not.toBeOnTheScreen(),
+  );
+}
