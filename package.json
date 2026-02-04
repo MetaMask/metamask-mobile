@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.65.0",
+  "version": "7.XX.99",
   "private": true,
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
@@ -182,6 +182,9 @@
     "@metamask/transaction-controller@npm:^62.9.0": "patch:@metamask/transaction-controller@npm%3A62.9.0#~/.yarn/patches/@metamask-transaction-controller-npm-62.9.0-5c8f871530.patch",
     "qs": "6.14.1",
     "@playwright/test": "^1.57.0",
+    "@metamask/multichain-account-service@^4.0.0": "npm:@metamask-previews/multichain-account-service@5.1.0-preview-766f7065",
+    "@metamask/multichain-account-service@^4.0.1": "npm:@metamask-previews/multichain-account-service@5.1.0-preview-766f7065",
+    "@metamask/multichain-account-service@^5.0.0": "npm:@metamask-previews/multichain-account-service@5.1.0-preview-766f7065",
     "@metamask/transaction-controller@npm:^61.0.0": "patch:@metamask/transaction-controller@npm%3A62.9.0#~/.yarn/patches/@metamask-transaction-controller-npm-62.9.0-5c8f871530.patch",
     "@metamask/transaction-controller@npm:^62.9.2": "patch:@metamask/transaction-controller@npm%3A62.9.0#~/.yarn/patches/@metamask-transaction-controller-npm-62.9.0-5c8f871530.patch",
     "@metamask/transaction-controller@npm:^62.11.0": "patch:@metamask/transaction-controller@npm%3A62.9.0#~/.yarn/patches/@metamask-transaction-controller-npm-62.9.0-5c8f871530.patch"
