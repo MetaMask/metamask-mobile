@@ -10,7 +10,7 @@ import { isWithdrawalTransaction } from '../../utils/transaction';
  * When false, withdrawals always use the default Polygon USDC.E.
  */
 const isWithdrawalTokenPickerEnabled =
-  process.env.MM_PREDICT_WITHDRAWAL_TO_ANY_TOKEN === 'true';
+  process.env.MM_PREDICT_WITHDRAW_ANY_TOKEN === 'true';
 
 export interface UseWithdrawalTokenResult {
   /** Whether this transaction is a withdrawal type */
