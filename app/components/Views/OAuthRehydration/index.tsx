@@ -94,8 +94,12 @@ import TextField, {
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
-import { useAuthentication } from '../../../core/Authentication';
+import Authentication, {
+  useAuthentication,
+} from '../../../core/Authentication';
 import { containsErrorMessage } from '../../../util/errorHandling';
+import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 
 const EmptyRecordConstant = {};
 
@@ -132,6 +136,13 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       : null,
   );
   const [disabledInput, setDisabledInput] = useState(false);
+
+  const [biometryType, setBiometryType] = useState<AUTHENTICATION_TYPE | null>(
+    null,
+  );
+
+  const [renderBiometricSwitch, setRenderBiometricSwitch] = useState(false);
+  const [biometryChoice, setBiometryChoice] = useState(true);
 
   const { isDeletingInProgress, promptSeedlessRelogin } =
     usePromptSeedlessRelogin();
@@ -392,6 +403,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       }
 
       const isBiometricCancellation =
+        containsErrorMessage(loginError, 'cancel') ||
         containsErrorMessage(loginError, DENY_PIN_ERROR_ANDROID) ||
         containsErrorMessage(
           loginError,
@@ -399,6 +411,11 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         );
 
       if (isBiometricCancellation) {
+        setRenderBiometricSwitch(true);
+        setError(strings('login.biometric_authentication_cancelled'));
+        // user already successfull rehydrate or synced new password but failed biometric authentication
+        // resetPassword so that the state is correct upon user closed and reopen the app
+        await Authentication.resetPassword();
         setLoading(false);
         return;
       }
@@ -447,7 +464,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setLoading(true);
 
       // Use biometric authentication as default for rehydration
-      const authType = await componentAuthenticationType(true, false);
+      const authType = await componentAuthenticationType(biometryChoice, false);
 
       // Only set oauth2Login for normal rehydration, not when password is outdated
       authType.oauth2Login = true;
@@ -489,6 +506,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     track,
     componentAuthenticationType,
     unlockWallet,
+    biometryChoice,
   ]);
 
   const newGlobalPasswordLogin = useCallback(async () => {
@@ -498,7 +516,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setLoading(true);
 
       // Use biometric authentication as default for global password login sync
-      const authType = await componentAuthenticationType(true, false);
+      const authType = await componentAuthenticationType(biometryChoice, false);
 
       // Only set oauth2Login for normal rehydration, not when password is outdated
       authType.oauth2Login = false;
@@ -524,6 +542,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     handleLoginError,
     componentAuthenticationType,
     unlockWallet,
+    biometryChoice,
   ]);
 
   // Cleanup for isMountedRef tracking
@@ -563,6 +582,21 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       });
     }
   }, [route.params?.onboardingTraceCtx]);
+
+  useEffect(() => {
+    const getBiometryType = async () => {
+      const authType = await Authentication.getType();
+      if (
+        authType.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC ||
+        authType.currentAuthType === AUTHENTICATION_TYPE.PASSCODE
+      ) {
+        setBiometryType(authType.currentAuthType);
+      } else {
+        setBiometryType(null);
+      }
+    };
+    getBiometryType();
+  }, [componentAuthenticationType]);
 
   const handleUseOtherMethod = () => {
     track(MetaMetricsEvents.USE_DIFFERENT_LOGIN_METHOD_CLICKED, {
@@ -610,6 +644,14 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       },
     });
   };
+
+  const shouldRenderBiometricSwitch = useMemo(() => {
+    if (renderBiometricSwitch && biometryType) {
+      return biometryType.toString() ?? null;
+    }
+    return null;
+  }, [renderBiometricSwitch, biometryType]);
+
   return (
     <ErrorBoundary
       navigation={navigation}
@@ -694,6 +736,13 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                   </HelpText>
                 )}
               </View>
+
+              <LoginOptionsSwitch
+                shouldRenderBiometricOption={shouldRenderBiometricSwitch}
+                biometryChoiceState={biometryChoice}
+                onUpdateBiometryChoice={setBiometryChoice}
+                onUpdateRememberMe={setBiometryChoice}
+              />
 
               <View style={styles.ctaWrapperRehydration}>
                 <Button

@@ -34,6 +34,8 @@ const mockLockApp = jest.fn();
 const mockReauthenticate = jest.fn();
 const mockRevealSRP = jest.fn();
 const mockRevealPrivateKey = jest.fn();
+const mockCheckIsSeedlessPasswordOutdated = jest.fn();
+const mockUpdateAuthPreference = jest.fn();
 
 jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
   __esModule: true,
@@ -45,6 +47,8 @@ jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
     reauthenticate: mockReauthenticate,
     revealSRP: mockRevealSRP,
     revealPrivateKey: mockRevealPrivateKey,
+    checkIsSeedlessPasswordOutdated: mockCheckIsSeedlessPasswordOutdated,
+    updateAuthPreference: mockUpdateAuthPreference,
   }),
 }));
 
@@ -187,6 +191,8 @@ describe('Login test suite 2', () => {
     // Mock Redux store for all tests
     const mockStore = createMockReduxStore();
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
+    // Default mock for checkIsSeedlessPasswordOutdated - returns false (password not outdated)
+    mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(false);
   });
 
   afterEach(() => {
@@ -425,7 +431,7 @@ describe('Login test suite 2', () => {
   });
 
   describe('biometric cancellation', () => {
-    it('does not log error when Android biometric auth is cancelled', async () => {
+    it('throw error when Android biometric auth is cancelled', async () => {
       // Arrange
       mockRoute.mockReturnValue({
         params: {
@@ -450,7 +456,7 @@ describe('Login test suite 2', () => {
       expect(mockLogger.error).not.toHaveBeenCalled();
     });
 
-    it('does not log error when iOS biometric auth is cancelled', async () => {
+    it('throw error when iOS biometric auth is cancelled', async () => {
       // Arrange
       mockRoute.mockReturnValue({
         params: {

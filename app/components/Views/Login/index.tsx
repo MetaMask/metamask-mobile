@@ -90,6 +90,7 @@ import { isE2E } from '../../../util/test/utils';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import useAuthentication from '../../../core/Authentication/hooks/useAuthentication';
 import { SeedlessOnboardingControllerError } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
+import Authentication from '../../../core/Authentication';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -321,6 +322,40 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     [handlePasswordError, handleVaultCorruption, navigation],
   );
 
+  // biometric cancellation handling for seedless password flow
+  // for password sync, if user enter the correct password, the vault is already synced before biometric authentication
+  // so we need to handle the biometric cancellation and login with password instead
+  // we also reseted the password so that the state is correct
+  const handleBiometricCancellation = useCallback(
+    async (loginError: Error, password: string) => {
+      if (containsErrorMessage(loginError, 'cancel')) {
+        // show alert to user that will login with password instead of biometric authentication
+        Alert.alert(
+          strings('login.biometric_authentication_cancelled_title'),
+          strings('login.biometric_authentication_cancelled_description'),
+          [
+            {
+              text: strings('login.biometric_authentication_cancelled_button'),
+              onPress: async () => {
+                try {
+                  await Authentication.resetPassword();
+                  await unlockWallet({ password });
+                } catch (error) {
+                  await handleLoginError(error as Error);
+                } finally {
+                  setLoading(false);
+                }
+              },
+            },
+          ],
+        );
+        setError(strings('login.biometric_authentication_cancelled'));
+        await Authentication.resetPassword();
+      }
+    },
+    [setError, setLoading, handleLoginError, unlockWallet],
+  );
+
   const unlockWithPassword = useCallback(async () => {
     if (loading) return;
 
@@ -332,9 +367,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     endTrace({ name: TraceName.LoginUserInteraction });
 
     try {
-      // always use password authentication
-      // option to change biometry choice is removed
-
+      // do not update AuthPreference unless seedless password is outdated
       const isGlobalPasswordOutdated =
         await checkIsSeedlessPasswordOutdated(false);
       const authPreference = isGlobalPasswordOutdated
@@ -351,6 +384,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         },
       );
     } catch (loginErr) {
+      await handleBiometricCancellation(loginErr as Error, password);
       await handleLoginError(loginErr as Error);
     } finally {
       setLoading(false);
@@ -362,6 +396,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     componentAuthenticationType,
     unlockWallet,
     checkIsSeedlessPasswordOutdated,
+    handleBiometricCancellation,
   ]);
 
   const unlockWithBiometrics = useCallback(async () => {
