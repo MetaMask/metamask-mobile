@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.63.1]
 
+### Fixed
+
+- fix: Android ANR bug (#25596)
+- fix(analytics): cp-7.63.1 correct capitalization in Deep link event name (#25599)
+- feat(perps): sdk reconnect on native socket event (#25022) (#25573)
+
 ## [7.63.0]
 
 ### Added
