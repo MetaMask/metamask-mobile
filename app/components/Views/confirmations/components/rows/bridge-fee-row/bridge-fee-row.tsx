@@ -14,7 +14,7 @@ import { Box } from '../../../../../UI/Box/Box';
 import { FlexDirection, JustifyContent } from '../../../../../UI/Box/box.types';
 import {
   hasTransactionType,
-  isWithdrawalTransaction,
+  isTransactionPayWithdraw,
 } from '../../../utils/transaction';
 import {
   TransactionPayQuote,
@@ -44,7 +44,7 @@ export function BridgeFeeRow() {
   const totals = useTransactionPayTotals();
   const { fieldAlerts } = useAlerts();
   const hasAlert = fieldAlerts.some((a) => a.field === RowAlertKey.PayWithFee);
-  const isWithdrawal = isWithdrawalTransaction(transactionMetadata);
+  const isWithdrawal = isTransactionPayWithdraw(transactionMetadata);
 
   if (hasTransactionType(transactionMetadata, NETWORK_FEE_ONLY_TYPES)) {
     return (

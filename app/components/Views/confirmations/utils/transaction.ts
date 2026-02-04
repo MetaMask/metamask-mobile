@@ -132,7 +132,7 @@ const WITHDRAWAL_TRANSACTION_TYPES = [
  * Checks if the transaction is a withdrawal type (predictWithdraw, perpsWithdraw, etc.)
  * Withdrawal transactions use "Receive as" instead of "Pay with" for token selection.
  */
-export function isWithdrawalTransaction(
+export function isTransactionPayWithdraw(
   transactionMeta: TransactionMeta | undefined,
 ): boolean {
   return hasTransactionType(

@@ -15,7 +15,7 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { TransactionType } from '@metamask/transaction-controller';
 import {
   hasTransactionType,
-  isWithdrawalTransaction,
+  isTransactionPayWithdraw,
 } from '../../../utils/transaction';
 import { useMusdConversionTokens } from '../../../../../UI/Earn/hooks/useMusdConversionTokens';
 import { HIDE_NETWORK_FILTER_TYPES } from '../../../constants/confirmations';
@@ -82,7 +82,7 @@ export function PayWithModal() {
     (tokens: AssetType[]) => {
       // For withdrawal transactions, show all available tokens (any chain, popular tokens)
       // The bridging service will handle the actual token conversion
-      if (isWithdrawalTransaction(transactionMeta)) {
+      if (isTransactionPayWithdraw(transactionMeta)) {
         return tokens;
       }
 

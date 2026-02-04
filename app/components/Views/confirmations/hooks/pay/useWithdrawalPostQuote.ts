@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import Engine from '../../../../../core/Engine';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { isWithdrawalTransaction } from '../../utils/transaction';
+import { isTransactionPayWithdraw } from '../../utils/transaction';
 import { createProjectLogger } from '@metamask/utils';
 import { POLYGON_USDCE } from '../../constants/predict';
 
@@ -23,7 +23,7 @@ const DEFAULT_WITHDRAWAL_TOKEN = {
 export function useWithdrawalPostQuote(): void {
   const isSet = useRef(false);
   const transactionMeta = useTransactionMetadataRequest();
-  const isWithdrawal = isWithdrawalTransaction(transactionMeta);
+  const isWithdrawal = isTransactionPayWithdraw(transactionMeta);
   const transactionId = transactionMeta?.id;
 
   useEffect(() => {

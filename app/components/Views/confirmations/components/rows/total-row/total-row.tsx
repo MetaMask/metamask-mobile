@@ -15,7 +15,7 @@ import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { isWithdrawalTransaction } from '../../../utils/transaction';
+import { isTransactionPayWithdraw } from '../../../utils/transaction';
 
 export interface TotalRowProps {
   /** The user's input amount in USD (used for withdrawal "You'll receive" calculation) */
@@ -27,7 +27,7 @@ export function TotalRow({ inputAmountUsd }: TotalRowProps) {
   const isLoading = useIsTransactionPayLoading();
   const totals = useTransactionPayTotals();
   const transactionMeta = useTransactionMetadataRequest();
-  const isWithdrawal = isWithdrawalTransaction(transactionMeta);
+  const isWithdrawal = isTransactionPayWithdraw(transactionMeta);
 
   // For withdrawals: You'll receive = Input amount - Provider fee
   // (Network fees are paid separately from POL balance, not deducted from withdrawal)

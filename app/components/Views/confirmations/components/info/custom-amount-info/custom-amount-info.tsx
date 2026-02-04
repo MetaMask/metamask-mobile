@@ -44,7 +44,7 @@ import { AlignItems } from '../../../../../UI/Box/box.types';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   hasTransactionType,
-  isWithdrawalTransaction,
+  isTransactionPayWithdraw,
 } from '../../../utils/transaction';
 import { useWithdrawalToken } from '../../../hooks/pay/useWithdrawalToken';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
@@ -99,7 +99,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     useWithdrawalPostQuote(); // Set isPostQuote=true for withdrawal transactions
 
     const transactionMeta = useTransactionMetadataRequest();
-    const isWithdrawal = isWithdrawalTransaction(transactionMeta);
+    const isWithdrawal = isTransactionPayWithdraw(transactionMeta);
     const { canSelectWithdrawalToken } = useWithdrawalToken();
 
     const { isNative: isNativePayToken } = useTransactionPayToken();

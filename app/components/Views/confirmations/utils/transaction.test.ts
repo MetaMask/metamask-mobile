@@ -7,7 +7,7 @@ import {
   addMMOriginatedTransaction,
   get4ByteCode,
   hasTransactionType,
-  isWithdrawalTransaction,
+  isTransactionPayWithdraw,
   parseStandardTokenTransactionData,
 } from './transaction';
 import {
@@ -215,13 +215,13 @@ describe('hasTransactionType', () => {
   });
 });
 
-describe('isWithdrawalTransaction', () => {
+describe('isTransactionPayWithdraw', () => {
   it('returns true for predictWithdraw transaction type', () => {
     const txMeta = {
       type: TransactionType.predictWithdraw,
     } as TransactionMeta;
 
-    expect(isWithdrawalTransaction(txMeta)).toBe(true);
+    expect(isTransactionPayWithdraw(txMeta)).toBe(true);
   });
 
   it('returns false for non-withdrawal transaction types', () => {
@@ -229,7 +229,7 @@ describe('isWithdrawalTransaction', () => {
       type: TransactionType.simpleSend,
     } as TransactionMeta;
 
-    expect(isWithdrawalTransaction(txMeta)).toBe(false);
+    expect(isTransactionPayWithdraw(txMeta)).toBe(false);
   });
 
   it('returns false for deposit transaction types', () => {
@@ -237,7 +237,7 @@ describe('isWithdrawalTransaction', () => {
       type: TransactionType.predictDeposit,
     } as TransactionMeta;
 
-    expect(isWithdrawalTransaction(txMeta)).toBe(false);
+    expect(isTransactionPayWithdraw(txMeta)).toBe(false);
   });
 
   it('returns true when nested transaction is a withdrawal type', () => {
@@ -246,10 +246,10 @@ describe('isWithdrawalTransaction', () => {
       nestedTransactions: [{ type: TransactionType.predictWithdraw }],
     } as TransactionMeta;
 
-    expect(isWithdrawalTransaction(txMeta)).toBe(true);
+    expect(isTransactionPayWithdraw(txMeta)).toBe(true);
   });
 
   it('returns false for undefined transaction', () => {
-    expect(isWithdrawalTransaction(undefined)).toBe(false);
+    expect(isTransactionPayWithdraw(undefined)).toBe(false);
   });
 });

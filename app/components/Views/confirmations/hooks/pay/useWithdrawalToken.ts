@@ -3,7 +3,7 @@ import { Hex } from '@metamask/utils';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import Engine from '../../../../../core/Engine';
 import EngineService from '../../../../../core/EngineService';
-import { isWithdrawalTransaction } from '../../utils/transaction';
+import { isTransactionPayWithdraw } from '../../utils/transaction';
 
 /**
  * Whether the withdrawal token picker feature is enabled.
@@ -32,7 +32,7 @@ export interface UseWithdrawalTokenResult {
 export function useWithdrawalToken(): UseWithdrawalTokenResult {
   const transactionMeta = useTransactionMetadataRequest();
   const transactionId = transactionMeta?.id ?? '';
-  const isWithdrawal = isWithdrawalTransaction(transactionMeta);
+  const isWithdrawal = isTransactionPayWithdraw(transactionMeta);
 
   const setWithdrawalToken = useCallback(
     (newToken: { address: Hex; chainId: Hex }) => {
