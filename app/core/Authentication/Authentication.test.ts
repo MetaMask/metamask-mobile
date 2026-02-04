@@ -108,6 +108,11 @@ jest.mock('../../store/storage-wrapper', () => ({
 
 const mockResyncAccounts = jest.fn().mockResolvedValue(undefined);
 
+// HD_KEY_TREE is the string value of KeyringTypes.hd
+// We use the string literal here because this mock runs at module load time,
+// before the KeyringTypes import is resolved.
+const HD_KEY_TREE = 'HD Key Tree';
+
 /**
  * Creates a mock HD keyring object for testing.
  * Used to mock KeyringController.state.keyrings entries.
@@ -115,7 +120,7 @@ const mockResyncAccounts = jest.fn().mockResolvedValue(undefined);
  * @returns A mock keyring object with HD type and metadata
  */
 const createMockHdKeyring = (id = 'test-keyring-id') => ({
-  type: KeyringTypes.hd,
+  type: HD_KEY_TREE,
   metadata: { id },
 });
 
