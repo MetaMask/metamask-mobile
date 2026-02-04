@@ -21,7 +21,6 @@ import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
 import { MUSD_EVENTS_CONSTANTS } from '../../constants/events/musdEvents';
-import NavigationService from '../../../../../core/NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
 import { ClaimOnLineaBottomSheetParams } from './ClaimOnLineaBottomSheet/ClaimOnLineaBottomSheet';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../constants/musd';
@@ -79,7 +78,7 @@ const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({ asset }) => {
       // Toast notifications and balance refresh are handled globally by useMerklClaimStatus
       if (result?.txHash) {
         // Navigate to home page
-        NavigationService.navigation.navigate(Routes.WALLET.HOME);
+        navigation.navigate(Routes.WALLET.HOME);
 
         // Emit event to scroll to Linea mUSD token in the token list
         // Use a small delay to allow navigation to complete
@@ -93,7 +92,7 @@ const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({ asset }) => {
     } catch {
       // Error is handled by useMerklClaim hook and displayed via claimError
     }
-  }, [claimRewards]);
+  }, [claimRewards, navigation]);
 
   const handleClaimPress = useCallback(() => {
     trackClaimButtonClicked();
