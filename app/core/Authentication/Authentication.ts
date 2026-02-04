@@ -727,16 +727,27 @@ class AuthenticationService {
 
         if (passwordToUse) {
           // Password available. Use password to unlock wallet.
+          const isSeedlessPasswordOutdated =
+            await this.checkIsSeedlessPasswordOutdated(false);
+
           if (authPreference?.oauth2Login) {
             // if seedless flow - rehydrate
             await this.rehydrateSeedPhrase(passwordToUse);
-          } else if (await this.checkIsSeedlessPasswordOutdated(false)) {
+          } else if (isSeedlessPasswordOutdated) {
             // If seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
             await this.syncPasswordAndUnlockWallet(passwordToUse);
           }
 
           // Unlock keyrings.
           await this.loginVaultCreation(passwordToUse);
+
+          // Update authentication preference.
+          if (authPreference) {
+            await this.updateAuthPreference({
+              password: passwordToUse,
+              authType: authPreference.currentAuthType,
+            });
+          }
 
           // Perform post login operations.
           await this.dispatchLogin();
