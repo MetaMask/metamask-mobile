@@ -1,52 +1,46 @@
-import Assertions from '../../../../tests/framework/Assertions';
-import Browser from '../../../pages/Browser/BrowserView';
-import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
-import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
-import RequestTypes from '../../../pages/Browser/Confirmations/RequestTypes';
-import TestDApp from '../../../pages/Browser/TestDApp';
-import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
-import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
-import { SmokeConfirmations } from '../../../tags';
+import Assertions from '../../../framework/Assertions';
+import Browser from '../../../../e2e/pages/Browser/BrowserView';
+import FooterActions from '../../../../e2e/pages/Browser/Confirmations/FooterActions';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import RequestTypes from '../../../../e2e/pages/Browser/Confirmations/RequestTypes';
+import TestDApp from '../../../../e2e/pages/Browser/TestDApp';
+import { loginToApp, navigateToBrowserView } from '../../../../e2e/viewHelper';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import { SmokeConfirmations } from '../../../../e2e/tags';
 import {
   buildPermissions,
   AnvilPort,
-} from '../../../../tests/framework/fixtures/FixtureUtils';
-import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
-import { DappVariants } from '../../../../tests/framework/Constants';
+} from '../../../framework/fixtures/FixtureUtils';
+import RowComponents from '../../../../e2e/pages/Browser/Confirmations/RowComponents';
+import { DappVariants } from '../../../framework/Constants';
 import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
-import { confirmationFeatureFlags } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
-import { LocalNode } from '../../../../tests/framework/types';
-import { AnvilManager } from '../../../../tests/seeder/anvil-manager';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+import { LocalNode } from '../../../framework/types';
+import { AnvilManager } from '../../../seeder/anvil-manager';
 
 const SIGNATURE_LIST = [
   {
-    specName: 'Typed V1 Sign',
-    testDappBtn: TestDApp.tapTypedSignButton.bind(TestDApp),
-    requestType: RequestTypes.TypedSignRequest,
+    specName: 'Personal Sign',
+    testDappBtn: TestDApp.tapPersonalSignButton.bind(TestDApp),
+    requestType: RequestTypes.PersonalSignRequest,
     additionAssertions: async () => {
       await Assertions.expectElementToBeVisible(RowComponents.NetworkAndOrigin);
     },
   },
   {
-    specName: 'Typed V3 Sign',
-    testDappBtn: TestDApp.tapTypedV3SignButton.bind(TestDApp),
-    requestType: RequestTypes.TypedSignRequest,
+    specName: 'SIWE Sign',
+    testDappBtn: TestDApp.tapEthereumSignButton.bind(TestDApp),
+    requestType: RequestTypes.PersonalSignRequest,
     additionAssertions: async () => {
-      await Assertions.expectElementToBeVisible(RowComponents.OriginInfo);
-    },
-  },
-  {
-    specName: 'Typed V4 Sign',
-    testDappBtn: TestDApp.tapTypedV4SignButton.bind(TestDApp),
-    requestType: RequestTypes.TypedSignRequest,
-    additionAssertions: async () => {
-      await Assertions.expectElementToBeVisible(RowComponents.OriginInfo);
+      await Assertions.expectElementToBeVisible(
+        RowComponents.SiweSigningAccountInfo,
+      );
     },
   },
 ];
 
-describe(SmokeConfirmations('Typed Signature Requests'), () => {
+describe(SmokeConfirmations('Signature Requests'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     await setupRemoteFeatureFlagsMock(
       mockServer,

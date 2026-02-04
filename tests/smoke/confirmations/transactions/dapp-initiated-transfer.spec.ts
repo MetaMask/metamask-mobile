@@ -1,43 +1,43 @@
-import { SmokeConfirmations } from '../../../tags';
-import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
-import Browser from '../../../pages/Browser/BrowserView';
-import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent';
-import ConfirmationUITypes from '../../../pages/Browser/Confirmations/ConfirmationUITypes';
-import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
-import Assertions from '../../../../tests/framework/Assertions';
-import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
+import { SmokeConfirmations } from '../../../../e2e/tags';
+import { loginToApp, navigateToBrowserView } from '../../../../e2e/viewHelper';
+import Browser from '../../../../e2e/pages/Browser/BrowserView';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
+import ConfirmationUITypes from '../../../../e2e/pages/Browser/Confirmations/ConfirmationUITypes';
+import FooterActions from '../../../../e2e/pages/Browser/Confirmations/FooterActions';
+import Assertions from '../../../framework/Assertions';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import {
   AnvilPort,
   buildPermissions,
-} from '../../../../tests/framework/fixtures/FixtureUtils';
-import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
+} from '../../../framework/fixtures/FixtureUtils';
+import RowComponents from '../../../../e2e/pages/Browser/Confirmations/RowComponents';
 import {
   SEND_ETH_SIMULATION_MOCK,
   SIMULATION_ENABLED_NETWORKS_MOCK,
-} from '../../../../tests/api-mocking/mock-responses/simulations';
-import TestDApp from '../../../pages/Browser/TestDApp';
-import { DappVariants } from '../../../../tests/framework/Constants';
+} from '../../../api-mocking/mock-responses/simulations';
+import TestDApp from '../../../../e2e/pages/Browser/TestDApp';
+import { DappVariants } from '../../../framework/Constants';
 import {
   EventPayload,
   getEventsPayloads,
-} from '../../../../tests/helpers/analytics/helpers';
-import SoftAssert from '../../../../tests/framework/SoftAssert';
+} from '../../../helpers/analytics/helpers';
+import SoftAssert from '../../../framework/SoftAssert';
 import { Mockttp } from 'mockttp';
 import {
   setupMockRequest,
   setupMockPostRequest,
-} from '../../../../tests/api-mocking/helpers/mockHelpers';
-import Gestures from '../../../../tests/framework/Gestures';
+} from '../../../api-mocking/helpers/mockHelpers';
+import Gestures from '../../../framework/Gestures';
 import {
   SECURITY_ALERTS_BENIGN_RESPONSE,
   SECURITY_ALERTS_REQUEST_BODY,
   securityAlertsUrl,
-} from '../../../../tests/api-mocking/mock-responses/security-alerts-mock';
-import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
-import { confirmationFeatureFlags } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
-import { LocalNode } from '../../../../tests/framework/types';
-import { AnvilManager } from '../../../../tests/seeder/anvil-manager';
+} from '../../../api-mocking/mock-responses/security-alerts-mock';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+import { LocalNode } from '../../../framework/types';
+import { AnvilManager } from '../../../seeder/anvil-manager';
 
 const expectedEvents = {
   TRANSACTION_ADDED: 'Transaction Added',

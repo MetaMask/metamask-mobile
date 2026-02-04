@@ -1,7 +1,7 @@
 import { Mockttp } from 'mockttp';
-import { AnvilManager } from '../../../tests/seeder/anvil-manager';
-import { LocalNode } from '../../../tests/framework';
-import { getEventsPayloads } from '../../../tests/helpers/analytics/helpers';
+import { AnvilManager } from '../../../seeder/anvil-manager';
+import { LocalNode } from '../../../framework';
+import { getEventsPayloads } from '../../../helpers/analytics/helpers';
 
 export const validateTransactionHashInTransactionFinalizedEvent = async (
   localNodes?: LocalNode[],
