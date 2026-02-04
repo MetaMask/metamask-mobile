@@ -4,19 +4,20 @@ import OnboardingScreen from '../../../../../wdio/screen-objects/Onboarding/Onbo
 import { PerformanceOnboarding, PerformanceLaunch } from '../../../../tags.js';
 
 test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
-  test('Measure Cold Start To Onboarding Screen', async ({
-    device,
-    performanceTracker,
-  }, testInfo) => {
-    OnboardingScreen.device = device;
-    const timer1 = new TimerHelper(
-      'Time since the the app is installed, until onboarding screen appears',
-      { ios: 3000, android: 3900 },
-      device,
-    );
-    await timer1.measure(() => OnboardingScreen.isScreenTitleVisible());
+  test(
+    'Measure Cold Start To Onboarding Screen',
+    { tag: '@metamask-mobile-platform' },
+    async ({ device, performanceTracker }, testInfo) => {
+      OnboardingScreen.device = device;
+      const timer1 = new TimerHelper(
+        'Time since the the app is installed, until onboarding screen appears',
+        { ios: 3000, android: 3900 },
+        device,
+      );
+      await timer1.measure(() => OnboardingScreen.isScreenTitleVisible());
 
-    performanceTracker.addTimer(timer1);
-    await performanceTracker.attachToTest(testInfo);
-  });
-}); // End describe
+      performanceTracker.addTimer(timer1);
+      await performanceTracker.attachToTest(testInfo);
+    },
+  );
+});

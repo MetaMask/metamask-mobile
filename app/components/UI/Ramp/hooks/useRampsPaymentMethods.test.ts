@@ -3,11 +3,7 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
 import { useRampsPaymentMethods } from './useRampsPaymentMethods';
-import {
-  RequestStatus,
-  type UserRegion,
-  type PaymentMethod,
-} from '@metamask/ramps-controller';
+import { type PaymentMethod } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
 
 jest.mock('../../../../core/Engine', () => ({
@@ -17,48 +13,6 @@ jest.mock('../../../../core/Engine', () => ({
     },
   },
 }));
-
-const mockUserRegion: UserRegion = {
-  country: {
-    isoCode: 'US',
-    name: 'United States',
-    flag: '🇺🇸',
-    phone: {
-      prefix: '+1',
-      placeholder: '(XXX) XXX-XXXX',
-      template: 'XXX-XXX-XXXX',
-    },
-    currency: 'USD',
-    supported: { buy: true, sell: true },
-  },
-  state: { stateId: 'CA', name: 'California' },
-  regionCode: 'us-ca',
-};
-
-const mockSelectedToken = {
-  assetId: 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
-  chainId: 'eip155:1',
-  symbol: 'ETH',
-  name: 'Ethereum',
-  decimals: 18,
-  iconUrl: 'https://example.com/eth-icon.png',
-  tokenSupported: true,
-};
-
-const mockSelectedProvider = {
-  id: 'provider-1',
-  name: 'Provider 1',
-  environmentType: 'PRODUCTION',
-  description: 'Provider 1 Description',
-  hqAddress: '123 Provider 1 St, City, ST 12345',
-  links: [],
-  logos: {
-    light: 'https://example.com/logo1-light.png',
-    dark: 'https://example.com/logo1-dark.png',
-    height: 24,
-    width: 79,
-  },
-};
 
 const mockPaymentMethods: PaymentMethod[] = [
   {
@@ -77,19 +31,19 @@ const mockPaymentMethods: PaymentMethod[] = [
   },
 ];
 
-const createMockStore = (rampsControllerState = {}) =>
+const createMockStore = (paymentMethodsState = {}) =>
   configureStore({
     reducer: {
       engine: () => ({
         backgroundState: {
           RampsController: {
-            userRegion: null,
-            selectedToken: null,
-            selectedProvider: null,
-            paymentMethods: [],
-            selectedPaymentMethod: null,
-            requests: {},
-            ...rampsControllerState,
+            paymentMethods: {
+              data: [],
+              selected: null,
+              isLoading: false,
+              error: null,
+              ...paymentMethodsState,
+            },
           },
         },
       }),
@@ -124,7 +78,7 @@ describe('useRampsPaymentMethods', () => {
 
   describe('paymentMethods state', () => {
     it('returns paymentMethods from state', () => {
-      const store = createMockStore({ paymentMethods: mockPaymentMethods });
+      const store = createMockStore({ data: mockPaymentMethods });
       const { result } = renderHook(() => useRampsPaymentMethods(), {
         wrapper: wrapper(store),
       });
@@ -143,7 +97,7 @@ describe('useRampsPaymentMethods', () => {
   describe('selectedPaymentMethod state', () => {
     it('returns selectedPaymentMethod from state', () => {
       const store = createMockStore({
-        selectedPaymentMethod: mockPaymentMethods[0],
+        selected: mockPaymentMethods[0],
       });
       const { result } = renderHook(() => useRampsPaymentMethods(), {
         wrapper: wrapper(store),
@@ -163,21 +117,9 @@ describe('useRampsPaymentMethods', () => {
   });
 
   describe('loading state', () => {
-    it('returns isLoading true when request is loading', () => {
+    it('returns isLoading true when isLoading is true', () => {
       const store = createMockStore({
-        userRegion: mockUserRegion,
-        selectedToken: mockSelectedToken,
-        selectedProvider: mockSelectedProvider,
-        requests: {
-          [`getPaymentMethods:["us-ca","usd","${mockSelectedToken.assetId}","${mockSelectedProvider.id}"]`]:
-            {
-              status: RequestStatus.LOADING,
-              data: null,
-              error: null,
-              timestamp: Date.now(),
-              lastFetchedAt: Date.now(),
-            },
-        },
+        isLoading: true,
       });
       const { result } = renderHook(() => useRampsPaymentMethods(), {
         wrapper: wrapper(store),
@@ -187,21 +129,9 @@ describe('useRampsPaymentMethods', () => {
   });
 
   describe('error state', () => {
-    it('returns error from request state', () => {
+    it('returns error from state', () => {
       const store = createMockStore({
-        userRegion: mockUserRegion,
-        selectedToken: mockSelectedToken,
-        selectedProvider: mockSelectedProvider,
-        requests: {
-          [`getPaymentMethods:["us-ca","usd","${mockSelectedToken.assetId}","${mockSelectedProvider.id}"]`]:
-            {
-              status: RequestStatus.ERROR,
-              data: null,
-              error: 'Network error',
-              timestamp: Date.now(),
-              lastFetchedAt: Date.now(),
-            },
-        },
+        error: 'Network error',
       });
       const { result } = renderHook(() => useRampsPaymentMethods(), {
         wrapper: wrapper(store),
