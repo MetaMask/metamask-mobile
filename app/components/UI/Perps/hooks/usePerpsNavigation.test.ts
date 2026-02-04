@@ -219,7 +219,7 @@ describe('usePerpsNavigation', () => {
         expect(mockDepositWithOrder).toHaveBeenCalled();
         expect(mockNavigate).toHaveBeenCalledWith(
           Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-          params,
+          { ...params, showPerpsHeader: false },
         );
       });
     });
