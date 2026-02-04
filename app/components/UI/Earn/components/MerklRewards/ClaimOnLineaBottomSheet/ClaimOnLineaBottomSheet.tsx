@@ -42,8 +42,10 @@ const ClaimOnLineaBottomSheet: React.FC = () => {
     Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
   }, []);
 
-  const handleContinue = useCallback(async () => {
-    await onContinue();
+  const handleContinue = useCallback(() => {
+    // Fire-and-forget: start claim in background and close sheet immediately
+    // The Claim button shows loading state while transaction processes
+    onContinue();
     bottomSheetRef.current?.onCloseBottomSheet();
   }, [onContinue]);
 
