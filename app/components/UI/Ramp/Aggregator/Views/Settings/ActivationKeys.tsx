@@ -167,7 +167,9 @@ function ActivationKeys() {
           <ListItemColumn>
             <ButtonIcon
               accessibilityRole="button"
-              accessibilityLabel="Delete activation key"
+              accessibilityLabel={strings(
+                'app_settings.fiat_on_ramp.delete_activation_key',
+              )}
               disabled={isLoadingKeys}
               onPress={() => removeActivationKey(activationKey.key)}
               hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}

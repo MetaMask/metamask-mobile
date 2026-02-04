@@ -3,6 +3,7 @@ import { StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 
+import { strings } from '../../../../../../locales/i18n';
 import SelectorButton from '../../../../Base/SelectorButton';
 import Text, {
   TextVariant,
@@ -70,7 +71,9 @@ const AccountSelector = ({ isEvmOnly }: { isEvmOnly?: boolean }) => {
           </Text>
         </>
       ) : (
-        <Text variant={TextVariant.BodyMD}>Account is loading...</Text>
+        <Text variant={TextVariant.BodyMD}>
+            {strings('fiat_on_ramp_aggregator.account_loading')}
+          </Text>
       )}
     </SelectorButton>
   );
