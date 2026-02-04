@@ -176,7 +176,7 @@ export class PerformanceTestReporter {
    * Save test results to JSON file
    */
   private saveTestResults(): void {
-    const performanceDir = path.join(__dirname, '..', 'specs', 'performance');
+    const performanceDir = path.join(__dirname, '..', 'smoke', 'performance');
     const reportsDir = path.join(performanceDir, 'reports');
     const outputFile = path.join(
       reportsDir,

@@ -125,7 +125,7 @@ scripts/reports/
 PR_DESC.md
 
 # Performance test results
-e2e/specs/performance/reports/*-performance-results.json
+tests/smoke/performance/reports/*-performance-results.json
 
 # appwright
 appwright/report
