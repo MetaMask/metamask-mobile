@@ -59,7 +59,7 @@ describe('Assets Trending Tokens Feature Flag Selector', () => {
       expect(result).toBe(true);
     });
 
-    it.only('returns false when flag is disabled', () => {
+    it('returns false when flag is disabled', () => {
       const mockedState = mockStateWith({
         enabled: false,
         minimumVersion: '1.0.0',
