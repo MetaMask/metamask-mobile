@@ -98,7 +98,8 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
               if (finished) {
                 const stateWhenDone = connectionStateRef.current;
                 const stillOffline =
-                  stateWhenDone === WebSocketConnectionState.Disconnected;
+                  stateWhenDone === WebSocketConnectionState.Disconnected ||
+                  stateWhenDone === WebSocketConnectionState.Connecting;
                 if (stillOffline) {
                   hide({ userDismissed: true });
                 }
