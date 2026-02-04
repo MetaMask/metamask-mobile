@@ -42,8 +42,8 @@ const ClaimOnLineaBottomSheet: React.FC = () => {
     Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
   }, []);
 
-  const handleContinue = useCallback(() => {
-    onContinue();
+  const handleContinue = useCallback(async () => {
+    await onContinue();
     bottomSheetRef.current?.onCloseBottomSheet();
   }, [onContinue]);
 

@@ -174,13 +174,22 @@ describe('ClaimOnLineaBottomSheet', () => {
     expect(getByTestId('claim-on-linea-musd-image')).toBeTruthy();
   });
 
-  it('closes bottom sheet and calls onContinue when Continue button is pressed', () => {
+  it('calls onContinue when Continue button is pressed', async () => {
+    mockOnContinue.mockResolvedValueOnce(undefined);
     const { getByTestId } = render(<ClaimOnLineaBottomSheet />);
 
     fireEvent.press(getByTestId('claim-on-linea-continue-button'));
 
-    expect(mockOnCloseBottomSheet).toHaveBeenCalled();
     expect(mockOnContinue).toHaveBeenCalled();
+  });
+
+  it('closes bottom sheet after onContinue completes', async () => {
+    mockOnContinue.mockResolvedValueOnce(undefined);
+    const { getByTestId } = render(<ClaimOnLineaBottomSheet />);
+
+    await fireEvent.press(getByTestId('claim-on-linea-continue-button'));
+
+    expect(mockOnCloseBottomSheet).toHaveBeenCalled();
   });
 
   it('opens terms URL when Terms apply link is pressed', () => {
