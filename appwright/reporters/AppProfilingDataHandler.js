@@ -47,7 +47,7 @@ export class AppProfilingDataHandler {
   async getAppProfilingData(buildId, sessionId) {
     const credentials = BrowserStackCredentials.getCredentials();
     // eslint-disable-next-line no-undef
-    const authHeader = Buffer.from(
+    const authHeader = global.Buffer.from(
       `${credentials.username}:${credentials.accessKey}`,
     ).toString('base64');
 
@@ -189,6 +189,78 @@ export class AppProfilingDataHandler {
         profilingSummary: null,
       };
     }
+  }
+
+  /**
+   * Fetch network logs (HAR) for a session from BrowserStack API.
+   * Requires networkLogs: true in session capabilities.
+   * @param {string} sessionId - The session ID
+   * @returns {Promise<{ entries: Array<{ method: string, url: string, status?: number, time?: number }>, error?: string }>}
+   */
+  async getNetworkLogs(sessionId) {
+    try {
+      const sessionDetails = await this.getSessionDetails(sessionId);
+      if (!sessionDetails?.buildId) {
+        return {
+          entries: [],
+          error: 'No build ID found in session details',
+        };
+      }
+
+      const credentials = BrowserStackCredentials.getCredentials();
+      const authHeader = global.Buffer.from(
+        `${credentials.username}:${credentials.accessKey}`,
+      ).toString('base64');
+
+      const url = `https://api-cloud.browserstack.com/app-automate/builds/${sessionDetails.buildId}/sessions/${sessionId}/networklogs`;
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Authorization: `Basic ${authHeader}`,
+        },
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        return {
+          entries: [],
+          error: `Network logs API error: ${response.status} ${text}`,
+        };
+      }
+
+      const har = await response.json();
+      const entries = this.parseHarToEntries(har);
+      return { entries };
+    } catch (error) {
+      return {
+        entries: [],
+        error: `Failed to fetch network logs: ${error.message}`,
+      };
+    }
+  }
+
+  /**
+   * Parse HAR response to a simple list of request entries for CSV.
+   * @param {Object} har - HAR JSON from BrowserStack
+   * @returns {Array<{ method: string, url: string, status?: number, time?: number }>}
+   */
+  parseHarToEntries(har) {
+    const entries = [];
+    try {
+      const log = har?.log ?? har;
+      const harEntries = log?.entries ?? [];
+      for (const entry of harEntries) {
+        const method = entry.request?.method ?? 'GET';
+        const url = entry.request?.url ?? '';
+        const status = entry.response?.status;
+        const time = entry.time != null ? Math.round(entry.time) : undefined;
+        entries.push({ method, url, status, time });
+      }
+    } catch (e) {
+      // ignore
+    }
+    return entries;
   }
 
   /**

@@ -301,6 +301,7 @@ class CustomReporter {
       const tracker = new PerformanceTracker();
 
       for (const session of this.sessions) {
+        const appProfilingHandler = new AppProfilingDataHandler();
         try {
           // Fetch video URL
           const videoURL = await tracker.getVideoURL(
@@ -317,7 +318,6 @@ class CustomReporter {
             console.log(
               `🔍 Fetching profiling data for ${session.testTitle}...`,
             );
-            const appProfilingHandler = new AppProfilingDataHandler();
             const profilingResult =
               await appProfilingHandler.fetchCompleteProfilingData(
                 session.sessionId,
@@ -358,6 +358,28 @@ class CustomReporter {
               error: `Failed to fetch profiling data: ${error.message}`,
               timestamp: new Date().toISOString(),
             };
+          }
+
+          // Fetch BrowserStack network logs (HAR) for CSV
+          try {
+            const networkResult = await appProfilingHandler.getNetworkLogs(
+              session.sessionId,
+            );
+            if (networkResult.error) {
+              session.networkLogsError = networkResult.error;
+              session.networkLogsEntries = [];
+            } else {
+              session.networkLogsEntries = networkResult.entries || [];
+              console.log(
+                `✅ Network logs fetched for ${session.testTitle}: ${session.networkLogsEntries.length} request(s)`,
+              );
+            }
+          } catch (error) {
+            session.networkLogsError = error.message;
+            session.networkLogsEntries = [];
+            console.log(
+              `⚠️ Failed to fetch network logs for ${session.testTitle}: ${error.message}`,
+            );
           }
         } catch (error) {
           console.error(`❌ Error fetching video URL for ${session.testTitle}`);
@@ -422,6 +444,12 @@ class CustomReporter {
             sessionId: matchingSession?.sessionId || null,
             profilingData: matchingSession?.profilingData || null,
             profilingSummary: matchingSession?.profilingSummary || null,
+            apiCalls:
+              matchingSession?.networkLogsEntries &&
+              matchingSession.networkLogsEntries.length > 0
+                ? matchingSession.networkLogsEntries
+                : null,
+            apiCallsError: matchingSession?.networkLogsError || null,
           };
         });
 
@@ -1145,6 +1173,21 @@ class CustomReporter {
       console.log(`✅ Performance CSV report saved: ${csvPath}`);
     } catch (error) {
       console.error('Error generating performance report:', error);
+    }
+
+    // BrowserStack network logs are included in each test's JSON (performance-metrics-*.json) as apiCalls / apiCallsError
+
+    // Final summary: where to find reports
+    const reportsDir = path.join(__dirname, 'reports');
+    const reportsDirAbs = path.resolve(reportsDir);
+    console.log(`\n📁 Reports saved in: ${reportsDirAbs}`);
+    if (fs.existsSync(reportsDir)) {
+      const files = fs.readdirSync(reportsDir);
+      if (files.length > 0) {
+        console.log(
+          `   Files: ${files.slice(0, 15).join(', ')}${files.length > 15 ? ` (+${files.length - 15} more)` : ''}`,
+        );
+      }
     }
   }
 }
