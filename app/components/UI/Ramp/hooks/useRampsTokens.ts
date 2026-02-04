@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
   selectTokens,
@@ -45,6 +45,7 @@ export interface UseRampsTokensResult {
 /**
  * Hook to get tokens state from RampsController.
  * This hook assumes Engine is already initialized.
+ * Automatically triggers token fetching when region and action are available.
  *
  * @param region - Optional region code to use for request state. If not provided, uses userRegion from state.
  * @param action - Optional action type ('buy' or 'sell'). Defaults to 'buy'.
@@ -71,6 +72,17 @@ export function useRampsTokens(
   const { isFetching, error } = useSelector(
     requestSelector,
   ) as RequestSelectorResult<TokensResponse>;
+
+  // Trigger token fetch when region and action are available
+  // Only fetch if we have a region, aren't already fetching, and don't have tokens yet
+  useEffect(() => {
+    if (regionCode && !isFetching && !tokens && !error) {
+      // Trigger fetch by calling getTokens through the controller
+      Engine.context.RampsController.getTokens(regionCode, action).catch(() => {
+        // Error is stored in state via the request selector
+      });
+    }
+  }, [regionCode, action, isFetching, tokens, error]);
 
   const setSelectedToken = useCallback(
     (assetId?: string) =>
