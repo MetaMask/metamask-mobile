@@ -59,6 +59,7 @@ import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { EVENT_LOCATIONS as EARN_EVENT_LOCATIONS } from '../../../Earn/constants/events/earnEvents';
 import { useStablecoinLendingRedirect } from '../../../Earn/hooks/useStablecoinLendingRedirect';
+import { useMusdCtaVisibility } from '../../../Earn/hooks/useMusdCtaVisibility';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
