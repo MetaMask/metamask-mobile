@@ -281,9 +281,9 @@ describe('RampsController Selectors', () => {
       });
     });
 
-    it('returns default resource state when quotes is null', () => {
+    it('returns default resource state when quotes is undefined', () => {
       const state = createMockState({
-        quotes: null,
+        quotes: undefined,
       });
 
       const result = selectQuotes(state);
