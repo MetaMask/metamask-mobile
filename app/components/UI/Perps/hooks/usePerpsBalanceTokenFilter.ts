@@ -18,8 +18,8 @@ import { selectPerpsAccountState } from '../selectors/perpsController';
 import { useIsPerpsBalanceSelected } from './useIsPerpsBalanceSelected';
 
 /** URI for the perps balance token icon, shared with PerpsPayRow and pay-with modal. */
-export const PERPS_BALANCE_ICON_URI =
-  Image.resolveAssetSource(perpsPayTokenIcon).uri;
+const resolvedPerpsIcon = Image.resolveAssetSource(perpsPayTokenIcon);
+export const PERPS_BALANCE_ICON_URI = resolvedPerpsIcon?.uri ?? '';
 
 /**
  * Returns a filter that prepends a synthetic "Perps balance" token to the list
