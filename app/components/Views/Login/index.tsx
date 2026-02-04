@@ -327,31 +327,34 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   // so we need to handle the biometric cancellation and login with password instead
   // we also reseted the password so that the state is correct
   const handleBiometricCancellation = useCallback(
-    async (loginError: Error, password: string) => {
-      if (containsErrorMessage(loginError, 'cancel')) {
-        // show alert to user that will login with password instead of biometric authentication
-        Alert.alert(
-          strings('login.biometric_authentication_cancelled_title'),
-          strings('login.biometric_authentication_cancelled_description'),
-          [
-            {
-              text: strings('login.biometric_authentication_cancelled_button'),
-              onPress: async () => {
-                try {
-                  await Authentication.resetPassword();
-                  await unlockWallet({ password });
-                } catch (error) {
-                  await handleLoginError(error as Error);
-                } finally {
-                  setLoading(false);
-                }
-              },
-            },
-          ],
-        );
-        setError(strings('login.biometric_authentication_cancelled'));
-        await Authentication.resetPassword();
+    async (loginError: Error, password: string): Promise<boolean> => {
+      if (!containsErrorMessage(loginError, 'cancel')) {
+        return false;
       }
+
+      // show alert to user that will login with password instead of biometric authentication
+      Alert.alert(
+        strings('login.biometric_authentication_cancelled_title'),
+        strings('login.biometric_authentication_cancelled_description'),
+        [
+          {
+            text: strings('login.biometric_authentication_cancelled_button'),
+            onPress: async () => {
+              try {
+                await Authentication.resetPassword();
+                await unlockWallet({ password });
+              } catch (error) {
+                await handleLoginError(error as Error);
+              } finally {
+                setLoading(false);
+              }
+            },
+          },
+        ],
+      );
+      setError(strings('login.biometric_authentication_cancelled'));
+      await Authentication.resetPassword();
+      return true;
     },
     [setError, setLoading, handleLoginError, unlockWallet],
   );
@@ -384,8 +387,13 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         },
       );
     } catch (loginErr) {
-      await handleBiometricCancellation(loginErr as Error, password);
-      await handleLoginError(loginErr as Error);
+      const handledBiometricCancel = await handleBiometricCancellation(
+        loginErr as Error,
+        password,
+      );
+      if (!handledBiometricCancel) {
+        await handleLoginError(loginErr as Error);
+      }
     } finally {
       setLoading(false);
     }

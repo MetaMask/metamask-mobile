@@ -728,13 +728,10 @@ class AuthenticationService {
 
         if (passwordToUse) {
           // Password available. Use password to unlock wallet.
-          const isSeedlessPasswordOutdated =
-            await this.checkIsSeedlessPasswordOutdated(false);
-
           if (authPreference?.oauth2Login) {
             // if seedless flow - rehydrate
             await this.rehydrateSeedPhrase(passwordToUse);
-          } else if (isSeedlessPasswordOutdated) {
+          } else if (await this.checkIsSeedlessPasswordOutdated(false)) {
             // If seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
             await this.syncPasswordAndUnlockWallet(passwordToUse);
           }
