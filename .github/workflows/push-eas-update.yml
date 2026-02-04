@@ -51,214 +51,214 @@ env:
   OTA_PUSH_PLATFORM: ${{ inputs.platform }}
 
 jobs:
-  setup-dependencies:
-    name: Setup Dependencies (PR)
-    needs:
-      - validate-pr
-    uses: ./.github/workflows/setup-node-modules.yml
-    with:
-      ref: ${{ inputs.commit_hash }}
-      fetch-depth: 0
-      upload-artifact: true
-      artifact-name: node-modules-eas-update-pr
-      artifact-retention-days: 1
+  # setup-dependencies:
+  #   name: Setup Dependencies (PR)
+  #   needs:
+  #     - validate-pr
+  #   uses: ./.github/workflows/setup-node-modules.yml
+  #   with:
+  #     ref: ${{ inputs.commit_hash }}
+  #     fetch-depth: 0
+  #     upload-artifact: true
+  #     artifact-name: node-modules-eas-update-pr
+  #     artifact-retention-days: 1
 
-  setup-dependencies-base:
-    name: Setup Dependencies (Base)
-    needs:
-      - validate-pr
-    uses: ./.github/workflows/setup-node-modules.yml
-    with:
-      ref: ${{ inputs.base_branch }}
-      fetch-depth: 0
-      upload-artifact: true
-      artifact-name: node-modules-eas-update-base
-      artifact-retention-days: 1
+  # setup-dependencies-base:
+  #   name: Setup Dependencies (Base)
+  #   needs:
+  #     - validate-pr
+  #   uses: ./.github/workflows/setup-node-modules.yml
+  #   with:
+  #     ref: ${{ inputs.base_branch }}
+  #     fetch-depth: 0
+  #     upload-artifact: true
+  #     artifact-name: node-modules-eas-update-base
+  #     artifact-retention-days: 1
 
-  fingerprint-comparison:
-    name: Compare Expo Fingerprints
-    needs:
-      - setup-dependencies
-      - setup-dependencies-base
-    runs-on: ubuntu-latest
-    outputs:
-      branch_fingerprint: ${{ steps.branch_fingerprint.outputs.fingerprint }}
-      main_fingerprint: ${{ steps.main_fingerprint.outputs.fingerprint }}
-      fingerprints_equal: ${{ steps.compare.outputs.equal }}
-    env:
-      PR_ARTIFACT_NAME: ${{ needs.setup-dependencies.outputs.artifact-name }}
-      BASE_ARTIFACT_NAME: ${{ needs.setup-dependencies-base.outputs.artifact-name }}
-    steps:
-      - name: Checkout target commit
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ env.TARGET_COMMIT_HASH }}
-          fetch-depth: 0
+  # fingerprint-comparison:
+  #   name: Compare Expo Fingerprints
+  #   needs:
+  #     - setup-dependencies
+  #     - setup-dependencies-base
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     branch_fingerprint: ${{ steps.branch_fingerprint.outputs.fingerprint }}
+  #     main_fingerprint: ${{ steps.main_fingerprint.outputs.fingerprint }}
+  #     fingerprints_equal: ${{ steps.compare.outputs.equal }}
+  #   env:
+  #     PR_ARTIFACT_NAME: ${{ needs.setup-dependencies.outputs.artifact-name }}
+  #     BASE_ARTIFACT_NAME: ${{ needs.setup-dependencies-base.outputs.artifact-name }}
+  #   steps:
+  #     - name: Checkout target commit
+  #       uses: actions/checkout@v4
+  #       with:
+  #         ref: ${{ env.TARGET_COMMIT_HASH }}
+  #         fetch-depth: 0
 
-      - name: Checkout base branch snapshot
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ env.BASE_BRANCH_REF }}
-          path: main
-          fetch-depth: 0
+  #     - name: Checkout base branch snapshot
+  #       uses: actions/checkout@v4
+  #       with:
+  #         ref: ${{ env.BASE_BRANCH_REF }}
+  #         path: main
+  #         fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+  #     - name: Setup Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: '20'
 
-      - name: Validate artifact compatibility (PR commit)
-        uses: ./.github/actions/validate-artifact-compatibility
-        with:
-          artifact-name: ${{ env.PR_ARTIFACT_NAME }}
-          artifact-prefix: node-modules-eas-update-pr
-          validation-context: PR commit
+  #     - name: Validate artifact compatibility (PR commit)
+  #       uses: ./.github/actions/validate-artifact-compatibility
+  #       with:
+  #         artifact-name: ${{ env.PR_ARTIFACT_NAME }}
+  #         artifact-prefix: node-modules-eas-update-pr
+  #         validation-context: PR commit
 
-      - name: Download node_modules artifact (PR commit)
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ env.PR_ARTIFACT_NAME }}
+  #     - name: Download node_modules artifact (PR commit)
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: ${{ env.PR_ARTIFACT_NAME }}
 
-      - name: Restore executable permissions
-        uses: ./.github/actions/restore-node-modules-permissions
+  #     - name: Restore executable permissions
+  #       uses: ./.github/actions/restore-node-modules-permissions
 
-      - name: Verify downloaded artifacts
-        run: |
-          echo "✅ Verifying downloaded artifacts..."
-          if [ ! -d "node_modules" ]; then
-            echo "❌ node_modules directory not found"
-            exit 1
-          fi
-          if [ ! -f "app/core/InpageBridgeWeb3.js" ]; then
-            echo "❌ InpageBridgeWeb3.js not found in artifact"
-            exit 1
-          fi
-          echo "✅ Artifacts verified"
+  #     - name: Verify downloaded artifacts
+  #       run: |
+  #         echo "✅ Verifying downloaded artifacts..."
+  #         if [ ! -d "node_modules" ]; then
+  #           echo "❌ node_modules directory not found"
+  #           exit 1
+  #         fi
+  #         if [ ! -f "app/core/InpageBridgeWeb3.js" ]; then
+  #           echo "❌ InpageBridgeWeb3.js not found in artifact"
+  #           exit 1
+  #         fi
+  #         echo "✅ Artifacts verified"
 
-      - name: Generate fingerprint (target commit)
-        id: branch_fingerprint
-        run: |
-          echo "🧬 Generating fingerprint for current branch..."
-          FINGERPRINT=$(yarn fingerprint:generate)
-          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
-          echo "Target PR fingerprint: $FINGERPRINT"
+  #     - name: Generate fingerprint (target commit)
+  #       id: branch_fingerprint
+  #       run: |
+  #         echo "🧬 Generating fingerprint for current branch..."
+  #         FINGERPRINT=$(yarn fingerprint:generate)
+  #         echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
+  #         echo "Target PR fingerprint: $FINGERPRINT"
 
-      - name: Validate artifact compatibility (base branch)
-        uses: ./.github/actions/validate-artifact-compatibility
-        with:
-          artifact-name: ${{ env.BASE_ARTIFACT_NAME }}
-          artifact-prefix: node-modules-eas-update-base
-          validation-context: base branch
+  #     - name: Validate artifact compatibility (base branch)
+  #       uses: ./.github/actions/validate-artifact-compatibility
+  #       with:
+  #         artifact-name: ${{ env.BASE_ARTIFACT_NAME }}
+  #         artifact-prefix: node-modules-eas-update-base
+  #         validation-context: base branch
 
-      - name: Download node_modules artifact (base branch)
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ env.BASE_ARTIFACT_NAME }}
-          path: main
+  #     - name: Download node_modules artifact (base branch)
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: ${{ env.BASE_ARTIFACT_NAME }}
+  #         path: main
 
-      - name: Restore executable permissions (base branch)
-        uses: ./.github/actions/restore-node-modules-permissions
-        with:
-          working-directory: main
+  #     - name: Restore executable permissions (base branch)
+  #       uses: ./.github/actions/restore-node-modules-permissions
+  #       with:
+  #         working-directory: main
 
-      - name: Generate fingerprint (base branch)
-        id: main_fingerprint
-        working-directory: main
-        run: |
-          echo "🧬 Generating fingerprint for base branch (${BASE_BRANCH_REF})..."
-          FINGERPRINT=$(yarn fingerprint:generate)
-          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
-          echo "Base branch fingerprint: $FINGERPRINT"
+  #     - name: Generate fingerprint (base branch)
+  #       id: main_fingerprint
+  #       working-directory: main
+  #       run: |
+  #         echo "🧬 Generating fingerprint for base branch (${BASE_BRANCH_REF})..."
+  #         FINGERPRINT=$(yarn fingerprint:generate)
+  #         echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
+  #         echo "Base branch fingerprint: $FINGERPRINT"
 
-      - name: Compare fingerprints
-        id: compare
-        env:
-          BRANCH_FP: ${{ steps.branch_fingerprint.outputs.fingerprint }}
-          MAIN_FP: ${{ steps.main_fingerprint.outputs.fingerprint }}
-        run: |
-          if [ -z "$BRANCH_FP" ] || [ -z "$MAIN_FP" ]; then
-            echo "❌ Fingerprint generation failed." >&2
-            exit 1
-          fi
+  #     - name: Compare fingerprints
+  #       id: compare
+  #       env:
+  #         BRANCH_FP: ${{ steps.branch_fingerprint.outputs.fingerprint }}
+  #         MAIN_FP: ${{ steps.main_fingerprint.outputs.fingerprint }}
+  #       run: |
+  #         if [ -z "$BRANCH_FP" ] || [ -z "$MAIN_FP" ]; then
+  #           echo "❌ Fingerprint generation failed." >&2
+  #           exit 1
+  #         fi
 
-          if [ "$BRANCH_FP" = "$MAIN_FP" ]; then
-            echo "✅ Fingerprints match. No native changes detected."
-            echo "equal=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "⚠️ Fingerprints differ. Native changes detected."
-            echo "equal=false" >> "$GITHUB_OUTPUT"
-          fi
+  #         if [ "$BRANCH_FP" = "$MAIN_FP" ]; then
+  #           echo "✅ Fingerprints match. No native changes detected."
+  #           echo "equal=true" >> "$GITHUB_OUTPUT"
+  #         else
+  #           echo "⚠️ Fingerprints differ. Native changes detected."
+  #           echo "equal=false" >> "$GITHUB_OUTPUT"
+  #         fi
 
-          echo "Target PR fingerprint: $BRANCH_FP"
-          echo "Base branch fingerprint: $MAIN_FP"
+  #         echo "Target PR fingerprint: $BRANCH_FP"
+  #         echo "Base branch fingerprint: $MAIN_FP"
 
-      - name: Record fingerprint summary
-        env:
-          BRANCH_FP: ${{ steps.branch_fingerprint.outputs.fingerprint }}
-          MAIN_FP: ${{ steps.main_fingerprint.outputs.fingerprint }}
-          MATCHES: ${{ steps.compare.outputs.equal }}
-          TARGET_COMMIT_HASH: ${{ env.TARGET_COMMIT_HASH }}
-          BASE_BRANCH_REF: ${{ env.BASE_BRANCH_REF }}
-        run: |
-          {
-            echo "### Expo Fingerprint Comparison"
-            echo ""
-            echo "- Target commit (\`$TARGET_COMMIT_HASH\`) fingerprint: \`$BRANCH_FP\`"
-            echo "- Base branch (\`$BASE_BRANCH_REF\`) fingerprint: \`$MAIN_FP\`"
-            echo "- Match: \`$MATCHES\`"
-          } >> "$GITHUB_STEP_SUMMARY"
+  #     - name: Record fingerprint summary
+  #       env:
+  #         BRANCH_FP: ${{ steps.branch_fingerprint.outputs.fingerprint }}
+  #         MAIN_FP: ${{ steps.main_fingerprint.outputs.fingerprint }}
+  #         MATCHES: ${{ steps.compare.outputs.equal }}
+  #         TARGET_COMMIT_HASH: ${{ env.TARGET_COMMIT_HASH }}
+  #         BASE_BRANCH_REF: ${{ env.BASE_BRANCH_REF }}
+  #       run: |
+  #         {
+  #           echo "### Expo Fingerprint Comparison"
+  #           echo ""
+  #           echo "- Target commit (\`$TARGET_COMMIT_HASH\`) fingerprint: \`$BRANCH_FP\`"
+  #           echo "- Base branch (\`$BASE_BRANCH_REF\`) fingerprint: \`$MAIN_FP\`"
+  #           echo "- Match: \`$MATCHES\`"
+  #         } >> "$GITHUB_STEP_SUMMARY"
 
-  validate-pr:
-    name: Validate PR and Commit
-    runs-on: ubuntu-latest
-    outputs:
-      pr_number: ${{ steps.validate-pr.outputs.pr_number }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+  # validate-pr:
+  #   name: Validate PR and Commit
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     pr_number: ${{ steps.validate-pr.outputs.pr_number }}
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
 
-      - name: Validate PR contains commit
-        id: validate-pr
-        env:
-          COMMIT_HASH: ${{ env.TARGET_COMMIT_HASH }}
-          PR_NUMBER: ${{ env.TARGET_PR_NUMBER }}
-          BASE_BRANCH: ${{ env.BASE_BRANCH_REF }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-        run: |
-          .github/scripts/validate-pr-commit.sh
+  #     - name: Validate PR contains commit
+  #       id: validate-pr
+  #       env:
+  #         COMMIT_HASH: ${{ env.TARGET_COMMIT_HASH }}
+  #         PR_NUMBER: ${{ env.TARGET_PR_NUMBER }}
+  #         BASE_BRANCH: ${{ env.BASE_BRANCH_REF }}
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #         GITHUB_REPOSITORY: ${{ github.repository }}
+  #       run: |
+  #         .github/scripts/validate-pr-commit.sh
 
-  approval:
-    name: Require OTA Update Approval
-    needs:
-      - fingerprint-comparison
-      - validate-pr
-    if: ${{ needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Await approval from mobile release team
-        uses: op5dev/require-team-approval@dfd7b8b9a88bf82a955c103f7e19642b0411aecd
-        with:
-          team: release-team
-          pr-number: ${{ needs.validate-pr.outputs.pr_number }}
-          token: ${{ secrets.METAMASK_MOBILE_ORG_READ_TOKEN }}
+  # approval:
+  #   name: Require OTA Update Approval
+  #   needs:
+  #     - fingerprint-comparison
+  #     - validate-pr
+  #   if: ${{ needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' }}
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Await approval from mobile release team
+  #       uses: op5dev/require-team-approval@dfd7b8b9a88bf82a955c103f7e19642b0411aecd
+  #       with:
+  #         team: release-team
+  #         pr-number: ${{ needs.validate-pr.outputs.pr_number }}
+  #         token: ${{ secrets.METAMASK_MOBILE_ORG_READ_TOKEN }}
 
   push-update:
     name: Push EAS Update
     runs-on: ubuntu-latest
     environment: ${{ inputs.channel == 'exp' && 'build-exp' || inputs.channel == 'rc' && 'build-rc' || 'build-production' }}
-    needs:
-      - fingerprint-comparison
-      - approval
-      - validate-pr
-      - setup-dependencies
-    if: >
-      needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
-      needs.approval.result == 'success'
+    # needs:
+    #   - fingerprint-comparison
+    #   - approval
+    #   - validate-pr
+    #   - setup-dependencies
+    # if: >
+    #   needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
+    #   needs.approval.result == 'success'
     env:
-      ARTIFACT_NAME: ${{ needs.setup-dependencies.outputs.artifact-name }}
+      # ARTIFACT_NAME: ${{ needs.setup-dependencies.outputs.artifact-name }}
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
       EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
       EXPO_CHANNEL: ${{ vars.EXPO_CHANNEL }}
@@ -313,165 +313,224 @@ jobs:
       QUICKNODE_OPTIMISM_URL: ${{ secrets.QUICKNODE_OPTIMISM_URL }}
       QUICKNODE_POLYGON_URL: ${{ secrets.QUICKNODE_POLYGON_URL }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ env.TARGET_COMMIT_HASH }}
-          fetch-depth: 0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Validate artifact compatibility
-        uses: ./.github/actions/validate-artifact-compatibility
-        with:
-          artifact-name: ${{ env.ARTIFACT_NAME }}
-          artifact-prefix: node-modules-eas-update-pr
-          validation-context: artifact
-
-      - name: Download node_modules artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ env.ARTIFACT_NAME }}
-
-      - name: Restore executable permissions
-        uses: ./.github/actions/restore-node-modules-permissions
-
-      - name: Verify downloaded artifacts
+      - name: Print environment variables (first 3 chars)
         run: |
-          echo "✅ Verifying downloaded artifacts..."
-          if [ ! -d "node_modules" ]; then
-            echo "❌ node_modules directory not found"
-            exit 1
-          fi
-          if [ ! -f "app/core/InpageBridgeWeb3.js" ]; then
-            echo "❌ InpageBridgeWeb3.js not found in artifact"
-            exit 1
-          fi
-          echo "📦 node_modules size: $(du -sh node_modules | cut -f1)"
-          echo "✅ Artifacts verified"
+          echo "🔍 Environment Variables (first 3 chars):"
+          echo "================================"
+          echo "EXPO_TOKEN: ${EXPO_TOKEN:0:3}..."
+          echo "EXPO_PROJECT_ID: ${EXPO_PROJECT_ID:0:3}..."
+          echo "EXPO_CHANNEL: ${EXPO_CHANNEL:0:3}..."
+          echo "GIT_BRANCH: ${GIT_BRANCH:0:3}..."
+          echo "RAMP_INTERNAL_BUILD: ${RAMP_INTERNAL_BUILD:0:3}..."
+          echo "MM_MUSD_CONVERSION_FLOW_ENABLED: ${MM_MUSD_CONVERSION_FLOW_ENABLED:0:3}..."
+          echo "MM_NETWORK_UI_REDESIGN_ENABLED: ${MM_NETWORK_UI_REDESIGN_ENABLED:0:3}..."
+          echo "MM_NOTIFICATIONS_UI_ENABLED: ${MM_NOTIFICATIONS_UI_ENABLED:0:3}..."
+          echo "MM_PERMISSIONS_SETTINGS_V1_ENABLED: ${MM_PERMISSIONS_SETTINGS_V1_ENABLED:0:3}..."
+          echo "MM_PERPS_BLOCKED_REGIONS: ${MM_PERPS_BLOCKED_REGIONS:0:3}..."
+          echo "MM_PERPS_ENABLED: ${MM_PERPS_ENABLED:0:3}..."
+          echo "MM_PERPS_HIP3_ALLOWLIST_MARKETS: ${MM_PERPS_HIP3_ALLOWLIST_MARKETS:0:3}..."
+          echo "MM_PERPS_HIP3_BLOCKLIST_MARKETS: ${MM_PERPS_HIP3_BLOCKLIST_MARKETS:0:3}..."
+          echo "MM_PERPS_HIP3_ENABLED: ${MM_PERPS_HIP3_ENABLED:0:3}..."
+          echo "MM_SECURITY_ALERTS_API_ENABLED: ${MM_SECURITY_ALERTS_API_ENABLED:0:3}..."
+          echo "BRIDGE_USE_DEV_APIS: ${BRIDGE_USE_DEV_APIS:0:3}..."
+          echo "SEEDLESS_ONBOARDING_ENABLED: ${SEEDLESS_ONBOARDING_ENABLED:0:3}..."
+          echo "FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN:0:3}..."
+          echo "FEATURES_ANNOUNCEMENTS_SPACE_ID: ${FEATURES_ANNOUNCEMENTS_SPACE_ID:0:3}..."
+          echo "SEGMENT_WRITE_KEY: ${SEGMENT_WRITE_KEY:0:3}..."
+          echo "SEGMENT_PROXY_URL: ${SEGMENT_PROXY_URL:0:3}..."
+          echo "SEGMENT_DELETE_API_SOURCE_ID: ${SEGMENT_DELETE_API_SOURCE_ID:0:3}..."
+          echo "SEGMENT_REGULATIONS_ENDPOINT: ${SEGMENT_REGULATIONS_ENDPOINT:0:3}..."
+          echo "MM_SENTRY_DSN: ${MM_SENTRY_DSN:0:3}..."
+          echo "MM_SENTRY_AUTH_TOKEN: ${MM_SENTRY_AUTH_TOKEN:0:3}..."
+          echo "IOS_GOOGLE_CLIENT_ID: ${IOS_GOOGLE_CLIENT_ID:0:3}..."
+          echo "IOS_GOOGLE_REDIRECT_URI: ${IOS_GOOGLE_REDIRECT_URI:0:3}..."
+          echo "ANDROID_APPLE_CLIENT_ID: ${ANDROID_APPLE_CLIENT_ID:0:3}..."
+          echo "ANDROID_GOOGLE_CLIENT_ID: ${ANDROID_GOOGLE_CLIENT_ID:0:3}..."
+          echo "ANDROID_GOOGLE_SERVER_CLIENT_ID: ${ANDROID_GOOGLE_SERVER_CLIENT_ID:0:3}..."
+          echo "GOOGLE_SERVICES_B64_IOS: ${GOOGLE_SERVICES_B64_IOS:0:3}..."
+          echo "GOOGLE_SERVICES_B64_ANDROID: ${GOOGLE_SERVICES_B64_ANDROID:0:3}..."
+          echo "MM_INFURA_PROJECT_ID: ${MM_INFURA_PROJECT_ID:0:3}..."
+          echo "MM_BRANCH_KEY_LIVE: ${MM_BRANCH_KEY_LIVE:0:3}..."
+          echo "MM_BRANCH_KEY_TEST: ${MM_BRANCH_KEY_TEST:0:3}..."
+          echo "MM_CARD_BAANX_API_CLIENT_KEY: ${MM_CARD_BAANX_API_CLIENT_KEY:0:3}..."
+          echo "WALLET_CONNECT_PROJECT_ID: ${WALLET_CONNECT_PROJECT_ID:0:3}..."
+          echo "MM_FOX_CODE: ${MM_FOX_CODE:0:3}..."
+          echo "FCM_CONFIG_API_KEY: ${FCM_CONFIG_API_KEY:0:3}..."
+          echo "FCM_CONFIG_AUTH_DOMAIN: ${FCM_CONFIG_AUTH_DOMAIN:0:3}..."
+          echo "FCM_CONFIG_STORAGE_BUCKET: ${FCM_CONFIG_STORAGE_BUCKET:0:3}..."
+          echo "FCM_CONFIG_PROJECT_ID: ${FCM_CONFIG_PROJECT_ID:0:3}..."
+          echo "FCM_CONFIG_MESSAGING_SENDER_ID: ${FCM_CONFIG_MESSAGING_SENDER_ID:0:3}..."
+          echo "FCM_CONFIG_APP_ID: ${FCM_CONFIG_APP_ID:0:3}..."
+          echo "FCM_CONFIG_MEASUREMENT_ID: ${FCM_CONFIG_MEASUREMENT_ID:0:3}..."
+          echo "QUICKNODE_MAINNET_URL: ${QUICKNODE_MAINNET_URL:0:3}..."
+          echo "QUICKNODE_ARBITRUM_URL: ${QUICKNODE_ARBITRUM_URL:0:3}..."
+          echo "QUICKNODE_AVALANCHE_URL: ${QUICKNODE_AVALANCHE_URL:0:3}..."
+          echo "QUICKNODE_BASE_URL: ${QUICKNODE_BASE_URL:0:3}..."
+          echo "QUICKNODE_LINEA_MAINNET_URL: ${QUICKNODE_LINEA_MAINNET_URL:0:3}..."
+          echo "QUICKNODE_MONAD_URL: ${QUICKNODE_MONAD_URL:0:3}..."
+          echo "QUICKNODE_OPTIMISM_URL: ${QUICKNODE_OPTIMISM_URL:0:3}..."
+          echo "QUICKNODE_POLYGON_URL: ${QUICKNODE_POLYGON_URL:0:3}..."
+          echo "================================"
 
-      - name: Determine signing secret name
-        shell: bash
-        env:
-          TARGET: ${{ inputs.channel }}
-        run: |
-          case "$TARGET" in
-            exp)
-              SECRET_NAME="metamask-exp-expo-signer"
-              ;;
-            rc)
-              SECRET_NAME="metamask-rc-expo-signer"
-              ;;
-            production)
-              SECRET_NAME="metamask-prod-expo-signer"
-              ;;
-            *)
-              echo "❌ Unknown target: $TARGET"
-              exit 1
-              ;;
-          esac
-          echo "AWS_SIGNING_CERT_SECRET_NAME=$SECRET_NAME" >> "$GITHUB_ENV"
+      # - name: Checkout repository
+      #   uses: actions/checkout@v4
+      #   with:
+      #     ref: ${{ env.TARGET_COMMIT_HASH }}
+      #     fetch-depth: 0
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-          aws-region: 'us-east-2'
+      # - name: Setup Node.js
+      #   uses: actions/setup-node@v4
+      #   with:
+      #     node-version: '20'
 
-      - name: Fetch secret and export as environment variables
-        shell: bash
-        run: |
-          echo "🔐 Fetching secret from Secrets Manager..."
-          secret_json=$(aws secretsmanager get-secret-value \
-            --region 'us-east-2' \
-            --secret-id "${AWS_SIGNING_CERT_SECRET_NAME}" \
-            --query SecretString \
-            --output text)
+      # - name: Validate artifact compatibility
+      #   uses: ./.github/actions/validate-artifact-compatibility
+      #   with:
+      #     artifact-name: ${{ env.ARTIFACT_NAME }}
+      #     artifact-prefix: node-modules-eas-update-pr
+      #     validation-context: artifact
 
-          keys=$(echo "$secret_json" | jq -r 'keys[]')
-          for key in $keys; do
-            value=$(echo "$secret_json" | jq -r --arg k "$key" '.[$k]')
-            echo "::add-mask::$value"
-            echo "$key=$(printf '%s' "$value")" >> "$GITHUB_ENV"
-            echo "✅ Set secret for key: $key"
-          done
+      # - name: Download node_modules artifact
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: ${{ env.ARTIFACT_NAME }}
 
-      - name: Display configuration
-        run: |
-          TARGET_RUNTIME_VERSION=$(node -p "require('./package.json').version")
-          echo "🔧 Configuration:"
-          echo "  Channel: ${EXPO_CHANNEL:-<not set>}"
-          echo "  Channel (vars.EXPO_CHANNEL): ${{ vars.EXPO_CHANNEL }}"
-          echo "  Message: ${UPDATE_MESSAGE:-<not set>}"
-          echo "  Runtime Version (target): ${TARGET_RUNTIME_VERSION}"
+      # - name: Restore executable permissions
+      #   uses: ./.github/actions/restore-node-modules-permissions
 
-      - name: Build & Push EAS Update via build.sh
-        env:
-          SKIP_TRANSFORM_LINT: 'true'
-          # Increase Node heap to avoid OOM during Expo export in CI
-          NODE_OPTIONS: '--max_old_space_size=8192'
-        run: |
-          echo "📦 Configuring EXPO key..."
-          if [[ -z "$EXPO_KEY_PRIV_B64" ]]; then
-            echo "⚠️ EXPO_KEY_PRIV_B64 is not set. Skipping keystore decoding."
-            exit 1
-          fi
+      # - name: Verify downloaded artifacts
+      #   run: |
+      #     echo "✅ Verifying downloaded artifacts..."
+      #     if [ ! -d "node_modules" ]; then
+      #       echo "❌ node_modules directory not found"
+      #       exit 1
+      #     fi
+      #     if [ ! -f "app/core/InpageBridgeWeb3.js" ]; then
+      #       echo "❌ InpageBridgeWeb3.js not found in artifact"
+      #       exit 1
+      #     fi
+      #     echo "📦 node_modules size: $(du -sh node_modules | cut -f1)"
+      #     echo "✅ Artifacts verified"
 
-          # Decode the key
-          EXPO_KEY_PRIV=$(echo "$EXPO_KEY_PRIV_B64" | base64 --decode)
-          export EXPO_KEY_PRIV
-          echo "✅ Expo key decoded and exported"
+      # - name: Determine signing secret name
+      #   shell: bash
+      #   env:
+      #     TARGET: ${{ inputs.channel }}
+      #   run: |
+      #     case "$TARGET" in
+      #       exp)
+      #         SECRET_NAME="metamask-exp-expo-signer"
+      #         ;;
+      #       rc)
+      #         SECRET_NAME="metamask-rc-expo-signer"
+      #         ;;
+      #       production)
+      #         SECRET_NAME="metamask-prod-expo-signer"
+      #         ;;
+      #       *)
+      #         echo "❌ Unknown target: $TARGET"
+      #         exit 1
+      #         ;;
+      #     esac
+      #     echo "AWS_SIGNING_CERT_SECRET_NAME=$SECRET_NAME" >> "$GITHUB_ENV"
 
-          echo "🚀 Pushing EAS update for channel: ${TARGET_CHANNEL}"
-          case "${TARGET_CHANNEL}" in
-            exp)
-              yarn run build:expo-update:main:exp
-              ;;
-            rc)
-              yarn run build:expo-update:main:rc
-              ;;
-            production)
-              yarn run build:expo-update:main:prod
-              ;;
-            *)
-              echo "❌ Unsupported TARGET_CHANNEL: ${TARGET_CHANNEL}" >&2
-              exit 1
-              ;;
-          esac
+      # - name: Configure AWS credentials
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+      #     aws-region: 'us-east-2'
 
-      - name: Update summary
-        if: success()
-        run: |
-          {
-            echo "### ✅ EAS Update Published Successfully"
-            echo
-            echo "**Channel:** \`${EXPO_CHANNEL:-<not set>}\`"
-            echo "**Message:** ${UPDATE_MESSAGE:-<not set>}"
-            echo
-            echo "Users on the \`${EXPO_CHANNEL:-<not set>}\` channel will receive this update on their next app launch."
-          } >> "$GITHUB_STEP_SUMMARY"
+      # - name: Fetch secret and export as environment variables
+      #   shell: bash
+      #   run: |
+      #     echo "🔐 Fetching secret from Secrets Manager..."
+      #     secret_json=$(aws secretsmanager get-secret-value \
+      #       --region 'us-east-2' \
+      #       --secret-id "${AWS_SIGNING_CERT_SECRET_NAME}" \
+      #       --query SecretString \
+      #       --output text)
 
-      - name: Update summary on failure
-        if: failure()
-        run: |
-          {
-            echo "### ❌ EAS Update Failed"
-            echo
-            echo "Check the logs above for error details."
-          } >> "$GITHUB_STEP_SUMMARY"
+      #     keys=$(echo "$secret_json" | jq -r 'keys[]')
+      #     for key in $keys; do
+      #       value=$(echo "$secret_json" | jq -r --arg k "$key" '.[$k]')
+      #       echo "::add-mask::$value"
+      #       echo "$key=$(printf '%s' "$value")" >> "$GITHUB_ENV"
+      #       echo "✅ Set secret for key: $key"
+      #     done
 
-  fingerprint-mismatch:
-    name: Fingerprint Mismatch Guard
-    needs: fingerprint-comparison
-    if: ${{ needs.fingerprint-comparison.outputs.fingerprints_equal != 'true' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Fail on native changes
-        run: |
-          echo "::error title=Fingerprint mismatch::Current branch fingerprint differs from main. Native changes detected; aborting workflow."
-          echo "Current fingerprint: ${{ needs.fingerprint-comparison.outputs.branch_fingerprint }}"
-          echo "Main fingerprint:    ${{ needs.fingerprint-comparison.outputs.main_fingerprint }}"
-          exit 1
+      # - name: Display configuration
+      #   run: |
+      #     TARGET_RUNTIME_VERSION=$(node -p "require('./package.json').version")
+      #     echo "🔧 Configuration:"
+      #     echo "  Channel: ${EXPO_CHANNEL:-<not set>}"
+      #     echo "  Channel (vars.EXPO_CHANNEL): ${{ vars.EXPO_CHANNEL }}"
+      #     echo "  Message: ${UPDATE_MESSAGE:-<not set>}"
+      #     echo "  Runtime Version (target): ${TARGET_RUNTIME_VERSION}"
+
+      # - name: Build & Push EAS Update via build.sh
+      #   env:
+      #     SKIP_TRANSFORM_LINT: 'true'
+      #     # Increase Node heap to avoid OOM during Expo export in CI
+      #     NODE_OPTIONS: '--max_old_space_size=8192'
+      #   run: |
+      #     echo "📦 Configuring EXPO key..."
+      #     if [[ -z "$EXPO_KEY_PRIV_B64" ]]; then
+      #       echo "⚠️ EXPO_KEY_PRIV_B64 is not set. Skipping keystore decoding."
+      #       exit 1
+      #     fi
+
+      #     # Decode the key
+      #     EXPO_KEY_PRIV=$(echo "$EXPO_KEY_PRIV_B64" | base64 --decode)
+      #     export EXPO_KEY_PRIV
+      #     echo "✅ Expo key decoded and exported"
+
+      #     echo "🚀 Pushing EAS update for channel: ${TARGET_CHANNEL}"
+      #     case "${TARGET_CHANNEL}" in
+      #       exp)
+      #         yarn run build:expo-update:main:exp
+      #         ;;
+      #       rc)
+      #         yarn run build:expo-update:main:rc
+      #         ;;
+      #       production)
+      #         yarn run build:expo-update:main:prod
+      #         ;;
+      #       *)
+      #         echo "❌ Unsupported TARGET_CHANNEL: ${TARGET_CHANNEL}" >&2
+      #         exit 1
+      #         ;;
+      #     esac
+
+      # - name: Update summary
+      #   if: success()
+      #   run: |
+      #     {
+      #       echo "### ✅ EAS Update Published Successfully"
+      #       echo
+      #       echo "**Channel:** \`${EXPO_CHANNEL:-<not set>}\`"
+      #       echo "**Message:** ${UPDATE_MESSAGE:-<not set>}"
+      #       echo
+      #       echo "Users on the \`${EXPO_CHANNEL:-<not set>}\` channel will receive this update on their next app launch."
+      #     } >> "$GITHUB_STEP_SUMMARY"
+
+      # - name: Update summary on failure
+      #   if: failure()
+      #   run: |
+      #     {
+      #       echo "### ❌ EAS Update Failed"
+      #       echo
+      #       echo "Check the logs above for error details."
+      #     } >> "$GITHUB_STEP_SUMMARY"
+
+  # fingerprint-mismatch:
+  #   name: Fingerprint Mismatch Guard
+  #   needs: fingerprint-comparison
+  #   if: ${{ needs.fingerprint-comparison.outputs.fingerprints_equal != 'true' }}
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Fail on native changes
+  #       run: |
+  #         echo "::error title=Fingerprint mismatch::Current branch fingerprint differs from main. Native changes detected; aborting workflow."
+  #         echo "Current fingerprint: ${{ needs.fingerprint-comparison.outputs.branch_fingerprint }}"
+  #         echo "Main fingerprint:    ${{ needs.fingerprint-comparison.outputs.main_fingerprint }}"
+  #         exit 1
