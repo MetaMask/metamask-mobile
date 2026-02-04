@@ -121,6 +121,13 @@ If you only need the main screen (no pushed route to assert on), pass `[]` for t
   - Ensure remote feature flags enable bridge for the target chain(s):
     - `engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2` with `support: true`, and active source/dest flags
 
+### Navigation Tests
+
+- Use `renderScreenWithRoutes` to probe nested navigation routes.
+- Provide the baseline state via `initialStateBridge()` (or `initialStateWallet()`), plus small overrides.
+- Assert using route names from `app/constants/navigation/Routes.ts`.
+- Example: to open Destination Network Selector in BridgeView, act on “Swap to” button and assert `Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR`.
+
 ### UI Assertions
 
 - Prefer robust assertions (presence/absence, enabled/disabled) over brittle string formatting checks, unless `deterministicFiat` is used.
