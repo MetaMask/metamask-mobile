@@ -37,13 +37,17 @@ import {
   RemoteFeatureFlagControllerStateChangeEvent,
 } from '@metamask/remote-feature-flag-controller';
 import { Hex, hexToNumber, numberToHex } from '@metamask/utils';
-import { lightTheme } from '@metamask/design-tokens';
 import performance from 'react-native-performance';
 import { strings } from '../../../../../locales/i18n';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import ToastService from '../../../../core/ToastService';
-import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
+import NavigationService from '../../../../core/NavigationService';
+import Routes from '../../../../constants/navigation/Routes';
+import {
+  ToastVariants,
+  PredictToastType,
+} from '../../../../component-library/components/Toast/Toast.types';
+import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
@@ -456,6 +460,7 @@ export class PredictController extends BaseController<
           description: strings('predict.deposit.available_in_minutes', {
             minutes: 1,
           }),
+          transactionId: transactionMeta.id,
         });
         break;
       case TransactionStatus.confirmed:
@@ -562,22 +567,41 @@ export class PredictController extends BaseController<
   private showPendingToast({
     title,
     description,
+    transactionId,
   }: {
     title: string;
     description: string;
+    transactionId?: string;
   }): void {
     try {
+      const closeButtonOptions = transactionId
+        ? {
+            label: strings('predict.deposit.track'),
+            onPress: () => {
+              NavigationService.navigation.navigate(Routes.TRANSACTIONS_VIEW);
+              if (transactionId) {
+                setTimeout(() => {
+                  NavigationService.navigation.navigate(
+                    Routes.TRANSACTION_DETAILS,
+                    { transactionId },
+                  );
+                }, 100);
+              }
+            },
+            variant: ButtonVariants.Link,
+          }
+        : undefined;
+
       ToastService.showToast({
-        variant: ToastVariants.Icon,
+        variant: ToastVariants.Predict,
+        predictType: PredictToastType.Pending,
         labelOptions: [
           { label: title, isBold: true },
           { label: '\n', isBold: false },
           { label: description, isBold: false },
         ],
-        iconName: IconName.Loading,
-        iconColor: lightTheme.colors.accent04.dark,
-        backgroundColor: lightTheme.colors.accent04.normal,
         hasNoTimeout: false,
+        closeButtonOptions,
       });
     } catch (error) {
       DevLogger.log('PredictController: Failed to show pending toast', {
@@ -595,15 +619,13 @@ export class PredictController extends BaseController<
   }): void {
     try {
       ToastService.showToast({
-        variant: ToastVariants.Icon,
+        variant: ToastVariants.Predict,
+        predictType: PredictToastType.Success,
         labelOptions: [
           { label: title, isBold: true },
           { label: '\n', isBold: false },
           { label: description, isBold: false },
         ],
-        iconName: IconName.Confirmation,
-        iconColor: lightTheme.colors.success.default,
-        backgroundColor: 'transparent',
         hasNoTimeout: false,
       });
     } catch (error) {
@@ -622,15 +644,13 @@ export class PredictController extends BaseController<
   }): void {
     try {
       ToastService.showToast({
-        variant: ToastVariants.Icon,
+        variant: ToastVariants.Predict,
+        predictType: PredictToastType.Failure,
         labelOptions: [
           { label: title, isBold: true },
           { label: '\n', isBold: false },
           { label: description, isBold: false },
         ],
-        iconName: IconName.Danger,
-        iconColor: lightTheme.colors.error.default,
-        backgroundColor: lightTheme.colors.accent04.normal,
         hasNoTimeout: false,
       });
     } catch (error) {

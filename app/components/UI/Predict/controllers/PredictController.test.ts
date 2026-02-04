@@ -5930,9 +5930,8 @@ describe('PredictController', () => {
           expect(mockShowToast).toHaveBeenCalledTimes(1);
           expect(mockShowToast).toHaveBeenCalledWith(
             expect.objectContaining({
-              iconName: 'Loading',
-              iconColor: '#190066',
-              backgroundColor: '#89b0ff',
+              variant: 'Predict',
+              predictType: 'Pending',
             }),
           );
         });
@@ -5965,9 +5964,8 @@ describe('PredictController', () => {
           expect(mockShowToast).toHaveBeenCalledTimes(1);
           expect(mockShowToast).toHaveBeenCalledWith(
             expect.objectContaining({
-              iconName: 'Confirmation',
-              iconColor: '#457a39',
-              backgroundColor: 'transparent',
+              variant: 'Predict',
+              predictType: 'Success',
             }),
           );
           expect(
@@ -5998,9 +5996,8 @@ describe('PredictController', () => {
           expect(mockShowToast).toHaveBeenCalledTimes(1);
           expect(mockShowToast).toHaveBeenCalledWith(
             expect.objectContaining({
-              iconName: 'Danger',
-              iconColor: '#ca3542',
-              backgroundColor: '#89b0ff',
+              variant: 'Predict',
+              predictType: 'Failure',
             }),
           );
           expect(
@@ -6051,7 +6048,8 @@ describe('PredictController', () => {
           expect(mockShowToast).toHaveBeenCalledTimes(1);
           expect(mockShowToast).toHaveBeenCalledWith(
             expect.objectContaining({
-              iconName: 'Loading',
+              variant: 'Predict',
+              predictType: 'Pending',
             }),
           );
         });
@@ -6076,7 +6074,8 @@ describe('PredictController', () => {
           expect(mockShowToast).toHaveBeenCalledTimes(1);
           expect(mockShowToast).toHaveBeenCalledWith(
             expect.objectContaining({
-              iconName: 'Confirmation',
+              variant: 'Predict',
+              predictType: 'Success',
             }),
           );
           expect(controller.state.withdrawTransaction).toBeNull();
@@ -6102,7 +6101,8 @@ describe('PredictController', () => {
           expect(mockShowToast).toHaveBeenCalledTimes(1);
           expect(mockShowToast).toHaveBeenCalledWith(
             expect.objectContaining({
-              iconName: 'Danger',
+              variant: 'Predict',
+              predictType: 'Failure',
             }),
           );
           expect(controller.state.withdrawTransaction).toBeNull();
@@ -6144,7 +6144,8 @@ describe('PredictController', () => {
           expect(mockShowToast).toHaveBeenCalledTimes(1);
           expect(mockShowToast).toHaveBeenCalledWith(
             expect.objectContaining({
-              iconName: 'Loading',
+              variant: 'Predict',
+              predictType: 'Pending',
             }),
           );
         });
@@ -6162,7 +6163,8 @@ describe('PredictController', () => {
           expect(mockShowToast).toHaveBeenCalledTimes(1);
           expect(mockShowToast).toHaveBeenCalledWith(
             expect.objectContaining({
-              iconName: 'Confirmation',
+              variant: 'Predict',
+              predictType: 'Success',
             }),
           );
         });
@@ -6180,7 +6182,8 @@ describe('PredictController', () => {
           expect(mockShowToast).toHaveBeenCalledTimes(1);
           expect(mockShowToast).toHaveBeenCalledWith(
             expect.objectContaining({
-              iconName: 'Danger',
+              variant: 'Predict',
+              predictType: 'Failure',
             }),
           );
         });

@@ -23,15 +23,24 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  Box,
+  IconColor as ReactNativeDsIconColor,
+  IconSize as ReactNativeDsIconSize,
+} from '@metamask/design-system-react-native';
+import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 
 // External dependencies.
 import Avatar, { AvatarSize, AvatarVariant } from '../Avatars/Avatar';
 import Text, { TextColor, TextVariant } from '../Texts/Text';
 import Button, { ButtonVariants } from '../Buttons/Button';
+import Icon, { IconName, IconSize } from '../Icons/Icon';
+import { useAppThemeFromContext } from '../../../util/theme';
 
 // Internal dependencies.
 import {
   ButtonIconVariant,
+  PredictToastType,
   ToastCloseButtonOptions,
   ToastDescriptionOptions,
   ToastLabelOptions,
@@ -40,6 +49,7 @@ import {
   ToastRef,
   ToastVariants,
 } from './Toast.types';
+import { ButtonProps } from '../Buttons/Button/Button.types';
 import styleSheet from './Toast.styles';
 import { ToastSelectorsIDs } from './ToastModal.testIds';
 import { TAB_BAR_HEIGHT } from '../Navigation/TabBar/TabBar.constants';
@@ -53,6 +63,7 @@ const screenHeight = Dimensions.get('window').height;
 
 const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   const { styles } = useStyles(styleSheet, {});
+  const theme = useAppThemeFromContext();
   const [toastOptions, setToastOptions] = useState<ToastOptions | undefined>(
     undefined,
   );
@@ -176,15 +187,59 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
         />
       );
     }
+    const buttonProps = closeButtonOptions as ButtonProps | undefined;
     return (
       <Button
-        variant={ButtonVariants.Primary}
+        variant={buttonProps?.variant ?? ButtonVariants.Primary}
         onPress={() => closeButtonOptions?.onPress()}
-        label={closeButtonOptions?.label}
-        endIconName={closeButtonOptions?.endIconName}
-        style={closeButtonOptions?.style}
+        label={buttonProps?.label}
+        endIconName={buttonProps?.endIconName}
+        style={buttonProps?.style}
       />
     );
+  };
+
+  const renderPredictAccessory = (predictType: PredictToastType) => {
+    const accessoryStyle = {
+      paddingRight: 12,
+      alignContent: 'center' as const,
+      alignItems: 'center' as const,
+      justifyContent: 'center' as const,
+    };
+
+    switch (predictType) {
+      case PredictToastType.Pending:
+        return (
+          <Box style={accessoryStyle}>
+            <Spinner
+              color={ReactNativeDsIconColor.PrimaryDefault}
+              spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }}
+            />
+          </Box>
+        );
+      case PredictToastType.Success:
+        return (
+          <View style={accessoryStyle}>
+            <Icon
+              name={IconName.Confirmation}
+              color={theme.colors.success.default}
+              size={IconSize.Lg}
+            />
+          </View>
+        );
+      case PredictToastType.Failure:
+        return (
+          <View style={accessoryStyle}>
+            <Icon
+              name={IconName.Danger}
+              color={theme.colors.error.default}
+              size={IconSize.Lg}
+            />
+          </View>
+        );
+      default:
+        return null;
+    }
   };
 
   const renderAvatar = () => {
@@ -241,17 +296,20 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
           />
         );
       }
+      case ToastVariants.Predict: {
+        const { predictType } = toastOptions;
+        return renderPredictAccessory(predictType);
+      }
     }
   };
 
   const renderToastContent = (options: ToastOptions) => {
-    const {
-      labelOptions,
-      descriptionOptions,
-      linkButtonOptions,
-      closeButtonOptions,
-      startAccessory,
-    } = options;
+    const { labelOptions, descriptionOptions, linkButtonOptions } = options;
+
+    const closeButtonOptions =
+      'closeButtonOptions' in options ? options.closeButtonOptions : undefined;
+    const startAccessory =
+      'startAccessory' in options ? options.startAccessory : undefined;
 
     const isStartAccessoryValid =
       startAccessory != null && React.isValidElement(startAccessory);

@@ -17,6 +17,16 @@ export enum ToastVariants {
   Network = 'Network',
   App = 'App',
   Icon = 'Icon',
+  Predict = 'Predict',
+}
+
+/**
+ * Predict toast types for different transaction states.
+ */
+export enum PredictToastType {
+  Pending = 'Pending',
+  Success = 'Success',
+  Failure = 'Failure',
 }
 
 /**
@@ -103,15 +113,18 @@ interface IconToastOption extends BaseToastVariants {
   backgroundColor?: string;
 }
 
-/**
- * Different toast options combined in a union type.
- */
+export interface PredictToastOption extends BaseToastVariants {
+  variant: ToastVariants.Predict;
+  predictType: PredictToastType;
+}
+
 export type ToastOptions =
   | PlainToastOption
   | AccountToastOption
   | NetworkToastOption
   | AppToastOption
-  | IconToastOption;
+  | IconToastOption
+  | PredictToastOption;
 
 /**
  * Toast component reference.
