@@ -1,7 +1,11 @@
 import React, { useEffect } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
-import { selectTokenDetailsV2Enabled } from '../../../../selectors/featureFlagController/tokenDetailsV2';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  selectTokenDetailsV2Enabled,
+  isTokenDetailsRevampedEnabled,
+} from '../../../../selectors/featureFlagController/tokenDetailsV2';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import Asset from '../../../Views/Asset';
 import { TokenI } from '../../Tokens/types';
@@ -39,6 +43,14 @@ import { getIsSwapsAssetAllowed } from '../../../Views/Asset/utils';
 import ActivityHeader from '../../../Views/Asset/ActivityHeader';
 import Transactions from '../../Transactions';
 import MultichainTransactionsView from '../../../Views/MultichainTransactionsView/MultichainTransactionsView';
+import BottomSheetFooter, {
+  ButtonsAlignment,
+} from '../../../../component-library/components/BottomSheets/BottomSheetFooter';
+import {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../../component-library/components/Buttons/Button';
+import { strings } from '../../../../../locales/i18n';
 
 interface TokenDetailsProps {
   route: {
@@ -60,6 +72,11 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       justifyContent: 'center',
     },
+    bottomSheetFooter: {
+      backgroundColor: colors.background.default,
+      paddingHorizontal: 16,
+      paddingTop: 16,
+    },
   });
 };
 
@@ -70,6 +87,7 @@ const styleSheet = (params: { theme: Theme }) => {
 const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     endTrace({ name: TraceName.AssetDetails });
@@ -130,12 +148,18 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
 
   const isTokenBuyable = useTokenBuyability(token);
 
-  const { onBuy, onSend, onReceive, goToSwaps, networkModal } = useTokenActions(
-    {
-      token,
-      networkName,
-    },
-  );
+  const {
+    onBuy,
+    onSend,
+    onReceive,
+    goToSwaps,
+    handleBuyPress,
+    handleSellPress,
+    networkModal,
+  } = useTokenActions({
+    token,
+    networkName,
+  });
 
   const {
     transactions,
@@ -225,7 +249,6 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
       <ActivityIndicator style={styles.loader} size="small" />
     </View>
   );
-
   return (
     <View style={styles.wrapper}>
       <TokenDetailsInlineHeader
@@ -267,6 +290,34 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
         />
       )}
       {networkModal}
+      {isTokenDetailsRevampedEnabled() && !txLoading && displaySwapsButton && (
+        <BottomSheetFooter
+          style={{
+            ...styles.bottomSheetFooter,
+            paddingBottom: insets.bottom + 6,
+          }}
+          buttonPropsArray={[
+            {
+              variant: ButtonVariants.Primary,
+              label: strings('asset_overview.buy_button'),
+              size: ButtonSize.Lg,
+              onPress: handleBuyPress,
+            },
+            // Only show Sell button if user has balance of this token
+            ...(balance && parseFloat(String(balance)) > 0
+              ? [
+                  {
+                    variant: ButtonVariants.Primary,
+                    label: strings('asset_overview.sell_button'),
+                    size: ButtonSize.Lg,
+                    onPress: handleSellPress,
+                  },
+                ]
+              : []),
+          ]}
+          buttonsAlignment={ButtonsAlignment.Horizontal}
+        />
+      )}
     </View>
   );
 };

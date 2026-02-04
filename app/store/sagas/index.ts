@@ -30,6 +30,7 @@ import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import { selectExistingUser } from '../../reducers/user';
 import UrlParser from 'url-parse';
+import { rewardsBulkLinkSaga } from './rewardsBulkLinkAccountGroups';
 import Authentication from '../../core/Authentication';
 import { MetaMetrics } from '../../core/Analytics';
 import { AppState, AppStateStatus } from 'react-native';
@@ -337,6 +338,7 @@ export function* rootSaga() {
   yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
   yield fork(handleDeeplinkSaga);
+  yield fork(rewardsBulkLinkSaga);
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   yield fork(handleSnapsRegistry);
   ///: END:ONLY_INCLUDE_IF
