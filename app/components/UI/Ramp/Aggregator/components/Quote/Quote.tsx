@@ -156,7 +156,9 @@ const Quote: React.FC<Props> = ({
                 onPress={highlighted ? showInfo : undefined}
                 disabled={!highlighted}
                 accessibilityLabel={`${quote.provider?.name} logo`}
-                accessibilityHint="Shows provider details"
+                accessibilityHint={strings(
+                  'fiat_on_ramp_aggregator.accessibility_shows_provider_details',
+                )}
               >
                 <View style={styles.title}>
                   {quote.provider?.logos?.[themeAppearance] ? (

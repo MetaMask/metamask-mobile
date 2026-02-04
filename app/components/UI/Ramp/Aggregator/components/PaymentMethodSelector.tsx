@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
 import { View, StyleSheet } from 'react-native';
 import Box from './Box';
+import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import { Colors } from '../../../../../util/theme/models';
 import ListItem from '../../../../../component-library/components/List/ListItem';
@@ -79,7 +80,11 @@ const PaymentMethodSelector: React.FC<IProps> = ({
             <Text variant={TextVariant.BodyLGMedium}>{name}</Text>
           )}
         </ListItemColumn>
-        {!loading && <DownChevronText text="Change" />}
+        {!loading && (
+            <DownChevronText
+              text={strings('fiat_on_ramp_aggregator.change')}
+            />
+          )}
       </ListItem>
       <View style={styles.divider} />
       <View style={styles.iconContainer}>
