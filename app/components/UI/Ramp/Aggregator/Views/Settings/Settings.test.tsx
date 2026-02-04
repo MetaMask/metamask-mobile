@@ -85,11 +85,7 @@ jest.mock('../../hooks/useActivationKeys', () =>
 );
 
 const mockSetUserRegion = jest.fn();
-const mockFetchUserRegion = jest.fn();
-const mockFetchProviders = jest.fn();
-const mockFetchTokens = jest.fn();
-const mockFetchCountries = jest.fn();
-const mockSetPreferredProvider = jest.fn();
+const mockSetSelectedProvider = jest.fn();
 
 const createMockUserRegion = (regionCode: string): UserRegion => {
   const parts = regionCode.toLowerCase().split('-');
@@ -103,13 +99,13 @@ const createMockUserRegion = (regionCode: string): UserRegion => {
       name: 'Europe Union',
       phone: { prefix: '', placeholder: '', template: '' },
       currency: '',
-      supported: true,
+      supported: { buy: true, sell: true },
     },
     state: stateCode
       ? {
           stateId: stateCode,
           name: stateCode,
-          supported: true,
+          supported: { buy: true, sell: true },
         }
       : null,
     regionCode: regionCode.toLowerCase(),
@@ -120,24 +116,25 @@ const mockUseRampsControllerInitialValues: ReturnType<
   typeof useRampsController
 > = {
   userRegion: createMockUserRegion('eu'),
-  userRegionLoading: false,
-  userRegionError: null,
   setUserRegion: mockSetUserRegion,
-  fetchUserRegion: mockFetchUserRegion,
-  preferredProvider: null,
-  setPreferredProvider: mockSetPreferredProvider,
+  selectedProvider: null,
+  setSelectedProvider: mockSetSelectedProvider,
   providers: [],
   providersLoading: false,
   providersError: null,
-  fetchProviders: mockFetchProviders,
   tokens: null,
+  selectedToken: null,
+  setSelectedToken: jest.fn(),
   tokensLoading: false,
   tokensError: null,
-  fetchTokens: mockFetchTokens,
-  countries: null,
+  countries: [],
   countriesLoading: false,
   countriesError: null,
-  fetchCountries: mockFetchCountries,
+  paymentMethods: [],
+  selectedPaymentMethod: null,
+  setSelectedPaymentMethod: jest.fn(),
+  paymentMethodsLoading: false,
+  paymentMethodsError: null,
 };
 
 let mockUseRampsControllerValues = mockUseRampsControllerInitialValues;

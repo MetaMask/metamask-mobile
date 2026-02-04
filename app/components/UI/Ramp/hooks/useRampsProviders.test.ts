@@ -1,31 +1,18 @@
-import { renderHook } from '@testing-library/react-native';
+import { renderHook, act } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
 import { useRampsProviders } from './useRampsProviders';
-import {
-  RequestStatus,
-  type UserRegion,
-  type Provider as RampProvider,
-} from '@metamask/ramps-controller';
+import { type Provider as RampProvider } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
 
-const mockUserRegion: UserRegion = {
-  country: {
-    isoCode: 'US',
-    name: 'United States',
-    flag: '🇺🇸',
-    phone: {
-      prefix: '+1',
-      placeholder: '(XXX) XXX-XXXX',
-      template: 'XXX-XXX-XXXX',
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    RampsController: {
+      setSelectedProvider: jest.fn(),
     },
-    currency: 'USD',
-    supported: true,
   },
-  state: { stateId: 'CA', name: 'California' },
-  regionCode: 'us-ca',
-};
+}));
 
 const mockProviders: RampProvider[] = [
   {
@@ -58,24 +45,19 @@ const mockProviders: RampProvider[] = [
   },
 ];
 
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    RampsController: {
-      getProviders: jest.fn().mockResolvedValue({ providers: mockProviders }),
-    },
-  },
-}));
-
-const createMockStore = (rampsControllerState = {}) =>
+const createMockStore = (providersState = {}) =>
   configureStore({
     reducer: {
       engine: () => ({
         backgroundState: {
           RampsController: {
-            userRegion: null,
-            providers: [],
-            requests: {},
-            ...rampsControllerState,
+            providers: {
+              data: [],
+              selected: null,
+              isLoading: false,
+              error: null,
+              ...providersState,
+            },
           },
         },
       }),
@@ -90,114 +72,27 @@ const wrapper = (store: ReturnType<typeof createMockStore>) =>
 describe('useRampsProviders', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (
-      Engine.context.RampsController.getProviders as jest.Mock
-    ).mockResolvedValue({ providers: mockProviders });
   });
 
   describe('return value structure', () => {
-    it('returns providers, isLoading, error, and fetchProviders', () => {
+    it('returns providers, selectedProvider, setSelectedProvider, isLoading, and error', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsProviders(), {
         wrapper: wrapper(store),
       });
       expect(result.current).toMatchObject({
         providers: [],
+        selectedProvider: null,
         isLoading: false,
         error: null,
       });
-      expect(typeof result.current.fetchProviders).toBe('function');
-    });
-  });
-
-  describe('region parameter', () => {
-    it('uses provided region when specified', () => {
-      const store = createMockStore({
-        requests: {
-          'getProviders:["us-ny",null,null,null,null]': {
-            status: RequestStatus.SUCCESS,
-            data: { providers: mockProviders },
-            error: null,
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
-      });
-      const { result } = renderHook(() => useRampsProviders('us-ny'), {
-        wrapper: wrapper(store),
-      });
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    it('uses userRegion from state when region not provided', () => {
-      const store = createMockStore({
-        userRegion: mockUserRegion,
-        requests: {
-          'getProviders:["us-ca",null,null,null,null]': {
-            status: RequestStatus.SUCCESS,
-            data: { providers: mockProviders },
-            error: null,
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
-      });
-      const { result } = renderHook(() => useRampsProviders(), {
-        wrapper: wrapper(store),
-      });
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    it('uses empty string when region and userRegion are not available', () => {
-      const store = createMockStore({
-        requests: {
-          'getProviders:["",null,null,null,null]': {
-            status: RequestStatus.SUCCESS,
-            data: { providers: mockProviders },
-            error: null,
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
-      });
-      const { result } = renderHook(() => useRampsProviders(), {
-        wrapper: wrapper(store),
-      });
-      expect(result.current.isLoading).toBe(false);
-    });
-  });
-
-  describe('filterOptions parameter', () => {
-    it('uses filterOptions in request selector', () => {
-      const store = createMockStore({
-        requests: {
-          'getProviders:["us-ca","provider-1","ETH","USD",null]': {
-            status: RequestStatus.SUCCESS,
-            data: { providers: mockProviders },
-            error: null,
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
-      });
-      const { result } = renderHook(
-        () =>
-          useRampsProviders('us-ca', {
-            provider: 'provider-1',
-            crypto: 'ETH',
-            fiat: 'USD',
-          }),
-        {
-          wrapper: wrapper(store),
-        },
-      );
-      expect(result.current.isLoading).toBe(false);
+      expect(typeof result.current.setSelectedProvider).toBe('function');
     });
   });
 
   describe('providers state', () => {
     it('returns providers from state', () => {
-      const store = createMockStore({ providers: mockProviders });
+      const store = createMockStore({ data: mockProviders });
       const { result } = renderHook(() => useRampsProviders(), {
         wrapper: wrapper(store),
       });
@@ -214,19 +109,11 @@ describe('useRampsProviders', () => {
   });
 
   describe('loading state', () => {
-    it('returns isLoading true when request is loading', () => {
+    it('returns isLoading true when isLoading is true', () => {
       const store = createMockStore({
-        requests: {
-          'getProviders:["us-ca",null,null,null,null]': {
-            status: RequestStatus.LOADING,
-            data: null,
-            error: null,
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
+        isLoading: true,
       });
-      const { result } = renderHook(() => useRampsProviders('us-ca'), {
+      const { result } = renderHook(() => useRampsProviders(), {
         wrapper: wrapper(store),
       });
       expect(result.current.isLoading).toBe(true);
@@ -234,107 +121,64 @@ describe('useRampsProviders', () => {
   });
 
   describe('error state', () => {
-    it('returns error from request state', () => {
+    it('returns error from state', () => {
       const store = createMockStore({
-        requests: {
-          'getProviders:["us-ca",null,null,null,null]': {
-            status: RequestStatus.ERROR,
-            data: null,
-            error: 'Network error',
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
+        error: 'Network error',
       });
-      const { result } = renderHook(() => useRampsProviders('us-ca'), {
+      const { result } = renderHook(() => useRampsProviders(), {
         wrapper: wrapper(store),
       });
       expect(result.current.error).toBe('Network error');
     });
   });
 
-  describe('fetchProviders', () => {
-    it('calls getProviders with region when provided', async () => {
+  describe('selectedProvider state', () => {
+    it('returns selectedProvider from state', () => {
+      const store = createMockStore({ selected: mockProviders[0] });
+      const { result } = renderHook(() => useRampsProviders(), {
+        wrapper: wrapper(store),
+      });
+      expect(result.current.selectedProvider).toEqual(mockProviders[0]);
+    });
+
+    it('returns null when selectedProvider is not available', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsProviders(), {
         wrapper: wrapper(store),
       });
-      await result.current.fetchProviders('us-ny');
-      expect(Engine.context.RampsController.getProviders).toHaveBeenCalledWith(
-        'us-ny',
-        undefined,
-      );
+      expect(result.current.selectedProvider).toBeNull();
     });
+  });
 
-    it('calls getProviders with options when provided', async () => {
+  describe('setSelectedProvider', () => {
+    it('calls Engine.context.RampsController.setSelectedProvider with provider id', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsProviders(), {
         wrapper: wrapper(store),
       });
-      await result.current.fetchProviders('us-ca', {
-        forceRefresh: true,
-        provider: 'provider-1',
-        crypto: 'ETH',
+
+      act(() => {
+        result.current.setSelectedProvider(mockProviders[0]);
       });
-      expect(Engine.context.RampsController.getProviders).toHaveBeenCalledWith(
-        'us-ca',
-        {
-          forceRefresh: true,
-          provider: 'provider-1',
-          crypto: 'ETH',
-        },
-      );
+
+      expect(
+        Engine.context.RampsController.setSelectedProvider,
+      ).toHaveBeenCalledWith(mockProviders[0].id);
     });
 
-    it('returns providers data', async () => {
+    it('calls Engine.context.RampsController.setSelectedProvider with null when provider is null', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsProviders(), {
         wrapper: wrapper(store),
       });
-      const response = await result.current.fetchProviders('us-ca');
-      expect(response).toEqual({ providers: mockProviders });
-    });
 
-    it('uses regionCode fallback when fetchRegion is not provided', async () => {
-      const store = createMockStore({
-        userRegion: mockUserRegion,
-      });
-      const { result } = renderHook(() => useRampsProviders(), {
-        wrapper: wrapper(store),
-      });
-      await result.current.fetchProviders();
-      expect(Engine.context.RampsController.getProviders).toHaveBeenCalledWith(
-        'us-ca',
-        undefined,
-      );
-    });
-
-    it('uses provided region parameter as fallback when fetchRegion is not provided', async () => {
-      const store = createMockStore();
-      const { result } = renderHook(() => useRampsProviders('us-ny'), {
-        wrapper: wrapper(store),
-      });
-      await result.current.fetchProviders();
-      expect(Engine.context.RampsController.getProviders).toHaveBeenCalledWith(
-        'us-ny',
-        undefined,
-      );
-    });
-
-    it('rejects with error when getProviders fails', async () => {
-      const store = createMockStore();
-      const mockGetProviders = Engine.context.RampsController
-        .getProviders as jest.Mock;
-      mockGetProviders.mockReset();
-      mockGetProviders.mockRejectedValue(new Error('Network error'));
-
-      const { result } = renderHook(() => useRampsProviders(), {
-        wrapper: wrapper(store),
+      act(() => {
+        result.current.setSelectedProvider(null);
       });
 
-      await expect(result.current.fetchProviders()).rejects.toThrow(
-        'Network error',
-      );
+      expect(
+        Engine.context.RampsController.setSelectedProvider,
+      ).toHaveBeenCalledWith(null);
     });
   });
 });

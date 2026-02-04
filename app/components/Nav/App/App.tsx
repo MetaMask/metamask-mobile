@@ -110,10 +110,7 @@ import {
   TraceOperation,
 } from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
-import {
-  selectUserLoggedIn,
-  selectExistingUser,
-} from '../../../reducers/user/selectors';
+import { selectExistingUser } from '../../../reducers/user/selectors';
 import { Confirm } from '../../Views/confirmations/components/confirm';
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
@@ -151,7 +148,6 @@ import { State2AccountConnectWrapper } from '../../Views/MultichainAccounts/Mult
 import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails/components/SmartAccountModal/SmartAccountModal';
 import TradeWalletActions from '../../Views/TradeWalletActions';
 import { BIP44AccountPermissionWrapper } from '../../Views/MultichainAccounts/MultichainPermissionsSummary/BIP44AccountPermissionWrapper';
-import { useEmptyNavHeaderForConfirmations } from '../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
 import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 import MultichainTransactionDetailsSheet from '../../UI/MultichainTransactionDetailsModal/MultichainTransactionDetailsSheet';
@@ -885,211 +881,200 @@ const ModalSmartAccountOptIn = () => (
   </Stack.Navigator>
 );
 
-const AppFlow = () => {
-  const userLoggedIn = useSelector(selectUserLoggedIn);
-  const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
-
-  return (
-    <>
-      <Stack.Navigator
-        initialRouteName={Routes.FOX_LOADER}
-        mode={'modal'}
-        screenOptions={{
-          headerShown: false,
-          cardStyle: { backgroundColor: importedColors.transparent },
-          animationEnabled: false,
-        }}
-      >
-        {userLoggedIn && (
-          // Render only if wallet is unlocked
-          // Note: This is probably not needed but nice to ensure that wallet isn't accessible when it is locked
-          <Stack.Screen
-            name={Routes.ONBOARDING.HOME_NAV}
-            component={Main}
-            options={{ headerShown: false }}
-          />
-        )}
-        <Stack.Screen name={Routes.FOX_LOADER} component={FoxLoader} />
-        <Stack.Screen
-          name={Routes.ONBOARDING.LOGIN}
-          component={Login}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Rehydrate"
-          component={OAuthRehydration}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name={Routes.MODAL.MAX_BROWSER_TABS_MODAL}
-          component={MaxBrowserTabsModal}
-        />
-        <Stack.Screen
-          name="OnboardingRootNav"
-          component={OnboardingRootNav}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name={Routes.ONBOARDING.SUCCESS_FLOW}
-          component={OnboardingSuccessFlow}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name={Routes.VAULT_RECOVERY.RESTORE_WALLET}
-          component={VaultRecoveryFlow}
-        />
-        <Stack.Screen
-          name={Routes.MODAL.ROOT_MODAL_FLOW}
-          component={RootModalFlow}
-        />
-        <Stack.Screen
-          name="ImportPrivateKeyView"
-          component={ImportPrivateKeyView}
-          options={{ animationEnabled: true }}
-        />
-        {
-          <Stack.Screen
-            name="ImportSRPView"
-            component={ImportSRPView}
-            options={{ animationEnabled: true }}
-          />
-        }
-        <Stack.Screen
-          name="ConnectQRHardwareFlow"
-          component={ConnectQRHardwareFlow}
-          options={{ animationEnabled: true }}
-        />
-        <Stack.Screen
-          name={Routes.HW.CONNECT_LEDGER}
-          component={LedgerConnectFlow}
-        />
-        <Stack.Screen
-          name={Routes.HW.CONNECT}
-          component={ConnectHardwareWalletFlow}
-        />
-        <Stack.Screen
-          name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS}
-          component={MultichainAccountDetails}
-        />
-        <Stack.Screen
-          name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS}
-          component={MultichainAccountGroupDetails}
-          options={{
-            animationEnabled: true,
-            cardStyleInterpolator: ({ current, layouts }) => ({
-              cardStyle: {
-                transform: [
-                  {
-                    translateX: current.progress.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [layouts.screen.width, 0],
-                    }),
-                  },
-                ],
+const AppFlow = () => (
+  <Stack.Navigator
+    initialRouteName={Routes.FOX_LOADER}
+    mode={'modal'}
+    screenOptions={{
+      headerShown: false,
+      cardStyle: { backgroundColor: importedColors.transparent },
+      animationEnabled: false,
+    }}
+  >
+    <Stack.Screen
+      name={Routes.ONBOARDING.HOME_NAV}
+      component={Main}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen name={Routes.FOX_LOADER} component={FoxLoader} />
+    <Stack.Screen
+      name={Routes.ONBOARDING.LOGIN}
+      component={Login}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="Rehydrate"
+      component={OAuthRehydration}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.MAX_BROWSER_TABS_MODAL}
+      component={MaxBrowserTabsModal}
+    />
+    <Stack.Screen
+      name="OnboardingRootNav"
+      component={OnboardingRootNav}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.ONBOARDING.SUCCESS_FLOW}
+      component={OnboardingSuccessFlow}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.VAULT_RECOVERY.RESTORE_WALLET}
+      component={VaultRecoveryFlow}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.ROOT_MODAL_FLOW}
+      component={RootModalFlow}
+    />
+    <Stack.Screen
+      name="ImportPrivateKeyView"
+      component={ImportPrivateKeyView}
+      options={{ animationEnabled: true }}
+    />
+    {
+      <Stack.Screen
+        name="ImportSRPView"
+        component={ImportSRPView}
+        options={{ animationEnabled: true }}
+      />
+    }
+    <Stack.Screen
+      name="ConnectQRHardwareFlow"
+      component={ConnectQRHardwareFlow}
+      options={{ animationEnabled: true }}
+    />
+    <Stack.Screen
+      name={Routes.HW.CONNECT_LEDGER}
+      component={LedgerConnectFlow}
+    />
+    <Stack.Screen
+      name={Routes.HW.CONNECT}
+      component={ConnectHardwareWalletFlow}
+    />
+    <Stack.Screen
+      name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS}
+      component={MultichainAccountDetails}
+    />
+    <Stack.Screen
+      name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS}
+      component={MultichainAccountGroupDetails}
+      options={{
+        animationEnabled: true,
+        cardStyleInterpolator: ({ current, layouts }) => ({
+          cardStyle: {
+            transform: [
+              {
+                translateX: current.progress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [layouts.screen.width, 0],
+                }),
               },
-            }),
-          }}
-        />
-        <Stack.Screen
-          name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_CELL_ACTIONS}
-          component={MultichainAccountActions}
-        />
-        <Stack.Screen
-          name={Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS}
-          component={MultichainAccountDetailsActions}
-        />
-        <Stack.Screen
-          name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
-          component={MultichainAddressList}
-          options={{ animationEnabled: true }}
-        />
-        <Stack.Screen
-          name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
-          component={MultichainPrivateKeyList}
-        />
-        <Stack.Screen
-          options={{
-            //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-            cardStyle: { backgroundColor: importedColors.transparent },
-            cardStyleInterpolator: () => ({
-              overlayStyle: {
-                opacity: 0,
-              },
-            }),
-          }}
-          name={Routes.LEDGER_TRANSACTION_MODAL}
-          component={LedgerTransactionModal}
-        />
-        <Stack.Screen
-          options={{
-            //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-            cardStyle: { backgroundColor: importedColors.transparent },
-            cardStyleInterpolator: () => ({
-              overlayStyle: {
-                opacity: 0,
-              },
-            }),
-          }}
-          name={Routes.QR_SIGNING_TRANSACTION_MODAL}
-          component={QRSigningTransactionModal}
-        />
-        <Stack.Screen
-          options={{
-            //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-            cardStyle: { backgroundColor: importedColors.transparent },
-            cardStyleInterpolator: () => ({
-              overlayStyle: {
-                opacity: 0,
-              },
-            }),
-          }}
-          name={Routes.LEDGER_MESSAGE_SIGN_MODAL}
-          component={LedgerMessageSignModal}
-        />
-        <Stack.Screen name={Routes.OPTIONS_SHEET} component={OptionsSheet} />
-        <Stack.Screen
-          name={Routes.EDIT_ACCOUNT_NAME}
-          component={EditAccountName}
-          options={{ animationEnabled: true }}
-        />
-        <Stack.Screen
-          name={Routes.ADD_NETWORK}
-          component={AddNetworkFlow}
-          options={{ animationEnabled: true }}
-        />
-        {isNetworkUiRedesignEnabled() ? (
-          <Stack.Screen
-            name={Routes.EDIT_NETWORK}
-            component={AddNetworkFlow}
-            options={{ animationEnabled: true }}
-          />
-        ) : null}
-        <Stack.Screen
-          name={Routes.LOCK_SCREEN}
-          component={LockScreen}
-          options={{ gestureEnabled: false }}
-        />
-        <Stack.Screen
-          name={Routes.CONFIRMATION_REQUEST_MODAL}
-          options={emptyNavHeaderOptions}
-          component={Confirm}
-        />
-        <Stack.Screen
-          name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
-          component={ModalSwitchAccountType}
-        />
-        <Stack.Screen
-          name={Routes.SMART_ACCOUNT_OPT_IN}
-          component={ModalSmartAccountOptIn}
-        />
-        <Stack.Screen
-          name={Routes.CONFIRMATION_PAY_WITH_MODAL}
-          component={PayWithModal}
-        />
-      </Stack.Navigator>
-    </>
-  );
-};
+            ],
+          },
+        }),
+      }}
+    />
+    <Stack.Screen
+      name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_CELL_ACTIONS}
+      component={MultichainAccountActions}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS}
+      component={MultichainAccountDetailsActions}
+    />
+    <Stack.Screen
+      name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
+      component={MultichainAddressList}
+      options={{ animationEnabled: true }}
+    />
+    <Stack.Screen
+      name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
+      component={MultichainPrivateKeyList}
+    />
+    <Stack.Screen
+      options={{
+        //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+        cardStyle: { backgroundColor: importedColors.transparent },
+        cardStyleInterpolator: () => ({
+          overlayStyle: {
+            opacity: 0,
+          },
+        }),
+      }}
+      name={Routes.LEDGER_TRANSACTION_MODAL}
+      component={LedgerTransactionModal}
+    />
+    <Stack.Screen
+      options={{
+        //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+        cardStyle: { backgroundColor: importedColors.transparent },
+        cardStyleInterpolator: () => ({
+          overlayStyle: {
+            opacity: 0,
+          },
+        }),
+      }}
+      name={Routes.QR_SIGNING_TRANSACTION_MODAL}
+      component={QRSigningTransactionModal}
+    />
+    <Stack.Screen
+      options={{
+        //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+        cardStyle: { backgroundColor: importedColors.transparent },
+        cardStyleInterpolator: () => ({
+          overlayStyle: {
+            opacity: 0,
+          },
+        }),
+      }}
+      name={Routes.LEDGER_MESSAGE_SIGN_MODAL}
+      component={LedgerMessageSignModal}
+    />
+    <Stack.Screen name={Routes.OPTIONS_SHEET} component={OptionsSheet} />
+    <Stack.Screen
+      name={Routes.EDIT_ACCOUNT_NAME}
+      component={EditAccountName}
+      options={{ animationEnabled: true }}
+    />
+    <Stack.Screen
+      name={Routes.ADD_NETWORK}
+      component={AddNetworkFlow}
+      options={{ animationEnabled: true }}
+    />
+    {isNetworkUiRedesignEnabled() ? (
+      <Stack.Screen
+        name={Routes.EDIT_NETWORK}
+        component={AddNetworkFlow}
+        options={{ animationEnabled: true }}
+      />
+    ) : null}
+    <Stack.Screen
+      name={Routes.LOCK_SCREEN}
+      component={LockScreen}
+      options={{ gestureEnabled: false }}
+    />
+    <Stack.Screen
+      name={Routes.CONFIRMATION_REQUEST_MODAL}
+      options={{ headerShown: false, gestureEnabled: true }}
+      component={Confirm}
+    />
+    <Stack.Screen
+      name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
+      component={ModalSwitchAccountType}
+    />
+    <Stack.Screen
+      name={Routes.SMART_ACCOUNT_OPT_IN}
+      component={ModalSmartAccountOptIn}
+    />
+    <Stack.Screen
+      name={Routes.CONFIRMATION_PAY_WITH_MODAL}
+      component={PayWithModal}
+    />
+  </Stack.Navigator>
+);
 
 const App: React.FC = () => {
   const { toastRef } = useContext(ToastContext);

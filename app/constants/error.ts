@@ -24,10 +24,7 @@ export const SYMBOL_ERROR = 'symbolError';
 // Authentication errors
 export const AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS =
   'Password does not exist when calling SecureKeychain.getGenericPassword';
-export const AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR =
-  'Authentication.appTriggeredAuth failed to login';
 export const AUTHENTICATION_FAILED_WALLET_CREATION = 'Failed wallet creation';
-export const AUTHENTICATION_FAILED_TO_LOGIN = 'Failed to login';
 export const AUTHENTICATION_RESET_PASSWORD_FAILED_MESSAGE =
   'Authentication.resetPassword failed when calling SecureKeychain.resetGenericPassword with:';
 export const AUTHENTICATION_RESET_PASSWORD_FAILED =
