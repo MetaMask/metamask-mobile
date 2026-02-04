@@ -9,8 +9,8 @@ import {
 } from '../../types/transactionHistory';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
 } from '../../constants/eventNames';
 import { PERPS_SUPPORT_ARTICLES_URLS } from '../../constants/perpsConfig';
 
@@ -542,16 +542,16 @@ describe('PerpsTransactionItem', () => {
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.PERPS_UI_INTERACTION,
         {
-          [PerpsEventProperties.INTERACTION_TYPE]:
-            PerpsEventValues.INTERACTION_TYPE.TAP,
-          [PerpsEventProperties.SCREEN_NAME]:
-            PerpsEventValues.SCREEN_NAME.PERPS_ACTIVITY_HISTORY,
-          [PerpsEventProperties.TAB_NAME]:
-            PerpsEventValues.PERPS_HISTORY_TABS.TRADES,
-          [PerpsEventProperties.ACTION_TYPE]:
-            PerpsEventValues.ACTION_TYPE.ADL_LEARN_MORE,
-          [PerpsEventProperties.ASSET]: 'BTC',
-          [PerpsEventProperties.ORDER_TIMESTAMP]: 1234567890000,
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+          [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
+            PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_ACTIVITY_HISTORY,
+          [PERPS_EVENT_PROPERTY.TAB_NAME]:
+            PERPS_EVENT_VALUE.PERPS_HISTORY_TABS.TRADES,
+          [PERPS_EVENT_PROPERTY.ACTION_TYPE]:
+            PERPS_EVENT_VALUE.ACTION_TYPE.ADL_LEARN_MORE,
+          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+          [PERPS_EVENT_PROPERTY.ORDER_TIMESTAMP]: 1234567890000,
         },
       );
     });
