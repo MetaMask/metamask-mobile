@@ -47,6 +47,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 import Routes from '../../../../../constants/navigation/Routes';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
 import Keypad from '../../../../Base/Keypad';
@@ -55,10 +56,17 @@ import {
   ARBITRUM_USDC,
   PERPS_CURRENCY,
 } from '../../../../Views/confirmations/constants/perps';
-import { useAddToken } from '../../../../Views/confirmations/hooks/tokens/useAddToken';
+import {
+  useIsTransactionPayQuoteLoading,
+  useTransactionPayTotals,
+} from '../../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { useTransactionPayMetrics } from '../../../../Views/confirmations/hooks/pay/useTransactionPayMetrics';
 import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
+import { useAddToken } from '../../../../Views/confirmations/hooks/tokens/useAddToken';
+import { useTransactionConfirm } from '../../../../Views/confirmations/hooks/transactions/useTransactionConfirm';
+import { useTransactionCustomAmount } from '../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount';
 import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
+import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
 import useClearConfirmationOnBackSwipe from '../../../../Views/confirmations/hooks/ui/useClearConfirmationOnBackSwipe';
 import AddRewardsAccount from '../../../Rewards/components/AddRewardsAccount/AddRewardsAccount';
 import RewardsAnimations, {
@@ -114,17 +122,18 @@ import {
   usePerpsLivePrices,
   usePerpsTopOfBook,
 } from '../../hooks/stream';
+import {
+  useIsPerpsBalanceSelected
+} from '../../hooks/useIsPerpsBalanceSelected';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
-import { useIsPerpsBalanceSelected } from '../../hooks/useIsPerpsBalanceSelected';
-import { usePerpsPaymentTokens } from '../../hooks/usePerpsPaymentTokens';
 import { usePerpsSavePendingConfig } from '../../hooks/usePerpsSavePendingConfig';
 import {
   selectPerpsButtonColorTestVariant,
   selectPerpsTradeWithAnyTokenEnabledFlag,
 } from '../../selectors/featureFlags';
-import type { PerpsToken } from '../../types/perps-types';
+import { selectPerpsAccountState } from '../../selectors/perpsController';
 import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
 import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
 import {
@@ -144,14 +153,6 @@ import {
 } from '../../utils/tpslValidation';
 import createStyles from './PerpsOrderView.styles';
 import { PerpsPayRow } from './PerpsPayRow';
-import {
-  useIsTransactionPayQuoteLoading,
-  useTransactionPayTotals,
-} from '../../../../Views/confirmations/hooks/pay/useTransactionPayData';
-import { useTransactionConfirm } from '../../../../Views/confirmations/hooks/transactions/useTransactionConfirm';
-import { useTransactionCustomAmount } from '../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount';
-import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -259,11 +260,19 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const inputMethodRef = useRef<InputMethod>('default');
 
   const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount();
+  const perpsAccountRedux = useSelector(selectPerpsAccountState);
 
-  // Get real HyperLiquid USDC balance
-  const availableBalance = parseFloat(
-    account?.availableBalance?.toString() || '0',
-  );
+  // Use the same balance source as the pay-with list (Redux) when it's higher,
+  // so we don't show "insufficient funds" when WebSocket is stale or not yet updated.
+  const availableBalance = useMemo(() => {
+    const wsBalance = Number.parseFloat(
+      account?.availableBalance?.toString() || '0',
+    );
+    const reduxBalance = Number.parseFloat(
+      perpsAccountRedux?.availableBalance?.toString() || '0',
+    );
+    return Math.max(wsBalance, reduxBalance);
+  }, [account?.availableBalance, perpsAccountRedux?.availableBalance]);
 
   // Get order form state from context instead of hook
   const {
@@ -525,27 +534,18 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   ]);
 
   const hasInsufficientPayTokenBalance = useMemo(() => {
-    if (
-      !hasCustomTokenSelected ||
-      marginRequired == null ||
-      !payToken
-    ) {
+    if (marginRequired == null || !payToken || !hasCustomTokenSelected) {
       return false;
     }
-    const requiredUsd = Number(marginRequired) + Number(combinedFees);
-    const balanceUsd = Number(payToken.balanceUsd ?? 0);
+    const requiredUsd = Number(marginRequired);
+    const balanceUsd =
+      Number(payToken.balanceUsd ?? 0);
     return requiredUsd > balanceUsd;
   }, [
     hasCustomTokenSelected,
     marginRequired,
-    combinedFees,
     payToken,
   ]);
-
-  console.log('hasInsufficientPayTokenBalance', hasInsufficientPayTokenBalance);
-  console.log('marginRequired', marginRequired);
-  console.log('combinedFees', combinedFees);
-  console.log('payToken', payToken);
 
   const { updatePositionTPSL } = usePerpsTrading();
 
