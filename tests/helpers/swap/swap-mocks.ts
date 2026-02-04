@@ -7,6 +7,7 @@ import {
 import {
   GET_QUOTE_ETH_USDC_RESPONSE,
   GET_QUOTE_ETH_DAI_RESPONSE,
+  GET_QUOTE_ETH_DAI_RESPONSE_CUSTOM_SLIPPAGE,
   GET_QUOTE_USDC_USDT_RESPONSE,
   GET_TOKENS_MAINNET_RESPONSE,
   GET_POPULAR_TOKENS_MAINNET_RESPONSE,
@@ -37,11 +38,19 @@ export const testSpecificMock: TestSpecificMock = async (
     responseCode: 200,
   });
 
-  // Mock ETH->DAI
+  // Mock ETH->DAI with 2% slippage
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
-    url: /getQuote.*destTokenAddress=0x6B175474E89094C44Da98b954EedeAC495271d0F/i,
+    url: /getQuote.*destTokenAddress=0x6B175474E89094C44Da98b954EedeAC495271d0F.*slippage=2/i,
     response: GET_QUOTE_ETH_DAI_RESPONSE,
+    responseCode: 200,
+  });
+
+  // Mock ETH->DAI with 3.5% custom slippage
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /getQuote.*destTokenAddress=0x6B175474E89094C44Da98b954EedeAC495271d0F.*slippage=3.5/i,
+    response: GET_QUOTE_ETH_DAI_RESPONSE_CUSTOM_SLIPPAGE,
     responseCode: 200,
   });
 

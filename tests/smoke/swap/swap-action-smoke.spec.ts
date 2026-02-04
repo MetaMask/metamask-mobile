@@ -90,12 +90,13 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
         await prepareSwapsTestEnvironment();
         await WalletView.tapWalletSwapButton();
 
-        // Submit the Swap
+        // Submit swap with 3.5% custom slippage
         await submitSwapUnifiedUI(
           quantity,
           sourceTokenSymbol,
           destTokenSymbol,
           chainId,
+          { slippage: '3.5' },
         );
 
         // Check the swap activity completed
