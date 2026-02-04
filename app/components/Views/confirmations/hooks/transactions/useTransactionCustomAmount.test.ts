@@ -249,10 +249,10 @@ describe('useTransactionCustomAmount', () => {
     expect(updateTokenAmountMock).toHaveBeenCalledWith('61.725');
   });
 
-  it('sets quote requested metric when updateTokenAmount is called and hasSourceAmount is true', async () => {
-    useTransactionPayHasSourceAmountMock.mockReturnValue(true);
+  it('sets mm_pay_quote_requested metric only when hasSourceAmount becomes true after updateTokenAmount was called', async () => {
+    useTransactionPayHasSourceAmountMock.mockReturnValue(false);
 
-    const { result } = runHook();
+    const { result, rerender } = runHook();
 
     await act(async () => {
       result.current.updatePendingAmount('123.45');
@@ -262,31 +262,18 @@ describe('useTransactionCustomAmount', () => {
 
     await act(async () => {
       result.current.updateTokenAmount();
+    });
+
+    expect(setConfirmationMetricMock).not.toHaveBeenCalled();
+
+    // Simulate hasSourceAmount becoming true
+    useTransactionPayHasSourceAmountMock.mockReturnValue(true);
+
+    await act(async () => {
+      rerender({});
     });
 
     expect(setConfirmationMetricMock).toHaveBeenCalledWith({
-      properties: {
-        mm_pay_quote_requested: true,
-      },
-    });
-  });
-
-  it('does not set quote requested metric when updateTokenAmount is called and hasSourceAmount is false', async () => {
-    useTransactionPayHasSourceAmountMock.mockReturnValue(false);
-
-    const { result } = runHook();
-
-    await act(async () => {
-      result.current.updatePendingAmount('123.45');
-    });
-
-    setConfirmationMetricMock.mockClear();
-
-    await act(async () => {
-      result.current.updateTokenAmount();
-    });
-
-    expect(setConfirmationMetricMock).not.toHaveBeenCalledWith({
       properties: {
         mm_pay_quote_requested: true,
       },
