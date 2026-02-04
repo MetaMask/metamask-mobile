@@ -66,7 +66,7 @@ jest.mock('../../../core/Ledger/Ledger', () => ({
 }));
 
 jest.mock('../../../core/HardwareWallets/analytics', () => ({
-  getConnectedDevicesCount: jest.fn(),
+  getConnectedDevicesCount: jest.fn().mockResolvedValue(1),
 }));
 
 jest.mock('../../../util/hardwareWallet/deviceNameUtils', () => ({
@@ -75,6 +75,9 @@ jest.mock('../../../util/hardwareWallet/deviceNameUtils', () => ({
 
 jest.mock('../../../util/address', () => ({
   toFormattedAddress: jest.fn((address: string) => address),
+  formatAddress: jest.fn((address: string) =>
+    address ? `${address.slice(0, 6)}...${address.slice(-4)}` : '',
+  ),
 }));
 
 jest.mock('../../../core/Engine', () => ({
@@ -258,6 +261,28 @@ describe('LedgerSelectAccount', () => {
       const { toJSON } = renderWithProvider(<LedgerSelectAccount />);
 
       expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('displays EthAppNotOpen error message when error occurs', () => {
+      (
+        useLedgerBluetooth as unknown as jest.MockedFunction<
+          typeof useLedgerBluetooth
+        >
+      ).mockImplementation(() => ({
+        isSendingLedgerCommands: false,
+        isAppLaunchConfirmationNeeded: false,
+        ledgerLogicToRun: jest.fn(),
+        error: LedgerCommunicationErrors.EthAppNotOpen,
+        cleanupBluetoothConnection: jest.fn(),
+      }));
+
+      const { getByText } = renderWithProvider(<LedgerSelectAccount />);
+
+      // When EthAppNotOpen error occurs, the error message should be displayed
+      expect(getByText('Ethereum app not open')).toBeTruthy();
+      expect(
+        getByText('Please open the Ethereum app on your Ledger device.'),
+      ).toBeTruthy();
     });
   });
 });
