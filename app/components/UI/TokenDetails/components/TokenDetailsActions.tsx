@@ -164,10 +164,12 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
         screen: Routes.MODAL.MORE_TOKEN_ACTIONS_MENU,
         params: {
           hasPerpsMarket,
+          hasBalance,
           isBuyable,
           isNativeCurrency,
           asset: token,
           onBuy,
+          onReceive,
         },
       });
     });
@@ -175,10 +177,12 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
     withNavigationLock,
     navigate,
     hasPerpsMarket,
+    hasBalance,
     isBuyable,
     isNativeCurrency,
     token,
     onBuy,
+    onReceive,
   ]);
 
   // Determine which buttons to display based on perps market and balance
@@ -214,7 +218,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
         },
         {
           key: 'receive',
-          iconName: IconName.Received,
+          iconName: IconName.QrCode,
           label: strings('asset_overview.receive_button'),
           onPress: handleReceivePress,
           isDisabled: false,
@@ -281,7 +285,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
       ...baseButtons,
       {
         key: 'receive',
-        iconName: IconName.Received,
+        iconName: IconName.QrCode,
         label: strings('asset_overview.receive_button'),
         onPress: handleReceivePress,
         isDisabled: false,

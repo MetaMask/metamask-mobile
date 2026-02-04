@@ -27,6 +27,7 @@ import {
 import { TokenI } from '../../Tokens/types';
 import { usePerpsMarketForAsset } from '../../Perps/hooks/usePerpsMarketForAsset';
 import { PerpsEventValues } from '../../Perps/constants/eventNames';
+import { usePerpsActions } from '../hooks/usePerpsActions';
 import Price from '../../AssetOverview/Price';
 import ChartNavigationButton from '../../AssetOverview/ChartNavigationButton';
 import Balance from '../../AssetOverview/Balance';
@@ -181,9 +182,12 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
   const isTokenTrustworthy = isTokenTrustworthyForPerps(token);
 
-  const isTokenDetailsV2ButtonsEnabled = useSelector(
-    selectTokenDetailsV2ButtonsEnabled,
-  );
+  const isTokenDetailsV2ButtonsEnabled =
+    useSelector(selectTokenDetailsV2ButtonsEnabled) || true;
+
+  const { handlePerpsAction } = usePerpsActions({
+    symbol: token.symbol,
+  });
 
   const goToBrowserUrl = (url: string) => {
     const [screen, params] = createWebviewNavDetails({
@@ -203,15 +207,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       });
     }
   }, [marketData, navigation]);
-
-  // Stub handlers for perps actions
-  const handleLong = useCallback(() => {
-    // TODO: Implement long action
-  }, []);
-
-  const handleShort = useCallback(() => {
-    // TODO: Implement short action
-  }, []);
 
   const handleSelectTimePeriod = useCallback(
     (_timePeriod: TimePeriod) => {
@@ -281,8 +276,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               isNativeCurrency={token.isETH || token.isNative || false}
               token={token}
               onBuy={onBuy}
-              onLong={handleLong}
-              onShort={handleShort}
+              onLong={handlePerpsAction}
+              onShort={handlePerpsAction}
               onSend={onSend}
               onReceive={onReceive}
             />

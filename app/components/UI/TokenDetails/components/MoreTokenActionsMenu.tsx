@@ -33,10 +33,12 @@ import { TokenI } from '../../Tokens/types';
 
 export interface MoreTokenActionsMenuParams {
   hasPerpsMarket: boolean;
+  hasBalance: boolean;
   isBuyable: boolean;
   isNativeCurrency: boolean;
   asset: TokenI;
   onBuy?: () => void;
+  onReceive?: () => void;
 }
 
 type MoreTokenActionsMenuRouteProp = RouteProp<
@@ -62,10 +64,12 @@ const MoreTokenActionsMenu = () => {
 
   const {
     hasPerpsMarket,
+    hasBalance,
     isBuyable,
     isNativeCurrency,
     asset,
     onBuy: customOnBuy,
+    onReceive,
   } = route.params;
 
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -266,6 +270,12 @@ const MoreTokenActionsMenu = () => {
     rampsButtonClickData,
   ]);
 
+  const handleReceive = useCallback(() => {
+    closeBottomSheetAndNavigate(() => {
+      onReceive?.();
+    });
+  }, [closeBottomSheetAndNavigate, onReceive]);
+
   const handleViewOnBlockExplorer = useCallback(() => {
     const url = isNativeCurrency
       ? explorer.getBlockExplorerBaseUrl(asset.chainId)
@@ -340,6 +350,19 @@ const MoreTokenActionsMenu = () => {
 
   const actionConfigs: ActionConfig[] = useMemo(() => {
     const actions: ActionConfig[] = [];
+
+    // Show receive option when perps market is active and has balance
+    // (Receive button not shown in main actions in this case)
+    if (hasPerpsMarket && hasBalance && onReceive) {
+      actions.push({
+        type: 'receive',
+        label: strings('asset_overview.receive_button'),
+        iconName: IconName.QrCode,
+        testID: 'more-actions-receive',
+        isVisible: true,
+        onPress: handleReceive,
+      });
+    }
 
     // Show fund options when perps market is active (Cash Buy button not shown in main actions)
     if (hasPerpsMarket && isBuyable) {
@@ -424,6 +447,7 @@ const MoreTokenActionsMenu = () => {
     return actions;
   }, [
     hasPerpsMarket,
+    hasBalance,
     isBuyable,
     isNativeCurrency,
     asset.chainId,
@@ -432,6 +456,8 @@ const MoreTokenActionsMenu = () => {
     isDepositEnabled,
     isNetworkRampSupported,
     canSignTransactions,
+    onReceive,
+    handleReceive,
     handleBuyUnified,
     handleDeposit,
     handleBuy,
