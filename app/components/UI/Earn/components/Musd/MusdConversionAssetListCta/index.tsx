@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { View } from 'react-native';
 import styleSheet from './MusdConversionAssetListCta.styles';
 import Text, {
@@ -11,23 +11,22 @@ import {
   ButtonVariant,
 } from '@metamask/design-system-react-native';
 import {
+  MUSD_CONVERSION_APY,
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../constants/musd';
-import { toHex } from '@metamask/controller-utils';
 import { useRampNavigation } from '../../../../Ramp/hooks/useRampNavigation';
 import { RampIntent } from '../../../../Ramp/types';
 import { strings } from '../../../../../../../locales/i18n';
 import { EARN_TEST_IDS } from '../../../constants/testIds';
 import Logger from '../../../../../../util/Logger';
 import { useStyles } from '../../../../../hooks/useStyles';
-import { useMusdConversionTokens } from '../../../hooks/useMusdConversionTokens';
 import { useMusdConversion } from '../../../hooks/useMusdConversion';
 import { useMusdCtaVisibility } from '../../../hooks/useMusdCtaVisibility';
+import { useMusdConversionFlowData } from '../../../hooks/useMusdConversionFlowData';
 import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
-import { toChecksumAddress } from '../../../../../../util/address';
 import Badge, {
   BadgeVariant,
 } from '../../../../../../component-library/components/Badges/Badge';
@@ -35,60 +34,91 @@ import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../../component-library/components/Badges/BadgeWrapper';
 import { getNetworkImageSource } from '../../../../../../util/networks';
+import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
+import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events';
+import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetworkName';
 
 const MusdConversionAssetListCta = () => {
   const { styles } = useStyles(styleSheet, {});
 
   const { goToBuy } = useRampNavigation();
 
-  const { tokens, getMusdOutputChainId } = useMusdConversionTokens();
+  const {
+    isEmptyWallet,
+    getPaymentTokenForSelectedNetwork,
+    getChainIdForBuyFlow,
+  } = useMusdConversionFlowData();
 
-  const { initiateConversion } = useMusdConversion();
+  const { initiateConversion, hasSeenConversionEducationScreen } =
+    useMusdConversion();
+
+  const { shouldShowBuyGetMusdCta } = useMusdCtaVisibility();
+
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const { shouldShowCta, showNetworkIcon, selectedChainId } =
-    useMusdCtaVisibility();
+    shouldShowBuyGetMusdCta();
 
-  const canConvert = useMemo(
-    () => Boolean(tokens.length > 0 && tokens?.[0]?.chainId !== undefined),
-    [tokens],
+  const networkName = useNetworkName(
+    selectedChainId ?? MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   );
 
-  const ctaText = useMemo(() => {
-    if (!canConvert) {
-      return strings('earn.musd_conversion.buy_musd');
-    }
+  const ctaText = isEmptyWallet
+    ? strings('earn.musd_conversion.buy_musd')
+    : strings('earn.musd_conversion.get_musd');
 
-    return strings('earn.musd_conversion.get_musd');
-  }, [canConvert]);
+  const submitCtaPressedEvent = () => {
+    const { MUSD_CTA_TYPES, EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
+
+    const getRedirectLocation = () => {
+      if (isEmptyWallet) {
+        return EVENT_LOCATIONS.BUY_SCREEN;
+      }
+
+      return hasSeenConversionEducationScreen
+        ? EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN
+        : EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
+    };
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED)
+        .addProperties({
+          location: EVENT_LOCATIONS.HOME_SCREEN,
+          redirects_to: getRedirectLocation(),
+          cta_type: MUSD_CTA_TYPES.PRIMARY,
+          cta_text: ctaText,
+          network_chain_id: selectedChainId || MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+          network_name: networkName,
+        })
+        .build(),
+    );
+  };
 
   const handlePress = async () => {
-    // Redirect users to deposit flow if they don't have any stablecoins to convert.
-    if (!canConvert) {
+    submitCtaPressedEvent();
+
+    if (isEmptyWallet) {
+      const chainId = getChainIdForBuyFlow();
       const rampIntent: RampIntent = {
-        assetId:
-          MUSD_TOKEN_ASSET_ID_BY_CHAIN[
-            selectedChainId || MUSD_CONVERSION_DEFAULT_CHAIN_ID
-          ],
+        assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId],
       };
       goToBuy(rampIntent);
       return;
     }
 
-    const { address, chainId: paymentTokenChainId } = tokens[0];
+    const paymentToken = getPaymentTokenForSelectedNetwork();
 
-    if (!paymentTokenChainId) {
-      throw new Error('[mUSD Conversion] payment token chainID missing');
+    if (!paymentToken) {
+      Logger.error(
+        new Error('[mUSD Conversion] payment token missing'),
+        '[mUSD Conversion] Failed to initiate conversion - no payment token',
+      );
+      return;
     }
-
-    const paymentTokenAddress = toChecksumAddress(address);
 
     try {
       await initiateConversion({
-        preferredPaymentToken: {
-          address: paymentTokenAddress,
-          chainId: toHex(paymentTokenChainId),
-        },
-        outputChainId: getMusdOutputChainId(paymentTokenChainId),
+        preferredPaymentToken: paymentToken,
       });
     } catch (error) {
       Logger.error(
@@ -139,8 +169,10 @@ const MusdConversionAssetListCta = () => {
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
             MetaMask USD
           </Text>
-          <Text variant={TextVariant.BodySMMedium} color={TextColor.Success}>
-            {strings('earn.musd_conversion.earn_points_daily')}
+          <Text variant={TextVariant.BodySMMedium} color={TextColor.Primary}>
+            {strings('earn.earn_a_percentage_bonus', {
+              percentage: MUSD_CONVERSION_APY,
+            })}
           </Text>
         </View>
       </View>

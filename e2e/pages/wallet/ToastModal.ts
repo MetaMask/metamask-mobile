@@ -1,9 +1,9 @@
 import {
   ToastSelectorsIDs,
   ToastSelectorsText,
-} from '../../selectors/wallet/ToastModal.selectors';
-import Gestures from '../../framework/Gestures';
-import Matchers from '../../framework/Matchers';
+} from '../../../app/component-library/components/Toast/ToastModal.testIds';
+import Gestures from '../../../tests/framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
 
 class ToastModal {
   get container(): DetoxElement {

@@ -5,7 +5,7 @@ import {
   renderScreen,
 } from '../../../../util/test/renderWithProvider';
 import AppInformation from './';
-import { AboutMetaMaskSelectorsIDs } from '../../../../../e2e/selectors/Settings/AboutMetaMask.selectors';
+import { AboutMetaMaskSelectorsIDs } from './AboutMetaMask.testIds';
 import { RootState } from '../../../../reducers';
 
 // Mock device info
@@ -128,7 +128,7 @@ describe('AppInformation', () => {
       expect(getByText(/Terms of use/)).toBeTruthy();
       expect(getByText(/Attributions/)).toBeTruthy();
       expect(getByText(/Visit our support center/)).toBeTruthy();
-      expect(getByText(/Visit our Website/)).toBeTruthy();
+      expect(getByText(/Visit our website/)).toBeTruthy();
       expect(getByText(/Contact us/)).toBeTruthy();
     });
 

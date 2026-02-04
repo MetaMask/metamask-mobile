@@ -10,8 +10,8 @@ import {
   selectProviderConfig,
 } from '../../../selectors/networkController';
 import { fireEvent, act } from '@testing-library/react-native';
-import { BrowserURLBarSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserURLBar.selectors';
-import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/Browser/AccountOverview.selectors';
+import { BrowserURLBarSelectorsIDs } from './BrowserURLBar.testIds';
+import { AccountOverviewSelectorsIDs } from '../AccountRightButton/AccountOverview.testIds';
 import Routes from '../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
@@ -520,10 +520,10 @@ describe('BrowserUrlBar', () => {
       });
     });
 
-    describe('when URL bar is focused and showCloseButton is false', () => {
+    describe('when URL bar is focused', () => {
       it('renders Cancel button with text', () => {
         const { getByTestId, getByText } = renderWithProvider(
-          <BrowserUrlBar {...defaultProps} showCloseButton={false} />,
+          <BrowserUrlBar {...defaultProps} />,
           { state: mockInitialState },
         );
 
@@ -541,7 +541,7 @@ describe('BrowserUrlBar', () => {
         const props = { ...defaultProps, onCancel: onCancelMock };
 
         const { getByTestId } = renderWithProvider(
-          <BrowserUrlBar {...props} showCloseButton={false} />,
+          <BrowserUrlBar {...props} />,
           { state: mockInitialState },
         );
 
@@ -554,64 +554,10 @@ describe('BrowserUrlBar', () => {
       });
     });
 
-    describe('when URL bar is focused and showCloseButton is true', () => {
-      it('renders Close icon ButtonIcon', () => {
-        const { getByTestId, queryByText } = renderWithProvider(
-          <BrowserUrlBar {...defaultProps} showCloseButton />,
-          { state: mockInitialState },
-        );
-
-        const closeButton = getByTestId(
-          BrowserURLBarSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID,
-        );
-        const cancelText = queryByText('Cancel');
-
-        expect(closeButton).toBeDefined();
-        expect(cancelText).toBeNull();
-      });
-
-      it('calls onCancel when Close button is pressed', () => {
-        const onCancelMock = jest.fn();
-        const props = { ...defaultProps, onCancel: onCancelMock };
-
-        const { getByTestId } = renderWithProvider(
-          <BrowserUrlBar {...props} showCloseButton />,
-          { state: mockInitialState },
-        );
-
-        const closeButton = getByTestId(
-          BrowserURLBarSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID,
-        );
-        fireEvent.press(closeButton);
-
-        expect(onCancelMock).toHaveBeenCalled();
-      });
-
-      it('sets URL bar focused state to false when Close button is pressed', () => {
-        const setIsUrlBarFocusedMock = jest.fn();
-        const props = {
-          ...defaultProps,
-          setIsUrlBarFocused: setIsUrlBarFocusedMock,
-        };
-
-        const { getByTestId } = renderWithProvider(
-          <BrowserUrlBar {...props} showCloseButton />,
-          { state: mockInitialState },
-        );
-
-        const closeButton = getByTestId(
-          BrowserURLBarSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID,
-        );
-        fireEvent.press(closeButton);
-
-        expect(setIsUrlBarFocusedMock).toHaveBeenCalledWith(false);
-      });
-    });
-
     describe('button rendering logic', () => {
-      it('does not render Cancel or Close button when URL bar is not focused', () => {
+      it('does not render Cancel button when URL bar is not focused', () => {
         const { queryByText } = renderWithProvider(
-          <BrowserUrlBar {...propsWithoutUrlBarFocused} showCloseButton />,
+          <BrowserUrlBar {...propsWithoutUrlBarFocused} />,
           { state: mockInitialState },
         );
 
@@ -620,20 +566,70 @@ describe('BrowserUrlBar', () => {
         expect(cancelText).toBeNull();
       });
 
-      it('renders correct button based on showCloseButton prop value change', () => {
-        const { getByText, rerender, queryByText } = renderWithProvider(
-          <BrowserUrlBar {...defaultProps} showCloseButton={false} />,
+      it('always renders Cancel text button when URL bar is focused', () => {
+        const { getByText } = renderWithProvider(
+          <BrowserUrlBar {...defaultProps} />,
           { state: mockInitialState },
         );
 
         const cancelText = getByText('Cancel');
         expect(cancelText).toBeDefined();
-
-        rerender(<BrowserUrlBar {...defaultProps} showCloseButton />);
-
-        const cancelTextAfterRerender = queryByText('Cancel');
-        expect(cancelTextAfterRerender).toBeNull();
       });
+    });
+  });
+
+  describe('Tabs Button', () => {
+    it('renders tabs button when showTabs prop is provided and URL bar is not focused', () => {
+      const mockShowTabs = jest.fn();
+      const { getByTestId } = renderWithProvider(
+        <BrowserUrlBar
+          {...propsWithoutUrlBarFocused}
+          showTabs={mockShowTabs}
+        />,
+        { state: mockInitialState },
+      );
+
+      const tabsButton = getByTestId('browser-tabs-button');
+
+      expect(tabsButton).toBeTruthy();
+    });
+
+    it('calls showTabs when tabs button is pressed', () => {
+      const mockShowTabs = jest.fn();
+      const { getByTestId } = renderWithProvider(
+        <BrowserUrlBar
+          {...propsWithoutUrlBarFocused}
+          showTabs={mockShowTabs}
+        />,
+        { state: mockInitialState },
+      );
+
+      fireEvent.press(getByTestId('browser-tabs-button'));
+
+      expect(mockShowTabs).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not render tabs button when showTabs prop is not provided', () => {
+      const { queryByTestId } = renderWithProvider(
+        <BrowserUrlBar {...propsWithoutUrlBarFocused} />,
+        { state: mockInitialState },
+      );
+
+      const tabsButton = queryByTestId('browser-tabs-button');
+
+      expect(tabsButton).toBeNull();
+    });
+
+    it('hides tabs button when URL bar is focused', () => {
+      const mockShowTabs = jest.fn();
+      const { queryByTestId } = renderWithProvider(
+        <BrowserUrlBar {...defaultProps} showTabs={mockShowTabs} />,
+        { state: mockInitialState },
+      );
+
+      const tabsButton = queryByTestId('browser-tabs-button');
+
+      expect(tabsButton).toBeNull();
     });
   });
 });

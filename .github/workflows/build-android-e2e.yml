@@ -98,35 +98,78 @@ jobs:
             exit 1
           fi
 
-      - name: Check and restore cached APKs if Fingerprint is found
+      - name: Restore APKs matching fingerprint from branch cache
         id: apk-cache-restore
-        uses: cirruslabs/cache@v4
+        # This action automatically updates the cache at the end of the workflow
+        uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
           path: |
             ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
             ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
           # Include Gradle properties in key to force rebuild when properties change
           # Keep the `hashFiles` call for Gradle config in-sync with these steps:
-          # - "Cache Gradle dependencies"
-          # - "Cache build artifacts"
-          key: android-apk-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          # - "Restore APKs matching fingerprint from branch cache"
+          # - "Restore APKs matching fingerprint from main cache"
+          # - "Restore Gradle dependencies from branch cache"
+          # - "Restore Gradle dependencies from main cache"
+          key: android-apk-${{ github.ref_name }}-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
-      - name: Cache Gradle dependencies
-        uses: cirruslabs/cache@v4
-        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' }}
+      - name: Restore APKs matching fingerprint from main cache
+        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
+        id: apk-cache-restore-main
+        # This will only restore the cache, not update it
+        uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        with:
+          path: |
+            ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
+            ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
+          # Include Gradle properties in key to force rebuild when properties change
+          # Keep the `hashFiles` call for Gradle config in-sync with these steps:
+          # - "Restore APKs matching fingerprint from branch cache"
+          # - "Restore APKs matching fingerprint from main cache"
+          # - "Restore Gradle dependencies from branch cache"
+          # - "Restore Gradle dependencies from main cache"
+          key: android-apk-main-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+
+      - name: Restore Gradle dependencies from branch cache
+        id: gradle-cache-restore
+        # This action automatically updates the cache at the end of the workflow
+        uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' && steps.apk-cache-restore-main.outputs.cache-hit != 'true' }}
         env:
           GRADLE_CACHE_VERSION: 1
         with:
           path: |
             ~/_work/.gradle/caches
             ~/_work/.gradle/wrapper
+          # Include Gradle properties in key to force rebuild when properties change
           # Keep the `hashFiles` call for Gradle config in-sync with these steps:
-          # - "Check and restore cached APKs if Fingerprint is found"
-          # - "Cache build artifacts"
-          key: gradle-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          # - "Restore APKs matching fingerprint from branch cache"
+          # - "Restore APKs matching fingerprint from main cache"
+          # - "Restore Gradle dependencies from branch cache"
+          # - "Restore Gradle dependencies from main cache"
+          key: gradle-${{ github.ref_name }}-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+
+      - name: Restore Gradle dependencies from main cache
+        # This will only restore the cache, not update it
+        uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' && steps.apk-cache-restore-main.outputs.cache-hit != 'true' && steps.gradle-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
+        env:
+          GRADLE_CACHE_VERSION: 1
+        with:
+          path: |
+            ~/_work/.gradle/caches
+            ~/_work/.gradle/wrapper
+          # Include Gradle properties in key to force rebuild when properties change
+          # Keep the `hashFiles` call for Gradle config in-sync with these steps:
+          # - "Restore APKs matching fingerprint from branch cache"
+          # - "Restore APKs matching fingerprint from main cache"
+          # - "Restore Gradle dependencies from branch cache"
+          # - "Restore Gradle dependencies from main cache"
+          key: gradle-main-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Build Android E2E APKs
-        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' }}
+        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' && steps.apk-cache-restore-main.outputs.cache-hit != 'true' }}
         run: |
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=4096"
@@ -179,7 +222,7 @@ jobs:
           MM_PREDICT_GTM_MODAL_ENABLED: 'false'
 
       - name: Repack APK with JS updates using @expo/repack-app
-        if: ${{ steps.apk-cache-restore.outputs.cache-hit == 'true' }}
+        if: ${{ steps.apk-cache-restore.outputs.cache-hit == 'true' || steps.apk-cache-restore-main.outputs.cache-hit == 'true' }}
         run: |
           echo "📦 Repacking APK with updated JavaScript bundle using @expo/repack-app..."
           # Use the optimized repack script which uses @expo/repack-app
@@ -227,19 +270,6 @@ jobs:
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
-
-      # Cache build artifacts with the pre-build fingerprint
-      - name: Cache build artifacts
-        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' }}
-        uses: cirruslabs/cache@v4
-        with:
-          path: |
-            ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
-            ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
-          # Keep the `hashFiles` call for Gradle config in-sync with these steps:
-          # - "Check and restore cached APKs if Fingerprint is found"
-          # - "Cache Gradle dependencies"
-          key: android-apk-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Upload Android APK
         id: upload-apk

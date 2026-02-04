@@ -1,4 +1,4 @@
-import Matchers from '../../../framework/Matchers';
+import Matchers from '../../../../tests/framework/Matchers';
 import {
   AlertModalSelectorsIDs,
   AlertModalSelectorsText,
@@ -6,8 +6,8 @@ import {
   ConfirmationTopSheetSelectorsIDs,
   ConfirmationTopSheetSelectorsText,
   AlertTypeIDs,
-} from '../../../selectors/Confirmation/ConfirmationView.selectors';
-import Gestures from '../../../framework/Gestures';
+} from '../../../../app/components/Views/confirmations/ConfirmationView.testIds';
+import Gestures from '../../../../tests/framework/Gestures';
 
 class AlertSystem {
   get securityAlertBanner(): DetoxElement {
@@ -42,9 +42,9 @@ class AlertSystem {
     return Matchers.getElementByID(AlertModalSelectorsIDs.ALERT_MODAL_CHECKBOX);
   }
 
-  get gotItAlertModalButton(): DetoxElement {
+  get acknowledgeAlertModalButton(): DetoxElement {
     return Matchers.getElementByID(
-      AlertModalSelectorsIDs.ALERT_MODAL_GOT_IT_BUTTON,
+      AlertModalSelectorsIDs.ALERT_MODAL_ACKNOWLEDGE_BUTTON,
     );
   }
 
@@ -84,9 +84,9 @@ class AlertSystem {
     });
   }
 
-  async tapGotItAlertModalButton(): Promise<void> {
-    await Gestures.waitAndTap(this.gotItAlertModalButton, {
-      elemDescription: 'Got it alert modal button',
+  async tapAcknowledgeAlertModalButton(): Promise<void> {
+    await Gestures.waitAndTap(this.acknowledgeAlertModalButton, {
+      elemDescription: 'Acknowledge alert modal button',
     });
   }
 

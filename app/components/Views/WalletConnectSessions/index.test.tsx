@@ -3,7 +3,7 @@ import WalletConnectSessions from './';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import Routes from '../../../constants/navigation/Routes';
-import { ExperimentalSelectorsIDs } from '../../../../e2e/selectors/Settings/ExperimentalView.selectors';
+import { ExperimentalSelectorsIDs } from '../Settings/ExperimentalSettings/ExperimentalView.testIds';
 
 jest.mock('../../../core/WalletConnect/WalletConnectV2', () => ({
   isWC2Enabled: false,

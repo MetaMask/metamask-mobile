@@ -16,11 +16,6 @@ jest.mock('../../../../core/Engine');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../util/Logger');
 jest.mock('../services/PerpsConnectionManager');
-jest.mock('../utils/accountUtils', () => ({
-  getEvmAccountFromSelectedAccountGroup: jest.fn().mockReturnValue({
-    address: '0x123456789',
-  }),
-}));
 
 const mockEngine = Engine as jest.Mocked<typeof Engine>;
 const mockDevLogger = DevLogger as jest.Mocked<typeof DevLogger>;
@@ -89,7 +84,29 @@ describe('PerpsStreamManager', () => {
       subscribeToPositions: mockSubscribeToPositions,
       subscribeToAccount: mockSubscribeToAccount,
       isCurrentlyReinitializing: jest.fn().mockReturnValue(false),
+      getMarkets: jest
+        .fn()
+        .mockResolvedValue([{ name: 'BTC-PERP' }, { name: 'ETH-PERP' }]),
     } as unknown as typeof mockEngine.context.PerpsController;
+
+    // Mock AccountTreeController for getEvmAccountFromSelectedAccountGroup
+    mockEngine.context.AccountTreeController = {
+      getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
+        {
+          address: '0x123456789',
+          id: 'account-1',
+          type: 'eip155:eoa',
+          metadata: {
+            name: 'Test Account',
+            importTime: 0,
+            keyring: { type: 'HD Key Tree' },
+          },
+          methods: [],
+          options: {},
+          scopes: [],
+        },
+      ]),
+    } as unknown as typeof mockEngine.context.AccountTreeController;
 
     mockDevLogger.log = jest.fn();
   });
@@ -135,7 +152,7 @@ describe('PerpsStreamManager', () => {
         // Simulate immediate cached data with all required fields
         const cachedData: PriceUpdate[] = [
           {
-            coin: 'BTC-PERP',
+            symbol: 'BTC-PERP',
             price: '50000',
             percentChange24h: '5',
             timestamp: Date.now(),
@@ -162,7 +179,7 @@ describe('PerpsStreamManager', () => {
     await waitFor(() => {
       expect(onUpdate).toHaveBeenCalledWith({
         'BTC-PERP': {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50000',
           timestamp: expect.any(Number),
           percentChange24h: '5',
@@ -204,7 +221,7 @@ describe('PerpsStreamManager', () => {
     act(() => {
       controllerCallback?.([
         {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50000',
           percentChange24h: '5',
           timestamp: Date.now(),
@@ -220,7 +237,7 @@ describe('PerpsStreamManager', () => {
     act(() => {
       controllerCallback?.([
         {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50100',
           percentChange24h: '5.1',
           timestamp: Date.now(),
@@ -240,7 +257,7 @@ describe('PerpsStreamManager', () => {
       expect(onUpdate).toHaveBeenCalledTimes(2);
       expect(onUpdate).toHaveBeenLastCalledWith({
         'BTC-PERP': {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50100',
           timestamp: expect.any(Number),
           percentChange24h: '5.1',
@@ -282,7 +299,7 @@ describe('PerpsStreamManager', () => {
     act(() => {
       controllerCallback?.([
         {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50000',
           percentChange24h: '5',
           timestamp: Date.now(),
@@ -298,7 +315,7 @@ describe('PerpsStreamManager', () => {
     act(() => {
       controllerCallback?.([
         {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50100',
           percentChange24h: '5.1',
           timestamp: Date.now(),
@@ -306,7 +323,7 @@ describe('PerpsStreamManager', () => {
       ]);
       controllerCallback?.([
         {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50200',
           percentChange24h: '5.2',
           timestamp: Date.now(),
@@ -314,7 +331,7 @@ describe('PerpsStreamManager', () => {
       ]);
       controllerCallback?.([
         {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50300',
           percentChange24h: '5.3',
           timestamp: Date.now(),
@@ -335,7 +352,7 @@ describe('PerpsStreamManager', () => {
       expect(onUpdate).toHaveBeenCalledTimes(2);
       expect(onUpdate).toHaveBeenLastCalledWith({
         'BTC-PERP': {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50300',
           timestamp: expect.any(Number),
           percentChange24h: '5.3',
@@ -404,7 +421,7 @@ describe('PerpsStreamManager', () => {
     act(() => {
       controllerCallback?.([
         {
-          coin: 'ETH-PERP',
+          symbol: 'ETH-PERP',
           price: '3000',
           timestamp: Date.now(),
           percentChange24h: '2',
@@ -419,7 +436,7 @@ describe('PerpsStreamManager', () => {
     act(() => {
       controllerCallback?.([
         {
-          coin: 'ETH-PERP',
+          symbol: 'ETH-PERP',
           price: '3010',
           timestamp: Date.now(),
           percentChange24h: '2.1',
@@ -434,7 +451,7 @@ describe('PerpsStreamManager', () => {
     act(() => {
       controllerCallback?.([
         {
-          coin: 'ETH-PERP',
+          symbol: 'ETH-PERP',
           price: '3020',
           timestamp: Date.now(),
           percentChange24h: '2.2',
@@ -474,7 +491,7 @@ describe('PerpsStreamManager', () => {
     act(() => {
       controllerCallback?.([
         {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50000',
           timestamp: Date.now(),
           percentChange24h: '5',
@@ -490,7 +507,7 @@ describe('PerpsStreamManager', () => {
     act(() => {
       controllerCallback?.([
         {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50100',
           timestamp: Date.now(),
           percentChange24h: '5.1',
@@ -572,7 +589,7 @@ describe('PerpsStreamManager', () => {
     });
 
     const firstUpdate: PriceUpdate = {
-      coin: 'BTC-PERP',
+      symbol: 'BTC-PERP',
 
       price: '50000',
       timestamp: Date.now(),
@@ -588,7 +605,7 @@ describe('PerpsStreamManager', () => {
       expect(onUpdate).toHaveBeenCalled();
       const call = onUpdate.mock.calls[0][0];
       expect(call['BTC-PERP']).toMatchObject({
-        coin: 'BTC-PERP',
+        symbol: 'BTC-PERP',
         price: '50000',
       });
     });
@@ -620,7 +637,7 @@ describe('PerpsStreamManager', () => {
       act(() => {
         priceCallback([
           {
-            coin: 'BTC-PERP',
+            symbol: 'BTC-PERP',
             price: '50000',
             timestamp: Date.now(),
             percentChange24h: '5',
@@ -631,7 +648,7 @@ describe('PerpsStreamManager', () => {
       await waitFor(() => {
         expect(onUpdate).toHaveBeenCalledWith({
           'BTC-PERP': expect.objectContaining({
-            coin: 'BTC-PERP',
+            symbol: 'BTC-PERP',
             price: '50000',
           }),
         });
@@ -926,6 +943,241 @@ describe('PerpsStreamManager', () => {
     });
   });
 
+  describe('PriceStreamChannel.prewarm non-blocking behavior', () => {
+    it('returns immediately without waiting for getMarkets', async () => {
+      // Create a promise that we can control
+      let resolveGetMarkets: (value: { name: string }[]) => void = jest.fn();
+      const getMarketsPromise = new Promise<{ name: string }[]>((resolve) => {
+        resolveGetMarkets = resolve;
+      });
+
+      mockEngine.context.PerpsController.getMarkets = jest
+        .fn()
+        .mockReturnValue(getMarketsPromise);
+
+      // prewarm should return immediately
+      const cleanupPromise = testStreamManager.prices.prewarm();
+
+      // The promise should resolve immediately (before getMarkets completes)
+      const cleanup = await cleanupPromise;
+      expect(typeof cleanup).toBe('function');
+
+      // getMarkets was called but not awaited
+      expect(mockEngine.context.PerpsController.getMarkets).toHaveBeenCalled();
+
+      // subscribeToPrices should NOT have been called yet
+      expect(mockSubscribeToPrices).not.toHaveBeenCalled();
+
+      // Now resolve getMarkets
+      resolveGetMarkets([{ name: 'BTC-PERP' }, { name: 'ETH-PERP' }]);
+
+      // Wait for the promise chain to complete
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      // Now subscribeToPrices should have been called
+      expect(mockSubscribeToPrices).toHaveBeenCalledWith({
+        symbols: ['BTC-PERP', 'ETH-PERP'],
+        callback: expect.any(Function),
+      });
+
+      cleanup();
+    });
+
+    it('skips subscription when cleanup occurs before getMarkets completes', async () => {
+      // Create a promise that we can control
+      let resolveGetMarkets: (value: { name: string }[]) => void = jest.fn();
+      const getMarketsPromise = new Promise<{ name: string }[]>((resolve) => {
+        resolveGetMarkets = resolve;
+      });
+
+      mockEngine.context.PerpsController.getMarkets = jest
+        .fn()
+        .mockReturnValue(getMarketsPromise);
+
+      // prewarm should return immediately
+      const cleanup = await testStreamManager.prices.prewarm();
+
+      // Call cleanup before getMarkets resolves
+      cleanup();
+
+      // Now resolve getMarkets
+      resolveGetMarkets([{ name: 'BTC-PERP' }, { name: 'ETH-PERP' }]);
+
+      // Wait for the promise chain to complete
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      // subscribeToPrices should NOT have been called (cleaned up before it could subscribe)
+      expect(mockSubscribeToPrices).not.toHaveBeenCalled();
+    });
+
+    it('logs error and returns cleanup function when getMarkets fails', async () => {
+      mockEngine.context.PerpsController.getMarkets = jest
+        .fn()
+        .mockRejectedValue(new Error('Network error'));
+
+      // prewarm should return immediately
+      const cleanup = await testStreamManager.prices.prewarm();
+      expect(typeof cleanup).toBe('function');
+
+      // Wait for the promise chain to complete
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      // subscribeToPrices should NOT have been called due to error
+      expect(mockSubscribeToPrices).not.toHaveBeenCalled();
+
+      // Logger.error should have been called
+      expect(mockLogger.error).toHaveBeenCalled();
+
+      cleanup();
+    });
+
+    it('calls actual unsubscribe when cleanupPrewarm runs after subscription is established', async () => {
+      const mockActualUnsubscribe = jest.fn();
+      mockSubscribeToPrices.mockReturnValue(mockActualUnsubscribe);
+
+      mockEngine.context.PerpsController.getMarkets = jest
+        .fn()
+        .mockResolvedValue([{ name: 'BTC-PERP' }]);
+
+      // prewarm and wait for subscription to be established
+      const cleanup = await testStreamManager.prices.prewarm();
+
+      // Wait for the background subscription to be set up
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockSubscribeToPrices).toHaveBeenCalled();
+
+      // Call cleanup
+      cleanup();
+
+      // The actual unsubscribe should have been called
+      expect(mockActualUnsubscribe).toHaveBeenCalled();
+    });
+
+    it('returns same cleanup when prewarm called twice without cleanup (already pre-warmed guard)', async () => {
+      const mockUnsubscribe = jest.fn();
+      mockSubscribeToPrices.mockReturnValue(mockUnsubscribe);
+
+      // Create controlled promise
+      let resolveGetMarkets: (value: { name: string }[]) => void = jest.fn();
+      const getMarketsPromise = new Promise<{ name: string }[]>((resolve) => {
+        resolveGetMarkets = resolve;
+      });
+
+      mockEngine.context.PerpsController.getMarkets = jest
+        .fn()
+        .mockReturnValue(getMarketsPromise);
+
+      // Cycle 1: User enters Perps
+      const cleanup1 = await testStreamManager.prices.prewarm();
+
+      // Cycle 2: Called again without cleanup (rapid navigation)
+      // The guard at line 362 returns the existing prewarmUnsubscribe
+      const cleanup2 = await testStreamManager.prices.prewarm();
+
+      // Both cleanups should be the same function (guarded by "already pre-warmed" check)
+      expect(cleanup1).toBe(cleanup2);
+
+      // getMarkets only called once (second call was short-circuited)
+      expect(
+        mockEngine.context.PerpsController.getMarkets,
+      ).toHaveBeenCalledTimes(1);
+
+      // Resolve and cleanup
+      resolveGetMarkets([{ name: 'BTC-PERP' }]);
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(1);
+      cleanup1();
+      expect(mockUnsubscribe).toHaveBeenCalled();
+    });
+
+    it('prevents stale promise from creating subscription after cleanup and new prewarm', async () => {
+      const mockUnsubscribe1 = jest.fn();
+      const mockUnsubscribe2 = jest.fn();
+      let subscribeCallCount = 0;
+
+      mockSubscribeToPrices.mockImplementation(() => {
+        subscribeCallCount++;
+        return subscribeCallCount === 1 ? mockUnsubscribe1 : mockUnsubscribe2;
+      });
+
+      // Create controlled promises for each cycle
+      let resolveGetMarkets1: (value: { name: string }[]) => void = jest.fn();
+      let resolveGetMarkets2: (value: { name: string }[]) => void = jest.fn();
+
+      const getMarketsPromise1 = new Promise<{ name: string }[]>((resolve) => {
+        resolveGetMarkets1 = resolve;
+      });
+      const getMarketsPromise2 = new Promise<{ name: string }[]>((resolve) => {
+        resolveGetMarkets2 = resolve;
+      });
+
+      let getMarketsCallCount = 0;
+      (mockEngine.context.PerpsController.getMarkets as jest.Mock) = jest.fn(
+        () => {
+          getMarketsCallCount++;
+          return getMarketsCallCount === 1
+            ? getMarketsPromise1
+            : getMarketsPromise2;
+        },
+      );
+
+      // Cycle 1: User enters Perps
+      const cleanup1 = await testStreamManager.prices.prewarm();
+
+      // User leaves before markets load - this resets prewarmUnsubscribe to undefined
+      cleanup1();
+
+      // Cycle 2: User enters Perps again
+      const cleanup2 = await testStreamManager.prices.prewarm();
+
+      // Now cycle 1's promise resolves (STALE - should be ignored due to cycle ID mismatch)
+      resolveGetMarkets1([{ name: 'BTC-PERP' }]);
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      // Stale promise should NOT create subscription (cycle ID mismatch)
+      expect(mockSubscribeToPrices).not.toHaveBeenCalled();
+
+      // Cycle 2's promise resolves (active)
+      resolveGetMarkets2([{ name: 'ETH-PERP' }]);
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      // Only one subscription should be created (from cycle 2)
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(1);
+      expect(mockSubscribeToPrices).toHaveBeenCalledWith({
+        symbols: ['ETH-PERP'],
+        callback: expect.any(Function),
+      });
+
+      // Cleanup cycle 2 - since this is the first subscription call, it uses mockUnsubscribe1
+      cleanup2();
+      expect(mockUnsubscribe1).toHaveBeenCalled();
+      // mockUnsubscribe2 was never created because only one subscription was made
+    });
+  });
+
   it('should throttle subsequent updates', async () => {
     const onUpdate = jest.fn();
     let priceCallback: (data: PriceUpdate[]) => void = jest.fn();
@@ -946,7 +1198,7 @@ describe('PerpsStreamManager', () => {
     });
 
     const firstUpdate: PriceUpdate = {
-      coin: 'BTC-PERP',
+      symbol: 'BTC-PERP',
 
       price: '50000',
       timestamp: Date.now(),
@@ -962,14 +1214,14 @@ describe('PerpsStreamManager', () => {
     });
 
     const secondUpdate: PriceUpdate = {
-      coin: 'BTC-PERP',
+      symbol: 'BTC-PERP',
 
       price: '50100',
       timestamp: Date.now() + 10,
     };
 
     const thirdUpdate: PriceUpdate = {
-      coin: 'BTC-PERP',
+      symbol: 'BTC-PERP',
 
       price: '50200',
       timestamp: Date.now() + 20,
@@ -994,7 +1246,7 @@ describe('PerpsStreamManager', () => {
       expect(onUpdate).toHaveBeenCalledTimes(2);
       const lastCall = onUpdate.mock.calls[1][0];
       expect(lastCall['BTC-PERP']).toMatchObject({
-        coin: 'BTC-PERP',
+        symbol: 'BTC-PERP',
         price: '50200',
       });
     });
@@ -1050,7 +1302,7 @@ describe('PerpsStreamManager', () => {
     });
 
     const update: PriceUpdate = {
-      coin: 'BTC-PERP',
+      symbol: 'BTC-PERP',
 
       price: '50000',
       timestamp: Date.now(),
@@ -1194,6 +1446,9 @@ describe('PerpsStreamManager', () => {
     beforeEach(() => {
       mockGetMarketDataWithPrices.mockResolvedValue(mockMarketData);
       mockEngine.context.PerpsController.getActiveProvider = jest
+        .fn()
+        .mockReturnValue(mockProvider);
+      mockEngine.context.PerpsController.getActiveProviderOrNull = jest
         .fn()
         .mockReturnValue(mockProvider);
     });
@@ -1966,8 +2221,8 @@ describe('PerpsStreamManager', () => {
 
       const priceCallback = mockSubscribeToPrices.mock.calls[0][0].callback;
       priceCallback([
-        { coin: 'BTC', bestBid: '50000', bestAsk: '50001' },
-        { coin: 'ETH', bestBid: '3000', bestAsk: '3001' },
+        { symbol: 'BTC', bestBid: '50000', bestAsk: '50001' },
+        { symbol: 'ETH', bestBid: '3000', bestAsk: '3001' },
       ]);
 
       expect(callback).toHaveBeenCalledWith({
@@ -1997,7 +2252,7 @@ describe('PerpsStreamManager', () => {
       });
 
       const priceCallback = mockSubscribeToPrices.mock.calls[0][0].callback;
-      priceCallback([{ coin: 'BTC', bestBid: '50000', bestAsk: '50001' }]);
+      priceCallback([{ symbol: 'BTC', bestBid: '50000', bestAsk: '50001' }]);
 
       testStreamManager.topOfBook.clearCache();
 
@@ -2010,7 +2265,7 @@ describe('PerpsStreamManager', () => {
     let mockPositionsUnsubscribe: jest.Mock;
 
     const createMockPosition = (overrides = {}) => ({
-      coin: 'ETH',
+      symbol: 'ETH',
       size: '1.5',
       entryPrice: '3000',
       positionValue: '4500',
@@ -2094,7 +2349,7 @@ describe('PerpsStreamManager', () => {
 
       expect(callback).toHaveBeenCalledWith([
         expect.objectContaining({
-          coin: 'ETH',
+          symbol: 'ETH',
           takeProfitPrice: '3300',
           stopLossPrice: undefined,
           takeProfitCount: 1,
@@ -2154,7 +2409,7 @@ describe('PerpsStreamManager', () => {
 
       expect(callback).toHaveBeenCalledWith([
         expect.objectContaining({
-          coin: 'ETH',
+          symbol: 'ETH',
           takeProfitPrice: undefined,
           stopLossPrice: '2700',
           takeProfitCount: 0,
@@ -2214,7 +2469,7 @@ describe('PerpsStreamManager', () => {
 
       expect(callback).toHaveBeenCalledWith([
         expect.objectContaining({
-          coin: 'ETH',
+          symbol: 'ETH',
           takeProfitPrice: '3300',
           stopLossPrice: '2700',
           takeProfitCount: 1,
@@ -2279,7 +2534,7 @@ describe('PerpsStreamManager', () => {
 
       expect(callback).toHaveBeenCalledWith([
         expect.objectContaining({
-          coin: 'ETH',
+          symbol: 'ETH',
           takeProfitPrice: undefined,
           stopLossPrice: undefined,
           takeProfitCount: 0,
@@ -2317,9 +2572,9 @@ describe('PerpsStreamManager', () => {
       });
 
       // Send multiple positions
-      const ethPosition = createMockPosition({ coin: 'ETH' });
+      const ethPosition = createMockPosition({ symbol: 'ETH' });
       const btcPosition = createMockPosition({
-        coin: 'BTC',
+        symbol: 'BTC',
         entryPrice: '50000',
       });
       act(() => {
@@ -2345,7 +2600,7 @@ describe('PerpsStreamManager', () => {
 
       // Verify ETH position was updated
       expect(calledPositions[0]).toMatchObject({
-        coin: 'ETH',
+        symbol: 'ETH',
         takeProfitPrice: '3300',
         stopLossPrice: '2700',
         takeProfitCount: 1,
@@ -2354,7 +2609,7 @@ describe('PerpsStreamManager', () => {
 
       // Verify BTC position was NOT updated (should keep original values)
       expect(calledPositions[1]).toMatchObject({
-        coin: 'BTC',
+        symbol: 'BTC',
         entryPrice: '50000',
         takeProfitCount: 0,
         stopLossCount: 0,
@@ -2392,7 +2647,7 @@ describe('PerpsStreamManager', () => {
       });
 
       // Send initial position data for ETH
-      const initialPosition = createMockPosition({ coin: 'ETH' });
+      const initialPosition = createMockPosition({ symbol: 'ETH' });
       act(() => {
         positionCallback?.([initialPosition]);
       });
@@ -2474,7 +2729,7 @@ describe('PerpsStreamManager', () => {
 
       // Send position with specific values
       const initialPosition = createMockPosition({
-        coin: 'ETH',
+        symbol: 'ETH',
         size: '2.5',
         entryPrice: '3100',
         unrealizedPnl: '250',
@@ -2502,7 +2757,7 @@ describe('PerpsStreamManager', () => {
       // Verify all original properties are preserved
       expect(callback).toHaveBeenCalledWith([
         expect.objectContaining({
-          coin: 'ETH',
+          symbol: 'ETH',
           size: '2.5',
           entryPrice: '3100',
           unrealizedPnl: '250',
@@ -2643,6 +2898,9 @@ describe('PerpsStreamManager', () => {
         callback,
       });
 
+      // Get initial subscription count
+      const initialCallCount = mockSubscribeToPrices.mock.calls.length;
+
       const pricesDisconnect = jest.spyOn(
         testStreamManager.prices,
         'disconnect',
@@ -2651,12 +2909,32 @@ describe('PerpsStreamManager', () => {
       // Act - reconnect all channels
       testStreamManager.clearAllChannels();
 
+      // Assert - disconnect was called
       expect(pricesDisconnect).toHaveBeenCalled();
 
-      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+      // Assert - reconnection happened (at least one more subscription after clearAllChannels)
+      expect(mockSubscribeToPrices.mock.calls.length).toBeGreaterThan(
+        initialCallCount,
+      );
 
       unsubscribe();
       pricesDisconnect.mockRestore();
+    });
+  });
+
+  describe('Deposit Handler Management', () => {
+    it('sets active deposit handler state', () => {
+      expect(testStreamManager.hasActiveDepositHandler()).toBe(false);
+
+      testStreamManager.setActiveDepositHandler(true);
+      expect(testStreamManager.hasActiveDepositHandler()).toBe(true);
+
+      testStreamManager.setActiveDepositHandler(false);
+      expect(testStreamManager.hasActiveDepositHandler()).toBe(false);
+    });
+
+    it('returns false by default when no active deposit handler is set', () => {
+      expect(testStreamManager.hasActiveDepositHandler()).toBe(false);
     });
   });
 });

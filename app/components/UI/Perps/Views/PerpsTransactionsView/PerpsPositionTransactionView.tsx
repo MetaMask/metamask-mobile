@@ -3,7 +3,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import React, { useMemo } from 'react';
+import React, { useLayoutEffect, useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
@@ -22,10 +22,11 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import Routes from '../../../../../constants/navigation/Routes';
 import ScreenView from '../../../../Base/ScreenView';
-import { getPerpsTransactionsDetailsNavbar } from '../../../Navbar';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
 import { usePerpsBlockExplorerUrl } from '../../hooks';
 import { PerpsNavigationParamList } from '../../types/navigation';
+import type { PerpsMarketData } from '../../controllers/types';
 import {
   PerpsPositionTransactionRouteProp,
   PerpsTransaction,
@@ -37,7 +38,7 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsPositionTransactionView.styles';
-import type { PerpsMarketData } from '../../controllers/types';
+import { PerpsEventValues } from '../../constants/eventNames';
 
 const PerpsPositionTransactionView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -52,7 +53,7 @@ const PerpsPositionTransactionView: React.FC = () => {
   const transaction = route.params?.transaction as PerpsTransaction;
 
   // Create a minimal market object from transaction asset for navigation
-  // This is used to navigate to the market details page without requiring the stream provider
+  // PerpsMarketDetailsView will enrich this with full market data from usePerpsMarkets
   const market = useMemo<Partial<PerpsMarketData> | undefined>(
     () =>
       transaction?.asset
@@ -61,17 +62,17 @@ const PerpsPositionTransactionView: React.FC = () => {
     [transaction?.asset],
   );
 
-  navigation.setOptions(
-    getPerpsTransactionsDetailsNavbar(
-      navigation,
-      transaction?.fill?.shortTitle || '',
-    ),
-  );
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerShown: false,
+    });
+  }, [navigation]);
 
   if (!transaction) {
     // Handle missing transaction data
     return (
       <ScreenView>
+        <HeaderCenter includesTopInset onBack={() => navigation.goBack()} />
         <View style={styles.content}>
           <Text>{strings('perps.transactions.not_found')}</Text>
         </View>
@@ -103,7 +104,7 @@ const PerpsPositionTransactionView: React.FC = () => {
       screen: Routes.PERPS.MARKET_DETAILS,
       params: {
         market,
-        source: 'trade_details',
+        source: PerpsEventValues.SOURCE.TRADE_DETAILS,
       },
     });
   };
@@ -173,6 +174,11 @@ const PerpsPositionTransactionView: React.FC = () => {
 
   return (
     <ScreenView>
+      <HeaderCenter
+        title={transaction?.fill?.shortTitle || ''}
+        onBack={() => navigation.goBack()}
+        includesTopInset
+      />
       <ScrollView style={styles.container}>
         <View style={styles.content}>
           <PerpsTransactionDetailAssetHero

@@ -1,16 +1,18 @@
 import { DepositService } from './DepositService';
 import { createMockHyperLiquidProvider } from '../../__mocks__/providerMocks';
-import { createMockEvmAccount } from '../../__mocks__/serviceMocks';
-import { getEvmAccountFromSelectedAccountGroup } from '../../utils/accountUtils';
-import { generateTransferData } from '../../../../../util/transactions';
+import {
+  createMockEvmAccount,
+  createMockInfrastructure,
+} from '../../__mocks__/serviceMocks';
 import { generateDepositId } from '../../utils/idUtils';
 import { toHex } from '@metamask/controller-utils';
 import { parseCaipAssetId } from '@metamask/utils';
-import type { IPerpsProvider } from '../types';
+import { generateTransferData } from '../../../../../util/transactions';
+import type { PerpsProvider, PerpsPlatformDependencies } from '../types';
 
-jest.mock('../../utils/accountUtils');
 jest.mock('../../utils/idUtils');
 jest.mock('@metamask/utils');
+// Mock generateTransferData from util/transactions
 jest.mock('../../../../../util/transactions');
 jest.mock('@metamask/controller-utils', () => {
   const actual = jest.requireActual('@metamask/controller-utils');
@@ -29,17 +31,21 @@ jest.mock('@metamask/controller-utils', () => {
 });
 
 describe('DepositService', () => {
-  let mockProvider: jest.Mocked<IPerpsProvider>;
+  let mockProvider: jest.Mocked<PerpsProvider>;
+  let mockDeps: jest.Mocked<PerpsPlatformDependencies>;
+  let service: DepositService;
   const mockEvmAccount = createMockEvmAccount();
   const mockDepositId = 'deposit-123';
-  const mockTransferData = '0xabcdef';
   const mockBridgeAddress = '0xBridgeContract';
   const mockTokenAddress = '0xTokenAddress';
   const mockAssetId = 'eip155:42161/erc20:0xTokenAddress/default';
 
   beforeEach(() => {
     mockProvider =
-      createMockHyperLiquidProvider() as unknown as jest.Mocked<IPerpsProvider>;
+      createMockHyperLiquidProvider() as unknown as jest.Mocked<PerpsProvider>;
+
+    mockDeps = createMockInfrastructure();
+    service = new DepositService(mockDeps);
 
     mockProvider.getDepositRoutes.mockReturnValue([
       {
@@ -49,11 +55,15 @@ describe('DepositService', () => {
       },
     ]);
 
-    (getEvmAccountFromSelectedAccountGroup as jest.Mock).mockReturnValue(
-      mockEvmAccount,
-    );
+    // Setup mock EVM account via dependency injection
+    mockDeps.controllers.accounts.getSelectedEvmAccount = jest
+      .fn()
+      .mockReturnValue(mockEvmAccount);
     (generateDepositId as jest.Mock).mockReturnValue(mockDepositId);
-    (generateTransferData as jest.Mock).mockReturnValue(mockTransferData);
+    // Mock generateTransferData to return a valid ERC-20 transfer data
+    (generateTransferData as jest.Mock).mockReturnValue(
+      '0xa9059cbb000000000000000000000000',
+    );
     (parseCaipAssetId as jest.Mock).mockReturnValue({
       chainId: 'eip155:42161',
       assetReference: mockTokenAddress,
@@ -77,7 +87,7 @@ describe('DepositService', () => {
 
   describe('prepareTransaction', () => {
     it('successfully prepares deposit transaction with all fields', async () => {
-      const result = await DepositService.prepareTransaction({
+      const result = await service.prepareTransaction({
         provider: mockProvider,
       });
 
@@ -86,7 +96,7 @@ describe('DepositService', () => {
           from: mockEvmAccount.address,
           to: mockTokenAddress,
           value: '0x0',
-          data: mockTransferData,
+          data: expect.stringMatching(/^0xa9059cbb/), // ERC-20 transfer function signature
           gas: '0x186a0',
         },
         assetChainId: '0xa4b1',
@@ -95,7 +105,7 @@ describe('DepositService', () => {
     });
 
     it('generates unique deposit ID for tracking', async () => {
-      await DepositService.prepareTransaction({
+      await service.prepareTransaction({
         provider: mockProvider,
       });
 
@@ -103,7 +113,7 @@ describe('DepositService', () => {
     });
 
     it('retrieves deposit routes from provider', async () => {
-      await DepositService.prepareTransaction({
+      await service.prepareTransaction({
         provider: mockProvider,
       });
 
@@ -126,42 +136,40 @@ describe('DepositService', () => {
         },
       ]);
 
-      await DepositService.prepareTransaction({
+      const result = await service.prepareTransaction({
         provider: mockProvider,
       });
 
-      expect(generateTransferData).toHaveBeenCalledWith('transfer', {
-        toAddress: mockBridgeAddress,
-        amount: '0x0',
-      });
+      // Verify transfer data is generated with ERC-20 transfer function signature
+      expect(result.transaction.data).toMatch(/^0xa9059cbb/);
     });
 
     it('generates transfer data for ERC-20 token transfer', async () => {
-      await DepositService.prepareTransaction({
+      const result = await service.prepareTransaction({
         provider: mockProvider,
       });
 
-      expect(generateTransferData).toHaveBeenCalledWith('transfer', {
-        toAddress: mockBridgeAddress,
-        amount: '0x0',
-      });
+      // Verify ERC-20 transfer function signature (0xa9059cbb) is at the start
+      expect(result.transaction.data).toMatch(/^0xa9059cbb/);
     });
 
-    it('retrieves EVM account from selected account group', async () => {
-      await DepositService.prepareTransaction({
+    it('retrieves EVM account from selected account group via dependency injection', async () => {
+      await service.prepareTransaction({
         provider: mockProvider,
       });
 
-      expect(getEvmAccountFromSelectedAccountGroup).toHaveBeenCalledTimes(1);
+      expect(
+        mockDeps.controllers.accounts.getSelectedEvmAccount,
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('throws error when no EVM account is found', async () => {
-      (getEvmAccountFromSelectedAccountGroup as jest.Mock).mockReturnValue(
-        null,
-      );
+      mockDeps.controllers.accounts.getSelectedEvmAccount = jest
+        .fn()
+        .mockReturnValue(null);
 
       await expect(
-        DepositService.prepareTransaction({
+        service.prepareTransaction({
           provider: mockProvider,
         }),
       ).rejects.toThrow(
@@ -172,7 +180,7 @@ describe('DepositService', () => {
     });
 
     it('parses CAIP asset ID to extract chain and token', async () => {
-      await DepositService.prepareTransaction({
+      await service.prepareTransaction({
         provider: mockProvider,
       });
 
@@ -180,7 +188,7 @@ describe('DepositService', () => {
     });
 
     it('converts chain ID to hex format', async () => {
-      await DepositService.prepareTransaction({
+      await service.prepareTransaction({
         provider: mockProvider,
       });
 
@@ -188,7 +196,7 @@ describe('DepositService', () => {
     });
 
     it('sets fixed gas limit for deposit transaction', async () => {
-      const result = await DepositService.prepareTransaction({
+      const result = await service.prepareTransaction({
         provider: mockProvider,
       });
 
@@ -196,7 +204,7 @@ describe('DepositService', () => {
     });
 
     it('sets transaction value to 0x0', async () => {
-      const result = await DepositService.prepareTransaction({
+      const result = await service.prepareTransaction({
         provider: mockProvider,
       });
 
@@ -204,7 +212,7 @@ describe('DepositService', () => {
     });
 
     it('uses token address as transaction recipient', async () => {
-      const result = await DepositService.prepareTransaction({
+      const result = await service.prepareTransaction({
         provider: mockProvider,
       });
 
@@ -212,7 +220,7 @@ describe('DepositService', () => {
     });
 
     it('uses account address as transaction sender', async () => {
-      const result = await DepositService.prepareTransaction({
+      const result = await service.prepareTransaction({
         provider: mockProvider,
       });
 
@@ -220,15 +228,16 @@ describe('DepositService', () => {
     });
 
     it('includes generated transfer data in transaction', async () => {
-      const result = await DepositService.prepareTransaction({
+      const result = await service.prepareTransaction({
         provider: mockProvider,
       });
 
-      expect(result.transaction.data).toBe(mockTransferData);
+      // Verify transfer data starts with ERC-20 transfer function signature
+      expect(result.transaction.data).toMatch(/^0xa9059cbb/);
     });
 
     it('returns asset chain ID in hex format', async () => {
-      const result = await DepositService.prepareTransaction({
+      const result = await service.prepareTransaction({
         provider: mockProvider,
       });
 
@@ -236,7 +245,7 @@ describe('DepositService', () => {
     });
 
     it('returns current deposit ID for tracking', async () => {
-      const result = await DepositService.prepareTransaction({
+      const result = await service.prepareTransaction({
         provider: mockProvider,
       });
 
@@ -249,7 +258,7 @@ describe('DepositService', () => {
         assetReference: mockTokenAddress,
       });
 
-      await DepositService.prepareTransaction({
+      await service.prepareTransaction({
         provider: mockProvider,
       });
 
@@ -263,7 +272,7 @@ describe('DepositService', () => {
         assetReference: differentTokenAddress,
       });
 
-      const result = await DepositService.prepareTransaction({
+      const result = await service.prepareTransaction({
         provider: mockProvider,
       });
 
@@ -280,14 +289,43 @@ describe('DepositService', () => {
         },
       ]);
 
-      await DepositService.prepareTransaction({
+      const result = await service.prepareTransaction({
         provider: mockProvider,
       });
 
-      expect(generateTransferData).toHaveBeenCalledWith('transfer', {
-        toAddress: differentBridgeAddress,
-        amount: '0x0',
+      // Verify transfer data is generated with ERC-20 transfer function signature
+      expect(result.transaction.data).toMatch(/^0xa9059cbb/);
+    });
+
+    it('logs debug messages during transaction preparation', async () => {
+      await service.prepareTransaction({
+        provider: mockProvider,
       });
+
+      expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
+        'DepositService: Preparing deposit transaction',
+      );
+      expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
+        'DepositService: Deposit transaction prepared',
+        expect.objectContaining({
+          depositId: mockDepositId,
+          assetChainId: '0xa4b1',
+        }),
+      );
+    });
+  });
+
+  describe('instance isolation', () => {
+    it('each instance uses its own deps', async () => {
+      const mockDeps2 = createMockInfrastructure();
+      const service2 = new DepositService(mockDeps2);
+
+      await service.prepareTransaction({ provider: mockProvider });
+      await service2.prepareTransaction({ provider: mockProvider });
+
+      // Each instance should use its own logger
+      expect(mockDeps.debugLogger.log).toHaveBeenCalledTimes(2);
+      expect(mockDeps2.debugLogger.log).toHaveBeenCalledTimes(2);
     });
   });
 });

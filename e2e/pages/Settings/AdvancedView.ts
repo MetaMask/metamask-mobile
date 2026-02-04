@@ -1,9 +1,9 @@
 import {
   AdvancedViewSelectorsIDs,
   AdvancedViewSelectorsText,
-} from '../../selectors/Settings/AdvancedView.selectors';
-import Gestures from '../../framework/Gestures';
-import Matchers from '../../framework/Matchers';
+} from '../../../app/components/Views/Settings/AdvancedSettings/AdvancedView.testIds';
+import Gestures from '../../../tests/framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
 
 class AdvancedSettingsView {
   get scrollViewIdentifier(): Promise<Detox.NativeMatcher> {

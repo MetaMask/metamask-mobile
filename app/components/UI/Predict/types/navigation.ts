@@ -9,12 +9,15 @@ import {
 import { PredictEventValues } from '../constants/eventNames';
 
 export type PredictEntryPoint =
+  | typeof PredictEventValues.ENTRY_POINT.CAROUSEL
   | typeof PredictEventValues.ENTRY_POINT.PREDICT_FEED
   | typeof PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS
   | typeof PredictEventValues.ENTRY_POINT.SEARCH
   | typeof PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS
   | typeof PredictEventValues.ENTRY_POINT.HOMEPAGE_NEW_PREDICTION
   | typeof PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE
+  | typeof PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_CAROUSEL
+  | typeof PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST
   | typeof PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON
   | typeof PredictEventValues.ENTRY_POINT.BACKGROUND
   | typeof PredictEventValues.ENTRY_POINT.TRENDING_SEARCH
@@ -30,6 +33,7 @@ export interface PredictNavigationParamList extends ParamListBase {
     entryPoint?: PredictEntryPoint;
     title?: string;
     image?: string;
+    isGame?: boolean;
   };
   PredictSellPreview: {
     market: PredictMarket;

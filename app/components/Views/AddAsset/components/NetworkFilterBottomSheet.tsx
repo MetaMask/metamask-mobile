@@ -6,7 +6,7 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { strings } from '../../../../../locales/i18n';
-import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../Wallet/WalletView.testIds';
 import { VerticalAlignment } from '../../../../component-library/components/List/ListItem';
 import ListItemSelect from '../../../../component-library/components/List/ListItemSelect';
 import styleSheet from '../AddAsset.styles';

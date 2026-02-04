@@ -3,11 +3,11 @@ import {
   PerpsMarketHeaderSelectorsIDs,
   PerpsCandlestickChartSelectorsIDs,
   PerpsOpenOrderCardSelectorsIDs,
-} from '../../selectors/Perps/Perps.selectors';
-import Gestures from '../../framework/Gestures';
-import Matchers from '../../framework/Matchers';
-import Utilities from '../../framework/Utilities';
-import Assertions from '../../framework/Assertions';
+} from '../../../app/components/UI/Perps/Perps.testIds';
+import Gestures from '../../../tests/framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
+import Utilities from '../../../tests/framework/Utilities';
+import Assertions from '../../../tests/framework/Assertions';
 
 class PerpsMarketDetailsView {
   // Container elements

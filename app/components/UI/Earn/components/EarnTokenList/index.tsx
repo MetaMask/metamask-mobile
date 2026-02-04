@@ -8,11 +8,8 @@ import React, {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+import { TextColor } from '../../../../../component-library/components/Texts/Text';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import { View } from 'react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './EarnTokenList.styles';
@@ -22,7 +19,8 @@ import { FlatList } from 'react-native-gesture-handler';
 import { Hex } from '@metamask/utils';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { EVENT_NAME } from '../../../../../core/Analytics/MetaMetrics.events';
 import {
   EVENT_LOCATIONS,
   EVENT_PROVIDERS,
@@ -49,8 +47,13 @@ import EarnDepositTokenListItem from '../EarnDepositTokenListItem';
 import EarnWithdrawalTokenListItem from '../EarnWithdrawalTokenListItem';
 import { EarnTokenDetails } from '../../types/lending.types';
 import BN4 from 'bnjs4';
-import { sortByHighestBalance, sortByHighestRewards } from '../../utils';
+import {
+  sortByHighestBalance,
+  sortByHighestRewards,
+  truncateNumber,
+} from '../../utils';
 import { trace, TraceName, endTrace } from '../../../../../util/trace';
+import useTronStakeApy from '../../hooks/useTronStakeApy';
 
 const isEmptyBalance = (token: { balanceFormatted: string }) =>
   parseFloat(token?.balanceFormatted) === 0;
@@ -97,7 +100,7 @@ const EarnTokenList = () => {
 
   // Temp: Used as workaround for BadgeNetwork not properly anchoring to its parent BadgeWrapper.
   const [, forceUpdate] = useReducer((x) => x + 1, 0);
-  const { createEventBuilder, trackEvent } = useMetrics();
+  const { createEventBuilder, trackEvent } = useAnalytics();
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
   const { params } = useRoute<EarnTokenListProps['route']>();
@@ -107,6 +110,8 @@ const EarnTokenList = () => {
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
   const { includeReceiptTokens } = params?.tokenFilter ?? {};
+
+  const { apyDecimal: tronApyDecimal } = useTronStakeApy();
 
   const { earnTokens, earnOutputTokens, earnableTotalFiatFormatted } =
     useEarnTokens();
@@ -202,7 +207,7 @@ const EarnTokenList = () => {
     }
 
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.EARN_TOKEN_LIST_ITEM_CLICKED)
+      createEventBuilder(EVENT_NAME.EARN_TOKEN_LIST_ITEM_CLICKED)
         .addProperties({
           provider: EVENT_PROVIDERS.CONSENSYS,
           location: EVENT_LOCATIONS.WALLET_ACTIONS_BOTTOM_SHEET,
@@ -222,14 +227,29 @@ const EarnTokenList = () => {
     [earnTokens],
   );
 
+  // Helper to get the APR for a token, using real Tron APY when available
+  const getTokenApr = useCallback(
+    (token: EarnTokenDetails): number => {
+      const isTronNative =
+        Boolean(token.isNative) && isTronChainId(String(token.chainId));
+
+      if (isTronNative && tronApyDecimal) {
+        return parseFloat(tronApyDecimal);
+      }
+
+      return parseFloat(token?.experience?.apr || '0');
+    },
+    [tronApyDecimal],
+  );
+
   const highestAvailableApr = useMemo(
     () =>
       earnTokens?.reduce((highestApr, token) => {
-        const parsedApr = parseFloat(token?.experience?.apr);
+        const parsedApr = getTokenApr(token);
 
         return parsedApr > highestApr ? parsedApr : highestApr;
       }, 0),
-    [earnTokens],
+    [earnTokens, getTokenApr],
   );
 
   /**
@@ -290,6 +310,9 @@ const EarnTokenList = () => {
 
   const renderTokenItem = ({ item }: { item: EarnTokenDetails }) => {
     const onItemPressScreen = params?.onItemPressScreen;
+    const tokenApr = getTokenApr(item);
+    const formattedApr = tokenApr > 0 ? truncateNumber(tokenApr) : tokenApr;
+
     return (
       <View style={styles.listItemContainer}>
         {onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.WITHDRAW ? (
@@ -302,7 +325,7 @@ const EarnTokenList = () => {
             token={item}
             onPress={handleRedirectToInputScreen}
             primaryText={{
-              value: `${item?.experience?.apr || 0}% APR`,
+              value: `${formattedApr}% APR`,
               color: TextColor.Success,
             }}
             {...(!isEmptyBalance(item) && {
@@ -351,15 +374,21 @@ const EarnTokenList = () => {
     return <EarnTokenListSkeletonPlaceholder />;
   }, [earnTokens?.length]);
 
+  const handleClose = useCallback(() => {
+    bottomSheetRef.current?.onCloseBottomSheet();
+  }, []);
+
   return (
     <BottomSheet ref={bottomSheetRef}>
-      <BottomSheetHeader>
-        <Text variant={TextVariant.HeadingSM}>
-          {params?.onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.WITHDRAW
+      <HeaderCenter
+        title={
+          params?.onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.WITHDRAW
             ? strings('stake.select_a_token_to_withdraw')
-            : strings('stake.select_a_token_to_deposit')}
-        </Text>
-      </BottomSheetHeader>
+            : strings('stake.select_a_token_to_deposit')
+        }
+        onClose={handleClose}
+        closeButtonProps={{ testID: 'earn-token-list-close-button' }}
+      />
       <View style={styles.flatList}>
         <FlatList
           data={filteredTokens}

@@ -32,7 +32,7 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
 import type { PerpsNavigationParamList } from '../../controllers/types';
-import { PerpsMarketBalanceActionsSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsMarketBalanceActionsSelectorsIDs } from '../../Perps.testIds';
 import { BigNumber } from 'bignumber.js';
 import { INITIAL_AMOUNT_UI_PROGRESS } from '../../constants/hyperLiquidConfig';
 import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
@@ -190,7 +190,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
 
   const handleLearnMore = useCallback(() => {
     navigation.navigate(Routes.PERPS.TUTORIAL, {
-      source: 'homescreen',
+      source: PerpsEventValues.SOURCE.PERPS_HOME,
     });
   }, [navigation]);
 
@@ -290,7 +290,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
               isFullWidth
               testID={PerpsMarketBalanceActionsSelectorsIDs.LEARN_MORE_BUTTON}
             >
-              {strings(LEARN_MORE_CONFIG.TITLE_KEY)}
+              {strings(LEARN_MORE_CONFIG.TitleKey)}
             </Button>
           </Box>
         ) : (

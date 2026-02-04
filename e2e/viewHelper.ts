@@ -17,17 +17,20 @@ import LoginView from './pages/wallet/LoginView';
 import {
   getGanachePortForFixture,
   getAnvilPortForFixture,
-} from './framework/fixtures/FixtureUtils';
-import Assertions from './framework/Assertions';
-import { CustomNetworks } from './resources/networks.e2e';
+} from '../tests/framework/fixtures/FixtureUtils';
+import Assertions from '../tests/framework/Assertions';
+import { CustomNetworks } from '../tests/resources/networks.e2e';
 import ToastModal from './pages/wallet/ToastModal';
 import TestDApp from './pages/Browser/TestDApp';
 import OnboardingSheet from './pages/Onboarding/OnboardingSheet';
-import Matchers from './framework/Matchers';
-import { BrowserViewSelectorsIDs } from './selectors/Browser/BrowserView.selectors';
-import { createLogger } from './framework/logger';
-import Utilities, { sleep } from './framework/Utilities';
-import { PortManager, ResourceType } from './framework';
+import Matchers from '../tests/framework/Matchers';
+import { BrowserViewSelectorsIDs } from '../app/components/Views/BrowserTab/BrowserView.testIds';
+import { createLogger } from '../tests/framework/logger';
+import Utilities, { sleep } from '../tests/framework/Utilities';
+import { Gestures, PortManager, ResourceType } from '../tests/framework';
+import TabBarComponent from './pages/wallet/TabBarComponent';
+import TrendingView from '../tests/page-objects/Trending/TrendingView';
+import BrowserView from './pages/Browser/BrowserView';
 
 /**
  * Gets the localhost URL for Ganache/Anvil network connection.
@@ -365,7 +368,53 @@ export const switchToSepoliaNetwork = async () => {
     logger.error('Toast is not visible');
   }
 };
+/**
+ * Dismisses development build screens.
+ * Handles "Development servers" and "Developer menu" screens.
+ * These screens are expected to appear when running locally.
+ */
+export const dismissDevScreens = async () => {
+  const port = process.env.METRO_PORT_E2E || '8081';
+  const host = process.env.METRO_HOST_E2E || 'localhost';
+  const serverUrl = `http://${host}:${port}`;
 
+  try {
+    // 1. Check for Development Servers screen
+    // We tap the server row matching the current metro port
+    const devServerRow = Matchers.getElementByText(serverUrl);
+    await Assertions.expectElementToBeVisible(devServerRow, {
+      timeout: 2000,
+      description: 'Dev Server Row should be visible',
+    });
+    await Gestures.tap(devServerRow, { elemDescription: 'Dev Server Row' });
+
+    // 2. Check for Developer Menu onboarding
+    const continueButton = Matchers.getElementByText('Continue');
+    await Assertions.expectElementToBeVisible(continueButton, {
+      timeout: 5000,
+      description: 'Dev Menu Continue Button should be visible',
+    });
+
+    // Tap Continue to proceed past the onboarding screen.
+    await Gestures.tap(continueButton, {
+      elemDescription: 'Dev Menu Continue Button',
+    });
+
+    // 3. Close the Developer Menu
+    // After tapping Continue, the Developer Menu options list appears.
+    // The user provided the ID "fast-refresh" to tap on.
+    const fastRefreshButton = Matchers.getElementByID('fast-refresh');
+    await Assertions.expectElementToBeVisible(fastRefreshButton, {
+      timeout: 5000,
+      description: 'Dev Menu Fast Refresh Button should be visible',
+    });
+    await Gestures.tap(fastRefreshButton, {
+      elemDescription: 'Dev Menu Fast Refresh Button',
+    });
+  } catch {
+    logger.error('Dev screens dismiss error');
+  }
+};
 /**
  * Waits for app initialization and rehydration to complete.
  * This ensures the app is in a stable state before proceeding with tests.
@@ -523,4 +572,43 @@ export const waitForTestSnapsToLoad = async () => {
   }
 
   throw new Error('Test Snaps failed to become fully interactive.');
+};
+
+/**
+ * Navigates to the browser view using the appropriate flow based on what's available.
+ * This helper automatically adapts to different app configurations:
+ * - If the Explore tab button exists on the tab bar, it will tap Explore and then tap the browser button in the trending view
+ * - If the Explore tab doesn't exist, it will tap the browser button directly on the tab bar
+ *
+ * This allows tests to work seamlessly regardless of whether the trending feature is enabled or disabled.
+ *
+ * @async
+ * @function navigateToBrowserView
+ * @returns {Promise<void>} Resolves when navigation to browser view is complete and verified.
+ * @throws {Error} Throws an error if browser view fails to load.
+ *
+ * @example
+ * await navigateToBrowserView();
+ * await Browser.navigateToTestDApp();
+ */
+export const navigateToBrowserView = async (): Promise<void> => {
+  // Check if Explore button is visible on tab bar (short timeout for quick check)
+  const hasExploreButton = await Utilities.isElementVisible(
+    TabBarComponent.tabBarExploreButton,
+    500,
+  );
+
+  if (hasExploreButton) {
+    // Explore tab exists - navigate to it first
+    await TabBarComponent.tapExploreButton();
+    await TrendingView.tapBrowserButton();
+  } else {
+    // No Explore tab - use browser tab button directly
+    await TabBarComponent.tapBrowser();
+  }
+
+  // Verify we're in browser view regardless of which path we took
+  await Assertions.expectElementToBeVisible(BrowserView.urlInputBoxID, {
+    description: 'Browser URL bar should be visible after navigation',
+  });
 };

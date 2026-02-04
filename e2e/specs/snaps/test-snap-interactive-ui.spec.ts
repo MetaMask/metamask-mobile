@@ -1,11 +1,10 @@
 import { FlaskBuildTests } from '../../tags';
-import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import TestSnaps from '../../pages/Browser/TestSnaps';
-import { Assertions } from '../../framework';
-import Matchers from '../../framework/Matchers';
+import { Assertions } from '../../../tests/framework';
+import Matchers from '../../../tests/framework/Matchers';
 import { DateTime } from 'luxon';
 
 jest.setTimeout(150_000);
@@ -20,7 +19,7 @@ describe(FlaskBuildTests('Interactive UI Snap Tests'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await TestSnaps.navigateToTestSnap();
 
         await TestSnaps.installSnap('connectInteractiveButton');

@@ -4,7 +4,7 @@ import { Provider, useSelector } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { TokenList } from './TokenList';
 import { useNavigation } from '@react-navigation/native';
-import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
 import { useMetrics } from '../../../hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 
@@ -48,6 +48,14 @@ jest.mock(
 
 jest.mock('../../../../selectors/featureFlagController/homepage', () => ({
   selectHomepageRedesignV1Enabled: jest.fn(() => true),
+}));
+
+jest.mock('../../Earn/hooks/useMusdCtaVisibility', () => ({
+  useMusdCtaVisibility: jest.fn(() => ({
+    shouldShowGetMusdCta: false,
+    shouldShowConversionTokenListItemCta: jest.fn(() => false),
+    shouldShowConversionAssetDetailCta: jest.fn(() => false),
+  })),
 }));
 
 // Mock child components

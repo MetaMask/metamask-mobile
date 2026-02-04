@@ -1,7 +1,10 @@
 import type { CandleData, CandleStick } from '../types/perps-types';
 import type { PerpsMarketData } from '../controllers/types';
 import type { BadgeType } from '../components/PerpsBadge/PerpsBadge.types';
-import { HYPERLIQUID_ASSET_ICONS_BASE_URL } from '../constants/hyperLiquidConfig';
+import {
+  HYPERLIQUID_ASSET_ICONS_BASE_URL,
+  METAMASK_PERPS_ICONS_BASE_URL,
+} from '../constants/hyperLiquidConfig';
 
 /**
  * Maximum length for market filter patterns (prevents DoS attacks)
@@ -53,26 +56,31 @@ export const validateMarketPattern = (pattern: string): boolean => {
     throw new Error('Market pattern cannot be empty');
   }
 
+  // Trim whitespace and normalize the pattern
+  const normalizedPattern = pattern.trim();
+
   // Reject patterns that are too long (potential DoS)
-  if (pattern.length > MAX_MARKET_PATTERN_LENGTH) {
+  if (normalizedPattern.length > MAX_MARKET_PATTERN_LENGTH) {
     throw new Error(
-      `Market pattern exceeds maximum length (${MAX_MARKET_PATTERN_LENGTH} chars): ${pattern}`,
+      `Market pattern exceeds maximum length (${MAX_MARKET_PATTERN_LENGTH} chars): ${normalizedPattern}`,
     );
   }
 
   // Reject patterns with suspicious regex control characters
   // Allow only colon and asterisk for our pattern syntax
   const dangerousChars = /[\\()[\]{}^$+?.|]/;
-  if (dangerousChars.test(pattern)) {
+  if (dangerousChars.test(normalizedPattern)) {
     throw new Error(
-      `Market pattern contains invalid regex characters: ${pattern}`,
+      `Market pattern contains invalid regex characters: ${normalizedPattern}`,
     );
   }
 
   // Allow only: alphanumeric, colon, hyphen, underscore, asterisk
   const validPattern = /^[a-zA-Z0-9:_\-*]+$/;
-  if (!validPattern.test(pattern)) {
-    throw new Error(`Market pattern contains invalid characters: ${pattern}`);
+  if (!validPattern.test(normalizedPattern)) {
+    throw new Error(
+      `Market pattern contains invalid characters: ${normalizedPattern}`,
+    );
   }
 
   return true;
@@ -98,22 +106,23 @@ export const validateMarketPattern = (pattern: string): boolean => {
  * compileMarketPattern("xyz:TSLA") // → "xyz:TSLA"
  */
 export const compileMarketPattern = (pattern: string): MarketPatternMatcher => {
-  // Validate pattern before compilation to prevent regex DoS
-  validateMarketPattern(pattern);
+  // Trim and validate pattern before compilation to prevent regex DoS
+  const normalizedPattern = pattern.trim();
+  validateMarketPattern(normalizedPattern);
 
-  if (pattern.endsWith(':*')) {
+  if (normalizedPattern.endsWith(':*')) {
     // Wildcard: "xyz:*" → regex /^xyz:/
-    const prefix = pattern.slice(0, -2);
+    const prefix = normalizedPattern.slice(0, -2);
     return new RegExp(`^${escapeRegex(prefix)}:`);
   }
 
-  if (!pattern.includes(':')) {
+  if (!normalizedPattern.includes(':')) {
     // DEX shorthand: "xyz" → regex /^xyz:/
-    return new RegExp(`^${escapeRegex(pattern)}:`);
+    return new RegExp(`^${escapeRegex(normalizedPattern)}:`);
   }
 
   // Exact match: just use string (fastest)
-  return pattern;
+  return normalizedPattern;
 };
 
 /**
@@ -266,9 +275,12 @@ interface FundingCountdownParams {
 }
 
 /**
- * Calculate the time until the next funding period
- * Supports market-specific funding times when provided
- * Falls back to default HyperLiquid 1-hour periods (funding paid every hour)
+ * Calculate the time until the next funding period.
+ * Supports market-specific funding times when provided.
+ * Falls back to default HyperLiquid 1-hour periods (funding paid every hour).
+ *
+ * @param params - Optional funding countdown parameters
+ * @returns Formatted countdown string in HH:MM:SS format
  */
 export const calculateFundingCountdown = (
   params?: FundingCountdownParams,
@@ -330,7 +342,10 @@ export const calculateFundingCountdown = (
 };
 
 /**
- * Calculate 24h high and low from candlestick data
+ * Calculate 24h high and low from candlestick data.
+ *
+ * @param candleData - Candlestick data containing price candles
+ * @returns Object with high and low prices for the last 24 hours
  */
 export const calculate24hHighLow = (
   candleData: CandleData | null,
@@ -459,4 +474,68 @@ export const getAssetIconUrl = (
 
   // Regular asset
   return `${HYPERLIQUID_ASSET_ICONS_BASE_URL}${processedSymbol}.svg`;
+};
+
+/**
+ * Icon URLs with primary (MetaMask-hosted) and fallback (HyperLiquid) sources
+ */
+export interface AssetIconUrls {
+  /** MetaMask contract-metadata repo (preferred source) */
+  primary: string;
+  /** HyperLiquid CDN (fallback source) */
+  fallback: string;
+}
+
+/**
+ * Generate icon URLs for an asset symbol with fallback support
+ *
+ * Resolution order:
+ * 1. Primary: MetaMask contract-metadata repo (manually curated)
+ * 2. Fallback: HyperLiquid CDN (always available)
+ *
+ * @param symbol - Asset symbol (e.g., "BTC" or "xyz:TSLA")
+ * @param kPrefixAssets - Optional set of assets that have a 'k' prefix to remove
+ * @returns Object with primary and fallback URLs, or null if no symbol
+ *
+ * @example Regular asset
+ * getAssetIconUrls('BTC')
+ * // → { primary: 'https://raw.githubusercontent.com/.../BTC.svg',
+ * //     fallback: 'https://app.hyperliquid.xyz/coins/BTC.svg' }
+ *
+ * @example HIP-3 asset
+ * getAssetIconUrls('xyz:TSLA')
+ * // → { primary: 'https://raw.githubusercontent.com/.../hip3:xyz_TSLA.svg',
+ * //     fallback: 'https://app.hyperliquid.xyz/coins/xyz:TSLA.svg' }
+ */
+export const getAssetIconUrls = (
+  symbol: string,
+  kPrefixAssets?: Set<string>,
+): AssetIconUrls | null => {
+  if (!symbol) return null;
+
+  // Check for HIP-3 asset (contains colon) BEFORE uppercasing
+  if (symbol.includes(':')) {
+    const [dex, assetSymbol] = symbol.split(':');
+    // HyperLiquid uses dex:SYMBOL format
+    const hyperliquidFormat = `${dex.toLowerCase()}:${assetSymbol.toUpperCase()}`;
+    // MetaMask contract-metadata uses hip3:dex_SYMBOL format
+    const metamaskFormat = `hip3:${dex.toLowerCase()}_${assetSymbol.toUpperCase()}`;
+    return {
+      primary: `${METAMASK_PERPS_ICONS_BASE_URL}${metamaskFormat}.svg`,
+      fallback: `${HYPERLIQUID_ASSET_ICONS_BASE_URL}${hyperliquidFormat}.svg`,
+    };
+  }
+
+  // For regular assets, uppercase the entire symbol
+  let processedSymbol = symbol.toUpperCase();
+
+  // Remove 'k' prefix only for specific assets if provided
+  if (kPrefixAssets?.has(processedSymbol)) {
+    processedSymbol = processedSymbol.substring(1);
+  }
+
+  return {
+    primary: `${METAMASK_PERPS_ICONS_BASE_URL}${processedSymbol}.svg`,
+    fallback: `${HYPERLIQUID_ASSET_ICONS_BASE_URL}${processedSymbol}.svg`,
+  };
 };

@@ -1,7 +1,7 @@
 import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { Linking } from 'react-native';
-import { ConfirmationFooterSelectorIDs } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationFooterSelectorIDs } from '../../ConfirmationView.testIds';
 import AppConstants from '../../../../../core/AppConstants';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
@@ -19,6 +19,7 @@ import { useConfirmationAlertMetrics } from '../../hooks/metrics/useConfirmation
 import { merge } from 'lodash';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
+import { emptySignatureControllerMock } from '../../__mocks__/controllers/signature-controller-mock';
 import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
 
 const mockConfirmSpy = jest.fn();
@@ -223,6 +224,8 @@ describe('Footer', () => {
       {},
       simpleSendTransactionControllerMock,
       transactionApprovalControllerMock,
+      emptySignatureControllerMock,
+      { securityAlerts: { alerts: {} } },
     );
 
     const { getByTestId } = renderWithProvider(<Footer />, {
@@ -381,6 +384,8 @@ describe('Footer', () => {
           {},
           simpleSendTransactionControllerMock,
           transactionApprovalControllerMock,
+          emptySignatureControllerMock,
+          { securityAlerts: { alerts: {} } },
         ),
       });
 

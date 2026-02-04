@@ -5,18 +5,13 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import React, { useMemo, useEffect } from 'react';
-import { Pressable } from 'react-native';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useTheme } from '../../../../../util/theme';
 import Engine from '../../../../../core/Engine';
 import { PredictNavigationParamList } from '../../types/navigation';
 import {
@@ -33,13 +28,10 @@ import {
   BoxAlignItems,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import UsdcIcon from './usdc.svg';
-import { PredictActivityDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictActivityDetailsSelectorsIDs } from '../../Predict.testIds';
 interface PredictActivityDetailProps {}
 
 const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
@@ -48,9 +40,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictActivityDetail'>>();
   const { activity } = route.params || {};
-  const { colors } = useTheme();
   const tw = useTailwind();
-  const insets = useSafeAreaInsets();
 
   // Determine activity type for analytics
   const activityType = useMemo(() => {
@@ -268,39 +258,6 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
     };
   }, [activity]);
 
-  const renderHeader = () => (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
-      twClassName="mb-6"
-    >
-      <Pressable
-        onPress={handleBackPress}
-        hitSlop={12}
-        accessibilityRole="button"
-        accessibilityLabel={strings('back')}
-        style={tw.style('items-center justify-center rounded-full w-10 h-10')}
-        testID={PredictActivityDetailsSelectorsIDs.BACK_BUTTON}
-      >
-        <Icon
-          name={IconName.ArrowLeft}
-          size={IconSize.Md}
-          color={colors.icon.default}
-        />
-      </Pressable>
-      <Text
-        variant={TextVariant.HeadingMD}
-        color={TextColor.Default}
-        testID={PredictActivityDetailsSelectorsIDs.TITLE_TEXT}
-      >
-        {activityDetails?.headerTitle ??
-          strings('predict.transactions.activity_details')}
-      </Text>
-      <Box twClassName="w-10" />
-    </Box>
-  );
-
   const renderDetailRow = (
     label: string,
     value: string,
@@ -417,8 +374,18 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       testID={PredictActivityDetailsSelectorsIDs.CONTAINER}
     >
       <Box twClassName="flex-1">
-        <Box twClassName="px-4" style={{ paddingTop: insets.top + 12 }}>
-          {renderHeader()}
+        <HeaderCenter
+          title={
+            activityDetails?.headerTitle ??
+            strings('predict.transactions.activity_details')
+          }
+          onBack={handleBackPress}
+          backButtonProps={{
+            testID: PredictActivityDetailsSelectorsIDs.BACK_BUTTON,
+          }}
+          includesTopInset
+        />
+        <Box twClassName="px-4">
           {renderAmountDisplay()}
           {renderPredictionMarketDetails()}
           {renderTransactionDetails()}

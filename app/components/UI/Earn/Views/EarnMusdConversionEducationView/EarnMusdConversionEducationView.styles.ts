@@ -1,14 +1,11 @@
 import { StyleSheet } from 'react-native';
 import type { Theme } from '../../../../../util/theme/models';
 
-export const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
-  const { colors } = theme;
-
-  return StyleSheet.create({
+export const styleSheet = (_params: { theme: Theme }) =>
+  StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.brandColors.indigo100,
+      paddingTop: 40,
     },
     imageContainer: {
       flex: 1,
@@ -22,22 +19,24 @@ export const styleSheet = (params: { theme: Theme }) => {
     content: {
       paddingHorizontal: 16,
       alignItems: 'center',
-      paddingVertical: 24,
     },
     heading: {
-      marginBottom: 16,
-      fontFamily: 'MMSans-Regular',
-      color: colors.accent04.dark,
-      fontWeight: 500,
+      fontFamily: 'MMPoly-Regular',
+      fontSize: 40,
+      lineHeight: 40,
+      paddingVertical: 16,
+      textAlign: 'center',
     },
     bodyText: {
       textAlign: 'center',
-      color: colors.accent04.dark,
+      paddingHorizontal: 30,
     },
-    continueButton: {
-      alignSelf: 'stretch',
+    buttonsContainer: {
       marginHorizontal: 32,
-      marginBottom: 24,
+      gap: 8,
+      marginBottom: 16,
+    },
+    termsText: {
+      textDecorationLine: 'underline',
     },
   });
-};

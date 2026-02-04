@@ -5,24 +5,23 @@ import React, {
   useMemo,
   useCallback,
 } from 'react';
-import { View, Animated, ScrollView, Dimensions } from 'react-native';
+import { View, Animated } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
+import { IconName as DSIconName } from '@metamask/design-system-react-native';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import TabsBar from '../../../../../component-library/components-temp/Tabs/TabsBar';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsMarketSortFieldBottomSheet from '../../components/PerpsMarketSortFieldBottomSheet';
-import PerpsStocksCommoditiesBottomSheet from '../../components/PerpsStocksCommoditiesBottomSheet';
 import PerpsMarketFiltersBar from './components/PerpsMarketFiltersBar';
 import PerpsMarketList from '../../components/PerpsMarketList';
-import PerpsMarketListHeader from '../../components/PerpsMarketListHeader';
 import {
   usePerpsMarketListView,
   usePerpsMeasurement,
@@ -32,8 +31,11 @@ import { usePerpsLivePositions, usePerpsLiveAccount } from '../../hooks/stream';
 import PerpsMarketRowSkeleton from './components/PerpsMarketRowSkeleton';
 import styleSheet from './PerpsMarketListView.styles';
 import { PerpsMarketListViewProps } from './PerpsMarketListView.types';
-import type { PerpsMarketData } from '../../controllers/types';
-import { PerpsMarketListViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import type {
+  PerpsMarketData,
+  MarketTypeFilter,
+} from '../../controllers/types';
+import { PerpsMarketListViewSelectorsIDs } from '../../Perps.testIds';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TraceName } from '../../../../../util/trace';
@@ -44,6 +46,7 @@ import {
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsNavigationParamList } from '../../types/navigation';
+import PerpsMarketListHeader from '../../components/PerpsMarketListHeader';
 
 const PerpsMarketListView = ({
   onMarketSelect,
@@ -74,17 +77,10 @@ const PerpsMarketListView = ({
     route.params?.defaultMarketTypeFilter ?? 'all';
 
   const fadeAnimation = useRef(new Animated.Value(0)).current;
-  const tabScrollViewRef = useRef<ScrollView>(null);
-  const isScrollingProgrammatically = useRef(false);
   const [isSortFieldSheetVisible, setIsSortFieldSheetVisible] = useState(false);
-  const [isStocksCommoditiesSheetVisible, setIsStocksCommoditiesSheetVisible] =
-    useState(false);
-  const [stocksCommoditiesFilter, setStocksCommoditiesFilter] = useState<
-    'all' | 'equity' | 'commodity'
-  >('all');
-  const [containerWidth, setContainerWidth] = useState(
-    Dimensions.get('window').width,
-  );
+
+  // Store the market type filter before entering search, so we can restore it when exiting
+  const preSearchFilterRef = useRef<MarketTypeFilter>(defaultMarketTypeFilter);
 
   // Use the combined market list view hook for all business logic
   const {
@@ -114,7 +110,7 @@ const PerpsMarketListView = ({
   } = searchState;
 
   // Destructure sort state for easier access
-  const { selectedOptionId, sortBy, handleOptionChange } = sortState;
+  const { selectedOptionId, sortBy, direction, handleOptionChange } = sortState;
 
   // Destructure favorites state for easier access
   const { showFavoritesOnly } = favoritesState;
@@ -134,166 +130,56 @@ const PerpsMarketListView = ({
     [onMarketSelect, perpsNavigation, route.params?.source],
   );
 
-  // Apply stocks/commodities sub-filter when on Stocks tab
-  const displayMarkets = useMemo(() => {
-    // If on stocks_and_commodities tab and sub-filter is active, apply it
-    if (
-      marketTypeFilter === 'stocks_and_commodities' &&
-      stocksCommoditiesFilter !== 'all'
-    ) {
-      return filteredMarkets.filter(
-        (m) => m.marketType === stocksCommoditiesFilter,
-      );
-    }
-    // Otherwise, use markets already filtered by the hook
-    return filteredMarkets;
-  }, [filteredMarkets, marketTypeFilter, stocksCommoditiesFilter]);
-
-  // Build tabs data for TabsBar
-  const tabsData = useMemo(() => {
-    const tabs = [];
-    const hasCryptoOrStocksCommodities =
-      marketCounts.crypto > 0 ||
-      marketCounts.equity > 0 ||
-      marketCounts.commodity > 0;
-
-    // Only show tabs if there are relevant markets
-    if (hasCryptoOrStocksCommodities) {
-      // Tab 1: All (Crypto + Stocks + Commodities)
-      tabs.push({
-        key: 'all-tab',
-        label: strings('perps.home.tabs.all'),
-        filter: 'all' as const,
-      });
-
-      // Tab 2: Crypto (only if crypto markets exist)
-      if (marketCounts.crypto > 0) {
-        tabs.push({
-          key: 'crypto-tab',
-          label: strings('perps.home.tabs.crypto'),
-          filter: 'crypto' as const,
-        });
-      }
-
-      // Tab 3: Stocks and Commodities (only if stocks or commodities exist)
-      if (marketCounts.equity > 0 || marketCounts.commodity > 0) {
-        tabs.push({
-          key: 'stocks-and-commodities-tab',
-          label: strings('perps.home.tabs.stocks_and_commodities'),
-          filter: 'stocks_and_commodities' as const,
-        });
-      }
-    }
-
-    return tabs;
+  // Compute available categories based on market counts (hide empty categories)
+  const availableCategories = useMemo(() => {
+    const categories: Exclude<MarketTypeFilter, 'all'>[] = [];
+    if (marketCounts.crypto > 0) categories.push('crypto');
+    if (marketCounts.equity > 0) categories.push('stocks');
+    if (marketCounts.commodity > 0) categories.push('commodities');
+    if (marketCounts.forex > 0) categories.push('forex');
+    if (marketCounts.new > 0) categories.push('new');
+    return categories;
   }, [marketCounts]);
-
-  // Calculate active tab index from current marketTypeFilter
-  const activeTabIndex = useMemo(() => {
-    if (tabsData.length === 0) {
-      return 0;
-    }
-
-    // Map filter to tab key
-    const filterToKeyMap: Record<string, string> = {
-      all: 'all-tab',
-      crypto: 'crypto-tab',
-      stocks_and_commodities: 'stocks-and-commodities-tab',
-      // Legacy mappings for backwards compatibility
-      equity: 'stocks-and-commodities-tab',
-      commodity: 'stocks-and-commodities-tab',
-    };
-
-    const targetKey = filterToKeyMap[marketTypeFilter] || 'all-tab';
-    const index = tabsData.findIndex((tab) => tab.key === targetKey);
-    return index >= 0 ? index : 0;
-  }, [marketTypeFilter, tabsData]);
 
   const { track } = usePerpsEventTracking();
 
-  // Handle tab press
-  const handleTabPress = useCallback(
-    (index: number) => {
-      const tab = tabsData[index];
-      if (tab) {
-        // Map filter to button_clicked value (only track crypto and stocks tabs)
-        const targetTab =
-          tab.filter === 'crypto'
-            ? PerpsEventValues.BUTTON_CLICKED.CRYPTO
-            : tab.filter === 'stocks_and_commodities'
-              ? PerpsEventValues.BUTTON_CLICKED.STOCKS
-              : null;
+  // Handle category badge selection
+  const handleCategorySelect = useCallback(
+    (category: MarketTypeFilter) => {
+      // Track analytics for category changes
+      const categoryMap: Record<string, string | null> = {
+        crypto: PerpsEventValues.BUTTON_CLICKED.CRYPTO,
+        stocks: PerpsEventValues.BUTTON_CLICKED.STOCKS,
+        commodities: PerpsEventValues.BUTTON_CLICKED.COMMODITIES,
+        forex: PerpsEventValues.BUTTON_CLICKED.FOREX,
+        new: PerpsEventValues.BUTTON_CLICKED.NEW,
+        all: null,
+      };
 
-        if (targetTab) {
-          track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-            [PerpsEventProperties.INTERACTION_TYPE]:
-              PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
-            [PerpsEventProperties.BUTTON_CLICKED]: targetTab,
-            [PerpsEventProperties.BUTTON_LOCATION]:
-              PerpsEventValues.BUTTON_LOCATION.MARKET_LIST,
-          });
-        }
-        setMarketTypeFilter(tab.filter);
+      const targetCategory = categoryMap[category];
+      if (targetCategory) {
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PerpsEventProperties.INTERACTION_TYPE]:
+            PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
+          [PerpsEventProperties.BUTTON_CLICKED]: targetCategory,
+          [PerpsEventProperties.BUTTON_LOCATION]:
+            PerpsEventValues.BUTTON_LOCATION.MARKET_LIST,
+        });
       }
+      setMarketTypeFilter(category);
     },
-    [tabsData, setMarketTypeFilter, track],
+    [setMarketTypeFilter, track],
   );
 
-  // Handle scroll to sync active tab (for swipe gestures)
-  const handleScroll = useCallback(
-    (event: { nativeEvent: { contentOffset: { x: number } } }) => {
-      // Ignore programmatic scrolls to prevent feedback loop with useEffect
-      if (isScrollingProgrammatically.current) {
-        return;
-      }
-
-      const offsetX = event.nativeEvent.contentOffset.x;
-      const index = Math.round(offsetX / containerWidth);
-      if (index >= 0 && index < tabsData.length) {
-        const tab = tabsData[index];
-        if (tab && tab.filter !== marketTypeFilter) {
-          setMarketTypeFilter(tab.filter);
-        }
-      }
-    },
-    [containerWidth, tabsData, marketTypeFilter, setMarketTypeFilter],
-  );
-
-  // Sync scroll position when active tab changes (e.g., from tab bar press or navigation param)
   useEffect(() => {
-    if (
-      tabScrollViewRef.current &&
-      activeTabIndex >= 0 &&
-      tabsData.length > 0
-    ) {
-      isScrollingProgrammatically.current = true;
-      tabScrollViewRef.current.scrollTo({
-        x: activeTabIndex * containerWidth,
-        animated: true,
-      });
-      // Clear flag after animation completes (~300ms animation + 50ms buffer)
-      setTimeout(() => {
-        isScrollingProgrammatically.current = false;
-      }, 350);
-    }
-  }, [activeTabIndex, containerWidth, tabsData.length]);
-
-  useEffect(() => {
-    if (displayMarkets.length > 0) {
+    if (filteredMarkets.length > 0) {
       Animated.timing(fadeAnimation, {
         toValue: 1,
         duration: 300,
         useNativeDriver: true,
       }).start();
     }
-  }, [displayMarkets.length, fadeAnimation]);
-
-  // Reset stocks/commodities filter to 'all' when switching tabs
-  // This ensures that when switching to the Stocks tab, it always shows both stocks and commodities
-  // (user can then filter if needed), and when switching away, the filter is reset for next time
-  useEffect(() => {
-    setStocksCommoditiesFilter('all');
-  }, [marketTypeFilter]);
+  }, [filteredMarkets.length, fadeAnimation]);
 
   // Use navigation hook for back button
   const handleBackPressed = perpsNavigation.navigateBack;
@@ -303,21 +189,31 @@ const PerpsMarketListView = ({
     toggleSearchVisibility();
 
     if (isSearchVisible) {
-      // When disabling search, clear the query
+      // When disabling search, clear the query and restore the filter to what it was before search
       clearSearch();
+      setMarketTypeFilter(preSearchFilterRef.current);
     } else {
-      // When enabling search, track the event
+      // When enabling search, store the current filter so we can restore it when exiting
+      preSearchFilterRef.current = marketTypeFilter;
+      // Track the event
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PerpsEventProperties.INTERACTION_TYPE]:
           PerpsEventValues.INTERACTION_TYPE.SEARCH_CLICKED,
       });
     }
-  }, [isSearchVisible, toggleSearchVisibility, clearSearch, track]);
+  }, [
+    isSearchVisible,
+    toggleSearchVisibility,
+    clearSearch,
+    track,
+    setMarketTypeFilter,
+    marketTypeFilter,
+  ]);
 
   // Performance tracking: Measure screen load time until market data is displayed
   usePerpsMeasurement({
     traceName: TraceName.PerpsMarketListView,
-    conditions: [displayMarkets.length > 0],
+    conditions: [filteredMarkets.length > 0],
   });
 
   // Track markets screen viewed event
@@ -337,7 +233,7 @@ const PerpsMarketListView = ({
 
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
-    conditions: [displayMarkets.length > 0],
+    conditions: [filteredMarkets.length > 0],
     properties: {
       [PerpsEventProperties.SCREEN_TYPE]:
         PerpsEventValues.SCREEN_TYPE.MARKET_LIST,
@@ -370,7 +266,7 @@ const PerpsMarketListView = ({
     }
 
     // Error (Failed to load markets)
-    if (error && displayMarkets.length === 0) {
+    if (error && filteredMarkets.length === 0) {
       return (
         <View style={styles.errorContainer}>
           <Text
@@ -388,7 +284,7 @@ const PerpsMarketListView = ({
     }
 
     // Empty favorites results - show when favorites filter is active but no favorites found
-    if (showFavoritesOnly && displayMarkets.length === 0) {
+    if (showFavoritesOnly && filteredMarkets.length === 0) {
       return (
         <View style={styles.emptyStateContainer}>
           <Icon
@@ -416,7 +312,7 @@ const PerpsMarketListView = ({
     }
 
     // Empty search results - show when search is visible and no markets match
-    if (isSearchVisible && displayMarkets.length === 0) {
+    if (isSearchVisible && filteredMarkets.length === 0) {
       return (
         <View style={styles.emptyStateContainer}>
           <Icon
@@ -451,10 +347,11 @@ const PerpsMarketListView = ({
         style={[styles.animatedListContainer, { opacity: fadeAnimation }]}
       >
         <PerpsMarketList
-          markets={displayMarkets}
+          markets={filteredMarkets}
           onMarketPress={handleMarketPress}
           sortBy={sortBy}
           showBadge={false}
+          filterKey={`${marketTypeFilter}-${isSearchVisible ? 'search' : 'list'}`}
           testID={PerpsMarketListViewSelectorsIDs.MARKET_LIST}
         />
       </Animated.View>
@@ -463,129 +360,64 @@ const PerpsMarketListView = ({
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header - Using extracted component */}
-      <PerpsMarketListHeader
-        title={title}
-        isSearchVisible={isSearchVisible}
-        searchQuery={searchQuery}
-        onSearchQueryChange={setSearchQuery}
-        onSearchClear={() => setSearchQuery('')}
-        onBack={handleBackPressed}
-        onSearchToggle={handleSearchToggle}
-        testID={PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}
-      />
+      {/* Header */}
+      {isSearchVisible ? (
+        <PerpsMarketListHeader
+          title={title}
+          isSearchVisible
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+          onSearchClear={() => setSearchQuery('')}
+          onBack={handleBackPressed}
+          onSearchToggle={handleSearchToggle}
+          testID={PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}
+        />
+      ) : (
+        <HeaderCenter
+          title={title || strings('perps.home.markets')}
+          onBack={handleBackPressed}
+          backButtonProps={{
+            testID: `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-back-button`,
+          }}
+          endButtonIconProps={[
+            {
+              iconName: DSIconName.Search,
+              onPress: handleSearchToggle,
+              testID: `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-search-toggle`,
+            },
+          ]}
+          testID={PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}
+        />
+      )}
 
       {/* Balance Actions Component - Only show in full variant when search not visible */}
       {!isSearchVisible && showBalanceActions && variant === 'full' && (
         <PerpsMarketBalanceActions />
       )}
 
-      {/* Market Type Tabs - Only visible when search is NOT active and tabs exist */}
-      {!isSearchVisible &&
-        !isLoadingMarkets &&
-        !error &&
-        tabsData.length > 0 && (
-          <View style={styles.tabsContainer}>
-            {/* Tab Bar */}
-            <TabsBar
-              tabs={tabsData.map((tab) => ({
-                key: tab.key,
-                label: tab.label,
-                content: null,
-                isDisabled: false,
-              }))}
-              activeIndex={activeTabIndex}
-              onTabPress={handleTabPress}
-              testID={PerpsMarketListViewSelectorsIDs.MARKET_LIST}
-            />
-
-            {/* Filter Bar - Between tabs and content */}
-            {(displayMarkets.length > 0 || showFavoritesOnly) && (
-              <PerpsMarketFiltersBar
-                selectedOptionId={selectedOptionId}
-                onSortPress={() => setIsSortFieldSheetVisible(true)}
-                showStocksCommoditiesDropdown={false}
-                stocksCommoditiesFilter={stocksCommoditiesFilter}
-                onStocksCommoditiesPress={() =>
-                  setIsStocksCommoditiesSheetVisible(true)
-                }
-                testID={PerpsMarketListViewSelectorsIDs.SORT_FILTERS}
-              />
-            )}
-
-            {/* Tab Content - Swipeable */}
-            <ScrollView
-              ref={tabScrollViewRef}
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              onScroll={handleScroll}
-              scrollEventThrottle={16}
-              onLayout={(event) => {
-                setContainerWidth(event.nativeEvent.layout.width);
-              }}
-              style={styles.tabScrollView}
-            >
-              {tabsData.map((tab) => (
-                <View
-                  key={tab.key}
-                  style={[
-                    styles.tabContentContainer,
-                    { width: containerWidth },
-                  ]}
-                >
-                  <Animated.View
-                    style={[
-                      styles.animatedListContainer,
-                      { opacity: fadeAnimation },
-                    ]}
-                  >
-                    <PerpsMarketList
-                      markets={displayMarkets}
-                      onMarketPress={handleMarketPress}
-                      sortBy={sortBy}
-                      showBadge={false}
-                      contentContainerStyle={styles.tabContentContainer}
-                      testID={`${PerpsMarketListViewSelectorsIDs.MARKET_LIST}-${tab.filter}`}
-                    />
-                  </Animated.View>
-                </View>
-              ))}
-            </ScrollView>
-          </View>
-        )}
-
-      {/* Market list when no tabs shown (rare case) */}
-      {!isSearchVisible &&
-        !isLoadingMarkets &&
-        !error &&
-        tabsData.length === 0 && (
-          <View style={styles.listContainerWithTabBar}>
-            {renderMarketList()}
-          </View>
-        )}
-
-      {/* Show regular list when searching or loading */}
-      {(isSearchVisible || isLoadingMarkets || error) && (
-        <View style={styles.listContainerWithTabBar}>{renderMarketList()}</View>
+      {/* Filter Bar - Show when not loading and no error */}
+      {!isSearchVisible && !isLoadingMarkets && !error && (
+        <PerpsMarketFiltersBar
+          selectedOptionId={selectedOptionId}
+          onSortPress={() => setIsSortFieldSheetVisible(true)}
+          marketTypeFilter={marketTypeFilter}
+          onCategorySelect={handleCategorySelect}
+          availableCategories={availableCategories}
+          testID={PerpsMarketListViewSelectorsIDs.SORT_FILTERS}
+        />
       )}
+
+      {/* Market List - Single list with JavaScript filtering */}
+      <View style={styles.listContainerWithTabBar}>{renderMarketList()}</View>
 
       {/* Sort Field Bottom Sheet */}
       <PerpsMarketSortFieldBottomSheet
         isVisible={isSortFieldSheetVisible}
         onClose={() => setIsSortFieldSheetVisible(false)}
         selectedOptionId={selectedOptionId}
+        sortDirection={direction}
         onOptionSelect={handleOptionChange}
         testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-field-sheet`}
-      />
-
-      {/* Stocks/Commodities Filter Bottom Sheet */}
-      <PerpsStocksCommoditiesBottomSheet
-        isVisible={isStocksCommoditiesSheetVisible}
-        onClose={() => setIsStocksCommoditiesSheetVisible(false)}
-        selectedFilter={stocksCommoditiesFilter}
-        onFilterSelect={setStocksCommoditiesFilter}
-        testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-stocks-commodities-sheet`}
       />
     </SafeAreaView>
   );

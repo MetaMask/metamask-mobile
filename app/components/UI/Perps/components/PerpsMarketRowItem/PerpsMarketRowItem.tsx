@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import { getPerpsMarketRowItemSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { getPerpsMarketRowItemSelector } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextColor,
@@ -34,7 +34,7 @@ import { PerpsMarketRowItemProps } from './PerpsMarketRowItem.types';
 const PerpsMarketRowItem = ({
   market,
   onPress,
-  iconSize = HOME_SCREEN_CONFIG.DEFAULT_ICON_SIZE,
+  iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
   displayMetric = 'volume',
   showBadge = true,
 }: PerpsMarketRowItemProps) => {
@@ -105,14 +105,14 @@ const PerpsMarketRowItem = ({
         updatedMarket.volume = formatVolume(volume);
       } else {
         // Only show $0 if volume is truly 0
-        updatedMarket.volume = PERPS_CONSTANTS.ZERO_AMOUNT_DETAILED_DISPLAY;
+        updatedMarket.volume = PERPS_CONSTANTS.ZeroAmountDetailedDisplay;
       }
     } else if (
       !market.volume ||
-      market.volume === PERPS_CONSTANTS.ZERO_AMOUNT_DISPLAY
+      market.volume === PERPS_CONSTANTS.ZeroAmountDisplay
     ) {
       // Fallback: ensure volume field always has a value
-      updatedMarket.volume = PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
+      updatedMarket.volume = PERPS_CONSTANTS.FallbackPriceDisplay;
     }
 
     // Update funding rate from live data if available
@@ -134,7 +134,7 @@ const PerpsMarketRowItem = ({
         return displayMarket.change24hPercent;
       case 'openInterest':
         return (
-          displayMarket.openInterest || PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY
+          displayMarket.openInterest || PERPS_CONSTANTS.FallbackPriceDisplay
         );
       case 'fundingRate':
         // Use formatFundingRate utility for consistent formatting with asset detail screen

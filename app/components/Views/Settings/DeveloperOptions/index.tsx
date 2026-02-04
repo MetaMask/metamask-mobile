@@ -16,6 +16,9 @@ import { PerpsDeveloperOptionsSection } from '../../../UI/Perps/components/Perps
 import { useSelector } from 'react-redux';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { ConfirmationsDeveloperOptions } from '../../confirmations/components/developer/confirmations-developer-options';
+import { selectIsMusdConversionFlowEnabledFlag } from '../../../UI/Earn/selectors/featureFlags';
+import { MusdDeveloperOptionsSection } from '../../../UI/Earn/components/MusdDeveloperOptionsSection';
+import { CardDeveloperOptionsSection } from '../../../UI/Card/components/CardDeveloperOptionsSection';
 
 const DeveloperOptions = () => {
   const navigation = useNavigation();
@@ -27,6 +30,9 @@ const DeveloperOptions = () => {
   const { styles } = useStyles(styleSheet, { theme });
 
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isMusdConversionEnabled = useSelector(
+    selectIsMusdConversionFlowEnabledFlag,
+  );
 
   useEffect(() => {
     navigation.setOptions(
@@ -41,7 +47,10 @@ const DeveloperOptions = () => {
   }, [navigation, isFullScreenModal, colors]);
 
   return (
-    <ScrollView style={styles.wrapper}>
+    <ScrollView
+      style={styles.wrapper}
+      contentContainerStyle={styles.contentContainer}
+    >
       <SentryTest />
       {
         ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -52,6 +61,8 @@ const DeveloperOptions = () => {
       }
       {isPerpsEnabled && <PerpsDeveloperOptionsSection />}
       <ConfirmationsDeveloperOptions />
+      {isMusdConversionEnabled && <MusdDeveloperOptionsSection />}
+      <CardDeveloperOptionsSection />
     </ScrollView>
   );
 };

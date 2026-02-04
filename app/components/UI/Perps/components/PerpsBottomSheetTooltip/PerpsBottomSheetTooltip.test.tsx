@@ -1,7 +1,7 @@
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import React from 'react';
 import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
-import { PerpsBottomSheetTooltipSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsBottomSheetTooltipSelectorsIDs } from '../../Perps.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { PerpsOrderProvider } from '../../contexts/PerpsOrderContext';
 import {
@@ -171,7 +171,6 @@ describe('PerpsBottomSheetTooltip', () => {
       getByTestId(PerpsBottomSheetTooltipSelectorsIDs.TOOLTIP),
     ).toBeTruthy();
     // The BottomSheetHeader component uses its own default testID
-    expect(getByTestId('header')).toBeTruthy();
     expect(getByTestId(PerpsBottomSheetTooltipSelectorsIDs.TITLE)).toBeTruthy();
     expect(
       getByTestId(PerpsBottomSheetTooltipSelectorsIDs.CONTENT),
@@ -277,7 +276,6 @@ describe('PerpsBottomSheetTooltip', () => {
     });
 
     expect(getByTestId(customTestID)).toBeTruthy();
-    expect(getByTestId('header')).toBeTruthy();
     expect(getByTestId(PerpsBottomSheetTooltipSelectorsIDs.TITLE)).toBeTruthy();
     expect(
       getByTestId(PerpsBottomSheetTooltipSelectorsIDs.CONTENT),

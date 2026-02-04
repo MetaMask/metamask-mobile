@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
@@ -20,6 +26,7 @@ import Label from '../../../../../component-library/components/Form/Label';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
+import type { ShippingAddress } from '../../Views/ReviewOrder';
 import useRegisterPhysicalAddress from '../../hooks/useRegisterPhysicalAddress';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -32,6 +39,7 @@ import {
   setSelectedCountry,
   setUserCardLocation,
 } from '../../../../../core/redux/slices/card';
+import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import useRegisterUserConsent from '../../hooks/useRegisterUserConsent';
 import { CardError } from '../../types';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
@@ -41,6 +49,7 @@ import { extractTokenExpiration } from '../../util/extractTokenExpiration';
 import { useCardSDK } from '../../sdk';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
+import Logger from '../../../../../util/Logger';
 import { Linking, TouchableOpacity } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Checkbox from '../../../../../component-library/components/Checkbox';
@@ -51,6 +60,8 @@ import {
   setOnValueChange,
 } from './RegionSelectorModal';
 import { countryCodeToFlag } from '../../util/countryCodeToFlag';
+
+const VERIFICATION_POLLING_INTERVAL_MS = 3000;
 
 export const AddressFields = ({
   addressLine1,
@@ -119,6 +130,7 @@ export const AddressFields = ({
           onChangeText={handleAddressLine1Change}
           numberOfLines={1}
           size={TextFieldSize.Lg}
+          autoComplete="one-time-code"
           value={addressLine1}
           keyboardType="default"
           maxLength={255}
@@ -140,6 +152,7 @@ export const AddressFields = ({
           onChangeText={handleAddressLine2Change}
           numberOfLines={1}
           size={TextFieldSize.Lg}
+          autoComplete="one-time-code"
           value={addressLine2}
           keyboardType="default"
           maxLength={255}
@@ -159,6 +172,7 @@ export const AddressFields = ({
           onChangeText={handleCityChange}
           numberOfLines={1}
           size={TextFieldSize.Lg}
+          autoComplete="one-time-code"
           value={city}
           keyboardType="default"
           maxLength={255}
@@ -194,6 +208,7 @@ export const AddressFields = ({
           onChangeText={handleZipCodeChange}
           numberOfLines={1}
           size={TextFieldSize.Lg}
+          autoComplete="one-time-code"
           value={zipCode}
           keyboardType="default"
           maxLength={255}
@@ -227,10 +242,13 @@ const PhysicalAddress = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
   const dispatch = useDispatch();
-  const { user, setUser } = useCardSDK();
+  const { user, setUser, sdk } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
   const initialSelectedCountry = useSelector(selectSelectedCountry);
   const existingConsentSetId = useSelector(selectConsentSetId);
+  const isMetalCardCheckoutEnabled = useSelector(
+    selectMetalCardCheckoutFeatureFlag,
+  );
   const { trackEvent, createEventBuilder } = useMetrics();
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
@@ -238,7 +256,22 @@ const PhysicalAddress = () => {
   const [state, setState] = useState('');
   const [zipCode, setZipCode] = useState('');
   const [electronicConsent, setElectronicConsent] = useState(false);
+  const [isPollingVerification, setIsPollingVerification] = useState(false);
+  const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
+    null,
+  );
   const { data: registrationSettings } = useRegistrationSettings();
+
+  // Cleanup polling interval on unmount
+  useEffect(
+    () => () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    },
+    [],
+  );
 
   const regions: Region[] = useMemo(() => {
     if (!registrationSettings?.countries) {
@@ -365,6 +398,7 @@ const PhysicalAddress = () => {
       registerIsError ||
       consentLoading ||
       consentIsError ||
+      isPollingVerification ||
       !onboardingId ||
       !user?.id ||
       !addressLine1 ||
@@ -377,6 +411,7 @@ const PhysicalAddress = () => {
       registerIsError,
       consentLoading,
       consentIsError,
+      isPollingVerification,
       onboardingId,
       user?.id,
       addressLine1,
@@ -477,11 +512,99 @@ const PhysicalAddress = () => {
           dispatch(setConsentSetId(null));
         }
 
-        // Reset the navigation stack to the verifying registration screen
-        navigation.reset({
-          index: 0,
-          routes: [{ name: Routes.CARD.VERIFYING_REGISTRATION }],
-        });
+        // Step 11: Check KYC status and navigate accordingly
+        // Start polling to check verification state before navigating
+        setIsPollingVerification(true);
+
+        // Track whether we should continue polling (used to prevent interval setup after navigation)
+        let shouldContinuePolling = true;
+
+        const stopPollingAndNavigate = (route: {
+          name: string;
+          params?: Record<string, unknown>;
+        }) => {
+          shouldContinuePolling = false;
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+          }
+          setIsPollingVerification(false);
+          dispatch(resetOnboardingState());
+          navigation.reset({
+            index: 0,
+            routes: [route],
+          });
+        };
+
+        const pollVerificationState = async (): Promise<void> => {
+          if (!sdk) {
+            // No SDK available, redirect to Card Home
+            stopPollingAndNavigate({ name: Routes.CARD.HOME });
+            return;
+          }
+
+          try {
+            const userDetails = await sdk.getUserDetails();
+            const currentVerificationState = userDetails.verificationState;
+            // Update user in context with fresh data
+            setUser(userDetails);
+
+            if (currentVerificationState === 'VERIFIED') {
+              if (location === 'us' && isMetalCardCheckoutEnabled) {
+                const shippingAddress: ShippingAddress = {
+                  line1: addressLine1,
+                  line2: addressLine2 || undefined,
+                  city,
+                  state,
+                  zip: zipCode,
+                };
+                stopPollingAndNavigate({
+                  name: Routes.CARD.CHOOSE_YOUR_CARD,
+                  params: { flow: 'onboarding', shippingAddress },
+                });
+              } else {
+                stopPollingAndNavigate({
+                  name: Routes.CARD.SPENDING_LIMIT,
+                  params: { flow: 'onboarding' },
+                });
+              }
+            } else if (currentVerificationState === 'REJECTED') {
+              // KYC rejected - show failure screen
+              stopPollingAndNavigate({
+                name: Routes.CARD.ONBOARDING.ROOT,
+                params: { screen: Routes.CARD.ONBOARDING.KYC_FAILED },
+              });
+            }
+            // For PENDING or any other status, continue polling
+            // The interval will trigger the next poll
+          } catch (fetchError) {
+            Logger.log(
+              'PhysicalAddress: Failed to fetch user details for KYC status',
+              fetchError,
+            );
+            // On error, redirect to Card Home to avoid stuck state
+            stopPollingAndNavigate({ name: Routes.CARD.HOME });
+          }
+        };
+
+        // Execute first poll immediately
+        await pollVerificationState();
+
+        // Only set up interval if we should continue polling (not already navigated)
+        if (shouldContinuePolling) {
+          pollingIntervalRef.current = setInterval(() => {
+            pollVerificationState();
+          }, VERIFICATION_POLLING_INTERVAL_MS);
+
+          // Set a timeout to stop polling after a reasonable time and redirect to Card Home
+          // This prevents infinite polling if the status never changes
+          setTimeout(() => {
+            if (pollingIntervalRef.current) {
+              stopPollingAndNavigate({ name: Routes.CARD.HOME });
+            }
+          }, VERIFICATION_POLLING_INTERVAL_MS * 2); // Poll 2 times max (6 seconds total)
+        }
+
         return;
       }
 
@@ -584,7 +707,7 @@ const PhysicalAddress = () => {
         onPress={handleContinue}
         width={ButtonWidthTypes.Full}
         isDisabled={isDisabled}
-        loading={registerLoading}
+        loading={registerLoading || isPollingVerification}
         testID="physical-address-continue-button"
       />
     </Box>

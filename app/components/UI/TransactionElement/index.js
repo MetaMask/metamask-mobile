@@ -12,7 +12,6 @@ import { fontStyles } from '../../../styles/common';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
 import { toDateFormat } from '../../../util/date';
-import TransactionDetails from './TransactionDetails';
 import { safeToChecksumAddress } from '../../../util/address';
 import { connect, useSelector } from 'react-redux';
 import StyledButton from '../StyledButton';
@@ -22,6 +21,7 @@ import { TRANSACTION_TYPES } from '../../../util/transactions';
 import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
 import DetailsModal from '../../Base/DetailsModal';
+import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
 import { isTestNet } from '../../../util/networks';
 import { weiHexToGweiDec } from '@metamask/controller-utils';
 import {
@@ -156,12 +156,28 @@ const transactionIconSwapFailed = require('../../../images/transaction-icons/swa
 /* eslint-enable import/no-commonjs */
 
 const NEW_TRANSACTION_DETAILS_TYPES = [
+  TransactionType.musdConversion,
   TransactionType.perpsDeposit,
+  TransactionType.perpsDepositAndOrder,
   TransactionType.predictClaim,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
 ];
 
+const INTENT_STATUS = {
+  SUBMITTED: 'SUBMITTED',
+  PENDING: 'PENDING',
+  COMPLETE: 'COMPLETE',
+  FAILED: 'FAILED',
+  UNKNOWN: 'UNKNOWN',
+};
+
+const TRANSACTION_STATUS = {
+  SUBMITTED: 'submitted',
+  PENDING: 'pending',
+  CONFIRMED: 'confirmed',
+  FAILED: 'failed',
+};
 /**
  * View that renders a transaction item part of transactions list
  */
@@ -236,7 +252,6 @@ class TransactionElement extends PureComponent {
     actionKey: undefined,
     cancelIsOpen: false,
     speedUpIsOpen: false,
-    detailsModalVisible: false,
     importModalVisible: false,
     transactionGas: {
       gasBN: undefined,
@@ -296,7 +311,17 @@ class TransactionElement extends PureComponent {
         transactionId: tx.id,
       });
     } else {
-      this.setState({ detailsModalVisible: true });
+      const { transactionElement, transactionDetails } = this.state;
+      this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.TRANSACTION_DETAILS,
+        params: {
+          tx,
+          transactionElement,
+          transactionDetails,
+          showSpeedUpModal: this.showSpeedUpModal,
+          showCancelModal: this.showCancelModal,
+        },
+      });
     }
   };
 
@@ -306,10 +331,6 @@ class TransactionElement extends PureComponent {
 
   onCloseImportWalletModal = () => {
     this.setState({ importModalVisible: false });
-  };
-
-  onCloseDetailsModal = () => {
-    this.setState({ detailsModalVisible: false });
   };
 
   renderTxTime = () => {
@@ -449,6 +470,24 @@ class TransactionElement extends PureComponent {
     );
   };
 
+  mapIntentStatusToTransactionStatus = (intentStatus) => {
+    if (intentStatus === INTENT_STATUS.PENDING) {
+      return TRANSACTION_STATUS.PENDING;
+    }
+    if (intentStatus === INTENT_STATUS.COMPLETE) {
+      return TRANSACTION_STATUS.CONFIRMED;
+    }
+    if (intentStatus === INTENT_STATUS.FAILED) {
+      return TRANSACTION_STATUS.FAILED;
+    }
+    if (intentStatus === INTENT_STATUS.SUBMITTED) {
+      return TRANSACTION_STATUS.SUBMITTED;
+    }
+
+    // if it is unknown status, default to failed
+    return TRANSACTION_STATUS.FAILED;
+  };
+
   /**
    * Renders an horizontal bar with basic tx information
    *
@@ -456,30 +495,38 @@ class TransactionElement extends PureComponent {
    */
   renderTxElement = (transactionElement) => {
     const {
-      selectedInternalAccount,
       isQRHardwareAccount,
       isLedgerAccount,
       i,
-      tx: { time, status, isSmartTransaction, chainId, type },
+      tx: { status, isSmartTransaction, chainId, type },
       tx,
       bridgeTxHistoryData: { bridgeTxHistoryItem, isBridgeComplete },
     } = this.props;
     const isBridgeTransaction = type === TransactionType.bridge;
+    const isUnifiedSwap = type === TransactionType.swap && bridgeTxHistoryItem;
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
     const { value, fiatValue = false, actionKey } = transactionElement;
+    const transactionStatus =
+      bridgeTxHistoryItem?.status && bridgeTxHistoryItem.quote.intent
+        ? this.mapIntentStatusToTransactionStatus(
+            bridgeTxHistoryItem.status.status,
+          )
+        : status;
 
     const renderNormalActions =
-      (status === 'submitted' ||
-        (status === 'approved' && !isQRHardwareAccount && !isLedgerAccount)) &&
+      (transactionStatus === 'submitted' ||
+        (transactionStatus === 'approved' &&
+          !isQRHardwareAccount &&
+          !isLedgerAccount)) &&
       !isSmartTransaction &&
       !isBridgeTransaction;
     const renderUnsignedQRActions =
-      status === 'approved' && isQRHardwareAccount;
-    const renderLedgerActions = status === 'approved' && isLedgerAccount;
-    const accountImportTime = selectedInternalAccount?.metadata.importTime;
+      transactionStatus === 'approved' && isQRHardwareAccount;
+    const renderLedgerActions =
+      transactionStatus === 'approved' && isLedgerAccount;
     let title = actionKey;
-    if (isBridgeTransaction && bridgeTxHistoryItem) {
+    if ((isBridgeTransaction || isUnifiedSwap) && bridgeTxHistoryItem) {
       title = getSwapBridgeTxActivityTitle(bridgeTxHistoryItem) ?? title;
     }
 
@@ -496,17 +543,17 @@ class TransactionElement extends PureComponent {
             <ListItem.Title numberOfLines={1} style={styles.listItemTitle}>
               {title}
             </ListItem.Title>
-            {!FINAL_NON_CONFIRMED_STATUSES.includes(status) &&
+            {!FINAL_NON_CONFIRMED_STATUSES.includes(transactionStatus) &&
             isBridgeTransaction &&
             !isBridgeComplete ? (
               <BridgeActivityItemTxSegments
                 bridgeTxHistoryItem={bridgeTxHistoryItem}
-                transactionStatus={this.props.tx.status}
+                transactionStatus={transactionStatus}
               />
             ) : (
               <StatusText
                 testID={`transaction-status-${i}`}
-                status={status}
+                status={transactionStatus}
                 style={styles.listItemStatus}
               />
             )}
@@ -689,12 +736,8 @@ class TransactionElement extends PureComponent {
 
   render() {
     const { tx, selectedInternalAccount } = this.props;
-    const {
-      detailsModalVisible,
-      importModalVisible,
-      transactionElement,
-      transactionDetails,
-    } = this.state;
+    const { importModalVisible, transactionElement, transactionDetails } =
+      this.state;
 
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
@@ -718,33 +761,6 @@ class TransactionElement extends PureComponent {
           {this.renderTxElement(transactionElement)}
         </TouchableHighlight>
         {accountImportTime <= time && this.renderImportTime()}
-        {detailsModalVisible && (
-          <Modal
-            isVisible={detailsModalVisible}
-            onBackdropPress={this.onCloseDetailsModal}
-            onBackButtonPress={this.onCloseDetailsModal}
-            onSwipeComplete={this.onCloseDetailsModal}
-            swipeDirection={'down'}
-            backdropColor={colors.overlay.default}
-            backdropOpacity={1}
-          >
-            <DetailsModal>
-              <DetailsModal.Header>
-                <DetailsModal.Title onPress={this.onCloseDetailsModal}>
-                  {transactionElement?.actionKey}
-                </DetailsModal.Title>
-                <DetailsModal.CloseIcon onPress={this.onCloseDetailsModal} />
-              </DetailsModal.Header>
-              <TransactionDetails
-                transactionObject={tx}
-                transactionDetails={transactionDetails}
-                showSpeedUpModal={this.showSpeedUpModal}
-                showCancelModal={this.showCancelModal}
-                close={this.onCloseDetailsModal}
-              />
-            </DetailsModal>
-          </Modal>
-        )}
         <Modal
           isVisible={importModalVisible}
           onBackdropPress={this.onCloseImportWalletModal}
@@ -755,12 +771,12 @@ class TransactionElement extends PureComponent {
           backdropOpacity={1}
         >
           <DetailsModal>
-            <DetailsModal.Header>
-              <DetailsModal.Title onPress={this.onCloseImportWalletModal}>
-                {strings('transactions.import_wallet_label')}
-              </DetailsModal.Title>
-              <DetailsModal.CloseIcon onPress={this.onCloseImportWalletModal} />
-            </DetailsModal.Header>
+            <HeaderCenter
+              title={strings('transactions.import_wallet_label')}
+              onClose={this.onCloseImportWalletModal}
+              titleProps={{ testID: 'details-modal-title' }}
+              closeButtonProps={{ testID: 'details-modal-close-icon' }}
+            />
             <View style={styles.summaryWrapper}>
               <Text style={styles.fromDeviceText}>
                 {strings('transactions.import_wallet_tip')}

@@ -1,12 +1,11 @@
 import { FlaskBuildTests } from '../../tags';
-import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import TestSnaps from '../../pages/Browser/TestSnaps';
-import { getAnvilPortForTest } from '../../framework/fixtures/FixtureUtils';
-import { LocalNodeType } from '../../framework';
-import { defaultOptions } from '../../seeder/anvil-manager';
+import { getAnvilPortForTest } from '../../../tests/framework/fixtures/FixtureUtils';
+import { LocalNodeType } from '../../../tests/framework';
+import { defaultOptions } from '../../../tests/seeder/anvil-manager';
 
 jest.setTimeout(150_000);
 
@@ -29,7 +28,7 @@ describe(FlaskBuildTests('Network Access Snap Tests'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await TestSnaps.navigateToTestSnap();
 
         await TestSnaps.installSnap('connectNetworkAccessButton');
@@ -42,6 +41,12 @@ describe(FlaskBuildTests('Network Access Snap Tests'), () => {
         );
 
         // Use WebSockets
+        // Disable synchronization on iOS before starting WebSocket to prevent
+        // Detox from hanging due to the open connection keeping the app "busy"
+        if (device.getPlatform() === 'ios') {
+          await device.disableSynchronization();
+        }
+
         const webSocketUrl = `ws://localhost:${getAnvilPortForTest()}`;
         await TestSnaps.fillMessage('webSocketUrlInput', webSocketUrl);
         await TestSnaps.tapButton('startWebSocket');

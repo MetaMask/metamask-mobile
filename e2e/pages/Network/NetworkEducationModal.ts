@@ -1,9 +1,9 @@
 import {
   NetworkEducationModalSelectorsIDs,
   NetworkEducationModalSelectorsText,
-} from '../../selectors/Network/NetworkEducationModal.selectors';
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+} from '../../../app/components/UI/NetworkInfo/NetworkEducationModal.testIds';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
 
 class NetworkEducationModal {
   get container(): DetoxElement {

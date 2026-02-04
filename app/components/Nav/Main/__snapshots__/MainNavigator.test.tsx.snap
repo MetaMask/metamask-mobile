@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`MainNavigator matches rendered snapshot 1`] = `
+exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1`] = `
 <Navigator
   initialRouteName="Home"
   mode="modal"
@@ -98,20 +98,7 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   />
   <Screen
     component={[Function]}
-    name="SendView"
-  />
-  <Screen
-    component={[Function]}
     name="Send"
-    options={
-      {
-        "gestureEnabled": false,
-      }
-    }
-  />
-  <Screen
-    component={[Function]}
-    name="SendFlowView"
     options={
       {
         "gestureEnabled": false,
@@ -244,6 +231,30 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   />
   <Screen
     component={[Function]}
+    name="Predict"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="PredictModals"
+    options={
+      {
+        "animationEnabled": false,
+        "cardStyle": {
+          "backgroundColor": "transparent",
+          "cardStyleInterpolator": [Function],
+        },
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
     headerStyle={
       {
         "borderBottomWidth": 0,
@@ -264,7 +275,643 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
     name="GeneralSettings"
     options={
       {
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="FeatureFlagOverride"
+    options={
+      {
         "headerShown": true,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="OptInStack"
+  />
+  <Screen
+    component={[Function]}
+    name="TurnOnBackupAndSync"
+  />
+  <Screen
+    component={[Function]}
+    name="DeFiProtocolPositionDetails"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": true,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="SampleFeature"
+  />
+  <Screen
+    component={[Function]}
+    name="CardScreens"
+  />
+</Navigator>
+`;
+
+exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] = `
+<Navigator
+  initialRouteName="Home"
+  mode="modal"
+  screenOptions={
+    {
+      "headerShown": false,
+    }
+  }
+>
+  <Screen
+    component={[Function]}
+    name="CollectiblesDetails"
+    options={
+      {
+        "cardStyle": {
+          "backgroundColor": "transparent",
+        },
+        "cardStyleInterpolator": [Function],
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="DeprecatedNetworkDetails"
+    options={
+      {
+        "cardStyle": {
+          "backgroundColor": "transparent",
+        },
+        "cardStyleInterpolator": [Function],
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="Home"
+  />
+  <Screen
+    component={[Function]}
+    name="TokensFullView"
+    options={
+      {
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="AddAsset"
+    options={[Function]}
+  />
+  <Screen
+    component={[Function]}
+    name="ConfirmAddAsset"
+    options={
+      {
+        "headerShown": true,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="SettingsView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="Asset"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="TrendingTokensFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="Webview"
+  />
+  <Screen
+    component={[Function]}
+    name="Send"
+    options={
+      {
+        "gestureEnabled": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="AddBookmarkView"
+  />
+  <Screen
+    component={[Function]}
+    name="OfflineModeView"
+  />
+  <Screen
+    component={[Function]}
+    name="NotificationsView"
+  />
+  <Screen
+    component={[Function]}
+    name="QRTabSwitcher"
+  />
+  <Screen
+    component={[Function]}
+    name="NftDetails"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="NftDetailsFullImage"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="NftFullView"
+    options={
+      {
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="PaymentRequestView"
+  />
+  <Screen
+    component={[Function]}
+    name="RampTokenSelection"
+  />
+  <Screen
+    name="RampBuy"
+  />
+  <Screen
+    name="RampSell"
+  />
+  <Screen
+    component={[Function]}
+    name="Deposit"
+  />
+  <Screen
+    component={[Function]}
+    name="Bridge"
+  />
+  <Screen
+    component={[Function]}
+    name="BridgeModals"
+    options={
+      {
+        "animationEnabled": false,
+        "cardStyle": {
+          "backgroundColor": "transparent",
+          "cardStyleInterpolator": [Function],
+        },
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="StakeScreens"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="EarnScreens"
+  />
+  <Screen
+    component={[Function]}
+    name="EarnModals"
+    options={
+      {
+        "animationEnabled": false,
+        "cardStyle": {
+          "backgroundColor": "transparent",
+          "cardStyleInterpolator": [Function],
+        },
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="StakeModals"
+    options={
+      {
+        "animationEnabled": false,
+        "cardStyle": {
+          "backgroundColor": "transparent",
+          "cardStyleInterpolator": [Function],
+        },
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="Predict"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="PredictModals"
+    options={
+      {
+        "animationEnabled": false,
+        "cardStyle": {
+          "backgroundColor": "transparent",
+          "cardStyleInterpolator": [Function],
+        },
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    headerStyle={
+      {
+        "borderBottomWidth": 0,
+      }
+    }
+    headerTitle={[Function]}
+    name="SetPasswordFlow"
+  />
+  <Screen
+    component={
+      {
+        "$$typeof": Symbol(react.memo),
+        "WrappedComponent": [Function],
+        "compare": null,
+        "type": [Function],
+      }
+    }
+    name="GeneralSettings"
+    options={
+      {
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="FeatureFlagOverride"
+    options={
+      {
+        "headerShown": true,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="OptInStack"
+  />
+  <Screen
+    component={[Function]}
+    name="TurnOnBackupAndSync"
+  />
+  <Screen
+    component={[Function]}
+    name="DeFiProtocolPositionDetails"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": true,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="SampleFeature"
+  />
+  <Screen
+    component={[Function]}
+    name="CardScreens"
+  />
+</Navigator>
+`;
+
+exports[`MainNavigator matches rendered snapshot 1`] = `
+<Navigator
+  initialRouteName="Home"
+  mode="modal"
+  screenOptions={
+    {
+      "headerShown": false,
+    }
+  }
+>
+  <Screen
+    component={[Function]}
+    name="CollectiblesDetails"
+    options={
+      {
+        "cardStyle": {
+          "backgroundColor": "transparent",
+        },
+        "cardStyleInterpolator": [Function],
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="DeprecatedNetworkDetails"
+    options={
+      {
+        "cardStyle": {
+          "backgroundColor": "transparent",
+        },
+        "cardStyleInterpolator": [Function],
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="Home"
+  />
+  <Screen
+    component={[Function]}
+    name="TokensFullView"
+    options={
+      {
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="AddAsset"
+    options={[Function]}
+  />
+  <Screen
+    component={[Function]}
+    name="ConfirmAddAsset"
+    options={
+      {
+        "headerShown": true,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="SettingsView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="Asset"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="TrendingTokensFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="Webview"
+  />
+  <Screen
+    component={[Function]}
+    name="Send"
+    options={
+      {
+        "gestureEnabled": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="AddBookmarkView"
+  />
+  <Screen
+    component={[Function]}
+    name="OfflineModeView"
+  />
+  <Screen
+    component={[Function]}
+    name="NotificationsView"
+  />
+  <Screen
+    component={[Function]}
+    name="QRTabSwitcher"
+  />
+  <Screen
+    component={[Function]}
+    name="NftDetails"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="NftDetailsFullImage"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="NftFullView"
+    options={
+      {
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="PaymentRequestView"
+  />
+  <Screen
+    component={[Function]}
+    name="RampTokenSelection"
+  />
+  <Screen
+    name="RampBuy"
+  />
+  <Screen
+    name="RampSell"
+  />
+  <Screen
+    component={[Function]}
+    name="Deposit"
+  />
+  <Screen
+    component={[Function]}
+    name="Bridge"
+  />
+  <Screen
+    component={[Function]}
+    name="BridgeModals"
+    options={
+      {
+        "animationEnabled": false,
+        "cardStyle": {
+          "backgroundColor": "transparent",
+          "cardStyleInterpolator": [Function],
+        },
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="StakeScreens"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="EarnScreens"
+  />
+  <Screen
+    component={[Function]}
+    name="EarnModals"
+    options={
+      {
+        "animationEnabled": false,
+        "cardStyle": {
+          "backgroundColor": "transparent",
+          "cardStyleInterpolator": [Function],
+        },
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="StakeModals"
+    options={
+      {
+        "animationEnabled": false,
+        "cardStyle": {
+          "backgroundColor": "transparent",
+          "cardStyleInterpolator": [Function],
+        },
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="Predict"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="PredictModals"
+    options={
+      {
+        "animationEnabled": false,
+        "cardStyle": {
+          "backgroundColor": "transparent",
+          "cardStyleInterpolator": [Function],
+        },
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    headerStyle={
+      {
+        "borderBottomWidth": 0,
+      }
+    }
+    headerTitle={[Function]}
+    name="SetPasswordFlow"
+  />
+  <Screen
+    component={
+      {
+        "$$typeof": Symbol(react.memo),
+        "WrappedComponent": [Function],
+        "compare": null,
+        "type": [Function],
+      }
+    }
+    name="GeneralSettings"
+    options={
+      {
+        "headerShown": false,
       }
     }
   />

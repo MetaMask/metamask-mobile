@@ -3,7 +3,7 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { zeroAddress } from 'ethereumjs-util';
 import { NetworkController } from '@metamask/network-controller';
-import AssetOverview from './AssetOverview';
+import AssetOverview, { getSwapTokens } from './AssetOverview';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import {
@@ -11,9 +11,7 @@ import {
   MOCK_ADDRESS_2,
   createMockSnapInternalAccount,
 } from '../../../util/test/accountsControllerTestUtils';
-import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
-// eslint-disable-next-line import/no-namespace
-import * as transactions from '../../../util/transactions';
+import { TokenOverviewSelectorsIDs } from './TokenOverview.testIds';
 import { mockNetworkState } from '../../../util/test/network';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
@@ -23,6 +21,7 @@ import {
 } from '../AssetElement/index.constants';
 import { SolScope, SolAccountType } from '@metamask/keyring-api';
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
+import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
 import {
   ActionButtonType,
   ActionLocation,
@@ -31,25 +30,10 @@ import {
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { handleFetch } from '@metamask/controller-utils';
 
-jest.mock('../../../selectors/accountsController', () => ({
-  ...jest.requireActual('../../../selectors/accountsController'),
-  selectSelectedInternalAccount: jest.fn(),
-}));
-
 jest.mock('@metamask/controller-utils', () => ({
   ...jest.requireActual('@metamask/controller-utils'),
   handleFetch: jest.fn(),
 }));
-
-jest.mock(
-  '../../../selectors/multichainAccounts/accountTreeController',
-  () => ({
-    ...jest.requireActual(
-      '../../../selectors/multichainAccounts/accountTreeController',
-    ),
-    selectSelectedAccountGroup: jest.fn(),
-  }),
-);
 
 jest.mock('./Balance', () => {
   /* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
@@ -87,16 +71,6 @@ jest.mock('./Balance', () => {
     ),
   };
 });
-
-jest.mock('../../../selectors/assets/assets-list', () => ({
-  ...jest.requireActual('../../../selectors/assets/assets-list'),
-  selectTronResourcesBySelectedAccountGroup: jest.fn().mockReturnValue([]),
-}));
-
-jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
-  ...jest.requireActual('../../../selectors/multichainAccounts/accounts'),
-  selectSelectedInternalAccountByScope: jest.fn(),
-}));
 
 const MOCK_CHAIN_ID = '0x1';
 
@@ -222,6 +196,9 @@ jest.mock('../../../core/Engine', () => ({
     MultichainNetworkController: {
       setActiveNetwork: jest.fn().mockResolvedValue(undefined),
     },
+    SwapsController: {
+      fetchTokenWithCache: jest.fn().mockResolvedValue(undefined),
+    },
   },
 }));
 
@@ -256,13 +233,6 @@ jest.mock('../../../components/hooks/useMetrics', () => {
   };
 });
 
-jest.mock(
-  '../../../selectors/featureFlagController/multichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: () => false,
-  }),
-);
-
 const mockAddPopularNetwork = jest
   .fn()
   .mockImplementation(() => Promise.resolve());
@@ -273,11 +243,83 @@ jest.mock('../../../components/hooks/useAddNetwork', () => ({
   })),
 }));
 
+// Mock useSwapBridgeNavigation to capture hook arguments while still calling navigation
+const mockUseSwapBridgeNavigationArgs = jest.fn();
+jest.mock('../Bridge/hooks/useSwapBridgeNavigation', () => {
+  const actual = jest.requireActual('../Bridge/hooks/useSwapBridgeNavigation');
+  return {
+    ...actual,
+    useSwapBridgeNavigation: (args: unknown) => {
+      mockUseSwapBridgeNavigationArgs(args);
+      return actual.useSwapBridgeNavigation(args);
+    },
+  };
+});
+
 const mockUseRampsUnifiedV1Enabled = jest.fn();
 jest.mock('../Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
   __esModule: true,
   default: () => mockUseRampsUnifiedV1Enabled(),
 }));
+
+const mockUseRampTokens = jest.fn();
+jest.mock('../Ramp/hooks/useRampTokens', () => ({
+  useRampTokens: () => mockUseRampTokens(),
+}));
+
+// Only mock the new hook added in this branch: useScrollToMerklRewards
+// This hook uses useRoute/useNavigation which need proper test setup
+jest.mock('./hooks/useScrollToMerklRewards', () => ({
+  useScrollToMerklRewards: jest.fn(() => ({
+    hasScrolledRef: { current: false },
+  })),
+}));
+
+jest.mock('../../Views/confirmations/hooks/useSendNavigation', () => ({
+  useSendNavigation: jest.fn(),
+}));
+
+// Perps Discovery Banner mocks
+const mockUsePerpsMarketForAsset = jest.fn();
+jest.mock('../Perps/hooks/usePerpsMarketForAsset', () => ({
+  usePerpsMarketForAsset: () => mockUsePerpsMarketForAsset(),
+}));
+
+const mockSelectPerpsEnabledFlag = jest.fn();
+jest.mock('../Perps', () => ({
+  selectPerpsEnabledFlag: () => mockSelectPerpsEnabledFlag(),
+}));
+
+const mockSelectSelectedInternalAccount = jest.fn();
+jest.mock('../../../selectors/accountsController', () => ({
+  ...jest.requireActual('../../../selectors/accountsController'),
+  selectSelectedInternalAccount: () => mockSelectSelectedInternalAccount(),
+}));
+
+const mockSelectSelectedInternalAccountByScope = jest.fn();
+jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
+  ...jest.requireActual('../../../selectors/multichainAccounts/accounts'),
+  selectSelectedInternalAccountByScope: () =>
+    mockSelectSelectedInternalAccountByScope,
+}));
+
+const mockSelectTronResourcesBySelectedAccountGroup = jest.fn();
+jest.mock('../../../selectors/assets/assets-list', () => ({
+  ...jest.requireActual('../../../selectors/assets/assets-list'),
+  selectTronResourcesBySelectedAccountGroup: () =>
+    mockSelectTronResourcesBySelectedAccountGroup(),
+}));
+
+const mockSelectSelectedAccountGroup = jest.fn();
+jest.mock(
+  '../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    ...jest.requireActual(
+      '../../../selectors/multichainAccounts/accountTreeController',
+    ),
+    selectSelectedAccountGroup: () => mockSelectSelectedAccountGroup(),
+  }),
+);
 
 const asset = {
   balance: '400',
@@ -299,6 +341,11 @@ const assetFromSearch = {
   isFromSearch: true,
 };
 
+const assetFromTrending = {
+  ...asset,
+  isFromTrending: true,
+};
+
 describe('AssetOverview', () => {
   const mockSendNonEvmAsset = jest.fn();
 
@@ -316,26 +363,54 @@ describe('AssetOverview', () => {
       isNonEvmAccount: false,
     });
 
-    // Default selected internal account to an EVM account so token balance flow uses EVM path
-    const { selectSelectedInternalAccount } = jest.requireMock(
-      '../../../selectors/accountsController',
-    );
-    selectSelectedInternalAccount.mockReturnValue({
+    mockSelectSelectedInternalAccount.mockReturnValue({
       address: MOCK_ADDRESS_2,
       type: 'eip155:eoa',
     });
 
-    // Default mock for selectSelectedInternalAccountByScope
-    const { selectSelectedInternalAccountByScope } = jest.requireMock(
-      '../../../selectors/multichainAccounts/accounts',
-    );
-    const mockGetAccountByScope = jest.fn().mockReturnValue({
+    mockSelectSelectedInternalAccountByScope.mockReturnValue({
       address: MOCK_ADDRESS_2,
+      type: 'eip155:eoa',
     });
-    selectSelectedInternalAccountByScope.mockReturnValue(mockGetAccountByScope);
+
+    // Default mock for tron resources - return empty array
+    mockSelectTronResourcesBySelectedAccountGroup.mockReturnValue([]);
 
     // Default mock for unified V1 flag - disabled
     mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
+
+    // Default mock for useRampTokens - return tokens that make the test assets buyable
+    mockUseRampTokens.mockReturnValue({
+      allTokens: [
+        {
+          chainId: 'eip155:1',
+          assetId: 'eip155:1/erc20:0x123',
+          tokenSupported: true,
+        },
+        {
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+          tokenSupported: true,
+        },
+      ],
+      topTokens: [],
+      isLoading: false,
+      error: null,
+    });
+
+    // Setup useSendNavigation mock to call navigate
+    (useSendNavigation as jest.Mock).mockReturnValue({
+      navigateToSendPage: jest.fn((params) => {
+        mockNavigate('Send', params);
+      }),
+    });
+
+    // Default Perps mock - disabled and no market exists (banner won't show)
+    mockSelectPerpsEnabledFlag.mockReturnValue(false);
+    mockUsePerpsMarketForAsset.mockReturnValue({
+      hasPerpsMarket: false,
+      marketData: null,
+    });
   });
 
   afterEach(() => {
@@ -588,8 +663,6 @@ describe('AssetOverview', () => {
   });
 
   it('should handle send button press for native asset when isETH is false', async () => {
-    const spyOnGetEther = jest.spyOn(transactions, 'getEther');
-
     const nativeAsset = {
       balance: '400',
       balanceFiat: '1500',
@@ -652,8 +725,13 @@ describe('AssetOverview', () => {
     // Wait for async operations to complete
     await Promise.resolve();
 
-    expect(navigate.mock.calls[1][0]).toEqual('Send');
-    expect(spyOnGetEther).toHaveBeenCalledWith('BNB');
+    // onSend now navigates to home first, then calls navigateToSendPage
+    expect(navigate).toHaveBeenCalledWith(
+      Routes.WALLET.HOME,
+      expect.objectContaining({
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+      }),
+    );
   });
 
   it('should handle swap button press', async () => {
@@ -676,27 +754,11 @@ describe('AssetOverview', () => {
   });
 
   it('should handle receive button press for EVM asset with EVM address', async () => {
-    // Arrange - Mock the selectors directly to ensure conditions are met
-    const { selectSelectedInternalAccount } = jest.requireMock(
-      '../../../selectors/accountsController',
-    );
-    const { selectSelectedAccountGroup } = jest.requireMock(
-      '../../../selectors/multichainAccounts/accountTreeController',
-    );
-    const { selectSelectedInternalAccountByScope } = jest.requireMock(
-      '../../../selectors/multichainAccounts/accounts',
-    );
+    mockSelectSelectedAccountGroup.mockReturnValue({ id: 'group-id-123' });
 
-    selectSelectedInternalAccount.mockReturnValue({
-      address: MOCK_ADDRESS_2,
-      type: 'eip155:eoa',
-    });
-    selectSelectedAccountGroup.mockReturnValue({ id: 'group-id-123' });
-
-    const mockGetAccountByScope = jest.fn().mockReturnValue({
+    mockSelectSelectedInternalAccountByScope.mockReturnValue({
       address: MOCK_ADDRESS_2,
     });
-    selectSelectedInternalAccountByScope.mockReturnValue(mockGetAccountByScope);
 
     const { getByTestId } = renderWithProvider(
       <AssetOverview
@@ -727,23 +789,14 @@ describe('AssetOverview', () => {
         }),
       },
     );
-
-    // Cleanup mocks for isolation
-    selectSelectedInternalAccount.mockReset();
-    selectSelectedAccountGroup.mockReset();
-    selectSelectedInternalAccountByScope.mockReset();
   });
 
   it('should track receive button click analytics with correct properties', async () => {
     // Arrange - Mock the selectors directly to ensure conditions are met
-    const { selectSelectedInternalAccount } = jest.requireMock(
-      '../../../selectors/accountsController',
-    );
-    const { selectSelectedAccountGroup } = jest.requireMock(
-      '../../../selectors/multichainAccounts/accountTreeController',
-    );
-    selectSelectedInternalAccount.mockReturnValue({ address: MOCK_ADDRESS_2 });
-    selectSelectedAccountGroup.mockReturnValue({ id: 'group-id-123' });
+    mockSelectSelectedInternalAccount.mockReturnValue({
+      address: MOCK_ADDRESS_2,
+    });
+    mockSelectSelectedAccountGroup.mockReturnValue({ id: 'group-id-123' });
 
     const { getByTestId } = renderWithProvider(
       <AssetOverview
@@ -777,37 +830,18 @@ describe('AssetOverview', () => {
 
     // Verify trackEvent was called with the built event
     expect(mockTrackEvent).toHaveBeenCalledWith({ category: 'test' });
-
-    // Cleanup mocks for isolation
-    selectSelectedInternalAccount.mockReset();
-    selectSelectedAccountGroup.mockReset();
   });
 
   it('should handle receive button press for Solana asset with Solana address', async () => {
     const SOLANA_ADDRESS = 'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH';
     const SOLANA_CHAIN_ID = SolScope.Mainnet;
 
-    const { selectSelectedInternalAccount } = jest.requireMock(
-      '../../../selectors/accountsController',
-    );
-    const { selectSelectedAccountGroup } = jest.requireMock(
-      '../../../selectors/multichainAccounts/accountTreeController',
-    );
-    const { selectSelectedInternalAccountByScope } = jest.requireMock(
-      '../../../selectors/multichainAccounts/accounts',
-    );
+    mockSelectSelectedAccountGroup.mockReturnValue({ id: 'group-id-123' });
 
-    selectSelectedInternalAccount.mockReturnValue({
-      address: MOCK_ADDRESS_2,
-      type: 'eip155:eoa',
-    });
-    selectSelectedAccountGroup.mockReturnValue({ id: 'group-id-123' });
-
-    const mockGetAccountByScope = jest.fn().mockReturnValue({
+    mockSelectSelectedInternalAccountByScope.mockReturnValue({
       address: SOLANA_ADDRESS,
       type: SolAccountType.DataAccount,
     });
-    selectSelectedInternalAccountByScope.mockReturnValue(mockGetAccountByScope);
 
     const solanaAsset = {
       ...asset,
@@ -845,11 +879,9 @@ describe('AssetOverview', () => {
       },
     );
 
-    expect(mockGetAccountByScope).toHaveBeenCalledWith(SOLANA_CHAIN_ID);
-
-    selectSelectedInternalAccount.mockReset();
-    selectSelectedAccountGroup.mockReset();
-    selectSelectedInternalAccountByScope.mockReset();
+    expect(mockSelectSelectedInternalAccountByScope).toHaveBeenCalledWith(
+      SOLANA_CHAIN_ID,
+    );
   });
 
   it('should not render swap button if displaySwapsButton is false', async () => {
@@ -873,6 +905,18 @@ describe('AssetOverview', () => {
         displayBuyButton={false}
         displaySwapsButton
       />,
+      { state: mockInitialState },
+    );
+
+    const buyButton = queryByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
+    expect(buyButton).toBeNull();
+  });
+
+  it('should not render buy button if asset is not supported for buying', async () => {
+    mockUseRampTokens.mockReturnValue({});
+
+    const { queryByTestId } = renderWithProvider(
+      <AssetOverview asset={asset} displayBuyButton displaySwapsButton />,
       { state: mockInitialState },
     );
 
@@ -964,11 +1008,7 @@ describe('AssetOverview', () => {
   });
 
   it('renders staked TRX details when viewing TRX on Tron', () => {
-    const { selectTronResourcesBySelectedAccountGroup } = jest.requireMock(
-      '../../../selectors/assets/assets-list',
-    );
-
-    selectTronResourcesBySelectedAccountGroup.mockReturnValue([
+    mockSelectTronResourcesBySelectedAccountGroup.mockReturnValue([
       { symbol: 'strx-energy', balance: '10' },
       { symbol: 'strx-bandwidth', balance: '20' },
     ]);
@@ -1059,6 +1099,139 @@ describe('AssetOverview', () => {
         bridgeViewMode: 'Unified',
         sourcePage: 'MainView',
       }),
+    });
+  });
+
+  it('navigates to bridge for buy when coming from trending tokens', async () => {
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={assetFromTrending}
+        displayBuyButton
+        displaySwapsButton
+      />,
+      { state: mockInitialState },
+    );
+
+    const swapButton = getByTestId('token-swap-button');
+    fireEvent.press(swapButton);
+
+    await Promise.resolve();
+
+    // Navigates to Bridge with unified mode
+    expect(navigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: expect.objectContaining({
+        bridgeViewMode: 'Unified',
+        sourcePage: 'MainView',
+      }),
+    });
+  });
+
+  describe('useSwapBridgeNavigation token configuration', () => {
+    beforeEach(() => {
+      mockUseSwapBridgeNavigationArgs.mockClear();
+    });
+
+    it('passes native token as source and asset as destination when asset is from trending', () => {
+      renderWithProvider(
+        <AssetOverview
+          asset={assetFromTrending}
+          displayBuyButton
+          displaySwapsButton
+        />,
+        { state: mockInitialState },
+      );
+
+      // Verify hook was called with correct token configuration
+      expect(mockUseSwapBridgeNavigationArgs).toHaveBeenCalledWith(
+        expect.objectContaining({
+          // sourceToken is native token (ETH) since user wants to BUY the trending token
+          sourceToken: expect.objectContaining({
+            symbol: 'ETH',
+            chainId: MOCK_CHAIN_ID,
+          }),
+          // destToken is the trending token (what user wants to buy)
+          destToken: expect.objectContaining({
+            address: assetFromTrending.address,
+            chainId: MOCK_CHAIN_ID,
+            symbol: assetFromTrending.symbol,
+          }),
+        }),
+      );
+    });
+
+    it('passes asset as source and undefined destination when asset is not from trending', () => {
+      renderWithProvider(
+        <AssetOverview asset={asset} displayBuyButton displaySwapsButton />,
+        { state: mockInitialState },
+      );
+
+      // Verify hook was called with correct token configuration
+      expect(mockUseSwapBridgeNavigationArgs).toHaveBeenCalledWith(
+        expect.objectContaining({
+          // sourceToken is the asset itself since user wants to SELL
+          sourceToken: expect.objectContaining({
+            address: asset.address,
+            chainId: MOCK_CHAIN_ID,
+            symbol: asset.symbol,
+          }),
+          // destToken is undefined since no specific destination
+          destToken: undefined,
+        }),
+      );
+    });
+
+    it('passes asset as source when asset is from search but not trending', () => {
+      renderWithProvider(
+        <AssetOverview
+          asset={assetFromSearch}
+          displayBuyButton
+          displaySwapsButton
+        />,
+        { state: mockInitialState },
+      );
+
+      // isFromSearch does not trigger buy mode, only isFromTrending does
+      expect(mockUseSwapBridgeNavigationArgs).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sourceToken: expect.objectContaining({
+            address: assetFromSearch.address,
+            chainId: MOCK_CHAIN_ID,
+            symbol: assetFromSearch.symbol,
+          }),
+          destToken: undefined,
+        }),
+      );
+    });
+
+    it('passes native token of different chain as source when trending asset is on different chain', () => {
+      const trendingAssetOnPolygon = {
+        ...assetFromTrending,
+        chainId: '0x89', // Polygon
+      };
+
+      renderWithProvider(
+        <AssetOverview
+          asset={trendingAssetOnPolygon}
+          displayBuyButton
+          displaySwapsButton
+        />,
+        { state: mockInitialState },
+      );
+
+      expect(mockUseSwapBridgeNavigationArgs).toHaveBeenCalledWith(
+        expect.objectContaining({
+          // sourceToken is native token of Polygon chain
+          sourceToken: expect.objectContaining({
+            chainId: '0x89',
+          }),
+          // destToken is the trending token on Polygon
+          destToken: expect.objectContaining({
+            address: trendingAssetOnPolygon.address,
+            chainId: '0x89',
+          }),
+        }),
+      );
     });
   });
 
@@ -1394,36 +1567,49 @@ describe('AssetOverview', () => {
 
       const secondaryBalance = getByTestId(TOKEN_AMOUNT_BALANCE_TEST_ID);
 
-      // Should display formatted Solana balance
-      expect(secondaryBalance.props.children).toBe('123.45679 SOL');
+      // Should display the balance directly (no truncation)
+      expect(secondaryBalance.props.children).toBe('123.456789 SOL');
     });
   });
 
   it('should not render Balance component when balance is undefined', () => {
-    // Given an asset with undefined balance
-    const assetWithNoBalance = {
+    // Asset on a chain (0x999) that has no account data in AccountTrackerController
+    const assetOnUnknownChain = {
       ...asset,
       balance: undefined as unknown as string,
+      chainId: '0x999', // Chain not in AccountTrackerController.accountsByChainId
+      isETH: false,
+      isNative: false,
     };
 
-    // Override the mock to enable state2 so balance stays undefined
-    const mockModule = jest.requireMock(
-      '../../../selectors/featureFlagController/multichainAccounts',
-    );
-    const originalMock = mockModule.selectMultichainAccountsState2Enabled;
-    mockModule.selectMultichainAccountsState2Enabled = jest
-      .fn()
-      .mockReturnValue(true);
+    // State without any account data for chain 0x999
+    const stateWithNoChainData = {
+      ...mockInitialState,
+      engine: {
+        ...mockInitialState.engine,
+        backgroundState: {
+          ...mockInitialState.engine.backgroundState,
+          AccountTrackerController: {
+            accountsByChainId: {
+              // No data for 0x999
+            },
+          },
+          TokenBalancesController: {
+            tokenBalances: {
+              // No token balances for this account/chain
+            },
+          },
+        },
+      },
+    };
 
     const { queryByTestId } = renderWithProvider(
-      <AssetOverview asset={assetWithNoBalance} />,
-      { state: mockInitialState },
+      <AssetOverview asset={assetOnUnknownChain} />,
+      { state: stateWithNoChainData },
     );
 
+    // Balance component should not render when balance cannot be determined
     expect(queryByTestId(BALANCE_TEST_ID)).toBeNull();
-
-    // Restore original mock
-    mockModule.selectMultichainAccountsState2Enabled = originalMock;
   });
 
   describe('Exchange Rate Fetching', () => {
@@ -1500,7 +1686,7 @@ describe('AssetOverview', () => {
         [testTokenAddress.toLowerCase()]: { price: 0.0005 },
       });
 
-      const { findByText } = renderWithProvider(
+      const { findAllByText } = renderWithProvider(
         <AssetOverview asset={testToken} />,
         {
           state: {
@@ -1518,7 +1704,9 @@ describe('AssetOverview', () => {
         },
       );
 
-      await findByText(testToken.name);
+      // Name appears in multiple places (Price header and Balance section) after Stock badge changes
+      const nameElements = await findAllByText(testToken.name);
+      expect(nameElements.length).toBeGreaterThanOrEqual(1);
       expect(handleFetch).toHaveBeenCalledWith(
         expect.stringContaining('price.api.cx.metamask.io/v3/spot-prices'),
       );
@@ -1630,15 +1818,289 @@ describe('AssetOverview', () => {
         [SOLANA_ASSET_ID]: { price: 0.431111 },
       });
 
-      const { findByText } = renderWithProvider(
+      const { findAllByText } = renderWithProvider(
         <AssetOverview asset={solanaToken} />,
         { state: createSolanaState() },
       );
 
-      await findByText(solanaToken.name);
+      // Name appears in multiple places (Price header and Balance section) after Stock badge changes
+      const nameElements = await findAllByText(solanaToken.name);
+      expect(nameElements.length).toBeGreaterThanOrEqual(1);
       expect(handleFetch).toHaveBeenCalledWith(
         expect.stringContaining('price.api.cx.metamask.io/v3/spot-prices'),
       );
     });
+  });
+
+  describe('Perps Discovery Banner Token Trust Validation', () => {
+    const mockMarketData = {
+      symbol: 'ETH',
+      maxLeverage: 50,
+    };
+
+    beforeEach(() => {
+      // Reset Perps mocks before each test
+      mockSelectPerpsEnabledFlag.mockReset();
+      mockUsePerpsMarketForAsset.mockReset();
+    });
+
+    it('does NOT render Perps banner for token with insufficient aggregators', () => {
+      // Mock: Perps enabled and market exists
+      mockSelectPerpsEnabledFlag.mockReturnValue(true);
+      mockUsePerpsMarketForAsset.mockReturnValue({
+        hasPerpsMarket: true,
+        marketData: mockMarketData,
+      });
+
+      const tokenWithNoAggregators = {
+        ...asset,
+        aggregators: [], // No aggregators - not trustworthy
+        isETH: false,
+        isNative: false,
+      };
+
+      const { queryByTestId } = renderWithProvider(
+        <AssetOverview asset={tokenWithNoAggregators} />,
+        { state: mockInitialState },
+      );
+
+      // Banner NOT rendered
+      expect(queryByTestId('perps-discovery-banner')).toBeNull();
+    });
+
+    it('renders Perps banner for native token regardless of aggregators', () => {
+      // Mock: Perps enabled and market exists
+      mockSelectPerpsEnabledFlag.mockReturnValue(true);
+      mockUsePerpsMarketForAsset.mockReturnValue({
+        hasPerpsMarket: true,
+        marketData: mockMarketData,
+      });
+
+      const nativeToken = {
+        ...asset,
+        aggregators: [], // No aggregators, but native token is always trusted
+        isNative: true,
+        isETH: false,
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverview asset={nativeToken} />,
+        { state: mockInitialState },
+      );
+
+      // Banner rendered for native tokens
+      expect(getByTestId('perps-discovery-banner')).toBeOnTheScreen();
+    });
+
+    it('renders Perps banner for ETH token regardless of aggregators', () => {
+      // Mock: Perps enabled and market exists
+      mockSelectPerpsEnabledFlag.mockReturnValue(true);
+      mockUsePerpsMarketForAsset.mockReturnValue({
+        hasPerpsMarket: true,
+        marketData: mockMarketData,
+      });
+
+      const ethToken = {
+        ...asset,
+        aggregators: [], // No aggregators, but ETH is always trusted
+        isETH: true,
+        isNative: false,
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverview asset={ethToken} />,
+        { state: mockInitialState },
+      );
+
+      // Banner rendered for ETH tokens
+      expect(getByTestId('perps-discovery-banner')).toBeOnTheScreen();
+    });
+
+    it('renders Perps banner for token with sufficient aggregators', () => {
+      // Mock: Perps enabled and market exists
+      mockSelectPerpsEnabledFlag.mockReturnValue(true);
+      mockUsePerpsMarketForAsset.mockReturnValue({
+        hasPerpsMarket: true,
+        marketData: mockMarketData,
+      });
+
+      const tokenWithAggregators = {
+        ...asset,
+        aggregators: ['CoinGecko', 'CoinMarketCap'], // 2 aggregators - trustworthy
+        isETH: false,
+        isNative: false,
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverview asset={tokenWithAggregators} />,
+        { state: mockInitialState },
+      );
+
+      // Banner rendered for tokens with sufficient aggregators
+      expect(getByTestId('perps-discovery-banner')).toBeOnTheScreen();
+    });
+
+    it('does NOT render Perps banner for token with only 1 aggregator', () => {
+      // Mock: Perps enabled and market exists
+      mockSelectPerpsEnabledFlag.mockReturnValue(true);
+      mockUsePerpsMarketForAsset.mockReturnValue({
+        hasPerpsMarket: true,
+        marketData: mockMarketData,
+      });
+
+      const tokenWithOneAggregator = {
+        ...asset,
+        aggregators: ['CoinGecko'], // Only 1 aggregator - not enough
+        isETH: false,
+        isNative: false,
+      };
+
+      const { queryByTestId } = renderWithProvider(
+        <AssetOverview asset={tokenWithOneAggregator} />,
+        { state: mockInitialState },
+      );
+
+      // Banner NOT rendered - 1 aggregator is not enough
+      expect(queryByTestId('perps-discovery-banner')).toBeNull();
+    });
+  });
+});
+
+describe('getSwapTokens', () => {
+  it('returns native token as source and asset as dest when asset is from trending', () => {
+    const trendingAsset = {
+      ...asset,
+      isFromTrending: true,
+    };
+
+    const result = getSwapTokens(trendingAsset);
+
+    // sourceToken is the native token for the chain
+    expect(result.sourceToken).toEqual({
+      address: '0x0000000000000000000000000000000000000000',
+      chainId: MOCK_CHAIN_ID,
+      decimals: 18,
+      image: '',
+      name: 'Ether',
+      symbol: 'ETH',
+    });
+    // destToken is the bridgeToken built from the asset
+    expect(result.destToken).toEqual({
+      ...trendingAsset,
+      address: trendingAsset.address,
+      chainId: MOCK_CHAIN_ID,
+      decimals: trendingAsset.decimals,
+      symbol: trendingAsset.symbol,
+      name: trendingAsset.name,
+      image: trendingAsset.image,
+    });
+  });
+
+  it('returns asset as source and undefined dest when asset is not from trending', () => {
+    const regularAsset = {
+      ...asset,
+      isFromTrending: false,
+    };
+
+    const result = getSwapTokens(regularAsset);
+
+    // sourceToken is the bridgeToken built from the asset
+    expect(result.sourceToken).toEqual({
+      ...regularAsset,
+      address: regularAsset.address,
+      chainId: MOCK_CHAIN_ID,
+      decimals: regularAsset.decimals,
+      symbol: regularAsset.symbol,
+      name: regularAsset.name,
+      image: regularAsset.image,
+    });
+    expect(result.destToken).toBeUndefined();
+  });
+
+  it('returns asset as source when asset has no isFromTrending property', () => {
+    const result = getSwapTokens(asset);
+
+    // sourceToken is the bridgeToken built from the asset
+    expect(result.sourceToken).toEqual({
+      ...asset,
+      address: asset.address,
+      chainId: MOCK_CHAIN_ID,
+      decimals: asset.decimals,
+      symbol: asset.symbol,
+      name: asset.name,
+      image: asset.image,
+    });
+    expect(result.destToken).toBeUndefined();
+  });
+
+  it('returns native token for the correct chain when asset is from trending on different chain', () => {
+    const trendingAssetOnPolygon = {
+      ...asset,
+      chainId: '0x89',
+      isFromTrending: true,
+    };
+
+    const result = getSwapTokens(trendingAssetOnPolygon);
+
+    // sourceToken is the native token for Polygon
+    expect(result.sourceToken).toEqual({
+      address: '0x0000000000000000000000000000000000000000',
+      chainId: '0x89',
+      decimals: 18,
+      image: '',
+      name: 'Polygon',
+      symbol: 'POL',
+    });
+    // destToken is the bridgeToken built from the asset
+    expect(result.destToken).toEqual({
+      ...trendingAssetOnPolygon,
+      address: trendingAssetOnPolygon.address,
+      chainId: '0x89',
+      decimals: trendingAssetOnPolygon.decimals,
+      symbol: trendingAssetOnPolygon.symbol,
+      name: trendingAssetOnPolygon.name,
+      image: trendingAssetOnPolygon.image,
+    });
+  });
+
+  it('returns native gas token as sourceToken when asset is native gas token from home page', () => {
+    const nativeGasToken = {
+      ...asset,
+      address: '0x0000000000000000000000000000000000000000',
+      isETH: true,
+    };
+
+    const result = getSwapTokens(nativeGasToken);
+
+    // sourceToken is the native gas token (user wants to swap FROM it)
+    expect(result.sourceToken).toEqual({
+      ...nativeGasToken,
+      address: '0x0000000000000000000000000000000000000000',
+      chainId: MOCK_CHAIN_ID,
+      decimals: nativeGasToken.decimals,
+      symbol: nativeGasToken.symbol,
+      name: nativeGasToken.name,
+      image: nativeGasToken.image,
+    });
+    // destToken is undefined (will be determined by swap UI)
+    expect(result.destToken).toBeUndefined();
+  });
+
+  it('returns native gas token as destToken when asset is native gas token from trending', () => {
+    const trendingNativeGasToken = {
+      ...asset,
+      address: '0x0000000000000000000000000000000000000000',
+      isETH: true,
+      isFromTrending: true,
+    };
+
+    const result = getSwapTokens(trendingNativeGasToken);
+
+    // When coming from trending with native token, user wants to BUY it (dest position)
+    expect(result.destToken).toBeDefined();
+    expect(result.destToken?.address).toBe(
+      '0x0000000000000000000000000000000000000000',
+    );
+    expect(result.destToken?.symbol).toBe(trendingNativeGasToken.symbol);
   });
 });

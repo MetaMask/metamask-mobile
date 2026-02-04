@@ -11,9 +11,9 @@ import ConfirmPhoneNumber from '../components/Onboarding/ConfirmPhoneNumber';
 import VerifyIdentity from '../components/Onboarding/VerifyIdentity';
 import VerifyingVeriffKYC from '../components/Onboarding/VerifyingVeriffKYC';
 import KYCFailed from '../components/Onboarding/KYCFailed';
+import KYCPending from '../components/Onboarding/KYCPending';
 import PersonalDetails from '../components/Onboarding/PersonalDetails';
 import PhysicalAddress from '../components/Onboarding/PhysicalAddress';
-import MailingAddress from '../components/Onboarding/MailingAddress';
 import { cardDefaultNavigationOptions, headerStyle } from '.';
 import { selectOnboardingId } from '../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
@@ -34,6 +34,7 @@ import { Box } from '@metamask/design-system-react-native';
 import { useParams } from '../../../../util/navigation/navUtils';
 import { CardUserPhase } from '../types';
 import Complete from '../components/Onboarding/Complete';
+import LockManagerService from '../../../../core/LockManagerService';
 
 const Stack = createStackNavigator();
 
@@ -97,6 +98,13 @@ export const KYCStatusNavigationOptions = ({
   gestureEnabled: false,
 });
 
+// Navigation options for screens that manage their own header (KYC_FAILED, KYC_PENDING)
+// These screens have custom back buttons and don't need the stack navigator header
+export const HeaderlessNavigationOptions: StackNavigationOptions = {
+  headerShown: false,
+  gestureEnabled: false,
+};
+
 const OnboardingNavigator: React.FC = () => {
   const { cardUserPhase } = useParams<{
     cardUserPhase?: CardUserPhase;
@@ -118,6 +126,16 @@ const OnboardingNavigator: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run only once on mount
 
+  // Disable auto-lock during Card onboarding flow
+  // This allows users to minimize the app to check personal details
+  // without being locked out and redirected to wallet home
+  useEffect(() => {
+    LockManagerService.stopListening();
+    return () => {
+      LockManagerService.startListening();
+    };
+  }, []);
+
   const initialRouteName = useMemo(() => {
     // Priority 1: Use cardUserPhase if provided (from login response)
     if (cardUserPhase) {
@@ -128,13 +146,27 @@ const OnboardingNavigator: React.FC = () => {
         return Routes.CARD.ONBOARDING.SET_PHONE_NUMBER;
       }
       if (cardUserPhase === 'PERSONAL_INFORMATION') {
-        return Routes.CARD.ONBOARDING.PERSONAL_DETAILS;
+        if (user?.verificationState === 'VERIFIED') {
+          return Routes.CARD.ONBOARDING.PERSONAL_DETAILS;
+        }
+
+        if (user?.verificationState === 'REJECTED') {
+          return Routes.CARD.ONBOARDING.KYC_FAILED;
+        }
+
+        return Routes.CARD.ONBOARDING.VERIFY_IDENTITY;
       }
       if (cardUserPhase === 'PHYSICAL_ADDRESS') {
+        if (user?.verificationState !== 'VERIFIED') {
+          if (user?.verificationState === 'REJECTED') {
+            return Routes.CARD.ONBOARDING.KYC_FAILED;
+          }
+          return Routes.CARD.ONBOARDING.VERIFY_IDENTITY;
+        }
+        if (!user?.countryOfNationality) {
+          return Routes.CARD.ONBOARDING.PERSONAL_DETAILS;
+        }
         return Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS;
-      }
-      if (cardUserPhase === 'MAILING_ADDRESS') {
-        return Routes.CARD.ONBOARDING.MAILING_ADDRESS;
       }
     }
 
@@ -184,6 +216,7 @@ const OnboardingNavigator: React.FC = () => {
     if (
       isReturningSession &&
       initialRouteName !== Routes.CARD.ONBOARDING.SIGN_UP &&
+      initialRouteName !== Routes.CARD.ONBOARDING.COMPLETE &&
       !hasShownKeepGoingModal.current &&
       user?.verificationState !== 'REJECTED'
     ) {
@@ -266,11 +299,6 @@ const OnboardingNavigator: React.FC = () => {
         options={PostEmailNavigationOptions}
       />
       <Stack.Screen
-        name={Routes.CARD.ONBOARDING.MAILING_ADDRESS}
-        component={MailingAddress}
-        options={PostEmailNavigationOptions}
-      />
-      <Stack.Screen
         name={Routes.CARD.ONBOARDING.COMPLETE}
         component={Complete}
         options={cardDefaultNavigationOptions}
@@ -278,7 +306,12 @@ const OnboardingNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.KYC_FAILED}
         component={KYCFailed}
-        options={KYCStatusNavigationOptions}
+        options={HeaderlessNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.ONBOARDING.KYC_PENDING}
+        component={KYCPending}
+        options={HeaderlessNavigationOptions}
       />
     </Stack.Navigator>
   );

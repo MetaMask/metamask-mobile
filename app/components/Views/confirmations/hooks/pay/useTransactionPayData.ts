@@ -2,6 +2,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../reducers';
 import {
   selectIsTransactionPayLoadingByTransactionId,
+  selectTransactionPayIsMaxAmountByTransactionId,
   selectTransactionPayQuotesByTransactionId,
   selectTransactionPaySourceAmountsByTransactionId,
   selectTransactionPayTokensByTransactionId,
@@ -36,6 +37,10 @@ export function useIsTransactionPayLoading() {
 
 export function useTransactionPayTotals() {
   return useTransactionPayData(selectTransactionPayTotalsByTransactionId);
+}
+
+export function useTransactionPayIsMaxAmount() {
+  return useTransactionPayData(selectTransactionPayIsMaxAmountByTransactionId);
 }
 
 function useTransactionPayData<T>(

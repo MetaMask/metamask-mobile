@@ -1,11 +1,19 @@
 import React, { ReactNode, useEffect } from 'react';
-import { BackHandler, TouchableWithoutFeedback, View } from 'react-native';
+import {
+  BackHandler,
+  StyleProp,
+  TouchableWithoutFeedback,
+  View,
+  ViewStyle,
+} from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 
-import { ConfirmationUIType } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationUIType } from '../../ConfirmationView.testIds';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../../../component-library/hooks';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
+import { strings } from '../../../../../../locales/i18n';
 import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import useConfirmationAlerts from '../../hooks/alerts/useConfirmationAlerts';
 import useApprovalRequest from '../../hooks/useApprovalRequest';
@@ -36,6 +44,7 @@ const TRANSACTION_TYPES_DISABLE_SCROLL = [TransactionType.predictClaim];
 
 const TRANSACTION_TYPES_DISABLE_ALERT_BANNER = [
   TransactionType.perpsDeposit,
+  TransactionType.perpsDepositAndOrder,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
 ];
@@ -95,30 +104,36 @@ const ConfirmWrapped = ({
 
 interface ConfirmProps {
   route?: UnstakeConfirmationViewProps['route'];
+  /** When true, disables SafeAreaView insets when confirmation is full screen. Defaults to false. */
+  disableSafeArea?: boolean;
+  /** Optional style applied to the full-screen confirmation container. */
+  fullscreenStyle?: StyleProp<ViewStyle>;
 }
 
-export const Confirm = ({ route }: ConfirmProps) => {
+export const Confirm = ({
+  route,
+  disableSafeArea = false,
+  fullscreenStyle,
+}: ConfirmProps) => {
   const { approvalRequest } = useApprovalRequest();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const navigation = useNavigation();
   const { onReject } = useConfirmActions();
-  const { styles } = useStyles(styleSheet, { isFullScreenConfirmation });
+  const { styles } = useStyles(styleSheet, {
+    isFullScreenConfirmation,
+    disableSafeArea,
+  });
 
   useEffect(() => {
     if (approvalRequest) {
-      const options = {
+      navigation.setOptions({
+        // HeaderCenter is used for full screen confirmations, so we don't need React Navigation's header
         headerShown: false,
         // If there is an approvalRequest, we need to allow the user to swipe to reject the confirmation
         gestureEnabled: true,
-      };
-
-      if (isFullScreenConfirmation) {
-        // If the confirmation is full screen, we need to show the header
-        options.headerShown = true;
-      }
-      navigation.setOptions(options);
+      });
     }
-  }, [approvalRequest, isFullScreenConfirmation, navigation]);
+  }, [approvalRequest, navigation]);
 
   useEffect(() => {
     if (!approvalRequest) {
@@ -143,10 +158,15 @@ export const Confirm = ({ route }: ConfirmProps) => {
   if (isFullScreenConfirmation) {
     return (
       <SafeAreaView
-        edges={['right', 'bottom', 'left']}
-        style={styles.flatContainer}
+        edges={disableSafeArea ? [] : ['right', 'bottom', 'left']}
+        style={[styles.flatContainer, fullscreenStyle]}
         testID={ConfirmationUIType.FLAT}
       >
+        <HeaderCenter
+          title={strings('stake.review')}
+          onBack={onReject}
+          includesTopInset
+        />
         <ConfirmWrapped styles={styles} route={route} />
       </SafeAreaView>
     );

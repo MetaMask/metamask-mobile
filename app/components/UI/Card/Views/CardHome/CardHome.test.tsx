@@ -47,23 +47,24 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { withCardSDK } from '../../sdk';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Routes from '../../../../../constants/navigation/Routes';
-import { AllowanceState, CardWarning, CardType } from '../../types';
+import { AllowanceState, CardStateWarning, CardType } from '../../types';
 import useLoadCardData from '../../hooks/useLoadCardData';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { useMetrics } from '../../../../hooks/useMetrics';
-import { useCardProvision } from '../../hooks/useCardProvision';
 import { TOKEN_RATE_UNDEFINED } from '../../../Tokens/constants';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import {
   selectDepositActiveFlag,
   selectDepositMinimumVersionFlag,
 } from '../../../../../selectors/featureFlagController/deposit';
-import { selectChainId } from '../../../../../selectors/networkController';
+import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import {
   selectCardholderAccounts,
   selectIsAuthenticatedCard,
+  selectUserCardLocation,
 } from '../../../../../core/redux/slices/card';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
+import useCardDetailsToken from '../../hooks/useCardDetailsToken';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -113,11 +114,8 @@ const mockSelectedInternalAccount = {
 };
 
 // Mock hooks
-const mockFetchPriorityToken = jest.fn().mockResolvedValue(mockPriorityToken);
-const mockFetchCardDetails = jest.fn();
 const mockFetchAllData = jest.fn().mockResolvedValue(undefined);
 const mockRefetchAllData = jest.fn().mockResolvedValue(undefined);
-const mockPollCardStatusUntilProvisioned = jest.fn().mockResolvedValue(true);
 const mockNavigateToCardPage = jest.fn();
 const mockGoToSwaps = jest.fn();
 const mockDispatch = jest.fn();
@@ -208,9 +206,29 @@ jest.mock('../../hooks/useIsSwapEnabledForPriorityToken', () => ({
   useIsSwapEnabledForPriorityToken: jest.fn(),
 }));
 
-jest.mock('../../hooks/useCardProvision', () => ({
-  useCardProvision: jest.fn(),
+const mockFetchCardDetailsToken = jest.fn();
+const mockClearCardDetailsImageUrl = jest.fn();
+const mockOnCardDetailsImageLoad = jest.fn();
+jest.mock('../../hooks/useCardDetailsToken', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    fetchCardDetailsToken: mockFetchCardDetailsToken,
+    isLoading: false,
+    isImageLoading: false,
+    onImageLoad: mockOnCardDetailsImageLoad,
+    error: null,
+    imageUrl: null,
+    clearImageUrl: mockClearCardDetailsImageUrl,
+  })),
 }));
+
+// Mock useAuthentication for biometric verification
+const mockReauthenticate = jest.fn();
+jest.mock('../../../../../core/Authentication/hooks/useAuthentication', () =>
+  jest.fn(() => ({
+    reauthenticate: mockReauthenticate,
+  })),
+);
 
 jest.mock('../../../../hooks/useMetrics', () => ({
   useMetrics: jest.fn(),
@@ -248,6 +266,12 @@ jest.mock('react-native-device-info', () => ({
 jest.mock('../../../../../selectors/featureFlagController/deposit', () => ({
   selectDepositActiveFlag: jest.fn(),
   selectDepositMinimumVersionFlag: jest.fn(),
+}));
+
+// Mock card feature flag selectors
+jest.mock('../../../../../selectors/featureFlagController/card', () => ({
+  ...jest.requireActual('../../../../../selectors/featureFlagController/card'),
+  selectMetalCardCheckoutFeatureFlag: jest.fn(),
 }));
 
 // Mock bridge actions
@@ -339,7 +363,7 @@ jest.mock('../../../../../core/Engine', () => ({
 
 // Import the Engine to get typed references to the mocked functions
 import Engine from '../../../../../core/Engine';
-import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
+import { CardHomeSelectors } from './CardHome.testIds';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 
 // Get references to the mocked functions
@@ -406,6 +430,14 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_home.kyc_status.error.description':
         "We couldn't check your verification status. Please try again later or contact support if the issue persists.",
       'card.card_home.kyc_status.ok_button': 'OK',
+      'card.card_home.view_card_details_error':
+        'Unable to load card details. Please try again.',
+      'card.card_home.manage_card_options.view_card_details':
+        'View card details',
+      'card.card_home.manage_card_options.hide_card_details':
+        'Hide card details',
+      'card.card_home.manage_card_options.view_card_details_description':
+        'See your full card number, expiry date, and CVV',
     };
     return strings[key] || key;
   },
@@ -447,6 +479,8 @@ function setupMockSelectors(
     cardholderAccounts: string[];
     selectedAccount: typeof mockSelectedInternalAccount;
     isAuthenticated: boolean;
+    userLocation: 'us' | 'international';
+    isMetalCardCheckoutEnabled: boolean;
   }>,
 ) {
   const defaults = {
@@ -457,6 +491,8 @@ function setupMockSelectors(
     cardholderAccounts: [mockCurrentAddress],
     selectedAccount: mockSelectedInternalAccount,
     isAuthenticated: false,
+    userLocation: 'international' as const,
+    isMetalCardCheckoutEnabled: true,
   };
 
   const config = { ...defaults, ...overrides };
@@ -468,15 +504,16 @@ function setupMockSelectors(
     if (selector === selectDepositActiveFlag) return config.depositActive;
     if (selector === selectDepositMinimumVersionFlag)
       return config.depositMinVersion;
-    if (selector === selectChainId) return config.chainId;
     if (selector === selectCardholderAccounts) return config.cardholderAccounts;
     if (selector === selectIsAuthenticatedCard) return config.isAuthenticated;
+    if (selector === selectUserCardLocation) return config.userLocation;
+    if (selector === selectMetalCardCheckoutFeatureFlag)
+      return config.isMetalCardCheckoutEnabled;
 
     const selectorString =
       typeof selector === 'function' ? selector.toString() : '';
     if (selectorString.includes('selectSelectedInternalAccount'))
       return config.selectedAccount;
-    if (selectorString.includes('selectChainId')) return config.chainId;
     if (selectorString.includes('selectCardholderAccounts'))
       return config.cardholderAccounts;
     if (selectorString.includes('selectEvmTokens')) return [mockPriorityToken];
@@ -495,7 +532,7 @@ function setupLoadCardDataMock(
     cardDetails: { type: CardType } | null;
     isLoading: boolean;
     error: string | null;
-    warning: CardWarning | null;
+    warning: CardStateWarning | null;
     isAuthenticated: boolean;
     isBaanxLoginEnabled: boolean;
     isCardholder: boolean;
@@ -507,6 +544,19 @@ function setupLoadCardDataMock(
         | 'UNVERIFIED'
         | null;
       userId: string;
+      userDetails?: {
+        id: string;
+        addressLine1?: string | null;
+        addressLine2?: string | null;
+        city?: string | null;
+        zip?: string | null;
+        usState?: string | null;
+        mailingAddressLine1?: string | null;
+        mailingAddressLine2?: string | null;
+        mailingCity?: string | null;
+        mailingZip?: string | null;
+        mailingUsState?: string | null;
+      } | null;
     } | null;
   }>,
 ) {
@@ -527,12 +577,8 @@ function setupLoadCardDataMock(
 
   (useLoadCardData as jest.Mock).mockReturnValueOnce({
     ...config,
-    fetchPriorityToken: mockFetchPriorityToken,
-    fetchCardDetails: mockFetchCardDetails,
     fetchAllData: mockFetchAllData,
     refetchAllData: mockRefetchAllData,
-    pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-    isLoadingPollCardStatusUntilProvisioned: false,
   });
 }
 
@@ -581,7 +627,6 @@ describe('CardHome Component', () => {
     mockNavigationDispatch.mockClear();
 
     // Setup Engine controller mocks
-    mockFetchPriorityToken.mockImplementation(async () => mockPriorityToken);
     mockDispatch.mockClear();
     mockSetActiveNetwork.mockResolvedValue(undefined);
     mockFindNetworkClientIdByChainId.mockReturnValue(''); // Prevent network switching
@@ -613,12 +658,8 @@ describe('CardHome Component', () => {
       isAuthenticated: false,
       isBaanxLoginEnabled: true,
       isCardholder: true,
-      fetchPriorityToken: mockFetchPriorityToken,
-      fetchCardDetails: mockFetchCardDetails,
       fetchAllData: mockFetchAllData,
       refetchAllData: mockRefetchAllData,
-      pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-      isLoadingPollCardStatusUntilProvisioned: false,
     });
 
     mockUseAssetBalances.mockReturnValue(
@@ -663,11 +704,6 @@ describe('CardHome Component', () => {
     mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
 
     (useIsSwapEnabledForPriorityToken as jest.Mock).mockReturnValue(true);
-
-    (useCardProvision as jest.Mock).mockReturnValue({
-      provisionCard: jest.fn().mockResolvedValue(undefined),
-      isLoading: false,
-    });
 
     // Setup default selectors
     setupMockSelectors();
@@ -1492,7 +1528,6 @@ describe('CardHome Component', () => {
 
       // Then: should show logout button
       expect(screen.getByText('Logout')).toBeTruthy();
-      expect(screen.getByText('Logout of your Card account')).toBeTruthy();
     });
 
     it('shows logout confirmation alert when logout button pressed', () => {
@@ -1576,7 +1611,7 @@ describe('CardHome Component', () => {
     it('hides balance and asset when warning is NeedDelegation', () => {
       // Given: warning is NeedDelegation
       setupLoadCardDataMock({
-        warning: CardWarning.NeedDelegation,
+        warning: CardStateWarning.NeedDelegation,
       });
 
       // When: component renders
@@ -1593,18 +1628,16 @@ describe('CardHome Component', () => {
       expect(assetElement).toBeNull();
     });
 
-    it('displays CardWarningBox when warning exists', () => {
+    it('displays CardMessageBox when warning exists', () => {
       // Given: warning exists
       setupLoadCardDataMock({
-        warning: CardWarning.NeedDelegation,
+        warning: CardStateWarning.NeedDelegation,
       });
 
       // When: component renders
       render();
 
       // Then: should display warning box
-      // Note: The warning box text depends on CardWarningBox component implementation
-      // This test verifies the warning prop is passed
       expect(useLoadCardData).toHaveBeenCalled();
     });
   });
@@ -1793,285 +1826,6 @@ describe('CardHome Component', () => {
       expect(
         screen.queryByText('Limited spending allowance'),
       ).not.toBeOnTheScreen();
-    });
-  });
-
-  describe('enableCardAction', () => {
-    let mockProvisionCard: jest.Mock;
-
-    beforeEach(() => {
-      mockProvisionCard = jest.fn().mockResolvedValue(undefined);
-
-      (useCardProvision as jest.Mock).mockReturnValue({
-        provisionCard: mockProvisionCard,
-        isLoading: false,
-      });
-    });
-
-    it('calls provisionCard and fetchPriorityToken when provision succeeds', async () => {
-      // Given: warning is NoCard
-      mockPollCardStatusUntilProvisioned.mockResolvedValue(true);
-      setupLoadCardDataMock({
-        warning: CardWarning.NoCard,
-        priorityToken: null,
-      });
-
-      // When: component renders and user presses enable card button
-      render();
-      const enableCardButton = screen.getByTestId(
-        CardHomeSelectors.ENABLE_CARD_BUTTON,
-      );
-      fireEvent.press(enableCardButton);
-
-      // Then: should call provision and fetch priority token
-      await waitFor(() => {
-        expect(mockProvisionCard).toHaveBeenCalled();
-        expect(mockPollCardStatusUntilProvisioned).toHaveBeenCalled();
-        expect(mockFetchPriorityToken).toHaveBeenCalled();
-      });
-    });
-
-    it('does not call fetchPriorityToken when provision fails', async () => {
-      // Given: warning is NoCard and provision fails
-      mockPollCardStatusUntilProvisioned.mockResolvedValue(false);
-      setupLoadCardDataMock({
-        warning: CardWarning.NoCard,
-        priorityToken: null,
-      });
-
-      // When: component renders and user presses enable card button
-      render();
-      const enableCardButton = screen.getByTestId(
-        CardHomeSelectors.ENABLE_CARD_BUTTON,
-      );
-      fireEvent.press(enableCardButton);
-
-      // Then: should not call fetchPriorityToken
-      await waitFor(() => {
-        expect(mockProvisionCard).toHaveBeenCalled();
-        expect(mockPollCardStatusUntilProvisioned).toHaveBeenCalled();
-      });
-      expect(mockFetchPriorityToken).not.toHaveBeenCalled();
-    });
-
-    it('does not call fetchPriorityToken when provisionCard throws error', async () => {
-      // Given: warning is NoCard and provisionCard throws error
-      mockProvisionCard.mockRejectedValue(new Error('Provision failed'));
-      setupLoadCardDataMock({
-        warning: CardWarning.NoCard,
-        priorityToken: null,
-      });
-
-      // When: component renders and user presses enable card button
-      render();
-      const enableCardButton = screen.getByTestId(
-        CardHomeSelectors.ENABLE_CARD_BUTTON,
-      );
-      fireEvent.press(enableCardButton);
-
-      // Then: should not call fetchPriorityToken
-      await waitFor(() => {
-        expect(mockProvisionCard).toHaveBeenCalled();
-      });
-      expect(mockFetchPriorityToken).not.toHaveBeenCalled();
-    });
-
-    it('does not call fetchPriorityToken when pollCardStatusUntilProvisioned throws error', async () => {
-      // Given: warning is NoCard and polling throws error
-      mockPollCardStatusUntilProvisioned.mockRejectedValue(
-        new Error('Polling failed'),
-      );
-      setupLoadCardDataMock({
-        warning: CardWarning.NoCard,
-        priorityToken: null,
-      });
-
-      // When: component renders and user presses enable card button
-      render();
-      const enableCardButton = screen.getByTestId(
-        CardHomeSelectors.ENABLE_CARD_BUTTON,
-      );
-      fireEvent.press(enableCardButton);
-
-      // Then: should not call fetchPriorityToken
-      await waitFor(() => {
-        expect(mockProvisionCard).toHaveBeenCalled();
-      });
-      expect(mockFetchPriorityToken).not.toHaveBeenCalled();
-    });
-
-    it('calls provisionCard with correct parameters', async () => {
-      // Given: warning is NoCard
-      mockPollCardStatusUntilProvisioned.mockResolvedValue(true);
-      setupLoadCardDataMock({
-        warning: CardWarning.NoCard,
-        priorityToken: null,
-      });
-
-      // When: component renders and user presses enable card button
-      render();
-      const enableCardButton = screen.getByTestId(
-        CardHomeSelectors.ENABLE_CARD_BUTTON,
-      );
-      fireEvent.press(enableCardButton);
-
-      // Then: should call provisionCard
-      await waitFor(() => {
-        expect(mockProvisionCard).toHaveBeenCalledWith();
-        expect(mockProvisionCard).toHaveBeenCalledTimes(1);
-      });
-    });
-
-    it('disables button during provision loading', () => {
-      // Given: provision is loading
-      (useCardProvision as jest.Mock).mockReturnValue({
-        provisionCard: mockProvisionCard,
-        isLoading: true,
-      });
-      setupLoadCardDataMock({
-        warning: CardWarning.NoCard,
-        priorityToken: null,
-      });
-
-      // When: component renders
-      render();
-
-      // Then: enable card button should be disabled
-      const enableCardButton = screen.getByTestId(
-        CardHomeSelectors.ENABLE_CARD_BUTTON,
-      );
-      expect(enableCardButton.props.disabled).toBe(true);
-    });
-
-    it('disables button during poll loading', () => {
-      // Given: poll is loading
-      (useLoadCardData as jest.Mock).mockReturnValueOnce({
-        priorityToken: null,
-        allTokens: [],
-        cardDetails: null,
-        isLoading: false,
-        error: null,
-        warning: CardWarning.NoCard,
-        isAuthenticated: false,
-        isBaanxLoginEnabled: true,
-        isCardholder: true,
-        fetchPriorityToken: mockFetchPriorityToken,
-        fetchCardDetails: mockFetchCardDetails,
-        fetchAllData: mockFetchAllData,
-        refetchAllData: mockRefetchAllData,
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoadingPollCardStatusUntilProvisioned: true,
-      });
-
-      // When: component renders
-      render();
-
-      // Then: enable card button should be disabled
-      const enableCardButton = screen.getByTestId(
-        CardHomeSelectors.ENABLE_CARD_BUTTON,
-      );
-      expect(enableCardButton.props.disabled).toBe(true);
-    });
-
-    it('shows skeleton during general loading', () => {
-      // Given: general loading state
-      setupLoadCardDataMock({
-        warning: CardWarning.NoCard,
-        priorityToken: null,
-        isLoading: true,
-      });
-
-      // When: component renders
-      render();
-
-      // Then: should show button skeleton instead of enable card button
-      expect(
-        screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON_SKELETON),
-      ).toBeTruthy();
-      expect(
-        screen.queryByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
-      ).toBeNull();
-    });
-
-    it('displays enable card button when warning is NoCard', () => {
-      // Given: warning is NoCard
-      setupLoadCardDataMock({
-        warning: CardWarning.NoCard,
-        priorityToken: null,
-      });
-
-      // When: component renders
-      render();
-
-      // Then: should display enable card button
-      expect(
-        screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
-      ).toBeTruthy();
-      expect(
-        screen.getByText('card.card_home.enable_card_button_label'),
-      ).toBeTruthy();
-    });
-
-    it('does not show regular buttons when enable card button is shown', () => {
-      // Given: warning is NoCard
-      setupLoadCardDataMock({
-        warning: CardWarning.NoCard,
-        priorityToken: null,
-      });
-
-      // When: component renders
-      render();
-
-      // Then: should not show add funds or change asset buttons
-      expect(
-        screen.queryByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON),
-      ).toBeNull();
-      expect(
-        screen.queryByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
-      ).toBeNull();
-    });
-
-    it('calls enableCardAction once per button press', async () => {
-      // Given: warning is NoCard
-      mockPollCardStatusUntilProvisioned.mockResolvedValue(true);
-      setupLoadCardDataMock({
-        warning: CardWarning.NoCard,
-        priorityToken: null,
-      });
-
-      // When: component renders and user presses enable card button
-      render();
-      const enableCardButton = screen.getByTestId(
-        CardHomeSelectors.ENABLE_CARD_BUTTON,
-      );
-      fireEvent.press(enableCardButton);
-
-      // Then: should call provisionCard exactly once
-      await waitFor(() => {
-        expect(mockProvisionCard).toHaveBeenCalledTimes(1);
-      });
-    });
-
-    it('calls pollCardStatusUntilProvisioned after provision succeeds', async () => {
-      // Given: provision succeeds
-      mockPollCardStatusUntilProvisioned.mockResolvedValue(false);
-      setupLoadCardDataMock({
-        warning: CardWarning.NoCard,
-        priorityToken: null,
-      });
-
-      // When: component renders and user presses enable card button
-      render();
-      const enableCardButton = screen.getByTestId(
-        CardHomeSelectors.ENABLE_CARD_BUTTON,
-      );
-      fireEvent.press(enableCardButton);
-
-      // Then: should call pollCardStatusUntilProvisioned
-      await waitFor(() => {
-        expect(mockProvisionCard).toHaveBeenCalled();
-        expect(mockPollCardStatusUntilProvisioned).toHaveBeenCalled();
-      });
     });
   });
 
@@ -2489,11 +2243,13 @@ describe('CardHome Component', () => {
       });
 
       await waitFor(() => {
-        expect(StackActions.replace).toHaveBeenCalledWith(Routes.CARD.WELCOME);
+        expect(StackActions.replace).toHaveBeenCalledWith(
+          Routes.CARD.AUTHENTICATION,
+        );
         expect(mockNavigationDispatch).toHaveBeenCalledWith(
           expect.objectContaining({
             type: 'REPLACE',
-            routeName: Routes.CARD.WELCOME,
+            routeName: Routes.CARD.AUTHENTICATION,
           }),
         );
       });
@@ -2580,38 +2336,14 @@ describe('CardHome Component', () => {
       });
 
       await waitFor(() => {
-        expect(StackActions.replace).toHaveBeenCalledWith(Routes.CARD.WELCOME);
+        expect(StackActions.replace).toHaveBeenCalledWith(
+          Routes.CARD.AUTHENTICATION,
+        );
         expect(mockNavigationDispatch).toHaveBeenCalledWith(
           expect.objectContaining({
             type: 'REPLACE',
-            routeName: Routes.CARD.WELCOME,
+            routeName: Routes.CARD.AUTHENTICATION,
           }),
-        );
-      });
-    });
-
-    it('logs error when token removal fails', async () => {
-      // Given: authenticated user with authentication error and token removal fails
-      setupMockSelectors({ isAuthenticated: true });
-      mockIsAuthenticationError.mockReturnValue(true);
-      mockRemoveCardBaanxToken.mockRejectedValue(
-        new Error('Failed to remove token'),
-      );
-      setupLoadCardDataMock({
-        error: 'Invalid credentials',
-        isAuthenticated: true,
-      });
-
-      const Logger = jest.requireMock('../../../../../util/Logger');
-
-      // When: component renders
-      render();
-
-      // Then: should log the error
-      await waitFor(() => {
-        expect(Logger.log).toHaveBeenCalledWith(
-          'CardHome: Failed to handle authentication error',
-          expect.any(Error),
         );
       });
     });
@@ -2729,7 +2461,7 @@ describe('CardHome Component', () => {
       expect(mockRemoveCardBaanxToken).toHaveBeenCalledTimes(1);
     });
 
-    it('logs info message when authentication error is detected', async () => {
+    it('clears auth state when authentication error is detected', async () => {
       // Given: authenticated user with authentication error
       setupMockSelectors({ isAuthenticated: true });
       mockIsAuthenticationError.mockReturnValue(true);
@@ -2738,15 +2470,20 @@ describe('CardHome Component', () => {
         isAuthenticated: true,
       });
 
-      const Logger = jest.requireMock('../../../../../util/Logger');
-
       // When: component renders
       render();
 
-      // Then: should log info message about clearing auth state
+      // Then: should clear auth state and navigate to welcome
       await waitFor(() => {
-        expect(Logger.log).toHaveBeenCalledWith(
-          'CardHome: Authentication error detected, clearing auth state and redirecting',
+        expect(mockRemoveCardBaanxToken).toHaveBeenCalled();
+        expect(mockDispatch).toHaveBeenCalledWith(
+          expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
+        );
+        expect(mockDispatch).toHaveBeenCalledWith(
+          expect.objectContaining({ type: 'card/clearAllCache' }),
+        );
+        expect(StackActions.replace).toHaveBeenCalledWith(
+          Routes.CARD.AUTHENTICATION,
         );
       });
     });
@@ -2801,76 +2538,87 @@ describe('CardHome Component', () => {
     });
 
     describe('canEnableCard Logic', () => {
-      it('enables card button when user is verified and authenticated', () => {
+      it('shows enable card button for VERIFIED user', () => {
+        // Given: VERIFIED user without a card
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
           isBaanxLoginEnabled: true,
-          warning: CardWarning.NoCard,
+          warning: CardStateWarning.NoCard,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
           isLoading: false,
         });
 
         render();
 
-        const enableButton = screen.getByTestId(
-          CardHomeSelectors.ENABLE_CARD_BUTTON,
-        );
-        expect(enableButton.props.disabled).toBe(false);
+        // Then: enable card button is displayed
+        expect(
+          screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+        ).toBeTruthy();
       });
 
-      it('disables card button when user KYC is pending', () => {
+      it('does not show Enable Card button for PENDING user without card', () => {
+        // Given: PENDING user without a card - cannot enable until verified
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
           isBaanxLoginEnabled: true,
-          warning: CardWarning.NoCard,
+          warning: CardStateWarning.NoCard,
+          priorityToken: mockPriorityToken,
           kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
           isLoading: false,
         });
 
         render();
 
-        const enableButton = screen.getByTestId(
-          CardHomeSelectors.ENABLE_CARD_BUTTON,
-        );
-        expect(enableButton.props.disabled).toBe(true);
+        // Then: no Enable Card button shown (user must wait for verification)
+        expect(
+          screen.queryByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+        ).toBeNull();
+        expect(
+          screen.queryByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON),
+        ).toBeNull();
       });
 
-      it('disables card button when user KYC is rejected', () => {
+      it('does not show enable card button when user KYC is rejected', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
           isBaanxLoginEnabled: true,
-          warning: CardWarning.NoCard,
+          warning: CardStateWarning.NoCard,
           kycStatus: { verificationState: 'REJECTED', userId: 'user-123' },
           isLoading: false,
         });
 
         render();
 
-        const enableButton = screen.getByTestId(
-          CardHomeSelectors.ENABLE_CARD_BUTTON,
-        );
-        expect(enableButton.props.disabled).toBe(true);
+        // Then: no Enable Card button shown (user KYC rejected)
+        expect(
+          screen.queryByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+        ).toBeNull();
       });
 
-      it('disables card button when user KYC is unverified', () => {
+      it('does not show Enable Card button for UNVERIFIED user without card', () => {
+        // Given: UNVERIFIED user without a card - cannot enable until verified
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
           isBaanxLoginEnabled: true,
-          warning: CardWarning.NoCard,
+          warning: CardStateWarning.NoCard,
+          priorityToken: mockPriorityToken,
           kycStatus: { verificationState: 'UNVERIFIED', userId: 'user-123' },
           isLoading: false,
         });
 
         render();
 
-        const enableButton = screen.getByTestId(
-          CardHomeSelectors.ENABLE_CARD_BUTTON,
-        );
-        expect(enableButton.props.disabled).toBe(true);
+        // Then: no Enable Card button shown (user must complete verification)
+        expect(
+          screen.queryByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+        ).toBeNull();
+        expect(
+          screen.queryByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON),
+        ).toBeNull();
       });
 
       it('disables card button when KYC status is loading', () => {
@@ -2878,7 +2626,7 @@ describe('CardHome Component', () => {
         setupLoadCardDataMock({
           isAuthenticated: true,
           isBaanxLoginEnabled: true,
-          warning: CardWarning.NoCard,
+          warning: CardStateWarning.NoCard,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
           isLoading: true,
         });
@@ -2894,40 +2642,41 @@ describe('CardHome Component', () => {
         ).toBeNull();
       });
 
-      it('disables card button when KYC status is null', () => {
+      it('does not show enable card button when KYC status is null', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
           isBaanxLoginEnabled: true,
-          warning: CardWarning.NoCard,
+          warning: CardStateWarning.NoCard,
           kycStatus: null,
           isLoading: false,
         });
 
         render();
 
-        const enableButton = screen.getByTestId(
-          CardHomeSelectors.ENABLE_CARD_BUTTON,
-        );
-        expect(enableButton.props.disabled).toBe(true);
+        // Then: no Enable Card button shown (KYC status unknown)
+        expect(
+          screen.queryByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+        ).toBeNull();
       });
 
-      it('enables card button for unauthenticated users regardless of KYC', () => {
+      it('does not show enable card button for unauthenticated users without verified KYC', () => {
+        // Given: unauthenticated user without a card
         setupMockSelectors({ isAuthenticated: false });
         setupLoadCardDataMock({
           isAuthenticated: false,
           isBaanxLoginEnabled: true,
-          warning: CardWarning.NoCard,
+          warning: CardStateWarning.NoCard,
           kycStatus: null,
           isLoading: false,
         });
 
         render();
 
-        const enableButton = screen.getByTestId(
-          CardHomeSelectors.ENABLE_CARD_BUTTON,
-        );
-        expect(enableButton.props.disabled).toBe(false);
+        // Then: no Enable Card button shown (user must authenticate and verify KYC)
+        expect(
+          screen.queryByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+        ).toBeNull();
       });
 
       it('enables card button when Baanx login is disabled', () => {
@@ -2935,7 +2684,7 @@ describe('CardHome Component', () => {
         setupLoadCardDataMock({
           isAuthenticated: true,
           isBaanxLoginEnabled: false,
-          warning: CardWarning.NoCard,
+          warning: CardStateWarning.NoCard,
           kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
           isLoading: false,
         });
@@ -2949,163 +2698,180 @@ describe('CardHome Component', () => {
       });
     });
 
-    describe('KYC Status Alerts', () => {
-      it('displays alert when KYC status is pending', async () => {
+    describe('KYC Status Button State', () => {
+      it('does not show Enable Card for PENDING user without card', () => {
+        // Given: PENDING user without card - cannot enable until verified
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
           isBaanxLoginEnabled: true,
-          warning: CardWarning.NoCard,
+          warning: CardStateWarning.NoCard,
+          priorityToken: mockPriorityToken,
           kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
           isLoading: false,
         });
 
         render();
 
-        await waitFor(() => {
-          expect(Alert.alert).toHaveBeenCalledWith(
-            'Verification in Progress',
-            'Your identity verification is being processed. This usually takes a few minutes. Please check back shortly to enable your card.',
-            [{ text: 'OK', style: 'default' }],
-          );
-        });
+        // Then: no Enable Card button shown (user must wait for verification)
+        expect(
+          screen.queryByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+        ).toBeNull();
       });
 
-      it('displays alert when KYC status is rejected', async () => {
+      it('does not show enable card button for REJECTED user', () => {
+        // Given: REJECTED user
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
           isBaanxLoginEnabled: true,
-          warning: CardWarning.NoCard,
+          warning: CardStateWarning.NoCard,
           kycStatus: { verificationState: 'REJECTED', userId: 'user-123' },
           isLoading: false,
         });
 
         render();
 
-        await waitFor(() => {
-          expect(Alert.alert).toHaveBeenCalledWith(
-            'Verification not approved',
-            "We were unable to verify your identity at this time. Please contact our support team for assistance and we'll help you resolve this issue.",
-            [{ text: 'OK', style: 'default' }],
-          );
-        });
+        // Then: no Enable Card button shown (user KYC rejected)
+        expect(
+          screen.queryByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+        ).toBeNull();
       });
 
-      it('displays alert when KYC status is unverified', async () => {
+      it('does not show Enable Card for UNVERIFIED user without card', () => {
+        // Given: UNVERIFIED user without card - cannot enable until verified
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
           isBaanxLoginEnabled: true,
-          warning: CardWarning.NoCard,
+          warning: CardStateWarning.NoCard,
+          priorityToken: mockPriorityToken,
           kycStatus: { verificationState: 'UNVERIFIED', userId: 'user-123' },
           isLoading: false,
         });
 
         render();
 
-        await waitFor(() => {
-          expect(Alert.alert).toHaveBeenCalledWith(
-            'Verification required',
-            'You need to complete identity verification before enabling your card. Please complete the onboarding process.',
-            [{ text: 'OK', style: 'default' }],
-          );
-        });
+        // Then: no Enable Card button shown (user must complete verification)
+        expect(
+          screen.queryByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+        ).toBeNull();
       });
 
-      it('does not display alert when KYC status is verified', async () => {
+      it('shows enable card button for VERIFIED user', () => {
+        // Given: VERIFIED user with NoCard warning
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
           isBaanxLoginEnabled: true,
-          warning: CardWarning.NoCard,
+          warning: CardStateWarning.NoCard,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
           isLoading: false,
         });
 
         render();
 
-        await waitFor(() => {
-          expect(Alert.alert).not.toHaveBeenCalled();
-        });
+        // Then: enable card button is displayed (only VERIFIED users can enable)
+        expect(
+          screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+        ).toBeTruthy();
       });
 
-      it('does not display alert when user is unauthenticated', async () => {
+      it('does not show enable card button for unauthenticated users', () => {
+        // Given: unauthenticated user (no KYC status)
         setupMockSelectors({ isAuthenticated: false });
         setupLoadCardDataMock({
           isAuthenticated: false,
           isBaanxLoginEnabled: true,
-          warning: CardWarning.NoCard,
+          warning: CardStateWarning.NoCard,
           kycStatus: null,
           isLoading: false,
         });
 
         render();
 
-        await waitFor(() => {
-          expect(Alert.alert).not.toHaveBeenCalled();
-        });
+        // Then: no Enable Card button shown (user must authenticate and verify KYC)
+        expect(
+          screen.queryByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+        ).toBeNull();
       });
 
-      it('does not display alert when Baanx login is disabled', async () => {
+      it('shows add funds button when Baanx login is disabled', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
           isBaanxLoginEnabled: false,
-          warning: CardWarning.NoCard,
+          warning: CardStateWarning.NoCard,
           kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
           isLoading: false,
         });
 
         render();
 
-        await waitFor(() => {
-          expect(Alert.alert).not.toHaveBeenCalled();
-        });
+        expect(
+          screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON),
+        ).toBeTruthy();
       });
 
-      it('does not display alert when warning is not NoCard', async () => {
+      it('shows enable assets button when warning is NeedDelegation and user is VERIFIED', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
           isBaanxLoginEnabled: true,
-          warning: CardWarning.NeedDelegation,
+          warning: CardStateWarning.NeedDelegation,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          isLoading: false,
+        });
+
+        render();
+
+        expect(
+          screen.getByTestId(CardHomeSelectors.ENABLE_ASSETS_BUTTON),
+        ).toBeTruthy();
+      });
+
+      it('does not show enable assets button when warning is NeedDelegation and user is PENDING', () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          warning: CardStateWarning.NeedDelegation,
           kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
           isLoading: false,
         });
 
         render();
 
-        await waitFor(() => {
-          expect(Alert.alert).not.toHaveBeenCalled();
-        });
+        expect(
+          screen.queryByTestId(CardHomeSelectors.ENABLE_ASSETS_BUTTON),
+        ).toBeNull();
       });
 
-      it('does not display alert when data is loading', async () => {
+      it('shows skeleton when data is loading', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
           isBaanxLoginEnabled: true,
-          warning: CardWarning.NoCard,
+          warning: CardStateWarning.NoCard,
           kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
           isLoading: true,
         });
 
         render();
 
-        await waitFor(() => {
-          expect(Alert.alert).not.toHaveBeenCalled();
-        });
+        expect(
+          screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON_SKELETON),
+        ).toBeTruthy();
       });
     });
 
     describe('KYC Error Handling', () => {
-      it('displays error alert when KYC fetch fails', async () => {
+      it('shows error view when there is an error', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
           isBaanxLoginEnabled: true,
-          warning: CardWarning.NoCard,
+          warning: CardStateWarning.NoCard,
           kycStatus: null,
           error: 'KYC fetch failed',
           isLoading: false,
@@ -3113,21 +2879,16 @@ describe('CardHome Component', () => {
 
         render();
 
-        await waitFor(() => {
-          expect(Alert.alert).toHaveBeenCalledWith(
-            'Verification status unavailable',
-            "We couldn't check your verification status. Please try again later or contact support if the issue persists.",
-            [{ text: 'OK', style: 'default' }],
-          );
-        });
+        expect(screen.getByText('Unable to load card')).toBeTruthy();
+        expect(screen.getByTestId('try-again-button')).toBeTruthy();
       });
 
-      it('does not display error alert when KYC status exists', async () => {
+      it('shows error view even when KYC status exists with error', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
           isBaanxLoginEnabled: true,
-          warning: CardWarning.NoCard,
+          warning: CardStateWarning.NoCard,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
           error: 'Some other error',
           isLoading: false,
@@ -3135,21 +2896,16 @@ describe('CardHome Component', () => {
 
         render();
 
-        await waitFor(() => {
-          expect(Alert.alert).not.toHaveBeenCalledWith(
-            'Verification status unavailable',
-            expect.any(String),
-            expect.any(Array),
-          );
-        });
+        expect(screen.getByText('Unable to load card')).toBeTruthy();
+        expect(screen.getByTestId('try-again-button')).toBeTruthy();
       });
 
-      it('does not display error alert when user is unauthenticated', async () => {
+      it('shows error view for unauthenticated users with error', () => {
         setupMockSelectors({ isAuthenticated: false });
         setupLoadCardDataMock({
           isAuthenticated: false,
           isBaanxLoginEnabled: true,
-          warning: CardWarning.NoCard,
+          warning: CardStateWarning.NoCard,
           kycStatus: null,
           error: 'KYC fetch failed',
           isLoading: false,
@@ -3157,21 +2913,16 @@ describe('CardHome Component', () => {
 
         render();
 
-        await waitFor(() => {
-          expect(Alert.alert).not.toHaveBeenCalledWith(
-            'Verification status unavailable',
-            expect.any(String),
-            expect.any(Array),
-          );
-        });
+        expect(screen.getByText('Unable to load card')).toBeTruthy();
+        expect(screen.getByTestId('try-again-button')).toBeTruthy();
       });
 
-      it('does not display error alert when data is loading', async () => {
+      it('shows error view when loading with error', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
           isBaanxLoginEnabled: true,
-          warning: CardWarning.NoCard,
+          warning: CardStateWarning.NoCard,
           kycStatus: null,
           error: 'KYC fetch failed',
           isLoading: true,
@@ -3179,114 +2930,1084 @@ describe('CardHome Component', () => {
 
         render();
 
-        await waitFor(() => {
-          expect(Alert.alert).not.toHaveBeenCalled();
-        });
+        expect(screen.getByText('Unable to load card')).toBeTruthy();
+        expect(screen.getByTestId('try-again-button')).toBeTruthy();
       });
     });
 
-    describe('getKYCStatusMessage Function', () => {
-      it('returns correct message for PENDING state', async () => {
+    describe('canEnableCard computed value', () => {
+      it('does not show Enable Card for PENDING user without card', () => {
+        // Given: PENDING user without card - cannot enable until verified
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
           isBaanxLoginEnabled: true,
-          warning: CardWarning.NoCard,
+          warning: CardStateWarning.NoCard,
+          priorityToken: mockPriorityToken,
           kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
           isLoading: false,
         });
 
         render();
 
-        await waitFor(() => {
-          expect(Alert.alert).toHaveBeenCalledWith(
-            expect.stringContaining('Progress'),
-            expect.stringContaining('being processed'),
-            expect.any(Array),
-          );
-        });
+        // Then: no Enable Card button shown (user must wait for verification)
+        expect(
+          screen.queryByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+        ).toBeNull();
       });
 
-      it('returns correct message for REJECTED state', async () => {
+      it('does not show enable card button for REJECTED user', () => {
+        // Given: REJECTED user
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
           isBaanxLoginEnabled: true,
-          warning: CardWarning.NoCard,
+          warning: CardStateWarning.NoCard,
           kycStatus: { verificationState: 'REJECTED', userId: 'user-123' },
           isLoading: false,
         });
 
         render();
 
-        await waitFor(() => {
-          expect(Alert.alert).toHaveBeenCalledWith(
-            expect.stringContaining('Verification not approved'),
-            expect.stringContaining('contact our support team'),
-            expect.any(Array),
-          );
-        });
+        // Then: no Enable Card button shown (user KYC rejected)
+        expect(
+          screen.queryByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+        ).toBeNull();
       });
 
-      it('returns correct message for UNVERIFIED state', async () => {
+      it('does not show Enable Card for UNVERIFIED user without card', () => {
+        // Given: UNVERIFIED user without card - cannot enable until verified
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
           isBaanxLoginEnabled: true,
-          warning: CardWarning.NoCard,
+          warning: CardStateWarning.NoCard,
+          priorityToken: mockPriorityToken,
           kycStatus: { verificationState: 'UNVERIFIED', userId: 'user-123' },
           isLoading: false,
         });
 
         render();
 
-        await waitFor(() => {
-          expect(Alert.alert).toHaveBeenCalledWith(
-            expect.stringContaining('Verification required'),
-            expect.stringContaining('complete identity verification'),
-            expect.any(Array),
-          );
-        });
+        // Then: no Enable Card button shown (user must complete verification)
+        expect(
+          screen.queryByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+        ).toBeNull();
       });
 
-      it('returns null for VERIFIED state', async () => {
+      it('shows enable card button for VERIFIED user', () => {
+        // Given: VERIFIED user without card
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
           isBaanxLoginEnabled: true,
-          warning: CardWarning.NoCard,
+          warning: CardStateWarning.NoCard,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
           isLoading: false,
         });
 
         render();
 
-        await waitFor(() => {
-          expect(Alert.alert).not.toHaveBeenCalled();
-        });
+        // Then: enable card button is displayed (only VERIFIED users can enable)
+        expect(
+          screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+        ).toBeTruthy();
       });
 
-      it('returns null for null verification state', async () => {
+      it('does not show enable card button for null verification state', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
           isBaanxLoginEnabled: true,
-          warning: CardWarning.NoCard,
+          warning: CardStateWarning.NoCard,
           kycStatus: { verificationState: null, userId: 'user-123' },
           isLoading: false,
         });
 
         render();
 
-        await waitFor(() => {
-          const statusAlerts = (Alert.alert as jest.Mock).mock.calls.filter(
-            (call) =>
-              call[0].includes('Progress') ||
-              call[0].includes('Not Approved') ||
-              call[0].includes('Required'),
-          );
-          expect(statusAlerts).toHaveLength(0);
+        // Then: no Enable Card button shown (KYC status unknown)
+        expect(
+          screen.queryByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+        ).toBeNull();
+      });
+    });
+
+    describe('KYC Warning Display', () => {
+      it('displays KYC warning for PENDING user without card', () => {
+        // Given: PENDING user without card
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          warning: CardStateWarning.NoCard,
+          priorityToken: mockPriorityToken,
+          kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
+          isLoading: false,
         });
+
+        // When: component renders
+        render();
+
+        // Then: KYC warning is displayed
+        expect(
+          screen.getByText('card.card_home.warnings.kyc_pending.title'),
+        ).toBeTruthy();
+      });
+
+      it('displays KYC warning for UNVERIFIED user without card', () => {
+        // Given: UNVERIFIED user without card
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          warning: CardStateWarning.NoCard,
+          priorityToken: mockPriorityToken,
+          kycStatus: { verificationState: 'UNVERIFIED', userId: 'user-123' },
+          isLoading: false,
+        });
+
+        // When: component renders
+        render();
+
+        // Then: KYC warning is displayed
+        expect(
+          screen.getByText('card.card_home.warnings.kyc_pending.title'),
+        ).toBeTruthy();
+      });
+
+      it('does not display KYC warning for VERIFIED user', () => {
+        // Given: VERIFIED user without card
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          warning: CardStateWarning.NoCard,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          isLoading: false,
+        });
+
+        // When: component renders
+        render();
+
+        // Then: KYC warning is not displayed
+        expect(
+          screen.queryByText('card.card_home.warnings.kyc_pending.title'),
+        ).toBeNull();
+      });
+
+      it('does not show Enable Card for PENDING user without card (only shows warning)', () => {
+        // Given: PENDING user without card - cannot enable until verified
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          warning: CardStateWarning.NoCard,
+          priorityToken: mockPriorityToken,
+          kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
+          isLoading: false,
+        });
+
+        // When: component renders
+        render();
+
+        // Then: no Enable Card button shown, only warning is visible
+        expect(
+          screen.queryByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+        ).toBeNull();
+        expect(
+          screen.queryByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON),
+        ).toBeNull();
+        // KYC warning is shown
+        expect(
+          screen.getByText('card.card_home.warnings.kyc_pending.title'),
+        ).toBeTruthy();
+      });
+    });
+
+    describe('Enable Card Button for Delegation', () => {
+      it('displays enable card button for VERIFIED user without delegated asset', () => {
+        // Given: VERIFIED user without card and without delegated asset
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          warning: CardStateWarning.NeedDelegation,
+          priorityToken: null,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          isLoading: false,
+        });
+
+        // When: component renders
+        render();
+
+        // Then: enable assets button is shown
+        expect(
+          screen.getByTestId(CardHomeSelectors.ENABLE_ASSETS_BUTTON),
+        ).toBeTruthy();
+      });
+
+      it('does not display enable card button for PENDING user without delegated asset', () => {
+        // Given: PENDING user without card and without delegated asset
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          warning: CardStateWarning.NeedDelegation,
+          priorityToken: null,
+          kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
+          isLoading: false,
+        });
+
+        // When: component renders
+        render();
+
+        // Then: enable assets button is NOT shown (PENDING users cannot enable)
+        expect(
+          screen.queryByTestId(CardHomeSelectors.ENABLE_ASSETS_BUTTON),
+        ).toBeNull();
+      });
+
+      it('navigates to delegation when enable card button pressed for VERIFIED user without delegated asset', async () => {
+        // Given: VERIFIED user without card and without delegated asset
+        setupMockSelectors({ isAuthenticated: true });
+
+        (useLoadCardData as jest.Mock).mockReturnValueOnce({
+          priorityToken: null,
+          allTokens: [],
+          cardDetails: null,
+          isLoading: false,
+          error: null,
+          warning: CardStateWarning.NeedDelegation,
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          isCardholder: true,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          fetchAllData: mockFetchAllData,
+          refetchAllData: mockRefetchAllData,
+        });
+
+        // When: component renders and user presses enable card button
+        render();
+        const enableButton = screen.getByTestId(
+          CardHomeSelectors.ENABLE_ASSETS_BUTTON,
+        );
+        fireEvent.press(enableButton);
+
+        // Then: navigates to spending limit screen (delegation)
+        await waitFor(() => {
+          expect(mockNavigate).toHaveBeenCalledWith(
+            'CardSpendingLimit',
+            expect.objectContaining({
+              flow: 'manage',
+            }),
+          );
+        });
+      });
+    });
+
+    describe('Card Details Button', () => {
+      beforeEach(() => {
+        mockFetchCardDetailsToken.mockClear();
+        mockClearCardDetailsImageUrl.mockClear();
+        mockReauthenticate.mockClear();
+        // Default: biometric authentication succeeds
+        mockReauthenticate.mockResolvedValue(undefined);
+      });
+
+      it('does not show card details button when user is not authenticated', () => {
+        // Given: User is not authenticated
+        setupMockSelectors({ isAuthenticated: false });
+        setupLoadCardDataMock({
+          isAuthenticated: false,
+          isBaanxLoginEnabled: true,
+          cardDetails: { type: CardType.VIRTUAL },
+          isLoading: false,
+        });
+
+        // When: component renders
+        render();
+
+        // Then: card details button is not shown
+        expect(
+          screen.queryByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
+        ).toBeNull();
+      });
+
+      it('does not show card details button when user has no card', () => {
+        // Given: Authenticated user without card
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: null,
+          warning: CardStateWarning.NoCard,
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        // When: component renders
+        render();
+
+        // Then: card details button is not shown
+        expect(
+          screen.queryByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
+        ).toBeNull();
+      });
+
+      it('does not show card details button while loading', () => {
+        // Given: Loading state
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: { type: CardType.VIRTUAL },
+          isLoading: true,
+        });
+
+        // When: component renders
+        render();
+
+        // Then: card details button is not shown
+        expect(
+          screen.queryByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
+        ).toBeNull();
+      });
+
+      it('shows card details button when authenticated user has a card', () => {
+        // Given: Authenticated user with card
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: { type: CardType.VIRTUAL },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        // When: component renders
+        render();
+
+        // Then: card details button is shown
+        expect(
+          screen.getByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
+        ).toBeTruthy();
+      });
+
+      it('calls fetchCardDetailsToken when button is pressed after biometric authentication', async () => {
+        // Given: Authenticated user with card and biometric auth succeeds
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: { type: CardType.VIRTUAL },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        mockReauthenticate.mockResolvedValueOnce(undefined);
+        mockFetchCardDetailsToken.mockResolvedValueOnce({
+          token: 'test-token',
+          imageUrl: 'https://example.com/image',
+        });
+
+        // When: component renders and button is pressed
+        render();
+        const button = screen.getByTestId(
+          CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON,
+        );
+        fireEvent.press(button);
+
+        // Then: reauthenticate is called first, then fetchCardDetailsToken
+        await waitFor(() => {
+          expect(mockReauthenticate).toHaveBeenCalled();
+        });
+        await waitFor(() => {
+          expect(mockFetchCardDetailsToken).toHaveBeenCalledWith(
+            CardType.VIRTUAL,
+          );
+        });
+      });
+
+      it('calls fetchCardDetailsToken with METAL type for metal card after biometric authentication', async () => {
+        // Given: Authenticated user with metal card and biometric auth succeeds
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: { type: CardType.METAL },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        mockReauthenticate.mockResolvedValueOnce(undefined);
+        mockFetchCardDetailsToken.mockResolvedValueOnce({
+          token: 'test-token',
+          imageUrl: 'https://example.com/image',
+        });
+
+        // When: component renders and button is pressed
+        render();
+        const button = screen.getByTestId(
+          CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON,
+        );
+        fireEvent.press(button);
+
+        // Then: reauthenticate is called first, then fetchCardDetailsToken with METAL type
+        await waitFor(() => {
+          expect(mockReauthenticate).toHaveBeenCalled();
+        });
+        await waitFor(() => {
+          expect(mockFetchCardDetailsToken).toHaveBeenCalledWith(
+            CardType.METAL,
+          );
+        });
+      });
+
+      it('clears image when button is pressed while showing details', async () => {
+        // Given: Authenticated user with card and image already showing
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: { type: CardType.VIRTUAL },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        // Mock hook to return imageUrl (indicating details are showing)
+        (useCardDetailsToken as jest.Mock).mockReturnValueOnce({
+          fetchCardDetailsToken: mockFetchCardDetailsToken,
+          isLoading: false,
+          isImageLoading: false,
+          onImageLoad: mockOnCardDetailsImageLoad,
+          error: null,
+          imageUrl: 'https://example.com/image',
+          clearImageUrl: mockClearCardDetailsImageUrl,
+        });
+
+        // When: component renders and button is pressed
+        render();
+        const button = screen.getByTestId(
+          CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON,
+        );
+        fireEvent.press(button);
+
+        // Then: clearImageUrl is called instead of fetch
+        await waitFor(() => {
+          expect(mockClearCardDetailsImageUrl).toHaveBeenCalled();
+          expect(mockFetchCardDetailsToken).not.toHaveBeenCalled();
+        });
+      });
+
+      it('clears image and shows error when image fails to load', async () => {
+        // Given: Authenticated user with card and image URL returned (image loading)
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: { type: CardType.VIRTUAL },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        // Mock hook to return imageUrl (image is being displayed)
+        (useCardDetailsToken as jest.Mock).mockReturnValueOnce({
+          fetchCardDetailsToken: mockFetchCardDetailsToken,
+          isLoading: false,
+          isImageLoading: false,
+          onImageLoad: mockOnCardDetailsImageLoad,
+          error: null,
+          imageUrl: 'https://example.com/image',
+          clearImageUrl: mockClearCardDetailsImageUrl,
+        });
+
+        // When: component renders and image fails to load
+        render();
+        const image = screen.getByTestId(CardHomeSelectors.CARD_DETAILS_IMAGE);
+        fireEvent(image, 'error');
+
+        // Then: clearImageUrl is called to reset the state
+        await waitFor(() => {
+          expect(mockClearCardDetailsImageUrl).toHaveBeenCalled();
+        });
+      });
+
+      describe('Biometric Authentication', () => {
+        it('does not fetch card details when biometric authentication fails', async () => {
+          // Given: Authenticated user with card but biometric auth fails
+          setupMockSelectors({ isAuthenticated: true });
+          setupLoadCardDataMock({
+            isAuthenticated: true,
+            isBaanxLoginEnabled: true,
+            cardDetails: { type: CardType.VIRTUAL },
+            isLoading: false,
+            kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          });
+
+          mockReauthenticate.mockRejectedValueOnce(
+            new Error('BIOMETRIC_ERROR: User cancelled'),
+          );
+
+          // When: component renders and button is pressed
+          render();
+          const button = screen.getByTestId(
+            CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON,
+          );
+          fireEvent.press(button);
+
+          // Then: reauthenticate is called but fetchCardDetailsToken is NOT called
+          await waitFor(() => {
+            expect(mockReauthenticate).toHaveBeenCalled();
+          });
+          expect(mockFetchCardDetailsToken).not.toHaveBeenCalled();
+        });
+
+        it('navigates to password bottom sheet when biometrics is not configured', async () => {
+          // Given: Authenticated user with card but biometrics not configured
+          setupMockSelectors({ isAuthenticated: true });
+          setupLoadCardDataMock({
+            isAuthenticated: true,
+            isBaanxLoginEnabled: true,
+            cardDetails: { type: CardType.VIRTUAL },
+            isLoading: false,
+            kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          });
+
+          mockReauthenticate.mockRejectedValueOnce(
+            new Error(
+              'PASSWORD_NOT_SET_WITH_BIOMETRICS: Biometrics not configured',
+            ),
+          );
+
+          // When: component renders and button is pressed
+          render();
+          const button = screen.getByTestId(
+            CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON,
+          );
+          fireEvent.press(button);
+
+          // Then: navigation to password bottom sheet is triggered
+          await waitFor(() => {
+            expect(mockReauthenticate).toHaveBeenCalled();
+          });
+          await waitFor(() => {
+            expect(mockNavigate).toHaveBeenCalledWith(
+              Routes.CARD.MODALS.ID,
+              expect.objectContaining({
+                screen: Routes.CARD.MODALS.PASSWORD,
+                params: expect.objectContaining({
+                  onSuccess: expect.any(Function),
+                }),
+              }),
+            );
+          });
+        });
+
+        it('does not require biometric auth when hiding card details', async () => {
+          // Given: Authenticated user with card details already showing
+          setupMockSelectors({ isAuthenticated: true });
+          setupLoadCardDataMock({
+            isAuthenticated: true,
+            isBaanxLoginEnabled: true,
+            cardDetails: { type: CardType.VIRTUAL },
+            isLoading: false,
+            kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          });
+
+          // Mock hook to return imageUrl (indicating details are showing)
+          (useCardDetailsToken as jest.Mock).mockReturnValueOnce({
+            fetchCardDetailsToken: mockFetchCardDetailsToken,
+            isLoading: false,
+            isImageLoading: false,
+            onImageLoad: mockOnCardDetailsImageLoad,
+            error: null,
+            imageUrl: 'https://example.com/image',
+            clearImageUrl: mockClearCardDetailsImageUrl,
+          });
+
+          // When: component renders and button is pressed to hide details
+          render();
+          const button = screen.getByTestId(
+            CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON,
+          );
+          fireEvent.press(button);
+
+          // Then: clearImageUrl is called without requiring reauthentication
+          await waitFor(() => {
+            expect(mockClearCardDetailsImageUrl).toHaveBeenCalled();
+          });
+          expect(mockReauthenticate).not.toHaveBeenCalled();
+        });
+      });
+    });
+  });
+
+  describe('userShippingAddress derivation', () => {
+    const mockUserDetailsWithMailingAddress = {
+      id: 'user-123',
+      addressLine1: '123 Physical St',
+      addressLine2: 'Apt 1',
+      city: 'Physical City',
+      zip: '12345',
+      usState: 'CA',
+      mailingAddressLine1: '456 Mailing Ave',
+      mailingAddressLine2: 'Suite 100',
+      mailingCity: 'Mailing City',
+      mailingZip: '67890',
+      mailingUsState: 'NY',
+    };
+
+    const mockUserDetailsWithPhysicalOnly = {
+      id: 'user-123',
+      addressLine1: '123 Physical St',
+      addressLine2: 'Apt 1',
+      city: 'Physical City',
+      zip: '12345',
+      usState: 'CA',
+      mailingAddressLine1: null,
+      mailingAddressLine2: null,
+      mailingCity: null,
+      mailingZip: null,
+      mailingUsState: null,
+    };
+
+    const mockUserDetailsWithIncompleteAddress = {
+      id: 'user-123',
+      addressLine1: '123 Physical St',
+      addressLine2: null,
+      city: null, // Missing required field
+      zip: null, // Missing required field
+      usState: 'CA',
+      mailingAddressLine1: null,
+      mailingAddressLine2: null,
+      mailingCity: null,
+      mailingZip: null,
+      mailingUsState: null,
+    };
+
+    // Partially populated mailing address - should fall back to physical, not mix
+    const mockUserDetailsWithPartialMailingAddress = {
+      id: 'user-123',
+      addressLine1: '123 Physical St',
+      addressLine2: 'Apt 1',
+      city: 'Physical City',
+      zip: '12345',
+      usState: 'CA',
+      mailingAddressLine1: '456 Mailing Ave', // Only line1 set
+      mailingAddressLine2: null,
+      mailingCity: null, // Missing required field
+      mailingZip: null, // Missing required field
+      mailingUsState: null,
+    };
+
+    it('navigates to choose your card with mailing address when available', async () => {
+      // Given: US user with mailing address and virtual card
+      setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        isBaanxLoginEnabled: true,
+        cardDetails: { type: CardType.VIRTUAL },
+        isLoading: false,
+        kycStatus: {
+          verificationState: 'VERIFIED',
+          userId: 'user-123',
+          userDetails: mockUserDetailsWithMailingAddress,
+        },
+      });
+
+      // When: component renders and order metal card item is pressed
+      render();
+
+      await waitFor(() => {
+        const orderMetalCardItem = screen.queryByTestId(
+          CardHomeSelectors.ORDER_METAL_CARD_ITEM,
+        );
+        expect(orderMetalCardItem).toBeTruthy();
+      });
+
+      const orderMetalCardItem = screen.getByTestId(
+        CardHomeSelectors.ORDER_METAL_CARD_ITEM,
+      );
+      fireEvent.press(orderMetalCardItem);
+
+      // Then: should navigate with mailing address (not physical)
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.CARD.CHOOSE_YOUR_CARD,
+          {
+            flow: 'upgrade',
+            shippingAddress: {
+              line1: '456 Mailing Ave',
+              line2: 'Suite 100',
+              city: 'Mailing City',
+              state: 'NY',
+              zip: '67890',
+            },
+          },
+        );
+      });
+    });
+
+    it('navigates to choose your card with physical address when mailing not available', async () => {
+      // Given: US user with only physical address and virtual card
+      setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        isBaanxLoginEnabled: true,
+        cardDetails: { type: CardType.VIRTUAL },
+        isLoading: false,
+        kycStatus: {
+          verificationState: 'VERIFIED',
+          userId: 'user-123',
+          userDetails: mockUserDetailsWithPhysicalOnly,
+        },
+      });
+
+      // When: component renders and order metal card item is pressed
+      render();
+
+      await waitFor(() => {
+        const orderMetalCardItem = screen.queryByTestId(
+          CardHomeSelectors.ORDER_METAL_CARD_ITEM,
+        );
+        expect(orderMetalCardItem).toBeTruthy();
+      });
+
+      const orderMetalCardItem = screen.getByTestId(
+        CardHomeSelectors.ORDER_METAL_CARD_ITEM,
+      );
+      fireEvent.press(orderMetalCardItem);
+
+      // Then: should navigate with physical address
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.CARD.CHOOSE_YOUR_CARD,
+          {
+            flow: 'upgrade',
+            shippingAddress: {
+              line1: '123 Physical St',
+              line2: 'Apt 1',
+              city: 'Physical City',
+              state: 'CA',
+              zip: '12345',
+            },
+          },
+        );
+      });
+    });
+
+    it('does not show order metal card item when userDetails is null', async () => {
+      // Given: US user with null userDetails (no shipping address)
+      setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        isBaanxLoginEnabled: true,
+        cardDetails: { type: CardType.VIRTUAL },
+        isLoading: false,
+        kycStatus: {
+          verificationState: 'VERIFIED',
+          userId: 'user-123',
+          userDetails: null,
+        },
+      });
+
+      // When: component renders
+      render();
+
+      // Then: order metal card item should not be visible (user not eligible without shipping address)
+      await waitFor(() => {
+        const orderMetalCardItem = screen.queryByTestId(
+          CardHomeSelectors.ORDER_METAL_CARD_ITEM,
+        );
+        expect(orderMetalCardItem).toBeNull();
+      });
+    });
+
+    it('does not show order metal card item when required address fields are missing', async () => {
+      // Given: US user with incomplete address (missing city and zip)
+      setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        isBaanxLoginEnabled: true,
+        cardDetails: { type: CardType.VIRTUAL },
+        isLoading: false,
+        kycStatus: {
+          verificationState: 'VERIFIED',
+          userId: 'user-123',
+          userDetails: mockUserDetailsWithIncompleteAddress,
+        },
+      });
+
+      // When: component renders
+      render();
+
+      // Then: order metal card item should not be visible (incomplete shipping address)
+      await waitFor(() => {
+        const orderMetalCardItem = screen.queryByTestId(
+          CardHomeSelectors.ORDER_METAL_CARD_ITEM,
+        );
+        expect(orderMetalCardItem).toBeNull();
+      });
+    });
+
+    it('uses physical address when mailing address is partially populated (no field mixing)', async () => {
+      // Given: US user with partial mailing address (only line1 set) and complete physical address
+      setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        isBaanxLoginEnabled: true,
+        cardDetails: { type: CardType.VIRTUAL },
+        isLoading: false,
+        kycStatus: {
+          verificationState: 'VERIFIED',
+          userId: 'user-123',
+          userDetails: mockUserDetailsWithPartialMailingAddress,
+        },
+      });
+
+      // When: component renders and order metal card item is pressed
+      render();
+
+      await waitFor(() => {
+        const orderMetalCardItem = screen.queryByTestId(
+          CardHomeSelectors.ORDER_METAL_CARD_ITEM,
+        );
+        expect(orderMetalCardItem).toBeTruthy();
+      });
+
+      const orderMetalCardItem = screen.getByTestId(
+        CardHomeSelectors.ORDER_METAL_CARD_ITEM,
+      );
+      fireEvent.press(orderMetalCardItem);
+
+      // Then: should navigate with complete physical address (not mixing mailing line1 with physical city/zip)
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.CARD.CHOOSE_YOUR_CARD,
+          {
+            flow: 'upgrade',
+            shippingAddress: {
+              line1: '123 Physical St',
+              line2: 'Apt 1',
+              city: 'Physical City',
+              state: 'CA',
+              zip: '12345',
+            },
+          },
+        );
+      });
+    });
+
+    it('does not show order metal card item for international users even with valid address', async () => {
+      // Given: International user with valid address and virtual card
+      setupMockSelectors({
+        isAuthenticated: true,
+        userLocation: 'international',
+      });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        isBaanxLoginEnabled: true,
+        cardDetails: { type: CardType.VIRTUAL },
+        isLoading: false,
+        kycStatus: {
+          verificationState: 'VERIFIED',
+          userId: 'user-123',
+          userDetails: mockUserDetailsWithMailingAddress,
+        },
+      });
+
+      // When: component renders
+      render();
+
+      // Then: order metal card item should not be visible (international users not eligible)
+      await waitFor(() => {
+        const orderMetalCardItem = screen.queryByTestId(
+          CardHomeSelectors.ORDER_METAL_CARD_ITEM,
+        );
+        expect(orderMetalCardItem).toBeNull();
+      });
+    });
+
+    it('does not show order metal card item when user already has metal card', async () => {
+      // Given: US user with metal card already
+      setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        isBaanxLoginEnabled: true,
+        cardDetails: { type: CardType.METAL },
+        isLoading: false,
+        kycStatus: {
+          verificationState: 'VERIFIED',
+          userId: 'user-123',
+          userDetails: mockUserDetailsWithMailingAddress,
+        },
+      });
+
+      // When: component renders
+      render();
+
+      // Then: order metal card item should not be visible (already has metal card)
+      await waitFor(() => {
+        const orderMetalCardItem = screen.queryByTestId(
+          CardHomeSelectors.ORDER_METAL_CARD_ITEM,
+        );
+        expect(orderMetalCardItem).toBeNull();
+      });
+    });
+
+    it('does not show order metal card item when feature flag is disabled', async () => {
+      // Given: US user eligible for metal card but feature flag is disabled
+      setupMockSelectors({
+        isAuthenticated: true,
+        userLocation: 'us',
+        isMetalCardCheckoutEnabled: false,
+      });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        isBaanxLoginEnabled: true,
+        cardDetails: { type: CardType.VIRTUAL },
+        isLoading: false,
+        kycStatus: {
+          verificationState: 'VERIFIED',
+          userId: 'user-123',
+          userDetails: mockUserDetailsWithMailingAddress,
+        },
+      });
+
+      // When: component renders
+      render();
+
+      // Then: order metal card item should not be visible (feature flag disabled)
+      await waitFor(() => {
+        const orderMetalCardItem = screen.queryByTestId(
+          CardHomeSelectors.ORDER_METAL_CARD_ITEM,
+        );
+        expect(orderMetalCardItem).toBeNull();
+      });
+    });
+
+    it('handles line2 as undefined when not provided', async () => {
+      // Given: US user with address without line2
+      const userDetailsWithoutLine2 = {
+        id: 'user-123',
+        addressLine1: '123 Main St',
+        addressLine2: null,
+        city: 'Test City',
+        zip: '12345',
+        usState: 'TX',
+        mailingAddressLine1: null,
+        mailingAddressLine2: null,
+        mailingCity: null,
+        mailingZip: null,
+        mailingUsState: null,
+      };
+
+      setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        isBaanxLoginEnabled: true,
+        cardDetails: { type: CardType.VIRTUAL },
+        isLoading: false,
+        kycStatus: {
+          verificationState: 'VERIFIED',
+          userId: 'user-123',
+          userDetails: userDetailsWithoutLine2,
+        },
+      });
+
+      // When: component renders and order metal card item is pressed
+      render();
+
+      await waitFor(() => {
+        const orderMetalCardItem = screen.queryByTestId(
+          CardHomeSelectors.ORDER_METAL_CARD_ITEM,
+        );
+        expect(orderMetalCardItem).toBeTruthy();
+      });
+
+      const orderMetalCardItem = screen.getByTestId(
+        CardHomeSelectors.ORDER_METAL_CARD_ITEM,
+      );
+      fireEvent.press(orderMetalCardItem);
+
+      // Then: should navigate with line2 as undefined
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.CARD.CHOOSE_YOUR_CARD,
+          {
+            flow: 'upgrade',
+            shippingAddress: {
+              line1: '123 Main St',
+              line2: undefined,
+              city: 'Test City',
+              state: 'TX',
+              zip: '12345',
+            },
+          },
+        );
+      });
+    });
+
+    it('uses empty string for state when usState is null', async () => {
+      // Given: US user with address but null state
+      const userDetailsWithNullState = {
+        id: 'user-123',
+        addressLine1: '123 Main St',
+        addressLine2: null,
+        city: 'Test City',
+        zip: '12345',
+        usState: null,
+        mailingAddressLine1: null,
+        mailingAddressLine2: null,
+        mailingCity: null,
+        mailingZip: null,
+        mailingUsState: null,
+      };
+
+      setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        isBaanxLoginEnabled: true,
+        cardDetails: { type: CardType.VIRTUAL },
+        isLoading: false,
+        kycStatus: {
+          verificationState: 'VERIFIED',
+          userId: 'user-123',
+          userDetails: userDetailsWithNullState,
+        },
+      });
+
+      // When: component renders and order metal card item is pressed
+      render();
+
+      await waitFor(() => {
+        const orderMetalCardItem = screen.queryByTestId(
+          CardHomeSelectors.ORDER_METAL_CARD_ITEM,
+        );
+        expect(orderMetalCardItem).toBeTruthy();
+      });
+
+      const orderMetalCardItem = screen.getByTestId(
+        CardHomeSelectors.ORDER_METAL_CARD_ITEM,
+      );
+      fireEvent.press(orderMetalCardItem);
+
+      // Then: should navigate with state as empty string
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.CARD.CHOOSE_YOUR_CARD,
+          {
+            flow: 'upgrade',
+            shippingAddress: {
+              line1: '123 Main St',
+              line2: undefined,
+              city: 'Test City',
+              state: '',
+              zip: '12345',
+            },
+          },
+        );
       });
     });
   });

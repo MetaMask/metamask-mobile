@@ -20,14 +20,31 @@ import {
 
 /**
  * Formats an asset amount with proper decimals
+ * - Very small amounts (< 0.00001) show as "<0.00001"
+ * - Large amounts (>= 1M) use compact notation (e.g., "1M", "10M")
+ * - Normal amounts use standard locale formatting
  */
 export const formatAssetAmount = (amount: string, decimals: number): string => {
   const oneHundredThousandths = 0.00001;
+  const oneMillion = 1_000_000;
   const rawAmount = formatUnits(BigInt(amount), decimals);
   const numericAmount = parseFloat(rawAmount);
 
   // Check if the number is a whole number (no significant decimals)
   const isWholeNumber = numericAmount === Math.floor(numericAmount);
+
+  // Use compact notation for large numbers (>= 1M)
+  if (numericAmount >= oneMillion) {
+    return formatWithThreshold(
+      numericAmount,
+      oneHundredThousandths,
+      I18n.locale,
+      {
+        notation: 'compact',
+        maximumFractionDigits: 2,
+      },
+    );
+  }
 
   return formatWithThreshold(
     numericAmount,
@@ -203,6 +220,12 @@ export const getEventDetails = (
     case 'REFERRAL':
       return {
         title: strings('rewards.events.type.referral_action'),
+        details: undefined,
+        icon: IconName.UserCircleAdd,
+      };
+    case 'APPLY_REFERRAL_BONUS':
+      return {
+        title: strings('rewards.events.type.apply_referral_bonus'),
         details: undefined,
         icon: IconName.UserCircleAdd,
       };

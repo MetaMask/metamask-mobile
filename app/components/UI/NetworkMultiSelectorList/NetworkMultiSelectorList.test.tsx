@@ -8,8 +8,11 @@ import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { debounce, type DebouncedFunc } from 'lodash';
 import { useStyles } from '../../../component-library/hooks/index.ts';
 import { isTestNet } from '../../../util/networks/index.js';
-import { selectChainId } from '../../../selectors/networkController';
-import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { selectEvmChainId } from '../../../selectors/networkController';
+import {
+  selectSelectedNonEvmNetworkChainId,
+  selectIsEvmNetworkSelected,
+} from '../../../selectors/multichainNetworkController';
 import NetworkMultiSelectorList from './NetworkMultiSelectorList';
 import {
   NetworkMultiSelectorListProps,
@@ -70,7 +73,11 @@ jest.mock('../../../util/networks/index.js', () => ({
 
 jest.mock('../../../selectors/networkController', () => ({
   selectEvmChainId: jest.fn(),
-  selectChainId: jest.fn(),
+}));
+
+jest.mock('../../../selectors/multichainNetworkController', () => ({
+  selectIsEvmNetworkSelected: jest.fn(),
+  selectSelectedNonEvmNetworkChainId: jest.fn(),
 }));
 
 jest.mock('../../../util/hideProtocolFromUrl', () =>
@@ -84,13 +91,6 @@ jest.mock('../../../util/hideKeyFromUrl', () =>
 jest.mock('../../../selectors/multichainNetworkController', () => ({
   selectIsEvmNetworkSelected: jest.fn(),
 }));
-
-jest.mock(
-  '../../../selectors/featureFlagController/multichainAccounts/index.ts',
-  () => ({
-    selectMultichainAccountsState2Enabled: jest.fn(),
-  }),
-);
 
 jest.mock('../../../multichain-accounts/remote-feature-flag', () => ({
   isMultichainAccountsRemoteFeatureEnabled: jest.fn(),
@@ -179,9 +179,13 @@ describe('NetworkMultiSelectorList', () => {
   const mockDebounce = debounce as jest.MockedFunction<typeof debounce>;
   const mockUseStyles = useStyles as jest.MockedFunction<typeof useStyles>;
   const mockIsTestNet = isTestNet as jest.MockedFunction<typeof isTestNet>;
-  const mockSelectChainId = selectChainId as jest.MockedFunction<
-    typeof selectChainId
+  const mockSelectEvmChainId = selectEvmChainId as jest.MockedFunction<
+    typeof selectEvmChainId
   >;
+  const mockSelectSelectedNonEvmNetworkChainId =
+    selectSelectedNonEvmNetworkChainId as jest.MockedFunction<
+      typeof selectSelectedNonEvmNetworkChainId
+    >;
   const mockSelectIsEvmNetworkSelected =
     selectIsEvmNetworkSelected as jest.MockedFunction<
       typeof selectIsEvmNetworkSelected
@@ -234,14 +238,16 @@ describe('NetworkMultiSelectorList', () => {
 
     // Setup useSelector to return different values based on the selector function
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === mockSelectChainId) {
+      if (selector === mockSelectEvmChainId) {
         return '0x1';
+      }
+      if (selector === mockSelectSelectedNonEvmNetworkChainId) {
+        return 'solana:mainnet';
       }
       if (selector === mockSelectIsEvmNetworkSelected) {
         return true;
       }
-      // Default return for selectMultichainAccountsState2Enabled
-      return false;
+      return undefined;
     });
 
     mockUseSafeAreaInsets.mockReturnValue({
@@ -282,9 +288,9 @@ describe('NetworkMultiSelectorList', () => {
       expect(mockUseSafeAreaInsets).toHaveBeenCalled();
     });
 
-    it('calls useSelector with selectChainId', () => {
+    it('calls useSelector with selectEvmChainId', () => {
       render(<NetworkMultiSelectorList {...defaultProps} />);
-      expect(mockUseSelector).toHaveBeenCalledWith(mockSelectChainId);
+      expect(mockUseSelector).toHaveBeenCalledWith(mockSelectEvmChainId);
     });
 
     it('calls useStyles with styleSheet', () => {
@@ -416,8 +422,11 @@ describe('NetworkMultiSelectorList', () => {
 
       // Set useSelector to return different values based on the selector
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === mockSelectChainId) {
+        if (selector === mockSelectEvmChainId) {
           return '0x1';
+        }
+        if (selector === mockSelectSelectedNonEvmNetworkChainId) {
+          return 'solana:mainnet';
         }
         if (selector === mockSelectIsEvmNetworkSelected) {
           // return false for isEvmSelected
@@ -448,6 +457,38 @@ describe('NetworkMultiSelectorList', () => {
 
       expect(mockParseCaipChainId).toHaveBeenCalledWith('eip155:1');
       expect(mockToHex).toHaveBeenCalledWith('1');
+    });
+
+    it('falls back to EVM chain ID when non-EVM chain ID is undefined', () => {
+      // When isEvmSelected is false but nonEvmChainId is undefined,
+      // selectedChainIdCaip should fall back to EVM chain ID to prevent
+      // displayEdit from incorrectly evaluating to true for all networks
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === mockSelectEvmChainId) {
+          return '0x1';
+        }
+        if (selector === mockSelectSelectedNonEvmNetworkChainId) {
+          return undefined; // Simulate undefined non-EVM chain ID
+        }
+        if (selector === mockSelectIsEvmNetworkSelected) {
+          return false; // Non-EVM is selected, but chain ID is undefined
+        }
+        return undefined;
+      });
+
+      const ethereumNetwork: Network = {
+        id: 'eip155:1',
+        name: 'Ethereum Mainnet',
+        isSelected: false,
+        imageSource: { uri: 'ethereum.png' },
+        caipChainId: 'eip155:1' as CaipChainId,
+      };
+
+      const props = { ...defaultProps, networks: [ethereumNetwork] };
+      render(<NetworkMultiSelectorList {...props} />);
+
+      // formatChainIdToCaip should be called with EVM chain ID as fallback
+      expect(mockFormatChainIdToCaip).toHaveBeenCalledWith('0x1');
     });
   });
 

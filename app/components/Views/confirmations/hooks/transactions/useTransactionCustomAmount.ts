@@ -11,13 +11,15 @@ import { useUpdateTokenAmount } from './useUpdateTokenAmount';
 import { getTokenAddress } from '../../utils/transaction-pay';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { debounce } from 'lodash';
-import { useSelector } from 'react-redux';
-import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
-import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { hasTransactionType } from '../../utils/transaction';
 import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalance';
-import { useTransactionPayRequiredTokens } from '../pay/useTransactionPayData';
+import {
+  useTransactionPayIsMaxAmount,
+  useTransactionPayTotals,
+} from '../pay/useTransactionPayData';
+import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
+import Engine from '../../../../../core/Engine';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 500;
@@ -26,11 +28,12 @@ export function useTransactionCustomAmount({
   currency,
 }: { currency?: string } = {}) {
   const { amount: defaultAmount } = useParams<{ amount?: string }>();
-  const [amountFiat, setAmountFiat] = useState(defaultAmount ?? '0');
+  const [amountFiatState, setAmountFiat] = useState(defaultAmount ?? '0');
   const [isInputChanged, setInputChanged] = useState(false);
   const [hasInput, setHasInput] = useState(false);
   const [amountHumanDebounced, setAmountHumanDebounced] = useState('0');
-  const maxPercentage = useMaxPercentage();
+  const totals = useTransactionPayTotals();
+  const hasSourceAmount = useTransactionPayHasSourceAmount();
   const { setConfirmationMetric } = useConfirmationMetricEvents();
 
   const debounceSetAmountDelayed = useMemo(
@@ -42,14 +45,27 @@ export function useTransactionCustomAmount({
   );
 
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
-  const { chainId } = transactionMeta;
+  const { chainId, id: transactionId } = transactionMeta;
 
+  const isMaxAmount = useTransactionPayIsMaxAmount();
   const tokenAddress = getTokenAddress(transactionMeta);
   const tokenFiatRate = useTokenFiatRate(tokenAddress, chainId, currency) ?? 1;
   const balanceUsd = useTokenBalance(tokenFiatRate);
 
   const { updateTokenAmount: updateTokenAmountCallback } =
     useUpdateTokenAmount();
+
+  const amountFiat = useMemo(() => {
+    const targetAmountUsd = totals?.targetAmount.usd;
+
+    if (isMaxAmount && targetAmountUsd && targetAmountUsd !== '0') {
+      return new BigNumber(targetAmountUsd)
+        .decimalPlaces(2, BigNumber.ROUND_HALF_UP)
+        .toString(10);
+    }
+
+    return amountFiatState;
+  }, [amountFiatState, isMaxAmount, totals?.targetAmount.usd]);
 
   const amountHuman = useMemo(
     () =>
@@ -71,6 +87,15 @@ export function useTransactionCustomAmount({
     );
   }, [amountHumanDebounced]);
 
+  const setIsMax = useCallback(
+    (value: boolean) => {
+      const { TransactionPayController } = Engine.context;
+
+      TransactionPayController.setIsMaxAmount(transactionId, value);
+    },
+    [transactionId],
+  );
+
   const updatePendingAmount = useCallback(
     (value: string) => {
       let newAmount = value.replace(/^0+/, '') || '0';
@@ -83,14 +108,19 @@ export function useTransactionCustomAmount({
         return;
       }
 
+      if (isMaxAmount) {
+        setIsMax(false);
+      }
+
       setConfirmationMetric({
         properties: {
           mm_pay_amount_input_type: 'manual',
         },
       });
+
       setAmountFiat(newAmount);
     },
-    [setConfirmationMetric],
+    [isMaxAmount, setIsMax, setConfirmationMetric],
   );
 
   const updatePendingAmountPercentage = useCallback(
@@ -99,9 +129,7 @@ export function useTransactionCustomAmount({
         return;
       }
 
-      const finalPercentage = percentage === 100 ? maxPercentage : percentage;
-
-      const newAmount = new BigNumber(finalPercentage)
+      const newAmount = new BigNumber(percentage)
         .dividedBy(100)
         .multipliedBy(balanceUsd)
         .decimalPlaces(2, BigNumber.ROUND_DOWN)
@@ -112,14 +140,34 @@ export function useTransactionCustomAmount({
           mm_pay_amount_input_type: `${percentage}%`,
         },
       });
+
+      if (percentage === 100) {
+        setIsMax(true);
+      } else if (isMaxAmount) {
+        setIsMax(false);
+      }
+
       setAmountFiat(newAmount);
     },
-    [balanceUsd, maxPercentage, setConfirmationMetric],
+    [balanceUsd, isMaxAmount, setIsMax, setConfirmationMetric],
   );
 
   const updateTokenAmount = useCallback(() => {
     updateTokenAmountCallback(amountHuman);
-  }, [amountHuman, updateTokenAmountCallback]);
+
+    if (hasSourceAmount) {
+      setConfirmationMetric({
+        properties: {
+          mm_pay_quote_requested: true,
+        },
+      });
+    }
+  }, [
+    amountHuman,
+    hasSourceAmount,
+    setConfirmationMetric,
+    updateTokenAmountCallback,
+  ]);
 
   return {
     amountFiat,
@@ -131,48 +179,6 @@ export function useTransactionCustomAmount({
     updatePendingAmountPercentage,
     updateTokenAmount,
   };
-}
-
-function useMaxPercentage() {
-  const featureFlags = useSelector(selectMetaMaskPayFlags);
-  const { payToken } = useTransactionPayToken();
-  const { chainId } = useTransactionMetadataRequest() ?? { chainId: '0x0' };
-  const requiredTokens = useTransactionPayRequiredTokens();
-
-  return useMemo(() => {
-    // Assumes we're not targetting native tokens.
-    const payTokenIsRequiredToken =
-      payToken?.chainId === chainId &&
-      payToken?.address.toLowerCase() ===
-        requiredTokens[0]?.address?.toLowerCase();
-
-    if (!payToken || payTokenIsRequiredToken) {
-      return 100;
-    }
-
-    const requiredQuoteCount = requiredTokens.filter(
-      (token) =>
-        !token.skipIfBalance ||
-        new BigNumber(token.balanceRaw).lt(token.amountRaw),
-    ).length;
-
-    let bufferPercentage =
-      requiredQuoteCount > 0 ? featureFlags.bufferInitial : 0;
-
-    if (requiredQuoteCount > 1) {
-      bufferPercentage +=
-        featureFlags.bufferSubsequent * (requiredQuoteCount - 1);
-    }
-
-    if (
-      payToken?.address === getNativeTokenAddress(payToken?.chainId ?? '0x0')
-    ) {
-      // Cannot calculate gas cost yet so just add an additional buffer if pay token is native
-      bufferPercentage += featureFlags.bufferInitial;
-    }
-
-    return 100 - bufferPercentage * 100;
-  }, [chainId, featureFlags, payToken, requiredTokens]);
 }
 
 function useTokenBalance(tokenUsdRate: number) {

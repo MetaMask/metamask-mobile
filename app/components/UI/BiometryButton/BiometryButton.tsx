@@ -1,5 +1,10 @@
 import React from 'react';
-import { TouchableOpacity, Image as ImageRN, Platform } from 'react-native';
+import {
+  TouchableOpacity,
+  Image as ImageRN,
+  Platform,
+  TouchableOpacityProps,
+} from 'react-native';
 import { useTheme } from '../../../util/theme';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
@@ -9,7 +14,7 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
-import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
+import { LoginViewSelectors } from '../../Views/Login/LoginView.testIds';
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* eslint-disable @typescript-eslint/no-var-requires */
@@ -18,16 +23,15 @@ const androidIris = require('../../../images/android-iris.png');
 
 type BiometryType = BIOMETRY_TYPE | AUTHENTICATION_TYPE | string | null;
 
-interface BiometryButtonProps {
-  onPress: () => void;
+type BiometryButtonProps = {
   hidden: boolean;
   biometryType: BiometryType | null;
-}
+} & TouchableOpacityProps;
 
 const BiometryButton = ({
-  onPress,
   hidden,
   biometryType,
+  ...props
 }: BiometryButtonProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -125,7 +129,7 @@ const BiometryButton = ({
     <TouchableOpacity
       testID={LoginViewSelectors.BIOMETRY_BUTTON}
       hitSlop={styles.hitSlop}
-      onPress={onPress}
+      {...props}
     >
       {biometryType ? renderIcon(biometryType) : null}
     </TouchableOpacity>

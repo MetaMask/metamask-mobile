@@ -18,7 +18,7 @@ import { AppThemeKey, Colors } from '../../../util/theme/models';
 import GoogleIcon from 'images/google.svg';
 import AppleIcon from 'images/apple.svg';
 import AppleWhiteIcon from 'images/apple-white.svg';
-import { OnboardingSheetSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSheet.selectors';
+import { OnboardingSheetSelectorIDs } from './OnboardingSheet.testIds';
 import { useNavigation } from '@react-navigation/native';
 import AppConstants from '../../../core/AppConstants';
 

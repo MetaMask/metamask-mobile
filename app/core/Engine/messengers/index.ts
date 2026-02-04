@@ -53,7 +53,10 @@ import { getSamplePetnamesControllerMessenger } from '../../../features/SampleFe
 ///: END:ONLY_INCLUDE_IF
 import { getPerpsControllerMessenger } from './perps-controller-messenger';
 import { getPredictControllerMessenger } from './predict-controller-messenger';
-import { getBridgeControllerMessenger } from './bridge-controller-messenger';
+import {
+  getBridgeControllerMessenger,
+  getBridgeControllerInitMessenger,
+} from './bridge-controller-messenger';
 import { getBridgeStatusControllerMessenger } from './bridge-status-controller-messenger';
 import {
   getMultichainAccountServiceInitMessenger,
@@ -83,7 +86,6 @@ import {
   getTokenListControllerInitMessenger,
   getTokenListControllerMessenger,
 } from './token-list-controller-messenger';
-import { getTokenSearchDiscoveryControllerMessenger } from './token-search-discovery-controller-messenger';
 import {
   getTokenDetectionControllerInitMessenger,
   getTokenDetectionControllerMessenger,
@@ -96,8 +98,14 @@ import { getTokenRatesControllerMessenger } from './token-rates-controller-messe
 import { getAccountTrackerControllerMessenger } from './account-tracker-controller-messenger';
 import { getNftControllerMessenger } from './nft-controller-messenger';
 import { getNftDetectionControllerMessenger } from './nft-detection-controller-messenger';
-import { getSmartTransactionsControllerMessenger } from './smart-transactions-controller-messenger';
-import { getUserStorageControllerMessenger } from './identity/user-storage-controller-messenger';
+import {
+  getSmartTransactionsControllerMessenger,
+  getSmartTransactionsControllerInitMessenger,
+} from './smart-transactions-controller-messenger';
+import {
+  getUserStorageControllerMessenger,
+  getUserStorageControllerInitMessenger,
+} from './identity/user-storage-controller-messenger';
 import { getAuthenticationControllerMessenger } from './identity/authentication-controller-messenger';
 import {
   getEarnControllerInitMessenger,
@@ -117,6 +125,7 @@ import { getRampsControllerMessenger } from './ramps-controller-messenger';
 import { getRampsServiceMessenger } from './ramps-service-messenger';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
 import { getAddressBookControllerMessenger } from './address-book-controller-messenger';
+import { getConnectivityControllerMessenger } from './connectivity-controller-messenger';
 import {
   getMultichainRouterInitMessenger,
   getMultichainRouterMessenger,
@@ -125,8 +134,12 @@ import {
   getTransactionPayControllerInitMessenger,
   getTransactionPayControllerMessenger,
 } from './transaction-pay-controller-messenger';
-import { getProfileMetricsControllerMessenger } from './profile-metrics-controller-messenger';
+import {
+  getProfileMetricsControllerMessenger,
+  getProfileMetricsControllerInitMessenger,
+} from './profile-metrics-controller-messenger';
 import { getProfileMetricsServiceMessenger } from './profile-metrics-service-messenger';
+import { getAnalyticsControllerMessenger } from './analytics-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -146,6 +159,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   AddressBookController: {
     getMessenger: getAddressBookControllerMessenger,
+    getInitMessenger: noop,
+  },
+  ConnectivityController: {
+    getMessenger: getConnectivityControllerMessenger,
     getInitMessenger: noop,
   },
   ApprovalController: {
@@ -271,7 +288,7 @@ export const CONTROLLER_MESSENGERS = {
   },
   UserStorageController: {
     getMessenger: getUserStorageControllerMessenger,
-    getInitMessenger: noop,
+    getInitMessenger: getUserStorageControllerInitMessenger,
   },
   WebSocketService: {
     getMessenger: getWebSocketServiceMessenger,
@@ -324,7 +341,7 @@ export const CONTROLLER_MESSENGERS = {
   },
   SmartTransactionsController: {
     getMessenger: getSmartTransactionsControllerMessenger,
-    getInitMessenger: noop,
+    getInitMessenger: getSmartTransactionsControllerInitMessenger,
   },
   SwapsController: {
     getMessenger: getSwapsControllerMessenger,
@@ -344,7 +361,7 @@ export const CONTROLLER_MESSENGERS = {
   },
   BridgeController: {
     getMessenger: getBridgeControllerMessenger,
-    getInitMessenger: noop,
+    getInitMessenger: getBridgeControllerInitMessenger,
   },
   BridgeStatusController: {
     getMessenger: getBridgeStatusControllerMessenger,
@@ -390,10 +407,6 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getTokenRatesControllerMessenger,
     getInitMessenger: noop,
   },
-  TokenSearchDiscoveryController: {
-    getMessenger: getTokenSearchDiscoveryControllerMessenger,
-    getInitMessenger: noop,
-  },
   TokenSearchDiscoveryDataController: {
     getMessenger: getTokenSearchDiscoveryDataControllerMessenger,
     getInitMessenger: noop,
@@ -416,10 +429,14 @@ export const CONTROLLER_MESSENGERS = {
   },
   ProfileMetricsController: {
     getMessenger: getProfileMetricsControllerMessenger,
-    getInitMessenger: noop,
+    getInitMessenger: getProfileMetricsControllerInitMessenger,
   },
   ProfileMetricsService: {
     getMessenger: getProfileMetricsServiceMessenger,
+    getInitMessenger: noop,
+  },
+  AnalyticsController: {
+    getMessenger: getAnalyticsControllerMessenger,
     getInitMessenger: noop,
   },
 } as const;

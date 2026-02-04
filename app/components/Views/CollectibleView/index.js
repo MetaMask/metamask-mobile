@@ -2,19 +2,15 @@ import React, { PureComponent } from 'react';
 import { ScrollView, View, StyleSheet, Text, SafeAreaView } from 'react-native';
 import PropTypes from 'prop-types';
 
-import Routes from '../../../constants/navigation/Routes';
 import CollectibleOverview from '../../UI/CollectibleOverview';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import StyledButton from '../../UI/StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { fontStyles } from '../../../styles/common';
-import { connect } from 'react-redux';
-import { selectSendRedesignFlags } from '../../../selectors/featureFlagController/confirmations';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
-import { newAssetTransaction } from '../../../actions/transaction';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { InitSendLocation } from '../confirmations/constants/send';
 import { handleSendPageNavigation } from '../confirmations/utils/send';
+import { InitSendLocation } from '../confirmations/constants/send';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -53,17 +49,9 @@ class CollectibleView extends PureComponent {
     */
     navigation: PropTypes.object,
     /**
-     * Start transaction with asset
-     */
-    newAssetTransaction: PropTypes.func,
-    /**
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
-    /**
-     * Whether the send redesign feature flag is enabled
-     */
-    isSendRedesignEnabled: PropTypes.bool,
   };
 
   updateNavBar = () => {
@@ -88,15 +76,11 @@ class CollectibleView extends PureComponent {
   onSend = async () => {
     const {
       route: { params },
-      isSendRedesignEnabled,
     } = this.props;
-    this.props.newAssetTransaction(params);
-    handleSendPageNavigation(
-      this.props.navigation.navigate,
-      InitSendLocation.CollectibleView,
-      isSendRedesignEnabled,
-      params,
-    );
+    handleSendPageNavigation(this.props.navigation.navigate, {
+      location: InitSendLocation.CollectibleView,
+      asset: params,
+    });
   };
 
   render() {
@@ -146,13 +130,4 @@ class CollectibleView extends PureComponent {
 
 CollectibleView.contextType = ThemeContext;
 
-const mapStateToProps = (state) => ({
-  isSendRedesignEnabled: selectSendRedesignFlags(state).enabled,
-});
-
-const mapDispatchToProps = (dispatch) => ({
-  newAssetTransaction: (selectedAsset) =>
-    dispatch(newAssetTransaction(selectedAsset)),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(CollectibleView);
+export default CollectibleView;

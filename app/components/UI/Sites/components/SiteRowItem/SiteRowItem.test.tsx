@@ -74,7 +74,7 @@ describe('SiteRowItem', () => {
         <SiteRowItem site={site} onPress={mockOnPress} />,
       );
 
-      fireEvent.press(getByTestId('site-row-item'));
+      fireEvent.press(getByTestId('site-row-item-MetaMask'));
 
       expect(mockOnPress).toHaveBeenCalledTimes(1);
     });
@@ -86,7 +86,7 @@ describe('SiteRowItem', () => {
         <SiteRowItem site={site} onPress={mockOnPress} />,
       );
 
-      const pressable = getByTestId('site-row-item');
+      const pressable = getByTestId('site-row-item-MetaMask');
       expect(pressable).toBeOnTheScreen();
 
       // Verify it's a touchable element by checking it has onPress
@@ -134,6 +134,20 @@ describe('SiteRowItem', () => {
       expect(
         getByText('metamask.io/portfolio?utm_source=mobile'),
       ).toBeOnTheScreen();
+    });
+
+    it('renders site logo with logoNeedsPadding flag', () => {
+      const site = createSite({
+        logoUrl: 'https://example.com/logo.png',
+        logoNeedsPadding: true,
+      });
+
+      const { getByTestId } = render(
+        <SiteRowItem site={site} onPress={mockOnPress} />,
+      );
+
+      const image = getByTestId('site-logo-image');
+      expect(image).toBeOnTheScreen();
     });
   });
 });

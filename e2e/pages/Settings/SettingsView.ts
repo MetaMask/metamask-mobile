@@ -1,11 +1,10 @@
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
 import {
   SettingsViewSelectorsIDs,
   SettingsViewSelectorsText,
-} from '../../selectors/Settings/SettingsView.selectors';
-import { CommonSelectorsText } from '../../selectors/Common.selectors';
-import { NetworksViewSelectorsIDs } from '../../selectors/Settings/NetworksView.selectors';
+} from '../../../app/components/Views/Settings/SettingsView.testIds';
+import { CommonSelectorsText } from '../../../app/util/Common.testIds';
 
 class SettingsView {
   get title(): DetoxElement {
@@ -195,13 +194,13 @@ class SettingsView {
     });
   }
 
-  get closeButton(): DetoxElement {
-    return Matchers.getElementByID(NetworksViewSelectorsIDs.CLOSE_ICON);
+  get backButton(): DetoxElement {
+    return Matchers.getElementByID(SettingsViewSelectorsIDs.BACK_BUTTON);
   }
 
-  async tapCloseButton(): Promise<void> {
-    await Gestures.tap(this.closeButton, {
-      elemDescription: 'Settings - Close Button',
+  async tapBackButton(): Promise<void> {
+    await Gestures.tap(this.backButton, {
+      elemDescription: 'Settings - Back Button',
     });
   }
 }

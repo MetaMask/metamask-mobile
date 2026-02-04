@@ -11,7 +11,7 @@ import useGetUserKYCStatus from './useGetUserKYCStatus';
 import {
   AllowanceState,
   CardTokenAllowance,
-  CardWarning,
+  CardStateWarning,
   CardDetailsResponse,
   CardStatus,
   CardType,
@@ -118,7 +118,6 @@ describe('useLoadCardData', () => {
   const mockFetchCardDetails = jest.fn();
   const mockFetchExternalWalletDetails = jest.fn();
   const mockFetchDelegationSettings = jest.fn();
-  const mockPollCardStatusUntilProvisioned = jest.fn();
   const mockFetchKYCStatus = jest.fn();
 
   beforeEach(() => {
@@ -165,12 +164,14 @@ describe('useLoadCardData', () => {
       error: null,
       warning: null,
       fetchCardDetails: mockFetchCardDetails,
-      pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-      isLoadingPollCardStatusUntilProvisioned: false,
     });
 
     mockUseGetUserKYCStatus.mockReturnValue({
-      kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+      kycStatus: {
+        verificationState: 'VERIFIED',
+        userId: 'user-123',
+        userDetails: { id: 'user-123' },
+      },
       isLoading: false,
       error: null,
       fetchKYCStatus: mockFetchKYCStatus,
@@ -224,8 +225,6 @@ describe('useLoadCardData', () => {
         error: null,
         warning: null,
         fetchCardDetails: mockFetchCardDetails,
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoadingPollCardStatusUntilProvisioned: false,
       });
 
       const { result } = renderHook(() => useLoadCardData());
@@ -274,8 +273,6 @@ describe('useLoadCardData', () => {
         error: new Error(CardErrorType.UNKNOWN_ERROR),
         warning: null,
         fetchCardDetails: mockFetchCardDetails,
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoadingPollCardStatusUntilProvisioned: false,
       });
 
       const { result } = renderHook(() => useLoadCardData());
@@ -306,13 +303,13 @@ describe('useLoadCardData', () => {
         allTokensWithAllowances: mockAllTokens,
         isLoading: false,
         error: false,
-        warning: CardWarning.NeedDelegation,
+        warning: CardStateWarning.NeedDelegation,
         fetchPriorityToken: mockFetchPriorityToken,
       });
 
       const { result } = renderHook(() => useLoadCardData());
 
-      expect(result.current.warning).toBe(CardWarning.NeedDelegation);
+      expect(result.current.warning).toBe(CardStateWarning.NeedDelegation);
     });
 
     it('returns warning from card details', () => {
@@ -320,15 +317,13 @@ describe('useLoadCardData', () => {
         cardDetails: mockCardDetails,
         isLoading: false,
         error: null,
-        warning: CardWarning.Frozen,
+        warning: CardStateWarning.Frozen,
         fetchCardDetails: mockFetchCardDetails,
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoadingPollCardStatusUntilProvisioned: false,
       });
 
       const { result } = renderHook(() => useLoadCardData());
 
-      expect(result.current.warning).toBe(CardWarning.Frozen);
+      expect(result.current.warning).toBe(CardStateWarning.Frozen);
     });
 
     it('returns authentication and cardholder status', () => {
@@ -336,16 +331,6 @@ describe('useLoadCardData', () => {
 
       expect(result.current.isAuthenticated).toBe(false);
       expect(result.current.isBaanxLoginEnabled).toBe(true);
-    });
-
-    it('calls fetchPriorityToken when fetchAllData is invoked', async () => {
-      const { result } = renderHook(() => useLoadCardData());
-
-      await act(async () => {
-        await result.current.fetchAllData();
-      });
-
-      expect(mockFetchPriorityToken).toHaveBeenCalledTimes(1);
     });
 
     it('does not call fetchExternalWalletDetails in unauthenticated mode', async () => {
@@ -356,40 +341,6 @@ describe('useLoadCardData', () => {
       });
 
       expect(mockFetchExternalWalletDetails).not.toHaveBeenCalled();
-    });
-
-    it('exposes pollCardStatusUntilProvisioned function', () => {
-      const { result } = renderHook(() => useLoadCardData());
-
-      expect(result.current.pollCardStatusUntilProvisioned).toBe(
-        mockPollCardStatusUntilProvisioned,
-      );
-    });
-
-    it('exposes isLoadingPollCardStatusUntilProvisioned state', () => {
-      const mockCardDetailsForLoading: CardDetailsResponse = {
-        id: 'card-456',
-        holderName: 'Jane Smith',
-        expiryDate: '12/29',
-        panLast4: '5678',
-        status: CardStatus.ACTIVE,
-        type: CardType.VIRTUAL,
-        orderedAt: '2024-02-01T00:00:00.000Z',
-      };
-
-      mockUseCardDetails.mockReturnValue({
-        cardDetails: mockCardDetailsForLoading,
-        isLoading: false,
-        error: null,
-        warning: null,
-        fetchCardDetails: mockFetchCardDetails,
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoadingPollCardStatusUntilProvisioned: true,
-      });
-
-      const { result } = renderHook(() => useLoadCardData());
-
-      expect(result.current.isLoadingPollCardStatusUntilProvisioned).toBe(true);
     });
   });
 
@@ -530,8 +481,6 @@ describe('useLoadCardData', () => {
         error: null,
         warning: null,
         fetchCardDetails: mockFetchCardDetails,
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoadingPollCardStatusUntilProvisioned: false,
       });
 
       const { result } = renderHook(() => useLoadCardData());
@@ -599,8 +548,6 @@ describe('useLoadCardData', () => {
         error: new Error(CardErrorType.UNKNOWN_ERROR),
         warning: null,
         fetchCardDetails: mockFetchCardDetails,
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoadingPollCardStatusUntilProvisioned: false,
       });
 
       const { result } = renderHook(() => useLoadCardData());
@@ -614,7 +561,7 @@ describe('useLoadCardData', () => {
         allTokensWithAllowances: mockAllTokens,
         isLoading: false,
         error: false,
-        warning: CardWarning.NeedDelegation,
+        warning: CardStateWarning.NeedDelegation,
         fetchPriorityToken: mockFetchPriorityToken,
       });
 
@@ -622,15 +569,13 @@ describe('useLoadCardData', () => {
         cardDetails: mockCardDetails,
         isLoading: false,
         error: null,
-        warning: CardWarning.Frozen,
+        warning: CardStateWarning.Frozen,
         fetchCardDetails: mockFetchCardDetails,
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoadingPollCardStatusUntilProvisioned: false,
       });
 
       const { result } = renderHook(() => useLoadCardData());
 
-      expect(result.current.warning).toBe(CardWarning.NeedDelegation);
+      expect(result.current.warning).toBe(CardStateWarning.NeedDelegation);
     });
 
     it('handles Baanx login disabled state', () => {
@@ -891,26 +836,6 @@ describe('useLoadCardData', () => {
       mockFetchExternalWalletDetails.mockReset().mockResolvedValue(undefined);
     });
 
-    it('exposes fetchPriorityToken function', async () => {
-      const { result } = renderHook(() => useLoadCardData());
-
-      await act(async () => {
-        await result.current.fetchPriorityToken();
-      });
-
-      expect(mockFetchPriorityToken).toHaveBeenCalledTimes(1);
-    });
-
-    it('exposes fetchCardDetails function', async () => {
-      const { result } = renderHook(() => useLoadCardData());
-
-      await act(async () => {
-        await result.current.fetchCardDetails();
-      });
-
-      expect(mockFetchCardDetails).toHaveBeenCalledTimes(1);
-    });
-
     it('fetchAllData executes all fetches in parallel for unauthenticated mode', async () => {
       mockUseSelector.mockReturnValue(false); // Unauthenticated
 
@@ -939,38 +864,6 @@ describe('useLoadCardData', () => {
       expect(mockFetchExternalWalletDetails).toHaveBeenCalledTimes(1);
       expect(mockFetchKYCStatus).toHaveBeenCalledTimes(1);
     });
-
-    it('refetchAllData includes delegation settings fetch for authenticated mode', async () => {
-      mockUseSelector.mockReturnValue(true); // Authenticated
-
-      const { result } = renderHook(() => useLoadCardData());
-
-      await act(async () => {
-        await result.current.refetchAllData();
-      });
-
-      expect(mockFetchDelegationSettings).toHaveBeenCalledTimes(1);
-      expect(mockFetchExternalWalletDetails).toHaveBeenCalledTimes(1);
-      expect(mockFetchCardDetails).toHaveBeenCalledTimes(1);
-      expect(mockFetchPriorityToken).toHaveBeenCalledTimes(1);
-      expect(mockFetchKYCStatus).toHaveBeenCalledTimes(1);
-    });
-
-    it('refetchAllData only fetches priority token in unauthenticated mode', async () => {
-      mockUseSelector.mockReturnValue(false); // Unauthenticated
-
-      const { result } = renderHook(() => useLoadCardData());
-
-      await act(async () => {
-        await result.current.refetchAllData();
-      });
-
-      expect(mockFetchPriorityToken).toHaveBeenCalledTimes(1);
-      expect(mockFetchDelegationSettings).not.toHaveBeenCalled();
-      expect(mockFetchExternalWalletDetails).not.toHaveBeenCalled();
-      expect(mockFetchCardDetails).not.toHaveBeenCalled();
-      expect(mockFetchKYCStatus).not.toHaveBeenCalled();
-    });
   });
 
   describe('KYC Status', () => {
@@ -981,7 +874,11 @@ describe('useLoadCardData', () => {
 
       it('returns KYC status when user is verified', () => {
         mockUseGetUserKYCStatus.mockReturnValue({
-          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          kycStatus: {
+            verificationState: 'VERIFIED',
+            userId: 'user-123',
+            userDetails: { id: 'user-123' },
+          },
           isLoading: false,
           error: null,
           fetchKYCStatus: mockFetchKYCStatus,
@@ -992,12 +889,17 @@ describe('useLoadCardData', () => {
         expect(result.current.kycStatus).toEqual({
           verificationState: 'VERIFIED',
           userId: 'user-123',
+          userDetails: { id: 'user-123' },
         });
       });
 
       it('returns KYC status when user verification is pending', () => {
         mockUseGetUserKYCStatus.mockReturnValue({
-          kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
+          kycStatus: {
+            verificationState: 'PENDING',
+            userId: 'user-123',
+            userDetails: { id: 'user-123' },
+          },
           isLoading: false,
           error: null,
           fetchKYCStatus: mockFetchKYCStatus,
@@ -1008,12 +910,17 @@ describe('useLoadCardData', () => {
         expect(result.current.kycStatus).toEqual({
           verificationState: 'PENDING',
           userId: 'user-123',
+          userDetails: { id: 'user-123' },
         });
       });
 
       it('returns KYC status when user verification is rejected', () => {
         mockUseGetUserKYCStatus.mockReturnValue({
-          kycStatus: { verificationState: 'REJECTED', userId: 'user-123' },
+          kycStatus: {
+            verificationState: 'REJECTED',
+            userId: 'user-123',
+            userDetails: { id: 'user-123' },
+          },
           isLoading: false,
           error: null,
           fetchKYCStatus: mockFetchKYCStatus,
@@ -1024,12 +931,17 @@ describe('useLoadCardData', () => {
         expect(result.current.kycStatus).toEqual({
           verificationState: 'REJECTED',
           userId: 'user-123',
+          userDetails: { id: 'user-123' },
         });
       });
 
-      it('returns null KYC status when fetch fails', () => {
+      it('returns KYC status even when fetch has error', () => {
         mockUseGetUserKYCStatus.mockReturnValue({
-          kycStatus: null,
+          kycStatus: {
+            verificationState: null,
+            userId: 'user-123',
+            userDetails: { id: 'user-123' },
+          },
           isLoading: false,
           error: new Error('KYC fetch failed'),
           fetchKYCStatus: mockFetchKYCStatus,
@@ -1037,12 +949,21 @@ describe('useLoadCardData', () => {
 
         const { result } = renderHook(() => useLoadCardData());
 
-        expect(result.current.kycStatus).toBeNull();
+        expect(result.current.kycStatus).toEqual({
+          verificationState: null,
+          userId: 'user-123',
+          userDetails: { id: 'user-123' },
+        });
+        expect(result.current.error).toEqual(new Error('KYC fetch failed'));
       });
 
       it('includes KYC status loading state in overall loading state', () => {
         mockUseGetUserKYCStatus.mockReturnValue({
-          kycStatus: null,
+          kycStatus: {
+            verificationState: null,
+            userId: 'user-123',
+            userDetails: { id: 'user-123' },
+          },
           isLoading: true,
           error: null,
           fetchKYCStatus: mockFetchKYCStatus,
@@ -1056,7 +977,11 @@ describe('useLoadCardData', () => {
       it('returns KYC error in combined error state', () => {
         const kycError = new Error('KYC verification failed');
         mockUseGetUserKYCStatus.mockReturnValue({
-          kycStatus: null,
+          kycStatus: {
+            verificationState: null,
+            userId: 'user-123',
+            userDetails: { id: 'user-123' },
+          },
           isLoading: false,
           error: kycError,
           fetchKYCStatus: mockFetchKYCStatus,
@@ -1067,9 +992,13 @@ describe('useLoadCardData', () => {
         expect(result.current.error).toEqual(kycError);
       });
 
-      it('returns null KYC status with null verification state', () => {
+      it('returns KYC status with null verification state', () => {
         mockUseGetUserKYCStatus.mockReturnValue({
-          kycStatus: { verificationState: null, userId: 'user-123' },
+          kycStatus: {
+            verificationState: null,
+            userId: 'user-123',
+            userDetails: { id: 'user-123' },
+          },
           isLoading: false,
           error: null,
           fetchKYCStatus: mockFetchKYCStatus,
@@ -1080,6 +1009,7 @@ describe('useLoadCardData', () => {
         expect(result.current.kycStatus).toEqual({
           verificationState: null,
           userId: 'user-123',
+          userDetails: { id: 'user-123' },
         });
       });
 
@@ -1095,25 +1025,13 @@ describe('useLoadCardData', () => {
         expect(mockFetchKYCStatus).toHaveBeenCalledTimes(1);
       });
 
-      it('fetches KYC status when refetchAllData is called', async () => {
-        mockFetchKYCStatus.mockReset().mockResolvedValue(undefined);
-        mockFetchDelegationSettings.mockReset().mockResolvedValue(undefined);
-        mockFetchExternalWalletDetails.mockReset().mockResolvedValue(undefined);
-        mockFetchCardDetails.mockReset().mockResolvedValue(undefined);
-        mockFetchPriorityToken.mockReset().mockResolvedValue(undefined);
-
-        const { result } = renderHook(() => useLoadCardData());
-
-        await act(async () => {
-          await result.current.refetchAllData();
-        });
-
-        expect(mockFetchKYCStatus).toHaveBeenCalledTimes(1);
-      });
-
       it('handles KYC status update when status changes', () => {
         mockUseGetUserKYCStatus.mockReturnValue({
-          kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
+          kycStatus: {
+            verificationState: 'PENDING',
+            userId: 'user-123',
+            userDetails: { id: 'user-123' },
+          },
           isLoading: false,
           error: null,
           fetchKYCStatus: mockFetchKYCStatus,
@@ -1124,7 +1042,11 @@ describe('useLoadCardData', () => {
         expect(result.current.kycStatus?.verificationState).toBe('PENDING');
 
         mockUseGetUserKYCStatus.mockReturnValue({
-          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          kycStatus: {
+            verificationState: 'VERIFIED',
+            userId: 'user-123',
+            userDetails: { id: 'user-123' },
+          },
           isLoading: false,
           error: null,
           fetchKYCStatus: mockFetchKYCStatus,
@@ -1143,7 +1065,11 @@ describe('useLoadCardData', () => {
 
       it('returns null KYC status', () => {
         mockUseGetUserKYCStatus.mockReturnValue({
-          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          kycStatus: {
+            verificationState: 'VERIFIED',
+            userId: 'user-123',
+            userDetails: { id: 'user-123' },
+          },
           isLoading: false,
           error: null,
           fetchKYCStatus: mockFetchKYCStatus,
@@ -1169,7 +1095,11 @@ describe('useLoadCardData', () => {
 
       it('excludes KYC error from combined error state', () => {
         mockUseGetUserKYCStatus.mockReturnValue({
-          kycStatus: null,
+          kycStatus: {
+            verificationState: null,
+            userId: 'user-123',
+            userDetails: { id: 'user-123' },
+          },
           isLoading: false,
           error: new Error('KYC error'),
           fetchKYCStatus: mockFetchKYCStatus,
@@ -1191,19 +1121,6 @@ describe('useLoadCardData', () => {
 
         expect(mockFetchKYCStatus).not.toHaveBeenCalled();
       });
-
-      it('does not fetch KYC status when refetchAllData is called', async () => {
-        mockFetchKYCStatus.mockReset().mockResolvedValue(undefined);
-        mockFetchPriorityToken.mockReset().mockResolvedValue(undefined);
-
-        const { result } = renderHook(() => useLoadCardData());
-
-        await act(async () => {
-          await result.current.refetchAllData();
-        });
-
-        expect(mockFetchKYCStatus).not.toHaveBeenCalled();
-      });
     });
 
     describe('Mode Switching', () => {
@@ -1221,13 +1138,18 @@ describe('useLoadCardData', () => {
         expect(result.current.kycStatus).toEqual({
           verificationState: 'VERIFIED',
           userId: 'user-123',
+          userDetails: { id: 'user-123' },
         });
       });
 
       it('returns null KYC status when switching from authenticated to unauthenticated', () => {
         mockUseSelector.mockReturnValue(true); // Start authenticated
         mockUseGetUserKYCStatus.mockReturnValue({
-          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          kycStatus: {
+            verificationState: 'VERIFIED',
+            userId: 'user-123',
+            userDetails: { id: 'user-123' },
+          },
           isLoading: false,
           error: null,
           fetchKYCStatus: mockFetchKYCStatus,
@@ -1238,6 +1160,7 @@ describe('useLoadCardData', () => {
         expect(result.current.kycStatus).toEqual({
           verificationState: 'VERIFIED',
           userId: 'user-123',
+          userDetails: { id: 'user-123' },
         });
 
         mockUseSelector.mockReturnValue(false); // Switch to unauthenticated
@@ -1256,7 +1179,7 @@ describe('useLoadCardData', () => {
         allTokensWithAllowances: mockAllTokens,
         isLoading: false,
         error: false,
-        warning: CardWarning.NeedDelegation,
+        warning: CardStateWarning.NeedDelegation,
         fetchPriorityToken: mockFetchPriorityToken,
       });
 
@@ -1264,15 +1187,13 @@ describe('useLoadCardData', () => {
         cardDetails: mockCardDetails,
         isLoading: false,
         error: null,
-        warning: CardWarning.NoCard,
+        warning: CardStateWarning.NoCard,
         fetchCardDetails: mockFetchCardDetails,
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoadingPollCardStatusUntilProvisioned: false,
       });
 
       const { result } = renderHook(() => useLoadCardData());
 
-      expect(result.current.warning).toBe(CardWarning.NoCard);
+      expect(result.current.warning).toBe(CardStateWarning.NoCard);
     });
   });
 });

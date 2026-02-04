@@ -2,9 +2,9 @@ import {
   PerpsMarketListViewSelectorsIDs,
   PerpsTokenSelectorSelectorsIDs,
   getPerpsMarketRowItemSelector,
-} from '../../selectors/Perps/Perps.selectors';
-import Gestures from '../../framework/Gestures';
-import Matchers from '../../framework/Matchers';
+} from '../../../app/components/UI/Perps/Perps.testIds';
+import Gestures from '../../../tests/framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
 
 class PerpsMarketListView {
   // Main container

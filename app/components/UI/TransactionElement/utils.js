@@ -34,9 +34,11 @@ import {
 import { calculateTotalGas, renderGwei } from './utils-gas';
 import { getTokenTransferData } from '../../Views/confirmations/utils/transaction-pay';
 import { hasTransactionType } from '../../Views/confirmations/utils/transaction';
+import { BigNumber } from 'bignumber.js';
 
 const POSITIVE_TRANSFER_TRANSACTION_TYPES = [
   TransactionType.perpsDeposit,
+  TransactionType.perpsDepositAndOrder,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
 ];
@@ -82,6 +84,12 @@ function getTokenTransfer(args) {
       decimals: tx.transferInformation.decimals,
       address: tx.transferInformation.contractAddress,
     };
+  }
+
+  const targetFiat = getMetamaskPayTargetFiat(tx, token?.decimals);
+
+  if (targetFiat && token) {
+    amount = targetFiat;
   }
 
   const isIncomplete = isTransactionIncomplete(status);
@@ -183,6 +191,21 @@ function getTokenTransfer(args) {
   };
 
   return [transactionElement, transactionDetails];
+}
+
+function getMetamaskPayTargetFiat(tx, decimals) {
+  const { metamaskPay } = tx ?? {};
+  const { targetFiat } = metamaskPay ?? {};
+
+  if (!targetFiat || targetFiat === '0') {
+    return undefined;
+  }
+
+  const targetFiatNoDecimals = new BigNumber(targetFiat)
+    .shiftedBy(decimals ?? 0)
+    .toFixed();
+
+  return new BN(targetFiatNoDecimals);
 }
 
 function getCollectibleTransfer(args) {

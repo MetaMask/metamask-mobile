@@ -1,9 +1,9 @@
-import Matchers from '../framework/Matchers';
-import Gestures from '../framework/Gestures';
+import Matchers from '../../tests/framework/Matchers';
+import Gestures from '../../tests/framework/Gestures';
 import {
   CommonSelectorsIDs,
   CommonSelectorsText,
-} from '../selectors/Common.selectors';
+} from '../../app/util/Common.testIds';
 
 class CommonView {
   get okAlertByText(): DetoxElement {

@@ -25,79 +25,70 @@ jest.mock('../../../../hooks/useMetrics', () => ({
   },
 }));
 
-// Mock OnboardingStep component
-jest.mock('./OnboardingStep', () => {
-  const React = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
+jest.mock('../../util/metrics', () => ({
+  CardScreens: {
+    KYC_FAILED: 'KYC_FAILED',
+  },
+}));
 
-  return ({
-    title,
-    description,
-    formFields,
-    actions,
-  }: {
-    title: string;
-    description: string;
-    formFields: React.ReactNode;
-    actions: React.ReactNode;
-  }) =>
-    React.createElement(
-      View,
-      { testID: 'onboarding-step' },
-      React.createElement(Text, { testID: 'onboarding-step-title' }, title),
-      React.createElement(
-        Text,
-        { testID: 'onboarding-step-description' },
-        description,
-      ),
-      React.createElement(
-        View,
-        { testID: 'onboarding-step-form-fields' },
-        formFields,
-      ),
-      React.createElement(View, { testID: 'onboarding-step-actions' }, actions),
-    );
-});
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({
+    style: jest.fn((className: string) => ({ className })),
+  }),
+}));
 
 // Mock design system components
 jest.mock('@metamask/design-system-react-native', () => {
-  const React = jest.requireActual('react');
+  const ReactActual = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
 
   return {
     Box: ({
       children,
+      testID,
       ...props
-    }: React.PropsWithChildren<Record<string, unknown>>) =>
-      React.createElement(View, props, children),
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+    }) => ReactActual.createElement(View, { testID, ...props }, children),
     Text: ({
       children,
+      testID,
       ...props
-    }: React.PropsWithChildren<Record<string, unknown>>) =>
-      React.createElement(Text, props, children),
-    FontFamily: {},
-    FontWeight: {},
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+    }) => ReactActual.createElement(Text, { testID, ...props }, children),
     TextVariant: {
+      HeadingLg: 'HeadingLg',
       BodyMd: 'BodyMd',
     },
   };
 });
 
-// Mock react-native Image
+// Mock react-native-safe-area-context
+jest.mock('react-native-safe-area-context', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+
+  return {
+    SafeAreaView: ({ children, ...props }: { children?: React.ReactNode }) =>
+      ReactActual.createElement(View, props, children),
+  };
+});
+
+// Mock react-native Image and Dimensions
 jest.mock('react-native', () => {
+  const ReactActual = jest.requireActual('react');
   const RN = jest.requireActual('react-native');
-  const React = jest.requireActual('react');
 
   return {
     ...RN,
-    Image: ({
-      testID,
-      ...props
-    }: {
-      testID?: string;
-      [key: string]: unknown;
-    }) =>
-      React.createElement(RN.View, {
+    Dimensions: {
+      get: jest.fn(() => ({ width: 375, height: 812 })),
+    },
+    Image: ({ testID, ...props }: { testID?: string }) =>
+      ReactActual.createElement(RN.View, {
         testID: testID || 'kyc-failed-image',
         ...props,
       }),
@@ -106,7 +97,7 @@ jest.mock('react-native', () => {
 
 // Mock Button component
 jest.mock('../../../../../component-library/components/Buttons/Button', () => {
-  const React = jest.requireActual('react');
+  const ReactActual = jest.requireActual('react');
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
 
   const ButtonVariants = {
@@ -128,35 +119,23 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
   const Button = ({
     label,
     onPress,
-    variant,
-    size,
-    width,
     disabled,
     testID,
-    ...props
   }: {
     label: string;
     onPress?: () => void;
-    variant?: string;
-    size?: string;
-    width?: string;
     disabled?: boolean;
     testID?: string;
   }) =>
-    React.createElement(
+    ReactActual.createElement(
       TouchableOpacity,
       {
         testID: testID || 'button',
         onPress: disabled ? undefined : onPress,
         disabled,
-        ...props,
       },
-      React.createElement(Text, { testID: 'button-label' }, label),
+      ReactActual.createElement(Text, { testID: `${testID}-label` }, label),
     );
-
-  Button.ButtonVariants = ButtonVariants;
-  Button.ButtonSize = ButtonSize;
-  Button.ButtonWidthTypes = ButtonWidthTypes;
 
   return {
     __esModule: true,
@@ -167,17 +146,65 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
   };
 });
 
+// Mock ButtonIcon component
+jest.mock(
+  '../../../../../component-library/components/Buttons/ButtonIcon',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { TouchableOpacity } = jest.requireActual('react-native');
+
+    const ButtonIconSizes = {
+      Sm: 'Sm',
+      Md: 'Md',
+      Lg: 'Lg',
+    };
+
+    const ButtonIcon = ({
+      onPress,
+      testID,
+    }: {
+      onPress?: () => void;
+      testID?: string;
+    }) =>
+      ReactActual.createElement(TouchableOpacity, {
+        testID: testID || 'button-icon',
+        onPress,
+      });
+
+    return {
+      __esModule: true,
+      default: ButtonIcon,
+      ButtonIconSizes,
+    };
+  },
+);
+
+// Mock Icon component
+jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
+  IconName: {
+    ArrowLeft: 'ArrowLeft',
+  },
+}));
+
 // Mock i18n
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
-      'card.card_onboarding.kyc_failed.title': 'KYC Failed',
+      'card.card_onboarding.kyc_failed.title':
+        "You're not eligible for MetaMask Card right now",
       'card.card_onboarding.kyc_failed.description':
-        'Your KYC verification failed. Please try again with correct information.',
-      'card.card_onboarding.kyc_failed.close_button': 'Close',
+        "Eligibility is determined by our partner's regulatory and verification checks.",
+      'card.card_onboarding.kyc_failed.close_button': 'Back to home',
     };
     return translations[key] || key;
   }),
+}));
+
+// Mock styles/common
+jest.mock('../../../../../styles/common', () => ({
+  colors: {
+    white: '#FFFFFF',
+  },
 }));
 
 describe('KYCFailed Component', () => {
@@ -202,44 +229,54 @@ describe('KYCFailed Component', () => {
   });
 
   describe('Component Rendering', () => {
-    it('renders the component successfully', () => {
+    it('renders the title text', () => {
       const { getByTestId } = render(<KYCFailed />);
 
-      expect(getByTestId('onboarding-step')).toBeTruthy();
-    });
+      const title = getByTestId('kyc-failed-title');
 
-    it('displays the correct title', () => {
-      const { getByTestId } = render(<KYCFailed />);
-
-      const title = getByTestId('onboarding-step-title');
       expect(title).toBeTruthy();
-      expect(title.props.children).toBe('KYC Failed');
-    });
-
-    it('displays the correct description', () => {
-      const { getByTestId } = render(<KYCFailed />);
-
-      const description = getByTestId('onboarding-step-description');
-      expect(description).toBeTruthy();
-      expect(description.props.children).toBe(
-        'Your KYC verification failed. Please try again with correct information.',
+      expect(title.props.children).toBe(
+        "You're not eligible for MetaMask Card right now",
       );
     });
 
-    it('renders form fields section with image', () => {
+    it('renders the description text', () => {
       const { getByTestId } = render(<KYCFailed />);
 
-      const formFields = getByTestId('onboarding-step-form-fields');
-      expect(formFields).toBeTruthy();
-      expect(formFields.props.children).toBeTruthy();
+      const description = getByTestId('kyc-failed-description');
+
+      expect(description).toBeTruthy();
+      expect(description.props.children).toBe(
+        "Eligibility is determined by our partner's regulatory and verification checks.",
+      );
     });
 
-    it('renders actions section with close button', () => {
+    it('renders the image', () => {
       const { getByTestId } = render(<KYCFailed />);
 
-      const actions = getByTestId('onboarding-step-actions');
-      expect(actions).toBeTruthy();
-      expect(actions.props.children).toBeTruthy();
+      const image = getByTestId('kyc-failed-image');
+
+      expect(image).toBeTruthy();
+    });
+  });
+
+  describe('Back Button', () => {
+    it('renders the back button with correct testID', () => {
+      const { getByTestId } = render(<KYCFailed />);
+
+      const backButton = getByTestId('kyc-failed-back-button');
+
+      expect(backButton).toBeTruthy();
+    });
+
+    it('navigates to wallet home when back button is pressed', () => {
+      const { getByTestId } = render(<KYCFailed />);
+
+      const backButton = getByTestId('kyc-failed-back-button');
+      fireEvent.press(backButton);
+
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     });
   });
 
@@ -248,25 +285,20 @@ describe('KYCFailed Component', () => {
       const { getByTestId } = render(<KYCFailed />);
 
       const button = getByTestId('kyc-failed-close-button');
+
       expect(button).toBeTruthy();
     });
 
-    it('displays the correct button text', () => {
+    it('displays the correct button label', () => {
       const { getByTestId } = render(<KYCFailed />);
 
-      const buttonLabel = getByTestId('button-label');
+      const buttonLabel = getByTestId('kyc-failed-close-button-label');
+
       expect(buttonLabel).toBeTruthy();
-      expect(buttonLabel.props.children).toBe('Close');
+      expect(buttonLabel.props.children).toBe('Back to home');
     });
 
-    it('is not disabled by default', () => {
-      const { getByTestId } = render(<KYCFailed />);
-
-      const button = getByTestId('kyc-failed-close-button');
-      expect(button.props.disabled).toBeFalsy();
-    });
-
-    it('navigates to wallet home when pressed', () => {
+    it('navigates to wallet home when close button is pressed', () => {
       const { getByTestId } = render(<KYCFailed />);
 
       const button = getByTestId('kyc-failed-close-button');
@@ -276,33 +308,29 @@ describe('KYCFailed Component', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     });
 
-    it('calls navigation only once per button press', () => {
+    it('is not disabled by default', () => {
       const { getByTestId } = render(<KYCFailed />);
 
       const button = getByTestId('kyc-failed-close-button');
-      fireEvent.press(button);
-      fireEvent.press(button);
 
-      expect(mockNavigate).toHaveBeenCalledTimes(2);
-      expect(mockNavigate).toHaveBeenNthCalledWith(1, Routes.WALLET.HOME);
-      expect(mockNavigate).toHaveBeenNthCalledWith(2, Routes.WALLET.HOME);
+      expect(button.props.disabled).toBeFalsy();
     });
   });
 
-  describe('Metrics Tracking', () => {
-    it('tracks CARD_VIEWED event on mount', () => {
-      render(<KYCFailed />);
-
-      expect(mockCreateEventBuilder).toHaveBeenCalled();
-      expect(mockTrackEvent).toHaveBeenCalled();
-    });
-  });
-
-  describe('Navigation Integration', () => {
-    it('uses navigation hook correctly', () => {
+  describe('Navigation', () => {
+    it('uses navigation hook', () => {
       render(<KYCFailed />);
 
       expect(useNavigation).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls navigate with correct route when back is pressed', () => {
+      const { getByTestId } = render(<KYCFailed />);
+
+      const backButton = getByTestId('kyc-failed-back-button');
+      fireEvent.press(backButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     });
 
     it('calls navigate with correct route when close is pressed', () => {
@@ -313,173 +341,119 @@ describe('KYCFailed Component', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     });
-  });
 
-  describe('OnboardingStep Integration', () => {
-    it('passes correct props to OnboardingStep', () => {
-      const { getByTestId } = render(<KYCFailed />);
-
-      const onboardingStep = getByTestId('onboarding-step');
-      expect(onboardingStep).toBeTruthy();
-
-      // Verify title is passed correctly
-      const title = getByTestId('onboarding-step-title');
-      expect(title.props.children).toBe('KYC Failed');
-
-      // Verify description is passed correctly
-      const description = getByTestId('onboarding-step-description');
-      expect(description.props.children).toBe(
-        'Your KYC verification failed. Please try again with correct information.',
-      );
-
-      // Verify form fields are passed (contains image)
-      const formFields = getByTestId('onboarding-step-form-fields');
-      expect(formFields.props.children).toBeTruthy();
-
-      // Verify actions are passed
-      const actions = getByTestId('onboarding-step-actions');
-      expect(actions).toBeTruthy();
-    });
-
-    it('renders OnboardingStep with correct structure', () => {
-      const { getByTestId } = render(<KYCFailed />);
-
-      expect(getByTestId('onboarding-step')).toBeTruthy();
-      expect(getByTestId('onboarding-step-title')).toBeTruthy();
-      expect(getByTestId('onboarding-step-description')).toBeTruthy();
-      expect(getByTestId('onboarding-step-form-fields')).toBeTruthy();
-      expect(getByTestId('onboarding-step-actions')).toBeTruthy();
-    });
-  });
-
-  describe('Button Configuration', () => {
-    it('configures button with primary variant', () => {
-      const { getByTestId } = render(<KYCFailed />);
-
-      const button = getByTestId('kyc-failed-close-button');
-      expect(button).toBeTruthy();
-    });
-
-    it('configures button with large size', () => {
-      const { getByTestId } = render(<KYCFailed />);
-
-      const button = getByTestId('kyc-failed-close-button');
-      expect(button).toBeTruthy();
-    });
-
-    it('configures button with full width', () => {
-      const { getByTestId } = render(<KYCFailed />);
-
-      const button = getByTestId('kyc-failed-close-button');
-      expect(button).toBeTruthy();
-    });
-
-    it('renders button with correct label', () => {
-      const { getByTestId } = render(<KYCFailed />);
-
-      const buttonLabel = getByTestId('button-label');
-      expect(buttonLabel.props.children).toBe('Close');
-    });
-  });
-
-  describe('Error State Handling', () => {
-    it('displays appropriate error messaging', () => {
-      const { getByTestId } = render(<KYCFailed />);
-
-      const title = getByTestId('onboarding-step-title');
-      const description = getByTestId('onboarding-step-description');
-
-      expect(title.props.children).toBe('KYC Failed');
-      expect(description.props.children).toContain('failed');
-      expect(description.props.children).toContain('try again');
-    });
-
-    it('provides close functionality', () => {
-      const { getByTestId } = render(<KYCFailed />);
-
-      const button = getByTestId('kyc-failed-close-button');
-      const buttonLabel = getByTestId('button-label');
-
-      expect(buttonLabel.props.children).toBe('Close');
-      expect(button.props.onPress).toBeDefined();
-    });
-
-    it('communicates failure state clearly', () => {
-      const { getByTestId } = render(<KYCFailed />);
-
-      const title = getByTestId('onboarding-step-title');
-      const description = getByTestId('onboarding-step-description');
-
-      expect(title.props.children).toMatch(/failed/i);
-      expect(description.props.children).toMatch(/verification failed/i);
-    });
-  });
-
-  describe('User Flow Integration', () => {
-    it('navigates to wallet home on close', () => {
+    it('handles multiple button presses', () => {
       const { getByTestId } = render(<KYCFailed />);
 
       const button = getByTestId('kyc-failed-close-button');
       fireEvent.press(button);
+      fireEvent.press(button);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+      expect(mockNavigate).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('Metrics Tracking', () => {
+    it('tracks CARD_VIEWED event on mount', () => {
+      render(<KYCFailed />);
+
+      expect(mockCreateEventBuilder).toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
 
-    it('maintains user flow continuity', () => {
-      const { getByTestId } = render(<KYCFailed />);
+    it('creates event with KYC_FAILED screen property', () => {
+      render(<KYCFailed />);
 
-      const button = getByTestId('kyc-failed-close-button');
-      expect(button).toBeTruthy();
-      expect(button.props.onPress).toBeDefined();
+      expect(mockCreateEventBuilder).toHaveBeenCalled();
+      const addPropertiesCall =
+        mockCreateEventBuilder.mock.results[0].value.addProperties;
+      expect(addPropertiesCall).toHaveBeenCalledWith({
+        screen: 'KYC_FAILED',
+      });
+    });
+  });
 
-      fireEvent.press(button);
-      expect(mockNavigate).toHaveBeenCalled();
+  describe('Redux Integration', () => {
+    it('dispatches resetOnboardingState on mount', () => {
+      const mockDispatch = jest.fn();
+      const { useDispatch } = jest.requireMock('react-redux');
+      useDispatch.mockReturnValue(mockDispatch);
+
+      render(<KYCFailed />);
+
+      expect(mockDispatch).toHaveBeenCalled();
     });
   });
 
   describe('i18n Integration', () => {
-    it('uses correct i18n keys for title', () => {
+    it('uses correct i18n key for title', () => {
       const { getByTestId } = render(<KYCFailed />);
 
-      const title = getByTestId('onboarding-step-title');
-      expect(title.props.children).toBe('KYC Failed');
+      const title = getByTestId('kyc-failed-title');
+
+      expect(title.props.children).toBe(
+        "You're not eligible for MetaMask Card right now",
+      );
     });
 
-    it('uses correct i18n keys for description', () => {
+    it('uses correct i18n key for description', () => {
       const { getByTestId } = render(<KYCFailed />);
 
-      const description = getByTestId('onboarding-step-description');
+      const description = getByTestId('kyc-failed-description');
+
       expect(description.props.children).toBe(
-        'Your KYC verification failed. Please try again with correct information.',
+        "Eligibility is determined by our partner's regulatory and verification checks.",
       );
     });
 
     it('uses correct i18n key for close button', () => {
       const { getByTestId } = render(<KYCFailed />);
 
-      const buttonLabel = getByTestId('button-label');
-      expect(buttonLabel.props.children).toBe('Close');
+      const buttonLabel = getByTestId('kyc-failed-close-button-label');
+
+      expect(buttonLabel.props.children).toBe('Back to home');
     });
   });
 
   describe('testID Coverage', () => {
-    it('renders component with kyc-failed-close-button testID', () => {
+    it('renders all interactive elements with testIDs', () => {
+      const { getByTestId } = render(<KYCFailed />);
+
+      expect(getByTestId('kyc-failed-back-button')).toBeTruthy();
+      expect(getByTestId('kyc-failed-title')).toBeTruthy();
+      expect(getByTestId('kyc-failed-description')).toBeTruthy();
+      expect(getByTestId('kyc-failed-image')).toBeTruthy();
+      expect(getByTestId('kyc-failed-close-button')).toBeTruthy();
+    });
+  });
+
+  describe('User Flow', () => {
+    it('provides clear failure state messaging', () => {
+      const { getByTestId } = render(<KYCFailed />);
+
+      const title = getByTestId('kyc-failed-title');
+      const description = getByTestId('kyc-failed-description');
+
+      expect(title.props.children).toMatch(/not eligible/i);
+      expect(description.props.children).toContain('verification');
+    });
+
+    it('allows user to dismiss screen via back button', () => {
+      const { getByTestId } = render(<KYCFailed />);
+
+      const backButton = getByTestId('kyc-failed-back-button');
+      fireEvent.press(backButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+    });
+
+    it('allows user to dismiss screen via close button', () => {
       const { getByTestId } = render(<KYCFailed />);
 
       const button = getByTestId('kyc-failed-close-button');
-      expect(button).toBeTruthy();
-    });
+      fireEvent.press(button);
 
-    it('provides testID for all interactive elements', () => {
-      const { getByTestId } = render(<KYCFailed />);
-
-      expect(getByTestId('onboarding-step')).toBeTruthy();
-      expect(getByTestId('onboarding-step-title')).toBeTruthy();
-      expect(getByTestId('onboarding-step-description')).toBeTruthy();
-      expect(getByTestId('onboarding-step-form-fields')).toBeTruthy();
-      expect(getByTestId('onboarding-step-actions')).toBeTruthy();
-      expect(getByTestId('kyc-failed-close-button')).toBeTruthy();
-      expect(getByTestId('button-label')).toBeTruthy();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     });
   });
 });

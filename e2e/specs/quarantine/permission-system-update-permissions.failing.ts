@@ -1,22 +1,21 @@
 import { SmokeNetworkAbstractions } from '../../tags';
 import Browser from '../../pages/Browser/BrowserView';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
-import { loginToApp } from '../../viewHelper';
-import Assertions from '../../framework/Assertions';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
+import Assertions from '../../../tests/framework/Assertions';
 import NetworkConnectMultiSelector from '../../pages/Browser/NetworkConnectMultiSelector';
 import NetworkNonPemittedBottomSheet from '../../pages/Network/NetworkNonPemittedBottomSheet';
-import { CustomNetworks } from '../../resources/networks.e2e';
+import { CustomNetworks } from '../../../tests/resources/networks.e2e';
 import PermissionSummaryBottomSheet from '../../pages/Browser/PermissionSummaryBottomSheet';
-import { NetworkNonPemittedBottomSheetSelectorsText } from '../../selectors/Network/NetworkNonPemittedBottomSheet.selectors';
+import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import ToastModal from '../../pages/wallet/ToastModal';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import AddNewAccountSheet from '../../pages/wallet/AddNewAccountSheet';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { DappVariants } from '../../framework/Constants';
-import { logger } from '../../framework/logger';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import { DappVariants } from '../../../tests/framework/Constants';
+import { logger } from '../../../tests/framework/logger';
 
 const accountOneText = 'Account 1';
 const accountTwoText = 'Account 2';
@@ -48,7 +47,7 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         logger.debug('Starting test');
         await loginToApp();
         logger.debug('Logged in');
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Assertions.expectElementToBeVisible(Browser.browserScreenID);
 
         await Browser.navigateToTestDApp();
@@ -100,7 +99,7 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
       async () => {
         //should navigate to browser
         await loginToApp();
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Assertions.expectElementToBeVisible(Browser.browserScreenID);
 
         // navigate to test dapp and verify that the connected accounts modal is visible

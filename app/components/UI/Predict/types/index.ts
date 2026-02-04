@@ -98,6 +98,7 @@ export type PredictMarket = {
   outcomes: PredictOutcome[];
   liquidity: number;
   volume: number;
+  game?: PredictMarketGame;
 };
 
 export type PredictSeries = {
@@ -109,7 +110,77 @@ export type PredictCategory =
   | 'new'
   | 'sports'
   | 'crypto'
-  | 'politics';
+  | 'politics'
+  | 'hot';
+
+// Sports league types
+export type PredictSportsLeague = 'nfl' | 'nba';
+
+// Game status
+export type PredictGameStatus = 'scheduled' | 'ongoing' | 'ended';
+
+// Team data
+export interface PredictSportTeam {
+  id: string;
+  name: string;
+  logo: string;
+  abbreviation: string; // e.g., "SEA", "DEN"
+  color: string; // Team primary color (hex)
+  alias: string; // Team alias (e.g., "Seahawks")
+}
+
+// Parsed score data
+export interface PredictGameScore {
+  away: number;
+  home: number;
+  raw: string; // Original "away-home" format (e.g., "21-14")
+}
+
+export type PredictGamePeriod =
+  | 'NS' // Not Started
+  | 'Q1' // First Quarter
+  | 'End Q1' // End of First Quarter
+  | 'Q2' // Second Quarter
+  | 'HT' // Halftime
+  | 'Q3' // Third Quarter
+  | 'End Q3' // End of Third Quarter
+  | 'Q4' // Fourth Quarter
+  | 'End Q4' // End of Fourth Quarter
+  | 'OT' // Overtime
+  | 'FT' // Final
+  | 'VFT'; // Verified fulltime (when closed=true)
+
+// Game data attached to market
+export interface PredictMarketGame {
+  id: string;
+  startTime: string;
+  endTime?: string; // ISO date when game ended, available for ended games
+  status: PredictGameStatus;
+  league: PredictSportsLeague;
+  elapsed: string | null; // Game clock, null if not available
+  period: PredictGamePeriod | null; // Current period, null if not available
+  score: PredictGameScore | null; // Parsed score with away/home values, null if not available
+  homeTeam: PredictSportTeam;
+  awayTeam: PredictSportTeam;
+  turn?: string; // Team abbreviation with possession
+}
+
+// Live update types for WebSocket data
+export interface GameUpdate {
+  gameId: string;
+  score: string;
+  elapsed: string;
+  period: PredictGamePeriod;
+  status: PredictGameStatus;
+  turn?: string;
+}
+
+export interface PriceUpdate {
+  tokenId: string;
+  price: number;
+  bestBid: number;
+  bestAsk: number;
+}
 
 export type PredictOutcome = {
   id: string;
@@ -209,6 +280,8 @@ export interface GetPriceHistoryParams {
   providerId?: string;
   fidelity?: number;
   interval?: PredictPriceHistoryInterval;
+  startTs?: number;
+  endTs?: number;
 }
 
 /**
@@ -331,3 +404,7 @@ export type PredictWithdraw = {
 export type PredictAccountMeta = {
   isOnboarded: boolean;
 };
+
+export interface PredictCarouselMetadata {
+  marketId: string;
+}

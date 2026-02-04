@@ -144,3 +144,66 @@ export const selectHip3ConfigVersion = createSelector(
   (state: RootState) => state?.engine?.backgroundState?.PerpsController,
   (perpsController) => perpsController?.hip3ConfigVersion ?? 0,
 );
+
+/**
+ * Selector for Perps Feedback feature flag
+ * Controls visibility of the "Give feedback" button on Perps home screen
+ *
+ * @returns boolean - true if feedback button should be shown, false otherwise
+ */
+export const selectPerpsFeedbackEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_PERPS_FEEDBACK_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.perpsFeedbackEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
+ * Selector for Perps Trade With Any Token feature flag
+ * Controls visibility of the deposit flow in PerpsOrderView
+ * When enabled, allows users to trade with any token by depositing first
+ *
+ * @returns boolean - true if trade with any token is enabled, false otherwise
+ */
+export const selectPerpsTradeWithAnyTokenEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag =
+      process.env.MM_PERPS_TRADE_WITH_ANY_TOKEN_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.perpsTradeWithAnyTokenIsEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
+ * Selector for Rewards Referral Code feature flag
+ * Controls visibility of referral code in PnL hero card
+ * Supports both boolean and version-gated JSON flag formats
+ *
+ * @returns boolean - true if referral code should be shown, false otherwise
+ */
+export const selectPerpsRewardsReferralCodeEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): boolean => {
+    const remoteFlag = remoteFeatureFlags?.rewardsReferralCodeEnabled;
+
+    if (remoteFlag === undefined || remoteFlag === null) {
+      return false;
+    }
+
+    // Handle simple boolean flag
+    if (typeof remoteFlag === 'boolean') {
+      return remoteFlag;
+    }
+
+    // Handle version-gated JSON flag
+    const versionGatedFlag = remoteFlag as unknown as VersionGatedFeatureFlag;
+    return validatedVersionGatedFeatureFlag(versionGatedFlag) ?? false;
+  },
+);

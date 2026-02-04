@@ -13,7 +13,7 @@ import { IconName, Box } from '@metamask/design-system-react-native';
 import ActionListItem from '../../../component-library/components-temp/ActionListItem';
 import useRampNetwork from '../Ramp/Aggregator/hooks/useRampNetwork';
 import { getDecimalChainId } from '../../../util/networks';
-import { WalletActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
+import { WalletActionsBottomSheetSelectorsIDs } from '../../Views/WalletActions/WalletActionsBottomSheet.testIds';
 import { strings } from '../../../../locales/i18n';
 
 // Internal dependencies

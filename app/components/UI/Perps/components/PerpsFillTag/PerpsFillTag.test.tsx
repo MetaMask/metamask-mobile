@@ -106,17 +106,17 @@ describe('PerpsFillTag', () => {
 
     const { getByText } = render(<PerpsFillTag transaction={transaction} />);
 
-    expect(getByText('Auto-Deleveraging')).toBeOnTheScreen();
+    expect(getByText('Auto-deleveraging')).toBeOnTheScreen();
   });
 
   it('opens ADL support article URL when ADL tag is pressed', () => {
     const transaction = createMockTransaction(FillType.AutoDeleveraging);
     const { getByText } = render(<PerpsFillTag transaction={transaction} />);
 
-    fireEvent.press(getByText('Auto-Deleveraging'));
+    fireEvent.press(getByText('Auto-deleveraging'));
 
     expect(Linking.openURL).toHaveBeenCalledWith(
-      PERPS_SUPPORT_ARTICLES_URLS.ADL_URL,
+      PERPS_SUPPORT_ARTICLES_URLS.AdlUrl,
     );
   });
 
@@ -124,7 +124,7 @@ describe('PerpsFillTag', () => {
     const transaction = createMockTransaction(FillType.AutoDeleveraging);
     const { getByText } = render(<PerpsFillTag transaction={transaction} />);
 
-    fireEvent.press(getByText('Auto-Deleveraging'));
+    fireEvent.press(getByText('Auto-deleveraging'));
 
     expect(mockTrack).toHaveBeenCalled();
   });

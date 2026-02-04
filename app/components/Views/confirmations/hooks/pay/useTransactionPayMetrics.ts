@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { useDispatch } from 'react-redux';
-import { updateConfirmationMetric } from '../../../../../core/redux/slices/confirmationMetrics';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  selectConfirmationMetricsById,
+  updateConfirmationMetric,
+} from '../../../../../core/redux/slices/confirmationMetrics';
+import { RootState } from '../../../../../reducers';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useDeepMemo } from '../useDeepMemo';
 import { Hex, Json, isCaipChainId, isHexString } from '@metamask/utils';
@@ -8,10 +12,8 @@ import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { BridgeToken } from '../../../../UI/Bridge/types';
-import { getNativeTokenAddress } from '../../utils/asset';
 import { hasTransactionType } from '../../utils/transaction';
 import {
-  useIsTransactionPayQuoteLoading,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
   useTransactionPayTotals,
@@ -20,6 +22,7 @@ import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
 import { BigNumber } from 'bignumber.js';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { useAccountTokens } from '../send/useAccountTokens';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 
 export function useTransactionPayMetrics() {
   const dispatch = useDispatch();
@@ -28,22 +31,26 @@ export function useTransactionPayMetrics() {
   const requiredTokens = useTransactionPayRequiredTokens();
   const highestBalanceChainId = useHighestBalanceCaipChainId();
   const automaticPayToken = useRef<BridgeToken>();
-  const hasRequestedQuoteRef = useRef(false);
+  const hasLoadedQuoteRef = useRef(false);
   const quotes = useTransactionPayQuotes();
-  const isQuotesLoading = useIsTransactionPayQuoteLoading();
   const totals = useTransactionPayTotals();
   const tokens = useTransactionPayAvailableTokens();
 
-  if (isQuotesLoading && !hasRequestedQuoteRef.current) {
-    hasRequestedQuoteRef.current = true;
+  const transactionId = transactionMeta?.id ?? '';
+  const storedMetrics = useSelector((state: RootState) =>
+    selectConfirmationMetricsById(state, transactionId),
+  );
+
+  const hasQuotes = (quotes?.length ?? 0) > 0;
+
+  if (hasQuotes && !hasLoadedQuoteRef.current) {
+    hasLoadedQuoteRef.current = true;
   }
 
   const availableTokens = useMemo(
     () => tokens.filter((t) => !t.disabled),
     [tokens],
   );
-
-  const transactionId = transactionMeta?.id ?? '';
   const { chainId, type } = transactionMeta ?? {};
   const primaryRequiredToken = requiredTokens.find((t) => !t.skipIfBalance);
   const sendingValue = Number(primaryRequiredToken?.amountHuman ?? '0');
@@ -54,8 +61,6 @@ export function useTransactionPayMetrics() {
 
   const properties: Json = {};
   const sensitiveProperties: Json = {};
-
-  const hasQuotes = (quotes?.length ?? 0) > 0;
 
   if (payToken) {
     properties.mm_pay = true;
@@ -74,8 +79,9 @@ export function useTransactionPayMetrics() {
 
     properties.mm_pay_payment_token_list_size = availableTokens.length;
 
-    properties.mm_pay_quote_requested = hasRequestedQuoteRef.current;
-    properties.mm_pay_quote_loaded = hasQuotes;
+    properties.mm_pay_quote_requested =
+      (storedMetrics?.properties?.mm_pay_quote_requested as boolean) ?? false;
+    properties.mm_pay_quote_loaded = hasLoadedQuoteRef.current;
     properties.mm_pay_chain_highest_balance_caip =
       highestBalanceChainId ?? null;
   }

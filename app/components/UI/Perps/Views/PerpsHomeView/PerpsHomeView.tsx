@@ -6,6 +6,7 @@ import React, {
   useMemo,
 } from 'react';
 import { View, ScrollView, Modal } from 'react-native';
+import { useSelector } from 'react-redux';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -13,6 +14,7 @@ import {
 import {
   useNavigation,
   useRoute,
+  useFocusEffect,
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
@@ -20,6 +22,7 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  IconName,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { TextColor } from '../../../../../component-library/components/Texts/Text';
@@ -30,6 +33,7 @@ import {
   usePerpsHomeData,
   usePerpsNavigation,
   usePerpsMeasurement,
+  usePerpsHomeSectionTracking,
 } from '../../hooks';
 import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
@@ -39,7 +43,9 @@ import {
   HOME_SCREEN_CONFIG,
   LEARN_MORE_CONFIG,
   SUPPORT_CONFIG,
+  FEEDBACK_CONFIG,
 } from '../../constants/perpsConfig';
+import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsCard from '../../components/PerpsCard';
 import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
@@ -47,7 +53,7 @@ import PerpsMarketTypeSection from '../../components/PerpsMarketTypeSection';
 import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/PerpsRecentActivityList';
 import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
-import PerpsHomeHeader from '../../components/PerpsHomeHeader';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import styleSheet from './PerpsHomeView.styles';
@@ -57,7 +63,7 @@ import {
   PerpsEventValues,
 } from '../../constants/eventNames';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { PerpsHomeViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 import PerpsCloseAllPositionsView from '../PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
 import PerpsCancelAllOrdersView from '../PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -73,6 +79,9 @@ const PerpsHomeView = () => {
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
   const { trackEvent, createEventBuilder } = useMetrics();
 
+  // Feature flag for feedback button
+  const isFeedbackEnabled = useSelector(selectPerpsFeedbackEnabledFlag);
+
   // Use centralized navigation hook
   const perpsNavigation = usePerpsNavigation();
 
@@ -87,11 +96,21 @@ const PerpsHomeView = () => {
   const {
     handleAddFunds,
     handleWithdraw,
+    isEligible,
     isEligibilityModalVisible,
     closeEligibilityModal,
   } = usePerpsHomeActions({
     buttonLocation: PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
   });
+
+  // Separate geo-block modal state for close all / cancel all actions
+  const [isCloseAllGeoBlockVisible, setIsCloseAllGeoBlockVisible] =
+    useState(false);
+  const { track } = usePerpsEventTracking();
+
+  // Section scroll tracking for analytics
+  const { handleSectionLayout, handleScroll, resetTracking } =
+    usePerpsHomeSectionTracking();
 
   // Get balance state directly from Redux
   const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
@@ -108,7 +127,7 @@ const PerpsHomeView = () => {
     orders,
     watchlistMarkets,
     perpsMarkets, // Crypto markets (renamed from trendingMarkets)
-    stocksAndCommoditiesMarkets,
+    stocksMarkets, // Equity markets only
     forexMarkets,
     recentActivity,
     sortBy,
@@ -159,6 +178,14 @@ const PerpsHomeView = () => {
     conditions: [!isAnyLoading],
   });
 
+  // Reset section tracking when screen comes into focus
+  // This ensures sections can be tracked again when navigating back to the screen
+  useFocusEffect(
+    useCallback(() => {
+      resetTracking();
+    }, [resetTracking]),
+  );
+
   // Track home screen viewed event
   const source =
     route.params?.source || PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON;
@@ -178,7 +205,7 @@ const PerpsHomeView = () => {
     conditions: [!isAnyLoading],
     properties: {
       [PerpsEventProperties.SCREEN_TYPE]:
-        PerpsEventValues.SCREEN_TYPE.HOMESCREEN,
+        PerpsEventValues.SCREEN_TYPE.PERPS_HOME,
       [PerpsEventProperties.SOURCE]: source,
       [PerpsEventProperties.HAS_PERP_BALANCE]: hasPerpBalance,
       ...(buttonClicked && {
@@ -204,9 +231,11 @@ const PerpsHomeView = () => {
         })
         .build(),
     );
-    // Navigate to MarketListView with search enabled
+    // Navigate to MarketListView with search enabled and 'all' category
+    // When user closes search, they should see all markets (not a specific category)
     perpsNavigation.navigateToMarketList({
       defaultSearchVisible: true,
+      defaultMarketTypeFilter: 'all',
       source: PerpsEventValues.SOURCE.HOMESCREEN_TAB,
       fromHome: true,
       button_clicked: PerpsEventValues.BUTTON_CLICKED.MAGNIFYING_GLASS,
@@ -237,40 +266,102 @@ const PerpsHomeView = () => {
     navigation.navigate(Routes.WEBVIEW.MAIN, {
       screen: Routes.WEBVIEW.SIMPLE,
       params: {
-        url: SUPPORT_CONFIG.URL,
-        title: strings(SUPPORT_CONFIG.TITLE_KEY),
+        url: SUPPORT_CONFIG.Url,
+        title: strings(SUPPORT_CONFIG.TitleKey),
       },
     });
+    // Track contact support interaction for Perps analytics
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PERPS_UI_INTERACTION)
+        .addProperties({
+          [PerpsEventProperties.INTERACTION_TYPE]:
+            PerpsEventValues.INTERACTION_TYPE.CONTACT_SUPPORT,
+          [PerpsEventProperties.LOCATION]:
+            PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+        })
+        .build(),
+    );
+    // Also track the general navigation event
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP).build(),
     );
   }, [createEventBuilder, navigation, trackEvent]);
 
+  const handleGiveFeedback = useCallback(() => {
+    // Track feedback button click
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PERPS_UI_INTERACTION)
+        .addProperties({
+          [PerpsEventProperties.INTERACTION_TYPE]:
+            PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
+          [PerpsEventProperties.BUTTON_CLICKED]:
+            PerpsEventValues.BUTTON_CLICKED.GIVE_FEEDBACK,
+          [PerpsEventProperties.BUTTON_LOCATION]:
+            PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+        })
+        .build(),
+    );
+    // Open survey in in-app browser (same pattern as Contact Support)
+    navigation.navigate(Routes.WEBVIEW.MAIN, {
+      screen: Routes.WEBVIEW.SIMPLE,
+      params: {
+        url: FEEDBACK_CONFIG.Url,
+        title: strings(FEEDBACK_CONFIG.TitleKey),
+      },
+    });
+  }, [trackEvent, createEventBuilder, navigation]);
+
   const navigationItems: NavigationItem[] = useMemo(() => {
     const items: NavigationItem[] = [
       {
-        label: strings(SUPPORT_CONFIG.TITLE_KEY),
+        label: strings(SUPPORT_CONFIG.TitleKey),
         onPress: () => navigateToContactSupport(),
         testID: PerpsHomeViewSelectorsIDs.SUPPORT_BUTTON,
       },
     ];
 
+    // Add feedback button when feature flag is enabled
+    if (isFeedbackEnabled) {
+      items.push({
+        label: strings(FEEDBACK_CONFIG.TitleKey),
+        onPress: handleGiveFeedback,
+        testID: PerpsHomeViewSelectorsIDs.FEEDBACK_BUTTON,
+      });
+    }
+
     // Avoid duplicate "Learn more" button (shown in empty state card)
     if (!isBalanceEmpty) {
       items.push({
-        label: strings(LEARN_MORE_CONFIG.TITLE_KEY),
+        label: strings(LEARN_MORE_CONFIG.TitleKey),
         onPress: () => navigtateToTutorial(),
         testID: PerpsHomeViewSelectorsIDs.LEARN_MORE_BUTTON,
       });
     }
 
     return items;
-  }, [navigateToContactSupport, navigtateToTutorial, isBalanceEmpty]);
+  }, [
+    navigateToContactSupport,
+    navigtateToTutorial,
+    isBalanceEmpty,
+    isFeedbackEnabled,
+    handleGiveFeedback,
+  ]);
 
-  // Bottom sheet handlers - open sheets directly
+  // Bottom sheet handlers - open sheets directly with geo-restriction check
   const handleCloseAllPress = useCallback(() => {
+    // Geo-restriction check for close all positions
+    if (!isEligible) {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PerpsEventProperties.SOURCE]:
+          PerpsEventValues.SOURCE.CLOSE_ALL_POSITIONS_BUTTON,
+      });
+      setIsCloseAllGeoBlockVisible(true);
+      return;
+    }
     setShowCloseAllSheet(true);
-  }, []);
+  }, [isEligible, track]);
 
   const handleCancelAllPress = useCallback(() => {
     setShowCancelAllSheet(true);
@@ -321,11 +412,18 @@ const PerpsHomeView = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header - Using extracted component */}
-      <PerpsHomeHeader
-        isSearchVisible={false}
+      {/* Header */}
+      <HeaderCenter
+        title={strings('perps.title')}
         onBack={handleBackPress}
-        onSearchToggle={handleSearchToggle}
+        backButtonProps={{ testID: 'back-button' }}
+        endButtonIconProps={[
+          {
+            iconName: IconName.Search,
+            onPress: handleSearchToggle,
+            testID: 'perps-home-search-toggle',
+          },
+        ]}
         testID="perps-home"
       />
 
@@ -334,10 +432,12 @@ const PerpsHomeView = () => {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}
         showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
       >
         {/* Balance Actions Component */}
         <PerpsMarketBalanceActions
-          showActionButtons={HOME_SCREEN_CONFIG.SHOW_HEADER_ACTION_BUTTONS}
+          showActionButtons={HOME_SCREEN_CONFIG.ShowHeaderActionButtons}
         />
 
         {/* Positions Section */}
@@ -356,7 +456,7 @@ const PerpsHomeView = () => {
           <View style={styles.positionsOrdersContainer}>
             {positions.map((position, index) => (
               <PerpsCard
-                key={`${position.coin}-${index}`}
+                key={`${position.symbol}-${index}`}
                 position={position}
                 source={PerpsEventValues.SOURCE.HOMESCREEN_TAB}
               />
@@ -393,22 +493,26 @@ const PerpsHomeView = () => {
         />
 
         {/* Crypto Markets List */}
-        <PerpsMarketTypeSection
-          title={strings('perps.home.crypto')}
-          markets={perpsMarkets}
-          marketType="crypto"
-          sortBy={sortBy}
-          isLoading={isLoading.markets}
-        />
+        <View onLayout={handleSectionLayout('explore_crypto')}>
+          <PerpsMarketTypeSection
+            title={strings('perps.home.crypto')}
+            markets={perpsMarkets}
+            marketType="crypto"
+            sortBy={sortBy}
+            isLoading={isLoading.markets}
+          />
+        </View>
 
-        {/* Stocks & Commodities Markets List */}
-        <PerpsMarketTypeSection
-          title={strings('perps.home.stocks_and_commodities')}
-          markets={stocksAndCommoditiesMarkets}
-          marketType="stocks_and_commodities"
-          sortBy={sortBy}
-          isLoading={isLoading.markets}
-        />
+        {/* Stocks Markets List */}
+        <View onLayout={handleSectionLayout('explore_stocks')}>
+          <PerpsMarketTypeSection
+            title={strings('perps.home.stocks')}
+            markets={stocksMarkets}
+            marketType="stocks"
+            sortBy={sortBy}
+            isLoading={isLoading.markets}
+          />
+        </View>
 
         {/* Forex Markets List */}
         <PerpsMarketTypeSection
@@ -419,10 +523,12 @@ const PerpsHomeView = () => {
         />
 
         {/* Recent Activity List */}
-        <PerpsRecentActivityList
-          transactions={recentActivity}
-          isLoading={isLoading.activity}
-        />
+        <View onLayout={handleSectionLayout('activity')}>
+          <PerpsRecentActivityList
+            transactions={recentActivity}
+            isLoading={isLoading.activity}
+          />
+        </View>
 
         <View style={styles.sectionContent}>
           <PerpsNavigationCard items={navigationItems} />
@@ -452,7 +558,7 @@ const PerpsHomeView = () => {
       {!isBalanceEmpty &&
         !showCloseAllSheet &&
         !showCancelAllSheet &&
-        !HOME_SCREEN_CONFIG.SHOW_HEADER_ACTION_BUTTONS && (
+        !HOME_SCREEN_CONFIG.ShowHeaderActionButtons && (
           <View style={fixedFooterStyle}>
             <View style={styles.footerButtonsContainer}>
               <View style={styles.footerButton}>
@@ -491,6 +597,20 @@ const PerpsHomeView = () => {
               onClose={closeEligibilityModal}
               contentKey={'geo_block'}
               testID={'perps-home-geo-block-tooltip'}
+            />
+          </Modal>
+        </View>
+      )}
+
+      {/* Close All / Cancel All Geo-Block Modal */}
+      {isCloseAllGeoBlockVisible && (
+        <View>
+          <Modal visible transparent animationType="none" statusBarTranslucent>
+            <PerpsBottomSheetTooltip
+              isVisible
+              onClose={() => setIsCloseAllGeoBlockVisible(false)}
+              contentKey={'geo_block'}
+              testID={'perps-home-close-all-geo-block-tooltip'}
             />
           </Modal>
         </View>

@@ -1,6 +1,6 @@
 import { fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
-import { PredictMarketListSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictMarketListSelectorsIDs } from '../../Predict.testIds';
 import PredictFeed from './PredictFeed';
 
 jest.mock('react-native-pager-view', () => {
@@ -42,6 +42,28 @@ jest.mock('../../hooks/usePredictMarketData', () => ({
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
 
 const mockUsePredictMarketData = usePredictMarketData as jest.Mock;
+
+const mockUseSelector = jest.fn();
+
+jest.mock('react-redux', () => {
+  const actualReactRedux = jest.requireActual('react-redux');
+  return {
+    ...actualReactRedux,
+    useSelector: (...args: unknown[]) => mockUseSelector(...args),
+  };
+});
+
+jest.mock('../../selectors/featureFlags', () => ({
+  selectPredictHotTabFlag: jest.fn(),
+}));
+
+jest.mock('../../../../hooks/useDebouncedValue', () => ({
+  useDebouncedValue: jest.fn(),
+}));
+
+import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
+
+const mockUseDebouncedValue = useDebouncedValue as jest.Mock;
 
 jest.mock('../../hooks/useFeedScrollManager', () => ({
   useFeedScrollManager: jest.fn(),
@@ -210,6 +232,10 @@ describe('PredictFeed', () => {
     });
     mockUseFocusEffect.mockImplementation((callback: () => void) => callback());
     mockGetInstance.mockReturnValue(mockSessionManager);
+    mockUseSelector.mockReturnValue({
+      enabled: false,
+      queryParams: undefined,
+    });
     mockUseFeedScrollManager.mockReturnValue({
       headerTranslateY: { value: 0 },
       headerHidden: false,
@@ -232,6 +258,7 @@ describe('PredictFeed', () => {
       refetch: jest.fn(),
       fetchMore: jest.fn(),
     });
+    mockUseDebouncedValue.mockImplementation((value: string) => value);
   });
 
   afterEach(() => {
@@ -443,7 +470,11 @@ describe('PredictFeed', () => {
       fireEvent.changeText(searchInput, 'test query');
       fireEvent.press(getByTestId('clear-button'));
 
-      expect(queryByTestId('predict-search-result-0')).toBeNull();
+      // After clearing search, the clear button should no longer be visible
+      // (only shows when searchQuery.length > 0)
+      expect(queryByTestId('clear-button')).not.toBeOnTheScreen();
+      // Trending results visible when no search query is empty
+      expect(getByTestId('predict-search-result-0')).toBeOnTheScreen();
     });
   });
 
@@ -598,6 +629,175 @@ describe('PredictFeed', () => {
       expect(mockSessionManager.startSession).toHaveBeenCalledWith(
         undefined,
         'trending',
+      );
+    });
+  });
+
+  describe('search debounce behavior', () => {
+    it('passes debounced search query to usePredictMarketData', () => {
+      mockUseDebouncedValue.mockReturnValue('debounced-query');
+      const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
+
+      fireEvent.press(getByTestId('predict-search-button'));
+      const searchInput = getByPlaceholderText('Search prediction markets');
+      fireEvent.changeText(searchInput, 'bitcoin');
+
+      const searchCalls = mockUsePredictMarketData.mock.calls.filter(
+        (call: [{ q?: string }]) => call[0].q !== undefined,
+      );
+      expect(searchCalls[searchCalls.length - 1][0].q).toBe('debounced-query');
+    });
+
+    it('displays skeleton loaders when debouncing search input', () => {
+      mockUseDebouncedValue.mockReturnValue('');
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: [],
+        isFetching: false,
+        isFetchingMore: false,
+        error: null,
+        hasMore: false,
+        refetch: jest.fn(),
+        fetchMore: jest.fn(),
+      });
+      const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
+
+      fireEvent.press(getByTestId('predict-search-button'));
+      const searchInput = getByPlaceholderText('Search prediction markets');
+      fireEvent.changeText(searchInput, 'bitcoin');
+
+      expect(getByTestId('search-skeleton-1')).toBeOnTheScreen();
+    });
+
+    it('displays search results after debounce completes', () => {
+      mockUseDebouncedValue.mockReturnValue('bitcoin');
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: [
+          { id: '1', title: 'Bitcoin Market 1' },
+          { id: '2', title: 'Bitcoin Market 2' },
+        ],
+        isFetching: false,
+        isFetchingMore: false,
+        error: null,
+        hasMore: false,
+        refetch: jest.fn(),
+        fetchMore: jest.fn(),
+      });
+      const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
+
+      fireEvent.press(getByTestId('predict-search-button'));
+      const searchInput = getByPlaceholderText('Search prediction markets');
+      fireEvent.changeText(searchInput, 'bitcoin');
+
+      expect(getByTestId('predict-search-result-0')).toBeOnTheScreen();
+      expect(getByTestId('predict-search-result-1')).toBeOnTheScreen();
+    });
+
+    it('invokes useDebouncedValue with 200ms delay', () => {
+      const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
+
+      fireEvent.press(getByTestId('predict-search-button'));
+      const searchInput = getByPlaceholderText('Search prediction markets');
+      fireEvent.changeText(searchInput, 'test');
+
+      expect(mockUseDebouncedValue).toHaveBeenCalledWith('test', 200);
+    });
+  });
+
+  describe('hot tab feature flag', () => {
+    it('renders Hot tab first when flag is enabled', () => {
+      mockUseSelector.mockReturnValue({
+        enabled: true,
+        queryParams: 'tag_id=149&order=volume24hr',
+      });
+
+      const { getByTestId } = render(<PredictFeed />);
+
+      expect(getByTestId('tab-hot')).toBeOnTheScreen();
+      expect(getByTestId('tab-trending')).toBeOnTheScreen();
+    });
+
+    it('does not render Hot tab when flag is disabled', () => {
+      mockUseSelector.mockReturnValue({
+        enabled: false,
+        queryParams: undefined,
+      });
+
+      const { queryByTestId, getByTestId } = render(<PredictFeed />);
+
+      expect(queryByTestId('tab-hot')).toBeNull();
+      expect(getByTestId('tab-trending')).toBeOnTheScreen();
+    });
+
+    it('renders six category tabs when hot tab is enabled', () => {
+      mockUseSelector.mockReturnValue({
+        enabled: true,
+        queryParams: 'tag_id=149',
+      });
+
+      const { getByTestId } = render(<PredictFeed />);
+
+      expect(getByTestId('tab-hot')).toBeOnTheScreen();
+      expect(getByTestId('tab-trending')).toBeOnTheScreen();
+      expect(getByTestId('tab-new')).toBeOnTheScreen();
+      expect(getByTestId('tab-sports')).toBeOnTheScreen();
+      expect(getByTestId('tab-crypto')).toBeOnTheScreen();
+      expect(getByTestId('tab-politics')).toBeOnTheScreen();
+    });
+
+    it('renders six pager pages when hot tab is enabled', () => {
+      mockUseSelector.mockReturnValue({
+        enabled: true,
+        queryParams: 'tag_id=149&tag_id=100995&order=volume24hr',
+      });
+
+      const { getByTestId } = render(<PredictFeed />);
+
+      expect(getByTestId('pager-page-0')).toBeOnTheScreen();
+      expect(getByTestId('pager-page-1')).toBeOnTheScreen();
+      expect(getByTestId('pager-page-2')).toBeOnTheScreen();
+      expect(getByTestId('pager-page-3')).toBeOnTheScreen();
+      expect(getByTestId('pager-page-4')).toBeOnTheScreen();
+      expect(getByTestId('pager-page-5')).toBeOnTheScreen();
+    });
+
+    it('tracks tab change for hot tab when swiped to', () => {
+      mockUseSelector.mockReturnValue({
+        enabled: true,
+        queryParams: 'tag_id=149',
+      });
+
+      const mockSetActiveIndex = jest.fn();
+      mockUseFeedScrollManager.mockReturnValue({
+        headerTranslateY: { value: 0 },
+        headerHidden: false,
+        headerHeight: 100,
+        tabBarHeight: 48,
+        layoutReady: true,
+        activeIndex: 1,
+        setActiveIndex: mockSetActiveIndex,
+        scrollHandler: jest.fn(),
+      });
+
+      const { getByTestId } = render(<PredictFeed />);
+      const hotTabPage = getByTestId('pager-page-0');
+
+      fireEvent(hotTabPage, 'onTouchEnd');
+
+      expect(mockSetActiveIndex).toHaveBeenCalledWith(0);
+      expect(mockSessionManager.trackTabChange).toHaveBeenCalledWith('hot');
+    });
+
+    it('starts session with hot as initial tab when flag is enabled', () => {
+      mockUseSelector.mockReturnValue({
+        enabled: true,
+        queryParams: 'tag_id=149',
+      });
+
+      render(<PredictFeed />);
+
+      expect(mockSessionManager.startSession).toHaveBeenCalledWith(
+        'homepage_new_prediction',
+        'hot',
       );
     });
   });

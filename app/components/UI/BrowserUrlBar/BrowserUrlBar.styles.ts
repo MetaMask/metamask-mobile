@@ -62,12 +62,28 @@ const styleSheet = ({
     },
     cancelButtonText: {
       fontSize: 14,
-      color: colors.primary.default,
-      ...fontStyles.normal,
+      color: colors.text.default,
+      fontWeight: '500',
     },
     rightButton: { height: 50, justifyContent: 'center' },
-    closeButton: {
-      marginRight: 16,
+    tabsButton: {
+      height: 50,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingTop: 12,
+      paddingBottom: 12,
+    },
+    tabsButtonAndroid: {
+      paddingLeft: 7,
+      paddingRight: 7,
+    },
+    tabsButtonIOS: {
+      paddingLeft: 8,
+      paddingRight: 8,
+    },
+    tabIcon: {
+      width: 30,
+      height: 30,
     },
   });
 

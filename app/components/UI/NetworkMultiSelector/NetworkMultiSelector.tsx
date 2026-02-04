@@ -25,6 +25,7 @@ import {
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
+import { useAddPopularNetwork } from '../../hooks/useAddPopularNetwork';
 import { useSelector } from 'react-redux';
 import {
   selectEvmNetworkConfigurationsByChainId,
@@ -71,7 +72,6 @@ const CUSTOM_NETWORK_PROPS = {
   allowNetworkSwitch: false,
   hideWarningIcons: true,
   listHeader: strings('networks.additional_networks'),
-  compactMode: true,
 } as const;
 
 const NetworkMultiSelector = ({
@@ -99,11 +99,7 @@ const NetworkMultiSelector = ({
   const selectedNonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
   const currentEvmChainId = useSelector(selectEvmChainId);
 
-  const {
-    networksToUse,
-    areAllNetworksSelectedCombined,
-    isMultichainAccountsState2Enabled,
-  } = useNetworksToUse({
+  const { networksToUse, areAllNetworksSelectedCombined } = useNetworksToUse({
     networks,
     networkType: NetworkType.Popular,
     areAllNetworksSelected,
@@ -147,6 +143,18 @@ const NetworkMultiSelector = ({
     useNetworkSelection({
       networks: networksToUse,
     });
+
+  const { addPopularNetwork } = useAddPopularNetwork();
+
+  /**
+   * Handler for adding a popular network directly without confirmation.
+   */
+  const handleAddPopularNetwork = useCallback(
+    async (networkConfiguration: ExtendedNetwork) => {
+      await addPopularNetwork(networkConfiguration);
+    },
+    [addPopularNetwork],
+  );
 
   const selectedChainIds = useMemo(
     () =>
@@ -199,6 +207,8 @@ const NetworkMultiSelector = ({
       toggleWarningModal,
       showNetworkModal,
       customNetworksList: PopularList,
+      skipConfirmation: true,
+      onNetworkAdd: handleAddPopularNetwork,
     }),
     [
       modalState.showPopularNetworkModal,
@@ -206,26 +216,20 @@ const NetworkMultiSelector = ({
       onCancel,
       toggleWarningModal,
       showNetworkModal,
+      handleAddPopularNetwork,
     ],
   );
 
   const additionalNetworksComponent = useMemo(
-    () =>
-      namespace === KnownCaipNamespace.Eip155 ||
-      isMultichainAccountsState2Enabled ? (
-        <Box
-          style={styles.customNetworkContainer}
-          testID={NETWORK_MULTI_SELECTOR_TEST_IDS.CUSTOM_NETWORK_CONTAINER}
-        >
-          <CustomNetwork {...customNetworkProps} />
-        </Box>
-      ) : null,
-    [
-      namespace,
-      customNetworkProps,
-      isMultichainAccountsState2Enabled,
-      styles.customNetworkContainer,
-    ],
+    () => (
+      <Box
+        style={styles.customNetworkContainer}
+        testID={NETWORK_MULTI_SELECTOR_TEST_IDS.CUSTOM_NETWORK_CONTAINER}
+      >
+        <CustomNetwork {...customNetworkProps} />
+      </Box>
+    ),
+    [customNetworkProps, styles.customNetworkContainer],
   );
 
   const getNetworkName = useCallback(

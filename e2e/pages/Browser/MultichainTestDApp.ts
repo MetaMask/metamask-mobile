@@ -1,29 +1,27 @@
 /* eslint-disable no-restricted-syntax */
 import TestHelpers from '../../helpers';
-import { getDappPort } from '../../framework/fixtures/FixtureUtils';
-import Matchers from '../../framework/Matchers';
-import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
+import { getDappUrl } from '../../../tests/framework/fixtures/FixtureUtils';
+import Matchers from '../../../tests/framework/Matchers';
+import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import {
   MultichainTestDappViewSelectorsIDs,
   MULTICHAIN_TEST_TIMEOUTS,
 } from '../../selectors/Browser/MultichainTestDapp.selectors';
 import Browser from './BrowserView';
-import Gestures from '../../framework/Gestures';
+import Gestures from '../../../tests/framework/Gestures';
 import { waitFor } from 'detox';
 import ConnectBottomSheet from './ConnectBottomSheet';
 import MultichainUtilities from '../../utils/MultichainUtilities';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../wallet/TabBarComponent';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import { isCaipChainId } from '@metamask/utils';
-import { createLogger } from '../../framework/logger';
+import { createLogger } from '../../../tests/framework/logger';
 
 const logger = createLogger({
   name: 'MultichainTestDApp',
 });
 
-// Use the same port as the regular test dapp - the multichainDapp flag controls which dapp is served
-export const MULTICHAIN_TEST_DAPP_LOCAL_URL = `http://localhost:${getDappPort(0)}`;
 export const DEFAULT_MULTICHAIN_TEST_DAPP_URL =
   'https://metamask.github.io/test-dapp-multichain/';
 
@@ -38,10 +36,10 @@ export function getMultichainTestDappUrl(): string {
   // Check for local development flag
   const useLocal = process.env.USE_LOCAL_DAPP !== 'false'; // default to true if not set
   if (useLocal) {
-    logger.debug(
-      `🏠 Using local multichain dapp URL: ${MULTICHAIN_TEST_DAPP_LOCAL_URL}`,
-    );
-    return MULTICHAIN_TEST_DAPP_LOCAL_URL;
+    // Call getDappUrl at runtime (not import time) so port is allocated
+    const localUrl = getDappUrl(0);
+    logger.debug(`🏠 Using local multichain dapp URL: ${localUrl}`);
+    return localUrl;
   }
 
   // Check for custom URL from environment
@@ -945,7 +943,7 @@ class MultichainTestDApp {
       (el) => {
         Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')
           .set.call(el, ${JSON.stringify(requestText)});
-        
+
         el.dispatchEvent(new Event('change', { bubbles: true }));
       }
     `);

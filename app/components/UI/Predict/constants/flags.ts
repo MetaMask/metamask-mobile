@@ -1,4 +1,9 @@
-import { PredictFeeCollection } from '../types/flags';
+import {
+  PredictFeeCollection,
+  PredictHotTabFlag,
+  PredictLiveSportsFlag,
+  PredictMarketHighlightsFlag,
+} from '../types/flags';
 
 export const DEFAULT_FEE_COLLECTION_FLAG = {
   enabled: true,
@@ -10,3 +15,20 @@ export const DEFAULT_FEE_COLLECTION_FLAG = {
   providerFee: 0.02, // 2%
   waiveList: [],
 } satisfies PredictFeeCollection;
+
+export const DEFAULT_LIVE_SPORTS_FLAG: PredictLiveSportsFlag = {
+  enabled: false,
+  leagues: [],
+};
+
+export const DEFAULT_MARKET_HIGHLIGHTS_FLAG: PredictMarketHighlightsFlag = {
+  enabled: false,
+  highlights: [],
+};
+
+export const DEFAULT_HOT_TAB_FLAG: PredictHotTabFlag = {
+  enabled: false,
+  queryParams:
+    'active=true&archived=false&closed=false&liquidity_min=10000&volume_min=10000&tag_id=1',
+  minimumVersion: '7.64.0',
+};

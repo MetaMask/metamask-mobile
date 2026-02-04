@@ -6,8 +6,11 @@ import type { ControllerInitFunction } from '../../types';
 import { DeFiPositionsControllerInitMessenger } from '../../messengers/defi-positions-controller-messenger/defi-positions-controller-messenger';
 import { store } from '../../../../store';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
-import { MetaMetrics } from '../../../Analytics';
-import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import {
+  DEFAULT_FEATURE_FLAG_VALUES,
+  FeatureFlagNames,
+} from '../../../../constants/featureFlags';
 
 /**
  * Initialize the DeFiPositionsController.
@@ -29,23 +32,30 @@ export const defiPositionsControllerInit: ControllerInitFunction<
         store.getState(),
       );
 
-      const featureFlagForDeFi = Boolean(
+      const assetsDefiPositionsEnabled = Boolean(
         initMessenger.call('RemoteFeatureFlagController:getState')
-          ?.remoteFeatureFlags?.assetsDefiPositionsEnabled,
+          ?.remoteFeatureFlags?.[FeatureFlagNames.assetsDefiPositionsEnabled] ??
+          DEFAULT_FEATURE_FLAG_VALUES[
+            FeatureFlagNames.assetsDefiPositionsEnabled
+          ],
       );
 
-      return isBasicFunctionalityToggleEnabled && featureFlagForDeFi;
+      return isBasicFunctionalityToggleEnabled && assetsDefiPositionsEnabled;
     },
     trackEvent: (params: {
       event: string;
       properties?: Record<string, unknown>;
     }) => {
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder({
-          category: params.event,
-          properties: params.properties,
-        }).build(),
-      );
+      try {
+        const event = AnalyticsEventBuilder.createEventBuilder(params.event)
+          .addProperties(params.properties)
+          .build();
+
+        initMessenger.call('AnalyticsController:trackEvent', event);
+      } catch (error) {
+        // Analytics tracking failures should not break DeFi positions functionality
+        // Error is logged but not thrown
+      }
     },
   });
 

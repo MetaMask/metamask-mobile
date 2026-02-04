@@ -349,11 +349,12 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                         enableOnAndroid={true}
                         enableResetScrollToCoords={true}
                         extraHeight={75}
-                        extraScrollHeight={0}
+                        extraScrollHeight={20}
                         getScrollResponder={[Function]}
                         handleOnScroll={[Function]}
                         keyboardDismissMode="interactive"
                         keyboardOpeningTime={250}
+                        keyboardShouldPersistTaps="handled"
                         keyboardSpace={0}
                         onScroll={[Function]}
                         resetKeyboardSpace={[Function]}
@@ -389,6 +390,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                 [
                                   {
                                     "display": "flex",
+                                    "flexShrink": 0,
                                     "gap": 16,
                                     "marginBottom": 8,
                                     "marginTop": 8,
@@ -500,17 +502,18 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                     testID="international-location-box"
                                   >
                                     <SvgMock
-                                      color="#121314"
                                       fill="currentColor"
-                                      height={24}
                                       name="Global"
                                       style={
-                                        {
-                                          "height": 24,
-                                          "width": 24,
-                                        }
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 24,
+                                            "width": 24,
+                                          },
+                                          undefined,
+                                        ]
                                       }
-                                      width={24}
                                     />
                                     <Text
                                       accessibilityRole="text"
@@ -692,7 +695,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                     <TextInput
                                       accessibilityLabel="Email"
                                       autoCapitalize="none"
-                                      autoComplete="email"
+                                      autoComplete="one-time-code"
                                       autoFocus={false}
                                       editable={true}
                                       keyboardType="email-address"
@@ -713,7 +716,6 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                           "fontWeight": "400",
                                           "height": 46,
                                           "letterSpacing": 0,
-                                          "lineHeight": 20,
                                           "opacity": 1,
                                           "paddingVertical": 2,
                                           "textAlignVertical": "center",
@@ -805,7 +807,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                     <TextInput
                                       accessibilityLabel="Password"
                                       autoCapitalize="none"
-                                      autoComplete="password"
+                                      autoComplete="one-time-code"
                                       autoFocus={false}
                                       editable={true}
                                       maxLength={255}
@@ -827,7 +829,6 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                           "fontWeight": "400",
                                           "height": 46,
                                           "letterSpacing": 0,
-                                          "lineHeight": 20,
                                           "opacity": 1,
                                           "paddingVertical": 2,
                                           "textAlignVertical": "center",
@@ -836,6 +837,34 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                       testID="password-field"
                                       value=""
                                     />
+                                  </View>
+                                  <View
+                                    style={
+                                      {
+                                        "marginLeft": 8,
+                                      }
+                                    }
+                                    testID="textfield-endacccessory"
+                                  >
+                                    <TouchableOpacity
+                                      onPress={[Function]}
+                                      testID="password-visibility-toggle"
+                                    >
+                                      <SvgMock
+                                        fill="currentColor"
+                                        name="Eye"
+                                        style={
+                                          [
+                                            {
+                                              "color": "#121314",
+                                              "height": 20,
+                                              "width": 20,
+                                            },
+                                            undefined,
+                                          ]
+                                        }
+                                      />
+                                    </TouchableOpacity>
                                   </View>
                                 </View>
                               </View>

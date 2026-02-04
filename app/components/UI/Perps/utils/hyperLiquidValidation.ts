@@ -4,17 +4,30 @@ import {
   getSupportedAssets,
   TRADING_DEFAULTS,
 } from '../constants/hyperLiquidConfig';
-import type { GetSupportedPathsParams } from '../controllers/types';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { strings } from '../../../../../locales/i18n';
+import type {
+  GetSupportedPathsParams,
+  PerpsDebugLogger,
+} from '../controllers/types';
 import { HYPERLIQUID_ORDER_LIMITS } from '../constants/perpsConfig';
+import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
+
+/**
+ * Optional debug logger for validation functions.
+ * When provided, enables detailed logging for debugging.
+ * When omitted, validation runs silently.
+ */
+export type ValidationDebugLogger = PerpsDebugLogger | undefined;
 
 /**
  * Validation utilities for HyperLiquid operations
  */
 
 /**
- * Create standardized error response
+ * Create standardized error response.
+ *
+ * @param error - The error that occurred
+ * @param defaultResponse - The default response object to use as template
+ * @returns The error response with success=false and error message
  */
 export function createErrorResult<
   T extends { success: boolean; error?: string },
@@ -23,21 +36,29 @@ export function createErrorResult<
     ...defaultResponse,
     success: false,
     error:
-      error instanceof Error
-        ? error.message
-        : strings('perps.errors.unknownError'),
+      error instanceof Error ? error.message : PERPS_ERROR_CODES.UNKNOWN_ERROR,
   };
 }
 
 /**
- * Validate withdrawal parameters
+ * Validate withdrawal parameters.
+ *
+ * @param params - Withdrawal parameters to validate
+ * @param params.assetId - The CAIP asset ID to withdraw
+ * @param params.amount - Amount to withdraw as string
+ * @param params.destination - Optional destination hex address
+ * @param debugLogger - Optional debug logger for detailed logging
+ * @returns Validation result with isValid flag and optional error message
  */
-export function validateWithdrawalParams(params: {
-  assetId?: CaipAssetId;
-  amount?: string;
-  destination?: Hex;
-}): { isValid: boolean; error?: string } {
-  DevLogger.log('validateWithdrawalParams: Starting validation', {
+export function validateWithdrawalParams(
+  params: {
+    assetId?: CaipAssetId;
+    amount?: string;
+    destination?: Hex;
+  },
+  debugLogger?: ValidationDebugLogger,
+): { isValid: boolean; error?: string } {
+  debugLogger?.log('validateWithdrawalParams: Starting validation', {
     params,
     hasAssetId: !!params.assetId,
     hasAmount: !!params.amount,
@@ -46,65 +67,56 @@ export function validateWithdrawalParams(params: {
 
   // Validate required parameters
   if (!params.assetId) {
-    const error = strings('perps.errors.withdrawValidation.assetIdRequired');
-    DevLogger.log('validateWithdrawalParams: Missing assetId', {
-      error,
+    debugLogger?.log('validateWithdrawalParams: Missing assetId', {
+      error: PERPS_ERROR_CODES.WITHDRAW_ASSET_ID_REQUIRED,
       params,
     });
     return {
       isValid: false,
-      error: `${error}. Please provide an asset ID in CAIP format (e.g., eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831)`,
+      error: PERPS_ERROR_CODES.WITHDRAW_ASSET_ID_REQUIRED,
     };
   }
 
   // Validate amount
   if (!params.amount) {
-    const error = strings('perps.errors.withdrawValidation.amountRequired');
-    DevLogger.log('validateWithdrawalParams: Missing amount', {
-      error,
+    debugLogger?.log('validateWithdrawalParams: Missing amount', {
+      error: PERPS_ERROR_CODES.WITHDRAW_AMOUNT_REQUIRED,
       params,
     });
     return {
       isValid: false,
-      error: `${error}. Please specify the amount to withdraw`,
+      error: PERPS_ERROR_CODES.WITHDRAW_AMOUNT_REQUIRED,
     };
   }
 
   const amount = parseFloat(params.amount);
   if (isNaN(amount) || amount <= 0) {
-    const error = strings('perps.errors.withdrawValidation.amountPositive');
-    DevLogger.log('validateWithdrawalParams: Invalid amount', {
-      error,
+    debugLogger?.log('validateWithdrawalParams: Invalid amount', {
+      error: PERPS_ERROR_CODES.WITHDRAW_AMOUNT_POSITIVE,
       amount: params.amount,
       parsedAmount: amount,
       isNaN: isNaN(amount),
     });
     return {
       isValid: false,
-      error: `${error}. Amount must be a positive number (received: ${params.amount})`,
+      error: PERPS_ERROR_CODES.WITHDRAW_AMOUNT_POSITIVE,
     };
   }
 
   // Validate destination address if provided
   if (params.destination && !isValidHexAddress(params.destination)) {
-    const error = strings(
-      'perps.errors.withdrawValidation.invalidDestination',
-      {
-        address: params.destination,
-      },
-    );
-    DevLogger.log('validateWithdrawalParams: Invalid destination address', {
-      error,
+    debugLogger?.log('validateWithdrawalParams: Invalid destination address', {
+      error: PERPS_ERROR_CODES.WITHDRAW_INVALID_DESTINATION,
       destination: params.destination,
       isValidHex: isValidHexAddress(params.destination),
     });
     return {
       isValid: false,
-      error: `${error}. Address must be a valid Ethereum address starting with 0x`,
+      error: PERPS_ERROR_CODES.WITHDRAW_INVALID_DESTINATION,
     };
   }
 
-  DevLogger.log('validateWithdrawalParams: All validations passed', {
+  debugLogger?.log('validateWithdrawalParams: All validations passed', {
     assetId: params.assetId,
     amount: params.amount,
     destination: params.destination || 'will use user wallet',
@@ -114,14 +126,24 @@ export function validateWithdrawalParams(params: {
 }
 
 /**
- * Validate deposit parameters
+ * Validate deposit parameters.
+ *
+ * @param params - Deposit parameters to validate
+ * @param params.assetId - The CAIP asset ID to deposit
+ * @param params.amount - Amount to deposit as string
+ * @param params.isTestnet - Whether this is a testnet deposit
+ * @param debugLogger - Optional debug logger for detailed logging
+ * @returns Validation result with isValid flag and optional error message
  */
-export function validateDepositParams(params: {
-  assetId?: CaipAssetId;
-  amount?: string;
-  isTestnet?: boolean;
-}): { isValid: boolean; error?: string } {
-  DevLogger.log('validateDepositParams: Starting validation', {
+export function validateDepositParams(
+  params: {
+    assetId?: CaipAssetId;
+    amount?: string;
+    isTestnet?: boolean;
+  },
+  debugLogger?: ValidationDebugLogger,
+): { isValid: boolean; error?: string } {
+  debugLogger?.log('validateDepositParams: Starting validation', {
     params,
     hasAssetId: !!params.assetId,
     hasAmount: !!params.amount,
@@ -130,42 +152,39 @@ export function validateDepositParams(params: {
 
   // Validate required parameters
   if (!params.assetId) {
-    const error = strings('perps.errors.depositValidation.assetIdRequired');
-    DevLogger.log('validateDepositParams: Missing assetId', {
-      error,
+    debugLogger?.log('validateDepositParams: Missing assetId', {
+      error: PERPS_ERROR_CODES.DEPOSIT_ASSET_ID_REQUIRED,
       params,
     });
     return {
       isValid: false,
-      error: `${error}. Please provide an asset ID in CAIP format (e.g., eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831)`,
+      error: PERPS_ERROR_CODES.DEPOSIT_ASSET_ID_REQUIRED,
     };
   }
 
   // Validate amount
   if (!params.amount) {
-    const error = strings('perps.errors.depositValidation.amountRequired');
-    DevLogger.log('validateDepositParams: Missing amount', {
-      error,
+    debugLogger?.log('validateDepositParams: Missing amount', {
+      error: PERPS_ERROR_CODES.DEPOSIT_AMOUNT_REQUIRED,
       params,
     });
     return {
       isValid: false,
-      error: `${error}. Please specify the amount to deposit`,
+      error: PERPS_ERROR_CODES.DEPOSIT_AMOUNT_REQUIRED,
     };
   }
 
   const amount = parseFloat(params.amount);
   if (isNaN(amount) || amount <= 0) {
-    const error = strings('perps.errors.depositValidation.amountPositive');
-    DevLogger.log('validateDepositParams: Invalid amount', {
-      error,
+    debugLogger?.log('validateDepositParams: Invalid amount', {
+      error: PERPS_ERROR_CODES.DEPOSIT_AMOUNT_POSITIVE,
       amount: params.amount,
       parsedAmount: amount,
       isNaN: isNaN(amount),
     });
     return {
       isValid: false,
-      error: `${error}. Amount must be a positive number (received: ${params.amount})`,
+      error: PERPS_ERROR_CODES.DEPOSIT_AMOUNT_POSITIVE,
     };
   }
 
@@ -174,7 +193,7 @@ export function validateDepositParams(params: {
     ? TRADING_DEFAULTS.amount.testnet
     : TRADING_DEFAULTS.amount.mainnet;
 
-  DevLogger.log('validateDepositParams: Checking minimum amount', {
+  debugLogger?.log('validateDepositParams: Checking minimum amount', {
     amount,
     minimumAmount,
     isTestnet: params.isTestnet,
@@ -182,22 +201,19 @@ export function validateDepositParams(params: {
   });
 
   if (amount < minimumAmount) {
-    const error = strings('perps.errors.minimumDeposit', {
-      amount: minimumAmount,
-    });
-    DevLogger.log('validateDepositParams: Below minimum deposit', {
-      error,
+    debugLogger?.log('validateDepositParams: Below minimum deposit', {
+      error: PERPS_ERROR_CODES.DEPOSIT_MINIMUM_AMOUNT,
       amount,
       minimumAmount,
       difference: minimumAmount - amount,
     });
     return {
       isValid: false,
-      error: `${error}. Current amount: ${amount}, required minimum: ${minimumAmount}`,
+      error: PERPS_ERROR_CODES.DEPOSIT_MINIMUM_AMOUNT,
     };
   }
 
-  DevLogger.log('validateDepositParams: All validations passed', {
+  debugLogger?.log('validateDepositParams: All validations passed', {
     assetId: params.assetId,
     amount: params.amount,
     parsedAmount: amount,
@@ -209,13 +225,19 @@ export function validateDepositParams(params: {
 }
 
 /**
- * Validate asset support for withdrawals using AssetRoute arrays
+ * Validate asset support for withdrawals using AssetRoute arrays.
+ *
+ * @param assetId - The CAIP asset ID to validate
+ * @param supportedRoutes - Array of supported asset routes
+ * @param debugLogger - Optional debug logger for detailed logging
+ * @returns Validation result with isValid flag and optional error message
  */
 export function validateAssetSupport(
   assetId: CaipAssetId,
   supportedRoutes: { assetId: CaipAssetId }[],
+  debugLogger?: ValidationDebugLogger,
 ): { isValid: boolean; error?: string } {
-  DevLogger.log('validateAssetSupport: Checking asset support', {
+  debugLogger?.log('validateAssetSupport: Checking asset support', {
     assetId,
     supportedRoutesCount: supportedRoutes.length,
   });
@@ -232,25 +254,8 @@ export function validateAssetSupport(
     );
 
     if (!isSupportedCaseInsensitive) {
-      const supportedAssets = supportedAssetIds
-        .map((path) => {
-          // Extract symbol from CAIP asset ID
-          const parts = path.split('/');
-          const symbol = parts[parts.length - 2] || 'Unknown';
-          return `${symbol} (${path})`;
-        })
-        .join(', ');
-
-      const error = strings(
-        'perps.errors.withdrawValidation.assetNotSupported',
-        {
-          assetId,
-          supportedAssets,
-        },
-      );
-
-      DevLogger.log('validateAssetSupport: Asset not supported', {
-        error,
+      debugLogger?.log('validateAssetSupport: Asset not supported', {
+        error: PERPS_ERROR_CODES.WITHDRAW_ASSET_NOT_SUPPORTED,
         assetId,
         supportedAssetIds,
         checkedCaseInsensitive: true,
@@ -258,11 +263,11 @@ export function validateAssetSupport(
 
       return {
         isValid: false,
-        error: `${error}. Supported assets: ${supportedAssets}`,
+        error: PERPS_ERROR_CODES.WITHDRAW_ASSET_NOT_SUPPORTED,
       };
     }
 
-    DevLogger.log(
+    debugLogger?.log(
       '⚠️ validateAssetSupport: Asset supported with case mismatch',
       {
         providedAssetId: assetId,
@@ -273,7 +278,7 @@ export function validateAssetSupport(
     );
   }
 
-  DevLogger.log('validateAssetSupport: Asset is supported', {
+  debugLogger?.log('validateAssetSupport: Asset is supported', {
     assetId,
   });
 
@@ -281,13 +286,19 @@ export function validateAssetSupport(
 }
 
 /**
- * Validate balance against withdrawal amount
+ * Validate balance against withdrawal amount.
+ *
+ * @param withdrawAmount - The amount to withdraw
+ * @param availableBalance - The available balance
+ * @param debugLogger - Optional debug logger for detailed logging
+ * @returns Validation result with isValid flag and optional error message
  */
 export function validateBalance(
   withdrawAmount: number,
   availableBalance: number,
+  debugLogger?: ValidationDebugLogger,
 ): { isValid: boolean; error?: string } {
-  DevLogger.log('validateBalance: Checking balance sufficiency', {
+  debugLogger?.log('validateBalance: Checking balance sufficiency', {
     withdrawAmount,
     availableBalance,
     difference: availableBalance - withdrawAmount,
@@ -295,16 +306,9 @@ export function validateBalance(
 
   if (withdrawAmount > availableBalance) {
     const shortfall = withdrawAmount - availableBalance;
-    const error = strings(
-      'perps.errors.withdrawValidation.insufficientBalance',
-      {
-        available: availableBalance,
-        requested: withdrawAmount,
-      },
-    );
 
-    DevLogger.log('validateBalance: Insufficient balance', {
-      error,
+    debugLogger?.log('validateBalance: Insufficient balance', {
+      error: PERPS_ERROR_CODES.WITHDRAW_INSUFFICIENT_BALANCE,
       withdrawAmount,
       availableBalance,
       shortfall,
@@ -314,14 +318,12 @@ export function validateBalance(
 
     return {
       isValid: false,
-      error: `${error}. You need ${shortfall.toFixed(
-        6,
-      )} more to complete this withdrawal`,
+      error: PERPS_ERROR_CODES.WITHDRAW_INSUFFICIENT_BALANCE,
     };
   }
 
   const remainingBalance = availableBalance - withdrawAmount;
-  DevLogger.log('validateBalance: Balance is sufficient', {
+  debugLogger?.log('validateBalance: Balance is sufficient', {
     withdrawAmount,
     availableBalance,
     remainingBalance,
@@ -333,14 +335,20 @@ export function validateBalance(
 }
 
 /**
- * Apply filters to asset paths with comprehensive logging
+ * Apply filters to asset paths with comprehensive logging.
+ *
+ * @param assets - Array of CAIP asset IDs to filter
+ * @param params - Filter parameters including chainId, symbol, and assetId
+ * @param debugLogger - Optional debug logger for detailed logging
+ * @returns Filtered array of CAIP asset IDs
  */
 export function applyPathFilters(
   assets: CaipAssetId[],
   params?: GetSupportedPathsParams,
+  debugLogger?: ValidationDebugLogger,
 ): CaipAssetId[] {
   if (!params) {
-    DevLogger.log(
+    debugLogger?.log(
       'HyperLiquid: applyPathFilters - no params, returning all assets',
       { assets },
     );
@@ -349,7 +357,7 @@ export function applyPathFilters(
 
   let filtered = assets;
 
-  DevLogger.log('HyperLiquid: applyPathFilters - starting filter', {
+  debugLogger?.log('HyperLiquid: applyPathFilters - starting filter', {
     initialAssets: assets,
     filterParams: params,
   });
@@ -359,7 +367,7 @@ export function applyPathFilters(
     filtered = filtered.filter((asset) =>
       asset.startsWith(params.chainId as string),
     );
-    DevLogger.log('HyperLiquid: applyPathFilters - chainId filter', {
+    debugLogger?.log('HyperLiquid: applyPathFilters - chainId filter', {
       chainId: params.chainId,
       before,
       after: filtered,
@@ -375,7 +383,7 @@ export function applyPathFilters(
     const selectedAsset = isTestnet ? config.testnet : config.mainnet;
     const before = filtered;
     filtered = [selectedAsset];
-    DevLogger.log('HyperLiquid: applyPathFilters - symbol filter', {
+    debugLogger?.log('HyperLiquid: applyPathFilters - symbol filter', {
       symbol: params.symbol,
       isTestnet,
       config,
@@ -391,7 +399,7 @@ export function applyPathFilters(
     filtered = filtered.filter(
       (asset) => asset.toLowerCase() === params.assetId?.toLowerCase(),
     );
-    DevLogger.log('HyperLiquid: applyPathFilters - assetId filter', {
+    debugLogger?.log('HyperLiquid: applyPathFilters - assetId filter', {
       assetId: params.assetId,
       before,
       after: filtered,
@@ -402,7 +410,7 @@ export function applyPathFilters(
     });
   }
 
-  DevLogger.log('HyperLiquid: applyPathFilters - final result', {
+  debugLogger?.log('HyperLiquid: applyPathFilters - final result', {
     initialAssets: assets,
     finalFiltered: filtered,
     filterParams: params,
@@ -412,16 +420,21 @@ export function applyPathFilters(
 }
 
 /**
- * Get supported deposit/withdrawal paths with filtering
+ * Get supported deposit/withdrawal paths with filtering.
+ *
+ * @param params - Filter parameters including isTestnet, chainId, symbol
+ * @param debugLogger - Optional debug logger for detailed logging
+ * @returns Array of supported CAIP asset IDs
  */
 export function getSupportedPaths(
   params?: GetSupportedPathsParams,
+  debugLogger?: ValidationDebugLogger,
 ): CaipAssetId[] {
   const isTestnet = params?.isTestnet ?? false;
   const assets = getSupportedAssets(isTestnet);
-  const filteredAssets = applyPathFilters(assets, params);
+  const filteredAssets = applyPathFilters(assets, params, debugLogger);
 
-  DevLogger.log('HyperLiquid: getSupportedPaths', {
+  debugLogger?.log('HyperLiquid: getSupportedPaths', {
     isTestnet,
     requestedParams: params,
     allAssets: assets,
@@ -434,8 +447,12 @@ export function getSupportedPaths(
 }
 
 /**
- * Get maximum order value based on leverage and order type
- * Based on HyperLiquid contract specifications
+ * Get maximum order value based on leverage and order type.
+ * Based on HyperLiquid contract specifications.
+ *
+ * @param maxLeverage - The maximum leverage for the market
+ * @param orderType - The order type (market or limit)
+ * @returns Maximum order value in USD
  */
 export function getMaxOrderValue(
   maxLeverage: number,
@@ -444,25 +461,31 @@ export function getMaxOrderValue(
   let marketLimit: number;
 
   if (maxLeverage >= 25) {
-    marketLimit = HYPERLIQUID_ORDER_LIMITS.MARKET_ORDER_LIMITS.HIGH_LEVERAGE;
+    marketLimit = HYPERLIQUID_ORDER_LIMITS.MarketOrderLimits.HighLeverage;
   } else if (maxLeverage >= 20) {
-    marketLimit =
-      HYPERLIQUID_ORDER_LIMITS.MARKET_ORDER_LIMITS.MEDIUM_HIGH_LEVERAGE;
+    marketLimit = HYPERLIQUID_ORDER_LIMITS.MarketOrderLimits.MediumHighLeverage;
   } else if (maxLeverage >= 10) {
-    marketLimit = HYPERLIQUID_ORDER_LIMITS.MARKET_ORDER_LIMITS.MEDIUM_LEVERAGE;
+    marketLimit = HYPERLIQUID_ORDER_LIMITS.MarketOrderLimits.MediumLeverage;
   } else {
-    marketLimit = HYPERLIQUID_ORDER_LIMITS.MARKET_ORDER_LIMITS.LOW_LEVERAGE;
+    marketLimit = HYPERLIQUID_ORDER_LIMITS.MarketOrderLimits.LowLeverage;
   }
 
   return orderType === 'limit'
-    ? marketLimit * HYPERLIQUID_ORDER_LIMITS.LIMIT_ORDER_MULTIPLIER
+    ? marketLimit * HYPERLIQUID_ORDER_LIMITS.LimitOrderMultiplier
     : marketLimit;
 }
 
 /**
- * Validate order parameters
- * Basic validation - checks required fields are present
- * Amount validation (size/USD) is handled by validateOrder
+ * Validate order parameters.
+ * Basic validation - checks required fields are present.
+ * Amount validation (size/USD) is handled by validateOrder.
+ *
+ * @param params - Order parameters to validate
+ * @param params.coin - The trading pair coin symbol
+ * @param params.size - The order size as string
+ * @param params.price - The order price as string
+ * @param params.orderType - The order type (market or limit)
+ * @returns Validation result with isValid flag and optional error message
  */
 export function validateOrderParams(params: {
   coin?: string;
@@ -473,7 +496,7 @@ export function validateOrderParams(params: {
   if (!params.coin) {
     return {
       isValid: false,
-      error: strings('perps.errors.orderValidation.coinRequired'),
+      error: PERPS_ERROR_CODES.ORDER_COIN_REQUIRED,
     };
   }
 
@@ -483,14 +506,14 @@ export function validateOrderParams(params: {
   if (params.orderType === 'limit' && !params.price) {
     return {
       isValid: false,
-      error: strings('perps.errors.orderValidation.limitPriceRequired'),
+      error: PERPS_ERROR_CODES.ORDER_LIMIT_PRICE_REQUIRED,
     };
   }
 
   if (params.price && parseFloat(params.price) <= 0) {
     return {
       isValid: false,
-      error: strings('perps.errors.orderValidation.pricePositive'),
+      error: PERPS_ERROR_CODES.ORDER_PRICE_POSITIVE,
     };
   }
 
@@ -498,7 +521,11 @@ export function validateOrderParams(params: {
 }
 
 /**
- * Validate coin exists in asset mapping
+ * Validate coin exists in asset mapping.
+ *
+ * @param coin - The coin symbol to validate
+ * @param coinToAssetId - Map of coin symbols to asset IDs
+ * @returns Validation result with isValid flag and optional error message
  */
 export function validateCoinExists(
   coin: string,
@@ -507,7 +534,7 @@ export function validateCoinExists(
   if (!coinToAssetId.has(coin)) {
     return {
       isValid: false,
-      error: strings('perps.errors.orderValidation.unknownCoin', { coin }),
+      error: PERPS_ERROR_CODES.ORDER_UNKNOWN_COIN,
     };
   }
 

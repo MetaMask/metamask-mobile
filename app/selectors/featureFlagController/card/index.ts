@@ -239,6 +239,18 @@ export const selectCardFeatureFlag = createSelector(
   (remoteFeatureFlags) => {
     const cardFeatureFlag = remoteFeatureFlags?.cardFeature;
 
-    return cardFeatureFlag ?? defaultCardFeatureFlag;
+    return Object.keys(cardFeatureFlag ?? {}).length > 0
+      ? cardFeatureFlag
+      : defaultCardFeatureFlag;
+  },
+);
+
+export const selectMetalCardCheckoutFeatureFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.metalCardCheckoutEnabled as unknown as GateVersionedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );

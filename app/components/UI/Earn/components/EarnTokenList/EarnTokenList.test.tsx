@@ -7,6 +7,20 @@ import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
 import EarnTokenList from '.';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
+// Prevent `useMetrics` from triggering async Engine readiness polling (`whenEngineReady`)
+// which can cause Jest timeouts / "import after environment torn down" errors.
+jest.mock('../../../../hooks/useMetrics', () => ({
+  MetaMetricsEvents: {
+    EARN_TOKEN_LIST_ITEM_CLICKED: 'EARN_TOKEN_LIST_ITEM_CLICKED',
+  },
+  useMetrics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: () => ({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue({}),
+    }),
+  }),
+}));
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -70,6 +84,7 @@ jest.mock(
 );
 
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -77,7 +92,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualNav,
     useNavigation: () => ({
       navigate: mockNavigate,
-      goBack: jest.fn(),
+      goBack: mockGoBack,
     }),
     useRoute: () => ({
       params: {
@@ -93,6 +108,16 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('../../../../../util/networks', () => ({
   ...jest.requireActual('../../../../../util/networks'),
   getNetworkImageSource: jest.fn().mockReturnValue(10),
+}));
+
+jest.mock('../../hooks/useTronStakeApy', () => ({
+  __esModule: true,
+  default: jest.fn().mockReturnValue({
+    apyDecimal: null,
+    apyPercent: null,
+    isLoading: false,
+    error: null,
+  }),
 }));
 
 const initialState = {
@@ -195,11 +220,11 @@ describe('EarnTokenList', () => {
     // Token List
     // Ethereum
     expect(getAllByText('Ethereum').length).toBe(1);
-    expect(getAllByText('2.3% APR').length).toBe(1);
+    expect(getAllByText('2.29% APR').length).toBe(1);
 
     // USDC
     expect(getByText('USDC')).toBeDefined();
-    expect(getByText('4.0% APR')).toBeDefined();
+    expect(getByText('4% APR')).toBeDefined();
 
     expect(useEarnTokensSpy).toHaveBeenCalled();
     expect(useEarnNetworkPollingSpy).toHaveBeenCalled();
@@ -796,6 +821,31 @@ describe('EarnTokenList', () => {
     });
   });
 
+  it('closes the bottom sheet when close button is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <SafeAreaProvider initialMetrics={initialMetrics}>
+        <EarnTokenList />
+      </SafeAreaProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    const closeButton = getByTestId('earn-token-list-close-button');
+
+    expect(closeButton).toBeDefined();
+
+    // Press the close button - this triggers:
+    // 1. handleClose callback
+    // 2. bottomSheetRef.current?.onCloseBottomSheet()
+    // 3. BottomSheet animates closed and calls onCloseCB
+    // 4. onCloseCB calls navigation.goBack() (when shouldNavigateBack is true)
+    fireEvent.press(closeButton);
+
+    // Verify that navigation.goBack() was called, confirming the bottom sheet close flow executed
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
   describe('Tron tokens', () => {
     beforeEach(() => {
       mockIsTronChainId.mockReturnValue(false);
@@ -896,6 +946,28 @@ describe('EarnTokenList', () => {
         screen: 'Stake',
         params: { token: expect.objectContaining({ symbol: 'TRX' }) },
       });
+    });
+  });
+
+  describe('HeaderCenter close button', () => {
+    it('invokes handleClose when close button is pressed', async () => {
+      const { getByTestId } = renderWithProvider(
+        <SafeAreaProvider initialMetrics={initialMetrics}>
+          <EarnTokenList />
+        </SafeAreaProvider>,
+        { state: initialState },
+      );
+
+      const closeButton = getByTestId('earn-token-list-close-button');
+
+      // Press the close button - this invokes handleClose which calls onCloseBottomSheet
+      await act(async () => {
+        fireEvent.press(closeButton);
+      });
+
+      // The close button should be pressable without errors
+      // handleClose calls bottomSheetRef.current?.onCloseBottomSheet()
+      expect(closeButton).toBeDefined();
     });
   });
 });

@@ -1,15 +1,32 @@
-import Gestures from '../../framework/Gestures';
-import Matchers from '../../framework/Matchers';
-import { ConfirmationTopSheetSelectorsIDs } from '../../selectors/Confirmation/ConfirmationView.selectors';
+// TODO: This file references legacy confirmation UI that was removed.
+// The TransactionConfirmView.testIds file no longer exists.
+// This e2e page object needs to be updated to use redesigned confirmation testIds
+// or deleted if the functionality is no longer tested.
+
+import Gestures from '../../../tests/framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
+import { ConfirmationTopSheetSelectorsIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import {
   EditGasViewSelectorsText,
   EditGasViewSelectorsIDs,
-} from '../../selectors/SendFlow/EditGasView.selectors';
-import {
-  TransactionConfirmViewSelectorsIDs,
-  TransactionConfirmViewSelectorsText,
-} from '../../selectors/SendFlow/TransactionConfirmView.selectors';
+} from '../../../app/components/Views/confirmations/legacy/components/EditGasView.testIds';
+// import {
+//   TransactionConfirmViewSelectorsIDs,
+//   TransactionConfirmViewSelectorsText,
+// } from '../../../app/components/Views/confirmations/legacy/components/Confirm/TransactionConfirmView.testIds';
 import RowComponents from '../Browser/Confirmations/RowComponents';
+
+// Temporary placeholders to prevent TypeScript errors
+const TransactionConfirmViewSelectorsIDs = {
+  CONFIRM_TRANSACTION_BUTTON_ID: 'confirm-transaction-button',
+  CONFIRM_TXN_AMOUNT: 'confirm-transaction-amount',
+  TRANSACTION_VIEW_CONTAINER_ID: 'transaction-view-container',
+};
+
+const TransactionConfirmViewSelectorsText = {
+  CANCEL_BUTTON: 'Cancel',
+  CONFIRM: 'Confirm',
+};
 
 class TransactionConfirmationView {
   get confirmButton(): DetoxElement {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
-import { NetworkAddedBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Network/NetworkAddedBottomSheet.selectors';
+import { NetworkAddedBottomSheetSelectorsIDs } from '../NetworkAddedBottomSheet.testIds';
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Text, {
   TextVariant,

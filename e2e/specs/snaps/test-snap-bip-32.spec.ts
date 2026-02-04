@@ -1,9 +1,8 @@
 import { FlaskBuildTests } from '../../tags';
-import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import Assertions from '../../framework/Assertions';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import Assertions from '../../../tests/framework/Assertions';
 import TestSnaps from '../../pages/Browser/TestSnaps';
 
 jest.setTimeout(150_000);
@@ -18,7 +17,7 @@ describe(FlaskBuildTests('BIP-32 Snap Tests'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await TestSnaps.navigateToTestSnap();
 
         await TestSnaps.installSnap('connectBip32Button');

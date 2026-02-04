@@ -22,6 +22,9 @@ import type {
   DiscoverSeasonsDto,
   SeasonMetadataDto,
   SeasonStateDto,
+  LineaTokenRewardDto,
+  ApplyReferralDto,
+  SnapshotDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -178,6 +181,21 @@ export interface RewardsDataServiceGetSeasonMetadataAction {
   handler: RewardsDataService['getSeasonMetadata'];
 }
 
+export interface RewardsDataServiceGetSeasonOneLineaRewardTokensAction {
+  type: `${typeof SERVICE_NAME}:getSeasonOneLineaRewardTokens`;
+  handler: RewardsDataService['getSeasonOneLineaRewardTokens'];
+}
+
+export interface RewardsDataServiceApplyReferralCodeAction {
+  type: `${typeof SERVICE_NAME}:applyReferralCode`;
+  handler: RewardsDataService['applyReferralCode'];
+}
+
+export interface RewardsDataServiceGetSnapshotsAction {
+  type: `${typeof SERVICE_NAME}:getSnapshots`;
+  handler: RewardsDataService['getSnapshots'];
+}
+
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
@@ -197,7 +215,10 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetUnlockedRewardsAction
   | RewardsDataServiceClaimRewardAction
   | RewardsDataServiceGetDiscoverSeasonsAction
-  | RewardsDataServiceGetSeasonMetadataAction;
+  | RewardsDataServiceGetSeasonMetadataAction
+  | RewardsDataServiceGetSeasonOneLineaRewardTokensAction
+  | RewardsDataServiceApplyReferralCodeAction
+  | RewardsDataServiceGetSnapshotsAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -315,6 +336,18 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getSeasonMetadata`,
       this.getSeasonMetadata.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getSeasonOneLineaRewardTokens`,
+      this.getSeasonOneLineaRewardTokens.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:applyReferralCode`,
+      this.applyReferralCode.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getSnapshots`,
+      this.getSnapshots.bind(this),
     );
   }
 
@@ -470,10 +503,14 @@ export class RewardsDataService {
   async getPointsEvents(
     params: GetPointsEventsDto,
   ): Promise<PaginatedPointsEventsDto> {
-    const { seasonId, subscriptionId, cursor } = params;
+    const { seasonId, subscriptionId, cursor, type } = params;
+
+    const queryParams: string[] = [];
+    if (cursor) queryParams.push(`cursor=${encodeURIComponent(cursor)}`);
+    if (type) queryParams.push(`type=${encodeURIComponent(type)}`);
 
     let url = `/seasons/${seasonId}/points-events`;
-    if (cursor) url += `?cursor=${encodeURIComponent(cursor)}`;
+    if (queryParams.length > 0) url += `?${queryParams.join('&')}`;
 
     const response = await this.makeRequest(
       url,
@@ -695,8 +732,8 @@ export class RewardsDataService {
     if (!response.ok) {
       throw new Error(`Get referral details failed: ${response.status}`);
     }
-
-    return (await response.json()) as SubscriptionSeasonReferralDetailsDto;
+    const data = await response.json();
+    return data as SubscriptionSeasonReferralDetailsDto;
   }
 
   /**
@@ -952,6 +989,20 @@ export class RewardsDataService {
       }
     }
 
+    // Coerce: if current season exists but end date has passed, set it as previous
+    if (data.current?.endDate) {
+      const now = new Date();
+      const endDate =
+        data.current.endDate instanceof Date
+          ? data.current.endDate
+          : new Date(data.current.endDate);
+
+      if (endDate <= now) {
+        data.previous = data.current;
+        data.current = null;
+      }
+    }
+
     return data as DiscoverSeasonsDto;
   }
 
@@ -988,5 +1039,95 @@ export class RewardsDataService {
     }
 
     return data as SeasonMetadataDto;
+  }
+
+  /**
+   * Get Season 1 Linea token reward for the subscription.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The Linea token reward DTO or null if not found.
+   */
+  async getSeasonOneLineaRewardTokens(
+    subscriptionId: string,
+  ): Promise<LineaTokenRewardDto | null> {
+    const response = await this.makeRequest(
+      '/rewards/season-1/linea-tokens',
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok || response.status === 404) {
+      throw new Error(
+        `Failed to get Season 1 Linea reward tokens: ${response.status}`,
+      );
+    }
+
+    const data = await response.json();
+
+    // Convert bigint to string if backend sends it as a number
+    return {
+      subscriptionId: data.subscriptionId,
+      amount: String(data.amount),
+    } as LineaTokenRewardDto;
+  }
+
+  /**
+   * Apply a referral code to an existing subscription.
+   * @param dto - The apply referral request body containing the referral code.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns Promise that resolves when the referral code is applied successfully.
+   * @throws Error with the error message from the API response.
+   */
+  async applyReferralCode(
+    dto: ApplyReferralDto,
+    subscriptionId: string,
+  ): Promise<void> {
+    const response = await this.makeRequest(
+      '/wr/subscriptions/apply-referral',
+      {
+        method: 'POST',
+        body: JSON.stringify(dto),
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      // Handle 204 No Content as success (already handled by response.ok)
+      if (response.status === 204) {
+        return;
+      }
+
+      const errorData = await response.json();
+      const errorMessage =
+        errorData?.message || `Apply referral code failed: ${response.status}`;
+
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
+   * Get snapshots for a specific season.
+   * @param seasonId - The ID of the season to get snapshots for.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The list of snapshots for the season.
+   */
+  async getSnapshots(
+    seasonId: string,
+    subscriptionId: string,
+  ): Promise<SnapshotDto[]> {
+    const response = await this.makeRequest(
+      `/v1/seasons/${seasonId}/snapshots`,
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get snapshots failed: ${response.status}`);
+    }
+
+    return (await response.json()) as SnapshotDto[];
   }
 }

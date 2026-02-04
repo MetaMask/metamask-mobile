@@ -13,6 +13,7 @@ export interface UsePredictMarketDataOptions {
   q?: string;
   category?: PredictCategory;
   pageSize?: number;
+  customQueryParams?: string;
 }
 
 export interface UsePredictMarketDataResult {
@@ -32,7 +33,13 @@ export interface UsePredictMarketDataResult {
 export const usePredictMarketData = (
   options: UsePredictMarketDataOptions = {},
 ): UsePredictMarketDataResult => {
-  const { category = 'trending', q, pageSize = 20, providerId } = options;
+  const {
+    category = 'trending',
+    q,
+    pageSize = 20,
+    providerId,
+    customQueryParams,
+  } = options;
   const [marketData, setMarketData] = useState<PredictMarket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -97,6 +104,7 @@ export const usePredictMarketData = (
               q,
               limit: pageSize,
               offset,
+              customQueryParams,
             });
             DevLogger.log('Market data received:', markets);
 
@@ -109,7 +117,7 @@ export const usePredictMarketData = (
               return;
             }
 
-            const hasMoreData = markets.length === pageSize;
+            const hasMoreData = markets.length >= pageSize;
             setHasMore(hasMoreData);
 
             if (isLoadMore) {
@@ -184,7 +192,7 @@ export const usePredictMarketData = (
         setIsLoadingMore(false);
       }
     },
-    [category, q, pageSize, providerId],
+    [category, q, pageSize, providerId, customQueryParams],
   );
 
   const loadMore = useCallback(async () => {
@@ -203,7 +211,7 @@ export const usePredictMarketData = (
     setHasMore(true);
     setMarketData([]);
     fetchMarketData(false);
-  }, [category, q, fetchMarketData]);
+  }, [category, q, customQueryParams, fetchMarketData]);
 
   return {
     marketData,

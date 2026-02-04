@@ -1,10 +1,9 @@
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import TestSnaps from '../../pages/Browser/TestSnaps';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import { FlaskBuildTests } from '../../tags';
-import Assertions from '../../framework/Assertions';
-import { loginToApp } from '../../viewHelper';
+import Assertions from '../../../tests/framework/Assertions';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 
 jest.setTimeout(150_000);
 
@@ -18,7 +17,7 @@ describe(FlaskBuildTests('Lifecycle hooks Snap Tests'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await TestSnaps.navigateToTestSnap();
 
         await TestSnaps.installSnap('connectLifeCycleButton');

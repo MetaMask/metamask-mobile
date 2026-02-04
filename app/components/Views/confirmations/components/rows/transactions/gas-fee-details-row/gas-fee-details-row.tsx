@@ -5,7 +5,7 @@ import {
 import React, { useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationRowComponentIDs } from '../../../../ConfirmationView.testIds';
 import { strings } from '../../../../../../../../locales/i18n';
 import Icon, {
   IconName,
@@ -52,7 +52,7 @@ const SkeletonEstimationInfo = () => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <Skeleton width={140} height={20} style={styles.skeletonBorderRadius} />
+    <Skeleton width={140} height={28} style={styles.skeletonBorderRadius} />
   );
 };
 

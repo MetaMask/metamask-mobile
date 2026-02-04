@@ -1,7 +1,7 @@
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
-import { CardHomeSelectors } from '../../selectors/Card/CardHome.selectors';
-import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
+import { CardHomeSelectors } from '../../../app/components/UI/Card/Views/CardHome/CardHome.testIds';
+import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 
 class CardHomeView {
   get tryAgainButton(): DetoxElement {

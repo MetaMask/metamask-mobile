@@ -13,7 +13,8 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast/Toast.types';
 import { useAppThemeFromContext } from '../../../../util/theme';
-import { TokenIconWithSpinner } from '../components/TokenIconWithSpinner';
+import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
+import { IconSize as ReactNativeDsIconSize } from '@metamask/design-system-react-native';
 
 export type EarnToastOptions = Omit<
   Extract<ToastOptions, { variant: ToastVariants.Icon }>,
@@ -29,13 +30,16 @@ export type EarnToastOptions = Omit<
 
 export interface MusdConversionInProgressParams {
   tokenSymbol: string;
-  tokenIcon?: string;
-  estimatedTimeSeconds?: number;
 }
 
 export interface EarnToastOptionsConfig {
   mUsdConversion: {
     inProgress: (params: MusdConversionInProgressParams) => EarnToastOptions;
+    success: EarnToastOptions;
+    failed: EarnToastOptions;
+  };
+  bonusClaim: {
+    inProgress: EarnToastOptions;
     success: EarnToastOptions;
     failed: EarnToastOptions;
   };
@@ -50,7 +54,7 @@ interface EarnToastLabelOptions {
 const getEarnToastLabels = ({
   primary,
   secondary,
-  primaryIsBold = true,
+  primaryIsBold = false,
 }: EarnToastLabelOptions) => {
   const labels = [
     {
@@ -75,28 +79,8 @@ const getEarnToastLabels = ({
   return labels;
 };
 
-const formatEstimatedTime = (seconds?: number): string => {
-  if (!seconds || seconds <= 0) {
-    return strings('earn.musd_conversion.toasts.eta', { time: '< 1 minute' });
-  }
-
-  if (seconds < 60) {
-    const secondText = seconds === 1 ? 'second' : 'seconds';
-    return strings('earn.musd_conversion.toasts.eta', {
-      time: `${seconds} ${secondText}`,
-    });
-  }
-
-  const minutes = Math.ceil(seconds / 60);
-  const minuteText = minutes === 1 ? 'minute' : 'minutes';
-  return strings('earn.musd_conversion.toasts.eta', {
-    time: `${minutes} ${minuteText}`,
-  });
-};
-
 const EARN_TOASTS_DEFAULT_OPTIONS: Partial<EarnToastOptions> = {
   hasNoTimeout: false,
-  customBottomOffset: 32,
 };
 
 const toastStyles = StyleSheet.create({
@@ -138,8 +122,20 @@ const useEarnToasts = (): {
             <Icon
               name={IconName.Confirmation}
               color={theme.colors.success.default}
-              size={IconSize.Xl}
+              size={IconSize.Lg}
             />
+          </View>
+        ),
+      },
+      inProgress: {
+        ...(EARN_TOASTS_DEFAULT_OPTIONS as EarnToastOptions),
+        variant: ToastVariants.Icon,
+        iconName: IconName.Loading,
+        hapticsType: NotificationFeedbackType.Warning,
+        hasNoTimeout: true,
+        startAccessory: (
+          <View style={toastStyles.iconWrapper}>
+            <Spinner spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }} />
           </View>
         ),
       },
@@ -176,32 +172,13 @@ const useEarnToasts = (): {
   const EarnToastOptions: EarnToastOptionsConfig = useMemo(
     () => ({
       mUsdConversion: {
-        inProgress: ({
-          tokenSymbol,
-          tokenIcon,
-          estimatedTimeSeconds,
-        }: MusdConversionInProgressParams) => ({
-          ...(EARN_TOASTS_DEFAULT_OPTIONS as EarnToastOptions),
-          variant: ToastVariants.Icon,
-          iconName: IconName.Loading,
-          iconColor: theme.colors.icon.default,
-          backgroundColor: theme.colors.background.default,
-          hapticsType: NotificationFeedbackType.Warning,
-          hasNoTimeout: true,
-          startAccessory: (
-            <TokenIconWithSpinner
-              tokenSymbol={tokenSymbol}
-              tokenIcon={tokenIcon}
-            />
-          ),
+        inProgress: ({ tokenSymbol }: MusdConversionInProgressParams) => ({
+          ...earnBaseToastOptions.inProgress,
           labelOptions: getEarnToastLabels({
             primary: strings('earn.musd_conversion.toasts.converting', {
               token: tokenSymbol,
             }),
           }),
-          descriptionOptions: {
-            description: formatEstimatedTime(estimatedTimeSeconds),
-          },
           closeButtonOptions,
         }),
         success: {
@@ -219,13 +196,36 @@ const useEarnToasts = (): {
           closeButtonOptions,
         },
       },
+      bonusClaim: {
+        inProgress: {
+          ...earnBaseToastOptions.inProgress,
+          labelOptions: getEarnToastLabels({
+            primary: strings('earn.bonus_claim.toasts.claiming'),
+          }),
+          closeButtonOptions,
+        },
+        // Reuse the mUSD conversion success toast as per acceptance criteria
+        success: {
+          ...earnBaseToastOptions.success,
+          labelOptions: getEarnToastLabels({
+            primary: strings('earn.bonus_claim.toasts.delivered'),
+          }),
+          closeButtonOptions,
+        },
+        failed: {
+          ...earnBaseToastOptions.error,
+          labelOptions: getEarnToastLabels({
+            primary: strings('earn.bonus_claim.toasts.failed'),
+          }),
+          closeButtonOptions,
+        },
+      },
     }),
     [
       closeButtonOptions,
       earnBaseToastOptions.error,
+      earnBaseToastOptions.inProgress,
       earnBaseToastOptions.success,
-      theme.colors.background.default,
-      theme.colors.icon.default,
     ],
   );
 
