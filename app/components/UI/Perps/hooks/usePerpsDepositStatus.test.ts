@@ -142,6 +142,26 @@ describe('usePerpsDepositStatus', () => {
             ],
             hapticsType: NotificationFeedbackType.Success,
           })),
+          takingLonger: {
+            variant: ToastVariants.Icon,
+            iconName: IconName.Warning,
+            hasNoTimeout: true,
+            labelOptions: [
+              { label: 'Deposit taking longer', isBold: true },
+              { label: 'Your deposit is still processing' },
+            ],
+            hapticsType: NotificationFeedbackType.Warning,
+          } as PerpsToastOptions,
+          tradeCanceled: {
+            variant: ToastVariants.Icon,
+            iconName: IconName.Warning,
+            hasNoTimeout: false,
+            labelOptions: [
+              { label: 'Trade canceled', isBold: true },
+              { label: 'Funds returned to account' },
+            ],
+            hapticsType: NotificationFeedbackType.Warning,
+          } as PerpsToastOptions,
         },
         withdrawal: {
           withdrawalInProgress: {
@@ -415,7 +435,6 @@ describe('usePerpsDepositStatus', () => {
         mockPerpsToastOptions.accountManagement.deposit.inProgress,
       ).toHaveBeenCalledWith(60, 'test-tx-id'); // 60 seconds for other tokens
     });
-
   });
 
   describe('Balance Monitoring', () => {

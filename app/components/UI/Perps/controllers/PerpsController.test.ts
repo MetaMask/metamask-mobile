@@ -1891,7 +1891,10 @@ describe('PerpsController', () => {
       const unsubscribe = controller.subscribeToAccount(params);
 
       expect(unsubscribe).toBe(mockUnsubscribe);
-      expect(mockProvider.subscribeToAccount).toHaveBeenCalledWith(params);
+      // Controller wraps callback to update state, so expect a function rather than exact params
+      expect(mockProvider.subscribeToAccount).toHaveBeenCalledWith(
+        expect.objectContaining({ callback: expect.any(Function) }),
+      );
     });
   });
 

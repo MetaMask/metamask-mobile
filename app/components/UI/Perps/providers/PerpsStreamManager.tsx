@@ -862,7 +862,10 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
     this.wsConnectionStartTime = performance.now();
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToAccount({
-      callback: (account: AccountState) => {
+      callback: (account: AccountState | null) => {
+        if (account === null) {
+          return;
+        }
         // Validate account context
         const currentAccount =
           getEvmAccountFromSelectedAccountGroup()?.address || null;
@@ -1402,8 +1405,8 @@ export type PerpsStreamChannelKey = {
   [K in keyof PerpsStreamManager]: PerpsStreamManager[K] extends {
     pause(): void;
   }
-  ? K
-  : never;
+    ? K
+    : never;
 }[keyof PerpsStreamManager];
 
 // Types are exported from controllers/types

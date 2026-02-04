@@ -426,9 +426,23 @@ export class SubscriptionMultiplexer {
       try {
         const subscribeParams: SubscribeAccountParams = {
           callback: (account) => {
-            // Tag account with providerId and cache
-            const taggedAccount: AccountState = { ...account, providerId };
-            this.accountCache.set(providerId, taggedAccount);
+            if (account === null) {
+              this.accountCache.delete(providerId);
+            } else {
+              // Tag account with providerId and cache (ensure required fields)
+              const taggedAccount: AccountState = {
+                availableBalance: account.availableBalance ?? '',
+                totalBalance: account.totalBalance ?? '',
+                marginUsed: account.marginUsed ?? '',
+                unrealizedPnl: account.unrealizedPnl ?? '',
+                returnOnEquity: account.returnOnEquity ?? '',
+                ...(account.subAccountBreakdown !== undefined && {
+                  subAccountBreakdown: account.subAccountBreakdown,
+                }),
+                providerId,
+              };
+              this.accountCache.set(providerId, taggedAccount);
+            }
 
             // Emit all cached account states
             const allAccounts = Array.from(this.accountCache.values());
