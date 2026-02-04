@@ -431,7 +431,7 @@ describe('Login test suite 2', () => {
   });
 
   describe('biometric cancellation', () => {
-    it('throw error when Android biometric auth is cancelled', async () => {
+    it('does not log error when Android biometric auth is cancelled', async () => {
       // Arrange
       mockRoute.mockReturnValue({
         params: {
@@ -456,7 +456,7 @@ describe('Login test suite 2', () => {
       expect(mockLogger.error).not.toHaveBeenCalled();
     });
 
-    it('throw error when iOS biometric auth is cancelled', async () => {
+    it('does not log error when iOS biometric auth is cancelled', async () => {
       // Arrange
       mockRoute.mockReturnValue({
         params: {

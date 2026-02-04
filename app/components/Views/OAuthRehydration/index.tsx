@@ -415,8 +415,11 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         setError(strings('login.biometric_authentication_cancelled'));
         // user already successfull rehydrate or synced new password but failed biometric authentication
         // resetPassword so that the state is correct upon user closed and reopen the app
-        await Authentication.resetPassword();
-        setLoading(false);
+        try {
+          await Authentication.resetPassword();
+        } finally {
+          setLoading(false);
+        }
         return;
       }
 
