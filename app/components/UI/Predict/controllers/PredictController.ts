@@ -506,16 +506,18 @@ export class PredictController extends BaseController<
           description: strings('predict.withdraw.withdrawing_subtitle'),
         });
         break;
-      case TransactionStatus.confirmed:
+      case TransactionStatus.confirmed: {
+        const withdrawAmount = this.getWithdrawAmount();
         this.clearWithdrawTransaction();
         this.showSuccessToast({
           title: strings('predict.withdraw.withdraw_completed'),
           description: strings('predict.withdraw.withdraw_completed_subtitle', {
-            amount: this.getWithdrawAmount(),
+            amount: withdrawAmount,
           }),
         });
         this.refreshBalanceAfterTransaction();
         break;
+      }
       case TransactionStatus.failed:
         this.clearWithdrawTransaction();
         this.showFailureToast({
