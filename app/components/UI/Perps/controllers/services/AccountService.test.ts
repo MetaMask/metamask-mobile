@@ -20,13 +20,13 @@ import type {
 
 jest.mock('uuid', () => ({ v4: () => 'mock-withdrawal-trace-id' }));
 jest.mock('../../constants/eventNames', () => ({
-  PerpsEventProperties: {
+  PERPS_EVENT_PROPERTY: {
     STATUS: 'status',
     WITHDRAWAL_AMOUNT: 'withdrawal_amount',
     COMPLETION_DURATION: 'completion_duration',
     ERROR_MESSAGE: 'error_message',
   },
-  PerpsEventValues: {
+  PERPS_EVENT_VALUE: {
     STATUS: {
       EXECUTED: 'executed',
       FAILED: 'failed',

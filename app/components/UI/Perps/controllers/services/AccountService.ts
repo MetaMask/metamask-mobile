@@ -13,8 +13,8 @@ import type { PerpsControllerMessenger } from '../PerpsController';
 import type { TransactionStatus } from '../../types/transactionTypes';
 import { v4 as uuidv4 } from 'uuid';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
 } from '../../constants/eventNames';
 import { USDC_SYMBOL } from '../../constants/hyperLiquidConfig';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
@@ -217,9 +217,9 @@ export class AccountService {
         this.deps.metrics.trackPerpsEvent(
           PerpsAnalyticsEvent.WithdrawalTransaction,
           {
-            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
-            [PerpsEventProperties.WITHDRAWAL_AMOUNT]: parseFloat(params.amount),
-            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+            [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.EXECUTED,
+            [PERPS_EVENT_PROPERTY.WITHDRAWAL_AMOUNT]: parseFloat(params.amount),
+            [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: completionDuration,
           },
         );
 
@@ -280,10 +280,10 @@ export class AccountService {
       this.deps.metrics.trackPerpsEvent(
         PerpsAnalyticsEvent.WithdrawalTransaction,
         {
-          [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-          [PerpsEventProperties.WITHDRAWAL_AMOUNT]: parseFloat(params.amount),
-          [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-          [PerpsEventProperties.ERROR_MESSAGE]: result.error || 'Unknown error',
+          [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
+          [PERPS_EVENT_PROPERTY.WITHDRAWAL_AMOUNT]: parseFloat(params.amount),
+          [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: completionDuration,
+          [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: result.error || 'Unknown error',
         },
       );
 
@@ -338,10 +338,10 @@ export class AccountService {
       this.deps.metrics.trackPerpsEvent(
         PerpsAnalyticsEvent.WithdrawalTransaction,
         {
-          [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-          [PerpsEventProperties.WITHDRAWAL_AMOUNT]: params.amount,
-          [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-          [PerpsEventProperties.ERROR_MESSAGE]: errorMessage,
+          [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
+          [PERPS_EVENT_PROPERTY.WITHDRAWAL_AMOUNT]: params.amount,
+          [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: completionDuration,
+          [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
         },
       );
 

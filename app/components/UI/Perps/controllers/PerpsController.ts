@@ -26,8 +26,8 @@ import {
   TransactionStatus,
 } from '../types/transactionTypes';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
 } from '../constants/eventNames';
 import { ensureError } from '../../../../util/errorUtils';
 import type { CandleData } from '../types/perps-types';
@@ -1828,11 +1828,11 @@ export class PerpsController extends BaseController<
           this.getMetrics().trackPerpsEvent(
             PerpsAnalyticsEvent.WithdrawalTransaction,
             {
-              [PerpsEventProperties.STATUS]:
+              [PERPS_EVENT_PROPERTY.STATUS]:
                 status === 'completed'
-                  ? PerpsEventValues.STATUS.COMPLETED
-                  : PerpsEventValues.STATUS.FAILED,
-              [PerpsEventProperties.WITHDRAWAL_AMOUNT]:
+                  ? PERPS_EVENT_VALUE.STATUS.COMPLETED
+                  : PERPS_EVENT_VALUE.STATUS.FAILED,
+              [PERPS_EVENT_PROPERTY.WITHDRAWAL_AMOUNT]:
                 Number.parseFloat(withdrawalAmount),
             },
           );

@@ -43,7 +43,7 @@ import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { PerpsProgressBar } from '../PerpsProgressBar';
 import { selectWithdrawalRequestsBySelectedAccount } from '../../../../../selectors/perps';
-import { PerpsEventValues } from '../../constants/eventNames';
+import { PERPS_EVENT_VALUE } from '../../constants/eventNames';
 interface PerpsMarketBalanceActionsProps {
   showActionButtons?: boolean;
 }
@@ -96,8 +96,8 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
   // Use hook for eligibility checks and action handlers
   // Determine button location based on whether balance is empty (empty state) or not (home)
   const buttonLocation = isBalanceEmpty
-    ? PerpsEventValues.BUTTON_LOCATION.PERPS_HOME_EMPTY_STATE
-    : PerpsEventValues.BUTTON_LOCATION.PERPS_HOME;
+    ? PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME_EMPTY_STATE
+    : PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME;
 
   const {
     handleAddFunds,
@@ -190,7 +190,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
 
   const handleLearnMore = useCallback(() => {
     navigation.navigate(Routes.PERPS.TUTORIAL, {
-      source: PerpsEventValues.SOURCE.PERPS_HOME,
+      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
     });
   }, [navigation]);
 

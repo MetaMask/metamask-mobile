@@ -7,8 +7,8 @@ import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
 } from '../constants/eventNames';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import Logger from '../../../../util/Logger';
@@ -157,10 +157,11 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
           });
 
           track(MetaMetricsEvents.PERPS_ERROR, {
-            [PerpsEventProperties.ERROR_TYPE]:
-              PerpsEventValues.ERROR_TYPE.BACKEND,
-            [PerpsEventProperties.ERROR_MESSAGE]: err.message,
-            [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.TRADE_ACTION,
+            [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
+              PERPS_EVENT_VALUE.ERROR_TYPE.BACKEND,
+            [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: err.message,
+            [PERPS_EVENT_PROPERTY.SOURCE]:
+              PERPS_EVENT_VALUE.SOURCE.TRADE_ACTION,
           });
 
           showToast(

@@ -1233,7 +1233,7 @@ export type PerpsTraceValue = string | number | boolean;
 
 /**
  * Properties allowed in analytics events. More constrained than unknown.
- * Named PerpsAnalyticsProperties to avoid conflict with PerpsEventProperties
+ * Named PerpsAnalyticsProperties to avoid conflict with PERPS_EVENT_PROPERTY
  * constant object from eventNames.ts (which contains property key names).
  */
 export type PerpsAnalyticsProperties = Record<
