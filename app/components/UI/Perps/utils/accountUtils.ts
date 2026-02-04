@@ -40,6 +40,33 @@ export function getEvmAccountFromAccountGroup(
 }
 
 /**
+ * Messenger interface for getSelectedEvmAccount utility
+ * Only requires the specific messenger.call signature needed
+ */
+interface AccountTreeMessenger {
+  call: (
+    action: 'AccountTreeController:getAccountsFromSelectedAccountGroup',
+  ) => InternalAccount[];
+}
+
+/**
+ * Get selected EVM account via messenger.
+ * This utility encapsulates the messenger call + filtering logic to avoid duplication
+ * across controllers and services.
+ *
+ * @param messenger - Any object with a call method that can invoke AccountTreeController
+ * @returns Object with address if EVM account found, undefined otherwise
+ */
+export function getSelectedEvmAccount(
+  messenger: AccountTreeMessenger,
+): { address: string } | undefined {
+  const accounts = messenger.call(
+    'AccountTreeController:getAccountsFromSelectedAccountGroup',
+  );
+  return getEvmAccountFromAccountGroup(accounts);
+}
+
+/**
  * Interface for ROE calculation input
  */
 export interface ReturnOnEquityInput {

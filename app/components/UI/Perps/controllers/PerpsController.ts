@@ -121,7 +121,7 @@ import type {
   RemoteFeatureFlagControllerGetStateAction,
 } from '@metamask/remote-feature-flag-controller';
 import { wait } from '../utils/wait';
-import { getEvmAccountFromAccountGroup } from '../utils/accountUtils';
+import { getSelectedEvmAccount } from '../utils/accountUtils';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 
 // Re-export error codes from separate file to avoid circular dependencies
@@ -865,16 +865,6 @@ export class PerpsController extends BaseController<
   // ============================================================================
 
   /**
-   * Get selected EVM account via messenger
-   */
-  private getSelectedEvmAccount(): { address: string } | undefined {
-    const accounts = this.messenger.call(
-      'AccountTreeController:getAccountsFromSelectedAccountGroup',
-    );
-    return getEvmAccountFromAccountGroup(accounts);
-  }
-
-  /**
    * Find network client ID for a given chain via messenger
    */
   private findNetworkClientIdForChain(chainId: string): string | undefined {
@@ -1568,7 +1558,7 @@ export class PerpsController extends BaseController<
         await this.depositService.prepareTransaction({ provider });
 
       // Get current account address via messenger (outside of update() for proper typing)
-      const evmAccount = this.getSelectedEvmAccount();
+      const evmAccount = getSelectedEvmAccount(this.messenger);
       const accountAddress = evmAccount?.address || 'unknown';
 
       this.update((state) => {

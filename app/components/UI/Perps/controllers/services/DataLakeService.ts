@@ -9,7 +9,7 @@ import {
   type PerpsPlatformDependencies,
 } from '../types';
 import type { PerpsControllerMessenger } from '../PerpsController';
-import { getEvmAccountFromAccountGroup } from '../../utils/accountUtils';
+import { getSelectedEvmAccount } from '../../utils/accountUtils';
 
 /**
  * DataLakeService
@@ -36,16 +36,6 @@ export class DataLakeService {
   ) {
     this.deps = deps;
     this.messenger = messenger;
-  }
-
-  /**
-   * Get selected EVM account via messenger
-   */
-  private getSelectedEvmAccount(): { address: string } | undefined {
-    const accounts = this.messenger.call(
-      'AccountTreeController:getAccountsFromSelectedAccountGroup',
-    );
-    return getEvmAccountFromAccountGroup(accounts);
   }
 
   /**
@@ -151,7 +141,7 @@ export class DataLakeService {
 
     try {
       const token = await this.getBearerToken();
-      const evmAccount = this.getSelectedEvmAccount();
+      const evmAccount = getSelectedEvmAccount(this.messenger);
 
       if (!evmAccount || !token) {
         this.deps.debugLogger.log('DataLake API: Missing requirements', {

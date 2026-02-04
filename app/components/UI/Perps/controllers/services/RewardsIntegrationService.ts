@@ -2,7 +2,7 @@ import { ensureError } from '../../../../../util/errorUtils';
 import { formatAccountToCaipAccountId } from '../../utils/rewardsUtils';
 import type { PerpsControllerMessenger } from '../PerpsController';
 import type { PerpsPlatformDependencies } from '../types';
-import { getEvmAccountFromAccountGroup } from '../../utils/accountUtils';
+import { getSelectedEvmAccount } from '../../utils/accountUtils';
 
 /**
  * RewardsIntegrationService
@@ -31,16 +31,6 @@ export class RewardsIntegrationService {
   }
 
   /**
-   * Get selected EVM account via messenger
-   */
-  private getSelectedEvmAccount(): { address: string } | undefined {
-    const accounts = this.messenger.call(
-      'AccountTreeController:getAccountsFromSelectedAccountGroup',
-    );
-    return getEvmAccountFromAccountGroup(accounts);
-  }
-
-  /**
    * Get chain ID for a network client via messenger
    */
   private getChainIdForNetwork(networkClientId: string): string | undefined {
@@ -62,7 +52,7 @@ export class RewardsIntegrationService {
    */
   async calculateUserFeeDiscount(): Promise<number | undefined> {
     try {
-      const evmAccount = this.getSelectedEvmAccount();
+      const evmAccount = getSelectedEvmAccount(this.messenger);
 
       if (!evmAccount) {
         this.deps.debugLogger.log(

@@ -11,7 +11,7 @@ import {
 } from '../types';
 import type { PerpsControllerMessenger } from '../PerpsController';
 import type { TransactionStatus } from '../../types/transactionTypes';
-import { getEvmAccountFromAccountGroup } from '../../utils/accountUtils';
+import { getSelectedEvmAccount } from '../../utils/accountUtils';
 import { v4 as uuidv4 } from 'uuid';
 import {
   PERPS_EVENT_PROPERTY,
@@ -45,16 +45,6 @@ export class AccountService {
   ) {
     this.deps = deps;
     this.messenger = messenger;
-  }
-
-  /**
-   * Get selected EVM account via messenger
-   */
-  private getSelectedEvmAccount(): { address: string } | undefined {
-    const accounts = this.messenger.call(
-      'AccountTreeController:getAccountsFromSelectedAccountGroup',
-    );
-    return getEvmAccountFromAccountGroup(accounts);
   }
 
   /**
@@ -118,7 +108,7 @@ export class AccountService {
           const netAmount = Math.max(0, grossAmount - feeAmount);
 
           // Get current account address via messenger
-          const evmAccount = this.getSelectedEvmAccount();
+          const evmAccount = getSelectedEvmAccount(this.messenger);
           const accountAddress = evmAccount?.address || 'unknown';
 
           this.deps.debugLogger.log(

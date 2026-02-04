@@ -12,7 +12,7 @@ import { getChainId } from '../constants/hyperLiquidConfig';
 import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
 import type { PerpsPlatformDependencies } from '../controllers/types';
 import type { PerpsControllerMessenger } from '../controllers/PerpsController';
-import { getEvmAccountFromAccountGroup } from '../utils/accountUtils';
+import { getSelectedEvmAccount } from '../utils/accountUtils';
 
 /**
  * Service for MetaMask wallet integration with HyperLiquid SDK
@@ -35,16 +35,6 @@ export class HyperLiquidWalletService {
     this.deps = deps;
     this.messenger = messenger;
     this.isTestnet = options.isTestnet || false;
-  }
-
-  /**
-   * Get selected EVM account via messenger
-   */
-  private getSelectedEvmAccount(): { address: string } | undefined {
-    const accounts = this.messenger.call(
-      'AccountTreeController:getAccountsFromSelectedAccountGroup',
-    );
-    return getEvmAccountFromAccountGroup(accounts);
   }
 
   /**
@@ -82,7 +72,7 @@ export class HyperLiquidWalletService {
     getChainId?: () => Promise<number>;
   } {
     // Get current EVM account using messenger
-    const evmAccount = this.getSelectedEvmAccount();
+    const evmAccount = getSelectedEvmAccount(this.messenger);
 
     if (!evmAccount?.address) {
       throw new Error(PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED);
@@ -107,7 +97,7 @@ export class HyperLiquidWalletService {
       }): Promise<Hex> => {
         // Get FRESH account on every sign to handle account switches
         // This prevents race conditions where wallet adapter was created with old account
-        const currentEvmAccount = this.getSelectedEvmAccount();
+        const currentEvmAccount = getSelectedEvmAccount(this.messenger);
 
         if (!currentEvmAccount?.address) {
           throw new Error(PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED);
@@ -149,7 +139,7 @@ export class HyperLiquidWalletService {
    * Get current account ID using messenger
    */
   public async getCurrentAccountId(): Promise<CaipAccountId> {
-    const evmAccount = this.getSelectedEvmAccount();
+    const evmAccount = getSelectedEvmAccount(this.messenger);
 
     if (!evmAccount?.address) {
       throw new Error(PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED);
