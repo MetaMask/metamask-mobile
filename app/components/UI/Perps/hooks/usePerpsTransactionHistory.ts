@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { BigNumber } from 'bignumber.js';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type { CaipAccountId } from '@metamask/utils';
@@ -102,9 +103,23 @@ export const usePerpsTransactionHistory = ({
         detailedOrderType: orderMap.get(fill.orderId)?.detailedOrderType,
       }));
 
+      // Build fill size map: orderId -> total filled size
+      // This allows accurate filled percentage calculation for historical orders,
+      // since HyperLiquid's historical orders API returns sz=0 for all completed orders
+      const fillSizeByOrderId = new Map<string, BigNumber>();
+      for (const fill of fills) {
+        if (fill.orderId) {
+          const current = fillSizeByOrderId.get(fill.orderId) || BigNumber(0);
+          fillSizeByOrderId.set(fill.orderId, current.plus(fill.size || '0'));
+        }
+      }
+
       // Transform each data type to PerpsTransaction format
       const fillTransactions = transformFillsToTransactions(enrichedFills);
-      const orderTransactions = transformOrdersToTransactions(orders);
+      const orderTransactions = transformOrdersToTransactions(
+        orders,
+        fillSizeByOrderId,
+      );
       const fundingTransactions = transformFundingToTransactions(funding);
       const userHistoryTransactions = transformUserHistoryToTransactions(
         userHistoryRef.current,
