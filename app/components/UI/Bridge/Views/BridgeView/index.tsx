@@ -88,6 +88,7 @@ import { useIsGasIncludedSTXSendBundleSupported } from '../../hooks/useIsGasIncl
 import { useIsGasIncluded7702Supported } from '../../hooks/useIsGasIncluded7702Supported/index.ts';
 import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
+import { useRWAToken } from '../../hooks/useRWAToken.ts';
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -125,6 +126,7 @@ const BridgeView = () => {
   const bridgeViewMode = useSelector(selectBridgeViewMode);
   const { quotesLastFetched } = useSelector(selectBridgeControllerState);
   const { handleSwitchTokens } = useSwitchTokens();
+  const { isStockToken } = useRWAToken();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
@@ -420,6 +422,15 @@ const BridgeView = () => {
     isSelectingToken,
     isSubmittingTx,
   ]);
+  const isRWATokenSelected = useMemo(
+    () =>
+      isStockToken(sourceToken as BridgeToken) ||
+      isStockToken(destToken as BridgeToken),
+    [isStockToken, sourceToken, destToken],
+  );
+  const genericErrorMessage = isRWATokenSelected
+    ? strings('bridge.stock_token_error_banner_description')
+    : strings('bridge.error_banner_description');
 
   const renderBottomContent = (submitDisabled: boolean) => {
     if (shouldDisplayKeypad && !isLoading) {
@@ -447,7 +458,7 @@ const BridgeView = () => {
         <Box style={styles.buttonContainer}>
           <BannerAlert
             severity={BannerAlertSeverity.Error}
-            description={strings('bridge.error_banner_description')}
+            description={genericErrorMessage}
             onClose={() => {
               setIsErrorBannerVisible(false);
               setIsInputFocused(true);
