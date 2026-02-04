@@ -25,6 +25,7 @@ on:
           - flask-test
           - flask-e2e
           - flask-dev
+          - flask-uat
           - qa-prod
           - qa-dev
       platform:
@@ -37,7 +38,7 @@ permissions:
   id-token: write
 
 jobs:
-  # Load config 
+  # Load config
   prepare:
     runs-on: ubuntu-latest
     outputs:
@@ -80,7 +81,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-          
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -168,7 +169,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-          
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
