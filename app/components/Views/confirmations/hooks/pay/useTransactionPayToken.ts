@@ -16,7 +16,6 @@ import { updateTransaction } from '../../../../../util/transaction-controller';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import { hasTransactionType } from '../../utils/transaction';
-import { Alert } from 'react-native';
 
 export function useTransactionPayToken(): {
   isNative?: boolean;
@@ -57,8 +56,7 @@ export function useTransactionPayToken(): {
           tokenAddress: newPayToken.address,
           chainId: newPayToken.chainId,
         });
-      } catch (e: any) {
-        Alert.alert('Error updating payment token', JSON.stringify({ message: e.message }));
+      } catch (e) {
         console.error('Error updating payment token', e);
       }
 
@@ -71,7 +69,7 @@ export function useTransactionPayToken(): {
         const isNewPayTokenRequiredToken =
           newPayToken.chainId === primaryRequiredToken?.chainId &&
           newPayToken.address.toLowerCase() ===
-          primaryRequiredToken?.address.toLowerCase();
+            primaryRequiredToken?.address.toLowerCase();
 
         const updatedTx: TransactionMeta = {
           ...transactionMeta,

@@ -48,7 +48,7 @@ export const DefaultSwapDestTokens: Record<Hex | CaipChainId, BridgeToken> = {
   [CHAIN_IDS.ARBITRUM]: {
     symbol: 'USDC',
     name: 'USD Coin',
-    address: '0xaf88d065e77c8cc2239327c5edb3a432268e5831' as Hex,
+    address: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
     decimals: 6,
     image:
       'https://static.cx.metamask.io/api/v1/tokenIcons/42161/0xaf88d065e77c8cc2239327c5edb3a432268e5831.png',
@@ -176,16 +176,16 @@ export const Bip44TokensForDefaultPairs: Record<CaipAssetType, BridgeToken> = {
     name: 'Solana',
   },
   'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v':
-  {
-    address:
-      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-    symbol: 'USDC',
-    decimals: 6,
-    image:
-      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.png',
-    chainId: SolScope.Mainnet,
-    name: 'USD Coin',
-  },
+    {
+      address:
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+      symbol: 'USDC',
+      decimals: 6,
+      image:
+        'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.png',
+      chainId: SolScope.Mainnet,
+      name: 'USD Coin',
+    },
   'tron:728126428/trc20:TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t': {
     address: 'tron:728126428/trc20:TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
     symbol: 'USDT',
