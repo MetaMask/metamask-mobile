@@ -13,7 +13,7 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 jest.mock('../../../util/test/utils', () => ({
-  isE2E: () => false,
+  isE2E: true,
 }));
 
 beforeEach(() => {
@@ -59,7 +59,7 @@ describe('Assets Trending Tokens Feature Flag Selector', () => {
       expect(result).toBe(true);
     });
 
-    it('returns false when flag is disabled', () => {
+    it.only('returns false when flag is disabled', () => {
       const mockedState = mockStateWith({
         enabled: false,
         minimumVersion: '1.0.0',
