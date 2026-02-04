@@ -4,10 +4,8 @@ import AccountSelector from './AccountSelector';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import { AccountListBottomSheetSelectorsIDs } from './AccountListBottomSheet.testIds';
 import { AddAccountBottomSheetSelectorsIDs } from '../AddAccountActions/AddAccountBottomSheet.testIds';
-import { CellComponentSelectorsIDs } from '../../../component-library/components/Cells/Cell/CellComponent.testIds';
 import { AccountCellIds } from '../../../component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.testIds';
 import Routes from '../../../constants/navigation/Routes';
-import Engine from '../../../core/Engine';
 import {
   AccountSelectorParams,
   AccountSelectorProps,
@@ -75,7 +73,11 @@ const mockAccountTreeState: any = {
             id: mockGroupId,
             type: 'MultipleAccount',
             metadata: { name: 'Group 1', pinned: false, hidden: false },
-            accounts: [internalAccount1.id, internalSolanaAccount1.id, internalAccount2.id],
+            accounts: [
+              internalAccount1.id,
+              internalSolanaAccount1.id,
+              internalAccount2.id,
+            ],
           },
         },
       },
@@ -252,7 +254,6 @@ jest.mock('../../../util/accounts/useAccountsOperationsLoadingStates', () => ({
   useAccountsOperationsLoadingStates: () =>
     mockUseAccountsOperationsLoadingStates(),
 }));
-
 
 const mockRoute: AccountSelectorProps['route'] = {
   params: {
@@ -703,7 +704,57 @@ describe('AccountSelector', () => {
       );
       expect(addButton).toBeNull();
     });
+  });
 
+  describe('Add wallet button visibility', () => {
+    it('renders add wallet button with correct text', () => {
+      renderScreen(
+        AccountSelectorWrapper,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+        mockRoute.params,
+      );
+
+      // Add button should be visible and have the correct text
+      const addButton = screen.getByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
+      expect(addButton).toBeOnTheScreen();
+      expect(addButton).toHaveTextContent('Add wallet');
+    });
+
+    it('renders account list alongside add wallet button', () => {
+      // Use real timers for this test to avoid animation timing issues
+      jest.useRealTimers();
+
+      renderScreen(
+        AccountSelectorWrapper,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+        mockRoute.params,
+      );
+
+      // Both account list and add button should be visible
+      const accountList = screen.getByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
+      );
+      const addButton = screen.getByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
+      expect(accountList).toBeOnTheScreen();
+      expect(addButton).toBeOnTheScreen();
+
+      // Restore fake timers for other tests
+      jest.useFakeTimers();
+    });
   });
 
   describe('Feature Flag: Full-Page Account List', () => {
