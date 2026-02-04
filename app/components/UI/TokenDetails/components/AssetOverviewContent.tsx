@@ -191,7 +191,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     selectTokenDetailsV2ButtonsEnabled,
   );
 
-  const { handlePerpsAction } = usePerpsActions({
+  const { handleLongPress, handleShortPress } = usePerpsActions({
     symbol: token.symbol,
   });
 
@@ -282,8 +282,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               isNativeCurrency={token.isETH || token.isNative || false}
               token={token}
               onBuy={onBuy}
-              onLong={handlePerpsAction}
-              onShort={handlePerpsAction}
+              onLong={handleLongPress}
+              onShort={handleShortPress}
               onSend={onSend}
               onReceive={onReceive}
               isLoading={isButtonsLoading}
