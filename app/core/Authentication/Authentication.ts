@@ -1248,6 +1248,7 @@ class AuthenticationService {
         }
 
         this.dispatchOauthReset();
+        ReduxService.store.dispatch(setExistingUser(true));
 
         await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       } else {

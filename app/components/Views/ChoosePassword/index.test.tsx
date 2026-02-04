@@ -1362,6 +1362,84 @@ describe('ChoosePassword', () => {
         availableBiometryType: BIOMETRY_TYPE.FACE_ID,
       });
     });
+
+    it('should auto-report error to Sentry for SRP users with metrics enabled', async () => {
+      mockMetricsIsEnabled.mockReturnValue(true);
+      mockCaptureException.mockClear();
+
+      const mockComponentAuthenticationType = jest.spyOn(
+        Authentication,
+        'componentAuthenticationType',
+      );
+      const walletError = new Error('SRP wallet creation failed');
+      mockComponentAuthenticationType.mockRejectedValueOnce(walletError);
+
+      mockRoute.params = {
+        ...mockRoute.params,
+        [PREVIOUS_SCREEN]: ONBOARDING,
+        oauthLoginSuccess: false, // SRP flow, not social login
+      };
+      const component = renderWithProviders(<ChoosePassword />);
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      const passwordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+      const checkbox = component.getByTestId(
+        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+      );
+      const submitButton = component.getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+
+      await act(async () => {
+        fireEvent.press(checkbox);
+        fireEvent.changeText(passwordInput, 'StrongPassword123!');
+      });
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!');
+      });
+      await act(async () => {
+        fireEvent(submitButton, 'press');
+      });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      });
+
+      // Should auto-report to Sentry for SRP users with metrics enabled
+      expect(mockCaptureException).toHaveBeenCalledWith(walletError, {
+        tags: {
+          view: 'ChoosePassword',
+          context: 'OAuth password creation failed - auto reported',
+        },
+      });
+
+      // Should navigate to error screen with isSocialLogin: false
+      expect(mockNavigation.reset).toHaveBeenCalledWith({
+        routes: [
+          {
+            name: Routes.ONBOARDING.WALLET_CREATION_ERROR,
+            params: expect.objectContaining({
+              isSocialLogin: false,
+              error: walletError,
+            }),
+          },
+        ],
+      });
+
+      mockComponentAuthenticationType.mockReset();
+      mockComponentAuthenticationType.mockResolvedValue({
+        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+        availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+      });
+    });
   });
   describe('Marketing API Integration', () => {
     beforeEach(() => {

@@ -460,8 +460,7 @@ const ChoosePassword = () => {
         endTrace({ name: TraceName.OnboardingPasswordSetupError });
       }
 
-      // For social login, auto-report error
-      if (isSocialLogin && metrics.isEnabled()) {
+      if (isSocialLogin || metrics.isEnabled()) {
         captureException(caughtError, {
           tags: {
             view: 'ChoosePassword',
