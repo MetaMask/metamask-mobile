@@ -138,8 +138,8 @@ describe('PerpsOrderTransactionView', () => {
     expect(getByText('Hyperliquid fee')).toBeTruthy();
     expect(getByText('Total fee')).toBeTruthy();
     expect(getByText('$3')).toBeTruthy();
-    expect(getByText('$7.50')).toBeTruthy();
-    expect(getByText('$10.50')).toBeTruthy();
+    expect(getByText('$7.5')).toBeTruthy(); // Trailing zero stripped
+    expect(getByText('$10.5')).toBeTruthy(); // Trailing zero stripped
   });
 
   it('shows zero fees when order is not filled', () => {
@@ -269,7 +269,7 @@ describe('PerpsOrderTransactionView', () => {
     expect(getByText('$0.029')).toBeTruthy();
   });
 
-  it('handles edge case: fee just above 0.01 threshold', () => {
+  it('handles edge case: fee just above 0.01 threshold with exact values', () => {
     mockUsePerpsOrderFees.mockReturnValue({
       totalFee: 0.0201,
       protocolFee: 0.0101,
@@ -280,16 +280,13 @@ describe('PerpsOrderTransactionView', () => {
       error: null,
     });
 
-    const { queryByText, getAllByText, getByText } = render(
-      <PerpsOrderTransactionView />,
-    );
+    const { queryByText, getByText } = render(<PerpsOrderTransactionView />);
 
-    // All fees are >= 0.01, should be formatted normally
+    // All fees should show exact values, not "< $0.01"
     expect(queryByText('< $0.01')).toBeNull();
-    // Metamask fee and protocol fee (rounded) both show $0.01
-    const fee01Labels = getAllByText('$0.01');
-    expect(fee01Labels.length).toBeGreaterThanOrEqual(2);
-    expect(getByText('$0.02')).toBeTruthy(); // Total fee (rounded)
+    expect(getByText('$0.01')).toBeTruthy(); // MetaMask fee (exact)
+    expect(getByText('$0.0101')).toBeTruthy(); // Protocol fee (exact)
+    expect(getByText('$0.0201')).toBeTruthy(); // Total fee (exact)
   });
 
   it('shows exact values for all fees when all are below 0.01', () => {
