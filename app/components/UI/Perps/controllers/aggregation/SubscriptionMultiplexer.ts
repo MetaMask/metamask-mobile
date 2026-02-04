@@ -429,16 +429,9 @@ export class SubscriptionMultiplexer {
             if (account === null) {
               this.accountCache.delete(providerId);
             } else {
-              // Tag account with providerId and cache (ensure required fields)
+              // Tag account with providerId and cache
               const taggedAccount: AccountState = {
-                availableBalance: account.availableBalance ?? '',
-                totalBalance: account.totalBalance ?? '',
-                marginUsed: account.marginUsed ?? '',
-                unrealizedPnl: account.unrealizedPnl ?? '',
-                returnOnEquity: account.returnOnEquity ?? '',
-                ...(account.subAccountBreakdown !== undefined && {
-                  subAccountBreakdown: account.subAccountBreakdown,
-                }),
+                ...account,
                 providerId,
               };
               this.accountCache.set(providerId, taggedAccount);
