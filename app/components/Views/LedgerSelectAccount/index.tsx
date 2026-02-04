@@ -43,28 +43,14 @@ import SelectOptionSheet from '../../UI/SelectOptionSheet';
 import { AccountsController } from '@metamask/accounts-controller';
 import { toFormattedAddress } from '../../../util/address';
 import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytics';
-
-/**
- * Status codes that indicate the Ethereum app is not running on the Ledger device.
- */
-const ETH_APP_NOT_OPEN_ERROR_CODES = [
-  '0x650f',
-  '0x6511',
-  '0x6d00',
-  '0x6e00',
-  '0x6e01',
-  '0x6700',
-];
+import { isEthAppNotOpenErrorMessage } from '../../../core/Ledger/ledgerErrors';
 
 /**
  * Check if error message indicates ETH app is not open and return user-friendly message
  */
 const getDisplayErrorMessage = (errorMessage: string): string => {
-  const lowerMessage = errorMessage.toLowerCase();
-  for (const code of ETH_APP_NOT_OPEN_ERROR_CODES) {
-    if (lowerMessage.includes(code)) {
-      return strings('ledger.eth_app_not_open_message');
-    }
+  if (isEthAppNotOpenErrorMessage(errorMessage)) {
+    return strings('ledger.eth_app_not_open_message');
   }
   return errorMessage;
 };
