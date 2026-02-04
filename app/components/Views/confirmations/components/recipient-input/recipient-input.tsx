@@ -12,8 +12,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import TextField from '../../../../../component-library/components/Form/TextField';
 import Input from '../../../../../component-library/components/Form/TextField/foundation/Input';
-import { TextFieldSize } from '../../../../../component-library/components/Form/TextField/TextField.types';
-import { TOKEN_TEXTFIELD_INPUT_TEXT_VARIANT } from '../../../../../component-library/components/Form/TextField/TextField.constants';
+import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import { useSendContext } from '../../context/send-context/send-context';
 
@@ -105,12 +104,11 @@ export const RecipientInput = ({
   return (
     <Box twClassName="w-full px-4 py-2">
       <TextField
-        size={TextFieldSize.Lg}
         endAccessory={renderEndAccessory}
         startAccessory={defaultStartAccessory}
         inputElement={
           <Input
-            textVariant={TOKEN_TEXTFIELD_INPUT_TEXT_VARIANT}
+            textVariant={TextVariant.BodyMD}
             ref={inputRef}
             value={to}
             onChangeText={handleTextChange}

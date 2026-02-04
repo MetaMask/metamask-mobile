@@ -1,17 +1,17 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`TextField should render default settings correctly 1`] = `
+exports[`TextField renders default settings correctly 1`] = `
 <Component
   onPress={[Function]}
   style={
     {
       "alignItems": "center",
-      "backgroundColor": "#ffffff",
-      "borderColor": "#b7bbc8",
-      "borderRadius": 8,
+      "backgroundColor": "#3c4d9d0f",
+      "borderColor": "#b7bbc866",
+      "borderRadius": 12,
       "borderWidth": 1,
       "flexDirection": "row",
-      "height": 40,
+      "height": 48,
       "opacity": 1,
       "paddingHorizontal": 16,
     }
@@ -29,12 +29,14 @@ exports[`TextField should render default settings correctly 1`] = `
       autoFocus={false}
       isDisabled={false}
       isStateStylesDisabled={true}
+      multiline={false}
+      numberOfLines={1}
       onBlur={[Function]}
       onFocus={[Function]}
       style={
         {
           "backgroundColor": "inherit",
-          "height": 38,
+          "height": 46,
         }
       }
       textVariant="sBodyMD"

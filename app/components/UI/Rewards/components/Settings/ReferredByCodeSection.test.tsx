@@ -109,11 +109,6 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
             endAccessory,
           ),
       ),
-    TextFieldSize: {
-      Sm: '32',
-      Md: '40',
-      Lg: '48',
-    },
   };
 });
 

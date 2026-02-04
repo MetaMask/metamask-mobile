@@ -58,9 +58,7 @@ import {
   TraceOperation,
   endTrace,
 } from '../../../util/trace';
-import TextField, {
-  TextFieldSize,
-} from '../../../component-library/components/Form/TextField';
+import TextField from '../../../component-library/components/Form/TextField';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
@@ -466,7 +464,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
             <View style={styles.field}>
               <TextField
-                size={TextFieldSize.Lg}
                 placeholder={strings('login.password_placeholder')}
                 placeholderTextColor={colors.text.alternative}
                 testID={LoginViewSelectors.PASSWORD_INPUT}

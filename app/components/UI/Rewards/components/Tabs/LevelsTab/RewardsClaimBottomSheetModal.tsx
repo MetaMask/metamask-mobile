@@ -34,9 +34,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import { Linking, TouchableOpacity } from 'react-native';
 import { formatUrl } from '../../../utils/formatUtils';
-import TextField, {
-  TextFieldSize,
-} from '../../../../../../component-library/components/Form/TextField';
+import TextField from '../../../../../../component-library/components/Form/TextField';
 import useRewardsToast from '../../../hooks/useRewardsToast';
 import RewardsErrorBanner from '../../RewardsErrorBanner';
 import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
@@ -304,7 +302,6 @@ const RewardsClaimBottomSheetModal = ({
           placeholder={inputPlaceholder}
           onChangeText={setInputValue}
           value={inputValue}
-          size={TextFieldSize.Lg}
           style={tw.style('bg-background-pressed my-4')}
         />
       );

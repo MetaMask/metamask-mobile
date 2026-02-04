@@ -73,7 +73,6 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
 import Label from '../../../component-library/components/Form/Label';
-import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import Routes from '../../../constants/navigation/Routes';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import FoxRiveLoaderAnimation from './FoxRiveLoaderAnimation/FoxRiveLoaderAnimation';
@@ -772,7 +771,6 @@ const ChoosePassword = () => {
                     returnKeyType="next"
                     autoCapitalize="none"
                     keyboardAppearance={themeAppearance}
-                    size={TextFieldSize.Lg}
                     isError={isPasswordTooShort}
                     style={isPasswordTooShort ? styles.errorBorder : undefined}
                     endAccessory={
@@ -828,7 +826,6 @@ const ChoosePassword = () => {
                     returnKeyType={'done'}
                     autoCapitalize="none"
                     keyboardAppearance={themeAppearance}
-                    size={TextFieldSize.Lg}
                     endAccessory={
                       <TouchableOpacity onPress={() => toggleShowPassword(1)}>
                         <Icon

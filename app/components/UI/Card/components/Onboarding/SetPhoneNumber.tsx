@@ -6,9 +6,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import TextField, {
-  TextFieldSize,
-} from '../../../../../component-library/components/Form/TextField';
+import TextField from '../../../../../component-library/components/Form/TextField';
 import Label from '../../../../../component-library/components/Form/Label';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -271,7 +269,6 @@ const SetPhoneNumber = () => {
             autoCapitalize={'none'}
             onChangeText={handlePhoneNumberChange}
             numberOfLines={1}
-            size={TextFieldSize.Lg}
             autoComplete="one-time-code"
             value={phoneNumber}
             keyboardType="phone-pad"

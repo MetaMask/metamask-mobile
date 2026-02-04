@@ -1,44 +1,66 @@
-/* eslint-disable react/display-name */
-// External dependencies.
-import { TextFieldSize } from '../TextField/TextField.types';
+/* eslint-disable no-console */
+import React from 'react';
 
-// Internal dependencies.
-import { default as TextFieldSearchComponent } from './TextFieldSearch';
-import { SAMPLE_TEXTFIELDSEARCH_PROPS } from './TextFieldSearch.constants';
+import TextFieldSearch from './TextFieldSearch';
 
 const TextFieldSearchMeta = {
-  title: 'Component Library / Form',
-  component: TextFieldSearchComponent,
+  title: 'Component Library / Form / TextFieldSearch',
+  component: TextFieldSearch,
   argTypes: {
-    size: {
-      options: TextFieldSize,
-      control: {
-        type: 'select',
-      },
-      defaultValue: SAMPLE_TEXTFIELDSEARCH_PROPS.size,
-    },
     isError: {
-      control: { type: 'boolean' },
-      defaultValue: SAMPLE_TEXTFIELDSEARCH_PROPS.isError,
+      control: 'boolean',
     },
     isDisabled: {
-      control: { type: 'boolean' },
-      defaultValue: SAMPLE_TEXTFIELDSEARCH_PROPS.isDisabled,
+      control: 'boolean',
     },
     isReadonly: {
-      control: { type: 'boolean' },
-      defaultValue: SAMPLE_TEXTFIELDSEARCH_PROPS.isReadonly,
+      control: 'boolean',
     },
     placeholder: {
-      control: { type: 'text' },
-      defaultValue: SAMPLE_TEXTFIELDSEARCH_PROPS.placeholder,
+      control: 'text',
     },
     showClearButton: {
-      control: { type: 'boolean' },
-      defaultValue: SAMPLE_TEXTFIELDSEARCH_PROPS.showClearButton,
+      control: 'boolean',
     },
   },
 };
+
 export default TextFieldSearchMeta;
 
-export const TextFieldSearch = {};
+export const Default = {
+  args: {
+    placeholder: 'Search',
+  },
+};
+
+export const WithClearButton = {
+  render: () => (
+    <TextFieldSearch
+      placeholder="Search..."
+      showClearButton
+      onPressClearButton={() => console.log('Clear pressed')}
+    />
+  ),
+};
+
+export const ErrorState = {
+  args: {
+    placeholder: 'Search',
+    isError: true,
+  },
+};
+
+export const Disabled = {
+  args: {
+    placeholder: 'Search disabled',
+    isDisabled: true,
+  },
+};
+
+export const ReadonlyState = {
+  args: {
+    placeholder: 'Search readonly',
+    value: 'Search query',
+    isReadonly: true,
+  },
+};

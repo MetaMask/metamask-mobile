@@ -1,51 +1,94 @@
-/* eslint-disable react/display-name */
+/* eslint-disable no-console */
 import React from 'react';
+import { View } from 'react-native';
 
-// Internal dependencies.
-import { default as TextFieldComponent } from './TextField';
-import { SAMPLE_TEXTFIELD_PROPS } from './TextField.constants';
-import { TextFieldProps, TextFieldSize } from './TextField.types';
+import Icon, { IconName, IconSize } from '../../Icons/Icon';
+
+import TextField from './TextField';
 
 const TextFieldMeta = {
-  title: 'Component Library / Form',
-  component: TextFieldComponent,
+  title: 'Component Library / Form / TextField',
+  component: TextField,
   argTypes: {
-    size: {
-      options: TextFieldSize,
-      control: {
-        type: 'select',
-      },
-      defaultValue: SAMPLE_TEXTFIELD_PROPS.size,
-    },
     isError: {
-      control: { type: 'boolean' },
-      defaultValue: SAMPLE_TEXTFIELD_PROPS.isError,
+      control: 'boolean',
     },
     isDisabled: {
-      control: { type: 'boolean' },
-      defaultValue: SAMPLE_TEXTFIELD_PROPS.isDisabled,
+      control: 'boolean',
     },
     isReadonly: {
-      control: { type: 'boolean' },
-      defaultValue: SAMPLE_TEXTFIELD_PROPS.isReadonly,
+      control: 'boolean',
     },
     placeholder: {
-      control: { type: 'text' },
-      defaultValue: SAMPLE_TEXTFIELD_PROPS.placeholder,
+      control: 'text',
     },
   },
 };
+
 export default TextFieldMeta;
 
-export const TextField = {
-  render: (
-    args: JSX.IntrinsicAttributes &
-      TextFieldProps & { children?: React.ReactNode },
-  ) => (
-    <TextFieldComponent
-      {...args}
-      startAccessory={SAMPLE_TEXTFIELD_PROPS.startAccessory}
-      endAccessory={SAMPLE_TEXTFIELD_PROPS.endAccessory}
+export const Default = {
+  args: {
+    placeholder: 'Enter text...',
+  },
+};
+
+export const WithPlaceholder = {
+  args: {
+    placeholder: 'Enter your name',
+  },
+};
+
+export const ErrorState = {
+  args: {
+    placeholder: 'Enter text...',
+    isError: true,
+  },
+};
+
+export const Disabled = {
+  args: {
+    placeholder: 'Disabled field',
+    isDisabled: true,
+  },
+};
+
+export const ReadonlyState = {
+  args: {
+    placeholder: 'Readonly field',
+    value: 'This is readonly',
+    isReadonly: true,
+  },
+};
+
+export const WithStartAccessory = {
+  render: () => (
+    <TextField
+      placeholder="Search..."
+      startAccessory={<Icon name={IconName.Search} size={IconSize.Md} />}
+    />
+  ),
+};
+
+export const WithEndAccessory = {
+  render: () => (
+    <TextField
+      placeholder="Enter amount"
+      endAccessory={
+        <View>
+          <Icon name={IconName.Check} size={IconSize.Md} />
+        </View>
+      }
+    />
+  ),
+};
+
+export const WithBothAccessories = {
+  render: () => (
+    <TextField
+      placeholder="Search..."
+      startAccessory={<Icon name={IconName.Search} size={IconSize.Md} />}
+      endAccessory={<Icon name={IconName.Close} size={IconSize.Md} />}
     />
   ),
 };
