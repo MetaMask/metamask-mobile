@@ -572,37 +572,38 @@ export class PredictController extends BaseController<
     }
   }
 
-  private showPendingToast({
+  private showPredictToast({
+    type,
     title,
     description,
     transactionId,
   }: {
+    type: PredictToastType;
     title: string;
     description: string;
     transactionId?: string;
   }): void {
     try {
-      const closeButtonOptions = transactionId
-        ? {
-            label: strings('predict.deposit.track'),
-            onPress: () => {
-              NavigationService.navigation.navigate(Routes.TRANSACTIONS_VIEW);
-              if (transactionId) {
+      const closeButtonOptions =
+        transactionId && type === PredictToastType.Pending
+          ? {
+              label: strings('predict.deposit.track'),
+              onPress: () => {
+                NavigationService.navigation.navigate(Routes.TRANSACTIONS_VIEW);
                 setTimeout(() => {
                   NavigationService.navigation.navigate(
                     Routes.TRANSACTION_DETAILS,
                     { transactionId },
                   );
                 }, 100);
-              }
-            },
-            variant: ButtonVariants.Secondary,
-          }
-        : undefined;
+              },
+              variant: ButtonVariants.Secondary,
+            }
+          : undefined;
 
       ToastService.showToast({
         variant: ToastVariants.Predict,
-        predictType: PredictToastType.Pending,
+        predictType: type,
         labelOptions: [
           { label: title, isBold: true },
           { label: '\n', isBold: false },
@@ -612,60 +613,32 @@ export class PredictController extends BaseController<
         closeButtonOptions,
       });
     } catch (error) {
-      DevLogger.log('PredictController: Failed to show pending toast', {
+      DevLogger.log(`PredictController: Failed to show ${type} toast`, {
         error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
 
-  private showSuccessToast({
-    title,
-    description,
-  }: {
+  private showPendingToast(options: {
     title: string;
     description: string;
+    transactionId?: string;
   }): void {
-    try {
-      ToastService.showToast({
-        variant: ToastVariants.Predict,
-        predictType: PredictToastType.Success,
-        labelOptions: [
-          { label: title, isBold: true },
-          { label: '\n', isBold: false },
-          { label: description, isBold: false },
-        ],
-        hasNoTimeout: false,
-      });
-    } catch (error) {
-      DevLogger.log('PredictController: Failed to show success toast', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
-    }
+    this.showPredictToast({ type: PredictToastType.Pending, ...options });
   }
 
-  private showFailureToast({
-    title,
-    description,
-  }: {
+  private showSuccessToast(options: {
     title: string;
     description: string;
   }): void {
-    try {
-      ToastService.showToast({
-        variant: ToastVariants.Predict,
-        predictType: PredictToastType.Failure,
-        labelOptions: [
-          { label: title, isBold: true },
-          { label: '\n', isBold: false },
-          { label: description, isBold: false },
-        ],
-        hasNoTimeout: false,
-      });
-    } catch (error) {
-      DevLogger.log('PredictController: Failed to show failure toast', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
-    }
+    this.showPredictToast({ type: PredictToastType.Success, ...options });
+  }
+
+  private showFailureToast(options: {
+    title: string;
+    description: string;
+  }): void {
+    this.showPredictToast({ type: PredictToastType.Failure, ...options });
   }
 
   private getDepositAmount(transactionMeta: TransactionMeta): string {

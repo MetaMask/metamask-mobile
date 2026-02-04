@@ -24,7 +24,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
-  Box,
   IconColor as ReactNativeDsIconColor,
   IconSize as ReactNativeDsIconSize,
 } from '@metamask/design-system-react-native';
@@ -200,22 +199,17 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   };
 
   const renderPredictAccessory = (predictType: PredictToastType) => {
-    const accessoryStyle = {
-      paddingRight: 12,
-      alignContent: 'center' as const,
-      alignItems: 'center' as const,
-      justifyContent: 'center' as const,
-    };
+    const accessoryStyle = styles.avatar;
 
     switch (predictType) {
       case PredictToastType.Pending:
         return (
-          <Box style={accessoryStyle}>
+          <View style={accessoryStyle}>
             <Spinner
               color={ReactNativeDsIconColor.PrimaryDefault}
               spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }}
             />
-          </Box>
+          </View>
         );
       case PredictToastType.Success:
         return (

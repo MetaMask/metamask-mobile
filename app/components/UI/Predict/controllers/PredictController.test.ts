@@ -6416,7 +6416,7 @@ describe('PredictController', () => {
           }).not.toThrow();
 
           expect(DevLogger.log).toHaveBeenCalledWith(
-            'PredictController: Failed to show pending toast',
+            'PredictController: Failed to show Pending toast',
             expect.objectContaining({ error: 'Toast error' }),
           );
         });
@@ -6436,7 +6436,7 @@ describe('PredictController', () => {
           }).not.toThrow();
 
           expect(DevLogger.log).toHaveBeenCalledWith(
-            'PredictController: Failed to show success toast',
+            'PredictController: Failed to show Success toast',
             expect.objectContaining({ error: 'Toast error' }),
           );
         });
@@ -6456,7 +6456,7 @@ describe('PredictController', () => {
           }).not.toThrow();
 
           expect(DevLogger.log).toHaveBeenCalledWith(
-            'PredictController: Failed to show failure toast',
+            'PredictController: Failed to show Failure toast',
             expect.objectContaining({ error: 'Toast error' }),
           );
         });
