@@ -3,9 +3,7 @@ import Logger from '../../../../util/Logger';
 import {
   TransactionPayController,
   TransactionPayControllerMessenger,
-  TransactionPayStrategy,
 } from '@metamask/transaction-pay-controller';
-import { TransactionMeta } from '@metamask/transaction-controller';
 import { TransactionPayControllerInitMessenger } from '../../messengers/transaction-pay-controller-messenger';
 import { getDelegationTransaction } from '../../../../util/transactions/delegation';
 
@@ -20,7 +18,6 @@ export const TransactionPayControllerInit: ControllerInitFunction<
     const transactionPayController = new TransactionPayController({
       getDelegationTransaction: ({ transaction }) =>
         getDelegationTransaction(initMessenger, transaction),
-      getStrategy,
       messenger: controllerMessenger,
       state: persistedState.TransactionPayController,
     });
@@ -34,7 +31,3 @@ export const TransactionPayControllerInit: ControllerInitFunction<
     throw error;
   }
 };
-
-function getStrategy(_transaction: TransactionMeta): TransactionPayStrategy {
-  return TransactionPayStrategy.TokenPay;
-}

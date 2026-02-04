@@ -17,6 +17,7 @@ import {
   Delegation,
   UnsignedDelegation,
   createDelegation,
+  encodePermissionContexts,
   encodeRedeemDelegations,
 } from '../../core/Delegation/delegation';
 import { Hex, add0x, createProjectLogger } from '@metamask/utils';
@@ -28,6 +29,8 @@ import { toHex } from '@metamask/controller-utils';
 import Engine from '../../core/Engine';
 import { exactExecutionBatch } from '../../core/Delegation/caveatBuilder/exactExecutionBatchBuilder';
 import { exactExecution } from '../../core/Delegation/caveatBuilder/exactExecutionBuilder';
+import { encodeExecutionCalldatas } from '../../core/Delegation/execution';
+import type { TransactionPayAction } from '@metamask/transaction-pay-controller';
 
 const log = createProjectLogger('transaction-delegation');
 
@@ -43,6 +46,7 @@ export interface DelegationTransaction {
   data: Hex;
   to: Hex;
   value: Hex;
+  action: TransactionPayAction;
 }
 
 export async function getDelegationTransaction<
@@ -77,6 +81,22 @@ export async function getDelegationTransaction<
     executions,
   });
 
+  const contexts = encodePermissionContexts(delegations);
+  const calldatas = encodeExecutionCalldatas(executions);
+
+  const action: TransactionPayAction = {
+    target: delegationManagerAddress,
+    functionSignature:
+      'function redeemDelegations(bytes[] delegations, bytes32[] modes, bytes[] executions)',
+    args: [
+      { value: contexts, populateDynamically: false },
+      { value: modes, populateDynamically: false },
+      { value: calldatas, populateDynamically: false },
+    ],
+    value: '0x0',
+    isNativeTransfer: false,
+  };
+
   const authorizationList = await buildAuthorizationList(
     transaction,
     messenger,
@@ -87,6 +107,7 @@ export async function getDelegationTransaction<
     data: transactionData,
     to: delegationManagerAddress,
     value: '0x0',
+    action,
   };
 }
 

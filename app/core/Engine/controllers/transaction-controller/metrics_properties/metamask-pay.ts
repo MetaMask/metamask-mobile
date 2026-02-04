@@ -8,10 +8,6 @@ import { orderBy } from 'lodash';
 import { NATIVE_TOKEN_ADDRESS } from '../../../../../components/Views/confirmations/constants/tokens';
 import { hasTransactionType } from '../../../../../components/Views/confirmations/utils/transaction';
 import {
-  getQuoteLatency,
-  getTokenPayProviderId,
-} from '../../../../../components/Views/confirmations/utils/transaction-pay';
-import {
   TransactionPayBridgeQuote,
   TransactionPayQuote,
   TransactionPayStrategy,
@@ -115,6 +111,17 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
     const quoteIndex = quoteTransactionIds.indexOf(transactionMeta.id);
     const quote = quotes[quoteIndex];
 
+    const quoteImpactUsd = quote?.fees?.impact?.usd;
+    const quoteImpactRatio = quote?.fees?.impactRatio;
+
+    if (quoteImpactUsd !== undefined) {
+      properties.mm_pay_quote_impact_usd = quoteImpactUsd;
+    }
+
+    if (quoteImpactRatio !== undefined) {
+      properties.mm_pay_quote_impact_ratio = quoteImpactRatio;
+    }
+
     if (quote?.strategy === TransactionPayStrategy.Bridge) {
       const bridgeQuote =
         quote as TransactionPayQuote<TransactionPayBridgeQuote>;
@@ -127,13 +134,10 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
       properties.mm_pay_bridge_provider = bridgeQuote.original.quote.bridgeId;
     }
 
-    if (quote?.strategy === TransactionPayStrategy.TokenPay) {
-      const tokenPayProviderId = getTokenPayProviderId(quote.original);
-      const quoteLatency = getQuoteLatency(quote.original);
+    if (quote?.strategy === ('across' as TransactionPayStrategy)) {
+      properties.mm_pay_strategy = 'across';
 
-      if (tokenPayProviderId) {
-        properties.mm_pay_strategy = tokenPayProviderId;
-      }
+      const quoteLatency = quote.original?.metrics?.latency;
 
       if (quoteLatency !== undefined) {
         properties.mm_pay_quotes_latency = quoteLatency;

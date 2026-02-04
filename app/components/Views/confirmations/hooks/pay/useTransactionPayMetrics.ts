@@ -13,10 +13,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { BridgeToken } from '../../../../UI/Bridge/types';
 import { hasTransactionType } from '../../utils/transaction';
-import {
-  getQuoteLatency,
-  getTokenPayProviderId,
-} from '../../utils/transaction-pay';
+import { getAcrossQuoteLatency } from '../../utils/transaction-pay';
 import {
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
@@ -115,19 +112,22 @@ export function useTransactionPayMetrics() {
 
   const primaryQuote = quotes?.[0];
   const strategy = primaryQuote?.strategy;
-  const tokenPayProviderId = getTokenPayProviderId(primaryQuote?.original);
-  const quoteLatency = getQuoteLatency(primaryQuote?.original);
+  const acrossStrategy = 'across' as TransactionPayStrategy;
+  const acrossQuoteLatency =
+    strategy === acrossStrategy
+      ? getAcrossQuoteLatency(primaryQuote?.original)
+      : undefined;
 
   if (strategy === TransactionPayStrategy.Bridge) {
     properties.mm_pay_strategy = 'mm_swaps_bridge';
   } else if (strategy === TransactionPayStrategy.Relay) {
     properties.mm_pay_strategy = 'relay';
-  } else if (strategy === TransactionPayStrategy.TokenPay) {
-    properties.mm_pay_strategy = tokenPayProviderId ?? 'token_pay';
+  } else if (strategy === acrossStrategy) {
+    properties.mm_pay_strategy = 'across';
   }
 
-  if (quoteLatency !== undefined) {
-    properties.mm_pay_quotes_latency = quoteLatency;
+  if (acrossQuoteLatency !== undefined) {
+    properties.mm_pay_quotes_latency = acrossQuoteLatency;
   }
 
   if (totals) {

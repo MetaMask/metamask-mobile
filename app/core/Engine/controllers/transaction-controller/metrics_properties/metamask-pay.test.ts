@@ -26,6 +26,10 @@ const PAY_CONTROLLER_STATE_MOCK = {
                   metrics: { attempts: 3, buffer: 0.123, latency: 1234 },
                   quote: { bridgeId: 'testBridge' },
                 },
+                fees: {
+                  impact: { usd: '0.12' },
+                  impactRatio: 0.34,
+                },
                 request: {
                   targetTokenAddress: '0x123',
                 },
@@ -39,7 +43,7 @@ const PAY_CONTROLLER_STATE_MOCK = {
   },
 } as unknown as RootState;
 
-const TOKEN_PAY_CONTROLLER_STATE_MOCK = merge({}, PAY_CONTROLLER_STATE_MOCK, {
+const ACROSS_CONTROLLER_STATE_MOCK = merge({}, PAY_CONTROLLER_STATE_MOCK, {
   engine: {
     backgroundState: {
       TransactionPayController: {
@@ -49,16 +53,12 @@ const TOKEN_PAY_CONTROLLER_STATE_MOCK = merge({}, PAY_CONTROLLER_STATE_MOCK, {
               {},
               {
                 original: {
-                  metrics: undefined,
-                  providerId: 'across',
-                  quote: {
-                    metrics: { latency: 2222 },
-                  },
+                  metrics: { latency: 2222 },
                 },
                 request: {
                   targetTokenAddress: '0x123',
                 },
-                strategy: TransactionPayStrategy.TokenPay,
+                strategy: 'across' as TransactionPayStrategy,
               },
             ],
           },
@@ -243,12 +243,14 @@ describe('Metamask Pay Metrics', () => {
         mm_pay_quotes_attempts: 3,
         mm_pay_quotes_buffer_size: 0.123,
         mm_pay_quotes_latency: 1234,
+        mm_pay_quote_impact_usd: '0.12',
+        mm_pay_quote_impact_ratio: 0.34,
       }),
       sensitiveProperties: {},
     });
   });
 
-  it('adds token pay quote latency for bridge', () => {
+  it('adds across quote latency for bridge', () => {
     request.transactionMeta.type = TransactionType.bridge;
 
     request.allTransactions = [
@@ -264,7 +266,7 @@ describe('Metamask Pay Metrics', () => {
       request.transactionMeta,
     ];
 
-    getStateMock.mockReturnValue(TOKEN_PAY_CONTROLLER_STATE_MOCK);
+    getStateMock.mockReturnValue(ACROSS_CONTROLLER_STATE_MOCK);
 
     const result = getMetaMaskPayProperties(request);
 
@@ -307,6 +309,8 @@ describe('Metamask Pay Metrics', () => {
         mm_pay_quotes_attempts: 3,
         mm_pay_quotes_buffer_size: 0.123,
         mm_pay_quotes_latency: 1234,
+        mm_pay_quote_impact_usd: '0.12',
+        mm_pay_quote_impact_ratio: 0.34,
       }),
       sensitiveProperties: {},
     });

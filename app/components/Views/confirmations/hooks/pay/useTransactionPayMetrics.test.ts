@@ -62,20 +62,17 @@ const QUOTE_MOCK = {
   strategy: TransactionPayStrategy.Bridge,
 } as TransactionPayQuote<Json>;
 
-const TOKEN_PAY_QUOTE_MOCK = {
+const ACROSS_QUOTE_MOCK = {
   dust: {
     fiat: '0.6',
     usd: '0.5',
   },
   original: {
-    providerId: 'across',
-    quote: {
-      metrics: {
-        latency: 1234,
-      },
+    metrics: {
+      latency: 1234,
     },
   },
-  strategy: TransactionPayStrategy.TokenPay,
+  strategy: 'across' as TransactionPayStrategy,
 } as TransactionPayQuote<Json>;
 
 function runHook({ type }: { type?: TransactionType } = {}) {
@@ -336,13 +333,13 @@ describe('useTransactionPayMetrics', () => {
     });
   });
 
-  it('uses token pay provider id for strategy and latency', async () => {
+  it('uses across strategy and latency', async () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: PAY_TOKEN_MOCK,
       setPayToken: noop,
     } as ReturnType<typeof useTransactionPayToken>);
 
-    useTransactionPayQuotesMock.mockReturnValue([TOKEN_PAY_QUOTE_MOCK]);
+    useTransactionPayQuotesMock.mockReturnValue([ACROSS_QUOTE_MOCK]);
 
     runHook();
 
