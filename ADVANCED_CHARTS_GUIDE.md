@@ -1,12 +1,12 @@
 # TradingView Advanced Charts Integration
 
-## Purpose of This Document
+This document serves as a comprehensive guide for the TradingView Advanced Charts integration in MetaMask Mobile.
 
-This document serves as a comprehensive guide for the TradingView Advanced Charts integration in MetaMask Mobile. It covers:
+**What's covered:**
 
-1. **Local Development Setup** - How to test the integration locally while waiting for S3 access
-2. **Comparison with Lightweight Charts** - Development effort, features, and trade-offs
-3. **Technical Reference** - Architecture, API, and usage details
+- Local Development Setup - How to test the integration locally while waiting for S3 access
+- Comparison with Lightweight Charts - Development effort, features, and trade-offs
+- Technical Reference - Architecture, API, and usage details
 
 ## Preview
 
@@ -14,7 +14,7 @@ This document serves as a comprehensive guide for the TradingView Advanced Chart
   <img src="https://github.com/user-attachments/assets/19fdf045-1714-4702-abf3-28f3f9ca5ee8" width="350" alt="TradingView Advanced Charts Preview" />
 </p>
 
-_TradingView Advanced Charts with drawing toolbar, candlestick chart, volume, and indicator toggles._
+<p align="center"><em>TradingView Advanced Charts with drawing toolbar, candlestick chart, volume, and indicator toggles.</em></p>
 
 ## Local Development Setup
 
