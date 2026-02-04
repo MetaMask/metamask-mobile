@@ -180,7 +180,7 @@ const PreviousSeasonUnlockedRewards = () => {
                   showsVerticalScrollIndicator={false}
                   nestedScrollEnabled
                   style={tw.style('w-full')}
-                  contentContainerStyle={tw.style('gap-4 pb-20')}
+                  contentContainerStyle={tw.style('gap-4 pb-60')}
                   renderItem={({ item: unlockedReward, index }) => {
                     const seasonReward = seasonTiers
                       ?.flatMap((tier) => tier.rewards)
