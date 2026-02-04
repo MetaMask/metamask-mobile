@@ -28427,6 +28427,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-local-authentication@npm:~15.0.2":
+  version: 15.0.2
+  resolution: "expo-local-authentication@npm:15.0.2"
+  dependencies:
+    invariant: "npm:^2.2.4"
+  peerDependencies:
+    expo: "*"
+  checksum: 10/f3548960a6827c4f04360b595a6b571ca4c840b30544f3d9a73a8dd72f75273c72326d9eadc667ffafbf6ba7e35b708d3b7a33031582e504e1b28cb4b651ca67
+  languageName: node
+  linkType: hard
+
 "expo-manifests@npm:~0.15.7, expo-manifests@npm:~0.15.8":
   version: 0.15.8
   resolution: "expo-manifests@npm:0.15.8"
@@ -34935,6 +34946,7 @@ __metadata:
     expo-font: "npm:~13.0.4"
     expo-haptics: "npm:~14.0.1"
     expo-image: "npm:~2.0.7"
+    expo-local-authentication: "npm:~15.0.2"
     expo-screen-orientation: "npm:~8.0.4"
     expo-sensors: "npm:~14.0.2"
     expo-updates: "patch:expo-updates@npm%3A0.27.4#~/.yarn/patches/expo-updates-npm-0.27.4-2a215516d7.patch"
