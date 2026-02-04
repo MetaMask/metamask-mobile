@@ -1,37 +1,37 @@
 diff --git a/dist/TransactionController.cjs b/dist/TransactionController.cjs
-index bcccfac963c3b13e121085436dbcdb6dc4d1b41e..27860c2c785fb14dba09cb2c0b40247cdd78f79a 100644
+index 88203b572578477512d6c474149e05c3f0275f48..ec2f692a3fdf695c674f9489d140847d8c6fcedb 100644
 --- a/dist/TransactionController.cjs
 +++ b/dist/TransactionController.cjs
-@@ -96,6 +96,12 @@ const metadata = {
+@@ -97,6 +97,12 @@ const metadata = {
          includeInDebugSnapshot: false,
          usedInUi: false,
      },
-+   swapsTransactions: {
++    swapsTransactions: {
 +        includeInStateLogs: true,
 +        persist: true,
 +        includeInDebugSnapshot: false,
 +        usedInUi: true,
 +    },
  };
- const SUBMIT_HISTORY_LIMIT = 100;
  /**
+  * Multiplier used to determine a transaction's increased gas fee during cancellation
 diff --git a/dist/TransactionController.mjs b/dist/TransactionController.mjs
-index 854d4698c1821578ec36e6ba2a3a5efb475367d3..6a3799d47e1f5b6ea070063e8efe37ae70d84a2d 100644
+index 0ea5bf2c4f54d770e5891369f069af3e294db48d..984dba93e8d1f5682f4954db8492e101fa29dbf5 100644
 --- a/dist/TransactionController.mjs
 +++ b/dist/TransactionController.mjs
-@@ -98,6 +98,12 @@ const metadata = {
+@@ -99,6 +99,12 @@ const metadata = {
          includeInDebugSnapshot: false,
          usedInUi: false,
      },
-+   swapsTransactions: {
++    swapsTransactions: {
 +        includeInStateLogs: true,
 +        persist: true,
 +        includeInDebugSnapshot: false,
 +        usedInUi: true,
 +    },
  };
- const SUBMIT_HISTORY_LIMIT = 100;
  /**
+  * Multiplier used to determine a transaction's increased gas fee during cancellation
 diff --git a/dist/types.cjs b/dist/types.cjs
 index 0a83050978f13f7ed4e76ccdc250826e0ed0c6ab..2870d525100e99824b3705146a25933992df4d02 100644
 --- a/dist/types.cjs
@@ -48,7 +48,7 @@ index 0a83050978f13f7ed4e76ccdc250826e0ed0c6ab..2870d525100e99824b3705146a259339
       * A transaction for personal sign.
       */
 diff --git a/dist/types.d.cts b/dist/types.d.cts
-index 46c36be04420b4df5ba297bbe594a63a931552a3..6170d8b5319b61cc9f9d1513ef7e3b61b5739dc4 100644
+index 2f1660ce03f2aea99a9202edb06ffb0e21072d0c..92fbc94f1490bb4867b1de90494ce028aa094ea5 100644
 --- a/dist/types.d.cts
 +++ b/dist/types.d.cts
 @@ -631,6 +631,10 @@ export declare enum TransactionType {
@@ -63,7 +63,7 @@ index 46c36be04420b4df5ba297bbe594a63a931552a3..6170d8b5319b61cc9f9d1513ef7e3b61
       * A transaction for personal sign.
       */
 diff --git a/dist/types.d.mts b/dist/types.d.mts
-index adc6362d66c8875ed2bfe802c018bf6546dd7ba9..9239433863008b6a2d8b39cea1044cfcb23da0e3 100644
+index 8ca4cbfc5f93ae0366ec8a3a88cead6e5c5e7d47..cd3e8b221d0b083d3d27c78b9174f9eaa5e8b359 100644
 --- a/dist/types.d.mts
 +++ b/dist/types.d.mts
 @@ -631,6 +631,10 @@ export declare enum TransactionType {
