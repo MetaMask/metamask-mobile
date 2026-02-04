@@ -42,7 +42,7 @@ const localNodeOptions = [
     options: {
       hardfork: 'prague',
       loadState:
-        './e2e/specs/confirmations/transactions/7702/withDelegatorContracts.json',
+        './tests/smoke/confirmations/transactions/7702/withDelegatorContracts.json',
     },
   },
 ];
