@@ -1,8 +1,10 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { selectProviders } from '../../../../selectors/rampsController';
 import { type Provider } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
+import { determinePreferredProvider } from '../utils/determinePreferredProvider';
+import { getOrders } from '../../../../reducers/fiatOrders';
 
 /**
  * Result returned by the useRampsProviders hook.
@@ -45,11 +47,19 @@ export function useRampsProviders(): UseRampsProvidersResult {
     error,
   } = useSelector(selectProviders);
 
+  const orders = useSelector(getOrders);
+
   const setSelectedProvider = useCallback(
     (provider: Provider | null) =>
       Engine.context.RampsController.setSelectedProvider(provider?.id ?? null),
     [],
   );
+
+  useEffect(() => {
+    if (providers.length > 0 && !selectedProvider) {
+      setSelectedProvider(determinePreferredProvider(orders, providers));
+    }
+  }, [providers, selectedProvider, setSelectedProvider, orders]);
 
   return {
     providers,

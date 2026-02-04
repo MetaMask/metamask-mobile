@@ -5,6 +5,8 @@ import React from 'react';
 import { useRampsProviders } from './useRampsProviders';
 import { type Provider as RampProvider } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
+import { determinePreferredProvider } from '../utils/determinePreferredProvider';
+import { getOrders } from '../../../../reducers/fiatOrders';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -12,6 +14,16 @@ jest.mock('../../../../core/Engine', () => ({
       setSelectedProvider: jest.fn(),
     },
   },
+}));
+
+jest.mock('../utils/determinePreferredProvider', () => ({
+  determinePreferredProvider: jest.fn(),
+}));
+
+const emptyOrders: unknown[] = [];
+jest.mock('../../../../reducers/fiatOrders', () => ({
+  ...jest.requireActual('../../../../reducers/fiatOrders'),
+  getOrders: jest.fn((_state: unknown) => emptyOrders),
 }));
 
 const mockProviders: RampProvider[] = [
@@ -179,6 +191,68 @@ describe('useRampsProviders', () => {
       expect(
         Engine.context.RampsController.setSelectedProvider,
       ).toHaveBeenCalledWith(null);
+    });
+  });
+
+  describe('preferred provider effect', () => {
+    const mockGetOrders = getOrders as jest.MockedFunction<typeof getOrders>;
+    const mockDeterminePreferredProvider =
+      determinePreferredProvider as jest.MockedFunction<
+        typeof determinePreferredProvider
+      >;
+
+    it('calls determinePreferredProvider with orders and providers when providers exist and selectedProvider is null', () => {
+      const store = createMockStore({ data: mockProviders });
+      mockGetOrders.mockReturnValue(emptyOrders);
+      mockDeterminePreferredProvider.mockReturnValue(mockProviders[0]);
+
+      renderHook(() => useRampsProviders(), {
+        wrapper: wrapper(store),
+      });
+
+      expect(mockDeterminePreferredProvider).toHaveBeenCalledWith(
+        emptyOrders,
+        mockProviders,
+      );
+    });
+
+    it('calls setSelectedProvider with result of determinePreferredProvider when providers exist and selectedProvider is null', () => {
+      const store = createMockStore({ data: mockProviders });
+      mockGetOrders.mockReturnValue(emptyOrders);
+      mockDeterminePreferredProvider.mockReturnValue(mockProviders[1]);
+
+      renderHook(() => useRampsProviders(), {
+        wrapper: wrapper(store),
+      });
+
+      expect(
+        Engine.context.RampsController.setSelectedProvider,
+      ).toHaveBeenCalledWith(mockProviders[1].id);
+    });
+
+    it('does not call determinePreferredProvider when providers is empty', () => {
+      const store = createMockStore();
+      mockDeterminePreferredProvider.mockClear();
+
+      renderHook(() => useRampsProviders(), {
+        wrapper: wrapper(store),
+      });
+
+      expect(mockDeterminePreferredProvider).not.toHaveBeenCalled();
+    });
+
+    it('does not call determinePreferredProvider when selectedProvider is already set', () => {
+      const store = createMockStore({
+        data: mockProviders,
+        selected: mockProviders[0],
+      });
+      mockDeterminePreferredProvider.mockClear();
+
+      renderHook(() => useRampsProviders(), {
+        wrapper: wrapper(store),
+      });
+
+      expect(mockDeterminePreferredProvider).not.toHaveBeenCalled();
     });
   });
 });
