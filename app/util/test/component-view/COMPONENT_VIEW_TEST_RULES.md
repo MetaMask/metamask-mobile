@@ -88,29 +88,22 @@ const { getByTestId } = renderBridgeView({
 });
 ```
 
-- Alternatively (navigation tests): build state via preset and pass into `renderScreenWithRoutes`:
+- Prefer the view renderer (e.g. `renderBridgeView`) whenever possible. When you need to assert on a different screen (e.g. a modal or stack push), use `renderScreenWithRoutes` with the **same** preset + overrides pattern: build state with the preset, then pass it as the 4th argument. Same mocks, same state-driven approach—no separate rules for navigation. Example:
 
 ```ts
-import { initialStateBridge } from '../../util/test/component-view/presets/bridge';
-import { renderScreenWithRoutes } from '../../util/test/component-view/render';
-import Routes from '../../../constants/navigation/Routes';
-import BridgeView from './index';
-
 const state = initialStateBridge()
-  .withOverrides({
-    bridge: {
-      /* minimal scenario state */
-    },
-  })
+  .withOverrides({ bridge: { sourceToken: { ... } } })
   .build();
 
-renderScreenWithRoutes(
+const { findByText } = renderScreenWithRoutes(
   BridgeView as unknown as React.ComponentType,
   { name: Routes.BRIDGE.ROOT },
-  [{ name: Routes.BRIDGE.MODALS.ROOT, Component: ModalProbe }],
+  [{ name: Routes.BRIDGE.TOKEN_SELECTOR, Component: TokenSelectorProbe }], // optional: add { name, Component? } for routes you need to assert on; omit Component for a default probe that renders the route name
   { state },
 );
 ```
+
+If you only need the main screen (no pushed route to assert on), pass `[]` for the 3rd argument. Route names: `app/constants/navigation/Routes.ts`. See `BridgeView.view.test.tsx` for a full navigation example.
 
 ### Deterministic Fiat
 
@@ -127,13 +120,6 @@ renderScreenWithRoutes(
     - `quotesLoadingStatus: 'SUCCEEDED'`
   - Ensure remote feature flags enable bridge for the target chain(s):
     - `engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2` with `support: true`, and active source/dest flags
-
-### Navigation Tests
-
-- Use `renderScreenWithRoutes` to probe nested navigation routes.
-- Provide the baseline state via `initialStateBridge()` (or `initialStateWallet()`), plus small overrides.
-- Assert using route names from `app/constants/navigation/Routes.ts`.
-- Example: to open Destination Network Selector in BridgeView, act on “Swap to” button and assert `Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR`.
 
 ### UI Assertions
 

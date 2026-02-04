@@ -23,11 +23,6 @@ Follow these rules for all component-view tests. Nested, component-specific rule
 - Use `stateFixture.ts` helpers for overrides (e.g., quotes, feature flags).
 - Prefer `deterministicFiat: true` for exact fiat assertions.
 
-## Navigation Tests
-
-- Use `renderScreenWithRoutes` and build `state` via the preset + minimal overrides.
-- Assert using route names from `app/constants/navigation/Routes.ts`.
-
 ## Test Structure - MANDATORY
 
 - AAA pattern with blank lines between sections.

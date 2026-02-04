@@ -23,10 +23,6 @@ These rules apply to files under `app/util/test/component-view` and related test
   - For CTA enablement or fee disclaimers, provide `BridgeController.recommendedQuote` and enable flags via `RemoteFeatureFlagController`.
   - Prefer helper `withBridgeRecommendedQuoteEvmSimple` when possible.
 
-- **Navigation**
-  - Use `renderScreenWithRoutes` only when route probing is needed; build state from the preset.
-  - Assert on route tokens from `app/constants/navigation/Routes.ts`.
-
 - **Deterministic fiat**
   - Use `deterministicFiat: true` in renderers or presets when asserting exact fiat values.
 
