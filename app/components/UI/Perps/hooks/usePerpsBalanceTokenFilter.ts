@@ -8,7 +8,7 @@ import useFiatFormatter from '../../../UI/SimulationDetails/FiatDisplay/useFiatF
 import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
-import perpsPayTokenIcon from '../../../../images/perps-pay-token-icon.png';
+import perpsPayTokenIcon from 'images/perps-pay-token-icon.png';
 import {
   PERPS_BALANCE_CHAIN_ID,
   PERPS_BALANCE_PLACEHOLDER_ADDRESS,
@@ -17,7 +17,9 @@ import {
 import { selectPerpsAccountState } from '../selectors/perpsController';
 import { useIsPerpsBalanceSelected } from './useIsPerpsBalanceSelected';
 
-const PERPS_BALANCE_ICON_URI = Image.resolveAssetSource(perpsPayTokenIcon).uri;
+/** URI for the perps balance token icon, shared with PerpsPayRow and pay-with modal. */
+export const PERPS_BALANCE_ICON_URI =
+  Image.resolveAssetSource(perpsPayTokenIcon).uri;
 
 /**
  * Returns a filter that prepends a synthetic "Perps balance" token to the list

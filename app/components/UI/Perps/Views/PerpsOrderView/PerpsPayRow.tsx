@@ -37,14 +37,15 @@ import {
   PERPS_BALANCE_CHAIN_ID,
   PERPS_BALANCE_PLACEHOLDER_ADDRESS,
 } from '../../constants/perpsConfig';
+import { PERPS_BALANCE_ICON_URI } from '../../hooks/usePerpsBalanceTokenFilter';
 import { useIsPerpsBalanceSelected } from '../../hooks/useIsPerpsBalanceSelected';
 import { Hex } from '@metamask/utils';
 
 const tokenIconStyles = StyleSheet.create({
-  icon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  iconSmall: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
   },
 });
 
@@ -161,6 +162,7 @@ export const PerpsPayRow = ({
           onPress={() => onPayWithInfoPress?.()}
           style={styles.infoIcon}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          testID="perps-pay-row-info"
         >
           <Icon
             name={IconName.Info}
@@ -175,13 +177,21 @@ export const PerpsPayRow = ({
         gap={8}
       >
         {matchesPerpsBalance ? (
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Default}
-            testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
-          >
-            {strings('perps.adjust_margin.perps_balance')}
-          </Text>
+          <>
+            <BaseTokenIcon
+              testID="perps-pay-row-token-icon"
+              icon={PERPS_BALANCE_ICON_URI}
+              symbol={strings('perps.adjust_margin.perps_balance')}
+              style={tokenIconStyles.iconSmall}
+            />
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Default}
+              testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
+            >
+              {strings('perps.adjust_margin.perps_balance')}
+            </Text>
+          </>
         ) : (
           <>
             {token ? (
@@ -198,7 +208,7 @@ export const PerpsPayRow = ({
                   testID="perps-pay-row-token-icon"
                   icon={token.image}
                   symbol={token.symbol}
-                  style={tokenIconStyles.icon}
+                  style={tokenIconStyles.iconSmall}
                 />
               </BadgeWrapper>
             ) : null}
