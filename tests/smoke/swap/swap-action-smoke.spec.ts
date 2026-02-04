@@ -34,7 +34,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
     jest.setTimeout(120000);
   });
 
-  it('should swap ETH to USDC', async (): Promise<void> => {
+  it('swaps ETH to USDC with custom slippage', async (): Promise<void> => {
     const quantity = '1';
     const sourceTokenSymbol = 'ETH';
     const destTokenSymbol = 'USDC';

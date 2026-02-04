@@ -6,8 +6,8 @@ import {
 } from '../../api-mocking/helpers/mockHelpers';
 import {
   GET_QUOTE_ETH_USDC_RESPONSE,
+  GET_QUOTE_ETH_USDC_RESPONSE_CUSTOM_SLIPPAGE,
   GET_QUOTE_ETH_DAI_RESPONSE,
-  GET_QUOTE_ETH_DAI_RESPONSE_CUSTOM_SLIPPAGE,
   GET_QUOTE_USDC_USDT_RESPONSE,
   GET_TOKENS_MAINNET_RESPONSE,
   GET_POPULAR_TOKENS_MAINNET_RESPONSE,
@@ -38,27 +38,27 @@ export const testSpecificMock: TestSpecificMock = async (
     responseCode: 200,
   });
 
-  // Mock ETH->DAI with 2% slippage
+  // Mock ETH->DAI
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
-    url: /getQuote.*destTokenAddress=0x6B175474E89094C44Da98b954EedeAC495271d0F.*slippage=2/i,
+    url: /getQuote.*destTokenAddress=0x6B175474E89094C44Da98b954EedeAC495271d0F/i,
     response: GET_QUOTE_ETH_DAI_RESPONSE,
     responseCode: 200,
   });
 
-  // Mock ETH->DAI with 3.5% custom slippage
+  // Mock USDC->USDT with default 2% slippage
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
-    url: /getQuote.*destTokenAddress=0x6B175474E89094C44Da98b954EedeAC495271d0F.*slippage=3.5/i,
-    response: GET_QUOTE_ETH_DAI_RESPONSE_CUSTOM_SLIPPAGE,
+    url: /getQuote.*destTokenAddress=0xdAC17F958D2ee523a2206206994597C13D831ec7.*slippage=2/i,
+    response: GET_QUOTE_USDC_USDT_RESPONSE,
     responseCode: 200,
   });
 
-  // Mock USDC->USDT
+  // Mock USDC->USDT with 3.5% custom slippage
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
-    url: /getQuote.*destTokenAddress=0xdAC17F958D2ee523a2206206994597C13D831ec7/i,
-    response: GET_QUOTE_USDC_USDT_RESPONSE,
+    url: /getQuote.*destTokenAddress=0xdAC17F958D2ee523a2206206994597C13D831ec7.*slippage=3.5/i,
+    response: GET_QUOTE_ETH_USDC_RESPONSE_CUSTOM_SLIPPAGE,
     responseCode: 200,
   });
 

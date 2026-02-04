@@ -21,10 +21,6 @@ class SlippageModal {
     return Matchers.getElementByText(SlippageModalSelectorText.CONFIRM);
   }
 
-  get submitButton(): DetoxElement {
-    return Matchers.getElementByText(SlippageModalSelectorText.SUBMIT);
-  }
-
   get inputStepperInput(): DetoxElement {
     return Matchers.getElementByID(
       SlippageModalSelectorIDs.INPUT_STEPPER_INPUT,
