@@ -3057,7 +3057,8 @@
       "update": "Update",
       "cancel": "Cancel",
       "deposit_provider_logout_button": "Log out of {{depositProviderName}}",
-      "deposit_provider_logged_out": "Logged out of {{depositProviderName}}"
+      "deposit_provider_logged_out": "Logged out of {{depositProviderName}}",
+      "select_payment_method": "Select payment method"
     },
     "request_feature": "Request a feature",
     "contact_support": "Contact support",
