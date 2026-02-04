@@ -66,7 +66,7 @@ jobs:
   # Build
   build:
     needs: [prepare]
-    timeout-minutes: 90
+    timeout-minutes: 120
     strategy:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
@@ -180,6 +180,16 @@ jobs:
             ${{ runner.os }}-ios-derived-${{ hashFiles('ios/Podfile.lock') }}-
             ${{ runner.os }}-ios-derived-
 
+      # iOS: Cache Xcode module cache for faster compilation
+      - name: Cache Xcode Module Cache
+        if: matrix.platform == 'ios'
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData/ModuleCache.noindex
+          key: ${{ runner.os }}-xcode-modules-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-xcode-modules-
+
       # Android qa signing (exp-test-e2e): skip for Expo dev builds (main-dev, flask-dev, qa-dev use debug keystore)
       - name: Configure Android signing certificates
         if: matrix.platform == 'android' && inputs.build_name != 'main-dev' && inputs.build_name != 'flask-dev' && inputs.build_name != 'qa-dev'
@@ -209,11 +219,13 @@ jobs:
         if: matrix.platform == 'android'
         run: cp android/gradle.properties.github android/gradle.properties
 
+      # Build with retry logic. Timeouts: 55min per attempt, 115min total for step, 120min job
+      # First iOS build (cold cache): ~45-60min. Subsequent builds (warm cache): ~10-20min
       - name: Build ${{ matrix.platform }}
-        timeout-minutes: 75
+        timeout-minutes: 115
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
-          timeout_minutes: 35
+          timeout_minutes: 55
           max_attempts: 2
           retry_wait_seconds: 60
           command: |
