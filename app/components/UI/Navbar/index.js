@@ -820,7 +820,6 @@ export function getOfflineModalNavbar() {
  * @param {boolean | null} isBackupAndSyncEnabled - Whether backup and sync is enabled
  * @param {number} unreadNotificationCount - The number of unread notifications
  * @param {number} readNotificationCount - The number of read notifications
- * @param {boolean} shouldDisplayCardButton - Whether to display the card button
  * @returns {Object} An object containing the navbar options for the wallet screen
  */
 export function getWalletNavbarOptions(
@@ -836,7 +835,6 @@ export function getWalletNavbarOptions(
   isBackupAndSyncEnabled,
   unreadNotificationCount,
   readNotificationCount,
-  shouldDisplayCardButton,
 ) {
   const innerStyles = StyleSheet.create({
     headerContainer: {
@@ -997,12 +995,6 @@ export function getWalletNavbarOptions(
                 >
                   <AddressCopy hitSlop={innerStyles.touchAreaSlop} />
                 </View>
-                {shouldDisplayCardButton && (
-                  <CardButton
-                    onPress={handleCardPress}
-                    touchAreaSlop={innerStyles.touchAreaSlop}
-                  />
-                )}
                 <ButtonIcon
                   iconProps={{ color: MMDSIconColor.Default }}
                   onPress={openQRScanner}

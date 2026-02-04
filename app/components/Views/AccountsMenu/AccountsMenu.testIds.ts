@@ -5,7 +5,6 @@ export const AccountsMenuSelectorsText = {
 
 export const AccountsMenuSelectorsIDs = {
   ACCOUNTS_MENU_SCROLL_ID: 'accounts-menu-scroll',
-  ACCOUNTS_MENU_HEADER: 'accounts-menu-header',
   BACK_BUTTON: 'accounts-menu-back-button',
 
   // Quick Actions
