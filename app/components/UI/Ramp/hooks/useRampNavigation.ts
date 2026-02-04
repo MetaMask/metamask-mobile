@@ -5,10 +5,11 @@ import {
   RampIntent,
   RampType as AggregatorRampType,
 } from '../Aggregator/types';
-import Routes from '../../../../constants/navigation/Routes';
 import { createRampNavigationDetails } from '../Aggregator/routes/utils';
 import { createDepositNavigationDetails } from '../Deposit/routes/utils';
 import { createTokenSelectionNavDetails } from '../components/TokenSelection/TokenSelection';
+import { createRampOpenWithBuildQuoteDetails } from '../components/BuildQuote';
+import { getRootNavigation } from '../../../../util/navigation/navUtils';
 import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
 import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
 import {
@@ -17,6 +18,7 @@ import {
 } from '../../../../reducers/fiatOrders';
 import { createRampUnsupportedModalNavigationDetails } from '../components/RampUnsupportedModal/RampUnsupportedModal';
 import { createEligibilityFailedModalNavigationDetails } from '../components/EligibilityFailedModal/EligibilityFailedModal';
+import { useRampsTokens } from './useRampsTokens';
 
 enum RampMode {
   AGGREGATOR = 'AGGREGATOR',
@@ -37,6 +39,7 @@ export const useRampNavigation = () => {
   const isRampsUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   const isRampsUnifiedV2Enabled = useRampsUnifiedV2Enabled();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
+  const { setSelectedToken } = useRampsTokens();
 
   const goToBuy = useCallback(
     (
@@ -68,16 +71,16 @@ export const useRampNavigation = () => {
         }
       }
 
-      // V2: If assetId is provided and V2 is enabled, route to BuildQuote (nested under TokenSelection)
+      // V2: If assetId is provided and V2 is enabled, open Ramp with BuildQuote (TokenSelection will push BuildQuote when it sees openBuildQuoteWithAssetId)
       if (
         isRampsUnifiedV2Enabled &&
         intent?.assetId &&
         !overrideUnifiedRouting
       ) {
-        navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
-          screen: Routes.RAMP.AMOUNT_INPUT,
-          params: { assetId: intent.assetId },
-        });
+        setSelectedToken(intent.assetId);
+        getRootNavigation(
+          navigation as Parameters<typeof getRootNavigation>[0],
+        ).navigate(...createRampOpenWithBuildQuoteDetails(intent.assetId));
         return;
       }
 
@@ -116,6 +119,7 @@ export const useRampNavigation = () => {
       }
     },
     [
+      setSelectedToken,
       navigation,
       isRampsUnifiedV1Enabled,
       isRampsUnifiedV2Enabled,
