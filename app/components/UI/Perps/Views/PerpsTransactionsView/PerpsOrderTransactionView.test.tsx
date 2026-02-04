@@ -162,7 +162,7 @@ describe('PerpsOrderTransactionView', () => {
     expect(zeroFees).toHaveLength(3); // All three fees should be $0
   });
 
-  it('shows "< $0.01" for fees less than 0.01', () => {
+  it('shows exact fee values for fees less than 0.01', () => {
     mockUsePerpsOrderFees.mockReturnValue({
       totalFee: 0.005,
       protocolFee: 0.003,
@@ -173,11 +173,13 @@ describe('PerpsOrderTransactionView', () => {
       error: null,
     });
 
-    const { getAllByText } = render(<PerpsOrderTransactionView />);
+    const { getByText, queryByText } = render(<PerpsOrderTransactionView />);
 
-    // All three fees should show "< $0.01" since they're all less than 0.01
-    const smallFeeLabels = getAllByText('< $0.01');
-    expect(smallFeeLabels).toHaveLength(3);
+    // All three fees should show exact values, not "< $0.01"
+    expect(queryByText('< $0.01')).toBeNull();
+    expect(getByText('$0.005')).toBeTruthy(); // Total fee
+    expect(getByText('$0.003')).toBeTruthy(); // Protocol fee
+    expect(getByText('$0.002')).toBeTruthy(); // MetaMask fee
   });
 
   it('formats fees normally when they are exactly 0.01', () => {
@@ -203,7 +205,7 @@ describe('PerpsOrderTransactionView', () => {
     expect(getByText('$0.03')).toBeTruthy(); // Total fee
   });
 
-  it('formats fees normally when they are greater than 0.01', () => {
+  it('formats fees with exact values regardless of size', () => {
     mockUsePerpsOrderFees.mockReturnValue({
       totalFee: 0.015,
       protocolFee: 0.012,
@@ -214,16 +216,16 @@ describe('PerpsOrderTransactionView', () => {
       error: null,
     });
 
-    const { getByText, getAllByText } = render(<PerpsOrderTransactionView />);
+    const { getByText, queryByText } = render(<PerpsOrderTransactionView />);
 
-    // Metamask fee is less than 0.01, should show "< $0.01"
-    expect(getAllByText('< $0.01')).toHaveLength(1);
-    // Protocol and total fees are >= 0.01, should be formatted normally
-    expect(getByText('$0.01')).toBeTruthy(); // Protocol fee formatted
-    expect(getByText('$0.02')).toBeTruthy(); // Total fee formatted (rounded)
+    // All fees should show exact values, not "< $0.01"
+    expect(queryByText('< $0.01')).toBeNull();
+    expect(getByText('$0.003')).toBeTruthy(); // MetaMask fee (exact)
+    expect(getByText('$0.012')).toBeTruthy(); // Protocol fee (exact)
+    expect(getByText('$0.015')).toBeTruthy(); // Total fee (exact)
   });
 
-  it('handles mixed small and large fees correctly', () => {
+  it('handles mixed small and large fees correctly with exact values', () => {
     mockUsePerpsOrderFees.mockReturnValue({
       totalFee: 0.025,
       protocolFee: 0.02,
@@ -234,17 +236,16 @@ describe('PerpsOrderTransactionView', () => {
       error: null,
     });
 
-    const { getByText, getAllByText } = render(<PerpsOrderTransactionView />);
+    const { getByText, queryByText } = render(<PerpsOrderTransactionView />);
 
-    // Metamask fee is less than 0.01
-    const smallFeeLabels = getAllByText('< $0.01');
-    expect(smallFeeLabels).toHaveLength(1);
-    // Protocol and total fees are >= 0.01, should be formatted
+    // All fees should show exact values
+    expect(queryByText('< $0.01')).toBeNull();
+    expect(getByText('$0.005')).toBeTruthy(); // MetaMask fee (exact)
     expect(getByText('$0.02')).toBeTruthy(); // Protocol fee
-    expect(getByText('$0.03')).toBeTruthy(); // Total fee (rounded)
+    expect(getByText('$0.025')).toBeTruthy(); // Total fee (exact)
   });
 
-  it('handles edge case: fee just below 0.01 threshold', () => {
+  it('handles edge case: fee just below 0.01 threshold with exact values', () => {
     mockUsePerpsOrderFees.mockReturnValue({
       totalFee: 0.029,
       protocolFee: 0.0099,
@@ -255,12 +256,17 @@ describe('PerpsOrderTransactionView', () => {
       error: null,
     });
 
-    const { getAllByText } = render(<PerpsOrderTransactionView />);
+    const { getByText, getAllByText, queryByText } = render(
+      <PerpsOrderTransactionView />,
+    );
 
-    // Both metamask and protocol fees are just below 0.01
-    const smallFeeLabels = getAllByText('< $0.01');
-    expect(smallFeeLabels).toHaveLength(2);
-    // Total fee is >= 0.01, should be formatted
+    // All fees should show exact values, not "< $0.01"
+    expect(queryByText('< $0.01')).toBeNull();
+    // Both metamask and protocol fees show exact value
+    const fee0099Labels = getAllByText('$0.0099');
+    expect(fee0099Labels).toHaveLength(2);
+    // Total fee shows exact value
+    expect(getByText('$0.029')).toBeTruthy();
   });
 
   it('handles edge case: fee just above 0.01 threshold', () => {
@@ -286,7 +292,7 @@ describe('PerpsOrderTransactionView', () => {
     expect(getByText('$0.02')).toBeTruthy(); // Total fee (rounded)
   });
 
-  it('shows "< $0.01" for all fees when all are below threshold', () => {
+  it('shows exact values for all fees when all are below 0.01', () => {
     mockUsePerpsOrderFees.mockReturnValue({
       totalFee: 0.008,
       protocolFee: 0.005,
@@ -297,11 +303,13 @@ describe('PerpsOrderTransactionView', () => {
       error: null,
     });
 
-    const { getAllByText } = render(<PerpsOrderTransactionView />);
+    const { getByText, queryByText } = render(<PerpsOrderTransactionView />);
 
-    // All three fees are below 0.01
-    const smallFeeLabels = getAllByText('< $0.01');
-    expect(smallFeeLabels).toHaveLength(3);
+    // All three fees should show exact values, not "< $0.01"
+    expect(queryByText('< $0.01')).toBeNull();
+    expect(getByText('$0.008')).toBeTruthy(); // Total fee
+    expect(getByText('$0.005')).toBeTruthy(); // Protocol fee
+    expect(getByText('$0.003')).toBeTruthy(); // MetaMask fee
   });
 
   it('navigates to block explorer in browser tab when button is pressed', () => {
