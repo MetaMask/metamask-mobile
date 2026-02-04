@@ -13,6 +13,7 @@ import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
 import { toHex } from '@metamask/controller-utils';
 import { BigNumber } from 'bignumber.js';
 import { Hex } from '@metamask/utils';
+import { safeFormatChainIdToHex } from '../../Card/util/safeFormatChainIdToHex';
 
 /**
  * The source of truth for the tokens that are eligible for mUSD conversion.
@@ -94,17 +95,27 @@ export const useMusdConversionTokens = () => {
 
   const hasConvertibleTokensByChainId = useCallback(
     (chainId: Hex) =>
-      conversionTokens.some((token) => token.chainId === chainId),
+      conversionTokens.some(
+        (token) =>
+          token.chainId && safeFormatChainIdToHex(token.chainId) === chainId,
+      ),
     [conversionTokens],
   );
 
   const isConversionToken = (token?: AssetType | TokenI) => {
     if (!token) return false;
 
+    if (!token.chainId) {
+      return false;
+    }
+
+    const tokenChainId = safeFormatChainIdToHex(token.chainId);
+
     return conversionTokens.some(
       (musdToken) =>
         token.address.toLowerCase() === musdToken.address.toLowerCase() &&
-        token.chainId === musdToken.chainId,
+        musdToken.chainId &&
+        safeFormatChainIdToHex(musdToken.chainId) === tokenChainId,
     );
   };
 
