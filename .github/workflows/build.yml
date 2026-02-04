@@ -63,9 +63,21 @@ jobs:
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'secrets_json=' + JSON.stringify(build.secrets || {}) + '\n');
           "
 
+  # Setup dependencies (no secrets)
+  setup-dependencies:
+    name: Setup Dependencies
+    needs: [prepare]
+    uses: ./.github/workflows/setup-node-modules.yml
+    with:
+      fetch-depth: 0
+      upload-artifact: true
+      artifact-name: node-modules-build
+      artifact-retention-days: 1
+
   # Build
   build:
-    needs: [prepare]
+    needs: [prepare, setup-dependencies]
+    timeout-minutes: 120
     strategy:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
@@ -75,13 +87,41 @@ jobs:
     env:
       # So bundle exec (in yarn pod:install) finds ios/Gemfile when running from repo root
       BUNDLE_GEMFILE: ios/Gemfile
+      ARTIFACT_NAME: ${{ needs.setup-dependencies.outputs.artifact-name }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
-      - run: yarn install --immutable
+
+      - name: Validate artifact compatibility
+        uses: ./.github/actions/validate-artifact-compatibility
+        with:
+          artifact-name: ${{ env.ARTIFACT_NAME }}
+          artifact-prefix: node-modules-build
+          validation-context: build
+
+      - name: Download node_modules artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+
+      - name: Restore executable permissions
+        uses: ./.github/actions/restore-node-modules-permissions
+
+      - name: Verify downloaded artifacts
+        run: |
+          echo "✅ Verifying downloaded artifacts..."
+          if [ ! -d "node_modules" ]; then
+            echo "❌ node_modules directory not found"
+            exit 1
+          fi
+          if [ ! -f "app/core/InpageBridgeWeb3.js" ]; then
+            echo "❌ InpageBridgeWeb3.js not found in artifact"
+            exit 1
+          fi
+          echo "📦 node_modules size: $(du -sh node_modules | cut -f1)"
+          echo "✅ Artifacts verified"
 
       - name: Apply build config
         run: |
@@ -140,6 +180,40 @@ jobs:
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
           WALLET_CONNECT_PROJECT_ID: ${{ secrets.WALLET_CONNECT_PROJECT_ID }}
         run: node scripts/set-secrets-from-config.js
+
+      # iOS: Cache CocoaPods
+      - name: Cache CocoaPods
+        if: matrix.platform == 'ios'
+        uses: actions/cache@v4
+        with:
+          path: |
+            ios/Pods
+            ~/Library/Caches/CocoaPods
+            ~/.cocoapods
+          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
+      # iOS: Cache DerivedData to speed up Xcode builds
+      - name: Cache iOS DerivedData
+        if: matrix.platform == 'ios'
+        uses: actions/cache@v4
+        with:
+          path: ios/build
+          key: ${{ runner.os }}-ios-derived-${{ hashFiles('ios/Podfile.lock') }}-${{ hashFiles('**/*.m', '**/*.mm', '**/*.swift') }}
+          restore-keys: |
+            ${{ runner.os }}-ios-derived-${{ hashFiles('ios/Podfile.lock') }}-
+            ${{ runner.os }}-ios-derived-
+
+      # iOS: Cache Xcode module cache for faster compilation
+      - name: Cache Xcode Module Cache
+        if: matrix.platform == 'ios'
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData/ModuleCache.noindex
+          key: ${{ runner.os }}-xcode-modules-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-xcode-modules-
 
       # Android only: minimal env (SDK is pre-installed on Cirrus runner)
       - name: Set Android environment variables
