@@ -92,7 +92,11 @@ import {
 import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/SpendingLimitProgressBar';
 import { createAddFundsModalNavigationDetails } from '../../components/AddFundsBottomSheet/AddFundsBottomSheet';
 import { createAssetSelectionModalNavigationDetails } from '../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
-import { usePushProvisioning, getWalletName } from '../../pushProvisioning';
+import {
+  usePushProvisioning,
+  getWalletName,
+  type ProvisioningError,
+} from '../../pushProvisioning';
 import { AddToWalletButton } from '@expensify/react-native-wallet';
 import { CardScreenshotDeterrent } from '../../components/CardScreenshotDeterrent';
 import { createPasswordBottomSheetNavigationDetails } from '../../components/PasswordBottomSheet';
@@ -273,7 +277,7 @@ const CardHome = () => {
         hasNoTimeout: false,
       });
     },
-    onError: (error) => {
+    onError: (error: ProvisioningError) => {
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         labelOptions: [
