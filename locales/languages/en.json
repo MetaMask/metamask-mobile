@@ -4848,6 +4848,7 @@
       "lowest_sell_limit": "lowest sell limit",
       "medium_sell_limit": "medium sell limit",
       "highest_sell_limit": "highest sell limit",
+      "change": "Change",
       "continue_to_amount": "Continue to amount",
       "no_payment_methods_title": "No payment methods in {{regionName}}",
       "no_cash_destinations_title": "No cash destinations in {{regionName}}",

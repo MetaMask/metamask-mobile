@@ -1,28 +1,31 @@
-import { SmokeConfirmations } from '../../../tags';
-import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
-import Browser from '../../../pages/Browser/BrowserView';
-import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent';
-import ConfirmationUITypes from '../../../pages/Browser/Confirmations/ConfirmationUITypes';
-import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
-import Assertions from '../../../../tests/framework/Assertions';
-import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
+import { SMART_CONTRACTS } from '../../../../app/util/test/smart-contracts';
+import { SmokeConfirmations } from '../../../../e2e/tags';
+import { loginToApp, navigateToBrowserView } from '../../../../e2e/viewHelper';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
+import ConfirmationUITypes from '../../../../e2e/pages/Browser/Confirmations/ConfirmationUITypes';
+import FooterActions from '../../../../e2e/pages/Browser/Confirmations/FooterActions';
+import Assertions from '../../../framework/Assertions';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import {
   buildPermissions,
   AnvilPort,
-} from '../../../../tests/framework/fixtures/FixtureUtils';
-import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
-import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../tests/api-mocking/mock-responses/simulations';
-import TestDApp from '../../../pages/Browser/TestDApp';
-import { DappVariants } from '../../../../tests/framework/Constants';
+} from '../../../framework/fixtures/FixtureUtils';
+import RowComponents from '../../../../e2e/pages/Browser/Confirmations/RowComponents';
+import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../api-mocking/mock-responses/simulations';
+import TestDApp from '../../../../e2e/pages/Browser/TestDApp';
+import { DappVariants } from '../../../framework/Constants';
 import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../../../tests/api-mocking/helpers/mockHelpers';
-import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
-import { confirmationFeatureFlags } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
-import { LocalNode } from '../../../../tests/framework/types';
-import { AnvilManager } from '../../../../tests/seeder/anvil-manager';
+import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+import { LocalNode } from '../../../framework/types';
+import { AnvilManager } from '../../../seeder/anvil-manager';
+import Browser from '../../../../e2e/pages/Browser/BrowserView';
 
-describe(SmokeConfirmations('Contract Deployment'), () => {
+describe(SmokeConfirmations('Contract Interaction'), () => {
+  const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
+
   const testSpecificMock = async (mockServer: Mockttp) => {
     await setupMockRequest(mockServer, {
       requestMethod: 'GET',
@@ -35,12 +38,11 @@ describe(SmokeConfirmations('Contract Deployment'), () => {
       Object.assign({}, ...confirmationFeatureFlags),
     );
   };
-
   beforeAll(async () => {
     jest.setTimeout(2500000);
   });
 
-  it('deploys a contract', async () => {
+  it('submits transaction', async () => {
     await withFixtures(
       {
         dapps: [
@@ -72,21 +74,32 @@ describe(SmokeConfirmations('Contract Deployment'), () => {
         },
         restartDevice: true,
         testSpecificMock,
+        smartContracts: [NFT_CONTRACT],
       },
-      async () => {
+      async ({ contractRegistry }) => {
+        const nftsAddress =
+          await contractRegistry?.getContractAddress(NFT_CONTRACT);
         await loginToApp();
 
+        // Navigate to the browser screen
         await navigateToBrowserView();
-        await Browser.navigateToTestDApp();
-        await TestDApp.tapDeployContractButton();
+        await TestDApp.navigateToTestDappWithContract({
+          contractAddress: nftsAddress,
+        });
+
+        await TestDApp.tapERC721MintButton();
 
         // Check all expected elements are visible
         await Assertions.expectElementToBeVisible(
           ConfirmationUITypes.ModalConfirmationContainer,
         );
+
         await Assertions.expectElementToBeVisible(RowComponents.AccountNetwork);
         await Assertions.expectElementToBeVisible(
           RowComponents.SimulationDetails,
+        );
+        await Assertions.expectElementToBeVisible(
+          RowComponents.NetworkAndOrigin,
         );
         await Assertions.expectElementToBeVisible(RowComponents.GasFeesDetails);
         await Assertions.expectElementToBeVisible(
@@ -105,7 +118,6 @@ describe(SmokeConfirmations('Contract Deployment'), () => {
         // Close browser to reveal app tab bar, then check activity
         await Browser.tapCloseBrowserButton();
         await TabBarComponent.tapActivity();
-        await Assertions.expectTextDisplayed('Contract deployment');
         await Assertions.expectTextDisplayed('Confirmed');
       },
     );

@@ -1,35 +1,38 @@
-import AccountDetails from '../../../../pages/MultichainAccounts/AccountDetails';
-import AccountListBottomSheet from '../../../../pages/wallet/AccountListBottomSheet';
-import Assertions from '../../../../../tests/framework/Assertions';
-import BrowserView from '../../../../pages/Browser/BrowserView';
-import ConfirmationUITypes from '../../../../pages/Browser/Confirmations/ConfirmationUITypes';
-import FixtureBuilder from '../../../../../tests/framework/fixtures/FixtureBuilder';
-import FooterActions from '../../../../pages/Browser/Confirmations/FooterActions';
-import NetworkListModal from '../../../../pages/Network/NetworkListModal';
-import RowComponents from '../../../../pages/Browser/Confirmations/RowComponents';
-import SwitchAccountModal from '../../../../pages/wallet/SwitchAccountModal';
-import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
-import TestDApp from '../../../../pages/Browser/TestDApp';
-import WalletView from '../../../../pages/wallet/WalletView';
-import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../../tests/api-mocking/mock-responses/simulations';
+import AccountDetails from '../../../../../e2e/pages/MultichainAccounts/AccountDetails';
+import AccountListBottomSheet from '../../../../../e2e/pages/wallet/AccountListBottomSheet';
+import Assertions from '../../../../framework/Assertions';
+import BrowserView from '../../../../../e2e/pages/Browser/BrowserView';
+import ConfirmationUITypes from '../../../../../e2e/pages/Browser/Confirmations/ConfirmationUITypes';
+import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
+import FooterActions from '../../../../../e2e/pages/Browser/Confirmations/FooterActions';
+import NetworkListModal from '../../../../../e2e/pages/Network/NetworkListModal';
+import RowComponents from '../../../../../e2e/pages/Browser/Confirmations/RowComponents';
+import SwitchAccountModal from '../../../../../e2e/pages/wallet/SwitchAccountModal';
+import TabBarComponent from '../../../../../e2e/pages/wallet/TabBarComponent';
+import TestDApp from '../../../../../e2e/pages/Browser/TestDApp';
+import WalletView from '../../../../../e2e/pages/wallet/WalletView';
+import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-responses/simulations';
 import {
   AnvilPort,
   buildPermissions,
-} from '../../../../../tests/framework/fixtures/FixtureUtils';
-import { loginToApp, navigateToBrowserView } from '../../../../viewHelper';
-import { SmokeConfirmations } from '../../../../tags';
-import { withFixtures } from '../../../../../tests/framework/fixtures/FixtureHelper';
-import { DappVariants } from '../../../../../tests/framework/Constants';
+} from '../../../../framework/fixtures/FixtureUtils';
+import {
+  loginToApp,
+  navigateToBrowserView,
+} from '../../../../../e2e/viewHelper';
+import { SmokeConfirmations } from '../../../../../e2e/tags';
+import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
+import { DappVariants } from '../../../../framework/Constants';
 import {
   AnvilNodeOptions,
   LocalNode,
   LocalNodeType,
-} from '../../../../../tests/framework';
+} from '../../../../framework';
 import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../../../../tests/api-mocking/helpers/mockHelpers';
-import { confirmationFeatureFlags } from '../../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
-import { setupRemoteFeatureFlagsMock } from '../../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
-import { AnvilManager } from '../../../../../tests/seeder/anvil-manager';
+import { setupMockRequest } from '../../../../api-mocking/helpers/mockHelpers';
+import { confirmationFeatureFlags } from '../../../../api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { AnvilManager } from '../../../../seeder/anvil-manager';
 
 const LOCAL_CHAIN_NAME = 'Local RPC';
 
@@ -39,7 +42,7 @@ const localNodeOptions = [
     options: {
       hardfork: 'prague',
       loadState:
-        './e2e/specs/confirmations/transactions/7702/withDelegatorContracts.json',
+        './tests/smoke/confirmations/transactions/7702/withDelegatorContracts.json',
     },
   },
 ];
