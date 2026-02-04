@@ -10,7 +10,7 @@ import type {
   NetworkControllerGetNetworkClientByIdAction,
   NetworkControllerFindNetworkClientIdByChainIdAction,
 } from '@metamask/network-controller';
-import type { AccountsControllerGetSelectedAccountAction } from '@metamask/accounts-controller';
+import type { AccountTreeControllerGetAccountsFromSelectedAccountGroupAction } from '@metamask/account-tree-controller';
 import type { KeyringControllerSignTypedMessageAction } from '@metamask/keyring-controller';
 import type { AuthenticationController } from '@metamask/profile-sync-controller';
 import {
@@ -121,6 +121,7 @@ import type {
   RemoteFeatureFlagControllerGetStateAction,
 } from '@metamask/remote-feature-flag-controller';
 import { wait } from '../utils/wait';
+import { getEvmAccountFromAccountGroup } from '../utils/accountUtils';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 
 // Re-export error codes from separate file to avoid circular dependencies
@@ -640,7 +641,7 @@ export type AllowedActions =
   | NetworkControllerGetStateAction
   | AuthenticationController.AuthenticationControllerGetBearerToken
   | RemoteFeatureFlagControllerGetStateAction
-  | AccountsControllerGetSelectedAccountAction
+  | AccountTreeControllerGetAccountsFromSelectedAccountGroupAction
   | KeyringControllerSignTypedMessageAction
   | NetworkControllerGetNetworkClientByIdAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
@@ -867,14 +868,10 @@ export class PerpsController extends BaseController<
    * Get selected EVM account via messenger
    */
   private getSelectedEvmAccount(): { address: string } | undefined {
-    const account = this.messenger.call(
-      'AccountsController:getSelectedAccount',
+    const accounts = this.messenger.call(
+      'AccountTreeController:getAccountsFromSelectedAccountGroup',
     );
-    // Filter for EVM accounts (eip155:eoa or eip155:erc4337)
-    if (account?.type === 'eip155:eoa' || account?.type === 'eip155:erc4337') {
-      return { address: account.address };
-    }
-    return undefined;
+    return getEvmAccountFromAccountGroup(accounts);
   }
 
   /**

@@ -270,11 +270,14 @@ describe('HyperLiquidWalletService', () => {
       });
 
       it('should throw error when no account selected', async () => {
-        // Mock messenger to return null (no account selected)
+        // Mock messenger to return empty array (no account selected)
         (mockMessenger.call as jest.Mock).mockImplementation(
           (action: string) => {
-            if (action === 'AccountsController:getSelectedAccount') {
-              return null;
+            if (
+              action ===
+              'AccountTreeController:getAccountsFromSelectedAccountGroup'
+            ) {
+              return [];
             }
             return undefined;
           },
@@ -289,8 +292,11 @@ describe('HyperLiquidWalletService', () => {
       it('should handle keyring controller errors', async () => {
         (mockMessenger.call as jest.Mock).mockImplementation(
           (action: string) => {
-            if (action === 'AccountsController:getSelectedAccount') {
-              return mockEvmAccount;
+            if (
+              action ===
+              'AccountTreeController:getAccountsFromSelectedAccountGroup'
+            ) {
+              return [mockEvmAccount];
             }
             if (action === 'KeyringController:signTypedMessage') {
               return Promise.reject(new Error('Signing failed'));
@@ -310,7 +316,7 @@ describe('HyperLiquidWalletService', () => {
     it('should get current account ID for mainnet', async () => {
       const accountId = await service.getCurrentAccountId();
 
-      // Uses address from mockMessenger's AccountsController:getSelectedAccount
+      // Uses address from mockMessenger's AccountTreeController:getAccountsFromSelectedAccountGroup
       expect(accountId).toBe(`eip155:42161:${mockEvmAccount.address}`);
     });
 
@@ -323,10 +329,12 @@ describe('HyperLiquidWalletService', () => {
     });
 
     it('should throw error when getting account ID with no selected account', async () => {
-      // Mock messenger to return null (no account selected)
+      // Mock messenger to return empty array (no account selected)
       (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
-        if (action === 'AccountsController:getSelectedAccount') {
-          return null;
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [];
         }
         return undefined;
       });
@@ -369,7 +377,7 @@ describe('HyperLiquidWalletService', () => {
     it('should get user address with default fallback', async () => {
       const address = await service.getUserAddressWithDefault();
 
-      // Uses address from mockMessenger's AccountsController:getSelectedAccount
+      // Uses address from mockMessenger's AccountTreeController:getAccountsFromSelectedAccountGroup
       expect(address).toBe(mockEvmAccount.address);
     });
   });
@@ -402,7 +410,9 @@ describe('HyperLiquidWalletService', () => {
     it('should handle store state errors gracefully', async () => {
       // Mock messenger to throw an error
       (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
-        if (action === 'AccountsController:getSelectedAccount') {
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
           throw new Error('Store error');
         }
         return undefined;
@@ -431,8 +441,10 @@ describe('HyperLiquidWalletService', () => {
       const walletAdapter = service.createWalletAdapter();
       // Override messenger.call for the signing call
       (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
-        if (action === 'AccountsController:getSelectedAccount') {
-          return mockEvmAccount;
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockEvmAccount];
         }
         if (action === 'KeyringController:signTypedMessage') {
           return Promise.reject(new Error('Keyring not initialized'));

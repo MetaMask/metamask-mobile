@@ -4,9 +4,6 @@
  *
  * Note: This file contains only platform-agnostic (pure) functions
  * that can be used in the core monorepo.
- *
- * Mobile-specific functions (like getEvmAccountFromSelectedAccountGroup)
- * are defined in adapters/mobileInfrastructure.ts
  */
 import { isEvmAccountType } from '@metamask/keyring-api';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
@@ -25,6 +22,21 @@ export function findEvmAccount(
     (account) => account && isEvmAccountType(account.type),
   );
   return evmAccount || null;
+}
+
+/**
+ * Get the EVM account from an account group (array of accounts).
+ * Uses findEvmAccount internally for the filtering logic.
+ * This is the multichain-compatible version that works with AccountTreeController.
+ *
+ * @param accounts - Array of InternalAccount from AccountTreeController
+ * @returns Object with address if EVM account found, undefined otherwise
+ */
+export function getEvmAccountFromAccountGroup(
+  accounts: InternalAccount[],
+): { address: string } | undefined {
+  const evmAccount = findEvmAccount(accounts);
+  return evmAccount ? { address: evmAccount.address } : undefined;
 }
 
 /**

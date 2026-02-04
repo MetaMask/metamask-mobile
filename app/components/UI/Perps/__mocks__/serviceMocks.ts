@@ -156,39 +156,53 @@ export const createMockEvmAccount = () => ({
  * The messenger.call() method should be configured in each test to return appropriate values.
  *
  * Common messenger actions used:
- * - 'AccountsController:getSelectedAccount' - returns account with address and type
+ * - 'AccountTreeController:getAccountsFromSelectedAccountGroup' - returns array of accounts
  * - 'KeyringController:signTypedMessage' - returns signature string
  * - 'NetworkController:getState' - returns { selectedNetworkClientId: string }
  * - 'NetworkController:getNetworkClientById' - returns { configuration: { chainId: string } }
  * - 'AuthenticationController:getBearerToken' - returns bearer token string
+ *
+ * @param overrides - Optional partial messenger to override default behavior
  */
-export const createMockMessenger =
-  (): jest.Mocked<PerpsControllerMessenger> => {
-    const mockEvmAccount = createMockEvmAccount();
-    return {
-      call: jest.fn().mockImplementation((action: string) => {
-        // Default implementations for common actions
-        if (action === 'AccountsController:getSelectedAccount') {
-          return mockEvmAccount;
-        }
-        if (action === 'KeyringController:signTypedMessage') {
-          return Promise.resolve('0xSignatureResult');
-        }
-        if (action === 'NetworkController:getState') {
-          return { selectedNetworkClientId: 'mainnet' };
-        }
-        if (action === 'NetworkController:getNetworkClientById') {
-          return { configuration: { chainId: '0x1' } };
-        }
-        if (action === 'AuthenticationController:getBearerToken') {
-          return Promise.resolve('mock-bearer-token');
-        }
-        return undefined;
-      }),
-      publish: jest.fn(),
-      subscribe: jest.fn(),
-      unsubscribe: jest.fn(),
-      registerActionHandler: jest.fn(),
-      unregisterActionHandler: jest.fn(),
-    } as unknown as jest.Mocked<PerpsControllerMessenger>;
+export const createMockMessenger = (
+  overrides?: Partial<PerpsControllerMessenger>,
+): jest.Mocked<PerpsControllerMessenger> => {
+  const mockEvmAccount = createMockEvmAccount();
+  const base = {
+    call: jest.fn().mockImplementation((action: string) => {
+      // Default implementations for common actions
+      if (
+        action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+      ) {
+        return [mockEvmAccount];
+      }
+      if (action === 'KeyringController:signTypedMessage') {
+        return Promise.resolve('0xSignatureResult');
+      }
+      if (action === 'NetworkController:getState') {
+        return { selectedNetworkClientId: 'mainnet' };
+      }
+      if (action === 'NetworkController:getNetworkClientById') {
+        return { configuration: { chainId: '0x1' } };
+      }
+      if (action === 'AuthenticationController:getBearerToken') {
+        return Promise.resolve('mock-bearer-token');
+      }
+      return undefined;
+    }),
+    publish: jest.fn(),
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
+    registerActionHandler: jest.fn(),
+    unregisterActionHandler: jest.fn(),
+    // Additional methods used by PerpsController
+    registerEventHandler: jest.fn(),
+    registerInitialEventPayload: jest.fn(),
+    unregisterEventHandler: jest.fn(),
+    clearEventSubscriptions: jest.fn(),
   };
+  return {
+    ...base,
+    ...overrides,
+  } as unknown as jest.Mocked<PerpsControllerMessenger>;
+};

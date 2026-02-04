@@ -29,7 +29,7 @@ export function getPerpsControllerMessenger(
       'NetworkController:getState',
       'AuthenticationController:getBearerToken',
       'RemoteFeatureFlagController:getState',
-      'AccountsController:getSelectedAccount',
+      'AccountTreeController:getAccountsFromSelectedAccountGroup',
       'KeyringController:signTypedMessage',
       'NetworkController:getNetworkClientById',
       'NetworkController:findNetworkClientIdByChainId',
