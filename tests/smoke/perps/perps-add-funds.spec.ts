@@ -1,19 +1,19 @@
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { LocalNodeType, TestSuiteParams } from '../../../tests/framework/types';
-import { Hardfork } from '../../../tests/seeder/anvil-manager';
-import { SmokePerps } from '../../tags';
-import { loginToApp } from '../../viewHelper';
-import { PERPS_ARBITRUM_MOCKS } from '../../../tests/api-mocking/mock-responses/perps-arbitrum-mocks';
-import Assertions from '../../../tests/framework/Assertions';
-import PerpsTabView from '../../pages/Perps/PerpsTabView';
-import { PerpsHelpers } from './helpers/perps-helpers';
-import WalletView from '../../pages/wallet/WalletView';
-import PerpsDepositView from '../../pages/Perps/PerpsDepositView';
-import PerpsE2EModifiers from './helpers/perps-modifiers';
-import ToastModal from '../../pages/wallet/ToastModal';
-import Utilities from '../../../tests/framework/Utilities';
-import { createLogger, LogLevel } from '../../../tests/framework/logger';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { LocalNodeType, TestSuiteParams } from '../../framework/types';
+import { Hardfork } from '../../seeder/anvil-manager';
+import { SmokePerps } from '../../../e2e/tags';
+import { loginToApp } from '../../../e2e/viewHelper';
+import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
+import Assertions from '../../framework/Assertions';
+import PerpsTabView from '../../../e2e/pages/Perps/PerpsTabView';
+import { PerpsHelpers } from '../../helpers/perps/perps-helpers';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import PerpsDepositView from '../../../e2e/pages/Perps/PerpsDepositView';
+import PerpsE2EModifiers from '../../helpers/perps/perps-modifiers';
+import ToastModal from '../../../e2e/pages/wallet/ToastModal';
+import Utilities from '../../framework/Utilities';
+import { createLogger, LogLevel } from '../../framework/logger';
 
 const logger = createLogger({
   name: 'PerpsAddFundsSpec',

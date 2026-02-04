@@ -1,12 +1,12 @@
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { RegressionTrade } from '../../tags';
-import { loginToApp } from '../../viewHelper';
-import WalletView from '../../pages/wallet/WalletView';
-import PerpsTabView from '../../pages/Perps/PerpsTabView';
-import Assertions from '../../../tests/framework/Assertions';
-import PerpsOnboarding from '../../pages/Perps/PerpsOnboarding';
-import { PERPS_ARBITRUM_MOCKS } from '../../../tests/api-mocking/mock-responses/perps-arbitrum-mocks';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { RegressionTrade } from '../../../e2e/tags';
+import { loginToApp } from '../../../e2e/viewHelper';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import PerpsTabView from '../../../e2e/pages/Perps/PerpsTabView';
+import Assertions from '../../framework/Assertions';
+import PerpsOnboarding from '../../../e2e/pages/Perps/PerpsOnboarding';
+import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
 
 describe(
   RegressionTrade('Perps - no funds shows Start Trading and tutorial'),

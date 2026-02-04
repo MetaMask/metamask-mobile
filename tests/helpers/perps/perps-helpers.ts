@@ -1,7 +1,7 @@
-import WalletView from '../../../pages/wallet/WalletView';
-import PerpsTabView from '../../../pages/Perps/PerpsTabView';
-import PerpsOnboarding from '../../../pages/Perps/PerpsOnboarding';
-import { createLogger, LogLevel } from '../../../../tests/framework/logger';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import PerpsTabView from '../../../e2e/pages/Perps/PerpsTabView';
+import PerpsOnboarding from '../../../e2e/pages/Perps/PerpsOnboarding';
+import { createLogger, LogLevel } from '../../framework/logger';
 
 const logger = createLogger({
   name: 'PerpsHelpers',
