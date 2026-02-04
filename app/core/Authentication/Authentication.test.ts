@@ -1870,7 +1870,7 @@ describe('Authentication', () => {
         uint8ArrayToMnemonic(mockSeedPhrase1, []),
         false,
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // setExistingUser (from rehydrateSeedPhrase), logIn (from dispatchLogin), and passwordSet (from dispatchPasswordSet) and passwordSet (from storePassword )
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), setExistingUser, and dispatchLogin
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1947,7 +1947,7 @@ describe('Authentication', () => {
         keyringId: 'new-keyring-id',
         type: 'mnemonic',
       });
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // setExistingUser (from rehydrateSeedPhrase), logIn (from dispatchLogin), and passwordSet (from dispatchPasswordSet) and passwordSet (from storePassword )
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), setExistingUser, and dispatchLogin
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1993,7 +1993,7 @@ describe('Authentication', () => {
           shouldSelectAccount: false,
         },
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // setExistingUser (from rehydrateSeedPhrase), logIn (from dispatchLogin), and passwordSet (from dispatchPasswordSet) and passwordSet (from storePassword )
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), setExistingUser, and dispatchLogin
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -2023,7 +2023,7 @@ describe('Authentication', () => {
 
       expect(newWalletAndRestoreSpy).toHaveBeenCalled();
       expect(Logger.error).toHaveBeenCalledWith(expect.any(Error), 'unknown');
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // setExistingUser (from rehydrateSeedPhrase), logIn (from dispatchLogin), and passwordSet (from dispatchPasswordSet) and passwordSet (from storePassword )
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), setExistingUser, and dispatchLogin
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -2062,7 +2062,7 @@ describe('Authentication', () => {
         importError,
         'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // setExistingUser (from rehydrateSeedPhrase), logIn (from dispatchLogin), and passwordSet (from dispatchPasswordSet) and passwordSet (from storePassword )
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), setExistingUser, and dispatchLogin
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -2150,8 +2150,7 @@ describe('Authentication', () => {
         error,
         'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // setExistingUser (from rehydrateSeedPhrase), logIn (from dispatchLogin), and passwordSet (from dispatchPasswordSet) and passwordSet (from storePassword )
-      expect(ReduxService.store.dispatch).toHaveBeenCalledWith(passwordSet());
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), setExistingUser, and dispatchLogin
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -4686,21 +4685,24 @@ describe('Authentication', () => {
       expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
     });
 
-    it('does not automatically update auth preference during login if authData is not provided', async () => {
-      // The UI layer (e.g., OAuthRehydration) is responsible for calling updateAuthPreference explicitly
+    it('updates authentication preference when auth preference is provided', async () => {
+      // Spy on updateAuthPreference method.
       const updateAuthPreferenceSpy = jest.spyOn(
         Authentication,
         'updateAuthPreference',
       );
 
-      // Call unlockWallet with a password and auth preference.
+      // Call unlockWallet with a password.
       await Authentication.unlockWallet({
         password: passwordToUse,
+        authPreference: { currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC },
       });
 
-      // Verify that updateAuthPreference is NOT called automatically
-      // The UI component should call it explicitly if biometric setup is desired
-      expect(updateAuthPreferenceSpy).not.toHaveBeenCalled();
+      // Verify that the authentication preference is updated.
+      expect(updateAuthPreferenceSpy).toHaveBeenCalledWith({
+        authType: AUTHENTICATION_TYPE.BIOMETRIC,
+        password: passwordToUse,
+      });
     });
 
     it('calls lockApp when error is thrown', async () => {
