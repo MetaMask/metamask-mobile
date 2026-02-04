@@ -85,7 +85,6 @@ jest.mock('../../hooks/useActivationKeys', () =>
 );
 
 const mockSetUserRegion = jest.fn();
-const mockFetchUserRegion = jest.fn();
 const mockSetSelectedProvider = jest.fn();
 
 const createMockUserRegion = (regionCode: string): UserRegion => {
@@ -117,10 +116,7 @@ const mockUseRampsControllerInitialValues: ReturnType<
   typeof useRampsController
 > = {
   userRegion: createMockUserRegion('eu'),
-  userRegionLoading: false,
-  userRegionError: null,
   setUserRegion: mockSetUserRegion,
-  fetchUserRegion: mockFetchUserRegion,
   selectedProvider: null,
   setSelectedProvider: mockSetSelectedProvider,
   providers: [],

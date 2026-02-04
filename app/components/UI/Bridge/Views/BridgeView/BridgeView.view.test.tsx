@@ -214,6 +214,52 @@ describeForPlatforms('BridgeView', () => {
     expect(await findByText(expected)).toBeOnTheScreen();
   });
 
+  it('hides keypad when refreshing quote with input unfocused', () => {
+    const now = Date.now();
+    const previousQuote = { ...mockQuoteWithMetadata };
+
+    const { queryByTestId } = renderBridgeView({
+      deterministicFiat: true,
+      overrides: {
+        bridge: {
+          sourceAmount: '1',
+          sourceToken: {
+            address: '0x0000000000000000000000000000000000000000',
+            chainId: '0x1',
+            decimals: 18,
+            symbol: 'ETH',
+            name: 'Ether',
+          },
+          destToken: {
+            address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+            chainId: '0x1',
+            decimals: 6,
+            symbol: 'USDC',
+            name: 'USD Coin',
+          },
+        },
+        engine: {
+          backgroundState: {
+            BridgeController: {
+              quotes: [previousQuote as unknown as Record<string, unknown>],
+              recommendedQuote: previousQuote as unknown as Record<
+                string,
+                unknown
+              >,
+              quotesLastFetched: now - 1000,
+              quotesLoadingStatus: 'LOADING',
+              quoteFetchError: null,
+            },
+          },
+        },
+      } as unknown as Record<string, unknown>,
+    });
+
+    // Keypad should NOT be visible when refreshing quote with valid inputs and unfocused input
+    // This simulates the scenario after user changes slippage - quote is loading but input is not focused
+    expect(queryByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON)).toBeNull();
+  });
+
   it('navigates to dest token selector on press', async () => {
     const TokenSelectorProbe: React.FC<{
       route?: { params?: { type?: string } };

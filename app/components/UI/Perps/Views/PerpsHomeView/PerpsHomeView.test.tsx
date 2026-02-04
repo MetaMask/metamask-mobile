@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import PerpsHomeView from './PerpsHomeView';
-import { PerpsEventValues } from '../../constants/eventNames';
+import { PERPS_EVENT_VALUE } from '../../constants/eventNames';
 import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
 
 // Mock navigation
@@ -17,7 +17,7 @@ jest.mock('@react-navigation/native', () => ({
   }),
   useRoute: () => ({
     params: {
-      source: 'main_action_button', // PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON
+      source: 'main_action_button', // PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON
     },
   }),
   useFocusEffect: (callback: () => void) => {
@@ -221,7 +221,7 @@ jest.mock('../../../../../util/trace', () => ({
 }));
 
 jest.mock('../../constants/eventNames', () => ({
-  PerpsEventProperties: {
+  PERPS_EVENT_PROPERTY: {
     SCREEN_TYPE: 'screen_type',
     SOURCE: 'source',
     BUTTON_CLICKED: 'button_clicked',
@@ -229,7 +229,7 @@ jest.mock('../../constants/eventNames', () => ({
     INTERACTION_TYPE: 'interaction_type',
     LOCATION: 'location',
   },
-  PerpsEventValues: {
+  PERPS_EVENT_VALUE: {
     SCREEN_TYPE: {
       MARKETS: 'markets',
       HOMESCREEN: 'homescreen',
@@ -558,7 +558,7 @@ describe('PerpsHomeView', () => {
     expect(mockNavigateToMarketList).toHaveBeenCalledWith({
       defaultSearchVisible: true,
       defaultMarketTypeFilter: 'all',
-      source: PerpsEventValues.SOURCE.HOMESCREEN_TAB,
+      source: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB,
       fromHome: true,
       button_clicked: 'magnifying_glass',
       button_location: 'perps_home',

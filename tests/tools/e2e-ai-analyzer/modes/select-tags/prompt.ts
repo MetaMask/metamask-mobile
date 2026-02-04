@@ -111,7 +111,7 @@ export function buildTaskPrompt(
   const filesSection = `CHANGED FILES (${
     allFiles.length
   } total):\n${fileList.join('\n')}`;
-  const closing = `Investigate efficiently (consider using several tool calls in the same iteration), then call finalize_tag_selection when ready. Include performance_tests in your final selection with selected_tags (empty array if no performance tests needed) and reasoning.`;
+  const closing = `Investigate efficiently (consider using several tool calls in the same iteration), then call finalize_tag_selection when ready. Before finalizing: verify you have included all dependent tags as specified in each tag's description above. Include performance_tests in your final selection with selected_tags (empty array if no performance tests needed) and reasoning.`;
   const prompt = [
     instruction,
     tagsSection,

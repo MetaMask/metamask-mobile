@@ -2,58 +2,21 @@ import { RewardsIntegrationService } from './RewardsIntegrationService';
 import {
   createMockEvmAccount,
   createMockInfrastructure,
+  createMockMessenger,
 } from '../../__mocks__/serviceMocks';
 import type { PerpsControllerMessenger } from '../PerpsController';
-import type {
-  PerpsPlatformDependencies,
-  PerpsControllerAccess,
-} from '../types';
-
-// Helper to get rewards mock with type safety
-const getRewardsMock = (controllers: jest.Mocked<PerpsControllerAccess>) => {
-  if (!controllers.rewards) {
-    throw new Error('rewards mock not set up');
-  }
-  return controllers.rewards;
-};
+import type { PerpsPlatformDependencies } from '../types';
 
 describe('RewardsIntegrationService', () => {
-  let mockControllers: jest.Mocked<PerpsControllerAccess>;
   let mockMessenger: jest.Mocked<PerpsControllerMessenger>;
   let mockDeps: jest.Mocked<PerpsPlatformDependencies>;
   let service: RewardsIntegrationService;
   const mockEvmAccount = createMockEvmAccount();
 
   beforeEach(() => {
-    mockControllers = {
-      accounts: {
-        getSelectedEvmAccount: jest.fn(),
-        formatAccountToCaipId: jest.fn(),
-      },
-      keyring: {
-        signTypedMessage: jest.fn(),
-      },
-      network: {
-        getChainIdForNetwork: jest.fn(),
-        findNetworkClientIdForChain: jest.fn(),
-      },
-      transaction: {
-        submit: jest.fn(),
-      },
-      rewards: {
-        getFeeDiscount: jest.fn(),
-      },
-      authentication: {
-        getBearerToken: jest.fn(),
-      },
-    } as unknown as jest.Mocked<PerpsControllerAccess>;
-
-    mockMessenger = {
-      call: jest.fn(),
-    } as unknown as jest.Mocked<PerpsControllerMessenger>;
-
+    mockMessenger = createMockMessenger();
     mockDeps = createMockInfrastructure();
-    service = new RewardsIntegrationService(mockDeps);
+    service = new RewardsIntegrationService(mockDeps, mockMessenger);
 
     jest.clearAllMocks();
   });
@@ -65,37 +28,32 @@ describe('RewardsIntegrationService', () => {
   describe('calculateUserFeeDiscount', () => {
     it('calculates fee discount successfully with valid discount', async () => {
       const mockDiscountBips = 6500; // 65%
-      const mockCaipAccountId =
-        'eip155:1:0x1234567890abcdef1234567890abcdef12345678';
 
-      (
-        mockControllers.accounts.getSelectedEvmAccount as jest.Mock
-      ).mockReturnValue(mockEvmAccount);
-      (
-        mockControllers.accounts.formatAccountToCaipId as jest.Mock
-      ).mockReturnValue(mockCaipAccountId);
-      (mockMessenger.call as jest.Mock).mockReturnValue({
-        selectedNetworkClientId: 'mainnet',
+      // Configure messenger to return expected values
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockEvmAccount];
+        }
+        if (action === 'NetworkController:getState') {
+          return { selectedNetworkClientId: 'mainnet' };
+        }
+        if (action === 'NetworkController:getNetworkClientById') {
+          return { configuration: { chainId: '0x1' } };
+        }
+        return undefined;
       });
-      (
-        mockControllers.network.getChainIdForNetwork as jest.Mock
-      ).mockReturnValue('0x1');
-      (
-        getRewardsMock(mockControllers).getFeeDiscount as jest.Mock
-      ).mockResolvedValue(mockDiscountBips);
+      (mockDeps.rewards.getFeeDiscount as jest.Mock).mockResolvedValue(
+        mockDiscountBips,
+      );
 
-      const result = await service.calculateUserFeeDiscount({
-        controllers: mockControllers,
-        messenger: mockMessenger,
-      });
+      const result = await service.calculateUserFeeDiscount();
 
       expect(result).toBe(6500);
-      expect(
-        getRewardsMock(mockControllers).getFeeDiscount,
-      ).toHaveBeenCalledWith(mockCaipAccountId);
-      expect(
-        mockControllers.accounts.formatAccountToCaipId,
-      ).toHaveBeenCalledWith(mockEvmAccount.address, '0x1');
+      expect(mockDeps.rewards.getFeeDiscount).toHaveBeenCalledWith(
+        expect.stringMatching(/^eip155:1:0x/),
+      );
       expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
         'RewardsIntegrationService: Fee discount calculated',
         expect.objectContaining({
@@ -106,146 +64,90 @@ describe('RewardsIntegrationService', () => {
     });
 
     it('returns undefined when no discount available', async () => {
-      const mockCaipAccountId =
-        'eip155:1:0x1234567890abcdef1234567890abcdef12345678';
-
-      (
-        mockControllers.accounts.getSelectedEvmAccount as jest.Mock
-      ).mockReturnValue(mockEvmAccount);
-      (mockMessenger.call as jest.Mock).mockReturnValue({
-        selectedNetworkClientId: 'mainnet',
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockEvmAccount];
+        }
+        if (action === 'NetworkController:getState') {
+          return { selectedNetworkClientId: 'mainnet' };
+        }
+        if (action === 'NetworkController:getNetworkClientById') {
+          return { configuration: { chainId: '0x1' } };
+        }
+        return undefined;
       });
-      (
-        mockControllers.network.getChainIdForNetwork as jest.Mock
-      ).mockReturnValue('0x1');
-      (
-        mockControllers.accounts.formatAccountToCaipId as jest.Mock
-      ).mockReturnValue(mockCaipAccountId);
-      (
-        getRewardsMock(mockControllers).getFeeDiscount as jest.Mock
-      ).mockResolvedValue(0);
+      (mockDeps.rewards.getFeeDiscount as jest.Mock).mockResolvedValue(0);
 
-      const result = await service.calculateUserFeeDiscount({
-        controllers: mockControllers,
-        messenger: mockMessenger,
-      });
+      const result = await service.calculateUserFeeDiscount();
 
       expect(result).toBe(0);
     });
 
     it('returns undefined when no EVM account found', async () => {
-      (
-        mockControllers.accounts.getSelectedEvmAccount as jest.Mock
-      ).mockReturnValue(null);
-
-      const result = await service.calculateUserFeeDiscount({
-        controllers: mockControllers,
-        messenger: mockMessenger,
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [];
+        }
+        return undefined;
       });
+
+      const result = await service.calculateUserFeeDiscount();
 
       expect(result).toBeUndefined();
       expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
         'RewardsIntegrationService: No EVM account found for fee discount',
       );
-      expect(
-        getRewardsMock(mockControllers).getFeeDiscount,
-      ).not.toHaveBeenCalled();
+      expect(mockDeps.rewards.getFeeDiscount).not.toHaveBeenCalled();
     });
 
     it('returns undefined when chain ID not found', async () => {
-      (
-        mockControllers.accounts.getSelectedEvmAccount as jest.Mock
-      ).mockReturnValue(mockEvmAccount);
-      (mockMessenger.call as jest.Mock).mockReturnValue({
-        selectedNetworkClientId: 'mainnet',
-      });
-      (
-        mockControllers.network.getChainIdForNetwork as jest.Mock
-      ).mockImplementation(() => {
-        throw new Error('Network client not found');
-      });
-
-      const result = await service.calculateUserFeeDiscount({
-        controllers: mockControllers,
-        messenger: mockMessenger,
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockEvmAccount];
+        }
+        if (action === 'NetworkController:getState') {
+          return { selectedNetworkClientId: 'mainnet' };
+        }
+        if (action === 'NetworkController:getNetworkClientById') {
+          throw new Error('Network client not found');
+        }
+        return undefined;
       });
 
-      expect(result).toBeUndefined();
-      expect(mockDeps.logger.error).toHaveBeenCalledWith(
-        expect.any(Error),
-        expect.objectContaining({
-          context: expect.objectContaining({
-            name: 'RewardsIntegrationService.calculateUserFeeDiscount',
-          }),
-        }),
-      );
-      expect(
-        getRewardsMock(mockControllers).getFeeDiscount,
-      ).not.toHaveBeenCalled();
-    });
-
-    it('returns undefined when CAIP account ID formatting fails', async () => {
-      (
-        mockControllers.accounts.getSelectedEvmAccount as jest.Mock
-      ).mockReturnValue(mockEvmAccount);
-      (mockMessenger.call as jest.Mock).mockReturnValue({
-        selectedNetworkClientId: 'mainnet',
-      });
-      (
-        mockControllers.network.getChainIdForNetwork as jest.Mock
-      ).mockReturnValue('0x1');
-      (
-        mockControllers.accounts.formatAccountToCaipId as jest.Mock
-      ).mockReturnValue(null);
-
-      const result = await service.calculateUserFeeDiscount({
-        controllers: mockControllers,
-        messenger: mockMessenger,
-      });
+      const result = await service.calculateUserFeeDiscount();
 
       expect(result).toBeUndefined();
-      expect(mockDeps.logger.error).toHaveBeenCalledWith(
-        expect.any(Error),
-        expect.objectContaining({
-          context: expect.objectContaining({
-            name: 'RewardsIntegrationService.calculateUserFeeDiscount',
-            data: expect.objectContaining({
-              address: mockEvmAccount.address,
-              chainId: '0x1',
-            }),
-          }),
-        }),
-      );
-      expect(
-        getRewardsMock(mockControllers).getFeeDiscount,
-      ).not.toHaveBeenCalled();
+      expect(mockDeps.rewards.getFeeDiscount).not.toHaveBeenCalled();
     });
 
     it('returns undefined when getFeeDiscount throws error', async () => {
       const mockError = new Error('Rewards API error');
-      const mockCaipAccountId =
-        'eip155:1:0x1234567890abcdef1234567890abcdef12345678';
 
-      (
-        mockControllers.accounts.getSelectedEvmAccount as jest.Mock
-      ).mockReturnValue(mockEvmAccount);
-      (mockMessenger.call as jest.Mock).mockReturnValue({
-        selectedNetworkClientId: 'mainnet',
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockEvmAccount];
+        }
+        if (action === 'NetworkController:getState') {
+          return { selectedNetworkClientId: 'mainnet' };
+        }
+        if (action === 'NetworkController:getNetworkClientById') {
+          return { configuration: { chainId: '0x1' } };
+        }
+        return undefined;
       });
-      (
-        mockControllers.network.getChainIdForNetwork as jest.Mock
-      ).mockReturnValue('0x1');
-      (
-        mockControllers.accounts.formatAccountToCaipId as jest.Mock
-      ).mockReturnValue(mockCaipAccountId);
-      (
-        getRewardsMock(mockControllers).getFeeDiscount as jest.Mock
-      ).mockRejectedValue(mockError);
+      (mockDeps.rewards.getFeeDiscount as jest.Mock).mockRejectedValue(
+        mockError,
+      );
 
-      const result = await service.calculateUserFeeDiscount({
-        controllers: mockControllers,
-        messenger: mockMessenger,
-      });
+      const result = await service.calculateUserFeeDiscount();
 
       expect(result).toBeUndefined();
       expect(mockDeps.logger.error).toHaveBeenCalledWith(
@@ -261,17 +163,19 @@ describe('RewardsIntegrationService', () => {
     it('returns undefined when NetworkController throws error', async () => {
       const mockError = new Error('Network error');
 
-      (
-        mockControllers.accounts.getSelectedEvmAccount as jest.Mock
-      ).mockReturnValue(mockEvmAccount);
-      (mockMessenger.call as jest.Mock).mockImplementation(() => {
-        throw mockError;
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockEvmAccount];
+        }
+        if (action === 'NetworkController:getState') {
+          throw mockError;
+        }
+        return undefined;
       });
 
-      const result = await service.calculateUserFeeDiscount({
-        controllers: mockControllers,
-        messenger: mockMessenger,
-      });
+      const result = await service.calculateUserFeeDiscount();
 
       expect(result).toBeUndefined();
       expect(mockDeps.logger.error).toHaveBeenCalled();
@@ -288,37 +192,31 @@ describe('RewardsIntegrationService', () => {
         // Reset only specific mocks, keeping mockDeps intact
         jest.clearAllMocks();
         mockDeps = createMockInfrastructure();
-        service = new RewardsIntegrationService(mockDeps);
+        mockMessenger = createMockMessenger();
+        service = new RewardsIntegrationService(mockDeps, mockMessenger);
 
-        const mockCaipAccountId = `eip155:${parseInt(chain.chainId, 16)}:${mockEvmAccount.address}`;
+        (mockMessenger.call as jest.Mock).mockImplementation(
+          (action: string) => {
+            if (
+              action ===
+              'AccountTreeController:getAccountsFromSelectedAccountGroup'
+            ) {
+              return [mockEvmAccount];
+            }
+            if (action === 'NetworkController:getState') {
+              return { selectedNetworkClientId: chain.name.toLowerCase() };
+            }
+            if (action === 'NetworkController:getNetworkClientById') {
+              return { configuration: { chainId: chain.chainId } };
+            }
+            return undefined;
+          },
+        );
+        (mockDeps.rewards.getFeeDiscount as jest.Mock).mockResolvedValue(5000);
 
-        // Mock the passed mockControllers.accounts methods
-        (
-          mockControllers.accounts.getSelectedEvmAccount as jest.Mock
-        ).mockReturnValue(mockEvmAccount);
-        (
-          mockControllers.accounts.formatAccountToCaipId as jest.Mock
-        ).mockReturnValue(mockCaipAccountId);
-
-        (mockMessenger.call as jest.Mock).mockReturnValue({
-          selectedNetworkClientId: chain.name.toLowerCase(),
-        });
-        (
-          mockControllers.network.getChainIdForNetwork as jest.Mock
-        ).mockReturnValue(chain.chainId as `0x${string}`);
-        (
-          getRewardsMock(mockControllers).getFeeDiscount as jest.Mock
-        ).mockResolvedValue(5000);
-
-        const result = await service.calculateUserFeeDiscount({
-          controllers: mockControllers,
-          messenger: mockMessenger,
-        });
+        const result = await service.calculateUserFeeDiscount();
 
         expect(result).toBe(5000);
-        expect(
-          mockControllers.accounts.formatAccountToCaipId,
-        ).toHaveBeenCalledWith(mockEvmAccount.address, chain.chainId);
       }
     });
 
@@ -334,29 +232,28 @@ describe('RewardsIntegrationService', () => {
       for (const testCase of testCases) {
         jest.clearAllMocks();
 
-        const mockCaipAccountId =
-          'eip155:1:0x1234567890abcdef1234567890abcdef12345678';
+        (mockMessenger.call as jest.Mock).mockImplementation(
+          (action: string) => {
+            if (
+              action ===
+              'AccountTreeController:getAccountsFromSelectedAccountGroup'
+            ) {
+              return [mockEvmAccount];
+            }
+            if (action === 'NetworkController:getState') {
+              return { selectedNetworkClientId: 'mainnet' };
+            }
+            if (action === 'NetworkController:getNetworkClientById') {
+              return { configuration: { chainId: '0x1' } };
+            }
+            return undefined;
+          },
+        );
+        (mockDeps.rewards.getFeeDiscount as jest.Mock).mockResolvedValue(
+          testCase.bips,
+        );
 
-        (
-          mockControllers.accounts.getSelectedEvmAccount as jest.Mock
-        ).mockReturnValue(mockEvmAccount);
-        (mockMessenger.call as jest.Mock).mockReturnValue({
-          selectedNetworkClientId: 'mainnet',
-        });
-        (
-          mockControllers.network.getChainIdForNetwork as jest.Mock
-        ).mockReturnValue('0x1');
-        (
-          mockControllers.accounts.formatAccountToCaipId as jest.Mock
-        ).mockReturnValue(mockCaipAccountId);
-        (
-          getRewardsMock(mockControllers).getFeeDiscount as jest.Mock
-        ).mockResolvedValue(testCase.bips);
-
-        await service.calculateUserFeeDiscount({
-          controllers: mockControllers,
-          messenger: mockMessenger,
-        });
+        await service.calculateUserFeeDiscount();
 
         expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
           'RewardsIntegrationService: Fee discount calculated',
@@ -372,22 +269,33 @@ describe('RewardsIntegrationService', () => {
   describe('instance isolation', () => {
     it('each instance uses its own deps', async () => {
       const mockDeps2 = createMockInfrastructure();
-      const service2 = new RewardsIntegrationService(mockDeps2);
+      const mockMessenger2 = createMockMessenger();
+      const service2 = new RewardsIntegrationService(mockDeps2, mockMessenger2);
 
-      // First service - mock the passed controllers
-      (
-        mockControllers.accounts.getSelectedEvmAccount as jest.Mock
-      ).mockReturnValue(null);
-      await service.calculateUserFeeDiscount({
-        controllers: mockControllers,
-        messenger: mockMessenger,
+      // First service - mock messenger to return empty array (no EVM account)
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [];
+        }
+        return undefined;
       });
+      await service.calculateUserFeeDiscount();
 
-      // Second service - uses same mockControllers but different mockDeps
-      await service2.calculateUserFeeDiscount({
-        controllers: mockControllers,
-        messenger: mockMessenger,
-      });
+      // Second service - uses same mock pattern
+      (mockMessenger2.call as jest.Mock).mockImplementation(
+        (action: string) => {
+          if (
+            action ===
+            'AccountTreeController:getAccountsFromSelectedAccountGroup'
+          ) {
+            return [];
+          }
+          return undefined;
+        },
+      );
+      await service2.calculateUserFeeDiscount();
 
       // Each instance should use its own logger
       expect(mockDeps.debugLogger.log).toHaveBeenCalledTimes(1);
