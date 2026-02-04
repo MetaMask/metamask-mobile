@@ -202,7 +202,7 @@ export default class MockServerE2E implements Resource {
       return;
     }
 
-    this._server = getLocal() as InternalMockServer;
+    this._server = getLocal({ cors: true }) as InternalMockServer;
     this._server._liveRequests = [];
     await this._server.start(this._serverPort);
 

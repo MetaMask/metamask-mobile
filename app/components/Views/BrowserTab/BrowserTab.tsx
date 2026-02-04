@@ -77,7 +77,8 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { trackDappViewedEvent } from '../../../util/metrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
-import { isTest } from '../../../util/test/utils.js';
+import { isTest, isE2E } from '../../../util/test/utils.js';
+import EntryScriptProxyE2E from '../../../core/EntryScriptProxyE2E';
 import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
 import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../hooks/useStyles';
@@ -519,8 +520,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
       const getEntryScriptWeb3 = async () => {
         const entryScriptWeb3Fetched = await EntryScriptWeb3.get();
+
+        // In E2E mode, inject the proxy script FIRST to intercept all fetch/XHR calls
+        // This must run before any page scripts to ensure all requests are proxied
+        const e2eProxyScript = isE2E ? EntryScriptProxyE2E.get() : '';
+
         setEntryScriptWeb3(
-          entryScriptWeb3Fetched +
+          e2eProxyScript +
+            entryScriptWeb3Fetched +
             SPA_urlChangeListener +
             SCROLL_TRACKER_SCRIPT,
         );
@@ -1554,6 +1561,15 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                         onFileDownload={handleOnFileDownload}
                         webviewDebuggingEnabled={isTest}
                         paymentRequestEnabled
+                        // E2E Testing: Enable native request interception on Android
+                        // @ts-expect-error - Custom E2E props not in WebView types
+                        e2eMode={isE2E}
+                        // @ts-expect-error - Custom E2E props not in WebView types
+                        mockServerUrl={
+                          isE2E
+                            ? EntryScriptProxyE2E.getMockServerUrl()
+                            : undefined
+                        }
                       />
                       {ipfsBannerVisible && (
                         <IpfsBanner
