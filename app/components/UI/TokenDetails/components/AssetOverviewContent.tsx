@@ -25,7 +25,7 @@ import {
 } from '../../../hooks/useTokenHistoricalPrices';
 import { TokenI } from '../../Tokens/types';
 import { usePerpsMarketForAsset } from '../../Perps/hooks/usePerpsMarketForAsset';
-import { PerpsEventValues } from '../../Perps/constants/eventNames';
+import { PERPS_EVENT_VALUE } from '../../Perps/constants/eventNames';
 import Price from '../../AssetOverview/Price';
 import ChartNavigationButton from '../../AssetOverview/ChartNavigationButton';
 import Balance from '../../AssetOverview/Balance';
@@ -192,7 +192,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
         screen: Routes.PERPS.MARKET_DETAILS,
         params: {
           market: marketData,
-          source: PerpsEventValues.SOURCE.ASSET_DETAIL_SCREEN,
+          source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
         },
       });
     }

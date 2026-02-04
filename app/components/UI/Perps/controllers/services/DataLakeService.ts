@@ -8,6 +8,8 @@ import {
   PerpsTraceOperations,
   type PerpsPlatformDependencies,
 } from '../types';
+import type { PerpsControllerMessenger } from '../PerpsController';
+import { getSelectedEvmAccount } from '../../utils/accountUtils';
 
 /**
  * DataLakeService
@@ -16,31 +18,31 @@ import {
  * Implements exponential backoff retry logic and performance tracing.
  * Stateless service that operates purely on external API calls.
  *
- * Instance-based service with constructor injection of platform dependencies.
+ * Instance-based service with constructor injection of platform dependencies
+ * and messenger for inter-controller communication.
  */
 export class DataLakeService {
   private readonly deps: PerpsPlatformDependencies;
+  private readonly messenger: PerpsControllerMessenger;
 
   /**
    * Create a new DataLakeService instance
    * @param deps - Platform dependencies for logging, metrics, etc.
+   * @param messenger - Messenger for inter-controller communication
    */
-  constructor(deps: PerpsPlatformDependencies) {
+  constructor(
+    deps: PerpsPlatformDependencies,
+    messenger: PerpsControllerMessenger,
+  ) {
     this.deps = deps;
+    this.messenger = messenger;
   }
 
   /**
-   * Error context helper for consistent logging
+   * Get bearer token via messenger
    */
-  private getErrorContext(
-    method: string,
-    additionalContext?: Record<string, unknown>,
-  ): Record<string, unknown> {
-    return {
-      controller: 'DataLakeService',
-      method,
-      ...additionalContext,
-    };
+  private async getBearerToken(): Promise<string> {
+    return this.messenger.call('AuthenticationController:getBearerToken');
   }
 
   /**
@@ -124,8 +126,8 @@ export class DataLakeService {
     const apiCallStartTime = this.deps.performance.now();
 
     try {
-      const token = await this.deps.controllers.authentication.getBearerToken();
-      const evmAccount = this.deps.controllers.accounts.getSelectedEvmAccount();
+      const token = await this.getBearerToken();
+      const evmAccount = getSelectedEvmAccount(this.messenger);
 
       if (!evmAccount || !token) {
         this.deps.debugLogger.log('DataLake API: Missing requirements', {
