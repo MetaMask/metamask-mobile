@@ -16,8 +16,6 @@ This document serves as a comprehensive guide for the TradingView Advanced Chart
 
 _TradingView Advanced Charts with drawing toolbar, candlestick chart, volume, and indicator toggles._
 
----
-
 ## Local Development Setup
 
 ### The Problem
