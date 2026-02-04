@@ -8,11 +8,8 @@ import { IconName, Box } from '@metamask/design-system-react-native';
 import ActionListItem from '../../../../component-library/components-temp/ActionListItem';
 import { strings } from '../../../../../locales/i18n';
 import { useMetrics } from '../../../hooks/useMetrics';
-import { selectCanSignTransactions } from '../../../../selectors/accountsController';
-import useDepositEnabled from '../../Ramp/Deposit/hooks/useDepositEnabled';
 import { useRampNavigation } from '../../Ramp/hooks/useRampNavigation';
 import useBlockExplorer from '../../../hooks/useBlockExplorer';
-import useRampNetwork from '../../Ramp/Aggregator/hooks/useRampNetwork';
 import useRampsUnifiedV1Enabled from '../../Ramp/hooks/useRampsUnifiedV1Enabled';
 import { useRampsButtonClickData } from '../../Ramp/hooks/useRampsButtonClickData';
 import Routes from '../../../../constants/navigation/Routes';
@@ -73,11 +70,7 @@ const MoreTokenActionsMenu = () => {
   } = route.params;
 
   const { trackEvent, createEventBuilder } = useMetrics();
-  const canSignTransactions = useSelector(selectCanSignTransactions);
-  const { isDepositEnabled } = useDepositEnabled();
-  const { goToBuy, goToAggregator, goToSell, goToDeposit } =
-    useRampNavigation();
-  const [isNetworkRampSupported] = useRampNetwork();
+  const { goToBuy, goToAggregator } = useRampNavigation();
   const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   const rampsButtonClickData = useRampsButtonClickData();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
@@ -159,38 +152,6 @@ const MoreTokenActionsMenu = () => {
     rampsButtonClickData,
   ]);
 
-  const handleDeposit = useCallback(() => {
-    closeBottomSheetAndNavigate(() => {
-      goToDeposit();
-    });
-
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
-        .addProperties({
-          text: 'Deposit',
-          location: 'MoreTokenActionsMenu',
-          chain_id_destination: getDecimalChainId(chainId),
-          ramp_type: 'DEPOSIT',
-          region: rampGeodetectedRegion,
-          ramp_routing: rampsButtonClickData.ramp_routing,
-          is_authenticated: rampsButtonClickData.is_authenticated,
-          preferred_provider: rampsButtonClickData.preferred_provider,
-          order_count: rampsButtonClickData.order_count,
-        })
-        .build(),
-    );
-
-    trace({ name: TraceName.LoadDepositExperience });
-  }, [
-    closeBottomSheetAndNavigate,
-    goToDeposit,
-    trackEvent,
-    createEventBuilder,
-    chainId,
-    rampGeodetectedRegion,
-    rampsButtonClickData,
-  ]);
-
   const handleBuy = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
       if (customOnBuy) {
@@ -230,42 +191,6 @@ const MoreTokenActionsMenu = () => {
     trackEvent,
     createEventBuilder,
     getChainIdForAsset,
-    rampGeodetectedRegion,
-    rampsButtonClickData,
-  ]);
-
-  const handleSell = useCallback(() => {
-    closeBottomSheetAndNavigate(() => {
-      goToSell({ assetId: asset.address });
-    });
-
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
-        .addProperties({
-          text: 'Sell',
-          location: 'MoreTokenActionsMenu',
-          chain_id_source: getDecimalChainId(chainId),
-          ramp_type: 'SELL',
-          region: rampGeodetectedRegion,
-          ramp_routing: rampsButtonClickData.ramp_routing,
-          is_authenticated: rampsButtonClickData.is_authenticated,
-          preferred_provider: rampsButtonClickData.preferred_provider,
-          order_count: rampsButtonClickData.order_count,
-        })
-        .build(),
-    );
-
-    trace({
-      name: TraceName.LoadRampExperience,
-      tags: { rampType: RampType.SELL },
-    });
-  }, [
-    closeBottomSheetAndNavigate,
-    goToSell,
-    asset.address,
-    trackEvent,
-    createEventBuilder,
-    chainId,
     rampGeodetectedRegion,
     rampsButtonClickData,
   ]);
@@ -364,60 +289,16 @@ const MoreTokenActionsMenu = () => {
       });
     }
 
-    // Show fund options when perps market is active (Cash Buy button not shown in main actions)
+    // Show Cash buy option when perps market is active (Cash Buy button not shown in main actions)
     if (hasPerpsMarket && isBuyable) {
-      // Buy Unified (when unified ramp is enabled)
-      if (rampUnifiedV1Enabled) {
-        actions.push({
-          type: 'buy-unified',
-          label: strings('fund_actionmenu.buy_unified'),
-          description: strings('fund_actionmenu.buy_unified_description'),
-          iconName: IconName.Add,
-          testID: WalletActionsBottomSheetSelectorsIDs.BUY_UNIFIED_BUTTON,
-          isVisible: true,
-          onPress: handleBuyUnified,
-        });
-      }
-
-      // Deposit (when deposit is enabled and unified ramp is not)
-      if (isDepositEnabled && !rampUnifiedV1Enabled) {
-        actions.push({
-          type: 'deposit',
-          label: strings('fund_actionmenu.deposit'),
-          description: strings('fund_actionmenu.deposit_description'),
-          iconName: IconName.Money,
-          testID: WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON,
-          isVisible: true,
-          onPress: handleDeposit,
-        });
-      }
-
-      // Buy (when unified ramp is not enabled)
-      if (!rampUnifiedV1Enabled) {
-        actions.push({
-          type: 'buy',
-          label: strings('fund_actionmenu.buy'),
-          description: strings('fund_actionmenu.buy_description'),
-          iconName: IconName.Add,
-          testID: WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON,
-          isVisible: true,
-          onPress: handleBuy,
-        });
-      }
-
-      // Sell (when network supports ramp)
-      if (isNetworkRampSupported) {
-        actions.push({
-          type: 'sell',
-          label: strings('fund_actionmenu.sell'),
-          description: strings('fund_actionmenu.sell_description'),
-          iconName: IconName.MinusBold,
-          testID: WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
-          isVisible: true,
-          isDisabled: !canSignTransactions,
-          onPress: handleSell,
-        });
-      }
+      actions.push({
+        type: 'cash-buy',
+        label: `Cash buy ${asset.symbol}`,
+        iconName: IconName.AttachMoney,
+        testID: WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON,
+        isVisible: true,
+        onPress: rampUnifiedV1Enabled ? handleBuyUnified : handleBuy,
+      });
     }
 
     // View on block explorer
@@ -451,17 +332,13 @@ const MoreTokenActionsMenu = () => {
     isBuyable,
     isNativeCurrency,
     asset.chainId,
+    asset.symbol,
     explorer,
     rampUnifiedV1Enabled,
-    isDepositEnabled,
-    isNetworkRampSupported,
-    canSignTransactions,
     onReceive,
     handleReceive,
     handleBuyUnified,
-    handleDeposit,
     handleBuy,
-    handleSell,
     handleViewOnBlockExplorer,
     handleRemoveToken,
   ]);
