@@ -176,16 +176,13 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
         />
       );
     }
-    const { variant, onPress, label, endIconName, style, ...rest } =
-      closeButtonOptions ?? {};
     return (
       <Button
-        variant={variant ?? ButtonVariants.Primary}
-        onPress={() => onPress?.()}
-        label={label}
-        endIconName={endIconName}
-        style={style}
-        {...rest}
+        variant={ButtonVariants.Primary}
+        onPress={() => closeButtonOptions?.onPress()}
+        label={closeButtonOptions?.label}
+        endIconName={closeButtonOptions?.endIconName}
+        style={closeButtonOptions?.style}
       />
     );
   };
