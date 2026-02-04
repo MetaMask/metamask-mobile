@@ -55,6 +55,9 @@ class CustomReporter {
           testStatus: result.status,
           testDuration: result.duration,
         });
+        console.log(
+          `[Pipeline] Session from attachment: sessionId=${sessionData.sessionId}, projectName=${sessionData.projectName ?? 'undefined'}, testTitle=${sessionData.testTitle}`,
+        );
       } catch (error) {
         console.log(`❌ Error parsing session data: ${error.message}`);
       }
@@ -77,6 +80,9 @@ class CustomReporter {
             testDuration: result.duration,
             timestamp: new Date().toISOString(),
           });
+          console.log(
+            `[Pipeline] Session from annotations (no projectName): sessionId=${sessionId}, testTitle=${test.title}`,
+          );
         }
       }
     }
@@ -277,25 +283,31 @@ class CustomReporter {
 
     // Determine if this is a BrowserStack run by checking session data
     let isBrowserStackRun = false;
-
-    // Check project names from session data (most reliable)
+    const projectNames = this.sessions
+      .map((s) => s.projectName)
+      .filter(Boolean);
     if (this.sessions.length > 0) {
-      const projectNames = this.sessions
-        .map((session) => session.projectName)
-        .filter(Boolean);
-
       isBrowserStackRun = projectNames.some((name) =>
         name.includes('browserstack-'),
       );
     }
 
-    // Always try to fetch profiling data if we have sessions and credentials
     const hasCredentials =
-      process.env.BROWSERSTACK_USERNAME && process.env.BROWSERSTACK_ACCESS_KEY;
+      !!process.env.BROWSERSTACK_USERNAME &&
+      !!process.env.BROWSERSTACK_ACCESS_KEY;
+
+    console.log(
+      `[Pipeline] Sessions: ${this.sessions.length}, projectNames: [${projectNames.join(', ') || 'none'}], isBrowserStackRun: ${isBrowserStackRun}, hasCredentials: ${hasCredentials}`,
+    );
+    if (this.sessions.length > 0 && (!hasCredentials || !isBrowserStackRun)) {
+      console.log(
+        `[Pipeline] Skipping BrowserStack fetch (video/profiling/network logs): ${!hasCredentials ? 'missing BROWSERSTACK_USERNAME or BROWSERSTACK_ACCESS_KEY' : 'project name does not include "browserstack-"'}`,
+      );
+    }
 
     if (this.sessions.length > 0 && hasCredentials && isBrowserStackRun) {
       console.log(
-        `🎥 Fetching video URLs and profiling data for ${this.sessions.length} sessions`,
+        `🎥 Fetching video URLs, profiling and network logs for ${this.sessions.length} sessions`,
       );
 
       const tracker = new PerformanceTracker();
@@ -360,14 +372,20 @@ class CustomReporter {
             };
           }
 
-          // Fetch BrowserStack network logs (HAR) for CSV
+          // Fetch BrowserStack network logs (HAR)
           try {
+            console.log(
+              `[Pipeline] Fetching network logs for session ${session.sessionId} (${session.testTitle})...`,
+            );
             const networkResult = await appProfilingHandler.getNetworkLogs(
               session.sessionId,
             );
             if (networkResult.error) {
               session.networkLogsError = networkResult.error;
               session.networkLogsEntries = [];
+              console.log(
+                `[Pipeline] Network logs error for ${session.testTitle}: ${networkResult.error}`,
+              );
             } else {
               session.networkLogsEntries = networkResult.entries || [];
               console.log(
@@ -378,7 +396,7 @@ class CustomReporter {
             session.networkLogsError = error.message;
             session.networkLogsEntries = [];
             console.log(
-              `⚠️ Failed to fetch network logs for ${session.testTitle}: ${error.message}`,
+              `[Pipeline] Network logs exception for ${session.testTitle}: ${error.message}`,
             );
           }
         } catch (error) {
@@ -428,13 +446,20 @@ class CustomReporter {
 
       if (this.metrics.length > 0) {
         console.log('Metrics are:', this.metrics);
-        // Add video URLs and profiling data to metrics by matching test names with sessions
+        // Add video URLs, profiling and apiCalls to metrics by matching test names with sessions
         const metricsWithVideo = this.metrics.map((metric) => {
           const matchingSession = this.sessions.find(
             (session) => session.testTitle === metric.testName,
           );
+          const apiCalls =
+            matchingSession?.networkLogsEntries != null
+              ? matchingSession.networkLogsEntries
+              : null;
+          const apiCallsError = matchingSession?.networkLogsError || null;
+          console.log(
+            `[Pipeline] Metric "${metric.testName}": matchingSession=${!!matchingSession}, apiCalls=${Array.isArray(apiCalls) ? apiCalls.length : apiCalls}, apiCallsError=${apiCallsError ?? 'null'}`,
+          );
 
-          // Use device info from session if available, otherwise keep the existing device info
           const deviceInfo = matchingSession?.deviceInfo || metric.device;
 
           return {
@@ -444,12 +469,8 @@ class CustomReporter {
             sessionId: matchingSession?.sessionId || null,
             profilingData: matchingSession?.profilingData || null,
             profilingSummary: matchingSession?.profilingSummary || null,
-            apiCalls:
-              matchingSession?.networkLogsEntries &&
-              matchingSession.networkLogsEntries.length > 0
-                ? matchingSession.networkLogsEntries
-                : null,
-            apiCallsError: matchingSession?.networkLogsError || null,
+            apiCalls,
+            apiCallsError,
           };
         });
 

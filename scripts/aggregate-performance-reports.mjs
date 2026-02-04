@@ -158,7 +158,10 @@ function processTestReport(testReport) {
     device: testReport.device || null,
     // Include profiling data if available
     profilingData: testReport.profilingData || null,
-    profilingSummary: testReport.profilingSummary || null
+    profilingSummary: testReport.profilingSummary || null,
+    // BrowserStack network logs (HAR) per test
+    apiCalls: testReport.apiCalls ?? null,
+    apiCallsError: testReport.apiCallsError ?? null
   };
   
   if (testReport.testFailed) {
