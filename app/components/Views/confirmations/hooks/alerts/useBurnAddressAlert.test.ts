@@ -54,7 +54,7 @@ describe('useBurnAddressAlert', () => {
     expect(result.current).toHaveLength(1);
     expect(result.current[0]).toMatchObject({
       key: AlertKeys.BurnAddress,
-      field: RowAlertKey.BurnAddress,
+      field: RowAlertKey.FromToAddress,
       severity: Severity.Danger,
       isBlocking: true,
     });
@@ -70,7 +70,7 @@ describe('useBurnAddressAlert', () => {
     expect(result.current).toHaveLength(1);
     expect(result.current[0]).toMatchObject({
       key: AlertKeys.BurnAddress,
-      field: RowAlertKey.BurnAddress,
+      field: RowAlertKey.FromToAddress,
       severity: Severity.Danger,
       isBlocking: true,
     });
@@ -98,7 +98,7 @@ describe('useBurnAddressAlert', () => {
     expect(result.current).toHaveLength(1);
     expect(result.current[0]).toMatchObject({
       key: AlertKeys.BurnAddress,
-      field: RowAlertKey.BurnAddress,
+      field: RowAlertKey.FromToAddress,
       severity: Severity.Danger,
       isBlocking: true,
     });

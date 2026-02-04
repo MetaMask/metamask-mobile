@@ -125,6 +125,10 @@
         "title": "Suspicious token"
       }
     },
+    "first_time_interaction": {
+      "message": "You're interacting with this address for the first time. Make sure that it's correct before you continue.",
+      "title": "1st interaction"
+    },
     "address_trust_signal": {
       "malicious": {
         "message": "If you confirm this request, you will probably lose your assets to a scammer.",
