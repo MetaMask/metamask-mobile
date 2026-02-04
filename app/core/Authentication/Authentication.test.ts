@@ -108,6 +108,17 @@ jest.mock('../../store/storage-wrapper', () => ({
 
 const mockResyncAccounts = jest.fn().mockResolvedValue(undefined);
 
+/**
+ * Creates a mock HD keyring object for testing.
+ * Used to mock KeyringController.state.keyrings entries.
+ * @param id - The keyring metadata id, defaults to 'test-keyring-id'
+ * @returns A mock keyring object with HD type and metadata
+ */
+const createMockHdKeyring = (id = 'test-keyring-id') => ({
+  type: KeyringTypes.hd,
+  metadata: { id },
+});
+
 jest.mock('../Engine', () => ({
   resetState: jest.fn(),
   controllerMessenger: {
@@ -123,9 +134,7 @@ jest.mock('../Engine', () => ({
       removeAccount: jest.fn(),
       verifyPassword: jest.fn(),
       state: {
-        keyrings: [
-          { type: 'HD Key Tree', metadata: { id: 'test-keyring-id' } },
-        ],
+        keyrings: [createMockHdKeyring()],
       },
     },
 
@@ -1422,9 +1431,7 @@ describe('Authentication', () => {
         isUnlocked: jest.fn().mockReturnValue(true),
         setLocked: jest.fn().mockResolvedValue(undefined),
         state: {
-          keyrings: [
-            { type: KeyringTypes.hd, metadata: { id: 'test-keyring-id' } },
-          ],
+          keyrings: [createMockHdKeyring()],
         },
       } as unknown as KeyringController;
 
@@ -1579,9 +1586,7 @@ describe('Authentication', () => {
               await callback({ keyring: mockKeyring }),
           ),
         state: {
-          keyrings: [
-            { type: KeyringTypes.hd, metadata: { id: 'test-keyring-id' } },
-          ],
+          keyrings: [createMockHdKeyring()],
         },
         exportEncryptionKey: jest.fn(),
         exportSeedPhrase: jest.fn(),
@@ -2481,9 +2486,7 @@ describe('Authentication', () => {
         submitPassword: jest.fn(),
         verifyPassword: jest.fn().mockResolvedValue(undefined),
         state: {
-          keyrings: [
-            { type: KeyringTypes.hd, metadata: { id: 'test-keyring-id' } },
-          ],
+          keyrings: [createMockHdKeyring()],
         },
       } as unknown as KeyringController;
 
@@ -2541,9 +2544,7 @@ describe('Authentication', () => {
           ),
         removeAccount: jest.fn(),
         state: {
-          keyrings: [
-            { type: KeyringTypes.hd, metadata: { id: 'test-keyring-id' } },
-          ],
+          keyrings: [createMockHdKeyring()],
         },
       } as unknown as KeyringController;
 
@@ -2688,9 +2689,7 @@ describe('Authentication', () => {
           .mockResolvedValue(mockImportedAddress),
         removeAccount: jest.fn().mockResolvedValue(undefined),
         state: {
-          keyrings: [
-            { type: KeyringTypes.hd, metadata: { id: 'test-keyring-id' } },
-          ],
+          keyrings: [createMockHdKeyring()],
         },
       } as unknown as KeyringController;
 
@@ -3476,9 +3475,7 @@ describe('Authentication', () => {
         setLocked: jest.fn().mockResolvedValue(undefined),
         isUnlocked: jest.fn(() => true),
         state: {
-          keyrings: [
-            { type: KeyringTypes.hd, metadata: { id: 'test-keyring-id' } },
-          ],
+          keyrings: [createMockHdKeyring()],
         },
       } as unknown as KeyringController;
 
@@ -3569,9 +3566,7 @@ describe('Authentication', () => {
         setLocked: jest.fn().mockResolvedValue(undefined),
         isUnlocked: jest.fn(() => true),
         state: {
-          keyrings: [
-            { type: KeyringTypes.hd, metadata: { id: 'test-keyring-id' } },
-          ],
+          keyrings: [createMockHdKeyring()],
         },
       } as unknown as KeyringController;
 
@@ -4333,9 +4328,7 @@ describe('Authentication', () => {
         submitPassword: jest.fn(),
         verifyPassword: jest.fn(),
         state: {
-          keyrings: [
-            { type: KeyringTypes.hd, metadata: { id: 'test-keyring-id' } },
-          ],
+          keyrings: [createMockHdKeyring()],
         },
       };
 
