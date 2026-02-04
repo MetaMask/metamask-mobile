@@ -27,99 +27,17 @@ const createMockState = (
   accountTreeController:
     | DeepPartial<AccountTreeControllerState>
     | undefined = {},
-  multichainAccountsEnabled: boolean = true,
 ): RootState =>
   ({
     engine: {
       backgroundState: {
         AccountTreeController: accountTreeController,
-        RemoteFeatureFlagController: {
-          remoteFeatureFlags: {
-            enableMultichainAccounts: {
-              enabled: multichainAccountsEnabled,
-              featureVersion: '1',
-              minimumVersion: '1.0.0',
-            },
-          },
-        },
       },
     },
   }) as unknown as RootState;
 
 describe('selectWallets', () => {
-  it('returns empty array when multichain accounts feature is disabled', () => {
-    const mockState = createMockState(
-      {
-        accountTree: {
-          wallets: {
-            [WALLET_ID_1]: {
-              id: WALLET_ID_1,
-              type: AccountWalletType.Keyring,
-              metadata: {
-                name: 'Wallet 1',
-                keyring: {
-                  type: mockKeyringTypes.HD_KEY_TREE,
-                },
-              },
-              groups: {
-                [GROUP_ID_1]: {
-                  accounts: ['account1' as const],
-                  id: GROUP_ID_1,
-                  type: AccountGroupType.SingleAccount,
-                  metadata: {
-                    name: 'Account 1',
-                  },
-                },
-              },
-            },
-            [WALLET_ID_2]: {
-              id: WALLET_ID_2,
-              type: AccountWalletType.Keyring,
-              metadata: {
-                name: 'Wallet 2',
-                keyring: {
-                  type: mockKeyringTypes.HD_KEY_TREE,
-                },
-              },
-              groups: {
-                [GROUP_ID_2]: {
-                  accounts: ['account2' as const],
-                  id: GROUP_ID_2,
-                  type: AccountGroupType.SingleAccount,
-                  metadata: {
-                    name: 'Account 2',
-                  },
-                },
-              },
-            },
-          },
-          selectedAccountGroup: '',
-        },
-        accountGroupsMetadata: {
-          [GROUP_ID_1]: {
-            name: { value: 'Account 1', lastUpdatedAt: expect.any(Number) },
-          },
-          [GROUP_ID_2]: {
-            name: { value: 'Account 2', lastUpdatedAt: expect.any(Number) },
-          },
-        },
-        accountWalletsMetadata: {
-          [WALLET_ID_1]: {
-            name: { value: 'Wallet 1', lastUpdatedAt: expect.any(Number) },
-          },
-          [WALLET_ID_2]: {
-            name: { value: 'Wallet 2', lastUpdatedAt: expect.any(Number) },
-          },
-        },
-      },
-      false,
-    );
-
-    const result = selectWallets(mockState);
-    expect(result).toEqual([]);
-  });
-
-  it('returns wallets array when multichain accounts feature is enabled and wallets exist', () => {
+  it('returns wallets array when  wallets exist', () => {
     const wallet1: AccountWalletObject = {
       id: WALLET_ID_1,
       type: AccountWalletType.Keyring,
@@ -202,7 +120,7 @@ describe('selectWallets', () => {
     expect(result).toEqual([wallet1, wallet2]);
   });
 
-  it('returns empty array when multichain accounts feature is enabled but no wallets exist', () => {
+  it('returns empty array when no wallets exist', () => {
     const mockState = createMockState({
       accountTree: {
         wallets: {},
@@ -248,13 +166,7 @@ describe('selectWallets', () => {
 });
 
 describe('selectMultichainWallets', () => {
-  it('returns empty array when multichain accounts feature is disabled', () => {
-    const mockState = createMockState(undefined, false);
-    const result = selectMultichainWallets(mockState);
-    expect(result).toEqual([]);
-  });
-
-  it('returns multichain wallets when multichain accounts feature is enabled and multichain wallets exist', () => {
+  it('returns multichain wallets when multichain wallets exist', () => {
     const mockState = createMockState({
       accountTree: {
         wallets: {
