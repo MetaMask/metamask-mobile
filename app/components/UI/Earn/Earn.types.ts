@@ -26,20 +26,19 @@ export interface LearnMoreModalParams {
 
 /** Max input modal parameters */
 export interface MaxInputModalParams {
-  amountWei?: string;
-  amountFiat?: string;
-  annualRewardsETH?: string;
-  annualRewardsFiat?: string;
-  annualRewardRate?: string;
-  estimatedGasFee?: string;
-  estimatedGasFeePercentage?: string;
-  handleMaxPress?: () => void;
+  handleMaxPress: () => void;
 }
 
 /** Gas impact modal parameters */
 export interface GasImpactModalParams {
-  estimatedGasFee?: string;
-  estimatedGasFeePercentage?: string;
+  amountWei: string;
+  amountFiat: string;
+  annualRewardsETH: string;
+  annualRewardsFiat: string;
+  annualRewardRate: string;
+  estimatedGasFee: string;
+  estimatedGasFeePercentage: string;
+  chainId: string;
 }
 
 /** Earn screens parameters */
