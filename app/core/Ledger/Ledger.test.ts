@@ -33,7 +33,7 @@ jest.mock('../../core/Engine', () => ({
     AccountsController: {
       state: {
         internalAccounts: {
-          accounts: [],
+          accounts: {},
         },
       },
       getAccountByAddress: jest.fn(),
@@ -77,6 +77,9 @@ describe('Ledger core', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    // Reset AccountsController state that may have been modified by previous tests
+    MockEngine.context.AccountsController.state.internalAccounts.accounts = {};
 
     const mockKeyringController = MockEngine.context.KeyringController;
 
