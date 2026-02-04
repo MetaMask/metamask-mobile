@@ -185,13 +185,18 @@ jobs:
         run: cp android/gradle.properties.github android/gradle.properties
 
       - name: Build ${{ matrix.platform }}
-        env:
-          NODE_OPTIONS: '--max-old-space-size=4096'
-          METRO_MAX_WORKERS: '4'
-          BUILD_NAME: ${{ inputs.build_name }}
-        run: |
-          SCRIPT_NAME="build:${{ matrix.platform }}:${BUILD_NAME//-/:}"
-          yarn run "$SCRIPT_NAME"
+        timeout-minutes: 115
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 55
+          max_attempts: 2
+          retry_wait_seconds: 60
+          command: |
+            export NODE_OPTIONS='--max-old-space-size=4096'
+            export METRO_MAX_WORKERS='4'
+            BUILD_NAME="${{ inputs.build_name }}"
+            SCRIPT_NAME="build:${{ matrix.platform }}:${BUILD_NAME//-/:}"
+            yarn run "$SCRIPT_NAME"
 
       # Expo development builds: upload iOS .app for simulator (Runway-style artifact)
       - name: Upload iOS Expo development build
