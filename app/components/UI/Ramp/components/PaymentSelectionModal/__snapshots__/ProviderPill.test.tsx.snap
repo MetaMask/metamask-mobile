@@ -1,0 +1,95 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ProviderPill matches snapshot with logo 1`] = `
+<TouchableOpacity
+  activeOpacity={0.7}
+>
+  <View
+    style={
+      [
+        {
+          "alignItems": "center",
+          "backgroundColor": "#3c4d9d0f",
+          "borderRadius": 8,
+          "display": "flex",
+          "flexDirection": "row",
+          "gap": 8,
+          "paddingBottom": 8,
+          "paddingLeft": 12,
+          "paddingRight": 12,
+          "paddingTop": 8,
+        },
+        undefined,
+      ]
+    }
+  >
+    <SvgMock
+      color="#121314"
+      fill="currentColor"
+      height={16}
+      name="ArrowDown"
+      style={
+        {
+          "height": 16,
+          "width": 16,
+        }
+      }
+      width={16}
+    />
+  </View>
+</TouchableOpacity>
+`;
+
+exports[`ProviderPill matches snapshot with provider name 1`] = `
+<TouchableOpacity
+  activeOpacity={0.7}
+>
+  <View
+    style={
+      [
+        {
+          "alignItems": "center",
+          "backgroundColor": "#3c4d9d0f",
+          "borderRadius": 8,
+          "display": "flex",
+          "flexDirection": "row",
+          "gap": 8,
+          "paddingBottom": 8,
+          "paddingLeft": 12,
+          "paddingRight": 12,
+          "paddingTop": 8,
+        },
+        undefined,
+      ]
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "Geist-Medium",
+          "fontSize": 16,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      Transak
+    </Text>
+    <SvgMock
+      color="#121314"
+      fill="currentColor"
+      height={16}
+      name="ArrowDown"
+      style={
+        {
+          "height": 16,
+          "width": 16,
+        }
+      }
+      width={16}
+    />
+  </View>
+</TouchableOpacity>
+`;

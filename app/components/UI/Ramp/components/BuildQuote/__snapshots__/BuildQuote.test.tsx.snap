@@ -137,7 +137,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                   }
                 }
               >
-                fiat_on_ramp.debit_card
+                fiat_on_ramp.select_payment_method
               </Text>
               <View
                 style={
