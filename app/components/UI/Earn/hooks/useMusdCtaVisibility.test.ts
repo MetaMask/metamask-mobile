@@ -183,6 +183,7 @@ describe('useMusdCtaVisibility', () => {
       filterAllowedTokens: jest.fn(),
       isConversionToken: jest.fn(),
       isMusdSupportedOnChain: jest.fn(),
+      hasConvertibleTokensByChainId: jest.fn().mockReturnValue(false),
     });
     mockUseMusdConversionEligibility.mockReturnValue({
       isEligible: true,
@@ -856,11 +857,14 @@ describe('useMusdCtaVisibility', () => {
               name: 'USDC',
               symbol: 'USDC',
               chainId: CHAIN_IDS.MAINNET,
-            }) as TokenI,
+            }) as AssetType,
           ],
           filterAllowedTokens: jest.fn(),
           isConversionToken: jest.fn().mockReturnValue(true),
           isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+          hasConvertibleTokensByChainId: jest.fn((chainId: Hex) =>
+            Boolean(chainId === CHAIN_IDS.MAINNET),
+          ),
         });
 
         const { result } = renderHook(() => useMusdCtaVisibility());
@@ -961,6 +965,9 @@ describe('useMusdCtaVisibility', () => {
           filterAllowedTokens: jest.fn(),
           isConversionToken: jest.fn(),
           isMusdSupportedOnChain: jest.fn(),
+          hasConvertibleTokensByChainId: jest.fn((chainId: Hex) =>
+            Boolean(chainId === mockConversionToken.chainId),
+          ),
         });
 
         const { result } = renderHook(() => useMusdCtaVisibility());
@@ -983,6 +990,7 @@ describe('useMusdCtaVisibility', () => {
           filterAllowedTokens: jest.fn(),
           isConversionToken: jest.fn(),
           isMusdSupportedOnChain: jest.fn(),
+          hasConvertibleTokensByChainId: jest.fn().mockReturnValue(false),
         });
 
         const { result } = renderHook(() => useMusdCtaVisibility());
@@ -1035,6 +1043,9 @@ describe('useMusdCtaVisibility', () => {
         filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn(),
+        hasConvertibleTokensByChainId: jest.fn((chainId: Hex) =>
+          Boolean(chainId === conversionToken.chainId),
+        ),
       });
 
       mockMusdConversionCtaTokens = { [CHAIN_IDS.MAINNET]: ['USDC'] };
@@ -1332,6 +1343,9 @@ describe('useMusdCtaVisibility', () => {
         filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn(),
+        hasConvertibleTokensByChainId: jest.fn((chainId: Hex) =>
+          Boolean(chainId === conversionToken.chainId),
+        ),
       });
       mockMusdConversionCtaTokens = { [CHAIN_IDS.MAINNET]: ['USDC'] };
     });
