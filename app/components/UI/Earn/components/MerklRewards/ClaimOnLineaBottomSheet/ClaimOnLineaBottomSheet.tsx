@@ -17,6 +17,7 @@ import BottomSheet, {
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import AppConstants from '../../../../../../core/AppConstants';
+import Logger from '../../../../../../util/Logger';
 import musdIcon from '../../../../../../images/musd-icon-no-background-2x.png';
 
 export interface ClaimOnLineaBottomSheetParams {
@@ -39,7 +40,11 @@ const ClaimOnLineaBottomSheet: React.FC = () => {
   }, []);
 
   const handleTermsPress = useCallback(() => {
-    Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
+    Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE).catch(
+      (error: Error) => {
+        Logger.error(error, 'Error opening terms of use URL');
+      },
+    );
   }, []);
 
   const handleContinue = useCallback(() => {

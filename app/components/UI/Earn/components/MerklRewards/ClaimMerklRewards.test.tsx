@@ -35,16 +35,6 @@ jest.mock('./hooks/usePendingMerklClaim', () => ({
   usePendingMerklClaim: jest.fn(),
 }));
 
-const mockNavigate = jest.fn();
-jest.mock('../../../../../core/NavigationService', () => ({
-  __esModule: true,
-  default: {
-    navigation: {
-      navigate: (...args: unknown[]) => mockNavigate(...args),
-    },
-  },
-}));
-
 jest.mock('../../../../../constants/navigation/Routes', () => ({
   WALLET: {
     HOME: 'WalletTabHome',
@@ -267,7 +257,7 @@ describe('ClaimMerklRewards', () => {
 
     await waitFor(() => {
       expect(mockClaimRewards).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('WalletTabHome');
+      expect(mockNavigateToModal).toHaveBeenCalledWith('WalletTabHome');
     });
 
     // Note: After navigation, a scroll event is also emitted via DeviceEventEmitter
@@ -292,7 +282,8 @@ describe('ClaimMerklRewards', () => {
 
     await waitFor(() => {
       expect(mockClaimRewards).toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalled();
+      // mockNavigateToModal was called once for opening the modal, but not again for home navigation
+      expect(mockNavigateToModal).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -313,7 +304,8 @@ describe('ClaimMerklRewards', () => {
 
     await waitFor(() => {
       expect(mockClaimRewards).toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalled();
+      // mockNavigateToModal was called once for opening the modal, but not again for home navigation
+      expect(mockNavigateToModal).toHaveBeenCalledTimes(1);
     });
   });
 

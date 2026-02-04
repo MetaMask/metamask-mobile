@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { DeviceEventEmitter, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -39,6 +39,17 @@ const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({ asset }) => {
   const navigation = useNavigation();
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
+  );
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cleanup timeout on unmount to prevent memory leaks
+  useEffect(
+    () => () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    },
+    [],
   );
 
   const { claimRewards, isClaiming, error: claimError } = useMerklClaim(asset);
@@ -82,7 +93,7 @@ const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({ asset }) => {
 
         // Emit event to scroll to Linea mUSD token in the token list
         // Use a small delay to allow navigation to complete
-        setTimeout(() => {
+        scrollTimeoutRef.current = setTimeout(() => {
           DeviceEventEmitter?.emit?.(SCROLL_TO_TOKEN_EVENT, {
             address: MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET],
             chainId: CHAIN_IDS.LINEA_MAINNET,
