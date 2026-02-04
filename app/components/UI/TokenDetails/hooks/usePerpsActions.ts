@@ -5,7 +5,7 @@ import {
   type UsePerpsMarketForAssetResult,
 } from '../../Perps/hooks/usePerpsMarketForAsset';
 import Routes from '../../../../constants/navigation/Routes';
-import { PerpsEventValues } from '../../Perps/constants/eventNames';
+import { PERPS_EVENT_VALUE } from '../../Perps/constants/eventNames';
 
 export interface UsePerpsActionsParams {
   /** Token symbol, or null to skip the perps market check */
@@ -41,7 +41,7 @@ export const usePerpsActions = ({
       screen: Routes.PERPS.MARKET_DETAILS,
       params: {
         market: marketData,
-        source: PerpsEventValues.SOURCE.ASSET_DETAIL_SCREEN,
+        source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
       },
     });
   }, [navigation, marketData]);
