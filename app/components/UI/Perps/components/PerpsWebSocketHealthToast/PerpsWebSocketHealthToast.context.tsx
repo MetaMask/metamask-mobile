@@ -71,13 +71,29 @@ export const WebSocketHealthToastProvider: React.FC<{
     (connectionState: WebSocketConnectionState, reconnectionAttempt = 0) => {
       const isConnected =
         connectionState === WebSocketConnectionState.Connected;
-      // When connection is restored, clear userDismissed so toast can show again on next disconnect
+      const isConnecting =
+        connectionState === WebSocketConnectionState.Connecting;
+
+      // When connection is restored, always show "online" toast and clear dismiss state
+      // (handled first so we never skip due to stale userDismissed closure)
       if (isConnected) {
         setUserDismissed(false);
+        setState({
+          isVisible: true,
+          connectionState,
+          reconnectionAttempt,
+        });
+        return;
       }
-      // Don't show Disconnected/Connecting if user previously dismissed (until connection is restored).
-      // Connected state always shows to avoid stale-closure: setUserDismissed(false) is async.
-      if (userDismissed && !isConnected) {
+
+      // When reconnecting, clear userDismissed so "connecting" and later "online" toasts can show
+      if (isConnecting) {
+        setUserDismissed(false);
+      }
+
+      // Don't show Disconnected if user previously dismissed (until connection is restoring/restored).
+      // Connecting is always shown so user sees progress after having dismissed "offline".
+      if (userDismissed && !isConnecting) {
         return;
       }
       setState({
