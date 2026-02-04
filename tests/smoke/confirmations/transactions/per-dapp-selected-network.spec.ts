@@ -1,25 +1,25 @@
-import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder.ts';
-import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper.ts';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import {
   buildPermissions,
   AnvilPort,
-} from '../../../../tests/framework/fixtures/FixtureUtils.ts';
-import Browser from '../../../pages/Browser/BrowserView.ts';
-import ConfirmationFooterActions from '../../../pages/Browser/Confirmations/FooterActions.ts';
-import ConfirmationUITypes from '../../../pages/Browser/Confirmations/ConfirmationUITypes.ts';
-import TestDApp from '../../../pages/Browser/TestDApp.ts';
-import NetworkListModal from '../../../pages/Network/NetworkListModal.ts';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent.ts';
-import WalletView from '../../../pages/wallet/WalletView.ts';
-import { SmokeConfirmations } from '../../../tags.js';
-import Assertions from '../../../../tests/framework/Assertions.ts';
-import { loginToApp, navigateToBrowserView } from '../../../viewHelper.ts';
-import { DappVariants } from '../../../../tests/framework/Constants.ts';
-import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper.ts';
-import { confirmationFeatureFlags } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks.ts';
+} from '../../../framework/fixtures/FixtureUtils';
+import Browser from '../../../../e2e/pages/Browser/BrowserView';
+import ConfirmationFooterActions from '../../../../e2e/pages/Browser/Confirmations/FooterActions';
+import ConfirmationUITypes from '../../../../e2e/pages/Browser/Confirmations/ConfirmationUITypes';
+import TestDApp from '../../../../e2e/pages/Browser/TestDApp';
+import NetworkListModal from '../../../../e2e/pages/Network/NetworkListModal';
+import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
+import WalletView from '../../../../e2e/pages/wallet/WalletView';
+import { SmokeConfirmations } from '../../../../e2e/tags.js';
+import Assertions from '../../../framework/Assertions';
+import { loginToApp, navigateToBrowserView } from '../../../../e2e/viewHelper';
+import { DappVariants } from '../../../framework/Constants';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
-import { LocalNode } from '../../../../tests/framework/types';
-import { AnvilManager } from '../../../../tests/seeder/anvil-manager';
+import { LocalNode } from '../../../framework/types';
+import { AnvilManager } from '../../../seeder/anvil-manager';
 
 const LOCAL_CHAIN_ID = '0x539';
 const LOCAL_CHAIN_NAME = 'Localhost';

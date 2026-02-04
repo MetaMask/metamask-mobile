@@ -1,17 +1,17 @@
-import Assertions from '../../../../tests/framework/Assertions';
-import Browser from '../../../pages/Browser/BrowserView';
-import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
-import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
-import RequestTypes from '../../../pages/Browser/Confirmations/RequestTypes';
-import TestDApp from '../../../pages/Browser/TestDApp';
-import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
-import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
-import { RegressionConfirmations } from '../../../tags';
-import { buildPermissions } from '../../../../tests/framework/fixtures/FixtureUtils';
-import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
-import { DappVariants } from '../../../../tests/framework/Constants';
+import Assertions from '../../framework/Assertions';
+import Browser from '../../../e2e/pages/Browser/BrowserView';
+import FooterActions from '../../../e2e/pages/Browser/Confirmations/FooterActions';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import RequestTypes from '../../../e2e/pages/Browser/Confirmations/RequestTypes';
+import TestDApp from '../../../e2e/pages/Browser/TestDApp';
+import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { RegressionConfirmations } from '../../../e2e/tags';
+import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
+import RowComponents from '../../../e2e/pages/Browser/Confirmations/RowComponents';
+import { DappVariants } from '../../framework/Constants';
 
-import { NETWORK_TEST_CONFIGS } from '../../../../tests/resources/mock-configs';
+import { NETWORK_TEST_CONFIGS } from '../../resources/mock-configs';
 
 const SIGNATURE_LIST = [
   {
