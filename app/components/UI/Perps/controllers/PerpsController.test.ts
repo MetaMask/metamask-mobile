@@ -3225,6 +3225,141 @@ describe('PerpsController', () => {
     });
   });
 
+  describe('WebSocket connection state', () => {
+    // Import actual enum to ensure type compatibility
+    const { WebSocketConnectionState } = jest.requireActual(
+      '../services/HyperLiquidClientService',
+    );
+
+    it('getWebSocketConnectionState returns state from active provider', () => {
+      // Arrange
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      markControllerAsInitialized();
+      mockProvider.getWebSocketConnectionState.mockReturnValue(
+        WebSocketConnectionState.CONNECTED,
+      );
+
+      // Act
+      const result = controller.getWebSocketConnectionState();
+
+      // Assert
+      expect(result).toBe(WebSocketConnectionState.CONNECTED);
+      expect(mockProvider.getWebSocketConnectionState).toHaveBeenCalled();
+    });
+
+    it('getWebSocketConnectionState returns DISCONNECTED when provider does not support method', () => {
+      // Arrange
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      markControllerAsInitialized();
+      // Remove the method to simulate provider without support
+      mockProvider.getWebSocketConnectionState = undefined as never;
+
+      // Act
+      const result = controller.getWebSocketConnectionState();
+
+      // Assert
+      expect(result).toBe(WebSocketConnectionState.DISCONNECTED);
+    });
+
+    it('getWebSocketConnectionState returns DISCONNECTED when no provider is active', () => {
+      // Arrange - don't set up any provider
+
+      // Act
+      const result = controller.getWebSocketConnectionState();
+
+      // Assert
+      expect(result).toBe(WebSocketConnectionState.DISCONNECTED);
+    });
+
+    it('subscribeToConnectionState delegates to active provider', () => {
+      // Arrange
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      markControllerAsInitialized();
+      const mockUnsubscribe = jest.fn();
+      mockProvider.subscribeToConnectionState.mockReturnValue(mockUnsubscribe);
+      const listener = jest.fn();
+
+      // Act
+      const unsubscribe = controller.subscribeToConnectionState(listener);
+
+      // Assert
+      expect(mockProvider.subscribeToConnectionState).toHaveBeenCalledWith(
+        listener,
+      );
+      expect(unsubscribe).toBe(mockUnsubscribe);
+    });
+
+    it('subscribeToConnectionState calls listener immediately when provider does not support method', () => {
+      // Arrange
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      markControllerAsInitialized();
+      // Keep getWebSocketConnectionState but remove subscribeToConnectionState
+      mockProvider.getWebSocketConnectionState.mockReturnValue(
+        WebSocketConnectionState.DISCONNECTED,
+      );
+      mockProvider.subscribeToConnectionState = undefined as never;
+      const listener = jest.fn();
+
+      // Act
+      const unsubscribe = controller.subscribeToConnectionState(listener);
+
+      // Assert - listener is called with result of getWebSocketConnectionState()
+      expect(listener).toHaveBeenCalledWith(
+        WebSocketConnectionState.DISCONNECTED,
+        0,
+      );
+      expect(typeof unsubscribe).toBe('function');
+    });
+
+    it('subscribeToConnectionState returns no-op when no provider is active', () => {
+      // Arrange - don't set up any provider
+      const listener = jest.fn();
+
+      // Act
+      const unsubscribe = controller.subscribeToConnectionState(listener);
+
+      // Assert
+      expect(listener).toHaveBeenCalledWith(
+        WebSocketConnectionState.DISCONNECTED,
+        0,
+      );
+      expect(typeof unsubscribe).toBe('function');
+      // Verify unsubscribe doesn't throw
+      expect(() => unsubscribe()).not.toThrow();
+    });
+
+    it('reconnect delegates to active provider', async () => {
+      // Arrange
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      markControllerAsInitialized();
+      mockProvider.reconnect.mockResolvedValue(undefined);
+
+      // Act
+      await controller.reconnect();
+
+      // Assert
+      expect(mockProvider.reconnect).toHaveBeenCalled();
+    });
+
+    it('reconnect does nothing when provider does not support method', async () => {
+      // Arrange
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      markControllerAsInitialized();
+      // Remove the method to simulate provider without support
+      mockProvider.reconnect = undefined as never;
+
+      // Act & Assert - should not throw
+      await expect(controller.reconnect()).resolves.toBeUndefined();
+    });
+
+    it('reconnect does nothing when no provider is active', async () => {
+      // Arrange - don't set up any provider
+
+      // Act & Assert - should not throw
+      await expect(controller.reconnect()).resolves.toBeUndefined();
+    });
+  });
+
   describe('order book grouping', () => {
     it('saves order book grouping for mainnet', () => {
       controller.testUpdate((state) => {

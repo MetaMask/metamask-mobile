@@ -36,6 +36,9 @@ import ModalConfirmation from '../../../component-library/components/Modals/Moda
 import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
+import PerpsWebSocketHealthToast, {
+  WebSocketHealthToastProvider,
+} from '../../UI/Perps/components/PerpsWebSocketHealthToast';
 import AccountSelector from '../../../components/Views/AccountSelector';
 import AddressSelector from '../../../components/Views/AddressSelector';
 import { TokenSortBottomSheet } from '../../UI/Tokens/TokenSortBottomSheet/TokenSortBottomSheet';
@@ -1276,11 +1279,12 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <>
+    <WebSocketHealthToastProvider>
       <AppFlow />
       <Toast ref={toastRef} />
+      <PerpsWebSocketHealthToast />
       <ProfilerManager />
-    </>
+    </WebSocketHealthToastProvider>
   );
 };
 
