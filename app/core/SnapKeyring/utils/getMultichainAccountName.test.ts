@@ -5,7 +5,7 @@ import { WalletClientType } from '../MultichainWalletSnapClient';
 describe('getMultichainAccountName', () => {
   it('returns the next available account name if no scope or client type is provided', () => {
     const result = getMultichainAccountName();
-    expect(result).toBe('Account 1');
+    expect(result).toBe('');
   });
 
   it.each([

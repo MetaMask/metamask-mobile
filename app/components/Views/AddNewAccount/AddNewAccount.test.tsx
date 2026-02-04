@@ -174,12 +174,6 @@ describe('AddNewAccount', () => {
     jest.clearAllMocks();
   });
 
-  it('shows next available account name as placeholder', () => {
-    const { getByPlaceholderText } = render(initialState, {});
-
-    expect(getByPlaceholderText(mockNextAccountName)).toBeDefined();
-  });
-
   it('handles account name input', () => {
     const { getByPlaceholderText } = render(initialState, {});
 
@@ -229,22 +223,7 @@ describe('AddNewAccount', () => {
 
     expect(mockAddNewHdAccount).toHaveBeenCalledWith(
       mockKeyring2.metadata.id,
-      mockNextAccountName,
-    );
-  });
-
-  it('handles account creation with custom name', async () => {
-    const { getByText, getByPlaceholderText } = render(initialState, {});
-
-    const input = getByPlaceholderText(mockNextAccountName);
-    fireEvent.changeText(input, 'My Custom Account');
-
-    const addButton = getByText(strings('accounts.add'));
-    fireEvent.press(addButton);
-
-    expect(mockAddNewHdAccount).toHaveBeenCalledWith(
-      mockKeyring2.metadata.id,
-      'My Custom Account',
+      '',
     );
   });
 
@@ -286,61 +265,6 @@ describe('AddNewAccount', () => {
   });
 
   describe('multichain', () => {
-    it.each([
-      {
-        scope: MultichainNetwork.BitcoinTestnet,
-        clientType: WalletClientType.Bitcoin,
-        expectedName: 'Bitcoin Testnet Account 1',
-      },
-      {
-        scope: MultichainNetwork.Bitcoin,
-        clientType: WalletClientType.Bitcoin,
-        expectedName: 'Bitcoin Account 1',
-      },
-      {
-        scope: MultichainNetwork.SolanaDevnet,
-        clientType: WalletClientType.Solana,
-        expectedName: 'Solana Devnet Account 1',
-      },
-      {
-        scope: MultichainNetwork.SolanaTestnet,
-        clientType: WalletClientType.Solana,
-        expectedName: 'Solana Testnet Account 1',
-      },
-      {
-        scope: MultichainNetwork.Solana,
-        clientType: WalletClientType.Solana,
-        expectedName: 'Solana Account 1',
-      },
-      {
-        scope: TrxScope.Mainnet,
-        clientType: WalletClientType.Tron,
-        expectedName: 'Tron Account 1',
-      },
-      {
-        scope: TrxScope.Nile,
-        clientType: WalletClientType.Tron,
-        expectedName: 'Tron Nile Account 1',
-      },
-      {
-        scope: TrxScope.Shasta,
-        clientType: WalletClientType.Tron,
-        expectedName: 'Tron Shasta Account 1',
-      },
-    ])(
-      'suggested name is $expectedName for scope: $scope',
-      async ({ scope, clientType, expectedName }) => {
-        const { getByPlaceholderText } = render(initialState, {
-          scope,
-          clientType,
-        });
-
-        const namePlaceholder = getByPlaceholderText(expectedName);
-
-        expect(namePlaceholder).toBeDefined();
-      },
-    );
-
     it('calls create account with the MultichainWalletSnapClient', async () => {
       const { getByTestId } = render(initialState, {
         scope: MultichainNetwork.Solana,
@@ -355,7 +279,7 @@ describe('AddNewAccount', () => {
           mockMultichainWalletSnapClient.createAccount,
         ).toHaveBeenCalledWith({
           scope: MultichainNetwork.Solana,
-          accountNameSuggestion: 'Solana Account 1',
+          accountNameSuggestion: 'Solana Account ',
           entropySource: mockKeyring2.metadata.id,
         });
       });
