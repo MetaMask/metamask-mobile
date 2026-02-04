@@ -63,16 +63,64 @@ jobs:
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'secrets_json=' + JSON.stringify(build.secrets || {}) + '\n');
           "
 
-  # Setup dependencies (no secrets)
+  # Setup dependencies (no secrets) - platform-specific
   setup-dependencies:
-    name: Setup Dependencies
+    name: Setup Dependencies (${{ matrix.platform }})
     needs: [prepare]
-    uses: ./.github/workflows/setup-node-modules.yml
-    with:
-      fetch-depth: 0
-      upload-artifact: true
-      artifact-name: node-modules-build
-      artifact-retention-days: 1
+    strategy:
+      matrix:
+        platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
+    runs-on: ${{ matrix.platform == 'ios' && 'macos-latest' || 'ubuntu-latest' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Log artifact name
+        run: |
+          echo "📦 Creating artifact: node-modules-build-${{ matrix.platform }}"
+
+      - name: Install dependencies
+        run: |
+          echo "📦 Installing dependencies..."
+          yarn install --immutable
+
+      - name: Setup project
+        run: |
+          echo "🔧 Running setup for GitHub CI..."
+          yarn setup:github-ci
+
+      - name: Verify setup completed
+        run: |
+          echo "✅ Verifying setup artifacts..."
+          if [ ! -d "node_modules" ]; then
+            echo "❌ node_modules directory not found"
+            exit 1
+          fi
+          if [ ! -f "app/util/termsOfUse/termsOfUseContent.ts" ]; then
+            echo "❌ Terms of Use content not generated"
+            exit 1
+          fi
+          if [ ! -f "app/core/InpageBridgeWeb3.js" ]; then
+            echo "❌ InpageBridgeWeb3.js not generated"
+            exit 1
+          fi
+          echo "✅ Setup verification passed"
+
+      - name: Upload node_modules artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: node-modules-build-${{ matrix.platform }}
+          path: |
+            node_modules
+            app/util/termsOfUse/termsOfUseContent.ts
+            app/core/InpageBridgeWeb3.js
+            scripts/inpage-bridge/dist
+          retention-days: 1
+          compression-level: 1
+          if-no-files-found: warn
+          include-hidden-files: true
 
   # Build
   build:
@@ -87,24 +135,16 @@ jobs:
     env:
       # So bundle exec (in yarn pod:install) finds ios/Gemfile when running from repo root
       BUNDLE_GEMFILE: ios/Gemfile
-      ARTIFACT_NAME: ${{ needs.setup-dependencies.outputs.artifact-name }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Validate artifact compatibility
-        uses: ./.github/actions/validate-artifact-compatibility
-        with:
-          artifact-name: ${{ env.ARTIFACT_NAME }}
-          artifact-prefix: node-modules-build
-          validation-context: build
-
       - name: Download node_modules artifact
         uses: actions/download-artifact@v4
         with:
-          name: ${{ env.ARTIFACT_NAME }}
+          name: node-modules-build-${{ matrix.platform }}
 
       - name: Restore executable permissions
         uses: ./.github/actions/restore-node-modules-permissions
