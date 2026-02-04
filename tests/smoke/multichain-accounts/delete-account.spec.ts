@@ -18,25 +18,31 @@ const deleteAccount = async () => {
   await DeleteAccount.tapDeleteAccount();
 };
 
-describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
-  beforeEach(async () => {
-    await TestHelpers.reverseServerPort();
-  });
-
-  it('deletes the account', async () => {
-    await withMultichainAccountDetailsEnabledFixtures(async () => {
-      await Assertions.expectElementToBeVisible(
-        AccountListBottomSheet.accountList,
-      );
-
-      await goToAccountDetails(SIMPLE_KEYPAIR_ACCOUNT);
-      await deleteAccount();
-      // Go back to account list
-      await WalletView.tapIdenticon();
-
-      const importedAccountsSection =
-        Matchers.getElementByText('Imported Accounts');
-      await Assertions.expectElementToNotBeVisible(importedAccountsSection);
+// TODO: Update test to be BIP-44 compatible
+// https://github.com/MetaMask/metamask-mobile/issues/24144
+// eslint-disable-next-line jest/no-disabled-tests
+describe.skip(
+  SmokeWalletPlatform('Multichain Accounts: Account Details'),
+  () => {
+    beforeEach(async () => {
+      await TestHelpers.reverseServerPort();
     });
-  });
-});
+
+    it('deletes the account', async () => {
+      await withMultichainAccountDetailsEnabledFixtures(async () => {
+        await Assertions.expectElementToBeVisible(
+          AccountListBottomSheet.accountList,
+        );
+
+        await goToAccountDetails(SIMPLE_KEYPAIR_ACCOUNT);
+        await deleteAccount();
+        // Go back to account list
+        await WalletView.tapIdenticon();
+
+        const importedAccountsSection =
+          Matchers.getElementByText('Imported Accounts');
+        await Assertions.expectElementToNotBeVisible(importedAccountsSection);
+      });
+    });
+  },
+);
