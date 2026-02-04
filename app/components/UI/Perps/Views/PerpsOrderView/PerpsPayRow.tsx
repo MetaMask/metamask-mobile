@@ -46,6 +46,7 @@ import {
   useIsPerpsBalanceSelected,
 } from '../../hooks/useIsPerpsBalanceSelected';
 import { usePerpsLiveAccount } from '../../hooks/stream/usePerpsLiveAccount';
+import { Hex } from '@metamask/utils';
 
 const tokenIconStyles = StyleSheet.create({
   icon: {
@@ -102,26 +103,9 @@ export const PerpsPayRow = ({
   const { colors } = useTheme();
   const styles = createPayRowStyles(colors);
   const { setConfirmationMetric } = useConfirmationMetricEvents();
-  const { payToken, setPayToken } = useTransactionPayToken();
+  const { payToken } = useTransactionPayToken();
   const transactionMeta = useTransactionMetadataRequest();
   const matchesPerpsBalance = useIsPerpsBalanceSelected();
-
-  const hasSetDefaultPerpsBalanceRef = useRef(false);
-  useEffect(() => {
-    if (
-      hasSetDefaultPerpsBalanceRef.current ||
-      !hasTransactionType(transactionMeta, [
-        TransactionType.perpsDepositAndOrder,
-      ])
-    ) {
-      return;
-    }
-    hasSetDefaultPerpsBalanceRef.current = true;
-    setPayToken({
-      address: PERPS_BALANCE_PLACEHOLDER_ADDRESS,
-      chainId: PERPS_BALANCE_CHAIN_ID,
-    });
-  }, [transactionMeta, setPayToken]);
 
   // Get Perps balance from live account
   usePerpsLiveAccount({ throttleMs: 1000 });
@@ -162,7 +146,7 @@ export const PerpsPayRow = ({
     };
 
   const token = useTokenWithBalance(
-    displayToken.address,
+    displayToken.address as unknown as Hex,
     displayToken.tokenLookupChainId,
   );
 

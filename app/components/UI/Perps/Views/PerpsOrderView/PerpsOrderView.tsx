@@ -237,7 +237,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const { payToken } = useTransactionPayToken();
   const isPayTokenPerpsBalance = useIsPerpsBalanceSelected();
-  const hasCustomTokenSelected = Boolean(payToken && !isPayTokenPerpsBalance);
+  const hasCustomTokenSelected = !isPayTokenPerpsBalance;
 
   const { track } = usePerpsEventTracking();
   const { openTooltipModal } = useTooltipModal();
@@ -349,18 +349,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [shouldOpenLimitPrice, setShouldOpenLimitPrice] = useState(false);
-  const [selectedToken, setSelectedToken] = useState<PerpsToken | undefined>(
-    undefined,
-  );
-  const [depositAmount, setDepositAmount] = useState<string>('');
 
-  // Get available payment tokens and set default if none selected
-  const paymentTokens = usePerpsPaymentTokens();
-  useEffect(() => {
-    if (!selectedToken && paymentTokens.length > 0) {
-      setSelectedToken(paymentTokens[0]);
-    }
-  }, [paymentTokens, selectedToken]);
+  const [depositAmount, setDepositAmount] = useState<string>('');
 
   const isPayRowVisible = Boolean(
     isTradeWithAnyTokenEnabled &&
@@ -551,6 +541,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     combinedFees,
     payToken,
   ]);
+
+  console.log('hasInsufficientPayTokenBalance', hasInsufficientPayTokenBalance);
+  console.log('marginRequired', marginRequired);
+  console.log('combinedFees', combinedFees);
+  console.log('payToken', payToken);
 
   const { updatePositionTPSL } = usePerpsTrading();
 

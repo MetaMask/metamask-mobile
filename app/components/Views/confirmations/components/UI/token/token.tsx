@@ -67,11 +67,7 @@ export function Token({ asset, onPress }: TokenProps) {
               ) : undefined
             }
           >
-            {asset.description === 'perps-balance' ? (
-              <Box twClassName="w-10 h-10 items-center justify-center rounded-full bg-default overflow-hidden">
-                <PerpsBalanceIcon size={40} />
-              </Box>
-            ) : asset.isNative ? (
+            {asset.isNative ? (
               <NetworkAssetLogo
                 big={false}
                 biggest={false}
