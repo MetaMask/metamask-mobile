@@ -97,11 +97,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   );
   const sheetRef = useRef<BottomSheetRef>(null);
 
-  const {
-    navigateToAddAccountActions,
-    isEvmOnly,
-    disableAddAccountButton,
-  } = routeParams || {};
+  const { navigateToAddAccountActions, isEvmOnly, disableAddAccountButton } =
+    routeParams || {};
 
   const reloadAccounts = useSelector(
     (state: RootState) => state.accounts.reloadAccounts,
@@ -132,10 +129,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     [reloadAccounts],
   );
 
-  const {
-    accounts: allAccounts,
-    evmAccounts,
-  } = useAccounts(accountsParams);
+  const { accounts: allAccounts, evmAccounts } = useAccounts(accountsParams);
 
   const accounts = isEvmOnly ? evmAccounts : allAccounts;
 
@@ -278,18 +272,22 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     [handleAddAccount, buttonLabel, isAccountSyncingInProgress],
   );
 
+  // Memoize selectedAccountGroups to avoid unnecessary re-renders
+  const selectedAccountGroups = useMemo(
+    () => (selectedAccountGroup ? [selectedAccountGroup] : []),
+    [selectedAccountGroup],
+  );
+
   const renderAccountSelector = useCallback(
     () => (
       <Fragment>
-        {selectedAccountGroup ? (
-          <MultichainAccountSelectorList
-            onSelectAccount={_onSelectMultichainAccount}
-            selectedAccountGroups={[selectedAccountGroup]}
-            testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
-            setKeyboardAvoidingViewEnabled={setKeyboardAvoidingViewEnabled}
-            showFooter={!disableAddAccountButton}
-          />
-        ) : null}
+        <MultichainAccountSelectorList
+          onSelectAccount={_onSelectMultichainAccount}
+          selectedAccountGroups={selectedAccountGroups}
+          testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
+          setKeyboardAvoidingViewEnabled={setKeyboardAvoidingViewEnabled}
+          showFooter={!disableAddAccountButton}
+        />
         {!disableAddAccountButton && (
           <BottomSheetFooter
             buttonPropsArray={addAccountButtonProps}
@@ -298,7 +296,14 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         )}
       </Fragment>
     ),
-    [selectedAccountGroup, _onSelectMultichainAccount, disableAddAccountButton, addAccountButtonProps, styles.sheet],
+    [
+      selectedAccountGroups,
+      _onSelectMultichainAccount,
+      disableAddAccountButton,
+      addAccountButtonProps,
+      styles.sheet,
+      setKeyboardAvoidingViewEnabled,
+    ],
   );
 
   const renderAddAccountActions = useCallback(

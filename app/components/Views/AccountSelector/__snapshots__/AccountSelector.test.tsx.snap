@@ -625,7 +625,7 @@ exports[`AccountSelector should render correctly 1`] = `
                                   "alignItems": "center",
                                   "backgroundColor": "#3c4d9d0f",
                                   "borderColor": "#b7bbc8",
-                                  "borderRadius": 16,
+                                  "borderRadius": 9999,
                                   "borderWidth": 0,
                                   "flexDirection": "row",
                                   "height": 40,

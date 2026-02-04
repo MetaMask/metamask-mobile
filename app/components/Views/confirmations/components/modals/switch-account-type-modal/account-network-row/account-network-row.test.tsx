@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 
 import { SmartAccountIds } from '../../../../../MultichainAccounts/SmartAccount.testIds';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
@@ -117,7 +117,7 @@ describe('AccountNetworkRow', () => {
   });
 
   describe('switch interactions', () => {
-    it('calls downgrade function when switch is toggled from smart to standard account', () => {
+    it('calls downgrade function when switch is toggled from smart to standard account', async () => {
       const { getByTestId } = renderWithProvider(
         <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
         { state: MOCK_STATE },
@@ -126,11 +126,13 @@ describe('AccountNetworkRow', () => {
       const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
       fireEvent(switchComponent, 'onValueChange', false);
 
-      expect(mockDowngradeAccount).toHaveBeenCalledWith(MOCK_ADDRESS);
-      expect(mockDowngradeAccount).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(mockDowngradeAccount).toHaveBeenCalledWith(MOCK_ADDRESS);
+        expect(mockDowngradeAccount).toHaveBeenCalledTimes(1);
+      });
     });
 
-    it('calls upgrade function when switch is toggled from standard to smart account', () => {
+    it('calls upgrade function when switch is toggled from standard to smart account', async () => {
       const { getByTestId } = renderWithProvider(
         <AccountNetworkRow
           address={MOCK_ADDRESS}
@@ -142,14 +144,16 @@ describe('AccountNetworkRow', () => {
       const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
       fireEvent(switchComponent, 'onValueChange', true);
 
-      expect(mockUpgradeAccount).toHaveBeenCalledWith(
-        MOCK_ADDRESS,
-        MOCK_NETWORK.upgradeContractAddress,
-      );
-      expect(mockUpgradeAccount).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(mockUpgradeAccount).toHaveBeenCalledWith(
+          MOCK_ADDRESS,
+          MOCK_NETWORK.upgradeContractAddress,
+        );
+        expect(mockUpgradeAccount).toHaveBeenCalledTimes(1);
+      });
     });
 
-    it('does not call upgrade when upgradeContractAddress is missing', () => {
+    it('does not call upgrade when upgradeContractAddress is missing', async () => {
       const networkWithoutUpgradeContract = {
         ...MOCK_NETWORK,
         isSupported: false,
@@ -167,11 +171,14 @@ describe('AccountNetworkRow', () => {
       const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
       fireEvent(switchComponent, 'onValueChange', true);
 
-      expect(mockUpgradeAccount).not.toHaveBeenCalled();
-      expect(mockDowngradeAccount).not.toHaveBeenCalled();
+      // Wait for async operations to settle
+      await waitFor(() => {
+        expect(mockUpgradeAccount).not.toHaveBeenCalled();
+        expect(mockDowngradeAccount).not.toHaveBeenCalled();
+      });
     });
 
-    it('navigates to confirmation modal after switch action', () => {
+    it('navigates to confirmation modal after switch action', async () => {
       const { getByTestId } = renderWithProvider(
         <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
         { state: MOCK_STATE },
@@ -180,9 +187,11 @@ describe('AccountNetworkRow', () => {
       const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
       fireEvent(switchComponent, 'onValueChange', false);
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.CONFIRMATION_REQUEST_MODAL,
-      );
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.CONFIRMATION_REQUEST_MODAL,
+        );
+      });
     });
 
     it('returns early when switchRequestSubmitted is true', async () => {
@@ -199,8 +208,11 @@ describe('AccountNetworkRow', () => {
       // Second click while switchRequestSubmitted is true - returns early
       fireEvent(switchComponent, 'onValueChange', true);
 
-      // Calls downgradeAccount only once
-      expect(mockDowngradeAccount).toHaveBeenCalledTimes(1);
+      // Wait for async operations to complete
+      await waitFor(() => {
+        // Calls downgradeAccount only once
+        expect(mockDowngradeAccount).toHaveBeenCalledTimes(1);
+      });
     });
   });
 
@@ -249,6 +261,78 @@ describe('AccountNetworkRow', () => {
       const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
 
       expect(switchComponent.props.disabled).toBe(false);
+    });
+  });
+
+  describe('initial state based on network support', () => {
+    it('initializes with addressSupportSmartAccount true when network isSupported is true', () => {
+      mockUseBatchAuthorizationRequests.mockReturnValue({
+        hasPendingRequests: false,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
+        { state: MOCK_STATE },
+      );
+
+      const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
+      // Should be true since isSupported=true in MOCK_NETWORK
+      expect(switchComponent.props.value).toBe(true);
+    });
+
+    it('initializes with addressSupportSmartAccount false when network isSupported is false', () => {
+      mockUseBatchAuthorizationRequests.mockReturnValue({
+        hasPendingRequests: false,
+      });
+
+      const unsupportedNetwork = { ...MOCK_NETWORK, isSupported: false };
+
+      const { getByTestId } = renderWithProvider(
+        <AccountNetworkRow
+          address={MOCK_ADDRESS}
+          network={unsupportedNetwork}
+        />,
+        { state: MOCK_STATE },
+      );
+
+      const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
+      // Should be false since isSupported=false
+      expect(switchComponent.props.value).toBe(false);
+    });
+
+    it('does not toggle state on initial render when hasPendingRequests is false', () => {
+      // Start without pending requests (prevHasPendingRequests will be undefined initially)
+      mockUseBatchAuthorizationRequests.mockReturnValue({
+        hasPendingRequests: false,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
+        { state: MOCK_STATE },
+      );
+
+      const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
+      // Should remain true since prevHasPendingRequests was never set (undefined)
+      // and the useEffect check guards against toggling on initial render
+      expect(switchComponent.props.value).toBe(true);
+    });
+
+    it('does not toggle state on initial render when hasPendingRequests is true', () => {
+      // Start with pending requests
+      mockUseBatchAuthorizationRequests.mockReturnValue({
+        hasPendingRequests: true,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
+        { state: MOCK_STATE },
+      );
+
+      const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
+      // Should remain true since prevHasPendingRequests was undefined on first render
+      // The useEffect only toggles when prevHasPendingRequests.current is truthy
+      expect(switchComponent.props.value).toBe(true);
+      expect(switchComponent.props.disabled).toBe(true);
     });
   });
 });
