@@ -111,6 +111,17 @@ jobs:
           fi
           echo "✅ Setup verification passed"
 
+      # iOS: Cache CocoaPods for reuse in build job (paths are machine-specific, can't artifact)
+      - name: Cache CocoaPods
+        if: matrix.platform == 'ios'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ios/Pods
+            ~/Library/Caches/CocoaPods
+            ~/.cocoapods
+          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
+
       - name: Upload node_modules and build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -120,7 +131,6 @@ jobs:
             app/util/termsOfUse/termsOfUseContent.ts
             app/core/InpageBridgeWeb3.js
             scripts/inpage-bridge/dist
-            ios/Pods
           retention-days: 1
           compression-level: 1
           include-hidden-files: true
@@ -241,6 +251,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pods-
 
+      # iOS: Restore CocoaPods cache from setup job
+      - name: Restore CocoaPods cache
+        if: matrix.platform == 'ios'
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ios/Pods
+            ~/Library/Caches/CocoaPods
+            ~/.cocoapods
+          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
+
       # iOS: Cache DerivedData to speed up Xcode builds
       - name: Cache iOS DerivedData
         if: matrix.platform == 'ios'
@@ -285,6 +306,16 @@ jobs:
           aws-region: 'us-east-2'
           platform: 'android'
           target: ${{ startsWith(inputs.build_name, 'flask') && 'flask' || 'qa' }}
+
+      # iOS: Install/update CocoaPods (fast with cache, paths need to be correct for this machine)
+      - name: Install CocoaPods dependencies
+        if: matrix.platform == 'ios'
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn pod:install
 
       # Android: use CI Gradle settings (8GB heap, OOM handling) to avoid daemon OOM
       - name: Use CI Gradle properties (Android)
