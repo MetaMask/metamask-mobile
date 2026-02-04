@@ -4,9 +4,9 @@ import { Interface } from '@ethersproject/abi';
 export const MERKL_API_BASE_URL = 'https://api.merkl.xyz/v4';
 
 /**
- * mUSD token decimals (standard ERC20 18 decimals)
+ * mUSD token decimals
  */
-export const MUSD_DECIMALS = 18;
+export const MUSD_DECIMALS = 6;
 
 // Origin identifier for Merkl claim transactions (used for toast monitoring)
 export const MERKL_CLAIM_ORIGIN = 'merkl-claim' as const;
