@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { usePerpsNavigation } from './usePerpsNavigation';
 import { usePerpsTrading } from './usePerpsTrading';
 import Routes from '../../../../constants/navigation/Routes';
+import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -188,7 +189,11 @@ describe('usePerpsNavigation', () => {
         expect(mockDepositWithOrder).toHaveBeenCalled();
         expect(mockNavigate).toHaveBeenCalledWith(
           Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-          params,
+          {
+            ...params,
+            showPerpsHeader:
+              CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
+          },
         );
       });
     });
