@@ -10,7 +10,6 @@ import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.tes
 import { useSelector } from 'react-redux';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
 import Routes from '../../../../constants/navigation/Routes';
-import useDepositEnabled from '../../Ramp/Deposit/hooks/useDepositEnabled';
 import { useMetrics } from '../../../hooks/useMetrics';
 import {
   trackActionButtonClick,
@@ -121,9 +120,6 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
     callback();
   }, []);
 
-  const { isDepositEnabled } = useDepositEnabled();
-  const isBuyingAvailable = isDepositEnabled || !!onBuy;
-
   const handleBuyPress = useCallback(() => {
     withNavigationLock(() => {
       trackActionButtonClick(trackEvent, createEventBuilder, {
@@ -217,7 +213,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
           iconName: IconName.AttachMoney,
           label: strings('asset_overview.cash_buy_button'),
           onPress: handleBuyPress,
-          isDisabled: !isBuyingAvailable,
+          isDisabled: !!onBuy,
           testID: TokenOverviewSelectorsIDs.BUY_BUTTON,
         });
       }
@@ -325,8 +321,8 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
     handleSendPress,
     handleReceivePress,
     handleMorePress,
-    isBuyingAvailable,
     canSignTransactions,
+    onBuy,
     onLong,
     onShort,
   ]);
