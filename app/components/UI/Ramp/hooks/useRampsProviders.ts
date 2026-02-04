@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
   selectProviders,
@@ -11,6 +11,8 @@ import {
   type Provider,
 } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
+import { determinePreferredProvider } from '../utils/determinePreferredProvider';
+import { getOrders } from '../../../../reducers/fiatOrders';
 
 /**
  * Result returned by the useRampsProviders hook.
@@ -59,6 +61,7 @@ export function useRampsProviders(
   const providers = useSelector(selectProviders);
   const selectedProvider = useSelector(selectSelectedProvider);
   const userRegion = useSelector(selectUserRegion);
+  const orders = useSelector(getOrders);
 
   const regionCode = useMemo(
     () => region ?? userRegion?.regionCode ?? '',
@@ -81,6 +84,12 @@ export function useRampsProviders(
       ) => void
     )(provider?.id ?? null);
   }, []);
+
+  useEffect(() => {
+    if (!selectedProvider && providers.length > 0) {
+      setSelectedProvider(determinePreferredProvider(orders, providers));
+    }
+  }, [providers, orders, selectedProvider, setSelectedProvider]);
 
   return {
     providers,
