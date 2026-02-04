@@ -2,10 +2,7 @@ import React from 'react';
 import { ScrollView, TouchableOpacity, View, StyleSheet } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Text, TextVariant } from '@metamask/design-system-react-native';
-import {
-  LeaderboardChainFilter,
-  LEADERBOARD_CHAIN_FILTERS,
-} from '../../types';
+import { LeaderboardChainFilter, LEADERBOARD_CHAIN_FILTERS } from '../../types';
 
 const styles = StyleSheet.create({
   scrollView: {
@@ -73,7 +70,9 @@ const ChainFilter: React.FC<ChainFilterProps> = ({
           >
             <Text
               variant={TextVariant.BodySm}
-              twClassName={isSelected ? 'text-background-default' : 'text-default'}
+              twClassName={
+                isSelected ? 'text-background-default' : 'text-default'
+              }
             >
               {filter.label}
             </Text>

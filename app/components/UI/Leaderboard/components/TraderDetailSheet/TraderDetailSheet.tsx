@@ -83,7 +83,10 @@ const parseInputCurrencyFromUrl = (url: string): string | null => {
  */
 const buildSwapTokens = (
   trade: FeedItem,
-): { sourceToken: BridgeToken | undefined; destToken: BridgeToken | undefined } => {
+): {
+  sourceToken: BridgeToken | undefined;
+  destToken: BridgeToken | undefined;
+} => {
   const chainName = trade.metadata?.tokenChain?.toLowerCase();
   const chainId = chainName ? CHAIN_NAME_TO_ID[chainName] : undefined;
 

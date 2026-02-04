@@ -198,7 +198,8 @@ class LeaderboardService {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(
-        errorData.error || `Failed to fetch following profiles: ${response.status}`,
+        errorData.error ||
+          `Failed to fetch following profiles: ${response.status}`,
       );
     }
 
@@ -233,7 +234,9 @@ class LeaderboardService {
 
       // Check if any followed profile has a matching address
       if (traderAddresses && traderAddresses.length > 0) {
-        const lowerTraderAddresses = traderAddresses.map((a) => a.toLowerCase());
+        const lowerTraderAddresses = traderAddresses.map((a) =>
+          a.toLowerCase(),
+        );
         const matchByAddress = followedProfiles.some((profile) =>
           profile.addresses?.some((addr) =>
             lowerTraderAddresses.includes(addr.toLowerCase()),

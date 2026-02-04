@@ -111,7 +111,9 @@ const LeaderboardCTA: React.FC<LeaderboardCTAProps> = ({
                 >
                   {trader.images.xs || trader.images.sm ? (
                     <Image
-                      source={{ uri: trader.images.xs || trader.images.sm || '' }}
+                      source={{
+                        uri: trader.images.xs || trader.images.sm || '',
+                      }}
                       style={tw.style('w-full h-full')}
                     />
                   ) : (
@@ -133,7 +135,10 @@ const LeaderboardCTA: React.FC<LeaderboardCTAProps> = ({
 
             {/* Text content */}
             <Box twClassName="flex-1">
-              <Text variant={TextVariant.BodyMd} twClassName="text-white font-semibold">
+              <Text
+                variant={TextVariant.BodyMd}
+                twClassName="text-white font-semibold"
+              >
                 {strings('leaderboard.cta_title')}
               </Text>
               <Text variant={TextVariant.BodySm} twClassName="text-white/80">

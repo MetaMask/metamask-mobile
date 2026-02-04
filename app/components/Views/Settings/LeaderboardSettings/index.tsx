@@ -33,7 +33,10 @@ import Icon, {
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import LeaderboardService from '../../../UI/Leaderboard/services/LeaderboardService';
 import { TraderProfile } from '../../../UI/Leaderboard/types';
-import { formatPnL, truncateAddress } from '../../../UI/Leaderboard/utils/formatters';
+import {
+  formatPnL,
+  truncateAddress,
+} from '../../../UI/Leaderboard/utils/formatters';
 import { Colors } from '../../../../util/theme/models';
 
 const createStyles = (colors: Colors) =>
@@ -110,12 +113,16 @@ const LeaderboardSettings: React.FC = () => {
   const styles = createStyles(colors);
   const navigation = useNavigation();
 
-  const [followingProfiles, setFollowingProfiles] = useState<TraderProfile[]>([]);
+  const [followingProfiles, setFollowingProfiles] = useState<TraderProfile[]>(
+    [],
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [unfollowingId, setUnfollowingId] = useState<string | null>(null);
 
-  const userAddress = useSelector(selectSelectedInternalAccountFormattedAddress);
+  const userAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
 
   // Setup navigation header
   useEffect(() => {
@@ -137,7 +144,8 @@ const LeaderboardSettings: React.FC = () => {
     }
 
     try {
-      const profiles = await LeaderboardService.getFollowingProfiles(userAddress);
+      const profiles =
+        await LeaderboardService.getFollowingProfiles(userAddress);
       // Ensure we always set an array, even if API returns unexpected data
       setFollowingProfiles(Array.isArray(profiles) ? profiles : []);
     } catch (error) {
@@ -164,11 +172,11 @@ const LeaderboardSettings: React.FC = () => {
 
       setUnfollowingId(profile.id);
       try {
-        await LeaderboardService.unfollowAddress(userAddress, [profile.addresses[0]]);
+        await LeaderboardService.unfollowAddress(userAddress, [
+          profile.addresses[0],
+        ]);
         // Remove from local state
-        setFollowingProfiles((prev) =>
-          prev.filter((p) => p.id !== profile.id),
-        );
+        setFollowingProfiles((prev) => prev.filter((p) => p.id !== profile.id));
       } catch (error) {
         console.warn('Failed to unfollow:', error);
       } finally {
@@ -212,7 +220,9 @@ const LeaderboardSettings: React.FC = () => {
           </Text>
           <Text
             variant={TextVariant.BodySm}
-            style={{ color: isPositive ? colors.success.default : colors.error.default }}
+            style={{
+              color: isPositive ? colors.success.default : colors.error.default,
+            }}
           >
             {formatPnL(pnl)} (30D)
           </Text>
@@ -281,7 +291,10 @@ const LeaderboardSettings: React.FC = () => {
               {strings('leaderboard.following')}
             </Text>
             {followingProfiles && followingProfiles.length > 0 && (
-              <Text variant={TextVariant.BodySm} style={{ color: colors.text.muted }}>
+              <Text
+                variant={TextVariant.BodySm}
+                style={{ color: colors.text.muted }}
+              >
                 {followingProfiles.length}
               </Text>
             )}
