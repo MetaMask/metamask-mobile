@@ -7,11 +7,7 @@ import {
   closeRunningAppOnLedger,
 } from '../../../core/Ledger/Ledger';
 import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
-import {
-  LedgerCommunicationErrors,
-  isEthAppNotOpenStatusCode,
-  isEthAppNotOpenErrorMessage,
-} from '../../../core/Ledger/ledgerErrors';
+import { LedgerCommunicationErrors } from '../../../core/Ledger/ledgerErrors';
 
 class LedgerError extends Error {
   public readonly code: LedgerCommunicationErrors;
@@ -209,22 +205,17 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       if (e.name === 'TransportStatusError') {
-        if (isEthAppNotOpenStatusCode(e.statusCode)) {
-          // ETH app is not running - various status codes indicate this
-          setLedgerError(LedgerCommunicationErrors.EthAppNotOpen);
-        } else {
-          switch (e.statusCode) {
-            case 0x6985:
-            case 0x5501:
-              setLedgerError(LedgerCommunicationErrors.UserRefusedConfirmation);
-              break;
-            case 0x6b0c:
-              setLedgerError(LedgerCommunicationErrors.LedgerIsLocked);
-              break;
-            default:
-              setLedgerError(LedgerCommunicationErrors.UserRefusedConfirmation);
-              break;
-          }
+        switch (e.statusCode) {
+          case 0x6985:
+          case 0x5501:
+            setLedgerError(LedgerCommunicationErrors.UserRefusedConfirmation);
+            break;
+          case 0x6b0c:
+            setLedgerError(LedgerCommunicationErrors.LedgerIsLocked);
+            break;
+          default:
+            setLedgerError(LedgerCommunicationErrors.UserRefusedConfirmation);
+            break;
         }
       } else if (e.name === 'TransportRaceCondition') {
         setLedgerError(LedgerCommunicationErrors.LedgerHasPendingConfirmation);
@@ -245,12 +236,6 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
         )
       ) {
         setLedgerError(LedgerCommunicationErrors.BlindSignError);
-      } else if (
-        // Check for error messages that contain ETH app not open status codes
-        e.message &&
-        isEthAppNotOpenErrorMessage(e.message)
-      ) {
-        setLedgerError(LedgerCommunicationErrors.EthAppNotOpen);
       } else {
         setLedgerError(LedgerCommunicationErrors.UnknownError);
       }
