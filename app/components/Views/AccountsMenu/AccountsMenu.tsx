@@ -1,6 +1,10 @@
 import React, { useCallback } from 'react';
 import { StyleSheet, ScrollView, View, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useNavigation,
+  NavigationProp,
+  ParamListBase,
+} from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../util/theme';
@@ -20,10 +24,17 @@ import { Icon, IconName } from '@metamask/design-system-react-native';
 import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
 import Routes from '../../../constants/navigation/Routes';
 import { selectDisplayCardButton } from '../../../core/redux/slices/card';
-import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
 import { Authentication } from '../../../core/';
 import { strings } from '../../../../locales/i18n';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
+import AppConstants from '../../../core/AppConstants';
+import DeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
+import { EARN_INPUT_VIEW_ACTIONS } from '../../UI/Earn/Views/EarnInputView/EarnInputView.types';
+import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
+import { useRampsButtonClickData } from '../../UI/Ramp/hooks/useRampsButtonClickData';
+import useRampsUnifiedV1Enabled from '../../UI/Ramp/hooks/useRampsUnifiedV1Enabled';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -56,54 +67,138 @@ const createStyles = (colors: Colors) =>
 const AccountsMenu = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const { goToBuy } = useRampNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const shouldDisplayCardButton = useSelector(selectDisplayCardButton);
+  const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
+  const rampsButtonClickData = useRampsButtonClickData();
+  const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
 
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const onPressDeposit = useCallback(() => {
-    // TODO: Add analytics tracking
+    trackEvent(
+      createEventBuilder(EVENT_NAME.RAMPS_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Buy',
+          location: 'AccountsMenu',
+          ramp_type: 'UNIFIED_BUY',
+          chain_id_destination: null,
+          region: rampGeodetectedRegion ?? null,
+          ramp_routing: rampsButtonClickData.ramp_routing ?? null,
+          is_authenticated: rampsButtonClickData.is_authenticated ?? null,
+          preferred_provider: rampsButtonClickData.preferred_provider ?? null,
+          order_count: rampsButtonClickData.order_count,
+        })
+        .build(),
+    );
     goToBuy();
-  }, [goToBuy]);
+  }, [
+    goToBuy,
+    createEventBuilder,
+    trackEvent,
+    rampGeodetectedRegion,
+    rampsButtonClickData,
+  ]);
 
   const onPressEarn = useCallback(() => {
-    // TODO: Add analytics tracking
-    navigation.navigate(Routes.EARN.ROOT);
-  }, [navigation]);
+    navigation.navigate('StakeModals', {
+      screen: Routes.STAKING.MODALS.EARN_TOKEN_LIST,
+      params: {
+        tokenFilter: {
+          includeNativeTokens: true,
+          includeStakingTokens: false,
+          includeLendingTokens: true,
+          includeReceiptTokens: false,
+        },
+        onItemPressScreen: EARN_INPUT_VIEW_ACTIONS.DEPOSIT,
+      },
+    });
+    trackEvent(
+      createEventBuilder(EVENT_NAME.EARN_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Earn',
+          location: EVENT_LOCATIONS.ACCOUNTS_MENU,
+        })
+        .build(),
+    );
+  }, [createEventBuilder, navigation, trackEvent]);
+
+  const onScanSuccess = useCallback(
+    (data: { private_key?: string; seed?: string }, content: string) => {
+      if (data.private_key) {
+        const privateKey = data.private_key;
+        Alert.alert(
+          strings('wallet.private_key_detected'),
+          strings('wallet.do_you_want_to_import_this_account'),
+          [
+            {
+              text: strings('wallet.cancel'),
+              onPress: () => false,
+              style: 'cancel',
+            },
+            {
+              text: strings('wallet.yes'),
+              onPress: async () => {
+                try {
+                  await Authentication.importAccountFromPrivateKey(privateKey);
+                  navigation.navigate('ImportPrivateKeyView', {
+                    screen: 'ImportPrivateKeySuccess',
+                  });
+                } catch {
+                  Alert.alert(
+                    strings('import_private_key.error_title'),
+                    strings('import_private_key.error_message'),
+                  );
+                }
+              },
+            },
+          ],
+          { cancelable: false },
+        );
+      } else if (data.seed) {
+        Alert.alert(
+          strings('wallet.error'),
+          strings('wallet.logout_to_import_seed'),
+        );
+      } else {
+        setTimeout(() => {
+          DeeplinkManager.parse(content, {
+            origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
+          });
+        }, 500);
+      }
+    },
+    [navigation],
+  );
 
   const onPressScan = useCallback(() => {
-    // TODO: Add analytics tracking
-    navigation.navigate(
-      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
-    );
-  }, [navigation]);
+    navigation.navigate(Routes.QR_TAB_SWITCHER, {
+      onScanSuccess,
+    });
+    trackEvent(createEventBuilder(EVENT_NAME.QR_SCANNER_OPENED).build());
+  }, [navigation, onScanSuccess, trackEvent, createEventBuilder]);
 
   const onPressSettings = useCallback(() => {
-    // TODO: Add analytics tracking
-    navigation.navigate('Settings');
-  }, [navigation]);
+    trackEvent(createEventBuilder(EVENT_NAME.SETTINGS_VIEWED).build());
+    navigation.navigate(Routes.SETTINGS.ROOT);
+  }, [navigation, trackEvent, createEventBuilder]);
 
   const onPressContacts = useCallback(() => {
-    // TODO: Add analytics tracking
-    navigation.navigate('ContactsSettings');
+    // TODO: Add analytics tracking - There isn't an event for this yet. Will ask if we need to create one.
+    navigation.navigate(Routes.SETTINGS.CONTACTS);
   }, [navigation]);
 
   const onPressManageWallet = useCallback(() => {
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.CARD_HOME_CLICKED,
-      ).build(),
-    );
+    trackEvent(createEventBuilder(EVENT_NAME.CARD_HOME_CLICKED).build());
     navigation.navigate(Routes.CARD.ROOT);
-  }, [navigation]);
+  }, [createEventBuilder, navigation, trackEvent]);
 
   const onPressPermissions = useCallback(() => {
-    // TODO: Add analytics tracking
+    // TODO: Add analytics tracking - There isn't an event for this yet. Will ask if we need to create one.
     navigation.navigate(Routes.SETTINGS.SDK_SESSIONS_MANAGER);
   }, [navigation]);
 
@@ -121,12 +216,12 @@ const AccountsMenu = () => {
   );
 
   const onPressAboutMetaMask = useCallback(() => {
-    // TODO: Add analytics tracking
-    navigation.navigate('CompanySettings');
-  }, [navigation]);
+    trackEvent(createEventBuilder(EVENT_NAME.SETTINGS_ABOUT).build());
+    navigation.navigate(Routes.SETTINGS.COMPANY);
+  }, [navigation, trackEvent, createEventBuilder]);
 
   const onPressRequestFeature = useCallback(() => {
-    // TODO: Add analytics tracking
+    // TODO: Add analytics tracking - There isn't an event for this yet. Will ask if we need to create one.
     goToBrowserUrl(
       'https://community.metamask.io/c/feature-requests-ideas/',
       strings('app_settings.request_feature'),
@@ -134,7 +229,7 @@ const AccountsMenu = () => {
   }, [goToBrowserUrl]);
 
   const onPressSupport = useCallback(() => {
-    // TODO: Add analytics tracking
+    // TODO: Add analytics tracking - There isn't an event for this yet. Will ask if we need to create one.
     const supportUrl = 'https://support.metamask.io';
     goToBrowserUrl(supportUrl, strings('app_settings.contact_support'));
   }, [goToBrowserUrl]);
@@ -160,7 +255,7 @@ const AccountsMenu = () => {
       ],
       { cancelable: false },
     );
-    // TODO: Add analytics tracking
+    // TODO: Add analytics tracking - There isn't an event for this yet. Will ask if we need to create one.
   }, [onPressLock]);
 
   return (
@@ -176,14 +271,16 @@ const AccountsMenu = () => {
       >
         {/* Quick Actions Section */}
         <View style={styles.quickActionsContainer}>
-          <View style={styles.buttonWrapper}>
-            <MainActionButton
-              iconName={LocalIconName.Download}
-              label="Deposit"
-              onPress={onPressDeposit}
-              testID={AccountsMenuSelectorsIDs.DEPOSIT_BUTTON}
-            />
-          </View>
+          {rampUnifiedV1Enabled && (
+            <View style={styles.buttonWrapper}>
+              <MainActionButton
+                iconName={LocalIconName.Download}
+                label="Deposit"
+                onPress={onPressDeposit}
+                testID={AccountsMenuSelectorsIDs.DEPOSIT_BUTTON}
+              />
+            </View>
+          )}
           <View style={styles.buttonWrapper}>
             <MainActionButton
               iconName={LocalIconName.Stake}

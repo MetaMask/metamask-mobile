@@ -971,15 +971,6 @@ export function getWalletNavbarOptions(
     navigation.navigate(Routes.SETTINGS_VIEW);
   };
 
-  const handleCardPress = () => {
-    trackEvent(
-      MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.CARD_HOME_CLICKED,
-      ).build(),
-    );
-    navigation.navigate(Routes.CARD.ROOT);
-  };
-
   return {
     header: () => (
       <HeaderBase

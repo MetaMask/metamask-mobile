@@ -47,6 +47,18 @@ jest.mock('../../UI/Ramp/hooks/useRampNavigation', () => ({
 }));
 
 const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: jest.fn().mockReturnThis(),
+  build: jest.fn(() => ({ name: 'test-event' })),
+}));
+
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
 jest.mock('../../../core/Analytics', () => ({
   MetaMetrics: {
     getInstance: () => ({
@@ -74,6 +86,30 @@ jest.mock('../../../core/', () => ({
 
 jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
+}));
+
+jest.mock('../../../reducers/fiatOrders', () => ({
+  getDetectedGeolocation: jest.fn(),
+}));
+
+jest.mock('../../UI/Ramp/hooks/useRampsButtonClickData', () => ({
+  useRampsButtonClickData: () => ({
+    ramp_routing: 'test-routing',
+    is_authenticated: true,
+    preferred_provider: 'test-provider',
+    order_count: 0,
+  }),
+}));
+
+jest.mock('../../UI/Ramp/hooks/useRampsUnifiedV1Enabled', () =>
+  jest.fn(() => true),
+);
+
+jest.mock('../../../core/DeeplinkManager/DeeplinkManager', () => ({
+  __esModule: true,
+  default: {
+    parse: jest.fn(),
+  },
 }));
 
 describe('AccountsMenu', () => {
@@ -193,7 +229,7 @@ describe('AccountsMenu', () => {
 
         fireEvent.press(aboutButton);
 
-        expect(mockNavigate).toHaveBeenCalledWith('CompanySettings');
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS.COMPANY);
       });
     });
 
@@ -297,6 +333,32 @@ describe('AccountsMenu', () => {
           locked: false,
         });
       });
+    });
+  });
+
+  describe('Analytics Tracking', () => {
+    it('should track SETTINGS_VIEWED event when Settings is pressed', () => {
+      const { getByTestId } = render(<AccountsMenu />);
+      const settingsButton = getByTestId(AccountsMenuSelectorsIDs.SETTINGS);
+
+      fireEvent.press(settingsButton);
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith('Settings Viewed');
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS.ROOT);
+    });
+
+    it('should track SETTINGS_ABOUT_METAMASK_CLICKED event when About MetaMask is pressed', () => {
+      const { getByTestId } = render(<AccountsMenu />);
+      const aboutButton = getByTestId(AccountsMenuSelectorsIDs.ABOUT_METAMASK);
+
+      fireEvent.press(aboutButton);
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        'About MetaMask Clicked',
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS.COMPANY);
     });
   });
 });
