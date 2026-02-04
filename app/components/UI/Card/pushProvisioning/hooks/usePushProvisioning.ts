@@ -162,6 +162,41 @@ export function usePushProvisioning(
     };
   }, [walletAdapter, lastFourDigits]);
 
+  useEffect(() => {
+    if (status !== 'success') {
+      return;
+    }
+
+    let isMounted = true;
+
+    const recheckEligibility = async () => {
+      if (!walletAdapter || !lastFourDigits) {
+        return;
+      }
+
+      try {
+        const result = await walletAdapter.getEligibility(lastFourDigits);
+        if (isMounted) {
+          setEligibility(result);
+        }
+      } catch {
+        if (isMounted) {
+          setEligibility({
+            isAvailable: true,
+            canAddCard: false,
+            ineligibilityReason: 'Card already added to wallet',
+          });
+        }
+      }
+    };
+
+    recheckEligibility();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [status, walletAdapter, lastFourDigits]);
+
   // Create service with adapters
   const service = useMemo(
     () => createPushProvisioningService(cardAdapter, walletAdapter),

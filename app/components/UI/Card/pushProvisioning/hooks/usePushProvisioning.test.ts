@@ -1190,4 +1190,249 @@ describe('usePushProvisioning', () => {
       unmount();
     });
   });
+
+  describe('eligibility re-check after successful provisioning', () => {
+    it('re-checks eligibility when status becomes success', async () => {
+      let activationCallback:
+        | ((event: { status: string; tokenId?: string }) => void)
+        | undefined;
+      mockAddActivationListener.mockImplementation((callback) => {
+        activationCallback = callback;
+        return () => undefined;
+      });
+
+      // Make provisioning hang so we can control when activation happens
+      let resolveProvisioning: (value: unknown) => void;
+      mockInitiateProvisioning.mockReturnValue(
+        new Promise((resolve) => {
+          resolveProvisioning = resolve;
+        }),
+      );
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Initial eligibility check
+      expect(mockWalletAdapter.getEligibility).toHaveBeenCalledTimes(1);
+
+      // Start provisioning
+      act(() => {
+        result.current.initiateProvisioning();
+      });
+
+      await waitFor(() => {
+        expect(result.current.status).toBe('provisioning');
+      });
+
+      // Clear mock to track new calls
+      mockWalletAdapter.getEligibility.mockClear();
+
+      // Simulate activation success
+      await act(async () => {
+        activationCallback?.({ status: 'activated', tokenId: 'token-123' });
+      });
+
+      expect(result.current.status).toBe('success');
+
+      // Should re-check eligibility after success
+      await waitFor(() => {
+        expect(mockWalletAdapter.getEligibility).toHaveBeenCalledTimes(1);
+      });
+
+      // Cleanup
+      await act(async () => {
+        resolveProvisioning?.({ status: 'success' });
+      });
+      unmount();
+    });
+
+    it('updates canAddToWallet to false after successful provisioning when card is already in wallet', async () => {
+      let activationCallback:
+        | ((event: { status: string; tokenId?: string }) => void)
+        | undefined;
+      mockAddActivationListener.mockImplementation((callback) => {
+        activationCallback = callback;
+        return () => undefined;
+      });
+
+      // Make provisioning hang
+      let resolveProvisioning: (value: unknown) => void;
+      mockInitiateProvisioning.mockReturnValue(
+        new Promise((resolve) => {
+          resolveProvisioning = resolve;
+        }),
+      );
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Initially can add to wallet
+      expect(result.current.canAddToWallet).toBe(true);
+
+      // Start provisioning
+      act(() => {
+        result.current.initiateProvisioning();
+      });
+
+      await waitFor(() => {
+        expect(result.current.status).toBe('provisioning');
+      });
+
+      // After success, wallet should report card cannot be added anymore
+      mockWalletAdapter.getEligibility.mockResolvedValue({
+        isAvailable: true,
+        canAddCard: false,
+        ineligibilityReason: 'Card already in wallet',
+      });
+
+      // Simulate activation success
+      await act(async () => {
+        activationCallback?.({ status: 'activated', tokenId: 'token-123' });
+      });
+
+      // Wait for eligibility re-check to complete
+      await waitFor(() => {
+        expect(result.current.canAddToWallet).toBe(false);
+      });
+
+      // Cleanup
+      await act(async () => {
+        resolveProvisioning?.({ status: 'success' });
+      });
+      unmount();
+    });
+
+    it('handles eligibility re-check failure by assuming card was added', async () => {
+      let activationCallback:
+        | ((event: { status: string; tokenId?: string }) => void)
+        | undefined;
+      mockAddActivationListener.mockImplementation((callback) => {
+        activationCallback = callback;
+        return () => undefined;
+      });
+
+      // Make provisioning hang
+      let resolveProvisioning: (value: unknown) => void;
+      mockInitiateProvisioning.mockReturnValue(
+        new Promise((resolve) => {
+          resolveProvisioning = resolve;
+        }),
+      );
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Initially can add to wallet
+      expect(result.current.canAddToWallet).toBe(true);
+
+      // Start provisioning
+      act(() => {
+        result.current.initiateProvisioning();
+      });
+
+      await waitFor(() => {
+        expect(result.current.status).toBe('provisioning');
+      });
+
+      // Make eligibility re-check fail
+      mockWalletAdapter.getEligibility.mockRejectedValue(
+        new Error('Network error'),
+      );
+
+      // Simulate activation success
+      await act(async () => {
+        activationCallback?.({ status: 'activated', tokenId: 'token-123' });
+      });
+
+      // Wait for eligibility re-check to fail and set canAddCard to false
+      await waitFor(() => {
+        expect(result.current.canAddToWallet).toBe(false);
+      });
+
+      // Cleanup
+      await act(async () => {
+        resolveProvisioning?.({ status: 'success' });
+      });
+      unmount();
+    });
+
+    it('does not re-check eligibility when status is not success', async () => {
+      mockInitiateProvisioning.mockResolvedValue({ status: 'canceled' });
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Initial eligibility check
+      expect(mockWalletAdapter.getEligibility).toHaveBeenCalledTimes(1);
+
+      // Clear mock
+      mockWalletAdapter.getEligibility.mockClear();
+
+      // Initiate and cancel provisioning
+      await act(async () => {
+        await result.current.initiateProvisioning();
+      });
+
+      expect(result.current.status).toBe('idle');
+
+      // Should not re-check eligibility for canceled status
+      expect(mockWalletAdapter.getEligibility).not.toHaveBeenCalled();
+
+      unmount();
+    });
+
+    it('does not re-check eligibility when status becomes error', async () => {
+      const error = new ProvisioningError(
+        ProvisioningErrorCode.UNKNOWN_ERROR,
+        'Test error',
+      );
+      mockInitiateProvisioning.mockResolvedValue({ status: 'error', error });
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Initial eligibility check
+      expect(mockWalletAdapter.getEligibility).toHaveBeenCalledTimes(1);
+
+      // Clear mock
+      mockWalletAdapter.getEligibility.mockClear();
+
+      // Initiate and fail provisioning
+      await act(async () => {
+        await result.current.initiateProvisioning();
+      });
+
+      expect(result.current.status).toBe('error');
+
+      // Should not re-check eligibility for error status
+      expect(mockWalletAdapter.getEligibility).not.toHaveBeenCalled();
+
+      unmount();
+    });
+  });
 });
