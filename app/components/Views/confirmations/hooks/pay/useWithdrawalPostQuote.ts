@@ -32,7 +32,7 @@ export function useWithdrawalPostQuote(): void {
     }
 
     try {
-      const { NetworkController, TransactionPayController } = Engine.context;
+      const { TransactionPayController } = Engine.context;
 
       // Set isPostQuote=true for withdrawal transactions
       TransactionPayController.setTransactionConfig(transactionId, (config) => {
@@ -41,17 +41,11 @@ export function useWithdrawalPostQuote(): void {
 
       // Initialize paymentToken with the default withdrawal token (Polygon USDC.e)
       // In post-quote mode, paymentToken represents the destination token
-      const networkClientId = NetworkController.findNetworkClientIdByChainId(
-        DEFAULT_WITHDRAWAL_TOKEN.chainId,
-      );
-
-      if (networkClientId) {
-        TransactionPayController.updatePaymentToken({
-          transactionId,
-          tokenAddress: DEFAULT_WITHDRAWAL_TOKEN.address,
-          chainId: DEFAULT_WITHDRAWAL_TOKEN.chainId,
-        });
-      }
+      TransactionPayController.updatePaymentToken({
+        transactionId,
+        tokenAddress: DEFAULT_WITHDRAWAL_TOKEN.address,
+        chainId: DEFAULT_WITHDRAWAL_TOKEN.chainId,
+      });
 
       isSet.current = true;
 
