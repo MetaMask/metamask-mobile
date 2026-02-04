@@ -38,7 +38,6 @@ import {
   PERPS_BALANCE_PLACEHOLDER_ADDRESS,
 } from '../../constants/perpsConfig';
 import { useIsPerpsBalanceSelected } from '../../hooks/useIsPerpsBalanceSelected';
-import { usePerpsLiveAccount } from '../../hooks/stream/usePerpsLiveAccount';
 import { Hex } from '@metamask/utils';
 
 const tokenIconStyles = StyleSheet.create({
@@ -97,9 +96,6 @@ export const PerpsPayRow = ({
   const { payToken } = useTransactionPayToken();
   const transactionMeta = useTransactionMetadataRequest();
   const matchesPerpsBalance = useIsPerpsBalanceSelected();
-
-  // Get Perps balance from live account
-  usePerpsLiveAccount({ throttleMs: 1000 });
 
   const {
     txParams: { from },
