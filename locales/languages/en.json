@@ -6106,8 +6106,6 @@
       "transaction_fee": "Transaction fee",
       "metamask_fee": "MetaMask fee",
       "network_fee": "Network fee",
-      "network_fees": "Network fees",
-      "provider_fee": "Provider fee",
       "bridge_fee": "Bridge provider fee"
     },
     "title": {
@@ -6258,7 +6256,6 @@
     "nested_transaction_heading": "Transaction {{index}}",
     "transaction": "Transaction",
     "available_balance": "Available: ",
-    "available_predict_balance": "Available balance: ",
     "edit_amount_done": "Continue",
     "deposit_edit_amount_done": "Add funds",
     "deposit_edit_amount_predict_withdraw": "Withdraw",

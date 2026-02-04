@@ -28,7 +28,7 @@ export function PredictWithdrawBalance() {
       <Text
         variant={TextVariant.BodyMDMedium}
         color={TextColor.Alternative}
-      >{`${strings('confirm.available_predict_balance')}${balanceFormatted}`}</Text>
+      >{`${strings('confirm.available_balance')}${balanceFormatted}`}</Text>
     </Box>
   );
 }
