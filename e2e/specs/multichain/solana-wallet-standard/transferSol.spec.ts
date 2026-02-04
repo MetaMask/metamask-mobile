@@ -2,8 +2,6 @@ import { SmokeNetworkExpansion } from '../../../tags';
 import SolanaTestDApp from '../../../pages/Browser/SolanaTestDApp';
 import { connectSolanaTestDapp, navigateToSolanaTestDApp } from './testHelpers';
 import { loginToApp } from '../../../viewHelper';
-import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 import { DappVariants } from '../../../../tests/framework/Constants';
 import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
@@ -26,11 +24,6 @@ describe(
               dappVariant: DappVariants.SOLANA_TEST_DAPP,
             },
           ],
-          testSpecificMock: async (mockServer) => {
-            await setupRemoteFeatureFlagsMock(mockServer, {
-              ...remoteFeatureMultichainAccountsAccountDetailsV2(true),
-            });
-          },
         },
         async () => {
           await loginToApp();
@@ -59,11 +52,6 @@ describe(
               dappVariant: DappVariants.SOLANA_TEST_DAPP,
             },
           ],
-          testSpecificMock: async (mockServer) => {
-            await setupRemoteFeatureFlagsMock(mockServer, {
-              ...remoteFeatureMultichainAccountsAccountDetailsV2(true),
-            });
-          },
         },
         async () => {
           await loginToApp();
