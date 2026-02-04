@@ -163,6 +163,9 @@ describe('usePerpsDepositStatus', () => {
             hapticsType: NotificationFeedbackType.Warning,
           } as PerpsToastOptions,
         },
+        oneClickTrade: {
+          txCreationFailed: {} as PerpsToastOptions,
+        },
         withdrawal: {
           withdrawalInProgress: {
             variant: ToastVariants.Icon,
