@@ -126,7 +126,7 @@ const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({ asset }) => {
           variant={TextVariant.BodySm}
           twClassName="text-error-default mt-2"
         >
-          {claimError}
+          {strings('asset_overview.merkl_rewards.unexpected_error')}
         </Text>
       )}
     </View>

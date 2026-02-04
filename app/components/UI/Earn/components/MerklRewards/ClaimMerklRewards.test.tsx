@@ -201,17 +201,20 @@ describe('ClaimMerklRewards', () => {
     expect(buttonElement.props.disabled).toBe(true);
   });
 
-  it('displays error message when error is present', () => {
-    const errorMessage = 'Failed to claim rewards';
+  it('displays generic error message when error is present', () => {
     mockUseMerklClaim.mockReturnValue({
       claimRewards: mockClaimRewards,
       isClaiming: false,
-      error: errorMessage,
+      error: 'Some internal error details',
     });
 
-    const { getByText } = render(<ClaimMerklRewards asset={mockAsset} />);
+    const { getByText, queryByText } = render(
+      <ClaimMerklRewards asset={mockAsset} />,
+    );
 
-    expect(getByText(errorMessage)).toBeTruthy();
+    // Should display generic error message, not the actual error
+    expect(getByText('Unexpected error. Please try again.')).toBeTruthy();
+    expect(queryByText('Some internal error details')).toBeNull();
   });
 
   it('does not display error message when error is null', () => {
@@ -223,7 +226,7 @@ describe('ClaimMerklRewards', () => {
 
     const { queryByText } = render(<ClaimMerklRewards asset={mockAsset} />);
 
-    expect(queryByText('Failed')).toBeNull();
+    expect(queryByText('Unexpected error. Please try again.')).toBeNull();
   });
 
   it('tracks analytics event when claim button is clicked', () => {
