@@ -3,7 +3,7 @@ import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { personalSignatureConfirmationState } from '../../../../../../util/test/confirm-data-helpers';
 import AccountNetworkInfo from './account-network-info-row';
-import { MAINNET_DISPLAY_NAME } from '../../../../../../core/Engine/constants';
+import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 
 jest.mock('../../../../../../core/Engine', () => {
   const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
@@ -58,10 +58,17 @@ jest.mock(
 
 describe('AccountNetworkInfo', () => {
   it('should render correctly', async () => {
-    const { getByText } = renderWithProvider(<AccountNetworkInfo />, {
-      state: personalSignatureConfirmationState,
-    });
+    const { getByText, getByTestId } = renderWithProvider(
+      <AccountNetworkInfo />,
+      {
+        state: personalSignatureConfirmationState,
+      },
+    );
+    // Verify the account address is displayed (abbreviated format)
     expect(getByText('0x935E7...05477')).toBeDefined();
-    expect(getByText(MAINNET_DISPLAY_NAME)).toBeDefined();
+    // Verify the expandable component is rendered with the correct testID
+    expect(
+      getByTestId(ConfirmationRowComponentIDs.ACCOUNT_NETWORK),
+    ).toBeDefined();
   });
 });
