@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   selectTokenDetailsV2Enabled,
-  isTokenDetailsRevampedEnabled,
+  selectTokenDetailsV2ButtonsEnabled,
 } from '../../../../selectors/featureFlagController/tokenDetailsV2';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import Asset from '../../../Views/Asset';
@@ -87,6 +87,10 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+
+  const isTokenDetailsV2ButtonsEnabled = useSelector(
+    selectTokenDetailsV2ButtonsEnabled,
+  );
 
   useEffect(() => {
     endTrace({ name: TraceName.AssetDetails });
@@ -286,7 +290,7 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
         />
       )}
       {networkModal}
-      {isTokenDetailsRevampedEnabled() && !txLoading && displaySwapsButton && (
+      {isTokenDetailsV2ButtonsEnabled && !txLoading && displaySwapsButton && (
         <BottomSheetFooter
           style={{
             ...styles.bottomSheetFooter,
