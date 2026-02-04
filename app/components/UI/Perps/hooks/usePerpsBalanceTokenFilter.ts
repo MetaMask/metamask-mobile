@@ -1,18 +1,21 @@
 import { TransactionType } from '@metamask/transaction-controller';
 import { BigNumber } from 'bignumber.js';
 import { useCallback } from 'react';
+import { Image } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import useFiatFormatter from '../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
+import perpsPayTokenIcon from '../../../../images/perps-pay-token-icon.png';
 import {
   PERPS_BALANCE_CHAIN_ID,
   PERPS_BALANCE_PLACEHOLDER_ADDRESS,
   PERPS_CONSTANTS,
 } from '../constants/perpsConfig';
-import { USDC_TOKEN_ICON_URL } from '../constants/hyperLiquidConfig';
+
+const PERPS_BALANCE_ICON_URI = Image.resolveAssetSource(perpsPayTokenIcon).uri;
 import { selectPerpsAccountState } from '../selectors/perpsController';
 import { useIsPerpsBalanceSelected } from './useIsPerpsBalanceSelected';
 
@@ -59,8 +62,8 @@ export function usePerpsBalanceTokenFilter(): (
         symbol: 'USD',
         balance: availableBalance,
         balanceInSelectedCurrency,
-        image: USDC_TOKEN_ICON_URL,
-        logo: USDC_TOKEN_ICON_URL,
+        image: PERPS_BALANCE_ICON_URI,
+        logo: PERPS_BALANCE_ICON_URI,
         decimals: 2,
         isETH: false,
         isNative: false,
