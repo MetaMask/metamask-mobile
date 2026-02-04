@@ -75,6 +75,84 @@ describe('MultichainAccountSelectorList', () => {
     jest.clearAllMocks();
   });
 
+  describe('Empty state handling', () => {
+    it('returns empty walletSections when accountSections is empty', () => {
+      const mockState = createMockState([], {});
+
+      const { getByTestId } = renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[]}
+        />,
+        { state: mockState },
+      );
+
+      // Should render empty state
+      expect(
+        getByTestId(MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID),
+      ).toBeTruthy();
+    });
+
+    it('returns empty walletSections when accountSections is undefined', () => {
+      // Create state without accountTreeController data
+      const mockState = {
+        engine: {
+          backgroundState: {
+            AccountsController: {
+              internalAccounts: {
+                accounts: {},
+                selectedAccount: '',
+              },
+            },
+            AccountTreeController: {
+              accountTree: {
+                selectedAccountGroup: null,
+                wallets: {},
+              },
+            },
+            PreferencesController: {
+              privacyMode: false,
+            },
+          },
+        },
+        settings: {
+          avatarAccountType: 'Maskicon',
+        },
+        user: {
+          seedphraseBackedUp: true,
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[]}
+        />,
+        { state: mockState },
+      );
+
+      // Should render empty state since there are no wallet sections
+      expect(
+        getByTestId(MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID),
+      ).toBeTruthy();
+    });
+
+    it('displays empty state message when no accounts exist', () => {
+      const mockState = createMockState([], {});
+
+      const { getByText } = renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[]}
+        />,
+        { state: mockState },
+      );
+
+      // Should show the no accounts found message
+      expect(getByText('No accounts found')).toBeTruthy();
+    });
+  });
+
   // Helper function to perform search and wait for results
   const performSearch = async (
     getByTestId: ReturnType<typeof renderWithProvider>['getByTestId'],
