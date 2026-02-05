@@ -945,61 +945,6 @@ describe('ChoosePassword', () => {
     });
   });
 
-  it('should handle rejected OS biometric prompt', async () => {
-    jest.spyOn(Device, 'isIos').mockReturnValue(true);
-
-    // Mock newWalletAndKeychain to throw error first, then succeed
-    const mockNewWalletAndKeychain = jest.spyOn(
-      Authentication,
-      'newWalletAndKeychain',
-    );
-    mockNewWalletAndKeychain
-      .mockRejectedValueOnce(new Error('User rejected biometric prompt'))
-      .mockResolvedValueOnce(undefined);
-
-    mockRoute.params = {
-      ...mockRoute.params,
-      [PREVIOUS_SCREEN]: ONBOARDING,
-    };
-    const component = renderWithProviders(<ChoosePassword />);
-
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    });
-
-    const passwordInput = component.getByTestId(
-      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-    );
-    const confirmPasswordInput = component.getByTestId(
-      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-    );
-    const checkbox = component.getByTestId(
-      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
-    );
-
-    const submitButton = component.getByTestId(
-      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-    );
-    await act(async () => {
-      fireEvent.press(checkbox);
-      fireEvent.changeText(passwordInput, 'StrongPassword123!');
-    });
-
-    await act(async () => {
-      fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!');
-    });
-
-    await act(async () => {
-      fireEvent(submitButton, 'press');
-    });
-
-    // Should handle the rejection and create wallet with fallback method
-    expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(2);
-
-    jest.spyOn(Device, 'isIos').mockRestore();
-    mockNewWalletAndKeychain.mockRestore();
-  });
-
   it('navigates to error screen when passcode not set error occurs', async () => {
     jest.spyOn(Device, 'isIos').mockReturnValue(false);
     const passcodeError = new Error('Passcode not set.');

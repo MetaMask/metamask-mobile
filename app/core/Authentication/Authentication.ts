@@ -1311,8 +1311,6 @@ class AuthenticationService {
         await this.rehydrateSeedPhrase(globalPassword);
         // skip the rest of the flow ( change password and sync keyring encryption key)
         ReduxService.store.dispatch(setIsConnectionRemoved(true));
-        // Mark user as existing after successful rehydration
-        ReduxService.store.dispatch(setExistingUser(true));
         return;
       } else if (
         errorMessage ===
