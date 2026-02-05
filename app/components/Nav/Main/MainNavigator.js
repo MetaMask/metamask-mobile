@@ -122,6 +122,7 @@ import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSh
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
+import DropAccountPickerModal from '../../UI/Rewards/components/DropAccountPickerModal/DropAccountPickerModal';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import getHeaderCompactStandardNavbarOptions from '../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
 import {
@@ -279,6 +280,11 @@ const RewardsHome = () => (
     <Stack.Screen
       name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
       component={EndOfSeasonClaimBottomSheet}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.REWARDS_DROP_ACCOUNT_PICKER}
+      component={DropAccountPickerModal}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );

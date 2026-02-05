@@ -11,59 +11,57 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../../locales/i18n';
-import { selectSnapshotsRewardsEnabledFlag } from '../../../../../../../selectors/featureFlagController/rewards';
-import { useSnapshots } from '../../../../hooks/useSnapshots';
-import {
-  SnapshotTile,
-  UpcomingSnapshotTileCondensed,
-} from '../../../../components/SnapshotTile';
+import { selectDropsRewardsEnabledFlag } from '../../../../../../../selectors/featureFlagController/rewards';
+import { useSeasonDrops } from '../../../../hooks/useSeasonDrops';
+import DropTile from '../../../../components/DropTile/DropTile';
 import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
 import RewardsErrorBanner from '../../../../components/RewardsErrorBanner';
 import { REWARDS_VIEW_SELECTORS } from '../../../../Views/RewardsView.constants';
+import UpcomingDropTileCondensed from '../../../DropTile/UpcomingDropTileCondensed';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CARD_WIDTH = SCREEN_WIDTH - 32; // Full width minus padding
 
 /**
- * SnapshotsSection displays active and upcoming snapshots in the Overview tab.
- * Shows all active snapshots first (as large tiles), then all upcoming snapshots
+ * DropsSection displays active and upcoming drops in the Overview tab.
+ * Shows all active drops first (as large tiles), then all upcoming drops
  * (as condensed tiles). Both groups are sorted by opensAt ascending (earliest first).
  */
-const SnapshotsSection: React.FC = () => {
-  const isSnapshotsEnabled = useSelector(selectSnapshotsRewardsEnabledFlag);
+const DropsSection: React.FC = () => {
+  const isDropsEnabled = useSelector(selectDropsRewardsEnabledFlag);
   const tw = useTailwind();
-  const { categorizedSnapshots, isLoading, hasError, fetchSnapshots } =
-    useSnapshots();
+  const { categorizedDrops, isLoading, hasError, fetchDrops } =
+    useSeasonDrops();
 
-  const { active, upcoming } = categorizedSnapshots;
+  const { active, upcoming } = categorizedDrops;
 
   // Sort active and upcoming by opensAt ascending (earliest first)
-  const sortedSnapshots = useMemo(() => {
+  const sortedDrops = useMemo(() => {
     const sortByOpensAt = (a: (typeof active)[0], b: (typeof active)[0]) =>
       new Date(a.opensAt).getTime() - new Date(b.opensAt).getTime();
 
     const sortedActive = [...active].sort(sortByOpensAt);
     const sortedUpcoming = [...upcoming].sort(sortByOpensAt);
 
-    // Active snapshots first, then upcoming
+    // Active drops first, then upcoming
     return [...sortedActive, ...sortedUpcoming];
   }, [active, upcoming]);
 
-  const hasSnapshots = sortedSnapshots.length > 0;
+  const hasDrops = sortedDrops.length > 0;
 
-  // Return null if snapshots feature is disabled
-  if (!isSnapshotsEnabled) {
+  // Return null if drops feature is disabled
+  if (!isDropsEnabled) {
     return null;
   }
 
-  // Don't render if no snapshots and not loading/error
-  if (!isLoading && !hasError && !hasSnapshots) {
+  // Don't render if no drops and not loading/error
+  if (!isLoading && !hasError && !hasDrops) {
     return null;
   }
 
   const renderContent = () => {
     // Show loading state
-    if (isLoading && !hasSnapshots) {
+    if (isLoading && !hasDrops) {
       return (
         <Skeleton
           style={tw.style('h-50 rounded-xl bg-muted')}
@@ -73,28 +71,25 @@ const SnapshotsSection: React.FC = () => {
     }
 
     // Show error state
-    if (hasError && !hasSnapshots) {
+    if (hasError && !hasDrops) {
       return (
         <RewardsErrorBanner
-          title={strings('rewards.snapshots_section.error_title')}
-          description={strings('rewards.snapshots_section.error_description')}
-          onConfirm={fetchSnapshots}
-          confirmButtonLabel={strings('rewards.snapshots_section.retry_button')}
+          title={strings('rewards.drop_section.error_title')}
+          description={strings('rewards.drop_section.error_description')}
+          onConfirm={fetchDrops}
+          confirmButtonLabel={strings('rewards.drop_section.retry_button')}
         />
       );
     }
 
     return (
       <Box twClassName="gap-4">
-        {sortedSnapshots.map((snapshot) => {
-          const isActive = active.some((s) => s.id === snapshot.id);
+        {sortedDrops.map((drop) => {
+          const isActive = active.some((s) => s.id === drop.id);
           return isActive ? (
-            <SnapshotTile key={snapshot.id} snapshot={snapshot} />
+            <DropTile key={drop.id} drop={drop} />
           ) : (
-            <UpcomingSnapshotTileCondensed
-              key={snapshot.id}
-              snapshot={snapshot}
-            />
+            <UpcomingDropTileCondensed key={drop.id} drop={drop} />
           );
         })}
       </Box>
@@ -104,7 +99,7 @@ const SnapshotsSection: React.FC = () => {
   return (
     <Box
       twClassName="pt-2 pb-4 px-4 gap-4"
-      testID={REWARDS_VIEW_SELECTORS.SNAPSHOTS_SECTION}
+      testID={REWARDS_VIEW_SELECTORS.DROPS_SECTION}
     >
       {/* Section Header */}
       <Box
@@ -118,9 +113,9 @@ const SnapshotsSection: React.FC = () => {
           twClassName="gap-2"
         >
           <Text variant={TextVariant.HeadingMd} twClassName="text-default">
-            {strings('rewards.snapshots_section.title')}
+            {strings('rewards.drop_section.title')}
           </Text>
-          {isLoading && hasSnapshots && <ActivityIndicator size="small" />}
+          {isLoading && !hasDrops && <ActivityIndicator size="small" />}
         </Box>
       </Box>
 
@@ -130,4 +125,4 @@ const SnapshotsSection: React.FC = () => {
   );
 };
 
-export default SnapshotsSection;
+export default DropsSection;

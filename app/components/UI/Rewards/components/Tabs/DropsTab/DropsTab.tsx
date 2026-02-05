@@ -10,30 +10,30 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
-import { useSnapshots } from '../../../hooks/useSnapshots';
+import { useSeasonDrops } from '../../../hooks/useSeasonDrops';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 import RewardsErrorBanner from '../../RewardsErrorBanner';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
-import SnapshotsGroup from './SnapshotsGroup';
+import DropsGroup from './DropsGroup';
 
 /**
- * SnapshotsTab displays all snapshots organized by status:
+ * DropsTab displays all drops organized by status:
  * - Active (live)
  * - Upcoming
  * - Previous (calculating, distributing, complete)
  */
-export const SnapshotsTab: React.FC = () => {
+export const DropsTab: React.FC = () => {
   const tw = useTailwind();
-  const { categorizedSnapshots, isLoading, hasError, fetchSnapshots } =
-    useSnapshots();
+  const { categorizedDrops, isLoading, hasError, fetchDrops } =
+    useSeasonDrops();
 
-  const { active, upcoming, previous } = categorizedSnapshots;
-  const hasSnapshots =
+  const { active, upcoming, previous } = categorizedDrops;
+  const hasDrops =
     active.length > 0 || upcoming.length > 0 || previous.length > 0;
 
   const renderContent = () => {
     // Show loading state
-    if (isLoading && !hasSnapshots) {
+    if (isLoading && !hasDrops) {
       return (
         <Box twClassName="gap-6">
           <Box twClassName="gap-3">
@@ -49,23 +49,23 @@ export const SnapshotsTab: React.FC = () => {
     }
 
     // Show error state
-    if (hasError && !hasSnapshots) {
+    if (hasError && !hasDrops) {
       return (
         <RewardsErrorBanner
-          title={strings('rewards.snapshots_tab.error_title')}
-          description={strings('rewards.snapshots_tab.error_description')}
-          onConfirm={fetchSnapshots}
-          confirmButtonLabel={strings('rewards.snapshots_tab.retry_button')}
+          title={strings('rewards.drop_tab.error_title')}
+          description={strings('rewards.drop_tab.error_description')}
+          onConfirm={fetchDrops}
+          confirmButtonLabel={strings('rewards.drop_tab.retry_button')}
         />
       );
     }
 
     // Show empty state
-    if (!hasSnapshots) {
+    if (!hasDrops) {
       return (
         <Box twClassName="items-center justify-center py-12">
           <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-            {strings('rewards.snapshots_tab.empty_state')}
+            {strings('rewards.drop_tab.empty_state')}
           </Text>
         </Box>
       );
@@ -73,25 +73,25 @@ export const SnapshotsTab: React.FC = () => {
 
     return (
       <Box twClassName="gap-6">
-        {/* Active Snapshots */}
-        <SnapshotsGroup
-          title={strings('rewards.snapshots_tab.active_title')}
-          snapshots={active}
-          testID={REWARDS_VIEW_SELECTORS.SNAPSHOTS_ACTIVE_SECTION}
+        {/* Active Drops */}
+        <DropsGroup
+          title={strings('rewards.drop_tab.active_title')}
+          drops={active}
+          testID={REWARDS_VIEW_SELECTORS.DROPS_ACTIVE_SECTION}
         />
 
-        {/* Upcoming Snapshots */}
-        <SnapshotsGroup
-          title={strings('rewards.snapshots_tab.upcoming_title')}
-          snapshots={upcoming}
-          testID={REWARDS_VIEW_SELECTORS.SNAPSHOTS_UPCOMING_SECTION}
+        {/* Upcoming Drops */}
+        <DropsGroup
+          title={strings('rewards.drop_tab.upcoming_title')}
+          drops={upcoming}
+          testID={REWARDS_VIEW_SELECTORS.DROPS_UPCOMING_SECTION}
         />
 
-        {/* Previous Snapshots */}
-        <SnapshotsGroup
-          title={strings('rewards.snapshots_tab.previous_title')}
-          snapshots={previous}
-          testID={REWARDS_VIEW_SELECTORS.SNAPSHOTS_PREVIOUS_SECTION}
+        {/* Previous Drops */}
+        <DropsGroup
+          title={strings('rewards.drop_tab.previous_title')}
+          drops={previous}
+          testID={REWARDS_VIEW_SELECTORS.DROPS_PREVIOUS_SECTION}
         />
       </Box>
     );
@@ -101,10 +101,10 @@ export const SnapshotsTab: React.FC = () => {
     <ScrollView
       contentContainerStyle={tw.style('flex-grow p-4')}
       showsVerticalScrollIndicator={false}
-      testID={REWARDS_VIEW_SELECTORS.TAB_CONTENT_SNAPSHOTS}
+      testID={REWARDS_VIEW_SELECTORS.TAB_CONTENT_DROPS}
     >
       {/* Loading indicator when refreshing */}
-      {isLoading && hasSnapshots && (
+      {isLoading && hasDrops && (
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -112,7 +112,7 @@ export const SnapshotsTab: React.FC = () => {
         >
           <ActivityIndicator size="small" />
           <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-            {strings('rewards.snapshots_tab.refreshing')}
+            {strings('rewards.drop_tab.refreshing')}
           </Text>
         </Box>
       )}

@@ -9,11 +9,11 @@ import { selectBasicFunctionalityEnabled } from '../../settings';
 
 export const BITCOIN_REWARDS_FLAG_NAME = 'rewardsBitcoinEnabled';
 export const TRON_REWARDS_FLAG_NAME = 'rewardsTronEnabled';
-export const SNAPSHOTS_REWARDS_FLAG_NAME = 'rewardsSnapshotsEnabled';
+export const DROPS_REWARDS_FLAG_NAME = 'rewardsDropsEnabled';
 
 const DEFAULT_BITCOIN_REWARDS_ENABLED = false;
 const DEFAULT_TRON_REWARDS_ENABLED = false;
-const DEFAULT_SNAPSHOTS_REWARDS_ENABLED = false;
+const DEFAULT_DROPS_REWARDS_ENABLED = false;
 
 /**
  * Selector for the raw Bitcoin rewards enabled remote flag value.
@@ -88,37 +88,37 @@ export const selectTronRewardsEnabledFlag = createSelector(
 );
 
 /**
- * Selector for the raw Snapshots rewards enabled remote flag value.
+ * Selector for the raw Drops rewards enabled remote flag value.
  * Returns the flag value without considering basic functionality.
  */
-export const selectSnapshotsRewardsEnabledRawFlag = createSelector(
+export const selectDropsRewardsEnabledRawFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    if (!hasProperty(remoteFeatureFlags, SNAPSHOTS_REWARDS_FLAG_NAME)) {
-      return DEFAULT_SNAPSHOTS_REWARDS_ENABLED;
+    if (!hasProperty(remoteFeatureFlags, DROPS_REWARDS_FLAG_NAME)) {
+      return DEFAULT_DROPS_REWARDS_ENABLED;
     }
     const remoteFlag = remoteFeatureFlags[
-      SNAPSHOTS_REWARDS_FLAG_NAME
+      DROPS_REWARDS_FLAG_NAME
     ] as unknown as VersionGatedFeatureFlag;
 
     return (
       validatedVersionGatedFeatureFlag(remoteFlag) ??
-      DEFAULT_SNAPSHOTS_REWARDS_ENABLED
+      DEFAULT_DROPS_REWARDS_ENABLED
     );
   },
 );
 
 /**
- * Selector for the Snapshots rewards enabled flag.
+ * Selector for the Drops rewards enabled flag.
  * Returns false if basic functionality is disabled, otherwise returns the remote flag value.
  */
-export const selectSnapshotsRewardsEnabledFlag = createSelector(
+export const selectDropsRewardsEnabledFlag = createSelector(
   selectBasicFunctionalityEnabled,
-  selectSnapshotsRewardsEnabledRawFlag,
-  (isBasicFunctionalityEnabled, snapshotsRewardsEnabledRawFlag) => {
+  selectDropsRewardsEnabledRawFlag,
+  (isBasicFunctionalityEnabled, _dropsRewardsEnabledRawFlag) => {
     if (!isBasicFunctionalityEnabled) {
       return false;
     }
-    return snapshotsRewardsEnabledRawFlag;
+    return true;
   },
 );

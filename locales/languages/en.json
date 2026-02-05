@@ -672,7 +672,7 @@
     "network_not_found_title": "Network not found",
     "network_not_found_description": "Network with chain ID {{chain_id}} not found in your wallet. Please add the network first.",
     "network_missing_id": "Missing chain ID.",
-    "search_tokens":"Search tokens",
+    "search_tokens": "Search tokens",
     "search_tokens_and_nfts": "Search tokens and NFTs",
     "tokens": "Tokens",
     "nfts": "NFTs",
@@ -6889,7 +6889,7 @@
       },
       "physical_address": {
         "title": "Add your address",
-        "description":"Enter your current home address. We’ll use this for verification purposes.",
+        "description": "Enter your current home address. We’ll use this for verification purposes.",
         "address_line_1_label": "Address line 1",
         "address_line_2_label": "Address line 2",
         "city_label": "City",
@@ -6926,7 +6926,7 @@
         "description": "The email address {{email}} is already associated with a Card account.",
         "confirm_button": "Log in"
       },
-      "keep_going":{
+      "keep_going": {
         "title": "Let's keep going",
         "description": "Pick up where you left off and finish setting up your card.",
         "confirm_button": "Continue"
@@ -7194,7 +7194,7 @@
       "title": "Opt-in failed",
       "description": "Check your connection and try again."
     },
-    "season_error":{
+    "season_error": {
       "error_fetching_title": "Season couldn’t be loaded",
       "error_fetching_description": "Check your connection and try again.",
       "retry_button": "Retry"
@@ -7260,7 +7260,7 @@
       "email_validation_error": "Please enter a valid email address",
       "telegram_label": "Telegram handle",
       "telegram_placeholder": "Optional"
-     },
+    },
     "accounts_opt_in_state_error": {
       "error_fetching_title": "Accounts couldn’t be loaded",
       "error_fetching_description": "Check your connection and try again.",
@@ -7273,7 +7273,7 @@
     "main_title": "Rewards",
     "referral_title": "Referrals",
     "tab_overview_title": "Overview",
-    "tab_snapshots_title": "Snapshots",
+    "tab_drops_title": "Airdrops",
     "tab_activity_title": "Activity",
     "referral_stats_earned_from_referrals": "Earned from referrals",
     "referral_stats_referrals": "Referrals",
@@ -7507,32 +7507,82 @@
     "animation": {
       "could_not_load": "Couldn't load"
     },
-    "snapshot": {
+    "drop": {
       "starts_date": "Starts {{date}}",
       "ends_date": "Ends {{date}}",
       "results_coming_soon": "Results coming soon",
       "tokens_on_the_way": "Tokens on the way",
       "pill_up_next": "Up next",
       "pill_live_now": "Live now",
+      "pill_live_with_position": "Live • You're #{{rank}}",
+      "pill_live_with_participants": "Live • {{count}} entered",
       "pill_calculating": "Calculating",
       "pill_results_ready": "Results Ready",
       "pill_complete": "Complete"
     },
-    "snapshots_section": {
-      "title": "Snapshots",
-      "error_title": "Unable to load snapshots",
-      "error_description": "We couldn't load the snapshots. Please try again.",
+    "drop_section": {
+      "title": "Airdrops",
+      "error_title": "Unable to load airdrops",
+      "error_description": "We couldn't load the airdrops. Please try again.",
       "retry_button": "Retry"
     },
-    "snapshots_tab": {
+    "drop_tab": {
       "active_title": "Active",
       "upcoming_title": "Upcoming",
       "previous_title": "Previous",
-      "empty_state": "No snapshots available",
-      "error_title": "Unable to load snapshots",
-      "error_description": "We couldn't load the snapshots. Please try again.",
+      "empty_state": "No airdrops available",
+      "error_title": "Unable to load airdrops",
+      "error_description": "We couldn't load the airdrops. Please try again.",
       "retry_button": "Retry",
       "refreshing": "Refreshing..."
+    },
+    "drop_detail": {
+      "title": "Airdrop",
+      "info_title": "What's an airdrop?",
+      "info_description": "Airdrops are token distributions you can claim using your points. New airdrops appear throughout the season.",
+      "not_found": "Airdrop not found",
+      "error_title": "Unable to load airdrop",
+      "error_description": "We couldn't load the airdrop. Please try again.",
+      "retry": "Retry",
+      "toast_not_found_title": "Airdrop Not Found",
+      "toast_not_found_description": "Please try again later",
+      "qualify_now": "Qualify Now",
+      "leaderboard": "Leaderboard",
+      "leaderboard_of": "of {{total}}",
+      "leaderboard_rank_tbd": "#TBD",
+      "leaderboard_pts": "{{points}} pts",
+      "leaderboard_change": "Change",
+      "leaderboard_add_more_points": "Add more points",
+      "eligibility_error_title": "Unable to load eligibility",
+      "eligibility_error_description": "We couldn't check your eligibility for this airdrop. Please try again."
+    },
+    "drops": {
+      "select_account_description": "Select an account and enter",
+      "enter": "Enter",
+      "add_points_for": "Add Points for {{dropName}}",
+      "enter_drop": "Enter {{dropName}} airdrop",
+      "points_available": "{{points}} points available",
+      "points_available_label": "points available",
+      "commit": "Submit",
+      "confirm": "Confirm",
+      "enter_the_snapshot": "Enter the airdrop",
+      "enter_the_drop": "Enter the airdrop",
+      "spend_points_title": "Redeem points and climb the leaderboard",
+      "spend_points_description": "Your share is based on how many points you redeem\u2014redeem more, claim more.",
+      "commit_success_title": "You've joined the airdrop",
+      "commit_success_description": "We'll notify you when it ends",
+      "add_points_success_title": "Added Points to airdrop",
+      "add_points_success_description": "Successfully added more points to the airdrop",
+      "commit_error_title": "Failed to join the airdrop",
+      "commit_error_description": "Failed to join the airdrop. Please try again.",
+      "no_matching_account": "Selected account does not have a {{blockchain}} address",
+      "update_account_success_title": "Updated Drop Account",
+      "update_account_success_description": "Successfully updated receiving account",
+      "update_account_error_title": "Update Drop Account Failed",
+      "update_account_error_description": "Please try again later",
+      "cant_select_account_title": "Can't select this account",
+      "cant_select_account_description": "This account belongs to a different rewards profile",
+      "select_account": "Select an account"
     }
   },
   "time": {

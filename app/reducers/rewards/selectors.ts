@@ -151,11 +151,12 @@ export const selectBulkLinkAccountProgress = (state: RootState) => {
   return (linkedAccounts + failedAccounts) / totalAccounts;
 };
 
-// Snapshots selectors
-export const selectSnapshots = (state: RootState) => state.rewards.snapshots;
+// Season Drops selectors
+export const selectSeasonDrops = (state: RootState) =>
+  state.rewards.seasonDrops;
 
-export const selectSnapshotsLoading = (state: RootState) =>
-  state.rewards.snapshotsLoading;
+export const selectSeasonDropsLoading = (state: RootState) =>
+  state.rewards.seasonDropsLoading;
 
-export const selectSnapshotsError = (state: RootState) =>
-  state.rewards.snapshotsError;
+export const selectSeasonDropsError = (state: RootState) =>
+  state.rewards.seasonDropsError;

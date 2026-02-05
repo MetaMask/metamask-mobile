@@ -1,5 +1,5 @@
 import { BaseController, StateMetadata } from '@metamask/base-controller';
-import { maxBy } from 'lodash';
+import { maxBy, minBy } from 'lodash';
 import {
   type RewardsControllerState,
   type RewardsAccountState,
@@ -21,7 +21,7 @@ import {
   type PointsBoostDto,
   type PointsEventDto,
   type RewardDto,
-  type SnapshotDto,
+  type SeasonDropDto,
   type PointsEstimateHistoryEntry,
   ClaimRewardDto,
   PointsEventsDtoState,
@@ -31,6 +31,9 @@ import {
   type SeasonMetadataDto,
   type SeasonStateDto,
   type LineaTokenRewardDto,
+  type DropEligibilityDto,
+  type DropLeaderboardDto,
+  type CommitDropPointsResponseDto,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import {
@@ -90,8 +93,14 @@ const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 // Unlocked rewards cache threshold
 const UNLOCKED_REWARDS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
-// Snapshots cache threshold
-const SNAPSHOTS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+// Drops cache threshold
+const DROPS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+
+// Drop eligibility cache threshold
+const DROP_ELIGIBILITY_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
+
+// Drop committed address cache threshold
+const DROP_COMMITTED_ADDRESS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 // Points events cache threshold (first page only)
 const POINTS_EVENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache
@@ -160,7 +169,19 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
-  snapshots: {
+  drops: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  dropEligibilities: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  dropCommittedAddresses: {
     includeInStateLogs: true,
     persist: true,
     includeInDebugSnapshot: false,
@@ -187,7 +208,9 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   activeBoosts: {},
   unlockedRewards: {},
   pointsEvents: {},
-  snapshots: {},
+  drops: {},
+  dropEligibilities: {},
+  dropCommittedAddresses: {},
   pointsEstimateHistory: [],
 });
 
@@ -283,7 +306,7 @@ export class RewardsController extends BaseController<
   #isDisabled: () => boolean;
   #isBitcoinOptinEnabled: () => boolean;
   #isTronOptinEnabled: () => boolean;
-  #isSnapshotsEnabled: () => boolean;
+  #isDropsEnabled: () => boolean;
 
   /**
    * Calculate tier status and next tier information
@@ -293,6 +316,21 @@ export class RewardsController extends BaseController<
     currentTierId: string,
     currentPoints: number,
   ): SeasonTierState {
+    // Season without tiers maybe?
+    if (
+      !currentTierId ||
+      currentTierId === '00000000-0000-0000-0000-000000000000'
+    ) {
+      const lowestTier = seasonTiers?.length
+        ? minBy(seasonTiers, 'pointsNeeded')
+        : undefined;
+      return {
+        currentTier: lowestTier ?? undefined,
+        nextTier: lowestTier ?? undefined,
+        nextTierPointsNeeded: lowestTier?.pointsNeeded ?? undefined,
+      };
+    }
+
     // Sort tiers by points needed (ascending)
     const sortedTiers = [...seasonTiers].sort(
       (a, b) => a.pointsNeeded - b.pointsNeeded,
@@ -305,9 +343,9 @@ export class RewardsController extends BaseController<
         `Current tier ${currentTierId} not found in season tiers, skip calculating tier status`,
       );
       return {
-        currentTier: null,
-        nextTier: null,
-        nextTierPointsNeeded: null,
+        currentTier: undefined,
+        nextTier: undefined,
+        nextTierPointsNeeded: undefined,
       };
     }
 
@@ -327,8 +365,8 @@ export class RewardsController extends BaseController<
 
     return {
       currentTier,
-      nextTier,
-      nextTierPointsNeeded,
+      nextTier: nextTier ?? undefined,
+      nextTierPointsNeeded: nextTierPointsNeeded ?? undefined,
     };
   }
 
@@ -435,14 +473,14 @@ export class RewardsController extends BaseController<
     isDisabled,
     isBitcoinOptinEnabled,
     isTronOptinEnabled,
-    isSnapshotsEnabled,
+    isDropsEnabled,
   }: {
     messenger: RewardsControllerMessenger;
     state?: Partial<RewardsControllerState>;
     isDisabled?: () => boolean;
     isBitcoinOptinEnabled?: () => boolean;
     isTronOptinEnabled?: () => boolean;
-    isSnapshotsEnabled?: () => boolean;
+    isDropsEnabled?: () => boolean;
   }) {
     super({
       name: controllerName,
@@ -457,7 +495,7 @@ export class RewardsController extends BaseController<
     this.#isDisabled = isDisabled ?? (() => false);
     this.#isBitcoinOptinEnabled = isBitcoinOptinEnabled ?? (() => false);
     this.#isTronOptinEnabled = isTronOptinEnabled ?? (() => false);
-    this.#isSnapshotsEnabled = isSnapshotsEnabled ?? (() => false);
+    this.#isDropsEnabled = isDropsEnabled ?? (() => false);
 
     this.#registerActionHandlers();
     this.#initializeEventSubscriptions();
@@ -548,8 +586,8 @@ export class RewardsController extends BaseController<
       this.getUnlockedRewards.bind(this),
     );
     this.messenger.registerActionHandler(
-      'RewardsController:getSnapshots',
-      this.getSnapshots.bind(this),
+      'RewardsController:getSeasonDrops',
+      this.getSeasonDrops.bind(this),
     );
     this.messenger.registerActionHandler(
       'RewardsController:claimReward',
@@ -578,6 +616,26 @@ export class RewardsController extends BaseController<
     this.messenger.registerActionHandler(
       'RewardsController:applyReferralCode',
       this.applyReferralCode.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:getDropEligibility',
+      this.getDropEligibility.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:getDropLeaderboard',
+      this.getDropLeaderboard.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:commitDropPoints',
+      this.commitDropPoints.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:updateDropReceivingAddress',
+      this.updateDropReceivingAddress.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:getDropCommittedAddress',
+      this.getDropCommittedAddress.bind(this),
     );
   }
 
@@ -649,6 +707,16 @@ export class RewardsController extends BaseController<
     subscriptionId: string,
   ): string {
     return `${seasonId}:${subscriptionId}`;
+  }
+
+  /**
+   * Create composite key for drop-specific state storage
+   */
+  private createDropSubscriptionCompositeKey(
+    dropId: string,
+    subscriptionId: string,
+  ): string {
+    return `${dropId}:${subscriptionId}`;
   }
 
   /**
@@ -3107,48 +3175,48 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Get snapshots for a season with caching
+   * Get drops for a season with caching
    * @param seasonId - The season ID
    * @param subscriptionId - The subscription ID for authentication
-   * @returns Promise<SnapshotDto[]> - The snapshots data
+   * @returns Promise<SeasonDropDto[]> - The drops data
    */
-  async getSnapshots(
+  async getSeasonDrops(
     seasonId: string,
     subscriptionId: string,
-  ): Promise<SnapshotDto[]> {
+  ): Promise<SeasonDropDto[]> {
     const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
       return [];
     }
-    if (!this.#isSnapshotsEnabled()) {
-      throw new Error('Snapshots feature is not enabled');
+    if (!this.#isDropsEnabled()) {
+      throw new Error('Drops feature is not enabled');
     }
-    const result = await wrapWithCache<SnapshotDto[]>({
+    const result = await wrapWithCache<SeasonDropDto[]>({
       key: seasonId,
-      ttl: SNAPSHOTS_CACHE_THRESHOLD_MS,
+      ttl: DROPS_CACHE_THRESHOLD_MS,
       readCache: (key) => {
-        const cachedSnapshots = this.state.snapshots[key] || undefined;
-        if (!cachedSnapshots) return;
+        const cachedDrops = this.state.drops[key] || undefined;
+        if (!cachedDrops) return;
         return {
-          payload: cachedSnapshots.snapshots,
-          lastFetched: cachedSnapshots.lastFetched,
+          payload: cachedDrops.drops,
+          lastFetched: cachedDrops.lastFetched,
         };
       },
       fetchFresh: async () => {
         try {
           Logger.log(
-            'RewardsController: Fetching fresh snapshots data via API call for seasonId',
+            'RewardsController: Fetching fresh drops data via API call for seasonId',
             seasonId,
           );
           const response = (await this.messenger.call(
-            'RewardsDataService:getSnapshots',
+            'RewardsDataService:getDrops',
             seasonId,
             subscriptionId,
-          )) as SnapshotDto[];
+          )) as SeasonDropDto[];
           return response || [];
         } catch (error) {
           Logger.log(
-            'RewardsController: Failed to get snapshots:',
+            'RewardsController: Failed to get drops:',
             error instanceof Error ? error.message : String(error),
           );
           throw error;
@@ -3156,8 +3224,332 @@ export class RewardsController extends BaseController<
       },
       writeCache: (key, payload) => {
         this.update((state: RewardsControllerState) => {
-          state.snapshots[key] = {
-            snapshots: payload,
+          state.drops[key] = {
+            drops: payload,
+            lastFetched: Date.now(),
+          };
+        });
+      },
+    });
+
+    return result;
+  }
+
+  /**
+   * Get drop eligibility status.
+   * @param dropId - The drop ID to get eligibility for
+   * @param subscriptionId - The subscription ID for authentication
+   * @returns The eligibility status including prerequisites with progress
+   */
+  async getDropEligibility(
+    dropId: string,
+    subscriptionId: string,
+  ): Promise<DropEligibilityDto> {
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) {
+      throw new Error('Rewards are not enabled');
+    }
+    if (!this.#isDropsEnabled()) {
+      throw new Error('Drops feature is not enabled');
+    }
+
+    const result = await wrapWithCache<DropEligibilityDto>({
+      key: this.createDropSubscriptionCompositeKey(dropId, subscriptionId),
+      ttl: DROP_ELIGIBILITY_CACHE_THRESHOLD_MS,
+      readCache: (key) => {
+        const cached = this.state.dropEligibilities[key] || undefined;
+        if (!cached) return undefined;
+        return {
+          payload: {
+            dropId: cached.eligibility.dropId,
+            eligible: cached.eligibility.eligible,
+            canCommit: cached.eligibility.canCommit,
+            prerequisiteLogic: cached.eligibility.prerequisiteLogic,
+            prerequisiteStatuses: cached.eligibility.prerequisiteStatuses,
+          },
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () => {
+        try {
+          Logger.log(
+            'RewardsController: Fetching fresh drop eligibility via API call for dropId',
+            dropId,
+          );
+          const response = (await this.messenger.call(
+            'RewardsDataService:getDropEligibility',
+            dropId,
+            subscriptionId,
+          )) as DropEligibilityDto;
+          return response;
+        } catch (error) {
+          Logger.log(
+            'RewardsController: Failed to get drop eligibility:',
+            error instanceof Error ? error.message : String(error),
+          );
+          throw error;
+        }
+      },
+      writeCache: (key, payload) => {
+        this.update((state: RewardsControllerState) => {
+          state.dropEligibilities[key] = {
+            eligibility: {
+              dropId: payload.dropId,
+              eligible: payload.eligible,
+              canCommit: payload.canCommit,
+              prerequisiteLogic: payload.prerequisiteLogic,
+              prerequisiteStatuses: payload.prerequisiteStatuses.map(
+                (status) => ({
+                  satisfied: status.satisfied,
+                  current: status.current,
+                  required: status.required,
+                  prerequisite: {
+                    type: status.prerequisite.type,
+                    activityTypes: status.prerequisite.activityTypes,
+                    minCount: status.prerequisite.minCount,
+                    chainId: status.prerequisite.chainId,
+                    title: status.prerequisite.title,
+                    description: status.prerequisite.description,
+                    iconName: status.prerequisite.iconName,
+                  },
+                }),
+              ),
+            },
+            lastFetched: Date.now(),
+          };
+        });
+      },
+    });
+
+    return result;
+  }
+
+  /**
+   * Get leaderboard data for a drop.
+   * Note: No client-side caching as the backend handles caching (3-min TTL when drop is OPEN).
+   * @param dropId - The drop ID
+   * @param subscriptionId - The subscription ID for authentication
+   * @returns The leaderboard data including top 20 entries, totals, and user position
+   */
+  async getDropLeaderboard(
+    dropId: string,
+    subscriptionId: string,
+  ): Promise<DropLeaderboardDto> {
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) {
+      throw new Error('Rewards are not enabled');
+    }
+    if (!this.#isDropsEnabled()) {
+      throw new Error('Drops feature is not enabled');
+    }
+
+    try {
+      Logger.log(
+        'RewardsController: Fetching drop leaderboard via API call for dropId',
+        dropId,
+      );
+      const response = (await this.messenger.call(
+        'RewardsDataService:getDropLeaderboard',
+        dropId,
+        subscriptionId,
+      )) as DropLeaderboardDto;
+      return response;
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to get drop leaderboard:',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Commit points to a drop.
+   * @param dropId - The drop ID to commit points to
+   * @param points - The number of points to commit
+   * @param subscriptionId - The subscription ID for authentication
+   * @param address - Optional blockchain address matching the drop's receivingBlockchain (required for first commitment)
+   * @returns The commit response with commitment details and updated leaderboard position
+   */
+  async commitDropPoints(
+    dropId: string,
+    points: number,
+    subscriptionId: string,
+    address?: string,
+  ): Promise<CommitDropPointsResponseDto> {
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) {
+      throw new Error('Rewards are not enabled');
+    }
+    if (!this.#isDropsEnabled()) {
+      throw new Error('Drops feature is not enabled');
+    }
+
+    try {
+      Logger.log('RewardsController: Committing points to drop via API call', {
+        dropId,
+        points,
+      });
+      const response = (await this.messenger.call(
+        'RewardsDataService:commitDropPoints',
+        { dropId, points, address },
+        subscriptionId,
+      )) as CommitDropPointsResponseDto;
+
+      Logger.log('RewardsController: Successfully committed points to drop', {
+        dropId,
+        pointsCommitted: response.pointsCommitted,
+        newRank: response.newRank,
+      });
+
+      this.messenger.publish('RewardsController:dropCommit', {
+        dropId,
+        pointsCommitted: response.pointsCommitted,
+        subscriptionId,
+      });
+
+      // If an address was provided (first commitment), update the committed address cache and emit event
+      if (address) {
+        const cacheKey = this.createDropSubscriptionCompositeKey(
+          dropId,
+          subscriptionId,
+        );
+        this.update((state: RewardsControllerState) => {
+          state.dropCommittedAddresses[cacheKey] = {
+            address,
+            lastFetched: Date.now(),
+          };
+        });
+
+        this.messenger.publish('RewardsController:dropAddressCommitted', {
+          dropId,
+          address,
+        });
+      }
+
+      return response;
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to commit points to drop:',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Update the receiving address for a drop.
+   * @param dropId - The drop ID to update the receiving address for
+   * @param address - The new blockchain address for the receiving chain
+   * @param subscriptionId - The subscription ID for authentication
+   */
+  async updateDropReceivingAddress(
+    dropId: string,
+    address: string,
+    subscriptionId: string,
+  ): Promise<void> {
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) {
+      throw new Error('Rewards are not enabled');
+    }
+    if (!this.#isDropsEnabled()) {
+      throw new Error('Drops feature is not enabled');
+    }
+
+    try {
+      Logger.log(
+        'RewardsController: Updating drop receiving address via API call',
+        { dropId },
+      );
+      await this.messenger.call(
+        'RewardsDataService:updateDropReceivingAddress',
+        { dropId, address },
+        subscriptionId,
+      );
+
+      Logger.log(
+        'RewardsController: Successfully updated drop receiving address',
+        { dropId },
+      );
+
+      // Update the committed address cache
+      const cacheKey = this.createDropSubscriptionCompositeKey(
+        dropId,
+        subscriptionId,
+      );
+      this.update((state: RewardsControllerState) => {
+        state.dropCommittedAddresses[cacheKey] = {
+          address,
+          lastFetched: Date.now(),
+        };
+      });
+
+      this.messenger.publish('RewardsController:dropAddressCommitted', {
+        dropId,
+        address,
+      });
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to update drop receiving address:',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Get the committed receiving address for a drop (cached).
+   * @param dropId - The drop ID
+   * @param subscriptionId - The subscription ID for authentication
+   * @returns The committed address string, or null if not found
+   */
+  async getDropCommittedAddress(
+    dropId: string,
+    subscriptionId: string,
+  ): Promise<string | null> {
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) {
+      throw new Error('Rewards are not enabled');
+    }
+    if (!this.#isDropsEnabled()) {
+      throw new Error('Drops feature is not enabled');
+    }
+
+    const result = await wrapWithCache<string | null>({
+      key: this.createDropSubscriptionCompositeKey(dropId, subscriptionId),
+      ttl: DROP_COMMITTED_ADDRESS_CACHE_THRESHOLD_MS,
+      readCache: (key) => {
+        const cached = this.state.dropCommittedAddresses[key] || undefined;
+        if (!cached) return undefined;
+        return {
+          payload: cached.address,
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () => {
+        try {
+          Logger.log(
+            'RewardsController: Fetching drop committed address via API call',
+            { dropId },
+          );
+          const response = await this.messenger.call(
+            'RewardsDataService:getDropCommittedAddress',
+            dropId,
+            subscriptionId,
+          );
+          return response as string | null;
+        } catch (error) {
+          Logger.log(
+            'RewardsController: Failed to get drop committed address:',
+            error instanceof Error ? error.message : String(error),
+          );
+          throw error;
+        }
+      },
+      writeCache: (key, payload) => {
+        this.update((state: RewardsControllerState) => {
+          state.dropCommittedAddresses[key] = {
+            address: payload,
             lastFetched: Date.now(),
           };
         });

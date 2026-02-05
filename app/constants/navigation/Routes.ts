@@ -82,6 +82,8 @@ const Routes = {
   REFERRAL_REWARDS_VIEW: 'ReferralRewardsView',
   REWARDS_SETTINGS_VIEW: 'RewardsSettingsView',
   REWARDS_DASHBOARD: 'RewardsDashboard',
+  REWARDS_DROP_DETAIL: 'RewardsDropDetail',
+  REWARDS_DROP_COMMITMENT: 'RewardsDropCommitment',
   TRENDING_VIEW: 'TrendingView',
   TRENDING_FEED: 'TrendingFeed',
   SITES_FULL_VIEW: 'SitesFullView',
@@ -119,6 +121,7 @@ const Routes = {
     REWARDS_OPTIN_ACCOUNT_GROUP_MODAL: 'RewardOptInAccountGroupModal',
     OTA_UPDATES_MODAL: 'OTAUpdatesModal',
     REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET: 'EndOfSeasonClaimBottomSheet',
+    REWARDS_DROP_ACCOUNT_PICKER: 'RewardsDropAccountPicker',
     CLAIM_ON_LINEA: 'ClaimOnLineaModal',
   },
   ONBOARDING: {

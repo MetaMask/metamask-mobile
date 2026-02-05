@@ -34,7 +34,7 @@ import {
 } from '../../../../reducers/rewards/selectors';
 import SeasonStatus from '../components/SeasonStatus/SeasonStatus';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectSnapshotsRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
+import { selectDropsRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
 import {
   useRewardDashboardModals,
@@ -42,7 +42,7 @@ import {
 } from '../hooks/useRewardDashboardModals';
 import { useBulkLinkState } from '../hooks/useBulkLinkState';
 import RewardsOverview from '../components/Tabs/RewardsOverview';
-import RewardsSnapshots from '../components/Tabs/RewardsSnapshots';
+import RewardsDrops from '../components/Tabs/RewardsDrops';
 import RewardsActivity from '../components/Tabs/RewardsActivity';
 import { TabsList } from '../../../../component-library/components-temp/Tabs';
 import { TabsListRef } from '../../../../component-library/components-temp/Tabs/TabsList/TabsList.types';
@@ -67,7 +67,7 @@ const RewardsDashboard: React.FC = () => {
   );
   const seasonId = useSelector(selectSeasonId);
   const seasonEndDate = useSelector(selectSeasonEndDate);
-  const isSnapshotsEnabled = useSelector(selectSnapshotsRewardsEnabledFlag);
+  const isDropsEnabled = useSelector(selectDropsRewardsEnabledFlag);
   const hideCurrentAccountNotOptedInBannerMap = useSelector(
     selectHideCurrentAccountNotOptedInBannerArray,
   );
@@ -139,7 +139,7 @@ const RewardsDashboard: React.FC = () => {
 
   const tabOptions = useMemo(() => {
     const options: {
-      value: 'overview' | 'snapshots' | 'activity';
+      value: 'overview' | 'drops' | 'activity';
       label: string;
     }[] = [
       {
@@ -148,10 +148,10 @@ const RewardsDashboard: React.FC = () => {
       },
     ];
 
-    if (isSnapshotsEnabled) {
+    if (isDropsEnabled) {
       options.push({
-        value: 'snapshots' as const,
-        label: strings('rewards.tab_snapshots_title'),
+        value: 'drops' as const,
+        label: strings('rewards.tab_drops_title'),
       });
     }
 
@@ -161,14 +161,14 @@ const RewardsDashboard: React.FC = () => {
     });
 
     return options;
-  }, [isSnapshotsEnabled]);
+  }, [isDropsEnabled]);
 
   const getActiveIndex = useCallback(
     () => tabOptions.findIndex((tab) => tab.value === activeTab),
     [tabOptions, activeTab],
   );
 
-  // Reset activeTab to 'overview' if current tab becomes unavailable (e.g., snapshots disabled)
+  // Reset activeTab to 'overview' if current tab becomes unavailable (e.g., drops disabled)
   // This ensures Redux state stays in sync with the visible tab and analytics events are accurate
   useEffect(() => {
     const isCurrentTabAvailable = tabOptions.some(
@@ -223,11 +223,11 @@ const RewardsDashboard: React.FC = () => {
       />,
     ];
 
-    if (isSnapshotsEnabled) {
+    if (isDropsEnabled) {
       tabs.push(
-        <RewardsSnapshots
-          key="snapshots"
-          tabLabel={strings('rewards.tab_snapshots_title')}
+        <RewardsDrops
+          key="drops"
+          tabLabel={strings('rewards.tab_drops_title')}
         />,
       );
     }
@@ -240,7 +240,7 @@ const RewardsDashboard: React.FC = () => {
     );
 
     return tabs;
-  }, [isSnapshotsEnabled]);
+  }, [isDropsEnabled]);
 
   const [showPreviousSeasonSummary, setShowPreviousSeasonSummary] = useState<
     boolean | null
