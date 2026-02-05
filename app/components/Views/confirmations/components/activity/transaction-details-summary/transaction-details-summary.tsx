@@ -40,7 +40,10 @@ import { useNetworkName } from '../../../hooks/useNetworkName';
 import { TransactionDetailsStatus } from '../transaction-details-status';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 import { POLYGON_USDCE } from '../../../constants/predict';
-import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../../../../UI/Earn/constants/musd';
+import {
+  findMusdReceiveTransaction,
+  getMusdReceiveHash,
+} from './transaction-details-summary.utils';
 
 export function TransactionDetailsSummary() {
   const { styles } = useStyles(styleSheet, {});
@@ -399,19 +402,11 @@ function useBridgeReceiveData(
 
   // mUSD conversion: main transaction renders receive line only
   if (hasTransactionType(transaction, [TransactionType.musdConversion])) {
-    const musdAddress =
-      MUSD_TOKEN_ADDRESS_BY_CHAIN[transaction.chainId]?.toLowerCase();
-    const musdReceiveTx = requiredTransactions.find(
-      (tx) =>
-        tx.transferInformation?.contractAddress?.toLowerCase() === musdAddress,
+    const musdReceiveTx = findMusdReceiveTransaction(
+      requiredTransactions,
+      transaction.chainId,
     );
-    const fallbackHash =
-      transaction.hash && transaction.hash !== '0x0'
-        ? (transaction.hash as Hex)
-        : undefined;
-    const receiveHash = (musdReceiveTx?.hash ?? fallbackHash) as
-      | Hex
-      | undefined;
+    const receiveHash = getMusdReceiveHash(musdReceiveTx, transaction);
 
     return {
       chainId: transaction.chainId,
