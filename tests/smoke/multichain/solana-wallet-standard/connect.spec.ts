@@ -1,20 +1,20 @@
-import { SmokeNetworkExpansion } from '../../../tags';
-import Assertions from '../../../../tests/framework/Assertions';
-import SolanaTestDApp from '../../../pages/Browser/SolanaTestDApp';
+import { SmokeNetworkExpansion } from '../../../../e2e/tags';
+import Assertions from '../../../framework/Assertions';
+import SolanaTestDApp from '../../../../e2e/pages/Browser/SolanaTestDApp';
 import {
   account1Short,
   account2Short,
   connectSolanaTestDapp,
   navigateToSolanaTestDApp,
-} from './testHelpers';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent';
-import WalletView from '../../../pages/wallet/WalletView';
-import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
-import { Utilities } from '../../../../tests/framework';
-import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
-import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
-import { DappVariants } from '../../../../tests/framework/Constants';
+} from '../../../flows/solana-connection.flow';
+import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
+import WalletView from '../../../../e2e/pages/wallet/WalletView';
+import AccountListBottomSheet from '../../../../e2e/pages/wallet/AccountListBottomSheet';
+import { Utilities } from '../../../framework';
+import { loginToApp, navigateToBrowserView } from '../../../../e2e/viewHelper';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import { DappVariants } from '../../../framework/Constants';
 
 describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
   beforeAll(async () => {

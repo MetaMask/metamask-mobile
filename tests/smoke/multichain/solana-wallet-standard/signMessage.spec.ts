@@ -1,12 +1,15 @@
-import { SmokeNetworkExpansion } from '../../../tags';
-import SolanaTestDApp from '../../../pages/Browser/SolanaTestDApp';
-import { connectSolanaTestDapp, navigateToSolanaTestDApp } from './testHelpers';
-import Assertions from '../../../../tests/framework/Assertions';
-import { logger } from '../../../../tests/framework/logger';
-import { loginToApp } from '../../../viewHelper';
-import { DappVariants } from '../../../../tests/framework/Constants';
-import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
+import { SmokeNetworkExpansion } from '../../../../e2e/tags';
+import SolanaTestDApp from '../../../../e2e/pages/Browser/SolanaTestDApp';
+import {
+  connectSolanaTestDapp,
+  navigateToSolanaTestDApp,
+} from '../../../flows/solana-connection.flow';
+import Assertions from '../../../framework/Assertions';
+import { logger } from '../../../framework/logger';
+import { loginToApp } from '../../../../e2e/viewHelper';
+import { DappVariants } from '../../../framework/Constants';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 
 describe(
   SmokeNetworkExpansion('Solana Wallet Standard E2E - Sign Message'),
