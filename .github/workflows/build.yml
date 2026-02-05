@@ -138,19 +138,24 @@ jobs:
             ~/.cocoapods
           key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
 
-      - name: Upload node_modules and build artifacts
+      - name: Create tarball with node_modules (preserves symlinks)
+        run: |
+          echo "📦 Creating tarball to preserve symlinks..."
+          tar -czf node-modules-${{ matrix.platform }}.tar.gz \
+            node_modules \
+            app/util/termsOfUse/termsOfUseContent.ts \
+            app/core/InpageBridgeWeb3.js \
+            scripts/inpage-bridge/dist
+          echo "✅ Tarball created: $(du -h node-modules-${{ matrix.platform }}.tar.gz)"
+
+      - name: Upload node_modules tarball
         uses: actions/upload-artifact@v4
         with:
           name: node-modules-${{ matrix.platform }}
-          path: |
-            node_modules
-            app/util/termsOfUse/termsOfUseContent.ts
-            app/core/InpageBridgeWeb3.js
-            scripts/inpage-bridge/dist
+          path: node-modules-${{ matrix.platform }}.tar.gz
           retention-days: 1
-          compression-level: 1
-          include-hidden-files: true
-          if-no-files-found: warn
+          compression-level: 0
+          if-no-files-found: error
 
   # Build
   build:
@@ -174,15 +179,19 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Download node_modules artifact
+      - name: Download node_modules tarball
         uses: actions/download-artifact@v4
         with:
           name: node-modules-${{ matrix.platform }}
 
-      - name: Restore executable permissions
-        uses: ./.github/actions/restore-node-modules-permissions
+      - name: Extract tarball (preserves symlinks)
+        run: |
+          echo "📦 Extracting tarball..."
+          tar -xzf node-modules-${{ matrix.platform }}.tar.gz
+          rm node-modules-${{ matrix.platform }}.tar.gz
+          echo "✅ Tarball extracted"
 
-      - name: Verify artifacts
+      - name: Verify artifacts and symlinks
         run: |
           echo "✅ Verifying artifacts..."
           if [ ! -d "node_modules" ]; then
@@ -194,7 +203,27 @@ jobs:
             exit 1
           fi
           echo "📦 node_modules size: $(du -sh node_modules | cut -f1)"
-          echo "✅ Artifacts verified"
+          
+          # Verify symlinks in .bin directory
+          echo "🔍 Checking .bin symlinks..."
+          if [ -L "node_modules/.bin/react-native" ]; then
+            echo "✅ react-native symlink exists"
+            ls -la node_modules/.bin/react-native
+          else
+            echo "❌ react-native symlink missing or broken"
+            ls -la node_modules/.bin/ | head -10
+            exit 1
+          fi
+          
+          # Check React Native scripts
+          if [ -d "node_modules/react-native/scripts" ]; then
+            echo "✅ React Native scripts found"
+          else
+            echo "❌ React Native scripts missing"
+            exit 1
+          fi
+          
+          echo "✅ All artifacts verified with working symlinks!"
 
       - name: Apply build config
         run: |
@@ -349,6 +378,17 @@ jobs:
           max_attempts: 3
           retry_wait_seconds: 30
           command: yarn pod:install
+
+      # iOS: Configure Node path for Xcode build scripts (React Native Codegen)
+      - name: Configure Node path for Xcode
+        if: matrix.platform == 'ios'
+        run: |
+          NODE_BINARY=$(command -v node)
+          echo "Node binary: $NODE_BINARY"
+          echo "export NODE_BINARY=\"$NODE_BINARY\"" > ios/.xcode.env.local
+          echo "✅ Created ios/.xcode.env.local"
+          cat ios/.xcode.env.local
+          node --version
 
       # Android: use CI Gradle settings (8GB heap, OOM handling) to avoid daemon OOM
       - name: Use CI Gradle properties (Android)

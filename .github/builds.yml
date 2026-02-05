@@ -358,6 +358,26 @@ builds:
       earnMusdConversionRewardsUiEnabled: true
       earnMerklCampaignClaiming: true
 
+  # Flask UAT builds (User Acceptance Testing)
+  flask-uat:
+    github_environment: build-test
+    env:
+      METAMASK_ENVIRONMENT: "uat"
+      METAMASK_BUILD_TYPE: "flask"
+      <<: *servers
+      PORTFOLIO_API_URL: "https://portfolio.dev-api.cx.metamask.io"
+      REWARDS_API_URL: "https://rewards.uat-api.cx.metamask.io"
+      BAANX_API_URL: "https://dev.api.baanx.com"
+      RAMPS_ENVIRONMENT: "staging"
+      BRIDGE_USE_DEV_APIS: "true"
+      RAMP_INTERNAL_BUILD: "true"
+      IS_TEST: "true"
+      IGNORE_BOXLOGS_DEVELOPMENT: "true"
+      IS_SIM_BUILD: "true"
+    secrets: *secrets
+    code_fencing: *code_fencing_flask
+    remote_feature_flags: *remote_feature_flags
+
   # ─────────────────────────────────────────────────────────────────────────────
   # QA Builds (legacy - for internal testing)
   # ─────────────────────────────────────────────────────────────────────────────
