@@ -1,4 +1,6 @@
 import React from 'react';
+import { Alert } from 'react-native';
+import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { LoginViewSelectors } from '../Login/LoginView.testIds';
 import { fireEvent, act, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -52,6 +54,8 @@ jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
 }));
 
 jest.mock('../../../util/Logger');
+
+let mockAlert: jest.SpyInstance;
 
 // Mock images
 jest.mock('../../../images/branding/fox.png', () => 'fox-logo');
@@ -167,6 +171,7 @@ const createMockReduxStore = () => {
 describe('OAuthRehydration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAlert = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
     // Mock Redux store for all tests
     const mockStore = createMockReduxStore();
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
@@ -189,7 +194,8 @@ describe('OAuthRehydration', () => {
     });
     mockUpdateAuthPreference.mockResolvedValue(undefined);
     mockAuthenticationGetType.mockResolvedValue({
-      currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+      currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+      availableBiometryType: BIOMETRY_TYPE.FACE_ID,
     });
     // Reset isDeletingInProgress to false to prevent test pollution
     mockIsDeletingInProgress.mockReturnValue(false);
@@ -910,6 +916,16 @@ describe('OAuthRehydration', () => {
 
       // Assert
       await waitFor(() => {
+        expect(mockAlert).toHaveBeenCalledWith(
+          strings('login.biometric_authentication_cancelled_title'),
+          strings('login.biometric_authentication_cancelled_description'),
+          expect.arrayContaining([
+            expect.objectContaining({
+              text: strings('login.biometric_authentication_cancelled_button'),
+              onPress: expect.any(Function),
+            }),
+          ]),
+        );
         expect(
           getByTestId(LoginViewSelectors.BIOMETRIC_SWITCH),
         ).toBeOnTheScreen();
