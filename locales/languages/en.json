@@ -6706,7 +6706,7 @@
     "card_onboarding": {
       "title": "Spend\nand Earn",
       "description": "The MetaMask Card is the fast and\neasy way to spend your crypto and\nearn up to 3% cashback.",
-      "apply_now_button": "Setup now",
+      "apply_now_button": "Set up now",
       "login_button": "Log in",
       "not_now_button": "Not now",
       "sign_up": {
@@ -6729,8 +6729,8 @@
         "resend_cooldown": "Resend available in {{seconds}} seconds"
       },
       "set_phone_number": {
-        "title": "Confirm your phone number",
-        "description": "Enter your phone number. We'll send you a confirmation code there.",
+        "title": "Enter your phone number",
+        "description": "We'll send you a confirmation code there.",
         "phone_number_label": "Enter phone number",
         "country_area_code_label": "Country area code",
         "invalid_phone_number": "Invalid phone number",
@@ -6810,6 +6810,7 @@
         "date_of_birth_label": "Date of birth",
         "nationality_label": "Nationality",
         "ssn_label": "Social Security Number",
+        "ssn_description": "Required by the card issuer. No credit check will be run.",
         "invalid_ssn": "Invalid SSN",
         "invalid_date_of_birth": "Invalid date of birth. You must be at least 18 years old"
       },
@@ -6870,6 +6871,7 @@
     },
     "card_home": {
       "title": "Card",
+      "authentication_error": "Your session has expired. Please log in again.",
       "available_balance": "Available balance",
       "error_title": "Can't fetch data",
       "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Please check your connection or try refreshing the page.",
