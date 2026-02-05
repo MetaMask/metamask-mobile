@@ -28,7 +28,7 @@ export function PayWithModal() {
     HIDE_NETWORK_FILTER_TYPES,
   );
   const { payToken, setPayToken } = useTransactionPayToken();
-  const { isWithdrawal, setWithdrawalToken } = useWithdrawalToken();
+  const { isWithdrawal } = useWithdrawalToken();
   const requiredTokens = useTransactionPayRequiredTokens();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { filterAllowedTokens: musdTokenFilter } = useMusdConversionTokens();
@@ -49,18 +49,7 @@ export function PayWithModal() {
         return;
       }
 
-      if (isWithdrawal) {
-        // For withdrawals, update destination token via TransactionPayController
-        close(() => {
-          setWithdrawalToken({
-            address: token.address as Hex,
-            chainId: token.chainId as Hex,
-          });
-        });
-        return;
-      }
-
-      // For deposits/payments, update pay token via TransactionPayController
+      // For both deposits and withdrawals, update token via TransactionPayController
       close(() => {
         setPayToken({
           address: token.address as Hex,
@@ -68,14 +57,7 @@ export function PayWithModal() {
         });
       });
     },
-    [
-      close,
-      isWithdrawal,
-      onMusdPaymentTokenChange,
-      setPayToken,
-      setWithdrawalToken,
-      transactionMeta,
-    ],
+    [close, onMusdPaymentTokenChange, setPayToken, transactionMeta],
   );
 
   const tokenFilter = useCallback(
