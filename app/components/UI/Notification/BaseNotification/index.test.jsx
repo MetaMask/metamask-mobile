@@ -88,8 +88,7 @@ describe('BaseNotification', () => {
       const expectedTitle = strings('notifications.success_title', {
         nonce: '',
       })
-        .replace(' #', ' ')
-        .replace('{{nonce}}', '')
+        .replace(' # ', ' ')
         .trim();
 
       expect(getByText(expectedTitle)).toBeTruthy();
@@ -113,8 +112,7 @@ describe('BaseNotification', () => {
       const expectedTitle = strings('notifications.speedup_title', {
         nonce: '',
       })
-        .replace(' #', ' ')
-        .replace('{{nonce}}', '')
+        .replace(' #', '')
         .trim();
 
       expect(getByText(expectedTitle)).toBeTruthy();

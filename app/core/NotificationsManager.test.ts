@@ -152,8 +152,7 @@ describe('NotificationManager', () => {
       const expectedTitle = strings('notifications.success_title', {
         nonce: '',
       })
-        .replace(' #', ' ')
-        .replace('{{nonce}}', '')
+        .replace(' # ', ' ')
         .trim();
 
       expect(title).toBe(expectedTitle);
@@ -187,8 +186,7 @@ describe('NotificationManager', () => {
       const expectedTitle = strings('notifications.speedup_title', {
         nonce: '',
       })
-        .replace(' #', ' ')
-        .replace('{{nonce}}', '')
+        .replace(' #', '')
         .trim();
 
       expect(title).toBe(expectedTitle);

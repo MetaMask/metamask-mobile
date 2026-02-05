@@ -59,8 +59,7 @@ export const constructTitleAndMessage = (notification) => {
         } else {
           // For transactions without nonce (e.g., EIP-7702), show without nonce
           title = strings('notifications.success_title', { nonce: '' })
-            .replace(' #', ' ')
-            .replace('{{nonce}}', '')
+            .replace(' # ', ' ')
             .trim();
         }
         message = strings('notifications.success_message');
@@ -74,8 +73,7 @@ export const constructTitleAndMessage = (notification) => {
         } else {
           // For transactions without nonce, show without nonce
           title = strings('notifications.speedup_title', { nonce: '' })
-            .replace(' #', ' ')
-            .replace('{{nonce}}', '')
+            .replace(' #', '')
             .trim();
         }
         message = strings('notifications.speedup_message');
@@ -234,9 +232,7 @@ class NotificationManager {
           });
         // Clean up
         this._removeListeners(transactionMeta.id);
-        if (transactionMeta.txParams?.nonce !== undefined) {
-          delete this._transactionsWatchTable[transactionMeta.txParams.nonce];
-        }
+        delete this._transactionsWatchTable[transactionMeta.txParams.nonce];
       }, 2000);
   };
 

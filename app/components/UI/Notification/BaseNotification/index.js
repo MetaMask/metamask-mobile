@@ -137,8 +137,7 @@ const getTitle = (status, { nonce, amount, assetType }) => {
       }
       // For transactions without nonce (e.g., EIP-7702), show without nonce
       return strings('notifications.success_title', { nonce: '' })
-        .replace(' #', ' ')
-        .replace('{{nonce}}', '')
+        .replace(' # ', ' ')
         .trim();
     case 'success_deposit':
       return strings('notifications.success_deposit_title');
@@ -157,8 +156,7 @@ const getTitle = (status, { nonce, amount, assetType }) => {
       }
       // For transactions without nonce, show without nonce
       return strings('notifications.speedup_title', { nonce: '' })
-        .replace(' #', ' ')
-        .replace('{{nonce}}', '')
+        .replace(' #', '')
         .trim();
     case 'received_payment':
       return strings('notifications.received_payment_title');
