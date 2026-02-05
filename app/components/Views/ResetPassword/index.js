@@ -963,9 +963,6 @@ class ResetPassword extends PureComponent {
                     autoCapitalize="none"
                     keyboardAppearance={themeAppearance}
                     isError={this.isPasswordTooShort()}
-                    style={
-                      this.isPasswordTooShort() ? styles.errorBorder : undefined
-                    }
                     endAccessory={
                       <Icon
                         name={
