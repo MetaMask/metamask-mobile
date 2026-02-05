@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import { strings } from '../../../../../../locales/i18n';
@@ -41,23 +41,8 @@ import BigNumber from 'bignumber.js';
 import { MINIMUM_BALANCE_FOR_EARN_CTA } from '../../../Earn/constants/token';
 import useEarnToken from '../../../Earn/hooks/useEarnToken';
 import { EarnTokenDetails } from '../../../Earn/types/lending.types';
-import { Theme } from '../../../../../util/theme/models';
 import { useStyles } from '../../../../../component-library/hooks';
-
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
-
-  return StyleSheet.create({
-    stakeButton: {
-      flexDirection: 'row',
-      backgroundColor: theme.colors.background.muted,
-      paddingHorizontal: 6,
-      borderRadius: 5,
-      marginLeft: 8,
-    },
-  });
-};
-
+import styleSheet from './StakeButton.styles';
 interface StakeButtonContentProps {
   earnToken: EarnTokenDetails;
 }
