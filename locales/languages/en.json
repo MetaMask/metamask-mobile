@@ -115,6 +115,10 @@
       "message": "You're sending your assets to a burn address. If you continue, you'll lose your assets.",
       "title": "Sending assets to burn address"
     },
+    "gas_sponsorship_reserve_balance": {
+      "message": "Gas sponsorship isn't available for this transaction. You'll need to keep at least %{minBalance} %{nativeTokenSymbol} in your account.",
+      "title": "Gas sponsorship unavailable"
+    },
     "token_trust_signal": {
       "malicious": {
         "message": "This token has been identified as malicious. Interacting with this token may result in a loss of funds.",
@@ -3324,6 +3328,10 @@
   "asset_overview": {
     "send_button": "Send",
     "buy_button": "Buy",
+    "cash_buy_button": "Cash Buy",
+    "long_button": "Long",
+    "short_button": "Short",
+    "more_button": "More",
     "token_marketplace": "Token marketplace",
     "sell_button": "Sell",
     "receive_button": "Receive",
@@ -4852,6 +4860,7 @@
       "lowest_sell_limit": "lowest sell limit",
       "medium_sell_limit": "medium sell limit",
       "highest_sell_limit": "highest sell limit",
+      "change": "Change",
       "continue_to_amount": "Continue to amount",
       "no_payment_methods_title": "No payment methods in {{regionName}}",
       "no_cash_destinations_title": "No cash destinations in {{regionName}}",
@@ -6334,6 +6343,7 @@
     "select_recipient": "Select recipient",
     "external_account": "External account",
     "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
+    "stock_token_error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.\n\nPlease note if you are attempting to trade Ondo Tokenised Stocks you may be geo-restricted e.g. via US, EU, UK and BR.",
     "insufficient_funds": "Insufficient funds",
     "insufficient_gas": "Insufficient gas",
     "select_amount": "Select amount",
@@ -7488,7 +7498,7 @@
       "redeem_failure_title": "Redeem failed",
       "redeem_failure_description": "Please try again later.",
       "reward_details": "Reward Details",
-      "select_account_description": "Select the account where you'd like this reward sent. Tokens will be distributed within two weeks."
+      "select_account_description": "Select the account where you'd like this reward sent."
     },
     "animation": {
       "could_not_load": "Couldn't load"

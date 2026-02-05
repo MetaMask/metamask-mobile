@@ -25,6 +25,8 @@
       "title": "경고",
       "checkbox_label": "본인은 위험을 인지했으며 계속 진행하기 원합니다",
       "got_it_btn": "컨펌",
+      "acknowledge_btn": "Acknowledge",
+      "close_btn": "닫기",
       "alert_details": "경고 세부 정보"
     },
     "confirm_modal": {
@@ -196,7 +198,10 @@
     "placeholder": "사이트 또는 주소로 검색",
     "recents": "최근",
     "favorites": "즐겨찾기",
-    "sites": "사이트"
+    "sites": "사이트",
+    "tokens": "Trending tokens",
+    "perps": "무기한 선물",
+    "predictions": "예측"
   },
   "navigation": {
     "back": "뒤로",
@@ -1008,6 +1013,7 @@
       "set_stop_loss_subtitle": "손절가를 {{price}}({{percent}})(으)로 설정",
       "set_button": "설정"
     },
+    "confirm": "컨펌",
     "deposit": {
       "title": "예치 금액",
       "get_usdc_hyperliquid": "USDC 받기 • Hyperliquid",
@@ -1081,10 +1087,16 @@
       "error_toast": "트랜잭션 실패",
       "error_generic": "자금이 반환되었습니다",
       "in_progress": "무기한 선물에 자금 추가 중",
+      "depositing_your_funds": "자금 예치 중",
+      "your_funds_have_arrived": "자금이 입금되었습니다",
       "estimated_processing_time": "예상 시간: {{time}}",
       "funds_available_momentarily": "자금을 곧 사용할 수 있습니다",
       "your_funds_are_available_to_trade": "자금을 거래에 사용할 수 있습니다",
       "track": "조회"
+    },
+    "one_click_trade": {
+      "tx_creation_failed_title": "Could not open position",
+      "tx_creation_failed_description": "Transaction creation failed. Please try again."
     },
     "withdrawal": {
       "title": "출금",
@@ -1247,6 +1259,16 @@
           "description": "지정 가격 이상에서만 체결"
         }
       },
+      "payment_token": "결제 토큰",
+      "select_payment_token": "결제 토큰 선택",
+      "select_token": "토큰 선택",
+      "no_payment_tokens": "사용 가능한 결제 토큰 없음",
+      "swap": "스왑",
+      "swap_submitted": "스왑 제출 완료",
+      "transaction_id": "트랜잭션 ID: {{txId}}",
+      "swap_failed": "스왑 실패",
+      "swap_error_message": "스왑 트랜잭션에 실패했습니다: {{error}}",
+      "swap_converting": "ARBITRUM에서 잔액을 USDC로 변환 중",
       "success": {
         "title": "주문이 접수되었습니다",
         "subtitle": "{{asset}}에 대한 {{direction}} 포지션이 생성되었습니다",
@@ -1275,7 +1297,10 @@
       "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
       "order_failed": "주문 실패",
       "your_funds_have_been_returned_to_you": "자금이 반환되었습니다",
-      "order_cancelled_success": "{{detailedOrderType}} 주문 취소 완료"
+      "order_cancelled_success": "{{detailedOrderType}} 주문 취소 완료",
+      "pay_with_token_required": "토큰 선택 필요",
+      "select_token_to_pay_with": "주문하기 전에 결제에 사용할 토큰을 선택하세요",
+      "initializing": "주문 초기화 중..."
     },
     "price_deviation_warning": {
       "message": "가격이 현물 가격에서 너무 크게 벗어났습니다. 현재는 새로운 포지션을 열 수 없습니다."
@@ -1766,14 +1791,18 @@
       "commodities": "상품",
       "stocks_and_commodities": "주식 및 원자재 살펴보기",
       "tabs": {
-        "all": "모두",
         "crypto": "암호화폐",
-        "stocks_and_commodities": "주식"
+        "stocks": "주식",
+        "commodities": "상품",
+        "forex": "외환",
+        "new": "신규"
       },
       "filter_by": "필터링 기준:",
       "forex": "외환",
       "watchlist": "관심 목록",
-      "markets": "시장"
+      "markets": "시장",
+      "explore_markets": "시장 살펴보기",
+      "see_all_perps": "모든 무기한 선물 보기"
     },
     "learn_more": {
       "title": "무기한 선물에 대해 알아보기",
@@ -2065,7 +2094,8 @@
       "new": "신규",
       "sports": "스포츠",
       "crypto": "암호화폐",
-      "politics": "정치"
+      "politics": "정치",
+      "hot": "Hot"
     },
     "search_placeholder": "예측 시장 검색",
     "search_cancel": "취소",
@@ -2674,7 +2704,7 @@
     "advisory_by": "Ethereum Phishing Detector와 PhishFort에서 자문 제공",
     "potential_threat": "다음과 같은 잠재적 위협이 있습니다.",
     "fake_metamask": "MetaMask 위조 버전",
-    "srp_theft": "Secret Recovery Phrase or password theft",
+    "srp_theft": "비밀복구구문 또는 비밀번호 도용",
     "malicious_transactions": "자산 도난으로 이어지는 악성 거래",
     "secret_recovery_phrase": "비밀복구구문입니다",
     "account_name": "계정 이름",
@@ -2741,9 +2771,8 @@
     "description5": "1. 키스톤 잠금 해제",
     "description6": "2. ··· 메뉴 클릭 후 동기화",
     "button_continue": "계속",
-    "hint_text": "하드웨어 지갑을 스캔하여 ",
-    "purpose_connect": "연결",
-    "purpose_sign": "트랜잭션 컨펌",
+    "hint_text_pair": "Scan your hardware wallet",
+    "hint_text_sign": "Scan your hardware wallet to confirm the transaction",
     "select_accounts": "계정 선택"
   },
   "data_collection_modal": {
@@ -3136,7 +3165,12 @@
       "generate_trace_test": "트레이스 테스트 생성",
       "generate_trace_test_desc": "Sentry 트레이스 개발자 테스트를 생성합니다.",
       "navigate_to_sample_feature": "샘플 기능으로 이동",
-      "sample_feature_desc": "개발자를 위한 템플릿용 샘플 기능."
+      "sample_feature_desc": "개발자를 위한 템플릿용 샘플 기능.",
+      "card": {
+        "title": "카드",
+        "reset_onboarding_description": "온보딩 흐름을 처음부터 다시 시작하려면 카드 온보딩 상태를 초기화하세요.",
+        "reset_onboarding_button": "온보딩 상태 초기화"
+      }
     },
     "feature_flag_override": {
       "title": "기능 플래그 무시",
@@ -3265,8 +3299,10 @@
   "screenshot_deterrent": {
     "title": "안전성 알림",
     "description": "스크린숏은 {{credentialName}}(을)를 보관하기에 안전한 방법이 아닙니다. 계정을 안전하게 유지하려면 온라인으로 백업이 되지 않는 곳에 보관하세요.",
+    "card_description": "Screenshots of your card details could be accessed by others. Never share your card number or CVV.",
     "srp_text": "비밀복구구문입니다",
-    "priv_key_text": "개인 키"
+    "priv_key_text": "개인 키",
+    "card_text": "card details"
   },
   "password_reset": {
     "password_title": "비밀번호",
@@ -3305,11 +3341,11 @@
     "merkl_rewards": {
       "annual_bonus": "{{apy}}% 보너스",
       "claimable_bonus": "청구 가능한 보너스",
-      "claimable_bonus_tooltip_description": "mUSD bonuses are claimed on Linea.",
-      "terms_apply": "Terms apply.",
+      "claimable_bonus_tooltip_description": "mUSD 보너스는 Linea에서 청구할 수 있습니다.",
+      "terms_apply": "약관이 적용됩니다.",
       "ok": "확인",
       "claim": "청구",
-      "processing_claim": "Processing claim..."
+      "processing_claim": "청구 진행 중..."
     },
     "tron": {
       "daily_resource_new_energy": "신규 일일 에너지",
@@ -3688,6 +3724,8 @@
     "new_tab": "새 탭",
     "tabs_close_all": "모두 종료",
     "tabs_done": "완료",
+    "opened_tabs": "Opened tabs",
+    "add_new_tab": "Add new tab",
     "no_tabs_title": "No open tabs",
     "no_tabs_desc": "탈중앙화된 웹에서 브라우징을 할 수 있도록 새 탭을 추가하세요",
     "got_it": "컨펌",
@@ -4614,7 +4652,9 @@
     "select_provider": "선호하는 공급업체 선택",
     "switch_network": "메인넷이나 세폴리아로 전환하세요",
     "card_title": "MetaMask 카드 버튼 항상 표시",
-    "card_desc": "MetaMask 카드는 일부 국가의 거주자만 사용할 수 있습니다."
+    "card_desc": "MetaMask 카드는 일부 국가의 거주자만 사용할 수 있습니다.",
+    "daimo_demo_title": "Use DaimoPay demo environment",
+    "daimo_demo_desc": "Toggle between DaimoPay demo and production environments for card payments."
   },
   "walletconnect_sessions": {
     "no_active_sessions": "현재 활성화된 세션이 없습니다",
@@ -5765,7 +5805,7 @@
     },
     "musd_conversion": {
       "ok": "확인",
-      "continue": "Continue",
+      "continue": "계속",
       "convert_and_get_percentage_bonus": "전환 후 {{percentage}}% 받기",
       "get_a_percentage_musd_bonus": "{{percentage}}%의 mUSD 보너스 혜택",
       "convert": "전환",
@@ -6317,7 +6357,16 @@
     "approval_tooltip_content": "지정된 금액, {{amount}} {{symbol}}에만 접근을 허용합니다. 계약은 추가 자금에 접근하지 않습니다.",
     "minimum_received": "Minimum received",
     "minimum_received_tooltip_title": "Minimum received",
-    "minimum_received_tooltip_content": "이는 트랜잭션 처리 중 가격이 변동될 경우, 사용자의 슬리피지 허용 범위에 따라 최소한으로 수령할 수 있는 금액입니다. 이는 유동성 공급자들의 추정치이며, 최종 금액은 달라질 수 있습니다."
+    "minimum_received_tooltip_content": "이는 트랜잭션 처리 중 가격이 변동될 경우, 사용자의 슬리피지 허용 범위에 따라 최소한으로 수령할 수 있는 금액입니다. 이는 유동성 공급자들의 추정치이며, 최종 금액은 달라질 수 있습니다.",
+    "submit": "제출",
+    "default_slippage_description": "Your transaction won't go through if the price changes more than the slippage percent.",
+    "cancel": "취소",
+    "confirm": "컨펌",
+    "exceeding_upper_slippage_warning": "High slippage, this may result in a unfavourable swap",
+    "exceeding_lower_slippage_warning": "Low slippage, this may result in a unfavourable swap",
+    "exceeding_lower_slippage_error": "Enter a value greater than {{value}}%",
+    "exceeding_upper_slippage_error": "You cannot enter a value greater than {{value}}%",
+    "custom": "맞춤형"
   },
   "quote_expired_modal": {
     "title": "새로운 견적이 있습니다",
@@ -6541,7 +6590,7 @@
       "title": "{{networkName}} 주소",
       "copy_address": "주소 복사",
       "description": "토큰과 컬렉터블을 받을 수 있는 주소:",
-      "description_prefix": "Use this to receive assets on"
+      "description_prefix": "자산 수신에 이를 사용하세요"
     },
     "export_credentials": {
       "export_private_key": "개인 키",
@@ -6610,23 +6659,84 @@
       "swap_description": "{{chainName}} 체인에서 토큰을 {{symbol}}(으)로 스왑",
       "select_method": "방법 선택"
     },
+    "password_bottomsheet": {
+      "title": "비밀번호 입력",
+      "description": "카드 상세 정보를 보려면 지갑 비밀번호를 입력하세요.",
+      "placeholder": "비밀번호",
+      "confirm": "컨펌",
+      "cancel": "취소",
+      "error_empty": "비밀번호를 입력하세요",
+      "error_incorrect": "잘못된 비밀번호입니다. 다시 시도해 주세요."
+    },
+    "choose_your_card": {
+      "title": "카드 선택",
+      "upgrade_title": "메탈 카드로 업그레이드",
+      "continue_button": "계속",
+      "virtual_card": {
+        "name": "오렌지 가상 카드",
+        "price": "수수료",
+        "feature_1": "Apple Pay 및 Google Pay용 가상 카드",
+        "feature_2": "암호화폐로 결제 (USDC, USDT, WETH 등)",
+        "feature_3": "모든 구매 시 USDC 1% 캐시백"
+      },
+      "metal_card": {
+        "name": "메탈 카드",
+        "price": "연 $199",
+        "feature_1": "각인된 메탈 카드 및 Apple Pay·Google Pay용 가상 카드",
+        "feature_2": "매년 $10,000까지 3% 캐시백, 이후 1%",
+        "feature_3": "해외 결제 수수료 없음"
+      }
+    },
+    "review_order": {
+      "title": "주문 검토",
+      "subtitle": "배송은 주거지 주소로만 가능합니다.",
+      "shipping_address": "배송 주소",
+      "metal_card_quantity": "메탈 카드 1장",
+      "metal_card_price": "$199",
+      "metal_card_total": "연 $199",
+      "fees": "수수료",
+      "fees_free": "수수료",
+      "renews": "갱신",
+      "renews_annually": "받으세요",
+      "total": "총액",
+      "pay": "결제",
+      "payment_creation_error": "결제에 실패했습니다. 다시 시도해 주세요."
+    },
+    "order_completed": {
+      "title": "카드 주문이\n완료되었습니다",
+      "subtitle": "4~6주 내에 배송될 예정입니다.",
+      "description": "가상 카드를 설정하고 디지털 지갑에 추가해 캐시백 받기를 시작하세요.",
+      "set_up_card_button": "카드 설정",
+      "back_to_card_button": "카드로 돌아가기"
+    },
+    "recurring_fee_modal": {
+      "title": "정기 수수료",
+      "description": "매년 스테이블코인 잔액에서 $199의 정기 수수료가 결제됩니다. 카드가 계속 활성 상태로 유지되도록 잔액이 충분한지 확인하세요.",
+      "learn_more": "더 보기",
+      "got_it": "컨펌"
+    },
+    "daimo_pay_modal": {
+      "load_error": "결제 페이지를 불러오지 못했습니다. 다시 시도하세요.",
+      "timeout_error": "결제 확인 시간이 초과되었습니다. 트랜잭션 상태를 확인하세요.",
+      "payment_bounced_error": "결제에 실패했습니다. 다른 결제 수단으로 다시 시도해 주세요.",
+      "close": "닫기",
+      "try_again": "다시 시도"
+    },
     "card_onboarding": {
-      "title": "결제와\n동시에\n수익 창출",
-      "description": "MetaMask 카드를 이용하면 암호화폐를 쉽고 빠르게 결제하며 최대 3%의 캐시백을 받을 수 있습니다.",
-      "apply_now_button": "지금 신청",
+      "title": "결제와 동시에\n수익 창출",
+      "description": "MetaMask 카드를 이용하면\n암호화폐를 쉽고 빠르게 결제하며\n최대 3%의 캐시백을 받을 수 있습니다.",
+      "apply_now_button": "Setup now",
       "login_button": "로그인",
       "not_now_button": "나중에",
       "sign_up": {
         "title": "지금 시작하세요",
-        "description": "Crypto Life에서 제공하는 MetaMask 카드 계정을 만드하세요. 이 계정은 기존 MetaMask 계정과는 별도로 생성됩니다.",
-        "i_already_have_an_account": "이미 계정이 있습니다",
-        "email_label": "이메일",
-        "password_label": "비밀번호",
-        "password_placeholder": "15자 이상이어야 합니다",
-        "confirm_password_label": "비밀번호 확인",
+        "description": "Create an account with Crypto Life (CL) to set up your MetaMask Card. MetaMask does not see or store your personal data.",
+        "i_already_have_an_account": "I already have a MetaMask Card",
+        "email_label": "Email address",
+        "password_label": "New password for MetaMask Card",
+        "password_description": "Different from your MetaMask app unlock password. Must be at least 15 characters long.",
         "country_label": "거주 국가",
         "country_placeholder": "국가를 선택하세요",
-        "password_mismatch": "비밀번호가 일치해야 합니다",
         "invalid_email": "잘못된 이메일 주소입니다",
         "invalid_password": "비밀번호는 최소 15자 이상이어야 하며, 출력 불가능한 문자나 연속된 공백은 사용할 수 없습니다."
       },
@@ -6702,8 +6812,14 @@
       },
       "kyc_failed": {
         "title": "현재 MetaMask 카드를 이용할 수 있는 자격이 없습니다",
-        "description": "파트너사는 정해진 기준에 따라 승인 여부를 결정합니다. 자세히 알아보기.",
+        "description": "이용 가능 여부는 파트너사의 규제 및 인증 검사를 통해 결정됩니다.",
         "close_button": "홈으로 돌아가기"
+      },
+      "kyc_pending": {
+        "title": "승인 대기 중",
+        "description": "신청을 승인하려면 파트너사가 신원 확인을 진행해야 합니다.",
+        "footer_text": "승인에는 보통 약 12시간이 소요됩니다.\n결정이 완료되면 알려드리겠습니다.",
+        "got_it_button": "컨펌"
       },
       "personal_details": {
         "title": "정보 추가",
@@ -6734,8 +6850,8 @@
       },
       "complete": {
         "title": "가입이 완료되었습니다!",
-        "description": "암호화폐를 사용하기 위해 카드를 설정해 보세요.",
-        "confirm_button": "카드 설정하기"
+        "description": "암호화폐를 사용하려면 카드 설정을 마무리하세요.",
+        "confirm_button": "설정 종료"
       },
       "account_exists": {
         "title": "이미 계정이 있습니다",
@@ -6772,12 +6888,12 @@
       }
     },
     "card_home": {
-      "title": "Card",
+      "title": "카드",
       "available_balance": "사용 가능한 잔액",
       "error_title": "데이터를 가져올 수 없습니다",
       "error_description": "이 페이지의 콘텐츠를 표시하는 데 문제가 발생했습니다. 연결 상태를 확인하거나 페이지를 새로 고침해 보세요.",
       "try_again": "다시 시도",
-      "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to ",
+      "limited_spending_warning": "실제 사용 가능 금액은 제한될 수 있습니다. 한도를 조정하려면 다음으로 이동하세요: ",
       "add_funds": "자금 추가",
       "change_asset": "자산 변경",
       "enable_card_button_label": "카드 활성화",
@@ -6789,7 +6905,8 @@
       "logout_confirmation_cancel": "취소",
       "logout_confirmation_confirm": "로그아웃",
       "enable_card_error": "카드를 활성화할 수 없습니다. 나중에 다시 시도하세요.",
-      "view_card_details_error": "Unable to load card details. Please try again.",
+      "view_card_details_error": "카드 상세 정보를 불러올 수 없습니다. 다시 시도해 주세요.",
+      "biometric_verification_required": "카드 상세 정보를 보려면 인증이 필요합니다.",
       "warnings": {
         "close_spending_limit": {
           "title": "이용한도가 얼마 남지 않았습니다",
@@ -6815,13 +6932,13 @@
         },
         "kyc_pending": {
           "title": "신원 인증 진행 중",
-          "description": "Your identity verification is being reviewed. This typically takes less than 12 hours."
+          "description": "신원 인증을 검토 중입니다. 일반적으로 12시간 이내에 완료됩니다."
         }
       },
       "messages": {
         "card_provisioning": {
-          "title": "Card being created",
-          "description": "Your card is being created. This may take a few moments."
+          "title": "카드 생성 중",
+          "description": "카드를 생성하고 있습니다. 잠시만 기다려 주세요."
         }
       },
       "kyc_status": {
@@ -6845,30 +6962,32 @@
         "ok_button": "확인"
       },
       "manage_card_options": {
-        "view_card_details": "View card details",
-        "hide_card_details": "Hide card details",
-        "view_card_details_description": "Card number, expiration and CVV",
-        "manage_spending_limit": "Manage limit",
+        "view_card_details": "카드 상세 정보 보기",
+        "hide_card_details": "카드 상세 정보 숨기기",
+        "view_card_details_description": "카드 번호, 만료일 및 CVV",
+        "manage_spending_limit": "한도 관리",
         "manage_spending_limit_description_restricted": "사용 한도가 설정되어 있습니다",
         "manage_spending_limit_description_full": "제한 없이 사용할 수 있습니다",
         "manage_card": "카드 관리",
-        "advanced_card_management_description": "See activity, cashback, freeze card, and more",
+        "advanced_card_management_description": "사용 내역, 캐시백 확인, 카드 일시 중지 등 확인",
         "travel_title": "MetaMask Travel",
-        "travel_description": "Book hotels with up to 70% discounts",
-        "card_tos_title": "Terms and conditions"
+        "travel_description": "최대 70% 할인된 가격으로 호텔을 예약하세요",
+        "card_tos_title": "이용약관",
+        "order_metal_card": "메탈 카드",
+        "order_metal_card_description": "실물 메탈 카드를 지금 주문하세요"
       }
     },
     "card_spending_limit": {
       "title_change_token": "토큰 및 네트워크 변경",
       "title_enable_token": "토큰 활성화",
       "title_onboarding": "지출 활성화",
-      "setup_title": "Set up your card",
-      "setup_description": "Select the token you'd like to use and set a limit for how much you can spend.",
+      "setup_title": "카드 설정",
+      "setup_description": "사용할 토큰을 선택하고 지출 한도를 설정하세요.",
       "asset_label": "자산",
       "limit_label": "한도",
-      "other_token": "Other",
+      "other_token": "기타",
       "full_access_title": "전체 접근",
-      "full_access_description": "Your card can use your funds automatically without asking for approval each time.",
+      "full_access_description": "카드 사용 시 매번 승인 요청 없이 자동으로 잔액을 사용할 수 있습니다.",
       "restricted_limit_title": "지출 한도",
       "restricted_limit_description": "이 한도까지만 지출할 수 있습니다. 한도가 업데이트될 때마다 네트워크 수수료가 부과됩니다.",
       "edit_limit": "한도 편집",
@@ -7027,7 +7146,10 @@
       "account_already_registered": "이 계정은 이미 다른 보상 프로필에 등록되어 있습니다. 계정을 변경한 후 계속 진행하세요.",
       "request_rejected": "요청을 거부하셨습니다.",
       "failed_to_claim_reward": "보상을 수령할 수 없습니다. 잠시 후 다시 시도해 주세요.",
-      "service_not_available": "현재 서비스를 이용할 수 없습니다. 잠시 후 다시 시도해 주세요."
+      "service_not_available": "현재 서비스를 이용할 수 없습니다. 잠시 후 다시 시도해 주세요.",
+      "invalid_referral_code": "잘못된 추천 코드입니다. 확인 후 다시 입력해 주세요.",
+      "already_referred": "이미 다른 사용자의 추천을 받았습니다.",
+      "cannot_use_own_referral_code": "본인의 추천 코드는 사용할 수 없습니다."
     },
     "claim_reward_error": {
       "title": "보상을 수령할 수 없습니다"
@@ -7047,17 +7169,14 @@
       "retry_button": "다시 시도"
     },
     "referral_rewards_title": "추천",
-    "points": "포인트",
-    "point": "포인트",
     "level": "레벨",
-    "to_level_up": "레벨을 올리는 방법",
     "season_ends": "시즌이 종료됩니다",
     "season_ended": "시즌이 종료되었습니다",
     "main_title": "보상",
     "referral_title": "추천",
     "tab_overview_title": "개요",
+    "tab_snapshots_title": "Snapshots",
     "tab_activity_title": "활동",
-    "tab_levels_title": "레벨",
     "referral_stats_earned_from_referrals": "추천을 통해 적립",
     "referral_stats_referrals": "추천",
     "loading_activity": "활동 정보를 불러오는 중...",
@@ -7065,6 +7184,8 @@
     "activity_empty_title": "최근 활동이 없습니다.",
     "activity_empty_description": "MetaMask로 포인트를 획득하고 보상을 잠금 해제하세요.",
     "activity_empty_link": "포인트 적립 방법 보기",
+    "filter_title": "활동 유형별 필터",
+    "filter_all": "모두",
     "events": {
       "to": "수신:",
       "musd_deposit_for": "{{date}}",
@@ -7084,6 +7205,7 @@
         "stop_loss": "익절/손절",
         "predict": "예측",
         "musd_deposit": "mUSD 예치",
+        "apply_referral_bonus": "추천 코드 보너스",
         "uncategorized_event": "미분류 이벤트"
       },
       "date": "날짜",
@@ -7105,6 +7227,9 @@
       "points_earned": "포인트 획득함",
       "no_end_of_season_rewards": "이번 시즌에는 보상을 받지 못하셨습니다. 다음 기회를 기다려 주세요.",
       "verifying_rewards": "회원님이 보상을 수령하기 전에 모든 정보가 정확한지 확인하고 있습니다."
+    },
+    "season_status": {
+      "points_earned": "Points earned"
     },
     "onboarding": {
       "not_supported_region_title": "지원되지 않는 지역입니다",
@@ -7145,6 +7270,7 @@
       "step4_referral_input_error": "잘못된 추천 코드",
       "step4_confirm": "포인트 수령",
       "step4_confirm_loading": "포인트 수령 중...",
+      "step4_bulk_link_checkbox": "Opt-in all my accounts on this device",
       "step4_linking_accounts": "계정 추가 중...({{current}}/{{total}})",
       "step4_linking_accounts_loading": "다른 계정 추가 중...",
       "step4_success_description": "MetaMask 보상 프로그램에 성공적으로 등록하셨습니다!",
@@ -7176,7 +7302,20 @@
       "link_account_error_title": "계정 추가 실패",
       "link_account_button": "추가",
       "link_account_failed_error": "계정 추가 실패",
-      "link_account_unknown_error": "알 수 없는 오류가 발생했습니다"
+      "link_account_unknown_error": "알 수 없는 오류가 발생했습니다",
+      "show_more": "더 보기",
+      "show_less": "요약 보기",
+      "linking_progress": "계정 추가 중...({{current}}/{{total}})",
+      "accounts_linked_count": "{{linked}}/{{total}} 등록됨",
+      "add_all_accounts": "Add all accounts"
+    },
+    "referred_by_code": {
+      "title": "추천 코드",
+      "description_linked": "초대 코드가 연결되었습니다. 이제 거래 시 추천인이 보상을 받게 됩니다.",
+      "description_not_linked": "친구가 코드를 보내기 전에 가입하셨나요? 아래에 입력하면 연결됩니다.",
+      "input_placeholder": "추천 코드 입력",
+      "invalid_code": "잘못된 추천 코드",
+      "apply_button": "추천 코드 적용"
     },
     "optout": {
       "title": "보상 프로그램 영구 탈퇴",
@@ -7195,12 +7334,12 @@
     "dashboard_modal_info": {
       "active_account": {
         "title": "기회를 놓치지 마세요",
-        "description": "Add your account to Rewards.",
+        "description": "보상에 계정을 추가하세요.",
         "confirm": "계정 추가"
       },
       "multiple_unlinked_accounts": {
         "title": "기회를 놓치지 마세요",
-        "description": "Add your accounts to Rewards.",
+        "description": "보상에 계정을 추가하세요.",
         "confirm": "계정 추가"
       },
       "account_not_supported": {
@@ -7345,10 +7484,37 @@
       "redeem_failure_title": "수령 실패",
       "redeem_failure_description": "나중에 다시 시도해 주세요.",
       "reward_details": "보상 상세 정보",
-      "select_account_description": "이 보상을 받을 계정을 선택하세요. 토큰은 2주 이내에 배포됩니다."
+      "select_account_description": "이 보상을 받을 계정을 선택하세요."
     },
     "animation": {
       "could_not_load": "불러올 수 없음"
+    },
+    "snapshot": {
+      "starts_date": "Starts {{date}}",
+      "ends_date": "Ends {{date}}",
+      "results_coming_soon": "Results coming soon",
+      "tokens_on_the_way": "Tokens on the way",
+      "pill_up_next": "Up next",
+      "pill_live_now": "Live now",
+      "pill_calculating": "계산 중",
+      "pill_results_ready": "Results Ready",
+      "pill_complete": "Complete"
+    },
+    "snapshots_section": {
+      "title": "Snapshots",
+      "error_title": "Unable to load snapshots",
+      "error_description": "We couldn't load the snapshots. Please try again.",
+      "retry_button": "다시 시도"
+    },
+    "snapshots_tab": {
+      "active_title": "Active",
+      "upcoming_title": "Upcoming",
+      "previous_title": "Previous",
+      "empty_state": "No snapshots available",
+      "error_title": "Unable to load snapshots",
+      "error_description": "We couldn't load the snapshots. Please try again.",
+      "retry_button": "다시 시도",
+      "refreshing": "Refreshing..."
     }
   },
   "time": {
@@ -7357,6 +7523,7 @@
   },
   "transaction_details": {
     "title": {
+      "musd_conversion": "Converted to mUSD",
       "perps_deposit": "입금 완료된 무기한 선물 계정",
       "predict_claim": "수익금 수령함",
       "predict_deposit": "예측 계정에 입금함",
@@ -7380,6 +7547,7 @@
       "bridge_receive": "{{targetChain}}에서 {{targetSymbol}} 받기",
       "bridge_receive_loading": "Bridge receive",
       "default": "트랜잭션",
+      "musd_convert_send": "Sent {{sourceSymbol}} from {{sourceChain}}",
       "perps_deposit": "자금 추가",
       "predict_deposit": "자금 추가",
       "swap": "토큰 스왑",
