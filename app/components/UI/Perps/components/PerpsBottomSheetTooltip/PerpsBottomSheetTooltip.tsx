@@ -4,7 +4,7 @@ import { View } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
@@ -147,7 +147,7 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
         testID={testID}
       >
         {!hasCustomHeader && (
-          <HeaderCenter
+          <HeaderCompactStandard
             title={title}
             testID={PerpsBottomSheetTooltipSelectorsIDs.TITLE}
             onClose={handleClose}

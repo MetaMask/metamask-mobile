@@ -3,27 +3,27 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 
 // Internal dependencies.
-import getHeaderCenterNavbarOptions from './getHeaderCenterNavbarOptions';
+import getHeaderCompactStandardNavbarOptions from './getHeaderCompactStandardNavbarOptions';
 
-const TITLE_TEST_ID = 'header-center-title';
-const BACK_BUTTON_TEST_ID = 'header-center-back-button';
-const CLOSE_BUTTON_TEST_ID = 'header-center-close-button';
+const TITLE_TEST_ID = 'header-compact-standard-title';
+const BACK_BUTTON_TEST_ID = 'header-compact-standard-back-button';
+const CLOSE_BUTTON_TEST_ID = 'header-compact-standard-close-button';
 
-describe('getHeaderCenterNavbarOptions', () => {
+describe('getHeaderCompactStandardNavbarOptions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   describe('return value', () => {
     it('returns object with header function', () => {
-      const options = getHeaderCenterNavbarOptions({ title: 'Test' });
+      const options = getHeaderCompactStandardNavbarOptions({ title: 'Test' });
 
       expect(options).toHaveProperty('header');
       expect(typeof options.header).toBe('function');
     });
 
     it('returns React element when header function is called', () => {
-      const options = getHeaderCenterNavbarOptions({ title: 'Test' });
+      const options = getHeaderCompactStandardNavbarOptions({ title: 'Test' });
 
       const headerElement = options.header();
 
@@ -32,8 +32,8 @@ describe('getHeaderCenterNavbarOptions', () => {
   });
 
   describe('rendering', () => {
-    it('renders HeaderCenter with title', () => {
-      const options = getHeaderCenterNavbarOptions({
+    it('renders HeaderCompactStandard with title', () => {
+      const options = getHeaderCompactStandardNavbarOptions({
         title: 'Settings',
         titleProps: { testID: TITLE_TEST_ID },
       });
@@ -43,9 +43,9 @@ describe('getHeaderCenterNavbarOptions', () => {
       expect(getByTestId(TITLE_TEST_ID)).toBeOnTheScreen();
     });
 
-    it('renders HeaderCenter with back button', () => {
+    it('renders HeaderCompactStandard with back button', () => {
       const onBack = jest.fn();
-      const options = getHeaderCenterNavbarOptions({
+      const options = getHeaderCompactStandardNavbarOptions({
         title: 'Settings',
         onBack,
         backButtonProps: { testID: BACK_BUTTON_TEST_ID },
@@ -56,9 +56,9 @@ describe('getHeaderCenterNavbarOptions', () => {
       expect(getByTestId(BACK_BUTTON_TEST_ID)).toBeOnTheScreen();
     });
 
-    it('renders HeaderCenter with close button', () => {
+    it('renders HeaderCompactStandard with close button', () => {
       const onClose = jest.fn();
-      const options = getHeaderCenterNavbarOptions({
+      const options = getHeaderCompactStandardNavbarOptions({
         title: 'Settings',
         onClose,
         closeButtonProps: { testID: CLOSE_BUTTON_TEST_ID },
@@ -71,9 +71,9 @@ describe('getHeaderCenterNavbarOptions', () => {
   });
 
   describe('props forwarding', () => {
-    it('forwards onBack callback to HeaderCenter', () => {
+    it('forwards onBack callback to HeaderCompactStandard', () => {
       const onBack = jest.fn();
-      const options = getHeaderCenterNavbarOptions({
+      const options = getHeaderCompactStandardNavbarOptions({
         title: 'Settings',
         onBack,
         backButtonProps: { testID: BACK_BUTTON_TEST_ID },
@@ -86,9 +86,9 @@ describe('getHeaderCenterNavbarOptions', () => {
       expect(onBack).toHaveBeenCalledTimes(1);
     });
 
-    it('forwards onClose callback to HeaderCenter', () => {
+    it('forwards onClose callback to HeaderCompactStandard', () => {
       const onClose = jest.fn();
-      const options = getHeaderCenterNavbarOptions({
+      const options = getHeaderCompactStandardNavbarOptions({
         title: 'Settings',
         onClose,
         closeButtonProps: { testID: CLOSE_BUTTON_TEST_ID },
@@ -101,8 +101,8 @@ describe('getHeaderCenterNavbarOptions', () => {
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
-    it('forwards testID to HeaderCenter container', () => {
-      const options = getHeaderCenterNavbarOptions({
+    it('forwards testID to HeaderCompactStandard container', () => {
+      const options = getHeaderCompactStandardNavbarOptions({
         title: 'Settings',
         testID: 'custom-header',
       });

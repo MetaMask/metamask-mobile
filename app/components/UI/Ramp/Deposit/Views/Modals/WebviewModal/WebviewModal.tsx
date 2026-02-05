@@ -3,7 +3,7 @@ import { useWindowDimensions } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCenter from '../../../../../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../../../../../component-library/components-temp/HeaderCompactStandard';
 import {
   createNavigationDetails,
   useParams,
@@ -64,7 +64,9 @@ function WebviewModal() {
       isInteractable={!Device.isAndroid()}
       keyboardAvoidingViewEnabled={false}
     >
-      <HeaderCenter onClose={() => sheetRef.current?.onCloseBottomSheet()} />
+      <HeaderCompactStandard
+        onClose={() => sheetRef.current?.onCloseBottomSheet()}
+      />
 
       <ScreenLayout>
         <ScreenLayout.Body>

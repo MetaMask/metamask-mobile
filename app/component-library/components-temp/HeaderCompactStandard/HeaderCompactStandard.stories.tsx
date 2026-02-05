@@ -8,11 +8,11 @@ import {
   IconName,
 } from '@metamask/design-system-react-native';
 
-import HeaderCenter from './HeaderCenter';
+import HeaderCompactStandard from './HeaderCompactStandard';
 
-const HeaderCenterMeta = {
-  title: 'Components Temp / HeaderCenter',
-  component: HeaderCenter,
+const HeaderCompactStandardMeta = {
+  title: 'Components Temp / HeaderCompactStandard',
+  component: HeaderCompactStandard,
   argTypes: {
     title: {
       control: 'text',
@@ -26,7 +26,7 @@ const HeaderCenterMeta = {
   },
 };
 
-export default HeaderCenterMeta;
+export default HeaderCompactStandardMeta;
 
 export const Default = {
   args: {
@@ -36,13 +36,16 @@ export const Default = {
 
 export const OnBack = {
   render: () => (
-    <HeaderCenter title="Settings" onBack={() => console.log('Back pressed')} />
+    <HeaderCompactStandard
+      title="Settings"
+      onBack={() => console.log('Back pressed')}
+    />
   ),
 };
 
 export const OnClose = {
   render: () => (
-    <HeaderCenter
+    <HeaderCompactStandard
       title="Modal Title"
       onClose={() => console.log('Close pressed')}
     />
@@ -51,7 +54,7 @@ export const OnClose = {
 
 export const BackAndClose = {
   render: () => (
-    <HeaderCenter
+    <HeaderCompactStandard
       title="Settings"
       onBack={() => console.log('Back pressed')}
       onClose={() => console.log('Close pressed')}
@@ -61,7 +64,7 @@ export const BackAndClose = {
 
 export const WithSubtitle = {
   render: () => (
-    <HeaderCenter
+    <HeaderCompactStandard
       title="Settings"
       subtitle="Account Settings"
       onBack={() => console.log('Back pressed')}
@@ -71,7 +74,7 @@ export const WithSubtitle = {
 
 export const MultipleEndButtons = {
   render: () => (
-    <HeaderCenter
+    <HeaderCompactStandard
       title="Search"
       onBack={() => console.log('Back pressed')}
       endButtonIconProps={[
@@ -87,11 +90,11 @@ export const MultipleEndButtons = {
 
 export const Children = {
   render: () => (
-    <HeaderCenter onClose={() => console.log('Close pressed')}>
+    <HeaderCompactStandard onClose={() => console.log('Close pressed')}>
       <Box twClassName="items-center">
         <Text variant={TextVariant.HeadingSm}>Custom Title</Text>
         <Text variant={TextVariant.BodySm}>Subtitle text</Text>
       </Box>
-    </HeaderCenter>
+    </HeaderCompactStandard>
   ),
 };
