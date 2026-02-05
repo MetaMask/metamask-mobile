@@ -23,6 +23,8 @@ import {
   selectTransactions,
 } from '../../../../selectors/transactionController';
 import { TOKEN_CATEGORY_HASH } from '../../../UI/TransactionElement/utils';
+import { TransactionType } from '@metamask/transaction-controller';
+import { MUSD_TOKEN_ADDRESS, MUSD_TOKEN } from '../../Earn/constants/musd';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import {
   selectSelectedInternalAccount,
@@ -268,6 +270,24 @@ export const useTokenTransactions = (
     ///: END:ONLY_INCLUDE_IF
   ]);
 
+  // Check if transaction is a Merkl mUSD yield claim that should be shown in current view.
+  // These transactions interact with the Merkl distributor contract (not the mUSD token directly),
+  // so they won't be caught by standard token transfer detection and need special handling.
+  const isMusdClaimForCurrentView = useCallback(
+    (tx: Transaction): boolean => {
+      const isMusdView =
+        areAddressesEqual(navAddress, MUSD_TOKEN_ADDRESS) ||
+        navSymbol === MUSD_TOKEN.symbol.toLowerCase();
+      return (
+        tx.type === TransactionType.musdClaim &&
+        tx.status !== 'unapproved' &&
+        isMusdView &&
+        chainId === tx.chainId
+      );
+    },
+    [chainId, navAddress, navSymbol],
+  );
+
   // ETH filter - for native token transactions
   const ethFilter = useCallback(
     (tx: Transaction) => {
@@ -278,6 +298,10 @@ export const useTokenTransactions = (
         transferInformation,
         type,
       } = tx;
+
+      if (isMusdClaimForCurrentView(tx)) {
+        return true;
+      }
 
       if (
         (areAddressesEqual(from ?? '', selectedAddress ?? '') ||
@@ -301,7 +325,7 @@ export const useTokenTransactions = (
       }
       return false;
     },
-    [chainId, selectedAddress, tokens],
+    [chainId, isMusdClaimForCurrentView, selectedAddress, tokens],
   );
 
   // Non-ETH filter - for token transactions
@@ -313,6 +337,10 @@ export const useTokenTransactions = (
         isTransfer,
         transferInformation,
       } = tx;
+
+      if (isMusdClaimForCurrentView(tx)) {
+        return true;
+      }
 
       if (
         (areAddressesEqual(from ?? '', selectedAddress ?? '') ||
@@ -342,7 +370,13 @@ export const useTokenTransactions = (
       }
       return false;
     },
-    [chainId, navAddress, selectedAddress, swapsTransactions],
+    [
+      chainId,
+      isMusdClaimForCurrentView,
+      navAddress,
+      selectedAddress,
+      swapsTransactions,
+    ],
   );
 
   // Determine which filter to use

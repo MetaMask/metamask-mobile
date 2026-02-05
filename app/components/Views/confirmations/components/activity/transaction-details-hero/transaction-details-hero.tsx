@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { Box } from '../../../../../UI/Box/Box';
 import Text, {
   TextVariant,
@@ -22,7 +23,14 @@ import { BigNumber } from 'bignumber.js';
 import {
   decodeMerklClaimAmount,
   MUSD_DECIMALS,
+  MERKL_CLAIM_CHAIN_ID,
 } from '../../../../../UI/Earn/components/MerklRewards/constants';
+import {
+  selectConversionRateByChainId,
+  selectCurrencyRates,
+} from '../../../../../../selectors/currencyRateController';
+import { RootState } from '../../../../../../reducers';
+import useNetworkInfo from '../../../hooks/useNetworkInfo';
 
 const SUPPORTED_TYPES = [
   TransactionType.musdClaim,
@@ -33,10 +41,12 @@ const SUPPORTED_TYPES = [
 ];
 
 export function TransactionDetailsHero() {
-  const formatFiat = useFiatFormatter({ currency: PERPS_CURRENCY });
+  const formatFiatPerps = useFiatFormatter({ currency: PERPS_CURRENCY });
+  const formatFiatUser = useFiatFormatter();
   const { styles } = useStyles(styleSheet, {});
   const decodedAmount = useDecodedAmount();
-  const claimAmount = useClaimAmount();
+  const { amount: claimAmount, isConverted: isClaimConverted } =
+    useClaimAmount();
   const targetFiat = useTargetFiat();
   const { transactionMeta } = useTransactionDetails();
 
@@ -50,6 +60,7 @@ export function TransactionDetailsHero() {
     return null;
   }
 
+  const formatFiat = isClaimConverted ? formatFiatUser : formatFiatPerps;
   const formattedAmount = formatFiat(amount);
 
   return (
@@ -99,21 +110,41 @@ function useDecodedAmount() {
 }
 
 /**
- * Hook to decode the claim amount from a Merkl claim transaction.
+ * Hook to decode the claim amount from a Merkl claim transaction
+ * and convert it to the user's selected currency.
  */
-function useClaimAmount() {
+function useClaimAmount(): { amount: BigNumber | null; isConverted: boolean } {
   const { transactionMeta } = useTransactionDetails();
+  const { networkNativeCurrency } = useNetworkInfo(MERKL_CLAIM_CHAIN_ID);
+
+  const conversionRate = new BigNumber(
+    useSelector((state: RootState) =>
+      selectConversionRateByChainId(state, MERKL_CLAIM_CHAIN_ID),
+    ) ?? 0,
+  );
+  const currencyRates = useSelector(selectCurrencyRates);
+  const usdConversionRate =
+    currencyRates?.[networkNativeCurrency as string]?.usdConversionRate ?? 0;
 
   if (!hasTransactionType(transactionMeta, [TransactionType.musdClaim])) {
-    return null;
+    return { amount: null, isConverted: false };
   }
 
   const { data } = transactionMeta.txParams ?? {};
-  const claimAmount = decodeMerklClaimAmount(data as string);
+  const claimAmountRaw = decodeMerklClaimAmount(data as string);
 
-  if (!claimAmount) {
-    return null;
+  if (!claimAmountRaw) {
+    return { amount: null, isConverted: false };
   }
 
-  return calcTokenAmount(claimAmount, MUSD_DECIMALS);
+  const claimAmountDecimal = calcTokenAmount(claimAmountRaw, MUSD_DECIMALS);
+
+  if (usdConversionRate > 0 && conversionRate.isGreaterThan(0)) {
+    const usdToUserCurrencyRate = conversionRate.dividedBy(usdConversionRate);
+    const fiatAmount = claimAmountDecimal.times(usdToUserCurrencyRate);
+    return { amount: fiatAmount, isConverted: true };
+  }
+
+  // Fallback: no conversion rates available, return USD amount
+  return { amount: claimAmountDecimal, isConverted: false };
 }

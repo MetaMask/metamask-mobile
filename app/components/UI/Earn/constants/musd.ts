@@ -15,10 +15,16 @@ export const MUSD_TOKEN = {
 
 export const MUSD_CONVERSION_DEFAULT_CHAIN_ID = CHAIN_IDS.MAINNET;
 
+/**
+ * mUSD token address (same on all supported chains)
+ */
+export const MUSD_TOKEN_ADDRESS: Hex =
+  '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+
 export const MUSD_TOKEN_ADDRESS_BY_CHAIN: Record<Hex, Hex> = {
-  [CHAIN_IDS.MAINNET]: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
-  [CHAIN_IDS.LINEA_MAINNET]: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
-  [CHAIN_IDS.BSC]: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+  [CHAIN_IDS.MAINNET]: MUSD_TOKEN_ADDRESS,
+  [CHAIN_IDS.LINEA_MAINNET]: MUSD_TOKEN_ADDRESS,
+  [CHAIN_IDS.BSC]: MUSD_TOKEN_ADDRESS,
 };
 
 /**

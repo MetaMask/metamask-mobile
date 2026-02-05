@@ -16,8 +16,12 @@ const FALLBACK_TYPES = [
   TransactionType.musdClaim,
 ];
 
+// Transaction types that use user's currency instead of USD
+const USER_CURRENCY_TYPES = [TransactionType.musdClaim];
+
 export function TransactionDetailsNetworkFeeRow() {
-  const formatFiat = useFiatFormatter({ currency: 'usd' });
+  const formatFiatUsd = useFiatFormatter({ currency: 'usd' });
+  const formatFiatUser = useFiatFormatter();
   const { transactionMeta } = useTransactionDetails();
   const { estimatedFeeFiatPrecise } = useFeeCalculations(transactionMeta);
 
@@ -25,6 +29,13 @@ export function TransactionDetailsNetworkFeeRow() {
   const { networkFeeFiat: payNetworkFeeFiat } = metamaskPay || {};
 
   const networkFee = payNetworkFeeFiat ?? estimatedFeeFiatPrecise;
+
+  // Use user's currency for musdClaim, USD for others
+  const useUserCurrency = hasTransactionType(
+    transactionMeta,
+    USER_CURRENCY_TYPES,
+  );
+  const formatFiat = useUserCurrency ? formatFiatUser : formatFiatUsd;
 
   const networkFeeFormatted = useMemo(
     () => formatFiat(new BigNumber(networkFee ?? 0)),

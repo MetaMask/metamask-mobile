@@ -21,15 +21,26 @@ const RECEIVE_TYPES = [
   TransactionType.predictWithdraw,
 ];
 
+// Transaction types that use user's currency instead of USD
+const USER_CURRENCY_TYPES = [TransactionType.musdClaim];
+
 export function TransactionDetailsTotalRow() {
-  const formatFiat = useFiatFormatter({ currency: 'usd' });
+  const formatFiatUsd = useFiatFormatter({ currency: 'usd' });
+  const formatFiatUser = useFiatFormatter();
   const { transactionMeta } = useTransactionDetails();
-  const { amountUnformatted } = useTokenAmount({ transactionMeta }) ?? {};
+  const { amountUnformatted, fiatUnformatted } =
+    useTokenAmount({ transactionMeta }) ?? {};
 
   const { metamaskPay } = transactionMeta;
   const { totalFiat: payTotal } = metamaskPay || {};
 
-  const total = payTotal ?? amountUnformatted;
+  const useUserCurrency = hasTransactionType(
+    transactionMeta,
+    USER_CURRENCY_TYPES,
+  );
+  const total =
+    payTotal ?? (useUserCurrency ? fiatUnformatted : amountUnformatted);
+  const formatFiat = useUserCurrency ? formatFiatUser : formatFiatUsd;
 
   const totalFormatted = useMemo(
     () => formatFiat(new BigNumber(total ?? '0')),

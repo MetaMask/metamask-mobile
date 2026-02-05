@@ -221,13 +221,23 @@ export const useTokenAmount = ({
       break;
     }
     case TransactionType.musdClaim: {
-      // Merkl claim - mUSD is a stablecoin, so 1 mUSD ≈ $1
-      const claimAmount = decodeMerklClaimAmount(txParams?.data as string);
-      if (claimAmount) {
-        const claimAmountDecimal = calcTokenAmount(claimAmount, MUSD_DECIMALS);
-        // For mUSD, fiat value ≈ token amount (stablecoin)
-        fiat = claimAmountDecimal;
+      const claimAmountRaw = decodeMerklClaimAmount(txParams?.data as string);
+      if (claimAmountRaw) {
+        const claimAmountDecimal = calcTokenAmount(
+          claimAmountRaw,
+          MUSD_DECIMALS,
+        );
         usdValue = claimAmountDecimal.toFixed(2);
+
+        if (usdConversionRate > 0 && nativeConversionRate.isGreaterThan(0)) {
+          const usdToUserCurrencyRate =
+            nativeConversionRate.dividedBy(usdConversionRate);
+          fiat = claimAmountDecimal.times(usdToUserCurrencyRate);
+        } else {
+          // Fallback: no conversion rates, use 1:1 with USD
+          fiat = claimAmountDecimal;
+        }
+
         return {
           amount: formatAmount(I18n.locale, claimAmountDecimal),
           amountNative: undefined,
@@ -236,8 +246,8 @@ export const useTokenAmount = ({
             claimAmountDecimal,
           ),
           amountUnformatted: claimAmountDecimal.toString(),
-          fiat: fiatFormatter(claimAmountDecimal),
-          fiatUnformatted: claimAmountDecimal.toString(),
+          fiat: fiatFormatter(fiat),
+          fiatUnformatted: fiat.toString(),
           isNative: false,
           updateTokenAmount,
           usdValue,

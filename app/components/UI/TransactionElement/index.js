@@ -57,7 +57,10 @@ import {
   getFontFamily,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { selectConversionRateByChainId } from '../../../selectors/currencyRateController';
+import {
+  selectConversionRateByChainId,
+  selectCurrencyRates,
+} from '../../../selectors/currencyRateController';
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
 import { selectTokensByChainIdAndAddress } from '../../../selectors/tokensController';
 import Routes from '../../../constants/navigation/Routes';
@@ -799,6 +802,7 @@ const mapStateToProps = (state, ownProps) => ({
   swapsTokens: swapsControllerTokens(state),
   ticker: selectTickerByChainId(state, ownProps.txChainId),
   conversionRate: selectConversionRateByChainId(state, ownProps.txChainId),
+  currencyRates: selectCurrencyRates(state),
   contractExchangeRates: selectContractExchangeRatesByChainId(
     state,
     ownProps.txChainId,

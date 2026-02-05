@@ -834,6 +834,7 @@ function decodeMusdClaimTx(args) {
     },
     txChainId,
     conversionRate,
+    currencyRates,
     currentCurrency,
     primaryCurrency,
     ticker,
@@ -852,11 +853,25 @@ function decodeMusdClaimTx(args) {
   if (claimAmountRaw) {
     const claimAmount = calcTokenAmount(claimAmountRaw, MUSD_DECIMALS);
     renderClaimAmount = `${claimAmount.toFixed(2)} mUSD`;
-    // mUSD is a stablecoin, so 1 mUSD ≈ $1
-    renderClaimFiat = addCurrencySymbol(
-      claimAmount.toNumber(),
-      currentCurrency,
-    );
+
+    // mUSD is a stablecoin pegged to USD (1 mUSD ≈ $1)
+    // Convert USD to user's currency: USD * (nativeToUserCurrency / nativeToUSD)
+    const nativeCurrency = ticker || 'ETH';
+    const usdConversionRate =
+      currencyRates?.[nativeCurrency]?.usdConversionRate ?? 0;
+
+    if (usdConversionRate > 0 && conversionRate > 0) {
+      const usdToUserCurrencyRate = conversionRate / usdConversionRate;
+      const fiatValue = claimAmount.toNumber() * usdToUserCurrencyRate;
+      // Round to 2 decimal places for display
+      renderClaimFiat = addCurrencySymbol(
+        parseFloat(fiatValue.toFixed(2)),
+        currentCurrency,
+      );
+    } else {
+      // Fallback: assume USD if no conversion rate available
+      renderClaimFiat = addCurrencySymbol(claimAmount.toNumber(), 'usd');
+    }
   }
 
   const transactionElement = {

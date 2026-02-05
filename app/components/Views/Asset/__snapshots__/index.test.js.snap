@@ -14468,6 +14468,1016 @@ exports[`Asset Multichain Functionality should use EVM transactions for EVM acco
 </View>
 `;
 
+exports[`Asset musdClaim Transaction Filtering should NOT show musdClaim transactions when viewing a different token 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      [
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "gap": 16,
+          "height": 48,
+        },
+        {
+          "backgroundColor": "#ffffff",
+          "marginTop": 0,
+        },
+      ]
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "transparent",
+              "borderRadius": 2,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
+            },
+            {
+              "marginLeft": 16,
+            },
+          ]
+        }
+        testID="back-arrow-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="ArrowLeft"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flex": 1,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        numberOfLines={1}
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "Geist-Bold",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        USDC
+      </Text>
+    </View>
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "transparent",
+              "borderRadius": 2,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
+            },
+            {
+              "marginRight": 16,
+            },
+          ]
+        }
+        testID="button-icon"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="MoreVertical"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "justifyContent": "center",
+          "paddingVertical": 40,
+          "width": "100%",
+        }
+      }
+    >
+      <ActivityIndicator
+        size="small"
+        style={
+          {
+            "alignSelf": "center",
+          }
+        }
+      />
+    </View>
+  </View>
+  <View />
+</View>
+`;
+
+exports[`Asset musdClaim Transaction Filtering should NOT show unapproved musdClaim transactions 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      [
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "gap": 16,
+          "height": 48,
+        },
+        {
+          "backgroundColor": "#ffffff",
+          "marginTop": 0,
+        },
+      ]
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "transparent",
+              "borderRadius": 2,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
+            },
+            {
+              "marginLeft": 16,
+            },
+          ]
+        }
+        testID="back-arrow-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="ArrowLeft"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flex": 1,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        numberOfLines={1}
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "Geist-Bold",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        MUSD
+      </Text>
+      <Text
+        accessibilityRole="text"
+        numberOfLines={1}
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "Geist-Regular",
+            "fontSize": 14,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Linea Mainnet
+      </Text>
+    </View>
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "transparent",
+              "borderRadius": 2,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
+            },
+            {
+              "marginRight": 16,
+            },
+          ]
+        }
+        testID="button-icon"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="MoreVertical"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "justifyContent": "center",
+          "paddingVertical": 40,
+          "width": "100%",
+        }
+      }
+    >
+      <ActivityIndicator
+        size="small"
+        style={
+          {
+            "alignSelf": "center",
+          }
+        }
+      />
+    </View>
+  </View>
+  <View />
+</View>
+`;
+
+exports[`Asset musdClaim Transaction Filtering should show musdClaim transactions when viewing mUSD token by address 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      [
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "gap": 16,
+          "height": 48,
+        },
+        {
+          "backgroundColor": "#ffffff",
+          "marginTop": 0,
+        },
+      ]
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "transparent",
+              "borderRadius": 2,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
+            },
+            {
+              "marginLeft": 16,
+            },
+          ]
+        }
+        testID="back-arrow-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="ArrowLeft"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flex": 1,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        numberOfLines={1}
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "Geist-Bold",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        MUSD
+      </Text>
+      <Text
+        accessibilityRole="text"
+        numberOfLines={1}
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "Geist-Regular",
+            "fontSize": 14,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Linea Mainnet
+      </Text>
+    </View>
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "transparent",
+              "borderRadius": 2,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
+            },
+            {
+              "marginRight": 16,
+            },
+          ]
+        }
+        testID="button-icon"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="MoreVertical"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "justifyContent": "center",
+          "paddingVertical": 40,
+          "width": "100%",
+        }
+      }
+    >
+      <ActivityIndicator
+        size="small"
+        style={
+          {
+            "alignSelf": "center",
+          }
+        }
+      />
+    </View>
+  </View>
+  <View />
+</View>
+`;
+
+exports[`Asset musdClaim Transaction Filtering should show musdClaim transactions when viewing mUSD token by symbol 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      [
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "gap": 16,
+          "height": 48,
+        },
+        {
+          "backgroundColor": "#ffffff",
+          "marginTop": 0,
+        },
+      ]
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "transparent",
+              "borderRadius": 2,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
+            },
+            {
+              "marginLeft": 16,
+            },
+          ]
+        }
+        testID="back-arrow-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="ArrowLeft"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flex": 1,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        numberOfLines={1}
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "Geist-Bold",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        MUSD
+      </Text>
+    </View>
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "transparent",
+              "borderRadius": 2,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
+            },
+            {
+              "marginRight": 16,
+            },
+          ]
+        }
+        testID="button-icon"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="MoreVertical"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 24,
+                "width": 24,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "justifyContent": "center",
+          "paddingVertical": 40,
+          "width": "100%",
+        }
+      }
+    >
+      <ActivityIndicator
+        size="small"
+        style={
+          {
+            "alignSelf": "center",
+          }
+        }
+      />
+    </View>
+  </View>
+  <View />
+</View>
+`;
+
 exports[`Asset should display swaps button if the asset is allowed 1`] = `
 <View
   style={
