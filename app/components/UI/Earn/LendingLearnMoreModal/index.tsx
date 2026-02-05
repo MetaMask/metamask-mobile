@@ -4,7 +4,7 @@ import { useStyles } from '../../../hooks/useStyles';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCenter from '../../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import Text, {
   TextColor,
   TextVariant,
@@ -287,7 +287,7 @@ export const LendingLearnMoreModal = () => {
 
   return (
     <BottomSheet ref={sheetRef} isInteractable={false}>
-      <HeaderCenter
+      <HeaderCompactStandard
         title={strings('earn.how_it_works')}
         onClose={handleClose}
       />

@@ -18,7 +18,7 @@ import Button, {
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
-import { ReviewOrderSelectors } from '../../../../../../e2e/selectors/Card/ReviewOrder.selectors';
+import { ReviewOrderSelectors } from './ReviewOrder.testIds';
 import DaimoPayService from '../../services/DaimoPayService';
 import Logger from '../../../../../util/Logger';
 import { useCardSDK } from '../../sdk';
