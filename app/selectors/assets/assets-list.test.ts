@@ -1,4 +1,8 @@
-import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
+import {
+  AccountGroupId,
+  AccountGroupType,
+  AccountWalletType,
+} from '@metamask/account-api';
 import {
   EthAccountType,
   SolAccountType,
@@ -733,18 +737,23 @@ describe('selectAsset', () => {
     });
   });
 
-  it('scopes native and staked lookups to selected account', () => {
-    const stateWithSecondEvm = mockState();
-    const account1Id =
-      stateWithSecondEvm.engine.backgroundState.AccountsController
-        .internalAccounts.selectedAccount;
+  it('scopes native and staked lookups to selected account group', () => {
+    const baseState = mockState();
 
+    // Account 1 info (already exists in mockState)
+    const account1Id = 'd7f11451-9d79-4df4-a012-afd253443639';
+    const group1Id = 'entropy:01K1TJY9QPSCKNBSVGZNG510GJ/0';
+
+    // Create second account group with different EVM account
     const account2Id = '11111111-1111-1111-1111-111111111111';
     const account2Address = '0x1111111111111111111111111111111111111111';
     const account2AddressLowercased = account2Address.toLowerCase();
+    const group2Id = 'entropy:01K1TJY9QPSCKNBSVGZNG510GJ/1';
+    const walletId = 'entropy:01K1TJY9QPSCKNBSVGZNG510GJ';
 
-    const withSelectedAccount = (
+    const withSelectedGroup = (
       state: RootState,
+      selectedGroup: AccountGroupId,
       selectedAccount: string,
     ): RootState => ({
       ...state,
@@ -752,6 +761,13 @@ describe('selectAsset', () => {
         ...state.engine,
         backgroundState: {
           ...state.engine.backgroundState,
+          AccountTreeController: {
+            ...state.engine.backgroundState.AccountTreeController,
+            accountTree: {
+              ...state.engine.backgroundState.AccountTreeController.accountTree,
+              selectedAccountGroup: selectedGroup,
+            },
+          },
           AccountsController: {
             ...state.engine.backgroundState.AccountsController,
             internalAccounts: {
@@ -764,8 +780,8 @@ describe('selectAsset', () => {
       },
     });
 
-    // Add second EVM internal account into the same selected account group
-    stateWithSecondEvm.engine.backgroundState.AccountsController.internalAccounts.accounts[
+    // Add second EVM account to AccountsController
+    baseState.engine.backgroundState.AccountsController.internalAccounts.accounts[
       account2Id
     ] = {
       id: account2Id,
@@ -783,73 +799,75 @@ describe('selectAsset', () => {
       },
     };
 
-    const groupId = 'entropy:01K1TJY9QPSCKNBSVGZNG510GJ/0';
-    const walletId = 'entropy:01K1TJY9QPSCKNBSVGZNG510GJ';
-    stateWithSecondEvm.engine.backgroundState.AccountTreeController.accountTree.wallets[
+    // Create second account group with the second EVM account
+    baseState.engine.backgroundState.AccountTreeController.accountTree.wallets[
       walletId
-    ].groups[groupId].accounts = [
-      ...stateWithSecondEvm.engine.backgroundState.AccountTreeController
-        .accountTree.wallets[walletId].groups[groupId].accounts,
-      account2Id,
-    ];
+    ].groups[group2Id] = {
+      id: group2Id,
+      type: AccountGroupType.MultichainAccount,
+      accounts: [account2Id],
+      metadata: {
+        name: 'Account Group 2',
+        pinned: false,
+        hidden: false,
+        entropy: {
+          groupIndex: 1,
+        },
+      },
+    };
 
-    // Provide AccountTracker balances for second address on mainnet
-    stateWithSecondEvm.engine.backgroundState.AccountTrackerController.accountsByChainId[
+    // Provide AccountTracker balances for second account on mainnet
+    baseState.engine.backgroundState.AccountTrackerController.accountsByChainId[
       '0x1'
     ][account2AddressLowercased] = {
       balance: '0x0DE0B6B3A7640000', // 1 ETH
       stakedBalance: '0x1BC16D674EC80000', // 2 ETH
     };
 
-    // Provide empty token lists/balances for second address to keep asset building stable
-    stateWithSecondEvm.engine.backgroundState.TokensController.allTokens['0x1'][
+    // Provide empty token lists/balances for second address
+    baseState.engine.backgroundState.TokensController.allTokens['0x1'][
       account2AddressLowercased
     ] = [];
-    stateWithSecondEvm.engine.backgroundState.TokensController.allTokens['0xa'][
+    baseState.engine.backgroundState.TokensController.allTokens['0xa'][
       account2AddressLowercased
     ] = [];
     (
-      stateWithSecondEvm.engine.backgroundState.TokenBalancesController
+      baseState.engine.backgroundState.TokenBalancesController
         .tokenBalances as Record<string, unknown>
     )[account2AddressLowercased] = {};
 
-    // Sanity check: original account still resolves correctly
-    const stateForAccount1 = withSelectedAccount(
-      stateWithSecondEvm,
-      account1Id,
-    );
+    // Test Group 1: should return account 1 balances
+    const stateForGroup1 = withSelectedGroup(baseState, group1Id, account1Id);
 
-    const stakedForAccount1 = selectAsset(stateForAccount1, {
+    const stakedForGroup1 = selectAsset(stateForGroup1, {
       address: '0x0000000000000000000000000000000000000000',
       chainId: '0x1',
       isStaked: true,
     });
-    expect(stakedForAccount1?.balance).toBe('100');
+    expect(stakedForGroup1?.balance).toBe('100');
+    expect(stakedForGroup1?.balanceFiat).toBe('$240,000.00');
 
-    // Switch selected account → balances should follow
-    const stateForAccount2 = withSelectedAccount(
-      stateWithSecondEvm,
-      account2Id,
-    );
+    // Test Group 2: should return account 2 balances
+    const stateForGroup2 = withSelectedGroup(baseState, group2Id, account2Id);
 
-    const nativeForAccount2 = selectAsset(stateForAccount2, {
+    const nativeForGroup2 = selectAsset(stateForGroup2, {
       address: '0x0000000000000000000000000000000000000000',
       chainId: '0x1',
       isStaked: false,
     });
-    expect(nativeForAccount2).toMatchObject({
+    expect(nativeForGroup2).toMatchObject({
       name: 'Ethereum',
       balance: '1',
       balanceFiat: '$2,400.00',
       isStaked: false,
     });
 
-    const stakedForAccount2 = selectAsset(stateForAccount2, {
+    const stakedForGroup2 = selectAsset(stateForGroup2, {
       address: '0x0000000000000000000000000000000000000000',
       chainId: '0x1',
       isStaked: true,
     });
-    expect(stakedForAccount2).toMatchObject({
+    expect(stakedForGroup2).toMatchObject({
       name: 'Staked Ethereum',
       balance: '2',
       balanceFiat: '$4,800.00',
