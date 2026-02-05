@@ -10,7 +10,6 @@ import {
   getDefaultPerpsControllerState,
   InitializationState,
   type PerpsControllerState,
-  type PerpsControllerMessenger,
 } from './PerpsController';
 import { PERPS_ERROR_CODES } from './perpsErrorCodes';
 import {
@@ -24,7 +23,10 @@ import type {
 } from './types';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import { createMockHyperLiquidProvider } from '../__mocks__/providerMocks';
-import { createMockInfrastructure } from '../__mocks__/serviceMocks';
+import {
+  createMockInfrastructure,
+  createMockMessenger,
+} from '../__mocks__/serviceMocks';
 import Engine from '../../../../core/Engine';
 
 jest.mock('./providers/HyperLiquidProvider');
@@ -366,28 +368,6 @@ class TestablePerpsController extends PerpsController {
   public testReportOrderToDataLake(data: any): Promise<any> {
     return this.reportOrderToDataLake(data);
   }
-}
-
-/**
- * Factory function to create a properly typed mock messenger
- * Encapsulates the type assertion in one place
- * Note: Uses 'as unknown as' because PerpsControllerMessenger has private properties
- */
-function createMockMessenger(
-  overrides?: Partial<PerpsControllerMessenger>,
-): PerpsControllerMessenger {
-  const base = {
-    call: jest.fn(),
-    publish: jest.fn(),
-    subscribe: jest.fn(),
-    registerActionHandler: jest.fn(),
-    registerEventHandler: jest.fn(),
-    registerInitialEventPayload: jest.fn(),
-    unregisterActionHandler: jest.fn(),
-    unregisterEventHandler: jest.fn(),
-    clearEventSubscriptions: jest.fn(),
-  };
-  return { ...base, ...overrides } as unknown as PerpsControllerMessenger;
 }
 
 describe('PerpsController', () => {
@@ -2301,6 +2281,10 @@ describe('PerpsController', () => {
     const mockTransactionMeta = { id: 'tx-meta-123' };
     const mockTxHash = '0xhash123';
 
+    // Local messenger mock for depositWithConfirmation tests
+    let depositMessengerMock: jest.Mock;
+    let depositController: TestablePerpsController;
+
     beforeEach(() => {
       // Mock DepositService
       jest
@@ -2311,16 +2295,38 @@ describe('PerpsController', () => {
           currentDepositId: mockDepositId,
         });
 
-      // Mock controllers.network via infrastructure (consolidated pattern for core migration)
-      (
-        mockInfrastructure.controllers.network
-          .findNetworkClientIdForChain as jest.Mock
-      ).mockReturnValue(mockNetworkClientId);
-
-      // Also mock on Engine.context for backwards compatibility with tests that check the mock calls
-      Engine.context.NetworkController.findNetworkClientIdByChainId = jest
-        .fn()
-        .mockReturnValue(mockNetworkClientId);
+      // Create a messenger mock that handles network and transaction actions
+      depositMessengerMock = jest.fn().mockImplementation((action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          return {
+            remoteFeatureFlags: {
+              perpsPerpTradingGeoBlockedCountriesV2: {
+                blockedRegions: [],
+              },
+            },
+          };
+        }
+        if (action === 'NetworkController:findNetworkClientIdByChainId') {
+          return mockNetworkClientId;
+        }
+        if (action === 'TransactionController:addTransaction') {
+          return Promise.resolve({
+            result: Promise.resolve(mockTxHash),
+            transactionMeta: mockTransactionMeta,
+          });
+        }
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [
+            {
+              address: mockTransaction.from,
+              type: 'eip155:eoa',
+            },
+          ];
+        }
+        return undefined;
+      });
 
       Engine.context.TransactionController.estimateGasFee = jest
         .fn()
@@ -2350,38 +2356,27 @@ describe('PerpsController', () => {
         },
       };
 
-      // Mock controllers.transaction.submit via infrastructure (consolidated pattern for core migration)
-      (
-        mockInfrastructure.controllers.transaction.submit as jest.Mock
-      ).mockResolvedValue({
-        result: Promise.resolve(mockTxHash),
-        transactionMeta: mockTransactionMeta,
+      // Create a controller with the custom messenger for this test suite
+      depositController = new TestablePerpsController({
+        messenger: createMockMessenger({ call: depositMessengerMock }),
+        state: getDefaultPerpsControllerState(),
+        infrastructure: createMockInfrastructure(),
       });
-
-      // Also mock on Engine.context for backwards compatibility with tests that check the mock calls
-      Engine.context.TransactionController.addTransaction = jest
-        .fn()
-        .mockResolvedValue({
-          result: Promise.resolve(mockTxHash),
-          transactionMeta: mockTransactionMeta,
-        });
     });
 
     afterEach(() => {
-      // Clean up mock properties added in beforeEach to prevent test pollution
-      delete (Engine.context.NetworkController as any)
-        .findNetworkClientIdByChainId;
-      delete (Engine.context.TransactionController as any).addTransaction;
       delete (Engine.context.TransactionController as any).estimateGasFee;
       jest.clearAllMocks();
       mockAddTransaction.mockClear();
     });
 
     it('returns promise result', async () => {
-      markControllerAsInitialized();
-      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      depositController.testMarkInitialized();
+      depositController.testSetProviders(
+        new Map([['hyperliquid', mockProvider]]),
+      );
 
-      const result = await controller.depositWithConfirmation({
+      const result = await depositController.depositWithConfirmation({
         amount: '100',
       });
 
@@ -2391,10 +2386,12 @@ describe('PerpsController', () => {
     });
 
     it('delegates to DepositService.prepareTransaction', async () => {
-      markControllerAsInitialized();
-      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      depositController.testMarkInitialized();
+      depositController.testSetProviders(
+        new Map([['hyperliquid', mockProvider]]),
+      );
 
-      await controller.depositWithConfirmation({ amount: '100' });
+      await depositController.depositWithConfirmation({ amount: '100' });
 
       expect(
         mockDepositServiceInstance.prepareTransaction,
@@ -2403,133 +2400,192 @@ describe('PerpsController', () => {
       });
     });
 
-    it('calls controllers.network.findNetworkClientIdForChain with correct chainId', async () => {
-      markControllerAsInitialized();
-      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+    it('calls NetworkController:findNetworkClientIdByChainId with correct chainId', async () => {
+      depositController.testMarkInitialized();
+      depositController.testSetProviders(
+        new Map([['hyperliquid', mockProvider]]),
+      );
 
-      await controller.depositWithConfirmation({ amount: '100' });
+      await depositController.depositWithConfirmation({ amount: '100' });
 
-      expect(
-        mockInfrastructure.controllers.network.findNetworkClientIdForChain,
-      ).toHaveBeenCalledWith(mockAssetChainId);
+      expect(depositMessengerMock).toHaveBeenCalledWith(
+        'NetworkController:findNetworkClientIdByChainId',
+        mockAssetChainId,
+      );
     });
 
-    it('calls controllers.transaction.submit with prepared transaction', async () => {
-      markControllerAsInitialized();
-      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+    it('calls TransactionController:addTransaction with prepared transaction', async () => {
+      depositController.testMarkInitialized();
+      depositController.testSetProviders(
+        new Map([['hyperliquid', mockProvider]]),
+      );
 
-      await controller.depositWithConfirmation({ amount: '100' });
+      await depositController.depositWithConfirmation({ amount: '100' });
 
-      expect(
-        mockInfrastructure.controllers.transaction.submit,
-      ).toHaveBeenCalledWith(mockTransaction, {
-        networkClientId: mockNetworkClientId,
-        origin: 'metamask',
-        type: 'perpsDeposit',
-        skipInitialGasEstimate: true,
-      });
+      expect(depositMessengerMock).toHaveBeenCalledWith(
+        'TransactionController:addTransaction',
+        mockTransaction,
+        {
+          networkClientId: mockNetworkClientId,
+          origin: 'metamask',
+          type: 'perpsDeposit',
+          skipInitialGasEstimate: true,
+        },
+      );
     });
 
     it('throws error when controller not initialized', async () => {
-      controller.testSetInitialized(false);
+      depositController.testSetInitialized(false);
 
       await expect(
-        controller.depositWithConfirmation({ amount: '100' }),
+        depositController.depositWithConfirmation({ amount: '100' }),
       ).rejects.toThrow('CLIENT_NOT_INITIALIZED');
     });
 
     it('throws error when no active provider', async () => {
-      markControllerAsInitialized();
-      controller.testSetProviders(new Map());
+      depositController.testMarkInitialized();
+      depositController.testSetProviders(new Map());
 
       await expect(
-        controller.depositWithConfirmation({ amount: '100' }),
+        depositController.depositWithConfirmation({ amount: '100' }),
       ).rejects.toThrow();
     });
 
     it('propagates DepositService errors', async () => {
-      markControllerAsInitialized();
-      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      depositController.testMarkInitialized();
+      depositController.testSetProviders(
+        new Map([['hyperliquid', mockProvider]]),
+      );
       const mockError = new Error('Deposit service failed');
       jest
         .spyOn(mockDepositServiceInstance, 'prepareTransaction')
         .mockRejectedValue(mockError);
 
       await expect(
-        controller.depositWithConfirmation({ amount: '100' }),
+        depositController.depositWithConfirmation({ amount: '100' }),
       ).rejects.toThrow('Deposit service failed');
     });
 
-    it('propagates controllers.network.findNetworkClientIdForChain errors', async () => {
-      markControllerAsInitialized();
-      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+    it('propagates NetworkController:findNetworkClientIdByChainId errors', async () => {
+      depositController.testMarkInitialized();
+      depositController.testSetProviders(
+        new Map([['hyperliquid', mockProvider]]),
+      );
       const mockError = new Error('Network client not found');
-      (
-        mockInfrastructure.controllers.network
-          .findNetworkClientIdForChain as jest.Mock
-      ).mockImplementation(() => {
-        throw mockError;
+      depositMessengerMock.mockImplementation((action: string) => {
+        if (action === 'NetworkController:findNetworkClientIdByChainId') {
+          throw mockError;
+        }
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [{ address: mockTransaction.from, type: 'eip155:eoa' }];
+        }
+        return undefined;
       });
 
       await expect(
-        controller.depositWithConfirmation({ amount: '100' }),
+        depositController.depositWithConfirmation({ amount: '100' }),
       ).rejects.toThrow('Network client not found');
     });
 
-    it('propagates controllers.transaction.submit errors', async () => {
-      markControllerAsInitialized();
-      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+    it('propagates TransactionController:addTransaction errors', async () => {
+      depositController.testMarkInitialized();
+      depositController.testSetProviders(
+        new Map([['hyperliquid', mockProvider]]),
+      );
       const mockError = new Error('Transaction failed');
-      (
-        mockInfrastructure.controllers.transaction.submit as jest.Mock
-      ).mockRejectedValue(mockError);
+      depositMessengerMock.mockImplementation((action: string) => {
+        if (action === 'NetworkController:findNetworkClientIdByChainId') {
+          return mockNetworkClientId;
+        }
+        if (action === 'TransactionController:addTransaction') {
+          return Promise.reject(mockError);
+        }
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [{ address: mockTransaction.from, type: 'eip155:eoa' }];
+        }
+        return undefined;
+      });
 
       await expect(
-        controller.depositWithConfirmation({ amount: '100' }),
+        depositController.depositWithConfirmation({ amount: '100' }),
       ).rejects.toThrow('Transaction failed');
     });
 
     it('clears transaction ID when error occurs and not user cancellation', async () => {
-      markControllerAsInitialized();
-      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
-      controller.testUpdate((state) => {
+      depositController.testMarkInitialized();
+      depositController.testSetProviders(
+        new Map([['hyperliquid', mockProvider]]),
+      );
+      depositController.testUpdate((state) => {
         state.lastDepositTransactionId = 'old-tx-id';
       });
       const mockError = new Error('Network error');
-      (
-        mockInfrastructure.controllers.transaction.submit as jest.Mock
-      ).mockRejectedValue(mockError);
+      depositMessengerMock.mockImplementation((action: string) => {
+        if (action === 'NetworkController:findNetworkClientIdByChainId') {
+          return mockNetworkClientId;
+        }
+        if (action === 'TransactionController:addTransaction') {
+          return Promise.reject(mockError);
+        }
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [{ address: mockTransaction.from, type: 'eip155:eoa' }];
+        }
+        return undefined;
+      });
 
       await expect(
-        controller.depositWithConfirmation({ amount: '100' }),
+        depositController.depositWithConfirmation({ amount: '100' }),
       ).rejects.toThrow('Network error');
 
-      expect(controller.state.lastDepositTransactionId).toBeNull();
+      expect(depositController.state.lastDepositTransactionId).toBeNull();
     });
 
     it('preserves state when user cancels transaction', async () => {
-      markControllerAsInitialized();
-      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
-      controller.testUpdate((state) => {
+      depositController.testMarkInitialized();
+      depositController.testSetProviders(
+        new Map([['hyperliquid', mockProvider]]),
+      );
+      depositController.testUpdate((state) => {
         state.lastDepositTransactionId = 'old-tx-id';
       });
       const mockError = new Error('User denied transaction signature');
-      (
-        mockInfrastructure.controllers.transaction.submit as jest.Mock
-      ).mockRejectedValue(mockError);
+      depositMessengerMock.mockImplementation((action: string) => {
+        if (action === 'NetworkController:findNetworkClientIdByChainId') {
+          return mockNetworkClientId;
+        }
+        if (action === 'TransactionController:addTransaction') {
+          return Promise.reject(mockError);
+        }
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [{ address: mockTransaction.from, type: 'eip155:eoa' }];
+        }
+        return undefined;
+      });
 
       await expect(
-        controller.depositWithConfirmation({ amount: '100' }),
+        depositController.depositWithConfirmation({ amount: '100' }),
       ).rejects.toThrow('User denied');
 
       // When user cancels, transaction ID is not cleared
-      expect(controller.state.lastDepositTransactionId).toBe('old-tx-id');
+      expect(depositController.state.lastDepositTransactionId).toBe(
+        'old-tx-id',
+      );
     });
 
     it('clears stale deposit results before transaction', async () => {
-      markControllerAsInitialized();
-      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
-      controller.testUpdate((state) => {
+      depositController.testMarkInitialized();
+      depositController.testSetProviders(
+        new Map([['hyperliquid', mockProvider]]),
+      );
+      depositController.testUpdate((state) => {
         state.lastDepositResult = {
           success: true,
           txHash: '0xold',
@@ -2540,40 +2596,48 @@ describe('PerpsController', () => {
         };
       });
 
-      const { result } = await controller.depositWithConfirmation({
+      const { result } = await depositController.depositWithConfirmation({
         amount: '100',
       });
 
       await result;
 
       // After promise resolves, lastDepositResult is set with new result
-      expect(controller.state.lastDepositResult).toBeTruthy();
-      expect(controller.state.lastDepositResult?.success).toBe(true);
+      expect(depositController.state.lastDepositResult).toBeTruthy();
+      expect(depositController.state.lastDepositResult?.success).toBe(true);
     });
 
     it('updates state with transaction details', async () => {
-      markControllerAsInitialized();
-      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      depositController.testMarkInitialized();
+      depositController.testSetProviders(
+        new Map([['hyperliquid', mockProvider]]),
+      );
 
-      await controller.depositWithConfirmation({ amount: '100' });
+      await depositController.depositWithConfirmation({ amount: '100' });
 
-      expect(controller.state.lastDepositTransactionId).toBe('tx-meta-123');
+      expect(depositController.state.lastDepositTransactionId).toBe(
+        'tx-meta-123',
+      );
     });
 
     it('stores depositId from service immediately', async () => {
-      markControllerAsInitialized();
-      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      depositController.testMarkInitialized();
+      depositController.testSetProviders(
+        new Map([['hyperliquid', mockProvider]]),
+      );
 
-      await controller.depositWithConfirmation({ amount: '100' });
+      await depositController.depositWithConfirmation({ amount: '100' });
 
-      expect(controller.state.depositRequests[0].id).toBe(mockDepositId);
+      expect(depositController.state.depositRequests[0].id).toBe(mockDepositId);
     });
 
     it('delegates to DepositService with provider', async () => {
-      markControllerAsInitialized();
-      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      depositController.testMarkInitialized();
+      depositController.testSetProviders(
+        new Map([['hyperliquid', mockProvider]]),
+      );
 
-      await controller.depositWithConfirmation({ amount: '100' });
+      await depositController.depositWithConfirmation({ amount: '100' });
 
       expect(
         mockDepositServiceInstance.prepareTransaction,
@@ -2583,65 +2647,85 @@ describe('PerpsController', () => {
     });
 
     it('adds deposit request to tracking initially as pending', async () => {
-      markControllerAsInitialized();
-      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      depositController.testMarkInitialized();
+      depositController.testSetProviders(
+        new Map([['hyperliquid', mockProvider]]),
+      );
 
-      await controller.depositWithConfirmation({ amount: '100' });
+      await depositController.depositWithConfirmation({ amount: '100' });
 
-      expect(controller.state.depositRequests).toHaveLength(1);
-      expect(controller.state.depositRequests[0].id).toBe(mockDepositId);
-      expect(controller.state.depositRequests[0].amount).toBe('100');
-      expect(controller.state.depositRequests[0].asset).toBe('USDC');
+      expect(depositController.state.depositRequests).toHaveLength(1);
+      expect(depositController.state.depositRequests[0].id).toBe(mockDepositId);
+      expect(depositController.state.depositRequests[0].amount).toBe('100');
+      expect(depositController.state.depositRequests[0].asset).toBe('USDC');
     });
 
     it('uses default amount when not provided', async () => {
-      markControllerAsInitialized();
-      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      depositController.testMarkInitialized();
+      depositController.testSetProviders(
+        new Map([['hyperliquid', mockProvider]]),
+      );
 
-      await controller.depositWithConfirmation();
+      await depositController.depositWithConfirmation();
 
-      expect(controller.state.depositRequests[0].amount).toBe('0');
+      expect(depositController.state.depositRequests[0].amount).toBe('0');
     });
 
     it('updates deposit request to completed when transaction succeeds', async () => {
-      markControllerAsInitialized();
-      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      depositController.testMarkInitialized();
+      depositController.testSetProviders(
+        new Map([['hyperliquid', mockProvider]]),
+      );
 
-      const { result } = await controller.depositWithConfirmation({
+      const { result } = await depositController.depositWithConfirmation({
         amount: '100',
       });
 
       await result;
 
       // After promise resolves, deposit request is marked as completed
-      expect(controller.state.depositRequests[0].status).toBe('completed');
-      expect(controller.state.depositRequests[0].success).toBe(true);
-      expect(controller.state.depositRequests[0].txHash).toBe(mockTxHash);
+      expect(depositController.state.depositRequests[0].status).toBe(
+        'completed',
+      );
+      expect(depositController.state.depositRequests[0].success).toBe(true);
+      expect(depositController.state.depositRequests[0].txHash).toBe(
+        mockTxHash,
+      );
     });
 
     it('handles concurrent deposit operations without data corruption', async () => {
-      markControllerAsInitialized();
-      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      depositController.testMarkInitialized();
+      depositController.testSetProviders(
+        new Map([['hyperliquid', mockProvider]]),
+      );
 
-      const deposit1 = controller.depositWithConfirmation({ amount: '100' });
-      const deposit2 = controller.depositWithConfirmation({ amount: '200' });
+      const deposit1 = depositController.depositWithConfirmation({
+        amount: '100',
+      });
+      const deposit2 = depositController.depositWithConfirmation({
+        amount: '200',
+      });
 
       await Promise.all([deposit1, deposit2]);
 
-      expect(controller.state.depositRequests).toHaveLength(2);
-      const amounts = controller.state.depositRequests.map((req) => req.amount);
+      expect(depositController.state.depositRequests).toHaveLength(2);
+      const amounts = depositController.state.depositRequests.map(
+        (req) => req.amount,
+      );
       expect(amounts).toContain('100');
       expect(amounts).toContain('200');
     });
 
     it('uses addTransaction when placeOrder is true', async () => {
-      markControllerAsInitialized();
-      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      depositController.testMarkInitialized();
+      depositController.testSetProviders(
+        new Map([['hyperliquid', mockProvider]]),
+      );
       mockAddTransaction.mockResolvedValue({
         transactionMeta: mockTransactionMeta,
       });
 
-      await controller.depositWithConfirmation({
+      await depositController.depositWithConfirmation({
         amount: '100',
         placeOrder: true,
       });
@@ -2652,18 +2736,25 @@ describe('PerpsController', () => {
         type: 'perpsDepositAndOrder',
         skipInitialGasEstimate: true,
       });
-      expect(
-        mockInfrastructure.controllers.transaction.submit,
-      ).not.toHaveBeenCalled();
-      expect(controller.state.lastDepositTransactionId).toBe('tx-meta-123');
+      // TransactionController:addTransaction should not be called for placeOrder (uses addTransaction helper instead)
+      expect(depositMessengerMock).not.toHaveBeenCalledWith(
+        'TransactionController:addTransaction',
+        expect.anything(),
+        expect.objectContaining({ type: 'perpsDeposit' }),
+      );
+      expect(depositController.state.lastDepositTransactionId).toBe(
+        'tx-meta-123',
+      );
     });
 
     it('clears depositInProgress after successful transaction', async () => {
       jest.useFakeTimers();
-      markControllerAsInitialized();
-      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      depositController.testMarkInitialized();
+      depositController.testSetProviders(
+        new Map([['hyperliquid', mockProvider]]),
+      );
 
-      const { result } = await controller.depositWithConfirmation({
+      const { result } = await depositController.depositWithConfirmation({
         amount: '100',
       });
 
@@ -2671,33 +2762,46 @@ describe('PerpsController', () => {
       await result;
 
       // Initially depositInProgress should be true
-      expect(controller.state.depositInProgress).toBe(true);
+      expect(depositController.state.depositInProgress).toBe(true);
 
       // Fast-forward the setTimeout
       jest.advanceTimersByTime(100);
 
       // After timeout, depositInProgress should be cleared
-      expect(controller.state.depositInProgress).toBe(false);
-      expect(controller.state.lastDepositTransactionId).toBeNull();
+      expect(depositController.state.depositInProgress).toBe(false);
+      expect(depositController.state.lastDepositTransactionId).toBeNull();
 
       jest.useRealTimers();
     });
 
     it('handles non-user-cancelled transaction errors after confirmation', async () => {
       jest.useFakeTimers();
-      markControllerAsInitialized();
-      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      depositController.testMarkInitialized();
+      depositController.testSetProviders(
+        new Map([['hyperliquid', mockProvider]]),
+      );
 
-      // Mock submit to succeed initially, but result promise rejects
+      // Mock messenger to succeed initially, but result promise rejects
       const mockError = new Error('Network error occurred');
-      (
-        mockInfrastructure.controllers.transaction.submit as jest.Mock
-      ).mockResolvedValue({
-        result: Promise.reject(mockError),
-        transactionMeta: mockTransactionMeta,
+      depositMessengerMock.mockImplementation((action: string) => {
+        if (action === 'NetworkController:findNetworkClientIdByChainId') {
+          return mockNetworkClientId;
+        }
+        if (action === 'TransactionController:addTransaction') {
+          return Promise.resolve({
+            result: Promise.reject(mockError),
+            transactionMeta: mockTransactionMeta,
+          });
+        }
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [{ address: mockTransaction.from, type: 'eip155:eoa' }];
+        }
+        return undefined;
       });
 
-      const { result } = await controller.depositWithConfirmation({
+      const { result } = await depositController.depositWithConfirmation({
         amount: '100',
       });
 
@@ -2705,9 +2809,9 @@ describe('PerpsController', () => {
       await expect(result).rejects.toThrow('Network error occurred');
 
       // Should set error state
-      expect(controller.state.depositInProgress).toBe(false);
-      expect(controller.state.lastDepositTransactionId).toBeNull();
-      expect(controller.state.lastDepositResult).toEqual({
+      expect(depositController.state.depositInProgress).toBe(false);
+      expect(depositController.state.lastDepositTransactionId).toBeNull();
+      expect(depositController.state.lastDepositResult).toEqual({
         success: false,
         error: 'Network error occurred',
         amount: '100',
@@ -2717,15 +2821,17 @@ describe('PerpsController', () => {
       });
 
       // Should update deposit request status
-      expect(controller.state.depositRequests[0].status).toBe('failed');
-      expect(controller.state.depositRequests[0].success).toBe(false);
+      expect(depositController.state.depositRequests[0].status).toBe('failed');
+      expect(depositController.state.depositRequests[0].success).toBe(false);
 
       jest.useRealTimers();
     });
 
     it('handles user cancelled transaction with different error messages', async () => {
-      markControllerAsInitialized();
-      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      depositController.testMarkInitialized();
+      depositController.testSetProviders(
+        new Map([['hyperliquid', mockProvider]]),
+      );
 
       const cancellationMessages = [
         'User rejected transaction signature',
@@ -2734,26 +2840,44 @@ describe('PerpsController', () => {
       ];
 
       for (const message of cancellationMessages) {
+        // Reset deposit controller state for each iteration
+        depositController.testUpdate((state) => {
+          state.depositRequests = [];
+          state.lastDepositResult = null;
+          state.depositInProgress = false;
+        });
         jest.clearAllMocks();
         const mockError = new Error(message);
-        // Mock submit to succeed initially, but result promise rejects with user cancellation
-        (
-          mockInfrastructure.controllers.transaction.submit as jest.Mock
-        ).mockResolvedValue({
-          result: Promise.reject(mockError),
-          transactionMeta: mockTransactionMeta,
+        // Mock messenger to succeed initially, but result promise rejects with user cancellation
+        depositMessengerMock.mockImplementation((action: string) => {
+          if (action === 'NetworkController:findNetworkClientIdByChainId') {
+            return mockNetworkClientId;
+          }
+          if (action === 'TransactionController:addTransaction') {
+            return Promise.resolve({
+              result: Promise.reject(mockError),
+              transactionMeta: mockTransactionMeta,
+            });
+          }
+          if (
+            action ===
+            'AccountTreeController:getAccountsFromSelectedAccountGroup'
+          ) {
+            return [{ address: mockTransaction.from, type: 'eip155:eoa' }];
+          }
+          return undefined;
         });
 
-        const { result } = await controller.depositWithConfirmation({
+        const { result } = await depositController.depositWithConfirmation({
           amount: '100',
         });
 
         await expect(result).rejects.toThrow(message);
 
         // Should clear state but not set error result
-        expect(controller.state.depositInProgress).toBe(false);
-        expect(controller.state.lastDepositTransactionId).toBeNull();
-        expect(controller.state.lastDepositResult).toBeNull();
+        expect(depositController.state.depositInProgress).toBe(false);
+        expect(depositController.state.lastDepositTransactionId).toBeNull();
+        expect(depositController.state.lastDepositResult).toBeNull();
       }
     });
   });

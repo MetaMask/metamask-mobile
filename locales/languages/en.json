@@ -115,6 +115,10 @@
       "message": "You're sending your assets to a burn address. If you continue, you'll lose your assets.",
       "title": "Sending assets to burn address"
     },
+    "gas_sponsorship_reserve_balance": {
+      "message": "Gas sponsorship isn't available for this transaction. You'll need to keep at least %{minBalance} %{nativeTokenSymbol} in your account.",
+      "title": "Gas sponsorship unavailable"
+    },
     "token_trust_signal": {
       "malicious": {
         "message": "This token has been identified as malicious. Interacting with this token may result in a loss of funds.",
@@ -4848,6 +4852,7 @@
       "lowest_sell_limit": "lowest sell limit",
       "medium_sell_limit": "medium sell limit",
       "highest_sell_limit": "highest sell limit",
+      "change": "Change",
       "continue_to_amount": "Continue to amount",
       "no_payment_methods_title": "No payment methods in {{regionName}}",
       "no_cash_destinations_title": "No cash destinations in {{regionName}}",
