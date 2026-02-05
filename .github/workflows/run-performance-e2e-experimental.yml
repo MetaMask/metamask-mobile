@@ -9,6 +9,11 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  id-token: write
+  actions: write
+
 concurrency:
   group: performance-e2e-experimental-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: false
