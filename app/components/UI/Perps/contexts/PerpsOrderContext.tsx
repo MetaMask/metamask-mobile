@@ -31,6 +31,7 @@ export const PerpsOrderProvider = ({
   initialLeverage,
   initialType,
   existingPosition,
+  effectiveAvailableBalance,
 }: PerpsOrderProviderProps) => {
   const orderFormState = usePerpsOrderForm({
     initialAsset,
@@ -38,6 +39,7 @@ export const PerpsOrderProvider = ({
     initialAmount,
     initialLeverage: initialLeverage ?? existingPosition?.leverage?.value,
     initialType,
+    effectiveAvailableBalance,
   });
 
   return (

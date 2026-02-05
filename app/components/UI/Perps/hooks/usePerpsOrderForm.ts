@@ -42,6 +42,8 @@ export interface UsePerpsOrderFormReturn {
   handleMaxAmount: () => void;
   handleMinAmount: () => void;
   maxPossibleAmount: number;
+  /** Balance to use for validation and UI (Perps balance or selected token amount in USD when paying with custom token) */
+  balanceForValidation: number;
 }
 
 /**
@@ -87,15 +89,15 @@ export function usePerpsOrderForm(
     selectPendingTradeConfiguration(state, initialAsset),
   );
 
-  // Get available balance from live account data
   const availableBalance = Number.parseFloat(
-    account?.availableBalance?.toString() || '0',
+    effectiveAvailableBalanceParam != null
+      ? effectiveAvailableBalanceParam.toString()
+      : (account?.availableBalance?.toString() ?? '0'),
   );
 
   // When paying with a custom token, cap by selected token amount in USD; otherwise use Perps balance
   const balanceForMax =
-    effectiveAvailableBalanceParam != null &&
-      effectiveAvailableBalanceParam > 0
+    effectiveAvailableBalanceParam != null && effectiveAvailableBalanceParam > 0
       ? effectiveAvailableBalanceParam
       : availableBalance;
 
@@ -249,6 +251,17 @@ export function usePerpsOrderForm(
     }
   }, [existingPositionLeverage, initialLeverage, orderForm.leverage]);
 
+  // When user changes payment token (or effective balance drops), reset amount to MAX if current amount exceeds new max
+  useEffect(() => {
+    const current = Number.parseFloat(orderForm.amount || '0');
+    if (maxPossibleAmount >= 0 && current > maxPossibleAmount) {
+      setOrderForm((prev) => ({
+        ...prev,
+        amount: String(Math.floor(maxPossibleAmount)),
+      }));
+    }
+  }, [balanceForMax, maxPossibleAmount, orderForm.amount]);
+
   // Update entire form
   const updateOrderForm = (updates: Partial<OrderFormState>) => {
     setOrderForm((prev) => ({ ...prev, ...updates }));
@@ -351,5 +364,6 @@ export function usePerpsOrderForm(
     handleMaxAmount,
     handleMinAmount,
     maxPossibleAmount,
+    balanceForValidation: balanceForMax,
   };
 }
