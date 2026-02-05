@@ -58,7 +58,6 @@ import { useAddToken } from '../../../../Views/confirmations/hooks/tokens/useAdd
 import { useAutomaticTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useAutomaticTransactionPayToken';
 import { useTransactionPayMetrics } from '../../../../Views/confirmations/hooks/pay/useTransactionPayMetrics';
 import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
-import useClearConfirmationOnBackSwipe from '../../../../Views/confirmations/hooks/ui/useClearConfirmationOnBackSwipe';
 import AddRewardsAccount from '../../../Rewards/components/AddRewardsAccount/AddRewardsAccount';
 import RewardsAnimations, {
   RewardAnimationState,
@@ -147,6 +146,7 @@ import { useTransactionConfirm } from '../../../../Views/confirmations/hooks/tra
 import { useTransactionCustomAmount } from '../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount';
 import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConfirmActions';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -202,7 +202,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     tokenAddress: ARBITRUM_USDC.address,
   });
 
-  useClearConfirmationOnBackSwipe();
+  // Clear confirmation when leaving the order view
+  const { onReject } = useConfirmActions();
+  useEffect(
+    () => () => {
+      onReject(undefined, true);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
 
   // Disable automatic token selection - we want to show "Perps balance" by default
   // User can explicitly select a token from the modal
