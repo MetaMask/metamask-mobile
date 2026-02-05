@@ -22,7 +22,10 @@ import type {
   PerpsProviderType,
 } from './types';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
-import { createMockHyperLiquidProvider } from '../__mocks__/providerMocks';
+import {
+  createMockHyperLiquidProvider,
+  createMockPosition,
+} from '../__mocks__/providerMocks';
 import {
   createMockInfrastructure,
   createMockMessenger,
@@ -3698,6 +3701,204 @@ describe('PerpsController', () => {
 
       const savedGrouping = controller.getOrderBookGrouping('BTC');
       expect(savedGrouping).toBe(100);
+    });
+  });
+
+  describe('readOnly mode', () => {
+    const mockUserAddress = '0xabcdef1234567890abcdef1234567890abcdef12';
+    const MockedHyperLiquidProvider = HyperLiquidProvider as jest.MockedClass<
+      typeof HyperLiquidProvider
+    >;
+
+    beforeEach(() => {
+      // Reset mocks before each test
+      MockedHyperLiquidProvider.mockClear();
+    });
+
+    describe('getPositions with readOnly mode', () => {
+      it('uses existing provider for readOnly queries when available', async () => {
+        // Arrange - set up mock provider with properly typed positions
+        const mockPositions = [
+          createMockPosition({ symbol: 'BTC', size: '0.5' }),
+        ];
+        const existingMockProvider = createMockHyperLiquidProvider();
+        existingMockProvider.getPositions.mockResolvedValue(mockPositions);
+        controller.testSetProviders(
+          new Map([['hyperliquid', existingMockProvider]]),
+        );
+        controller.testMarkInitialized();
+        controller.testUpdate((state) => {
+          state.activeProvider = 'hyperliquid';
+        });
+
+        // Act
+        const positions = await controller.getPositions({
+          readOnly: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert - should use existing provider
+        expect(existingMockProvider.getPositions).toHaveBeenCalledWith({
+          readOnly: true,
+          userAddress: mockUserAddress,
+        });
+        expect(positions).toEqual(mockPositions);
+        // Should NOT create a new HyperLiquidProvider instance
+        expect(MockedHyperLiquidProvider).not.toHaveBeenCalled();
+      });
+
+      it('creates temporary provider for readOnly queries when no provider exists', async () => {
+        // Arrange - no provider set up (activeProvider is 'aggregated' which means undefined in providers map)
+        const mockPositions = [
+          createMockPosition({ symbol: 'ETH', size: '2.0' }),
+        ];
+        // Create a temporary mock provider for this test that returns custom positions
+        const tempMockProvider = createMockHyperLiquidProvider();
+        tempMockProvider.getPositions.mockResolvedValue(mockPositions);
+        MockedHyperLiquidProvider.mockImplementation(() => tempMockProvider);
+
+        controller.testUpdate((state) => {
+          state.activeProvider = 'aggregated';
+          state.isTestnet = false;
+        });
+
+        // Act
+        const positions = await controller.getPositions({
+          readOnly: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert - should create a temporary provider
+        expect(MockedHyperLiquidProvider).toHaveBeenCalledWith(
+          expect.objectContaining({
+            isTestnet: false,
+          }),
+        );
+        expect(positions).toEqual(mockPositions);
+      });
+
+      it('bypasses getActiveProvider check for readOnly queries', async () => {
+        // Arrange - controller not initialized (no provider available via normal path)
+        const mockPositions = [
+          createMockPosition({ symbol: 'BTC', size: '1.0' }),
+        ];
+        // Create a temporary mock provider for this test
+        const tempMockProvider = createMockHyperLiquidProvider();
+        tempMockProvider.getPositions.mockResolvedValue(mockPositions);
+        MockedHyperLiquidProvider.mockImplementation(() => tempMockProvider);
+
+        controller.testUpdate((state) => {
+          state.initializationState = InitializationState.Initializing;
+          state.activeProvider = 'aggregated';
+        });
+
+        // Act - should NOT throw despite controller not being initialized
+        const positions = await controller.getPositions({
+          readOnly: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert
+        expect(positions).toEqual(mockPositions);
+      });
+    });
+
+    describe('getAccountState with readOnly mode', () => {
+      // Complete AccountState mock with all required fields
+      const createMockAccountState = (overrides = {}) => ({
+        totalBalance: '50000',
+        availableBalance: '45000',
+        marginUsed: '5000',
+        unrealizedPnl: '1000',
+        returnOnEquity: '20',
+        ...overrides,
+      });
+
+      it('uses existing provider for readOnly queries when available', async () => {
+        // Arrange
+        const mockAccountState = createMockAccountState();
+        const existingMockProvider = createMockHyperLiquidProvider();
+        existingMockProvider.getAccountState.mockResolvedValue(
+          mockAccountState,
+        );
+        controller.testSetProviders(
+          new Map([['hyperliquid', existingMockProvider]]),
+        );
+        controller.testMarkInitialized();
+        controller.testUpdate((state) => {
+          state.activeProvider = 'hyperliquid';
+        });
+
+        // Act
+        const accountState = await controller.getAccountState({
+          readOnly: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert - should use existing provider
+        expect(existingMockProvider.getAccountState).toHaveBeenCalledWith({
+          readOnly: true,
+          userAddress: mockUserAddress,
+        });
+        expect(accountState).toEqual(mockAccountState);
+        expect(MockedHyperLiquidProvider).not.toHaveBeenCalled();
+      });
+
+      it('creates temporary provider for readOnly queries when no provider exists', async () => {
+        // Arrange
+        const mockAccountState = createMockAccountState({
+          totalBalance: '25000',
+          availableBalance: '20000',
+        });
+        // Create a temporary mock provider for this test
+        const tempMockProvider = createMockHyperLiquidProvider();
+        tempMockProvider.getAccountState.mockResolvedValue(mockAccountState);
+        MockedHyperLiquidProvider.mockImplementation(() => tempMockProvider);
+
+        controller.testUpdate((state) => {
+          state.activeProvider = 'aggregated';
+          state.isTestnet = true;
+        });
+
+        // Act
+        const accountState = await controller.getAccountState({
+          readOnly: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert - should create a temporary provider
+        expect(MockedHyperLiquidProvider).toHaveBeenCalledWith(
+          expect.objectContaining({
+            isTestnet: true,
+          }),
+        );
+        expect(accountState).toEqual(mockAccountState);
+      });
+
+      it('bypasses getActiveProvider check for readOnly queries', async () => {
+        // Arrange - controller not initialized
+        const mockAccountState = createMockAccountState({
+          totalBalance: '10000',
+        });
+        // Create a temporary mock provider for this test
+        const tempMockProvider = createMockHyperLiquidProvider();
+        tempMockProvider.getAccountState.mockResolvedValue(mockAccountState);
+        MockedHyperLiquidProvider.mockImplementation(() => tempMockProvider);
+
+        controller.testUpdate((state) => {
+          state.initializationState = InitializationState.Initializing;
+          state.activeProvider = 'aggregated';
+        });
+
+        // Act - should NOT throw despite controller not being initialized
+        const accountState = await controller.getAccountState({
+          readOnly: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert
+        expect(accountState).toEqual(mockAccountState);
+      });
     });
   });
 });
