@@ -23,6 +23,8 @@ interface UsePerpsOrderFormParams {
   initialAmount?: string;
   initialLeverage?: number;
   initialType?: OrderType;
+  /** When paying with a custom token, the selected token amount in USD; used to cap maxPossibleAmount and handlers */
+  effectiveAvailableBalance?: number;
 }
 
 export interface UsePerpsOrderFormReturn {
@@ -55,6 +57,7 @@ export function usePerpsOrderForm(
     initialAmount,
     initialLeverage,
     initialType = 'market',
+    effectiveAvailableBalance: effectiveAvailableBalanceParam,
   } = params;
 
   const currentNetwork = usePerpsNetwork();
@@ -89,6 +92,13 @@ export function usePerpsOrderForm(
     account?.availableBalance?.toString() || '0',
   );
 
+  // When paying with a custom token, cap by selected token amount in USD; otherwise use Perps balance
+  const balanceForMax =
+    effectiveAvailableBalanceParam != null &&
+      effectiveAvailableBalanceParam > 0
+      ? effectiveAvailableBalanceParam
+      : availableBalance;
+
   // Determine default amount based on network
   const defaultAmount =
     currentNetwork === 'mainnet'
@@ -121,7 +131,7 @@ export function usePerpsOrderForm(
     }
 
     const tempMaxAmount = getMaxAllowedAmount({
-      availableBalance,
+      availableBalance: balanceForMax,
       assetPrice: Number.parseFloat(currentPrice.price),
       assetSzDecimals: marketData?.szDecimals ?? 6,
       leverage: defaultLeverage, // Use default leverage for initial calculation
@@ -138,7 +148,7 @@ export function usePerpsOrderForm(
   }, [
     initialAmount,
     pendingConfig?.amount,
-    availableBalance,
+    balanceForMax,
     defaultAmount,
     currentPrice?.price,
     marketData?.szDecimals,
@@ -169,17 +179,17 @@ export function usePerpsOrderForm(
     type: defaultOrderType,
   });
 
-  // Calculate the maximum possible amount based on available balance and current leverage
+  // Calculate the maximum possible amount; when paying with custom token, capped by selected token amount in USD
   const maxPossibleAmount = useMemo(
     () =>
       getMaxAllowedAmount({
-        availableBalance,
+        availableBalance: balanceForMax,
         assetPrice: Number.parseFloat(currentPrice?.price) || 0,
         assetSzDecimals: marketData?.szDecimals ?? 6,
         leverage: orderForm.leverage, // Use current leverage instead of default
       }),
     [
-      availableBalance,
+      balanceForMax,
       currentPrice?.price,
       marketData?.szDecimals,
       orderForm.leverage, // Include current leverage in dependencies
@@ -293,26 +303,26 @@ export function usePerpsOrderForm(
     setOrderForm((prev) => ({ ...prev, type }));
   };
 
-  // Handle percentage-based amount selection
+  // Handle percentage-based amount selection (respects custom token amount when set)
   const handlePercentageAmount = useCallback(
     (percentage: number) => {
-      if (availableBalance === 0) return;
+      if (balanceForMax === 0) return;
       const newAmount = Math.floor(
-        availableBalance * orderForm.leverage * percentage,
+        balanceForMax * orderForm.leverage * percentage,
       ).toString();
       setOrderForm((prev) => ({ ...prev, amount: newAmount }));
     },
-    [availableBalance, orderForm.leverage],
+    [balanceForMax, orderForm.leverage],
   );
 
-  // Handle max amount selection
+  // Handle max amount selection (respects custom token amount when set)
   const handleMaxAmount = useCallback(() => {
-    if (availableBalance === 0) return;
+    if (balanceForMax === 0) return;
     setOrderForm((prev) => ({
       ...prev,
-      amount: Math.floor(availableBalance * prev.leverage).toString(),
+      amount: Math.floor(balanceForMax * prev.leverage).toString(),
     }));
-  }, [availableBalance]);
+  }, [balanceForMax]);
 
   // Handle min amount selection
   const handleMinAmount = useCallback(() => {

@@ -174,6 +174,7 @@ interface OrderRouteParams {
 
 interface PerpsOrderViewContentProps {
   hideTPSL?: boolean;
+  effectiveAvailableBalance?: number;
 }
 
 /**
@@ -189,6 +190,7 @@ interface PerpsOrderViewContentProps {
  */
 const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   hideTPSL = false,
+  effectiveAvailableBalance,
 }) => {
   // Auto-detect source based on trending session state
   const source = TrendingFeedSessionManager.getInstance().isFromTrending
@@ -262,6 +264,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // Use the same balance source as the pay-with list (Redux) when it's higher,
   // so we don't show "insufficient funds" when WebSocket is stale or not yet updated.
   const availableBalance = useMemo(() => {
+
+    if (effectiveAvailableBalance) {
+      return effectiveAvailableBalance;
+    }
+
     const wsBalance = Number.parseFloat(
       account?.availableBalance?.toString() || '0',
     );
@@ -269,7 +276,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       perpsAccountRedux?.availableBalance?.toString() || '0',
     );
     return Math.max(wsBalance, reduxBalance);
-  }, [account?.availableBalance, perpsAccountRedux?.availableBalance]);
+  }, [account?.availableBalance, perpsAccountRedux?.availableBalance, effectiveAvailableBalance]);
 
   // Get order form state from context instead of hook
   const {
@@ -360,9 +367,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const isPayRowVisible = Boolean(
     isTradeWithAnyTokenEnabled &&
-      depositAmount &&
-      depositAmount.trim() !== '' &&
-      activeTransactionMeta,
+    depositAmount &&
+    depositAmount.trim() !== '' &&
+    activeTransactionMeta,
   );
 
   // Handle opening limit price modal after order type modal closes
@@ -805,7 +812,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   };
 
   // Clamp amount to the maximum allowed once the keypad/input is dismissed
-  // Mirrors the PerpsClosePositionView behavior where values are normalized to valid limits
+  // maxPossibleAmount from context respects selected token amount in USD when paying with custom token
   useEffect(() => {
     if (!isInputFocused) {
       // Only clamp if input was from keypad (not from percentage/slider/max)
@@ -1156,16 +1163,16 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const placeOrderLabel = isInsufficientFunds
     ? strings('perps.order.validation.insufficient_funds')
     : strings(orderButtonKey, {
-        asset: getPerpsDisplaySymbol(orderForm.asset),
-      });
+      asset: getPerpsDisplaySymbol(orderForm.asset),
+    });
 
   const doesStopLossRiskLiquidation = Boolean(
     orderForm.stopLossPrice &&
-      !isStopLossSafeFromLiquidation(
-        orderForm.stopLossPrice,
-        liquidationPrice,
-        orderForm.direction,
-      ),
+    !isStopLossSafeFromLiquidation(
+      orderForm.stopLossPrice,
+      liquidationPrice,
+      orderForm.direction,
+    ),
   );
 
   let rewardAnimationState = RewardAnimationState.Idle;
@@ -1296,10 +1303,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                         color={TextColor.Default}
                       >
                         {orderForm.limitPrice !== undefined &&
-                        orderForm.limitPrice !== null
+                          orderForm.limitPrice !== null
                           ? formatPerpsFiat(orderForm.limitPrice, {
-                              ranges: PRICE_RANGES_UNIVERSAL,
-                            })
+                            ranges: PRICE_RANGES_UNIVERSAL,
+                          })
                           : 'Set price'}
                       </Text>
                     </ListItemColumn>
@@ -1421,8 +1428,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {marginRequired !== undefined && marginRequired !== null
                 ? formatPerpsFiat(marginRequired, {
-                    ranges: PRICE_RANGES_MINIMAL_VIEW,
-                  })
+                  ranges: PRICE_RANGES_MINIMAL_VIEW,
+                })
                 : PERPS_CONSTANTS.FallbackDataDisplay}
             </Text>
           </View>
@@ -1449,8 +1456,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {hasValidAmount
                 ? formatPerpsFiat(liquidationPrice, {
-                    ranges: PRICE_RANGES_UNIVERSAL,
-                  })
+                  ranges: PRICE_RANGES_UNIVERSAL,
+                })
                 : PERPS_CONSTANTS.FallbackDataDisplay}
             </Text>
           </View>
@@ -1480,8 +1487,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   !hasValidAmount
                     ? PERPS_CONSTANTS.FallbackDataDisplay
                     : formatPerpsFiat(feesToDisplay, {
-                        ranges: PRICE_RANGES_MINIMAL_VIEW,
-                      })
+                      ranges: PRICE_RANGES_MINIMAL_VIEW,
+                    })
                 }
                 variant={TextVariant.BodyMD}
               />
@@ -1758,17 +1765,17 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           data={
             selectedTooltip === 'fees'
               ? {
-                  metamaskFeeRate: feeResults.metamaskFeeRate,
-                  protocolFeeRate: feeResults.protocolFeeRate,
-                  originalMetamaskFeeRate: feeResults.originalMetamaskFeeRate,
-                  feeDiscountPercentage: feeResults.feeDiscountPercentage,
-                  ...(hasCustomTokenSelected &&
-                    depositFeeUsd > 0 && {
-                      bridgeFeeFormatted: formatPerpsFiat(depositFeeUsd, {
-                        ranges: PRICE_RANGES_MINIMAL_VIEW,
-                      }),
-                    }),
-                }
+                metamaskFeeRate: feeResults.metamaskFeeRate,
+                protocolFeeRate: feeResults.protocolFeeRate,
+                originalMetamaskFeeRate: feeResults.originalMetamaskFeeRate,
+                feeDiscountPercentage: feeResults.feeDiscountPercentage,
+                ...(hasCustomTokenSelected &&
+                  depositFeeUsd > 0 && {
+                  bridgeFeeFormatted: formatPerpsFiat(depositFeeUsd, {
+                    ranges: PRICE_RANGES_MINIMAL_VIEW,
+                  }),
+                }),
+              }
               : undefined
           }
         />
@@ -1794,6 +1801,8 @@ PerpsOrderViewContent.displayName = 'PerpsOrderViewContent';
 // Main component that wraps content with context providers
 const PerpsOrderView: React.FC = () => {
   const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
+  const { payToken } = useTransactionPayToken();
+  const hasCustomTokenSelected = !useIsPerpsBalanceSelected();
 
   // Get navigation params to pass to context provider
   const {
@@ -1805,6 +1814,15 @@ const PerpsOrderView: React.FC = () => {
     hideTPSL = false,
   } = route.params || {};
 
+  const effectiveAvailableBalance = useMemo(() => {
+    if (!hasCustomTokenSelected) return undefined;
+    const amount = payToken?.balanceUsd;
+    return amount !== undefined ? Number(amount) : undefined;
+  }, [
+    hasCustomTokenSelected,
+    payToken?.balanceUsd,
+  ]);
+
   return (
     <PerpsOrderProvider
       initialAsset={asset}
@@ -1812,8 +1830,9 @@ const PerpsOrderView: React.FC = () => {
       initialAmount={paramAmount}
       initialLeverage={paramLeverage}
       existingPosition={existingPosition}
+      effectiveAvailableBalance={effectiveAvailableBalance}
     >
-      <PerpsOrderViewContent hideTPSL={hideTPSL} />
+      <PerpsOrderViewContent hideTPSL={hideTPSL} effectiveAvailableBalance={effectiveAvailableBalance} />
     </PerpsOrderProvider>
   );
 };
