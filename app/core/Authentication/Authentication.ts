@@ -81,8 +81,12 @@ import { strings } from '../../../locales/i18n';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { IconName } from '../../component-library/components/Icons/Icon';
 import { AuthCapabilities, ReauthenticateErrorType } from './types';
-import * as LocalAuthentication from 'expo-local-authentication';
-import { SecurityLevel } from 'expo-local-authentication';
+import {
+  isEnrolledAsync,
+  supportedAuthenticationTypesAsync,
+  getEnrolledLevelAsync,
+  SecurityLevel,
+} from 'expo-local-authentication';
 import { getAuthToggleLabel } from './utils';
 
 /**
@@ -708,9 +712,9 @@ class AuthenticationService {
         supportedOSAuthenticationTypes,
         capabilitySecurityLevel,
       ] = await Promise.all([
-        LocalAuthentication.isEnrolledAsync(),
-        LocalAuthentication.supportedAuthenticationTypesAsync(),
-        LocalAuthentication.getEnrolledLevelAsync(),
+        isEnrolledAsync(),
+        supportedAuthenticationTypesAsync(),
+        getEnrolledLevelAsync(),
       ]);
 
       // Device supports biometrics but they're not available

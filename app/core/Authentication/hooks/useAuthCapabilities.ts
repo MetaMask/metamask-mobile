@@ -43,7 +43,7 @@ const useAuthCapabilities = (): UseAuthCapabilitiesResult => {
     } finally {
       setIsLoading(false);
     }
-  }, [osAuthEnabled, osAuthEnabled]);
+  }, [osAuthEnabled]);
 
   useEffect(() => {
     fetchAuthCapabilities();
