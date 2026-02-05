@@ -9,7 +9,6 @@ import TitleSubpage from './TitleSubpage';
 const TEST_IDS = {
   CONTAINER: 'title-subpage-container',
   TITLE: 'title-subpage-title',
-  START_ACCESSORY: 'title-subpage-start-accessory',
   BOTTOM_LABEL: 'title-subpage-bottom-label',
 };
 
