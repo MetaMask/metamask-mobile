@@ -29,7 +29,7 @@ import {
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import UsdcIcon from './usdc.svg';
 import { PredictActivityDetailsSelectorsIDs } from '../../Predict.testIds';
 interface PredictActivityDetailProps {}
@@ -374,7 +374,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       testID={PredictActivityDetailsSelectorsIDs.CONTAINER}
     >
       <Box twClassName="flex-1">
-        <HeaderCenter
+        <HeaderCompactStandard
           title={
             activityDetails?.headerTitle ??
             strings('predict.transactions.activity_details')
