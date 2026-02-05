@@ -16,6 +16,8 @@ export const PERPS_CONSTANTS = {
   FeatureName: 'perps', // Constant for Sentry error filtering - enables "feature:perps" dashboard queries
   /** Token description used to identify the synthetic "Perps balance" option in pay-with token lists */
   PerpsBalanceTokenDescription: 'perps-balance',
+  /** Symbol displayed for the synthetic "Perps balance" token in pay-with token lists */
+  PerpsBalanceTokenSymbol: 'USD',
   WebsocketTimeout: 5000, // 5 seconds
   WebsocketCleanupDelay: 1000, // 1 second
   BackgroundDisconnectDelay: 20_000, // 20 seconds delay before disconnecting when app is backgrounded or when user exits perps UX

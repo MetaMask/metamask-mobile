@@ -916,9 +916,6 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToAccount({
       callback: (account: AccountState | null) => {
-        if (account === null) {
-          return;
-        }
         // Validate account context
         const currentAccount =
           getEvmAccountFromSelectedAccountGroup()?.address || null;

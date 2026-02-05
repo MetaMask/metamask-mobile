@@ -1,6 +1,6 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Badge, {
@@ -37,6 +37,7 @@ import {
   PERPS_BALANCE_CHAIN_ID,
   PERPS_BALANCE_PLACEHOLDER_ADDRESS,
 } from '../../constants/perpsConfig';
+import Engine from '../../../../../core/Engine';
 import { PERPS_BALANCE_ICON_URI } from '../../hooks/usePerpsBalanceTokenFilter';
 import { useIsPerpsBalanceSelected } from '../../hooks/useIsPerpsBalanceSelected';
 import { Hex } from '@metamask/utils';
@@ -113,6 +114,14 @@ export const PerpsPayRow = ({
     });
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
   }, [canEdit, navigation, setConfirmationMetric]);
+
+  // Reset selected payment token to Perps balance when leaving the order view
+  useEffect(
+    () => () => {
+      Engine.context.PerpsController?.resetSelectedPaymentToken?.();
+    },
+    [],
+  );
 
   // Display data: use local state (defaults to Perps balance) so UI always shows "Perps balance" by default
   const displayToken = matchesPerpsBalance

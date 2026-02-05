@@ -658,6 +658,10 @@ export type PerpsControllerActions =
   | {
       type: 'PerpsController:setSelectedPaymentToken';
       handler: PerpsController['setSelectedPaymentToken'];
+    }
+  | {
+      type: 'PerpsController:resetSelectedPaymentToken';
+      handler: PerpsController['resetSelectedPaymentToken'];
     };
 
 /**
@@ -2991,20 +2995,35 @@ export class PerpsController extends BaseController<
    * Only required fields (description, address, chainId) are stored in state.
    */
   setSelectedPaymentToken(token: AssetType | null): void {
-    const normalized =
-      token?.description === PERPS_CONSTANTS.PerpsBalanceTokenDescription
-        ? null
-        : (token ?? null);
-    const snapshot: Json | null =
-      normalized === null
-        ? null
-        : ({
-            description: normalized.description,
-            address: normalized.address,
-            chainId: normalized.chainId,
-          } as unknown as Json);
+    let normalized: AssetType | null = null;
+    if (
+      token != null &&
+      token.description !== PERPS_CONSTANTS.PerpsBalanceTokenDescription
+    ) {
+      normalized = token;
+    }
+
+    let snapshot: Json | null = null;
+    if (normalized !== null) {
+      snapshot = {
+        description: normalized.description,
+        address: normalized.address,
+        chainId: normalized.chainId,
+      } as unknown as Json;
+    }
+
     this.update((state) => {
       state.selectedPaymentToken = snapshot;
+    });
+  }
+
+  /**
+   * Reset the selected payment token to Perps balance (null).
+   * Call when leaving the Perps order view so the next visit defaults to Perps balance.
+   */
+  resetSelectedPaymentToken(): void {
+    this.update((state) => {
+      state.selectedPaymentToken = null;
     });
   }
 

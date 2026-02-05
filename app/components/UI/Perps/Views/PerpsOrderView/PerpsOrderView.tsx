@@ -535,7 +535,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       return false;
     }
     const requiredUsd = Number(marginRequired);
-    const balanceUsd = Number(payToken.balanceUsd ?? 0);
+    const balanceUsd = Number(payToken.balanceUsd);
     return requiredUsd > balanceUsd;
   }, [hasCustomTokenSelected, marginRequired, payToken]);
 
@@ -1229,9 +1229,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             <View
               style={[
                 styles.detailItem,
-                // If there are items below (limit price or TP/SL), only round top corners
+                // If there are items below (limit price, TP/SL, or Pay with), only round top corners
                 // Otherwise, round all corners
-                orderForm.type === 'limit' || !hideTPSL
+                orderForm.type === 'limit' || !hideTPSL || isPayRowVisible
                   ? styles.detailItemFirst
                   : styles.detailItemOnly,
               ]}

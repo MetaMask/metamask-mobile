@@ -3789,4 +3789,20 @@ describe('PerpsController', () => {
       });
     });
   });
+
+  describe('resetSelectedPaymentToken', () => {
+    it('sets selectedPaymentToken to null', () => {
+      controller.testUpdate((state) => {
+        state.selectedPaymentToken = {
+          description: 'USDC',
+          address: '0xa0b8',
+          chainId: '0x1',
+        } as PerpsControllerState['selectedPaymentToken'];
+      });
+
+      controller.resetSelectedPaymentToken();
+
+      expect(controller.state.selectedPaymentToken).toBeNull();
+    });
+  });
 });

@@ -61,7 +61,7 @@ export function usePerpsBalanceTokenFilter(): (
         chainId,
         tokenId: PERPS_BALANCE_PLACEHOLDER_ADDRESS,
         name: perpsBalanceName,
-        symbol: 'USD',
+        symbol: PERPS_CONSTANTS.PerpsBalanceTokenSymbol,
         balance: availableBalance,
         balanceInSelectedCurrency,
         image: PERPS_BALANCE_ICON_URI,
