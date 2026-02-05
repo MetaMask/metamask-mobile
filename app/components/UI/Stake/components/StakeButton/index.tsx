@@ -41,16 +41,22 @@ import BigNumber from 'bignumber.js';
 import { MINIMUM_BALANCE_FOR_EARN_CTA } from '../../../Earn/constants/token';
 import useEarnToken from '../../../Earn/hooks/useEarnToken';
 import { EarnTokenDetails } from '../../../Earn/types/lending.types';
+import { Theme } from '../../../../../util/theme/models';
+import { useStyles } from '../../../../../component-library/hooks';
 
-const styles = StyleSheet.create({
-  stakeButton: {
-    flexDirection: 'row',
-  },
-  dot: {
-    marginLeft: 2,
-    marginRight: 2,
-  },
-});
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+
+  return StyleSheet.create({
+    stakeButton: {
+      flexDirection: 'row',
+      backgroundColor: theme.colors.background.muted,
+      paddingHorizontal: 6,
+      borderRadius: 5,
+      marginLeft: 8,
+    },
+  });
+};
 
 interface StakeButtonContentProps {
   earnToken: EarnTokenDetails;
@@ -58,6 +64,7 @@ interface StakeButtonContentProps {
 
 // TODO: Rename to EarnCta to better describe this component's purpose.
 const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
+  const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
   const chainId = useSelector(selectEvmChainId);
@@ -187,10 +194,7 @@ const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
       testID={WalletViewSelectorsIDs.STAKE_BUTTON}
       style={styles.stakeButton}
     >
-      <Text variant={TextVariant.BodySMMedium} style={styles.dot}>
-        {' • '}
-      </Text>
-      <Text color={TextColor.Primary} variant={TextVariant.BodySMMedium}>
+      <Text color={TextColor.Primary} variant={TextVariant.BodyXSMedium}>
         {renderEarnButtonText()}
       </Text>
     </TouchableOpacity>
