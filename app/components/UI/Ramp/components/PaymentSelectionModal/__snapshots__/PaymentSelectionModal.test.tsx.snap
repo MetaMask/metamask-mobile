@@ -476,20 +476,42 @@ exports[`PaymentSelectionModal matches snapshot 1`] = `
                                       }
                                       testID="listitemcolumn"
                                     >
-                                      <View>
-                                        <SvgMock
-                                          color="#121314"
-                                          fill="currentColor"
-                                          height={20}
-                                          name="Card"
-                                          style={
+                                      <View
+                                        style={
+                                          [
                                             {
-                                              "height": 20,
-                                              "width": 20,
-                                            }
+                                              "alignItems": "center",
+                                              "backgroundColor": "#3c4d9d0f",
+                                              "borderRadius": 22,
+                                              "height": 44,
+                                              "justifyContent": "center",
+                                              "width": 44,
+                                            },
+                                            false,
+                                          ]
+                                        }
+                                      >
+                                        <Text
+                                          allowFontScaling={false}
+                                          selectable={false}
+                                          style={
+                                            [
+                                              {
+                                                "color": "#121314",
+                                                "fontSize": 24,
+                                              },
+                                              undefined,
+                                              {
+                                                "fontFamily": "Material Icons",
+                                                "fontStyle": "normal",
+                                                "fontWeight": "normal",
+                                              },
+                                              {},
+                                            ]
                                           }
-                                          width={20}
-                                        />
+                                        >
+                                          
+                                        </Text>
                                       </View>
                                     </View>
                                     <View
@@ -630,20 +652,42 @@ exports[`PaymentSelectionModal matches snapshot 1`] = `
                                       }
                                       testID="listitemcolumn"
                                     >
-                                      <View>
-                                        <SvgMock
-                                          color="#121314"
-                                          fill="currentColor"
-                                          height={20}
-                                          name="Card"
-                                          style={
+                                      <View
+                                        style={
+                                          [
                                             {
-                                              "height": 20,
-                                              "width": 20,
-                                            }
+                                              "alignItems": "center",
+                                              "backgroundColor": "#3c4d9d0f",
+                                              "borderRadius": 22,
+                                              "height": 44,
+                                              "justifyContent": "center",
+                                              "width": 44,
+                                            },
+                                            false,
+                                          ]
+                                        }
+                                      >
+                                        <Text
+                                          allowFontScaling={false}
+                                          selectable={false}
+                                          style={
+                                            [
+                                              {
+                                                "color": "#121314",
+                                                "fontSize": 24,
+                                              },
+                                              undefined,
+                                              {
+                                                "fontFamily": "Material Icons",
+                                                "fontStyle": "normal",
+                                                "fontWeight": "normal",
+                                              },
+                                              {},
+                                            ]
                                           }
-                                          width={20}
-                                        />
+                                        >
+                                          
+                                        </Text>
                                       </View>
                                     </View>
                                     <View

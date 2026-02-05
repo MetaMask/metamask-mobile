@@ -39,14 +39,28 @@ exports[`PaymentMethodListItem matches snapshot 1`] = `
         }
         testID="listitemcolumn"
       >
-        <View>
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "backgroundColor": "#3c4d9d0f",
+                "borderRadius": 22,
+                "height": 44,
+                "justifyContent": "center",
+                "width": 44,
+              },
+              false,
+            ]
+          }
+        >
           <Text
             allowFontScaling={false}
             selectable={false}
             style={
               [
                 {
-                  "color": undefined,
+                  "color": "#121314",
                   "fontSize": 24,
                 },
                 undefined,
@@ -211,14 +225,30 @@ exports[`PaymentMethodListItem renders as selected when isSelected is true 1`] =
         }
         testID="listitemcolumn"
       >
-        <View>
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "backgroundColor": "#3c4d9d0f",
+                "borderRadius": 22,
+                "height": 44,
+                "justifyContent": "center",
+                "width": 44,
+              },
+              {
+                "backgroundColor": "#4459ff1a",
+              },
+            ]
+          }
+        >
           <Text
             allowFontScaling={false}
             selectable={false}
             style={
               [
                 {
-                  "color": undefined,
+                  "color": "#4459ff",
                   "fontSize": 24,
                 },
                 undefined,
