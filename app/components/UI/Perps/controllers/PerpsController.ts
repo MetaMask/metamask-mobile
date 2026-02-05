@@ -1906,15 +1906,13 @@ export class PerpsController extends BaseController<
         state.withdrawalRequests.splice(requestIndex, 1);
       }
 
-      // Update lastWithdrawResult with the completed withdrawal
-      state.lastWithdrawResult = {
-        success: true,
-        txHash: completedWithdrawal.txHash,
-        amount: completedWithdrawal.amount,
-        asset: completedWithdrawal.asset || USDC_SYMBOL,
-        timestamp: completedWithdrawal.timestamp,
-        error: '',
-      };
+      // Note: We do NOT update lastWithdrawResult here.
+      // The "confirmed" toast is shown once when the withdrawal is submitted
+      // (in AccountService). We only need to track the timestamp for FIFO matching.
+      // Update the timestamp to prevent double-matching in FIFO logic.
+      if (state.lastWithdrawResult) {
+        state.lastWithdrawResult.timestamp = completedWithdrawal.timestamp;
+      }
 
       // Check if there are still pending withdrawals in the queue
       const hasPendingWithdrawals = state.withdrawalRequests.some(
