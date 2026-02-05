@@ -633,7 +633,7 @@ const HomeTabs = () => {
           ).build(),
         );
       },
-      rootScreenName: Routes.ACCOUNTS_MENU_VIEW,
+      rootScreenName: Routes.SETTINGS_VIEW,
       unmountOnBlur: true,
     },
   };

@@ -218,7 +218,7 @@ const Settings = () => {
               testID={SettingsViewSelectorsIDs.AES_CRYPTO_TEST_FORM}
             />
           )
-        }{' '}
+        }
         {process.env.MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS === 'true' && (
           <SettingsDrawer
             title={strings('app_settings.developer_options.title')}

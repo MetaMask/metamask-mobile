@@ -82,6 +82,11 @@ jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
+jest.mock('../../../util/networks', () => ({
+  ...jest.requireActual('../../../util/networks'),
+  isPermissionsSettingsV1Enabled: true,
+}));
+
 describe('AccountsMenu', () => {
   let mockAlert: jest.SpyInstance;
 
@@ -253,7 +258,7 @@ describe('AccountsMenu', () => {
         expect(mockNavigate).toHaveBeenCalledWith('Webview', {
           screen: 'SimpleWebview',
           params: {
-            url: 'https://support.metamask.io',
+            url: 'https://intercom.help/internal-beta-testing/en/',
             title: 'app_settings.contact_support',
           },
         });
@@ -392,7 +397,7 @@ describe('AccountsMenu', () => {
       expect(mockNavigate).toHaveBeenCalledWith('Webview', {
         screen: 'SimpleWebview',
         params: {
-          url: 'https://support.metamask.io',
+          url: 'https://intercom.help/internal-beta-testing/en/',
           title: 'app_settings.contact_support',
         },
       });

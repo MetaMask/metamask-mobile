@@ -29,6 +29,7 @@ import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { AccountsMenuSelectorsIDs } from './AccountsMenu.testIds';
+import { isPermissionsSettingsV1Enabled } from '../../../util/networks';
 
 const AccountsMenu = () => {
   const tw = useTailwind();
@@ -92,7 +93,12 @@ const AccountsMenu = () => {
   }, [goToBrowserUrl, trackEvent, createEventBuilder]);
 
   const onPressSupport = useCallback(() => {
-    const supportUrl = 'https://support.metamask.io';
+    let supportUrl = 'https://support.metamask.io';
+
+    ///: BEGIN:ONLY_INCLUDE_IF(beta)
+    supportUrl = 'https://intercom.help/internal-beta-testing/en/';
+    ///: END:ONLY_INCLUDE_IF
+
     goToBrowserUrl(supportUrl, strings('app_settings.contact_support'));
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP).build(),
@@ -219,15 +225,17 @@ const AccountsMenu = () => {
         )}
 
         {/* Permissions Row */}
-        <ActionListItem
-          startAccessory={
-            <Icon name={IconName.SecurityTick} size={IconSize.Lg} />
-          }
-          label={strings('accounts_menu.permissions')}
-          endAccessory={arrowRightIcon}
-          onPress={onPressPermissions}
-          testID={AccountsMenuSelectorsIDs.PERMISSIONS}
-        />
+        {isPermissionsSettingsV1Enabled && (
+          <ActionListItem
+            startAccessory={
+              <Icon name={IconName.SecurityTick} size={IconSize.Lg} />
+            }
+            label={strings('accounts_menu.permissions')}
+            endAccessory={arrowRightIcon}
+            onPress={onPressPermissions}
+            testID={AccountsMenuSelectorsIDs.PERMISSIONS}
+          />
+        )}
 
         {separator}
 
