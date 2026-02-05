@@ -45,7 +45,7 @@ import {
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder.ts';
 import { createLogger } from '../logger.ts';
-import { mockNotificationServices } from '../../../e2e/specs/notifications/utils/mocks.ts';
+import { mockNotificationServices } from '../../smoke/notifications/utils/mocks.ts';
 import PortManager, { ResourceType } from '../PortManager.ts';
 import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
 import CommandQueueServer from './CommandQueueServer.ts';
