@@ -6,9 +6,9 @@ import { strings } from '../../../../../../../locales/i18n';
 import { TransactionType } from '@metamask/transaction-controller';
 import { hasTransactionType } from '../../../utils/transaction';
 import { useFeeCalculations } from '../../../hooks/gas/useFeeCalculations';
-import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { BigNumber } from 'bignumber.js';
 import { TransactionDetailsSelectorIDs } from '../TransactionDetailsModal.testIds';
+import { usePayFiatFormatter } from '../../../hooks/pay/usePayFiatFormatter';
 
 const FALLBACK_TYPES = [
   TransactionType.predictClaim,
@@ -16,12 +16,8 @@ const FALLBACK_TYPES = [
   TransactionType.musdClaim,
 ];
 
-// Transaction types that use user's currency instead of USD
-const USER_CURRENCY_TYPES = [TransactionType.musdClaim];
-
 export function TransactionDetailsNetworkFeeRow() {
-  const formatFiatUsd = useFiatFormatter({ currency: 'usd' });
-  const formatFiatUser = useFiatFormatter();
+  const formatFiat = usePayFiatFormatter();
   const { transactionMeta } = useTransactionDetails();
   const { estimatedFeeFiatPrecise } = useFeeCalculations(transactionMeta);
 
@@ -29,13 +25,6 @@ export function TransactionDetailsNetworkFeeRow() {
   const { networkFeeFiat: payNetworkFeeFiat } = metamaskPay || {};
 
   const networkFee = payNetworkFeeFiat ?? estimatedFeeFiatPrecise;
-
-  // Use user's currency for musdClaim, USD for others
-  const useUserCurrency = hasTransactionType(
-    transactionMeta,
-    USER_CURRENCY_TYPES,
-  );
-  const formatFiat = useUserCurrency ? formatFiatUser : formatFiatUsd;
 
   const networkFeeFormatted = useMemo(
     () => formatFiat(new BigNumber(networkFee ?? 0)),

@@ -6,9 +6,10 @@ import { strings } from '../../../../../../../locales/i18n';
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { TransactionType } from '@metamask/transaction-controller';
 import { hasTransactionType } from '../../../utils/transaction';
-import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { BigNumber } from 'bignumber.js';
 import { TransactionDetailsSelectorIDs } from '../TransactionDetailsModal.testIds';
+import { usePayFiatFormatter } from '../../../hooks/pay/usePayFiatFormatter';
+import { USER_CURRENCY_TYPES } from '../../../constants/confirmations';
 
 const FALLBACK_TYPES = [
   TransactionType.musdClaim,
@@ -21,12 +22,8 @@ const RECEIVE_TYPES = [
   TransactionType.predictWithdraw,
 ];
 
-// Transaction types that use user's currency instead of USD
-const USER_CURRENCY_TYPES = [TransactionType.musdClaim];
-
 export function TransactionDetailsTotalRow() {
-  const formatFiatUsd = useFiatFormatter({ currency: 'usd' });
-  const formatFiatUser = useFiatFormatter();
+  const formatFiat = usePayFiatFormatter();
   const { transactionMeta } = useTransactionDetails();
   const { amountUnformatted, fiatUnformatted } =
     useTokenAmount({ transactionMeta }) ?? {};
@@ -40,7 +37,6 @@ export function TransactionDetailsTotalRow() {
   );
   const total =
     payTotal ?? (useUserCurrency ? fiatUnformatted : amountUnformatted);
-  const formatFiat = useUserCurrency ? formatFiatUser : formatFiatUsd;
 
   const totalFormatted = useMemo(
     () => formatFiat(new BigNumber(total ?? '0')),

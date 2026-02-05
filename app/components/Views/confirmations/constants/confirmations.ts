@@ -72,3 +72,9 @@ export const EARN_CONTRACT_INTERACTION_TYPES = [
  * Used when pay token selection is constrained to a single network (e.g. Perps).
  */
 export const HIDE_NETWORK_FILTER_TYPES = [TransactionType.perpsDepositAndOrder];
+
+/**
+ * Transaction types that use user's currency instead of USD for display.
+ * mUSD is a stablecoin pegged to USD, so we convert to user's local currency.
+ */
+export const USER_CURRENCY_TYPES = [TransactionType.musdClaim];
