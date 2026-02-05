@@ -1,18 +1,18 @@
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import { LocalNode, LocalNodeType } from '../../../tests/framework/types';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletView from '../../pages/wallet/WalletView';
-import { RegressionTrade } from '../../tags';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { LocalNode, LocalNodeType } from '../../framework/types';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import { RegressionTrade } from '../../../e2e/tags';
 import {
   submitSwapUnifiedUI,
   checkSwapActivity,
-} from '../../../tests/helpers/swap/swap-unified-ui';
-import { loginToApp } from '../../viewHelper';
-import { prepareSwapsTestEnvironment } from '../../../tests/helpers/swap/prepareSwapsTestEnvironment';
-import { testSpecificMock } from '../../../tests/helpers/swap/swap-mocks';
-import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
-import { AnvilManager } from '../../../tests/seeder/anvil-manager';
+} from '../../helpers/swap/swap-unified-ui';
+import { loginToApp } from '../../../e2e/viewHelper';
+import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment';
+import { testSpecificMock } from '../../helpers/swap/swap-mocks';
+import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 describe(RegressionTrade('Multiple Swaps from Actions'), (): void => {
   beforeEach(async (): Promise<void> => {

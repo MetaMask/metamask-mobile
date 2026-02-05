@@ -2,21 +2,21 @@
  * E2E tests for Solana methods using Multichain API
  */
 import { SolScope } from '@metamask/keyring-api';
-import TestHelpers from '../../helpers';
-import { SmokeMultiChainAPI } from '../../tags';
-import Browser from '../../pages/Browser/BrowserView';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import { loginToApp, navigateToBrowserView } from '../../viewHelper';
-import Assertions from '../../../tests/framework/Assertions';
-import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
-import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
-import Gestures from '../../../tests/framework/Gestures';
-import Matchers from '../../../tests/framework/Matchers';
-import WalletView from '../../pages/wallet/WalletView';
-import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
-import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
-import { DappVariants } from '../../../tests/framework/Constants';
+import TestHelpers from '../../../../e2e/helpers';
+import { SmokeMultiChainAPI } from '../../../../e2e/tags';
+import Browser from '../../../../e2e/pages/Browser/BrowserView';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import { loginToApp, navigateToBrowserView } from '../../../../e2e/viewHelper';
+import Assertions from '../../../framework/Assertions';
+import MultichainTestDApp from '../../../../e2e/pages/Browser/MultichainTestDApp';
+import AddNewHdAccountComponent from '../../../../e2e/pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
+import Gestures from '../../../framework/Gestures';
+import Matchers from '../../../framework/Matchers';
+import WalletView from '../../../../e2e/pages/wallet/WalletView';
+import AccountListBottomSheet from '../../../../e2e/pages/wallet/AccountListBottomSheet';
+import AddAccountBottomSheet from '../../../../e2e/pages/wallet/AddAccountBottomSheet';
+import { DappVariants } from '../../../framework/Constants';
 
 const SOLANA_MAINNET_CHAIN_ID = SolScope.Mainnet;
 

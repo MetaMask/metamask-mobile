@@ -1,15 +1,15 @@
-import TestHelpers from '../../helpers';
-import { loginToApp } from '../../viewHelper';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import { SmokeRamps } from '../../tags';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
-import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
-import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
-import TokenSelectBottomSheet from '../../pages/Ramps/TokenSelectBottomSheet';
-import Assertions from '../../../tests/framework/Assertions';
-import { PopularNetworksList } from '../../../tests/resources/networks.e2e';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
+import TestHelpers from '../../../e2e/helpers';
+import { loginToApp } from '../../../e2e/viewHelper';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { SmokeRamps } from '../../../e2e/tags';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import SellGetStartedView from '../../../e2e/pages/Ramps/SellGetStartedView';
+import BuyGetStartedView from '../../../e2e/pages/Ramps/BuyGetStartedView';
+import BuildQuoteView from '../../../e2e/pages/Ramps/BuildQuoteView';
+import TokenSelectBottomSheet from '../../../e2e/pages/Ramps/TokenSelectBottomSheet';
+import Assertions from '../../framework/Assertions';
+import { PopularNetworksList } from '../../resources/networks.e2e';
+import NetworkEducationModal from '../../../e2e/pages/Network/NetworkEducationModal';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
 describe(SmokeRamps('Buy Crypto Deeplinks'), () => {

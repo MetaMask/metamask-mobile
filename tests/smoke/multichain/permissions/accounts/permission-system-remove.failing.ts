@@ -1,24 +1,27 @@
-import TestHelpers from '../../helpers';
-import { SmokeNetworkAbstractions } from '../../tags';
-import Browser from '../../pages/Browser/BrowserView';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import TestHelpers from '../../../../../e2e/helpers';
+import { SmokeNetworkAbstractions } from '../../../../../e2e/tags';
+import Browser from '../../../../../e2e/pages/Browser/BrowserView';
+import TabBarComponent from '../../../../../e2e/pages/wallet/TabBarComponent';
 
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import { loginToApp, navigateToBrowserView } from '../../viewHelper';
-import Assertions from '../../../tests/framework/Assertions';
+import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
+import {
+  loginToApp,
+  navigateToBrowserView,
+} from '../../../../../e2e/viewHelper';
+import Assertions from '../../../../framework/Assertions';
 
-import { PopularNetworksList } from '../../../tests/resources/networks.e2e';
+import { PopularNetworksList } from '../../../../resources/networks.e2e';
 
-import WalletView from '../../pages/wallet/WalletView';
-import NetworkListModal from '../../pages/Network/NetworkListModal';
-import TestDApp from '../../pages/Browser/TestDApp';
-import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
-import PermissionSummaryBottomSheet from '../../pages/Browser/PermissionSummaryBottomSheet';
-import NetworkConnectMultiSelector from '../../pages/Browser/NetworkConnectMultiSelector';
-import NetworkNonPemittedBottomSheet from '../../pages/Network/NetworkNonPemittedBottomSheet';
-import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
-import { DappVariants } from '../../../tests/framework/Constants';
+import WalletView from '../../../../../e2e/pages/wallet/WalletView';
+import NetworkListModal from '../../../../../e2e/pages/Network/NetworkListModal';
+import TestDApp from '../../../../../e2e/pages/Browser/TestDApp';
+import ConnectBottomSheet from '../../../../../e2e/pages/Browser/ConnectBottomSheet';
+import PermissionSummaryBottomSheet from '../../../../../e2e/pages/Browser/PermissionSummaryBottomSheet';
+import NetworkConnectMultiSelector from '../../../../../e2e/pages/Browser/NetworkConnectMultiSelector';
+import NetworkNonPemittedBottomSheet from '../../../../../e2e/pages/Network/NetworkNonPemittedBottomSheet';
+import ConnectedAccountsModal from '../../../../../e2e/pages/Browser/ConnectedAccountsModal';
+import { DappVariants } from '../../../../framework/Constants';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
 describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {

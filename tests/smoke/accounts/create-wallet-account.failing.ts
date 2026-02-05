@@ -1,12 +1,12 @@
-import { SmokeAccounts } from '../../tags.js';
-import WalletView from '../../pages/wallet/WalletView.js';
-import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';
-import Assertions from '../../../tests/framework/Assertions.js';
-import { withMultichainAccountDetailsV2EnabledFixtures } from '../../../tests/helpers/multichain-accounts/common.js';
-import AccountDetails from '../../pages/MultichainAccounts/AccountDetails.js';
-import AddressList from '../../pages/MultichainAccounts/AddressList.js';
-import { defaultGanacheOptions } from '../../../tests/framework/Constants.js';
-import { completeSrpQuiz } from '../../../tests/flows/accounts.flow.js';
+import { SmokeAccounts } from '../../../e2e/tags.js';
+import WalletView from '../../../e2e/pages/wallet/WalletView.js';
+import AccountListBottomSheet from '../../../e2e/pages/wallet/AccountListBottomSheet.js';
+import Assertions from '../../framework/Assertions.js';
+import { withMultichainAccountDetailsV2EnabledFixtures } from '../../helpers/multichain-accounts/common.js';
+import AccountDetails from '../../../e2e/pages/MultichainAccounts/AccountDetails.js';
+import AddressList from '../../../e2e/pages/MultichainAccounts/AddressList.js';
+import { defaultGanacheOptions } from '../../framework/Constants.js';
+import { completeSrpQuiz } from '../../flows/accounts.flow.js';
 
 // Quarantining, See open ticket here: https://github.com/MetaMask/metamask-mobile/issues/21429
 describe(SmokeAccounts('Create wallet accounts'), () => {

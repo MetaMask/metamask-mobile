@@ -149,15 +149,15 @@ source .e2e.env && yarn test:e2e:android:debug:run
 **Run Specific Test Folder**
 
 ```bash
-source .e2e.env && yarn test:e2e:ios:debug:run e2e/specs/your-folder
-source .e2e.env && yarn test:e2e:android:debug:run e2e/specs/your-folder
+source .e2e.env && yarn test:e2e:ios:debug:run tests/smoke/your-folder
+source .e2e.env && yarn test:e2e:android:debug:run tests/smoke/your-folder
 ```
 
 **Run Specific Test File**
 
 ```bash
-source .e2e.env && yarn test:e2e:ios:debug:run e2e/specs/onboarding/create-wallet.spec.js
-source .e2e.env && yarn test:e2e:android:debug:run e2e/specs/onboarding/create-wallet.spec.js
+source .e2e.env && yarn test:e2e:ios:debug:run tests/smoke/onboarding/create-wallet.spec.js
+source .e2e.env && yarn test:e2e:android:debug:run tests/smoke/onboarding/create-wallet.spec.js
 ```
 
 **Run Tests by Tag**
@@ -206,8 +206,8 @@ yarn test:e2e:android:flask:run
 # These commands are hardcoded to build for `flask` build type and `e2e` environment based on the .detoxrc.js file
 
 # Run specific Flask test
-yarn test:e2e:ios:flask:run e2e/specs/snaps/test-snap-jsx.spec.ts
-yarn test:e2e:android:flask:run e2e/specs/snaps/test-snap-jsx.spec.ts
+yarn test:e2e:ios:flask:run test/smoke/snaps/test-snap-jsx.spec.ts
+yarn test:e2e:android:flask:run tests/smoke/snaps/test-snap-jsx.spec.ts
 ```
 
 ### Flask Configuration Details
@@ -670,7 +670,7 @@ Our CI/CD process is automated through various Bitrise pipelines, each designed 
 - **Example**:
 
   ```
-  FAIL e2e/specs/swaps/swap-action-smoke.spec.js (232.814 s)
+  FAIL tets/smoke/swaps/swap-action-smoke.spec.js (232.814 s)
     SmokeSwaps Swap from Actions
       ✓ should Swap .05 'ETH' to 'USDT' (90488 ms)
       ✕ should Swap 100 'USDT' to 'ETH' (50549 ms)

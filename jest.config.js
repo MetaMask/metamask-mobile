@@ -51,7 +51,7 @@ const config = {
     '<rootDir>/app/features/SampleFeature/e2e/',
   ],
   testPathIgnorePatterns: [
-    '.*/e2e/specs/.*\\.spec\\.(ts|js)$',
+    '.*/tests/(smoke|regression)/.*\\.spec\\.(ts|js)$',
     '.*/e2e/pages/',
     '.*/e2e/selectors/',
   ],

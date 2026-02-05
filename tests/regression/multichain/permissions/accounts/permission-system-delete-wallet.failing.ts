@@ -1,27 +1,30 @@
-import TestHelpers from '../../helpers';
-import { RegressionNetworkAbstractions } from '../../tags';
-import OnboardingView from '../../pages/Onboarding/OnboardingView';
-import ProtectYourWalletView from '../../pages/Onboarding/ProtectYourWalletView';
-import CreatePasswordView from '../../pages/Onboarding/CreatePasswordView';
-import WalletView from '../../pages/wallet/WalletView';
-import Browser from '../../pages/Browser/BrowserView';
-import SettingsView from '../../pages/Settings/SettingsView';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import SkipAccountSecurityModal from '../../pages/Onboarding/SkipAccountSecurityModal';
-import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
-import DeleteWalletModal from '../../pages/Settings/SecurityAndPrivacy/DeleteWalletModal';
-import LoginView from '../../pages/wallet/LoginView';
-import NetworkListModal from '../../pages/Network/NetworkListModal';
-import { loginToApp, navigateToBrowserView } from '../../viewHelper';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
-import ProtectYourWalletModal from '../../pages/Onboarding/ProtectYourWalletModal';
-import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
-import Assertions from '../../../tests/framework/Assertions';
-import ToastModal from '../../pages/wallet/ToastModal';
-import OnboardingSheet from '../../pages/Onboarding/OnboardingSheet';
-import { DappVariants } from '../../../tests/framework/Constants';
+import TestHelpers from '../../../../../e2e/helpers';
+import { RegressionNetworkAbstractions } from '../../../../../e2e/tags';
+import OnboardingView from '../../../../../e2e/pages/Onboarding/OnboardingView';
+import ProtectYourWalletView from '../../../../../e2e/pages/Onboarding/ProtectYourWalletView';
+import CreatePasswordView from '../../../../../e2e/pages/Onboarding/CreatePasswordView';
+import WalletView from '../../../../../e2e/pages/wallet/WalletView';
+import Browser from '../../../../../e2e/pages/Browser/BrowserView';
+import SettingsView from '../../../../../e2e/pages/Settings/SettingsView';
+import TabBarComponent from '../../../../../e2e/pages/wallet/TabBarComponent';
+import SkipAccountSecurityModal from '../../../../../e2e/pages/Onboarding/SkipAccountSecurityModal';
+import ConnectedAccountsModal from '../../../../../e2e/pages/Browser/ConnectedAccountsModal';
+import DeleteWalletModal from '../../../../../e2e/pages/Settings/SecurityAndPrivacy/DeleteWalletModal';
+import LoginView from '../../../../../e2e/pages/wallet/LoginView';
+import NetworkListModal from '../../../../../e2e/pages/Network/NetworkListModal';
+import {
+  loginToApp,
+  navigateToBrowserView,
+} from '../../../../../e2e/viewHelper';
+import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
+import MetaMetricsOptIn from '../../../../../e2e/pages/Onboarding/MetaMetricsOptInView';
+import ProtectYourWalletModal from '../../../../../e2e/pages/Onboarding/ProtectYourWalletModal';
+import OnboardingSuccessView from '../../../../../e2e/pages/Onboarding/OnboardingSuccessView';
+import Assertions from '../../../../framework/Assertions';
+import ToastModal from '../../../../../e2e/pages/wallet/ToastModal';
+import OnboardingSheet from '../../../../../e2e/pages/Onboarding/OnboardingSheet';
+import { DappVariants } from '../../../../framework/Constants';
 
 const SEEDLESS_ONBOARDING_ENABLED =
   process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';

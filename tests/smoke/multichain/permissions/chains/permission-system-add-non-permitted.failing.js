@@ -1,23 +1,26 @@
 import {
   RegressionNetworkExpansion,
   SmokeNetworkExpansion,
-} from '../../../../../tags';
-import { loginToApp, navigateToBrowserView } from '../../../../../viewHelper';
-import Assertions from '../../../../../../tests/framework/Assertions';
-import TestHelpers from '../../../../../helpers';
-import FixtureBuilder from '../../../../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../../../../tests/framework/fixtures/FixtureHelper';
-import { CustomNetworks } from '../../../../../../tests/resources/networks.e2e';
-import Browser from '../../../../../pages/Browser/BrowserView';
-import TabBarComponent from '../../../../../pages/wallet/TabBarComponent';
-import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
-import ConnectedAccountsModal from '../../../../../pages/Browser/ConnectedAccountsModal';
-import NetworkConnectMultiSelector from '../../../../../pages/Browser/NetworkConnectMultiSelector';
-import { DappVariants } from '../../../../../../tests/framework/Constants';
-import WalletView from '../../../../../pages/wallet/WalletView';
-import NetworkListModal from '../../../../../pages/Network/NetworkListModal';
-import TestDApp from '../../../../../pages/Browser/TestDApp';
-import ConnectBottomSheet from '../../../../../pages/Browser/ConnectBottomSheet';
+} from '../../../../../e2e/tags';
+import {
+  loginToApp,
+  navigateToBrowserView,
+} from '../../../../../e2e/viewHelper';
+import Assertions from '../../../../framework/Assertions';
+import TestHelpers from '../../../../../e2e/helpers';
+import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
+import { CustomNetworks } from '../../../../resources/networks.e2e';
+import Browser from '../../../../../e2e/pages/Browser/BrowserView';
+import TabBarComponent from '../../../../../e2e/pages/wallet/TabBarComponent';
+import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
+import ConnectedAccountsModal from '../../../../../e2e/pages/Browser/ConnectedAccountsModal';
+import NetworkConnectMultiSelector from '../../../../../e2e/pages/Browser/NetworkConnectMultiSelector';
+import { DappVariants } from '../../../../framework/Constants';
+import WalletView from '../../../../../e2e/pages/wallet/WalletView';
+import NetworkListModal from '../../../../../e2e/pages/Network/NetworkListModal';
+import TestDApp from '../../../../../e2e/pages/Browser/TestDApp';
+import ConnectBottomSheet from '../../../../../e2e/pages/Browser/ConnectBottomSheet';
 
 const SEPOLIA = CustomNetworks.Sepolia.providerConfig.nickname;
 const ETHEREUM_MAIN_NET_NETWORK_NAME =
