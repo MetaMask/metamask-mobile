@@ -525,7 +525,7 @@ describe('EarnInputView', () => {
         name: 'params',
       });
 
-      // Verify the title is rendered in the HeaderCenter component
+      // Verify the title is rendered in the HeaderCompactStandard component
       expect(getByText('Supply USDC')).toBeTruthy();
 
       // "0" in the input display and on the keypad
@@ -1200,7 +1200,7 @@ describe('EarnInputView', () => {
       // Default mock returns ETH with POOLED_STAKING experience
       const { getByText } = renderComponent();
 
-      // Verify the title is rendered in the HeaderCenter component
+      // Verify the title is rendered in the HeaderCompactStandard component
       expect(getByText('Stake ETH')).toBeTruthy();
     });
   });
@@ -1843,7 +1843,7 @@ describe('EarnInputView', () => {
     });
   });
 
-  describe('HeaderCenter interactions', () => {
+  describe('HeaderCompactStandard interactions', () => {
     it('tracks STAKE_CANCEL_CLICKED event with token property when back button is pressed for staking', async () => {
       selectStablecoinLendingEnabledFlagMock.mockReturnValue(false);
 

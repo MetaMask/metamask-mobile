@@ -26,7 +26,7 @@ import {
   updateFiatOrder,
 } from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
-import HeaderCenter from '../../../../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { processFiatOrder } from '../../../index';
 import {
@@ -214,7 +214,7 @@ const OrderDetails = () => {
   if (!order) {
     return (
       <ScreenLayout>
-        <HeaderCenter
+        <HeaderCompactStandard
           includesTopInset
           title={strings('fiat_on_ramp_aggregator.order_details.details_main')}
           onBack={() => navigation.goBack()}
@@ -226,7 +226,7 @@ const OrderDetails = () => {
   if (isLoading) {
     return (
       <ScreenLayout>
-        <HeaderCenter
+        <HeaderCompactStandard
           includesTopInset
           title={strings('fiat_on_ramp_aggregator.order_details.details_main')}
           onBack={() => navigation.goBack()}
@@ -243,7 +243,7 @@ const OrderDetails = () => {
   if (error) {
     return (
       <ScreenLayout>
-        <HeaderCenter
+        <HeaderCompactStandard
           includesTopInset
           title={strings('fiat_on_ramp_aggregator.order_details.details_main')}
           onBack={() => navigation.goBack()}
@@ -261,7 +261,7 @@ const OrderDetails = () => {
 
   return (
     <ScreenLayout>
-      <HeaderCenter
+      <HeaderCompactStandard
         includesTopInset
         title={strings('fiat_on_ramp_aggregator.order_details.details_main')}
         onBack={() => navigation.goBack()}

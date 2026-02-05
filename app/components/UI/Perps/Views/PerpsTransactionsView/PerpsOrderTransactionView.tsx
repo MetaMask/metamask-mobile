@@ -21,7 +21,7 @@ import Button, {
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import ScreenView from '../../../../Base/ScreenView';
-import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
 import { usePerpsBlockExplorerUrl, usePerpsOrderFees } from '../../hooks';
 import { PerpsNavigationParamList } from '../../types/navigation';
@@ -59,7 +59,10 @@ const PerpsOrderTransactionView: React.FC = () => {
   if (!transaction) {
     return (
       <ScreenView>
-        <HeaderCenter includesTopInset onBack={() => navigation.goBack()} />
+        <HeaderCompactStandard
+          includesTopInset
+          onBack={() => navigation.goBack()}
+        />
         <View style={styles.content}>
           <Text>{strings('perps.transactions.not_found')}</Text>
         </View>
@@ -129,7 +132,7 @@ const PerpsOrderTransactionView: React.FC = () => {
 
   return (
     <ScreenView>
-      <HeaderCenter
+      <HeaderCompactStandard
         includesTopInset
         title={transaction.title}
         onBack={() => navigation.goBack()}

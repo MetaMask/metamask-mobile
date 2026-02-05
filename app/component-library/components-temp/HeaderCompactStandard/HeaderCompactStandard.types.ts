@@ -8,9 +8,9 @@ import {
 import { HeaderBaseProps } from '../../components/HeaderBase';
 
 /**
- * HeaderCenter component props.
+ * HeaderCompactStandard component props.
  */
-export interface HeaderCenterProps extends HeaderBaseProps {
+export interface HeaderCompactStandardProps extends HeaderBaseProps {
   /**
    * Title text to display in the header.
    * Used as children if children prop is not provided.

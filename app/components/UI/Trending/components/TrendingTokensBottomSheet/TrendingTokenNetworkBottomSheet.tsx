@@ -3,7 +3,7 @@ import { StyleSheet, ScrollView } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import Icon, {
   IconName,
   IconSize,
@@ -118,7 +118,7 @@ const TrendingTokenNetworkBottomSheet: React.FC<
       onClose={handleSheetClose}
       testID="trending-token-network-bottom-sheet"
     >
-      <HeaderCenter
+      <HeaderCompactStandard
         title={strings('trending.networks')}
         onClose={handleClose}
         closeButtonProps={{ testID: 'close-button' }}

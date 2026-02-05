@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from '@metamask/react-native-webview';
-import getHeaderCenterNavbarOptions from '../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
+import getHeaderCompactStandardNavbarOptions from '../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
 import { IconName } from '@metamask/design-system-react-native';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
 import Logger from '../../../util/Logger';
@@ -34,7 +34,7 @@ const SimpleWebView = () => {
   useEffect(() => {
     const title = (route.params as { title?: string })?.title ?? '';
     navigation.setOptions(
-      getHeaderCenterNavbarOptions({
+      getHeaderCompactStandardNavbarOptions({
         title,
         onBack: () => navigation.goBack(),
         includesTopInset: true,

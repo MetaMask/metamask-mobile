@@ -21,7 +21,7 @@ import { TRANSACTION_TYPES } from '../../../util/transactions';
 import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
 import DetailsModal from '../../Base/DetailsModal';
-import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import { isTestNet } from '../../../util/networks';
 import { weiHexToGweiDec } from '@metamask/controller-utils';
 import {
@@ -771,7 +771,7 @@ class TransactionElement extends PureComponent {
           backdropOpacity={1}
         >
           <DetailsModal>
-            <HeaderCenter
+            <HeaderCompactStandard
               title={strings('transactions.import_wallet_label')}
               onClose={this.onCloseImportWalletModal}
               titleProps={{ testID: 'details-modal-title' }}

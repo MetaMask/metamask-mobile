@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -80,7 +80,10 @@ export const DefaultSlippageModal = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <HeaderCenter title={strings('bridge.slippage')} onClose={handleClose} />
+      <HeaderCompactStandard
+        title={strings('bridge.slippage')}
+        onClose={handleClose}
+      />
       <View style={styles.descriptionContainer}>
         <Text style={styles.descriptionText}>
           {strings('bridge.default_slippage_description')}

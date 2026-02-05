@@ -15,29 +15,29 @@ import {
 
 // Internal dependencies.
 import HeaderBase from '../../components/HeaderBase';
-import { HeaderCenterProps } from './HeaderCenter.types';
+import { HeaderCompactStandardProps } from './HeaderCompactStandard.types';
 
 /**
- * HeaderCenter is a header component with centered title and optional back/close buttons.
+ * HeaderCompactStandard is a header component with centered title and optional back/close buttons.
  * Extends HeaderBase with convenient props for common header patterns.
  *
  * @example
  * ```tsx
- * <HeaderCenter
+ * <HeaderCompactStandard
  *   title="Page Title"
  *   onBack={handleBack}
  *   onClose={handleClose}
  * />
  *
  * // Or with custom button props
- * <HeaderCenter
+ * <HeaderCompactStandard
  *   title="Page Title"
  *   backButtonProps={{ onPress: handleBack, isDisabled: true }}
  *   closeButtonProps={{ onPress: handleClose }}
  * />
  * ```
  */
-const HeaderCenter: React.FC<HeaderCenterProps> = ({
+const HeaderCompactStandard: React.FC<HeaderCompactStandardProps> = ({
   title,
   titleProps,
   subtitle,
@@ -135,4 +135,4 @@ const HeaderCenter: React.FC<HeaderCenterProps> = ({
   );
 };
 
-export default HeaderCenter;
+export default HeaderCompactStandard;

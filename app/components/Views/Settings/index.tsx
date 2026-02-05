@@ -21,7 +21,7 @@ import { isTest } from '../../../util/test/utils';
 import { isPermissionsSettingsV1Enabled } from '../../../util/networks';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
-import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -206,7 +206,7 @@ const Settings = () => {
   const oauthFlow = useSelector(selectSeedlessOnboardingLoginFlow);
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
-      <HeaderCenter
+      <HeaderCompactStandard
         title={strings('app_settings.title')}
         onBack={handleBack}
         backButtonProps={{ testID: SettingsViewSelectorsIDs.BACK_BUTTON }}
