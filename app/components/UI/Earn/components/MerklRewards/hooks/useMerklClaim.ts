@@ -128,12 +128,19 @@ export const useMerklClaim = (asset: TokenI) => {
 
       return { txHash, transactionMeta };
     } catch (e) {
+      const error = e as Error & { code?: number };
+
       // Ignore AbortError - component unmounted or request was cancelled
-      if ((e as Error).name === 'AbortError') {
+      if (error.name === 'AbortError') {
         return undefined;
       }
-      const errorMessage = (e as Error).message;
-      setError(errorMessage);
+
+      // Don't show error if user rejected/cancelled the transaction (EIP-1193 code 4001)
+      const isUserRejection = error.code === 4001;
+
+      if (!isUserRejection) {
+        setError(error.message);
+      }
       setIsClaiming(false);
       throw e;
     }
