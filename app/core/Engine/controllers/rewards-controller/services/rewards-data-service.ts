@@ -27,6 +27,7 @@ import type {
   SnapshotDto,
   SnapshotEligibilityDto,
   SnapshotLeaderboardDto,
+  SnapshotStatus,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -80,6 +81,27 @@ const SERVICE_NAME = 'RewardsDataService';
 
 // Default timeout for all API requests (10 seconds)
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
+
+/**
+ * Maps backend snapshot status values (uppercase) to mobile format (lowercase).
+ * Backend: UPCOMING, OPEN, CALCULATING, DISTRIBUTING, CLOSED
+ * Mobile: upcoming, live, calculating, distributing, complete
+ */
+const BACKEND_STATUS_MAP: Record<string, SnapshotStatus> = {
+  UPCOMING: 'upcoming',
+  OPEN: 'live',
+  CALCULATING: 'calculating',
+  DISTRIBUTING: 'distributing',
+  CLOSED: 'complete',
+};
+
+/**
+ * Normalizes snapshot status from backend format to mobile format.
+ * Falls back to input if already in mobile format or unknown.
+ */
+function normalizeSnapshotStatus(status: string): SnapshotStatus {
+  return BACKEND_STATUS_MAP[status] || (status as SnapshotStatus);
+}
 
 // Geolocation URLs for different environments
 const GEOLOCATION_URLS = {
@@ -1175,7 +1197,14 @@ export class RewardsDataService {
       throw new Error(`Get snapshot eligibility failed: ${response.status}`);
     }
 
-    return (await response.json()) as SnapshotEligibilityDto;
+    const data = await response.json();
+
+    // Normalize snapshot status from backend format (OPEN, UPCOMING, etc.)
+    // to mobile format (live, upcoming, etc.)
+    return {
+      ...data,
+      snapshotStatus: normalizeSnapshotStatus(data.snapshotStatus),
+    } as SnapshotEligibilityDto;
   }
 
   /**
