@@ -23,7 +23,7 @@ import {
   selectTransactions,
 } from '../../../../selectors/transactionController';
 import { TOKEN_CATEGORY_HASH } from '../../../UI/TransactionElement/utils';
-import { isMusdClaimForCurrentView } from '../../Earn/constants/musd';
+import { isMusdClaimForCurrentView } from '../../Earn/utils/musd';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import {
   selectSelectedInternalAccount,

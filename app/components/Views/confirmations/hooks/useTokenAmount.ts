@@ -37,7 +37,7 @@ import { updateEditableParams } from '../../../../util/transaction-controller';
 import { selectTokensByChainIdAndAddress } from '../../../../selectors/tokensController';
 import { getTokenTransferData } from '../utils/transaction-pay';
 import { decodeMerklClaimAmount } from '../../../UI/Earn/components/MerklRewards/constants';
-import { MUSD_DECIMALS } from '../../../UI/Earn/constants/musd';
+import { convertMusdClaimAmount } from '../../../UI/Earn/utils/musd';
 
 interface TokenAmountProps {
   /**
@@ -221,20 +221,11 @@ export const useTokenAmount = ({
     case TransactionType.musdClaim: {
       const claimAmountRaw = decodeMerklClaimAmount(txParams?.data as string);
       if (claimAmountRaw) {
-        const claimAmountDecimal = calcTokenAmount(
+        const { claimAmountDecimal, fiatValue } = convertMusdClaimAmount({
           claimAmountRaw,
-          MUSD_DECIMALS,
-        );
-        usdValue = claimAmountDecimal.toFixed(2);
-
-        if (usdConversionRate > 0 && nativeConversionRate.isGreaterThan(0)) {
-          const usdToUserCurrencyRate =
-            nativeConversionRate.dividedBy(usdConversionRate);
-          fiat = claimAmountDecimal.times(usdToUserCurrencyRate);
-        } else {
-          // Fallback: no conversion rates, use 1:1 with USD
-          fiat = claimAmountDecimal;
-        }
+          conversionRate: nativeConversionRate,
+          usdConversionRate,
+        });
 
         return {
           amount: formatAmount(I18n.locale, claimAmountDecimal),
@@ -244,11 +235,11 @@ export const useTokenAmount = ({
             claimAmountDecimal,
           ),
           amountUnformatted: claimAmountDecimal.toString(),
-          fiat: fiatFormatter(fiat),
-          fiatUnformatted: fiat.toString(),
+          fiat: fiatFormatter(fiatValue),
+          fiatUnformatted: fiatValue.toString(),
           isNative: false,
           updateTokenAmount,
-          usdValue,
+          usdValue: claimAmountDecimal.toFixed(2),
         };
       }
       break;

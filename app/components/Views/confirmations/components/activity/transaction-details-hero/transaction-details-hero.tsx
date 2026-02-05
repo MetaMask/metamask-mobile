@@ -24,7 +24,7 @@ import {
   decodeMerklClaimAmount,
   MERKL_CLAIM_CHAIN_ID,
 } from '../../../../../UI/Earn/components/MerklRewards/constants';
-import { MUSD_DECIMALS } from '../../../../../UI/Earn/constants/musd';
+import { convertMusdClaimAmount } from '../../../../../UI/Earn/utils/musd';
 import {
   selectConversionRateByChainId,
   selectCurrencyRates,
@@ -137,14 +137,11 @@ function useClaimAmount(): { amount: BigNumber | null; isConverted: boolean } {
     return { amount: null, isConverted: false };
   }
 
-  const claimAmountDecimal = calcTokenAmount(claimAmountRaw, MUSD_DECIMALS);
+  const { fiatValue, isConverted } = convertMusdClaimAmount({
+    claimAmountRaw,
+    conversionRate,
+    usdConversionRate,
+  });
 
-  if (usdConversionRate > 0 && conversionRate.isGreaterThan(0)) {
-    const usdToUserCurrencyRate = conversionRate.dividedBy(usdConversionRate);
-    const fiatAmount = claimAmountDecimal.times(usdToUserCurrencyRate);
-    return { amount: fiatAmount, isConverted: true };
-  }
-
-  // Fallback: no conversion rates available, return USD amount
-  return { amount: claimAmountDecimal, isConverted: false };
+  return { amount: fiatValue, isConverted };
 }

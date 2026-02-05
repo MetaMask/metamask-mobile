@@ -77,7 +77,7 @@ import {
 import { TOKEN_CATEGORY_HASH } from '../../UI/TransactionElement/utils';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { TransactionType } from '@metamask/transaction-controller';
-import { isMusdClaimForCurrentView } from '../../UI/Earn/constants/musd';
+import { isMusdClaimForCurrentView } from '../../UI/Earn/utils/musd';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF

@@ -37,7 +37,7 @@ import { getTokenTransferData } from '../../Views/confirmations/utils/transactio
 import { hasTransactionType } from '../../Views/confirmations/utils/transaction';
 import { BigNumber } from 'bignumber.js';
 import { decodeMerklClaimAmount } from '../Earn/components/MerklRewards/constants';
-import { MUSD_DECIMALS } from '../Earn/constants/musd';
+import { convertMusdClaimAmount } from '../Earn/utils/musd';
 
 const POSITIVE_TRANSFER_TRANSACTION_TYPES = [
   TransactionType.perpsDeposit,
@@ -849,27 +849,22 @@ function decodeMusdClaimTx(args) {
   let renderClaimFiat;
 
   if (claimAmountRaw) {
-    const claimAmount = calcTokenAmount(claimAmountRaw, MUSD_DECIMALS);
-    renderClaimAmount = `${claimAmount.toFixed(2)} mUSD`;
-
-    // mUSD is a stablecoin pegged to USD (1 mUSD ≈ $1)
-    // Convert USD to user's currency: USD * (nativeToUserCurrency / nativeToUSD)
     const nativeCurrency = ticker || 'ETH';
     const usdConversionRate =
       currencyRates?.[nativeCurrency]?.usdConversionRate ?? 0;
 
-    if (usdConversionRate > 0 && conversionRate > 0) {
-      const usdToUserCurrencyRate = conversionRate / usdConversionRate;
-      const fiatValue = claimAmount.toNumber() * usdToUserCurrencyRate;
-      // Round to 2 decimal places for display
-      renderClaimFiat = addCurrencySymbol(
-        parseFloat(fiatValue.toFixed(2)),
-        currentCurrency,
-      );
-    } else {
-      // Fallback: assume USD if no conversion rate available
-      renderClaimFiat = addCurrencySymbol(claimAmount.toNumber(), 'usd');
-    }
+    const { claimAmountDecimal, fiatValue, isConverted } =
+      convertMusdClaimAmount({
+        claimAmountRaw,
+        conversionRate,
+        usdConversionRate,
+      });
+
+    renderClaimAmount = `${claimAmountDecimal.toFixed(2)} mUSD`;
+    renderClaimFiat = addCurrencySymbol(
+      parseFloat(fiatValue.toFixed(2)),
+      isConverted ? currentCurrency : 'usd',
+    );
   }
 
   const transactionElement = {
