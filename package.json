@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.66.0",
+  "version": "7.65.0",
   "private": true,
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
@@ -268,7 +268,7 @@
     "@metamask/preinstalled-example-snap": "^0.7.2",
     "@metamask/profile-metrics-controller": "^2.0.0",
     "@metamask/profile-sync-controller": "^27.1.0",
-    "@metamask/ramps-controller": "^6.0.0",
+    "@metamask/ramps-controller": "^7.0.0",
     "@metamask/react-native-acm": "^1.0.1",
     "@metamask/react-native-actionsheet": "2.4.2",
     "@metamask/react-native-button": "^3.0.0",
