@@ -4,7 +4,7 @@ import Assertions from '../../../tests/framework/Assertions';
 import {
   SlippageModalSelectorIDs,
   SlippageModalSelectorText,
-} from '../../selectors/Bridge/SlippageModal.selectors';
+} from '../../../tests/selectors/Bridge/SlippageModal.selectors';
 
 class SlippageModal {
   get editSlippageButton(): DetoxElement {
