@@ -7484,7 +7484,7 @@
       "redeem_failure_title": "Canje fallido",
       "redeem_failure_description": "Inténtalo de nuevo más tarde.",
       "reward_details": "Detalles de la recompensa",
-      "select_account_description": "Selecciona la cuenta a la que quieres enviar la recompensa. Los tokens se distribuirán en dos semanas."
+      "select_account_description": "Selecciona la cuenta a la que quieres enviar la recompensa."
     },
     "animation": {
       "could_not_load": "No se pudo cargar"

@@ -36,8 +36,9 @@ import {
 } from '@metamask/remote-feature-flag-controller';
 import { Hex, hexToNumber, numberToHex } from '@metamask/utils';
 import performance from 'react-native-performance';
-import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { analytics } from '../../../../util/analytics/analytics';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
 import {
@@ -1210,8 +1211,8 @@ export class PredictController extends BaseController<
       sensitiveProperties,
     });
 
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.PREDICT_TRADE_TRANSACTION,
       )
         .addProperties(regularProperties)
@@ -1287,8 +1288,8 @@ export class PredictController extends BaseController<
       analyticsProperties,
     });
 
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.PREDICT_MARKET_DETAILS_OPENED,
       )
         .addProperties(analyticsProperties)
@@ -1313,8 +1314,8 @@ export class PredictController extends BaseController<
       analyticsProperties,
     });
 
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.PREDICT_POSITION_VIEWED,
       )
         .addProperties(analyticsProperties)
@@ -1335,8 +1336,8 @@ export class PredictController extends BaseController<
       analyticsProperties,
     });
 
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.PREDICT_ACTIVITY_VIEWED,
       )
         .addProperties(analyticsProperties)
@@ -1364,8 +1365,8 @@ export class PredictController extends BaseController<
       analyticsProperties,
     });
 
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.PREDICT_GEO_BLOCKED_TRIGGERED,
       )
         .addProperties(analyticsProperties)
@@ -1413,8 +1414,8 @@ export class PredictController extends BaseController<
       isSessionEnd,
     });
 
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.PREDICT_FEED_VIEWED,
       )
         .addProperties(analyticsProperties)
@@ -1449,8 +1450,8 @@ export class PredictController extends BaseController<
       analyticsProperties,
     });
 
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.SHARE_ACTION)
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.SHARE_ACTION)
         .addProperties(analyticsProperties)
         .build(),
     );

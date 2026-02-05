@@ -7484,7 +7484,7 @@
       "redeem_failure_title": "Kullanılamadı",
       "redeem_failure_description": "Lütfen daha sonra tekrar deneyin.",
       "reward_details": "Ödül Bilgileri",
-      "select_account_description": "Bu ödülün gönderilmesini istediğiniz hesabı seçin. Tokenler iki hafta içinde dağıtılacaktır."
+      "select_account_description": "Bu ödülün gönderilmesini istediğiniz hesabı seçin."
     },
     "animation": {
       "could_not_load": "Yüklenemedi"
