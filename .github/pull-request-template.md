@@ -30,6 +30,7 @@ CHANGELOG entry:
 ## **Related issues**
 
 Fixes:
+Refs: https://github.com/MetaMask/core/pull/7827
 
 ## **Manual testing steps**
 
