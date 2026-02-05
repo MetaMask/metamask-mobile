@@ -1,17 +1,20 @@
-import { SmokeNetworkExpansion } from '../../../../tags';
-import Browser from '../../../../pages/Browser/BrowserView';
-import TestDApp from '../../../../pages/Browser/TestDApp';
-import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
-import FixtureBuilder from '../../../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../../../tests/framework/fixtures/FixtureHelper';
-import { loginToApp, navigateToBrowserView } from '../../../../viewHelper';
-import Assertions from '../../../../../tests/framework/Assertions';
-import ConnectBottomSheet from '../../../../pages/Browser/ConnectBottomSheet';
-import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
-import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
-import { DappVariants } from '../../../../../tests/framework/Constants';
-import { setupRemoteFeatureFlagsMock } from '../../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { SmokeNetworkExpansion } from '../../../../../e2e/tags';
+import Browser from '../../../../../e2e/pages/Browser/BrowserView';
+import TestDApp from '../../../../../e2e/pages/Browser/TestDApp';
+import ConnectedAccountsModal from '../../../../../e2e/pages/Browser/ConnectedAccountsModal';
+import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
+import {
+  loginToApp,
+  navigateToBrowserView,
+} from '../../../../../e2e/viewHelper';
+import Assertions from '../../../../framework/Assertions';
+import ConnectBottomSheet from '../../../../../e2e/pages/Browser/ConnectBottomSheet';
+import NetworkNonPemittedBottomSheet from '../../../../../e2e/pages/Network/NetworkNonPemittedBottomSheet';
+import NetworkConnectMultiSelector from '../../../../../e2e/pages/Browser/NetworkConnectMultiSelector';
+import { DappVariants } from '../../../../framework/Constants';
+import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../../api-mocking/mock-responses/feature-flags-mocks';
 
 describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
   beforeAll(async () => {
