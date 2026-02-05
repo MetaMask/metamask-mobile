@@ -107,9 +107,9 @@ exports[`SnapUIForm will render 1`] = `
                   style={
                     {
                       "alignItems": "center",
-                      "backgroundColor": "#ffffff",
-                      "borderColor": "#b7bbc8",
-                      "borderRadius": 8,
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderColor": "#b7bbc866",
+                      "borderRadius": 12,
                       "borderWidth": 1,
                       "flexDirection": "row",
                       "flexGrow": 1,
@@ -134,6 +134,8 @@ exports[`SnapUIForm will render 1`] = `
                       autoFocus={false}
                       editable={true}
                       id="input"
+                      multiline={false}
+                      numberOfLines={1}
                       onBlur={[Function]}
                       onChangeText={[Function]}
                       onFocus={[Function]}
@@ -326,9 +328,9 @@ exports[`SnapUIForm will render with fields 1`] = `
                   style={
                     {
                       "alignItems": "center",
-                      "backgroundColor": "#ffffff",
-                      "borderColor": "#b7bbc8",
-                      "borderRadius": 8,
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderColor": "#b7bbc866",
+                      "borderRadius": 12,
                       "borderWidth": 1,
                       "flexDirection": "row",
                       "flexGrow": 1,
@@ -353,6 +355,8 @@ exports[`SnapUIForm will render with fields 1`] = `
                       autoFocus={false}
                       editable={true}
                       id="input"
+                      multiline={false}
+                      numberOfLines={1}
                       onBlur={[Function]}
                       onChangeText={[Function]}
                       onFocus={[Function]}

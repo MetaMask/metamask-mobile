@@ -6,9 +6,7 @@ import Label from '../../../../../../component-library/components/Form/Label';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import TextField, {
-  TextFieldSize,
-} from '../../../../../../component-library/components/Form/TextField';
+import TextField from '../../../../../../component-library/components/Form/TextField';
 
 const DEPOSIT_FIELD_TEST_ID = 'deposit-field-test-id';
 
@@ -54,7 +52,6 @@ describe('DepositTextField', () => {
     const wrapper = shallow(<DepositTextField {...defaultProps} />);
     const textFieldComponent = wrapper.find(TextField);
     expect(textFieldComponent.exists()).toBe(true);
-    expect(textFieldComponent.prop('size')).toBe(TextFieldSize.Lg);
     expect(textFieldComponent.prop('placeholderTextColor')).toBe(
       mockTheme.colors.text.muted,
     );
