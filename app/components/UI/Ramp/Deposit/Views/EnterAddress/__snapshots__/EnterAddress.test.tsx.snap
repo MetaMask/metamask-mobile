@@ -643,9 +643,9 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -668,6 +668,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                         autoFocus={false}
                                         editable={true}
                                         keyboardAppearance="light"
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
@@ -773,9 +775,9 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -798,6 +800,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                         autoFocus={false}
                                         editable={true}
                                         keyboardAppearance="light"
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
@@ -899,9 +903,9 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -923,6 +927,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
@@ -1151,9 +1157,9 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -1176,6 +1182,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                           editable={true}
                                           keyboardAppearance="light"
                                           keyboardType="numbers-and-punctuation"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
@@ -1283,9 +1291,9 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -1298,7 +1306,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       <View
                                         style={
                                           {
-                                            "marginRight": 8,
+                                            "marginRight": 12,
                                           }
                                         }
                                         testID="textfield-startacccessory"
@@ -1329,6 +1337,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                           autoFocus={false}
                                           editable={false}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onFocus={[Function]}
                                           placeholder="Country"
@@ -2175,9 +2185,9 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -2200,6 +2210,8 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                         autoFocus={false}
                                         editable={true}
                                         keyboardAppearance="light"
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
@@ -2290,9 +2302,9 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -2315,6 +2327,8 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                         autoFocus={false}
                                         editable={true}
                                         keyboardAppearance="light"
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
@@ -2416,9 +2430,9 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -2440,6 +2454,8 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
@@ -2630,9 +2646,9 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -2655,6 +2671,8 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                           editable={true}
                                           keyboardAppearance="light"
                                           keyboardType="numbers-and-punctuation"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
@@ -2747,9 +2765,9 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -2762,7 +2780,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                       <View
                                         style={
                                           {
-                                            "marginRight": 8,
+                                            "marginRight": 12,
                                           }
                                         }
                                         testID="textfield-startacccessory"
@@ -2793,6 +2811,8 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                           autoFocus={false}
                                           editable={false}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onFocus={[Function]}
                                           placeholder="Country"
@@ -3639,9 +3659,9 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -3664,6 +3684,8 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                         autoFocus={false}
                                         editable={true}
                                         keyboardAppearance="light"
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
@@ -3754,9 +3776,9 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -3779,6 +3801,8 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                         autoFocus={false}
                                         editable={true}
                                         keyboardAppearance="light"
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
@@ -3880,9 +3904,9 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -3904,6 +3928,8 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
@@ -4102,9 +4128,9 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -4127,6 +4153,8 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                           editable={true}
                                           keyboardAppearance="light"
                                           keyboardType="numbers-and-punctuation"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
@@ -4219,9 +4247,9 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -4234,7 +4262,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                       <View
                                         style={
                                           {
-                                            "marginRight": 8,
+                                            "marginRight": 12,
                                           }
                                         }
                                         testID="textfield-startacccessory"
@@ -4265,6 +4293,8 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                           autoFocus={false}
                                           editable={false}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onFocus={[Function]}
                                           placeholder="Country"
@@ -5111,9 +5141,9 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -5136,6 +5166,8 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                         autoFocus={false}
                                         editable={true}
                                         keyboardAppearance="light"
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
@@ -5226,9 +5258,9 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -5251,6 +5283,8 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                         autoFocus={false}
                                         editable={true}
                                         keyboardAppearance="light"
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
@@ -5352,9 +5386,9 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -5376,6 +5410,8 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
@@ -5468,9 +5504,9 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -5492,6 +5528,8 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
@@ -5594,9 +5632,9 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -5619,6 +5657,8 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                           editable={true}
                                           keyboardAppearance="light"
                                           keyboardType="numbers-and-punctuation"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
@@ -5711,9 +5751,9 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -5726,7 +5766,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       <View
                                         style={
                                           {
-                                            "marginRight": 8,
+                                            "marginRight": 12,
                                           }
                                         }
                                         testID="textfield-startacccessory"
@@ -5757,6 +5797,8 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                           autoFocus={false}
                                           editable={false}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onFocus={[Function]}
                                           placeholder="Country"
