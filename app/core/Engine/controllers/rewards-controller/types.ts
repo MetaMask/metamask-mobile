@@ -264,12 +264,6 @@ export interface SnapshotPrerequisiteStatusDto extends SnapshotPrerequisiteDto {
   satisfied: boolean;
 
   /**
-   * The required count to satisfy the prerequisite
-   * @example 5
-   */
-  required: number;
-
-  /**
    * The user's current progress toward the requirement
    * @example 3
    */
@@ -291,6 +285,12 @@ export interface SnapshotEligibilityDto {
    * @example true
    */
   eligible: boolean;
+
+  /**
+   * The logic operator for combining prerequisites
+   * @example 'AND'
+   */
+  prerequisiteLogic: 'AND' | 'OR';
 
   /**
    * Array of prerequisites with their status
@@ -1061,7 +1061,6 @@ export type SnapshotPrerequisiteStatusState = {
   description: string;
   iconName: string;
   satisfied: boolean;
-  required: number;
   current: number;
 };
 
@@ -1073,6 +1072,7 @@ export type SnapshotEligibilityState = {
   eligibility: {
     snapshotId: string;
     eligible: boolean;
+    prerequisiteLogic: 'AND' | 'OR';
     prerequisites: SnapshotPrerequisiteStatusState[];
     snapshotStatus: SnapshotStatus;
     canCommit: boolean;
