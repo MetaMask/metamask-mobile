@@ -95,11 +95,8 @@ export function usePerpsOrderForm(
       : (account?.availableBalance?.toString() ?? '0'),
   );
 
-  // When paying with a custom token, cap by selected token amount in USD; otherwise use Perps balance
-  const balanceForMax =
-    effectiveAvailableBalanceParam != null && effectiveAvailableBalanceParam > 0
-      ? effectiveAvailableBalanceParam
-      : availableBalance;
+  // When paying with a custom token, use selected token amount in USD (including 0); otherwise use Perps balance
+  const balanceForMax = effectiveAvailableBalanceParam ?? availableBalance;
 
   // Determine default amount based on network
   const defaultAmount =
