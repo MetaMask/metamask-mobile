@@ -49,6 +49,26 @@ function appStateListenerChannel() {
 }
 
 /**
+ * Checks seedless password status and performs the correct auth flow.
+ */
+async function handleSeedlessPasswordOutdatedAuth(): Promise<void> {
+  if (await Authentication.checkIsSeedlessPasswordOutdated()) {
+    NavigationService.navigation?.reset({
+      routes: [
+        {
+          name: Routes.ONBOARDING.REHYDRATE,
+          params: { isSeedlessPasswordOutdated: true },
+        },
+      ],
+    });
+    return;
+  }
+
+  // Prompt authentication.
+  await Authentication.unlockWallet();
+}
+
+/**
  * Listens to app state changes and prompts authentication when the app is foregrounded.
  */
 export function* appStateListenerTask() {
@@ -64,20 +84,7 @@ export function* appStateListenerTask() {
         yield call(async () => {
           // This is in a try catch since errors are not propogated in event channels.
           try {
-            // check if seedless password is outdated
-            if (await Authentication.checkIsSeedlessPasswordOutdated()) {
-              NavigationService.navigation?.reset({
-                routes: [
-                  {
-                    name: Routes.ONBOARDING.REHYDRATE,
-                    params: { isSeedlessPasswordOutdated: true },
-                  },
-                ],
-              });
-            } else {
-              // Prompt authentication.
-              await Authentication.unlockWallet();
-            }
+            await handleSeedlessPasswordOutdatedAuth();
           } catch (error) {
             // Navigate to login.
             NavigationService.navigation?.reset({
@@ -116,22 +123,7 @@ export function* appLockStateMachine() {
  */
 export function* requestAuthOnAppStart() {
   try {
-    yield call(async () => {
-      // check if seedless password is outdated
-      if (await Authentication.checkIsSeedlessPasswordOutdated()) {
-        NavigationService.navigation?.reset({
-          routes: [
-            {
-              name: Routes.ONBOARDING.REHYDRATE,
-              params: { isSeedlessPasswordOutdated: true },
-            },
-          ],
-        });
-      } else {
-        // Prompt authentication.
-        await Authentication.unlockWallet();
-      }
-    });
+    yield call(handleSeedlessPasswordOutdatedAuth);
   } catch (_) {
     // If authentication fails, navigate to login screen
     // TODO: Consolidate error handling in future PRs. For now, we'll rely on the Login screen to handle triaging specific errors.
