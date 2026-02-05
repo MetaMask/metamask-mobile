@@ -14,7 +14,6 @@ import {
   useIsTransactionPayLoading,
   useTransactionPayQuotes,
   useTransactionPaySourceAmounts,
-  useTransactionPayIsPostQuote,
   useTransactionPayRequiredTokens,
 } from '../pay/useTransactionPayData';
 import {
@@ -52,9 +51,6 @@ describe('useNoPayTokenQuotesAlert', () => {
   const useIsTransactionPayLoadingMock = jest.mocked(
     useIsTransactionPayLoading,
   );
-  const useTransactionPayIsPostQuoteMock = jest.mocked(
-    useTransactionPayIsPostQuote,
-  );
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
   );
@@ -74,7 +70,6 @@ describe('useNoPayTokenQuotesAlert', () => {
     useTransactionPaySourceAmountsMock.mockReturnValue([
       {} as TransactionPaySourceAmount,
     ]);
-    useTransactionPayIsPostQuoteMock.mockReturnValue(false);
     useTransactionPayRequiredTokensMock.mockReturnValue([
       { address: '0xSource', chainId: '0x89' } as TransactionPayRequiredToken,
     ]);
@@ -110,52 +105,5 @@ describe('useNoPayTokenQuotesAlert', () => {
     const { result } = runHook();
 
     expect(result.current).toStrictEqual([]);
-  });
-
-  describe('post-quote (withdrawal) flows', () => {
-    const SOURCE_TOKEN_ADDRESS = '0xSourceToken' as Hex;
-    const SOURCE_CHAIN_ID = '0x89' as Hex;
-
-    beforeEach(() => {
-      useTransactionPayIsPostQuoteMock.mockReturnValue(true);
-      useTransactionPayRequiredTokensMock.mockReturnValue([
-        {
-          address: SOURCE_TOKEN_ADDRESS,
-          chainId: SOURCE_CHAIN_ID,
-          skipIfBalance: false,
-        } as TransactionPayRequiredToken,
-      ]);
-    });
-
-    it('returns no alert for same-token-same-chain withdrawal (no bridge needed)', () => {
-      // payToken matches source token (same-token withdrawal)
-      useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
-          address: SOURCE_TOKEN_ADDRESS,
-          chainId: SOURCE_CHAIN_ID,
-        },
-      } as ReturnType<typeof useTransactionPayToken>);
-
-      const { result } = runHook();
-
-      // Should not show alert because same-token withdrawal doesn't need quotes
-      expect(result.current).toStrictEqual([]);
-    });
-
-    it('returns alert for cross-chain withdrawal with no quotes', () => {
-      // payToken is different from source token (cross-chain withdrawal)
-      useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
-          address: '0xDifferentToken' as Hex,
-          chainId: '0x38' as Hex,
-        },
-      } as ReturnType<typeof useTransactionPayToken>);
-
-      const { result } = runHook();
-
-      // Should show alert because bridge is needed but no quotes available
-      expect(result.current).toHaveLength(1);
-      expect(result.current[0].key).toBe(AlertKeys.NoPayTokenQuotes);
-    });
   });
 });
