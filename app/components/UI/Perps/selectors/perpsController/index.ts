@@ -71,11 +71,6 @@ const selectPerpsMarketFilterPreferences = createSelector(
   (perpsControllerState) => selectMarketFilterPreferences(perpsControllerState),
 );
 
-const selectPerpsSelectedPaymentToken = createSelector(
-  selectPerpsControllerState,
-  (perpsControllerState) => perpsControllerState?.selectedPaymentToken ?? null,
-);
-
 /**
  * True when the user selected the synthetic "Perps balance" option (selectedPaymentToken === null).
  */
@@ -118,6 +113,5 @@ export {
   selectPerpsWatchlistMarkets,
   selectPerpsMarketFilterPreferences,
   selectPerpsInitializationState,
-  selectPerpsSelectedPaymentToken,
   selectIsPerpsBalanceSelected,
 };
