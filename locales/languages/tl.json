@@ -7484,7 +7484,7 @@
       "redeem_failure_title": "Nabigong ma-redeem",
       "redeem_failure_description": "Pakisubukan uli mamaya.",
       "reward_details": "Mga Detalye ng  Reward",
-      "select_account_description": "Piliin ang account kung saan mo nais ipadala ang reward na ito. Ipamamahagi ang mga token sa loob ng dalawang linggo."
+      "select_account_description": "Piliin ang account kung saan mo nais ipadala ang reward na ito."
     },
     "animation": {
       "could_not_load": "Hindi mai-load"

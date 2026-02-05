@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import OrderCompleted from './OrderCompleted';
-import { OrderCompletedSelectors } from '../../../../../../e2e/selectors/Card/OrderCompleted.selectors';
+import { OrderCompletedSelectors } from './OrderCompleted.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';

@@ -344,9 +344,6 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
         editable: !isDisabled,
         accessibilityLabel: `isError:${isError},isDisabled:${isDisabled}`,
       }),
-    TextFieldSize: {
-      Lg: 'Lg',
-    },
   };
 });
 

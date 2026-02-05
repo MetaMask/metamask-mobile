@@ -7484,7 +7484,7 @@
       "redeem_failure_title": "兑换失败",
       "redeem_failure_description": "请稍后再试。",
       "reward_details": "奖励详情",
-      "select_account_description": "选择您希望接收此奖励的账户。代币将在两周内发放。"
+      "select_account_description": "选择您希望接收此奖励的账户。"
     },
     "animation": {
       "could_not_load": "无法加载"
