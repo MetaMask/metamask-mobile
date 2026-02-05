@@ -48,7 +48,12 @@ import {
   RewardsDataServiceGetSeasonOneLineaRewardTokensAction,
   RewardsDataServiceApplyReferralCodeAction,
   RewardsDataServiceApplyBonusCodeAction,
-  RewardsDataServiceGetSnapshotsAction,
+  RewardsDataServiceGetDropsAction,
+  RewardsDataServiceGetDropEligibilityAction,
+  RewardsDataServiceGetDropLeaderboardAction,
+  RewardsDataServiceCommitDropPointsAction,
+  RewardsDataServiceUpdateDropReceivingAddressAction,
+  RewardsDataServiceGetDropCommittedAddressAction,
   RewardsDataServiceGetRewardsEnvUrlAction,
   RewardsDataServiceCanChangeRewardsEnvUrlAction,
   RewardsDataServiceSetRewardsEnvUrlAction,
@@ -87,13 +92,17 @@ type AllowedActions =
   | RewardsDataServiceGetSeasonMetadataAction
   | RewardsDataServiceGetSeasonOneLineaRewardTokensAction
   | RewardsDataServiceApplyReferralCodeAction
-  | RewardsDataServiceGetSnapshotsAction
+  | RewardsDataServiceGetDropsAction
   | RewardsDataServiceGetRewardsEnvUrlAction
   | RewardsDataServiceCanChangeRewardsEnvUrlAction
   | RewardsDataServiceSetRewardsEnvUrlAction
   | RewardsDataServiceGetDefaultRewardsEnvUrlAction
   | RewardsDataServiceApplyBonusCodeAction
-  | RewardsDataServiceGetSnapshotsAction;
+  | RewardsDataServiceGetDropEligibilityAction
+  | RewardsDataServiceGetDropLeaderboardAction
+  | RewardsDataServiceCommitDropPointsAction
+  | RewardsDataServiceUpdateDropReceivingAddressAction
+  | RewardsDataServiceGetDropCommittedAddressAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -150,7 +159,12 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getSeasonOneLineaRewardTokens',
       'RewardsDataService:applyReferralCode',
       'RewardsDataService:applyBonusCode',
-      'RewardsDataService:getSnapshots',
+      'RewardsDataService:getDrops',
+      'RewardsDataService:getDropEligibility',
+      'RewardsDataService:getDropLeaderboard',
+      'RewardsDataService:commitDropPoints',
+      'RewardsDataService:updateDropReceivingAddress',
+      'RewardsDataService:getDropCommittedAddress',
       'RewardsDataService:getRewardsEnvUrl',
       'RewardsDataService:canChangeRewardsEnvUrl',
       'RewardsDataService:setRewardsEnvUrl',

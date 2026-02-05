@@ -7345,7 +7345,7 @@
     "main_title": "Récompenses",
     "referral_title": "Parrainages",
     "tab_overview_title": "Aperçu",
-    "tab_snapshots_title": "Snapshots",
+    "tab_drops_title": "Airdrops",
     "tab_activity_title": "Activité",
     "referral_stats_earned_from_referrals": "Gagnés grâce aux parrainages",
     "referral_stats_referrals": "Parrainages",
@@ -7579,30 +7579,30 @@
     "animation": {
       "could_not_load": "Impossible de charger"
     },
-    "snapshot": {
-      "starts_date": "Débute le {{date}}",
-      "ends_date": "Se termine le {{date}}",
-      "results_coming_soon": "Résultats bientôt disponibles",
-      "tokens_on_the_way": "Jetons en cours d’envoi",
-      "pill_up_next": "À venir",
-      "pill_live_now": "Disponible dès maintenant",
-      "pill_calculating": "Calcul en cours",
-      "pill_results_ready": "Résultats disponibles",
-      "pill_complete": "Terminé"
+    "drop": {
+      "starts_date": "Starts {{date}}",
+      "ends_date": "Ends {{date}}",
+      "results_coming_soon": "Results coming soon",
+      "tokens_on_the_way": "Tokens on the way",
+      "pill_up_next": "Up next",
+      "pill_live_now": "Live now",
+      "pill_calculating": "Calculating",
+      "pill_results_ready": "Results Ready",
+      "pill_complete": "Complete"
     },
-    "snapshots_section": {
-      "title": "Snapshots",
-      "error_title": "Impossible de charger les snapshots",
-      "error_description": "Impossible de charger les snapshots. Veuillez réessayer.",
+    "drop_section": {
+      "title": "Airdrops",
+      "error_title": "Unable to load airdrops",
+      "error_description": "We couldn't load the airdrops. Please try again.",
       "retry_button": "Réessayer"
     },
-    "snapshots_tab": {
-      "active_title": "Actif",
-      "upcoming_title": "À venir",
-      "previous_title": "Précédent",
-      "empty_state": "Aucun snapshot disponible",
-      "error_title": "Impossible de charger les snapshots",
-      "error_description": "Impossible de charger les snapshots. Veuillez réessayer.",
+    "drop_tab": {
+      "active_title": "Active",
+      "upcoming_title": "Upcoming",
+      "previous_title": "Previous",
+      "empty_state": "No airdrops available",
+      "error_title": "Unable to load airdrops",
+      "error_description": "We couldn't load the airdrops. Please try again.",
       "retry_button": "Réessayer",
       "refreshing": "Actualisation en cours…"
     }

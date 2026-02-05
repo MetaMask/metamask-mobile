@@ -7345,7 +7345,7 @@
     "main_title": "Ödüller",
     "referral_title": "Referanslar",
     "tab_overview_title": "Genel Bakış",
-    "tab_snapshots_title": "Anlık görüntüler",
+    "tab_drops_title": "Airdrops",
     "tab_activity_title": "Aktivite",
     "referral_stats_earned_from_referrals": "Referanslardan kazanılan",
     "referral_stats_referrals": "Referanslar",
@@ -7579,30 +7579,30 @@
     "animation": {
       "could_not_load": "Yüklenemedi"
     },
-    "snapshot": {
-      "starts_date": "Başlangıç tarihi {{date}}",
-      "ends_date": "Bitiş tarihi {{date}}",
-      "results_coming_soon": "Sonuçlar çok yakında",
-      "tokens_on_the_way": "Tokenlar yolda",
-      "pill_up_next": "Sırada",
-      "pill_live_now": "Şimdi canlı",
+    "drop": {
+      "starts_date": "Starts {{date}}",
+      "ends_date": "Ends {{date}}",
+      "results_coming_soon": "Results coming soon",
+      "tokens_on_the_way": "Tokens on the way",
+      "pill_up_next": "Up next",
+      "pill_live_now": "Live now",
       "pill_calculating": "Hesaplanıyor",
       "pill_results_ready": "Sonuçlar Hazır",
       "pill_complete": "Tamamlandı"
     },
-    "snapshots_section": {
-      "title": "Anlık görüntüler",
-      "error_title": "Anlık görüntüler yüklenemiyor",
-      "error_description": "Anlık görüntüleri yükleyemedik. Lütfen tekrar deneyin.",
+    "drop_section": {
+      "title": "Airdrops",
+      "error_title": "Unable to load airdrops",
+      "error_description": "We couldn't load the airdrops. Please try again.",
       "retry_button": "Tekrar Dene"
     },
-    "snapshots_tab": {
-      "active_title": "Aktif",
-      "upcoming_title": "Yaklaşan",
-      "previous_title": "Önceki",
-      "empty_state": "Anlık görüntüler kullanılamıyor",
-      "error_title": "Anlık görüntüler yüklenemiyor",
-      "error_description": "Anlık görüntüleri yükleyemedik. Lütfen tekrar deneyin.",
+    "drop_tab": {
+      "active_title": "Active",
+      "upcoming_title": "Upcoming",
+      "previous_title": "Previous",
+      "empty_state": "No airdrops available",
+      "error_title": "Unable to load airdrops",
+      "error_description": "We couldn't load the airdrops. Please try again.",
       "retry_button": "Tekrar Dene",
       "refreshing": "Yenileniyor..."
     }

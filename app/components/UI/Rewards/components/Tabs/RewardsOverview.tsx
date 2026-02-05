@@ -1,6 +1,6 @@
 import React from 'react';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
-import SnapshotsSection from './OverviewTab/SnapshotsSection';
+import DropsSection from './OverviewTab/DropsSection';
 import ActiveBoosts from './OverviewTab/ActiveBoosts';
 import { useActivePointsBoosts } from '../../hooks/useActivePointsBoosts';
 import { WaysToEarn } from './OverviewTab/WaysToEarn/WaysToEarn';
@@ -21,7 +21,7 @@ const RewardsOverview: React.FC<RewardsOverviewProps> = () => {
       showsVerticalScrollIndicator={false}
       testID={REWARDS_VIEW_SELECTORS.TAB_CONTENT_OVERVIEW}
     >
-      <SnapshotsSection />
+      <DropsSection />
 
       <ActiveBoosts fetchActivePointsBoosts={fetchActivePointsBoosts} />
 

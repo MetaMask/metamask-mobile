@@ -7345,7 +7345,7 @@
     "main_title": "Награды",
     "referral_title": "Рефералы",
     "tab_overview_title": "Обзор",
-    "tab_snapshots_title": "Снимки",
+    "tab_drops_title": "Airdrops",
     "tab_activity_title": "Деятельность",
     "referral_stats_earned_from_referrals": "Заработано на рефералах",
     "referral_stats_referrals": "Рефералы",
@@ -7579,30 +7579,30 @@
     "animation": {
       "could_not_load": "Ошибка загрузки"
     },
-    "snapshot": {
-      "starts_date": "Начинается {{date}}",
-      "ends_date": "Заканчивается {{date}}",
-      "results_coming_soon": "Скоро появятся результаты",
-      "tokens_on_the_way": "Токены в пути",
-      "pill_up_next": "Далее",
-      "pill_live_now": "Уже активно",
+    "drop": {
+      "starts_date": "Starts {{date}}",
+      "ends_date": "Ends {{date}}",
+      "results_coming_soon": "Results coming soon",
+      "tokens_on_the_way": "Tokens on the way",
+      "pill_up_next": "Up next",
+      "pill_live_now": "Live now",
       "pill_calculating": "Расчет",
       "pill_results_ready": "Результаты готовы",
       "pill_complete": "Завершено"
     },
-    "snapshots_section": {
-      "title": "Снимки",
-      "error_title": "Не удалось загрузить снимки",
-      "error_description": "Нам не удалось загрузить снимки. Попробуйте еще раз.",
+    "drop_section": {
+      "title": "Airdrops",
+      "error_title": "Unable to load airdrops",
+      "error_description": "We couldn't load the airdrops. Please try again.",
       "retry_button": "Повтор"
     },
-    "snapshots_tab": {
-      "active_title": "Активно",
-      "upcoming_title": "Далее",
-      "previous_title": "Предыдущее",
-      "empty_state": "Нет доступных снимков",
-      "error_title": "Не удалось загрузить снимки",
-      "error_description": "Нам не удалось загрузить снимки. Попробуйте еще раз.",
+    "drop_tab": {
+      "active_title": "Active",
+      "upcoming_title": "Upcoming",
+      "previous_title": "Previous",
+      "empty_state": "No airdrops available",
+      "error_title": "Unable to load airdrops",
+      "error_description": "We couldn't load the airdrops. Please try again.",
       "retry_button": "Повтор",
       "refreshing": "Обновление..."
     }

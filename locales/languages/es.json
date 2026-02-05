@@ -7345,7 +7345,7 @@
     "main_title": "Recompensas",
     "referral_title": "Referidos",
     "tab_overview_title": "Resumen general",
-    "tab_snapshots_title": "Instantáneas",
+    "tab_drops_title": "Airdrops",
     "tab_activity_title": "Actividad",
     "referral_stats_earned_from_referrals": "Ganancias por referidos",
     "referral_stats_referrals": "Recomendados",
@@ -7579,30 +7579,30 @@
     "animation": {
       "could_not_load": "No se pudo cargar"
     },
-    "snapshot": {
-      "starts_date": "Empieza el {{date}}",
-      "ends_date": "Termina el {{date}}",
-      "results_coming_soon": "Resultados próximamente",
-      "tokens_on_the_way": "Los tokens están llegando",
-      "pill_up_next": "A continuación",
-      "pill_live_now": "En vivo ahora",
+    "drop": {
+      "starts_date": "Starts {{date}}",
+      "ends_date": "Ends {{date}}",
+      "results_coming_soon": "Results coming soon",
+      "tokens_on_the_way": "Tokens on the way",
+      "pill_up_next": "Up next",
+      "pill_live_now": "Live now",
       "pill_calculating": "Calculando",
       "pill_results_ready": "Resultados listos",
       "pill_complete": "Completado"
     },
-    "snapshots_section": {
-      "title": "Instantáneas",
-      "error_title": "No se pueden cargar las instantáneas",
-      "error_description": "No pudimos cargar las instantáneas. Inténtalo de nuevo.",
+    "drop_section": {
+      "title": "Airdrops",
+      "error_title": "Unable to load airdrops",
+      "error_description": "We couldn't load the airdrops. Please try again.",
       "retry_button": "Reintentar"
     },
-    "snapshots_tab": {
-      "active_title": "Activa",
-      "upcoming_title": "Próxima",
-      "previous_title": "Previa",
-      "empty_state": "No hay instantáneas disponibles",
-      "error_title": "No se pueden cargar las instantáneas",
-      "error_description": "No pudimos cargar las instantáneas. Inténtalo de nuevo.",
+    "drop_tab": {
+      "active_title": "Active",
+      "upcoming_title": "Upcoming",
+      "previous_title": "Previous",
+      "empty_state": "No airdrops available",
+      "error_title": "Unable to load airdrops",
+      "error_description": "We couldn't load the airdrops. Please try again.",
       "retry_button": "Reintentar",
       "refreshing": "Actualizando..."
     }

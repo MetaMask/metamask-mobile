@@ -1,30 +1,30 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import RewardsSnapshots from './RewardsSnapshots';
+import RewardsDrops from './RewardsDrops';
 
-// Mock the SnapshotsTab component
-jest.mock('./SnapshotsTab', () => ({
-  SnapshotsTab: function MockSnapshotsTab() {
+// Mock the DropsTab component
+jest.mock('./DropsTab', () => ({
+  DropsTab: function MockDropsTab() {
     const ReactActual = jest.requireActual('react');
     const { View } = jest.requireActual('react-native');
-    return ReactActual.createElement(View, { testID: 'snapshots-tab-mock' });
+    return ReactActual.createElement(View, { testID: 'drops-tab-mock' });
   },
 }));
 
-describe('RewardsSnapshots', () => {
+describe('RewardsDrops', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('renders SnapshotsTab component', () => {
-    const { getByTestId } = render(<RewardsSnapshots />);
+  it('renders DropsTab component', () => {
+    const { getByTestId } = render(<RewardsDrops />);
 
-    expect(getByTestId('snapshots-tab-mock')).toBeOnTheScreen();
+    expect(getByTestId('drops-tab-mock')).toBeOnTheScreen();
   });
 
   it('accepts optional tabLabel prop without errors', () => {
-    const { getByTestId } = render(<RewardsSnapshots tabLabel="Snapshots" />);
+    const { getByTestId } = render(<RewardsDrops tabLabel="Drops" />);
 
-    expect(getByTestId('snapshots-tab-mock')).toBeOnTheScreen();
+    expect(getByTestId('drops-tab-mock')).toBeOnTheScreen();
   });
 });
