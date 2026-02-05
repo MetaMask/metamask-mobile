@@ -92,8 +92,8 @@ export const SwapsKeypad = ({
     [onMaxPress, onQuickOptionPress],
   );
 
-  const shouldHideQuickPickOptions = useMemo(
-    () => new BigNumber(tokenBalance?.displayBalance || 0).eq(0),
+  const shouldRenderQuickPickOptions = useMemo(
+    () => new BigNumber(tokenBalance?.displayBalance || 0).gt(0),
     [tokenBalance],
   );
 
@@ -110,7 +110,7 @@ export const SwapsKeypad = ({
     <Box style={styles.keypadContainer}>
       <QuickPickButtons
         options={quickPickOptions}
-        hidden={shouldHideQuickPickOptions}
+        show={shouldRenderQuickPickOptions}
       />
       <Keypad
         style={styles.keypad}
