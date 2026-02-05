@@ -41,6 +41,7 @@ describe('NftControllerInit', () => {
       messenger: expect.any(Object),
       state: undefined,
       useIpfsSubdomains: false,
+      ipfsGateway: 'dweb.link',
     });
   });
 });
