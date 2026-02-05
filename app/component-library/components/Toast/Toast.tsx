@@ -39,7 +39,7 @@ import { useAppThemeFromContext } from '../../../util/theme';
 // Internal dependencies.
 import {
   ButtonIconVariant,
-  PredictToastType,
+  StatusToastType,
   ToastCloseButtonOptions,
   ToastDescriptionOptions,
   ToastLabelOptions,
@@ -198,11 +198,11 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     );
   };
 
-  const renderPredictAccessory = (predictType: PredictToastType) => {
+  const renderStatusAccessory = (statusType: StatusToastType) => {
     const accessoryStyle = styles.avatar;
 
-    switch (predictType) {
-      case PredictToastType.Pending:
+    switch (statusType) {
+      case StatusToastType.Pending:
         return (
           <View style={accessoryStyle}>
             <Spinner
@@ -211,7 +211,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
             />
           </View>
         );
-      case PredictToastType.Success:
+      case StatusToastType.Success:
         return (
           <View style={accessoryStyle}>
             <Icon
@@ -221,7 +221,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
             />
           </View>
         );
-      case PredictToastType.Failure:
+      case StatusToastType.Failure:
         return (
           <View style={accessoryStyle}>
             <Icon
@@ -290,9 +290,9 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
           />
         );
       }
-      case ToastVariants.Predict: {
-        const { predictType } = toastOptions;
-        return renderPredictAccessory(predictType);
+      case ToastVariants.Status: {
+        const { statusType } = toastOptions;
+        return renderStatusAccessory(statusType);
       }
     }
   };

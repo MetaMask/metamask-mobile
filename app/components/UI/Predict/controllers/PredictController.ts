@@ -45,7 +45,7 @@ import NavigationService from '../../../../core/NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   ToastVariants,
-  PredictToastType,
+  StatusToastType,
 } from '../../../../component-library/components/Toast/Toast.types';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
@@ -577,20 +577,20 @@ export class PredictController extends BaseController<
     }
   }
 
-  private showPredictToast({
+  private showStatusToast({
     type,
     title,
     description,
     transactionId,
   }: {
-    type: PredictToastType;
+    type: StatusToastType;
     title: string;
     description: string;
     transactionId?: string;
   }): void {
     try {
       const closeButtonOptions =
-        transactionId && type === PredictToastType.Pending
+        transactionId && type === StatusToastType.Pending
           ? {
               label: strings('predict.deposit.track'),
               onPress: () => {
@@ -607,8 +607,8 @@ export class PredictController extends BaseController<
           : undefined;
 
       ToastService.showToast({
-        variant: ToastVariants.Predict,
-        predictType: type,
+        variant: ToastVariants.Status,
+        statusType: type,
         labelOptions: [
           { label: title, isBold: true },
           { label: '\n', isBold: false },
@@ -629,21 +629,21 @@ export class PredictController extends BaseController<
     description: string;
     transactionId?: string;
   }): void {
-    this.showPredictToast({ type: PredictToastType.Pending, ...options });
+    this.showStatusToast({ type: StatusToastType.Pending, ...options });
   }
 
   private showSuccessToast(options: {
     title: string;
     description: string;
   }): void {
-    this.showPredictToast({ type: PredictToastType.Success, ...options });
+    this.showStatusToast({ type: StatusToastType.Success, ...options });
   }
 
   private showFailureToast(options: {
     title: string;
     description: string;
   }): void {
-    this.showPredictToast({ type: PredictToastType.Failure, ...options });
+    this.showStatusToast({ type: StatusToastType.Failure, ...options });
   }
 
   private getDepositAmount(transactionMeta: TransactionMeta): string {

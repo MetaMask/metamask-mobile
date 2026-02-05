@@ -5930,8 +5930,8 @@ describe('PredictController', () => {
           expect(mockShowToast).toHaveBeenCalledTimes(1);
           expect(mockShowToast).toHaveBeenCalledWith(
             expect.objectContaining({
-              variant: 'Predict',
-              predictType: 'Pending',
+              variant: 'Status',
+              statusType: 'Pending',
             }),
           );
         });
@@ -5964,8 +5964,8 @@ describe('PredictController', () => {
           expect(mockShowToast).toHaveBeenCalledTimes(1);
           expect(mockShowToast).toHaveBeenCalledWith(
             expect.objectContaining({
-              variant: 'Predict',
-              predictType: 'Success',
+              variant: 'Status',
+              statusType: 'Success',
             }),
           );
           expect(
@@ -5996,8 +5996,8 @@ describe('PredictController', () => {
           expect(mockShowToast).toHaveBeenCalledTimes(1);
           expect(mockShowToast).toHaveBeenCalledWith(
             expect.objectContaining({
-              variant: 'Predict',
-              predictType: 'Failure',
+              variant: 'Status',
+              statusType: 'Failure',
             }),
           );
           expect(
@@ -6048,8 +6048,8 @@ describe('PredictController', () => {
           expect(mockShowToast).toHaveBeenCalledTimes(1);
           expect(mockShowToast).toHaveBeenCalledWith(
             expect.objectContaining({
-              variant: 'Predict',
-              predictType: 'Pending',
+              variant: 'Status',
+              statusType: 'Pending',
             }),
           );
         });
@@ -6074,8 +6074,8 @@ describe('PredictController', () => {
           expect(mockShowToast).toHaveBeenCalledTimes(1);
           expect(mockShowToast).toHaveBeenCalledWith(
             expect.objectContaining({
-              variant: 'Predict',
-              predictType: 'Success',
+              variant: 'Status',
+              statusType: 'Success',
             }),
           );
           expect(controller.state.withdrawTransaction).toBeNull();
@@ -6101,8 +6101,8 @@ describe('PredictController', () => {
           expect(mockShowToast).toHaveBeenCalledTimes(1);
           expect(mockShowToast).toHaveBeenCalledWith(
             expect.objectContaining({
-              variant: 'Predict',
-              predictType: 'Failure',
+              variant: 'Status',
+              statusType: 'Failure',
             }),
           );
           expect(controller.state.withdrawTransaction).toBeNull();
@@ -6144,8 +6144,8 @@ describe('PredictController', () => {
           expect(mockShowToast).toHaveBeenCalledTimes(1);
           expect(mockShowToast).toHaveBeenCalledWith(
             expect.objectContaining({
-              variant: 'Predict',
-              predictType: 'Pending',
+              variant: 'Status',
+              statusType: 'Pending',
             }),
           );
         });
@@ -6163,8 +6163,8 @@ describe('PredictController', () => {
           expect(mockShowToast).toHaveBeenCalledTimes(1);
           expect(mockShowToast).toHaveBeenCalledWith(
             expect.objectContaining({
-              variant: 'Predict',
-              predictType: 'Success',
+              variant: 'Status',
+              statusType: 'Success',
             }),
           );
         });
@@ -6182,8 +6182,8 @@ describe('PredictController', () => {
           expect(mockShowToast).toHaveBeenCalledTimes(1);
           expect(mockShowToast).toHaveBeenCalledWith(
             expect.objectContaining({
-              variant: 'Predict',
-              predictType: 'Failure',
+              variant: 'Status',
+              statusType: 'Failure',
             }),
           );
         });
