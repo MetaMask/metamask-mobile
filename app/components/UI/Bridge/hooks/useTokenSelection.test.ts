@@ -41,6 +41,13 @@ jest.mock('./useIsNetworkEnabled', () => ({
   useIsNetworkEnabled: jest.fn(() => true),
 }));
 
+const mockAutoUpdateDestToken = jest.fn();
+jest.mock('./useAutoUpdateDestToken', () => ({
+  useAutoUpdateDestToken: () => ({
+    autoUpdateDestToken: mockAutoUpdateDestToken,
+  }),
+}));
+
 import { useSelector } from 'react-redux';
 import { useIsNetworkEnabled } from './useIsNetworkEnabled';
 const mockUseSelector = useSelector as jest.Mock;
@@ -74,7 +81,7 @@ describe('useTokenSelection', () => {
         .mockReturnValueOnce(mockDestAmount); // selectDestAmount
     });
 
-    it('dispatches setSourceToken when selecting new source token', async () => {
+    it('dispatches setSourceToken and calls autoUpdateDestToken when selecting new source token', async () => {
       const { result } = renderHook(() =>
         useTokenSelection(TokenSelectorType.Source),
       );
@@ -88,6 +95,7 @@ describe('useTokenSelection', () => {
       });
 
       expect(mockDispatch).toHaveBeenCalledWith(setSourceToken(newToken));
+      expect(mockAutoUpdateDestToken).toHaveBeenCalledWith(newToken);
       expect(mockGoBack).toHaveBeenCalled();
     });
 
@@ -102,6 +110,7 @@ describe('useTokenSelection', () => {
 
       expect(mockHandleSwitchTokens).toHaveBeenCalledWith(mockDestAmount);
       expect(mockHandleSwitchTokensInner).toHaveBeenCalled();
+      expect(mockAutoUpdateDestToken).not.toHaveBeenCalled();
       expect(mockGoBack).toHaveBeenCalled();
     });
 
@@ -207,6 +216,7 @@ describe('useTokenSelection', () => {
       });
 
       expect(mockDispatch).toHaveBeenCalledWith(setSourceToken(newToken));
+      expect(mockAutoUpdateDestToken).toHaveBeenCalledWith(newToken);
       expect(mockGoBack).toHaveBeenCalled();
     });
 
@@ -251,6 +261,7 @@ describe('useTokenSelection', () => {
         setSourceToken(sameAddressToken),
       );
       expect(mockDispatch).toHaveBeenCalledTimes(1);
+      expect(mockAutoUpdateDestToken).toHaveBeenCalledWith(sameAddressToken);
       expect(mockHandleSwitchTokens).not.toHaveBeenCalled();
     });
 
@@ -274,6 +285,7 @@ describe('useTokenSelection', () => {
 
       expect(mockDispatch).toHaveBeenCalledWith(setSourceToken(sameChainToken));
       expect(mockDispatch).toHaveBeenCalledTimes(1);
+      expect(mockAutoUpdateDestToken).toHaveBeenCalledWith(sameChainToken);
       expect(mockHandleSwitchTokens).not.toHaveBeenCalled();
     });
   });

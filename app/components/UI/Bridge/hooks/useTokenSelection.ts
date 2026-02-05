@@ -14,6 +14,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { useRWAToken } from './useRWAToken';
 import { useSwitchTokens } from './useSwitchTokens';
 import { useIsNetworkEnabled } from './useIsNetworkEnabled';
+import { useAutoUpdateDestToken } from './useAutoUpdateDestToken';
 
 /**
  * Hook to manage token selection logic for Bridge token selector
@@ -29,6 +30,7 @@ export const useTokenSelection = (type: TokenSelectorType) => {
   const destAmount = useSelector(selectDestAmount);
   const { handleSwitchTokens } = useSwitchTokens();
   const isDestNetworkEnabled = useIsNetworkEnabled(destToken?.chainId);
+  const { autoUpdateDestToken } = useAutoUpdateDestToken();
 
   const handleTokenPress = useCallback(
     async (token: BridgeToken) => {
@@ -70,6 +72,9 @@ export const useTokenSelection = (type: TokenSelectorType) => {
         dispatch(isSourcePicker ? setSourceToken(token) : setDestToken(token));
         if (!isSourcePicker) {
           dispatch(setIsDestTokenManuallySet(true));
+        } else {
+          // Auto-update dest token when source token changes
+          autoUpdateDestToken(token);
         }
       }
 
@@ -86,6 +91,7 @@ export const useTokenSelection = (type: TokenSelectorType) => {
       navigation,
       handleSwitchTokens,
       isDestNetworkEnabled,
+      autoUpdateDestToken,
     ],
   );
 

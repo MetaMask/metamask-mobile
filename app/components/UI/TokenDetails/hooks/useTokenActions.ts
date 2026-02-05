@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { Hex, CaipChainId, isCaipAssetType } from '@metamask/utils';
@@ -19,6 +19,8 @@ import {
 } from '../../../../util/analytics/actionButtonTracking';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import { selectAssetsBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
+import { areAddressesEqual } from '../../../../util/address';
 import { useRampNavigation } from '../../Ramp/hooks/useRampNavigation';
 import { TokenI } from '../../Tokens/types';
 import {
@@ -90,6 +92,10 @@ export interface UseTokenActionsResult {
   onSend: () => Promise<void>;
   onReceive: () => void;
   goToSwaps: () => void;
+  /** Sticky bar Buy handler - smart source selection, current asset as destination */
+  handleBuyPress: () => void;
+  /** Sticky bar Sell handler - current asset as source, mUSD/native as destination */
+  handleSellPress: () => void;
   networkModal: React.ReactNode;
 }
 
@@ -120,6 +126,7 @@ export const useTokenActions = ({
   const getAccountByScope = useSelector(selectSelectedInternalAccountByScope);
   const selectedChainId = useSelector(selectEvmChainId);
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
+  const userAssetsMap = useSelector(selectAssetsBySelectedAccountGroup);
 
   // Metrics
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -300,11 +307,111 @@ export const useTokenActions = ({
     goToBuy,
   ]);
 
+  // Convert current token to BridgeToken format (used as dest for Buy, source for Sell)
+  const currentTokenAsBridgeToken = useMemo<BridgeToken>(
+    () => ({
+      address: token.address,
+      chainId: token.chainId as Hex | CaipChainId,
+      decimals: token.decimals,
+      symbol: token.symbol,
+      name: token.name,
+      image: token.image,
+    }),
+    [
+      token.address,
+      token.chainId,
+      token.decimals,
+      token.symbol,
+      token.name,
+      token.image,
+    ],
+  );
+
+  // Pre-compute source token for Buy (smart selection based on user assets)
+  // Returns null if no eligible tokens found (triggers on-ramp flow)
+  const buySourceToken = useMemo<BridgeToken | null>(() => {
+    // Flatten the assets map into an array
+    const userAssets = Object.values(userAssetsMap || {}).flat();
+
+    // Check if asset has positive fiat balance
+    const hasPositiveBalance = (a: { fiat?: { balance?: number } }) =>
+      (a.fiat?.balance ?? 0) > 0;
+
+    // Priority 1: Find highest USD value token on same chain (with positive balance)
+    // Note: assetId contains the token address for EVM assets
+    const sameChainAssets = userAssets
+      .filter(
+        (a) =>
+          a.chainId === token.chainId &&
+          !areAddressesEqual(a.assetId, token.address) &&
+          hasPositiveBalance(a),
+      )
+      .sort((a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0));
+
+    if (sameChainAssets.length > 0) {
+      const asset = sameChainAssets[0];
+      return {
+        address: asset.assetId,
+        chainId: asset.chainId as Hex | CaipChainId,
+        decimals: asset.decimals,
+        symbol: asset.symbol,
+        name: asset.name,
+        image: asset.image,
+      };
+    }
+
+    // Priority 2: Find highest USD value token on any chain (with positive balance)
+    // Only exclude if BOTH address AND chainId match (same exact token)
+    // This allows cross-chain bridging of native tokens that share the zero address
+    const allAssets = userAssets
+      .filter(
+        (a) =>
+          !(
+            areAddressesEqual(a.assetId, token.address) &&
+            a.chainId === token.chainId
+          ) && hasPositiveBalance(a),
+      )
+      .sort((a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0));
+
+    if (allAssets.length > 0) {
+      const asset = allAssets[0];
+      return {
+        address: asset.assetId,
+        chainId: asset.chainId as Hex | CaipChainId,
+        decimals: asset.decimals,
+        symbol: asset.symbol,
+        name: asset.name,
+        image: asset.image,
+      };
+    }
+    // No eligible tokens found - return null to trigger on-ramp flow
+    return null;
+  }, [userAssetsMap, token.chainId, token.address]);
+
+  const handleBuyPress = useCallback(() => {
+    // If user has no eligible tokens to swap with, route to on-ramp
+    if (!buySourceToken) {
+      goToBuy();
+      return;
+    }
+
+    if (!goToSwaps) return;
+    goToSwaps(buySourceToken, currentTokenAsBridgeToken);
+  }, [goToSwaps, goToBuy, buySourceToken, currentTokenAsBridgeToken]);
+
+  // Sell: current token as source, let swap UI compute default dest
+  const handleSellPress = useCallback(() => {
+    if (!goToSwaps) return;
+    goToSwaps(currentTokenAsBridgeToken, undefined);
+  }, [goToSwaps, currentTokenAsBridgeToken]);
+
   return {
     onBuy,
     onSend,
     onReceive,
     goToSwaps,
+    handleBuyPress,
+    handleSellPress,
     networkModal,
   };
 };

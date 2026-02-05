@@ -12,6 +12,7 @@ import {
   confirmationFeatureFlags,
   remoteFeatureMultichainAccountsAccountDetailsV2,
 } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { mockGenesisBlocks } from './mocks';
 
 jest.setTimeout(150_000);
 
@@ -27,6 +28,8 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
             ...Object.assign({}, ...confirmationFeatureFlags),
             ...remoteFeatureMultichainAccountsAccountDetailsV2(false),
           });
+
+          await mockGenesisBlocks(mockServer);
         },
       },
       async () => {
@@ -77,21 +80,24 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
 
         // Check other networks.
         await TestSnaps.selectInDropdown('networkDropDown', 'Ethereum');
-        await TestSnaps.tapButton('getChainIdButton');
-        await TestSnaps.checkResultSpan('ethereumProviderResultSpan', '"0x1"');
+        await TestSnaps.tapButton('getGenesisHashButton');
+        await TestSnaps.checkResultSpanIncludes(
+          'ethereumProviderResultSpan',
+          '"0xd4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3"',
+        );
 
         await TestSnaps.selectInDropdown('networkDropDown', 'Linea');
-        await TestSnaps.tapButton('getChainIdButton');
-        await TestSnaps.checkResultSpan(
+        await TestSnaps.tapButton('getGenesisHashButton');
+        await TestSnaps.checkResultSpanIncludes(
           'ethereumProviderResultSpan',
-          '"0xe708"',
+          '"0xb6762a65689107b2326364aefc18f94cda413209fab35c00d4af51eaa20ffbc6"',
         );
 
         await TestSnaps.selectInDropdown('networkDropDown', 'Sepolia');
-        await TestSnaps.tapButton('getChainIdButton');
-        await TestSnaps.checkResultSpan(
+        await TestSnaps.tapButton('getGenesisHashButton');
+        await TestSnaps.checkResultSpanIncludes(
           'ethereumProviderResultSpan',
-          '"0xaa36a7"',
+          '"0x25a5cc106eea7138acab33231d7160d69cb777ee0c2c553fcddf5138993e6dd9"',
         );
       },
     );
