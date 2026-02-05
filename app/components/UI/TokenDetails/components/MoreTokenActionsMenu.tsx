@@ -65,7 +65,7 @@ const MoreTokenActionsMenu = () => {
     isBuyable,
     isNativeCurrency,
     asset,
-    onBuy: customOnBuy,
+    onBuy,
     onReceive,
   } = route.params;
 
@@ -116,14 +116,14 @@ const MoreTokenActionsMenu = () => {
   // Fund action handlers (same as FundActionMenu)
   const handleBuyUnified = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      if (customOnBuy) {
-        customOnBuy();
+      if (onBuy) {
+        onBuy();
       } else {
         goToBuy({ assetId: asset.address });
       }
     });
 
-    if (!customOnBuy) {
+    if (!onBuy) {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
           .addProperties({
@@ -142,7 +142,7 @@ const MoreTokenActionsMenu = () => {
     }
   }, [
     closeBottomSheetAndNavigate,
-    customOnBuy,
+    onBuy,
     goToBuy,
     asset.address,
     trackEvent,
@@ -154,14 +154,14 @@ const MoreTokenActionsMenu = () => {
 
   const handleBuy = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      if (customOnBuy) {
-        customOnBuy();
+      if (onBuy) {
+        onBuy();
       } else {
         goToAggregator({ assetId: asset.address });
       }
     });
 
-    if (!customOnBuy) {
+    if (!onBuy) {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
           .addProperties({
@@ -185,7 +185,7 @@ const MoreTokenActionsMenu = () => {
     }
   }, [
     closeBottomSheetAndNavigate,
-    customOnBuy,
+    onBuy,
     goToAggregator,
     asset.address,
     trackEvent,

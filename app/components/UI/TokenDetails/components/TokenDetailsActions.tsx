@@ -9,14 +9,17 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import { useSelector } from 'react-redux';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
+import { selectChainId } from '../../../../selectors/networkController';
+import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
 import Routes from '../../../../constants/navigation/Routes';
 import { useMetrics } from '../../../hooks/useMetrics';
-import {
-  trackActionButtonClick,
-  ActionButtonType,
-  ActionLocation,
-  ActionPosition,
-} from '../../../../util/analytics/actionButtonTracking';
+import { useRampNavigation } from '../../Ramp/hooks/useRampNavigation';
+import useRampsUnifiedV1Enabled from '../../Ramp/hooks/useRampsUnifiedV1Enabled';
+import { useRampsButtonClickData } from '../../Ramp/hooks/useRampsButtonClickData';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { trace, TraceName } from '../../../../util/trace';
+import { RampType } from '../../../../reducers/fiatOrders/types';
+import { getDecimalChainId } from '../../../../util/networks';
 import { TokenI } from '../../Tokens/types';
 
 // Height of MainActionButton: paddingVertical (16 * 2) + Icon (24px) + label marginTop (2) + label lineHeight (~16)
@@ -91,9 +94,14 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const canSignTransactions = useSelector(selectCanSignTransactions);
+  const chainId = useSelector(selectChainId);
+  const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const navigation = useNavigation();
   const { navigate } = navigation;
   const { trackEvent, createEventBuilder } = useMetrics();
+  const { goToBuy, goToAggregator } = useRampNavigation();
+  const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
+  const rampsButtonClickData = useRampsButtonClickData();
 
   // Prevent rapid navigation clicks - locks all buttons during navigation
   const navigationLockRef = useRef(false);
@@ -120,33 +128,65 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
     callback();
   }, []);
 
+  const getChainIdForAsset = useCallback(() => {
+    if (token.chainId) {
+      if (typeof token.chainId === 'string' && token.chainId.startsWith('0x')) {
+        const parsed = parseInt(token.chainId, 16);
+        return isNaN(parsed) ? getDecimalChainId(chainId) : parsed;
+      }
+      const parsed = parseInt(token.chainId, 10);
+      return isNaN(parsed) ? getDecimalChainId(chainId) : parsed;
+    }
+    return getDecimalChainId(chainId);
+  }, [token.chainId, chainId]);
+
   const handleBuyPress = useCallback(() => {
     withNavigationLock(() => {
-      trackActionButtonClick(trackEvent, createEventBuilder, {
-        action_name: ActionButtonType.BUY,
-        action_position: ActionPosition.FIRST_POSITION,
-        button_label: strings('asset_overview.cash_buy_button'),
-        location: ActionLocation.HOME,
-      });
+      if (onBuy) {
+        onBuy();
+      } else if (rampUnifiedV1Enabled) {
+        goToBuy({ assetId: token.address });
+      } else {
+        goToAggregator({ assetId: token.address });
+      }
 
-      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.FUND_ACTION_MENU,
-        params: {
-          onBuy,
-          asset: {
-            address: token.address,
-            chainId: token.chainId,
-          },
-        },
-      });
+      if (!onBuy) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
+            .addProperties({
+              text: 'Buy',
+              location: 'TokenDetailsActions',
+              chain_id_destination: getChainIdForAsset(),
+              ramp_type: rampUnifiedV1Enabled ? 'UNIFIED_BUY' : 'BUY',
+              region: rampGeodetectedRegion,
+              ramp_routing: rampsButtonClickData.ramp_routing,
+              is_authenticated: rampsButtonClickData.is_authenticated,
+              preferred_provider: rampsButtonClickData.preferred_provider,
+              order_count: rampsButtonClickData.order_count,
+            })
+            .build(),
+        );
+
+        if (!rampUnifiedV1Enabled) {
+          trace({
+            name: TraceName.LoadRampExperience,
+            tags: { rampType: RampType.BUY },
+          });
+        }
+      }
     });
   }, [
     withNavigationLock,
+    onBuy,
+    rampUnifiedV1Enabled,
+    goToBuy,
+    goToAggregator,
+    token.address,
     trackEvent,
     createEventBuilder,
-    navigate,
-    onBuy,
-    token,
+    getChainIdForAsset,
+    rampGeodetectedRegion,
+    rampsButtonClickData,
   ]);
 
   const handleLongPress = useCallback(() => {
@@ -213,7 +253,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
           iconName: IconName.AttachMoney,
           label: strings('asset_overview.cash_buy_button'),
           onPress: handleBuyPress,
-          isDisabled: !onBuy,
+          isDisabled: false,
           testID: TokenOverviewSelectorsIDs.BUY_BUTTON,
         });
       }
@@ -322,7 +362,6 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
     handleReceivePress,
     handleMorePress,
     canSignTransactions,
-    onBuy,
     onLong,
     onShort,
   ]);
