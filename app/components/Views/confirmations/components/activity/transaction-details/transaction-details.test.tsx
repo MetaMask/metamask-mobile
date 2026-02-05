@@ -234,6 +234,16 @@ describe('TransactionDetails', () => {
     });
   });
 
+  describe('navigation options', () => {
+    it('configures navigation with back arrow on left instead of close button on right', () => {
+      render();
+
+      const navOptions = mockSetOptions.mock.calls[0][0];
+      expect(navOptions.headerLeft()).not.toBeNull();
+      expect(navOptions.headerRight()).toBeNull();
+    });
+  });
+
   describe('SUMMARY_SECTION_TYPES', () => {
     it.each([
       TransactionType.musdConversion,
