@@ -2398,6 +2398,50 @@ describe('PolymarketProvider', () => {
 
       expect(result).toEqual({ isEligible: false });
     });
+
+    it('returns false when request times out after 10 seconds', async () => {
+      jest.useFakeTimers();
+      const provider = createProvider();
+
+      // Mock fetch to simulate a hanging request
+      globalThis.fetch = jest.fn().mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            // This promise will never resolve naturally
+            setTimeout(resolve, 20000); // 20 seconds, longer than our 10s timeout
+          }),
+      );
+
+      // Start the isEligible call
+      const resultPromise = provider.isEligible();
+
+      // Fast-forward time to trigger the timeout
+      jest.advanceTimersByTime(10000);
+
+      const result = await resultPromise;
+
+      expect(result).toEqual({ isEligible: false });
+      expect(globalThis.fetch).toHaveBeenCalled();
+
+      jest.useRealTimers();
+    });
+
+    it('includes abort signal in fetch request', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        json: jest.fn().mockResolvedValue({ blocked: false, country: 'PT' }),
+      };
+      globalThis.fetch = jest.fn().mockResolvedValue(mockResponse);
+
+      await provider.isEligible();
+
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'https://polymarket.com/api/geoblock',
+        expect.objectContaining({
+          signal: expect.any(Object),
+        }),
+      );
+    });
   });
 
   describe('getMarketDetails', () => {
