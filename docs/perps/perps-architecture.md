@@ -296,6 +296,52 @@ if (validation.isValid) {
 }
 ```
 
+### ReadOnly Mode (Lightweight Queries)
+
+For discovery use cases that need perps data without full initialization:
+
+```typescript
+// Check if perps market exists for an asset (usePerpsMarketForAsset hook)
+const markets = await perpsController.getMarkets({
+  symbols: ['ETH'],
+  readOnly: true,
+});
+
+// Query positions for any address without WebSocket, wallet setup, etc.
+const positions = await perpsController.getPositions({
+  readOnly: true,
+  userAddress: '0x...',
+});
+
+// Check if user has perps funds (for discovery banners)
+const accountState = await perpsController.getAccountState({
+  readOnly: true,
+  userAddress: '0x...',
+});
+```
+
+**Supported methods:** `getMarkets`, `getPositions`, `getAccountState`
+
+**When to use:**
+
+- Spot token detail pages checking for perps market availability (see `usePerpsMarketForAsset`)
+- Token detail pages showing perps positions
+- Discovery banners checking if user has perps funds
+- Portfolio analytics without entering perps context
+
+**How it works:**
+
+1. Bypasses `getActiveProvider()` check (works even when controller is not initialized)
+2. Creates standalone HTTP client via `createStandaloneInfoClient` (see `utils/standaloneInfoClient.ts`)
+3. No WebSocket, wallet, or account setup required
+4. Main DEX only (no HIP-3 multi-DEX aggregation in readOnly mode)
+
+**Limitations:**
+
+- No TP/SL data on positions (would require additional API calls)
+- No spot balance aggregation on account state
+- No real-time updates (HTTP only, no WebSocket)
+
 ## Stream Architecture
 
 **Single WebSocket connections shared across all components with component-level debouncing.**
