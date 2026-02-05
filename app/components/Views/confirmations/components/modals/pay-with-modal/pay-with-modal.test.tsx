@@ -234,7 +234,7 @@ describe('PayWithModal', () => {
       });
     });
 
-    it('calls onPerpsPaymentTokenChange and setPayToken when type is perpsDepositAndOrder', async () => {
+    it('calls onPerpsPaymentTokenChange via close callback when type is perpsDepositAndOrder', async () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: transactionIdMock,
         chainId: CHAIN_ID_1_MOCK,
@@ -257,10 +257,6 @@ describe('PayWithModal', () => {
           chainId: TOKENS_MOCK[1].chainId,
         }),
       );
-      expect(setPayTokenMock).toHaveBeenCalledWith({
-        address: TOKENS_MOCK[1].address,
-        chainId: TOKENS_MOCK[1].chainId,
-      });
     });
   });
 
