@@ -685,7 +685,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                 </Label>
                 <TextField
                   placeholder={strings('login.password_placeholder')}
-                  placeholderTextColor={colors.text.alternative}
                   testID={LoginViewSelectors.PASSWORD_INPUT}
                   returnKeyType={'done'}
                   autoCapitalize="none"

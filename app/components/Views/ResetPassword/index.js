@@ -817,7 +817,6 @@ class ResetPassword extends PureComponent {
               </Label>
               <TextField
                 placeholder={'Password'}
-                placeholderTextColor={colors.text.muted}
                 onChangeText={this.onPasswordChange}
                 secureTextEntry
                 value={this.state.password}
@@ -957,7 +956,6 @@ class ResetPassword extends PureComponent {
                     placeholder={strings(
                       'reset_password.new_password_placeholder',
                     )}
-                    placeholderTextColor={colors.text.muted}
                     testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                     onSubmitEditing={this.jumpToConfirmPassword}
                     returnKeyType="next"
@@ -1003,7 +1001,6 @@ class ResetPassword extends PureComponent {
                     placeholder={strings(
                       'reset_password.confirm_password_placeholder',
                     )}
-                    placeholderTextColor={colors.text.muted}
                     testID={
                       ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
                     }

@@ -14,7 +14,6 @@ import { TEXTFIELDSEARCH_TEST_ID } from './TextFieldSearch.constants';
 import styles from './TextFieldSearch.styles';
 
 const TextFieldSearch: React.FC<TextFieldSearchProps> = ({
-  showClearButton = false,
   onPressClearButton,
   clearButtonProps,
   value,
@@ -46,7 +45,7 @@ const TextFieldSearch: React.FC<TextFieldSearchProps> = ({
     <TextField
       value={value}
       startAccessory={searchIcon}
-      endAccessory={showClearButton && clearButton}
+      endAccessory={!!value && clearButton}
       testID={TEXTFIELDSEARCH_TEST_ID}
       style={[style, styles.base]}
       {...props}

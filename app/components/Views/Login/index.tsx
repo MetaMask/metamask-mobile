@@ -465,7 +465,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             <View style={styles.field}>
               <TextField
                 placeholder={strings('login.password_placeholder')}
-                placeholderTextColor={colors.text.alternative}
                 testID={LoginViewSelectors.PASSWORD_INPUT}
                 returnKeyType={'done'}
                 autoCapitalize="none"
