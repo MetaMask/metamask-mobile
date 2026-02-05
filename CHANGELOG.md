@@ -41,6 +41,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added WebSocket connection health toast notification for Perps trading to show real-time connection status with manual retry (#25022)
+  option
 - Update the look of the "Earn %" CTA displayed for ETH and Tron staking products to tag style (#25722)
 - Added educational bottom sheet explaining that mUSD bonuses are claimed on Linea, and auto-scroll to the resulting token (#25516)
   after successful claim
