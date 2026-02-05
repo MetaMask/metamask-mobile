@@ -15,36 +15,47 @@ import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 
+export interface ReceiveRowProps {
+  /** The user's input amount in USD */
+  inputAmountUsd: string;
+}
+
 /**
- * Row component that displays the total cost for deposit/payment transactions.
- * For withdrawal transactions, use ReceiveRow instead.
+ * Row component that displays "You'll receive" for withdrawal transactions.
+ * Calculates: Input amount - Provider fee
+ * (Network fees are paid separately from POL balance, not deducted from withdrawal)
  */
-export function TotalRow() {
+export function ReceiveRow({ inputAmountUsd }: ReceiveRowProps) {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const isLoading = useIsTransactionPayLoading();
   const totals = useTransactionPayTotals();
 
-  const totalUsd = useMemo(() => {
-    if (!totals?.total) return '';
-    return formatFiat(new BigNumber(totals.total.usd));
-  }, [totals, formatFiat]);
+  const receiveUsd = useMemo(() => {
+    if (!totals || !inputAmountUsd) return '';
+
+    const inputUsd = new BigNumber(inputAmountUsd);
+    const providerFee = new BigNumber(totals.fees?.provider?.usd ?? 0);
+
+    const youReceive = inputUsd.minus(providerFee);
+    return formatFiat(youReceive.isPositive() ? youReceive : new BigNumber(0));
+  }, [totals, formatFiat, inputAmountUsd]);
 
   if (isLoading) {
-    return <InfoRowSkeleton testId="total-row-skeleton" />;
+    return <InfoRowSkeleton testId="receive-row-skeleton" />;
   }
 
   return (
-    <View testID="total-row">
+    <View testID="receive-row">
       <InfoRow
-        label={strings('confirm.label.total')}
+        label={strings('confirm.label.you_receive')}
         rowVariant={InfoRowVariant.Small}
       >
         <Text
           variant={TextVariant.BodyMD}
           color={TextColor.Alternative}
-          testID={ConfirmationRowComponentIDs.TOTAL}
+          testID={ConfirmationRowComponentIDs.RECEIVE}
         >
-          {totalUsd}
+          {receiveUsd}
         </Text>
       </InfoRow>
     </View>

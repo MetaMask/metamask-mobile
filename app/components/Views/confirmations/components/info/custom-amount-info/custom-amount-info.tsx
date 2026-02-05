@@ -4,6 +4,7 @@ import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
 import { BridgeFeeRow } from '../../rows/bridge-fee-row';
 import { BridgeTimeRow } from '../../rows/bridge-time-row';
 import { TotalRow } from '../../rows/total-row';
+import { ReceiveRow } from '../../rows/receive-row';
 import { PercentageRow } from '../../rows/percentage-row';
 import {
   DepositKeyboard,
@@ -168,7 +169,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             <Box>
               <BridgeFeeRow />
               <BridgeTimeRow />
-              <TotalRow inputAmountUsd={amountFiat} />
+              {isWithdraw ? (
+                <ReceiveRow inputAmountUsd={amountFiat} />
+              ) : (
+                <TotalRow />
+              )}
               <PercentageRow />
             </Box>
           )}
