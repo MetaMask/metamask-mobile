@@ -1,9 +1,9 @@
-import BrowserView from '../../../pages/Browser/BrowserView';
-import ConnectBottomSheet from '../../../pages/Browser/ConnectBottomSheet';
-import ConnectedAccountsModal from '../../../pages/Browser/ConnectedAccountsModal';
-import SolanaTestDApp from '../../../pages/Browser/SolanaTestDApp';
-import Assertions from '../../../../tests/framework/Assertions';
-import { navigateToBrowserView } from '../../../viewHelper';
+import BrowserView from '../../e2e/pages/Browser/BrowserView';
+import ConnectBottomSheet from '../../e2e/pages/Browser/ConnectBottomSheet';
+import ConnectedAccountsModal from '../../e2e/pages/Browser/ConnectedAccountsModal';
+import SolanaTestDApp from '../../e2e/pages/Browser/SolanaTestDApp';
+import Assertions from '../framework/Assertions';
+import { navigateToBrowserView } from '../../e2e/viewHelper';
 
 export const account1Short = 'CEQ8...Yrrd';
 export const account2Short = '9Wa2...Dj2U';
