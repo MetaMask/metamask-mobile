@@ -1,42 +1,50 @@
 ---
-description: Mobile component-view testing rules (project-wide). Engine-only mocks, state-driven tests, presets/renderers, deterministicFiat, AAA, execution.
+description: Component-view testing rules. Tests live in tests/component-view; framework in app/util/test/component-view. Engine-only mocks, state-driven, presets/renderers, AAA.
 globs:
-  - "**/*.view.test.{ts,tsx,js,jsx}"
+  - "tests/component-view/**"
   - "app/util/test/component-view/**"
 alwaysApply: false
 ---
 
-## Component-view Testing (Project-wide)
+## Component-view Testing
 
-Follow these rules for all component-view tests. Nested, component-specific rules may also apply.
+All component-view tests live in **`tests/component-view`**. The framework (presets, renderers, mocks) lives in **`app/util/test/component-view`**. Follow these rules for every component-view test and when editing the framework.
 
 ## Mock Policy - MANDATORY
 
 - Only mock `../../../core/Engine`, `../../../core/Engine/Engine`, and `react-native-device-info`.
 - No mocking of hooks or selectors; drive behavior via Redux state.
-- Enforced by runtime guard in `app/util/test/testSetup.js` and ESLint override in `.eslintrc.js`.
+- Enforced by runtime guard in `app/util/test/testSetupView.js` and ESLint override in `.eslintrc.js`.
 
-## Framework Usage - MANDATORY
+## Imports and Framework Usage - MANDATORY
 
-- Use presets: `initialStateBridge`, `initialStateWallet`.
-- Use renderers: `renderBridgeView`, `renderWalletView`.
-- Use `stateFixture.ts` helpers for overrides (e.g., quotes, feature flags).
-- Prefer `deterministicFiat: true` for exact fiat assertions.
+- **Import mocks first** in every test file: `import '<path-to>/app/util/test/component-view/mocks';` (adjust path from `tests/component-view`).
+- Use presets: `initialStateBridge`, `initialStateWallet` from `app/util/test/component-view/presets/`.
+- Use renderers: `renderBridgeView`, `renderWalletView` from `app/util/test/component-view/renderers/`.
+- Use `stateFixture.ts` helpers and `.withOverrides({ ... })` for minimal, scenario-specific state. Do not rebuild entire state manually.
+
+## Scenarios
+
+- **Deterministic fiat:** Use `deterministicFiat: true` in renderer options or preset when asserting exact fiat values.
+- **Bridge CTA / fee disclaimers:** Provide `BridgeController.recommendedQuote` and enable flags via `RemoteFeatureFlagController`; prefer helper `withBridgeRecommendedQuoteEvmSimple` when available.
+- **Other views:** Same pattern—preset + overrides, no hook/selector mocks. Prefer the view renderer whenever possible; use `renderScreenWithRoutes` with the same preset + overrides when you need to assert on a pushed screen.
 
 ## Test Structure - MANDATORY
 
 - AAA pattern with blank lines between sections.
 - Action-oriented names (no "should").
 - One behavior per test; robust assertions over brittle formatting.
+- **Execution:** `yarn jest -c jest.config.view.js <path> -t "<name>" --runInBand --silent --coverage=false` for iteration. Use yarn only (no npm/npx).
 
-- **Execution**
-  - Prefer `--coverage=false` during iteration for speed.
-  - Use yarn only (no npm/npx).
+## Enforcement
 
-- **References**
-  - Component-view framework guide: `docs/readme/component-view-testing.md`
-  - Detailed rules: `app/util/test/component-view/COMPONENT_VIEW_TEST_RULES.md`
-  - Cursor authoring rules: [Cursor Context Rules](https://cursor.com/docs/context/rules)
+- ESLint override blocks forbidden `jest.mock(...)` in `*.view.test.*`.
+- Runtime guard in `testSetupView.js` rejects unauthorized mocks.
+
+## References
+
+- Framework guide: `docs/readme/component-view-testing.md`
+- Full rules and examples: `app/util/test/component-view/COMPONENT_VIEW_TEST_RULES.md`
 
 @docs/readme/component-view-testing.md
 @app/util/test/component-view/COMPONENT_VIEW_TEST_RULES.md
