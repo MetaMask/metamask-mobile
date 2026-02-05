@@ -769,7 +769,7 @@ describe('PerpsStreamManager', () => {
       cleanupPrewarmSpy.mockRestore();
     });
 
-    it('returns early when account subscription callback receives null', async () => {
+    it('notifies subscriber with null when account subscription callback receives null', async () => {
       let accountCallback: ((account: AccountState | null) => void) | null =
         null;
       mockSubscribeToAccount.mockImplementation(
@@ -793,7 +793,8 @@ describe('PerpsStreamManager', () => {
         accountCallback?.(null);
       });
 
-      expect(subscriberCallback).not.toHaveBeenCalled();
+      expect(subscriberCallback).toHaveBeenCalledTimes(1);
+      expect(subscriberCallback).toHaveBeenCalledWith(null);
       expect(mockLogger.error).not.toHaveBeenCalled();
 
       unsubscribe();
