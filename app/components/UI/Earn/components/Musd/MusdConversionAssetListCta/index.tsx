@@ -40,6 +40,11 @@ import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
 import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events';
 import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetworkName';
 
+enum CTA_CLICK_TARGET {
+  CTA_BUTTON = 'cta_button',
+  CTA_TEXT_LINK = 'cta_text_link',
+}
+
 const MusdConversionAssetListCta = () => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -65,7 +70,7 @@ const MusdConversionAssetListCta = () => {
       ? strings('earn.musd_conversion.buy_musd')
       : strings('earn.musd_conversion.get_musd');
 
-  const submitCtaPressedEvent = (source: 'cta_button' | 'cta_text') => {
+  const submitCtaPressedEvent = (source: CTA_CLICK_TARGET) => {
     const { MUSD_CTA_TYPES, EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
     const getRedirectLocation = () => {
@@ -79,7 +84,7 @@ const MusdConversionAssetListCta = () => {
     };
 
     const ctaText =
-      source === 'cta_button'
+      source === CTA_CLICK_TARGET.CTA_BUTTON
         ? buttonText
         : strings('earn.earn_a_percentage_bonus', {
             percentage: MUSD_CONVERSION_APY,
@@ -92,6 +97,7 @@ const MusdConversionAssetListCta = () => {
           redirects_to: getRedirectLocation(),
           cta_type: MUSD_CTA_TYPES.PRIMARY,
           cta_text: ctaText,
+          cta_click_target: source,
           network_chain_id: selectedChainId,
           network_name: networkName ?? strings('wallet.popular_networks'),
         })
@@ -99,7 +105,7 @@ const MusdConversionAssetListCta = () => {
     );
   };
 
-  const handlePress = async (source: 'cta_button' | 'cta_text') => {
+  const handlePress = async (source: CTA_CLICK_TARGET) => {
     submitCtaPressedEvent(source);
 
     if (variant === BUY_GET_MUSD_CTA_VARIANT.BUY) {
@@ -174,7 +180,9 @@ const MusdConversionAssetListCta = () => {
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
             MetaMask USD
           </Text>
-          <TouchableOpacity onPress={() => handlePress('cta_text')}>
+          <TouchableOpacity
+            onPress={() => handlePress(CTA_CLICK_TARGET.CTA_TEXT_LINK)}
+          >
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Primary}>
               {strings('earn.earn_a_percentage_bonus', {
                 percentage: MUSD_CONVERSION_APY,
@@ -186,7 +194,7 @@ const MusdConversionAssetListCta = () => {
 
       <Button
         variant={ButtonVariant.Secondary}
-        onPress={() => handlePress('cta_button')}
+        onPress={() => handlePress(CTA_CLICK_TARGET.CTA_BUTTON)}
         size={ButtonSize.Sm}
       >
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>

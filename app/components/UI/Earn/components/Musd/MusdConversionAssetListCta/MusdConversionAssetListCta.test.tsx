@@ -753,10 +753,12 @@ describe('MusdConversionAssetListCta', () => {
       ).mockReturnValue({
         shouldShowBuyGetMusdCta: jest.fn().mockReturnValue({
           shouldShowCta: true,
-          showNetworkIcon: false,
-          selectedChainId: null,
-          isEmptyWallet: true,
-          variant: BUY_GET_MUSD_CTA_VARIANT.BUY,
+          showNetworkIcon: Boolean(selectedChainId),
+          selectedChainId,
+          isEmptyWallet,
+          variant: isEmptyWallet
+            ? BUY_GET_MUSD_CTA_VARIANT.BUY
+            : BUY_GET_MUSD_CTA_VARIANT.GET,
         }),
         shouldShowTokenListItemCta: jest.fn(),
         shouldShowAssetOverviewCta: jest.fn(),
@@ -818,6 +820,7 @@ describe('MusdConversionAssetListCta', () => {
           redirects_to: EVENT_LOCATIONS.BUY_SCREEN,
           cta_type: MUSD_CTA_TYPES.PRIMARY,
           cta_text: ctaText,
+          cta_click_target: 'cta_button',
           network_chain_id: CHAIN_IDS.MAINNET,
           network_name: 'Ethereum Mainnet',
         });
@@ -837,6 +840,7 @@ describe('MusdConversionAssetListCta', () => {
           redirects_to: EVENT_LOCATIONS.BUY_SCREEN,
           cta_type: MUSD_CTA_TYPES.PRIMARY,
           cta_text: ctaText,
+          cta_click_target: 'cta_button',
           network_chain_id: null,
           network_name: strings('wallet.popular_networks'),
         });
@@ -858,6 +862,7 @@ describe('MusdConversionAssetListCta', () => {
           redirects_to: EVENT_LOCATIONS.BUY_SCREEN,
           cta_type: MUSD_CTA_TYPES.PRIMARY,
           cta_text: ctaText,
+          cta_click_target: 'cta_button',
           network_chain_id: null,
           network_name: strings('wallet.popular_networks'),
         });
@@ -879,6 +884,7 @@ describe('MusdConversionAssetListCta', () => {
           redirects_to: EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
           cta_type: MUSD_CTA_TYPES.PRIMARY,
           cta_text: strings('earn.musd_conversion.get_musd'),
+          cta_click_target: 'cta_button',
           network_chain_id: null,
           network_name: strings('wallet.popular_networks'),
         });
@@ -898,6 +904,7 @@ describe('MusdConversionAssetListCta', () => {
           redirects_to: EVENT_LOCATIONS.BUY_SCREEN,
           cta_type: MUSD_CTA_TYPES.PRIMARY,
           cta_text: ctaText,
+          cta_click_target: 'cta_text_link',
           network_chain_id: null,
           network_name: strings('wallet.popular_networks'),
         });
@@ -919,6 +926,7 @@ describe('MusdConversionAssetListCta', () => {
           redirects_to: EVENT_LOCATIONS.BUY_SCREEN,
           cta_type: MUSD_CTA_TYPES.PRIMARY,
           cta_text: ctaText,
+          cta_click_target: 'cta_button',
           network_chain_id: null,
           network_name: strings('wallet.popular_networks'),
         });
@@ -940,6 +948,7 @@ describe('MusdConversionAssetListCta', () => {
           redirects_to: EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
           cta_type: MUSD_CTA_TYPES.PRIMARY,
           cta_text: strings('earn.musd_conversion.get_musd'),
+          cta_click_target: 'cta_button',
           network_chain_id: null,
           network_name: strings('wallet.popular_networks'),
         });
@@ -961,6 +970,7 @@ describe('MusdConversionAssetListCta', () => {
           redirects_to: EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
           cta_type: MUSD_CTA_TYPES.PRIMARY,
           cta_text: strings('earn.musd_conversion.get_musd'),
+          cta_click_target: 'cta_button',
           network_chain_id: null,
           network_name: strings('wallet.popular_networks'),
         });
