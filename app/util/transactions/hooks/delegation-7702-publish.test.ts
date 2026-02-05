@@ -578,22 +578,24 @@ describe('Delegation 7702 Publish Hook', () => {
 
     expect(updateTransactionMock).toHaveBeenCalledTimes(2);
 
-    // Verify first call removes nonce from txParams
-    const firstCall = updateTransactionMock.mock.calls[0];
-    expect(firstCall[1]).toBe(
-      'Remove nonce for EIP-7702 delegation transaction',
+    expect(updateTransactionMock).toHaveBeenNthCalledWith(
+      1,
+      {
+        ...txMeta,
+        txParams: {
+          ...txMeta.txParams,
+          nonce: undefined,
+        },
+      },
+      'Delegation7702PublishHook - Remove nonce from transaction before relay',
     );
-    const updatedTx = firstCall[0] as TransactionMeta;
-    expect(updatedTx.txParams.nonce).toBeUndefined();
-    expect(updatedTx.txParams.from).toBe(txMeta.txParams.from);
-    expect(updatedTx.txParams.to).toBe(txMeta.txParams.to);
 
     expect(updateTransactionMock).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({
+      {
         ...txMeta,
         isIntentComplete: true,
-      }),
+      },
       'Delegation7702PublishHook - Set isIntentComplete after relay confirmed',
     );
   });
@@ -607,11 +609,6 @@ describe('Delegation 7702 Publish Hook', () => {
         upgradeContractAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
       },
     ]);
-
-    // Mock getNextNonce to return the expected nonce since we removed it from txParams
-    getNextNonceMock.mockResolvedValueOnce(
-      TRANSACTION_META_MOCK.txParams.nonce as Hex,
-    );
 
     await hookClass.getHook()(
       {
@@ -637,93 +634,6 @@ describe('Delegation 7702 Publish Hook', () => {
         ],
       }),
     );
-  });
-
-  it('calls updateTransaction to remove nonce when nonce is provided', async () => {
-    isAtomicBatchSupportedMock.mockResolvedValueOnce([
-      {
-        chainId: TRANSACTION_META_MOCK.chainId,
-        delegationAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
-        isSupported: true,
-        upgradeContractAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
-      },
-    ]);
-
-    const transactionWithNonce = {
-      ...TRANSACTION_META_MOCK,
-      id: 'test-tx-with-nonce',
-      gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
-      selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
-    };
-
-    getStateMock.mockReturnValue({
-      transactions: [transactionWithNonce],
-    } as unknown as TransactionControllerState);
-
-    await hookClass.getHook()(transactionWithNonce, SIGNED_TX_MOCK);
-
-    // Should be called twice: once for removing nonce, once for isIntentComplete
-    expect(updateTransactionMock).toHaveBeenCalledTimes(2);
-
-    // Verify the first call removes nonce
-    const nonceRemovalCall = updateTransactionMock.mock.calls.find(
-      (call) => call[1] === 'Remove nonce for EIP-7702 delegation transaction',
-    );
-    expect(nonceRemovalCall).toBeDefined();
-
-    const updatedTransaction = nonceRemovalCall[0] as TransactionMeta;
-    // Verify that the nonce was removed from txParams (line 176 destructuring)
-    expect(updatedTransaction.txParams.nonce).toBeUndefined();
-    // Verify other txParams are still present
-    expect(updatedTransaction.txParams.from).toBe(
-      TRANSACTION_META_MOCK.txParams.from,
-    );
-    expect(updatedTransaction.txParams.to).toBe(
-      TRANSACTION_META_MOCK.txParams.to,
-    );
-  });
-
-  it('does not call updateTransaction for nonce removal when nonce is undefined', async () => {
-    isAtomicBatchSupportedMock.mockResolvedValueOnce([
-      {
-        chainId: TRANSACTION_META_MOCK.chainId,
-        delegationAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
-        isSupported: true,
-        upgradeContractAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
-      },
-    ]);
-
-    const transactionWithoutNonce = {
-      ...TRANSACTION_META_MOCK,
-      id: 'test-tx-without-nonce',
-      txParams: {
-        ...TRANSACTION_META_MOCK.txParams,
-        nonce: undefined,
-      },
-      gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
-      selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
-    };
-
-    getStateMock.mockReturnValue({
-      transactions: [transactionWithoutNonce],
-    } as unknown as TransactionControllerState);
-
-    await hookClass.getHook()(transactionWithoutNonce, SIGNED_TX_MOCK);
-
-    // Verify that updateTransaction was NOT called for nonce removal when nonce is undefined
-    // (it will be called later for isIntentComplete, but not for nonce removal)
-    const nonceRemovalCalls = updateTransactionMock.mock.calls.filter(
-      (call) => call[1] === 'Remove nonce for EIP-7702 delegation transaction',
-    );
-    expect(nonceRemovalCalls).toHaveLength(0);
-
-    // But isIntentComplete should still be set
-    const intentCompleteCall = updateTransactionMock.mock.calls.find(
-      (call) =>
-        call[1] ===
-        'Delegation7702PublishHook - Set isIntentComplete after relay confirmed',
-    );
-    expect(intentCompleteCall).toBeDefined();
   });
 
   it('throws if relay status is not success', async () => {

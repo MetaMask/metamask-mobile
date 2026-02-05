@@ -171,26 +171,9 @@ export class Delegation7702PublishHook {
       throw new Error('Gas fee token not found');
     }
 
-    // Remove nonce from txParams for EIP-7702 transactions
-    // The relay will be creating and signing the transaction, so it will choose its own nonce later
-    const { nonce, ...txParamsWithoutNonce } = transactionMeta.txParams;
-    const finalTransactionMeta: TransactionMeta = {
-      ...transactionMeta,
-      txParams: txParamsWithoutNonce,
-    };
-
-    // Update the transaction in the controller only if nonce was present (to avoid unnecessary updates)
-    if (transactionMeta.txParams.nonce !== undefined) {
-      await this.#messenger.call(
-        'TransactionController:updateTransaction',
-        finalTransactionMeta,
-        'Remove nonce for EIP-7702 delegation transaction',
-      );
-    }
-
     const delegations = await this.#buildDelegation(
       delegationEnvironment,
-      finalTransactionMeta,
+      transactionMeta,
       gasFeeToken,
       includeTransfer,
     );
@@ -199,7 +182,7 @@ export class Delegation7702PublishHook {
       includeTransfer ? BATCH_DEFAULT_MODE : SINGLE_DEFAULT_MODE,
     ];
     const executions = this.#buildExecutions(
-      finalTransactionMeta,
+      transactionMeta,
       gasFeeToken,
       includeTransfer,
     );
@@ -223,12 +206,30 @@ export class Delegation7702PublishHook {
 
     if (!delegationAddress) {
       relayRequest.authorizationList = await this.#buildAuthorizationList(
-        finalTransactionMeta,
+        transactionMeta,
         upgradeContractAddress,
       );
     }
 
     log('Relay request', relayRequest);
+
+    const initialTxMeta = this.#messenger
+      .call('TransactionController:getState')
+      .transactions.find((tx) => tx.id === transactionMeta.id);
+
+    if (initialTxMeta) {
+      this.#messenger.call(
+        'TransactionController:updateTransaction',
+        {
+          ...initialTxMeta,
+          txParams: {
+            ...initialTxMeta.txParams,
+            nonce: undefined,
+          },
+        },
+        'Delegation7702PublishHook - Remove nonce from transaction before relay',
+      );
+    }
 
     const { uuid } = await submitRelayTransaction(relayRequest);
 
