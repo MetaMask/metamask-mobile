@@ -9,34 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.64.0]
 
-### Uncategorized
-
-- Updates the transaction details page for musd conversions such that we support gasless transaction info (#25349)
-- Remove epd feature flag (#23725)
-- Added pull-to-refresh functionality to Wallet screen that refreshes account balance and active tab content (#23618)
-- chore(release): sync stable to main for version 7.65.0 (#25381)
-- Add tempo network logo. (#25187)
-- Gate rewards referral code in Perps PnL hero card behind `rewardsReferralCodeEnabled` feature flag (#25282)
-- Added .env in expo updates step (#25236)
-- Rewards feature flag cleanup (#25316)
-- Removed "Powered by Relay" from the mUSD conversion input screen (#25318)
-- Rewards modal copy changes for eos (#25313)
-- N/a (#25018)
-- Added mitmproxy documentation and Android debug config for WebSocket traffic inspection (#25155)
-- Stop using swaps fetchTokens function (#25109)
-- Remove support for token search on the browser (#25111)
-- chore: enable ota version display in production builds (#25225)
-- chore(release): sync stable to main for version 7.65.0 (#25200)
-- Remove withdrawals restrictions (#25189)
-- Bump tron-wallet-snap package to 1.19.2 (#25166)
-- Improved error messages in Perps trading to show user-friendly descriptions instead of technical error codes (#24986)
-- Improved trending token thresholds and re-sorted chains (#25030)
-- Added setup-dependencies to push OTA update workflow (#24916)
-- Removed calls to nft collections endpoint (#23532)
-- Add eslint cache to improve local linting performance (#24975)
-- Added buy mUSD cta for empty wallet only (#24537)
-- Bump assets controllers to v95.3.0 (#24719)
-
 ### Added
 
 - Added one-click trading for Perps, allowing users to deposit funds and execute trades seamlessly within the order view (#24964)
