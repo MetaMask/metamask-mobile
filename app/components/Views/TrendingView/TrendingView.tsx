@@ -47,6 +47,21 @@ function applySectionState(
   return next;
 }
 
+function buildSectionCallbacks(
+  sections: { id: SectionId }[],
+  setActiveSections: React.Dispatch<React.SetStateAction<Set<SectionId>>>,
+): Record<SectionId, (isActive: boolean) => void> {
+  const result = {} as Record<SectionId, (isActive: boolean) => void>;
+  sections.forEach((section) => {
+    result[section.id] = (isActive: boolean) => {
+      setActiveSections((current) =>
+        applySectionState(current, section.id, isActive),
+      );
+    };
+  });
+  return result;
+}
+
 const useSectionStateTracker = (
   sections: { id: SectionId }[],
 ): {
@@ -56,21 +71,10 @@ const useSectionStateTracker = (
   const [activeSections, setActiveSections] = useState<Set<SectionId>>(
     new Set(),
   );
-
-  const callbacks = useMemo(() => {
-    const result = {} as Record<SectionId, (isActive: boolean) => void>;
-
-    sections.forEach((section) => {
-      result[section.id] = (isActive: boolean) => {
-        setActiveSections((current) =>
-          applySectionState(current, section.id, isActive),
-        );
-      };
-    });
-
-    return result;
-  }, [sections]);
-
+  const callbacks = useMemo(
+    () => buildSectionCallbacks(sections, setActiveSections),
+    [sections],
+  );
   return { sectionsWithState: activeSections, callbacks };
 };
 
