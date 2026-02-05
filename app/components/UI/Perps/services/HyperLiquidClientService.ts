@@ -64,6 +64,10 @@ export class HyperLiquidClientService {
   // Timeout reference for reconnection retry, tracked to enable cancellation on disconnect
   private reconnectionRetryTimeout: ReturnType<typeof setTimeout> | null = null;
 
+  // Stored reference to terminate event listener for proper cleanup
+  // This prevents memory leaks when reconnecting by allowing removeEventListener
+  private terminateListener: ((event: Event) => void) | null = null;
+
   // Platform dependencies for logging
   private readonly deps: PerpsPlatformDependencies;
 
@@ -146,7 +150,16 @@ export class HyperLiquidClientService {
       this.infoClientHttp = undefined;
       this.exchangeClient = undefined;
 
-      // Close WebSocket transport to release resources and event listeners
+      // Remove event listener before closing transport to prevent memory leaks
+      if (this.terminateListener && this.wsTransport?.socket) {
+        this.wsTransport.socket.removeEventListener(
+          'terminate',
+          this.terminateListener,
+        );
+        this.terminateListener = null;
+      }
+
+      // Close WebSocket transport to release resources
       if (this.wsTransport) {
         try {
           await this.wsTransport.close();
@@ -222,8 +235,16 @@ export class HyperLiquidClientService {
       },
     });
 
-    // Listen for WebSocket termination (fired when SDK exhausts all reconnection attempts)
-    this.wsTransport.socket.addEventListener('terminate', (event: Event) => {
+    // Remove old listener if it exists (defensive - shouldn't happen but prevents leaks)
+    if (this.terminateListener && this.wsTransport?.socket) {
+      this.wsTransport.socket.removeEventListener(
+        'terminate',
+        this.terminateListener,
+      );
+    }
+
+    // Store listener reference so we can remove it later (prevents memory leak on reconnect)
+    this.terminateListener = (event: Event) => {
       const customEvent = event as CustomEvent;
       this.deps.debugLogger.log('HyperLiquid: WebSocket terminated', {
         reason: customEvent.detail?.code,
@@ -241,7 +262,13 @@ export class HyperLiquidClientService {
               );
         this.onTerminateCallback(error);
       }
-    });
+    };
+
+    // Listen for WebSocket termination (fired when SDK exhausts all reconnection attempts)
+    this.wsTransport.socket.addEventListener(
+      'terminate',
+      this.terminateListener,
+    );
 
     return this.wsTransport;
   }
@@ -760,6 +787,16 @@ export class HyperLiquidClientService {
       // reconnection attempt could leave the flag stuck, blocking subsequent retries
       this.isReconnecting = false;
 
+      // Remove event listener BEFORE closing transport to prevent memory leaks
+      // This is critical for reconnection scenarios where listeners could accumulate
+      if (this.terminateListener && this.wsTransport?.socket) {
+        this.wsTransport.socket.removeEventListener(
+          'terminate',
+          this.terminateListener,
+        );
+        this.terminateListener = null;
+      }
+
       // Close WebSocket transport only (HTTP is stateless)
       if (this.wsTransport) {
         try {
@@ -959,6 +996,17 @@ export class HyperLiquidClientService {
 
     try {
       this.updateConnectionState(WebSocketConnectionState.Connecting);
+
+      // Remove event listener BEFORE closing transport to prevent memory leaks
+      // This is critical: without this, each reconnection adds a new listener
+      // while the old one remains attached to the closed socket's memory
+      if (this.terminateListener && this.wsTransport?.socket) {
+        this.wsTransport.socket.removeEventListener(
+          'terminate',
+          this.terminateListener,
+        );
+        this.terminateListener = null;
+      }
 
       // Close existing WebSocket transport and clear references
       // so createTransports() will create fresh ones
