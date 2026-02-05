@@ -146,4 +146,52 @@ describe('usePredictTabs', () => {
       expect(result.current.hotTabQueryParams).toBe('test=value');
     });
   });
+
+  describe('deeplink navigation while on screen', () => {
+    it('switches to new tab when route params change', () => {
+      mockRouteParams.tab = 'trending';
+
+      const { result, rerender } = renderHook(() => usePredictTabs());
+
+      expect(result.current.activeIndex).toBe(0);
+
+      mockRouteParams.tab = 'crypto';
+      rerender({});
+
+      expect(result.current.activeIndex).toBe(3);
+    });
+
+    it('switches from manually selected tab to deeplink tab', () => {
+      mockRouteParams.tab = undefined;
+
+      const { result, rerender } = renderHook(() => usePredictTabs());
+
+      act(() => {
+        result.current.setActiveIndex(4);
+      });
+      expect(result.current.activeIndex).toBe(4);
+
+      mockRouteParams.tab = 'sports';
+      rerender({});
+
+      expect(result.current.activeIndex).toBe(2);
+    });
+
+    it('does not change tab when route params stay the same', () => {
+      mockRouteParams.tab = 'crypto';
+
+      const { result, rerender } = renderHook(() => usePredictTabs());
+
+      expect(result.current.activeIndex).toBe(3);
+
+      act(() => {
+        result.current.setActiveIndex(0);
+      });
+      expect(result.current.activeIndex).toBe(0);
+
+      rerender({});
+
+      expect(result.current.activeIndex).toBe(0);
+    });
+  });
 });

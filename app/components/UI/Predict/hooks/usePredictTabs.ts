@@ -67,17 +67,26 @@ export const usePredictTabs = (): UsePredictTabsResponse => {
 
   const [activeIndex, setActiveIndex] = useState(() => getInitialIndex(tabs));
 
-  const hasAppliedRequestedTabRef = useRef(false);
+  const prevRequestedTabKeyRef = useRef<PredictFeedTabKey | undefined>(
+    requestedTabKey,
+  );
 
   useEffect(() => {
-    if (!requestedTabKey || hasAppliedRequestedTabRef.current) return;
+    if (!requestedTabKey) {
+      prevRequestedTabKeyRef.current = undefined;
+      return;
+    }
+
+    const isNewDeeplinkNavigation =
+      requestedTabKey !== prevRequestedTabKeyRef.current;
+    if (!isNewDeeplinkNavigation) return;
 
     const requestedIndex = tabs.findIndex((tab) => tab.key === requestedTabKey);
-
     if (requestedIndex >= 0) {
       setActiveIndex(requestedIndex);
-      hasAppliedRequestedTabRef.current = true;
     }
+
+    prevRequestedTabKeyRef.current = requestedTabKey;
   }, [requestedTabKey, tabs]);
 
   return {
