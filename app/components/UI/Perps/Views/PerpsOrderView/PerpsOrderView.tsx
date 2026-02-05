@@ -1352,10 +1352,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             )}
             {hasInsufficientPayTokenBalance && (
               <View style={styles.insufficientPayTokenWarning}>
-                <Text
-                  variant={TextVariant.BodySM}
-                  style={{ color: colors.warning.default }}
-                >
+                <Text variant={TextVariant.BodySM} color={TextColor.Warning}>
                   {strings(
                     'perps.order.validation.insufficient_funds_to_cover_trade',
                   )}
