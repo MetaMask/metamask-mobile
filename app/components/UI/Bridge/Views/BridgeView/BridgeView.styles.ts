@@ -27,7 +27,7 @@ export const createStyles = (params: { theme: Theme }) => {
     },
     quoteContainer: {
       flex: 1,
-      justifyContent: 'flex-end',
+      justifyContent: 'flex-start',
     },
     destinationAccountSelectorContainer: {
       paddingBottom: 12,
