@@ -90,7 +90,7 @@ const Price = ({
   const ticker = asset.ticker || asset.symbol;
 
   const stockTokenBadge = isStockToken(asset as BridgeToken) && (
-    <StockBadge style={styles.stockBadge} token={asset} />
+    <StockBadge style={styles.stockBadge} token={asset as BridgeToken} />
   );
   return (
     <>

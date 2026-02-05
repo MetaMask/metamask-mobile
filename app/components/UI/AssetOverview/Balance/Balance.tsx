@@ -268,7 +268,9 @@ const Balance = ({
                 {secondaryBalance}
               </SensitiveText>
             )}
-            {isStockToken(asset as BridgeToken) && <StockBadge token={asset} />}
+            {isStockToken(asset as BridgeToken) && (
+              <StockBadge token={asset as BridgeToken} />
+            )}
           </View>
         </View>
       </AssetElement>

@@ -432,7 +432,10 @@ export const TokenListItem = React.memo(
               </SensitiveText>
             }
             {isStockToken(asset as BridgeToken) && (
-              <StockBadge style={styles.stockBadgeWrapper} token={asset} />
+              <StockBadge
+                style={styles.stockBadgeWrapper}
+                token={asset as BridgeToken}
+              />
             )}
           </View>
         </View>

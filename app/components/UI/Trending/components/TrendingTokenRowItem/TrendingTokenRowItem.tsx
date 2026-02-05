@@ -329,7 +329,10 @@ const TrendingTokenRowItem = ({
           )}
         </Text>
         {isStockToken(token as unknown as BridgeToken) && (
-          <StockBadge style={styles.stockBadgeWrapper} token={token} />
+          <StockBadge
+            style={styles.stockBadgeWrapper}
+            token={token as unknown as BridgeToken}
+          />
         )}
       </View>
       <View style={styles.rightContainer}>
