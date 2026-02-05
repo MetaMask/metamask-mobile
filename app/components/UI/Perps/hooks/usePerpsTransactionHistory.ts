@@ -58,6 +58,8 @@ export const usePerpsTransactionHistory = ({
   const userHistoryRef = useRef(userHistory);
   // Track if initial fetch has been done to prevent duplicate fetches
   const initialFetchDone = useRef(false);
+  // Track previous skipInitialFetch value to detect connection state transitions
+  const prevSkipInitialFetchRef = useRef(skipInitialFetch);
   useEffect(() => {
     userHistoryRef.current = userHistory;
   }, [userHistory]);
@@ -168,7 +170,19 @@ export const usePerpsTransactionHistory = ({
   }, [fetchAllTransactions, refetchUserHistory]);
 
   useEffect(() => {
-    if (!skipInitialFetch && !initialFetchDone.current) {
+    // Detect transition from skipping (not connected) to not skipping (connected)
+    // This handles the case where the component mounts before connection is established
+    const justBecameConnected =
+      prevSkipInitialFetchRef.current && !skipInitialFetch;
+    prevSkipInitialFetchRef.current = skipInitialFetch;
+
+    // Trigger fetch if:
+    // 1. Not skipping AND haven't fetched yet (normal initial fetch)
+    // 2. Connection just became available (transition from disconnected to connected)
+    if (
+      !skipInitialFetch &&
+      (!initialFetchDone.current || justBecameConnected)
+    ) {
       initialFetchDone.current = true;
       refetch();
     }
