@@ -138,7 +138,10 @@ const AccountsMenu = () => {
   const separator = useMemo(
     () => (
       <Box
-        style={tw.style('h-px my-2', { backgroundColor: colors.border.muted })}
+        style={tw.style('h-px my-2', {
+          backgroundColor: colors.border.muted,
+          opacity: 0.75,
+        })}
       />
     ),
 
@@ -186,6 +189,13 @@ const AccountsMenu = () => {
         })}
         testID={AccountsMenuSelectorsIDs.ACCOUNTS_MENU_SCROLL_ID}
       >
+        {/* Manage Section */}
+        <Box style={tw.style('px-4 py-3')}>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {strings('accounts_menu.manage')}
+          </Text>
+        </Box>
+
         {/* Settings Row */}
         <ActionListItem
           startAccessory={<Icon name={IconName.Setting} size={IconSize.Lg} />}
@@ -194,15 +204,6 @@ const AccountsMenu = () => {
           onPress={onPressSettings}
           testID={AccountsMenuSelectorsIDs.SETTINGS}
         />
-
-        {separator}
-
-        {/* Manage Section */}
-        <Box style={tw.style('px-4 py-3')}>
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {strings('accounts_menu.manage')}
-          </Text>
-        </Box>
 
         {/* Contacts Row */}
         <ActionListItem

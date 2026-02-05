@@ -101,34 +101,34 @@ describe('AccountsMenu', () => {
     mockAlert.mockRestore();
   });
 
-  it('should render correctly', () => {
+  it('render correctly', () => {
     const { getByTestId } = render(<AccountsMenu />);
     expect(
       getByTestId(AccountsMenuSelectorsIDs.ACCOUNTS_MENU_SCROLL_ID),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
   });
 
-  it('should render MANAGE section header', () => {
+  it('render MANAGE section header', () => {
     const { getByText } = render(<AccountsMenu />);
 
-    expect(getByText('accounts_menu.manage')).toBeDefined();
+    expect(getByText('accounts_menu.manage')).toBeOnTheScreen();
   });
 
-  it('should render RESOURCES section header', () => {
+  it('render RESOURCES section header', () => {
     const { getByText } = render(<AccountsMenu />);
 
-    expect(getByText('accounts_menu.resources')).toBeDefined();
+    expect(getByText('accounts_menu.resources')).toBeOnTheScreen();
   });
 
   describe('Snapshots', () => {
-    it('should match snapshot when MetaMask Card is hidden', () => {
+    it('match snapshot when MetaMask Card is hidden', () => {
       (useSelector as jest.Mock).mockReturnValue(false);
 
       const { toJSON } = render(<AccountsMenu />);
       expect(toJSON()).toMatchSnapshot();
     });
 
-    it('should match snapshot when MetaMask Card is visible', () => {
+    it('match snapshot when MetaMask Card is visible', () => {
       (useSelector as jest.Mock).mockReturnValue(true);
 
       const { toJSON } = render(<AccountsMenu />);
@@ -137,16 +137,18 @@ describe('AccountsMenu', () => {
   });
 
   describe('MetaMask Card Button', () => {
-    it('should render MetaMask Card row when shouldDisplayCardButton is true', () => {
+    it('render MetaMask Card row when shouldDisplayCardButton is true', () => {
       (useSelector as jest.Mock).mockReturnValue(true);
 
       const { getByText, getByTestId } = render(<AccountsMenu />);
 
-      expect(getByText('accounts_menu.card_title')).toBeDefined();
-      expect(getByTestId(AccountsMenuSelectorsIDs.MANAGE_WALLET)).toBeDefined();
+      expect(getByText('accounts_menu.card_title')).toBeOnTheScreen();
+      expect(
+        getByTestId(AccountsMenuSelectorsIDs.MANAGE_WALLET),
+      ).toBeOnTheScreen();
     });
 
-    it('should NOT render MetaMask Card row when shouldDisplayCardButton is false', () => {
+    it('does NOT render MetaMask Card row when shouldDisplayCardButton is false', () => {
       (useSelector as jest.Mock).mockReturnValue(false);
 
       const { queryByText, queryByTestId } = render(<AccountsMenu />);
@@ -155,7 +157,7 @@ describe('AccountsMenu', () => {
       expect(queryByTestId(AccountsMenuSelectorsIDs.MANAGE_WALLET)).toBeNull();
     });
 
-    it('should navigate to card and track analytics when MetaMask Card is pressed', () => {
+    it('navigate to card and track analytics when MetaMask Card is pressed', () => {
       (useSelector as jest.Mock).mockReturnValue(true);
 
       const { getByTestId } = render(<AccountsMenu />);
@@ -169,14 +171,16 @@ describe('AccountsMenu', () => {
   });
 
   describe('Permissions Row', () => {
-    it('should render Permissions row', () => {
+    it('render Permissions row', () => {
       const { getByText, getByTestId } = render(<AccountsMenu />);
 
-      expect(getByText('accounts_menu.permissions')).toBeDefined();
-      expect(getByTestId(AccountsMenuSelectorsIDs.PERMISSIONS)).toBeDefined();
+      expect(getByText('accounts_menu.permissions')).toBeOnTheScreen();
+      expect(
+        getByTestId(AccountsMenuSelectorsIDs.PERMISSIONS),
+      ).toBeOnTheScreen();
     });
 
-    it('should navigate to SDKSessionsManager when Permissions is pressed', () => {
+    it('navigate to SDKSessionsManager when Permissions is pressed', () => {
       const { getByTestId } = render(<AccountsMenu />);
       const permissionsButton = getByTestId(
         AccountsMenuSelectorsIDs.PERMISSIONS,
@@ -192,16 +196,16 @@ describe('AccountsMenu', () => {
 
   describe('RESOURCES Section', () => {
     describe('About MetaMask Row', () => {
-      it('should render About MetaMask row', () => {
+      it('render About MetaMask row', () => {
         const { getByText, getByTestId } = render(<AccountsMenu />);
 
-        expect(getByText('app_settings.info_title_beta')).toBeDefined();
+        expect(getByText('app_settings.info_title_beta')).toBeOnTheScreen();
         expect(
           getByTestId(AccountsMenuSelectorsIDs.ABOUT_METAMASK),
-        ).toBeDefined();
+        ).toBeOnTheScreen();
       });
 
-      it('should navigate to CompanySettings when About MetaMask is pressed', () => {
+      it('navigate to CompanySettings when About MetaMask is pressed', () => {
         const { getByTestId } = render(<AccountsMenu />);
         const aboutButton = getByTestId(
           AccountsMenuSelectorsIDs.ABOUT_METAMASK,
@@ -214,16 +218,16 @@ describe('AccountsMenu', () => {
     });
 
     describe('Request a Feature Row', () => {
-      it('should render Request a feature row', () => {
+      it('render Request a feature row', () => {
         const { getByText, getByTestId } = render(<AccountsMenu />);
 
-        expect(getByText('app_settings.request_feature')).toBeDefined();
+        expect(getByText('app_settings.request_feature')).toBeOnTheScreen();
         expect(
           getByTestId(AccountsMenuSelectorsIDs.REQUEST_FEATURE),
-        ).toBeDefined();
+        ).toBeOnTheScreen();
       });
 
-      it('should navigate to webview when Request a feature is pressed', () => {
+      it('navigate to webview when Request a feature is pressed', () => {
         const { getByTestId } = render(<AccountsMenu />);
         const requestFeatureButton = getByTestId(
           AccountsMenuSelectorsIDs.REQUEST_FEATURE,
@@ -242,14 +246,14 @@ describe('AccountsMenu', () => {
     });
 
     describe('Support Row', () => {
-      it('should render Support row', () => {
+      it('render Support row', () => {
         const { getByText, getByTestId } = render(<AccountsMenu />);
 
-        expect(getByText('app_settings.contact_support')).toBeDefined();
-        expect(getByTestId(AccountsMenuSelectorsIDs.SUPPORT)).toBeDefined();
+        expect(getByText('app_settings.contact_support')).toBeOnTheScreen();
+        expect(getByTestId(AccountsMenuSelectorsIDs.SUPPORT)).toBeOnTheScreen();
       });
 
-      it('should navigate to webview when Support is pressed', () => {
+      it('navigate to webview when Support is pressed', () => {
         const { getByTestId } = render(<AccountsMenu />);
         const supportButton = getByTestId(AccountsMenuSelectorsIDs.SUPPORT);
 
@@ -266,14 +270,14 @@ describe('AccountsMenu', () => {
     });
 
     describe('Log Out Row', () => {
-      it('should render Log Out row', () => {
+      it('render Log Out row', () => {
         const { getByText, getByTestId } = render(<AccountsMenu />);
 
-        expect(getByText('drawer.lock')).toBeDefined();
-        expect(getByTestId(AccountsMenuSelectorsIDs.LOCK)).toBeDefined();
+        expect(getByText('drawer.lock')).toBeOnTheScreen();
+        expect(getByTestId(AccountsMenuSelectorsIDs.LOCK)).toBeOnTheScreen();
       });
 
-      it('should show confirmation alert when Log Out is pressed', () => {
+      it('show confirmation alert when Log Out is pressed', () => {
         const { getByTestId } = render(<AccountsMenu />);
         const logOutButton = getByTestId(AccountsMenuSelectorsIDs.LOCK);
 
@@ -297,7 +301,7 @@ describe('AccountsMenu', () => {
         );
       });
 
-      it('should call Authentication.lockApp when confirmation is accepted', async () => {
+      it('call Authentication.lockApp when confirmation is accepted', async () => {
         const { getByTestId } = render(<AccountsMenu />);
         const logOutButton = getByTestId(AccountsMenuSelectorsIDs.LOCK);
 
@@ -314,14 +318,14 @@ describe('AccountsMenu', () => {
         });
       });
 
-      it('should track NAVIGATION_TAPS_LOGOUT event only when logout is confirmed', async () => {
+      it('track NAVIGATION_TAPS_LOGOUT event only when logout is confirmed', async () => {
         const { getByTestId } = render(<AccountsMenu />);
         const logOutButton = getByTestId(AccountsMenuSelectorsIDs.LOCK);
 
         // Press the logout button
         fireEvent.press(logOutButton);
 
-        // At this point, analytics should NOT be tracked yet (just showing alert)
+        // At this point, analytics NOT be tracked yet (just showing alert)
         expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
           'NAVIGATION_TAPS_LOGOUT',
         );
@@ -331,7 +335,7 @@ describe('AccountsMenu', () => {
         const okButton = alertCall[2][1]; // Second button in the array
         await okButton.onPress();
 
-        // Now analytics should be tracked (user confirmed)
+        // Now analytics be tracked (user confirmed)
         expect(mockCreateEventBuilder).toHaveBeenCalledWith(
           'NAVIGATION_TAPS_LOGOUT',
         );
@@ -341,7 +345,7 @@ describe('AccountsMenu', () => {
   });
 
   describe('Analytics Tracking', () => {
-    it('should track SETTINGS_VIEWED event when Settings is pressed', () => {
+    it('track SETTINGS_VIEWED event when Settings is pressed', () => {
       const { getByTestId } = render(<AccountsMenu />);
       const settingsButton = getByTestId(AccountsMenuSelectorsIDs.SETTINGS);
 
@@ -352,7 +356,7 @@ describe('AccountsMenu', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS.ROOT);
     });
 
-    it('should track SETTINGS_ABOUT event when About MetaMask is pressed', () => {
+    it('track SETTINGS_ABOUT event when About MetaMask is pressed', () => {
       const { getByTestId } = render(<AccountsMenu />);
       const aboutButton = getByTestId(AccountsMenuSelectorsIDs.ABOUT_METAMASK);
 
@@ -363,7 +367,7 @@ describe('AccountsMenu', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS.COMPANY);
     });
 
-    it('should track NAVIGATION_TAPS_SEND_FEEDBACK event when Request a feature is pressed', () => {
+    it('track NAVIGATION_TAPS_SEND_FEEDBACK event when Request a feature is pressed', () => {
       const { getByTestId } = render(<AccountsMenu />);
       const requestFeatureButton = getByTestId(
         AccountsMenuSelectorsIDs.REQUEST_FEATURE,
@@ -384,7 +388,7 @@ describe('AccountsMenu', () => {
       });
     });
 
-    it('should track NAVIGATION_TAPS_GET_HELP event when Support is pressed', () => {
+    it('track NAVIGATION_TAPS_GET_HELP event when Support is pressed', () => {
       const { getByTestId } = render(<AccountsMenu />);
       const supportButton = getByTestId(AccountsMenuSelectorsIDs.SUPPORT);
 

@@ -1124,7 +1124,6 @@ exports[`Settings renders settings component with all sections 1`] = `
           </View>
         </View>
       </TouchableOpacity>
-       
       <TouchableOpacity
         onPress={[Function]}
       >
