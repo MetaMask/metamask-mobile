@@ -413,7 +413,6 @@ class Asset extends PureComponent {
       txParams: { to, from },
       isTransfer,
       transferInformation,
-      type,
     } = tx;
 
     if (this.checkIsMusdClaimForCurrentView(tx)) {
