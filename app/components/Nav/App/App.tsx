@@ -68,6 +68,7 @@ import AccountActions from '../../../components/Views/AccountActions';
 import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedSettings/FiatOnTestnetsFriction';
 import WalletActions from '../../Views/WalletActions';
 import FundActionMenu from '../../UI/FundActionMenu';
+import MoreTokenActionsMenu from '../../UI/TokenDetails/components/MoreTokenActionsMenu';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppNotification from '../../Views/ReturnToAppNotification';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
@@ -367,6 +368,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.MODAL.FUND_ACTION_MENU}
       component={FundActionMenu}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.MORE_TOKEN_ACTIONS_MENU}
+      component={MoreTokenActionsMenu}
     />
     <Stack.Screen
       name={Routes.MODAL.DELETE_WALLET}

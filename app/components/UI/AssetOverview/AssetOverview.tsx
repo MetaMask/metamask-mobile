@@ -202,6 +202,7 @@ interface AssetOverviewProps {
   networkName?: string;
 }
 
+// TODO: Delete when TokenDetailsV2 flag is fully rolled out
 const AssetOverview: React.FC<AssetOverviewProps> = ({
   asset,
   displayBuyButton,

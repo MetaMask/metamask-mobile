@@ -7484,7 +7484,7 @@
       "redeem_failure_title": "L’échange a échoué",
       "redeem_failure_description": "Veuillez réessayer plus tard.",
       "reward_details": "Détails de la récompense",
-      "select_account_description": "Sélectionnez le compte sur lequel vous souhaitez que cette récompense soit envoyée. Les jetons seront distribués dans un délai de deux semaines."
+      "select_account_description": "Sélectionnez le compte sur lequel vous souhaitez que cette récompense soit envoyée."
     },
     "animation": {
       "could_not_load": "Impossible de charger"
