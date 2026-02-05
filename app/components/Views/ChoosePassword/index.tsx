@@ -304,19 +304,10 @@ const ChoosePassword = () => {
     try {
       await Authentication.newWalletAndKeychain(password, newAuthData);
     } catch (err) {
-      if (isOAuthPasswordCreationError(err, newAuthData)) {
-        handleOAuthPasswordCreationError(err as Error, newAuthData);
-        return;
-      }
       throw Error(strings('choose_password.disable_biometric_error'));
     }
     setBiometryType(newAuthData.availableBiometryType || null);
-  }, [
-    password,
-    getOauth2LoginSuccess,
-    isOAuthPasswordCreationError,
-    handleOAuthPasswordCreationError,
-  ]);
+  }, [password, getOauth2LoginSuccess]);
 
   const validatePasswordSubmission = useCallback(() => {
     const passwordsMatch = password !== '' && password === confirmPassword;
@@ -523,14 +514,7 @@ const ChoosePassword = () => {
 
       Logger.log('previous_screen', previous_screen);
 
-      try {
-        await handleWalletCreation(authType, previous_screen);
-      } catch (err) {
-        if (isOAuthPasswordCreationError(err, authType)) {
-          return;
-        }
-        throw err;
-      }
+      await handleWalletCreation(authType, previous_screen);
 
       await handlePostWalletCreation(authType);
 
@@ -556,7 +540,6 @@ const ChoosePassword = () => {
     handleWalletCreation,
     handlePostWalletCreation,
     handleWalletCreationError,
-    isOAuthPasswordCreationError,
   ]);
 
   const onPasswordChange = useCallback(
