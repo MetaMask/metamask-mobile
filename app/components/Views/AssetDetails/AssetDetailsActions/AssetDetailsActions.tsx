@@ -41,6 +41,7 @@ export interface AssetDetailsActionsProps {
   receiveButtonActionID?: string;
 }
 
+// TODO: Delete when TokenDetailsV2Buttons flag is fully rolled out
 export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   displayBuyButton,
   displaySwapsButton,
