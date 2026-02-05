@@ -108,6 +108,7 @@ export const createMockPerpsControllerState = (
   lastError: null,
   lastUpdateTimestamp: Date.now(),
   hip3ConfigVersion: 0,
+  selectedPaymentToken: null,
   ...overrides,
 });
 

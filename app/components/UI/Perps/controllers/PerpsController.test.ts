@@ -17,9 +17,11 @@ import {
   GasFeeEstimateType,
 } from '@metamask/transaction-controller';
 import type {
+  AccountState,
   PerpsProvider,
   PerpsPlatformDependencies,
   PerpsProviderType,
+  SubscribeAccountParams,
 } from './types';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import { createMockHyperLiquidProvider } from '../__mocks__/providerMocks';
@@ -1871,7 +1873,50 @@ describe('PerpsController', () => {
       const unsubscribe = controller.subscribeToAccount(params);
 
       expect(unsubscribe).toBe(mockUnsubscribe);
-      expect(mockProvider.subscribeToAccount).toHaveBeenCalledWith(params);
+      // Controller wraps callback to update state, so expect a function rather than exact params
+      expect(mockProvider.subscribeToAccount).toHaveBeenCalledWith(
+        expect.objectContaining({ callback: expect.any(Function) }),
+      );
+    });
+
+    it('updates accountState when subscribeToAccount callback receives non-null account', () => {
+      const originalCallback = jest.fn();
+      let wrappedCallback: (account: AccountState | null) => void = () => {
+        /* assigned by mock */
+      };
+      mockProvider.subscribeToAccount.mockImplementation(
+        (p: SubscribeAccountParams) => {
+          wrappedCallback = p.callback;
+          return jest.fn();
+        },
+      );
+
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+
+      controller.subscribeToAccount({ callback: originalCallback });
+
+      const accountState = {
+        availableBalance: '5000',
+        totalBalance: '5000',
+        marginUsed: '0',
+        unrealizedPnl: '0',
+        returnOnEquity: '0',
+      };
+      wrappedCallback(accountState);
+
+      expect(controller.state.accountState).toMatchObject(accountState);
+      expect(originalCallback).toHaveBeenCalledWith(accountState);
+    });
+
+    it('returns no-op unsub and does not throw when subscribeToAccount called before init', () => {
+      const params = { callback: jest.fn() };
+
+      const unsubscribe = controller.subscribeToAccount(params);
+
+      expect(typeof unsubscribe).toBe('function');
+      expect(() => unsubscribe()).not.toThrow();
+      expect(mockProvider.subscribeToAccount).not.toHaveBeenCalled();
     });
   });
 
@@ -3698,6 +3743,66 @@ describe('PerpsController', () => {
 
       const savedGrouping = controller.getOrderBookGrouping('BTC');
       expect(savedGrouping).toBe(100);
+    });
+  });
+
+  describe('setSelectedPaymentToken', () => {
+    it('sets selectedPaymentToken to null when passed null', () => {
+      controller.testUpdate((state) => {
+        state.selectedPaymentToken = {
+          description: 'USDC',
+          address: '0xa0b8',
+          chainId: '0x1',
+        } as PerpsControllerState['selectedPaymentToken'];
+      });
+
+      controller.setSelectedPaymentToken(null);
+
+      expect(controller.state.selectedPaymentToken).toBeNull();
+    });
+
+    it('sets selectedPaymentToken to null when token has PerpsBalanceTokenDescription', () => {
+      controller.setSelectedPaymentToken({
+        description: 'perps-balance',
+        address: '0x0',
+        chainId: '0x1',
+      } as Parameters<PerpsController['setSelectedPaymentToken']>[0]);
+
+      expect(controller.state.selectedPaymentToken).toBeNull();
+    });
+
+    it('stores description, address and chainId when passed a normal token', () => {
+      const token = {
+        description: 'USDC',
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as const,
+        chainId: '0x1' as const,
+      };
+
+      controller.setSelectedPaymentToken(
+        token as Parameters<PerpsController['setSelectedPaymentToken']>[0],
+      );
+
+      expect(controller.state.selectedPaymentToken).toMatchObject({
+        description: 'USDC',
+        address: token.address,
+        chainId: token.chainId,
+      });
+    });
+  });
+
+  describe('resetSelectedPaymentToken', () => {
+    it('sets selectedPaymentToken to null', () => {
+      controller.testUpdate((state) => {
+        state.selectedPaymentToken = {
+          description: 'USDC',
+          address: '0xa0b8',
+          chainId: '0x1',
+        } as PerpsControllerState['selectedPaymentToken'];
+      });
+
+      controller.resetSelectedPaymentToken();
+
+      expect(controller.state.selectedPaymentToken).toBeNull();
     });
   });
 });

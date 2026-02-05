@@ -21,7 +21,6 @@ const slice = createSlice({
       state,
       action: PayloadAction<CronjobControllerState>,
     ) => {
-      // @ts-expect-error - Extensively deep merge.
       state.storage = action.payload;
     },
   },

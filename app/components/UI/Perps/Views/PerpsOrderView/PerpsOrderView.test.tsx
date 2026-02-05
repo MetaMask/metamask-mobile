@@ -230,6 +230,7 @@ jest.mock('../../hooks', () => ({
     handleMaxAmount: jest.fn(),
     optimizeOrderAmount: jest.fn(),
     maxPossibleAmount: 1000,
+    balanceForValidation: 1000,
     calculations: {
       marginRequired: 11,
       positionSize: 0.0037,
@@ -737,6 +738,7 @@ const defaultMockHooks = {
     handleMinAmount: jest.fn(),
     optimizeOrderAmount: jest.fn(),
     maxPossibleAmount: 1000,
+    balanceForValidation: 1000,
   },
 };
 
@@ -924,6 +926,7 @@ describe('PerpsOrderView', () => {
       handleMinAmount: jest.fn(),
       optimizeOrderAmount: jest.fn(),
       maxPossibleAmount: 1000,
+      balanceForValidation: 1000,
       calculations: {
         marginRequired: '11',
         positionSize: '0.0037',
@@ -1020,6 +1023,7 @@ describe('PerpsOrderView', () => {
       handleMinAmount: jest.fn(),
       optimizeOrderAmount: jest.fn(),
       maxPossibleAmount: 1000,
+      balanceForValidation: 1000,
       calculations: {
         marginRequired: '11',
         positionSize: '0.0037',
@@ -1227,6 +1231,7 @@ describe('PerpsOrderView', () => {
       handleMinAmount: jest.fn(),
       optimizeOrderAmount: jest.fn(),
       maxPossibleAmount: 1000,
+      balanceForValidation: 1000,
       calculations: {
         marginRequired: '11',
         positionSize: '0.0037',
@@ -1273,6 +1278,7 @@ describe('PerpsOrderView', () => {
       handleMinAmount: jest.fn(),
       optimizeOrderAmount: jest.fn(),
       maxPossibleAmount: 1000,
+      balanceForValidation: 1000,
       calculations: {
         marginRequired: '11',
         positionSize: '0.0037',
@@ -1585,6 +1591,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '10',
           positionSize: '0.033',
@@ -1637,6 +1644,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '10',
           positionSize: '0.033',
@@ -1689,6 +1697,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '10',
           positionSize: '0.033',
@@ -1744,6 +1753,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '10',
           positionSize: '0.033',
@@ -1799,6 +1809,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '10',
           positionSize: '0.033',
@@ -1853,6 +1864,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '10',
           positionSize: '0.033',
@@ -1932,6 +1944,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '33.33',
           positionSize: '0.0333',
@@ -1962,6 +1975,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '33.33',
           positionSize: '0.0333',
@@ -2071,6 +2085,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '33.33',
           positionSize: '0.0333',
@@ -2101,6 +2116,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '33.33',
           positionSize: '0.0333',
@@ -2448,6 +2464,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '0',
           positionSize: '0',
@@ -2488,6 +2505,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '33.33',
           positionSize: '0.0333',
@@ -2608,6 +2626,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '20.00', // Truthy value - triggers formatPrice path
           positionSize: '0.02',
@@ -2647,6 +2666,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '', // Falsy value - triggers fallback path
           positionSize: '',
@@ -2686,6 +2706,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '16.67',
           positionSize: '0.0167',
@@ -2728,6 +2749,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '0',
           positionSize: '0',
@@ -2780,6 +2802,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '6.25',
           positionSize: '0.0083',
@@ -2911,6 +2934,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '11',
           positionSize: '0.0037',
@@ -3020,6 +3044,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '11',
           positionSize: '0.0002',

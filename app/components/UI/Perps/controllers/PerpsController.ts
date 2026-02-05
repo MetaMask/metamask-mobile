@@ -120,9 +120,21 @@ import type {
   RemoteFeatureFlagControllerStateChangeEvent,
   RemoteFeatureFlagControllerGetStateAction,
 } from '@metamask/remote-feature-flag-controller';
+import type { Json } from '@metamask/utils';
 import { wait } from '../utils/wait';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
+import type { AssetType } from '../../../Views/confirmations/types/token';
+
+/**
+ * Minimal payment token stored in PerpsController state.
+ * Only required fields for identification and Perps balance detection.
+ */
+export interface SelectedPaymentTokenSnapshot {
+  description?: string;
+  address: string;
+  chainId: string;
+}
 
 // Re-export error codes from separate file to avoid circular dependencies
 export { PERPS_ERROR_CODES, type PerpsErrorCode } from './perpsErrorCodes';
@@ -286,6 +298,9 @@ export type PerpsControllerState = {
   // HIP-3 Configuration Version (incremented when HIP-3 remote flags change)
   // Used to trigger reconnection and cache invalidation in ConnectionManager
   hip3ConfigVersion: number;
+
+  // Selected payment token for Perps order/deposit flow (null = Perps balance). Stored as Json (minimal shape: description, address, chainId).
+  selectedPaymentToken: Json | null;
 };
 
 /**
@@ -340,6 +355,7 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
     direction: MARKET_SORTING_CONFIG.DefaultDirection,
   },
   hip3ConfigVersion: 0,
+  selectedPaymentToken: null,
 });
 
 /**
@@ -490,6 +506,12 @@ const metadata: StateMetadata<PerpsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: false,
   },
+  selectedPaymentToken: {
+    includeInStateLogs: false,
+    persist: false,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
 };
 
 /**
@@ -632,6 +654,14 @@ export type PerpsControllerActions =
   | {
       type: 'PerpsController:saveOrderBookGrouping';
       handler: PerpsController['saveOrderBookGrouping'];
+    }
+  | {
+      type: 'PerpsController:setSelectedPaymentToken';
+      handler: PerpsController['setSelectedPaymentToken'];
+    }
+  | {
+      type: 'PerpsController:resetSelectedPaymentToken';
+      handler: PerpsController['resetSelectedPaymentToken'];
     };
 
 /**
@@ -1280,6 +1310,14 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Returns current controller state as PerpsControllerState.
+   * Used by createServiceContext to avoid deep type instantiation when building stateManager.
+   */
+  private getControllerState(): PerpsControllerState {
+    return this.state as unknown as PerpsControllerState;
+  }
+
+  /**
    * Create a ServiceContext for dependency injection into services
    * Provides all orchestration dependencies (tracing, analytics, state management)
    *
@@ -1301,11 +1339,13 @@ export class PerpsController extends BaseController<
         method,
       },
       stateManager: {
-        update: (updater) => this.update(updater),
-        getState: () => this.state,
+        update: (updater: (state: PerpsControllerState) => void) =>
+          // @ts-expect-error TS2589 - excessively deep instantiation when inferring stateManager from BaseController
+          this.update(updater),
+        getState: (): PerpsControllerState => this.getControllerState(),
       },
       ...additionalContext,
-    };
+    } as ServiceContext;
   }
 
   /**
@@ -2406,12 +2446,27 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * Subscribe to live account updates
+   * Subscribe to live account updates.
+   * Updates controller state (Redux) when new account data arrives so consumers
+   * like usePerpsBalanceTokenFilter (PayWithModal) see the latest balance.
    */
   subscribeToAccount(params: SubscribeAccountParams): () => void {
     try {
       const provider = this.getActiveProvider();
-      return provider.subscribeToAccount(params);
+      const originalCallback = params.callback;
+      return provider.subscribeToAccount({
+        ...params,
+        callback: (account: AccountState | null) => {
+          if (account) {
+            this.update((state) => {
+              state.accountState = account;
+              state.lastUpdateTimestamp = Date.now();
+              state.lastError = null;
+            });
+          }
+          originalCallback(account);
+        },
+      });
     } catch (error) {
       this.logError(
         ensureError(error),
@@ -2931,6 +2986,44 @@ export class PerpsController extends BaseController<
 
     this.update((state) => {
       state.marketFilterPreferences = { optionId, direction };
+    });
+  }
+
+  /**
+   * Set the selected payment token for the Perps order/deposit flow.
+   * Pass null or a token with description PERPS_CONSTANTS.PerpsBalanceTokenDescription to select Perps balance.
+   * Only required fields (description, address, chainId) are stored in state.
+   */
+  setSelectedPaymentToken(token: AssetType | null): void {
+    let normalized: AssetType | null = null;
+    if (
+      token != null &&
+      token.description !== PERPS_CONSTANTS.PerpsBalanceTokenDescription
+    ) {
+      normalized = token;
+    }
+
+    let snapshot: Json | null = null;
+    if (normalized !== null) {
+      snapshot = {
+        description: normalized.description,
+        address: normalized.address,
+        chainId: normalized.chainId,
+      } as unknown as Json;
+    }
+
+    this.update((state) => {
+      state.selectedPaymentToken = snapshot;
+    });
+  }
+
+  /**
+   * Reset the selected payment token to Perps balance (null).
+   * Call when leaving the Perps order view so the next visit defaults to Perps balance.
+   */
+  resetSelectedPaymentToken(): void {
+    this.update((state) => {
+      state.selectedPaymentToken = null;
     });
   }
 
