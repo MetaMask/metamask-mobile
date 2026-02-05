@@ -165,7 +165,7 @@ function processTestReport(testReport) {
     profilingSummary: testReport.profilingSummary || null,
     // BrowserStack network logs (HAR) per test
     apiCalls: testReport.apiCalls ?? null,
-    apiCallsError: testReport.apiCallsError ?? null
+    apiCallsError: testReport.apiCallsError ?? null,
     // Include quality gates if available
     qualityGates: testReport.qualityGates || null,
   };
