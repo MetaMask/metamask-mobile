@@ -32,6 +32,7 @@ import {
   PredictControllerMessenger,
   type PredictControllerState,
 } from './PredictController';
+import { analytics } from '../../../../util/analytics/analytics';
 
 // Mock the PolymarketProvider and its dependencies
 jest.mock('../providers/polymarket/PolymarketProvider');
@@ -87,6 +88,13 @@ jest.mock('@metamask/controller-utils', () => {
     successfulFetch: jest.fn(),
   };
 });
+
+// Mock analytics module
+jest.mock('../../../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: jest.fn(),
+  },
+}));
 
 type AllPredictControllerMessengerActions =
   MessengerActions<PredictControllerMessenger>;
@@ -5780,6 +5788,88 @@ describe('PredictController', () => {
             marketConnected: false,
           });
         });
+      });
+    });
+  });
+
+  describe('Analytics Tracking', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('calls analytics.trackEvent for trackPredictOrderEvent', async () => {
+      await withController(async ({ controller }) => {
+        await controller.trackPredictOrderEvent({
+          status: 'succeeded',
+          analyticsProperties: { marketId: 'test' },
+          providerId: 'polymarket',
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('does not call analytics.trackEvent when analyticsProperties is missing for trackPredictOrderEvent', async () => {
+      await withController(async ({ controller }) => {
+        await controller.trackPredictOrderEvent({
+          status: 'succeeded',
+          providerId: 'polymarket',
+        });
+        expect(analytics.trackEvent).not.toHaveBeenCalled();
+      });
+    });
+
+    it('calls analytics.trackEvent for trackMarketDetailsOpened', () => {
+      withController(({ controller }) => {
+        controller.trackMarketDetailsOpened({
+          marketId: 'test',
+          marketTitle: 'test',
+          entryPoint: 'test',
+          marketDetailsViewed: 'test',
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackPositionViewed', () => {
+      withController(({ controller }) => {
+        controller.trackPositionViewed({ openPositionsCount: 5 });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackActivityViewed', () => {
+      withController(({ controller }) => {
+        controller.trackActivityViewed({ activityType: 'all' });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackGeoBlockTriggered', () => {
+      withController(({ controller }) => {
+        controller.trackGeoBlockTriggered({
+          providerId: 'polymarket',
+          attemptedAction: 'deposit',
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackFeedViewed', () => {
+      withController(({ controller }) => {
+        controller.trackFeedViewed({
+          sessionId: 'test',
+          feedTab: 'test',
+          numPagesViewed: 1,
+          sessionTime: 1000,
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackShareAction', () => {
+      withController(({ controller }) => {
+        controller.trackShareAction({ status: 'success' });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
       });
     });
   });

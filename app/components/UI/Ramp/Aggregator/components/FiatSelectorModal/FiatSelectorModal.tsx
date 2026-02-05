@@ -13,7 +13,7 @@ import { useRampSDK } from '../../sdk';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCenter from '../../../../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import TextFieldSearch from '../../../../../../component-library/components/Form/TextFieldSearch';
 import ListItemSelect from '../../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
@@ -135,7 +135,7 @@ function FiatSelectorModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <HeaderCenter
+      <HeaderCompactStandard
         title={strings('fiat_on_ramp_aggregator.select_region_currency')}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}
       />
