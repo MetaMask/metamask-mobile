@@ -108,9 +108,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const { isNative: isNativePayToken } = useTransactionPayToken();
     const { styles } = useStyles(styleSheet, {});
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
-    const availableTokens = useTransactionPayAvailableTokens();
-    // For withdrawals, we always have tokens available (the supported withdrawal tokens)
-    const hasTokens = isWithdrawal || availableTokens.length > 0;
+    const { hasTokens } = useTransactionPayAvailableTokens();
 
     // Withdrawal without token picker = same-token-same-chain (no bridge needed)
     const isWithdrawalWithoutTokenPicker =
