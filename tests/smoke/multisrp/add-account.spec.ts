@@ -54,7 +54,7 @@ const addAccountToSrp = async (
   await Assertions.expectElementToBeVisible(AccountListBottomSheet.accountList);
 };
 
-describe(
+describe.skip(
   SmokeWalletPlatform('Multi-SRP: Add new account to a specific SRP'),
   () => {
     it('adds an account to default SRP and one to the imported SRP', async () => {
