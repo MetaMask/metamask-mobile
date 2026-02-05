@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { TransactionType } from '@metamask/transaction-controller';
-import { useWithdrawalPostQuote } from './useWithdrawalPostQuote';
+import { useTransactionPayPostQuote } from './useTransactionPayPostQuote';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import Engine from '../../../../../core/Engine';
 
@@ -15,7 +15,7 @@ jest.mock('../../../../../core/Engine', () => ({
 
 const TRANSACTION_ID_MOCK = 'transaction-123';
 
-describe('useWithdrawalPostQuote', () => {
+describe('useTransactionPayPostQuote', () => {
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
@@ -27,24 +27,24 @@ describe('useWithdrawalPostQuote', () => {
     jest.clearAllMocks();
   });
 
-  it('does nothing for non-withdrawal transactions', () => {
+  it('does nothing for non-post-quote transactions', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       id: TRANSACTION_ID_MOCK,
       type: TransactionType.simpleSend,
     } as never);
 
-    renderHook(() => useWithdrawalPostQuote());
+    renderHook(() => useTransactionPayPostQuote());
 
     expect(setTransactionConfigMock).not.toHaveBeenCalled();
   });
 
-  it('sets isPostQuote=true for withdrawal transactions', () => {
+  it('sets isPostQuote=true for post-quote transactions', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       id: TRANSACTION_ID_MOCK,
       type: TransactionType.predictWithdraw,
     } as never);
 
-    renderHook(() => useWithdrawalPostQuote());
+    renderHook(() => useTransactionPayPostQuote());
 
     expect(setTransactionConfigMock).toHaveBeenCalledWith(
       TRANSACTION_ID_MOCK,
@@ -64,7 +64,7 @@ describe('useWithdrawalPostQuote', () => {
       type: TransactionType.predictWithdraw,
     } as never);
 
-    const { rerender } = renderHook(() => useWithdrawalPostQuote());
+    const { rerender } = renderHook(() => useTransactionPayPostQuote());
 
     expect(setTransactionConfigMock).toHaveBeenCalledTimes(1);
 
@@ -79,7 +79,7 @@ describe('useWithdrawalPostQuote', () => {
       type: TransactionType.predictWithdraw,
     } as never);
 
-    renderHook(() => useWithdrawalPostQuote());
+    renderHook(() => useTransactionPayPostQuote());
 
     expect(setTransactionConfigMock).not.toHaveBeenCalled();
   });

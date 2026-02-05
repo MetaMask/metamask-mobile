@@ -4,41 +4,44 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { isTransactionPayWithdraw } from '../../utils/transaction';
 import { createProjectLogger } from '@metamask/utils';
 
-const log = createProjectLogger('transaction-pay-withdrawal');
+const log = createProjectLogger('transaction-pay-post-quote');
 
 /**
- * Hook that sets isPostQuote=true for withdrawal transactions.
+ * Hook that sets isPostQuote=true for post-quote transactions.
  * This tells TransactionPayController to treat the paymentToken as
  * the destination (not source) and to create a post-quote bridge.
  *
  * Note: We don't set a default payment token here to avoid triggering
- * quote retrieval. The UI renders the default token (Polygon USDC.E)
- * when no payment token is selected.
+ * quote retrieval. The UI renders the default token when no payment
+ * token is selected.
  */
-export function useWithdrawalPostQuote(): void {
+export function useTransactionPayPostQuote(): void {
   const isSet = useRef(false);
   const transactionMeta = useTransactionMetadataRequest();
-  const isWithdrawal = isTransactionPayWithdraw(transactionMeta);
+  const isPostQuoteTransaction = isTransactionPayWithdraw(transactionMeta);
   const transactionId = transactionMeta?.id;
 
   useEffect(() => {
-    if (!isWithdrawal || !transactionId || isSet.current) {
+    if (!isPostQuoteTransaction || !transactionId || isSet.current) {
       return;
     }
 
     try {
       const { TransactionPayController } = Engine.context;
 
-      // Set isPostQuote=true for withdrawal transactions
+      // Set isPostQuote=true for post-quote transactions
       TransactionPayController.setTransactionConfig(transactionId, (config) => {
         config.isPostQuote = true;
       });
 
       isSet.current = true;
 
-      log('Initialized withdrawal transaction', { transactionId });
+      log('Initialized post-quote transaction', { transactionId });
     } catch (error) {
-      log('Error initializing withdrawal', { error, transactionId });
+      log('Error initializing post-quote transaction', {
+        error,
+        transactionId,
+      });
     }
-  }, [isWithdrawal, transactionId]);
+  }, [isPostQuoteTransaction, transactionId]);
 }

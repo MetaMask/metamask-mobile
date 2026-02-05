@@ -19,7 +19,7 @@ import {
   SetPayTokenRequest,
   useAutomaticTransactionPayToken,
 } from '../../../hooks/pay/useAutomaticTransactionPayToken';
-import { useWithdrawalPostQuote } from '../../../hooks/pay/useWithdrawalPostQuote';
+import { useTransactionPayPostQuote } from '../../../hooks/pay/useTransactionPayPostQuote';
 import { AlertMessage } from '../../alerts/alert-message';
 import {
   CustomAmount,
@@ -101,7 +101,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       preferredToken,
     });
     useTransactionPayMetrics();
-    useWithdrawalPostQuote(); // Set isPostQuote=true for withdrawal transactions
+    useTransactionPayPostQuote(); // Set isPostQuote=true for post-quote transactions
 
     const { canSelectWithdrawalToken } = useWithdrawalToken();
 
