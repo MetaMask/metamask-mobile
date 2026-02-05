@@ -15,7 +15,7 @@ describe('securityReducer', () => {
     osAuthEnabled: true,
   };
 
-  it('should set allowLoginWithRememberMe to true', () => {
+  it('sets allowLoginWithRememberMe to true', () => {
     const action: AllowLoginWithRememberMeUpdated = {
       type: ActionType.SET_ALLOW_LOGIN_WITH_REMEMBER_ME,
       enabled: true,
@@ -31,9 +31,7 @@ describe('securityReducer', () => {
     expect(newState).toEqual(expectedState);
   });
 
-  it('should set dataCollectionForMarketing to true', () => {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  it('sets dataCollectionForMarketing to true', () => {
     const action: SetDataCollectionForMarketing = {
       type: ActionType.SET_DATA_COLLECTION_FOR_MARKETING,
       enabled: true,
@@ -49,15 +47,15 @@ describe('securityReducer', () => {
     expect(newState).toEqual(expectedState);
   });
 
-  it('should set osAuthEnabled to true', () => {
+  it('sets osAuthEnabled to false', () => {
     const action: SetOsAuthEnabled = {
       type: ActionType.SET_OS_AUTH_ENABLED,
-      enabled: true,
+      enabled: false,
     };
 
     const expectedState = {
       ...initialState,
-      osAuthEnabled: true,
+      osAuthEnabled: false,
     };
 
     const newState = securityReducer(initialState, action);
