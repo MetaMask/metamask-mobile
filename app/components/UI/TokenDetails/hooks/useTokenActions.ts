@@ -391,13 +391,25 @@ export const useTokenActions = ({
   const handleBuyPress = useCallback(() => {
     // If user has no eligible tokens to swap with, route to on-ramp
     if (!buySourceToken) {
-      goToBuy();
+      // Build CAIP-formatted assetId for the ramp (e.g., "eip155:1/erc20:0x1234...")
+      const rampIntent = parseRampIntent({
+        chainId: getDecimalChainId(chainId),
+        address: token.address,
+      });
+      goToBuy({ assetId: rampIntent?.assetId });
       return;
     }
 
     if (!goToSwaps) return;
     goToSwaps(buySourceToken, currentTokenAsBridgeToken);
-  }, [goToSwaps, goToBuy, buySourceToken, currentTokenAsBridgeToken]);
+  }, [
+    goToSwaps,
+    goToBuy,
+    buySourceToken,
+    currentTokenAsBridgeToken,
+    token.address,
+    chainId,
+  ]);
 
   // Sell: current token as source, let swap UI compute default dest
   const handleSellPress = useCallback(() => {
