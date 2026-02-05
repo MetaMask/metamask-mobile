@@ -1,10 +1,10 @@
-import { FlaskBuildTests } from '../../tags';
-import { loginToApp, navigateToBrowserView } from '../../viewHelper';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import TestSnaps from '../../pages/Browser/TestSnaps';
-import { Assertions } from '../../../tests/framework';
-import Matchers from '../../../tests/framework/Matchers';
+import { FlaskBuildTests } from '../../../e2e/tags';
+import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import TestSnaps from '../../../e2e/pages/Browser/TestSnaps';
+import { Assertions } from '../../framework';
+import Matchers from '../../framework/Matchers';
 import { DateTime } from 'luxon';
 
 jest.setTimeout(150_000);

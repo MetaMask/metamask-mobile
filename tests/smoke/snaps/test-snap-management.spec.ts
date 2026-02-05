@@ -1,13 +1,13 @@
-import { FlaskBuildTests } from '../../tags';
-import { loginToApp, navigateToBrowserView } from '../../viewHelper';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import TestSnaps from '../../pages/Browser/TestSnaps';
-import SettingsView from '../../pages/Settings/SettingsView';
-import SnapSettingsView from '../../pages/Settings/SnapSettingsView';
-import { Assertions } from '../../../tests/framework';
-import BrowserView from '../../pages/Browser/BrowserView';
+import { FlaskBuildTests } from '../../../e2e/tags';
+import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import TestSnaps from '../../../e2e/pages/Browser/TestSnaps';
+import SettingsView from '../../../e2e/pages/Settings/SettingsView';
+import SnapSettingsView from '../../../e2e/pages/Settings/SnapSettingsView';
+import { Assertions } from '../../framework';
+import BrowserView from '../../../e2e/pages/Browser/BrowserView';
 
 jest.setTimeout(150_000);
 
