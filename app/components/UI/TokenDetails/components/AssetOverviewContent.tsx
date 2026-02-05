@@ -5,8 +5,10 @@ import {
   StyleSheet,
   TextStyle,
   ViewStyle,
+  Pressable,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import type { Theme } from '@metamask/design-tokens';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
@@ -18,6 +20,12 @@ import Text from '../../../Base/Text';
 import AppConstants from '../../../../core/AppConstants';
 import Routes from '../../../../constants/navigation/Routes';
 import { createWebviewNavDetails } from '../../../Views/SimpleWebview';
+import { selectPredictEnabledFlag } from '../../Predict/selectors/featureFlags';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../../component-library/components/Icons/Icon';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import {
   TimePeriod,
@@ -80,6 +88,33 @@ const styleSheet = (params: { theme: Theme }) => {
     perpsPositionHeader: {
       paddingHorizontal: 16,
       paddingTop: 24,
+    } as ViewStyle,
+    predictBanner: {
+      marginHorizontal: 16,
+      marginVertical: 16,
+      padding: 16,
+      borderRadius: 12,
+      backgroundColor: colors.background.alternative,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    } as ViewStyle,
+    predictBannerContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    } as ViewStyle,
+    predictBannerIconWrapper: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.primary.muted,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 12,
+    } as ViewStyle,
+    predictBannerText: {
+      flex: 1,
     } as ViewStyle,
   });
 };
@@ -170,8 +205,16 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const merklRewardsRef = useRef<View>(null);
   const merklRewardsYInHeaderRef = useRef<number | null>(null);
   const chainId = token.chainId;
+  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
 
   useScrollToMerklRewards(merklRewardsYInHeaderRef);
+
+  const handleBrowsePredictions = useCallback(() => {
+    navigation.navigate(Routes.PREDICT.STORY_VIEW, {
+      category: 'crypto',
+      initialIndex: 0,
+    });
+  }, [navigation]);
 
   const { hasPerpsMarket, marketData } = usePerpsMarketForAsset(
     isPerpsEnabled ? token.symbol : null,
@@ -281,6 +324,40 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               mainBalance={mainBalance}
               secondaryBalance={secondaryBalance}
             />
+          )}
+          {/* Browse Predictions Banner */}
+          {isPredictEnabled && (
+            <Pressable
+              style={({ pressed }) => [
+                styles.predictBanner,
+                pressed && { opacity: 0.7 },
+              ]}
+              onPress={handleBrowsePredictions}
+              testID="browse-predictions-banner"
+            >
+              <View style={styles.predictBannerContent}>
+                <View style={styles.predictBannerIconWrapper}>
+                  <Icon
+                    name={IconName.Chart}
+                    size={IconSize.Md}
+                    color={IconColor.Primary}
+                  />
+                </View>
+                <View style={styles.predictBannerText}>
+                  <DSText variant={TextVariant.BodyMDMedium}>
+                    {strings('predict.story.browse_predictions')}
+                  </DSText>
+                  <DSText variant={TextVariant.BodySM}>
+                    {strings('predict.prediction_markets')}
+                  </DSText>
+                </View>
+              </View>
+              <Icon
+                name={IconName.ArrowRight}
+                size={IconSize.Md}
+                color={IconColor.Muted}
+              />
+            </Pressable>
           )}
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)

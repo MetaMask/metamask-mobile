@@ -234,6 +234,7 @@ const Routes = {
     NFTS_FULL_VIEW: 'NftFullView',
     TOKENS_FULL_VIEW: 'TokensFullView',
     TRENDING_TOKENS_FULL_VIEW: 'TrendingTokensFullView',
+    TOKEN_STORY_VIEW: 'TokenStoryView',
   },
   VAULT_RECOVERY: {
     RESTORE_WALLET: 'RestoreWallet',
@@ -296,6 +297,7 @@ const Routes = {
     MARKET_LIST: 'PredictMarketList',
     MARKET_DETAILS: 'PredictMarketDetails',
     ACTIVITY_DETAIL: 'PredictActivityDetail',
+    STORY_VIEW: 'PredictStoryView',
     MODALS: {
       ROOT: 'PredictModals',
       BUY_PREVIEW: 'PredictBuyPreview',

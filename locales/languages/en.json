@@ -2024,6 +2024,13 @@
     "toasts": {
       "copied_to_clipboard": "Copied to clipboard"
     },
+    "story": {
+      "swipe_to_browse": "Swipe to browse • {{current}} of {{total}}",
+      "view_market": "View market",
+      "loading": "Loading markets...",
+      "no_markets": "No markets available",
+      "browse_predictions": "Browse predictions"
+    },
     "gtm_content": {
       "title": "PREDICT AND WIN",
       "title_description": "Trade on the outcome of real-world events, like sports or elections.",
@@ -2326,6 +2333,10 @@
     "tokens": "Tokens",
     "view_all_nfts": "View all NFTs",
     "view_all_tokens": "View all tokens",
+    "token_story": {
+      "swipe_to_browse": "Swipe to browse • {{current}} of {{total}}",
+      "view_details": "View details"
+    },
     "collectible": "Collectible",
     "collectibles": "NFTs",
     "defi": "DeFi",

@@ -29,6 +29,8 @@ import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
 import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
+import TokenStoryView from '../../Views/TokenStoryView';
+import PredictStoryView from '../../Views/PredictStoryView';
 import TrendingTokensFullView from '../../Views/TrendingTokens/TrendingTokensFullView/TrendingTokensFullView';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
@@ -939,6 +941,26 @@ const MainNavigator = () => {
         name={Routes.WALLET.TOKENS_FULL_VIEW}
         component={TokensFullView}
         options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.WALLET.TOKEN_STORY_VIEW}
+        component={TokenStoryView}
+        options={{
+          headerShown: false,
+          presentation: 'fullScreenModal',
+          animationEnabled: true,
+          gestureEnabled: false, // Disable navigation gestures to allow vertical swiping
+        }}
+      />
+      <Stack.Screen
+        name={Routes.PREDICT.STORY_VIEW}
+        component={PredictStoryView}
+        options={{
+          headerShown: false,
+          presentation: 'fullScreenModal',
+          animationEnabled: true,
+          gestureEnabled: false, // Disable navigation gestures to allow vertical swiping
+        }}
       />
       <Stack.Screen
         name="AddAsset"
