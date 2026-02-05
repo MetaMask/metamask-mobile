@@ -1730,7 +1730,9 @@ describe('useHomeDeepLinkEffects', () => {
       isPerpsEnabled: true,
       assertCase: (mocks) => {
         expect(mocks.mockOnPerpsTabsSelected).toHaveBeenCalled();
-        expect(mocks.mockSetParams).toHaveBeenCalledWith({});
+        expect(mocks.mockSetParams).toHaveBeenCalledWith({
+          shouldSelectPerpsTab: null,
+        });
       },
     },
     {
@@ -1739,7 +1741,7 @@ describe('useHomeDeepLinkEffects', () => {
       isPerpsEnabled: true,
       assertCase: (mocks) => {
         expect(mocks.mockOnPerpsTabsSelected).toHaveBeenCalled();
-        expect(mocks.mockSetParams).toHaveBeenCalledWith({});
+        expect(mocks.mockSetParams).toHaveBeenCalledWith({ initialTab: null });
       },
     },
     {
@@ -1749,7 +1751,9 @@ describe('useHomeDeepLinkEffects', () => {
       isPerpsEnabled: false,
       assertCase: (mocks) => {
         expect(mocks.mockOnNetworkSelectorSelected).toHaveBeenCalled();
-        expect(mocks.mockSetParams).toHaveBeenCalledWith({});
+        expect(mocks.mockSetParams).toHaveBeenCalledWith({
+          openNetworkSelector: null,
+        });
       },
     },
     {

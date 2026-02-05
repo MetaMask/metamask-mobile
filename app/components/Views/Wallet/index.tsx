@@ -234,9 +234,9 @@ interface WalletTokensTabViewProps {
 }
 
 interface WalletRouteParams {
-  openNetworkSelector?: boolean;
-  shouldSelectPerpsTab?: boolean;
-  initialTab?: string;
+  openNetworkSelector?: boolean | null;
+  shouldSelectPerpsTab?: boolean | null;
+  initialTab?: string | null;
 }
 
 export const useHomeDeepLinkEffects = (opts: {
@@ -262,7 +262,12 @@ export const useHomeDeepLinkEffects = (opts: {
 
       const clearParams = () => {
         if (navigation?.setParams) {
-          navigation.setParams({});
+          // React-Navigation shallow merges params, so we need to set each param to null to clear them
+          const nullParams: Record<string, null> = {};
+          Object.keys(params).forEach((key) => {
+            nullParams[key] = null;
+          });
+          navigation.setParams(nullParams);
         }
       };
 
