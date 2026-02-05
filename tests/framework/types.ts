@@ -321,4 +321,11 @@ export interface WithFixturesOptions {
    */
   skipReactNativeReload?: boolean;
   useCommandQueueServer?: boolean;
+  /**
+   * Disable Detox synchronization immediately after app launch.
+   * Use this for tests that have long-running network requests or animations
+   * that would cause NetworkIdlingResource timeouts.
+   * @default false
+   */
+  disableSynchronization?: boolean;
 }

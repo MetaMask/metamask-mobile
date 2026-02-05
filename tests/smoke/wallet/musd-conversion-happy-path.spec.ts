@@ -40,6 +40,7 @@ function withMusdFixturesOptions(
     ],
     restartDevice: true,
     testSpecificMock: setupMusdMocks,
+    disableSynchronization: true,
   };
 }
 
@@ -55,7 +56,6 @@ describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
         musdConversionEducationSeen: false,
       }),
       async () => {
-        await device.disableSynchronization();
         await loginToApp();
 
         // Verify wallet is visible
@@ -125,7 +125,6 @@ describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
         musdBalance: 100,
       }),
       async () => {
-        await device.disableSynchronization();
         await loginToApp();
 
         // Verify wallet is visible
@@ -182,7 +181,6 @@ describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
         musdConversionEducationSeen: true,
       }),
       async () => {
-        await device.disableSynchronization();
         await loginToApp();
 
         // Verify wallet is visible

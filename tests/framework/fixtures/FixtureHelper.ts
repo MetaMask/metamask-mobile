@@ -498,6 +498,7 @@ export async function withFixtures(
     endTestfn,
     skipReactNativeReload = false,
     useCommandQueueServer = false,
+    disableSynchronization = false,
   } = options;
 
   // Clean up any stale port forwarding from previous failed tests
@@ -613,6 +614,12 @@ export async function withFixtures(
         languageAndLocale,
         permissions,
       });
+
+      // Disable synchronization immediately after launch to prevent NetworkIdlingResource timeouts
+      if (disableSynchronization) {
+        await device.disableSynchronization();
+        logger.debug('Detox synchronization disabled after app launch');
+      }
     }
 
     // Dismiss dev screens if running locally (not in CI)
