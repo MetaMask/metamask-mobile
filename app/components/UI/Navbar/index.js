@@ -866,7 +866,7 @@ export function getWalletNavbarOptions(
     },
     actionButtonsContainer: {
       flexDirection: 'row',
-      gap: 4,
+      gap: 8,
     },
     // Minimum 44px touch area for accessibility
     touchAreaSlop: {

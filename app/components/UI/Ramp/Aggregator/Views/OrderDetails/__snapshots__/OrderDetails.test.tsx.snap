@@ -302,7 +302,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                       {
                                         "alignItems": "center",
                                         "backgroundColor": "transparent",
-                                        "borderRadius": 8,
+                                        "borderRadius": 2,
                                         "height": 32,
                                         "justifyContent": "center",
                                         "opacity": 1,
@@ -320,8 +320,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "height": 24,
-                                          "width": 24,
+                                          "height": 20,
+                                          "width": 20,
                                         },
                                         undefined,
                                       ]
@@ -1731,7 +1731,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                       {
                                         "alignItems": "center",
                                         "backgroundColor": "transparent",
-                                        "borderRadius": 8,
+                                        "borderRadius": 2,
                                         "height": 32,
                                         "justifyContent": "center",
                                         "opacity": 1,
@@ -1749,8 +1749,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "height": 24,
-                                          "width": 24,
+                                          "height": 20,
+                                          "width": 20,
                                         },
                                         undefined,
                                       ]
@@ -3178,7 +3178,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                       {
                                         "alignItems": "center",
                                         "backgroundColor": "transparent",
-                                        "borderRadius": 8,
+                                        "borderRadius": 2,
                                         "height": 32,
                                         "justifyContent": "center",
                                         "opacity": 1,
@@ -3196,8 +3196,8 @@ exports[`OrderDetails renders a created order 1`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "height": 24,
-                                          "width": 24,
+                                          "height": 20,
+                                          "width": 20,
                                         },
                                         undefined,
                                       ]
@@ -4603,7 +4603,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                       {
                                         "alignItems": "center",
                                         "backgroundColor": "transparent",
-                                        "borderRadius": 8,
+                                        "borderRadius": 2,
                                         "height": 32,
                                         "justifyContent": "center",
                                         "opacity": 1,
@@ -4621,8 +4621,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "height": 24,
-                                          "width": 24,
+                                          "height": 20,
+                                          "width": 20,
                                         },
                                         undefined,
                                       ]
@@ -6032,7 +6032,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                       {
                                         "alignItems": "center",
                                         "backgroundColor": "transparent",
-                                        "borderRadius": 8,
+                                        "borderRadius": 2,
                                         "height": 32,
                                         "justifyContent": "center",
                                         "opacity": 1,
@@ -6050,8 +6050,8 @@ exports[`OrderDetails renders a pending order 1`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "height": 24,
-                                          "width": 24,
+                                          "height": 20,
+                                          "width": 20,
                                         },
                                         undefined,
                                       ]
@@ -7457,7 +7457,7 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                                       {
                                         "alignItems": "center",
                                         "backgroundColor": "transparent",
-                                        "borderRadius": 8,
+                                        "borderRadius": 2,
                                         "height": 32,
                                         "justifyContent": "center",
                                         "opacity": 1,
@@ -7475,8 +7475,8 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                                       [
                                         {
                                           "color": "#121314",
-                                          "height": 24,
-                                          "width": 24,
+                                          "height": 20,
+                                          "width": 20,
                                         },
                                         undefined,
                                       ]
@@ -7867,7 +7867,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                                       {
                                         "alignItems": "center",
                                         "backgroundColor": "transparent",
-                                        "borderRadius": 8,
+                                        "borderRadius": 2,
                                         "height": 32,
                                         "justifyContent": "center",
                                         "opacity": 1,
@@ -7885,8 +7885,8 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                                       [
                                         {
                                           "color": "#121314",
-                                          "height": 24,
-                                          "width": 24,
+                                          "height": 20,
+                                          "width": 20,
                                         },
                                         undefined,
                                       ]
@@ -8465,7 +8465,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                       {
                                         "alignItems": "center",
                                         "backgroundColor": "transparent",
-                                        "borderRadius": 8,
+                                        "borderRadius": 2,
                                         "height": 32,
                                         "justifyContent": "center",
                                         "opacity": 1,
@@ -8483,8 +8483,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "height": 24,
-                                          "width": 24,
+                                          "height": 20,
+                                          "width": 20,
                                         },
                                         undefined,
                                       ]
@@ -9955,7 +9955,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                       {
                                         "alignItems": "center",
                                         "backgroundColor": "transparent",
-                                        "borderRadius": 8,
+                                        "borderRadius": 2,
                                         "height": 32,
                                         "justifyContent": "center",
                                         "opacity": 1,
@@ -9973,8 +9973,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "height": 24,
-                                          "width": 24,
+                                          "height": 20,
+                                          "width": 20,
                                         },
                                         undefined,
                                       ]
@@ -11448,7 +11448,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                       {
                                         "alignItems": "center",
                                         "backgroundColor": "transparent",
-                                        "borderRadius": 8,
+                                        "borderRadius": 2,
                                         "height": 32,
                                         "justifyContent": "center",
                                         "opacity": 1,
@@ -11466,8 +11466,8 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                       [
                                         {
                                           "color": "#121314",
-                                          "height": 24,
-                                          "width": 24,
+                                          "height": 20,
+                                          "width": 20,
                                         },
                                         undefined,
                                       ]
@@ -12873,7 +12873,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                       {
                                         "alignItems": "center",
                                         "backgroundColor": "transparent",
-                                        "borderRadius": 8,
+                                        "borderRadius": 2,
                                         "height": 32,
                                         "justifyContent": "center",
                                         "opacity": 1,
@@ -12891,8 +12891,8 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                       [
                                         {
                                           "color": "#121314",
-                                          "height": 24,
-                                          "width": 24,
+                                          "height": 20,
+                                          "width": 20,
                                         },
                                         undefined,
                                       ]
