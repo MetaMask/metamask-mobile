@@ -52,6 +52,7 @@ const config = {
   ],
   testPathIgnorePatterns: [
     '.*/tests/(smoke|regression)/.*\\.spec\\.(ts|js)$',
+    '.*/e2e/.*\\.spec\\.(ts|js)$',
     '.*/e2e/pages/',
     '.*/e2e/selectors/',
   ],
