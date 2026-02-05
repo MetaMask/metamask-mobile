@@ -14,6 +14,16 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock(
+  '../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    ...jest.requireActual(
+      '../../../../selectors/multichainAccounts/accountTreeController',
+    ),
+    selectSelectedAccountGroupWithInternalAccountsAddresses: () => [],
+  }),
+);
+
 const mockProviders: RampProvider[] = [
   {
     id: 'provider-1',
@@ -60,6 +70,9 @@ const createMockStore = (providersState = {}) =>
             },
           },
         },
+      }),
+      fiatOrders: () => ({
+        orders: [],
       }),
     },
   });

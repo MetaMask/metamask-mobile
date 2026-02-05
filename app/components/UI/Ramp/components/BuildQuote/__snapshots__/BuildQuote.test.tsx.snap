@@ -89,6 +89,7 @@ exports[`BuildQuote matches snapshot 1`] = `
             </Text>
             <TouchableOpacity
               activeOpacity={0.7}
+              disabled={false}
               onPress={[Function]}
               style={
                 {

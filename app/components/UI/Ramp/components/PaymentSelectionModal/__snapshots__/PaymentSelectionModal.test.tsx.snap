@@ -979,7 +979,6 @@ exports[`PaymentSelectionModal matches snapshot 1`] = `
                               />
                             </View>
                           </View>
-                          placeholder - Render providers here eventually
                         </View>
                       </View>
                     </View>
