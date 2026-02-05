@@ -25,8 +25,12 @@ export function useTransactionPayWithdraw(): UseTransactionPayWithdrawResult {
   const transactionMeta = useTransactionMetadataRequest();
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
 
+  // Feature flag check is tied to withdraw transaction type.
+  // Future transaction types (e.g., Perps) may have their own feature flags.
+  const canSelectWithdrawToken = isWithdraw && isWithdrawTokenPickerEnabled;
+
   return {
     isWithdraw,
-    canSelectWithdrawToken: isWithdraw && isWithdrawTokenPickerEnabled,
+    canSelectWithdrawToken,
   };
 }
