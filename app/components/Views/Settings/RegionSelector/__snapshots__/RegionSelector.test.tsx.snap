@@ -383,12 +383,12 @@ exports[`RegionSelector clears search and scrolls to top when clear button is pr
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -398,23 +398,23 @@ exports[`RegionSelector clears search and scrolls to top when clear button is pr
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -427,6 +427,8 @@ exports[`RegionSelector clears search and scrolls to top when clear button is pr
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -440,7 +442,7 @@ exports[`RegionSelector clears search and scrolls to top when clear button is pr
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -1456,12 +1458,12 @@ exports[`RegionSelector clears search text when clear button is pressed 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -1471,23 +1473,23 @@ exports[`RegionSelector clears search text when clear button is pressed 1`] = `
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -1500,6 +1502,8 @@ exports[`RegionSelector clears search text when clear button is pressed 1`] = `
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -1513,7 +1517,7 @@ exports[`RegionSelector clears search text when clear button is pressed 1`] = `
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -2529,12 +2533,12 @@ exports[`RegionSelector displays empty state when search has no results 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -2544,23 +2548,23 @@ exports[`RegionSelector displays empty state when search has no results 1`] = `
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -2573,6 +2577,8 @@ exports[`RegionSelector displays empty state when search has no results 1`] = `
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -2586,7 +2592,7 @@ exports[`RegionSelector displays empty state when search has no results 1`] = `
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -2600,7 +2606,7 @@ exports[`RegionSelector displays empty state when search has no results 1`] = `
                           <View
                             style={
                               {
-                                "marginLeft": 8,
+                                "marginLeft": 12,
                               }
                             }
                             testID="textfield-endacccessory"
@@ -2616,26 +2622,26 @@ exports[`RegionSelector displays empty state when search has no results 1`] = `
                                 {
                                   "alignItems": "center",
                                   "borderRadius": 8,
-                                  "height": 24,
+                                  "height": 28,
                                   "justifyContent": "center",
                                   "opacity": 1,
-                                  "width": 24,
+                                  "width": 28,
                                 }
                               }
                               testID="region-selector-clear-button"
                             >
                               <SvgMock
-                                color="#121314"
+                                color="#686e7d"
                                 fill="currentColor"
-                                height={16}
+                                height={20}
                                 name="Close"
                                 style={
                                   {
-                                    "height": 16,
-                                    "width": 16,
+                                    "height": 20,
+                                    "width": 20,
                                   }
                                 }
-                                width={16}
+                                width={20}
                               />
                             </TouchableOpacity>
                           </View>
@@ -3098,12 +3104,12 @@ exports[`RegionSelector displays grouped search results showing country and matc
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -3113,23 +3119,23 @@ exports[`RegionSelector displays grouped search results showing country and matc
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -3142,6 +3148,8 @@ exports[`RegionSelector displays grouped search results showing country and matc
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -3155,7 +3163,7 @@ exports[`RegionSelector displays grouped search results showing country and matc
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -3169,7 +3177,7 @@ exports[`RegionSelector displays grouped search results showing country and matc
                           <View
                             style={
                               {
-                                "marginLeft": 8,
+                                "marginLeft": 12,
                               }
                             }
                             testID="textfield-endacccessory"
@@ -3185,26 +3193,26 @@ exports[`RegionSelector displays grouped search results showing country and matc
                                 {
                                   "alignItems": "center",
                                   "borderRadius": 8,
-                                  "height": 24,
+                                  "height": 28,
                                   "justifyContent": "center",
                                   "opacity": 1,
-                                  "width": 24,
+                                  "width": 28,
                                 }
                               }
                               testID="region-selector-clear-button"
                             >
                               <SvgMock
-                                color="#121314"
+                                color="#686e7d"
                                 fill="currentColor"
-                                height={16}
+                                height={20}
                                 name="Close"
                                 style={
                                   {
-                                    "height": 16,
-                                    "width": 16,
+                                    "height": 20,
+                                    "width": 20,
                                   }
                                 }
-                                width={16}
+                                width={20}
                               />
                             </TouchableOpacity>
                           </View>
@@ -3908,12 +3916,12 @@ exports[`RegionSelector displays standalone countries in search results 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -3923,23 +3931,23 @@ exports[`RegionSelector displays standalone countries in search results 1`] = `
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -3952,6 +3960,8 @@ exports[`RegionSelector displays standalone countries in search results 1`] = `
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -3965,7 +3975,7 @@ exports[`RegionSelector displays standalone countries in search results 1`] = `
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -3979,7 +3989,7 @@ exports[`RegionSelector displays standalone countries in search results 1`] = `
                           <View
                             style={
                               {
-                                "marginLeft": 8,
+                                "marginLeft": 12,
                               }
                             }
                             testID="textfield-endacccessory"
@@ -3995,26 +4005,26 @@ exports[`RegionSelector displays standalone countries in search results 1`] = `
                                 {
                                   "alignItems": "center",
                                   "borderRadius": 8,
-                                  "height": 24,
+                                  "height": 28,
                                   "justifyContent": "center",
                                   "opacity": 1,
-                                  "width": 24,
+                                  "width": 28,
                                 }
                               }
                               testID="region-selector-clear-button"
                             >
                               <SvgMock
-                                color="#121314"
+                                color="#686e7d"
                                 fill="currentColor"
-                                height={16}
+                                height={20}
                                 name="Close"
                                 style={
                                   {
-                                    "height": 16,
-                                    "width": 16,
+                                    "height": 20,
+                                    "width": 20,
                                   }
                                 }
-                                width={16}
+                                width={20}
                               />
                             </TouchableOpacity>
                           </View>
@@ -4575,12 +4585,12 @@ exports[`RegionSelector displays standalone states in search results 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -4590,23 +4600,23 @@ exports[`RegionSelector displays standalone states in search results 1`] = `
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -4619,6 +4629,8 @@ exports[`RegionSelector displays standalone states in search results 1`] = `
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -4632,7 +4644,7 @@ exports[`RegionSelector displays standalone states in search results 1`] = `
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -4646,7 +4658,7 @@ exports[`RegionSelector displays standalone states in search results 1`] = `
                           <View
                             style={
                               {
-                                "marginLeft": 8,
+                                "marginLeft": 12,
                               }
                             }
                             testID="textfield-endacccessory"
@@ -4662,26 +4674,26 @@ exports[`RegionSelector displays standalone states in search results 1`] = `
                                 {
                                   "alignItems": "center",
                                   "borderRadius": 8,
-                                  "height": 24,
+                                  "height": 28,
                                   "justifyContent": "center",
                                   "opacity": 1,
-                                  "width": 24,
+                                  "width": 28,
                                 }
                               }
                               testID="region-selector-clear-button"
                             >
                               <SvgMock
-                                color="#121314"
+                                color="#686e7d"
                                 fill="currentColor"
-                                height={16}
+                                height={20}
                                 name="Close"
                                 style={
                                   {
-                                    "height": 16,
-                                    "width": 16,
+                                    "height": 20,
+                                    "width": 20,
                                   }
                                 }
-                                width={16}
+                                width={20}
                               />
                             </TouchableOpacity>
                           </View>
@@ -5385,12 +5397,12 @@ exports[`RegionSelector does not highlight country when regionCode does not matc
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -5400,23 +5412,23 @@ exports[`RegionSelector does not highlight country when regionCode does not matc
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -5429,6 +5441,8 @@ exports[`RegionSelector does not highlight country when regionCode does not matc
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -5442,7 +5456,7 @@ exports[`RegionSelector does not highlight country when regionCode does not matc
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -6462,12 +6476,12 @@ exports[`RegionSelector does not highlight state when country does not match 1`]
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -6477,23 +6491,23 @@ exports[`RegionSelector does not highlight state when country does not match 1`]
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -6506,6 +6520,8 @@ exports[`RegionSelector does not highlight state when country does not match 1`]
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -6519,7 +6535,7 @@ exports[`RegionSelector does not highlight state when country does not match 1`]
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -7154,12 +7170,12 @@ exports[`RegionSelector does not highlight state when state ID does not match 1`
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -7169,23 +7185,23 @@ exports[`RegionSelector does not highlight state when state ID does not match 1`
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -7198,6 +7214,8 @@ exports[`RegionSelector does not highlight state when state ID does not match 1`
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -7211,7 +7229,7 @@ exports[`RegionSelector does not highlight state when state ID does not match 1`
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -7861,12 +7879,12 @@ exports[`RegionSelector does not highlight state when userRegion has no state 1`
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -7876,23 +7894,23 @@ exports[`RegionSelector does not highlight state when userRegion has no state 1`
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -7905,6 +7923,8 @@ exports[`RegionSelector does not highlight state when userRegion has no state 1`
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -7918,7 +7938,7 @@ exports[`RegionSelector does not highlight state when userRegion has no state 1`
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -8562,12 +8582,12 @@ exports[`RegionSelector falls back to userCountryCode when regionInTransit is nu
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -8577,23 +8597,23 @@ exports[`RegionSelector falls back to userCountryCode when regionInTransit is nu
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -8606,6 +8626,8 @@ exports[`RegionSelector falls back to userCountryCode when regionInTransit is nu
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -8619,7 +8641,7 @@ exports[`RegionSelector falls back to userCountryCode when regionInTransit is nu
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -8633,7 +8655,7 @@ exports[`RegionSelector falls back to userCountryCode when regionInTransit is nu
                           <View
                             style={
                               {
-                                "marginLeft": 8,
+                                "marginLeft": 12,
                               }
                             }
                             testID="textfield-endacccessory"
@@ -8649,26 +8671,26 @@ exports[`RegionSelector falls back to userCountryCode when regionInTransit is nu
                                 {
                                   "alignItems": "center",
                                   "borderRadius": 8,
-                                  "height": 24,
+                                  "height": 28,
                                   "justifyContent": "center",
                                   "opacity": 1,
-                                  "width": 24,
+                                  "width": 28,
                                 }
                               }
                               testID="region-selector-clear-button"
                             >
                               <SvgMock
-                                color="#121314"
+                                color="#686e7d"
                                 fill="currentColor"
-                                height={16}
+                                height={20}
                                 name="Close"
                                 style={
                                   {
-                                    "height": 16,
-                                    "width": 16,
+                                    "height": 20,
+                                    "width": 20,
                                   }
                                 }
-                                width={16}
+                                width={20}
                               />
                             </TouchableOpacity>
                           </View>
@@ -9435,12 +9457,12 @@ exports[`RegionSelector filters regions when search text is entered 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -9450,23 +9472,23 @@ exports[`RegionSelector filters regions when search text is entered 1`] = `
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -9479,6 +9501,8 @@ exports[`RegionSelector filters regions when search text is entered 1`] = `
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -9492,7 +9516,7 @@ exports[`RegionSelector filters regions when search text is entered 1`] = `
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -9506,7 +9530,7 @@ exports[`RegionSelector filters regions when search text is entered 1`] = `
                           <View
                             style={
                               {
-                                "marginLeft": 8,
+                                "marginLeft": 12,
                               }
                             }
                             testID="textfield-endacccessory"
@@ -9522,26 +9546,26 @@ exports[`RegionSelector filters regions when search text is entered 1`] = `
                                 {
                                   "alignItems": "center",
                                   "borderRadius": 8,
-                                  "height": 24,
+                                  "height": 28,
                                   "justifyContent": "center",
                                   "opacity": 1,
-                                  "width": 24,
+                                  "width": 28,
                                 }
                               }
                               testID="region-selector-clear-button"
                             >
                               <SvgMock
-                                color="#121314"
+                                color="#686e7d"
                                 fill="currentColor"
-                                height={16}
+                                height={20}
                                 name="Close"
                                 style={
                                   {
-                                    "height": 16,
-                                    "width": 16,
+                                    "height": 20,
+                                    "width": 20,
                                   }
                                 }
-                                width={16}
+                                width={20}
                               />
                             </TouchableOpacity>
                           </View>
@@ -10156,12 +10180,12 @@ exports[`RegionSelector highlights country when regionCode exactly matches count
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -10171,23 +10195,23 @@ exports[`RegionSelector highlights country when regionCode exactly matches count
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -10200,6 +10224,8 @@ exports[`RegionSelector highlights country when regionCode exactly matches count
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -10213,7 +10239,7 @@ exports[`RegionSelector highlights country when regionCode exactly matches count
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -11264,12 +11290,12 @@ exports[`RegionSelector highlights country when regionCode starts with country c
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -11279,23 +11305,23 @@ exports[`RegionSelector highlights country when regionCode starts with country c
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -11308,6 +11334,8 @@ exports[`RegionSelector highlights country when regionCode starts with country c
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -11321,7 +11349,7 @@ exports[`RegionSelector highlights country when regionCode starts with country c
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -12393,12 +12421,12 @@ exports[`RegionSelector highlights state in grouped search results when parent c
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -12408,23 +12436,23 @@ exports[`RegionSelector highlights state in grouped search results when parent c
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -12437,6 +12465,8 @@ exports[`RegionSelector highlights state in grouped search results when parent c
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -12450,7 +12480,7 @@ exports[`RegionSelector highlights state in grouped search results when parent c
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -12464,7 +12494,7 @@ exports[`RegionSelector highlights state in grouped search results when parent c
                           <View
                             style={
                               {
-                                "marginLeft": 8,
+                                "marginLeft": 12,
                               }
                             }
                             testID="textfield-endacccessory"
@@ -12480,26 +12510,26 @@ exports[`RegionSelector highlights state in grouped search results when parent c
                                 {
                                   "alignItems": "center",
                                   "borderRadius": 8,
-                                  "height": 24,
+                                  "height": 28,
                                   "justifyContent": "center",
                                   "opacity": 1,
-                                  "width": 24,
+                                  "width": 28,
                                 }
                               }
                               testID="region-selector-clear-button"
                             >
                               <SvgMock
-                                color="#121314"
+                                color="#686e7d"
                                 fill="currentColor"
-                                height={16}
+                                height={20}
                                 name="Close"
                                 style={
                                   {
-                                    "height": 16,
-                                    "width": 16,
+                                    "height": 20,
+                                    "width": 20,
                                   }
                                 }
-                                width={16}
+                                width={20}
                               />
                             </TouchableOpacity>
                           </View>
@@ -13258,12 +13288,12 @@ exports[`RegionSelector highlights state when selected in state view 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -13273,23 +13303,23 @@ exports[`RegionSelector highlights state when selected in state view 1`] = `
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -13302,6 +13332,8 @@ exports[`RegionSelector highlights state when selected in state view 1`] = `
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -13315,7 +13347,7 @@ exports[`RegionSelector highlights state when selected in state view 1`] = `
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -13981,12 +14013,12 @@ exports[`RegionSelector limits search results 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -13996,23 +14028,23 @@ exports[`RegionSelector limits search results 1`] = `
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -14025,6 +14057,8 @@ exports[`RegionSelector limits search results 1`] = `
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -14038,7 +14072,7 @@ exports[`RegionSelector limits search results 1`] = `
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -14052,7 +14086,7 @@ exports[`RegionSelector limits search results 1`] = `
                           <View
                             style={
                               {
-                                "marginLeft": 8,
+                                "marginLeft": 12,
                               }
                             }
                             testID="textfield-endacccessory"
@@ -14068,26 +14102,26 @@ exports[`RegionSelector limits search results 1`] = `
                                 {
                                   "alignItems": "center",
                                   "borderRadius": 8,
-                                  "height": 24,
+                                  "height": 28,
                                   "justifyContent": "center",
                                   "opacity": 1,
-                                  "width": 24,
+                                  "width": 28,
                                 }
                               }
                               testID="region-selector-clear-button"
                             >
                               <SvgMock
-                                color="#121314"
+                                color="#686e7d"
                                 fill="currentColor"
-                                height={16}
+                                height={20}
                                 name="Close"
                                 style={
                                   {
-                                    "height": 16,
-                                    "width": 16,
+                                    "height": 20,
+                                    "width": 20,
                                   }
                                 }
-                                width={16}
+                                width={20}
                               />
                             </TouchableOpacity>
                           </View>
@@ -15889,12 +15923,12 @@ exports[`RegionSelector navigates back to countries view when back button is pre
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -15904,23 +15938,23 @@ exports[`RegionSelector navigates back to countries view when back button is pre
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -15933,6 +15967,8 @@ exports[`RegionSelector navigates back to countries view when back button is pre
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -15946,7 +15982,7 @@ exports[`RegionSelector navigates back to countries view when back button is pre
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -16554,12 +16590,12 @@ exports[`RegionSelector navigates to states view when country with states is sel
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -16569,23 +16605,23 @@ exports[`RegionSelector navigates to states view when country with states is sel
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -16598,6 +16634,8 @@ exports[`RegionSelector navigates to states view when country with states is sel
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -16611,7 +16649,7 @@ exports[`RegionSelector navigates to states view when country with states is sel
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -17235,12 +17273,12 @@ exports[`RegionSelector renders countries list 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -17250,23 +17288,23 @@ exports[`RegionSelector renders countries list 1`] = `
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -17279,6 +17317,8 @@ exports[`RegionSelector renders countries list 1`] = `
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -17292,7 +17332,7 @@ exports[`RegionSelector renders countries list 1`] = `
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -18308,12 +18348,12 @@ exports[`RegionSelector renders country with supported set to false 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -18323,23 +18363,23 @@ exports[`RegionSelector renders country with supported set to false 1`] = `
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -18352,6 +18392,8 @@ exports[`RegionSelector renders country with supported set to false 1`] = `
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -18365,7 +18407,7 @@ exports[`RegionSelector renders country with supported set to false 1`] = `
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -18933,12 +18975,12 @@ exports[`RegionSelector renders country without flag 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -18948,23 +18990,23 @@ exports[`RegionSelector renders country without flag 1`] = `
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -18977,6 +19019,8 @@ exports[`RegionSelector renders country without flag 1`] = `
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -18990,7 +19034,7 @@ exports[`RegionSelector renders country without flag 1`] = `
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -19575,12 +19619,12 @@ exports[`RegionSelector renders description text only in country view 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -19590,23 +19634,23 @@ exports[`RegionSelector renders description text only in country view 1`] = `
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -19619,6 +19663,8 @@ exports[`RegionSelector renders description text only in country view 1`] = `
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -19632,7 +19678,7 @@ exports[`RegionSelector renders description text only in country view 1`] = `
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -20632,12 +20678,12 @@ exports[`RegionSelector renders description text only in country view 2`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -20647,23 +20693,23 @@ exports[`RegionSelector renders description text only in country view 2`] = `
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -20676,6 +20722,8 @@ exports[`RegionSelector renders description text only in country view 2`] = `
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -20689,7 +20737,7 @@ exports[`RegionSelector renders description text only in country view 2`] = `
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -21313,12 +21361,12 @@ exports[`RegionSelector renders disabled country 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -21328,23 +21376,23 @@ exports[`RegionSelector renders disabled country 1`] = `
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -21357,6 +21405,8 @@ exports[`RegionSelector renders disabled country 1`] = `
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -21370,7 +21420,7 @@ exports[`RegionSelector renders disabled country 1`] = `
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -22370,12 +22420,12 @@ exports[`RegionSelector renders disabled state 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -22385,23 +22435,23 @@ exports[`RegionSelector renders disabled state 1`] = `
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -22414,6 +22464,8 @@ exports[`RegionSelector renders disabled state 1`] = `
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -22427,7 +22479,7 @@ exports[`RegionSelector renders disabled state 1`] = `
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -23051,12 +23103,12 @@ exports[`RegionSelector renders error state when countries error occurs 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -23066,23 +23118,23 @@ exports[`RegionSelector renders error state when countries error occurs 1`] = `
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -23095,6 +23147,8 @@ exports[`RegionSelector renders error state when countries error occurs 1`] = `
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -23108,7 +23162,7 @@ exports[`RegionSelector renders error state when countries error occurs 1`] = `
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -23594,12 +23648,12 @@ exports[`RegionSelector renders loading state when regions are loading 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -23609,23 +23663,23 @@ exports[`RegionSelector renders loading state when regions are loading 1`] = `
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -23638,6 +23692,8 @@ exports[`RegionSelector renders loading state when regions are loading 1`] = `
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -23651,7 +23707,7 @@ exports[`RegionSelector renders loading state when regions are loading 1`] = `
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -24111,12 +24167,12 @@ exports[`RegionSelector renders recommended countries 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -24126,23 +24182,23 @@ exports[`RegionSelector renders recommended countries 1`] = `
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -24155,6 +24211,8 @@ exports[`RegionSelector renders recommended countries 1`] = `
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -24168,7 +24226,7 @@ exports[`RegionSelector renders recommended countries 1`] = `
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -24840,12 +24898,12 @@ exports[`RegionSelector renders state with supported set to false 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -24855,23 +24913,23 @@ exports[`RegionSelector renders state with supported set to false 1`] = `
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -24884,6 +24942,8 @@ exports[`RegionSelector renders state with supported set to false 1`] = `
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -24897,7 +24957,7 @@ exports[`RegionSelector renders state with supported set to false 1`] = `
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -25433,12 +25493,12 @@ exports[`RegionSelector renders state without stateId 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -25448,23 +25508,23 @@ exports[`RegionSelector renders state without stateId 1`] = `
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -25477,6 +25537,8 @@ exports[`RegionSelector renders state without stateId 1`] = `
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -25490,7 +25552,7 @@ exports[`RegionSelector renders state without stateId 1`] = `
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -26081,12 +26143,12 @@ exports[`RegionSelector renders states view 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -26096,23 +26158,23 @@ exports[`RegionSelector renders states view 1`] = `
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -26125,6 +26187,8 @@ exports[`RegionSelector renders states view 1`] = `
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -26138,7 +26202,7 @@ exports[`RegionSelector renders states view 1`] = `
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -26762,12 +26826,12 @@ exports[`RegionSelector renders unsupported country 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -26777,23 +26841,23 @@ exports[`RegionSelector renders unsupported country 1`] = `
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -26806,6 +26870,8 @@ exports[`RegionSelector renders unsupported country 1`] = `
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -26819,7 +26885,7 @@ exports[`RegionSelector renders unsupported country 1`] = `
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -27819,12 +27885,12 @@ exports[`RegionSelector renders unsupported state 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -27834,23 +27900,23 @@ exports[`RegionSelector renders unsupported state 1`] = `
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -27863,6 +27929,8 @@ exports[`RegionSelector renders unsupported state 1`] = `
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -27876,7 +27944,7 @@ exports[`RegionSelector renders unsupported state 1`] = `
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -28500,12 +28568,12 @@ exports[`RegionSelector renders when country has states and user region state is
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -28515,23 +28583,23 @@ exports[`RegionSelector renders when country has states and user region state is
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -28544,6 +28612,8 @@ exports[`RegionSelector renders when country has states and user region state is
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -28557,7 +28627,7 @@ exports[`RegionSelector renders when country has states and user region state is
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -29629,12 +29699,12 @@ exports[`RegionSelector renders with empty regions array 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -29644,23 +29714,23 @@ exports[`RegionSelector renders with empty regions array 1`] = `
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -29673,6 +29743,8 @@ exports[`RegionSelector renders with empty regions array 1`] = `
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -29686,7 +29758,7 @@ exports[`RegionSelector renders with empty regions array 1`] = `
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -30130,12 +30202,12 @@ exports[`RegionSelector renders with selected user region 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -30145,23 +30217,23 @@ exports[`RegionSelector renders with selected user region 1`] = `
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -30174,6 +30246,8 @@ exports[`RegionSelector renders with selected user region 1`] = `
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -30187,7 +30261,7 @@ exports[`RegionSelector renders with selected user region 1`] = `
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -31243,12 +31317,12 @@ exports[`RegionSelector resets search when navigating to state view 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -31258,23 +31332,23 @@ exports[`RegionSelector resets search when navigating to state view 1`] = `
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -31287,6 +31361,8 @@ exports[`RegionSelector resets search when navigating to state view 1`] = `
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -31300,7 +31376,7 @@ exports[`RegionSelector resets search when navigating to state view 1`] = `
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -31924,12 +32000,12 @@ exports[`RegionSelector scrolls to top when search text changes 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -31939,23 +32015,23 @@ exports[`RegionSelector scrolls to top when search text changes 1`] = `
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -31968,6 +32044,8 @@ exports[`RegionSelector scrolls to top when search text changes 1`] = `
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -31981,7 +32059,7 @@ exports[`RegionSelector scrolls to top when search text changes 1`] = `
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -31995,7 +32073,7 @@ exports[`RegionSelector scrolls to top when search text changes 1`] = `
                           <View
                             style={
                               {
-                                "marginLeft": 8,
+                                "marginLeft": 12,
                               }
                             }
                             testID="textfield-endacccessory"
@@ -32011,26 +32089,26 @@ exports[`RegionSelector scrolls to top when search text changes 1`] = `
                                 {
                                   "alignItems": "center",
                                   "borderRadius": 8,
-                                  "height": 24,
+                                  "height": 28,
                                   "justifyContent": "center",
                                   "opacity": 1,
-                                  "width": 24,
+                                  "width": 28,
                                 }
                               }
                               testID="region-selector-clear-button"
                             >
                               <SvgMock
-                                color="#121314"
+                                color="#686e7d"
                                 fill="currentColor"
-                                height={16}
+                                height={20}
                                 name="Close"
                                 style={
                                   {
-                                    "height": 16,
-                                    "width": 16,
+                                    "height": 20,
+                                    "width": 20,
                                   }
                                 }
-                                width={16}
+                                width={20}
                               />
                             </TouchableOpacity>
                           </View>
@@ -32477,12 +32555,12 @@ exports[`RegionSelector sets up back button in state view 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -32492,23 +32570,23 @@ exports[`RegionSelector sets up back button in state view 1`] = `
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -32521,6 +32599,8 @@ exports[`RegionSelector sets up back button in state view 1`] = `
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -32534,7 +32614,7 @@ exports[`RegionSelector sets up back button in state view 1`] = `
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -33158,12 +33238,12 @@ exports[`RegionSelector shows state name in country view when user has selected 
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -33173,23 +33253,23 @@ exports[`RegionSelector shows state name in country view when user has selected 
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -33202,6 +33282,8 @@ exports[`RegionSelector shows state name in country view when user has selected 
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -33215,7 +33297,7 @@ exports[`RegionSelector shows state name in country view when user has selected 
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,
@@ -34297,12 +34379,12 @@ exports[`RegionSelector sorts regions with recommended first when no search 1`] 
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 8,
+                              "backgroundColor": "#3c4d9d0f",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 24,
                               "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
+                              "height": 48,
                               "opacity": 1,
                               "paddingHorizontal": 16,
                             }
@@ -34312,23 +34394,23 @@ exports[`RegionSelector sorts regions with recommended first when no search 1`] 
                           <View
                             style={
                               {
-                                "marginRight": 8,
+                                "marginRight": 12,
                               }
                             }
                             testID="textfield-startacccessory"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#686e7d"
                               fill="currentColor"
-                              height={16}
+                              height={20}
                               name="Search"
                               style={
                                 {
-                                  "height": 16,
-                                  "width": 16,
+                                  "height": 20,
+                                  "width": 20,
                                 }
                               }
-                              width={16}
+                              width={20}
                             />
                           </View>
                           <View
@@ -34341,6 +34423,8 @@ exports[`RegionSelector sorts regions with recommended first when no search 1`] 
                             <TextInput
                               autoFocus={false}
                               editable={true}
+                              multiline={false}
+                              numberOfLines={1}
                               onBlur={[Function]}
                               onChangeText={[Function]}
                               onFocus={[Function]}
@@ -34354,7 +34438,7 @@ exports[`RegionSelector sorts regions with recommended first when no search 1`] 
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
-                                  "height": 38,
+                                  "height": 46,
                                   "letterSpacing": 0,
                                   "opacity": 1,
                                   "paddingVertical": 2,

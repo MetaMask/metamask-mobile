@@ -18,6 +18,7 @@ import { RequestStatus, type QuoteResponse } from '@metamask/bridge-controller';
 import { SolScope } from '@metamask/keyring-api';
 import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { useRWAToken } from '../../hooks/useRWAToken';
 import { strings } from '../../../../../../locales/i18n';
 import { isHardwareAccount } from '../../../../../util/address';
 import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/test/keyringControllerTestUtils';
@@ -264,6 +265,12 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
   useBridgeQuoteData: jest
     .fn()
     .mockImplementation(() => mockUseBridgeQuoteData),
+}));
+
+jest.mock('../../hooks/useRWAToken', () => ({
+  useRWAToken: jest.fn().mockImplementation(() => ({
+    isStockToken: jest.fn().mockReturnValue(false),
+  })),
 }));
 
 jest.mock('../../../../../util/address', () => ({
@@ -1170,6 +1177,72 @@ describe('BridgeView', () => {
       });
 
       noFeeSpy.mockRestore();
+    });
+  });
+
+  // TODO: This test suite is temporary and will be replaced by another behavior once geolocation detection will be implemented.
+  describe('Error Banner for RWA tokens', () => {
+    beforeEach(() => {
+      // Mock quote data to show an error
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          quoteFetchError: 'Error fetching quote',
+          isNoQuotesAvailable: true,
+          isLoading: false,
+        }));
+    });
+    it('should show regular error banner when no quotes and no RWA token selected', async () => {
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [],
+          quotesLastFetched: 12,
+        },
+      });
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      const expected = strings('bridge.error_banner_description');
+
+      await waitFor(() => {
+        expect(getByText(expected)).toBeTruthy();
+      });
+    });
+
+    it('should show error banner about geolocation restriction when no quotes and RWA token selected', async () => {
+      jest.mocked(useRWAToken as jest.Mock).mockImplementation(() => ({
+        isStockToken: jest.fn().mockReturnValue(true),
+      }));
+
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [],
+          quotesLastFetched: 12,
+        },
+      });
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      const expected = strings('bridge.stock_token_error_banner_description');
+
+      await waitFor(() => {
+        expect(getByText(expected)).toBeTruthy();
+      });
     });
   });
 
