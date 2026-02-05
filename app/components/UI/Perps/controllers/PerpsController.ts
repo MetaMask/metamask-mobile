@@ -184,6 +184,7 @@ export type PerpsControllerState = {
   lastDepositResult: LastTransactionResult | null;
 
   // Simple withdrawal state (transient, for UI feedback)
+  // Note: withdrawInProgress is now derived from withdrawalRequests having pending/bridging entries
   withdrawInProgress: boolean;
   lastWithdrawResult: LastTransactionResult | null;
 
@@ -1872,6 +1873,88 @@ export class PerpsController extends BaseController<
         });
       }
     });
+  }
+
+  /**
+   * Complete a specific withdrawal detected via transaction history polling (FIFO queue).
+   * Called when a completed withdrawal appears in the transaction history matching a pending request.
+   *
+   * Key design: The hook polls getUserHistory (same API the transaction history UI uses).
+   * Uses FIFO matching: oldest pending withdrawal is matched with first completed withdrawal
+   * in history that happened after its submission time.
+   *
+   * @param withdrawalRequestId - The ID of the pending withdrawal request to mark as complete
+   * @param completedWithdrawal - The completed withdrawal data from the history API
+   */
+  completeWithdrawalFromHistory(
+    withdrawalRequestId: string,
+    completedWithdrawal: {
+      txHash: string;
+      amount: string;
+      timestamp: number;
+      asset?: string;
+    },
+  ): void {
+    this.update((state) => {
+      // Find and remove the specific withdrawal request
+      const requestIndex = state.withdrawalRequests.findIndex(
+        (req) => req.id === withdrawalRequestId,
+      );
+
+      if (requestIndex !== -1) {
+        // Remove this specific request from the queue
+        state.withdrawalRequests.splice(requestIndex, 1);
+      }
+
+      // Update lastWithdrawResult with the completed withdrawal
+      state.lastWithdrawResult = {
+        success: true,
+        txHash: completedWithdrawal.txHash,
+        amount: completedWithdrawal.amount,
+        asset: completedWithdrawal.asset || USDC_SYMBOL,
+        timestamp: completedWithdrawal.timestamp,
+        error: '',
+      };
+
+      // Check if there are still pending withdrawals in the queue
+      const hasPendingWithdrawals = state.withdrawalRequests.some(
+        (req) => req.status === 'pending' || req.status === 'bridging',
+      );
+
+      // Only set withdrawInProgress to false if queue is empty
+      state.withdrawInProgress = hasPendingWithdrawals;
+
+      // Clear withdrawal progress only if no more pending withdrawals
+      if (!hasPendingWithdrawals) {
+        state.withdrawalProgress = {
+          progress: 0,
+          lastUpdated: Date.now(),
+          activeWithdrawalId: null,
+        };
+      }
+
+      state.lastUpdateTimestamp = Date.now();
+    });
+
+    this.debugLog(
+      'PerpsController: Completed withdrawal from transaction history (FIFO)',
+      {
+        withdrawalRequestId,
+        txHash: completedWithdrawal.txHash,
+        amount: completedWithdrawal.amount,
+      },
+    );
+
+    // Track the completion
+    this.getMetrics().trackPerpsEvent(
+      PerpsAnalyticsEvent.WithdrawalTransaction,
+      {
+        [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.COMPLETED,
+        [PERPS_EVENT_PROPERTY.WITHDRAWAL_AMOUNT]: Number.parseFloat(
+          completedWithdrawal.amount,
+        ),
+      },
+    );
   }
 
   /**
