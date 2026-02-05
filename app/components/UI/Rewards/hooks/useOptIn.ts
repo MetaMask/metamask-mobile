@@ -16,17 +16,23 @@ import Engine from '../../../../core/Engine';
 import { useLinkAccountGroup } from './useLinkAccountGroup';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { AccountGroupId } from '@metamask/account-api';
+import { useBulkLinkState } from './useBulkLinkState';
 
 export interface UseOptinResult {
   /**
    * Function to initiate the optin process
+   * @param referralCode - Optional referral code to apply
+   * @param isPrefilled - Whether the referral code was prefilled
+   * @param bulkLink - If true, bulk link all other account groups after opt-in succeeds
    */
   optin: ({
     referralCode,
     isPrefilled,
+    bulkLink,
   }: {
     referralCode?: string;
     isPrefilled?: boolean;
+    bulkLink?: boolean;
   }) => Promise<void>;
 
   /**
@@ -50,6 +56,7 @@ export const useOptin = (): UseOptinResult => {
   const [optinLoading, setOptinLoading] = useState<boolean>(false);
   const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
   const { linkAccountGroup } = useLinkAccountGroup(false);
+  const { startBulkLink, cancelBulkLink } = useBulkLinkState();
   const activeAccount = useSelector(selectSelectedInternalAccount);
   const walletsMap = useSelector(selectWalletByAccount);
   const accountGroupsByWallet = useSelector(selectAccountGroupsByWallet);
@@ -83,9 +90,11 @@ export const useOptin = (): UseOptinResult => {
     async ({
       referralCode,
       isPrefilled,
+      bulkLink,
     }: {
       referralCode?: string;
       isPrefilled?: boolean;
+      bulkLink?: boolean;
     }) => {
       if (!accountGroup?.id) {
         return;
@@ -96,6 +105,7 @@ export const useOptin = (): UseOptinResult => {
         referred,
         referral_code_used: referralCode,
         referral_code_input_type: isPrefilled ? 'prefill' : 'manual',
+        bulk_link: bulkLink,
       };
       trackEvent(
         createEventBuilder(MetaMetricsEvents.REWARDS_OPT_IN_STARTED)
@@ -109,6 +119,12 @@ export const useOptin = (): UseOptinResult => {
         setOptinLoading(true);
         setOptinError(null);
 
+        // Cancel any running bulk link operation to prevent errors during opt-in
+        cancelBulkLink();
+
+        // Make sure to always opt in the first account group in the wallet first
+        // Then link the side effect account group (currently selected) if it exists
+
         const accountsToOptIn =
           sideEffectAccountGroupIdToLink && sideEffectAccounts.length > 0
             ? sideEffectAccounts
@@ -116,7 +132,9 @@ export const useOptin = (): UseOptinResult => {
 
         const accountGroupToLinkAfterOptIn =
           sideEffectAccountGroupIdToLink && sideEffectAccounts.length > 0
-            ? selectedAccountGroupId
+            ? sideEffectAccountGroupIdToLink !== selectedAccountGroupId
+              ? selectedAccountGroupId
+              : undefined
             : sideEffectAccountGroupIdToLink;
 
         subscriptionId = await Engine.controllerMessenger.call(
@@ -126,7 +144,9 @@ export const useOptin = (): UseOptinResult => {
         );
 
         if (subscriptionId) {
-          if (accountGroupToLinkAfterOptIn) {
+          if (bulkLink) {
+            startBulkLink();
+          } else if (accountGroupToLinkAfterOptIn) {
             try {
               await linkAccountGroup(
                 accountGroupToLinkAfterOptIn as AccountGroupId,
@@ -178,6 +198,8 @@ export const useOptin = (): UseOptinResult => {
       addTraitsToUser,
       linkAccountGroup,
       dispatch,
+      startBulkLink,
+      cancelBulkLink,
     ],
   );
 

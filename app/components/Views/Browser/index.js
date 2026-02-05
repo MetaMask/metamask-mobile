@@ -5,10 +5,12 @@ import React, {
   useEffect,
   useRef,
   useState,
+  useMemo,
 } from 'react';
 import { View } from 'react-native';
 import { captureScreen } from 'react-native-view-shot';
 import { connect, useSelector } from 'react-redux';
+import { deepEqual } from 'fast-equals';
 import { parseCaipAccountId } from '@metamask/utils';
 import { strings } from '../../../../locales/i18n';
 import { selectPermissionControllerState } from '../../../selectors/snaps';
@@ -61,7 +63,7 @@ const MAX_BROWSER_TABS = 5;
  * Component that wraps all the browser
  * individual tabs and the tabs view
  */
-export const Browser = (props) => {
+export const BrowserPure = (props) => {
   const {
     route,
     navigation,
@@ -141,22 +143,34 @@ export const Browser = (props) => {
     [updateTab],
   );
 
-  const hideTabsAndUpdateUrl = (url) => {
-    setShouldShowTabs(false);
-    setCurrentUrl(url);
-  };
+  const hideTabsAndUpdateUrl = useCallback(
+    (url) => {
+      setShouldShowTabs(false);
+      setCurrentUrl(url);
+    },
+    [setShouldShowTabs, setCurrentUrl],
+  );
 
-  const switchToTab = (tab) => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.BROWSER_SWITCH_TAB).build(),
-    );
-    setActiveTab(tab.id);
-    hideTabsAndUpdateUrl(tab.url);
-    updateTabInfo(tab.id, {
-      url: tab.url,
-      isArchived: false,
-    });
-  };
+  const switchToTab = useCallback(
+    (tab) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.BROWSER_SWITCH_TAB).build(),
+      );
+      setActiveTab(tab.id);
+      hideTabsAndUpdateUrl(tab.url);
+      updateTabInfo(tab.id, {
+        url: tab.url,
+        isArchived: false,
+      });
+    },
+    [
+      trackEvent,
+      createEventBuilder,
+      setActiveTab,
+      hideTabsAndUpdateUrl,
+      updateTabInfo,
+    ],
+  );
 
   const hasAccounts = useRef(Boolean(accounts.length));
 
@@ -366,57 +380,67 @@ export const Browser = (props) => {
     [updateTab],
   );
 
+  const activeTabUrl = useMemo(
+    () => tabs.find((tab) => tab.id === activeTabId)?.url,
+    [tabs, activeTabId],
+  );
+
   const showTabsView = useCallback(async () => {
     try {
-      const activeTab = tabs.find((tab) => tab.id === activeTabId);
-      await takeScreenshot(activeTab.url, activeTab.id);
+      if (!activeTabUrl) {
+        throw new Error('Active tab URL is not set');
+      }
+      await takeScreenshot(activeTabUrl, activeTabId);
     } catch (e) {
       Logger.error(e);
     }
 
     setShouldShowTabs(true);
-  }, [tabs, activeTabId, takeScreenshot]);
+  }, [activeTabUrl, activeTabId, takeScreenshot]);
 
-  const closeAllTabs = () => {
+  const closeAllTabs = useCallback(() => {
     if (tabs.length) {
       triggerCloseAllTabs();
       setCurrentUrl(null);
     }
-  };
+  }, [tabs, triggerCloseAllTabs, setCurrentUrl]);
 
-  const closeTab = (tab) => {
-    // If the tab was selected we have to select
-    // the next one, and if there's no next one,
-    // we select the previous one.
-    if (tab.id === activeTabId) {
-      if (tabs.length > 1) {
-        tabs.forEach((t, i) => {
-          if (t.id === tab.id) {
-            let newTab = tabs[i - 1];
-            if (tabs[i + 1]) {
-              newTab = tabs[i + 1];
+  const closeTab = useCallback(
+    (tab) => {
+      // If the tab was selected we have to select
+      // the next one, and if there's no next one,
+      // we select the previous one.
+      if (tab.id === activeTabId) {
+        if (tabs.length > 1) {
+          tabs.forEach((t, i) => {
+            if (t.id === tab.id) {
+              let newTab = tabs[i - 1];
+              if (tabs[i + 1]) {
+                newTab = tabs[i + 1];
+              }
+              setActiveTab(newTab.id);
+              setCurrentUrl(newTab.url);
             }
-            setActiveTab(newTab.id);
-            setCurrentUrl(newTab.url);
-          }
-        });
-      } else {
-        setCurrentUrl(null);
+          });
+        } else {
+          setCurrentUrl(null);
+        }
       }
-    }
 
-    triggerCloseTab(tab.id);
-  };
+      triggerCloseTab(tab.id);
+    },
+    [activeTabId, triggerCloseTab, tabs, setActiveTab],
+  );
 
-  const closeTabsView = () => {
+  const closeTabsView = useCallback(() => {
     setShouldShowTabs(false);
     // If no tabs left, navigate away from browser
     if (tabs.length === 0) {
       navigation.goBack();
     }
-  };
+  }, [tabs, setShouldShowTabs, navigation]);
 
-  const renderTabList = () => {
+  const renderTabList = useCallback(() => {
     if (shouldShowTabs) {
       return (
         <Tabs
@@ -431,18 +455,24 @@ export const Browser = (props) => {
       );
     }
     return null;
-  };
+  }, [
+    shouldShowTabs,
+    tabs,
+    activeTabId,
+    switchToTab,
+    newTab,
+    closeTab,
+    closeTabsView,
+    closeAllTabs,
+  ]);
 
   const renderBrowserTabWindows = useCallback(
     () =>
       tabs
         .filter((tab) => !tab.isArchived)
-        .map((tab) => {
-          // If the tab is not the active tab, don't render it
-          if (activeTabId !== tab.id) return null;
-
+        .map((tab) =>
           // If the tab is the active tab, render it
-          return tab.url || !isTokenDiscoveryBrowserEnabled() ? (
+          tab.url || !isTokenDiscoveryBrowserEnabled() ? (
             <BrowserTab
               key={`tab_${tab.id}`}
               id={tab.id}
@@ -464,8 +494,8 @@ export const Browser = (props) => {
               newTab={newTab}
               updateTabInfo={updateTabInfo}
             />
-          );
-        }),
+          ),
+        ),
     [
       tabs,
       shouldShowTabs,
@@ -473,7 +503,6 @@ export const Browser = (props) => {
       homePageUrl,
       updateTabInfo,
       showTabsView,
-      activeTabId,
       route.params?.fromTrending,
       route.params?.fromPerps,
     ],
@@ -490,6 +519,10 @@ export const Browser = (props) => {
   );
 };
 
+const Browser = React.memo(BrowserPure);
+Browser.displayName = 'Browser';
+Browser.propTypes = BrowserPure.propTypes;
+
 const mapStateToProps = (state) => ({
   tabs: state.browser.tabs,
   activeTab: state.browser.activeTab,
@@ -503,7 +536,7 @@ const mapDispatchToProps = (dispatch) => ({
   updateTab: (id, url) => dispatch(updateTab(id, url)),
 });
 
-Browser.propTypes = {
+BrowserPure.propTypes = {
   /**
    * react-navigation object used to switch between screens
    */
@@ -544,4 +577,17 @@ Browser.propTypes = {
 
 export { default as createBrowserNavDetails } from './Browser.types';
 
-export default connect(mapStateToProps, mapDispatchToProps)(Browser);
+const ConnectedBrowser = connect(mapStateToProps, mapDispatchToProps)(Browser);
+ConnectedBrowser.displayName = 'ConnectedBrowser';
+
+const MemoConnectedBrowser = ({ route, ...props }) => {
+  // Little hack to prevent some extra re-renders because route is an object that could be re-created (but stays the same) which triggers a re-render
+  const previousRoute = useRef(route);
+  if (!deepEqual(previousRoute.current, route)) {
+    previousRoute.current = route;
+  }
+  return <ConnectedBrowser route={previousRoute.current} {...props} />;
+};
+MemoConnectedBrowser.propTypes = BrowserPure.propTypes;
+
+export default MemoConnectedBrowser;
