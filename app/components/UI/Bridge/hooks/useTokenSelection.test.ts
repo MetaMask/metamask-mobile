@@ -69,7 +69,7 @@ describe('useTokenSelection', () => {
     jest.clearAllMocks();
     // Non-stock token behavior
     mockIsStockToken.mockReturnValue(false);
-    mockIsTokenTradingOpen.mockResolvedValue(true);
+    mockIsTokenTradingOpen.mockReturnValue(true);
     mockUseIsNetworkEnabled.mockReturnValue(true);
   });
 
@@ -334,7 +334,7 @@ describe('useTokenSelection', () => {
 
     it('navigates to market closed modal when stock token trading is closed', async () => {
       mockIsStockToken.mockReturnValue(true);
-      mockIsTokenTradingOpen.mockResolvedValue(false);
+      mockIsTokenTradingOpen.mockReturnValue(false);
 
       const { result } = renderHook(() =>
         useTokenSelection(TokenSelectorType.Source),
@@ -376,7 +376,7 @@ describe('useTokenSelection', () => {
 
     it('navigates to market closed modal for dest token when trading is closed', async () => {
       mockIsStockToken.mockReturnValue(true);
-      mockIsTokenTradingOpen.mockResolvedValue(false);
+      mockIsTokenTradingOpen.mockReturnValue(false);
 
       const { result } = renderHook(() =>
         useTokenSelection(TokenSelectorType.Dest),

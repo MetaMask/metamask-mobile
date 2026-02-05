@@ -39,8 +39,8 @@ export function useRWAToken() {
         marketIsOpen = nowMs < nextCloseMs || nowMs >= nextOpenMs;
       }
 
-      const pauseStartMs = toMs(token.rwaData?.nextPause?.start);
-      const pauseEndMs = toMs(token.rwaData?.nextPause?.end);
+      const pauseStartMs = toMs(token?.rwaData?.nextPause?.start);
+      const pauseEndMs = toMs(token?.rwaData?.nextPause?.end);
 
       const inPause =
         (pauseStartMs != null &&
