@@ -1454,6 +1454,12 @@ export class TradingService {
         batchCloseProps,
       );
 
+      // Invalidate readOnly caches on successful batch close
+      if (operationResult?.success && operationResult.successCount > 0) {
+        PerpsCacheInvalidator.invalidate('positions');
+        PerpsCacheInvalidator.invalidate('accountState');
+      }
+
       this.deps.tracer.endTrace({
         name: PerpsTraceNames.ClosePosition,
         id: traceId,
@@ -1650,6 +1656,10 @@ export class TradingService {
           [PERPS_EVENT_PROPERTY.MARGIN_USED]: Math.abs(parseFloat(amount)),
           [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: completionDuration,
         });
+
+        // Invalidate readOnly caches so external hooks refresh
+        PerpsCacheInvalidator.invalidate('positions');
+        PerpsCacheInvalidator.invalidate('accountState');
       }
 
       this.deps.tracer.endTrace({
@@ -1780,6 +1790,10 @@ export class TradingService {
             [PERPS_EVENT_PROPERTY.ACTION]: 'flip_position',
           },
         );
+
+        // Invalidate readOnly caches so external hooks refresh
+        PerpsCacheInvalidator.invalidate('positions');
+        PerpsCacheInvalidator.invalidate('accountState');
       }
 
       this.deps.tracer.endTrace({
