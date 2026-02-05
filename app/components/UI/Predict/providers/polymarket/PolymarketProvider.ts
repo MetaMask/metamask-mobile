@@ -1371,15 +1371,42 @@ export class PolymarketProvider implements PredictProvider {
     const result: GeoBlockResponse = { isEligible: false };
 
     try {
-      const res = await fetch(GEOBLOCK_API_ENDPOINT);
-      const data = (await res.json()) as {
-        blocked?: boolean;
-        country?: string;
-      };
+      // Create an AbortController with a 10-second timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-      if (data.blocked !== undefined) {
-        result.isEligible = data.blocked === false;
-        result.country = data.country;
+      try {
+        const res = await fetch(GEOBLOCK_API_ENDPOINT, {
+          signal: controller.signal,
+        });
+
+        // Clear timeout if fetch completes successfully
+        clearTimeout(timeoutId);
+
+        const data = (await res.json()) as {
+          blocked?: boolean;
+          country?: string;
+        };
+
+        if (data.blocked !== undefined) {
+          result.isEligible = data.blocked === false;
+          result.country = data.country;
+        }
+      } catch (fetchError) {
+        // Clear timeout on error
+        clearTimeout(timeoutId);
+
+        // Handle timeout specifically
+        if (
+          fetchError instanceof Error &&
+          (fetchError.name === 'AbortError' ||
+            fetchError.message.includes('aborted'))
+        ) {
+          throw new Error('Geoblock check timed out after 10 seconds');
+        }
+
+        // Re-throw other fetch errors
+        throw fetchError;
       }
     } catch (error) {
       DevLogger.log('PolymarketProvider: Error checking geoblock status', {
