@@ -1,16 +1,16 @@
-import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import TestHelpers from '../../helpers';
-import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
-import { RegressionTrade } from '../../tags';
-import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
-import Assertions from '../../../tests/framework/Assertions';
-import NetworkApprovalBottomSheet from '../../pages/Network/NetworkApprovalBottomSheet';
-import NetworkAddedBottomSheet from '../../pages/Network/NetworkAddedBottomSheet';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
-import NetworkListModal from '../../pages/Network/NetworkListModal';
-import { PopularNetworksList } from '../../../tests/resources/networks.e2e';
+import { loginToApp } from '../../../e2e/viewHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import TestHelpers from '../../../e2e/helpers';
+import SellGetStartedView from '../../../e2e/pages/Ramps/SellGetStartedView';
+import { RegressionTrade } from '../../../e2e/tags';
+import BuildQuoteView from '../../../e2e/pages/Ramps/BuildQuoteView';
+import Assertions from '../../framework/Assertions';
+import NetworkApprovalBottomSheet from '../../../e2e/pages/Network/NetworkApprovalBottomSheet';
+import NetworkAddedBottomSheet from '../../../e2e/pages/Network/NetworkAddedBottomSheet';
+import NetworkEducationModal from '../../../e2e/pages/Network/NetworkEducationModal';
+import NetworkListModal from '../../../e2e/pages/Network/NetworkListModal';
+import { PopularNetworksList } from '../../resources/networks.e2e';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
 describe(RegressionTrade('Sell Crypto Deeplinks'), () => {

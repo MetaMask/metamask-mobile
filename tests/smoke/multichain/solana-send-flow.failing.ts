@@ -1,15 +1,15 @@
-import { SmokeNetworkExpansion } from '../../tags';
-import { importWalletWithRecoveryPhrase } from '../../viewHelper';
-import Assertions from '../../../tests/framework/Assertions';
-import TestHelpers from '../../helpers';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletView from '../../pages/wallet/WalletView';
-import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import SnapSendActionSheet from '../../pages/wallet/SendActionBottomSheet';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
-import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
-import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
-import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
+import { SmokeNetworkExpansion } from '../../../e2e/tags';
+import { importWalletWithRecoveryPhrase } from '../../../e2e/viewHelper';
+import Assertions from '../../framework/Assertions';
+import TestHelpers from '../../../e2e/helpers';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView';
+import SnapSendActionSheet from '../../../e2e/pages/wallet/SendActionBottomSheet';
+import NetworkEducationModal from '../../../e2e/pages/Network/NetworkEducationModal';
+import AccountListBottomSheet from '../../../e2e/pages/wallet/AccountListBottomSheet';
+import AddAccountBottomSheet from '../../../e2e/pages/wallet/AddAccountBottomSheet';
+import AddNewHdAccountComponent from '../../../e2e/pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
 
 // Test constants
 const INVALID_ADDRESS = 'invalid address';

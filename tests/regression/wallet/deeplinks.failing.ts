@@ -1,21 +1,21 @@
-import TestHelpers from '../../helpers';
-import { RegressionWalletPlatform } from '../../tags';
-import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
-import NetworkApprovalBottomSheet from '../../pages/Network/NetworkApprovalBottomSheet';
-import NetworkAddedBottomSheet from '../../pages/Network/NetworkAddedBottomSheet';
-import Browser from '../../pages/Browser/BrowserView';
-import NetworkView from '../../pages/Settings/NetworksView';
-import SettingsView from '../../pages/Settings/SettingsView';
-import LoginView from '../../pages/wallet/LoginView';
-import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
-import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
-import CommonView from '../../pages/CommonView';
-import WalletView from '../../pages/wallet/WalletView';
-import { importWalletWithRecoveryPhrase } from '../../viewHelper';
+import TestHelpers from '../../../e2e/helpers';
+import { RegressionWalletPlatform } from '../../../e2e/tags';
+import ConnectBottomSheet from '../../../e2e/pages/Browser/ConnectBottomSheet';
+import NetworkApprovalBottomSheet from '../../../e2e/pages/Network/NetworkApprovalBottomSheet';
+import NetworkAddedBottomSheet from '../../../e2e/pages/Network/NetworkAddedBottomSheet';
+import Browser from '../../../e2e/pages/Browser/BrowserView';
+import NetworkView from '../../../e2e/pages/Settings/NetworksView';
+import SettingsView from '../../../e2e/pages/Settings/SettingsView';
+import LoginView from '../../../e2e/pages/wallet/LoginView';
+import TransactionConfirmationView from '../../../e2e/pages/Send/TransactionConfirmView';
+import SecurityAndPrivacy from '../../../e2e/pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+import CommonView from '../../../e2e/pages/CommonView';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import { importWalletWithRecoveryPhrase } from '../../../e2e/viewHelper';
 import Accounts from '../../../wdio/helpers/Accounts';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import Assertions from '../../../tests/framework/Assertions';
-import { PopularNetworksList } from '../../../tests/resources/networks.e2e';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import Assertions from '../../framework/Assertions';
+import { PopularNetworksList } from '../../resources/networks.e2e';
 
 //const BINANCE_RPC_URL = 'https://bsc-dataseed1.binance.org';
 

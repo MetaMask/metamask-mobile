@@ -1,21 +1,24 @@
-import { SmokeNetworkAbstractions } from '../../tags';
-import Browser from '../../pages/Browser/BrowserView';
-import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
-import { loginToApp, navigateToBrowserView } from '../../viewHelper';
-import Assertions from '../../../tests/framework/Assertions';
-import NetworkConnectMultiSelector from '../../pages/Browser/NetworkConnectMultiSelector';
-import NetworkNonPemittedBottomSheet from '../../pages/Network/NetworkNonPemittedBottomSheet';
-import { CustomNetworks } from '../../../tests/resources/networks.e2e';
-import PermissionSummaryBottomSheet from '../../pages/Browser/PermissionSummaryBottomSheet';
-import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
-import NetworkListModal from '../../pages/Network/NetworkListModal';
-import ToastModal from '../../pages/wallet/ToastModal';
-import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
-import AddNewAccountSheet from '../../pages/wallet/AddNewAccountSheet';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import { DappVariants } from '../../../tests/framework/Constants';
-import { logger } from '../../../tests/framework/logger';
+import { SmokeNetworkAbstractions } from '../../../../../e2e/tags';
+import Browser from '../../../../../e2e/pages/Browser/BrowserView';
+import ConnectedAccountsModal from '../../../../../e2e/pages/Browser/ConnectedAccountsModal';
+import {
+  loginToApp,
+  navigateToBrowserView,
+} from '../../../../../e2e/viewHelper';
+import Assertions from '../../../../framework/Assertions';
+import NetworkConnectMultiSelector from '../../../../../e2e/pages/Browser/NetworkConnectMultiSelector';
+import NetworkNonPemittedBottomSheet from '../../../../../e2e/pages/Network/NetworkNonPemittedBottomSheet';
+import { CustomNetworks } from '../../../../resources/networks.e2e';
+import PermissionSummaryBottomSheet from '../../../../../e2e/pages/Browser/PermissionSummaryBottomSheet';
+import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
+import NetworkListModal from '../../../../../e2e/pages/Network/NetworkListModal';
+import ToastModal from '../../../../../e2e/pages/wallet/ToastModal';
+import AccountListBottomSheet from '../../../../../e2e/pages/wallet/AccountListBottomSheet';
+import AddNewAccountSheet from '../../../../../e2e/pages/wallet/AddNewAccountSheet';
+import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
+import { DappVariants } from '../../../../framework/Constants';
+import { logger } from '../../../../framework/logger';
 
 const accountOneText = 'Account 1';
 const accountTwoText = 'Account 2';

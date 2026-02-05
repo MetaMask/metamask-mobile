@@ -1,25 +1,22 @@
-import { loginToApp } from '../../viewHelper';
-import WalletView from '../../pages/wallet/WalletView';
-import FundActionMenu from '../../pages/UI/FundActionMenu';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import { CustomNetworks } from '../../../tests/resources/networks.e2e';
-import { SmokeTrade } from '../../tags';
-import Assertions from '../../../tests/framework/Assertions';
-import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
-import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
-import QuotesView from '../../pages/Ramps/QuotesView';
-import SoftAssert from '../../../tests/framework/SoftAssert';
+import { loginToApp } from '../../../e2e/viewHelper';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import FundActionMenu from '../../../e2e/pages/UI/FundActionMenu';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { CustomNetworks } from '../../resources/networks.e2e';
+import { SmokeTrade } from '../../../e2e/tags';
+import Assertions from '../../framework/Assertions';
+import BuildQuoteView from '../../../e2e/pages/Ramps/BuildQuoteView';
+import BuyGetStartedView from '../../../e2e/pages/Ramps/BuyGetStartedView';
+import QuotesView from '../../../e2e/pages/Ramps/QuotesView';
+import SoftAssert from '../../framework/SoftAssert';
 import {
   EventPayload,
   getEventsPayloads,
-} from '../../../tests/helpers/analytics/helpers';
-import {
-  RampsRegions,
-  RampsRegionsEnum,
-} from '../../../tests/framework/Constants';
+} from '../../helpers/analytics/helpers';
+import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
-import { setupRegionAwareOnRampMocks } from '../../../tests/api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup';
+import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup';
 
 const eventsToCheck: EventPayload[] = [];
 
