@@ -103,7 +103,7 @@ jest.mock('../../hooks/useRampsController', () => ({
   useRampsController: () => ({
     userRegion: mockUserRegion,
     selectedProvider: mockSelectedProvider,
-    tokens: mockTokens,
+    selectedToken: mockTokens?.allTokens?.[0] ?? null,
     paymentMethodsLoading: false,
     selectedPaymentMethod: null,
   }),

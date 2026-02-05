@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
   WidthType,
@@ -8,14 +8,30 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
+import { PaymentType } from '@consensys/on-ramp-sdk';
+import PaymentMethodIcon from '../../Aggregator/components/PaymentMethodIcon';
 import PaymentMethodQuote from './PaymentMethodQuote';
 import { formatDelayFromArray } from '../../Aggregator/utils';
+import { useTheme } from '../../../../../util/theme';
+import type { Colors } from '../../../../../util/theme/models';
 import type { PaymentMethod } from '@metamask/ramps-controller';
+
+const ICON_CIRCLE_SIZE = 44;
+
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
+    iconCircle: {
+      width: ICON_CIRCLE_SIZE,
+      height: ICON_CIRCLE_SIZE,
+      borderRadius: ICON_CIRCLE_SIZE / 2,
+      backgroundColor: colors.background.muted,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    iconCircleSelected: {
+      backgroundColor: colors.primary.muted,
+    },
+  });
 
 interface PaymentMethodListItemProps {
   paymentMethod: PaymentMethod;
@@ -28,6 +44,8 @@ const PaymentMethodListItem: React.FC<PaymentMethodListItemProps> = ({
   onPress,
   isSelected = false,
 }) => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const mockQuote = {
     cryptoAmount: '0.10596 ETH',
     fiatAmount: '~ $499.97',
@@ -46,11 +64,13 @@ const PaymentMethodListItem: React.FC<PaymentMethodListItemProps> = ({
       accessible
     >
       <ListItemColumn widthType={WidthType.Auto}>
-        <View>
-          <Icon
-            name={IconName.Card}
-            size={IconSize.Md}
-            color={IconColor.Default}
+        <View
+          style={[styles.iconCircle, isSelected && styles.iconCircleSelected]}
+        >
+          <PaymentMethodIcon
+            paymentMethodType={paymentMethod.paymentType as PaymentType}
+            size={24}
+            color={isSelected ? colors.primary.default : colors.icon.default}
           />
         </View>
       </ListItemColumn>

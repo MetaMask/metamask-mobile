@@ -40,19 +40,27 @@ exports[`PaymentMethodListItem matches snapshot 1`] = `
         testID="listitemcolumn"
       >
         <View>
-          <SvgMock
-            color="#121314"
-            fill="currentColor"
-            height={20}
-            name="Card"
+          <Text
+            allowFontScaling={false}
+            selectable={false}
             style={
-              {
-                "height": 20,
-                "width": 20,
-              }
+              [
+                {
+                  "color": undefined,
+                  "fontSize": 24,
+                },
+                undefined,
+                {
+                  "fontFamily": "Material Icons",
+                  "fontStyle": "normal",
+                  "fontWeight": "normal",
+                },
+                {},
+              ]
             }
-            width={20}
-          />
+          >
+            
+          </Text>
         </View>
       </View>
       <View
@@ -204,19 +212,27 @@ exports[`PaymentMethodListItem renders as selected when isSelected is true 1`] =
         testID="listitemcolumn"
       >
         <View>
-          <SvgMock
-            color="#121314"
-            fill="currentColor"
-            height={20}
-            name="Card"
+          <Text
+            allowFontScaling={false}
+            selectable={false}
             style={
-              {
-                "height": 20,
-                "width": 20,
-              }
+              [
+                {
+                  "color": undefined,
+                  "fontSize": 24,
+                },
+                undefined,
+                {
+                  "fontFamily": "Material Icons",
+                  "fontStyle": "normal",
+                  "fontWeight": "normal",
+                },
+                {},
+              ]
             }
-            width={20}
-          />
+          >
+            
+          </Text>
         </View>
       </View>
       <View

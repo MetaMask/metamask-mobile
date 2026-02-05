@@ -17,10 +17,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../util/navigation/navUtils';
+import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import { getRampsBuildQuoteNavbarOptions } from '../../../Navbar';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -28,7 +25,6 @@ import styleSheet from './BuildQuote.styles';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import { useRampsController } from '../../hooks/useRampsController';
-import { useRampsTokens } from '../../hooks/useRampsTokens';
 import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 import { createPaymentSelectionModalNavigationDetails } from '../PaymentSelectionModal';
 
@@ -39,28 +35,16 @@ interface BuildQuoteParams {
 export const createBuildQuoteNavDetails =
   createNavigationDetails<BuildQuoteParams>(Routes.RAMP.AMOUNT_INPUT);
 
-export const createRampOpenWithBuildQuoteDetails = (assetId: string) =>
-  [
-    Routes.RAMP.TOKEN_SELECTION,
-    {
-      screen: Routes.RAMP.TOKEN_SELECTION,
-      params: { openBuildQuoteWithAssetId: assetId },
-    },
-  ] as const;
-
 function BuildQuote() {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
-  const { assetId: assetIdParam } = useParams<BuildQuoteParams>();
-  const { selectedToken: controllerSelectedToken } = useRampsTokens();
-
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
 
   const {
     userRegion,
     selectedProvider,
-    tokens,
+    selectedToken,
     paymentMethodsLoading,
     selectedPaymentMethod,
   } = useRampsController();
@@ -69,14 +53,6 @@ function BuildQuote() {
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
 
   const getTokenNetworkInfo = useTokenNetworkInfo();
-
-  const selectedToken = useMemo(() => {
-    if (controllerSelectedToken) return controllerSelectedToken;
-    if (!assetIdParam || !tokens?.allTokens) return null;
-    return (
-      tokens.allTokens.find((token) => token.assetId === assetIdParam) ?? null
-    );
-  }, [controllerSelectedToken, assetIdParam, tokens?.allTokens]);
 
   // Get network info for the selected token
   const networkInfo = useMemo(() => {

@@ -49,6 +49,7 @@ function PaymentSelectionModal() {
     setSelectedProvider,
     providers,
     paymentMethods,
+    selectedPaymentMethod,
     setSelectedPaymentMethod,
   } = useRampsController();
 
@@ -93,9 +94,10 @@ function PaymentSelectionModal() {
       <PaymentMethodListItem
         paymentMethod={paymentMethod}
         onPress={() => handlePaymentMethodPress(paymentMethod)}
+        isSelected={selectedPaymentMethod?.id === paymentMethod.id}
       />
     ),
-    [handlePaymentMethodPress],
+    [handlePaymentMethodPress, selectedPaymentMethod],
   );
 
   const renderFooter = useCallback(
