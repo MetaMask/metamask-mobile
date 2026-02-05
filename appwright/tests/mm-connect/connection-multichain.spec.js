@@ -26,7 +26,7 @@ const playgroundServer = new StandaloneDappServer(
 
 // Start local playground server before all tests
 test.beforeAll(async () => {
-  await playgroundServer.start(DAPP_PORT);
+  await playgroundServer.start();
 });
 
 // Stop local playground server after all tests
