@@ -75,6 +75,11 @@ import {
 } from '../../../../../component-library/components-temp/Tabs';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { selectPredictHotTabFlag } from '../../selectors/featureFlags';
+import {
+  PREDICT_FEED_BASE_TABS,
+  PREDICT_FEED_DEFAULT_TAB,
+  PREDICT_FEED_HOT_TAB,
+} from '../../constants/feedTabs';
 
 interface FeedTab {
   key: PredictCategory;
@@ -586,16 +591,16 @@ const PredictFeed: React.FC = () => {
   const hotTabFlag = useSelector(selectPredictHotTabFlag);
 
   const tabs: FeedTab[] = useMemo(() => {
-    const baseTabs: FeedTab[] = [
-      { key: 'trending', label: strings('predict.category.trending') },
-      { key: 'new', label: strings('predict.category.new') },
-      { key: 'sports', label: strings('predict.category.sports') },
-      { key: 'crypto', label: strings('predict.category.crypto') },
-      { key: 'politics', label: strings('predict.category.politics') },
-    ];
+    const baseTabs: FeedTab[] = PREDICT_FEED_BASE_TABS.map((tab) => ({
+      key: tab.key,
+      label: strings(tab.labelKey),
+    }));
 
     if (hotTabFlag.enabled) {
-      baseTabs.unshift({ key: 'hot', label: strings('predict.category.hot') });
+      baseTabs.unshift({
+        key: PREDICT_FEED_HOT_TAB.key,
+        label: strings(PREDICT_FEED_HOT_TAB.labelKey),
+      });
     }
 
     return baseTabs;
@@ -611,7 +616,7 @@ const PredictFeed: React.FC = () => {
   const headerRef = useRef<View>(null);
   const tabBarRef = useRef<View>(null);
 
-  const defaultTabKey: FeedTab['key'] = 'trending';
+  const defaultTabKey: FeedTab['key'] = PREDICT_FEED_DEFAULT_TAB;
   const requestedTab = route.params?.tab;
 
   // Capture the initial tab key at mount to avoid re-triggering the analytics

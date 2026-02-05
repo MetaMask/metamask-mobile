@@ -1,6 +1,10 @@
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
+import {
+  isPredictFeedTabKey,
+  type PredictFeedTabKey,
+} from '../../../../components/UI/Predict/constants/feedTabs';
 
 interface HandlePredictUrlParams {
   predictPath: string;
@@ -13,25 +17,8 @@ interface HandlePredictUrlParams {
 interface PredictNavigationParams {
   market?: string; // Market ID
   utmSource?: string; // UTM source for analytics tracking
-  tab?: PredictFeedTab; // Feed tab (when no market param)
+  tab?: PredictFeedTabKey; // Feed tab (when no market param)
 }
-
-type PredictFeedTab =
-  | 'trending'
-  | 'new'
-  | 'sports'
-  | 'crypto'
-  | 'politics'
-  | 'hot';
-
-const PREDICT_FEED_TABS = new Set<PredictFeedTab>([
-  'trending',
-  'new',
-  'sports',
-  'crypto',
-  'politics',
-  'hot',
-]);
 
 /**
  * Parse URL parameters into typed navigation parameters
@@ -49,10 +36,7 @@ const parsePredictNavigationParams = (
   const marketId = urlParams.get('market') || urlParams.get('marketId');
   const utmSource = urlParams.get('utm_source');
   const rawTab = urlParams.get('tab')?.toLowerCase();
-  const tab =
-    rawTab && PREDICT_FEED_TABS.has(rawTab as PredictFeedTab)
-      ? (rawTab as PredictFeedTab)
-      : undefined;
+  const tab = isPredictFeedTabKey(rawTab) ? rawTab : undefined;
 
   return {
     market: marketId || undefined,
