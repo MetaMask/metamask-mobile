@@ -15,6 +15,10 @@ if [ -f "$SUMMARY_FILE" ]; then
     iosCount=$(jq -r '.platformDevices.iOS | length' "$SUMMARY_FILE")
     totalDevices=$((androidCount + iosCount))
     
+    # Get failed tests statistics
+    totalFailedTests=$(jq -r '.failedTestsStats.totalFailedTests // 0' "$SUMMARY_FILE")
+    teamsAffected=$(jq -r '.failedTestsStats.teamsAffected // 0' "$SUMMARY_FILE")
+    
     # Determine test results status by checking job statuses via GitHub API
     if [ -n "$GITHUB_TOKEN" ] && [ -n "$GITHUB_RUN_ID" ]; then
         
@@ -104,6 +108,51 @@ if [ -f "$SUMMARY_FILE" ]; then
     SUMMARY+="  • Android: $androidImportedWalletStatus\n"
     SUMMARY+="  • iOS: $iosImportedWalletStatus\n\n"
     SUMMARY+="---------------\n\n"
+    
+    # Add failed tests section: one line per unique test name, grouped by team.
+    # Same test failing on Android and iOS shows once with "Failed on Android & iOS" and both recording links.
+    if [ "$totalFailedTests" -gt 0 ]; then
+        SUMMARY+="*Failed tests:*\n\n"
+        
+        prevMention=""
+        while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            mention=$(echo "$line" | cut -f1)
+            name=$(echo "$line" | cut -f2)
+            reasonDisplay=$(echo "$line" | cut -f3)
+            platformsLabel=$(echo "$line" | cut -f4)
+            recordings=$(echo "$line" | cut -f5-)
+            
+            if [ "$mention" != "$prevMention" ]; then
+                SUMMARY+="${mention}:\n"
+                prevMention="$mention"
+            fi
+            
+            if [ -n "$platformsLabel" ]; then
+                SUMMARY+="  - ${name} - ${reasonDisplay} -> Failed on ${platformsLabel}: ${recordings}\n"
+            else
+                SUMMARY+="  - ${name} - ${reasonDisplay} -> ${recordings}\n"
+            fi
+        done <<< "$(jq -r '
+          .failedTestsStats.failedTestsByTeam | to_entries[] |
+          .value.team.slackMention as $mention |
+          (.value.tests | group_by(.testName)[] |
+            (.[0].testName) as $name |
+            (.[0].failureReason) as $reason |
+            ([.[].platform] | unique) as $platforms |
+            ($platforms | join(" & ")) as $platformsLabel |
+            ([.[] |
+              (if .device != null and .device != "" then (if (.device | type) == "object" then ((.device.name // "") + (if .device.osVersion != null and .device.osVersion != "" then " (" + .device.osVersion + ")" else "" end)) else (.device | tostring) end) else .platform end) as $deviceLabel |
+              if .recordingLink != null and .recordingLink != "" then "<" + .recordingLink + "|Recording (" + $deviceLabel + ")>" else (if .sessionId != null and .sessionId != "" then "Recording (" + $deviceLabel + ") (session: " + .sessionId + ")" else "—" end) end
+            ] | join(" · ")) as $recordings |
+            ($reason | if . == "quality_gates_exceeded" then "Quality gates FAILED" elif . == "timedOut" then "Test timed out" elif . == "test_error" or . == "failed" then "Test error" else . end) as $reasonDisplay |
+            [$mention, $name, $reasonDisplay, $platformsLabel, $recordings] | @tsv
+          )
+        ' "$SUMMARY_FILE" 2>/dev/null)"
+        
+        SUMMARY+="\n---------------\n\n"
+    fi
+    
     SUMMARY+="*Build Info:*\n"
     SUMMARY+="• Commit Hash: \`$GITHUB_SHA\`\n"
     SUMMARY+="• Branch: \`$GITHUB_REF_NAME\`\n"

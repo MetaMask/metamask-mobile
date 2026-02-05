@@ -718,8 +718,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      */
     const onShouldStartLoadWithRequest = useCallback(
       ({ url: urlToLoad }: { url: string }) => {
-        if (!isTabActive) return false;
-
         webStates.current[urlToLoad] = {
           ...webStates.current[urlToLoad],
           requested: true,
@@ -791,12 +789,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
         return false;
       },
-      [
-        isIpfsGatewayEnabled,
-        isResolvedIpfsUrl,
-        setIpfsBannerVisible,
-        isTabActive,
-      ],
+      [isIpfsGatewayEnabled, isResolvedIpfsUrl, setIpfsBannerVisible],
     );
 
     /**

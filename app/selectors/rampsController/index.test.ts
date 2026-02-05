@@ -1,7 +1,6 @@
 import { RootState } from '../../reducers';
 import {
   RampsControllerState,
-  RequestStatus,
   UserRegion,
   type Provider,
   type Country,
@@ -9,29 +8,44 @@ import {
 } from '@metamask/ramps-controller';
 import {
   selectUserRegion,
-  selectUserRegionRequest,
-  selectSelectedProvider,
   selectProviders,
   selectTokens,
-  selectSelectedToken,
   selectCountries,
-  selectCountriesRequest,
-  selectTokensRequest,
-  selectProvidersRequest,
   selectPaymentMethods,
-  selectSelectedPaymentMethod,
-  selectPaymentMethodsRequest,
   selectRampsControllerState,
 } from './index';
 
+const createDefaultResourceState = <TData, TSelected = null>(
+  data: TData,
+  selected: TSelected = null as TSelected,
+) => ({
+  data,
+  selected,
+  isLoading: false,
+  error: null,
+});
+
+type RampsControllerStateOverride = Partial<RampsControllerState>;
+
 const createMockState = (
-  rampsController: Partial<RampsControllerState> = {},
+  rampsController: RampsControllerStateOverride = {},
 ): RootState =>
   ({
     engine: {
       backgroundState: {
         RampsController: {
           userRegion: null,
+          countries: createDefaultResourceState<Country[]>([]),
+          providers: createDefaultResourceState<Provider[], Provider | null>(
+            [],
+            null,
+          ),
+          tokens: createDefaultResourceState(null, null),
+          paymentMethods: createDefaultResourceState<
+            PaymentMethod[],
+            PaymentMethod | null
+          >([], null),
+          quotes: createDefaultResourceState(null),
           requests: {},
           ...rampsController,
         },
@@ -113,447 +127,119 @@ const mockPaymentMethods: PaymentMethod[] = [mockPaymentMethod];
 
 describe('RampsController Selectors', () => {
   describe('selectUserRegion', () => {
-    it('returns user region from state', () => {
-      const state = createMockState({ userRegion: mockUserRegion });
-
-      expect(selectUserRegion(state)).toEqual(mockUserRegion);
-    });
-
-    it('returns null when user region is null', () => {
-      const state = createMockState({ userRegion: null });
-
-      expect(selectUserRegion(state)).toBeNull();
-    });
-  });
-
-  describe('selectUserRegionRequest', () => {
-    it('returns request state with data, isFetching, and error', () => {
+    it('returns user region when userRegion is set', () => {
       const state = createMockState({
-        requests: {
-          'init:[]': {
-            status: RequestStatus.SUCCESS,
-            data: mockUserRegion,
-            error: null,
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
+        userRegion: mockUserRegion,
       });
 
-      const result = selectUserRegionRequest(state);
-
-      expect(result).toEqual({
-        data: mockUserRegion,
-        isFetching: false,
-        error: null,
-      });
+      const result = selectUserRegion(state);
+      expect(result).toEqual(mockUserRegion);
     });
 
-    it('returns isFetching true when request is loading', () => {
+    it('returns null when userRegion is null', () => {
       const state = createMockState({
-        requests: {
-          'init:[]': {
-            status: RequestStatus.LOADING,
-            data: null,
-            error: null,
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
+        userRegion: null,
       });
 
-      const result = selectUserRegionRequest(state);
-
-      expect(result.isFetching).toBe(true);
-    });
-
-    it('returns error when request failed', () => {
-      const state = createMockState({
-        requests: {
-          'init:[]': {
-            status: RequestStatus.ERROR,
-            data: null,
-            error: 'Network error',
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
-      });
-
-      const result = selectUserRegionRequest(state);
-
-      expect(result.error).toBe('Network error');
-    });
-
-    it('returns default state when request does not exist', () => {
-      const state = createMockState();
-
-      const result = selectUserRegionRequest(state);
-
-      expect(result).toEqual({
-        data: null,
-        isFetching: false,
-        error: null,
-      });
-    });
-  });
-
-  describe('selectSelectedProvider', () => {
-    it('returns selected provider from state', () => {
-      const state = createMockState({ selectedProvider: mockProvider });
-
-      expect(selectSelectedProvider(state)).toEqual(mockProvider);
-    });
-
-    it('returns null when selected provider is null', () => {
-      const state = createMockState({ selectedProvider: null });
-
-      expect(selectSelectedProvider(state)).toBeNull();
-    });
-
-    it('returns null when RampsController state is undefined', () => {
-      const state = {
-        engine: {
-          backgroundState: {
-            RampsController: undefined,
-          },
-        },
-      } as unknown as RootState;
-
-      expect(selectSelectedProvider(state)).toBeNull();
+      const result = selectUserRegion(state);
+      expect(result).toBeNull();
     });
   });
 
   describe('selectProviders', () => {
-    it('returns providers from state', () => {
-      const state = createMockState({ providers: [mockProvider] });
+    it('returns providers resource state', () => {
+      const state = createMockState({
+        providers: {
+          data: [mockProvider],
+          selected: mockProvider,
+          isLoading: false,
+          error: null,
+        },
+      });
 
-      expect(selectProviders(state)).toEqual([mockProvider]);
+      const result = selectProviders(state);
+      expect(result.data).toEqual([mockProvider]);
+      expect(result.selected).toEqual(mockProvider);
+      expect(result.isLoading).toBe(false);
+      expect(result.error).toBeNull();
     });
 
-    it('returns empty array when providers is null', () => {
-      const state = createMockState({ providers: [] });
-
-      expect(selectProviders(state)).toEqual([]);
-    });
-
-    it('returns empty array when providers is undefined', () => {
+    it('returns empty array when providers data is empty', () => {
       const state = createMockState();
 
-      expect(selectProviders(state)).toEqual([]);
+      const result = selectProviders(state);
+      expect(result.data).toEqual([]);
     });
   });
 
   describe('selectTokens', () => {
-    it('returns tokens from state', () => {
-      const state = createMockState({ tokens: mockTokens });
+    it('returns tokens resource state', () => {
+      const state = createMockState({
+        tokens: {
+          data: mockTokens,
+          selected: mockToken,
+          isLoading: false,
+          error: null,
+        },
+      });
 
-      expect(selectTokens(state)).toEqual(mockTokens);
+      const result = selectTokens(state);
+      expect(result.data).toEqual(mockTokens);
+      expect(result.selected).toEqual(mockToken);
     });
 
-    it('returns null when tokens is null', () => {
-      const state = createMockState({ tokens: null });
-
-      expect(selectTokens(state)).toBeNull();
-    });
-
-    it('returns null when tokens is undefined', () => {
+    it('returns null data when tokens is null', () => {
       const state = createMockState();
 
-      expect(selectTokens(state)).toBeNull();
-    });
-  });
-
-  describe('selectSelectedToken', () => {
-    it('returns selected token from state', () => {
-      const state = createMockState({ selectedToken: mockToken });
-
-      expect(selectSelectedToken(state)).toEqual(mockToken);
-    });
-
-    it('returns null when selected token is null', () => {
-      const state = createMockState({ selectedToken: null });
-
-      expect(selectSelectedToken(state)).toBeNull();
-    });
-
-    it('returns null when RampsController state is undefined', () => {
-      const state = {
-        engine: {
-          backgroundState: {
-            RampsController: undefined,
-          },
-        },
-      } as unknown as RootState;
-
-      expect(selectSelectedToken(state)).toBeNull();
+      const result = selectTokens(state);
+      expect(result.data).toBeNull();
     });
   });
 
   describe('selectCountries', () => {
-    it('returns countries from state', () => {
-      const state = createMockState({ countries: mockCountries });
+    it('returns countries resource state', () => {
+      const state = createMockState({
+        countries: {
+          data: mockCountries,
+          selected: null,
+          isLoading: false,
+          error: null,
+        },
+      });
 
-      expect(selectCountries(state)).toEqual(mockCountries);
+      const result = selectCountries(state);
+      expect(result.data).toEqual(mockCountries);
     });
 
     it('returns empty array when countries are not available', () => {
       const state = createMockState();
 
-      expect(selectCountries(state)).toEqual([]);
+      const result = selectCountries(state);
+      expect(result.data).toEqual([]);
     });
   });
 
-  describe('selectCountriesRequest', () => {
-    it('returns request state', () => {
+  describe('selectPaymentMethods', () => {
+    it('returns payment methods resource state', () => {
       const state = createMockState({
-        requests: {
-          'getCountries:[]': {
-            status: RequestStatus.SUCCESS,
-            data: mockCountries,
-            error: null,
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
+        paymentMethods: {
+          data: mockPaymentMethods,
+          selected: mockPaymentMethod,
+          isLoading: false,
+          error: null,
         },
       });
 
-      const result = selectCountriesRequest(state);
-
-      expect(result).toEqual({
-        data: mockCountries,
-        isFetching: false,
-        error: null,
-      });
+      const result = selectPaymentMethods(state);
+      expect(result.data).toEqual(mockPaymentMethods);
+      expect(result.selected).toEqual(mockPaymentMethod);
     });
 
-    it('returns loading state when request is in progress', () => {
-      const state = createMockState({
-        requests: {
-          'getCountries:[]': {
-            status: RequestStatus.LOADING,
-            data: null,
-            error: null,
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
-      });
-
-      const result = selectCountriesRequest(state);
-
-      expect(result).toEqual({
-        data: null,
-        isFetching: true,
-        error: null,
-      });
-    });
-
-    it('returns error state when request fails', () => {
-      const state = createMockState({
-        requests: {
-          'getCountries:[]': {
-            status: RequestStatus.ERROR,
-            data: null,
-            error: 'Network error',
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
-      });
-
-      const result = selectCountriesRequest(state);
-
-      expect(result).toEqual({
-        data: null,
-        isFetching: false,
-        error: 'Network error',
-      });
-    });
-
-    it('returns default state when request does not exist', () => {
+    it('returns empty array when payment methods are not available', () => {
       const state = createMockState();
 
-      const result = selectCountriesRequest(state);
-
-      expect(result).toEqual({
-        data: null,
-        isFetching: false,
-        error: null,
-      });
-    });
-  });
-
-  describe('selectTokensRequest', () => {
-    it('returns request state for region and action', () => {
-      const state = createMockState({
-        requests: {
-          'getTokens:["us-ca","buy"]': {
-            status: RequestStatus.SUCCESS,
-            data: mockTokens,
-            error: null,
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
-      });
-
-      const result = selectTokensRequest('us-ca', 'buy')(state);
-
-      expect(result).toEqual({
-        data: mockTokens,
-        isFetching: false,
-        error: null,
-      });
-    });
-
-    it('normalizes region to lowercase and trims', () => {
-      const state = createMockState({
-        requests: {
-          'getTokens:["us-ca","buy"]': {
-            status: RequestStatus.SUCCESS,
-            data: mockTokens,
-            error: null,
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
-      });
-
-      const result = selectTokensRequest('  US-CA  ', 'buy')(state);
-
-      expect(result.data).toEqual(mockTokens);
-    });
-
-    it('defaults to buy action when not provided', () => {
-      const state = createMockState({
-        requests: {
-          'getTokens:["us-ca","buy"]': {
-            status: RequestStatus.SUCCESS,
-            data: mockTokens,
-            error: null,
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
-      });
-
-      const result = selectTokensRequest('us-ca')(state);
-
-      expect(result.data).toEqual(mockTokens);
-    });
-
-    it('returns default state when request does not exist', () => {
-      const state = createMockState();
-
-      const result = selectTokensRequest('us-ca', 'buy')(state);
-
-      expect(result).toEqual({
-        data: null,
-        isFetching: false,
-        error: null,
-      });
-    });
-  });
-
-  describe('selectProvidersRequest', () => {
-    it('returns request state for region', () => {
-      const state = createMockState({
-        requests: {
-          'getProviders:["us-ca",null,null,null,null]': {
-            status: RequestStatus.SUCCESS,
-            data: { providers: [mockProvider] },
-            error: null,
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
-      });
-
-      const result = selectProvidersRequest('us-ca')(state);
-
-      expect(result).toEqual({
-        data: { providers: [mockProvider] },
-        isFetching: false,
-        error: null,
-      });
-    });
-
-    it('normalizes region to lowercase and trims', () => {
-      const state = createMockState({
-        requests: {
-          'getProviders:["us-ca",null,null,null,null]': {
-            status: RequestStatus.SUCCESS,
-            data: { providers: [mockProvider] },
-            error: null,
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
-      });
-
-      const result = selectProvidersRequest('  US-CA  ')(state);
-
-      expect(result.data).toEqual({ providers: [mockProvider] });
-    });
-
-    it('includes filter options in request key', () => {
-      const state = createMockState({
-        requests: {
-          'getProviders:["us-ca","provider-1","ETH","USD",null]': {
-            status: RequestStatus.SUCCESS,
-            data: { providers: [mockProvider] },
-            error: null,
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
-      });
-
-      const result = selectProvidersRequest('us-ca', {
-        provider: 'provider-1',
-        crypto: 'ETH',
-        fiat: 'USD',
-      })(state);
-
-      expect(result.data).toEqual({ providers: [mockProvider] });
-    });
-
-    it('handles array filter options', () => {
-      const state = createMockState({
-        requests: {
-          'getProviders:["us-ca",["provider-1","provider-2"],["ETH","BTC"],"USD",null]':
-            {
-              status: RequestStatus.SUCCESS,
-              data: { providers: [mockProvider] },
-              error: null,
-              timestamp: Date.now(),
-              lastFetchedAt: Date.now(),
-            },
-        },
-      });
-
-      const result = selectProvidersRequest('us-ca', {
-        provider: ['provider-1', 'provider-2'],
-        crypto: ['ETH', 'BTC'],
-        fiat: 'USD',
-      })(state);
-
-      expect(result.isFetching).toBe(false);
-      expect(result.error).toBeNull();
-      expect(result.data).toEqual({ providers: [mockProvider] });
-    });
-
-    it('returns default state when request does not exist', () => {
-      const state = createMockState();
-
-      const result = selectProvidersRequest('us-ca')(state);
-
-      expect(result).toEqual({
-        data: null,
-        isFetching: false,
-        error: null,
-      });
+      const result = selectPaymentMethods(state);
+      expect(result.data).toEqual([]);
     });
   });
 
@@ -672,16 +358,9 @@ describe('RampsController Selectors', () => {
 
   describe('selectRampsControllerState', () => {
     it('returns RampsController state', () => {
-      const rampsState: Partial<RampsControllerState> = {
-        userRegion: mockUserRegion,
-        selectedProvider: mockProvider,
-        providers: [mockProvider],
-        tokens: mockTokens,
-        requests: {},
-      };
-      const state = createMockState(rampsState);
+      const state = createMockState();
 
-      expect(selectRampsControllerState(state)).toEqual(rampsState);
+      expect(selectRampsControllerState(state)).toBeDefined();
     });
 
     it('returns undefined when RampsController is undefined', () => {

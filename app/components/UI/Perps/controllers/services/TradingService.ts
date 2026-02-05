@@ -4,17 +4,15 @@ import { v4 as uuidv4 } from 'uuid';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import type { RewardsIntegrationService } from './RewardsIntegrationService';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
 } from '../../constants/eventNames';
 import type { ServiceContext } from './ServiceContext';
-import type { PerpsControllerMessenger } from '../PerpsController';
 import {
   PerpsAnalyticsEvent,
   PerpsTraceNames,
   PerpsTraceOperations,
   type PerpsProvider,
-  type PerpsControllerAccess,
   type OrderParams,
   type OrderResult,
   type EditOrderParams,
@@ -36,8 +34,6 @@ import {
  * These are singletons that don't change per-call, injected once via setControllerDependencies().
  */
 export interface TradingServiceControllerDeps {
-  controllers: PerpsControllerAccess;
-  messenger: PerpsControllerMessenger;
   rewardsIntegrationService: RewardsIntegrationService;
 }
 
@@ -111,78 +107,78 @@ export class TradingService {
 
     const status =
       result?.success === true
-        ? PerpsEventValues.STATUS.EXECUTED
-        : PerpsEventValues.STATUS.FAILED;
+        ? PERPS_EVENT_VALUE.STATUS.EXECUTED
+        : PERPS_EVENT_VALUE.STATUS.FAILED;
 
     // Build base properties
     const properties: PerpsAnalyticsProperties = {
-      [PerpsEventProperties.STATUS]: status,
-      [PerpsEventProperties.ASSET]: params.symbol,
-      [PerpsEventProperties.DIRECTION]: params.isBuy
-        ? PerpsEventValues.DIRECTION.LONG
-        : PerpsEventValues.DIRECTION.SHORT,
-      [PerpsEventProperties.ORDER_TYPE]: params.orderType,
-      [PerpsEventProperties.LEVERAGE]: parseFloat(String(params.leverage || 1)),
-      [PerpsEventProperties.ORDER_SIZE]: parseFloat(
+      [PERPS_EVENT_PROPERTY.STATUS]: status,
+      [PERPS_EVENT_PROPERTY.ASSET]: params.symbol,
+      [PERPS_EVENT_PROPERTY.DIRECTION]: params.isBuy
+        ? PERPS_EVENT_VALUE.DIRECTION.LONG
+        : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+      [PERPS_EVENT_PROPERTY.ORDER_TYPE]: params.orderType,
+      [PERPS_EVENT_PROPERTY.LEVERAGE]: parseFloat(String(params.leverage || 1)),
+      [PERPS_EVENT_PROPERTY.ORDER_SIZE]: parseFloat(
         result?.filledSize || params.size,
       ),
-      [PerpsEventProperties.COMPLETION_DURATION]: duration,
+      [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: duration,
     };
 
     // Add optional properties
     if (params.trackingData?.marginUsed != null) {
-      properties[PerpsEventProperties.MARGIN_USED] =
+      properties[PERPS_EVENT_PROPERTY.MARGIN_USED] =
         params.trackingData.marginUsed;
     }
     if (params.trackingData?.totalFee != null) {
-      properties[PerpsEventProperties.FEES] = params.trackingData.totalFee;
+      properties[PERPS_EVENT_PROPERTY.FEES] = params.trackingData.totalFee;
     }
     if (result?.averagePrice || params.trackingData?.marketPrice) {
-      properties[PerpsEventProperties.ASSET_PRICE] = result?.averagePrice
+      properties[PERPS_EVENT_PROPERTY.ASSET_PRICE] = result?.averagePrice
         ? parseFloat(result.averagePrice)
         : params.trackingData?.marketPrice;
     }
     if (params.orderType === 'limit' && params.price) {
-      properties[PerpsEventProperties.LIMIT_PRICE] = parseFloat(params.price);
+      properties[PERPS_EVENT_PROPERTY.LIMIT_PRICE] = parseFloat(params.price);
     }
     if (params.trackingData?.source) {
-      properties[PerpsEventProperties.SOURCE] = params.trackingData.source;
+      properties[PERPS_EVENT_PROPERTY.SOURCE] = params.trackingData.source;
     }
     if (params.trackingData?.tradeAction) {
-      properties[PerpsEventProperties.ACTION] = params.trackingData.tradeAction;
+      properties[PERPS_EVENT_PROPERTY.ACTION] = params.trackingData.tradeAction;
     }
 
     // Add success-specific properties
-    if (status === PerpsEventValues.STATUS.EXECUTED) {
+    if (status === PERPS_EVENT_VALUE.STATUS.EXECUTED) {
       if (params.trackingData?.metamaskFee != null) {
-        properties[PerpsEventProperties.METAMASK_FEE] =
+        properties[PERPS_EVENT_PROPERTY.METAMASK_FEE] =
           params.trackingData.metamaskFee;
       }
       if (params.trackingData?.metamaskFeeRate != null) {
-        properties[PerpsEventProperties.METAMASK_FEE_RATE] =
+        properties[PERPS_EVENT_PROPERTY.METAMASK_FEE_RATE] =
           params.trackingData.metamaskFeeRate;
       }
       if (params.trackingData?.feeDiscountPercentage != null) {
-        properties[PerpsEventProperties.DISCOUNT_PERCENTAGE] =
+        properties[PERPS_EVENT_PROPERTY.DISCOUNT_PERCENTAGE] =
           params.trackingData.feeDiscountPercentage;
       }
       if (params.trackingData?.estimatedPoints != null) {
-        properties[PerpsEventProperties.ESTIMATED_REWARDS] =
+        properties[PERPS_EVENT_PROPERTY.ESTIMATED_REWARDS] =
           params.trackingData.estimatedPoints;
       }
       if (params.takeProfitPrice) {
-        properties[PerpsEventProperties.TAKE_PROFIT_PRICE] = parseFloat(
+        properties[PERPS_EVENT_PROPERTY.TAKE_PROFIT_PRICE] = parseFloat(
           params.takeProfitPrice,
         );
       }
       if (params.stopLossPrice) {
-        properties[PerpsEventProperties.STOP_LOSS_PRICE] = parseFloat(
+        properties[PERPS_EVENT_PROPERTY.STOP_LOSS_PRICE] = parseFloat(
           params.stopLossPrice,
         );
       }
     } else {
       // Add failure-specific properties
-      properties[PerpsEventProperties.ERROR_MESSAGE] =
+      properties[PERPS_EVENT_PROPERTY.ERROR_MESSAGE] =
         error?.message || result?.error || 'Unknown error';
     }
 
@@ -478,8 +474,8 @@ export class TradingService {
   } {
     const direction =
       parseFloat(position.size) > 0
-        ? PerpsEventValues.DIRECTION.LONG
-        : PerpsEventValues.DIRECTION.SHORT;
+        ? PERPS_EVENT_VALUE.DIRECTION.LONG
+        : PERPS_EVENT_VALUE.DIRECTION.SHORT;
 
     const filledSize = result.filledSize ? parseFloat(result.filledSize) : 0;
     const requestedSize = params.size
@@ -487,14 +483,14 @@ export class TradingService {
       : Math.abs(parseFloat(position.size));
     const isPartiallyFilled = filledSize > 0 && filledSize < requestedSize;
 
-    const orderType = params.orderType || PerpsEventValues.ORDER_TYPE.MARKET;
+    const orderType = params.orderType || PERPS_EVENT_VALUE.ORDER_TYPE.MARKET;
     const closePercentage = params.size
       ? (parseFloat(params.size) / Math.abs(parseFloat(position.size))) * 100
       : 100;
     const closeType =
       closePercentage === 100
-        ? PerpsEventValues.CLOSE_TYPE.FULL
-        : PerpsEventValues.CLOSE_TYPE.PARTIAL;
+        ? PERPS_EVENT_VALUE.CLOSE_TYPE.FULL
+        : PERPS_EVENT_VALUE.CLOSE_TYPE.PARTIAL;
 
     return {
       direction,
@@ -525,67 +521,67 @@ export class TradingService {
     error?: string,
   ): Record<string, unknown> {
     const baseProperties = {
-      [PerpsEventProperties.STATUS]: status,
-      [PerpsEventProperties.ASSET]: position.symbol,
-      [PerpsEventProperties.DIRECTION]: metrics.direction,
-      [PerpsEventProperties.ORDER_TYPE]: metrics.orderType,
-      [PerpsEventProperties.ORDER_SIZE]: metrics.requestedSize,
-      [PerpsEventProperties.OPEN_POSITION_SIZE]: Math.abs(
+      [PERPS_EVENT_PROPERTY.STATUS]: status,
+      [PERPS_EVENT_PROPERTY.ASSET]: position.symbol,
+      [PERPS_EVENT_PROPERTY.DIRECTION]: metrics.direction,
+      [PERPS_EVENT_PROPERTY.ORDER_TYPE]: metrics.orderType,
+      [PERPS_EVENT_PROPERTY.ORDER_SIZE]: metrics.requestedSize,
+      [PERPS_EVENT_PROPERTY.OPEN_POSITION_SIZE]: Math.abs(
         parseFloat(position.size),
       ),
-      [PerpsEventProperties.PERCENTAGE_CLOSED]: metrics.closePercentage,
+      [PERPS_EVENT_PROPERTY.PERCENTAGE_CLOSED]: metrics.closePercentage,
       ...(position.unrealizedPnl && {
-        [PerpsEventProperties.PNL_DOLLAR]: parseFloat(position.unrealizedPnl),
+        [PERPS_EVENT_PROPERTY.PNL_DOLLAR]: parseFloat(position.unrealizedPnl),
       }),
       ...(position.returnOnEquity && {
-        [PerpsEventProperties.PNL_PERCENT]:
+        [PERPS_EVENT_PROPERTY.PNL_PERCENT]:
           parseFloat(position.returnOnEquity) * 100,
       }),
       ...(params.trackingData?.totalFee != null && {
-        [PerpsEventProperties.FEE]: params.trackingData.totalFee,
+        [PERPS_EVENT_PROPERTY.FEE]: params.trackingData.totalFee,
       }),
       ...(params.trackingData?.metamaskFee != null && {
-        [PerpsEventProperties.METAMASK_FEE]: params.trackingData.metamaskFee,
+        [PERPS_EVENT_PROPERTY.METAMASK_FEE]: params.trackingData.metamaskFee,
       }),
       ...(params.trackingData?.metamaskFeeRate != null && {
-        [PerpsEventProperties.METAMASK_FEE_RATE]:
+        [PERPS_EVENT_PROPERTY.METAMASK_FEE_RATE]:
           params.trackingData.metamaskFeeRate,
       }),
       ...(params.trackingData?.feeDiscountPercentage != null && {
-        [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
+        [PERPS_EVENT_PROPERTY.DISCOUNT_PERCENTAGE]:
           params.trackingData.feeDiscountPercentage,
       }),
       ...(params.trackingData?.estimatedPoints != null && {
-        [PerpsEventProperties.ESTIMATED_REWARDS]:
+        [PERPS_EVENT_PROPERTY.ESTIMATED_REWARDS]:
           params.trackingData.estimatedPoints,
       }),
       ...((params.trackingData?.marketPrice || result?.averagePrice) && {
-        [PerpsEventProperties.ASSET_PRICE]: result?.averagePrice
+        [PERPS_EVENT_PROPERTY.ASSET_PRICE]: result?.averagePrice
           ? parseFloat(result.averagePrice)
           : params.trackingData?.marketPrice,
       }),
       ...(params.orderType === 'limit' &&
         params.price && {
-          [PerpsEventProperties.LIMIT_PRICE]: parseFloat(params.price),
+          [PERPS_EVENT_PROPERTY.LIMIT_PRICE]: parseFloat(params.price),
         }),
       ...(params.trackingData?.receivedAmount != null && {
-        [PerpsEventProperties.RECEIVED_AMOUNT]:
+        [PERPS_EVENT_PROPERTY.RECEIVED_AMOUNT]:
           params.trackingData.receivedAmount,
       }),
     };
 
     // Add success-specific properties
-    if (status === PerpsEventValues.STATUS.EXECUTED) {
+    if (status === PERPS_EVENT_VALUE.STATUS.EXECUTED) {
       return {
         ...baseProperties,
-        [PerpsEventProperties.CLOSE_TYPE]: metrics.closeType,
+        [PERPS_EVENT_PROPERTY.CLOSE_TYPE]: metrics.closeType,
       };
     }
 
     // Add error for failures
     return {
       ...baseProperties,
-      ...(error && { [PerpsEventProperties.ERROR_MESSAGE]: error }),
+      ...(error && { [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: error }),
     };
   }
 
@@ -611,14 +607,14 @@ export class TradingService {
       : {
           direction:
             parseFloat(position.size) > 0
-              ? PerpsEventValues.DIRECTION.LONG
-              : PerpsEventValues.DIRECTION.SHORT,
+              ? PERPS_EVENT_VALUE.DIRECTION.LONG
+              : PERPS_EVENT_VALUE.DIRECTION.SHORT,
           closePercentage: params.size
             ? (parseFloat(params.size) / Math.abs(parseFloat(position.size))) *
               100
             : 100,
-          closeType: PerpsEventValues.CLOSE_TYPE.FULL,
-          orderType: params.orderType || PerpsEventValues.ORDER_TYPE.MARKET,
+          closeType: PERPS_EVENT_VALUE.CLOSE_TYPE.FULL,
+          orderType: params.orderType || PERPS_EVENT_VALUE.ORDER_TYPE.MARKET,
           requestedSize: params.size
             ? parseFloat(params.size)
             : Math.abs(parseFloat(position.size)),
@@ -633,17 +629,17 @@ export class TradingService {
         params,
         metrics,
         result,
-        PerpsEventValues.STATUS.PARTIALLY_FILLED,
+        PERPS_EVENT_VALUE.STATUS.PARTIALLY_FILLED,
       );
 
       this.deps.metrics.trackPerpsEvent(
         PerpsAnalyticsEvent.PositionCloseTransaction,
         {
           ...partialProperties,
-          [PerpsEventProperties.AMOUNT_FILLED]: metrics.filledSize,
-          [PerpsEventProperties.REMAINING_AMOUNT]:
+          [PERPS_EVENT_PROPERTY.AMOUNT_FILLED]: metrics.filledSize,
+          [PERPS_EVENT_PROPERTY.REMAINING_AMOUNT]:
             metrics.requestedSize - metrics.filledSize,
-          [PerpsEventProperties.COMPLETION_DURATION]: duration,
+          [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: duration,
         },
       );
     }
@@ -651,8 +647,8 @@ export class TradingService {
     // Determine status
     const status =
       result?.success === true
-        ? PerpsEventValues.STATUS.EXECUTED
-        : PerpsEventValues.STATUS.FAILED;
+        ? PERPS_EVENT_VALUE.STATUS.EXECUTED
+        : PERPS_EVENT_VALUE.STATUS.FAILED;
 
     const errorMessage = error?.message || result?.error;
 
@@ -670,7 +666,7 @@ export class TradingService {
       PerpsAnalyticsEvent.PositionCloseTransaction,
       {
         ...eventProperties,
-        [PerpsEventProperties.COMPLETION_DURATION]: duration,
+        [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: duration,
       },
     );
   }
@@ -724,17 +720,13 @@ export class TradingService {
       return undefined;
     }
 
-    const { controllers, messenger, rewardsIntegrationService } =
-      this.controllerDeps;
+    const { rewardsIntegrationService } = this.controllerDeps;
 
     const orderExecutionFeeDiscountStartTime = this.deps.performance.now();
 
-    // Calculate fee discount using injected controllers
+    // Calculate fee discount using messenger pattern (service handles controller access internally)
     const discountBips =
-      await rewardsIntegrationService.calculateUserFeeDiscount({
-        controllers,
-        messenger,
-      });
+      await rewardsIntegrationService.calculateUserFeeDiscount();
 
     const orderExecutionFeeDiscountDuration =
       this.deps.performance.now() - orderExecutionFeeDiscountStartTime;
@@ -813,18 +805,18 @@ export class TradingService {
 
         // Track order edit executed
         const editExecutedProps: PerpsAnalyticsProperties = {
-          [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
-          [PerpsEventProperties.ASSET]: params.newOrder.symbol,
-          [PerpsEventProperties.DIRECTION]: params.newOrder.isBuy
-            ? PerpsEventValues.DIRECTION.LONG
-            : PerpsEventValues.DIRECTION.SHORT,
-          [PerpsEventProperties.ORDER_TYPE]: params.newOrder.orderType,
-          [PerpsEventProperties.LEVERAGE]: params.newOrder.leverage || 1,
-          [PerpsEventProperties.ORDER_SIZE]: params.newOrder.size,
-          [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+          [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.EXECUTED,
+          [PERPS_EVENT_PROPERTY.ASSET]: params.newOrder.symbol,
+          [PERPS_EVENT_PROPERTY.DIRECTION]: params.newOrder.isBuy
+            ? PERPS_EVENT_VALUE.DIRECTION.LONG
+            : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+          [PERPS_EVENT_PROPERTY.ORDER_TYPE]: params.newOrder.orderType,
+          [PERPS_EVENT_PROPERTY.LEVERAGE]: params.newOrder.leverage || 1,
+          [PERPS_EVENT_PROPERTY.ORDER_SIZE]: params.newOrder.size,
+          [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: completionDuration,
         };
         if (params.newOrder.price) {
-          editExecutedProps[PerpsEventProperties.LIMIT_PRICE] = parseFloat(
+          editExecutedProps[PERPS_EVENT_PROPERTY.LIMIT_PRICE] = parseFloat(
             params.newOrder.price,
           );
         }
@@ -839,16 +831,16 @@ export class TradingService {
         this.deps.metrics.trackPerpsEvent(
           PerpsAnalyticsEvent.TradeTransaction,
           {
-            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-            [PerpsEventProperties.ASSET]: params.newOrder.symbol,
-            [PerpsEventProperties.DIRECTION]: params.newOrder.isBuy
-              ? PerpsEventValues.DIRECTION.LONG
-              : PerpsEventValues.DIRECTION.SHORT,
-            [PerpsEventProperties.ORDER_TYPE]: params.newOrder.orderType,
-            [PerpsEventProperties.LEVERAGE]: params.newOrder.leverage || 1,
-            [PerpsEventProperties.ORDER_SIZE]: params.newOrder.size,
-            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-            [PerpsEventProperties.ERROR_MESSAGE]:
+            [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
+            [PERPS_EVENT_PROPERTY.ASSET]: params.newOrder.symbol,
+            [PERPS_EVENT_PROPERTY.DIRECTION]: params.newOrder.isBuy
+              ? PERPS_EVENT_VALUE.DIRECTION.LONG
+              : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+            [PERPS_EVENT_PROPERTY.ORDER_TYPE]: params.newOrder.orderType,
+            [PERPS_EVENT_PROPERTY.LEVERAGE]: params.newOrder.leverage || 1,
+            [PERPS_EVENT_PROPERTY.ORDER_SIZE]: params.newOrder.size,
+            [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: completionDuration,
+            [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]:
               result.error || 'Unknown error',
           },
         );
@@ -862,16 +854,16 @@ export class TradingService {
 
       // Track order edit exception
       this.deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
-        [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-        [PerpsEventProperties.ASSET]: params.newOrder.symbol,
-        [PerpsEventProperties.DIRECTION]: params.newOrder.isBuy
-          ? PerpsEventValues.DIRECTION.LONG
-          : PerpsEventValues.DIRECTION.SHORT,
-        [PerpsEventProperties.ORDER_TYPE]: params.newOrder.orderType,
-        [PerpsEventProperties.LEVERAGE]: params.newOrder.leverage || 1,
-        [PerpsEventProperties.ORDER_SIZE]: params.newOrder.size,
-        [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-        [PerpsEventProperties.ERROR_MESSAGE]:
+        [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
+        [PERPS_EVENT_PROPERTY.ASSET]: params.newOrder.symbol,
+        [PERPS_EVENT_PROPERTY.DIRECTION]: params.newOrder.isBuy
+          ? PERPS_EVENT_VALUE.DIRECTION.LONG
+          : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+        [PERPS_EVENT_PROPERTY.ORDER_TYPE]: params.newOrder.orderType,
+        [PERPS_EVENT_PROPERTY.LEVERAGE]: params.newOrder.leverage || 1,
+        [PERPS_EVENT_PROPERTY.ORDER_SIZE]: params.newOrder.size,
+        [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: completionDuration,
+        [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]:
           error instanceof Error ? error.message : 'Unknown error',
       });
 
@@ -952,9 +944,9 @@ export class TradingService {
         this.deps.metrics.trackPerpsEvent(
           PerpsAnalyticsEvent.OrderCancelTransaction,
           {
-            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
-            [PerpsEventProperties.ASSET]: params.symbol,
-            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+            [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.EXECUTED,
+            [PERPS_EVENT_PROPERTY.ASSET]: params.symbol,
+            [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: completionDuration,
           },
         );
 
@@ -964,10 +956,10 @@ export class TradingService {
         this.deps.metrics.trackPerpsEvent(
           PerpsAnalyticsEvent.OrderCancelTransaction,
           {
-            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-            [PerpsEventProperties.ASSET]: params.symbol,
-            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-            [PerpsEventProperties.ERROR_MESSAGE]:
+            [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
+            [PERPS_EVENT_PROPERTY.ASSET]: params.symbol,
+            [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: completionDuration,
+            [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]:
               result.error || 'Unknown error',
           },
         );
@@ -983,10 +975,10 @@ export class TradingService {
       this.deps.metrics.trackPerpsEvent(
         PerpsAnalyticsEvent.OrderCancelTransaction,
         {
-          [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-          [PerpsEventProperties.ASSET]: params.symbol,
-          [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-          [PerpsEventProperties.ERROR_MESSAGE]:
+          [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
+          [PERPS_EVENT_PROPERTY.ASSET]: params.symbol,
+          [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: completionDuration,
+          [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]:
             error instanceof Error ? error.message : 'Unknown error',
         },
       );
@@ -1151,14 +1143,14 @@ export class TradingService {
 
       // Track batch cancel event (success or failure)
       const batchCancelProps: PerpsAnalyticsProperties = {
-        [PerpsEventProperties.STATUS]:
+        [PERPS_EVENT_PROPERTY.STATUS]:
           operationResult?.success && operationResult.successCount > 0
-            ? PerpsEventValues.STATUS.EXECUTED
-            : PerpsEventValues.STATUS.FAILED,
-        [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+            ? PERPS_EVENT_VALUE.STATUS.EXECUTED
+            : PERPS_EVENT_VALUE.STATUS.FAILED,
+        [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: completionDuration,
       };
       if (operationError) {
-        batchCancelProps[PerpsEventProperties.ERROR_MESSAGE] =
+        batchCancelProps[PERPS_EVENT_PROPERTY.ERROR_MESSAGE] =
           operationError.message;
       }
       this.deps.metrics.trackPerpsEvent(
@@ -1438,14 +1430,14 @@ export class TradingService {
 
       // Track batch close event (success or failure)
       const batchCloseProps: PerpsAnalyticsProperties = {
-        [PerpsEventProperties.STATUS]:
+        [PERPS_EVENT_PROPERTY.STATUS]:
           operationResult?.success && operationResult.successCount > 0
-            ? PerpsEventValues.STATUS.EXECUTED
-            : PerpsEventValues.STATUS.FAILED,
-        [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+            ? PERPS_EVENT_VALUE.STATUS.EXECUTED
+            : PERPS_EVENT_VALUE.STATUS.FAILED,
+        [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: completionDuration,
       };
       if (operationError) {
-        batchCloseProps[PerpsEventProperties.ERROR_MESSAGE] =
+        batchCloseProps[PERPS_EVENT_PROPERTY.ERROR_MESSAGE] =
           operationError.message;
       }
       this.deps.metrics.trackPerpsEvent(
@@ -1480,7 +1472,7 @@ export class TradingService {
     const direction = params.trackingData?.direction;
     const positionSize = params.trackingData?.positionSize;
     const source =
-      params.trackingData?.source || PerpsEventValues.SOURCE.TP_SL_VIEW;
+      params.trackingData?.source || PERPS_EVENT_VALUE.SOURCE.TP_SL_VIEW;
     const takeProfitPercentage = params.trackingData?.takeProfitPercentage;
     const stopLossPercentage = params.trackingData?.stopLossPercentage;
     const isEditingExistingPosition =
@@ -1535,8 +1527,8 @@ export class TradingService {
 
       // Determine screen type based on whether editing existing position
       const screenType = isEditingExistingPosition
-        ? PerpsEventValues.SCREEN_TYPE.EDIT_TPSL
-        : PerpsEventValues.SCREEN_TYPE.CREATE_TPSL;
+        ? PERPS_EVENT_VALUE.SCREEN_TYPE.EDIT_TPSL
+        : PERPS_EVENT_VALUE.SCREEN_TYPE.CREATE_TPSL;
 
       // Determine if TP/SL are set
       const hasTakeProfit = !!params.takeProfitPrice;
@@ -1544,42 +1536,42 @@ export class TradingService {
 
       // Build comprehensive event properties
       const eventProperties = {
-        [PerpsEventProperties.STATUS]: result?.success
-          ? PerpsEventValues.STATUS.EXECUTED
-          : PerpsEventValues.STATUS.FAILED,
-        [PerpsEventProperties.ASSET]: params.symbol,
-        [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-        [PerpsEventProperties.SOURCE]: source,
-        [PerpsEventProperties.SCREEN_TYPE]: screenType,
-        [PerpsEventProperties.HAS_TAKE_PROFIT]: hasTakeProfit,
-        [PerpsEventProperties.HAS_STOP_LOSS]: hasStopLoss,
+        [PERPS_EVENT_PROPERTY.STATUS]: result?.success
+          ? PERPS_EVENT_VALUE.STATUS.EXECUTED
+          : PERPS_EVENT_VALUE.STATUS.FAILED,
+        [PERPS_EVENT_PROPERTY.ASSET]: params.symbol,
+        [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: completionDuration,
+        [PERPS_EVENT_PROPERTY.SOURCE]: source,
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: screenType,
+        [PERPS_EVENT_PROPERTY.HAS_TAKE_PROFIT]: hasTakeProfit,
+        [PERPS_EVENT_PROPERTY.HAS_STOP_LOSS]: hasStopLoss,
         ...(direction && {
-          [PerpsEventProperties.DIRECTION]:
+          [PERPS_EVENT_PROPERTY.DIRECTION]:
             direction === 'long'
-              ? PerpsEventValues.DIRECTION.LONG
-              : PerpsEventValues.DIRECTION.SHORT,
+              ? PERPS_EVENT_VALUE.DIRECTION.LONG
+              : PERPS_EVENT_VALUE.DIRECTION.SHORT,
         }),
         ...(positionSize !== undefined && {
-          [PerpsEventProperties.POSITION_SIZE]: positionSize,
+          [PERPS_EVENT_PROPERTY.POSITION_SIZE]: positionSize,
         }),
         ...(params.takeProfitPrice && {
-          [PerpsEventProperties.TAKE_PROFIT_PRICE]: parseFloat(
+          [PERPS_EVENT_PROPERTY.TAKE_PROFIT_PRICE]: parseFloat(
             params.takeProfitPrice,
           ),
         }),
         ...(params.stopLossPrice && {
-          [PerpsEventProperties.STOP_LOSS_PRICE]: parseFloat(
+          [PERPS_EVENT_PROPERTY.STOP_LOSS_PRICE]: parseFloat(
             params.stopLossPrice,
           ),
         }),
         ...(takeProfitPercentage !== undefined && {
-          [PerpsEventProperties.TAKE_PROFIT_PERCENTAGE]: takeProfitPercentage,
+          [PERPS_EVENT_PROPERTY.TAKE_PROFIT_PERCENTAGE]: takeProfitPercentage,
         }),
         ...(stopLossPercentage !== undefined && {
-          [PerpsEventProperties.STOP_LOSS_PERCENTAGE]: stopLossPercentage,
+          [PERPS_EVENT_PROPERTY.STOP_LOSS_PERCENTAGE]: stopLossPercentage,
         }),
         ...(errorMessage && {
-          [PerpsEventProperties.ERROR_MESSAGE]: errorMessage,
+          [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
         }),
       };
 
@@ -1642,12 +1634,12 @@ export class TradingService {
 
         // Track success analytics
         this.deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.RiskManagement, {
-          [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
-          [PerpsEventProperties.ASSET]: symbol,
-          [PerpsEventProperties.ACTION]:
+          [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.EXECUTED,
+          [PERPS_EVENT_PROPERTY.ASSET]: symbol,
+          [PERPS_EVENT_PROPERTY.ACTION]:
             parseFloat(amount) > 0 ? 'add_margin' : 'remove_margin',
-          [PerpsEventProperties.MARGIN_USED]: Math.abs(parseFloat(amount)),
-          [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+          [PERPS_EVENT_PROPERTY.MARGIN_USED]: Math.abs(parseFloat(amount)),
+          [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: completionDuration,
         });
       }
 
@@ -1670,13 +1662,13 @@ export class TradingService {
 
       // Track failure analytics
       this.deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.RiskManagement, {
-        [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-        [PerpsEventProperties.ASSET]: symbol,
-        [PerpsEventProperties.ACTION]:
+        [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
+        [PERPS_EVENT_PROPERTY.ASSET]: symbol,
+        [PERPS_EVENT_PROPERTY.ACTION]:
           parseFloat(amount) > 0 ? 'add_margin' : 'remove_margin',
-        [PerpsEventProperties.MARGIN_USED]: Math.abs(parseFloat(amount)),
-        [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-        [PerpsEventProperties.ERROR_MESSAGE]: errorMessage,
+        [PERPS_EVENT_PROPERTY.MARGIN_USED]: Math.abs(parseFloat(amount)),
+        [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: completionDuration,
+        [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
       });
 
       this.deps.tracer.endTrace({
@@ -1767,16 +1759,16 @@ export class TradingService {
         this.deps.metrics.trackPerpsEvent(
           PerpsAnalyticsEvent.TradeTransaction,
           {
-            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
-            [PerpsEventProperties.ASSET]: position.symbol,
-            [PerpsEventProperties.DIRECTION]: oppositeDirection
-              ? PerpsEventValues.DIRECTION.LONG
-              : PerpsEventValues.DIRECTION.SHORT,
-            [PerpsEventProperties.ORDER_TYPE]: 'market',
-            [PerpsEventProperties.LEVERAGE]: position.leverage?.value || 1,
-            [PerpsEventProperties.ORDER_SIZE]: positionSize,
-            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-            [PerpsEventProperties.ACTION]: 'flip_position',
+            [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.EXECUTED,
+            [PERPS_EVENT_PROPERTY.ASSET]: position.symbol,
+            [PERPS_EVENT_PROPERTY.DIRECTION]: oppositeDirection
+              ? PERPS_EVENT_VALUE.DIRECTION.LONG
+              : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+            [PERPS_EVENT_PROPERTY.ORDER_TYPE]: 'market',
+            [PERPS_EVENT_PROPERTY.LEVERAGE]: position.leverage?.value || 1,
+            [PERPS_EVENT_PROPERTY.ORDER_SIZE]: positionSize,
+            [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: completionDuration,
+            [PERPS_EVENT_PROPERTY.ACTION]: 'flip_position',
           },
         );
       }
@@ -1800,11 +1792,11 @@ export class TradingService {
 
       // Track failure analytics
       this.deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
-        [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-        [PerpsEventProperties.ASSET]: position.symbol,
-        [PerpsEventProperties.ACTION]: 'flip_position',
-        [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-        [PerpsEventProperties.ERROR_MESSAGE]: errorMessage,
+        [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
+        [PERPS_EVENT_PROPERTY.ASSET]: position.symbol,
+        [PERPS_EVENT_PROPERTY.ACTION]: 'flip_position',
+        [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: completionDuration,
+        [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
       });
 
       this.deps.tracer.endTrace({
