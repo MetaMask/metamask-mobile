@@ -12,6 +12,7 @@ import { Nft } from '../../types/token';
 import { useSendScope } from './useSendScope';
 import { getFormattedIpfsUrl } from '@metamask/assets-controllers';
 import useIpfsGateway from '../../../../hooks/useIpfsGateway';
+import Logger from '../../../../../util/Logger';
 
 export function useEVMNfts(): Nft[] {
   const { NftController, AssetsContractController, NetworkController } =
@@ -101,7 +102,16 @@ async function getValidImageUrl(
       if (!url.startsWith('ipfs:')) {
         return url;
       }
-      return (await getFormattedIpfsUrl(ipfsGateway, url, false)) || undefined;
+
+      try {
+        const ipfsUrl = await getFormattedIpfsUrl(ipfsGateway, url, false);
+        if (!ipfsUrl) {
+          continue;
+        }
+        return ipfsUrl;
+      } catch {
+        Logger.log(`Failed to resolve IPFS URL for ${url}`);
+      }
     }
   }
   return undefined;
