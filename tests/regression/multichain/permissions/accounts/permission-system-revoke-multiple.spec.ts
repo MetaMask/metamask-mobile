@@ -1,16 +1,19 @@
-import TestHelpers from '../../../../helpers';
-import Browser from '../../../../pages/Browser/BrowserView';
-import AccountListBottomSheet from '../../../../pages/wallet/AccountListBottomSheet';
-import ToastModal from '../../../../pages/wallet/ToastModal';
-import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
-import NetworkListModal from '../../../../pages/Network/NetworkListModal';
-import { loginToApp, navigateToBrowserView } from '../../../../viewHelper';
-import FixtureBuilder from '../../../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../../../tests/framework/fixtures/FixtureHelper';
-import Assertions from '../../../../../tests/framework/Assertions';
-import { RegressionNetworkExpansion } from '../../../../tags';
-import AddNewAccountSheet from '../../../../pages/wallet/AddNewAccountSheet';
-import { DappVariants } from '../../../../../tests/framework/Constants';
+import TestHelpers from '../../../../../e2e/helpers';
+import Browser from '../../../../../e2e/pages/Browser/BrowserView';
+import AccountListBottomSheet from '../../../../../e2e/pages/wallet/AccountListBottomSheet';
+import ToastModal from '../../../../../e2e/pages/wallet/ToastModal';
+import ConnectedAccountsModal from '../../../../../e2e/pages/Browser/ConnectedAccountsModal';
+import NetworkListModal from '../../../../../e2e/pages/Network/NetworkListModal';
+import {
+  loginToApp,
+  navigateToBrowserView,
+} from '../../../../../e2e/viewHelper';
+import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
+import Assertions from '../../../../framework/Assertions';
+import { RegressionNetworkExpansion } from '../../../../../e2e/tags';
+import AddNewAccountSheet from '../../../../../e2e/pages/wallet/AddNewAccountSheet';
+import { DappVariants } from '../../../../framework/Constants';
 
 const AccountTwoText = 'Account 2';
 
