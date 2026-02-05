@@ -17,52 +17,127 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+const mockUseFullScreenConfirmation = jest.fn();
+jest.mock('../../../../hooks/ui/useFullScreenConfirmation', () => ({
+  useFullScreenConfirmation: () => mockUseFullScreenConfirmation(),
+}));
+
+jest.mock('../../../../../../hooks/useEditNonce', () => ({
+  useEditNonce: () => ({
+    setShowNonceModal: jest.fn(),
+    updateNonce: jest.fn(),
+    showNonceModal: false,
+    proposedNonce: '0',
+    userSelectedNonce: '0',
+  }),
+}));
+
+jest.mock('../../../../hooks/7702/use7702TransactionType', () => ({
+  use7702TransactionType: () => ({
+    isBatched: false,
+    isUpgrade: false,
+    is7702transaction: false,
+    isDowngrade: false,
+  }),
+}));
+
 describe('AdvancedDetailsRow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseFullScreenConfirmation.mockReturnValue({
+      isFullScreenConfirmation: false,
+    });
   });
 
-  it('does not render when transaction metadata is missing', () => {
-    const stateWithoutTransaction = cloneDeep(generateContractInteractionState);
-    stateWithoutTransaction.engine.backgroundState.TransactionController.transactions =
-      [];
+  describe('when transaction metadata is missing', () => {
+    it('does not render', () => {
+      const stateWithoutTransaction = cloneDeep(
+        generateContractInteractionState,
+      );
+      stateWithoutTransaction.engine.backgroundState.TransactionController.transactions =
+        [];
 
-    const { toJSON } = renderWithProvider(
-      <AdvancedDetailsRow />,
-      { state: stateWithoutTransaction },
-      false,
-    );
-    expect(toJSON()).toBeNull();
+      const { toJSON } = renderWithProvider(
+        <AdvancedDetailsRow />,
+        { state: stateWithoutTransaction },
+        false,
+      );
+      expect(toJSON()).toBeNull();
+    });
   });
 
-  it('renders the advanced details row', () => {
-    const { getByText, getByTestId } = renderWithProvider(
-      <AdvancedDetailsRow />,
-      { state: generateContractInteractionState },
-      false,
-    );
+  describe('modal context (dApp requests)', () => {
+    beforeEach(() => {
+      mockUseFullScreenConfirmation.mockReturnValue({
+        isFullScreenConfirmation: false,
+      });
+    });
 
-    expect(getByText('Advanced details')).toBeOnTheScreen();
-    expect(
-      getByTestId(ConfirmationRowComponentIDs.ADVANCED_DETAILS),
-    ).toBeOnTheScreen();
+    it('renders the expandable advanced details row', () => {
+      const { getByText, getByTestId } = renderWithProvider(
+        <AdvancedDetailsRow />,
+        { state: generateContractInteractionState },
+        false,
+      );
+
+      expect(getByText('Advanced details')).toBeOnTheScreen();
+      expect(
+        getByTestId(ConfirmationRowComponentIDs.ADVANCED_DETAILS),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not navigate when pressed, opens expandable modal instead', () => {
+      const { getByTestId } = renderWithProvider(
+        <AdvancedDetailsRow />,
+        { state: generateContractInteractionState },
+        false,
+      );
+
+      const advancedDetailsButton = getByTestId(
+        ConfirmationRowComponentIDs.ADVANCED_DETAILS,
+      );
+      fireEvent.press(advancedDetailsButton);
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
   });
 
-  it('navigates to AdvancedDetailsPage when pressed', () => {
-    const { getByTestId } = renderWithProvider(
-      <AdvancedDetailsRow />,
-      { state: generateContractInteractionState },
-      false,
-    );
+  describe('fullscreen context (wallet-initiated)', () => {
+    beforeEach(() => {
+      mockUseFullScreenConfirmation.mockReturnValue({
+        isFullScreenConfirmation: true,
+      });
+    });
 
-    const advancedDetailsButton = getByTestId(
-      ConfirmationRowComponentIDs.ADVANCED_DETAILS,
-    );
-    fireEvent.press(advancedDetailsButton);
+    it('renders the navigation advanced details row', () => {
+      const { getByText, getByTestId } = renderWithProvider(
+        <AdvancedDetailsRow />,
+        { state: generateContractInteractionState },
+        false,
+      );
 
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.FULL_SCREEN_CONFIRMATIONS.ADVANCED_DETAILS,
-    );
+      expect(getByText('Advanced details')).toBeOnTheScreen();
+      expect(
+        getByTestId(ConfirmationRowComponentIDs.ADVANCED_DETAILS),
+      ).toBeOnTheScreen();
+    });
+
+    it('navigates to AdvancedDetailsPage when pressed', () => {
+      const { getByTestId } = renderWithProvider(
+        <AdvancedDetailsRow />,
+        { state: generateContractInteractionState },
+        false,
+      );
+
+      const advancedDetailsButton = getByTestId(
+        ConfirmationRowComponentIDs.ADVANCED_DETAILS,
+      );
+      fireEvent.press(advancedDetailsButton);
+
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.FULL_SCREEN_CONFIRMATIONS.ADVANCED_DETAILS,
+      );
+    });
   });
 });
