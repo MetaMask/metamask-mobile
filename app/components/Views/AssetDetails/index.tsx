@@ -63,7 +63,7 @@ import { areAddressesEqual } from '../../../util/address';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { usePerpsMarketForAsset } from '../../UI/Perps/hooks/usePerpsMarketForAsset';
 import PerpsDiscoveryBanner from '../../UI/Perps/components/PerpsDiscoveryBanner';
-import { PerpsEventValues } from '../../UI/Perps/constants/eventNames';
+import { PERPS_EVENT_VALUE } from '../../UI/Perps/constants/eventNames';
 import { isTokenTrustworthyForPerps } from '../../UI/Perps/constants/perpsConfig';
 import type { PerpsNavigationParamList } from '../../UI/Perps/types/navigation';
 
@@ -207,7 +207,7 @@ const AssetDetails = (props: InnerProps) => {
         screen: Routes.PERPS.MARKET_DETAILS,
         params: {
           market: marketData,
-          source: PerpsEventValues.SOURCE.ASSET_DETAIL_SCREEN,
+          source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
         },
       });
     }
