@@ -124,7 +124,7 @@ import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/R
 import ReferralBottomSheetModal from '../../UI/Rewards/components/ReferralBottomSheetModal';
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
-import getHeaderCenterNavbarOptions from '../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
+import getHeaderCompactStandardNavbarOptions from '../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
 import {
   TOKEN_TITLE,
   NFT_TITLE,
@@ -183,6 +183,11 @@ const AssetStackFlow = (props) => (
       name={'AssetDetails'}
       component={AssetDetails}
       initialParams={{ address: props.route.params?.address }}
+    />
+    <Stack.Screen
+      name={Routes.TRANSACTION_DETAILS}
+      component={TransactionDetails}
+      options={{ headerShown: true }}
     />
   </Stack.Navigator>
 );
@@ -944,7 +949,7 @@ const MainNavigator = () => {
         name="AddAsset"
         component={AddAsset}
         options={({ route, navigation }) => ({
-          ...getHeaderCenterNavbarOptions({
+          ...getHeaderCompactStandardNavbarOptions({
             title: strings(
               `add_asset.${route.params?.assetType === TOKEN ? TOKEN_TITLE : NFT_TITLE}`,
             ),

@@ -1,6 +1,7 @@
 import { waitFor } from 'detox';
 import Matchers from '../../../tests/framework/Matchers';
 import Gestures from '../../../tests/framework/Gestures';
+import Assertions from '../../../tests/framework/Assertions';
 import {
   QuoteViewSelectorIDs,
   QuoteViewSelectorText,
@@ -165,6 +166,25 @@ class QuoteView {
   async tapMax(): Promise<void> {
     await Gestures.waitAndTap(this.maxLink, {
       elemDescription: 'Tap Max link to use maximum balance',
+    });
+  }
+
+  /**
+   * Gets the slippage display text element (e.g., "2.5%")
+   * @param value - The slippage value to match (e.g., "2.5" for "2.5%")
+   */
+  slippageDisplayText(value: string): DetoxElement {
+    return Matchers.getElementByText(`${value}%`);
+  }
+
+  /**
+   * Verifies that the slippage value is displayed correctly in the quote view
+   * @param value - The expected slippage value (e.g., "2.5" for 2.5%)
+   */
+  async verifySlippageDisplayed(value: string): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.slippageDisplayText(value), {
+      timeout: 10000,
+      description: `Slippage should display ${value}%`,
     });
   }
 }
