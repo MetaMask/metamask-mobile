@@ -46,7 +46,6 @@ import {
   hasTransactionType,
   isTransactionPayWithdraw,
 } from '../../../utils/transaction';
-import { useWithdrawalToken } from '../../../hooks/pay/useWithdrawalToken';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { TransactionType } from '@metamask/transaction-controller';
 import Button, {
@@ -103,21 +102,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     useTransactionPayMetrics();
     useTransactionPayPostQuote(); // Set isPostQuote=true for post-quote transactions
 
-    const { canSelectWithdrawalToken } = useWithdrawalToken();
-
     const { isNative: isNativePayToken } = useTransactionPayToken();
     const { styles } = useStyles(styleSheet, {});
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
     const { hasTokens } = useTransactionPayAvailableTokens();
 
-    // Withdrawal without token picker = same-token-same-chain (no bridge needed)
-    const isWithdrawalWithoutTokenPicker =
-      isWithdrawal && !canSelectWithdrawalToken;
-
-    const isResultReady = useIsResultReady({
-      isKeyboardVisible,
-      isWithdrawalWithoutTokenPicker,
-    });
+    const isResultReady = useIsResultReady({ isKeyboardVisible });
 
     const {
       amountFiat,
@@ -308,23 +298,16 @@ function ConfirmButton({
 
 function useIsResultReady({
   isKeyboardVisible,
-  isWithdrawalWithoutTokenPicker,
 }: {
   isKeyboardVisible: boolean;
-  isWithdrawalWithoutTokenPicker: boolean;
 }) {
   const quotes = useTransactionPayQuotes();
   const isQuotesLoading = useIsTransactionPayLoading();
   const hasSourceAmount = useTransactionPayHasSourceAmount();
 
-  // For withdrawals without token picker (same-token-same-chain), no quote is needed
-  // but we still want to show the result rows for gas fees
   return (
     !isKeyboardVisible &&
-    (isQuotesLoading ||
-      Boolean(quotes?.length) ||
-      !hasSourceAmount ||
-      isWithdrawalWithoutTokenPicker)
+    (isQuotesLoading || Boolean(quotes?.length) || !hasSourceAmount)
   );
 }
 

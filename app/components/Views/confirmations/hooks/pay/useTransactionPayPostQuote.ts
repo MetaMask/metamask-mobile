@@ -14,14 +14,24 @@ const log = createProjectLogger('transaction-pay-post-quote');
  * Note: We don't set a default payment token here to avoid triggering
  * quote retrieval. The UI renders the default token when no payment
  * token is selected.
+ *
+ * When the withdrawal token picker feature flag (MM_PREDICT_WITHDRAW_ANY_TOKEN)
+ * is disabled, this hook does nothing - withdrawals will use same-token-same-chain
+ * flow without bridging.
  */
 export function useTransactionPayPostQuote(): void {
   const isSet = useRef(false);
   const transactionMeta = useTransactionMetadataRequest();
   const isPostQuoteTransaction = isTransactionPayWithdraw(transactionMeta);
   const transactionId = transactionMeta?.id;
+  const isFeatureEnabled = process.env.MM_PREDICT_WITHDRAW_ANY_TOKEN === 'true';
 
   useEffect(() => {
+    // Skip if feature flag is disabled - no post-quote bridging needed
+    if (!isFeatureEnabled) {
+      return;
+    }
+
     if (!isPostQuoteTransaction || !transactionId || isSet.current) {
       return;
     }
@@ -43,5 +53,5 @@ export function useTransactionPayPostQuote(): void {
         transactionId,
       });
     }
-  }, [isPostQuoteTransaction, transactionId]);
+  }, [isPostQuoteTransaction, transactionId, isFeatureEnabled]);
 }
