@@ -411,15 +411,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         );
 
       if (isBiometricCancellation) {
+        setLoading(false);
         setRenderBiometricSwitch(true);
         setError(strings('login.biometric_authentication_cancelled'));
         // user already successfull rehydrate or synced new password but failed biometric authentication
         // resetPassword so that the state is correct upon user closed and reopen the app
-        try {
-          await Authentication.resetPassword();
-        } finally {
-          setLoading(false);
-        }
+        Authentication.resetPassword();
         return;
       }
 
@@ -743,12 +740,14 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                 )}
               </View>
 
-              <LoginOptionsSwitch
-                shouldRenderBiometricOption={shouldRenderBiometricSwitch}
-                biometryChoiceState={biometryChoice}
-                onUpdateBiometryChoice={setBiometryChoice}
-                onUpdateRememberMe={setBiometryChoice}
-              />
+              {shouldRenderBiometricSwitch && (
+                <LoginOptionsSwitch
+                  shouldRenderBiometricOption={shouldRenderBiometricSwitch}
+                  biometryChoiceState={biometryChoice}
+                  onUpdateBiometryChoice={setBiometryChoice}
+                  onUpdateRememberMe={setBiometryChoice}
+                />
+              )}
 
               <View style={styles.ctaWrapperRehydration}>
                 <Button
