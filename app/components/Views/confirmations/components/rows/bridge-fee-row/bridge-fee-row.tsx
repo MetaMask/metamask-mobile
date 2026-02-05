@@ -44,7 +44,7 @@ export function BridgeFeeRow() {
   const totals = useTransactionPayTotals();
   const { fieldAlerts } = useAlerts();
   const hasAlert = fieldAlerts.some((a) => a.field === RowAlertKey.PayWithFee);
-  const isWithdrawal = isTransactionPayWithdraw(transactionMetadata);
+  const isWithdraw = isTransactionPayWithdraw(transactionMetadata);
 
   if (hasTransactionType(transactionMetadata, NETWORK_FEE_ONLY_TYPES)) {
     return (
@@ -60,7 +60,7 @@ export function BridgeFeeRow() {
   }
 
   // For withdrawals, only show provider fee (network fee is negligible on Polygon)
-  if (isWithdrawal) {
+  if (isWithdraw) {
     return <WithdrawalProviderFeeRow totals={totals} isLoading={isLoading} />;
   }
 

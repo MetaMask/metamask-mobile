@@ -1,7 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { Hex } from '@metamask/utils';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
-import { useWithdrawalToken } from '../../../hooks/pay/useWithdrawalToken';
+import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { strings } from '../../../../../../../locales/i18n';
 import { Asset } from '../../send/asset';
 import BottomSheet, {
@@ -28,7 +28,7 @@ export function PayWithModal() {
     HIDE_NETWORK_FILTER_TYPES,
   );
   const { payToken, setPayToken } = useTransactionPayToken();
-  const { isWithdrawal } = useWithdrawalToken();
+  const { isWithdraw } = useTransactionPayWithdraw();
   const requiredTokens = useTransactionPayRequiredTokens();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { filterAllowedTokens: musdTokenFilter } = useMusdConversionTokens();
@@ -87,7 +87,7 @@ export function PayWithModal() {
   );
 
   // Dynamic title based on transaction type
-  const modalTitle = isWithdrawal
+  const modalTitle = isWithdraw
     ? strings('pay_with_modal.title_receive')
     : strings('pay_with_modal.title');
 

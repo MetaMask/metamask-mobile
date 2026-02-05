@@ -1,5 +1,5 @@
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { useWithdrawalToken } from './useWithdrawalToken';
+import { useTransactionPayWithdraw } from './useTransactionPayWithdraw';
 import { cloneDeep, merge } from 'lodash';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
@@ -21,28 +21,28 @@ function runHook({ type }: { type?: TransactionType } = {}) {
       type;
   }
 
-  return renderHookWithProvider(useWithdrawalToken, {
+  return renderHookWithProvider(useTransactionPayWithdraw, {
     state: mockState,
   });
 }
 
-describe('useWithdrawalToken', () => {
-  describe('isWithdrawal', () => {
-    it('returns false for non-withdrawal transaction types', () => {
+describe('useTransactionPayWithdraw', () => {
+  describe('isWithdraw', () => {
+    it('returns false for non-withdraw transaction types', () => {
       const { result } = runHook({ type: TransactionType.simpleSend });
-      expect(result.current.isWithdrawal).toBe(false);
+      expect(result.current.isWithdraw).toBe(false);
     });
 
     it('returns true for predictWithdraw transaction type', () => {
       const { result } = runHook({ type: TransactionType.predictWithdraw });
-      expect(result.current.isWithdrawal).toBe(true);
+      expect(result.current.isWithdraw).toBe(true);
     });
   });
 
-  describe('canSelectWithdrawalToken', () => {
-    it('returns false for non-withdrawal transactions regardless of feature flag', () => {
+  describe('canSelectWithdrawToken', () => {
+    it('returns false for non-withdraw transactions regardless of feature flag', () => {
       const { result } = runHook({ type: TransactionType.simpleSend });
-      expect(result.current.canSelectWithdrawalToken).toBe(false);
+      expect(result.current.canSelectWithdrawToken).toBe(false);
     });
   });
 });

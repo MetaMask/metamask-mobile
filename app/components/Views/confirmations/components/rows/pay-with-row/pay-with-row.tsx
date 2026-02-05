@@ -4,7 +4,7 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenIcon } from '../../token-icon';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
-import { useWithdrawalToken } from '../../../hooks/pay/useWithdrawalToken';
+import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { TouchableOpacity } from 'react-native';
 import { Box } from '../../../../../UI/Box/Box';
 import {
@@ -46,7 +46,7 @@ const DEFAULT_WITHDRAWAL_TOKEN = {
 export function PayWithRow() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
-  const { isWithdrawal } = useWithdrawalToken();
+  const { isWithdraw } = useTransactionPayWithdraw();
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const { styles } = useStyles(styleSheet, {});
   const { setConfirmationMetric } = useConfirmationMetricEvents();
@@ -67,18 +67,18 @@ export function PayWithRow() {
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
   }, [canEdit, navigation, setConfirmationMetric]);
 
-  const label = isWithdrawal
+  const label = isWithdraw
     ? strings('confirm.label.receive_as')
     : strings('confirm.label.pay_with');
 
   // For withdrawals, show the default token (Polygon USDC.E) if no token is selected.
   // Auto-selection is disabled for withdrawals, so payToken will be undefined until user selects.
   const displayToken = useMemo(() => {
-    if (isWithdrawal) {
+    if (isWithdraw) {
       return payToken ?? DEFAULT_WITHDRAWAL_TOKEN;
     }
     return payToken ?? null;
-  }, [isWithdrawal, payToken]);
+  }, [isWithdraw, payToken]);
 
   // For deposits, show the user's balance of the selected pay token
   const balanceUsdFormatted = useMemo(
@@ -115,7 +115,7 @@ export function PayWithRow() {
           {`${label} ${displayToken.symbol}`}
         </Text>
         {/* For deposits, show the user's balance; for withdrawals, no balance needed */}
-        {!isWithdrawal && (
+        {!isWithdraw && (
           <Text
             variant={TextVariant.BodyMDMedium}
             color={TextColor.Alternative}

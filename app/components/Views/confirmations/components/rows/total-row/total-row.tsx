@@ -27,7 +27,7 @@ export function TotalRow({ inputAmountUsd }: TotalRowProps) {
   const isLoading = useIsTransactionPayLoading();
   const totals = useTransactionPayTotals();
   const transactionMeta = useTransactionMetadataRequest();
-  const isWithdrawal = isTransactionPayWithdraw(transactionMeta);
+  const isWithdraw = isTransactionPayWithdraw(transactionMeta);
 
   // For withdrawals: You'll receive = Input amount - Provider fee
   // (Network fees are paid separately from POL balance, not deducted from withdrawal)
@@ -35,7 +35,7 @@ export function TotalRow({ inputAmountUsd }: TotalRowProps) {
   const totalUsd = useMemo(() => {
     if (!totals) return '';
 
-    if (isWithdrawal && inputAmountUsd) {
+    if (isWithdraw && inputAmountUsd) {
       const inputUsd = new BigNumber(inputAmountUsd);
       const providerFee = new BigNumber(totals.fees?.provider?.usd ?? 0);
 
@@ -50,14 +50,14 @@ export function TotalRow({ inputAmountUsd }: TotalRowProps) {
     }
 
     return '';
-  }, [totals, formatFiat, isWithdrawal, inputAmountUsd]);
+  }, [totals, formatFiat, isWithdraw, inputAmountUsd]);
 
   if (isLoading) {
     return <InfoRowSkeleton testId="total-row-skeleton" />;
   }
 
   // For withdrawals, use "You'll receive" label
-  const label = isWithdrawal
+  const label = isWithdraw
     ? strings('confirm.label.you_receive')
     : strings('confirm.label.total');
 
