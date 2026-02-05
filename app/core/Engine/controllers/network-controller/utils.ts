@@ -6,6 +6,7 @@ import {
   PopularList,
 } from '../../../../util/networks/customNetworks';
 import { BUILT_IN_CUSTOM_NETWORKS_RPC } from '@metamask/controller-utils';
+import { isPublicRpcDomain } from '../../../../util/rpc-domain-utils';
 
 /**
  * We capture Segment events for degraded or unavailable RPC endpoints for 1%
@@ -150,17 +151,10 @@ export function isPublicEndpointUrl(
   endpointUrl: string,
   infuraProjectId: string,
 ) {
-  const isMetaMaskInfuraEndpointUrl = getIsMetaMaskInfuraEndpointUrl(
-    endpointUrl,
-    infuraProjectId,
-  );
-  const isQuicknodeEndpointUrl = getIsQuicknodeEndpointUrl(endpointUrl);
-  const isKnownCustomEndpointUrl =
-    KNOWN_CUSTOM_ENDPOINT_URLS.includes(endpointUrl);
-
   return (
-    isMetaMaskInfuraEndpointUrl ||
-    isQuicknodeEndpointUrl ||
-    isKnownCustomEndpointUrl
+    getIsMetaMaskInfuraEndpointUrl(endpointUrl, infuraProjectId) ||
+    getIsQuicknodeEndpointUrl(endpointUrl) ||
+    KNOWN_CUSTOM_ENDPOINT_URLS.includes(endpointUrl) ||
+    isPublicRpcDomain(endpointUrl)
   );
 }

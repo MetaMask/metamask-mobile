@@ -97,7 +97,7 @@ describe('useBalance', () => {
     expect(result.current.stakedBalanceWei).toBe('5791332670714232000'); // No staked assets
     expect(result.current.formattedStakedBalanceETH).toBe('5.79133 ETH'); // Formatted ETH balance
     expect(result.current.stakedBalanceFiatNumber).toBe(18532.26454); // Staked balance in fiat number
-    expect(result.current.formattedStakedBalanceFiat).toBe('$18532.26'); //
+    expect(result.current.formattedStakedBalanceFiat).toBe('$18,532.26'); // Intl-formatted fiat
   });
 
   it('returns default values when no selected address and no account data', async () => {
@@ -185,10 +185,10 @@ describe('useBalance', () => {
     expect(result.current.stakedBalanceWei).toBe('99999999990000000000000'); // No staked assets
     expect(result.current.formattedStakedBalanceETH).toBe('99999.99999 ETH'); // Formatted ETH balance
     expect(result.current.stakedBalanceFiatNumber).toBe(319999999.968); // Staked balance in fiat number
-    expect(result.current.formattedStakedBalanceFiat).toBe('$319999999.96'); // should round to floor
+    expect(result.current.formattedStakedBalanceFiat).toBe('$319,999,999.97'); // Intl-formatted fiat
   });
 
-  it('returns correct stake amounts and fiat values when chainId is overriden', async () => {
+  it('returns correct stake amounts and fiat values when chainId is overridden', async () => {
     const { result } = renderHookWithProvider(() => useBalance('0x4268'), {
       state: initialState,
     });
@@ -202,6 +202,6 @@ describe('useBalance', () => {
     expect(result.current.stakedBalanceWei).toBe('5791332670714232000');
     expect(result.current.formattedStakedBalanceETH).toBe('5.79133 ETH'); // Formatted ETH balance
     expect(result.current.stakedBalanceFiatNumber).toBe(18532.26454); // Staked balance in fiat number
-    expect(result.current.formattedStakedBalanceFiat).toBe('$18532.26'); //
+    expect(result.current.formattedStakedBalanceFiat).toBe('$18532.26'); // Fallback formatting when selector has no staked asset for chain
   });
 });

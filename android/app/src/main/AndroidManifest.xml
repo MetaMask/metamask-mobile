@@ -12,12 +12,12 @@
   <!-- Android < 12 -->
   <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
   <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
-  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="30" />
+  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
   <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
 
   <!-- Bluetooth permissions: Android API >= 31 (Android 12)-->
   <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-  <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation"/>
+  <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
 
 	<uses-sdk tools:overrideLibrary="com.tectiv3.aes" />
 
@@ -184,5 +184,12 @@
 				android:resource="@xml/filepaths"
 			/>
 		</provider>
+
+		<!-- Disable Notifee's BlockStateBroadcastReceiver to prevent crash during cold start -->
+		<!-- This receiver tries to access React Native before it's initialized -->
+		<receiver
+			android:name="app.notifee.core.BlockStateBroadcastReceiver"
+			android:enabled="false"
+			tools:node="remove" />
 	</application>
 </manifest>

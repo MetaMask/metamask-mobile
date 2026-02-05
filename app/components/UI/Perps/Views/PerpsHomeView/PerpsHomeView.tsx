@@ -130,6 +130,7 @@ const PerpsHomeView = () => {
     orders,
     watchlistMarkets,
     perpsMarkets, // Crypto markets (renamed from trendingMarkets)
+    commoditiesMarkets, // Commodity markets
     stocksMarkets, // Equity markets only
     forexMarkets,
     recentActivity,
@@ -502,6 +503,15 @@ const PerpsHomeView = () => {
             isLoading={isLoading.markets}
           />
         </View>
+
+        {/* Commodities Markets List */}
+        <PerpsMarketTypeSection
+          title={strings('perps.home.commodities')}
+          markets={commoditiesMarkets}
+          marketType="commodities"
+          sortBy={sortBy}
+          isLoading={isLoading.markets}
+        />
 
         {/* Stocks Markets List */}
         <View onLayout={handleSectionLayout('explore_stocks')}>

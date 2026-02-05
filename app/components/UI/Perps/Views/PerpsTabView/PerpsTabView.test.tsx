@@ -111,6 +111,7 @@ jest.mock('../../hooks/stream', () => ({
     },
     isInitialLoading: false,
   })),
+  usePerpsLivePrices: jest.fn(() => ({})),
 }));
 
 // Mock formatUtils
@@ -164,6 +165,11 @@ jest.mock('../../Perps.testIds', () => ({
   PerpsPositionsViewSelectorsIDs: {
     POSITIONS_SECTION_TITLE: 'perps-positions-section-title',
     POSITION_ITEM: 'perps-positions-item',
+  },
+  getPerpsMarketRowItemSelector: {
+    rowItem: (symbol: string) => `perps-market-row-${symbol}`,
+    tokenLogo: (symbol: string) => `perps-market-logo-${symbol}`,
+    badge: (symbol: string) => `perps-market-badge-${symbol}`,
   },
 }));
 

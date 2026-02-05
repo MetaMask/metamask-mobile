@@ -526,6 +526,9 @@ export class HyperLiquidClientService {
     let currentCandleData: CandleData | null = null;
     let wsUnsubscribe: (() => void) | null = null;
     let isUnsubscribed = false;
+    // Store the subscription promise to enable cleanup even when pending
+    // This fixes a race condition where component unmounts before subscription resolves
+    let subscriptionPromise: Promise<{ unsubscribe: () => void }> | null = null;
 
     // Calculate initial fetch size dynamically based on duration and interval
     // Match main branch behavior: up to 500 candles initially
@@ -548,7 +551,8 @@ export class HyperLiquidClientService {
 
         // 2. Subscribe to WebSocket for new candles
         // HyperLiquid SDK uses 'coin' terminology
-        const subscription = subscriptionClient.candle(
+        // Store the promise so cleanup can wait for it if needed
+        subscriptionPromise = subscriptionClient.candle(
           { coin: symbol, interval }, // Map to HyperLiquid SDK's 'coin' parameter
           (candleEvent) => {
             // Don't process events if already unsubscribed
@@ -598,12 +602,12 @@ export class HyperLiquidClientService {
           },
         );
 
-        // Store cleanup function
-        subscription
+        // Store cleanup function when subscription resolves
+        subscriptionPromise
           .then((sub) => {
             wsUnsubscribe = () => sub.unsubscribe();
             // If already unsubscribed while waiting, clean up immediately
-            if (isUnsubscribed && wsUnsubscribe) {
+            if (isUnsubscribed) {
               wsUnsubscribe();
               wsUnsubscribe = null;
             }
@@ -663,8 +667,19 @@ export class HyperLiquidClientService {
     return () => {
       isUnsubscribed = true;
       if (wsUnsubscribe) {
+        // Subscription already resolved - unsubscribe directly
         wsUnsubscribe();
         wsUnsubscribe = null;
+      } else if (subscriptionPromise) {
+        // Subscription promise still pending - wait for it and clean up
+        // This prevents WebSocket subscription leaks when component unmounts
+        // before the subscription promise resolves
+        subscriptionPromise
+          .then((sub) => sub.unsubscribe())
+          .catch(() => {
+            // Ignore errors during cleanup - subscription may have failed
+          });
+        subscriptionPromise = null;
       }
     };
   }

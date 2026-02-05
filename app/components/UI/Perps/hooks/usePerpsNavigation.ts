@@ -6,7 +6,10 @@ import type { PerpsMarketData, Position, Order } from '../controllers/types';
 import { usePerpsTrading } from './usePerpsTrading';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import {
+  PERPS_CONSTANTS,
+  CONFIRMATION_HEADER_CONFIG,
+} from '../constants/perpsConfig';
 
 /**
  * Navigation handler result interface
@@ -136,7 +139,11 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
         .then(() => {
           navigation.navigate(
             Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-            params,
+            {
+              ...params,
+              showPerpsHeader:
+                CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
+            },
           );
         })
         .catch((error: unknown) => {
