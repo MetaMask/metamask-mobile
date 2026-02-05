@@ -25,7 +25,6 @@ import type {
   LineaTokenRewardDto,
   ApplyReferralDto,
   SnapshotDto,
-  CommitmentStatusDto,
   SnapshotEligibilityDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
@@ -198,11 +197,6 @@ export interface RewardsDataServiceGetSnapshotsAction {
   handler: RewardsDataService['getSnapshots'];
 }
 
-export interface RewardsDataServiceGetSnapshotCommitmentStatusAction {
-  type: `${typeof SERVICE_NAME}:getSnapshotCommitmentStatus`;
-  handler: RewardsDataService['getSnapshotCommitmentStatus'];
-}
-
 export interface RewardsDataServiceGetSnapshotEligibilityAction {
   type: `${typeof SERVICE_NAME}:getSnapshotEligibility`;
   handler: RewardsDataService['getSnapshotEligibility'];
@@ -231,7 +225,6 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetSeasonOneLineaRewardTokensAction
   | RewardsDataServiceApplyReferralCodeAction
   | RewardsDataServiceGetSnapshotsAction
-  | RewardsDataServiceGetSnapshotCommitmentStatusAction
   | RewardsDataServiceGetSnapshotEligibilityAction;
 
 export type RewardsDataServiceMessenger = Messenger<
@@ -362,10 +355,6 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getSnapshots`,
       this.getSnapshots.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getSnapshotCommitmentStatus`,
-      this.getSnapshotCommitmentStatus.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getSnapshotEligibility`,
@@ -1151,33 +1140,6 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as SnapshotDto[];
-  }
-
-  /**
-   * Get commitment status for a snapshot.
-   * @param snapshotId - The ID of the snapshot.
-   * @param subscriptionId - The subscription ID for authentication.
-   * @returns The commitment status including commitments array and receiving address.
-   */
-  async getSnapshotCommitmentStatus(
-    snapshotId: string,
-    subscriptionId: string,
-  ): Promise<CommitmentStatusDto> {
-    const response = await this.makeRequest(
-      `/seasons/snapshots/${snapshotId}/commitment-status`,
-      {
-        method: 'GET',
-      },
-      subscriptionId,
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `Get snapshot commitment status failed: ${response.status}`,
-      );
-    }
-
-    return (await response.json()) as CommitmentStatusDto;
   }
 
   /**
