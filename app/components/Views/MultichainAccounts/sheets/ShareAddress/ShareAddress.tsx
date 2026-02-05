@@ -87,7 +87,11 @@ export const ShareAddress = () => {
           />
         </Box>
         <Box twClassName="mt-6 mb-4">
-          <QRAccountDisplay accountAddress={formattedAddress} />
+          <QRAccountDisplay
+            accountAddress={formattedAddress}
+            analyticsLocation="share-address"
+            chainId={account.scopes?.[0]}
+          />
         </Box>
       </Box>
       <Box twClassName="px-4 pb-4">

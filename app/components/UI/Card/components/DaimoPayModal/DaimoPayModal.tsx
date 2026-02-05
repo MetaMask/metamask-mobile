@@ -23,7 +23,7 @@ import DaimoPayService, {
   DaimoPayEvent,
   DaimoPayEventType,
 } from '../../services/DaimoPayService';
-import { DaimoPayModalSelectors } from '../../../../../../e2e/selectors/Card/DaimoPayModal.selectors';
+import { DaimoPayModalSelectors } from './DaimoPayModal.testIds';
 import BackgroundBridge from '../../../../../core/BackgroundBridge/BackgroundBridge';
 import EntryScriptWeb3 from '../../../../../core/EntryScriptWeb3';
 import { getRpcMethodMiddleware } from '../../../../../core/RPCMethods/RPCMethodMiddleware';

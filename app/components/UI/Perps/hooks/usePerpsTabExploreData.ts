@@ -42,18 +42,11 @@ export const usePerpsTabExploreData = ({
   // Get watchlist symbols from Redux
   const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
 
-  // Filter explore markets: crypto + equity, top 8 by volume
+  // Filter explore markets: all market types, top 8 by volume
   // Markets are already sorted by volume from usePerpsMarkets
   const exploreMarkets = useMemo(() => {
     if (!enabled) return [];
-    return markets
-      .filter(
-        (m) =>
-          !m.marketType ||
-          m.marketType === 'crypto' ||
-          m.marketType === 'equity',
-      )
-      .slice(0, EXPLORE_MARKETS_LIMIT);
+    return markets.slice(0, EXPLORE_MARKETS_LIMIT);
   }, [markets, enabled]);
 
   // Filter watchlist markets
