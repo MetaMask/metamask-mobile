@@ -20,6 +20,7 @@ export const nftControllerInit: ControllerInitFunction<
     state: persistedState.NftController,
     useIpfsSubdomains: false,
     displayNftMedia: persistedState.PreferencesController?.displayNftMedia,
+    ipfsGateway: 'dweb.link',
   });
 
   return {
