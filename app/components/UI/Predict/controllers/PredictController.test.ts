@@ -94,6 +94,17 @@ jest.mock('../../../../core/ToastService', () => ({
 // Import ToastService for test assertions
 import ToastService from '../../../../core/ToastService';
 
+// Mock NavigationService
+const mockNavigate = jest.fn();
+jest.mock('../../../../core/NavigationService', () => ({
+  __esModule: true,
+  default: {
+    navigation: {
+      navigate: (...args: unknown[]) => mockNavigate(...args),
+    },
+  },
+}));
+
 // Mock successfulFetch for geo location testing
 jest.mock('@metamask/controller-utils', () => {
   const actual = jest.requireActual('@metamask/controller-utils');
@@ -5998,6 +6009,10 @@ describe('PredictController', () => {
             expect.objectContaining({
               variant: 'Status',
               statusType: 'Failure',
+              linkButtonOptions: expect.objectContaining({
+                label: expect.any(String),
+                onPress: expect.any(Function),
+              }),
             }),
           );
           expect(
@@ -6103,6 +6118,10 @@ describe('PredictController', () => {
             expect.objectContaining({
               variant: 'Status',
               statusType: 'Failure',
+              linkButtonOptions: expect.objectContaining({
+                label: expect.any(String),
+                onPress: expect.any(Function),
+              }),
             }),
           );
           expect(controller.state.withdrawTransaction).toBeNull();
@@ -6170,7 +6189,7 @@ describe('PredictController', () => {
         });
       });
 
-      it('shows error toast when claim fails', () => {
+      it('shows error toast with retry button when claim fails', () => {
         withController(({ controller }) => {
           const transactionMeta = createTransactionMeta(
             TransactionType.predictClaim,
@@ -6184,6 +6203,10 @@ describe('PredictController', () => {
             expect.objectContaining({
               variant: 'Status',
               statusType: 'Failure',
+              linkButtonOptions: expect.objectContaining({
+                label: expect.any(String),
+                onPress: expect.any(Function),
+              }),
             }),
           );
         });
@@ -6459,6 +6482,179 @@ describe('PredictController', () => {
             'PredictController: Failed to show Failure toast',
             expect.objectContaining({ error: 'Toast error' }),
           );
+        });
+      });
+    });
+
+    describe('retry methods', () => {
+      beforeEach(() => {
+        mockNavigate.mockClear();
+      });
+
+      describe('retryDeposit', () => {
+        it('navigates to confirmation screen and calls depositWithConfirmation', () => {
+          withController(({ controller }) => {
+            const depositSpy = jest
+              .spyOn(controller, 'depositWithConfirmation')
+              .mockResolvedValue({
+                success: true,
+                response: { batchId: 'test' },
+              });
+
+            (controller as any).retryDeposit();
+
+            expect(mockNavigate).toHaveBeenCalledWith(
+              'RedesignedConfirmations',
+              { loader: 'customAmount' },
+            );
+            expect(depositSpy).toHaveBeenCalledWith({
+              providerId: 'polymarket',
+            });
+          });
+        });
+
+        it('prevents double-tap when retry is already in progress', () => {
+          withController(({ controller }) => {
+            jest
+              .spyOn(controller, 'depositWithConfirmation')
+              .mockResolvedValue({
+                success: true,
+                response: { batchId: 'test' },
+              });
+
+            (controller as any).isRetrying = true;
+            (controller as any).retryDeposit();
+
+            expect(mockNavigate).not.toHaveBeenCalled();
+          });
+        });
+
+        it('logs error when depositWithConfirmation fails', async () => {
+          await withController(async ({ controller }) => {
+            const error = new Error('Deposit failed');
+            jest
+              .spyOn(controller, 'depositWithConfirmation')
+              .mockRejectedValue(error);
+
+            (controller as any).retryDeposit();
+
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            expect(DevLogger.log).toHaveBeenCalledWith(
+              'PredictController: Failed to retry deposit',
+              expect.objectContaining({ error: 'Deposit failed' }),
+            );
+          });
+        });
+      });
+
+      describe('retryWithdraw', () => {
+        it('navigates to confirmation screen and calls prepareWithdraw', () => {
+          withController(({ controller }) => {
+            const withdrawSpy = jest
+              .spyOn(controller, 'prepareWithdraw')
+              .mockResolvedValue({ success: true, response: 'test' });
+
+            (controller as any).retryWithdraw();
+
+            expect(mockNavigate).toHaveBeenCalledWith(
+              'RedesignedConfirmations',
+              { loader: 'customAmount' },
+            );
+            expect(withdrawSpy).toHaveBeenCalledWith({
+              providerId: 'polymarket',
+            });
+          });
+        });
+
+        it('prevents double-tap when retry is already in progress', () => {
+          withController(({ controller }) => {
+            jest
+              .spyOn(controller, 'prepareWithdraw')
+              .mockResolvedValue({ success: true, response: 'test' });
+
+            (controller as any).isRetrying = true;
+            (controller as any).retryWithdraw();
+
+            expect(mockNavigate).not.toHaveBeenCalled();
+          });
+        });
+      });
+
+      describe('retryClaim', () => {
+        it('navigates to confirmation screen within Predict stack and calls claimWithConfirmation', () => {
+          withController(({ controller }) => {
+            const claimSpy = jest
+              .spyOn(controller as any, 'claimWithConfirmation')
+              .mockResolvedValue({});
+
+            (controller as any).retryClaim();
+
+            expect(mockNavigate).toHaveBeenCalledWith('Predict', {
+              screen: 'NoHeaderConfirmations',
+              params: { loader: 'predictClaim' },
+            });
+            expect(claimSpy).toHaveBeenCalledWith({
+              providerId: 'polymarket',
+            });
+          });
+        });
+
+        it('prevents double-tap when retry is already in progress', () => {
+          withController(({ controller }) => {
+            jest
+              .spyOn(controller as any, 'claimWithConfirmation')
+              .mockResolvedValue({});
+
+            (controller as any).isRetrying = true;
+            (controller as any).retryClaim();
+
+            expect(mockNavigate).not.toHaveBeenCalled();
+          });
+        });
+      });
+
+      describe('navigateToConfirmation', () => {
+        it('navigates directly to route when no stack is provided', () => {
+          withController(({ controller }) => {
+            (controller as any).navigateToConfirmation({
+              loader: 'customAmount',
+            });
+
+            expect(mockNavigate).toHaveBeenCalledWith(
+              'RedesignedConfirmations',
+              { loader: 'customAmount' },
+            );
+          });
+        });
+
+        it('navigates within stack when stack is provided', () => {
+          withController(({ controller }) => {
+            (controller as any).navigateToConfirmation({
+              loader: 'predictClaim',
+              headerShown: false,
+              stack: 'Predict',
+            });
+
+            expect(mockNavigate).toHaveBeenCalledWith('Predict', {
+              screen: 'NoHeaderConfirmations',
+              params: { loader: 'predictClaim' },
+            });
+          });
+        });
+
+        it('uses REDESIGNED_CONFIRMATIONS when headerShown is true', () => {
+          withController(({ controller }) => {
+            (controller as any).navigateToConfirmation({
+              loader: 'customAmount',
+              headerShown: true,
+            });
+
+            expect(mockNavigate).toHaveBeenCalledWith(
+              'RedesignedConfirmations',
+              { loader: 'customAmount' },
+            );
+          });
         });
       });
     });

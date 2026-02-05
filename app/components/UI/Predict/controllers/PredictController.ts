@@ -46,8 +46,10 @@ import Routes from '../../../../constants/navigation/Routes';
 import {
   ToastVariants,
   StatusToastType,
+  ToastLinkButtonOptions,
 } from '../../../../component-library/components/Toast/Toast.types';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
+import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
@@ -303,6 +305,7 @@ export class PredictController extends BaseController<
   private providers: Map<string, PredictProvider>;
   private isInitialized = false;
   private initializationPromise: Promise<void> | null = null;
+  private isRetrying = false;
 
   constructor({ messenger, state = {} }: PredictControllerOptions) {
     super({
@@ -482,12 +485,13 @@ export class PredictController extends BaseController<
         break;
       case TransactionStatus.failed:
         this.clearPendingDeposit({ providerId: 'polymarket' });
-        // TODO: Add retry button functionality. The old React hooks could call
-        // deposit() directly, but from the controller we'd need a different
-        // approach (e.g., emitting an event that the UI can listen to).
         this.showFailureToast({
           title: strings('predict.deposit.error_title'),
           description: strings('predict.deposit.error_description'),
+          linkButtonOptions: {
+            label: strings('predict.deposit.try_again'),
+            onPress: () => this.retryDeposit(),
+          },
         });
         break;
       case TransactionStatus.rejected:
@@ -524,10 +528,13 @@ export class PredictController extends BaseController<
       }
       case TransactionStatus.failed:
         this.clearWithdrawTransaction();
-        // TODO: Add retry button functionality (see deposit handler comment)
         this.showFailureToast({
           title: strings('predict.withdraw.error_title'),
           description: strings('predict.withdraw.error_description'),
+          linkButtonOptions: {
+            label: strings('predict.withdraw.try_again'),
+            onPress: () => this.retryWithdraw(),
+          },
         });
         break;
       case TransactionStatus.rejected:
@@ -565,10 +572,13 @@ export class PredictController extends BaseController<
         this.refreshPositionsAfterTransaction();
         break;
       case TransactionStatus.failed:
-        // TODO: Add retry button functionality (see deposit handler comment)
         this.showFailureToast({
           title: strings('predict.claim.toasts.error.title'),
           description: strings('predict.claim.toasts.error.description'),
+          linkButtonOptions: {
+            label: strings('predict.claim.toasts.error.try_again'),
+            onPress: () => this.retryClaim(),
+          },
         });
         break;
       case TransactionStatus.rejected:
@@ -583,11 +593,13 @@ export class PredictController extends BaseController<
     title,
     description,
     transactionId,
+    linkButtonOptions,
   }: {
     type: StatusToastType;
     title: string;
     description: string;
     transactionId?: string;
+    linkButtonOptions?: ToastLinkButtonOptions;
   }): void {
     try {
       const closeButtonOptions =
@@ -617,6 +629,7 @@ export class PredictController extends BaseController<
         ],
         hasNoTimeout: false,
         closeButtonOptions,
+        linkButtonOptions,
       });
     } catch (error) {
       DevLogger.log(`PredictController: Failed to show ${type} toast`, {
@@ -643,8 +656,99 @@ export class PredictController extends BaseController<
   private showFailureToast(options: {
     title: string;
     description: string;
+    linkButtonOptions?: ToastLinkButtonOptions;
   }): void {
     this.showStatusToast({ type: StatusToastType.Failure, ...options });
+  }
+
+  private navigateToConfirmation(options: {
+    loader: ConfirmationLoader;
+    headerShown?: boolean;
+    stack?: string;
+  }): void {
+    const { headerShown, stack, ...params } = options;
+    const route =
+      headerShown === false
+        ? Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER
+        : Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS;
+
+    if (stack) {
+      NavigationService.navigation.navigate(stack, {
+        screen: route,
+        params,
+      });
+    } else {
+      NavigationService.navigation.navigate(route, params);
+    }
+  }
+
+  private retryDeposit(): void {
+    if (this.isRetrying) {
+      return;
+    }
+    this.isRetrying = true;
+
+    try {
+      this.navigateToConfirmation({
+        loader: ConfirmationLoader.CustomAmount,
+      });
+
+      this.depositWithConfirmation({ providerId: 'polymarket' }).catch(
+        (error) => {
+          DevLogger.log('PredictController: Failed to retry deposit', {
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
+        },
+      );
+    } finally {
+      this.isRetrying = false;
+    }
+  }
+
+  private retryWithdraw(): void {
+    if (this.isRetrying) {
+      return;
+    }
+    this.isRetrying = true;
+
+    try {
+      this.navigateToConfirmation({
+        loader: ConfirmationLoader.CustomAmount,
+      });
+
+      this.prepareWithdraw({ providerId: 'polymarket' }).catch((error) => {
+        DevLogger.log('PredictController: Failed to retry withdraw', {
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+      });
+    } finally {
+      this.isRetrying = false;
+    }
+  }
+
+  private retryClaim(): void {
+    if (this.isRetrying) {
+      return;
+    }
+    this.isRetrying = true;
+
+    try {
+      this.navigateToConfirmation({
+        headerShown: false,
+        loader: ConfirmationLoader.PredictClaim,
+        stack: Routes.PREDICT.ROOT,
+      });
+
+      this.claimWithConfirmation({ providerId: 'polymarket' }).catch(
+        (error) => {
+          DevLogger.log('PredictController: Failed to retry claim', {
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
+        },
+      );
+    } finally {
+      this.isRetrying = false;
+    }
   }
 
   private getDepositAmount(transactionMeta: TransactionMeta): string {
