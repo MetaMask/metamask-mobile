@@ -118,7 +118,7 @@ describe('useAuthCapabilities', () => {
       biometricsDisabledOnOS: false,
       isAuthToggleVisible: false,
       authToggleLabel: '',
-      osAuthEnabled: true,
+      osAuthEnabled: mockOsAuthEnabled,
       authStorageType: AUTHENTICATION_TYPE.PASSWORD,
     });
 

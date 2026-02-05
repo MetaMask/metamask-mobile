@@ -4984,16 +4984,17 @@ describe('Authentication', () => {
 
     describe('error handling', () => {
       it('returns default capabilities when LocalAuthentication APIs fail', async () => {
+        const osAuthEnabled = true;
         mockIsEnrolledAsync.mockRejectedValue(new Error('API error'));
 
-        const result = await Authentication.getAuthCapabilities(true);
+        const result = await Authentication.getAuthCapabilities(osAuthEnabled);
 
         expect(result).toEqual({
           isBiometricsAvailable: false,
           biometricsDisabledOnOS: false,
           isAuthToggleVisible: false,
           authToggleLabel: '',
-          osAuthEnabled: false,
+          osAuthEnabled,
           authStorageType: AUTHENTICATION_TYPE.PASSWORD,
         });
       });

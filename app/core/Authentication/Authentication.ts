@@ -760,7 +760,7 @@ class AuthenticationService {
         biometricsDisabledOnOS: false,
         isAuthToggleVisible: false,
         authToggleLabel: '',
-        osAuthEnabled: false,
+        osAuthEnabled,
         authStorageType: AUTHENTICATION_TYPE.PASSWORD,
       };
     }
