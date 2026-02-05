@@ -51,7 +51,7 @@ function appStateListenerChannel() {
 /**
  * Checks seedless password status and performs the correct auth flow.
  */
-async function handleSeedlessPasswordOutdatedAuth(): Promise<void> {
+async function tryBiometricUnlock(): Promise<void> {
   if (await Authentication.checkIsSeedlessPasswordOutdated()) {
     NavigationService.navigation?.reset({
       routes: [
@@ -84,7 +84,7 @@ export function* appStateListenerTask() {
         yield call(async () => {
           // This is in a try catch since errors are not propogated in event channels.
           try {
-            await handleSeedlessPasswordOutdatedAuth();
+            await tryBiometricUnlock();
           } catch (error) {
             // Navigate to login.
             NavigationService.navigation?.reset({
@@ -123,7 +123,7 @@ export function* appLockStateMachine() {
  */
 export function* requestAuthOnAppStart() {
   try {
-    yield call(handleSeedlessPasswordOutdatedAuth);
+    yield call(tryBiometricUnlock);
   } catch (_) {
     // If authentication fails, navigate to login screen
     // TODO: Consolidate error handling in future PRs. For now, we'll rely on the Login screen to handle triaging specific errors.
