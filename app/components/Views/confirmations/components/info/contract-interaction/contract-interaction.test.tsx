@@ -1,4 +1,5 @@
 import {
+  SimulationErrorCode,
   TransactionMeta,
   TransactionStatus,
   TransactionType,
@@ -192,5 +193,41 @@ describe('ContractInteraction', () => {
     });
     expect(getByText('Now')).toBeDefined();
     expect(getByText('Switching to')).toBeDefined();
+  });
+
+  describe('ValueRow rendering', () => {
+    it('renders ValueRow when simulation reverts', () => {
+      jest
+        .spyOn(TransactionMetadataRequestHook, 'useTransactionMetadataRequest')
+        .mockReturnValue({
+          simulationData: { error: { code: SimulationErrorCode.Reverted } },
+          txParams: { value: '0x1' },
+          id: 'mock-id',
+          chainId: '0x1',
+        } as unknown as TransactionMeta);
+
+      const { getByText } = renderWithProvider(<ContractInteraction />, {
+        state: generateContractInteractionState,
+      });
+
+      expect(getByText('Amount')).toBeDefined();
+    });
+
+    it('does not render ValueRow when simulation succeeds', () => {
+      jest
+        .spyOn(TransactionMetadataRequestHook, 'useTransactionMetadataRequest')
+        .mockReturnValue({
+          simulationData: { error: undefined }, // Success
+          txParams: { value: '0x1' },
+          id: 'mock-id',
+          chainId: '0x1',
+        } as unknown as TransactionMeta);
+
+      const { queryByText } = renderWithProvider(<ContractInteraction />, {
+        state: generateContractInteractionState,
+      });
+
+      expect(queryByText('Amount')).toBeNull();
+    });
   });
 });
