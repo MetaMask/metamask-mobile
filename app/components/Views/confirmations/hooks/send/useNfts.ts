@@ -10,6 +10,8 @@ import { selectAllNfts } from '../../../../../selectors/nftController';
 import { getNetworkBadgeSource } from '../../utils/network';
 import { Nft } from '../../types/token';
 import { useSendScope } from './useSendScope';
+import { getFormattedIpfsUrl } from '@metamask/assets-controllers';
+import useIpfsGateway from '../../../../hooks/useIpfsGateway';
 
 export function useEVMNfts(): Nft[] {
   const { NftController, AssetsContractController, NetworkController } =
@@ -19,6 +21,7 @@ export function useEVMNfts(): Nft[] {
   const allNFTS = useSelector(selectAllNfts);
   const [transformedNfts, setTransformedNfts] = useState<Nft[]>([]);
   const { isSolanaOnly } = useSendScope();
+  const ipfsGateway = useIpfsGateway();
 
   const evmAccount = selectedAccountGroup?.accounts
     .map((accountId) => internalAccountsById[accountId])
@@ -58,6 +61,7 @@ export function useEVMNfts(): Nft[] {
 
       for (const nft of rawNfts) {
         const transformed = await transformNft(
+          ipfsGateway,
           nft,
           evmAccount.address,
           AssetsContractController,
@@ -73,6 +77,7 @@ export function useEVMNfts(): Nft[] {
 
     processNfts();
   }, [
+    ipfsGateway,
     evmAccount,
     allNFTS,
     NftController,
@@ -87,18 +92,23 @@ export function useEVMNfts(): Nft[] {
   return transformedNfts;
 }
 
-function getValidImageUrl(
+async function getValidImageUrl(
+  ipfsGateway: string,
   imageUrls: (string | undefined)[],
-): string | undefined {
+): Promise<string | undefined> {
   for (const url of imageUrls) {
-    if (url && !url.startsWith('ipfs:')) {
-      return url;
+    if (url) {
+      if (!url.startsWith('ipfs:')) {
+        return url;
+      }
+      return (await getFormattedIpfsUrl(ipfsGateway, url, false)) || undefined;
     }
   }
   return undefined;
 }
 
 async function transformNft(
+  ipfsGateway: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   nft: any,
   userAddress: string,
@@ -121,7 +131,7 @@ async function transformNft(
 
   if (standard === 'ERC721') {
     name = nft.name || undefined;
-    image = getValidImageUrl([
+    image = await getValidImageUrl(ipfsGateway, [
       nft.image,
       nft.imageUrl,
       collection?.imageUrl,
@@ -129,7 +139,7 @@ async function transformNft(
     ]);
   } else if (standard === 'ERC1155') {
     name = nft.name || undefined;
-    image = getValidImageUrl([
+    image = await getValidImageUrl(ipfsGateway, [
       nft.image,
       nft.imageOriginal,
       collection?.imageUrl,

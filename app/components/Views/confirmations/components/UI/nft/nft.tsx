@@ -75,7 +75,7 @@ export function Nft({ asset, onPress }: NftProps) {
             color={TextColor.TextAlternative}
             numberOfLines={1}
           >
-            {asset.standard === 'ERC1155' && `(${asset.balance}) `}
+            {asset.standard === 'ERC1155' && `(${asset.balance || 0}) `}
             {asset.standard === 'ERC721' ? `#${asset.tokenId}` : asset.name}
           </Text>
         </Box>
