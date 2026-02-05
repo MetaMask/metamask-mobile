@@ -26,6 +26,7 @@ import type {
   ApplyReferralDto,
   SnapshotDto,
   SnapshotEligibilityDto,
+  SnapshotLeaderboardDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -202,6 +203,11 @@ export interface RewardsDataServiceGetSnapshotEligibilityAction {
   handler: RewardsDataService['getSnapshotEligibility'];
 }
 
+export interface RewardsDataServiceGetSnapshotLeaderboardAction {
+  type: `${typeof SERVICE_NAME}:getSnapshotLeaderboard`;
+  handler: RewardsDataService['getSnapshotLeaderboard'];
+}
+
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
@@ -225,7 +231,8 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetSeasonOneLineaRewardTokensAction
   | RewardsDataServiceApplyReferralCodeAction
   | RewardsDataServiceGetSnapshotsAction
-  | RewardsDataServiceGetSnapshotEligibilityAction;
+  | RewardsDataServiceGetSnapshotEligibilityAction
+  | RewardsDataServiceGetSnapshotLeaderboardAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -359,6 +366,10 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getSnapshotEligibility`,
       this.getSnapshotEligibility.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getSnapshotLeaderboard`,
+      this.getSnapshotLeaderboard.bind(this),
     );
   }
 
@@ -1165,5 +1176,30 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as SnapshotEligibilityDto;
+  }
+
+  /**
+   * Get leaderboard data for a snapshot.
+   * @param snapshotId - The ID of the snapshot.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The leaderboard data including top 20 entries, totals, and user position.
+   */
+  async getSnapshotLeaderboard(
+    snapshotId: string,
+    subscriptionId: string,
+  ): Promise<SnapshotLeaderboardDto> {
+    const response = await this.makeRequest(
+      `/seasons/snapshots/${snapshotId}/leaderboard`,
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get snapshot leaderboard failed: ${response.status}`);
+    }
+
+    return (await response.json()) as SnapshotLeaderboardDto;
   }
 }

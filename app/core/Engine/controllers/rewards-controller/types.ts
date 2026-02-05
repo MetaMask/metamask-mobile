@@ -310,6 +310,62 @@ export interface SnapshotEligibilityDto {
   canCommit: boolean;
 }
 
+/**
+ * A single entry on the snapshot leaderboard
+ */
+export interface LeaderboardEntryDto {
+  /**
+   * The rank of this entry on the leaderboard
+   * @example 1
+   */
+  rank: number;
+
+  /**
+   * The number of points committed by this participant
+   * @example 10000
+   */
+  points: number;
+
+  /**
+   * Masked identifier for the participant (shortened address or referral code)
+   * @example '0x1234...5678'
+   */
+  identifier?: string;
+}
+
+/**
+ * Response DTO for snapshot leaderboard
+ */
+export interface SnapshotLeaderboardDto {
+  /**
+   * The unique identifier of the snapshot
+   * @example '123e4567-e89b-12d3-a456-426614174000'
+   */
+  snapshotId: string;
+
+  /**
+   * Total number of unique participants who committed points
+   * @example 1500
+   */
+  totalParticipants: number;
+
+  /**
+   * Total points committed by all participants in the snapshot
+   * @example 5000000
+   */
+  totalPointsCommitted: number;
+
+  /**
+   * Top 20 entries on the leaderboard
+   */
+  top20: LeaderboardEntryDto[];
+
+  /**
+   * The authenticated user's position on the leaderboard (null if user hasn't committed)
+   */
+  userPosition?: LeaderboardEntryDto;
+}
+
 export interface EstimateAssetDto {
   /**
    * Asset identifier in CAIP-19 format
@@ -949,8 +1005,8 @@ export type UnlockedRewardsState = {
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SnapshotPrerequisiteState = {
-  type: string;
-  activityTypes: string[];
+  type: SnapshotPrerequisiteType;
+  activityTypes: PointsEventEarnType[];
   minCount: number;
   chainId?: number;
   title: string;
@@ -997,8 +1053,8 @@ export type SnapshotsState = {
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SnapshotPrerequisiteStatusState = {
-  type: string;
-  activityTypes: string[];
+  type: SnapshotPrerequisiteType;
+  activityTypes: PointsEventEarnType[];
   minCount: number;
   chainId?: number;
   title: string;
@@ -1018,7 +1074,7 @@ export type SnapshotEligibilityState = {
     snapshotId: string;
     eligible: boolean;
     prerequisites: SnapshotPrerequisiteStatusState[];
-    snapshotStatus: string;
+    snapshotStatus: SnapshotStatus;
     canCommit: boolean;
   };
   lastFetched: number;
@@ -1735,6 +1791,17 @@ export interface RewardsControllerGetSnapshotEligibilityAction {
 }
 
 /**
+ * Action for getting snapshot leaderboard data
+ */
+export interface RewardsControllerGetSnapshotLeaderboardAction {
+  type: 'RewardsController:getSnapshotLeaderboard';
+  handler: (
+    snapshotId: string,
+    subscriptionId: string,
+  ) => Promise<SnapshotLeaderboardDto>;
+}
+
+/**
  * Actions that can be performed by the RewardsController
  */
 export type RewardsControllerActions =
@@ -1767,7 +1834,8 @@ export type RewardsControllerActions =
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerResetAllAction
   | RewardsControllerApplyReferralCodeAction
-  | RewardsControllerGetSnapshotEligibilityAction;
+  | RewardsControllerGetSnapshotEligibilityAction
+  | RewardsControllerGetSnapshotLeaderboardAction;
 
 /**
  * Input DTO for getting opt-in status of multiple addresses

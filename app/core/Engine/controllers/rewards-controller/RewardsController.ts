@@ -32,6 +32,7 @@ import {
   type SeasonStateDto,
   type LineaTokenRewardDto,
   type SnapshotEligibilityDto,
+  type SnapshotLeaderboardDto,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import {
@@ -593,6 +594,10 @@ export class RewardsController extends BaseController<
     this.messenger.registerActionHandler(
       'RewardsController:getSnapshotEligibility',
       this.getSnapshotEligibility.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:getSnapshotLeaderboard',
+      this.getSnapshotLeaderboard.bind(this),
     );
   }
 
@@ -3255,6 +3260,45 @@ export class RewardsController extends BaseController<
     });
 
     return result;
+  }
+
+  /**
+   * Get leaderboard data for a snapshot.
+   * Note: No client-side caching as the backend handles caching (3-min TTL when snapshot is OPEN).
+   * @param snapshotId - The snapshot ID
+   * @param subscriptionId - The subscription ID for authentication
+   * @returns The leaderboard data including top 20 entries, totals, and user position
+   */
+  async getSnapshotLeaderboard(
+    snapshotId: string,
+    subscriptionId: string,
+  ): Promise<SnapshotLeaderboardDto> {
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) {
+      throw new Error('Rewards are not enabled');
+    }
+    if (!this.#isSnapshotsEnabled()) {
+      throw new Error('Snapshots feature is not enabled');
+    }
+
+    try {
+      Logger.log(
+        'RewardsController: Fetching snapshot leaderboard via API call for snapshotId',
+        snapshotId,
+      );
+      const response = (await this.messenger.call(
+        'RewardsDataService:getSnapshotLeaderboard',
+        snapshotId,
+        subscriptionId,
+      )) as SnapshotLeaderboardDto;
+      return response;
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to get snapshot leaderboard:',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
   }
 
   /**
