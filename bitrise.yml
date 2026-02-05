@@ -2244,6 +2244,19 @@ workflows:
             - source: $KEYSTORE_FILE_PATH
             - destination: $KEYSTORE_PATH
           run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
+      # TapAndPay SDK Setup
+      - script@1:
+          title: Clone TapAndPay SDK
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -euo pipefail
+                echo "📦 Cloning TapAndPay SDK into android/libs/..."
+                git clone --depth 1 "$TAP_AND_PAY_SDK_REPO_SSH" /tmp/tap-and-pay-sdk
+                cp -r /tmp/tap-and-pay-sdk/* android/libs/
+                rm -rf /tmp/tap-and-pay-sdk
+                echo "✅ TapAndPay SDK installed to android/libs/"
+                ls -la android/libs/com/google/android/gms/ || echo "SDK structure check"
       - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
@@ -3536,13 +3549,13 @@ app:
       VERSION_NAME: 7.65.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 3607
+      VERSION_NUMBER: 3628
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.65.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 3607
+      FLASK_VERSION_NUMBER: 3628
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

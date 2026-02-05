@@ -92,9 +92,17 @@ import {
 import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/SpendingLimitProgressBar';
 import { createAddFundsModalNavigationDetails } from '../../components/AddFundsBottomSheet/AddFundsBottomSheet';
 import { createAssetSelectionModalNavigationDetails } from '../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
+import { usePushProvisioning, getWalletName } from '../../pushProvisioning';
+import { AddToWalletButton } from '@expensify/react-native-wallet';
 import { CardScreenshotDeterrent } from '../../components/CardScreenshotDeterrent';
 import { createPasswordBottomSheetNavigationDetails } from '../../components/PasswordBottomSheet';
-import type { ShippingAddress } from '../ReviewOrder';
+import {
+  buildProvisioningUserAddress,
+  buildShippingAddress,
+  buildCardholderName,
+  type ShippingAddress,
+} from '../../util/buildUserAddress';
+import AnimatedSpinner from '../../../AnimatedSpinner';
 
 /**
  * Route params for CardHome screen
@@ -186,6 +194,7 @@ const CardHome = () => {
 
   const { navigateToCardPage, navigateToTravelPage, navigateToCardTosPage } =
     useNavigateToCardPage(navigation);
+
   const { openSwaps } = useOpenSwaps({
     priorityToken,
   });
@@ -214,6 +223,72 @@ const CardHome = () => {
 
     return balanceFiat;
   }, [balanceFiat, balanceFormatted]);
+
+  // Get cardholder name from user details (firstName + lastName)
+  const cardholderName = useMemo(
+    () => buildCardholderName(kycStatus?.userDetails),
+    [kycStatus?.userDetails],
+  );
+
+  // Build user address for Google Wallet provisioning
+  const userAddressForProvisioning = useMemo(
+    () => buildProvisioningUserAddress(kycStatus?.userDetails, cardholderName),
+    [kycStatus?.userDetails, cardholderName],
+  );
+
+  // Memoize cardDetails for push provisioning to avoid infinite loops
+  const cardDetailsForProvisioning = useMemo(
+    () =>
+      cardDetails
+        ? {
+            id: cardDetails.id,
+            holderName: cardDetails.holderName,
+            panLast4: cardDetails.panLast4,
+            status: cardDetails.status,
+            expiryDate: cardDetails.expiryDate,
+          }
+        : null,
+    [cardDetails],
+  );
+
+  const {
+    initiateProvisioning: initiatePushProvisioning,
+    isProvisioning: isPushProvisioning,
+    canAddToWallet,
+  } = usePushProvisioning({
+    cardDetails: cardDetailsForProvisioning,
+    userAddress: userAddressForProvisioning,
+    onSuccess: () => {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          {
+            label: strings('card.push_provisioning.success_message', {
+              walletName: getWalletName(),
+            }),
+          },
+        ],
+        iconName: IconName.Confirmation,
+        iconColor: theme.colors.success.default,
+        hasNoTimeout: false,
+      });
+    },
+    onError: (error) => {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          {
+            label:
+              error.message || strings('card.push_provisioning.error_unknown'),
+          },
+        ],
+        iconName: IconName.Danger,
+        iconColor: theme.colors.error.default,
+        backgroundColor: theme.colors.error.muted,
+        hasNoTimeout: false,
+      });
+    },
+  });
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -426,42 +501,10 @@ const CardHome = () => {
     );
   }, [logoutFromProvider, navigation]);
 
-  const userShippingAddress: ShippingAddress | undefined = useMemo(() => {
-    const userDetails = kycStatus?.userDetails;
-    if (!userDetails) {
-      return undefined;
-    }
-
-    const mailingLine1 = userDetails.mailingAddressLine1;
-    const mailingCity = userDetails.mailingCity;
-    const mailingZip = userDetails.mailingZip;
-
-    if (mailingLine1 && mailingCity && mailingZip) {
-      return {
-        line1: mailingLine1,
-        line2: userDetails.mailingAddressLine2 ?? undefined,
-        city: mailingCity,
-        state: userDetails.mailingUsState ?? '',
-        zip: mailingZip,
-      };
-    }
-
-    const physicalLine1 = userDetails.addressLine1;
-    const physicalCity = userDetails.city;
-    const physicalZip = userDetails.zip;
-
-    if (physicalLine1 && physicalCity && physicalZip) {
-      return {
-        line1: physicalLine1,
-        line2: userDetails.addressLine2 ?? undefined,
-        city: physicalCity,
-        state: userDetails.usState ?? '',
-        zip: physicalZip,
-      };
-    }
-
-    return undefined;
-  }, [kycStatus]);
+  const userShippingAddress: ShippingAddress | undefined = useMemo(
+    () => buildShippingAddress(kycStatus?.userDetails),
+    [kycStatus?.userDetails],
+  );
 
   const orderMetalCardAction = useCallback(() => {
     trackEvent(
@@ -1082,6 +1125,25 @@ const CardHome = () => {
           <Box twClassName="w-full mt-4">{ButtonsSection}</Box>
         )}
       </Box>
+
+      {!isLoading && canAddToWallet && (
+        <Box twClassName="w-full px-4 pt-4 items-center justify-center">
+          {isPushProvisioning ? (
+            <Box twClassName="py-3">
+              <AnimatedSpinner testID="push-provisioning-spinner" />
+            </Box>
+          ) : (
+            <AddToWalletButton
+              onPress={
+                isPushProvisioning ? undefined : initiatePushProvisioning
+              }
+              buttonStyle="blackOutline"
+              buttonType="basic"
+              borderRadius={4}
+            />
+          )}
+        </Box>
+      )}
 
       <Box style={tw.style(cardSetupState.needsSetup && 'hidden')}>
         {isAuthenticated && !isLoading && cardDetails && (

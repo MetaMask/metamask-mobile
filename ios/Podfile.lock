@@ -2208,6 +2208,27 @@ PODS:
     - Yoga
   - react-native-view-shot (3.8.0):
     - React-Core
+  - react-native-wallet (0.1.15):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.10.14.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - react-native-webview-mm (14.5.0):
     - DoubleConversion
     - glog
@@ -3064,6 +3085,7 @@ DEPENDENCIES:
   - react-native-tcp-socket (from `../node_modules/react-native-tcp-socket`)
   - react-native-video (from `../node_modules/react-native-video`)
   - react-native-view-shot (from `../node_modules/react-native-view-shot`)
+  - "react-native-wallet (from `../node_modules/@expensify/react-native-wallet`)"
   - "react-native-webview-mm (from `../node_modules/@metamask/react-native-webview`)"
   - React-nativeconfig (from `../node_modules/react-native/ReactCommon`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
@@ -3350,6 +3372,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-video"
   react-native-view-shot:
     :path: "../node_modules/react-native-view-shot"
+  react-native-wallet:
+    :path: "../node_modules/@expensify/react-native-wallet"
   react-native-webview-mm:
     :path: "../node_modules/@metamask/react-native-webview"
   React-nativeconfig:
@@ -3587,6 +3611,7 @@ SPEC CHECKSUMS:
   react-native-tcp-socket: 120072c8020262032773f80f0daaf3964aaa08a1
   react-native-video: 3bb92b90b2774144fac7d43d52d11b936e8a14ec
   react-native-view-shot: d1a701eb0719c6dccbd20b4bb43b1069f304cb70
+  react-native-wallet: 8c6247abed80488aaf92b14b00901482d36de67b
   react-native-webview-mm: b9630326cca01837e1176dc3fb2310258fe49877
   React-nativeconfig: 8efdb1ef1e9158c77098a93085438f7e7b463678
   React-NativeModulesApple: cebca2e5320a3d66e123cade23bd90a167ffce5e
