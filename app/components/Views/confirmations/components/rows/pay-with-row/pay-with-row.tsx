@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenIcon } from '../../token-icon';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
@@ -33,6 +34,14 @@ import {
   TransactionPayComponentIDs,
 } from '../../../ConfirmationView.testIds';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
+import { POLYGON_USDCE } from '../../../constants/predict';
+
+/** Default withdrawal token shown when no payment token is selected */
+const DEFAULT_WITHDRAWAL_TOKEN = {
+  address: POLYGON_USDCE.address,
+  chainId: CHAIN_IDS.POLYGON,
+  symbol: POLYGON_USDCE.symbol,
+};
 
 export function PayWithRow() {
   const navigation = useNavigation();
@@ -62,13 +71,22 @@ export function PayWithRow() {
     ? strings('confirm.label.receive_as')
     : strings('confirm.label.pay_with');
 
+  // For withdrawals, show the default token (Polygon USDC.E) if no token is selected.
+  // Auto-selection is disabled for withdrawals, so payToken will be undefined until user selects.
+  const displayToken = useMemo(() => {
+    if (isWithdrawal) {
+      return payToken ?? DEFAULT_WITHDRAWAL_TOKEN;
+    }
+    return payToken ?? null;
+  }, [isWithdrawal, payToken]);
+
   // For deposits, show the user's balance of the selected pay token
   const balanceUsdFormatted = useMemo(
     () => formatFiat(new BigNumber(payToken?.balanceUsd ?? '0')),
     [formatFiat, payToken?.balanceUsd],
   );
 
-  if (!payToken) {
+  if (!displayToken) {
     return <PayWithRowSkeleton />;
   }
 
@@ -85,13 +103,16 @@ export function PayWithRow() {
         gap={12}
         style={styles.container}
       >
-        <TokenIcon address={payToken.address} chainId={payToken.chainId} />
+        <TokenIcon
+          address={displayToken.address}
+          chainId={displayToken.chainId}
+        />
         <Text
           variant={TextVariant.BodyMDMedium}
           color={TextColor.Default}
           testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
         >
-          {`${label} ${payToken.symbol}`}
+          {`${label} ${displayToken.symbol}`}
         </Text>
         {/* For deposits, show the user's balance; for withdrawals, no balance needed */}
         {!isWithdrawal && (

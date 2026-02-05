@@ -1,24 +1,19 @@
 import { useEffect, useRef } from 'react';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import Engine from '../../../../../core/Engine';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { isTransactionPayWithdraw } from '../../utils/transaction';
 import { createProjectLogger } from '@metamask/utils';
-import { POLYGON_USDCE } from '../../constants/predict';
 
 const log = createProjectLogger('transaction-pay-withdrawal');
 
-/** Default withdrawal token: Polygon USDC.E */
-const DEFAULT_WITHDRAWAL_TOKEN = {
-  address: POLYGON_USDCE.address,
-  chainId: CHAIN_IDS.POLYGON,
-};
-
 /**
- * Hook that sets isPostQuote=true for withdrawal transactions and initializes
- * the default payment token (which represents destination in post-quote mode).
+ * Hook that sets isPostQuote=true for withdrawal transactions.
  * This tells TransactionPayController to treat the paymentToken as
  * the destination (not source) and to create a post-quote bridge.
+ *
+ * Note: We don't set a default payment token here to avoid triggering
+ * quote retrieval. The UI renders the default token (Polygon USDC.E)
+ * when no payment token is selected.
  */
 export function useWithdrawalPostQuote(): void {
   const isSet = useRef(false);
@@ -39,20 +34,9 @@ export function useWithdrawalPostQuote(): void {
         config.isPostQuote = true;
       });
 
-      // Initialize paymentToken with the default withdrawal token (Polygon USDC.e)
-      // In post-quote mode, paymentToken represents the destination token
-      TransactionPayController.updatePaymentToken({
-        transactionId,
-        tokenAddress: DEFAULT_WITHDRAWAL_TOKEN.address,
-        chainId: DEFAULT_WITHDRAWAL_TOKEN.chainId,
-      });
-
       isSet.current = true;
 
-      log('Initialized withdrawal transaction', {
-        transactionId,
-        defaultToken: DEFAULT_WITHDRAWAL_TOKEN,
-      });
+      log('Initialized withdrawal transaction', { transactionId });
     } catch (error) {
       log('Error initializing withdrawal', { error, transactionId });
     }
