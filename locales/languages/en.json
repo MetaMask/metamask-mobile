@@ -7533,6 +7533,24 @@
       "error_description": "We couldn't load the snapshots. Please try again.",
       "retry_button": "Retry",
       "refreshing": "Refreshing..."
+    },
+    "snapshot_detail": {
+        "title": "Snapshot",
+        "heading": "Snapshot",
+        "not_found": "Snapshot not found",
+        "error_title": "Unable to load snapshot",
+        "error_description": "We couldn't load the snapshot. Please try again.",
+        "retry": "Retry",
+        "toast_not_found_title": "Snapshot Not Found",
+        "toast_not_found_description": "Please try again later"
+    },
+    "snapshots": {
+      "select_account_description": "Select an account and enter",
+      "enter": "Enter",
+      "add_points_for": "Add Points for {{snapshotName}}",
+      "enter_snapshot": "Enter {{snapshotName}}",
+      "points_available": "{{points}} points available",
+      "commit": "Submit"
     }
   },
   "time": {
