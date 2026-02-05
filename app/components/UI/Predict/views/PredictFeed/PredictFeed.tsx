@@ -79,6 +79,7 @@ import {
   PREDICT_FEED_BASE_TABS,
   PREDICT_FEED_DEFAULT_TAB,
   PREDICT_FEED_HOT_TAB,
+  isPredictFeedTabKey,
 } from '../../constants/feedTabs';
 
 interface FeedTab {
@@ -393,6 +394,7 @@ interface PredictFeedTabsProps {
   tabBarHeight: number;
   headerHidden: boolean;
   hotTabQueryParams?: string;
+  initialPage: number;
 }
 
 const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
@@ -404,6 +406,7 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
   tabBarHeight,
   headerHidden,
   hotTabQueryParams,
+  initialPage,
 }) => {
   const tw = useTailwind();
   const pagerRef = useRef<PagerView>(null);
@@ -423,7 +426,7 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
     <PagerView
       ref={pagerRef}
       style={tw.style('flex-1')}
-      initialPage={0}
+      initialPage={initialPage}
       onPageSelected={handlePageSelected}
       testID="predict-feed-pager"
     >
@@ -617,14 +620,14 @@ const PredictFeed: React.FC = () => {
   const tabBarRef = useRef<View>(null);
 
   const defaultTabKey: FeedTab['key'] = PREDICT_FEED_DEFAULT_TAB;
-  const requestedTab = route.params?.tab;
+  const requestedTabKey = isPredictFeedTabKey(route.params?.tab)
+    ? route.params?.tab
+    : undefined;
 
   // Capture the initial tab key at mount to avoid re-triggering the analytics
   // session when tabs array changes due to async feature flag loading
   const initialTabKeyRef = useRef<FeedTab['key']>(
-    requestedTab && tabs.some((tab) => tab.key === requestedTab)
-      ? requestedTab
-      : defaultTabKey,
+    requestedTabKey ?? defaultTabKey,
   );
 
   const initialTabIndex = useMemo(() => {
@@ -701,6 +704,19 @@ const PredictFeed: React.FC = () => {
     initialIndex: initialTabIndex,
   });
 
+  const hasAppliedRequestedTabRef = useRef(false);
+  useEffect(() => {
+    if (!requestedTabKey || hasAppliedRequestedTabRef.current) return;
+
+    const requestedIndex = tabs.findIndex((tab) => tab.key === requestedTabKey);
+    if (requestedIndex >= 0) {
+      if (requestedIndex !== activeIndex) {
+        setActiveIndex(requestedIndex);
+      }
+      hasAppliedRequestedTabRef.current = true;
+    }
+  }, [activeIndex, requestedTabKey, setActiveIndex, tabs]);
+
   const handleTabPress = useCallback(
     (index: number) => {
       setActiveIndex(index);
@@ -770,6 +786,7 @@ const PredictFeed: React.FC = () => {
             tabBarHeight={tabBarHeight + 6}
             headerHidden={headerHidden}
             hotTabQueryParams={hotTabFlag.queryParams}
+            initialPage={initialTabIndex}
           />
         )}
       </Box>
