@@ -1890,8 +1890,33 @@ export class PerpsController extends BaseController<
   /**
    * Get current positions
    * Thin delegation to MarketDataService
+   *
+   * For readOnly mode, bypasses getActiveProvider() to allow position queries
+   * without full perps initialization (e.g., for showing positions on token details page)
    */
   async getPositions(params?: GetPositionsParams): Promise<Position[]> {
+    // For readOnly mode, access provider directly without initialization check
+    // This allows discovery use cases (checking if user has positions) without full perps setup
+    if (params?.readOnly && params.userAddress) {
+      // Try to get existing provider, or create a temporary one for readOnly queries
+      const { activeProvider } = this.state;
+      let provider =
+        activeProvider === 'aggregated'
+          ? undefined
+          : this.providers.get(activeProvider);
+      // Create a temporary provider instance for readOnly queries
+      // The readOnly path in provider creates a standalone InfoClient without full init
+      provider ??= new HyperLiquidProvider({
+        isTestnet: this.state.isTestnet,
+        hip3Enabled: this.hip3Enabled,
+        allowlistMarkets: this.hip3AllowlistMarkets,
+        blocklistMarkets: this.hip3BlocklistMarkets,
+        platformDependencies: this.options.infrastructure,
+        messenger: this.messenger,
+      });
+      return provider.getPositions(params);
+    }
+
     const provider = this.getActiveProvider();
     return this.marketDataService.getPositions({
       provider,
@@ -1955,8 +1980,33 @@ export class PerpsController extends BaseController<
   /**
    * Get account state (balances, etc.)
    * Thin delegation to MarketDataService
+   *
+   * For readOnly mode, bypasses getActiveProvider() to allow account state queries
+   * without full perps initialization (e.g., for checking if user has perps funds)
    */
   async getAccountState(params?: GetAccountStateParams): Promise<AccountState> {
+    // For readOnly mode, access provider directly without initialization check
+    // This allows discovery use cases (checking if user has perps funds) without full perps setup
+    if (params?.readOnly && params.userAddress) {
+      // Try to get existing provider, or create a temporary one for readOnly queries
+      const { activeProvider } = this.state;
+      let provider =
+        activeProvider === 'aggregated'
+          ? undefined
+          : this.providers.get(activeProvider);
+      // Create a temporary provider instance for readOnly queries
+      // The readOnly path in provider creates a standalone InfoClient without full init
+      provider ??= new HyperLiquidProvider({
+        isTestnet: this.state.isTestnet,
+        hip3Enabled: this.hip3Enabled,
+        allowlistMarkets: this.hip3AllowlistMarkets,
+        blocklistMarkets: this.hip3BlocklistMarkets,
+        platformDependencies: this.options.infrastructure,
+        messenger: this.messenger,
+      });
+      return provider.getAccountState(params);
+    }
+
     const provider = this.getActiveProvider();
     return this.marketDataService.getAccountState({
       provider,

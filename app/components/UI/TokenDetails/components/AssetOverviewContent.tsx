@@ -25,7 +25,9 @@ import {
 } from '../../../hooks/useTokenHistoricalPrices';
 import { TokenI } from '../../Tokens/types';
 import { usePerpsMarketForAsset } from '../../Perps/hooks/usePerpsMarketForAsset';
+import { usePerpsPositionForAsset } from '../../Perps/hooks/usePerpsPositionForAsset';
 import { PERPS_EVENT_VALUE } from '../../Perps/constants/eventNames';
+import PerpsPositionCard from '../../Perps/components/PerpsPositionCard';
 import Price from '../../AssetOverview/Price';
 import ChartNavigationButton from '../../AssetOverview/ChartNavigationButton';
 import Balance from '../../AssetOverview/Balance';
@@ -80,6 +82,10 @@ const styleSheet = (params: { theme: Theme }) => {
     perpsPositionHeader: {
       paddingHorizontal: 16,
       paddingTop: 24,
+    } as ViewStyle,
+    perpsPositionCardContainer: {
+      paddingHorizontal: 16,
+      paddingTop: 8,
     } as ViewStyle,
   });
 };
@@ -175,6 +181,11 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
   const { hasPerpsMarket, marketData } = usePerpsMarketForAsset(
     isPerpsEnabled ? token.symbol : null,
+  );
+
+  // Check if user has a position for this asset (only if perps is enabled and market exists)
+  const { position: perpsPosition } = usePerpsPositionForAsset(
+    isPerpsEnabled && hasPerpsMarket ? token.symbol : null,
   );
 
   const isTokenTrustworthy = isTokenTrustworthyForPerps(token);
@@ -319,12 +330,26 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                     {strings('asset_overview.perps_position')}
                   </DSText>
                 </View>
-                <PerpsDiscoveryBanner
-                  symbol={marketData.symbol}
-                  maxLeverage={marketData.maxLeverage}
-                  onPress={handlePerpsDiscoveryPress}
-                  testID="perps-discovery-banner"
-                />
+                {perpsPosition ? (
+                  <TouchableOpacity
+                    style={styles.perpsPositionCardContainer}
+                    onPress={handlePerpsDiscoveryPress}
+                    testID={TokenOverviewSelectorsIDs.PERPS_POSITION_CARD}
+                    activeOpacity={0.8}
+                  >
+                    <PerpsPositionCard
+                      position={perpsPosition}
+                      currentPrice={currentPrice}
+                    />
+                  </TouchableOpacity>
+                ) : (
+                  <PerpsDiscoveryBanner
+                    symbol={marketData.symbol}
+                    maxLeverage={marketData.maxLeverage}
+                    onPress={handlePerpsDiscoveryPress}
+                    testID={TokenOverviewSelectorsIDs.PERPS_DISCOVERY_BANNER}
+                  />
+                )}
               </>
             )}
           <View style={styles.tokenDetailsWrapper}>

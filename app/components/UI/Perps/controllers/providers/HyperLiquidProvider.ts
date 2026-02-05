@@ -4344,6 +4344,39 @@ export class HyperLiquidProvider implements PerpsProvider {
    */
   async getPositions(params?: GetPositionsParams): Promise<Position[]> {
     try {
+      // Path 0: Read-only mode for lightweight position queries
+      // Creates a standalone InfoClient without requiring full initialization
+      // No wallet, WebSocket, or account setup needed - just HTTP API call
+      // Use for discovery use cases like showing positions on token details page
+      if (params?.readOnly && params.userAddress) {
+        this.deps.debugLogger.log(
+          'HyperLiquidProvider: Getting positions in readOnly mode (standalone client)',
+          { userAddress: params.userAddress },
+        );
+
+        // Create standalone client - bypasses all initialization (wallet, WebSocket, etc.)
+        const standaloneInfoClient = createStandaloneInfoClient({
+          isTestnet: this.clientService.isTestnetMode(),
+        });
+
+        // Query main DEX only (no HIP-3 multi-DEX in readOnly mode)
+        const state = await standaloneInfoClient.clearinghouseState({
+          user: params.userAddress,
+        });
+
+        // Transform positions - skip TP/SL lookup (would require additional API call)
+        const positions = state.assetPositions
+          .filter((assetPos) => assetPos.position.szi !== '0')
+          .map((assetPos) => adaptPositionFromSDK(assetPos));
+
+        this.deps.debugLogger.log(
+          'HyperLiquidProvider: readOnly positions fetched',
+          { count: positions.length },
+        );
+
+        return positions;
+      }
+
       // Try WebSocket cache first (unless explicitly bypassed)
       if (
         !params?.skipCache &&
@@ -4960,6 +4993,37 @@ export class HyperLiquidProvider implements PerpsProvider {
    */
   async getAccountState(params?: GetAccountStateParams): Promise<AccountState> {
     try {
+      // Path 0: Read-only mode for lightweight account state queries
+      // Creates a standalone InfoClient without requiring full initialization
+      // No wallet, WebSocket, or account setup needed - just HTTP API call
+      // Use for discovery use cases like checking if user has perps funds
+      if (params?.readOnly && params.userAddress) {
+        this.deps.debugLogger.log(
+          'HyperLiquidProvider: Getting account state in readOnly mode (standalone client)',
+          { userAddress: params.userAddress },
+        );
+
+        // Create standalone client - bypasses all initialization (wallet, WebSocket, etc.)
+        const standaloneInfoClient = createStandaloneInfoClient({
+          isTestnet: this.clientService.isTestnetMode(),
+        });
+
+        // Query main DEX only (no HIP-3 multi-DEX, no spot balance in readOnly mode)
+        const perpsState = await standaloneInfoClient.clearinghouseState({
+          user: params.userAddress,
+        });
+
+        // Transform to AccountState - simpler version without spot balance aggregation
+        const accountState = adaptAccountStateFromSDK(perpsState);
+
+        this.deps.debugLogger.log(
+          'HyperLiquidProvider: readOnly account state fetched',
+          { totalBalance: accountState.totalBalance },
+        );
+
+        return accountState;
+      }
+
       this.deps.debugLogger.log('Getting account state via HyperLiquid SDK');
 
       // Read-only operation: only need client initialization

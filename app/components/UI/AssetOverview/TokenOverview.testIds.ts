@@ -11,6 +11,8 @@ export const TokenOverviewSelectorsIDs = {
   ADD_BUTTON: 'token-add-button',
   CLAIM_BUTTON: 'claim-banner-claim-eth-button',
   UNSTAKING_BANNER: 'unstaking-banner',
+  PERPS_POSITION_CARD: 'perps-position-card-touchable',
+  PERPS_DISCOVERY_BANNER: 'perps-discovery-banner',
 };
 
 export const TokenOverviewSelectorsText = {

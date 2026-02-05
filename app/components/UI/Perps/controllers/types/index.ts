@@ -621,11 +621,15 @@ export interface GetPositionsParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
   includeHistory?: boolean; // Optional: include historical positions
   skipCache?: boolean; // Optional: bypass WebSocket cache and force API call (default: false)
+  readOnly?: boolean; // Optional: lightweight mode - skip full initialization, use standalone HTTP client (no wallet/WebSocket needed)
+  userAddress?: string; // Optional: required when readOnly is true - user address to query positions for
 }
 
 export interface GetAccountStateParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
   source?: string; // Optional: source of the call for tracing (e.g., 'health_check', 'initial_connection')
+  readOnly?: boolean; // Optional: lightweight mode - skip full initialization, use standalone HTTP client (no wallet/WebSocket needed)
+  userAddress?: string; // Optional: required when readOnly is true - user address to query account state for
 }
 
 export interface GetOrderFillsParams {

@@ -96,6 +96,10 @@ export { usePerpsBlockExplorerUrl } from './usePerpsBlockExplorerUrl';
 // Utility hooks
 export { useStableArray } from './useStableArray';
 
+// Discovery hooks (for use outside perps screens)
+export { usePerpsMarketForAsset } from './usePerpsMarketForAsset';
+export { usePerpsPositionForAsset } from './usePerpsPositionForAsset';
+
 // Tab view hooks
 export { usePerpsTabExploreData } from './usePerpsTabExploreData';
 
