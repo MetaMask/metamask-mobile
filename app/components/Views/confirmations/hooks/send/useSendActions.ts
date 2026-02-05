@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { ParamListBase, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import { errorCodes } from '@metamask/rpc-errors';
 
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -22,6 +23,14 @@ interface SnapConfirmSendResult {
   transactionId?: string;
 }
 
+interface HandleSubmitPressOptions {
+  /**
+   * When true, indicates that the recipient screen was skipped (e.g., predefinedRecipient flow).
+   * This affects navigation on error - we pop fewer screens since we didn't navigate through Recipient.
+   */
+  skipRecipient?: boolean;
+}
+
 export const useSendActions = () => {
   const {
     asset,
@@ -37,7 +46,7 @@ export const useSendActions = () => {
   const { isEvmSendType } = useSendType();
   const { captureSendExit } = useSendExitMetrics();
   const handleSubmitPress = useCallback(
-    async (recipientAddress?: string) => {
+    async (recipientAddress?: string, options?: HandleSubmitPressOptions) => {
       if (!chainId || !asset) {
         return;
       }
@@ -48,6 +57,13 @@ export const useSendActions = () => {
 
       // Clear any previous submit error
       updateSubmitError(undefined);
+
+      // Determine how many screens to pop on error based on whether recipient screen was skipped.
+      // The snap confirmation is a modal/overlay, not a navigation screen, so we only need to
+      // account for the screens we actually navigated through:
+      // - From Recipient screen: pop 1 to get back to Amount
+      // - From Amount screen (predefinedRecipient): don't pop, stay on Amount to show the error
+      const screensToPopOnError = options?.skipRecipient ? 0 : 1;
 
       if (isEvmSendType) {
         submitEvmTransaction({
@@ -85,18 +101,37 @@ export const useSendActions = () => {
               ? mapSnapErrorCodeIntoTranslation(result.errors[0].code)
               : strings('send.transaction_error');
             updateSubmitError(errorMessage);
-            // Navigate back 2 screens to the Amount screen where the error can be displayed
+            // Navigate back to the Amount screen where the error can be displayed
             // (Recipient screen may not have a visible button when recipient is selected from list)
-            (navigation as StackNavigationProp<ParamListBase>).pop(2);
+            if (screensToPopOnError > 0) {
+              (navigation as StackNavigationProp<ParamListBase>).pop(
+                screensToPopOnError,
+              );
+            }
             return;
           }
 
           // Success - navigate to transactions view
           navigation.navigate(Routes.TRANSACTIONS_VIEW);
         } catch (error) {
-          // User rejected or other error - clear any error state and navigate back
-          updateSubmitError(undefined);
-          (navigation as StackNavigationProp<ParamListBase>).pop(2);
+          // Check for user rejection using error code (4001) - this is language-independent
+          const errorCode = (error as { code?: number })?.code;
+          const isUserRejection =
+            errorCode === errorCodes.provider.userRejectedRequest;
+
+          if (isUserRejection) {
+            // User deliberately cancelled - clear error and navigate back silently
+            updateSubmitError(undefined);
+          } else {
+            // Actual snap/internal error - display error message to user
+            updateSubmitError(strings('send.transaction_error'));
+          }
+
+          if (screensToPopOnError > 0) {
+            (navigation as StackNavigationProp<ParamListBase>).pop(
+              screensToPopOnError,
+            );
+          }
           Logger.log('Multichain transaction for review rejected: ', error);
         }
       }

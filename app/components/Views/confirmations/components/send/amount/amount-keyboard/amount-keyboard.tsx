@@ -112,7 +112,7 @@ export const AmountKeyboard = ({
     // Skip the recipient screen if a predefined recipient is provided
     if (predefinedRecipient) {
       updateTo(predefinedRecipient.address);
-      handleSubmitPress(predefinedRecipient.address);
+      handleSubmitPress(predefinedRecipient.address, { skipRecipient: true });
       return;
     }
     gotToSendScreen(Routes.SEND.RECIPIENT);

@@ -1,4 +1,5 @@
 import { waitFor } from '@testing-library/react-native';
+import { errorCodes } from '@metamask/rpc-errors';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import {
   ACCOUNT_ADDRESS_MOCK_1,
@@ -160,7 +161,7 @@ describe('useSendActions', () => {
       } as unknown as ReturnType<typeof useSendContext>);
     });
 
-    it('handles snap validation errors with errors array for non-evm send', async () => {
+    it('handles snap validation errors with errors array for non-evm send (from Recipient screen)', async () => {
       jest
         .spyOn(MultichainSnaps, 'sendMultichainTransactionForReview')
         .mockResolvedValue({
@@ -172,14 +173,41 @@ describe('useSendActions', () => {
         state: solanaSendStateMock,
       });
 
+      // Default call (no options) - called from Recipient screen
       await result.current.handleSubmitPress(ACCOUNT_ADDRESS_MOCK_2);
 
       await waitFor(() => {
         expect(mockUpdateSubmitError).toHaveBeenCalledWith(
           'Insufficient funds',
         );
-        // Should navigate back 2 screens to Amount screen
-        expect(mockPop).toHaveBeenCalledWith(2);
+        // Should navigate back 1 screen to Amount (snap confirmation is a modal, not a navigation screen)
+        expect(mockPop).toHaveBeenCalledWith(1);
+      });
+    });
+
+    it('handles snap validation errors with skipRecipient option (from Amount screen)', async () => {
+      jest
+        .spyOn(MultichainSnaps, 'sendMultichainTransactionForReview')
+        .mockResolvedValue({
+          valid: false,
+          errors: [{ code: 'InsufficientBalance' }],
+        });
+
+      const { result } = renderHookWithProvider(() => useSendActions(), {
+        state: solanaSendStateMock,
+      });
+
+      // Called with skipRecipient: true (predefinedRecipient flow from Amount screen)
+      await result.current.handleSubmitPress(ACCOUNT_ADDRESS_MOCK_2, {
+        skipRecipient: true,
+      });
+
+      await waitFor(() => {
+        expect(mockUpdateSubmitError).toHaveBeenCalledWith(
+          'Insufficient funds',
+        );
+        // Should NOT navigate - stay on Amount screen to show the error
+        expect(mockPop).not.toHaveBeenCalled();
       });
     });
 
@@ -200,8 +228,8 @@ describe('useSendActions', () => {
       await waitFor(() => {
         // Should show generic error message when valid: false but no errors array
         expect(mockUpdateSubmitError).toHaveBeenCalledWith('Transaction error');
-        // Should navigate back 2 screens to Amount screen
-        expect(mockPop).toHaveBeenCalledWith(2);
+        // Should navigate back 1 screen to Amount
+        expect(mockPop).toHaveBeenCalledWith(1);
       });
     });
 
@@ -223,15 +251,19 @@ describe('useSendActions', () => {
         expect(mockUpdateSubmitError).toHaveBeenCalledWith(
           'Insufficient balance to cover fees',
         );
-        // Should navigate back 2 screens to Amount screen
-        expect(mockPop).toHaveBeenCalledWith(2);
+        // Should navigate back 1 screen to Amount
+        expect(mockPop).toHaveBeenCalledWith(1);
       });
     });
 
-    it('handles user rejection for non-evm send', async () => {
+    it('handles user rejection for non-evm send (from Recipient screen)', async () => {
+      // User rejection errors have code 4001 (EIP-1193)
+      const userRejectionError = Object.assign(new Error('User rejected'), {
+        code: errorCodes.provider.userRejectedRequest,
+      });
       jest
         .spyOn(MultichainSnaps, 'sendMultichainTransactionForReview')
-        .mockRejectedValue(new Error('User rejected'));
+        .mockRejectedValue(userRejectionError);
 
       const { result } = renderHookWithProvider(() => useSendActions(), {
         state: solanaSendStateMock,
@@ -242,8 +274,73 @@ describe('useSendActions', () => {
       await waitFor(() => {
         // Should clear error for user rejection
         expect(mockUpdateSubmitError).toHaveBeenCalledWith(undefined);
-        // Should navigate back 2 screens to Amount screen
-        expect(mockPop).toHaveBeenCalledWith(2);
+        // Should navigate back 1 screen to Amount
+        expect(mockPop).toHaveBeenCalledWith(1);
+      });
+    });
+
+    it('handles user rejection for non-evm send with skipRecipient option (from Amount screen)', async () => {
+      // User rejection errors have code 4001 (EIP-1193)
+      const userRejectionError = Object.assign(new Error('User rejected'), {
+        code: errorCodes.provider.userRejectedRequest,
+      });
+      jest
+        .spyOn(MultichainSnaps, 'sendMultichainTransactionForReview')
+        .mockRejectedValue(userRejectionError);
+
+      const { result } = renderHookWithProvider(() => useSendActions(), {
+        state: solanaSendStateMock,
+      });
+
+      await result.current.handleSubmitPress(ACCOUNT_ADDRESS_MOCK_2, {
+        skipRecipient: true,
+      });
+
+      await waitFor(() => {
+        // Should clear error for user rejection
+        expect(mockUpdateSubmitError).toHaveBeenCalledWith(undefined);
+        // Should NOT navigate - stay on Amount screen
+        expect(mockPop).not.toHaveBeenCalled();
+      });
+    });
+
+    it('handles snap/internal errors (non-user-rejection) and displays error message', async () => {
+      jest
+        .spyOn(MultichainSnaps, 'sendMultichainTransactionForReview')
+        .mockRejectedValue(new Error('Snap execution failed'));
+
+      const { result } = renderHookWithProvider(() => useSendActions(), {
+        state: solanaSendStateMock,
+      });
+
+      await result.current.handleSubmitPress(ACCOUNT_ADDRESS_MOCK_2);
+
+      await waitFor(() => {
+        // Should display generic error message for non-user-rejection errors
+        expect(mockUpdateSubmitError).toHaveBeenCalledWith('Transaction error');
+        // Should navigate back 1 screen to Amount
+        expect(mockPop).toHaveBeenCalledWith(1);
+      });
+    });
+
+    it('handles snap/internal errors with skipRecipient option and displays error message', async () => {
+      jest
+        .spyOn(MultichainSnaps, 'sendMultichainTransactionForReview')
+        .mockRejectedValue(new Error('Network timeout'));
+
+      const { result } = renderHookWithProvider(() => useSendActions(), {
+        state: solanaSendStateMock,
+      });
+
+      await result.current.handleSubmitPress(ACCOUNT_ADDRESS_MOCK_2, {
+        skipRecipient: true,
+      });
+
+      await waitFor(() => {
+        // Should display generic error message for non-user-rejection errors
+        expect(mockUpdateSubmitError).toHaveBeenCalledWith('Transaction error');
+        // Should NOT navigate - stay on Amount screen to show the error
+        expect(mockPop).not.toHaveBeenCalled();
       });
     });
 
