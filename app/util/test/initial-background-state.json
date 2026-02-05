@@ -736,6 +736,8 @@
     "pointsEstimateHistory": [],
     "pointsEvents": {},
     "snapshots": {},
+    "snapshotCommitmentStatuses": {},
+    "snapshotEligibilities": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
     "seasons": {},
