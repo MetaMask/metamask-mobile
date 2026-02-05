@@ -6279,7 +6279,7 @@ describe('PredictController', () => {
 
           const result = (controller as any).getDepositAmount(transactionMeta);
 
-          expect(result).toBe('$97.00');
+          expect(result).toBe('$97');
         });
       });
 
@@ -6305,7 +6305,7 @@ describe('PredictController', () => {
 
           const result = (controller as any).getDepositAmount(transactionMeta);
 
-          expect(result).toBe('$100.00');
+          expect(result).toBe('$100');
         });
       });
     });
@@ -6326,7 +6326,7 @@ describe('PredictController', () => {
         });
       });
 
-      it('returns "$0.00" when withdrawTransaction is null', () => {
+      it('returns "$0" when withdrawTransaction is null', () => {
         withController(({ controller }) => {
           controller.updateStateForTesting((state) => {
             state.withdrawTransaction = null;
@@ -6334,11 +6334,11 @@ describe('PredictController', () => {
 
           const result = (controller as any).getWithdrawAmount();
 
-          expect(result).toBe('$0.00');
+          expect(result).toBe('$0');
         });
       });
 
-      it('returns "$0.00" when amount is missing', () => {
+      it('returns "$0" when amount is missing', () => {
         withController(({ controller }) => {
           controller.updateStateForTesting((state) => {
             state.withdrawTransaction = {
@@ -6348,7 +6348,7 @@ describe('PredictController', () => {
 
           const result = (controller as any).getWithdrawAmount();
 
-          expect(result).toBe('$0.00');
+          expect(result).toBe('$0');
         });
       });
     });
@@ -6371,7 +6371,7 @@ describe('PredictController', () => {
         });
       });
 
-      it('returns "$0.00" when no claimable positions exist', () => {
+      it('returns "$0" when no claimable positions exist', () => {
         withController(({ controller }) => {
           controller.updateStateForTesting((state) => {
             state.claimablePositions = {};
@@ -6379,7 +6379,7 @@ describe('PredictController', () => {
 
           const result = (controller as any).getClaimableAmount();
 
-          expect(result).toBe('$0.00');
+          expect(result).toBe('$0');
         });
       });
 
@@ -6396,7 +6396,7 @@ describe('PredictController', () => {
 
           const result = (controller as any).getClaimableAmount();
 
-          expect(result).toBe('$25.00');
+          expect(result).toBe('$25');
         });
       });
     });

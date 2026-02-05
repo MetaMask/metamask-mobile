@@ -111,6 +111,7 @@ import {
   DEFAULT_LIVE_SPORTS_FLAG,
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
 } from '../constants/flags';
+import { calculateNetAmount, formatPrice } from '../utils/format';
 import { filterSupportedLeagues } from '../constants/sports';
 import {
   PredictFeeCollection,
@@ -655,24 +656,18 @@ export class PredictController extends BaseController<
       return 'Balance';
     }
 
-    const total = parseFloat(totalFiat);
-    const bridgeFee = bridgeFeeFiat ? parseFloat(bridgeFeeFiat) : 0;
-    const networkFee = networkFeeFiat ? parseFloat(networkFeeFiat) : 0;
-    const netAmount = total - bridgeFee - networkFee;
+    const netAmount = calculateNetAmount({
+      totalFiat,
+      bridgeFeeFiat,
+      networkFeeFiat,
+    });
 
-    return `$${netAmount.toFixed(2)}`;
+    return formatPrice(netAmount, { maximumDecimals: 2 });
   }
 
   private getWithdrawAmount(): string {
     const withdrawTransaction = this.state.withdrawTransaction;
-    if (!withdrawTransaction?.amount) {
-      return '$0.00';
-    }
-    const amount =
-      typeof withdrawTransaction.amount === 'string'
-        ? parseFloat(withdrawTransaction.amount)
-        : withdrawTransaction.amount;
-    return `$${amount.toFixed(2)}`;
+    return formatPrice(withdrawTransaction?.amount?.toString() ?? '0');
   }
 
   private getClaimableAmount(): string {
@@ -682,7 +677,7 @@ export class PredictController extends BaseController<
       (sum, position) => sum + (position.currentValue ?? 0),
       0,
     );
-    return `$${totalClaimable.toFixed(2)}`;
+    return formatPrice(totalClaimable, { maximumDecimals: 2 });
   }
 
   private refreshBalanceAfterTransaction(): void {
