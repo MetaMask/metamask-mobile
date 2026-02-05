@@ -69,14 +69,13 @@ export function TransactionDetailsSummary() {
     selectTransactionsByIds(state, transactionIds),
   );
 
-  // For mUSD conversion, always show exactly 2 lines (Sent + Receive)
   if (hasTransactionType(transactionMeta, [TransactionType.musdConversion])) {
     return <MusdConversionSummary transactionMeta={transactionMeta} />;
   }
 
   return (
     <Box gap={12}>
-      {/* <Text color={TextColor.Alternative}>Summary</Text> */}
+      <Text color={TextColor.Alternative}>Summary</Text>
       <Box gap={1} style={styles.lineContainer}>
         {transactions.map((item, index) => (
           <TransactionSummary
