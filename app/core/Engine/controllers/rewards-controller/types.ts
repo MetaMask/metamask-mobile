@@ -254,39 +254,6 @@ export type SnapshotStatus =
   | 'complete';
 
 /**
- * A single commitment to a snapshot
- */
-export interface SnapshotCommitment {
-  /**
-   * When the commitment was made
-   * @example '2025-03-10T14:30:00.000Z'
-   */
-  committedAt: string;
-
-  /**
-   * Number of points committed
-   * @example 1000
-   */
-  pointsCommitted: number;
-}
-
-/**
- * Response DTO for snapshot commitment status
- */
-export interface CommitmentStatusDto {
-  /**
-   * Array of commitments made to this snapshot
-   */
-  commitments: SnapshotCommitment[];
-
-  /**
-   * The address that will receive the snapshot rewards
-   * @example '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6'
-   */
-  receivingAddress: string;
-}
-
-/**
  * Extended prerequisite with eligibility status information
  */
 export interface SnapshotPrerequisiteStatusDto extends SnapshotPrerequisiteDto {
@@ -1026,27 +993,6 @@ export type SnapshotsState = {
 };
 
 /**
- * State shape for a single snapshot commitment in serializable form
- */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type SnapshotCommitmentState = {
-  committedAt: string;
-  pointsCommitted: number;
-};
-
-/**
- * State shape for snapshot commitment status cache (JSON-serializable)
- */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type SnapshotCommitmentStatusState = {
-  commitmentStatus: {
-    commitments: SnapshotCommitmentState[];
-    receivingAddress: string;
-  };
-  lastFetched: number;
-};
-
-/**
  * State shape for prerequisite status in serializable form
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -1411,9 +1357,6 @@ export type RewardsControllerState = {
   unlockedRewards: { [compositeId: string]: UnlockedRewardsState };
   pointsEvents: { [compositeId: string]: PointsEventsDtoState };
   snapshots: { [seasonId: string]: SnapshotsState };
-  snapshotCommitmentStatuses: {
-    [compositeId: string]: SnapshotCommitmentStatusState;
-  };
   snapshotEligibilities: { [compositeId: string]: SnapshotEligibilityState };
   /**
    * History of points estimates for Customer Support diagnostics.
@@ -1781,17 +1724,6 @@ export interface RewardsControllerApplyReferralCodeAction {
 }
 
 /**
- * Action for getting snapshot commitment status
- */
-export interface RewardsControllerGetSnapshotCommitmentStatusAction {
-  type: 'RewardsController:getSnapshotCommitmentStatus';
-  handler: (
-    snapshotId: string,
-    subscriptionId: string,
-  ) => Promise<CommitmentStatusDto>;
-}
-
-/**
  * Action for getting snapshot eligibility status
  */
 export interface RewardsControllerGetSnapshotEligibilityAction {
@@ -1835,7 +1767,6 @@ export type RewardsControllerActions =
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerResetAllAction
   | RewardsControllerApplyReferralCodeAction
-  | RewardsControllerGetSnapshotCommitmentStatusAction
   | RewardsControllerGetSnapshotEligibilityAction;
 
 /**

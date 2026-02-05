@@ -31,7 +31,6 @@ import {
   type SeasonMetadataDto,
   type SeasonStateDto,
   type LineaTokenRewardDto,
-  type CommitmentStatusDto,
   type SnapshotEligibilityDto,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
@@ -94,9 +93,6 @@ const UNLOCKED_REWARDS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Snapshots cache threshold
 const SNAPSHOTS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
-
-// Snapshot commitment status cache threshold
-const SNAPSHOT_COMMITMENT_STATUS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Snapshot eligibility cache threshold
 const SNAPSHOT_ELIGIBILITY_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
@@ -174,12 +170,6 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
-  snapshotCommitmentStatuses: {
-    includeInStateLogs: true,
-    persist: true,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
   snapshotEligibilities: {
     includeInStateLogs: true,
     persist: true,
@@ -208,7 +198,6 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   unlockedRewards: {},
   pointsEvents: {},
   snapshots: {},
-  snapshotCommitmentStatuses: {},
   snapshotEligibilities: {},
   pointsEstimateHistory: [],
 });
@@ -600,10 +589,6 @@ export class RewardsController extends BaseController<
     this.messenger.registerActionHandler(
       'RewardsController:applyReferralCode',
       this.applyReferralCode.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:getSnapshotCommitmentStatus',
-      this.getSnapshotCommitmentStatus.bind(this),
     );
     this.messenger.registerActionHandler(
       'RewardsController:getSnapshotEligibility',
@@ -3198,71 +3183,6 @@ export class RewardsController extends BaseController<
         this.update((state: RewardsControllerState) => {
           state.snapshots[key] = {
             snapshots: payload,
-            lastFetched: Date.now(),
-          };
-        });
-      },
-    });
-
-    return result;
-  }
-
-  /**
-   * Get snapshot commitment status with caching
-   * @param snapshotId - The snapshot ID
-   * @param subscriptionId - The subscription ID for authentication
-   * @returns Promise<CommitmentStatusDto> - The commitment status data
-   */
-  async getSnapshotCommitmentStatus(
-    snapshotId: string,
-    subscriptionId: string,
-  ): Promise<CommitmentStatusDto> {
-    const rewardsEnabled = this.isRewardsFeatureEnabled();
-    if (!rewardsEnabled) {
-      throw new Error('Rewards are not enabled');
-    }
-    if (!this.#isSnapshotsEnabled()) {
-      throw new Error('Snapshots feature is not enabled');
-    }
-
-    const result = await wrapWithCache<CommitmentStatusDto>({
-      key: this.createSnapshotSubscriptionCompositeKey(
-        snapshotId,
-        subscriptionId,
-      ),
-      ttl: SNAPSHOT_COMMITMENT_STATUS_CACHE_THRESHOLD_MS,
-      readCache: (key) => {
-        const cached = this.state.snapshotCommitmentStatuses[key] || undefined;
-        if (!cached) return;
-        return {
-          payload: cached.commitmentStatus,
-          lastFetched: cached.lastFetched,
-        };
-      },
-      fetchFresh: async () => {
-        try {
-          Logger.log(
-            'RewardsController: Fetching fresh snapshot commitment status via API call for snapshotId',
-            snapshotId,
-          );
-          const response = (await this.messenger.call(
-            'RewardsDataService:getSnapshotCommitmentStatus',
-            snapshotId,
-            subscriptionId,
-          )) as CommitmentStatusDto;
-          return response;
-        } catch (error) {
-          Logger.log(
-            'RewardsController: Failed to get snapshot commitment status:',
-            error instanceof Error ? error.message : String(error),
-          );
-          throw error;
-        }
-      },
-      writeCache: (key, payload) => {
-        this.update((state: RewardsControllerState) => {
-          state.snapshotCommitmentStatuses[key] = {
-            commitmentStatus: payload,
             lastFetched: Date.now(),
           };
         });

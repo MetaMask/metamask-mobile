@@ -47,7 +47,6 @@ import {
   RewardsDataServiceGetSeasonOneLineaRewardTokensAction,
   RewardsDataServiceApplyReferralCodeAction,
   RewardsDataServiceGetSnapshotsAction,
-  RewardsDataServiceGetSnapshotCommitmentStatusAction,
   RewardsDataServiceGetSnapshotEligibilityAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 import { RootMessenger } from '../../types';
@@ -83,7 +82,6 @@ type AllowedActions =
   | RewardsDataServiceGetSeasonOneLineaRewardTokensAction
   | RewardsDataServiceApplyReferralCodeAction
   | RewardsDataServiceGetSnapshotsAction
-  | RewardsDataServiceGetSnapshotCommitmentStatusAction
   | RewardsDataServiceGetSnapshotEligibilityAction;
 
 // Don't reexport as per guidelines
@@ -140,7 +138,6 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getSeasonOneLineaRewardTokens',
       'RewardsDataService:applyReferralCode',
       'RewardsDataService:getSnapshots',
-      'RewardsDataService:getSnapshotCommitmentStatus',
       'RewardsDataService:getSnapshotEligibility',
     ],
     events: [
