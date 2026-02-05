@@ -8,7 +8,7 @@ import { getMultichainNetworkControllerMessenger } from './multichain-network-co
 import { getNetworkEnablementControllerMessenger } from './network-enablement-controller-messenger/network-enablement-controller-messenger';
 import { getCurrencyRateControllerMessenger } from './currency-rate-controller-messenger/currency-rate-controller-messenger';
 import { getAppMetadataControllerMessenger } from './app-metadata-controller-messenger';
-import { getApplicationStateControllerMessenger } from './application-state-controller-messenger';
+import { getClientControllerMessenger } from './client-controller-messenger';
 import {
   getDeFiPositionsControllerInitMessenger,
   getDeFiPositionsControllerMessenger,
@@ -234,8 +234,8 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getAppMetadataControllerMessenger,
     getInitMessenger: noop,
   },
-  ApplicationStateController: {
-    getMessenger: getApplicationStateControllerMessenger,
+  ClientController: {
+    getMessenger: getClientControllerMessenger,
     getInitMessenger: noop,
   },
   PreferencesController: {

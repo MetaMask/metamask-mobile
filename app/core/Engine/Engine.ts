@@ -124,7 +124,7 @@ import { defiPositionsControllerInit } from './controllers/defi-positions-contro
 import { SignatureControllerInit } from './controllers/signature-controller';
 import { GasFeeControllerInit } from './controllers/gas-fee-controller';
 import { appMetadataControllerInit } from './controllers/app-metadata-controller';
-import { applicationStateControllerInit } from './controllers/application-state-controller';
+import { clientControllerInit } from './controllers/client-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
 import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init';
@@ -297,7 +297,7 @@ export class Engine {
         ///: END:ONLY_INCLUDE_IF
         AccountTreeController: accountTreeControllerInit,
         AppMetadataController: appMetadataControllerInit,
-        ApplicationStateController: applicationStateControllerInit,
+        ClientController: clientControllerInit,
         AssetsContractController: assetsContractControllerInit,
         AccountTrackerController: accountTrackerControllerInit,
         SelectedNetworkController: selectedNetworkControllerInit,
@@ -493,6 +493,7 @@ export class Engine {
       AccountTrackerController: accountTrackerController,
       AddressBookController: addressBookController,
       AppMetadataController: controllersByName.AppMetadataController,
+      ClientController: controllersByName.ClientController,
       ConnectivityController: connectivityController,
       AssetsContractController: assetsContractController,
       NftController: nftController,
@@ -674,14 +675,11 @@ export class Engine {
 
         const isActive = state === 'active';
 
-        // Publish client state to ApplicationStateController
-        this.controllerMessenger.call(
-          'ApplicationStateController:setClientState',
-          isActive,
-        );
+        // Publish client state to ClientController
+        this.controllerMessenger.call('ClientController:setUiOpen', isActive);
 
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-        // TODO: SnapController should subscribe to ApplicationStateController:stateChange
+        // TODO: SnapController should subscribe to ClientController:stateChange
         const { isUnlocked } = this.controllerMessenger.call(
           'KeyringController:getState',
         );
