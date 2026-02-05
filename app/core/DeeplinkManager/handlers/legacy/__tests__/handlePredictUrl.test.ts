@@ -191,6 +191,42 @@ describe('handlePredictUrl', () => {
         },
       });
     });
+
+    it('navigates to market list with hot tab parameter', async () => {
+      await handlePredictUrl({ predictPath: '?tab=hot' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: 'deeplink',
+          tab: 'hot',
+        },
+      });
+    });
+
+    it('normalizes uppercase tab parameter to lowercase', async () => {
+      await handlePredictUrl({ predictPath: '?tab=CRYPTO' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: 'deeplink',
+          tab: 'crypto',
+        },
+      });
+    });
+
+    it('ignores tab parameter when market parameter is present', async () => {
+      await handlePredictUrl({ predictPath: '?market=123&tab=crypto' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: {
+          marketId: '123',
+          entryPoint: 'deeplink',
+        },
+      });
+    });
   });
 
   describe('error handling', () => {
@@ -270,7 +306,7 @@ describe('handlePredictUrl', () => {
 
       expect(DevLogger.log).toHaveBeenCalledWith(
         '[handlePredictUrl] Parsed navigation parameters:',
-        { market: '23246', utmSource: undefined },
+        { market: '23246', utmSource: undefined, tab: undefined },
       );
     });
 
@@ -556,7 +592,7 @@ describe('handlePredictUrl', () => {
 
       expect(DevLogger.log).toHaveBeenCalledWith(
         '[handlePredictUrl] Parsed navigation parameters:',
-        { market: '23246', utmSource: 'test' },
+        { market: '23246', utmSource: 'test', tab: undefined },
       );
     });
 

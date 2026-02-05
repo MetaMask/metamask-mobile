@@ -15,3 +15,9 @@ export {
   type UseLivePositionsOptions,
   type UseLivePositionsResult,
 } from './useLivePositions';
+
+export {
+  usePredictTabs,
+  type FeedTab,
+  type UsePredictTabsResponse as UsePredictTabsReturn,
+} from './usePredictTabs';

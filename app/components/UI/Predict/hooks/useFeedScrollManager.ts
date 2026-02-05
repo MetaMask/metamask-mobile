@@ -16,7 +16,7 @@ import {
 export interface UseFeedScrollManagerParams {
   headerRef: React.RefObject<View>;
   tabBarRef: React.RefObject<View>;
-  initialIndex?: number;
+  setActiveIndex: (index: number) => void;
 }
 
 export interface UseFeedScrollManagerReturn {
@@ -25,8 +25,7 @@ export interface UseFeedScrollManagerReturn {
   headerHeight: number;
   tabBarHeight: number;
   layoutReady: boolean;
-  activeIndex: number;
-  setActiveIndex: (index: number) => void;
+  onTabSwitch: (index: number) => void;
   scrollHandler: ReturnType<typeof useAnimatedScrollHandler>;
   onHeaderLayout: (event: LayoutChangeEvent) => void;
   onTabBarLayout: (event: LayoutChangeEvent) => void;
@@ -69,34 +68,24 @@ export const SCROLL_THRESHOLD = 250;
 export const useFeedScrollManager = ({
   headerRef,
   tabBarRef,
-  initialIndex,
+  setActiveIndex,
 }: UseFeedScrollManagerParams): UseFeedScrollManagerReturn => {
-  // Header state: 0 = visible, 1 = hidden (binary, not continuous)
   const isHeaderHidden = useSharedValue(0);
-  // Header translateY: 0 = visible, -headerHeight = hidden
   const headerTranslateY = useSharedValue(0);
 
-  // Shared values for worklet access
   const sharedHeaderHeight = useSharedValue(0);
   const sharedTabBarHeight = useSharedValue(0);
   const lastScrollY = useSharedValue(0);
 
-  // Flag to skip direction detection on first scroll after tab switch
   const isTabSwitching = useSharedValue(false);
 
-  // Track accumulated scroll delta for threshold detection
   const accumulatedDelta = useSharedValue(0);
-  const lastDirection = useSharedValue(0); // 1 = down, -1 = up, 0 = none
+  const lastDirection = useSharedValue(0);
 
-  // Layout measurements (JS side)
   const [headerHeight, setHeaderHeight] = useState(0);
   const [tabBarHeight, setTabBarHeight] = useState(0);
   const [layoutReady, setLayoutReady] = useState(false);
 
-  // Tab state
-  const [activeIndex, setActiveIndex] = useState(() => initialIndex ?? 0);
-
-  // React state mirror of isHeaderHidden for reactive UI updates
   const [headerHidden, setHeaderHidden] = useState(false);
 
   useLayoutEffect(() => {
@@ -225,12 +214,12 @@ export const useFeedScrollManager = ({
     },
   });
 
-  const handleSetActiveIndex = useCallback(
+  const onTabSwitch = useCallback(
     (index: number) => {
       isTabSwitching.value = true;
       setActiveIndex(index);
     },
-    [isTabSwitching],
+    [isTabSwitching, setActiveIndex],
   );
 
   return {
@@ -239,8 +228,7 @@ export const useFeedScrollManager = ({
     headerHeight,
     tabBarHeight,
     layoutReady,
-    activeIndex,
-    setActiveIndex: handleSetActiveIndex,
+    onTabSwitch,
     scrollHandler,
     onHeaderLayout,
     onTabBarLayout,

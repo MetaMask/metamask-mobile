@@ -35,8 +35,8 @@ const parsePredictNavigationParams = (
   // Support both 'market' and 'marketId' parameter names
   const marketId = urlParams.get('market') || urlParams.get('marketId');
   const utmSource = urlParams.get('utm_source');
-  const rawTab = urlParams.get('tab')?.toLowerCase();
-  const tab = isPredictFeedTabKey(rawTab) ? rawTab : undefined;
+  const tabParam = urlParams.get('tab')?.toLowerCase();
+  const tab = isPredictFeedTabKey(tabParam) ? tabParam : undefined;
 
   return {
     market: marketId || undefined,
