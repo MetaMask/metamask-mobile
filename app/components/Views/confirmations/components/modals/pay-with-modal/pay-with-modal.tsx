@@ -54,12 +54,7 @@ export function PayWithModal() {
           TransactionType.perpsDepositAndOrder,
         ])
       ) {
-        onPerpsPaymentTokenChange(token);
-        setPayToken({
-          address: token.address as Hex,
-          chainId: token.chainId as Hex,
-        });
-        close();
+        close(() => onPerpsPaymentTokenChange(token));
         return;
       }
 
