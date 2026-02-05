@@ -2011,13 +2011,8 @@ export class PerpsController extends BaseController<
       },
     );
 
-    // Track the completion
-    this.getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.DepositTransaction, {
-      [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.COMPLETED,
-      [PERPS_EVENT_PROPERTY.DEPOSIT_AMOUNT]: Number.parseFloat(
-        completedDeposit.amount,
-      ),
-    });
+    // TODO: Add analytics tracking for deposit completion when PerpsAnalyticsEvent.DepositTransaction is defined
+    // Similar to WithdrawalTransaction tracking
   }
 
   /**

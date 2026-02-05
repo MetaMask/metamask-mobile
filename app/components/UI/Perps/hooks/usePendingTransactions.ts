@@ -51,8 +51,8 @@ interface UsePendingTransactionsResult {
  * This hook:
  * 1. Returns pending deposits and withdrawals from PerpsController state (the queues)
  * 2. Polls getUserHistory (same API as "Deposits" tab in activity view) to detect completions
- * 3. Uses FIFO matching: oldest pending transaction matches with first completed transaction
- * in history that happened after its submission time
+ * 3. Uses FIFO matching: oldest pending transaction matches with first completed
+ * transaction in history that happened after its submission time
  *
  * Key design: We use getUserHistory (same data source as the activity view "Deposits" tab).
  * This ensures we only clear the pending indicator when the user can see the completed
@@ -60,6 +60,14 @@ interface UsePendingTransactionsResult {
  *
  * Multi-transaction support: If user submits multiple deposits/withdrawals while others
  * are still pending, each is tracked in its own queue. Oldest is matched first (FIFO).
+ *
+ * Note on deposits: The UI currently prevents starting a new deposit while one is in-flight,
+ * so the deposit queue will typically have 0 or 1 items. However, the FIFO pattern handles
+ * multiple deposits defensively for edge cases (race conditions, app crashes, restored state)
+ * and future flexibility. Withdrawals can have multiple in-flight since the UI allows it.
+ *
+ * Deposits and withdrawals are tracked separately - a completed deposit only clears a
+ * pending deposit, and a completed withdrawal only clears a pending withdrawal.
  */
 export const usePendingTransactions = (
   options: UsePendingTransactionsOptions = {},
