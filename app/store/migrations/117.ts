@@ -1,103 +1,114 @@
-import { cloneDeep } from 'lodash';
-import { ensureValidState, ValidState } from './util';
+import { hasProperty, isObject } from '@metamask/utils';
+import { ensureValidState } from './util';
 import { captureException } from '@sentry/react-native';
-import { getErrorMessage, hasProperty, isObject } from '@metamask/utils';
-import FilesystemStorage from 'redux-persist-filesystem-storage';
-import { STORAGE_KEY_PREFIX } from '@metamask/storage-service';
-import Device from '../../util/device';
 
 export const migrationVersion = 117;
 
-/**
- * This migration does:
- * - Remove the sourceCode property from each snap in the SnapController state.
- * - Store the sourceCode in the file system storage in order to allow the StorageService to fetch the snap source code.
- *
- * @param versionedState - The versioned state to migrate.
- * @returns The migrated state.
- */
-export default async function migrate(versionedState: unknown) {
-  const state = cloneDeep(versionedState);
+function isResourceStateShape(value: unknown): boolean {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    hasProperty(value as object, 'data') &&
+    hasProperty(value as object, 'isLoading')
+  );
+}
 
+function createDefaultResourceState<TData, TSelected = null>(
+  data: TData,
+  selected: TSelected = null as TSelected,
+): {
+  data: TData;
+  selected: TSelected;
+  isLoading: boolean;
+  error: string | null;
+} {
+  return {
+    data,
+    selected,
+    isLoading: false,
+    error: null,
+  };
+}
+
+/**
+ * Migration 117: Migrate RampsController legacy state to ResourceState shape
+ *
+ * RampsController was updated to use nested ResourceState for providers, tokens,
+ * paymentMethods, countries, and quotes. Legacy state had e.g. providers as an
+ * array and selectedProvider at top level. This migration normalizes those fields
+ * to { data, selected, isLoading, error } and removes top-level selectedProvider,
+ * selectedToken, selectedPaymentMethod. userRegion is handled by migration 116.
+ *
+ * @param state - The persisted Redux state (with engine.backgroundState inflated)
+ * @returns The migrated Redux state
+ */
+export default function migrate(state: unknown): unknown {
   if (!ensureValidState(state, migrationVersion)) {
     return state;
   }
 
   try {
-    return await transformState(state);
+    if (!hasProperty(state.engine.backgroundState, 'RampsController')) {
+      return state;
+    }
+
+    const ramps = state.engine.backgroundState.RampsController as Record<
+      string,
+      unknown
+    >;
+
+    if (!isObject(ramps)) {
+      return state;
+    }
+
+    const selectedProvider = hasProperty(ramps, 'selectedProvider')
+      ? (ramps.selectedProvider as unknown)
+      : null;
+    const selectedToken = hasProperty(ramps, 'selectedToken')
+      ? (ramps.selectedToken as unknown)
+      : null;
+    const selectedPaymentMethod = hasProperty(ramps, 'selectedPaymentMethod')
+      ? (ramps.selectedPaymentMethod as unknown)
+      : null;
+
+    delete ramps.selectedProvider;
+    delete ramps.selectedToken;
+    delete ramps.selectedPaymentMethod;
+
+    if (Array.isArray(ramps.providers)) {
+      ramps.providers = createDefaultResourceState(
+        ramps.providers,
+        selectedProvider ?? null,
+      );
+    }
+
+    if (ramps.tokens == null || !isResourceStateShape(ramps.tokens)) {
+      ramps.tokens = createDefaultResourceState(
+        ramps.tokens ?? null,
+        selectedToken ?? null,
+      );
+    }
+
+    if (Array.isArray(ramps.paymentMethods)) {
+      ramps.paymentMethods = createDefaultResourceState(
+        ramps.paymentMethods,
+        selectedPaymentMethod ?? null,
+      );
+    }
+
+    if (Array.isArray(ramps.countries)) {
+      ramps.countries = createDefaultResourceState(ramps.countries, null);
+    }
+
+    if (ramps.quotes == null || !isResourceStateShape(ramps.quotes)) {
+      ramps.quotes = createDefaultResourceState(ramps.quotes ?? null, null);
+    }
+
+    return state;
   } catch (error) {
-    console.error(error);
-    const newError = new Error(
-      `Migration #${migrationVersion}: ${getErrorMessage(error)}`,
-    );
-    captureException(newError);
-
-    // Return the original state if migration fails to avoid breaking the app
-    return versionedState;
-  }
-}
-
-/**
- * Transforms the state to remove the sourceCode property from each snap in the SnapController state and store the sourceCode in the file system storage.
- * @param state - The state to transform.
- * @returns The transformed state.
- */
-async function transformState(state: ValidState) {
-  if (!hasProperty(state.engine.backgroundState, 'SnapController')) {
     captureException(
-      new Error(`Migration ${migrationVersion}: SnapController not found.`),
+      new Error(`Migration ${migrationVersion} failed: ${error}`),
     );
-
     return state;
   }
-
-  const snapControllerState = state.engine.backgroundState.SnapController;
-
-  if (!isObject(snapControllerState)) {
-    captureException(
-      new Error(
-        `Migration ${migrationVersion}: SnapController is not an object: ${typeof snapControllerState}`,
-      ),
-    );
-
-    return state;
-  }
-
-  if (!hasProperty(snapControllerState, 'snaps')) {
-    captureException(
-      new Error(
-        `Migration ${migrationVersion}: SnapController missing property snaps.`,
-      ),
-    );
-
-    return state;
-  }
-
-  if (!isObject(snapControllerState.snaps)) {
-    captureException(
-      new Error(
-        `Migration ${migrationVersion}: SnapController.snaps is not an object: ${typeof snapControllerState.snaps}`,
-      ),
-    );
-
-    return state;
-  }
-
-  Object.values(
-    snapControllerState.snaps as Record<string, Record<string, unknown>>,
-  ).forEach(async (snap) => {
-    const sourceCode = snap.sourceCode as string;
-
-    const fullKey = `${STORAGE_KEY_PREFIX}SnapController:${snap.id}`;
-
-    await FilesystemStorage.setItem(
-      fullKey,
-      JSON.stringify({ sourceCode }),
-      Device.isIos(),
-    );
-
-    delete snap.sourceCode;
-  });
-
-  return state;
 }
