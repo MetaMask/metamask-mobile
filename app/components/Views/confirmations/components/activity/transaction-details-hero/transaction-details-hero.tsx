@@ -20,11 +20,11 @@ import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/us
 import { PERPS_CURRENCY } from '../../../constants/perps';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 import { BigNumber } from 'bignumber.js';
+import { MERKL_CLAIM_CHAIN_ID } from '../../../../../UI/Earn/components/MerklRewards/constants';
 import {
+  convertMusdClaimAmount,
   decodeMerklClaimAmount,
-  MERKL_CLAIM_CHAIN_ID,
-} from '../../../../../UI/Earn/components/MerklRewards/constants';
-import { convertMusdClaimAmount } from '../../../../../UI/Earn/utils/musd';
+} from '../../../../../UI/Earn/utils/musd';
 import {
   selectConversionRateByChainId,
   selectCurrencyRates,

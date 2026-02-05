@@ -2,6 +2,7 @@
  * mUSD utility functions for Earn namespace
  */
 
+import { Interface } from '@ethersproject/abi';
 import { TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
@@ -12,6 +13,7 @@ import {
   MUSD_TOKEN,
   MUSD_TOKEN_ADDRESS,
 } from '../constants/musd';
+import { DISTRIBUTOR_CLAIM_ABI } from '../components/MerklRewards/constants';
 
 /**
  * Parameters for checking if a transaction is a mUSD claim for the current view.
@@ -122,4 +124,32 @@ export function convertMusdClaimAmount({
     fiatValue: claimAmountDecimal,
     isConverted: false,
   };
+}
+
+/**
+ * Decode the claim amount from a Merkl claim transaction data.
+ * The claim function signature is: claim(address[] users, address[] tokens, uint256[] amounts, bytes32[][] proofs)
+ *
+ * @param data - The transaction data hex string
+ * @returns The first claim amount as a string (raw value, not adjusted for decimals), or null if decoding fails
+ */
+export function decodeMerklClaimAmount(
+  data: string | undefined,
+): string | null {
+  if (!data || typeof data !== 'string') {
+    return null;
+  }
+
+  try {
+    const contractInterface = new Interface(DISTRIBUTOR_CLAIM_ABI);
+    const decoded = contractInterface.decodeFunctionData('claim', data);
+    // amounts is the 3rd parameter (index 2)
+    const amounts = decoded[2];
+    if (!amounts || amounts.length === 0) {
+      return null;
+    }
+    return amounts[0].toString();
+  } catch {
+    return null;
+  }
 }
