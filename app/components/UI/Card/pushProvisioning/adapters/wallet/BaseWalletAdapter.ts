@@ -85,14 +85,13 @@ export abstract class BaseWalletAdapter {
   protected async getWalletModule(): Promise<
     typeof import('@expensify/react-native-wallet')
   > {
-    // Wait for the initial load to complete
     if (this.moduleLoadPromise) {
       await this.moduleLoadPromise;
     }
 
-    // If still not loaded, try again
     if (!this.walletModule && !this.moduleLoadError) {
-      await this.initializeWalletModule();
+      this.moduleLoadPromise = this.initializeWalletModule();
+      await this.moduleLoadPromise;
     }
 
     if (!this.walletModule) {
