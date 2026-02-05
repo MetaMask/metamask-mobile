@@ -165,14 +165,6 @@ describe('PaymentSelectionModal', () => {
     expect(getByText('fiat_on_ramp.pay_with')).toBeOnTheScreen();
   });
 
-  it('displays subtitle text', () => {
-    const { getByText } = renderWithProvider(PaymentSelectionModal);
-
-    expect(
-      getByText('fiat_on_ramp.debit_card_payments_more_likely'),
-    ).toBeOnTheScreen();
-  });
-
   it('displays payment methods list', () => {
     const { getAllByText } = renderWithProvider(PaymentSelectionModal);
 
@@ -194,44 +186,45 @@ describe('PaymentSelectionModal', () => {
     });
   });
 
-  it('navigates to provider selection when provider pill is pressed', async () => {
+  it('navigates to provider selection when change provider is pressed', async () => {
     const { getByText } = renderWithProvider(PaymentSelectionModal);
 
-    const providerPill = getByText('Transak');
-    fireEvent.press(providerPill);
+    const changeProviderLink = getByText('fiat_on_ramp.change_provider');
+    fireEvent.press(changeProviderLink);
 
     await waitFor(() => {
       expect(getByText('fiat_on_ramp_aggregator.providers')).toBeOnTheScreen();
     });
   });
 
-  it('displays providers list in provider selection', async () => {
-    const { getByText, getAllByText } = renderWithProvider(
-      PaymentSelectionModal,
-    );
+  it('displays provider selection when change provider is pressed', async () => {
+    const { getByText } = renderWithProvider(PaymentSelectionModal);
 
-    const providerPill = getByText('Transak');
-    fireEvent.press(providerPill);
+    const changeProviderLink = getByText('fiat_on_ramp.change_provider');
+    fireEvent.press(changeProviderLink);
 
     await waitFor(() => {
-      expect(getAllByText('Transak').length).toBeGreaterThan(0);
-      expect(getByText('MoonPay')).toBeOnTheScreen();
+      expect(getByText('fiat_on_ramp_aggregator.providers')).toBeOnTheScreen();
     });
   });
 
-  it('updates selected provider when provider is selected', async () => {
-    const { getByText } = renderWithProvider(PaymentSelectionModal);
+  it('returns to payment selection when back is pressed from provider selection', async () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      PaymentSelectionModal,
+    );
 
-    const providerPill = getByText('Transak');
-    fireEvent.press(providerPill);
+    const changeProviderLink = getByText('fiat_on_ramp.change_provider');
+    fireEvent.press(changeProviderLink);
 
     await waitFor(() => {
-      const moonPayProvider = getByText('MoonPay');
-      fireEvent.press(moonPayProvider);
+      expect(getByText('fiat_on_ramp_aggregator.providers')).toBeOnTheScreen();
     });
 
+    const backButton = getByTestId('button-icon');
+    fireEvent.press(backButton);
+
     await waitFor(() => {
-      expect(mockSetSelectedProvider).toHaveBeenCalledWith(mockProviders[1]);
+      expect(getByText('fiat_on_ramp.pay_with')).toBeOnTheScreen();
     });
   });
 });

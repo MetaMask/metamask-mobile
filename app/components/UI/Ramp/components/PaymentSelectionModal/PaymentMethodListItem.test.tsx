@@ -18,7 +18,7 @@ const mockPaymentMethod: PaymentMethod = {
   score: 90,
   icon: 'card',
   disclaimer: "Credit card purchases may incur your bank's cash advance fees.",
-  delay: '5 to 10 minutes.',
+  delay: [5, 10],
   pendingOrderDescription: 'Card purchases may take a few minutes to complete.',
 };
 
@@ -40,12 +40,12 @@ describe('PaymentMethodListItem', () => {
     expect(getByText('Debit or Credit')).toBeOnTheScreen();
   });
 
-  it('renders delay text when available', () => {
+  it('renders delay text when delay array is provided', () => {
     const { getByText } = renderWithTheme(
       <PaymentMethodListItem paymentMethod={mockPaymentMethod} />,
     );
 
-    expect(getByText('5 to 10 minutes.')).toBeOnTheScreen();
+    expect(getByText('5 - 10 mins')).toBeOnTheScreen();
   });
 
   it('does not render delay text when not available', () => {
@@ -53,7 +53,7 @@ describe('PaymentMethodListItem', () => {
       <PaymentMethodListItem paymentMethod={mockPaymentMethodWithoutDelay} />,
     );
 
-    expect(queryByText('5 to 10 minutes.')).not.toBeOnTheScreen();
+    expect(queryByText('5 - 10 mins')).not.toBeOnTheScreen();
   });
 
   it('renders quote amounts', () => {

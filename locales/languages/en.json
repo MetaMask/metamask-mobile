@@ -4704,6 +4704,8 @@
     "debit_card": "Debit card",
     "select_payment_method": "Select payment method",
     "pay_with": "Pay with",
+    "buying_via": "Buying via {{providerName}}.",
+    "change_provider": "Change provider.",
     "debit_card_payments_more_likely": "Debit and credit card payments are more likely to be approved.",
     "continue": "Continue",
     "powered_by_provider": "Powered by {{provider}}",

@@ -14,6 +14,7 @@ import Icon, {
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
 import PaymentMethodQuote from './PaymentMethodQuote';
+import { formatDelayFromArray } from '../../Aggregator/utils';
 import type { PaymentMethod } from '@metamask/ramps-controller';
 
 interface PaymentMethodListItemProps {
@@ -27,11 +28,15 @@ const PaymentMethodListItem: React.FC<PaymentMethodListItemProps> = ({
   onPress,
   isSelected = false,
 }) => {
-  // Mock quote data - TODO: Replace with actual quote data and possible loading state
   const mockQuote = {
     cryptoAmount: '0.10596 ETH',
     fiatAmount: '~ $499.97',
   };
+
+  const delayText =
+    Array.isArray(paymentMethod.delay) && paymentMethod.delay.length >= 2
+      ? formatDelayFromArray(paymentMethod.delay)
+      : null;
 
   return (
     <ListItemSelect
@@ -51,11 +56,11 @@ const PaymentMethodListItem: React.FC<PaymentMethodListItemProps> = ({
       </ListItemColumn>
       <ListItemColumn widthType={WidthType.Fill}>
         <Text variant={TextVariant.BodyLGMedium}>{paymentMethod.name}</Text>
-        {paymentMethod.delay && (
+        {delayText ? (
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {paymentMethod.delay}
+            {delayText}
           </Text>
-        )}
+        ) : null}
       </ListItemColumn>
       <ListItemColumn widthType={WidthType.Auto}>
         <PaymentMethodQuote

@@ -15,7 +15,6 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import {
   Box,
-  BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
@@ -24,7 +23,6 @@ import { strings } from '../../../../../../locales/i18n';
 import styleSheet from './PaymentSelectionModal.styles';
 import Routes from '../../../../../constants/navigation/Routes';
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
-import ProviderPill from './ProviderPill';
 import PaymentMethodListItem from './PaymentMethodListItem';
 import ProviderSelection from './ProviderSelection';
 import type { PaymentMethod, Provider } from '@metamask/ramps-controller';
@@ -64,7 +62,7 @@ function PaymentSelectionModal() {
     transform: [{ translateX: translateX.value + screenWidth }],
   }));
 
-  const handleProviderPillPress = useCallback(() => {
+  const handleChangeProviderPress = useCallback(() => {
     translateX.value = withTiming(-screenWidth, {
       duration: ANIMATION_DURATION,
     });
@@ -100,6 +98,31 @@ function PaymentSelectionModal() {
     [handlePaymentMethodPress],
   );
 
+  const renderFooter = useCallback(
+    () =>
+      selectedProvider ? (
+        <Box
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="px-4 py-4"
+        >
+          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            {strings('fiat_on_ramp.buying_via', {
+              providerName: selectedProvider.name,
+            })}{' '}
+            <Text
+              variant={TextVariant.BodySM}
+              color={TextColor.Primary}
+              onPress={handleChangeProviderPress}
+            >
+              {strings('fiat_on_ramp.change_provider')}
+            </Text>
+          </Text>
+        </Box>
+      ) : null,
+    [selectedProvider, handleChangeProviderPress],
+  );
+
   const renderListContent = () => (
     <FlatList
       style={styles.list}
@@ -108,6 +131,7 @@ function PaymentSelectionModal() {
       keyExtractor={(item) => item.id}
       keyboardDismissMode="none"
       keyboardShouldPersistTaps="always"
+      ListFooterComponent={renderFooter}
     />
   );
 
@@ -119,22 +143,12 @@ function PaymentSelectionModal() {
       >
         <Animated.View style={[styles.overlay, paymentPageStyle]}>
           <Box
-            flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
+            justifyContent={BoxJustifyContent.Center}
             twClassName="px-4 py-3"
           >
             <Text variant={TextVariant.HeadingMD}>
               {strings('fiat_on_ramp.pay_with')}
-            </Text>
-            <ProviderPill
-              provider={selectedProvider}
-              onPress={handleProviderPillPress}
-            />
-          </Box>
-          <Box twClassName="px-4 pb-4">
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {strings('fiat_on_ramp.debit_card_payments_more_likely')}
             </Text>
           </Box>
           {renderListContent()}

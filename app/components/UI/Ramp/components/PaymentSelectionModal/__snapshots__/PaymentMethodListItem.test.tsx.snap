@@ -98,7 +98,7 @@ exports[`PaymentMethodListItem matches snapshot 1`] = `
             }
           }
         >
-          5 to 10 minutes.
+          5 - 10 mins
         </Text>
       </View>
       <View
@@ -262,7 +262,7 @@ exports[`PaymentMethodListItem renders as selected when isSelected is true 1`] =
             }
           }
         >
-          5 to 10 minutes.
+          5 - 10 mins
         </Text>
       </View>
       <View
