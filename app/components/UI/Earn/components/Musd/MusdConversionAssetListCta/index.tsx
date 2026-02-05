@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import styleSheet from './MusdConversionAssetListCta.styles';
 import Text, {
   TextVariant,
@@ -12,7 +12,6 @@ import {
 } from '@metamask/design-system-react-native';
 import {
   MUSD_CONVERSION_APY,
-  MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../constants/musd';
@@ -59,15 +58,13 @@ const MusdConversionAssetListCta = () => {
   const { shouldShowCta, showNetworkIcon, selectedChainId } =
     shouldShowBuyGetMusdCta();
 
-  const networkName = useNetworkName(
-    selectedChainId ?? MUSD_CONVERSION_DEFAULT_CHAIN_ID,
-  );
+  const networkName = useNetworkName(selectedChainId ?? undefined);
 
-  const ctaText = isEmptyWallet
+  const buttonText = isEmptyWallet
     ? strings('earn.musd_conversion.buy_musd')
     : strings('earn.musd_conversion.get_musd');
 
-  const submitCtaPressedEvent = () => {
+  const submitCtaPressedEvent = (source: 'cta_button' | 'cta_text') => {
     const { MUSD_CTA_TYPES, EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
     const getRedirectLocation = () => {
@@ -80,6 +77,13 @@ const MusdConversionAssetListCta = () => {
         : EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
     };
 
+    const ctaText =
+      source === 'cta_button'
+        ? buttonText
+        : strings('earn.earn_a_percentage_bonus', {
+            percentage: MUSD_CONVERSION_APY,
+          });
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED)
         .addProperties({
@@ -87,15 +91,15 @@ const MusdConversionAssetListCta = () => {
           redirects_to: getRedirectLocation(),
           cta_type: MUSD_CTA_TYPES.PRIMARY,
           cta_text: ctaText,
-          network_chain_id: selectedChainId || MUSD_CONVERSION_DEFAULT_CHAIN_ID,
-          network_name: networkName,
+          network_chain_id: selectedChainId,
+          network_name: networkName ?? strings('wallet.popular_networks'),
         })
         .build(),
     );
   };
 
-  const handlePress = async () => {
-    submitCtaPressedEvent();
+  const handlePress = async (source: 'cta_button' | 'cta_text') => {
+    submitCtaPressedEvent(source);
 
     if (isEmptyWallet) {
       const chainId = getChainIdForBuyFlow();
@@ -169,21 +173,23 @@ const MusdConversionAssetListCta = () => {
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
             MetaMask USD
           </Text>
-          <Text variant={TextVariant.BodySMMedium} color={TextColor.Primary}>
-            {strings('earn.earn_a_percentage_bonus', {
-              percentage: MUSD_CONVERSION_APY,
-            })}
-          </Text>
+          <TouchableOpacity onPress={() => handlePress('cta_text')}>
+            <Text variant={TextVariant.BodySMMedium} color={TextColor.Primary}>
+              {strings('earn.earn_a_percentage_bonus', {
+                percentage: MUSD_CONVERSION_APY,
+              })}
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
 
       <Button
         variant={ButtonVariant.Secondary}
-        onPress={handlePress}
+        onPress={() => handlePress('cta_button')}
         size={ButtonSize.Sm}
       >
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-          {ctaText}
+          {buttonText}
         </Text>
       </Button>
     </View>
