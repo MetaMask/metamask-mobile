@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef } from 'react';
 import { useRoute } from '@react-navigation/native';
-import { Stack } from '../Main/navigators';
+import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
 import OAuthRehydration from '../../Views/OAuthRehydration';
 import QRTabSwitcher from '../../Views/QRTabSwitcher';
@@ -165,6 +165,8 @@ const clearStackNavigatorOptions = {
   },
   animationEnabled: false,
 };
+
+const Stack = createStackNavigator();
 
 const AccountAlreadyExists = () => <AccountStatus type="found" />;
 

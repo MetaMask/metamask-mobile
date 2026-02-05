@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
-import { Stack, Tab } from './navigators';
+import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Browser from '../../Views/Browser';
 import { ChainId } from '@metamask/controller-utils';
 import AddBookmark from '../../Views/AddBookmark';
@@ -132,6 +133,9 @@ import {
 import { strings } from '../../../../locales/i18n';
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
 import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
+
+const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
 
 const styles = StyleSheet.create({
   headerLogo: {
