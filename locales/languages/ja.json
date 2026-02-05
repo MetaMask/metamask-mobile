@@ -7484,7 +7484,7 @@
       "redeem_failure_title": "引き換えに失敗しました",
       "redeem_failure_description": "後ほどもう一度お試しください。",
       "reward_details": "報酬の詳細",
-      "select_account_description": "この報酬の送付先となるアカウントを選択してください。トークンは2週間以内に配布されます。"
+      "select_account_description": "この報酬の送付先となるアカウントを選択してください。"
     },
     "animation": {
       "could_not_load": "読み込ませんでした"

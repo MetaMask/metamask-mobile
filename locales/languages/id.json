@@ -7484,7 +7484,7 @@
       "redeem_failure_title": "Penukaran gagal",
       "redeem_failure_description": "Coba lagi nanti.",
       "reward_details": "Detail Reward",
-      "select_account_description": "Pilih akun tempat Anda ingin reward ini dikirimkan. Token akan didistribusikan dalam waktu dua minggu."
+      "select_account_description": "Pilih akun tempat Anda ingin reward ini dikirimkan."
     },
     "animation": {
       "could_not_load": "Tidak dapat memuat"
