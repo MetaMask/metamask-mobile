@@ -429,7 +429,19 @@ describe('NotificationManager', () => {
       );
     });
 
-    it('shows a confirm notification for a transaction', async () => {
+    it('shows a confirm notification for a transaction with nonce', async () => {
+      const transactionMeta = {
+        id: '0x123',
+        txParams: { nonce: '0x1' },
+        chainId: '0x1',
+        time: 123,
+        status: 'confirmed' as TransactionMeta['status'],
+      };
+
+      mockTransactionController.state.transactions.push(
+        transactionMeta as TransactionMeta,
+      );
+
       notificationManager.watchSubmittedTransaction({
         id: '0x123',
         txParams: {
@@ -441,9 +453,9 @@ describe('NotificationManager', () => {
       const subscribeCallback =
         mockControllerMessenger.subscribeOnceIf.mock.calls[0][1];
 
-      subscribeCallback({
+      subscribeCallback(transactionMeta, {
         id: '0x123',
-        txParams: { nonce: '0x1' },
+        assetType: 'ETH',
       });
 
       jest.advanceTimersByTime(2000);
@@ -451,6 +463,10 @@ describe('NotificationManager', () => {
       expect(showNotificationSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'success',
+          transaction: expect.objectContaining({
+            id: '0x123',
+            nonce: expect.any(String),
+          }),
         }),
       );
     });
@@ -500,6 +516,50 @@ describe('NotificationManager', () => {
             nonce: undefined,
           }),
           duration: 5000,
+        }),
+      );
+    });
+
+    it('shows a confirm notification for transaction with null nonce', async () => {
+      const transactionWithNullNonce = {
+        id: '0x789',
+        txParams: {
+          nonce: null,
+        },
+        chainId: '0x1',
+        time: 123,
+        status: 'confirmed' as TransactionMeta['status'],
+      };
+
+      mockTransactionController.state.transactions.push(
+        transactionWithNullNonce as TransactionMeta,
+      );
+
+      notificationManager.watchSubmittedTransaction({
+        id: '0x789',
+        txParams: {
+          nonce: null,
+        },
+        silent: false,
+      });
+
+      const subscribeCallback =
+        mockControllerMessenger.subscribeOnceIf.mock.calls[0][1];
+
+      subscribeCallback(transactionWithNullNonce, {
+        id: '0x789',
+        assetType: 'ETH',
+      });
+
+      jest.advanceTimersByTime(2000);
+
+      expect(showNotificationSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'success',
+          transaction: expect.objectContaining({
+            id: '0x789',
+            nonce: undefined,
+          }),
         }),
       );
     });
