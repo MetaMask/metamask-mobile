@@ -670,7 +670,7 @@ Our CI/CD process is automated through various Bitrise pipelines, each designed 
 - **Example**:
 
   ```
-  FAIL tets/smoke/swaps/swap-action-smoke.spec.js (232.814 s)
+  FAIL tests/smoke/swaps/swap-action-smoke.spec.js (232.814 s)
     SmokeSwaps Swap from Actions
       ✓ should Swap .05 'ETH' to 'USDT' (90488 ms)
       ✕ should Swap 100 'USDT' to 'ETH' (50549 ms)
