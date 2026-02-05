@@ -12,7 +12,19 @@ import { TokenI } from '../../Tokens/types';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
 import { toHex } from '@metamask/controller-utils';
 import { BigNumber } from 'bignumber.js';
+import { Hex } from '@metamask/utils';
+import { safeFormatChainIdToHex } from '../../Card/util/safeFormatChainIdToHex';
 
+/**
+ * The source of truth for the tokens that are eligible for mUSD conversion.
+ *
+ * @returns Object containing:
+ * - filterAllowedTokens(tokens: AssetType[]): AssetType[] - Filters tokens based on allowlist and blocklist rules.
+ * - isConversionToken(token: AssetType | TokenI): boolean - Checks if a token is eligible for mUSD conversion.
+ * - isMusdSupportedOnChain(chainId: Hex): boolean - Checks if mUSD is supported on a given chain.
+ * - hasConvertibleTokensByChainId(chainId: Hex): boolean - Checks if there are convertible tokens on a given chain.
+ * - tokens: AssetType[] - The tokens that are eligible for mUSD conversion.
+ */
 export const useMusdConversionTokens = () => {
   const musdConversionPaymentTokensAllowlist = useSelector(
     selectMusdConversionPaymentTokensAllowlist,
@@ -81,13 +93,29 @@ export const useMusdConversionTokens = () => {
     [allTokens, filterAllowedTokens],
   );
 
+  const hasConvertibleTokensByChainId = useCallback(
+    (chainId: Hex) =>
+      conversionTokens.some(
+        (token) =>
+          token.chainId && safeFormatChainIdToHex(token.chainId) === chainId,
+      ),
+    [conversionTokens],
+  );
+
   const isConversionToken = (token?: AssetType | TokenI) => {
     if (!token) return false;
+
+    if (!token.chainId) {
+      return false;
+    }
+
+    const tokenChainId = safeFormatChainIdToHex(token.chainId);
 
     return conversionTokens.some(
       (musdToken) =>
         token.address.toLowerCase() === musdToken.address.toLowerCase() &&
-        token.chainId === musdToken.chainId,
+        musdToken.chainId &&
+        safeFormatChainIdToHex(musdToken.chainId) === tokenChainId,
     );
   };
 
@@ -100,6 +128,7 @@ export const useMusdConversionTokens = () => {
     filterAllowedTokens,
     isConversionToken,
     isMusdSupportedOnChain,
+    hasConvertibleTokensByChainId,
     tokens: conversionTokens,
   };
 };

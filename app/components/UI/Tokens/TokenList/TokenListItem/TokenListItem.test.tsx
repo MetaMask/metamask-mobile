@@ -352,6 +352,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     );
     mockUseMusdConversionTokens.mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(false),
+      hasConvertibleTokensByChainId: jest.fn().mockReturnValue(false),
       filterAllowedTokens: jest.fn(),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       tokens: [],
