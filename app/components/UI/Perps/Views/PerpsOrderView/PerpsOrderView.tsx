@@ -66,8 +66,6 @@ import { useAddToken } from '../../../../Views/confirmations/hooks/tokens/useAdd
 import { useTransactionConfirm } from '../../../../Views/confirmations/hooks/transactions/useTransactionConfirm';
 import { useTransactionCustomAmount } from '../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount';
 import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
-import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
-import useClearConfirmationOnBackSwipe from '../../../../Views/confirmations/hooks/ui/useClearConfirmationOnBackSwipe';
 import AddRewardsAccount from '../../../Rewards/components/AddRewardsAccount/AddRewardsAccount';
 import RewardsAnimations, {
   RewardAnimationState,
@@ -150,6 +148,8 @@ import {
 } from '../../utils/tpslValidation';
 import createStyles from './PerpsOrderView.styles';
 import { PerpsPayRow } from './PerpsPayRow';
+import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
+import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConfirmActions';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -205,7 +205,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     tokenAddress: ARBITRUM_USDC.address,
   });
 
-  useClearConfirmationOnBackSwipe();
+  // Clear confirmation when leaving the order view
+  const { onReject } = useConfirmActions();
+  useEffect(
+    () => () => {
+      onReject(undefined, true);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
 
   useTransactionPayMetrics();
 
