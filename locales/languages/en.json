@@ -6829,6 +6829,7 @@
         "date_of_birth_label": "Date of birth",
         "nationality_label": "Nationality",
         "ssn_label": "Social Security Number",
+        "ssn_description": "Required by the card issuer. No credit check will be run.",
         "invalid_ssn": "Invalid SSN",
         "invalid_date_of_birth": "Invalid date of birth. You must be at least 18 years old"
       },
