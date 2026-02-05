@@ -112,7 +112,7 @@ export const usePredictDeposit = ({
             hasNoTimeout: false,
             linkButtonOptions: {
               label: strings('predict.deposit.try_again'),
-              onPress: () => deposit(),
+              onPress: () => deposit(params),
             },
           });
         });
@@ -136,7 +136,7 @@ export const usePredictDeposit = ({
           hasNoTimeout: false,
           linkButtonOptions: {
             label: strings('predict.deposit.try_again'),
-            onPress: () => deposit(),
+            onPress: () => deposit(params),
           },
         });
 
