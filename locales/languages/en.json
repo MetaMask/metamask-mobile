@@ -115,6 +115,10 @@
       "message": "You're sending your assets to a burn address. If you continue, you'll lose your assets.",
       "title": "Sending assets to burn address"
     },
+    "gas_sponsorship_reserve_balance": {
+      "message": "Gas sponsorship isn't available for this transaction. You'll need to keep at least %{minBalance} %{nativeTokenSymbol} in your account.",
+      "title": "Gas sponsorship unavailable"
+    },
     "token_trust_signal": {
       "malicious": {
         "message": "This token has been identified as malicious. Interacting with this token may result in a loss of funds.",
@@ -3324,6 +3328,10 @@
   "asset_overview": {
     "send_button": "Send",
     "buy_button": "Buy",
+    "cash_buy_button": "Cash Buy",
+    "long_button": "Long",
+    "short_button": "Short",
+    "more_button": "More",
     "token_marketplace": "Token marketplace",
     "sell_button": "Sell",
     "receive_button": "Receive",
@@ -6331,6 +6339,7 @@
     "select_recipient": "Select recipient",
     "external_account": "External account",
     "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
+    "stock_token_error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.\n\nPlease note if you are attempting to trade Ondo Tokenised Stocks you may be geo-restricted e.g. via US, EU, UK and BR.",
     "insufficient_funds": "Insufficient funds",
     "insufficient_gas": "Insufficient gas",
     "select_amount": "Select amount",
@@ -6726,7 +6735,7 @@
     "card_onboarding": {
       "title": "Spend\nand Earn",
       "description": "The MetaMask Card is the fast and\neasy way to spend your crypto and\nearn up to 3% cashback.",
-      "apply_now_button": "Setup now",
+      "apply_now_button": "Set up now",
       "login_button": "Log in",
       "not_now_button": "Not now",
       "sign_up": {
@@ -6749,8 +6758,8 @@
         "resend_cooldown": "Resend available in {{seconds}} seconds"
       },
       "set_phone_number": {
-        "title": "Confirm your phone number",
-        "description": "Enter your phone number. We'll send you a confirmation code there.",
+        "title": "Enter your phone number",
+        "description": "We'll send you a confirmation code there.",
         "phone_number_label": "Enter phone number",
         "country_area_code_label": "Country area code",
         "invalid_phone_number": "Invalid phone number",
@@ -6830,6 +6839,7 @@
         "date_of_birth_label": "Date of birth",
         "nationality_label": "Nationality",
         "ssn_label": "Social Security Number",
+        "ssn_description": "Required by the card issuer. No credit check will be run.",
         "invalid_ssn": "Invalid SSN",
         "invalid_date_of_birth": "Invalid date of birth. You must be at least 18 years old"
       },
@@ -6890,6 +6900,7 @@
     },
     "card_home": {
       "title": "Card",
+      "authentication_error": "Your session has expired. Please log in again.",
       "available_balance": "Available balance",
       "error_title": "Can't fetch data",
       "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Please check your connection or try refreshing the page.",
@@ -7485,7 +7496,7 @@
       "redeem_failure_title": "Redeem failed",
       "redeem_failure_description": "Please try again later.",
       "reward_details": "Reward Details",
-      "select_account_description": "Select the account where you'd like this reward sent. Tokens will be distributed within two weeks."
+      "select_account_description": "Select the account where you'd like this reward sent."
     },
     "animation": {
       "could_not_load": "Couldn't load"
