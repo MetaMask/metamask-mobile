@@ -24,6 +24,7 @@ export const DEFAULT_LIVE_SPORTS_FLAG: PredictLiveSportsFlag = {
 export const DEFAULT_MARKET_HIGHLIGHTS_FLAG: PredictMarketHighlightsFlag = {
   enabled: false,
   highlights: [],
+  minimumVersion: '7.64.0',
 };
 
 export const DEFAULT_HOT_TAB_FLAG: PredictHotTabFlag = {

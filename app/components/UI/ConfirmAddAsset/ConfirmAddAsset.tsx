@@ -9,7 +9,7 @@ import createStyles from './styles';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
-import getHeaderCenterNavbarOptions from '../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
+import getHeaderCompactStandardNavbarOptions from '../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
@@ -30,7 +30,7 @@ import BottomSheetFooter, {
 import { ScrollView } from 'react-native-gesture-handler';
 import Modal from 'react-native-modal';
 import Box from '../Ramp/Aggregator/components/Box';
-import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import Routes from '../../../constants/navigation/Routes';
 import { ImportTokenViewSelectorsIDs } from '../../Views/AddAsset/ImportTokenView.testIds';
 import { TOKEN_TITLE } from '../../../components/Views/AddAsset/AddAsset.constants';
@@ -113,7 +113,7 @@ const ConfirmAddAsset = () => {
 
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
-      getHeaderCenterNavbarOptions({
+      getHeaderCompactStandardNavbarOptions({
         title: strings(`add_asset.${TOKEN_TITLE}`),
         onBack: () => setShowExitModal(true),
         includesTopInset: true,
@@ -142,7 +142,7 @@ const ConfirmAddAsset = () => {
         testID={ImportTokenViewSelectorsIDs.ADD_CANCEL_ADD_CUSTOM_ASSET_MODAL}
       >
         <View style={styles.notch} />
-        <HeaderCenter
+        <HeaderCompactStandard
           title={strings('wallet.are_you_sure_exit')}
           onClose={() => setShowExitModal(false)}
         />
