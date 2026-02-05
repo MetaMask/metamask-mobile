@@ -16,6 +16,7 @@ import {
 export interface UseFeedScrollManagerParams {
   headerRef: React.RefObject<View>;
   tabBarRef: React.RefObject<View>;
+  initialIndex?: number;
 }
 
 export interface UseFeedScrollManagerReturn {
@@ -68,6 +69,7 @@ export const SCROLL_THRESHOLD = 250;
 export const useFeedScrollManager = ({
   headerRef,
   tabBarRef,
+  initialIndex,
 }: UseFeedScrollManagerParams): UseFeedScrollManagerReturn => {
   // Header state: 0 = visible, 1 = hidden (binary, not continuous)
   const isHeaderHidden = useSharedValue(0);
@@ -92,7 +94,7 @@ export const useFeedScrollManager = ({
   const [layoutReady, setLayoutReady] = useState(false);
 
   // Tab state
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(() => initialIndex ?? 0);
 
   // React state mirror of isHeaderHidden for reactive UI updates
   const [headerHidden, setHeaderHidden] = useState(false);

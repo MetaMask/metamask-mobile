@@ -611,9 +611,25 @@ const PredictFeed: React.FC = () => {
   const headerRef = useRef<View>(null);
   const tabBarRef = useRef<View>(null);
 
+  const defaultTabKey: FeedTab['key'] = 'trending';
+  const requestedTab = route.params?.tab;
+
   // Capture the initial tab key at mount to avoid re-triggering the analytics
   // session when tabs array changes due to async feature flag loading
-  const initialTabKeyRef = useRef(tabs[0].key);
+  const initialTabKeyRef = useRef<FeedTab['key']>(
+    requestedTab && tabs.some((tab) => tab.key === requestedTab)
+      ? requestedTab
+      : defaultTabKey,
+  );
+
+  const initialTabIndex = useMemo(() => {
+    const key = initialTabKeyRef.current;
+    const index = tabs.findIndex((tab) => tab.key === key);
+    if (index >= 0) return index;
+
+    const fallbackIndex = tabs.findIndex((tab) => tab.key === defaultTabKey);
+    return fallbackIndex >= 0 ? fallbackIndex : 0;
+  }, [tabs, defaultTabKey]);
 
   const [isSearchVisible, setIsSearchVisible] = useState(false);
 
@@ -674,7 +690,11 @@ const PredictFeed: React.FC = () => {
     scrollHandler,
     onHeaderLayout,
     onTabBarLayout,
-  } = useFeedScrollManager({ headerRef, tabBarRef });
+  } = useFeedScrollManager({
+    headerRef,
+    tabBarRef,
+    initialIndex: initialTabIndex,
+  });
 
   const handleTabPress = useCallback(
     (index: number) => {

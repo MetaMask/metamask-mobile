@@ -168,6 +168,29 @@ describe('handlePredictUrl', () => {
         },
       });
     });
+
+    it('navigates to market list with tab parameter when provided', async () => {
+      await handlePredictUrl({ predictPath: '?tab=crypto' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: 'deeplink',
+          tab: 'crypto',
+        },
+      });
+    });
+
+    it('ignores invalid tab parameter and falls back to default list params', async () => {
+      await handlePredictUrl({ predictPath: '?tab=invalid' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: 'deeplink',
+        },
+      });
+    });
   });
 
   describe('error handling', () => {
