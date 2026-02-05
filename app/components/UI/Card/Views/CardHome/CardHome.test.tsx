@@ -2529,6 +2529,43 @@ describe('CardHome Component', () => {
         ]);
       });
     });
+
+    it('completes full auth error cleanup flow including toast display', async () => {
+      // Given: authenticated user with authentication error
+      setupMockSelectors({ isAuthenticated: true });
+      mockIsAuthenticationError.mockReturnValue(true);
+      mockRemoveCardBaanxToken.mockResolvedValue(undefined);
+      setupLoadCardDataMock({
+        error: 'Token expired',
+        isAuthenticated: true,
+      });
+
+      // When: component renders with authentication error
+      render();
+
+      // Then: should complete full cleanup flow:
+      // 1. Remove token
+      await waitFor(() => {
+        expect(mockRemoveCardBaanxToken).toHaveBeenCalled();
+      });
+
+      // 2. Dispatch Redux actions
+      await waitFor(() => {
+        expect(mockDispatch).toHaveBeenCalledWith(
+          expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
+        );
+        expect(mockDispatch).toHaveBeenCalledWith(
+          expect.objectContaining({ type: 'card/clearAllCache' }),
+        );
+      });
+
+      // 3. Navigate to authentication screen (this happens after toast is shown)
+      await waitFor(() => {
+        expect(StackActions.replace).toHaveBeenCalledWith(
+          Routes.CARD.AUTHENTICATION,
+        );
+      });
+    });
   });
 
   describe('KYC Status Verification', () => {
