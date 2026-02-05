@@ -297,7 +297,7 @@
     "@metamask/storage-service": "^1.0.0",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^15.0.0",
-    "@metamask/transaction-controller": "patch:@metamask/transaction-controller@npm%3A62.10.0#~/.yarn/patches/@metamask-transaction-controller-npm-62.10.0-e1d24e7db5.patch",
+    "@metamask/transaction-controller": "^62.14.0",
     "@metamask/transaction-pay-controller": "^12.1.0",
     "@metamask/tron-wallet-snap": "^1.19.2",
     "@metamask/utils": "^11.8.1",
