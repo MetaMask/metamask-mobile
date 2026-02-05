@@ -658,7 +658,7 @@ const CardHome = () => {
     if (!isBaanxLoginEnabled) {
       return (
         <Button
-          variant={ButtonVariants.Secondary}
+          variant={ButtonVariants.Primary}
           label={strings('card.card_home.add_funds')}
           size={ButtonSize.Lg}
           onPress={addFundsAction}
@@ -679,7 +679,7 @@ const CardHome = () => {
 
       return (
         <Button
-          variant={ButtonVariants.Secondary}
+          variant={ButtonVariants.Primary}
           label={strings('card.card_home.enable_card_button_label')}
           size={ButtonSize.Lg}
           onPress={openOnboardingDelegationAction}
@@ -692,7 +692,7 @@ const CardHome = () => {
     return (
       <Box twClassName="w-full gap-2 flex-row justify-between items-center">
         <Button
-          variant={ButtonVariants.Secondary}
+          variant={ButtonVariants.Primary}
           style={tw.style(
             'w-1/2',
             !isSwapEnabledForPriorityToken && 'opacity-50',
@@ -705,7 +705,7 @@ const CardHome = () => {
           testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
         />
         <Button
-          variant={ButtonVariants.Secondary}
+          variant={ButtonVariants.Primary}
           style={tw.style('w-1/2')}
           label={strings('card.card_home.change_asset')}
           size={ButtonSize.Lg}
@@ -763,6 +763,14 @@ const CardHome = () => {
         dispatch(resetAuthenticatedData());
         dispatch(clearAllCache());
 
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          labelOptions: [
+            { label: strings('card.card_home.authentication_error') },
+          ],
+          hasNoTimeout: false,
+          iconName: IconName.Warning,
+        });
         navigation.dispatch(StackActions.replace(Routes.CARD.AUTHENTICATION));
       } catch (error) {
         if (!isComponentUnmountedRef.current) {
@@ -776,7 +784,7 @@ const CardHome = () => {
     };
 
     handleAuthenticationError();
-  }, [cardError, dispatch, isAuthenticated, navigation]);
+  }, [cardError, dispatch, isAuthenticated, navigation, toastRef]);
 
   useEffect(() => {
     if (isSDKLoading) {
@@ -881,7 +889,7 @@ const CardHome = () => {
         {retries < 3 && !isAuthenticationError(cardError) && (
           <Box twClassName="pt-2">
             <Button
-              variant={ButtonVariants.Secondary}
+              variant={ButtonVariants.Primary}
               label={strings('card.card_home.try_again')}
               size={ButtonSize.Md}
               onPress={() => {

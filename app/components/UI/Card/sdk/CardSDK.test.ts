@@ -65,8 +65,10 @@ jest.mock('../../../../util/Logger', () => ({
 }));
 
 // Mock cardTokenVault
+const mockRemoveCardBaanxToken = jest.fn();
 jest.mock('../util/cardTokenVault', () => ({
   getCardBaanxToken: jest.fn(),
+  removeCardBaanxToken: () => mockRemoveCardBaanxToken(),
 }));
 
 // Mock network utilities
@@ -4458,6 +4460,106 @@ describe('CardSDK', () => {
           headers: expect.objectContaining({
             Authorization: 'Bearer mock-access-token',
           }),
+        }),
+      );
+    });
+  });
+
+  describe('logout', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      (getCardBaanxToken as jest.Mock).mockResolvedValue({
+        accessToken: 'mock-access-token',
+        refreshToken: 'mock-refresh-token',
+      });
+      mockRemoveCardBaanxToken.mockResolvedValue(undefined);
+    });
+
+    it('successfully logs out and removes token', async () => {
+      // Given: logout API returns success
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({}),
+      });
+
+      // When: logout is called
+      await cardSDK.logout();
+
+      // Then: should call logout API and remove token
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/auth/logout'),
+        expect.objectContaining({
+          method: 'POST',
+        }),
+      );
+      expect(mockRemoveCardBaanxToken).toHaveBeenCalledTimes(1);
+    });
+
+    it('still removes token when logout API fails', async () => {
+      // Given: logout API returns error
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        json: jest.fn().mockResolvedValue({ error: 'Server error' }),
+      });
+
+      // When/Then: logout should throw error but still remove token
+      await expect(cardSDK.logout()).rejects.toThrow();
+
+      // Token should still be removed even on failure (local cleanup always happens)
+      expect(mockRemoveCardBaanxToken).toHaveBeenCalledTimes(1);
+    });
+
+    it('throws CardError with SERVER_ERROR type after cleanup on failure', async () => {
+      // Given: logout API returns error
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        json: jest.fn().mockResolvedValue({ error: 'Unauthorized' }),
+      });
+
+      // When/Then: should throw CardError after local cleanup
+      try {
+        await cardSDK.logout();
+        fail('Expected error to be thrown');
+      } catch (error) {
+        expect(error).toBeInstanceOf(CardError);
+        expect((error as CardError).type).toBe(CardErrorType.SERVER_ERROR);
+        expect((error as CardError).message).toContain('Failed to logout');
+      }
+
+      // Token should still be removed (cleanup happens before re-throwing)
+      expect(mockRemoveCardBaanxToken).toHaveBeenCalledTimes(1);
+    });
+
+    it('removes token even when network request fails', async () => {
+      // Given: network error occurs
+      (global.fetch as jest.Mock).mockRejectedValueOnce(
+        new Error('Network error'),
+      );
+
+      // When/Then: logout should throw but still remove token
+      await expect(cardSDK.logout()).rejects.toThrow('Network error');
+
+      // Token should still be removed even on network failure
+      expect(mockRemoveCardBaanxToken).toHaveBeenCalledTimes(1);
+    });
+
+    it('sends authenticated POST request to logout endpoint', async () => {
+      // Given: logout API returns success
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({}),
+      });
+
+      // When: logout is called
+      await cardSDK.logout();
+
+      // Then: should send POST request with auth header
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/auth/logout'),
+        expect.objectContaining({
+          method: 'POST',
         }),
       );
     });
