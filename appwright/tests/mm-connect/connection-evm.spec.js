@@ -16,30 +16,43 @@ import AppwrightHelpers from '../../../tests/framework/AppwrightHelpers.js';
 import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
 import AppwrightGestures from '../../../tests/framework/AppwrightGestures.js';
 import {
-  StandaloneDappServer,
+  DappServer,
   DappVariants,
+  TestDapps,
 } from '../../../tests/framework/index.ts';
+import {
+  getDappUrlForBrowser,
+  setupAdbReverse,
+  cleanupAdbReverse,
+} from './utils.js';
 
-// Local server configuration
-const DAPP_PORT = 8090;
 const DAPP_NAME = 'MetaMask MultiChain API Test Dapp';
+const DAPP_PORT = 8090;
 
 // NOTE: This test requires the testing SRP to be used
 const ACCOUNT_1_ADDRESS = '0x19a7Ad8256ab119655f1D758348501d598fC1C94';
 const ACCOUNT_3_ADDRESS = '0xE2bEca5CaDC60b61368987728b4229822e6CDa83';
 
-const playgroundServer = new StandaloneDappServer(
-  DappVariants.BROWSER_PLAYGROUND,
-  DAPP_PORT,
-);
+// Create the playground server using the shared framework
+const playgroundServer = new DappServer({
+  dappCounter: 0,
+  rootDirectory: TestDapps[DappVariants.BROWSER_PLAYGROUND].dappPath,
+  dappVariant: DappVariants.BROWSER_PLAYGROUND,
+});
 
 // Start local playground server before all tests
 test.beforeAll(async () => {
+  // Set port and start the server directly (bypassing Detox-specific utilities)
+  playgroundServer.setServerPort(DAPP_PORT);
   await playgroundServer.start();
+
+  // Set up adb reverse for Android emulator access
+  setupAdbReverse(DAPP_PORT);
 });
 
 // Stop local playground server after all tests
 test.afterAll(async () => {
+  cleanupAdbReverse(DAPP_PORT);
   await playgroundServer.stop();
 });
 
@@ -47,7 +60,7 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
   device,
 }) => {
   const platform = device.getPlatform?.() || 'android';
-  const DAPP_URL = playgroundServer.getUrl(platform);
+  const DAPP_URL = getDappUrlForBrowser(platform);
 
   WalletMainScreen.device = device;
   BrowserPlaygroundDapp.device = device;
