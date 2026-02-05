@@ -14,6 +14,7 @@ import {
 
 import ppomUtil from '../../../../lib/ppom/ppom-util';
 import { addTransaction } from '../../../../util/transaction-controller';
+import { POST_QUOTE_TRANSACTION_TYPES } from '../constants/confirmations';
 
 const erc20Interface = new Interface(abiERC20);
 const erc721Interface = new Interface(abiERC721);
@@ -120,23 +121,14 @@ export function hasTransactionType(
 }
 
 /**
- * Withdrawal transaction types that use a "Receive as" token picker
- * instead of "Pay with" for selecting the destination token.
- */
-const WITHDRAWAL_TRANSACTION_TYPES = [
-  TransactionType.predictWithdraw,
-  // TransactionType.perpsWithdraw, // Add when implementing for Perps
-] as const;
-
-/**
- * Checks if the transaction is a withdrawal type (predictWithdraw, perpsWithdraw, etc.)
- * Withdrawal transactions use "Receive as" instead of "Pay with" for token selection.
+ * Checks if the transaction is a post-quote type (predictWithdraw, perpsWithdraw, etc.)
+ * Post-quote transactions use "Receive as" instead of "Pay with" for token selection.
  */
 export function isTransactionPayWithdraw(
   transactionMeta: TransactionMeta | undefined,
 ): boolean {
   return hasTransactionType(
     transactionMeta,
-    WITHDRAWAL_TRANSACTION_TYPES as unknown as TransactionType[],
+    POST_QUOTE_TRANSACTION_TYPES as unknown as TransactionType[],
   );
 }
