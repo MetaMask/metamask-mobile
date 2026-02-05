@@ -704,12 +704,10 @@ class AuthenticationService {
     try {
       // Fetch all capabilities in parallel
       const [
-        // hasHardware,
         isBiometricsAvailable,
         supportedOSAuthenticationTypes,
         capabilitySecurityLevel,
       ] = await Promise.all([
-        // LocalAuthentication.hasHardwareAsync(),
         LocalAuthentication.isEnrolledAsync(),
         LocalAuthentication.supportedAuthenticationTypesAsync(),
         LocalAuthentication.getEnrolledLevelAsync(),

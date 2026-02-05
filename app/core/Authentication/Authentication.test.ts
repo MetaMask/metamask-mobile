@@ -61,6 +61,7 @@ import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAna
 import Routes from '../../constants/navigation/Routes';
 import { IconName } from '../../component-library/components/Icons/Icon';
 import { ReauthenticateErrorType } from './types';
+import { AuthenticationType, SecurityLevel } from 'expo-local-authentication';
 
 export type RecursivePartial<T> = {
   [P in keyof T]?: RecursivePartial<T[P]>;
@@ -85,6 +86,29 @@ jest.mock('../../store/sagas/rewardsBulkLinkAccountGroups', () => ({
 }));
 
 jest.useFakeTimers();
+
+// Mock expo-local-authentication
+const mockIsEnrolledAsync = jest.fn();
+const mockSupportedAuthenticationTypesAsync = jest.fn();
+const mockGetEnrolledLevelAsync = jest.fn();
+
+jest.mock('expo-local-authentication', () => ({
+  isEnrolledAsync: () => mockIsEnrolledAsync(),
+  supportedAuthenticationTypesAsync: () =>
+    mockSupportedAuthenticationTypesAsync(),
+  getEnrolledLevelAsync: () => mockGetEnrolledLevelAsync(),
+  AuthenticationType: {
+    FINGERPRINT: 1,
+    FACIAL_RECOGNITION: 2,
+    IRIS: 3,
+  },
+  SecurityLevel: {
+    NONE: 0,
+    SECRET: 1,
+    BIOMETRIC_WEAK: 2,
+    BIOMETRIC_STRONG: 3,
+  },
+}));
 
 jest.mock('../../util/exponential-retry', () => ({
   retryWithExponentialDelay: jest.fn((fn) => fn()),
@@ -4849,6 +4873,149 @@ describe('Authentication', () => {
             password: passwordToUse,
           }),
         ).rejects.toThrow('Failed to sync password and unlock wallet');
+      });
+    });
+  });
+
+  describe('getAuthCapabilities', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    describe('when biometrics is available', () => {
+      beforeEach(() => {
+        mockIsEnrolledAsync.mockResolvedValue(true);
+        mockSupportedAuthenticationTypesAsync.mockResolvedValue([
+          AuthenticationType.FACIAL_RECOGNITION,
+        ]);
+        mockGetEnrolledLevelAsync.mockResolvedValue(
+          SecurityLevel.BIOMETRIC_STRONG,
+        ); // Biometrics
+      });
+
+      it('returns BIOMETRIC storage type when osAuthEnabled is true', async () => {
+        const osAuthEnabled = true;
+        const result = await Authentication.getAuthCapabilities(osAuthEnabled);
+
+        expect(result).toEqual({
+          isBiometricsAvailable: true,
+          biometricsDisabledOnOS: false,
+          isAuthToggleVisible: true,
+          authToggleLabel: expect.any(String),
+          osAuthEnabled: true,
+          authStorageType: AUTHENTICATION_TYPE.BIOMETRIC,
+        });
+      });
+
+      it('returns PASSWORD storage type when osAuthEnabled is false', async () => {
+        const osAuthEnabled = false;
+        const result = await Authentication.getAuthCapabilities(osAuthEnabled);
+
+        expect(result).toEqual({
+          isBiometricsAvailable: true,
+          biometricsDisabledOnOS: false,
+          isAuthToggleVisible: true,
+          authToggleLabel: expect.any(String),
+          osAuthEnabled,
+          authStorageType: AUTHENTICATION_TYPE.PASSWORD,
+        });
+      });
+    });
+
+    describe('when biometrics is disabled on OS but passcode is available', () => {
+      beforeEach(() => {
+        mockIsEnrolledAsync.mockResolvedValue(false);
+        mockSupportedAuthenticationTypesAsync.mockResolvedValue([
+          AuthenticationType.IRIS,
+        ]);
+        mockGetEnrolledLevelAsync.mockResolvedValue(SecurityLevel.SECRET); // Device Passcode / Pin / Pattern
+      });
+
+      it('returns PASSCODE storage type when osAuthEnabled is true', async () => {
+        const osAuthEnabled = true;
+        const result = await Authentication.getAuthCapabilities(osAuthEnabled);
+
+        expect(result).toEqual({
+          isBiometricsAvailable: false,
+          biometricsDisabledOnOS: true,
+          isAuthToggleVisible: true,
+          authToggleLabel: expect.any(String),
+          osAuthEnabled,
+          authStorageType: AUTHENTICATION_TYPE.PASSCODE,
+        });
+      });
+
+      it('returns PASSWORD storage type when osAuthEnabled is false', async () => {
+        const osAuthEnabled = false;
+        const result = await Authentication.getAuthCapabilities(osAuthEnabled);
+
+        expect(result).toEqual({
+          isBiometricsAvailable: false,
+          biometricsDisabledOnOS: true,
+          isAuthToggleVisible: true,
+          authToggleLabel: expect.any(String),
+          osAuthEnabled,
+          authStorageType: AUTHENTICATION_TYPE.PASSWORD,
+        });
+      });
+    });
+
+    describe('when neither biometrics nor passcode is available', () => {
+      beforeEach(() => {
+        mockIsEnrolledAsync.mockResolvedValue(false);
+        mockSupportedAuthenticationTypesAsync.mockResolvedValue([]);
+        mockGetEnrolledLevelAsync.mockResolvedValue(SecurityLevel.NONE); // NONE
+      });
+
+      it('returns PASSWORD storage type regardless of osAuthEnabled', async () => {
+        const resultEnabled = await Authentication.getAuthCapabilities(true);
+
+        expect(resultEnabled.authStorageType).toBe(
+          AUTHENTICATION_TYPE.PASSWORD,
+        );
+      });
+
+      it('sets isAuthToggleVisible to false', async () => {
+        const result = await Authentication.getAuthCapabilities(true);
+
+        expect(result.isAuthToggleVisible).toBe(false);
+      });
+    });
+
+    describe('error handling', () => {
+      it('returns default capabilities when LocalAuthentication APIs fail', async () => {
+        mockIsEnrolledAsync.mockRejectedValue(new Error('API error'));
+
+        const result = await Authentication.getAuthCapabilities(true);
+
+        expect(result).toEqual({
+          isBiometricsAvailable: false,
+          biometricsDisabledOnOS: false,
+          isAuthToggleVisible: false,
+          authToggleLabel: '',
+          osAuthEnabled: false,
+          authStorageType: AUTHENTICATION_TYPE.PASSWORD,
+        });
+      });
+    });
+
+    describe('API calls', () => {
+      beforeEach(() => {
+        mockIsEnrolledAsync.mockResolvedValue(true);
+        mockSupportedAuthenticationTypesAsync.mockResolvedValue([
+          AuthenticationType.FACIAL_RECOGNITION,
+        ]);
+        mockGetEnrolledLevelAsync.mockResolvedValue(
+          SecurityLevel.BIOMETRIC_STRONG,
+        );
+      });
+
+      it('calls all LocalAuthentication APIs in parallel', async () => {
+        await Authentication.getAuthCapabilities(true);
+
+        expect(mockIsEnrolledAsync).toHaveBeenCalledTimes(1);
+        expect(mockSupportedAuthenticationTypesAsync).toHaveBeenCalledTimes(1);
+        expect(mockGetEnrolledLevelAsync).toHaveBeenCalledTimes(1);
       });
     });
   });
