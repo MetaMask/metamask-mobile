@@ -6319,6 +6319,7 @@
     "select_recipient": "Select recipient",
     "external_account": "External account",
     "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
+    "stock_token_error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.\n\nPlease note if you are attempting to trade Ondo Tokenised Stocks you may be geo-restricted e.g. via US, EU, UK and BR.",
     "insufficient_funds": "Insufficient funds",
     "insufficient_gas": "Insufficient gas",
     "select_amount": "Select amount",
