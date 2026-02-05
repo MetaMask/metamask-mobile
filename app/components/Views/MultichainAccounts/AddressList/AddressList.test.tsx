@@ -9,6 +9,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { AddressList } from './AddressList';
 import { MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID } from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
 import { toFormattedAddress } from '../../../../util/address';
+import { EVENT_NAME } from '../../../../core/Analytics/MetaMetrics.events';
 
 const ACCOUNT_WALLET_ID = 'entropy:wallet-id-1' as AccountWalletId;
 const ACCOUNT_GROUP_ID = 'entropy:wallet-id-1/1' as AccountGroupId;
@@ -34,6 +35,24 @@ jest.mock('../../../../util/navigation/navUtils', () => ({
   }),
   useRoute: jest.fn(),
   createNavigationDetails: jest.fn(),
+}));
+
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn().mockReturnValue({});
+const mockAddProperties = jest.fn().mockReturnValue({ build: mockBuild });
+const mockCreateEventBuilder = jest.fn().mockReturnValue({
+  addProperties: mockAddProperties,
+});
+
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
+jest.mock('../../../../core/ClipboardManager', () => ({
+  setString: jest.fn(),
 }));
 
 const mockEthEoaAccount = {
@@ -210,5 +229,83 @@ describe('AddressList', () => {
         },
       },
     );
+  });
+
+  describe('Analytics tracking', () => {
+    beforeEach(() => {
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      mockBuild.mockClear();
+    });
+
+    it('tracks "Copied Address" event when copy button is pressed', async () => {
+      const { getAllByTestId } = renderWithAddressList();
+
+      // Find the copy button for the first Ethereum address
+      const copyButton = getAllByTestId(
+        'multichain-address-row-copy-button',
+      )[0];
+
+      // Press the copy button
+      fireEvent.press(copyButton);
+
+      // Wait for async operations
+      await new Promise(process.nextTick);
+
+      // Verify createEventBuilder was called with correct event name
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        EVENT_NAME.ADDRESS_COPIED,
+      );
+
+      // Verify addProperties was called with correct properties
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        location: 'address-list',
+        chain_id_caip: 'eip155:1', // CAIP format chain ID
+      });
+
+      // Verify build was called
+      expect(mockBuild).toHaveBeenCalled();
+
+      // Verify trackEvent was called with the built event
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks event with correct chain_id for different networks', async () => {
+      const { getAllByTestId } = renderWithAddressList();
+
+      // Get all copy buttons (should be multiple for different networks)
+      const copyButtons = getAllByTestId('multichain-address-row-copy-button');
+
+      // Ensure we have multiple copy buttons for different networks
+      expect(copyButtons.length).toBeGreaterThan(1);
+
+      // Press the second copy button (Solana Mainnet - rendered after ETH addresses)
+      fireEvent.press(copyButtons[1]);
+
+      await new Promise(process.nextTick);
+
+      // Verify the chain_id_caip is correctly passed in CAIP format
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        location: 'address-list',
+        chain_id_caip: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp', // Solana Mainnet
+      });
+    });
+
+    it('includes location property as "address-list"', async () => {
+      const { getAllByTestId } = renderWithAddressList();
+
+      const copyButton = getAllByTestId(
+        'multichain-address-row-copy-button',
+      )[0];
+      fireEvent.press(copyButton);
+
+      await new Promise(process.nextTick);
+
+      // Access the first call from this test (now properly cleared between tests)
+      const addPropertiesCall = mockAddProperties.mock.calls[0][0];
+
+      expect(addPropertiesCall).toHaveProperty('location', 'address-list');
+    });
   });
 });

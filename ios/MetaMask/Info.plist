@@ -43,6 +43,10 @@
 	<array>
 		<string>twitter</string>
 		<string>itms-apps</string>
+		<string>upi</string>
+		<string>paytmmp</string>
+		<string>phonepe</string>
+		<string>gpay</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
