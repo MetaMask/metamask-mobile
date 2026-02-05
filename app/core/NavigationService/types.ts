@@ -173,7 +173,8 @@ import type {
   MaxInputModalParams,
   GasImpactModalParams,
   EarnScreensParams,
-  LendingConfirmationParams,
+  LendingDepositConfirmationParams,
+  LendingWithdrawalConfirmationParams,
   LendingMaxWithdrawalModalParams,
 } from '../../components/UI/Earn/Earn.types';
 
@@ -542,8 +543,10 @@ export interface RootStackParamList extends ParamListBase {
 
   // Earn routes
   EarnScreens: EarnScreensParams | undefined;
-  EarnLendingDepositConfirmation: LendingConfirmationParams | undefined;
-  EarnLendingWithdrawalConfirmation: LendingConfirmationParams | undefined;
+  EarnLendingDepositConfirmation: LendingDepositConfirmationParams | undefined;
+  EarnLendingWithdrawalConfirmation:
+    | LendingWithdrawalConfirmationParams
+    | undefined;
   EarnMusdConversionEducation: undefined;
   EarnModals: undefined;
   EarnLendingMaxWithdrawalModal: LendingMaxWithdrawalModalParams | undefined;
