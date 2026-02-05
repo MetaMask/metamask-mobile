@@ -208,7 +208,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     () => () => {
       onReject(undefined, true);
     },
-    [onReject],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
   );
 
   // Disable automatic token selection - we want to show "Perps balance" by default
