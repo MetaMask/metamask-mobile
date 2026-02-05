@@ -548,9 +548,9 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "backgroundColor": "#ffffff",
-                                            "borderColor": "#b7bbc8",
-                                            "borderRadius": 8,
+                                            "backgroundColor": "#3c4d9d0f",
+                                            "borderColor": "#b7bbc866",
+                                            "borderRadius": 12,
                                             "borderWidth": 1,
                                             "flexDirection": "row",
                                             "height": 0,
@@ -568,7 +568,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                             [
                                               {
                                                 "backgroundColor": "inherit",
-                                                "height": 38,
+                                                "height": 46,
                                               },
                                               {
                                                 "flex": 1,
@@ -647,13 +647,13 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                           {
                                             "alignItems": "center",
                                             "backgroundColor": "transparent",
-                                            "borderColor": "#b7bbc8",
-                                            "borderRadius": 8,
+                                            "borderColor": "#b7bbc866",
+                                            "borderRadius": 12,
                                             "borderWidth": 0,
                                             "display": "flex",
                                             "flex": 1,
                                             "flexDirection": "row",
-                                            "height": 40,
+                                            "height": 48,
                                             "opacity": 1,
                                             "paddingHorizontal": 0,
                                           }
@@ -665,7 +665,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                             [
                                               {
                                                 "backgroundColor": "inherit",
-                                                "height": 38,
+                                                "height": 46,
                                               },
                                               {
                                                 "flex": 1,

@@ -584,9 +584,9 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#b7bbc8",
-                                    "borderRadius": 8,
+                                    "backgroundColor": "#3c4d9d0f",
+                                    "borderColor": "#b7bbc866",
+                                    "borderRadius": 12,
                                     "borderWidth": 1,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -610,6 +610,8 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                     editable={true}
                                     keyboardAppearance="light"
                                     keyboardType="email-address"
+                                    multiline={false}
+                                    numberOfLines={1}
                                     onBlur={[Function]}
                                     onChangeText={[Function]}
                                     onFocus={[Function]}
@@ -1303,9 +1305,9 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#b7bbc8",
-                                    "borderRadius": 8,
+                                    "backgroundColor": "#3c4d9d0f",
+                                    "borderColor": "#b7bbc866",
+                                    "borderRadius": 12,
                                     "borderWidth": 1,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -1329,6 +1331,8 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                     editable={true}
                                     keyboardAppearance="light"
                                     keyboardType="email-address"
+                                    multiline={false}
+                                    numberOfLines={1}
                                     onBlur={[Function]}
                                     onChangeText={[Function]}
                                     onFocus={[Function]}
@@ -2036,9 +2040,9 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#b7bbc8",
-                                    "borderRadius": 8,
+                                    "backgroundColor": "#3c4d9d0f",
+                                    "borderColor": "#b7bbc866",
+                                    "borderRadius": 12,
                                     "borderWidth": 1,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -2062,6 +2066,8 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                     editable={true}
                                     keyboardAppearance="light"
                                     keyboardType="email-address"
+                                    multiline={false}
+                                    numberOfLines={1}
                                     onBlur={[Function]}
                                     onChangeText={[Function]}
                                     onFocus={[Function]}
@@ -2755,9 +2761,9 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#b7bbc8",
-                                    "borderRadius": 8,
+                                    "backgroundColor": "#3c4d9d0f",
+                                    "borderColor": "#b7bbc866",
+                                    "borderRadius": 12,
                                     "borderWidth": 1,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -2781,6 +2787,8 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                     editable={true}
                                     keyboardAppearance="light"
                                     keyboardType="email-address"
+                                    multiline={false}
+                                    numberOfLines={1}
                                     onBlur={[Function]}
                                     onChangeText={[Function]}
                                     onFocus={[Function]}

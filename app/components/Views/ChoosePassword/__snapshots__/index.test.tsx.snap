@@ -172,9 +172,9 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#ffffff",
-                  "borderColor": "#4459ff",
-                  "borderRadius": 8,
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 12,
                   "borderWidth": 1,
                   "flexDirection": "row",
                   "height": 48,
@@ -197,6 +197,8 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   autoFocus={true}
                   editable={true}
                   keyboardAppearance="light"
+                  multiline={false}
+                  numberOfLines={1}
                   onBlur={[Function]}
                   onChangeText={[Function]}
                   onFocus={[Function]}
@@ -228,7 +230,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               <View
                 style={
                   {
-                    "marginLeft": 8,
+                    "marginLeft": 12,
                   }
                 }
                 testID="textfield-endacccessory"
@@ -325,9 +327,9 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#ffffff",
-                  "borderColor": "#b7bbc8",
-                  "borderRadius": 8,
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderColor": "#b7bbc866",
+                  "borderRadius": 12,
                   "borderWidth": 1,
                   "flexDirection": "row",
                   "height": 48,
@@ -351,6 +353,8 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   autoFocus={false}
                   editable={false}
                   keyboardAppearance="light"
+                  multiline={false}
+                  numberOfLines={1}
                   onBlur={[Function]}
                   onChangeText={[Function]}
                   onFocus={[Function]}
@@ -381,7 +385,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               <View
                 style={
                   {
-                    "marginLeft": 8,
+                    "marginLeft": 12,
                   }
                 }
                 testID="textfield-endacccessory"

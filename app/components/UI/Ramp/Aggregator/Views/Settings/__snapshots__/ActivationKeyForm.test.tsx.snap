@@ -545,12 +545,12 @@ exports[`AddActivationKey renders correctly 1`] = `
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#4459ff",
-                                    "borderRadius": 8,
+                                    "backgroundColor": "#3c4d9d0f",
+                                    "borderColor": "#b7bbc8",
+                                    "borderRadius": 12,
                                     "borderWidth": 1,
                                     "flexDirection": "row",
-                                    "height": 40,
+                                    "height": 48,
                                     "opacity": 1,
                                     "paddingHorizontal": 16,
                                   }
@@ -568,6 +568,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                     autoCapitalize="none"
                                     autoFocus={true}
                                     editable={true}
+                                    multiline={false}
                                     numberOfLines={1}
                                     onBlur={[Function]}
                                     onChangeText={[Function]}
@@ -584,7 +585,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
-                                        "height": 38,
+                                        "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
                                         "paddingVertical": 2,
@@ -656,12 +657,12 @@ exports[`AddActivationKey renders correctly 1`] = `
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#4459ff",
-                                    "borderRadius": 8,
+                                    "backgroundColor": "#3c4d9d0f",
+                                    "borderColor": "#b7bbc8",
+                                    "borderRadius": 12,
                                     "borderWidth": 1,
                                     "flexDirection": "row",
-                                    "height": 40,
+                                    "height": 48,
                                     "opacity": 1,
                                     "paddingHorizontal": 16,
                                   }
@@ -680,6 +681,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                     autoCorrect={false}
                                     autoFocus={true}
                                     editable={true}
+                                    multiline={false}
                                     numberOfLines={1}
                                     onBlur={[Function]}
                                     onChangeText={[Function]}
@@ -697,7 +699,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
-                                        "height": 38,
+                                        "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
                                         "paddingVertical": 2,

@@ -74,12 +74,12 @@ exports[`EditAccountName should render correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#ffffff",
-            "borderColor": "#4459ff",
-            "borderRadius": 8,
+            "backgroundColor": "#3c4d9d0f",
+            "borderColor": "#b7bbc8",
+            "borderRadius": 12,
             "borderWidth": 1,
             "flexDirection": "row",
-            "height": 40,
+            "height": 48,
             "opacity": 1,
             "paddingHorizontal": 16,
           }
@@ -96,6 +96,8 @@ exports[`EditAccountName should render correctly 1`] = `
           <TextInput
             autoFocus={true}
             editable={true}
+            multiline={false}
+            numberOfLines={1}
             onBlur={[Function]}
             onChangeText={[Function]}
             onFocus={[Function]}
@@ -108,7 +110,7 @@ exports[`EditAccountName should render correctly 1`] = `
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": "400",
-                "height": 38,
+                "height": 46,
                 "letterSpacing": 0,
                 "opacity": 1,
                 "paddingVertical": 2,
@@ -176,12 +178,12 @@ exports[`EditAccountName should render correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#ffffff",
-            "borderColor": "#4459ff",
-            "borderRadius": 8,
+            "backgroundColor": "#3c4d9d0f",
+            "borderColor": "#b7bbc8",
+            "borderRadius": 12,
             "borderWidth": 1,
             "flexDirection": "row",
-            "height": 40,
+            "height": 48,
             "opacity": 0.5,
             "paddingHorizontal": 16,
           }
@@ -198,6 +200,8 @@ exports[`EditAccountName should render correctly 1`] = `
           <TextInput
             autoFocus={true}
             editable={false}
+            multiline={false}
+            numberOfLines={1}
             onBlur={[Function]}
             onFocus={[Function]}
             placeholder="0x49a016E6736F9Ad381605c...72A6"
@@ -210,7 +214,7 @@ exports[`EditAccountName should render correctly 1`] = `
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": "400",
-                "height": 38,
+                "height": 46,
                 "letterSpacing": 0,
                 "opacity": 1,
                 "paddingVertical": 2,

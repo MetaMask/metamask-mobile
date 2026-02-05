@@ -112,9 +112,9 @@ exports[`SnapUIDateTimePicker can show an error 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "#b7bbc8",
-                    "borderRadius": 8,
+                    "backgroundColor": "#3c4d9d0f",
+                    "borderColor": "#b7bbc866",
+                    "borderRadius": 12,
                     "borderWidth": 1,
                     "flexDirection": "row",
                     "flexGrow": 1,
@@ -292,9 +292,9 @@ exports[`SnapUIDateTimePicker renders a date picker 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "#b7bbc8",
-                    "borderRadius": 8,
+                    "backgroundColor": "#3c4d9d0f",
+                    "borderColor": "#b7bbc866",
+                    "borderRadius": 12,
                     "borderWidth": 1,
                     "flexDirection": "row",
                     "flexGrow": 1,
@@ -457,9 +457,9 @@ exports[`SnapUIDateTimePicker renders a date time picker 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "#b7bbc8",
-                    "borderRadius": 8,
+                    "backgroundColor": "#3c4d9d0f",
+                    "borderColor": "#b7bbc866",
+                    "borderRadius": 12,
                     "borderWidth": 1,
                     "flexDirection": "row",
                     "flexGrow": 1,
@@ -622,9 +622,9 @@ exports[`SnapUIDateTimePicker renders a time picker 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "#b7bbc8",
-                    "borderRadius": 8,
+                    "backgroundColor": "#3c4d9d0f",
+                    "borderColor": "#b7bbc866",
+                    "borderRadius": 12,
                     "borderWidth": 1,
                     "flexDirection": "row",
                     "flexGrow": 1,
@@ -802,9 +802,9 @@ exports[`SnapUIDateTimePicker renders inside a field 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "#b7bbc8",
-                    "borderRadius": 8,
+                    "backgroundColor": "#3c4d9d0f",
+                    "borderColor": "#b7bbc866",
+                    "borderRadius": 12,
                     "borderWidth": 1,
                     "flexDirection": "row",
                     "flexGrow": 1,

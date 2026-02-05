@@ -645,9 +645,9 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -670,6 +670,8 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
@@ -762,9 +764,9 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -787,6 +789,8 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
@@ -878,9 +882,9 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -893,7 +897,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                     <View
                                       style={
                                         {
-                                          "marginRight": 8,
+                                          "marginRight": 12,
                                         }
                                       }
                                       testID="textfield-startacccessory"
@@ -953,6 +957,8 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                         editable={true}
                                         keyboardAppearance="light"
                                         keyboardType="phone-pad"
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
@@ -1042,9 +1048,9 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -1057,7 +1063,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                     <View
                                       style={
                                         {
-                                          "marginRight": 8,
+                                          "marginRight": 12,
                                         }
                                       }
                                       testID="textfield-startacccessory"
@@ -1208,9 +1214,9 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -1234,6 +1240,8 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                         keyboardAppearance="light"
                                         keyboardType="number-pad"
                                         maxLength={11}
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
@@ -2085,9 +2093,9 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -2110,6 +2118,8 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
@@ -2202,9 +2212,9 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -2227,6 +2237,8 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
@@ -2318,9 +2330,9 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -2333,7 +2345,7 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                     <View
                                       style={
                                         {
-                                          "marginRight": 8,
+                                          "marginRight": 12,
                                         }
                                       }
                                       testID="textfield-startacccessory"
@@ -2393,6 +2405,8 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                         editable={true}
                                         keyboardAppearance="light"
                                         keyboardType="phone-pad"
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
@@ -2482,9 +2496,9 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -2497,7 +2511,7 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                     <View
                                       style={
                                         {
-                                          "marginRight": 8,
+                                          "marginRight": 12,
                                         }
                                       }
                                       testID="textfield-startacccessory"
@@ -2648,9 +2662,9 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -2674,6 +2688,8 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                         keyboardAppearance="light"
                                         keyboardType="number-pad"
                                         maxLength={11}
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
@@ -3525,9 +3541,9 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -3550,6 +3566,8 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
@@ -3642,9 +3660,9 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -3667,6 +3685,8 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
@@ -3758,9 +3778,9 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -3773,7 +3793,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                     <View
                                       style={
                                         {
-                                          "marginRight": 8,
+                                          "marginRight": 12,
                                         }
                                       }
                                       testID="textfield-startacccessory"
@@ -3833,6 +3853,8 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                         editable={true}
                                         keyboardAppearance="light"
                                         keyboardType="phone-pad"
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
@@ -3922,9 +3944,9 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -3937,7 +3959,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                     <View
                                       style={
                                         {
-                                          "marginRight": 8,
+                                          "marginRight": 12,
                                         }
                                       }
                                       testID="textfield-startacccessory"
@@ -4088,9 +4110,9 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -4114,6 +4136,8 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                         keyboardAppearance="light"
                                         keyboardType="number-pad"
                                         maxLength={11}
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
@@ -4965,9 +4989,9 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -4990,6 +5014,8 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
@@ -5082,9 +5108,9 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -5107,6 +5133,8 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
@@ -5198,9 +5226,9 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -5213,7 +5241,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                     <View
                                       style={
                                         {
-                                          "marginRight": 8,
+                                          "marginRight": 12,
                                         }
                                       }
                                       testID="textfield-startacccessory"
@@ -5273,6 +5301,8 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                         editable={true}
                                         keyboardAppearance="light"
                                         keyboardType="phone-pad"
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
@@ -5362,9 +5392,9 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -5377,7 +5407,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                     <View
                                       style={
                                         {
-                                          "marginRight": 8,
+                                          "marginRight": 12,
                                         }
                                       }
                                       testID="textfield-startacccessory"
@@ -5528,9 +5558,9 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -5554,6 +5584,8 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                         keyboardAppearance="light"
                                         keyboardType="number-pad"
                                         maxLength={11}
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
@@ -6405,9 +6437,9 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -6430,6 +6462,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
@@ -6537,9 +6571,9 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -6562,6 +6596,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
@@ -6668,9 +6704,9 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -6683,7 +6719,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     <View
                                       style={
                                         {
-                                          "marginRight": 8,
+                                          "marginRight": 12,
                                         }
                                       }
                                       testID="textfield-startacccessory"
@@ -6743,6 +6779,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                         editable={true}
                                         keyboardAppearance="light"
                                         keyboardType="phone-pad"
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
@@ -6847,9 +6885,9 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -6862,7 +6900,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     <View
                                       style={
                                         {
-                                          "marginRight": 8,
+                                          "marginRight": 12,
                                         }
                                       }
                                       testID="textfield-startacccessory"
@@ -7013,9 +7051,9 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -7039,6 +7077,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                         keyboardAppearance="light"
                                         keyboardType="number-pad"
                                         maxLength={11}
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
@@ -7905,9 +7945,9 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -7930,6 +7970,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
@@ -8037,9 +8079,9 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -8062,6 +8104,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
@@ -8168,9 +8212,9 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -8183,7 +8227,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     <View
                                       style={
                                         {
-                                          "marginRight": 8,
+                                          "marginRight": 12,
                                         }
                                       }
                                       testID="textfield-startacccessory"
@@ -8243,6 +8287,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                         editable={true}
                                         keyboardAppearance="light"
                                         keyboardType="phone-pad"
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
@@ -8332,9 +8378,9 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -8347,7 +8393,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     <View
                                       style={
                                         {
-                                          "marginRight": 8,
+                                          "marginRight": 12,
                                         }
                                       }
                                       testID="textfield-startacccessory"
@@ -8498,9 +8544,9 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -8524,6 +8570,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                         keyboardAppearance="light"
                                         keyboardType="number-pad"
                                         maxLength={11}
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
@@ -9390,9 +9438,9 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -9415,6 +9463,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
@@ -9522,9 +9572,9 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -9547,6 +9597,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
@@ -9653,9 +9705,9 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -9668,7 +9720,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     <View
                                       style={
                                         {
-                                          "marginRight": 8,
+                                          "marginRight": 12,
                                         }
                                       }
                                       testID="textfield-startacccessory"
@@ -9728,6 +9780,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                         editable={true}
                                         keyboardAppearance="light"
                                         keyboardType="phone-pad"
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
@@ -9817,9 +9871,9 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -9832,7 +9886,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     <View
                                       style={
                                         {
-                                          "marginRight": 8,
+                                          "marginRight": 12,
                                         }
                                       }
                                       testID="textfield-startacccessory"

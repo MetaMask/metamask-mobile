@@ -179,9 +179,9 @@ exports[`SnapUIAddressInput renders with an invalid CAIP Account ID 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#ffffff",
-        "borderColor": "#b7bbc8",
-        "borderRadius": 8,
+        "backgroundColor": "#3c4d9d0f",
+        "borderColor": "#b7bbc866",
+        "borderRadius": 12,
         "borderWidth": 1,
         "flexDirection": "row",
         "height": 48,
@@ -204,6 +204,8 @@ exports[`SnapUIAddressInput renders with an invalid CAIP Account ID 1`] = `
         autoFocus={false}
         editable={true}
         id="input"
+        multiline={false}
+        numberOfLines={1}
         onBlur={[Function]}
         onChangeText={[Function]}
         onFocus={[Function]}
@@ -230,7 +232,7 @@ exports[`SnapUIAddressInput renders with an invalid CAIP Account ID 1`] = `
     <View
       style={
         {
-          "marginLeft": 8,
+          "marginLeft": 12,
         }
       }
       testID="textfield-endacccessory"
