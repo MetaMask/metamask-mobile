@@ -64,20 +64,8 @@ export function* appStateListenerTask() {
         yield call(async () => {
           // This is in a try catch since errors are not propogated in event channels.
           try {
-            // check if seedless password is outdated
-            if (await Authentication.checkIsSeedlessPasswordOutdated()) {
-              NavigationService.navigation?.reset({
-                routes: [
-                  {
-                    name: Routes.ONBOARDING.REHYDRATE,
-                    params: { isSeedlessPasswordOutdated: true },
-                  },
-                ],
-              });
-            } else {
-              // Prompt authentication.
-              await Authentication.unlockWallet();
-            }
+            // Prompt authentication.
+            await Authentication.unlockWallet();
           } catch (error) {
             // Navigate to login.
             NavigationService.navigation?.reset({
@@ -116,22 +104,7 @@ export function* appLockStateMachine() {
  */
 export function* requestAuthOnAppStart() {
   try {
-    yield call(async () => {
-      // check if seedless password is outdated
-      if (await Authentication.checkIsSeedlessPasswordOutdated()) {
-        NavigationService.navigation?.reset({
-          routes: [
-            {
-              name: Routes.ONBOARDING.REHYDRATE,
-              params: { isSeedlessPasswordOutdated: true },
-            },
-          ],
-        });
-      } else {
-        // Prompt authentication.
-        await Authentication.unlockWallet();
-      }
-    });
+    yield call(Authentication.unlockWallet);
   } catch (_) {
     // If authentication fails, navigate to login screen
     // TODO: Consolidate error handling in future PRs. For now, we'll rely on the Login screen to handle triaging specific errors.

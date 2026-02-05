@@ -143,7 +143,6 @@ jest.mock('../../core/Authentication', () => ({
   default: {
     unlockWallet: jest.fn().mockResolvedValue(undefined),
     lockApp: jest.fn().mockResolvedValue(undefined),
-    checkIsSeedlessPasswordOutdated: jest.fn().mockResolvedValue(false),
   },
 }));
 
@@ -184,27 +183,6 @@ describe('requestAuthOnAppStart', () => {
   it('calls Authentication.unlockWallet', async () => {
     await expectSaga(requestAuthOnAppStart).run();
     expect(Authentication.unlockWallet).toHaveBeenCalled();
-  });
-
-  it('navigates to rehydrate when seedless password is outdated', async () => {
-    // Arrange
-    (
-      Authentication.checkIsSeedlessPasswordOutdated as jest.Mock
-    ).mockResolvedValueOnce(true);
-
-    // Act
-    await expectSaga(requestAuthOnAppStart).run();
-
-    // Assert
-    expect(mockReset).toHaveBeenCalledWith({
-      routes: [
-        {
-          name: Routes.ONBOARDING.REHYDRATE,
-          params: { isSeedlessPasswordOutdated: true },
-        },
-      ],
-    });
-    expect(Authentication.unlockWallet).not.toHaveBeenCalled();
   });
 
   it('navigates to Login when Authentication.unlockWallet throws', async () => {
@@ -276,31 +254,6 @@ describe('appStateListenerTask', () => {
     await expectSaga(appStateListenerTask).silentRun(100);
 
     expect(Authentication.unlockWallet).toHaveBeenCalled();
-  });
-
-  it('navigates to rehydrate when seedless password is outdated', async () => {
-    // Arrange
-    (
-      Authentication.checkIsSeedlessPasswordOutdated as jest.Mock
-    ).mockResolvedValueOnce(true);
-
-    // Act
-    setTimeout(() => {
-      appStateCallback('active');
-    }, 10);
-
-    await expectSaga(appStateListenerTask).silentRun(100);
-
-    // Assert
-    expect(mockReset).toHaveBeenCalledWith({
-      routes: [
-        {
-          name: Routes.ONBOARDING.REHYDRATE,
-          params: { isSeedlessPasswordOutdated: true },
-        },
-      ],
-    });
-    expect(Authentication.unlockWallet).not.toHaveBeenCalled();
   });
 
   it('does not call unlockWallet when app is in background', async () => {
