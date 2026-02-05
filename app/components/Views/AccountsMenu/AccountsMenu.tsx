@@ -54,7 +54,7 @@ const AccountsMenu = () => {
   const onPressManageWallet = useCallback(() => {
     trackEvent(createEventBuilder(EVENT_NAME.CARD_HOME_CLICKED).build());
     navigation.navigate(Routes.CARD.ROOT);
-  }, [createEventBuilder, navigation, trackEvent]);
+  }, [navigation, trackEvent, createEventBuilder]);
 
   const onPressPermissions = useCallback(() => {
     // TODO: Will add events in follow up PR
@@ -115,13 +115,17 @@ const AccountsMenu = () => {
         },
         {
           text: strings('drawer.lock_ok'),
-          onPress: onPressLock,
+          onPress: async () => {
+            trackEvent(
+              createEventBuilder(
+                MetaMetricsEvents.NAVIGATION_TAPS_LOGOUT,
+              ).build(),
+            );
+            await onPressLock();
+          },
         },
       ],
       { cancelable: false },
-    );
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_LOGOUT).build(),
     );
   }, [onPressLock, trackEvent, createEventBuilder]);
 
@@ -135,15 +139,30 @@ const AccountsMenu = () => {
     [colors.border.muted, tw],
   );
 
-  let aboutMetaMaskTitle = strings('app_settings.info_title');
+  const arrowRightIcon = useMemo(
+    () => (
+      <Icon
+        name={IconName.ArrowRight}
+        size={IconSize.Sm}
+        color={IconColor.IconAlternative}
+      />
+    ),
+    [],
+  );
 
-  ///: BEGIN:ONLY_INCLUDE_IF(flask)
-  aboutMetaMaskTitle = strings('app_settings.info_title_flask');
-  ///: END:ONLY_INCLUDE_IF
+  const aboutMetaMaskTitle = useMemo(() => {
+    let title = strings('app_settings.info_title');
 
-  ///: BEGIN:ONLY_INCLUDE_IF(beta)
-  aboutMetaMaskTitle = strings('app_settings.info_title_beta');
-  ///: END:ONLY_INCLUDE_IF
+    ///: BEGIN:ONLY_INCLUDE_IF(flask)
+    title = strings('app_settings.info_title_flask');
+    ///: END:ONLY_INCLUDE_IF
+
+    ///: BEGIN:ONLY_INCLUDE_IF(beta)
+    title = strings('app_settings.info_title_beta');
+    ///: END:ONLY_INCLUDE_IF
+
+    return title;
+  }, []);
 
   return (
     <SafeAreaView
@@ -165,13 +184,7 @@ const AccountsMenu = () => {
         <ActionListItem
           startAccessory={<Icon name={IconName.Setting} size={IconSize.Lg} />}
           label={strings('accounts_menu.settings')}
-          endAccessory={
-            <Icon
-              name={IconName.ArrowRight}
-              size={IconSize.Sm}
-              color={IconColor.IconAlternative}
-            />
-          }
+          endAccessory={arrowRightIcon}
           onPress={onPressSettings}
           testID={AccountsMenuSelectorsIDs.SETTINGS}
         />
@@ -189,13 +202,7 @@ const AccountsMenu = () => {
         <ActionListItem
           startAccessory={<Icon name={IconName.Bookmark} size={IconSize.Lg} />}
           label={strings('send.contacts')}
-          endAccessory={
-            <Icon
-              name={IconName.ArrowRight}
-              size={IconSize.Sm}
-              color={IconColor.IconAlternative}
-            />
-          }
+          endAccessory={arrowRightIcon}
           onPress={onPressContacts}
           testID={AccountsMenuSelectorsIDs.CONTACTS}
         />
@@ -206,13 +213,7 @@ const AccountsMenu = () => {
             startAccessory={<Icon name={IconName.Card} size={IconSize.Lg} />}
             label={strings('accounts_menu.card_title')}
             onPress={onPressManageWallet}
-            endAccessory={
-              <Icon
-                name={IconName.ArrowRight}
-                size={IconSize.Sm}
-                color={IconColor.IconAlternative}
-              />
-            }
+            endAccessory={arrowRightIcon}
             testID={AccountsMenuSelectorsIDs.MANAGE_WALLET}
           />
         )}
@@ -223,13 +224,7 @@ const AccountsMenu = () => {
             <Icon name={IconName.SecurityTick} size={IconSize.Lg} />
           }
           label={strings('accounts_menu.permissions')}
-          endAccessory={
-            <Icon
-              name={IconName.ArrowRight}
-              size={IconSize.Sm}
-              color={IconColor.IconAlternative}
-            />
-          }
+          endAccessory={arrowRightIcon}
           onPress={onPressPermissions}
           testID={AccountsMenuSelectorsIDs.PERMISSIONS}
         />
@@ -247,13 +242,7 @@ const AccountsMenu = () => {
         <ActionListItem
           startAccessory={<Icon name={IconName.Info} size={IconSize.Lg} />}
           label={aboutMetaMaskTitle}
-          endAccessory={
-            <Icon
-              name={IconName.ArrowRight}
-              size={IconSize.Sm}
-              color={IconColor.IconAlternative}
-            />
-          }
+          endAccessory={arrowRightIcon}
           onPress={onPressAboutMetaMask}
           testID={AccountsMenuSelectorsIDs.ABOUT_METAMASK}
         />

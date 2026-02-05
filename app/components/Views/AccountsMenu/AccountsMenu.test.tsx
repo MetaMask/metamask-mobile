@@ -308,6 +308,30 @@ describe('AccountsMenu', () => {
           locked: false,
         });
       });
+
+      it('should track NAVIGATION_TAPS_LOGOUT event only when logout is confirmed', async () => {
+        const { getByTestId } = render(<AccountsMenu />);
+        const logOutButton = getByTestId(AccountsMenuSelectorsIDs.LOCK);
+
+        // Press the logout button
+        fireEvent.press(logOutButton);
+
+        // At this point, analytics should NOT be tracked yet (just showing alert)
+        expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+          'NAVIGATION_TAPS_LOGOUT',
+        );
+
+        // Get the onPress callback from the OK button and execute it
+        const alertCall = mockAlert.mock.calls[0];
+        const okButton = alertCall[2][1]; // Second button in the array
+        await okButton.onPress();
+
+        // Now analytics should be tracked (user confirmed)
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          'NAVIGATION_TAPS_LOGOUT',
+        );
+        expect(mockTrackEvent).toHaveBeenCalled();
+      });
     });
   });
 
