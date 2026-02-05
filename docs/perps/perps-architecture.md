@@ -342,6 +342,54 @@ const accountState = await perpsController.getAccountState({
 - No spot balance aggregation on account state
 - No real-time updates (HTTP only, no WebSocket)
 
+### Cache Invalidation
+
+ReadOnly queries use client-side caching for performance (e.g., 30s TTL for positions).
+The `PerpsCacheInvalidator` service provides loosely-coupled cache invalidation when
+data changes in the perps environment:
+
+**Hook side (consumers):**
+
+```typescript
+import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
+
+// Subscribe to invalidation events
+useEffect(() => {
+  const unsubPositions = PerpsCacheInvalidator.subscribe('positions', () => {
+    clearMyCache();
+    refetch();
+  });
+  const unsubAccount = PerpsCacheInvalidator.subscribe('accountState', () => {
+    clearMyCache();
+    refetch();
+  });
+  return () => {
+    unsubPositions();
+    unsubAccount();
+  };
+}, []);
+```
+
+**Service side (producers):**
+
+```typescript
+// After successful position change (TradingService)
+PerpsCacheInvalidator.invalidate('positions');
+PerpsCacheInvalidator.invalidate('accountState');
+
+// After successful withdrawal (AccountService)
+PerpsCacheInvalidator.invalidate('accountState');
+```
+
+**Cache types:**
+
+- `positions` - Position data caches (invalidated on order placement, position close)
+- `accountState` - Account balance/state caches (invalidated on trades, withdrawals)
+- `markets` - Market data caches (rarely changes)
+
+This pattern allows token detail pages to show accurate position status even after
+the user closes positions in the perps environment, without polling or WebSocket overhead.
+
 ## Stream Architecture
 
 **Single WebSocket connections shared across all components with component-level debouncing.**

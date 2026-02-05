@@ -5,6 +5,7 @@ import type { AccountState, Position } from '../controllers/types';
 import { usePerpsTrading } from './usePerpsTrading';
 import { usePerpsNetwork } from './usePerpsNetwork';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 
 /**
  * Result interface for usePerpsPositionForAsset hook
@@ -274,6 +275,34 @@ export const usePerpsPositionForAsset = (
     checkPositionExists();
 
     return cleanup;
+  }, [cacheKey, userAddress, checkPositionExists]);
+
+  // Subscribe to cache invalidation events
+  // When positions or account state change in perps, clear cache and re-fetch
+  useEffect(() => {
+    // Handler that clears cache and triggers a re-fetch
+    const handleInvalidation = () => {
+      _clearPositionCache();
+      // Only re-fetch if we have the necessary data
+      if (cacheKey && userAddress && isMountedRef.current) {
+        checkPositionExists();
+      }
+    };
+
+    // Subscribe to both positions and accountState invalidation
+    const unsubPositions = PerpsCacheInvalidator.subscribe(
+      'positions',
+      handleInvalidation,
+    );
+    const unsubAccountState = PerpsCacheInvalidator.subscribe(
+      'accountState',
+      handleInvalidation,
+    );
+
+    return () => {
+      unsubPositions();
+      unsubAccountState();
+    };
   }, [cacheKey, userAddress, checkPositionExists]);
 
   return {

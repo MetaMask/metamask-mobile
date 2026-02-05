@@ -10,6 +10,7 @@ import {
   _clearPositionCache,
 } from './usePerpsPositionForAsset';
 import { usePerpsTrading } from './usePerpsTrading';
+import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 
 // Mock dependencies
 jest.mock('./usePerpsTrading');
@@ -99,6 +100,7 @@ describe('usePerpsPositionForAsset', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     _clearPositionCache();
+    PerpsCacheInvalidator._clearAllSubscribers();
 
     mockGetPositions = jest.fn().mockResolvedValue([mockPosition]);
     mockGetAccountState = jest.fn().mockResolvedValue(mockAccountState);
@@ -457,6 +459,139 @@ describe('usePerpsPositionForAsset', () => {
 
       // The ETH position should be fetched successfully
       expect(result2.current.position?.symbol).toBe('ETH');
+    });
+  });
+
+  describe('Cache invalidation subscription', () => {
+    it('subscribes to positions and accountState invalidation on mount', async () => {
+      const { result } = renderHookWithProvider(
+        () => usePerpsPositionForAsset('ETH'),
+        { state: createMockState() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Should have subscribers for both cache types
+      expect(PerpsCacheInvalidator.getSubscriberCount('positions')).toBe(1);
+      expect(PerpsCacheInvalidator.getSubscriberCount('accountState')).toBe(1);
+    });
+
+    it('unsubscribes from invalidation on unmount', async () => {
+      const { result, unmount } = renderHookWithProvider(
+        () => usePerpsPositionForAsset('ETH'),
+        { state: createMockState() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(PerpsCacheInvalidator.getSubscriberCount('positions')).toBe(1);
+
+      unmount();
+
+      expect(PerpsCacheInvalidator.getSubscriberCount('positions')).toBe(0);
+      expect(PerpsCacheInvalidator.getSubscriberCount('accountState')).toBe(0);
+    });
+
+    it('re-fetches data when positions cache is invalidated', async () => {
+      const { result } = renderHookWithProvider(
+        () => usePerpsPositionForAsset('ETH'),
+        { state: createMockState() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // First fetch
+      expect(mockGetPositions).toHaveBeenCalledTimes(1);
+
+      // Invalidate positions cache
+      await act(async () => {
+        PerpsCacheInvalidator.invalidate('positions');
+      });
+
+      // Should have re-fetched
+      await waitFor(() => {
+        expect(mockGetPositions).toHaveBeenCalledTimes(2);
+      });
+    });
+
+    it('re-fetches data when accountState cache is invalidated', async () => {
+      const { result } = renderHookWithProvider(
+        () => usePerpsPositionForAsset('ETH'),
+        { state: createMockState() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // First fetch
+      expect(mockGetAccountState).toHaveBeenCalledTimes(1);
+
+      // Invalidate accountState cache
+      await act(async () => {
+        PerpsCacheInvalidator.invalidate('accountState');
+      });
+
+      // Should have re-fetched
+      await waitFor(() => {
+        expect(mockGetAccountState).toHaveBeenCalledTimes(2);
+      });
+    });
+
+    it('updates position data when position is closed and cache invalidated', async () => {
+      const { result } = renderHookWithProvider(
+        () => usePerpsPositionForAsset('ETH'),
+        { state: createMockState() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Initially has position
+      expect(result.current.position).toEqual(mockPosition);
+
+      // Simulate position being closed - update mock to return empty positions
+      mockGetPositions.mockResolvedValue([]);
+      mockGetAccountState.mockResolvedValue({
+        ...mockAccountState,
+        totalBalance: '0',
+      });
+
+      // Invalidate cache (simulates what TradingService does after closePosition)
+      await act(async () => {
+        PerpsCacheInvalidator.invalidate('positions');
+        PerpsCacheInvalidator.invalidate('accountState');
+      });
+
+      await waitFor(() => {
+        expect(result.current.position).toBeNull();
+      });
+
+      expect(result.current.hasFundsInPerps).toBe(false);
+    });
+
+    it('does not re-fetch when symbol is null', async () => {
+      renderHookWithProvider(() => usePerpsPositionForAsset(null), {
+        state: createMockState(),
+      });
+
+      // Should not have fetched initially
+      expect(mockGetPositions).not.toHaveBeenCalled();
+
+      // Invalidate cache
+      await act(async () => {
+        PerpsCacheInvalidator.invalidate('positions');
+      });
+
+      // Still should not fetch since symbol is null
+      expect(mockGetPositions).not.toHaveBeenCalled();
     });
   });
 });

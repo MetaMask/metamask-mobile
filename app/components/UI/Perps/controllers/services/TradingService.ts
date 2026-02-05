@@ -28,6 +28,7 @@ import {
   type PerpsAnalyticsProperties,
   type PerpsPlatformDependencies,
 } from '../types';
+import { PerpsCacheInvalidator } from '../../services/PerpsCacheInvalidator';
 
 /**
  * Controller-level dependencies for TradingService.
@@ -366,6 +367,10 @@ export class TradingService {
           reportOrderToDataLake,
         });
         traceData = { success: true, orderId: result.orderId || '' };
+
+        // Invalidate readOnly caches so external hooks (e.g., usePerpsPositionForAsset) refresh
+        PerpsCacheInvalidator.invalidate('positions');
+        PerpsCacheInvalidator.invalidate('accountState');
       } else {
         traceData = { success: false, error: result.error || 'Unknown error' };
       }
@@ -1234,6 +1239,10 @@ export class TradingService {
         );
 
         traceData = { success: true, filledSize: result.filledSize || '' };
+
+        // Invalidate readOnly caches so external hooks (e.g., usePerpsPositionForAsset) refresh
+        PerpsCacheInvalidator.invalidate('positions');
+        PerpsCacheInvalidator.invalidate('accountState');
       } else {
         traceData = { success: false, error: result.error || 'Unknown error' };
       }
