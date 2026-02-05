@@ -101,6 +101,10 @@ jest.mock('../../../util/general', () => ({
   getURLProtocol: jest.fn().mockReturnValue(''),
 }));
 
+jest.mock('../../../core/DeeplinkManager/util/deeplinks', () => ({
+  isInternalDeepLink: jest.fn().mockReturnValue(false),
+}));
+
 jest.mock('eth-url-parser', () => ({
   parse: jest.fn().mockReturnValue({
     target_address: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
@@ -743,6 +747,71 @@ describe('QrScanner', () => {
             [QRScannerEventProperties.SCAN_RESULT]:
               ScanResult.URL_NAVIGATION_CANCELLED,
           });
+        });
+      });
+
+      it('routes MetaMask internal deeplinks through DeeplinkManager instead of Linking.openURL', async () => {
+        const validatorsModule = jest.requireMock('../../../util/validators');
+        (validatorsModule.isValidMnemonic as jest.Mock).mockReturnValue(false);
+        (
+          validatorsModule.failedSeedPhraseRequirements as jest.Mock
+        ).mockReturnValue(true);
+
+        const ethereumjsUtilModule = jest.requireMock('ethereumjs-util');
+        (ethereumjsUtilModule.isValidAddress as jest.Mock).mockReturnValue(
+          false,
+        );
+
+        const generalUtilsModule = jest.requireMock('../../../util/general');
+        (generalUtilsModule.getURLProtocol as jest.Mock).mockReturnValue(
+          'https',
+        );
+
+        // Mock isInternalDeepLink to return true for MetaMask deeplinks
+        const deeplinksUtilModule = jest.requireMock(
+          '../../../core/DeeplinkManager/util/deeplinks',
+        );
+        (deeplinksUtilModule.isInternalDeepLink as jest.Mock).mockReturnValue(
+          true,
+        );
+
+        const SDKConnectV2Module = jest.requireMock(
+          '../../../core/SDKConnectV2',
+        );
+        (SDKConnectV2Module.default.isMwpDeeplink as jest.Mock).mockReturnValue(
+          false,
+        );
+
+        // DeeplinkManager should handle the link
+        (SharedDeeplinkManager.parse as jest.Mock).mockResolvedValue(true);
+
+        const mockOnScanSuccess = jest.fn();
+        renderWithProvider(<QrScanner onScanSuccess={mockOnScanSuccess} />, {
+          state: initialState,
+        });
+
+        await waitFor(() => {
+          expect(onCodeScannedCallback).toBeDefined();
+        });
+
+        // Scan a MetaMask internal deeplink (e.g., metamask.app.link/dapp/...)
+        await act(async () => {
+          onCodeScannedCallback?.([
+            { value: 'https://metamask.app.link/dapp/example.com' },
+          ]);
+        });
+
+        await waitFor(() => {
+          // Should NOT show URL redirection modal (mockNavigate should not be called for modal)
+          // Should NOT call Linking.openURL
+          expect(mockLinkingOpenURL).not.toHaveBeenCalled();
+          // Should pass the link to DeeplinkManager
+          expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(
+            'https://metamask.app.link/dapp/example.com',
+            expect.objectContaining({
+              origin: 'qr-code',
+            }),
+          );
         });
       });
 

@@ -24,6 +24,7 @@ import {
   MM_WALLETCONNECT_DEEPLINK,
 } from '../../../constants/urls';
 import AppConstants from '../../../core/AppConstants';
+import { isInternalDeepLink } from '../../../core/DeeplinkManager/util/deeplinks';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import Engine from '../../../core/Engine';
 import type { EngineContext } from '../../../core/Engine/types';
@@ -241,12 +242,16 @@ const QRScanner = ({
       const contentProtocol = getURLProtocol(content);
       const isWalletConnect = content.startsWith(MM_WALLETCONNECT_DEEPLINK);
       const isSDK = content.startsWith(MM_SDK_DEEPLINK);
+      // Check if this is a MetaMask internal deeplink (e.g., metamask.app.link, link.metamask.io)
+      // These should be handled by the DeeplinkManager, not opened externally via Safari
+      const isMetaMaskDeeplink = isInternalDeepLink(content);
       if (
         (contentProtocol === PROTOCOLS.HTTP ||
           contentProtocol === PROTOCOLS.HTTPS ||
           contentProtocol === PROTOCOLS.DAPP) &&
         !isWalletConnect &&
-        !isSDK
+        !isSDK &&
+        !isMetaMaskDeeplink
       ) {
         if (contentProtocol === PROTOCOLS.DAPP) {
           content = content.replace(PROTOCOLS.DAPP, PROTOCOLS.HTTPS);
