@@ -77,7 +77,7 @@ jobs:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
     # Android: Cirrus lg (large) runner for 8GB Gradle heap; iOS: GitHub-hosted macOS
-    runs-on: ${{ matrix.platform == 'ios' && 'macos-latest' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
+    runs-on: ${{ matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
     environment: ${{ needs.prepare.outputs.github_environment }}
     env:
       # So bundle exec (in yarn pod:install) finds ios/Gemfile when running from repo root
