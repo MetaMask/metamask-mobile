@@ -24,7 +24,6 @@ import {
   getActionKey,
   TRANSACTION_TYPES,
   isTransactionIncomplete,
-  calcTokenAmount,
 } from '../../../util/transactions';
 import Engine from '../../../core/Engine';
 import { TransactionType } from '@metamask/transaction-controller';
