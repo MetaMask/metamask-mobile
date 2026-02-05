@@ -26,6 +26,27 @@ import { Hex } from '@metamask/utils';
 export type ValidCandleInterval = CandlePeriod;
 
 /**
+ * Wallet interface for HyperLiquid SDK operations.
+ * Extracted for reuse across initialize(), toggleTestnet(), and ensureSubscriptionClient() methods.
+ */
+export interface HyperLiquidWalletParams {
+  signTypedData: (params: {
+    domain: {
+      name: string;
+      version: string;
+      chainId: number;
+      verifyingContract: Hex;
+    };
+    types: {
+      [key: string]: { name: string; type: string }[];
+    };
+    primaryType: string;
+    message: Record<string, unknown>;
+  }) => Promise<Hex>;
+  getChainId?: () => Promise<number>;
+}
+
+/**
  * Connection states for WebSocket management
  */
 export enum WebSocketConnectionState {
@@ -83,22 +104,7 @@ export class HyperLiquidClientService {
    * conditions where subscriptions are attempted before the WebSocket handshake
    * completes (which would cause "subscribe error: undefined" errors).
    */
-  public async initialize(wallet: {
-    signTypedData: (params: {
-      domain: {
-        name: string;
-        version: string;
-        chainId: number;
-        verifyingContract: Hex;
-      };
-      types: {
-        [key: string]: { name: string; type: string }[];
-      };
-      primaryType: string;
-      message: Record<string, unknown>;
-    }) => Promise<Hex>;
-    getChainId?: () => Promise<number>;
-  }): Promise<void> {
+  public async initialize(wallet: HyperLiquidWalletParams): Promise<void> {
     try {
       this.updateConnectionState(WebSocketConnectionState.Connecting);
       this.createTransports();
@@ -249,22 +255,9 @@ export class HyperLiquidClientService {
   /**
    * Toggle testnet mode and reinitialize clients
    */
-  public async toggleTestnet(wallet: {
-    signTypedData: (params: {
-      domain: {
-        name: string;
-        version: string;
-        chainId: number;
-        verifyingContract: Hex;
-      };
-      types: {
-        [key: string]: { name: string; type: string }[];
-      };
-      primaryType: string;
-      message: Record<string, unknown>;
-    }) => Promise<Hex>;
-    getChainId?: () => Promise<number>;
-  }): Promise<HyperLiquidNetwork> {
+  public async toggleTestnet(
+    wallet: HyperLiquidWalletParams,
+  ): Promise<HyperLiquidNetwork> {
     this.isTestnet = !this.isTestnet;
     await this.initialize(wallet);
     return this.isTestnet ? 'testnet' : 'mainnet';
@@ -294,22 +287,9 @@ export class HyperLiquidClientService {
   /**
    * Recreate subscription client if needed (for reconnection scenarios)
    */
-  public async ensureSubscriptionClient(wallet: {
-    signTypedData: (params: {
-      domain: {
-        name: string;
-        version: string;
-        chainId: number;
-        verifyingContract: Hex;
-      };
-      types: {
-        [key: string]: { name: string; type: string }[];
-      };
-      primaryType: string;
-      message: Record<string, unknown>;
-    }) => Promise<Hex>;
-    getChainId?: () => Promise<number>;
-  }): Promise<void> {
+  public async ensureSubscriptionClient(
+    wallet: HyperLiquidWalletParams,
+  ): Promise<void> {
     if (!this.subscriptionClient) {
       this.deps.debugLogger.log(
         'HyperLiquid: Recreating subscription client after disconnect',
@@ -372,10 +352,13 @@ export class HyperLiquidClientService {
    * - Waits for the "open" event if WebSocket is in CONNECTING state
    * - Supports AbortSignal for timeout/cancellation
    *
-   * @param timeoutMs - Maximum time to wait for transport ready (default 5000ms)
+   * @param options.timeoutMs - Maximum time to wait for transport ready (default 5000ms)
    * @throws Error if transport not ready within timeout or subscription client unavailable
    */
-  public async ensureTransportReady(timeoutMs: number = 5000): Promise<void> {
+  public async ensureTransportReady(
+    options: { timeoutMs?: number } = {},
+  ): Promise<void> {
+    const { timeoutMs = 5000 } = options;
     const subscriptionClient = this.getSubscriptionClient();
     if (!subscriptionClient) {
       throw new Error('Subscription client not initialized');
@@ -421,18 +404,19 @@ export class HyperLiquidClientService {
 
   /**
    * Fetch historical candle data using the HyperLiquid SDK
-   * @param symbol - The asset symbol (e.g., "BTC", "ETH")
-   * @param interval - The interval (e.g., "1m", "5m", "15m", "30m", "1h", "2h", "4h", "8h", "12h", "1d", "3d", "1w", "1M")
-   * @param limit - Number of candles to fetch (default: 100)
-   * @param endTime - End timestamp in milliseconds (default: now). Used for fetching historical data before a specific time.
+   * @param options.symbol - The asset symbol (e.g., "BTC", "ETH")
+   * @param options.interval - The interval (e.g., "1m", "5m", "15m", "30m", "1h", "2h", "4h", "8h", "12h", "1d", "3d", "1w", "1M")
+   * @param options.limit - Number of candles to fetch (default: 100)
+   * @param options.endTime - End timestamp in milliseconds (default: now). Used for fetching historical data before a specific time.
    * @returns Promise<CandleData | null>
    */
-  public async fetchHistoricalCandles(
-    symbol: string,
-    interval: ValidCandleInterval,
-    limit: number = 100,
-    endTime?: number,
-  ): Promise<CandleData | null> {
+  public async fetchHistoricalCandles(options: {
+    symbol: string;
+    interval: ValidCandleInterval;
+    limit?: number;
+    endTime?: number;
+  }): Promise<CandleData | null> {
+    const { symbol, interval, limit = 100, endTime } = options;
     this.ensureInitialized();
 
     try {
@@ -537,7 +521,7 @@ export class HyperLiquidClientService {
       : 100; // Default to 100 if no duration provided
 
     // 1. Fetch initial historical data
-    this.fetchHistoricalCandles(symbol, interval, initialLimit)
+    this.fetchHistoricalCandles({ symbol, interval, limit: initialLimit })
       .then((initialData) => {
         // Don't proceed if already unsubscribed
         if (isUnsubscribed) {

@@ -186,7 +186,9 @@ describe('EligibilityService', () => {
         text: async () => 'FR',
       });
 
-      const result = await service.checkEligibility(['US', 'CN']);
+      const result = await service.checkEligibility({
+        blockedRegions: ['US', 'CN'],
+      });
 
       expect(result).toBe(true);
     });
@@ -196,7 +198,9 @@ describe('EligibilityService', () => {
         text: async () => 'US',
       });
 
-      const result = await service.checkEligibility(['US', 'CN']);
+      const result = await service.checkEligibility({
+        blockedRegions: ['US', 'CN'],
+      });
 
       expect(result).toBe(false);
     });
@@ -206,7 +210,9 @@ describe('EligibilityService', () => {
         text: async () => 'CN',
       });
 
-      const result = await service.checkEligibility(['US', 'CN', 'KP', 'IR']);
+      const result = await service.checkEligibility({
+        blockedRegions: ['US', 'CN', 'KP', 'IR'],
+      });
 
       expect(result).toBe(false);
     });
@@ -216,7 +222,7 @@ describe('EligibilityService', () => {
         text: async () => 'US',
       });
 
-      const result = await service.checkEligibility([]);
+      const result = await service.checkEligibility({ blockedRegions: [] });
 
       expect(result).toBe(true);
     });
@@ -224,7 +230,9 @@ describe('EligibilityService', () => {
     it('returns true when location is UNKNOWN (defaults to eligible)', async () => {
       (successfulFetch as jest.Mock).mockRejectedValue(new Error('API error'));
 
-      const result = await service.checkEligibility(['US', 'CN']);
+      const result = await service.checkEligibility({
+        blockedRegions: ['US', 'CN'],
+      });
 
       expect(result).toBe(true);
     });
@@ -234,7 +242,9 @@ describe('EligibilityService', () => {
         text: async () => 'US-NY',
       });
 
-      const resultWithUS = await service.checkEligibility(['US']);
+      const resultWithUS = await service.checkEligibility({
+        blockedRegions: ['US'],
+      });
 
       expect(resultWithUS).toBe(false);
     });
@@ -244,7 +254,7 @@ describe('EligibilityService', () => {
         text: async () => 'us',
       });
 
-      const result = await service.checkEligibility(['US']);
+      const result = await service.checkEligibility({ blockedRegions: ['US'] });
 
       expect(result).toBe(false);
     });
@@ -254,8 +264,12 @@ describe('EligibilityService', () => {
         text: async () => 'FR',
       });
 
-      const result1 = await service.checkEligibility(['US']);
-      const result2 = await service.checkEligibility(['US']);
+      const result1 = await service.checkEligibility({
+        blockedRegions: ['US'],
+      });
+      const result2 = await service.checkEligibility({
+        blockedRegions: ['US'],
+      });
 
       expect(result1).toBe(true);
       expect(result2).toBe(true);
@@ -267,7 +281,9 @@ describe('EligibilityService', () => {
         new Error('Network failure'),
       );
 
-      const result = await service.checkEligibility(['US', 'CN']);
+      const result = await service.checkEligibility({
+        blockedRegions: ['US', 'CN'],
+      });
 
       expect(result).toBe(true);
     });
@@ -278,9 +294,9 @@ describe('EligibilityService', () => {
       });
 
       const [result1, result2, result3] = await Promise.all([
-        service.checkEligibility(['US']),
-        service.checkEligibility(['CN']),
-        service.checkEligibility(['UK']),
+        service.checkEligibility({ blockedRegions: ['US'] }),
+        service.checkEligibility({ blockedRegions: ['CN'] }),
+        service.checkEligibility({ blockedRegions: ['UK'] }),
       ]);
 
       expect(result1).toBe(true);

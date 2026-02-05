@@ -895,7 +895,12 @@ describe('MarketDataService', () => {
       expect(result).toEqual(mockCandleData);
       expect(
         hyperLiquidProvider.clientService.fetchHistoricalCandles,
-      ).toHaveBeenCalledWith('BTC', '1h', 100, undefined);
+      ).toHaveBeenCalledWith({
+        symbol: 'BTC',
+        interval: '1h',
+        limit: 100,
+        endTime: undefined,
+      });
       expect(mockDeps.tracer.trace).toHaveBeenCalledWith(
         expect.objectContaining({ name: 'Perps Fetch Historical Candles' }),
       );

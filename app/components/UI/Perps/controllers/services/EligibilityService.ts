@@ -132,10 +132,13 @@ export class EligibilityService {
 
   /**
    * Check if user is eligible based on geo-blocked regions
-   * @param blockedRegions - List of blocked region codes (e.g., ['US', 'CN'])
+   * @param options.blockedRegions - List of blocked region codes (e.g., ['US', 'CN'])
    * @returns true if eligible (not in blocked region), false otherwise
    */
-  async checkEligibility(blockedRegions: string[]): Promise<boolean> {
+  async checkEligibility(options: {
+    blockedRegions: string[];
+  }): Promise<boolean> {
+    const { blockedRegions } = options;
     try {
       this.deps.debugLogger.log('EligibilityService: Checking eligibility', {
         blockedRegionsCount: blockedRegions.length,

@@ -674,12 +674,12 @@ export class MarketDataService {
       // Check if provider supports historical candles via clientService
       const hyperLiquidProvider = provider as {
         clientService?: {
-          fetchHistoricalCandles?: (
-            symbol: string,
-            interval: CandlePeriod,
-            limit: number,
-            endTime?: number,
-          ) => Promise<CandleData>;
+          fetchHistoricalCandles?: (options: {
+            symbol: string;
+            interval: CandlePeriod;
+            limit?: number;
+            endTime?: number;
+          }) => Promise<CandleData>;
         };
       };
       if (!hyperLiquidProvider.clientService?.fetchHistoricalCandles) {
@@ -687,12 +687,12 @@ export class MarketDataService {
       }
 
       const result =
-        await hyperLiquidProvider.clientService.fetchHistoricalCandles(
+        await hyperLiquidProvider.clientService.fetchHistoricalCandles({
           symbol,
           interval,
           limit,
           endTime,
-        );
+        });
 
       traceData = { success: true };
       return result;

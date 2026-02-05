@@ -2038,12 +2038,13 @@ export class PerpsController extends BaseController<
    * Fetch historical candle data
    * Thin delegation to MarketDataService
    */
-  async fetchHistoricalCandles(
-    symbol: string,
-    interval: CandlePeriod,
-    limit: number = 100,
-    endTime?: number,
-  ): Promise<CandleData> {
+  async fetchHistoricalCandles(options: {
+    symbol: string;
+    interval: CandlePeriod;
+    limit?: number;
+    endTime?: number;
+  }): Promise<CandleData> {
+    const { symbol, interval, limit = 100, endTime } = options;
     const provider = this.getActiveProvider();
     return this.marketDataService.fetchHistoricalCandles({
       provider,
@@ -2570,9 +2571,9 @@ export class PerpsController extends BaseController<
 
     try {
       // TODO: It would be good to have this location before we call this async function to avoid the race condition
-      const isEligible = await this.eligibilityService.checkEligibility(
-        this.blockedRegionList.list,
-      );
+      const isEligible = await this.eligibilityService.checkEligibility({
+        blockedRegions: this.blockedRegionList.list,
+      });
 
       // Only update state if the blocked region list hasn't changed while we were awaiting.
       // This prevents stale fallback-based eligibility checks from overwriting
