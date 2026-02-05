@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
@@ -7,7 +8,18 @@ import { UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
 import {
   handlePasswordSubmissionError,
   checkPasswordRequirement,
+  getAuthToggleLabel,
 } from './utils';
+import { AuthenticationType } from 'expo-local-authentication';
+
+// Mock expo-local-authentication
+jest.mock('expo-local-authentication', () => ({
+  AuthenticationType: {
+    FINGERPRINT: 1,
+    FACIAL_RECOGNITION: 2,
+    IRIS: 3,
+  },
+}));
 
 // TODO: Organize this by where errors are derived from. Ex: Seedless onboarding related errors vs Keyring related errors.
 describe('handlePasswordSubmissionError', () => {
@@ -97,5 +109,143 @@ describe('checkPasswordRequirement', () => {
   it('return false if password does not meet the minimum length requirement', () => {
     const password = 'passwor';
     expect(checkPasswordRequirement(password)).toBe(false);
+  });
+});
+
+describe('getAuthToggleLabel', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  describe('iOS', () => {
+    beforeEach(() => {
+      jest.replaceProperty(Platform, 'OS', 'ios');
+    });
+
+    it('returns "Face ID" when facial recognition is available', () => {
+      const result = getAuthToggleLabel({
+        isBiometricsAvailable: true,
+        supportedOSAuthenticationTypes: [AuthenticationType.FACIAL_RECOGNITION],
+        passcodeAvailable: true,
+      });
+      expect(result).toBe('Face ID');
+    });
+
+    it('returns "Touch ID" when fingerprint is available', () => {
+      const result = getAuthToggleLabel({
+        isBiometricsAvailable: true,
+        supportedOSAuthenticationTypes: [AuthenticationType.FINGERPRINT],
+        passcodeAvailable: true,
+      });
+      expect(result).toBe('Touch ID');
+    });
+
+    it('returns "Face ID" when both facial recognition and fingerprint are available (Face ID priority)', () => {
+      const result = getAuthToggleLabel({
+        isBiometricsAvailable: true,
+        supportedOSAuthenticationTypes: [
+          AuthenticationType.FACIAL_RECOGNITION,
+          AuthenticationType.FINGERPRINT,
+        ],
+        passcodeAvailable: true,
+      });
+      expect(result).toBe('Face ID');
+    });
+
+    it('returns "Device Passcode" when no biometrics but passcode is available', () => {
+      const result = getAuthToggleLabel({
+        isBiometricsAvailable: false,
+        supportedOSAuthenticationTypes: [],
+        passcodeAvailable: true,
+      });
+      expect(result).toBe('Device Passcode');
+    });
+
+    it('returns empty string when nothing is available', () => {
+      const result = getAuthToggleLabel({
+        isBiometricsAvailable: false,
+        supportedOSAuthenticationTypes: [],
+        passcodeAvailable: false,
+      });
+      expect(result).toBe('');
+    });
+
+    it('returns "Device Passcode" when biometrics hardware exists but is disabled', () => {
+      const result = getAuthToggleLabel({
+        isBiometricsAvailable: false,
+        supportedOSAuthenticationTypes: [AuthenticationType.FACIAL_RECOGNITION],
+        passcodeAvailable: true,
+      });
+      expect(result).toBe('Device Passcode');
+    });
+
+    it('returns empty string when isBiometricsAvailable is true but supportedOSAuthenticationTypes is empty', () => {
+      const result = getAuthToggleLabel({
+        isBiometricsAvailable: true,
+        supportedOSAuthenticationTypes: [],
+        passcodeAvailable: false,
+      });
+      expect(result).toBe('');
+    });
+  });
+
+  describe('Android', () => {
+    beforeEach(() => {
+      jest.replaceProperty(Platform, 'OS', 'android');
+    });
+
+    it('returns "Biometrics" when fingerprint is available', () => {
+      const result = getAuthToggleLabel({
+        isBiometricsAvailable: true,
+        supportedOSAuthenticationTypes: [AuthenticationType.FINGERPRINT],
+        passcodeAvailable: true,
+      });
+      expect(result).toBe('Biometrics');
+    });
+
+    it('returns "Biometrics" when facial recognition is available', () => {
+      const result = getAuthToggleLabel({
+        isBiometricsAvailable: true,
+        supportedOSAuthenticationTypes: [AuthenticationType.FACIAL_RECOGNITION],
+        passcodeAvailable: true,
+      });
+      expect(result).toBe('Biometrics');
+    });
+
+    it('returns "Biometrics" when iris is available', () => {
+      const result = getAuthToggleLabel({
+        isBiometricsAvailable: true,
+        supportedOSAuthenticationTypes: [AuthenticationType.IRIS],
+        passcodeAvailable: true,
+      });
+      expect(result).toBe('Biometrics');
+    });
+
+    it('returns "Device PIN/Pattern" when no biometrics but passcode is available', () => {
+      const result = getAuthToggleLabel({
+        isBiometricsAvailable: false,
+        supportedOSAuthenticationTypes: [],
+        passcodeAvailable: true,
+      });
+      expect(result).toBe('Device PIN/Pattern');
+    });
+
+    it('returns empty string when nothing is available', () => {
+      const result = getAuthToggleLabel({
+        isBiometricsAvailable: false,
+        supportedOSAuthenticationTypes: [],
+        passcodeAvailable: false,
+      });
+      expect(result).toBe('');
+    });
+
+    it('returns "Device PIN/Pattern" when biometrics hardware exists but is not enrolled', () => {
+      const result = getAuthToggleLabel({
+        isBiometricsAvailable: false,
+        supportedOSAuthenticationTypes: [AuthenticationType.FINGERPRINT],
+        passcodeAvailable: true,
+      });
+      expect(result).toBe('Device PIN/Pattern');
+    });
   });
 });
