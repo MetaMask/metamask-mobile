@@ -13,9 +13,8 @@ import BottomSheet, {
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
 import HeaderCenter from '../../../../../../../component-library/components-temp/HeaderCenter';
 import ListItemSelect from '../../../../../../../component-library/components/List/ListItemSelect';
-import ListItemColumn, {
-  WidthType,
-} from '../../../../../../../component-library/components/List/ListItemColumn';
+import ListItemColumn from '../../../../../../../component-library/components/List/ListItemColumn/ListItemColumn';
+import { WidthType } from '../../../../../../../component-library/components/List/ListItemColumn/ListItemColumn.types';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import { useDepositSDK } from '../../../sdk';
 import useAnalytics from '../../../../hooks/useAnalytics';
