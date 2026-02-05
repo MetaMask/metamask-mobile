@@ -6,6 +6,8 @@ import {
   getDappUrlForFixture,
 } from './FixtureUtils.ts';
 import { merge } from 'lodash';
+import defaultFixture from './default-fixture.json';
+import onboardingFixture from './onboarding-fixture.json';
 import { encryptVault } from './helpers.ts';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
@@ -198,9 +200,34 @@ class FixtureBuilder {
 
   /**
    * Set the default fixture values.
+   * Uses JSON-based fixture with runtime-injected dynamic values.
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
   withDefaultFixture() {
+    // Deep clone the JSON fixture to avoid mutations
+    this.fixture = JSON.parse(JSON.stringify(defaultFixture));
+
+    // Inject dynamic values that can't be stored in static JSON
+    // 1. Timestamp for legal notices
+    this.fixture.state.legalNotices.newPrivacyPolicyToastShownDate = Date.now();
+
+    // 2. Mock server port for browser tab URL
+    this.fixture.state.browser.tabs[0].url = `http://localhost:${getMockServerPortForFixture()}/health-check`;
+
+    // 3. Ganache port for localhost network RPC URL
+    this.fixture.state.engine.backgroundState.NetworkController.networkConfigurationsByChainId[
+      '0x539'
+    ].rpcEndpoints[0].url = `http://localhost:${getGanachePortForFixture()}`;
+
+    return this;
+  }
+
+  /**
+   * @deprecated Use withDefaultFixture() - this method is kept for backwards compatibility
+   * Set the default fixture values using the legacy inline approach.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withDefaultFixtureLegacy() {
     this.fixture = {
       state: {
         legalNotices: {
@@ -1301,12 +1328,12 @@ class FixtureBuilder {
 
   /**
    * Set the fixture to an empty object for onboarding.
+   * Uses JSON-based fixture for consistency.
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
   withOnboardingFixture() {
-    this.fixture = {
-      asyncState: {},
-    };
+    // Deep clone the JSON fixture to avoid mutations
+    this.fixture = JSON.parse(JSON.stringify(onboardingFixture));
     return this;
   }
 
