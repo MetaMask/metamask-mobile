@@ -23,8 +23,8 @@ import createStyles from './PerpsBottomSheetTooltip.styles';
 import { tooltipContentRegistry } from './content/contentRegistry';
 import { PerpsBottomSheetTooltipSelectorsIDs } from '../../Perps.testIds';
 import {
-  PerpsEventValues,
-  PerpsEventProperties,
+  PERPS_EVENT_VALUE,
+  PERPS_EVENT_PROPERTY,
 } from '../../constants/eventNames';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
@@ -98,12 +98,12 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
     const handleGotItPress = useCallback(() => {
       // Track tooltip button click
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-        [PerpsEventProperties.INTERACTION_TYPE]:
-          PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
-        [PerpsEventProperties.BUTTON_CLICKED]:
-          PerpsEventValues.BUTTON_CLICKED.TOOLTIP,
-        [PerpsEventProperties.BUTTON_LOCATION]:
-          PerpsEventValues.BUTTON_LOCATION.TOOLTIP,
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+        [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+          PERPS_EVENT_VALUE.BUTTON_CLICKED.TOOLTIP,
+        [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+          PERPS_EVENT_VALUE.BUTTON_LOCATION.TOOLTIP,
       });
       handleClose();
     }, [track, handleClose]);

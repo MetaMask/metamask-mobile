@@ -50,7 +50,7 @@ import { toHex } from '@metamask/controller-utils';
 import Logger from '../../../../../util/Logger';
 import { useNetworkName } from '../../../../Views/confirmations/hooks/useNetworkName';
 import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events';
-import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
+import { MUSD_CONVERSION_APY, isMusdToken } from '../../../Earn/constants/musd';
 import {
   useMerklRewards,
   isEligibleForMerklRewards,
@@ -379,7 +379,9 @@ export const TokenListItem = React.memo(
     return (
       <AssetElement
         onPress={onItemPress}
-        onLongPress={asset.isNative ? null : showRemoveMenu}
+        onLongPress={
+          asset.isNative || isMusdToken(asset.address) ? null : showRemoveMenu
+        }
         asset={asset}
         balance={asset.balanceFiat}
         secondaryBalance={secondaryBalanceDisplay.text}

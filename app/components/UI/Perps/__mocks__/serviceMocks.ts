@@ -7,6 +7,7 @@ import type { ServiceContext } from '../controllers/services/ServiceContext';
 import type {
   PerpsControllerState,
   InitializationState,
+  PerpsControllerMessenger,
 } from '../controllers/PerpsController';
 import type { PerpsPlatformDependencies } from '../controllers/types';
 
@@ -49,44 +50,12 @@ export const createMockInfrastructure =
       streamManager: {
         pauseChannel: jest.fn(),
         resumeChannel: jest.fn(),
+        clearAllChannels: jest.fn(),
       },
 
-      // === Controller Access (ALL controllers consolidated) ===
-      controllers: {
-        // Account operations (wraps AccountsController)
-        accounts: {
-          getSelectedEvmAccount: jest.fn(() => ({
-            address: '0x1234567890abcdef1234567890abcdef12345678',
-          })),
-          formatAccountToCaipId: jest.fn(
-            (address: string, chainId: string) =>
-              `eip155:${chainId}:${address}`,
-          ),
-        },
-        // Keyring operations (wraps KeyringController)
-        keyring: {
-          signTypedMessage: jest.fn().mockResolvedValue('0xSignatureResult'),
-        },
-        // Network operations (wraps NetworkController)
-        network: {
-          getChainIdForNetwork: jest.fn().mockReturnValue('0x1'),
-          findNetworkClientIdForChain: jest.fn().mockReturnValue('mainnet'),
-        },
-        // Transaction operations (wraps TransactionController)
-        transaction: {
-          submit: jest.fn().mockResolvedValue({
-            result: Promise.resolve('0xTransactionHash'),
-            transactionMeta: { id: 'tx-id-123', hash: '0xTransactionHash' },
-          }),
-        },
-        // Rewards operations (wraps RewardsController, optional)
-        rewards: {
-          getFeeDiscount: jest.fn().mockResolvedValue(0),
-        },
-        // Authentication operations (wraps AuthenticationController)
-        authentication: {
-          getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
-        },
+      // === Rewards (no standard messenger action in core) ===
+      rewards: {
+        getFeeDiscount: jest.fn().mockResolvedValue(0),
       },
     }) as unknown as jest.Mocked<PerpsPlatformDependencies>;
 
@@ -139,6 +108,7 @@ export const createMockPerpsControllerState = (
   lastError: null,
   lastUpdateTimestamp: Date.now(),
   hip3ConfigVersion: 0,
+  selectedPaymentToken: null,
   ...overrides,
 });
 
@@ -181,3 +151,59 @@ export const createMockEvmAccount = () => ({
     keyring: { type: 'HD Key Tree' },
   },
 });
+
+/**
+ * Create a mock PerpsControllerMessenger for testing inter-controller communication.
+ * The messenger.call() method should be configured in each test to return appropriate values.
+ *
+ * Common messenger actions used:
+ * - 'AccountTreeController:getAccountsFromSelectedAccountGroup' - returns array of accounts
+ * - 'KeyringController:signTypedMessage' - returns signature string
+ * - 'NetworkController:getState' - returns { selectedNetworkClientId: string }
+ * - 'NetworkController:getNetworkClientById' - returns { configuration: { chainId: string } }
+ * - 'AuthenticationController:getBearerToken' - returns bearer token string
+ *
+ * @param overrides - Optional partial messenger to override default behavior
+ */
+export const createMockMessenger = (
+  overrides?: Partial<PerpsControllerMessenger>,
+): jest.Mocked<PerpsControllerMessenger> => {
+  const mockEvmAccount = createMockEvmAccount();
+  const base = {
+    call: jest.fn().mockImplementation((action: string) => {
+      // Default implementations for common actions
+      if (
+        action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+      ) {
+        return [mockEvmAccount];
+      }
+      if (action === 'KeyringController:signTypedMessage') {
+        return Promise.resolve('0xSignatureResult');
+      }
+      if (action === 'NetworkController:getState') {
+        return { selectedNetworkClientId: 'mainnet' };
+      }
+      if (action === 'NetworkController:getNetworkClientById') {
+        return { configuration: { chainId: '0x1' } };
+      }
+      if (action === 'AuthenticationController:getBearerToken') {
+        return Promise.resolve('mock-bearer-token');
+      }
+      return undefined;
+    }),
+    publish: jest.fn(),
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
+    registerActionHandler: jest.fn(),
+    unregisterActionHandler: jest.fn(),
+    // Additional methods used by PerpsController
+    registerEventHandler: jest.fn(),
+    registerInitialEventPayload: jest.fn(),
+    unregisterEventHandler: jest.fn(),
+    clearEventSubscriptions: jest.fn(),
+  };
+  return {
+    ...base,
+    ...overrides,
+  } as unknown as jest.Mocked<PerpsControllerMessenger>;
+};

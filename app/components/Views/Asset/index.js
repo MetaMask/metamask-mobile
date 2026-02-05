@@ -225,6 +225,7 @@ AssetInlineHeader.propTypes = {
   colors: PropTypes.object,
 };
 
+// TODO: Delete when TokenDetailsV2 flag is fully rolled out
 /**
  * View that displays a specific asset (Token or ETH)
  * including the overview (Amount, Balance, Symbol, Logo)

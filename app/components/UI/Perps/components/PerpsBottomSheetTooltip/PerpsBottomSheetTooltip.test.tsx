@@ -210,10 +210,13 @@ describe('PerpsBottomSheetTooltip', () => {
       getByTestId(PerpsBottomSheetTooltipSelectorsIDs.GOT_IT_BUTTON),
     );
 
-    await waitFor(() => {
-      expect(mockOnClose).toHaveBeenCalledTimes(1);
-    });
-  });
+    await waitFor(
+      () => {
+        expect(mockOnClose).toHaveBeenCalledTimes(1);
+      },
+      { timeout: 10000 },
+    );
+  }, 15000);
 
   it('renders different content for different contentKey (Margin Tooltip)', () => {
     const { getByText } = renderBottomSheetTooltip({

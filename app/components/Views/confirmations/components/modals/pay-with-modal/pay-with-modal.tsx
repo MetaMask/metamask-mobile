@@ -16,6 +16,8 @@ import { hasTransactionType } from '../../../utils/transaction';
 import { useMusdConversionTokens } from '../../../../../UI/Earn/hooks/useMusdConversionTokens';
 import { HIDE_NETWORK_FILTER_TYPES } from '../../../constants/confirmations';
 import { useMusdPaymentToken } from '../../../../../UI/Earn/hooks/useMusdPaymentToken';
+import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
+import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 
 export function PayWithModal() {
   const transactionMeta = useTransactionMetadataRequest();
@@ -29,6 +31,9 @@ export function PayWithModal() {
   const { filterAllowedTokens: musdTokenFilter } = useMusdConversionTokens();
   const { onPaymentTokenChange: onMusdPaymentTokenChange } =
     useMusdPaymentToken();
+  const { onPaymentTokenChange: onPerpsPaymentTokenChange } =
+    usePerpsPaymentToken();
+  const perpsBalanceTokenFilter = usePerpsBalanceTokenFilter();
 
   const close = useCallback((onClosed?: () => void) => {
     // Called after the bottom sheet's closing animation completes.
@@ -44,6 +49,15 @@ export function PayWithModal() {
         return;
       }
 
+      if (
+        hasTransactionType(transactionMeta, [
+          TransactionType.perpsDepositAndOrder,
+        ])
+      ) {
+        close(() => onPerpsPaymentTokenChange(token));
+        return;
+      }
+
       close(() => {
         setPayToken({
           address: token.address as Hex,
@@ -51,7 +65,13 @@ export function PayWithModal() {
         });
       });
     },
-    [close, onMusdPaymentTokenChange, setPayToken, transactionMeta],
+    [
+      close,
+      onMusdPaymentTokenChange,
+      onPerpsPaymentTokenChange,
+      setPayToken,
+      transactionMeta,
+    ],
   );
 
   const tokenFilter = useCallback(
@@ -68,9 +88,23 @@ export function PayWithModal() {
         return musdTokenFilter(availableTokens);
       }
 
+      if (
+        hasTransactionType(transactionMeta, [
+          TransactionType.perpsDepositAndOrder,
+        ])
+      ) {
+        return perpsBalanceTokenFilter(availableTokens);
+      }
+
       return availableTokens;
     },
-    [musdTokenFilter, payToken, requiredTokens, transactionMeta],
+    [
+      musdTokenFilter,
+      payToken,
+      requiredTokens,
+      transactionMeta,
+      perpsBalanceTokenFilter,
+    ],
   );
 
   return (

@@ -59,6 +59,11 @@ on:
         description: 'Branch name to use for build names (defaults to auto-detection)'
         required: false
         type: string
+      build_variant:
+        description: 'Build variant for Bitrise (rc = release, exp = experimental)'
+        required: false
+        type: string
+        default: 'rc'
 
 permissions:
   contents: read
@@ -181,6 +186,7 @@ jobs:
     if: (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet)
     with:
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
+      build_variant: ${{ inputs.build_variant || 'rc' }}
     secrets: inherit
 
   trigger-ios-dual-versions:
@@ -190,6 +196,7 @@ jobs:
     if: (!inputs.browserstack_app_url_ios_onboarding && !inputs.browserstack_app_url_ios_imported_wallet)
     with:
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
+      build_variant: ${{ inputs.build_variant || 'rc' }}
     secrets: inherit
 
   # =============================================================================

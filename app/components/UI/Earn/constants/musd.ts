@@ -33,6 +33,16 @@ export const MUSD_TOKEN_ADDRESS_BY_CHAIN: Record<Hex, Hex> = {
 };
 
 /**
+ * Check if the given token address is mUSD.
+ * mUSD has the same address on all supported chains.
+ */
+export const isMusdToken = (address?: string): boolean => {
+  if (!address) return false;
+  const musdAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET];
+  return address.toLowerCase() === musdAddress.toLowerCase();
+};
+
+/**
  * Chains where mUSD CTA should show (buy routes available).
  * BSC is excluded as buy routes are not yet available.
  */
