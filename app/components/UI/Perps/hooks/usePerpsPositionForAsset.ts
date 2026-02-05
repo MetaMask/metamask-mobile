@@ -236,15 +236,16 @@ export const usePerpsPositionForAsset = (
     }
   }, [lookupSymbol, cacheKey, userAddress, getPositions, getAccountState]);
 
-  // Effect to check position existence
+  // Track mount state - only set once on mount, cleared on unmount
   useEffect(() => {
     isMountedRef.current = true;
-
-    // Cleanup function to prevent state updates after unmount
-    const cleanup = () => {
+    return () => {
       isMountedRef.current = false;
     };
+  }, []);
 
+  // Effect to check position existence
+  useEffect(() => {
     // Early bail for missing data
     if (!cacheKey || !userAddress) {
       setState({
@@ -254,7 +255,7 @@ export const usePerpsPositionForAsset = (
         isLoading: false,
         error: null,
       });
-      return cleanup;
+      return;
     }
 
     // Check if already cached (includes user address and network context)
@@ -267,26 +268,35 @@ export const usePerpsPositionForAsset = (
         isLoading: false,
         error: null,
       });
-      return cleanup;
+      return;
     }
 
     // Need to fetch
     setState((prev) => ({ ...prev, isLoading: true }));
     checkPositionExists();
-
-    return cleanup;
   }, [cacheKey, userAddress, checkPositionExists]);
 
   // Subscribe to cache invalidation events
   // When positions or account state change in perps, clear cache and re-fetch
   useEffect(() => {
-    // Handler that clears cache and triggers a re-fetch
+    // Debounce invalidation to prevent duplicate API calls when both
+    // positions and accountState are invalidated together (common after trades)
+    let invalidationTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    // Handler that clears cache and triggers a re-fetch (debounced)
     const handleInvalidation = () => {
-      _clearPositionCache();
-      // Only re-fetch if we have the necessary data
-      if (cacheKey && userAddress && isMountedRef.current) {
-        checkPositionExists();
+      // Clear any pending invalidation
+      if (invalidationTimeout) {
+        clearTimeout(invalidationTimeout);
       }
+      // Debounce: wait briefly to batch multiple invalidations
+      invalidationTimeout = setTimeout(() => {
+        _clearPositionCache();
+        // Only re-fetch if we have the necessary data
+        if (cacheKey && userAddress && isMountedRef.current) {
+          checkPositionExists();
+        }
+      }, 10); // 10ms debounce - enough to batch synchronous invalidations
     };
 
     // Subscribe to both positions and accountState invalidation
@@ -300,6 +310,9 @@ export const usePerpsPositionForAsset = (
     );
 
     return () => {
+      if (invalidationTimeout) {
+        clearTimeout(invalidationTimeout);
+      }
       unsubPositions();
       unsubAccountState();
     };
