@@ -7484,7 +7484,7 @@
       "redeem_failure_title": "रिडीम नहीं हो पाया",
       "redeem_failure_description": "कृपया बाद में फिर से प्रयास करें।",
       "reward_details": "पुरस्कार विवरण",
-      "select_account_description": "उस अकाउंट का चयन करें जिसमें आप यह पुरस्कार प्राप्त करना चाहते हैं। टोकन दो सप्ताह के भीतर वितरित किए जाएंगे।"
+      "select_account_description": "उस अकाउंट का चयन करें जिसमें आप यह पुरस्कार प्राप्त करना चाहते हैं।"
     },
     "animation": {
       "could_not_load": "लोड नहीं हो सका"

@@ -1,16 +1,32 @@
 import { useSelector } from 'react-redux';
 import { useCallback, useMemo } from 'react';
 import { Hex } from '@metamask/utils';
-import { selectContractBalancesPerChainId } from '../../../../selectors/tokenBalancesController';
+import { selectTokensBalances } from '../../../../selectors/tokenBalancesController';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
 import { toChecksumAddress } from '../../../../util/address';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import { EVM_SCOPE } from '../constants/networks';
+import { RootState } from '../../../../reducers';
 
 /**
  * Hook to check if the user has any MUSD token balance across supported chains.
  * @returns Object containing hasAnyMusdBalance boolean and balancesByChain for detailed balance info
  */
 export const useMusdBalance = () => {
-  const balancesPerChainId = useSelector(selectContractBalancesPerChainId);
+  const selectedEvmAddress = useSelector(
+    (state: RootState) =>
+      selectSelectedInternalAccountByScope(state)(EVM_SCOPE)?.address,
+  );
+
+  const tokenBalances = useSelector(selectTokensBalances);
+
+  const balancesPerChainId = useMemo(
+    () =>
+      selectedEvmAddress
+        ? (tokenBalances?.[selectedEvmAddress as Hex] ?? {})
+        : {},
+    [selectedEvmAddress, tokenBalances],
+  );
 
   const { hasMusdBalanceOnAnyChain, balancesByChain } = useMemo(() => {
     const result: Record<Hex, string> = {};

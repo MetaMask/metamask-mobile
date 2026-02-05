@@ -13,9 +13,7 @@ import {
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
-import TextField, {
-  TextFieldSize,
-} from '../../../../../../component-library/components/Form/TextField';
+import TextField from '../../../../../../component-library/components/Form/TextField';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createOtpCodeNavDetails } from '../OtpCode/OtpCode';
@@ -128,7 +126,6 @@ const EnterEmail = () => {
             <TextField
               autoComplete="email"
               keyboardType="email-address"
-              size={TextFieldSize.Lg}
               placeholder={strings('deposit.enter_email.input_placeholder')}
               placeholderTextColor={theme.colors.text.muted}
               returnKeyType={'done'}

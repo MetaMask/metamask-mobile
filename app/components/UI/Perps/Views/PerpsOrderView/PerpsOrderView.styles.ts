@@ -84,6 +84,13 @@ const createStyles = (colors: Colors) =>
     validationContainer: {
       marginBottom: 12,
     },
+    insufficientPayTokenWarning: {
+      backgroundColor: colors.warning.muted,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      borderRadius: 8,
+      marginTop: 12,
+    },
     bottomSection: {
       paddingVertical: 24,
     },
