@@ -7,13 +7,178 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.65.0]
+
+### Uncategorized
+
+- Updates to disable hiding of mUSD token similar to network tokens but does not display by default (#25640)
+- Fixed incorrect title for confirmation screens (#25594)
+- Migrated Earn headers to use HeaderCenter component (#25053)
+- chore(release): sync stable to main for version 7.65.0 (#25471)
+- Standardized headers across activity views to use HeaderCenter component (#25075)
+- Migrated region and state selector modal headers to use HeaderCenter component (#25084)
+- Updated General Settings page and select modal headers to use consistent HeaderCenter component styling (#25356)
+- Removed usage of token-search-discovery-controller (#25435)
+- Updates the transaction details page for musd conversions such that we support gasless transaction info (#25349)
+- Remove epd feature flag (#23725)
+- Added pull-to-refresh functionality to Wallet screen that refreshes account balance and active tab content (#23618)
+- chore(release): sync stable to main for version 7.65.0 (#25381)
+- Add tempo network logo. (#25187)
+- Gate rewards referral code in Perps PnL hero card behind `rewardsReferralCodeEnabled` feature flag (#25282)
+- Added .env in expo updates step (#25236)
+- Rewards feature flag cleanup (#25316)
+- Removed "Powered by Relay" from the mUSD conversion input screen (#25318)
+- Rewards modal copy changes for eos (#25313)
+- N/a (#25018)
+- Added mitmproxy documentation and Android debug config for WebSocket traffic inspection (#25155)
+- Stop using swaps fetchTokens function (#25109)
+- Remove support for token search on the browser (#25111)
+- chore: enable ota version display in production builds (#25225)
+- chore(release): sync stable to main for version 7.65.0 (#25200)
+- Remove withdrawals restrictions (#25189)
+- Bump tron-wallet-snap package to 1.19.2 (#25166)
+- Improved error messages in Perps trading to show user-friendly descriptions instead of technical error codes (#24986)
+
+### Added
+
+- Update the look of the "Earn %" CTA displayed for ETH and Tron staking products to tag style (#25722)
+- Added educational bottom sheet explaining that mUSD bonuses are claimed on Linea, and auto-scroll to the resulting token (#25516)
+  after successful claim
+- Added Perps “Pay with” option (Perps balance or other tokens) and info tooltip on the order view. (#25626)
+- Updates the "Earn a 3% bonus" text in the mUSD conversion CTA to be clickable. (#25676)
+- Added new token details button layout behind a feature flag (#25574)
+- Added payment method deeplink support for ramps (#25003)
+- Bring back destination asset sync to new swaps asset picker (#25644)
+- Add sanitized origin to sentinel metadata (#25612)
+- Added a warning message when gas sponsorship is unavailable due to reserve balance requirements. (#25320)
+- Added new design of the perps empty state (#25581)
+- Added A/B test for homepage featured section (carousel vs list) with variant-specific analytics; replaced empty predictions (#25237)
+  state with featured markets; hide balance card when no positions exist;
+  removed dead code
+- Added Buy/Sell sticky action bar to Token Details page with smart token selection (#25499)
+- Updated the Browser Tabs View with a new top navigation bar, 2-column grid layout, and improved navigation behavior (#25470)
+- Allow user to opt-in all accounts at once to Rewards (#24450)
+- Improved Perps home screen load time by making price prewarming non-blocking (#25501)
+- Add rewards season 2 season status banner (#25522)
+- Remove legacy swaps liveness service in favor of new stx hooks (#25506)
+- Added points estimate history tracking to state logs for Customer Support diagnostics (#25389)
+- When one-click trade transaction creation fails, users now see an error toast ("Could not open position") and the failure is (#25429)
+  tracked in analytics.
+- New retryWithDelay utility - A generic, well-tested retry utility (#24920)
+  Updated getAuthTokens - Now automatically retries up to
+  3 times on transient failures with logging
+- Update slippage UI, adding option for users to set a custom slippage (#25405)
+- Added deeplinking to the NFT screen (#25426)
+- Updated browser URL bar buttons - back button now shows chevron icon and hides when typing, cancel button always shows text (#25418)
+  instead of X icon
+- Added omni-search to browser URL bar - search tokens, perps, and predictions directly from the browser (#25358)
+- Fixed malicious alert modal to require checkbox acknowledgment before enabling the Acknowledge button, and added a Close (#24055)
+  button for easier dismissal
+- Replaced transaction details modal with bottom sheet for improved UX consistency (#25400)
+- Added one-click trading for Perps, allowing users to deposit funds and execute trades seamlessly within the order view (#24964)
+- Update slippage UI, adding option for users to set a custom slippage (#25124)
+- Updated stablecoin lending cta to be right-aligned and not render the percentage (#25351)
+- Add same-chain mUSD conversion enforcement (#25238)
+- Added Metal Card checkout flow allowing virtual card holders to upgrade to a physical Metal Card with Daimo Pay integration (#25172)
+- Added support for queueing non-EVM confirmations (#25319)
+- Added trending markets display in Perps tab for users without open positions to improve trading discovery (#25302)
+- Support filter by event types in the Activity Tab (#24910)
+- Allow user to set a referral code in Rewards Settings after opt-in (#25085)
+- Change password screen ui fixes (#25301)
+- Continue button placement changes in create pasword screen (#25264)
+- Added close button to token selection modal in Earn feature (#25006)
+- Added `earn-musd` deeplink handler for direct navigation to mUSD conversion education flow (#25285)
+- Add client in metadata for smartTransaction and relayTransaction transaction submission (#25331)
+- Integrates per chain file save for tokenListController. (#24019)
+- Improved mUSD bonus claiming flow to redirect to homepage after claiming (#25274)
+- Add Bitcoin and Tron account support for rewards (#24890)
+- Added "terms apply" clickable link to mUSD conversion education screen and navbar tooltip (#25284)
+- Added one-click "Switch to Infura" button for custom networks experiencing connectivity issues (#25054)
+- Added ability to claim Merkl rewards from mainnet mUSD asset overview (rewards still claimed on Linea) (#25259)
+- Changed asset picker to pin selected token to top of list (#25226)
+- Added swipe navigation gestures (swipe left/right edges to navigate browser history) and pull-to-refresh functionality (pull (#24851)
+  down from top to reload page) to the In-App Browser
+- Added MUSD Conversion Transaction Details screen showing source and destination token amounts (#24551)
+- Fixed Merkl rewards claimable amount not updating immediately after claiming by reading from blockchain and implementing (#24935)
+  optimistic UI updates
+- Brought back MetaMask fee row for mUSD conversion transactions (#25132)
+- Handle shield deep link (#23663)
+- Fixed claimable reward display rounding to show "< 0.01" instead of "< 0.00001" for very small amounts (#25174)
+- Enable support for EIP-5792 methods over WalletConnect (#25114)
+- Import SRP screen UX improvements (#24693)
+- Added new swaps asset picker (#22712)
+
+### Fixed
+
+- Fixes padding in add chain approval bottom sheet (#25671)
+- Refactored (#25613)
+- N/a (#25642)
+- Fix rewards end of season scroll issue (#25639)
+- Exclude gas fees from swap quotes insufficientBal calculation (#25637)
+- Fixed Perps activity tab sometimes showing empty when accessed from perps home or market detail screens (#25695)
+- N/a (#25635)
+- Fixed perps tutorial animation alignment by removing empty space in carousel (#25664)
+- Prevent mUSD conversion initiation from creating duplicate transactions (#25604)
+- Fixed inaccurate fill percentages for historical Perps orders and improved price precision for low-priced assets (#24278)
+- Fixes incorrect stop lost banner price (#25556)
+- Fixed missing localization for "Change" text on the Buy screen (#25641)
+- Do not render keyboard when quote reloads after slippage change (#25633)
+- Fixed hardware wallet scan screen layout with centered reader, blurred edges, and improved text positioning (#25290)
+- Fixed transaction list not automatically scrolling to show latest transactions after send/swap operations (#25467)
+- Fixed order book header price not updating in real-time (#25577)
+- Disable swap max button on native assets when stx is disabled (#25023)
+- Fixed perps market list search to reset category filters when closing search and enabled sort direction toggle for all (#25465)
+  sort options
+- Fixes an issue preventing insufficient funds error when pressing max balance after inputting non-max balance in swaps (#25513)
+- Change Rewards season summary icon colors (#25458)
+- Strengthen explore portfolio site condition (#25433)
+- Fixed a bug where in the Swaps recipient account picker, if the user clicked on the search input bar, the keyboard would (#25393)
+  push the search input off screen.
+- Fixed a bug where the currently selected swap asset would be pinned to the top of the asset picker list even when it didn't (#25395)
+  match the search query
+- Enables the “Got it” button in an alert (#25368)
+- Fix multiple bugs with stop loss being set via stop loss banner (#25234)
+- Password field error state on Create Password screen. (#25254)
+- Adjusted padding and border radius for Swaps network pills (#25342)
+- Swaps Non EVM tokens with zero balance now show 2 decimal places just like the EVM ones (#25289)
+- Format input amount when validating balance (#25333)
+- N/a (#25299)
+- Fixed postal code input in Deposit flow to allow entering codes with punctuation, spaces, and letters (#25323)
+- Disabled the "switch tokens" button when destination token in on a disabled network (#25311)
+- Fixed a bug where the asset picker would pin the currently selected asset to the top of networks that didn't match the (#25308)
+  network of the selected token
+- Fixes missing stock badge on asset overview opened from trending token search view (#25288)
+- Changes the mUSD conversion asset overview CTA copy (#25294)
+- Made liquidation price estimate in margin adjustment form to accurately reflect Hyperliquid's maintenance margin rules (#25243)
+- Android Safe Area View Explore Layout Issues (#25142)
+- Removed chevron from Swaps recipient address picker (#25207)
+- Fixes iOS yellow AutoFill suggestion box appearing above text fields during Card onboarding (#25210)
+- Show token symbol on Send screen for tokens with zero balance (#25201)
+- Remove isEvm guard from Perps wallet actions button (#25239)
+- Fix layout flicker on network fee row. (#25161)
+- New error type: GoogleLoginOneTapFailure (code 10016) for generic One Tap failures (#24936)
+  Browser fallback: One Tap failures now trigger
+  browser-based OAuth on Android
+- Fixed PnL dollar value formatting in Predict sell preview to show 2 decimal places (#25228)
+- Updated mUSD conversion screen navbar (#25135)
+- Fixed chainId assertions in `eth_sendTransaction` and `eth_signTypedData_v4` requests over the Multichain API (#25131)
+- Updated Deposit page selectors to have consistent styling without borders (#25128)
+- Updated Deposit page header to use back button instead of close button (#25126)
+- Removed background from payment method icons in deposit flow (#25122)
+- Set OPTIN_META_METRICS_UI_SEEN flag when user login with social login (#24979)
+  unset OPTIN_META_METRICS_UI_SEEN flag when user create
+  srp wallet
+- Fixed a bug in the network name for the token detail page (#25106)
+- Fixed Perps WebSocket race conditions and error handling during reconnection/initialization states (#25029)
+- Changed swaps network filtering logic to only filter source networks (#25092)
+
 ## [7.63.1]
 
 ### Fixed
 
 - fix: Android ANR bug (#25596)
 - fix(analytics): cp-7.63.1 correct capitalization in Deep link event name (#25599)
-- feat(perps): sdk reconnect on native socket event (#25022) (#25573)
+- feat(perps): sdk reconnect on native socket event (#25022, #25573)
 
 ## [7.63.0]
 
@@ -10210,7 +10375,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.63.1...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.65.0...HEAD
+[7.65.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.63.1...v7.65.0
 [7.63.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.63.0...v7.63.1
 [7.63.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.62.2...v7.63.0
 [7.62.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.62.1...v7.62.2
