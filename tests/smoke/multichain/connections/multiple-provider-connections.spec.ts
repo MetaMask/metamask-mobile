@@ -1,27 +1,27 @@
-import { SmokeNetworkExpansion } from '../../../tags';
-import Assertions from '../../../../tests/framework/Assertions';
+import { SmokeNetworkExpansion } from '../../../../e2e/tags';
+import Assertions from '../../../framework/Assertions';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
   DEFAULT_FIXTURE_ACCOUNT_2,
-} from '../../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
-import TestDApp from '../../../pages/Browser/TestDApp';
-import Browser from '../../../pages/Browser/BrowserView';
-import ConnectBottomSheet from '../../../pages/Browser/ConnectBottomSheet';
-import ConnectedAccountsModal from '../../../pages/Browser/ConnectedAccountsModal';
-import NetworkConnectMultiSelector from '../../../pages/Browser/NetworkConnectMultiSelector';
+} from '../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import TestDApp from '../../../../e2e/pages/Browser/TestDApp';
+import Browser from '../../../../e2e/pages/Browser/BrowserView';
+import ConnectBottomSheet from '../../../../e2e/pages/Browser/ConnectBottomSheet';
+import ConnectedAccountsModal from '../../../../e2e/pages/Browser/ConnectedAccountsModal';
+import NetworkConnectMultiSelector from '../../../../e2e/pages/Browser/NetworkConnectMultiSelector';
 import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
-import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../../../e2e/viewHelper';
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
-import { DappVariants } from '../../../../tests/framework/Constants';
-import { createLogger } from '../../../../tests/framework/logger';
-import { requestPermissions } from './helpers';
+import { DappVariants } from '../../../framework/Constants';
+import { createLogger } from '../../../framework/logger';
+import { requestPermissions } from '../../../helpers/multichain/connections/helpers';
 
 const logger = createLogger({
-  name: 'multiple-provider-connections.spec.ts',
+  name: 'multiple-provider-connections.spec',
 });
 
 describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
