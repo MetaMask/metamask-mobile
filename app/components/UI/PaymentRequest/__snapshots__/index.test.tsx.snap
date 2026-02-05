@@ -287,69 +287,7 @@ exports[`PaymentRequest renders correctly 1`] = `
                       "marginRight": 12,
                     }
                   }
-                >
-                  <View
-                    useNativeDriver={true}
-                  >
-                    <View
-                      fadeIn={true}
-                      source={
-                        {
-                          "uri": "",
-                        }
-                      }
-                      style={
-                        [
-                          {
-                            "borderRadius": 12,
-                            "height": 24,
-                            "width": 24,
-                          },
-                          undefined,
-                          {
-                            "borderRadius": 25,
-                            "height": 50,
-                            "width": 50,
-                          },
-                          undefined,
-                          {
-                            "height": 50,
-                            "width": 50,
-                          },
-                        ]
-                      }
-                    />
-                    <View
-                      collapsable={false}
-                      style={
-                        {
-                          "bottom": 0,
-                          "left": 0,
-                          "opacity": 1,
-                          "position": "absolute",
-                          "right": 0,
-                          "top": 0,
-                        }
-                      }
-                    >
-                      <View
-                        style={
-                          [
-                            {
-                              "borderRadius": 25,
-                              "height": 50,
-                              "width": 50,
-                            },
-                            {
-                              "backgroundColor": "#eee",
-                            },
-                            undefined,
-                          ]
-                        }
-                      />
-                    </View>
-                  </View>
-                </View>
+                />
                 <View
                   style={
                     {
@@ -821,69 +759,7 @@ exports[`PaymentRequest renders correctly with network picker when feature flag 
                       "marginRight": 12,
                     }
                   }
-                >
-                  <View
-                    useNativeDriver={true}
-                  >
-                    <View
-                      fadeIn={true}
-                      source={
-                        {
-                          "uri": "",
-                        }
-                      }
-                      style={
-                        [
-                          {
-                            "borderRadius": 12,
-                            "height": 24,
-                            "width": 24,
-                          },
-                          undefined,
-                          {
-                            "borderRadius": 25,
-                            "height": 50,
-                            "width": 50,
-                          },
-                          undefined,
-                          {
-                            "height": 50,
-                            "width": 50,
-                          },
-                        ]
-                      }
-                    />
-                    <View
-                      collapsable={false}
-                      style={
-                        {
-                          "bottom": 0,
-                          "left": 0,
-                          "opacity": 1,
-                          "position": "absolute",
-                          "right": 0,
-                          "top": 0,
-                        }
-                      }
-                    >
-                      <View
-                        style={
-                          [
-                            {
-                              "borderRadius": 25,
-                              "height": 50,
-                              "width": 50,
-                            },
-                            {
-                              "backgroundColor": "#eee",
-                            },
-                            undefined,
-                          ]
-                        }
-                      />
-                    </View>
-                  </View>
-                </View>
+                />
                 <View
                   style={
                     {
