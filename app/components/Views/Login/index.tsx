@@ -332,6 +332,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         return false;
       }
 
+      setLoading(true);
       // show alert to user that will login with password instead of biometric authentication
       Alert.alert(
         strings('login.biometric_authentication_cancelled_title'),
@@ -353,7 +354,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         ],
       );
       setError(strings('login.biometric_authentication_cancelled'));
-      await Authentication.resetPassword();
       return true;
     },
     [setError, setLoading, handleLoginError, unlockWallet],

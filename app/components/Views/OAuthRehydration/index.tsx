@@ -653,7 +653,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
   const shouldRenderBiometricSwitch = useMemo(() => {
     if (renderBiometricSwitch && biometryType) {
-      return biometryType.toString() ?? null;
+      return biometryType.toString();
     }
     return null;
   }, [renderBiometricSwitch, biometryType]);
