@@ -66,6 +66,7 @@ import type {
   PerpsAssetCtx,
   FrontendOrder,
   SpotMetaResponse,
+  ClearinghouseStateResponse,
 } from '../../types/hyperliquid-types';
 import {
   createErrorResult,
@@ -4332,6 +4333,19 @@ export class HyperLiquidProvider implements PerpsProvider {
   }
 
   /**
+   * Get clearinghouse state for a user in readOnly mode.
+   * Creates a standalone InfoClient without requiring full initialization.
+   */
+  private async getReadOnlyClearinghouseState(
+    userAddress: string,
+  ): Promise<ClearinghouseStateResponse> {
+    const standaloneInfoClient = createStandaloneInfoClient({
+      isTestnet: this.clientService.isTestnetMode(),
+    });
+    return standaloneInfoClient.clearinghouseState({ user: userAddress });
+  }
+
+  /**
    * Get current positions with TP/SL prices
    *
    * Note on TP/SL orders:
@@ -4354,15 +4368,9 @@ export class HyperLiquidProvider implements PerpsProvider {
           { userAddress: params.userAddress },
         );
 
-        // Create standalone client - bypasses all initialization (wallet, WebSocket, etc.)
-        const standaloneInfoClient = createStandaloneInfoClient({
-          isTestnet: this.clientService.isTestnetMode(),
-        });
-
-        // Query main DEX only (no HIP-3 multi-DEX in readOnly mode)
-        const state = await standaloneInfoClient.clearinghouseState({
-          user: params.userAddress,
-        });
+        const state = await this.getReadOnlyClearinghouseState(
+          params.userAddress,
+        );
 
         // Transform positions - skip TP/SL lookup (would require additional API call)
         const positions = state.assetPositions
@@ -5003,15 +5011,9 @@ export class HyperLiquidProvider implements PerpsProvider {
           { userAddress: params.userAddress },
         );
 
-        // Create standalone client - bypasses all initialization (wallet, WebSocket, etc.)
-        const standaloneInfoClient = createStandaloneInfoClient({
-          isTestnet: this.clientService.isTestnetMode(),
-        });
-
-        // Query main DEX only (no HIP-3 multi-DEX, no spot balance in readOnly mode)
-        const perpsState = await standaloneInfoClient.clearinghouseState({
-          user: params.userAddress,
-        });
+        const perpsState = await this.getReadOnlyClearinghouseState(
+          params.userAddress,
+        );
 
         // Transform to AccountState - simpler version without spot balance aggregation
         const accountState = adaptAccountStateFromSDK(perpsState);

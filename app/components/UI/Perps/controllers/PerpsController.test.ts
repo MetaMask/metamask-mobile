@@ -3747,12 +3747,11 @@ describe('PerpsController', () => {
         expect(MockedHyperLiquidProvider).not.toHaveBeenCalled();
       });
 
-      it('creates temporary provider for readOnly queries when no provider exists', async () => {
-        // Arrange - no provider set up (activeProvider is 'aggregated' which means undefined in providers map)
+      it('creates temporary provider for readOnly queries when no activeProviderInstance', async () => {
+        // Arrange - no activeProviderInstance set (pre-initialization)
         const mockPositions = [
           createMockPosition({ symbol: 'ETH', size: '2.0' }),
         ];
-        // Create a temporary mock provider for this test that returns custom positions
         const tempMockProvider = createMockHyperLiquidProvider();
         tempMockProvider.getPositions.mockResolvedValue(mockPositions);
         MockedHyperLiquidProvider.mockImplementation(() => tempMockProvider);
@@ -3768,7 +3767,7 @@ describe('PerpsController', () => {
           userAddress: mockUserAddress,
         });
 
-        // Assert - should create a temporary provider
+        // Assert - should create a temporary provider for pre-init discovery
         expect(MockedHyperLiquidProvider).toHaveBeenCalledWith(
           expect.objectContaining({
             isTestnet: false,
@@ -3782,7 +3781,6 @@ describe('PerpsController', () => {
         const mockPositions = [
           createMockPosition({ symbol: 'BTC', size: '1.0' }),
         ];
-        // Create a temporary mock provider for this test
         const tempMockProvider = createMockHyperLiquidProvider();
         tempMockProvider.getPositions.mockResolvedValue(mockPositions);
         MockedHyperLiquidProvider.mockImplementation(() => tempMockProvider);
@@ -3844,13 +3842,12 @@ describe('PerpsController', () => {
         expect(MockedHyperLiquidProvider).not.toHaveBeenCalled();
       });
 
-      it('creates temporary provider for readOnly queries when no provider exists', async () => {
-        // Arrange
+      it('creates temporary provider for readOnly queries when no activeProviderInstance', async () => {
+        // Arrange - no activeProviderInstance set (pre-initialization)
         const mockAccountState = createMockAccountState({
           totalBalance: '25000',
           availableBalance: '20000',
         });
-        // Create a temporary mock provider for this test
         const tempMockProvider = createMockHyperLiquidProvider();
         tempMockProvider.getAccountState.mockResolvedValue(mockAccountState);
         MockedHyperLiquidProvider.mockImplementation(() => tempMockProvider);
@@ -3866,7 +3863,7 @@ describe('PerpsController', () => {
           userAddress: mockUserAddress,
         });
 
-        // Assert - should create a temporary provider
+        // Assert - should create a temporary provider for pre-init discovery
         expect(MockedHyperLiquidProvider).toHaveBeenCalledWith(
           expect.objectContaining({
             isTestnet: true,
@@ -3876,11 +3873,10 @@ describe('PerpsController', () => {
       });
 
       it('bypasses getActiveProvider check for readOnly queries', async () => {
-        // Arrange - controller not initialized
+        // Arrange - controller not initialized (no provider available via normal path)
         const mockAccountState = createMockAccountState({
           totalBalance: '10000',
         });
-        // Create a temporary mock provider for this test
         const tempMockProvider = createMockHyperLiquidProvider();
         tempMockProvider.getAccountState.mockResolvedValue(mockAccountState);
         MockedHyperLiquidProvider.mockImplementation(() => tempMockProvider);

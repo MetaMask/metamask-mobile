@@ -184,9 +184,10 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   );
 
   // Check if user has a position for this asset (only if perps is enabled and market exists)
-  const { position: perpsPosition } = usePerpsPositionForAsset(
-    isPerpsEnabled && hasPerpsMarket ? token.symbol : null,
-  );
+  const { position: perpsPosition, isLoading: isPerpsPositionLoading } =
+    usePerpsPositionForAsset(
+      isPerpsEnabled && hasPerpsMarket ? token.symbol : null,
+    );
 
   const isTokenTrustworthy = isTokenTrustworthyForPerps(token);
 
@@ -323,7 +324,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           {isPerpsEnabled &&
             hasPerpsMarket &&
             marketData &&
-            isTokenTrustworthy && (
+            isTokenTrustworthy &&
+            !isPerpsPositionLoading && (
               <>
                 <View style={styles.perpsPositionHeader}>
                   <DSText variant={TextVariant.HeadingMD}>
