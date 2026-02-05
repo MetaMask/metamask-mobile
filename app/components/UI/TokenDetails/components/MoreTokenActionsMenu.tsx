@@ -99,49 +99,12 @@ const MoreTokenActionsMenu = () => {
     [closeBottomSheetAndNavigate, navigation],
   );
 
-  // Fund action handlers (same as FundActionMenu)
-  const handleBuyUnified = useCallback(() => {
-    closeBottomSheetAndNavigate(() => {
-      if (onBuy) {
-        onBuy();
-      } else {
-        goToBuy({ assetId: asset.address });
-      }
-    });
-
-    if (!onBuy) {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
-          .addProperties({
-            text: 'Buy',
-            location: 'MoreTokenActionsMenu',
-            chain_id_destination: getDecimalChainId(asset.chainId),
-            ramp_type: 'UNIFIED_BUY',
-            region: rampGeodetectedRegion,
-            ramp_routing: rampsButtonClickData.ramp_routing,
-            is_authenticated: rampsButtonClickData.is_authenticated,
-            preferred_provider: rampsButtonClickData.preferred_provider,
-            order_count: rampsButtonClickData.order_count,
-          })
-          .build(),
-      );
-    }
-  }, [
-    closeBottomSheetAndNavigate,
-    onBuy,
-    goToBuy,
-    asset.address,
-    asset.chainId,
-    trackEvent,
-    createEventBuilder,
-    rampGeodetectedRegion,
-    rampsButtonClickData,
-  ]);
-
   const handleBuy = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
       if (onBuy) {
         onBuy();
+      } else if (rampUnifiedV1Enabled) {
+        goToBuy({ assetId: asset.address });
       } else {
         goToAggregator({ assetId: asset.address });
       }
@@ -154,7 +117,7 @@ const MoreTokenActionsMenu = () => {
             text: 'Buy',
             location: 'MoreTokenActionsMenu',
             chain_id_destination: getDecimalChainId(asset.chainId),
-            ramp_type: 'BUY',
+            ramp_type: rampUnifiedV1Enabled ? 'UNIFIED_BUY' : 'BUY',
             region: rampGeodetectedRegion,
             ramp_routing: rampsButtonClickData.ramp_routing,
             is_authenticated: rampsButtonClickData.is_authenticated,
@@ -164,14 +127,18 @@ const MoreTokenActionsMenu = () => {
           .build(),
       );
 
-      trace({
-        name: TraceName.LoadRampExperience,
-        tags: { rampType: RampType.BUY },
-      });
+      if (!rampUnifiedV1Enabled) {
+        trace({
+          name: TraceName.LoadRampExperience,
+          tags: { rampType: RampType.BUY },
+        });
+      }
     }
   }, [
     closeBottomSheetAndNavigate,
     onBuy,
+    rampUnifiedV1Enabled,
+    goToBuy,
     goToAggregator,
     asset.address,
     asset.chainId,
@@ -282,7 +249,7 @@ const MoreTokenActionsMenu = () => {
         iconName: IconName.AttachMoney,
         testID: WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON,
         isVisible: true,
-        onPress: rampUnifiedV1Enabled ? handleBuyUnified : handleBuy,
+        onPress: handleBuy,
       });
     }
 
@@ -319,10 +286,8 @@ const MoreTokenActionsMenu = () => {
     asset.chainId,
     asset.symbol,
     explorer,
-    rampUnifiedV1Enabled,
     onReceive,
     handleReceive,
-    handleBuyUnified,
     handleBuy,
     handleViewOnBlockExplorer,
     handleRemoveToken,
