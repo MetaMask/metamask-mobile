@@ -316,7 +316,7 @@ builds:
 
   # Flask test builds (QA)
   flask-test:
-    github_environment: build-test
+    github_environment: build-flask-uat
     signing: *signing_flask_uat
     env:
       METAMASK_ENVIRONMENT: "test"
