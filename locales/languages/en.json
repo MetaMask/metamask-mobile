@@ -454,11 +454,7 @@
     "reset_wallet_desc_bold": "permanently erased",
     "reset_wallet_desc_2": "from MetaMask on this device. This can’t be undone.",
     "reset_wallet_desc_login": "To restore your wallet, you can use your Secret Recovery Phrase, or your Google or Apple account password. MetaMask doesn’t have this information.",
-    "reset_wallet_desc_srp": "To restore your wallet, make sure you have your Secret Recovery Phrase. MetaMask doesn’t have this information.",
-    "biometric_authentication_cancelled": "Biometric authentication cancelled",
-    "biometric_authentication_cancelled_title": "Biometric Setup Failed",
-    "biometric_authentication_cancelled_description": "Please re-setup biometric authentication from the settings.",
-    "biometric_authentication_cancelled_button": "Confirm"
+    "reset_wallet_desc_srp": "To restore your wallet, make sure you have your Secret Recovery Phrase. MetaMask doesn’t have this information."
   },
   "connect_hardware": {
     "title_select_hardware": "Connect a hardware wallet",

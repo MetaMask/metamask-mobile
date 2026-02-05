@@ -3,7 +3,6 @@ import { LoginViewSelectors } from '../Login/LoginView.testIds';
 import { fireEvent, act, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Routes from '../../../constants/navigation/Routes';
-import Authentication from '../../../core/Authentication';
 import Engine from '../../../core/Engine';
 import OAuthRehydration from './index';
 import OAuthService from '../../../core/OAuthService/OAuthService';
@@ -21,12 +20,8 @@ import { useNetInfo } from '@react-native-community/netinfo';
 import Logger from '../../../util/Logger';
 import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
-import ReduxService from '../../../core/redux/ReduxService';
-import { ReduxStore } from '../../../core/redux/types';
-import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 
 const mockEngine = jest.mocked(Engine);
-const mockAuthenticationGetType = jest.spyOn(Authentication, 'getType');
 
 const mockGetAuthType = jest.fn();
 const mockComponentAuthenticationType = jest.fn();
@@ -35,7 +30,6 @@ const mockLockApp = jest.fn();
 const mockReauthenticate = jest.fn();
 const mockRevealSRP = jest.fn();
 const mockRevealPrivateKey = jest.fn();
-const mockUpdateAuthPreference = jest.fn();
 
 jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
   __esModule: true,
@@ -47,7 +41,6 @@ jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
     reauthenticate: mockReauthenticate,
     revealSRP: mockRevealSRP,
     revealPrivateKey: mockRevealPrivateKey,
-    updateAuthPreference: mockUpdateAuthPreference,
   }),
 }));
 
@@ -71,7 +64,7 @@ jest.mock('../../../util/analytics/vaultCorruptionTracking', () => ({
 
 jest.mock('../../../util/errorHandling', () => ({
   containsErrorMessage: (error: Error, message: string) =>
-    error.toString().toLowerCase().includes(message.toLowerCase()),
+    error.message.includes(message),
 }));
 
 // Mock useMetrics
@@ -142,34 +135,9 @@ jest.mock('../../../store/storage-wrapper', () => ({
 const mockTrackOnboarding = trackOnboarding as jest.Mock;
 const mockUseNetInfo = useNetInfo as jest.Mock;
 
-const createMockReduxStore = () => {
-  const defaultState = {
-    user: {
-      existingUser: false,
-    },
-    security: {
-      allowLoginWithRememberMe: false,
-    },
-    settings: {
-      lockTime: -1,
-    },
-  };
-
-  return {
-    dispatch: jest.fn(),
-    getState: jest.fn(() => defaultState),
-    subscribe: jest.fn(),
-    replaceReducer: jest.fn(),
-    [Symbol.observable]: jest.fn(),
-  } as unknown as ReduxStore;
-};
-
 describe('OAuthRehydration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Mock Redux store for all tests
-    const mockStore = createMockReduxStore();
-    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
     mockRoute.mockReturnValue({
       params: { locked: false, oauthLoginSuccess: true },
     });
@@ -186,19 +154,6 @@ describe('OAuthRehydration', () => {
     mockUseNetInfo.mockReturnValue({
       isConnected: true,
       isInternetReachable: true,
-    });
-    mockUpdateAuthPreference.mockResolvedValue(undefined);
-    mockAuthenticationGetType.mockResolvedValue({
-      currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
-    });
-    // Reset isDeletingInProgress to false to prevent test pollution
-    mockIsDeletingInProgress.mockReturnValue(false);
-  });
-
-  afterEach(async () => {
-    // Flush any pending async operations to prevent test pollution
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
     });
   });
 
@@ -239,98 +194,6 @@ describe('OAuthRehydration', () => {
       // Assert
       await waitFor(() => {
         expect(mockTrackOnboarding).toHaveBeenCalled();
-      });
-    });
-
-    it('passes oauth2Login true for rehydration login', async () => {
-      // Arrange
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      // Act
-      fireEvent.changeText(passwordInput, 'validPassword123');
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      // Assert
-      await waitFor(() => {
-        expect(mockUnlockWallet).toHaveBeenCalledWith(
-          expect.objectContaining({
-            password: 'validPassword123',
-            authPreference: expect.objectContaining({ oauth2Login: true }),
-          }),
-        );
-      });
-    });
-
-    it('tracks biometrics as true in REHYDRATION_COMPLETED on successful login', async () => {
-      // Arrange
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-      mockTrackOnboarding.mockClear();
-
-      // Act
-      fireEvent.changeText(passwordInput, 'validPassword123');
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      // Assert - trackOnboarding should be called with biometrics: true
-      await waitFor(() => {
-        expect(mockTrackOnboarding).toHaveBeenCalled();
-        const rehydrationCompletedCall = mockTrackOnboarding.mock.calls.find(
-          (call) =>
-            call[0]?.properties?.biometrics === true &&
-            call[0]?.properties?.account_type === 'social',
-        );
-        expect(rehydrationCompletedCall).toBeDefined();
-      });
-    });
-
-    it('tracks biometrics as false when biometric toggle is off', async () => {
-      // Arrange
-      mockUnlockWallet
-        .mockRejectedValueOnce(new Error('Cancel'))
-        .mockResolvedValueOnce(undefined);
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      // Act
-      fireEvent.changeText(passwordInput, 'password123');
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      await waitFor(() => {
-        expect(
-          getByTestId(LoginViewSelectors.BIOMETRIC_SWITCH),
-        ).toBeOnTheScreen();
-      });
-
-      mockTrackOnboarding.mockClear();
-
-      await act(async () => {
-        fireEvent(
-          getByTestId(LoginViewSelectors.BIOMETRIC_SWITCH),
-          'onValueChange',
-          false,
-        );
-      });
-
-      fireEvent.changeText(passwordInput, 'password123');
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      // Assert
-      await waitFor(() => {
-        const rehydrationCompletedCall = mockTrackOnboarding.mock.calls.find(
-          (call) =>
-            call[0]?.properties?.biometrics === false &&
-            call[0]?.properties?.account_type === 'social',
-        );
-        expect(rehydrationCompletedCall).toBeDefined();
       });
     });
   });
@@ -839,88 +702,9 @@ describe('OAuthRehydration', () => {
         );
       });
     });
-
-    it('passes oauth2Login false when seedless password is outdated', async () => {
-      // Arrange
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: true,
-          isSeedlessPasswordOutdated: true,
-        },
-      });
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      // Act
-      fireEvent.changeText(passwordInput, 'newPassword123');
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      // Assert
-      await waitFor(() => {
-        expect(mockUnlockWallet).toHaveBeenCalledWith(
-          expect.objectContaining({
-            password: 'newPassword123',
-            authPreference: expect.objectContaining({ oauth2Login: false }),
-          }),
-        );
-      });
-    });
-
-    it('navigates to delete wallet when forgot password is pressed', () => {
-      // Arrange
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: true,
-          isSeedlessPasswordOutdated: true,
-        },
-      });
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      const resetWalletButton = getByTestId(LoginViewSelectors.RESET_WALLET);
-
-      // Act
-      fireEvent.press(resetWalletButton);
-
-      // Assert
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
-        expect.objectContaining({
-          screen: Routes.MODAL.DELETE_WALLET,
-          params: { oauthLoginSuccess: true },
-        }),
-      );
-    });
   });
 
   describe('biometric cancellation', () => {
-    it('renders biometric option after cancellation', async () => {
-      // Arrange
-      mockUnlockWallet.mockRejectedValue(new Error('Cancel'));
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      // Act
-      fireEvent.changeText(passwordInput, 'password123');
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      // Assert
-      await waitFor(() => {
-        expect(
-          getByTestId(LoginViewSelectors.BIOMETRIC_SWITCH),
-        ).toBeOnTheScreen();
-        expect(
-          getByTestId(LoginViewSelectors.PASSWORD_ERROR),
-        ).toHaveTextContent(
-          strings('login.biometric_authentication_cancelled'),
-        );
-      });
-    });
-
     it('does not track REHYDRATION_PASSWORD_FAILED when Android biometric is cancelled', async () => {
       // Arrange
       mockUnlockWallet.mockRejectedValue(new Error('Cancel'));
