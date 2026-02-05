@@ -1,14 +1,16 @@
-import React, { useCallback, useRef } from 'react';
-import { useWindowDimensions } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useWindowDimensions, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
+  Easing,
 } from 'react-native-reanimated';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import { AnimationDuration } from '../../../../../component-library/constants/animation.constants';
 import Text, {
   TextVariant,
   TextColor,
@@ -34,7 +36,10 @@ export const createPaymentSelectionModalNavigationDetails =
     Routes.RAMP.MODALS.PAYMENT_SELECTION,
   );
 
-const ANIMATION_DURATION = 300;
+enum ViewType {
+  PAYMENT = 'PAYMENT',
+  PROVIDER = 'PROVIDER',
+}
 
 function PaymentSelectionModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -53,32 +58,40 @@ function PaymentSelectionModal() {
     setSelectedPaymentMethod,
   } = useRampsController();
 
+  const [activeView, setActiveView] = useState(ViewType.PAYMENT);
   const translateX = useSharedValue(0);
 
-  const paymentPageStyle = useAnimatedStyle(() => ({
+  useEffect(() => {
+    const animationConfig = {
+      duration: AnimationDuration.Regularly,
+      easing: Easing.out(Easing.ease),
+    };
+
+    if (activeView === ViewType.PROVIDER) {
+      translateX.value = withTiming(-screenWidth, animationConfig);
+    } else {
+      translateX.value = withTiming(0, animationConfig);
+    }
+  }, [activeView, screenWidth, translateX]);
+
+  const animatedContainerStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
   }));
 
-  const providerPageStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value + screenWidth }],
-  }));
-
   const handleChangeProviderPress = useCallback(() => {
-    translateX.value = withTiming(-screenWidth, {
-      duration: ANIMATION_DURATION,
-    });
-  }, [screenWidth, translateX]);
+    setActiveView(ViewType.PROVIDER);
+  }, []);
 
   const handleProviderBack = useCallback(() => {
-    translateX.value = withTiming(0, { duration: ANIMATION_DURATION });
-  }, [translateX]);
+    setActiveView(ViewType.PAYMENT);
+  }, []);
 
   const handleProviderSelect = useCallback(
     (provider: Provider) => {
       setSelectedProvider(provider);
-      translateX.value = withTiming(0, { duration: ANIMATION_DURATION });
+      setActiveView(ViewType.PAYMENT);
     },
-    [setSelectedProvider, translateX],
+    [setSelectedProvider],
   );
 
   const handlePaymentMethodPress = useCallback(
@@ -100,31 +113,6 @@ function PaymentSelectionModal() {
     [handlePaymentMethodPress, selectedPaymentMethod],
   );
 
-  const renderFooter = useCallback(
-    () =>
-      selectedProvider ? (
-        <Box
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="px-4 py-4"
-        >
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {strings('fiat_on_ramp.buying_via', {
-              providerName: selectedProvider.name,
-            })}{' '}
-            <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Primary}
-              onPress={handleChangeProviderPress}
-            >
-              {strings('fiat_on_ramp.change_provider')}
-            </Text>
-          </Text>
-        </Box>
-      ) : null,
-    [selectedProvider, handleChangeProviderPress],
-  );
-
   const renderListContent = () => (
     <FlatList
       style={styles.list}
@@ -133,38 +121,60 @@ function PaymentSelectionModal() {
       keyExtractor={(item) => item.id}
       keyboardDismissMode="none"
       keyboardShouldPersistTaps="always"
-      ListFooterComponent={renderFooter}
     />
   );
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <Box
-        twClassName="overflow-hidden relative"
-        style={{ minHeight: screenHeight * 0.5 }}
-      >
-        <Animated.View style={[styles.overlay, paymentPageStyle]}>
-          <Box
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Center}
-            twClassName="px-4 py-3"
-          >
-            <Text variant={TextVariant.HeadingMD}>
-              {strings('fiat_on_ramp.pay_with')}
-            </Text>
-          </Box>
-          {renderListContent()}
+      <View style={styles.containerOuter}>
+        <Animated.View style={[styles.containerInner, animatedContainerStyle]}>
+          <View style={styles.panel}>
+            <View style={styles.paymentPanelContent}>
+              <Box
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Center}
+                twClassName="px-4 py-3"
+              >
+                <Text variant={TextVariant.HeadingMD}>
+                  {strings('fiat_on_ramp.pay_with')}
+                </Text>
+              </Box>
+              {renderListContent()}
+            </View>
+            {selectedProvider ? (
+              <Box
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Center}
+                style={styles.footer}
+              >
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                >
+                  {strings('fiat_on_ramp.buying_via', {
+                    providerName: selectedProvider.name,
+                  })}{' '}
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={TextColor.Primary}
+                    onPress={handleChangeProviderPress}
+                  >
+                    {strings('fiat_on_ramp.change_provider')}
+                  </Text>
+                </Text>
+              </Box>
+            ) : null}
+          </View>
+          <View style={styles.panel}>
+            <ProviderSelection
+              providers={providers}
+              selectedProvider={selectedProvider}
+              onProviderSelect={handleProviderSelect}
+              onBack={handleProviderBack}
+            />
+          </View>
         </Animated.View>
-
-        <Animated.View style={[styles.overlay, providerPageStyle]}>
-          <ProviderSelection
-            providers={providers}
-            selectedProvider={selectedProvider}
-            onProviderSelect={handleProviderSelect}
-            onBack={handleProviderBack}
-          />
-        </Animated.View>
-      </Box>
+      </View>
     </BottomSheet>
   );
 }

@@ -7,17 +7,33 @@ interface PaymentSelectionModalStyleSheetVars {
 
 const styleSheet = (params: { vars: PaymentSelectionModalStyleSheetVars }) => {
   const { vars } = params;
-  const { screenHeight, screenWidth } = vars;
+  const { screenHeight } = vars;
 
   return StyleSheet.create({
     list: {
-      maxHeight: screenHeight * 0.5,
+      flex: 1,
     },
-    overlay: {
-      position: 'absolute',
-      width: screenWidth,
-      top: 0,
-      left: 0,
+    containerOuter: {
+      height: screenHeight * 0.6,
+      overflow: 'hidden',
+    },
+    containerInner: {
+      flexDirection: 'row',
+      width: '200%',
+      height: '100%',
+    },
+    panel: {
+      width: '50%',
+      height: '100%',
+    },
+    paymentPanelContent: {
+      flex: 1,
+    },
+    footer: {
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
   });
 };
