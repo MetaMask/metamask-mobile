@@ -1,5 +1,5 @@
 import { Mockttp } from 'mockttp';
-import { setupMockPostRequest } from '../../../tests/api-mocking/helpers/mockHelpers';
+import { setupMockPostRequest } from '../../api-mocking/helpers/mockHelpers';
 
 /**
  * Mock real genesis blocks for the chains to not require hitting the network.
