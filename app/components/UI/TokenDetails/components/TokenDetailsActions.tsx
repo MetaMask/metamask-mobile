@@ -9,16 +9,7 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import { useSelector } from 'react-redux';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
-import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
 import Routes from '../../../../constants/navigation/Routes';
-import { useMetrics } from '../../../hooks/useMetrics';
-import { useRampNavigation } from '../../Ramp/hooks/useRampNavigation';
-import useRampsUnifiedV1Enabled from '../../Ramp/hooks/useRampsUnifiedV1Enabled';
-import { useRampsButtonClickData } from '../../Ramp/hooks/useRampsButtonClickData';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { trace, TraceName } from '../../../../util/trace';
-import { RampType } from '../../../../reducers/fiatOrders/types';
-import { getDecimalChainId } from '../../../../util/networks';
 import { TokenI } from '../../Tokens/types';
 
 // Height of MainActionButton: paddingVertical (16 * 2) + Icon (24px) + label marginTop (2) + label lineHeight (~16)
@@ -47,7 +38,7 @@ export interface TokenDetailsActionsProps {
   isBuyable: boolean;
   isNativeCurrency: boolean;
   token: TokenI;
-  onBuy?: () => void;
+  onBuy: () => void;
   onLong?: () => void;
   onShort?: () => void;
   onSend: () => void;
@@ -93,13 +84,8 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const canSignTransactions = useSelector(selectCanSignTransactions);
-  const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const navigation = useNavigation();
   const { navigate } = navigation;
-  const { trackEvent, createEventBuilder } = useMetrics();
-  const { goToBuy, goToAggregator } = useRampNavigation();
-  const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
-  const rampsButtonClickData = useRampsButtonClickData();
 
   // Prevent rapid navigation clicks - locks all buttons during navigation
   const navigationLockRef = useRef(false);
@@ -127,53 +113,8 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
   }, []);
 
   const handleBuyPress = useCallback(() => {
-    withNavigationLock(() => {
-      if (onBuy) {
-        onBuy();
-      } else if (rampUnifiedV1Enabled) {
-        goToBuy({ assetId: token.address });
-      } else {
-        goToAggregator({ assetId: token.address });
-      }
-
-      if (!onBuy) {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
-            .addProperties({
-              text: 'Buy',
-              location: 'TokenDetailsActions',
-              chain_id_destination: getDecimalChainId(token.chainId),
-              ramp_type: rampUnifiedV1Enabled ? 'UNIFIED_BUY' : 'BUY',
-              region: rampGeodetectedRegion,
-              ramp_routing: rampsButtonClickData.ramp_routing,
-              is_authenticated: rampsButtonClickData.is_authenticated,
-              preferred_provider: rampsButtonClickData.preferred_provider,
-              order_count: rampsButtonClickData.order_count,
-            })
-            .build(),
-        );
-
-        if (!rampUnifiedV1Enabled) {
-          trace({
-            name: TraceName.LoadRampExperience,
-            tags: { rampType: RampType.BUY },
-          });
-        }
-      }
-    });
-  }, [
-    withNavigationLock,
-    onBuy,
-    rampUnifiedV1Enabled,
-    goToBuy,
-    goToAggregator,
-    token.address,
-    token.chainId,
-    trackEvent,
-    createEventBuilder,
-    rampGeodetectedRegion,
-    rampsButtonClickData,
-  ]);
+    withNavigationLock(onBuy);
+  }, [withNavigationLock, onBuy]);
 
   const handleLongPress = useCallback(() => {
     withNavigationLock(() => {

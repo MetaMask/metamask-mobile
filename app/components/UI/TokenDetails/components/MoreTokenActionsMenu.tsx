@@ -8,19 +8,13 @@ import { IconName, Box } from '@metamask/design-system-react-native';
 import ActionListItem from '../../../../component-library/components-temp/ActionListItem';
 import { strings } from '../../../../../locales/i18n';
 import { useMetrics } from '../../../hooks/useMetrics';
-import { useRampNavigation } from '../../Ramp/hooks/useRampNavigation';
 import useBlockExplorer from '../../../hooks/useBlockExplorer';
-import useRampsUnifiedV1Enabled from '../../Ramp/hooks/useRampsUnifiedV1Enabled';
-import { useRampsButtonClickData } from '../../Ramp/hooks/useRampsButtonClickData';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
 import NotificationManager from '../../../../core/NotificationManager';
 import { selectTokenList } from '../../../../selectors/tokenListController';
 import { getDecimalChainId } from '../../../../util/networks';
-import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { trace, TraceName } from '../../../../util/trace';
-import { RampType } from '../../../../reducers/fiatOrders/types';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../Views/WalletActions/WalletActionsBottomSheet.testIds';
 import Logger from '../../../../util/Logger';
 import { Hex } from '@metamask/utils';
@@ -33,7 +27,7 @@ export interface MoreTokenActionsMenuParams {
   isBuyable: boolean;
   isNativeCurrency: boolean;
   asset: TokenI;
-  onBuy?: () => void;
+  onBuy: () => void;
   onReceive?: () => void;
 }
 
@@ -69,10 +63,6 @@ const MoreTokenActionsMenu = () => {
   } = route.params;
 
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { goToBuy, goToAggregator } = useRampNavigation();
-  const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
-  const rampsButtonClickData = useRampsButtonClickData();
-  const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const tokenList = useSelector(selectTokenList);
   const explorer = useBlockExplorer(asset.chainId);
 
@@ -100,53 +90,8 @@ const MoreTokenActionsMenu = () => {
   );
 
   const handleBuy = useCallback(() => {
-    closeBottomSheetAndNavigate(() => {
-      if (onBuy) {
-        onBuy();
-      } else if (rampUnifiedV1Enabled) {
-        goToBuy({ assetId: asset.address });
-      } else {
-        goToAggregator({ assetId: asset.address });
-      }
-    });
-
-    if (!onBuy) {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
-          .addProperties({
-            text: 'Buy',
-            location: 'MoreTokenActionsMenu',
-            chain_id_destination: getDecimalChainId(asset.chainId),
-            ramp_type: rampUnifiedV1Enabled ? 'UNIFIED_BUY' : 'BUY',
-            region: rampGeodetectedRegion,
-            ramp_routing: rampsButtonClickData.ramp_routing,
-            is_authenticated: rampsButtonClickData.is_authenticated,
-            preferred_provider: rampsButtonClickData.preferred_provider,
-            order_count: rampsButtonClickData.order_count,
-          })
-          .build(),
-      );
-
-      if (!rampUnifiedV1Enabled) {
-        trace({
-          name: TraceName.LoadRampExperience,
-          tags: { rampType: RampType.BUY },
-        });
-      }
-    }
-  }, [
-    closeBottomSheetAndNavigate,
-    onBuy,
-    rampUnifiedV1Enabled,
-    goToBuy,
-    goToAggregator,
-    asset.address,
-    asset.chainId,
-    trackEvent,
-    createEventBuilder,
-    rampGeodetectedRegion,
-    rampsButtonClickData,
-  ]);
+    closeBottomSheetAndNavigate(onBuy);
+  }, [closeBottomSheetAndNavigate, onBuy]);
 
   const handleReceive = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
