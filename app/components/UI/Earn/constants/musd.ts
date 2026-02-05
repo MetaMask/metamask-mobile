@@ -2,9 +2,10 @@
  * mUSD Conversion Constants for Earn namespace
  */
 
-import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import MusdIcon from '../../../../images/musd-icon-2x.png';
+import { areAddressesEqual } from '../../../../util/address';
 
 export const MUSD_TOKEN = {
   symbol: 'MUSD',
@@ -12,6 +13,11 @@ export const MUSD_TOKEN = {
   decimals: 6,
   imageSource: MusdIcon,
 } as const;
+
+/**
+ * mUSD token decimals (derived from MUSD_TOKEN for single source of truth)
+ */
+export const MUSD_DECIMALS = MUSD_TOKEN.decimals;
 
 export const MUSD_CONVERSION_DEFAULT_CHAIN_ID = CHAIN_IDS.MAINNET;
 
@@ -56,3 +62,46 @@ export const TOAST_TRACKING_CLEANUP_DELAY_MS = 5000;
  * This is a safety fallback to ensure geo-blocking is always active.
  */
 export const DEFAULT_MUSD_BLOCKED_COUNTRIES = ['GB'];
+
+/**
+ * Parameters for checking if a transaction is a mUSD claim for the current view.
+ */
+export interface IsMusdClaimForCurrentViewParams {
+  /** Transaction to check */
+  tx: {
+    type?: TransactionType;
+    status?: string;
+    chainId?: Hex;
+  };
+  /** Token address being viewed (should be lowercased or checksummed) */
+  navAddress: string;
+  /** Token symbol being viewed (should be lowercased) */
+  navSymbol: string;
+  /** Current chain ID */
+  chainId: Hex;
+}
+
+/**
+ * Check if transaction is a Merkl mUSD yield claim that should be shown in current view.
+ * These transactions interact with the Merkl distributor contract (not the mUSD token directly),
+ * so they won't be caught by standard token transfer detection and need special handling.
+ *
+ * @param params - The parameters for the check
+ * @returns true if the transaction should be shown in the current mUSD view
+ */
+export function isMusdClaimForCurrentView({
+  tx,
+  navAddress,
+  navSymbol,
+  chainId,
+}: IsMusdClaimForCurrentViewParams): boolean {
+  const isMusdView =
+    areAddressesEqual(navAddress, MUSD_TOKEN_ADDRESS) ||
+    navSymbol === MUSD_TOKEN.symbol.toLowerCase();
+  return (
+    tx.type === TransactionType.musdClaim &&
+    tx.status !== 'unapproved' &&
+    isMusdView &&
+    chainId === tx.chainId
+  );
+}

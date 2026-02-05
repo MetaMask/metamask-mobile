@@ -36,10 +36,8 @@ import { calculateTotalGas, renderGwei } from './utils-gas';
 import { getTokenTransferData } from '../../Views/confirmations/utils/transaction-pay';
 import { hasTransactionType } from '../../Views/confirmations/utils/transaction';
 import { BigNumber } from 'bignumber.js';
-import {
-  decodeMerklClaimAmount,
-  MUSD_DECIMALS,
-} from '../Earn/components/MerklRewards/constants';
+import { decodeMerklClaimAmount } from '../Earn/components/MerklRewards/constants';
+import { MUSD_DECIMALS } from '../Earn/constants/musd';
 
 const POSITIVE_TRANSFER_TRANSACTION_TYPES = [
   TransactionType.perpsDeposit,

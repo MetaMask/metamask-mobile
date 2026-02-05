@@ -14468,7 +14468,7 @@ exports[`Asset Multichain Functionality should use EVM transactions for EVM acco
 </View>
 `;
 
-exports[`Asset musdClaim Transaction Filtering should NOT show musdClaim transactions when viewing a different token 1`] = `
+exports[`Asset musdClaim Transaction Filtering does NOT show musdClaim transactions when viewing a different token 1`] = `
 <View
   style={
     {
@@ -14713,7 +14713,7 @@ exports[`Asset musdClaim Transaction Filtering should NOT show musdClaim transac
 </View>
 `;
 
-exports[`Asset musdClaim Transaction Filtering should NOT show unapproved musdClaim transactions 1`] = `
+exports[`Asset musdClaim Transaction Filtering does NOT show unapproved musdClaim transactions 1`] = `
 <View
   style={
     {
@@ -14973,7 +14973,7 @@ exports[`Asset musdClaim Transaction Filtering should NOT show unapproved musdCl
 </View>
 `;
 
-exports[`Asset musdClaim Transaction Filtering should show musdClaim transactions when viewing mUSD token by address 1`] = `
+exports[`Asset musdClaim Transaction Filtering shows musdClaim transactions when viewing mUSD token by address 1`] = `
 <View
   style={
     {
@@ -15233,7 +15233,7 @@ exports[`Asset musdClaim Transaction Filtering should show musdClaim transaction
 </View>
 `;
 
-exports[`Asset musdClaim Transaction Filtering should show musdClaim transactions when viewing mUSD token by symbol 1`] = `
+exports[`Asset musdClaim Transaction Filtering shows musdClaim transactions when viewing mUSD token by symbol 1`] = `
 <View
   style={
     {

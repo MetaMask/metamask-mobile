@@ -77,7 +77,7 @@ import {
 import { TOKEN_CATEGORY_HASH } from '../../UI/TransactionElement/utils';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { TransactionType } from '@metamask/transaction-controller';
-import { MUSD_TOKEN_ADDRESS, MUSD_TOKEN } from '../../UI/Earn/constants/musd';
+import { isMusdClaimForCurrentView } from '../../UI/Earn/constants/musd';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF
@@ -360,20 +360,15 @@ class Asset extends PureComponent {
   didTxStatusesChange = (newTxsPending) =>
     this.txsPending.length !== newTxsPending.length;
 
-  // Check if transaction is a Merkl mUSD yield claim that should be shown in current view.
-  // These transactions interact with the Merkl distributor contract (not the mUSD token directly),
-  // so they won't be caught by standard token transfer detection and need special handling.
-  isMusdClaimForCurrentView = (tx) => {
+  // Wrapper for shared mUSD claim detection utility
+  checkIsMusdClaimForCurrentView = (tx) => {
     const { chainId } = this.props;
-    const isMusdView =
-      areAddressesEqual(this.navAddress, MUSD_TOKEN_ADDRESS) ||
-      this.navSymbol?.toLowerCase() === MUSD_TOKEN.symbol.toLowerCase();
-    return (
-      tx.type === TransactionType.musdClaim &&
-      tx.status !== 'unapproved' &&
-      isMusdView &&
-      chainId === tx.chainId
-    );
+    return isMusdClaimForCurrentView({
+      tx,
+      navAddress: this.navAddress,
+      navSymbol: this.navSymbol?.toLowerCase() ?? '',
+      chainId,
+    });
   };
 
   ethFilter = (tx) => {
@@ -386,7 +381,7 @@ class Asset extends PureComponent {
       type,
     } = tx;
 
-    if (this.isMusdClaimForCurrentView(tx)) {
+    if (this.checkIsMusdClaimForCurrentView(tx)) {
       return true;
     }
 
@@ -421,7 +416,7 @@ class Asset extends PureComponent {
       type,
     } = tx;
 
-    if (this.isMusdClaimForCurrentView(tx)) {
+    if (this.checkIsMusdClaimForCurrentView(tx)) {
       return true;
     }
 

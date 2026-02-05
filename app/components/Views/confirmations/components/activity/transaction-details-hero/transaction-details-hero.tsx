@@ -22,9 +22,9 @@ import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 import { BigNumber } from 'bignumber.js';
 import {
   decodeMerklClaimAmount,
-  MUSD_DECIMALS,
   MERKL_CLAIM_CHAIN_ID,
 } from '../../../../../UI/Earn/components/MerklRewards/constants';
+import { MUSD_DECIMALS } from '../../../../../UI/Earn/constants/musd';
 import {
   selectConversionRateByChainId,
   selectCurrencyRates,

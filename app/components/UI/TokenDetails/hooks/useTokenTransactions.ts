@@ -23,8 +23,7 @@ import {
   selectTransactions,
 } from '../../../../selectors/transactionController';
 import { TOKEN_CATEGORY_HASH } from '../../../UI/TransactionElement/utils';
-import { TransactionType } from '@metamask/transaction-controller';
-import { MUSD_TOKEN_ADDRESS, MUSD_TOKEN } from '../../Earn/constants/musd';
+import { isMusdClaimForCurrentView } from '../../Earn/constants/musd';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import {
   selectSelectedInternalAccount,
@@ -270,21 +269,15 @@ export const useTokenTransactions = (
     ///: END:ONLY_INCLUDE_IF
   ]);
 
-  // Check if transaction is a Merkl mUSD yield claim that should be shown in current view.
-  // These transactions interact with the Merkl distributor contract (not the mUSD token directly),
-  // so they won't be caught by standard token transfer detection and need special handling.
-  const isMusdClaimForCurrentView = useCallback(
-    (tx: Transaction): boolean => {
-      const isMusdView =
-        areAddressesEqual(navAddress, MUSD_TOKEN_ADDRESS) ||
-        navSymbol === MUSD_TOKEN.symbol.toLowerCase();
-      return (
-        tx.type === TransactionType.musdClaim &&
-        tx.status !== 'unapproved' &&
-        isMusdView &&
-        chainId === tx.chainId
-      );
-    },
+  // Wrapper for shared mUSD claim detection utility
+  const checkIsMusdClaimForCurrentView = useCallback(
+    (tx: Transaction): boolean =>
+      isMusdClaimForCurrentView({
+        tx,
+        navAddress,
+        navSymbol,
+        chainId,
+      }),
     [chainId, navAddress, navSymbol],
   );
 
@@ -299,7 +292,7 @@ export const useTokenTransactions = (
         type,
       } = tx;
 
-      if (isMusdClaimForCurrentView(tx)) {
+      if (checkIsMusdClaimForCurrentView(tx)) {
         return true;
       }
 
@@ -325,7 +318,7 @@ export const useTokenTransactions = (
       }
       return false;
     },
-    [chainId, isMusdClaimForCurrentView, selectedAddress, tokens],
+    [chainId, checkIsMusdClaimForCurrentView, selectedAddress, tokens],
   );
 
   // Non-ETH filter - for token transactions
@@ -338,7 +331,7 @@ export const useTokenTransactions = (
         transferInformation,
       } = tx;
 
-      if (isMusdClaimForCurrentView(tx)) {
+      if (checkIsMusdClaimForCurrentView(tx)) {
         return true;
       }
 
@@ -372,7 +365,7 @@ export const useTokenTransactions = (
     },
     [
       chainId,
-      isMusdClaimForCurrentView,
+      checkIsMusdClaimForCurrentView,
       navAddress,
       selectedAddress,
       swapsTransactions,

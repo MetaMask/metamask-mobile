@@ -36,10 +36,8 @@ import { useCallback, useMemo } from 'react';
 import { updateEditableParams } from '../../../../util/transaction-controller';
 import { selectTokensByChainIdAndAddress } from '../../../../selectors/tokensController';
 import { getTokenTransferData } from '../utils/transaction-pay';
-import {
-  decodeMerklClaimAmount,
-  MUSD_DECIMALS,
-} from '../../../UI/Earn/components/MerklRewards/constants';
+import { decodeMerklClaimAmount } from '../../../UI/Earn/components/MerklRewards/constants';
+import { MUSD_DECIMALS } from '../../../UI/Earn/constants/musd';
 
 interface TokenAmountProps {
   /**
