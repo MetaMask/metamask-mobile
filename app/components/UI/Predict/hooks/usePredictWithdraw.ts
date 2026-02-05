@@ -1,8 +1,7 @@
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useCallback, useContext } from 'react';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
-import { PredictNavigationParamList } from '../types/navigation';
 import { usePredictTrading } from './usePredictTrading';
 import { createSelector } from 'reselect';
 import { RootState } from '../../../../reducers';
@@ -23,8 +22,7 @@ export const usePredictWithdraw = ({
 }: UsePredictWithdrawParams = {}) => {
   const { prepareWithdraw } = usePredictTrading();
   const { navigateToConfirmation } = useConfirmNavigation();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation();
   const { toastRef } = useContext(ToastContext);
 
   const selectWithdrawTransaction = createSelector(

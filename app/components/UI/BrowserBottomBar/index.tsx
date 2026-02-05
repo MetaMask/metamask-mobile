@@ -22,7 +22,6 @@ import SearchApi from '@metamask/react-native-search-api';
 import Logger from '../../../util/Logger';
 import { RootState } from '../../../reducers';
 import { SessionENSNames } from '../../Views/BrowserTab/types';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { selectBrowserTabCount } from '../../../reducers/browser/selectors';
 
 interface BrowserBottomBarProps {
@@ -100,8 +99,7 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useMetrics();
   const dispatch = useDispatch();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const navigation = useNavigation<StackNavigationProp<any>>();
+  const navigation = useNavigation();
   const bookmarks = useSelector((state: RootState) => state.bookmarks);
   const tabCount = useSelector(selectBrowserTabCount);
 

@@ -1,9 +1,4 @@
-import {
-  NavigationProp,
-  RouteProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, {
   useMemo,
   useState,
@@ -113,8 +108,7 @@ const MAX_INTERVAL_SHORT_RANGE_FIDELITY =
 interface PredictMarketDetailsProps {}
 
 const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation();
   const { colors } = useTheme();
   const { claim } = usePredictClaim();
   const route =

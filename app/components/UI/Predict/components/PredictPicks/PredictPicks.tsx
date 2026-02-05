@@ -3,11 +3,10 @@ import React from 'react';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { useLivePositions } from '../../hooks/useLivePositions';
 import { PredictEventValues } from '../../constants/eventNames';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { PredictMarket, PredictPosition } from '../../types';
 import Routes from '../../../../../constants/navigation/Routes';
-import { PredictNavigationParamList } from '../../types/navigation';
 import { strings } from '../../../../../../locales/i18n';
 import PredictPickItem from './PredictPickItem';
 
@@ -32,8 +31,7 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
     claimable: true,
   });
   const { livePositions } = useLivePositions(positions);
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation();
   const { navigate } = navigation;
   const { executeGuardedAction } = usePredictActionGuard({
     providerId: market.providerId,

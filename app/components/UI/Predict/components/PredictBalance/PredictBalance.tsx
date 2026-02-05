@@ -31,8 +31,7 @@ import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import { formatPrice } from '../../utils/format';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { PredictNavigationParamList } from '../../types/navigation';
+import { useNavigation } from '@react-navigation/native';
 import { usePredictWithdraw } from '../../hooks/usePredictWithdraw';
 import { PredictEventValues } from '../../constants/eventNames';
 
@@ -44,8 +43,7 @@ interface PredictBalanceProps {
 const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
   const tw = useTailwind();
 
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation();
 
   const { balance, isLoading, loadBalance } = usePredictBalance({
     loadOnMount: true,

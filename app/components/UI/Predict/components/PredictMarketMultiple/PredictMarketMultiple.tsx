@@ -8,7 +8,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Image, TouchableOpacity, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -35,10 +35,7 @@ import {
   PredictOutcome,
   PredictOutcomeToken,
 } from '../../types';
-import {
-  PredictNavigationParamList,
-  PredictEntryPoint,
-} from '../../types/navigation';
+import { PredictEntryPoint } from '../../types/navigation';
 import { formatPercentage, formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketMultiple.styles';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
@@ -69,8 +66,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
     ? PredictEventValues.ENTRY_POINT.TRENDING
     : baseEntryPoint;
 
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, { isCarousel });
   const tw = useTailwind();
 

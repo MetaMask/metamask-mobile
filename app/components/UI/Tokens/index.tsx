@@ -26,7 +26,6 @@ import {
   goToAddEvmToken,
 } from './util';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { Box } from '@metamask/design-system-react-native';
 import { TokenListControlBar } from './TokenListControlBar/TokenListControlBar';
 import { selectSelectedInternalAccountId } from '../../../selectors/accountsController';
@@ -44,11 +43,6 @@ import { selectIsMusdConversionFlowEnabledFlag } from '../Earn/selectors/feature
 import RemoveTokenBottomSheet from './TokenList/RemoveTokenBottomSheet';
 import { useMusdConversionEligibility } from '../Earn/hooks/useMusdConversionEligibility';
 
-interface TokenListNavigationParamList {
-  AddAsset: { assetType: string };
-  [key: string]: undefined | object;
-}
-
 interface TokensProps {
   /**
    * Whether this is the full view (with header and safe area) or tab view
@@ -58,10 +52,7 @@ interface TokensProps {
 
 const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
   ({ isFullView = false }, ref) => {
-    const navigation =
-      useNavigation<
-        StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
-      >();
+    const navigation = useNavigation();
     const { trackEvent, createEventBuilder } = useMetrics();
     const tw = useTailwind();
 

@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -7,10 +7,7 @@ import {
   PredictMarketStatus,
   PredictOutcomeToken,
 } from '../../types';
-import {
-  PredictNavigationParamList,
-  PredictEntryPoint,
-} from '../../types/navigation';
+import { PredictEntryPoint } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictEntryPoint } from '../../contexts';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -36,8 +33,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
   isCarousel,
 }) => {
   const tw = useTailwind();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation();
 
   const contextEntryPoint = usePredictEntryPoint();
   const baseEntryPoint =

@@ -22,7 +22,6 @@ import { setReloadAccounts } from '../../../actions/accounts';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import { KeyringController } from '@metamask/keyring-controller';
-import { StackNavigationProp } from '@react-navigation/stack';
 import createStyles from './index.styles';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -51,7 +50,7 @@ interface OptionType {
 }
 
 const LedgerSelectAccount = () => {
-  const navigation = useNavigation<StackNavigationProp<never>>();
+  const navigation = useNavigation();
   const [selectedDevice, setSelectedDevice] = useState<LedgerDevice>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const dispatch = useDispatch();

@@ -13,7 +13,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  NavigationProp,
   RouteProp,
   StackActions,
   useNavigation,
@@ -72,8 +71,7 @@ const PredictBuyPreview = () => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
   const feeBreakdownSheetRef = useRef<BottomSheetRef>(null);
-  const { goBack, dispatch } =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const { goBack, dispatch } = useNavigation();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 

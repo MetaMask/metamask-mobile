@@ -2,7 +2,6 @@ import React, { useCallback, useRef } from 'react';
 import {
   useNavigation,
   useRoute,
-  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
 import type { Position } from '../../controllers/types';
@@ -31,7 +30,7 @@ const PerpsSelectAdjustMarginActionView: React.FC<
   position: positionProp,
   onClose: onExternalClose,
 }) => {
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
   const route =
     useRoute<
       RouteProp<PerpsNavigationParamList, 'PerpsSelectAdjustMarginAction'>

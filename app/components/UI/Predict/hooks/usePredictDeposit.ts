@@ -1,4 +1,4 @@
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useCallback, useContext } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
@@ -11,7 +11,6 @@ import { ConfirmationLoader } from '../../../Views/confirmations/components/conf
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { selectPredictPendingDepositByAddress } from '../selectors/predictController';
-import { PredictNavigationParamList } from '../types/navigation';
 import { ensureError } from '../utils/predictErrorHandler';
 import { usePredictTrading } from './usePredictTrading';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
@@ -26,8 +25,7 @@ export const usePredictDeposit = ({
   const { navigateToConfirmation } = useConfirmNavigation();
   const theme = useAppThemeFromContext();
   const { toastRef } = useContext(ToastContext);
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation();
 
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
   const selectedInternalAccountAddress = evmAccount?.address ?? '0x0';

@@ -1,6 +1,5 @@
 import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import HeaderBase from '../../../component-library/components/HeaderBase';
@@ -11,16 +10,8 @@ import { IconName } from '../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../locales/i18n';
 import Tokens from '../../UI/Tokens';
 
-interface TokenListNavigationParamList {
-  AddAsset: { assetType: string };
-  [key: string]: undefined | object;
-}
-
 const TokensFullView = () => {
-  const navigation =
-    useNavigation<
-      StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
-    >();
+  const navigation = useNavigation();
   const tw = useTailwind();
 
   const handleBackPress = useCallback(() => {

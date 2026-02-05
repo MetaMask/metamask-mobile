@@ -92,13 +92,7 @@ import { AccountImportStrategy } from '@metamask/keyring-controller';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import createStyles from './ChoosePassword.styles';
 import { ChoosePasswordRouteParams } from './ChoosePassword.types';
-import {
-  useNavigation,
-  useRoute,
-  RouteProp,
-  ParamListBase,
-} from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 
@@ -142,7 +136,7 @@ const ChoosePassword = () => {
   const { colors, themeAppearance } = useContext(ThemeContext);
   const styles = createStyles(colors);
 
-  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+  const navigation = useNavigation();
   const route =
     useRoute<RouteProp<{ params: ChoosePasswordRouteParams }, 'params'>>();
 

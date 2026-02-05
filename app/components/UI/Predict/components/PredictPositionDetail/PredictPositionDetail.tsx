@@ -5,11 +5,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  NavigationProp,
-  useIsFocused,
-  useNavigation,
-} from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import React, { useMemo } from 'react';
 import { Image } from 'react-native';
 import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
@@ -29,7 +25,6 @@ import {
   PredictPosition as PredictPositionType,
   Side,
 } from '../../types';
-import { PredictNavigationParamList } from '../../types/navigation';
 import { formatPercentage, formatPrice } from '../../utils/format';
 import { usePredictOptimisticPositionRefresh } from '../../hooks/usePredictOptimisticPositionRefresh';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
@@ -55,8 +50,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
 
   const { icon, initialValue, outcome, title, optimistic, size } =
     currentPosition;
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation();
   const { navigate } = navigation;
   const { executeGuardedAction } = usePredictActionGuard({
     providerId: currentPosition.providerId,

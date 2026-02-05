@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   BoxAlignItems,
@@ -20,7 +20,6 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../constants/eventNames';
 import { PredictEntryPointProvider } from '../../contexts';
-import { PredictNavigationParamList } from '../../types/navigation';
 
 interface PredictHomeFeaturedCarouselProps {
   testID?: string;
@@ -30,8 +29,7 @@ const PredictHomeFeaturedCarousel: React.FC<
   PredictHomeFeaturedCarouselProps
 > = ({ testID = 'predict-home-featured-carousel' }) => {
   const tw = useTailwind();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation();
   const section = SECTIONS_CONFIG.predictions;
 
   const handleToggleEmptyState = useCallback((_isEmpty: boolean) => {

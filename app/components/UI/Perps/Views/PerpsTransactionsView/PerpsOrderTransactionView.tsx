@@ -1,8 +1,4 @@
-import {
-  NavigationProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useLayoutEffect } from 'react';
 import { ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -24,7 +20,6 @@ import ScreenView from '../../../../Base/ScreenView';
 import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
 import { usePerpsBlockExplorerUrl, usePerpsOrderFees } from '../../hooks';
-import { PerpsNavigationParamList } from '../../types/navigation';
 import { PerpsOrderTransactionRouteProp } from '../../types/transactionHistory';
 import {
   formatPerpsFiat,
@@ -35,7 +30,7 @@ import { styleSheet } from './PerpsOrderTransactionView.styles';
 
 const PerpsOrderTransactionView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
   const route = useRoute<PerpsOrderTransactionRouteProp>();
   const selectedInternalAccount = useSelector(
     selectSelectedInternalAccountByScope,

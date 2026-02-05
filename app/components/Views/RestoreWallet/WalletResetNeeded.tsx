@@ -15,7 +15,6 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { createRestoreWalletNavDetails } from './RestoreWallet';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
@@ -32,7 +31,7 @@ const WalletResetNeeded = () => {
 
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const navigation = useNavigation<StackNavigationProp<any>>();
+  const navigation = useNavigation();
 
   const deviceMetaData = useMemo(() => generateDeviceAnalyticsMetaData(), []);
 

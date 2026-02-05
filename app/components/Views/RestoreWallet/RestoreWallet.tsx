@@ -21,7 +21,6 @@ import { createWalletRestoredNavDetails } from './WalletRestored';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
@@ -52,7 +51,7 @@ const RestoreWallet = () => {
 
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { replace } = useNavigation<StackNavigationProp<any>>();
+  const { replace } = useNavigation();
 
   const deviceMetaData = useMemo(() => generateDeviceAnalyticsMetaData(), []);
   const { previousScreen } = useParams<RestoreWalletParams>();

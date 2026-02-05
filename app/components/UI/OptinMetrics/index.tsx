@@ -49,9 +49,7 @@ import {
   useNavigation,
   useRoute,
   type RouteProp,
-  type ParamListBase,
 } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
 import type { RootState } from '../../../reducers';
 
 /**
@@ -59,7 +57,7 @@ import type { RootState } from '../../../reducers';
  */
 const OptinMetrics = () => {
   const dispatch = useDispatch();
-  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+  const navigation = useNavigation();
   const route =
     useRoute<
       RouteProp<

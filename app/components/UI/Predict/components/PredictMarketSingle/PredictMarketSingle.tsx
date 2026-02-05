@@ -7,7 +7,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Image, TouchableOpacity, View } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
@@ -24,10 +24,7 @@ import {
   PredictMarket as PredictMarketType,
   PredictOutcomeToken,
 } from '../../types';
-import {
-  PredictNavigationParamList,
-  PredictEntryPoint,
-} from '../../types/navigation';
+import { PredictEntryPoint } from '../../types/navigation';
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketSingle.styles';
 import { PredictEventValues } from '../../constants/eventNames';
@@ -148,8 +145,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
     : baseEntryPoint;
 
   const outcome = market.outcomes[0];
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, { isCarousel });
   const tw = useTailwind();
 
