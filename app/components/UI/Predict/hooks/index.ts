@@ -19,5 +19,5 @@ export {
 export {
   usePredictTabs,
   type FeedTab,
-  type UsePredictTabsResponse as UsePredictTabsReturn,
+  type UsePredictTabsResult,
 } from './usePredictTabs';

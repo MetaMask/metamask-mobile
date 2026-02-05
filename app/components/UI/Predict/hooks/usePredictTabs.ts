@@ -17,7 +17,7 @@ export interface FeedTab {
   label: string;
 }
 
-export interface UsePredictTabsResponse {
+export interface UsePredictTabsResult {
   tabs: FeedTab[];
   activeIndex: number;
   setActiveIndex: (index: number) => void;
@@ -25,7 +25,7 @@ export interface UsePredictTabsResponse {
   hotTabQueryParams?: string;
 }
 
-export const usePredictTabs = (): UsePredictTabsResponse => {
+export const usePredictTabs = (): UsePredictTabsResult => {
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketList'>>();
   const hotTabFlag = useSelector(selectPredictHotTabFlag);
