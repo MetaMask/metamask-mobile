@@ -1956,6 +1956,71 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Complete a deposit from transaction history using FIFO queue matching.
+   *
+   * Called by usePendingTransactions hook when a completed deposit is found
+   * in history that happened after its submission time.
+   *
+   * @param depositRequestId - The ID of the pending deposit request to mark as complete
+   * @param completedDeposit - The completed deposit data from the history API
+   */
+  completeDepositFromHistory(
+    depositRequestId: string,
+    completedDeposit: {
+      txHash: string;
+      amount: string;
+      timestamp: number;
+      asset?: string;
+    },
+  ): void {
+    this.update((state) => {
+      // Find and remove the specific deposit request
+      const requestIndex = state.depositRequests.findIndex(
+        (req) => req.id === depositRequestId,
+      );
+
+      if (requestIndex !== -1) {
+        // Remove this specific request from the queue
+        state.depositRequests.splice(requestIndex, 1);
+      }
+
+      // Note: We do NOT update lastDepositResult here to avoid duplicate toasts.
+      // The "confirmed" toast is shown once when the deposit is submitted.
+      // We only need to track the timestamp for FIFO matching.
+      if (state.lastDepositResult) {
+        state.lastDepositResult.timestamp = completedDeposit.timestamp;
+      }
+
+      // Check if there are still pending deposits in the queue
+      const hasPendingDeposits = state.depositRequests.some(
+        (req) => req.status === 'pending' || req.status === 'bridging',
+      );
+
+      // Only set depositInProgress to false if queue is empty
+      state.depositInProgress = hasPendingDeposits;
+
+      state.lastUpdateTimestamp = Date.now();
+    });
+
+    this.debugLog(
+      'PerpsController: Completed deposit from transaction history (FIFO)',
+      {
+        depositRequestId,
+        txHash: completedDeposit.txHash,
+        amount: completedDeposit.amount,
+      },
+    );
+
+    // Track the completion
+    this.getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.DepositTransaction, {
+      [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.COMPLETED,
+      [PERPS_EVENT_PROPERTY.DEPOSIT_AMOUNT]: Number.parseFloat(
+        completedDeposit.amount,
+      ),
+    });
+  }
+
+  /**
    * Update withdrawal progress (persistent across navigation)
    */
   updateWithdrawalProgress(
