@@ -71,6 +71,7 @@ export const TestSnapViewSelectorWebIDS = {
   showPreinstalledDialogButton: 'showPreinstalledDialog',
   getWebSocketState: 'getWebSocketState',
   getChainIdButton: 'sendEthprovider',
+  getGenesisHashButton: 'sendGenesisBlockEthProvider',
   getAccountsButton: 'sendEthproviderAccounts',
   personalSignButton: 'signPersonalSignMessage',
   sendWasmMessageButton: 'sendWasmMessage',

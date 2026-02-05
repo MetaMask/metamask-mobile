@@ -38,7 +38,7 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsPositionTransactionView.styles';
-import { PerpsEventValues } from '../../constants/eventNames';
+import { PERPS_EVENT_VALUE } from '../../constants/eventNames';
 
 const PerpsPositionTransactionView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -104,7 +104,7 @@ const PerpsPositionTransactionView: React.FC = () => {
       screen: Routes.PERPS.MARKET_DETAILS,
       params: {
         market,
-        source: PerpsEventValues.SOURCE.TRADE_DETAILS,
+        source: PERPS_EVENT_VALUE.SOURCE.TRADE_DETAILS,
       },
     });
   };
