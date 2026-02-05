@@ -98,6 +98,7 @@ import {
   PredictClaimStatus,
   PredictMarket,
   PredictPosition,
+  PredictPositionStatus,
   PredictPriceHistoryPoint,
   PredictWithdraw,
   PredictWithdrawStatus,
@@ -778,7 +779,10 @@ export class PredictController extends BaseController<
   private getClaimableAmount(): string {
     const address = this.getEvmAccountAddress();
     const claimablePositions = this.state.claimablePositions[address] ?? [];
-    const totalClaimable = claimablePositions.reduce(
+    const wonPositions = claimablePositions.filter(
+      (position) => position.status === PredictPositionStatus.WON,
+    );
+    const totalClaimable = wonPositions.reduce(
       (sum, position) => sum + (position.currentValue ?? 0),
       0,
     );

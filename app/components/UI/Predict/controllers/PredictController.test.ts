@@ -6530,13 +6530,19 @@ describe('PredictController', () => {
     });
 
     describe('getClaimableAmount', () => {
-      it('calculates total claimable amount from positions', () => {
+      it('calculates total claimable amount from WON positions only', () => {
         withController(({ controller }) => {
           controller.updateStateForTesting((state) => {
             state.claimablePositions = {
               '0x1234567890123456789012345678901234567890': [
-                { currentValue: 25.5 } as PredictPosition,
-                { currentValue: 30.25 } as PredictPosition,
+                {
+                  currentValue: 25.5,
+                  status: PredictPositionStatus.WON,
+                } as PredictPosition,
+                {
+                  currentValue: 30.25,
+                  status: PredictPositionStatus.WON,
+                } as PredictPosition,
               ],
             };
           });
@@ -6544,6 +6550,29 @@ describe('PredictController', () => {
           const result = (controller as any).getClaimableAmount();
 
           expect(result).toBe('$55.75');
+        });
+      });
+
+      it('excludes LOST positions from claimable total', () => {
+        withController(({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.claimablePositions = {
+              '0x1234567890123456789012345678901234567890': [
+                {
+                  currentValue: 25.5,
+                  status: PredictPositionStatus.WON,
+                } as PredictPosition,
+                {
+                  currentValue: 100,
+                  status: PredictPositionStatus.LOST,
+                } as PredictPosition,
+              ],
+            };
+          });
+
+          const result = (controller as any).getClaimableAmount();
+
+          expect(result).toBe('$25.50');
         });
       });
 
@@ -6559,13 +6588,19 @@ describe('PredictController', () => {
         });
       });
 
-      it('handles positions with undefined currentValue', () => {
+      it('handles WON positions with undefined currentValue', () => {
         withController(({ controller }) => {
           controller.updateStateForTesting((state) => {
             state.claimablePositions = {
               '0x1234567890123456789012345678901234567890': [
-                { currentValue: 25 } as PredictPosition,
-                { currentValue: undefined } as any,
+                {
+                  currentValue: 25,
+                  status: PredictPositionStatus.WON,
+                } as PredictPosition,
+                {
+                  currentValue: undefined,
+                  status: PredictPositionStatus.WON,
+                } as any,
               ],
             };
           });
