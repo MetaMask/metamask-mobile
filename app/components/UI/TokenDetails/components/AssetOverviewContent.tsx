@@ -341,7 +341,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   >
                     <PerpsPositionCard
                       position={perpsPosition}
-                      currentPrice={currentPrice}
+                      currentPrice={undefined} // Don't show liquidation distance % - spot price differs from perps mark price
                     />
                   </TouchableOpacity>
                 ) : (
