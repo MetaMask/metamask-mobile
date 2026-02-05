@@ -1,7 +1,10 @@
 import { successfulFetch } from '@metamask/controller-utils';
 import { getEnvironment } from '../utils';
 import { ensureError } from '../../../../../util/errorUtils';
-import type { PerpsPlatformDependencies } from '../types';
+import type {
+  PerpsPlatformDependencies,
+  CheckEligibilityParams,
+} from '../types';
 
 // Geo-blocking API URLs
 const ON_RAMP_GEO_BLOCKING_URLS = {
@@ -135,9 +138,7 @@ export class EligibilityService {
    * @param options.blockedRegions - List of blocked region codes (e.g., ['US', 'CN'])
    * @returns true if eligible (not in blocked region), false otherwise
    */
-  async checkEligibility(options: {
-    blockedRegions: string[];
-  }): Promise<boolean> {
+  async checkEligibility(options: CheckEligibilityParams): Promise<boolean> {
     const { blockedRegions } = options;
     try {
       this.deps.debugLogger.log('EligibilityService: Checking eligibility', {
