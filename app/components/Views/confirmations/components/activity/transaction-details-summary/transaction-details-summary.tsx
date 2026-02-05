@@ -171,7 +171,7 @@ function TransactionSummary({
   );
 }
 
-export function SummaryLine({
+function SummaryLine({
   chainId,
   isBridgeReceive,
   isLast,
