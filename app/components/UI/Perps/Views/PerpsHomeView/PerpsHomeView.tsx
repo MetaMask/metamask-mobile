@@ -59,8 +59,8 @@ import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import styleSheet from './PerpsHomeView.styles';
 import { TraceName } from '../../../../../util/trace';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
 } from '../../constants/eventNames';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
@@ -100,7 +100,7 @@ const PerpsHomeView = () => {
     isEligibilityModalVisible,
     closeEligibilityModal,
   } = usePerpsHomeActions({
-    buttonLocation: PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+    buttonLocation: PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
   });
 
   // Separate geo-block modal state for close all / cancel all actions
@@ -127,6 +127,7 @@ const PerpsHomeView = () => {
     orders,
     watchlistMarkets,
     perpsMarkets, // Crypto markets (renamed from trendingMarkets)
+    commoditiesMarkets, // Commodity markets
     stocksMarkets, // Equity markets only
     forexMarkets,
     recentActivity,
@@ -188,7 +189,7 @@ const PerpsHomeView = () => {
 
   // Track home screen viewed event
   const source =
-    route.params?.source || PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON;
+    route.params?.source || PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON;
 
   // Get perp balance status for tracking
   const livePositions = usePerpsLivePositions({ throttleMs: 5000 });
@@ -204,15 +205,15 @@ const PerpsHomeView = () => {
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     conditions: [!isAnyLoading],
     properties: {
-      [PerpsEventProperties.SCREEN_TYPE]:
-        PerpsEventValues.SCREEN_TYPE.PERPS_HOME,
-      [PerpsEventProperties.SOURCE]: source,
-      [PerpsEventProperties.HAS_PERP_BALANCE]: hasPerpBalance,
+      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+        PERPS_EVENT_VALUE.SCREEN_TYPE.PERPS_HOME,
+      [PERPS_EVENT_PROPERTY.SOURCE]: source,
+      [PERPS_EVENT_PROPERTY.HAS_PERP_BALANCE]: hasPerpBalance,
       ...(buttonClicked && {
-        [PerpsEventProperties.BUTTON_CLICKED]: buttonClicked,
+        [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: buttonClicked,
       }),
       ...(buttonLocation && {
-        [PerpsEventProperties.BUTTON_LOCATION]: buttonLocation,
+        [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]: buttonLocation,
       }),
     },
   });
@@ -222,12 +223,12 @@ const PerpsHomeView = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.PERPS_UI_INTERACTION)
         .addProperties({
-          [PerpsEventProperties.INTERACTION_TYPE]:
-            PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
-          [PerpsEventProperties.BUTTON_CLICKED]:
-            PerpsEventValues.BUTTON_CLICKED.MAGNIFYING_GLASS,
-          [PerpsEventProperties.BUTTON_LOCATION]:
-            PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.MAGNIFYING_GLASS,
+          [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+            PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
         })
         .build(),
     );
@@ -236,10 +237,10 @@ const PerpsHomeView = () => {
     perpsNavigation.navigateToMarketList({
       defaultSearchVisible: true,
       defaultMarketTypeFilter: 'all',
-      source: PerpsEventValues.SOURCE.HOMESCREEN_TAB,
+      source: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB,
       fromHome: true,
-      button_clicked: PerpsEventValues.BUTTON_CLICKED.MAGNIFYING_GLASS,
-      button_location: PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+      button_clicked: PERPS_EVENT_VALUE.BUTTON_CLICKED.MAGNIFYING_GLASS,
+      button_location: PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
     });
   }, [perpsNavigation, trackEvent, createEventBuilder]);
 
@@ -248,17 +249,17 @@ const PerpsHomeView = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.PERPS_UI_INTERACTION)
         .addProperties({
-          [PerpsEventProperties.INTERACTION_TYPE]:
-            PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
-          [PerpsEventProperties.BUTTON_CLICKED]:
-            PerpsEventValues.BUTTON_CLICKED.TUTORIAL,
-          [PerpsEventProperties.BUTTON_LOCATION]:
-            PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.TUTORIAL,
+          [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+            PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
         })
         .build(),
     );
     navigation.navigate(Routes.PERPS.TUTORIAL, {
-      source: PerpsEventValues.SOURCE.HOMESCREEN_TAB,
+      source: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB,
     });
   }, [navigation, trackEvent, createEventBuilder]);
 
@@ -274,10 +275,10 @@ const PerpsHomeView = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.PERPS_UI_INTERACTION)
         .addProperties({
-          [PerpsEventProperties.INTERACTION_TYPE]:
-            PerpsEventValues.INTERACTION_TYPE.CONTACT_SUPPORT,
-          [PerpsEventProperties.LOCATION]:
-            PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.CONTACT_SUPPORT,
+          [PERPS_EVENT_PROPERTY.LOCATION]:
+            PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
         })
         .build(),
     );
@@ -292,12 +293,12 @@ const PerpsHomeView = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.PERPS_UI_INTERACTION)
         .addProperties({
-          [PerpsEventProperties.INTERACTION_TYPE]:
-            PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
-          [PerpsEventProperties.BUTTON_CLICKED]:
-            PerpsEventValues.BUTTON_CLICKED.GIVE_FEEDBACK,
-          [PerpsEventProperties.BUTTON_LOCATION]:
-            PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.GIVE_FEEDBACK,
+          [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+            PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
         })
         .build(),
     );
@@ -352,10 +353,10 @@ const PerpsHomeView = () => {
     // Geo-restriction check for close all positions
     if (!isEligible) {
       track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PerpsEventProperties.SCREEN_TYPE]:
-          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-        [PerpsEventProperties.SOURCE]:
-          PerpsEventValues.SOURCE.CLOSE_ALL_POSITIONS_BUTTON,
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.CLOSE_ALL_POSITIONS_BUTTON,
       });
       setIsCloseAllGeoBlockVisible(true);
       return;
@@ -458,7 +459,7 @@ const PerpsHomeView = () => {
               <PerpsCard
                 key={`${position.symbol}-${index}`}
                 position={position}
-                source={PerpsEventValues.SOURCE.HOMESCREEN_TAB}
+                source={PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB}
               />
             ))}
           </View>
@@ -478,7 +479,7 @@ const PerpsHomeView = () => {
               <PerpsCard
                 key={order.orderId}
                 order={order}
-                source={PerpsEventValues.SOURCE.HOMESCREEN_TAB}
+                source={PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB}
               />
             ))}
           </View>
@@ -502,6 +503,15 @@ const PerpsHomeView = () => {
             isLoading={isLoading.markets}
           />
         </View>
+
+        {/* Commodities Markets List */}
+        <PerpsMarketTypeSection
+          title={strings('perps.home.commodities')}
+          markets={commoditiesMarkets}
+          marketType="commodities"
+          sortBy={sortBy}
+          isLoading={isLoading.markets}
+        />
 
         {/* Stocks Markets List */}
         <View onLayout={handleSectionLayout('explore_stocks')}>

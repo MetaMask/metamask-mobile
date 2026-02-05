@@ -21,9 +21,6 @@ jest.mock(
 jest.mock('./useRampsUserRegion', () => ({
   useRampsUserRegion: jest.fn(() => ({
     userRegion: null,
-    isLoading: false,
-    error: null,
-    fetchUserRegion: jest.fn(),
     setUserRegion: jest.fn(),
   })),
 }));
@@ -108,8 +105,6 @@ describe('useRampsController', () => {
 
     expect(result.current).toMatchObject({
       userRegion: null,
-      userRegionLoading: false,
-      userRegionError: null,
       selectedProvider: null,
       providers: [],
       providersLoading: false,
@@ -127,47 +122,20 @@ describe('useRampsController', () => {
       paymentMethodsError: null,
     });
 
-    expect(typeof result.current.fetchUserRegion).toBe('function');
     expect(typeof result.current.setUserRegion).toBe('function');
     expect(typeof result.current.setSelectedProvider).toBe('function');
     expect(typeof result.current.setSelectedToken).toBe('function');
     expect(typeof result.current.setSelectedPaymentMethod).toBe('function');
   });
 
-  it('passes options to child hooks', () => {
-    const store = createMockStore();
-    renderHook(
-      () =>
-        useRampsController({
-          region: 'us-ny',
-          action: 'sell',
-          providerFilters: {
-            provider: 'test-provider',
-            crypto: 'ETH',
-          },
-        }),
-      {
-        wrapper: wrapper(store),
-      },
-    );
-
-    expect(useRampsProviders).toHaveBeenCalledWith('us-ny', {
-      provider: 'test-provider',
-      crypto: 'ETH',
-    });
-    expect(useRampsTokens).toHaveBeenCalledWith('us-ny', 'sell');
-    expect(useRampsCountries).toHaveBeenCalled();
-    expect(useRampsPaymentMethods).toHaveBeenCalled();
-  });
-
-  it('passes undefined options when not provided', () => {
+  it('calls child hooks', () => {
     const store = createMockStore();
     renderHook(() => useRampsController(), {
       wrapper: wrapper(store),
     });
 
-    expect(useRampsProviders).toHaveBeenCalledWith(undefined, undefined);
-    expect(useRampsTokens).toHaveBeenCalledWith(undefined, undefined);
+    expect(useRampsProviders).toHaveBeenCalled();
+    expect(useRampsTokens).toHaveBeenCalled();
     expect(useRampsCountries).toHaveBeenCalled();
     expect(useRampsPaymentMethods).toHaveBeenCalled();
   });

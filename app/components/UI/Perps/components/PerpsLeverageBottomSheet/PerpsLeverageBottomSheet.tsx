@@ -45,8 +45,8 @@ import { useTheme } from '../../../../../util/theme';
 import { Theme } from '../../../../../util/theme/models';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
 } from '../../constants/eventNames';
 import {
   getLeverageRiskLevel,
@@ -401,12 +401,13 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
     conditions: [isVisible],
     resetConditions: [!isVisible], // Auto-reset when modal closes
     properties: {
-      [PerpsEventProperties.SCREEN_TYPE]: PerpsEventValues.SCREEN_TYPE.LEVERAGE,
-      [PerpsEventProperties.ASSET]: asset,
-      [PerpsEventProperties.DIRECTION]:
+      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+        PERPS_EVENT_VALUE.SCREEN_TYPE.LEVERAGE,
+      [PERPS_EVENT_PROPERTY.ASSET]: asset,
+      [PERPS_EVENT_PROPERTY.DIRECTION]:
         direction === 'long'
-          ? PerpsEventValues.DIRECTION.LONG
-          : PerpsEventValues.DIRECTION.SHORT,
+          ? PERPS_EVENT_VALUE.DIRECTION.LONG
+          : PERPS_EVENT_VALUE.DIRECTION.SHORT,
     },
   });
 
