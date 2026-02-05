@@ -63,7 +63,13 @@ runs:
           exit 1
         fi
 
-        KEYSTORE_PATH="${ANDROID_KEYSTORE_PATH:-/tmp/android.keystore}"
+        # When copying to target, always decode to temp first to avoid "same file" error
+        # (secret may set ANDROID_KEYSTORE_PATH to the target path)
+        if [[ -n "$ANDROID_KEYSTORE_TARGET" ]]; then
+          KEYSTORE_PATH="/tmp/android.keystore"
+        else
+          KEYSTORE_PATH="${ANDROID_KEYSTORE_PATH:-/tmp/android.keystore}"
+        fi
         echo "$ANDROID_KEYSTORE" | base64 --decode > "$KEYSTORE_PATH"
         echo "✅ Android keystore decoded to $KEYSTORE_PATH"
 
