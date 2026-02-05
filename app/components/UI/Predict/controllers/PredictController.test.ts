@@ -6666,8 +6666,33 @@ describe('PredictController', () => {
           });
         });
 
-        it('prevents double-tap when retry is already in progress', () => {
+        it('prevents double-tap while retry promise is pending', () => {
           withController(({ controller }) => {
+            let resolveDeposit: (value: unknown) => void = () => undefined;
+            jest
+              .spyOn(controller, 'depositWithConfirmation')
+              .mockImplementation(
+                () =>
+                  new Promise((resolve) => {
+                    resolveDeposit = resolve as (value: unknown) => void;
+                  }),
+              );
+
+            (controller as any).retryDeposit();
+
+            expect((controller as any).isRetrying).toBe(true);
+            expect(mockNavigate).toHaveBeenCalledTimes(1);
+
+            mockNavigate.mockClear();
+            (controller as any).retryDeposit();
+            expect(mockNavigate).not.toHaveBeenCalled();
+
+            resolveDeposit({ success: true, response: { batchId: 'test' } });
+          });
+        });
+
+        it('resets isRetrying after promise resolves', async () => {
+          await withController(async ({ controller }) => {
             jest
               .spyOn(controller, 'depositWithConfirmation')
               .mockResolvedValue({
@@ -6675,10 +6700,11 @@ describe('PredictController', () => {
                 response: { batchId: 'test' },
               });
 
-            (controller as any).isRetrying = true;
             (controller as any).retryDeposit();
 
-            expect(mockNavigate).not.toHaveBeenCalled();
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            expect((controller as any).isRetrying).toBe(false);
           });
         });
 
@@ -6697,6 +6723,7 @@ describe('PredictController', () => {
               'PredictController: Failed to retry deposit',
               expect.objectContaining({ error: 'Deposit failed' }),
             );
+            expect((controller as any).isRetrying).toBe(false);
           });
         });
       });
@@ -6720,16 +6747,26 @@ describe('PredictController', () => {
           });
         });
 
-        it('prevents double-tap when retry is already in progress', () => {
+        it('prevents double-tap while retry promise is pending', () => {
           withController(({ controller }) => {
-            jest
-              .spyOn(controller, 'prepareWithdraw')
-              .mockResolvedValue({ success: true, response: 'test' });
+            let resolveWithdraw: (value: unknown) => void = () => undefined;
+            jest.spyOn(controller, 'prepareWithdraw').mockImplementation(
+              () =>
+                new Promise((resolve) => {
+                  resolveWithdraw = resolve as (value: unknown) => void;
+                }),
+            );
 
-            (controller as any).isRetrying = true;
             (controller as any).retryWithdraw();
 
+            expect((controller as any).isRetrying).toBe(true);
+            expect(mockNavigate).toHaveBeenCalledTimes(1);
+
+            mockNavigate.mockClear();
+            (controller as any).retryWithdraw();
             expect(mockNavigate).not.toHaveBeenCalled();
+
+            resolveWithdraw({ success: true, response: 'test' });
           });
         });
       });
@@ -6753,16 +6790,28 @@ describe('PredictController', () => {
           });
         });
 
-        it('prevents double-tap when retry is already in progress', () => {
+        it('prevents double-tap while retry promise is pending', () => {
           withController(({ controller }) => {
+            let resolveClaim: (value: unknown) => void = () => undefined;
             jest
               .spyOn(controller as any, 'claimWithConfirmation')
-              .mockResolvedValue({});
+              .mockImplementation(
+                () =>
+                  new Promise((resolve) => {
+                    resolveClaim = resolve;
+                  }),
+              );
 
-            (controller as any).isRetrying = true;
             (controller as any).retryClaim();
 
+            expect((controller as any).isRetrying).toBe(true);
+            expect(mockNavigate).toHaveBeenCalledTimes(1);
+
+            mockNavigate.mockClear();
+            (controller as any).retryClaim();
             expect(mockNavigate).not.toHaveBeenCalled();
+
+            resolveClaim({});
           });
         });
       });
