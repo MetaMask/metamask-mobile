@@ -986,7 +986,7 @@ describe('usePerpsTransactionHistory', () => {
       expect(mockProvider.getFunding).toHaveBeenCalledTimes(1);
     });
 
-    it('handles rapid connection state changes gracefully', async () => {
+    it('fetches once per true-to-false transition during rapid state changes', async () => {
       // Reset mocks to track calls clearly
       mockProvider.getOrderFills.mockClear();
       mockProvider.getOrders.mockClear();

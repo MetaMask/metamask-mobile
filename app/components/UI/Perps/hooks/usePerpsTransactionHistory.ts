@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import usePrevious from '../../../hooks/usePrevious';
 import { BigNumber } from 'bignumber.js';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
@@ -59,7 +60,7 @@ export const usePerpsTransactionHistory = ({
   // Track if initial fetch has been done to prevent duplicate fetches
   const initialFetchDone = useRef(false);
   // Track previous skipInitialFetch value to detect connection state transitions
-  const prevSkipInitialFetchRef = useRef(skipInitialFetch);
+  const prevSkipInitialFetch = usePrevious(skipInitialFetch);
   useEffect(() => {
     userHistoryRef.current = userHistory;
   }, [userHistory]);
@@ -171,10 +172,8 @@ export const usePerpsTransactionHistory = ({
 
   useEffect(() => {
     // Detect transition from skipping (not connected) to not skipping (connected)
-    // This handles the case where the component mounts before connection is established
-    const justBecameConnected =
-      prevSkipInitialFetchRef.current && !skipInitialFetch;
-    prevSkipInitialFetchRef.current = skipInitialFetch;
+    // This fixes the case where the component mounts before connection is established
+    const justBecameConnected = prevSkipInitialFetch && !skipInitialFetch;
 
     // Trigger fetch if:
     // 1. Not skipping AND haven't fetched yet (normal initial fetch)
@@ -186,7 +185,7 @@ export const usePerpsTransactionHistory = ({
       initialFetchDone.current = true;
       refetch();
     }
-  }, [skipInitialFetch, refetch]);
+  }, [skipInitialFetch, prevSkipInitialFetch, refetch]);
 
   // Combine loading states
   const combinedIsLoading = useMemo(
