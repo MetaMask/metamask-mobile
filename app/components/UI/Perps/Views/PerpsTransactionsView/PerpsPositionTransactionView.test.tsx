@@ -11,7 +11,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../../../reducers';
 import Routes from '../../../../../constants/navigation/Routes';
-import { PerpsEventValues } from '../../constants/eventNames';
+import { PERPS_EVENT_VALUE } from '../../constants/eventNames';
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
@@ -642,7 +642,7 @@ describe('PerpsPositionTransactionView', () => {
       screen: Routes.PERPS.MARKET_DETAILS,
       params: {
         market: { symbol: 'ETH', name: 'ETH' },
-        source: PerpsEventValues.SOURCE.TRADE_DETAILS,
+        source: PERPS_EVENT_VALUE.SOURCE.TRADE_DETAILS,
       },
     });
   });

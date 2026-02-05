@@ -382,6 +382,23 @@ jobs:
         }}
     secrets: inherit
 
+  e2e-smoke-tests-ios-flask:
+    name: 'iOS Flask E2E Smoke Tests'
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection]
+    uses: ./.github/workflows/run-e2e-smoke-tests-ios-flask.yml
+    with:
+      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+      selected_tags: >-
+        ${{
+          (needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          '["ALL"]'
+        }}
+    secrets: inherit
+
   js-bundle-size-check:
     runs-on: ubuntu-latest
     steps:
@@ -604,6 +621,7 @@ jobs:
       - e2e-smoke-tests-android
       - e2e-smoke-tests-ios
       - e2e-smoke-tests-android-flask
+      - e2e-smoke-tests-ios-flask
     steps:
       - run: |
           # Check if all non-E2E jobs passed
@@ -629,9 +647,15 @@ jobs:
               exit 1
             fi
 
-            FLASK_RESULT="${{ needs.e2e-smoke-tests-android-flask.result }}"
-            if [[ "$FLASK_RESULT" == "failure" ]] || [[ "$FLASK_RESULT" == "cancelled" ]]; then
-              echo "Android Flask E2E tests failed (result: $FLASK_RESULT)"
+            ANDROID_FLASK_RESULT="${{ needs.e2e-smoke-tests-android-flask.result }}"
+            if [[ "$ANDROID_FLASK_RESULT" == "failure" ]] || [[ "$ANDROID_FLASK_RESULT" == "cancelled" ]]; then
+              echo "Android Flask E2E tests failed (result: $ANDROID_FLASK_RESULT)"
+              exit 1
+            fi
+
+            IOS_FLASK_RESULT="${{ needs.e2e-smoke-tests-ios-flask.result }}"
+            if [[ "$IOS_FLASK_RESULT" == "failure" ]] || [[ "$IOS_FLASK_RESULT" == "cancelled" ]]; then
+              echo "iOS Flask E2E tests failed (result: $IOS_FLASK_RESULT)"
               exit 1
             fi
           fi

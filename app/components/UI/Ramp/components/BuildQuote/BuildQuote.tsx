@@ -45,8 +45,8 @@ function BuildQuote() {
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
 
-  // Get user region, preferred provider, and tokens from RampsController
-  const { userRegion, preferredProvider, tokens } = useRampsController();
+  // Get user region, selected provider, and tokens from RampsController
+  const { userRegion, selectedProvider, tokens } = useRampsController();
 
   // Get currency and quick amounts from user's region
   const currency = userRegion?.country?.currency || 'USD';
@@ -128,10 +128,10 @@ function BuildQuote() {
           </View>
 
           <View style={styles.actionSection}>
-            {preferredProvider && (
+            {selectedProvider && (
               <Text variant={TextVariant.BodySM} style={styles.poweredByText}>
                 {strings('fiat_on_ramp.powered_by_provider', {
-                  provider: preferredProvider.name,
+                  provider: selectedProvider.name,
                 })}
               </Text>
             )}

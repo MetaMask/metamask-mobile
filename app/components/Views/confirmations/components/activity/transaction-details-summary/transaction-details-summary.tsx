@@ -98,6 +98,7 @@ function TransactionSummary({
     chainId: receiveChainId,
     hash: receiveHash,
     isReceiveOnly,
+    skip,
     sourceNetworkName,
     sourceSymbol,
     targetNetworkName,
@@ -106,6 +107,11 @@ function TransactionSummary({
   } = useBridgeReceiveData(transaction, parentTransaction);
 
   const allBridgeHistory = useSelector(selectBridgeHistoryForAccount);
+
+  // Skip rendering for transactions handled elsewhere (e.g., mUSD receive)
+  if (skip) {
+    return null;
+  }
 
   const approvalBridgeHistory = Object.values(allBridgeHistory).find(
     (h) => h.approvalTxId === transaction.id,
@@ -274,7 +280,6 @@ function getLineTitle({
   transactionMeta: TransactionMeta;
 }): string | undefined {
   const { type } = transactionMeta;
-  const { type: parentType } = parentTransaction ?? {};
   const approveSymbol = approvalBridgeHistory?.quote?.srcAsset?.symbol;
 
   if (isReceive) {
@@ -286,13 +291,21 @@ function getLineTitle({
       : strings('transaction_details.summary_title.bridge_receive_loading');
   }
 
+  // mUSD conversion: use specific string for send line
+  if (
+    parentTransaction &&
+    hasTransactionType(parentTransaction, [TransactionType.musdConversion]) &&
+    hasTransactionType(transactionMeta, [TransactionType.relayDeposit])
+  ) {
+    return symbol && networkName
+      ? strings('transaction_details.summary_title.musd_convert_send', {
+          sourceSymbol: symbol,
+          sourceChain: networkName,
+        })
+      : strings('transaction_details.summary_title.bridge_send_loading');
+  }
+
   if (symbol && networkName) {
-    if (parentType === TransactionType.musdConversion) {
-      return strings('transaction_details.summary_title.musd_convert_send', {
-        sourceSymbol: symbol,
-        sourceChain: networkName,
-      });
-    }
     return strings('transaction_details.summary_title.bridge_send', {
       sourceSymbol: symbol,
       sourceChain: networkName,
@@ -329,6 +342,7 @@ function useBridgeReceiveData(
   chainId?: Hex;
   hash?: Hex;
   isReceiveOnly?: boolean;
+  skip?: boolean;
   sourceNetworkName?: string;
   sourceSymbol?: string;
   targetNetworkName?: string;
@@ -356,15 +370,6 @@ function useBridgeReceiveData(
   const sourceNetworkName = useNetworkName(transaction.chainId);
   const targetNetworkName = useNetworkName(chainId);
 
-  if (hasTransactionType(transaction, [TransactionType.musdConversion])) {
-    return {
-      chainId: transaction.chainId,
-      isReceiveOnly: true,
-      targetNetworkName: sourceNetworkName,
-      targetSymbol: 'mUSD',
-    };
-  }
-
   if (hasTransactionType(transaction, [TransactionType.perpsDeposit])) {
     return {
       chainId: CHAIN_IDS.ARBITRUM,
@@ -383,9 +388,27 @@ function useBridgeReceiveData(
     };
   }
 
+  // mUSD conversion: main transaction renders receive line only
+  if (hasTransactionType(transaction, [TransactionType.musdConversion])) {
+    const receiveData = {
+      chainId: transaction.chainId,
+      hash: undefined as Hex | undefined,
+      isReceiveOnly: true,
+      targetNetworkName: sourceNetworkName,
+      targetSymbol: 'mUSD',
+    };
+
+    if (!transaction.hash || transaction.hash === '0x0') {
+      return receiveData;
+    }
+
+    receiveData.hash = transaction.hash as Hex;
+
+    return receiveData;
+  }
+
   if (
     hasTransactionType(parentTransaction, [
-      TransactionType.musdConversion,
       TransactionType.perpsDeposit,
       TransactionType.predictDeposit,
     ])
@@ -394,6 +417,18 @@ function useBridgeReceiveData(
       sourceNetworkName,
       sourceSymbol: sourceToken?.symbol,
     };
+  }
+
+  // mUSD conversion: relayDeposit renders send line only
+  if (hasTransactionType(parentTransaction, [TransactionType.musdConversion])) {
+    if (hasTransactionType(transaction, [TransactionType.relayDeposit])) {
+      return {
+        sourceNetworkName,
+        sourceSymbol: sourceToken?.symbol,
+      };
+    }
+    // Skip other mUSD transactions for send line show relay deposit only
+    return { skip: true };
   }
 
   return {

@@ -3,10 +3,6 @@ import {
   type UseRampsUserRegionResult,
 } from './useRampsUserRegion';
 import {
-  useRampsPreferredProvider,
-  type UseRampsPreferredProviderResult,
-} from './useRampsPreferredProvider';
-import {
   useRampsProviders,
   type UseRampsProvidersResult,
 } from './useRampsProviders';
@@ -15,32 +11,10 @@ import {
   useRampsCountries,
   type UseRampsCountriesResult,
 } from './useRampsCountries';
-import { useRampsPreferredProviderAutoSet } from './useRampsPreferredProviderAutoSet';
-
-/**
- * Options for the useRampsController hook.
- */
-export interface UseRampsControllerOptions {
-  /**
-   * Optional region code to use for providers and tokens requests.
-   * If not provided, uses userRegion from state.
-   */
-  region?: string;
-  /**
-   * Optional action type ('buy' or 'sell') for tokens and countries requests.
-   * Defaults to 'buy'.
-   */
-  action?: 'buy' | 'sell';
-  /**
-   * Optional filter options for providers requests.
-   */
-  providerFilters?: {
-    provider?: string | string[];
-    crypto?: string | string[];
-    fiat?: string | string[];
-    payments?: string | string[];
-  };
-}
+import {
+  useRampsPaymentMethods,
+  type UseRampsPaymentMethodsResult,
+} from './useRampsPaymentMethods';
 
 /**
  * Result returned by the useRampsController hook.
@@ -49,39 +23,41 @@ export interface UseRampsControllerOptions {
 export interface UseRampsControllerResult {
   // User region
   userRegion: UseRampsUserRegionResult['userRegion'];
-  userRegionLoading: UseRampsUserRegionResult['isLoading'];
-  userRegionError: UseRampsUserRegionResult['error'];
-  fetchUserRegion: UseRampsUserRegionResult['fetchUserRegion'];
   setUserRegion: UseRampsUserRegionResult['setUserRegion'];
 
-  // Preferred provider
-  preferredProvider: UseRampsPreferredProviderResult['preferredProvider'];
-  setPreferredProvider: UseRampsPreferredProviderResult['setPreferredProvider'];
+  // Selected provider
+  selectedProvider: UseRampsProvidersResult['selectedProvider'];
+  setSelectedProvider: UseRampsProvidersResult['setSelectedProvider'];
 
   // Providers
   providers: UseRampsProvidersResult['providers'];
   providersLoading: UseRampsProvidersResult['isLoading'];
   providersError: UseRampsProvidersResult['error'];
-  fetchProviders: UseRampsProvidersResult['fetchProviders'];
 
   // Tokens
   tokens: UseRampsTokensResult['tokens'];
+  selectedToken: UseRampsTokensResult['selectedToken'];
+  setSelectedToken: UseRampsTokensResult['setSelectedToken'];
   tokensLoading: UseRampsTokensResult['isLoading'];
   tokensError: UseRampsTokensResult['error'];
-  fetchTokens: UseRampsTokensResult['fetchTokens'];
 
   // Countries
   countries: UseRampsCountriesResult['countries'];
   countriesLoading: UseRampsCountriesResult['isLoading'];
   countriesError: UseRampsCountriesResult['error'];
-  fetchCountries: UseRampsCountriesResult['fetchCountries'];
+
+  // Payment methods
+  paymentMethods: UseRampsPaymentMethodsResult['paymentMethods'];
+  selectedPaymentMethod: UseRampsPaymentMethodsResult['selectedPaymentMethod'];
+  setSelectedPaymentMethod: UseRampsPaymentMethodsResult['setSelectedPaymentMethod'];
+  paymentMethodsLoading: UseRampsPaymentMethodsResult['isLoading'];
+  paymentMethodsError: UseRampsPaymentMethodsResult['error'];
 }
 
 /**
  * Composition hook that provides access to all RampsController functionality.
  * This hook combines all ramps-related hooks into a single entry point.
  *
- * @param options - Optional configuration for the hook.
  * @returns Combined result from all ramps controller hooks.
  *
  * @example
@@ -89,102 +65,101 @@ export interface UseRampsControllerResult {
  * const {
  *   // User region
  *   userRegion,
- *   userRegionLoading,
- *   userRegionError,
- *   fetchUserRegion,
  *   setUserRegion,
  *
- *   // Preferred provider
- *   preferredProvider,
- *   setPreferredProvider,
- *
  *   // Providers
+ *   selectedProvider,
+ *   setSelectedProvider,
  *   providers,
  *   providersLoading,
  *   providersError,
- *   fetchProviders,
  *
  *   // Tokens
  *   tokens,
+ *   selectedToken,
+ *   setSelectedToken,
  *   tokensLoading,
  *   tokensError,
- *   fetchTokens,
  *
  *   // Countries
  *   countries,
  *   countriesLoading,
  *   countriesError,
- *   fetchCountries,
  *
- * } = useRampsController({ action: 'buy' });
+ *   // Payment methods
+ *   paymentMethods,
+ *   selectedPaymentMethod,
+ *   setSelectedPaymentMethod,
+ *   paymentMethodsLoading,
+ *   paymentMethodsError,
+ *
+ * } = useRampsController();
  * ```
  */
-export function useRampsController(
-  options?: UseRampsControllerOptions,
-): UseRampsControllerResult {
-  const {
-    userRegion,
-    isLoading: userRegionLoading,
-    error: userRegionError,
-    fetchUserRegion,
-    setUserRegion,
-  } = useRampsUserRegion();
-
-  const { preferredProvider, setPreferredProvider } =
-    useRampsPreferredProvider();
+export function useRampsController(): UseRampsControllerResult {
+  const { userRegion, setUserRegion } = useRampsUserRegion();
 
   const {
     providers,
+    selectedProvider,
+    setSelectedProvider,
     isLoading: providersLoading,
     error: providersError,
-    fetchProviders,
-  } = useRampsProviders(options?.region, options?.providerFilters);
+  } = useRampsProviders();
 
   const {
     tokens,
+    selectedToken,
+    setSelectedToken,
     isLoading: tokensLoading,
     error: tokensError,
-    fetchTokens,
-  } = useRampsTokens(options?.region, options?.action);
+  } = useRampsTokens();
 
   const {
     countries,
     isLoading: countriesLoading,
     error: countriesError,
-    fetchCountries,
-  } = useRampsCountries(options?.action);
+  } = useRampsCountries();
 
-  useRampsPreferredProviderAutoSet();
+  const {
+    paymentMethods,
+    selectedPaymentMethod,
+    setSelectedPaymentMethod,
+    isLoading: paymentMethodsLoading,
+    error: paymentMethodsError,
+  } = useRampsPaymentMethods();
 
   return {
     // User region
     userRegion,
-    userRegionLoading,
-    userRegionError,
-    fetchUserRegion,
     setUserRegion,
 
-    // Preferred provider
-    preferredProvider,
-    setPreferredProvider,
+    // Selected provider
+    selectedProvider,
+    setSelectedProvider,
 
-    // Providers
     providers,
     providersLoading,
     providersError,
-    fetchProviders,
 
     // Tokens
     tokens,
+    selectedToken,
+    setSelectedToken,
     tokensLoading,
     tokensError,
-    fetchTokens,
 
     // Countries
     countries,
     countriesLoading,
     countriesError,
-    fetchCountries,
+
+    // Payment methods
+    paymentMethods,
+    selectedPaymentMethod,
+    setSelectedPaymentMethod,
+    paymentMethodsLoading,
+    paymentMethodsError,
   };
 }
 

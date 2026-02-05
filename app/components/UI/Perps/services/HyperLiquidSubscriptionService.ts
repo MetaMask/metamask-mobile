@@ -158,6 +158,18 @@ export class HyperLiquidSubscriptionService {
   >(); // Key: dex name ('' for main)
   private readonly openOrdersSubscriptions = new Map<string, ISubscription>(); // Key: dex name ('' for main)
 
+  // Pending subscription promises to prevent race conditions
+  // When multiple calls to ensure*Subscription happen concurrently, this ensures
+  // only one subscription is created per DEX (others wait for the pending promise)
+  private readonly pendingClearinghouseSubscriptions = new Map<
+    string,
+    Promise<void>
+  >();
+  private readonly pendingOpenOrdersSubscriptions = new Map<
+    string,
+    Promise<void>
+  >();
+
   // Meta cache per DEX - populated by metaAndAssetCtxs, used by createAssetCtxsSubscription
   // This avoids redundant meta() API calls since metaAndAssetCtxs already returns meta data
   private readonly dexMetaCache = new Map<
@@ -1258,15 +1270,49 @@ export class HyperLiquidSubscriptionService {
 
   /**
    * Ensure clearinghouseState subscription exists for a DEX
+   * Uses pending promise tracking to prevent race conditions where multiple
+   * concurrent calls could create duplicate subscriptions
    */
   private async ensureClearinghouseStateSubscription(
     userAddress: string,
     dexName: string,
   ): Promise<void> {
+    // Already subscribed
     if (this.clearinghouseStateSubscriptions.has(dexName)) {
-      return; // Already subscribed
+      return;
     }
 
+    // Another call is already in progress - wait for it instead of creating duplicate
+    const pending = this.pendingClearinghouseSubscriptions.get(dexName);
+    if (pending) {
+      this.deps.debugLogger.log(
+        `[ensureClearinghouseStateSubscription] Waiting for pending subscription for DEX: ${dexName || 'main'}`,
+      );
+      return pending;
+    }
+
+    // Create subscription promise and track it
+    const subscriptionPromise = this.createClearinghouseSubscription(
+      userAddress,
+      dexName,
+    );
+    this.pendingClearinghouseSubscriptions.set(dexName, subscriptionPromise);
+
+    try {
+      await subscriptionPromise;
+    } finally {
+      this.pendingClearinghouseSubscriptions.delete(dexName);
+    }
+  }
+
+  /**
+   * Create the actual clearinghouseState subscription
+   * Separated from ensureClearinghouseStateSubscription to enable promise deduplication
+   */
+  private async createClearinghouseSubscription(
+    userAddress: string,
+    dexName: string,
+  ): Promise<void> {
     const subscriptionClient = this.clientService.getSubscriptionClient();
     if (!subscriptionClient) {
       throw new Error('Subscription client not available');
@@ -1351,15 +1397,49 @@ export class HyperLiquidSubscriptionService {
 
   /**
    * Ensure openOrders subscription exists for a DEX
+   * Uses pending promise tracking to prevent race conditions where multiple
+   * concurrent calls could create duplicate subscriptions
    */
   private async ensureOpenOrdersSubscription(
     userAddress: string,
     dexName: string,
   ): Promise<void> {
+    // Already subscribed
     if (this.openOrdersSubscriptions.has(dexName)) {
-      return; // Already subscribed
+      return;
     }
 
+    // Another call is already in progress - wait for it instead of creating duplicate
+    const pending = this.pendingOpenOrdersSubscriptions.get(dexName);
+    if (pending) {
+      this.deps.debugLogger.log(
+        `[ensureOpenOrdersSubscription] Waiting for pending subscription for DEX: ${dexName || 'main'}`,
+      );
+      return pending;
+    }
+
+    // Create subscription promise and track it
+    const subscriptionPromise = this.createOpenOrdersSubscription(
+      userAddress,
+      dexName,
+    );
+    this.pendingOpenOrdersSubscriptions.set(dexName, subscriptionPromise);
+
+    try {
+      await subscriptionPromise;
+    } finally {
+      this.pendingOpenOrdersSubscriptions.delete(dexName);
+    }
+  }
+
+  /**
+   * Create the actual openOrders subscription
+   * Separated from ensureOpenOrdersSubscription to enable promise deduplication
+   */
+  private async createOpenOrdersSubscription(
+    userAddress: string,
+    dexName: string,
+  ): Promise<void> {
     const subscriptionClient = this.clientService.getSubscriptionClient();
     if (!subscriptionClient) {
       throw new Error('Subscription client not available');
@@ -1568,6 +1648,10 @@ export class HyperLiquidSubscriptionService {
         });
         this.openOrdersSubscriptions.clear();
       }
+
+      // Clear pending subscription promises (race condition prevention)
+      this.pendingClearinghouseSubscriptions.clear();
+      this.pendingOpenOrdersSubscriptions.clear();
 
       // Clear subscriber counts
       this.positionSubscriberCount = 0;

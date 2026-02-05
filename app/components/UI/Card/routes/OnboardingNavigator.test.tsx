@@ -39,6 +39,9 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetOptions = jest.fn();
 
+// Mock route params - shared across tests
+let mockRouteParams: { screen?: string } = {};
+
 // Mock @react-navigation/native
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -51,6 +54,9 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockNavigate,
       goBack: mockGoBack,
       setOptions: mockSetOptions,
+    }),
+    useRoute: () => ({
+      params: mockRouteParams,
     }),
   };
 });
@@ -79,6 +85,22 @@ jest.mock('@react-navigation/stack', () => {
     }),
   };
 });
+
+// Mock LockManagerService - must use inline jest.fn() to avoid hoisting issues
+jest.mock('../../../../core/LockManagerService', () => ({
+  __esModule: true,
+  default: {
+    stopListening: jest.fn(),
+    startListening: jest.fn(),
+  },
+}));
+
+// Get references to the mock functions for assertions
+const mockLockManagerService = jest.requireMock(
+  '../../../../core/LockManagerService',
+).default;
+const mockStopListening = mockLockManagerService.stopListening;
+const mockStartListening = mockLockManagerService.startListening;
 
 // Mock navigation components
 jest.mock('../components/Onboarding/SignUp', () => 'SignUp');
@@ -187,6 +209,9 @@ describe('OnboardingNavigator', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Reset route params
+    mockRouteParams = {};
 
     // Default mock implementations
     mockUseSelector.mockImplementation((selector) => {
@@ -1073,6 +1098,51 @@ describe('OnboardingNavigator', () => {
     });
   });
 
+  describe('Auto-lock Management', () => {
+    beforeEach(() => {
+      mockStopListening.mockClear();
+      mockStartListening.mockClear();
+    });
+
+    it('disables auto-lock when component mounts', () => {
+      mockUseSelector.mockReturnValue(null);
+      mockUseCardSDK.mockReturnValue({
+        user: null,
+        isLoading: false,
+        sdk: null,
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
+        fetchUserData: jest.fn(),
+        isReturningSession: false,
+      });
+
+      renderWithNavigation(<OnboardingNavigator />);
+
+      expect(mockStopListening).toHaveBeenCalledTimes(1);
+    });
+
+    it('re-enables auto-lock when component unmounts', () => {
+      mockUseSelector.mockReturnValue(null);
+      mockUseCardSDK.mockReturnValue({
+        user: null,
+        isLoading: false,
+        sdk: null,
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
+        fetchUserData: jest.fn(),
+        isReturningSession: false,
+      });
+
+      const { unmount } = renderWithNavigation(<OnboardingNavigator />);
+
+      expect(mockStartListening).not.toHaveBeenCalled();
+
+      unmount();
+
+      expect(mockStartListening).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('Keep Going Modal', () => {
     beforeEach(() => {
       mockNavigate.mockClear();
@@ -1165,6 +1235,93 @@ describe('OnboardingNavigator', () => {
 
       renderWithNavigation(<OnboardingNavigator />);
 
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.CARD.MODALS.ID,
+        expect.anything(),
+      );
+    });
+
+    it('does not show keep going modal when deeplink navigates to COMPLETE screen', () => {
+      // Simulate deeplink navigation with screen param set to COMPLETE
+      mockRouteParams = { screen: Routes.CARD.ONBOARDING.COMPLETE };
+
+      mockUseSelector.mockReturnValue('onboarding-123');
+      mockUseCardSDK.mockReturnValue({
+        user: {
+          id: 'user-123',
+          verificationState: 'VERIFIED',
+          // User has incomplete data, so initialRouteName would be PERSONAL_DETAILS
+          // but deeplink is navigating directly to COMPLETE
+        },
+        isLoading: false,
+        sdk: null,
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
+        fetchUserData: jest.fn(),
+        isReturningSession: true,
+      });
+
+      renderWithNavigation(<OnboardingNavigator />);
+
+      // Should NOT show keep going modal because deeplink is going to COMPLETE
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.CARD.MODALS.ID,
+        expect.anything(),
+      );
+    });
+
+    it('shows keep going modal for verified user with incomplete data when NOT coming from deeplink', () => {
+      // No deeplink - route params are empty
+      mockRouteParams = {};
+
+      mockUseSelector.mockReturnValue('onboarding-123');
+      mockUseCardSDK.mockReturnValue({
+        user: {
+          id: 'user-123',
+          verificationState: 'VERIFIED',
+          // Missing countryOfNationality, so initialRouteName is PERSONAL_DETAILS
+        },
+        isLoading: false,
+        sdk: null,
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
+        fetchUserData: jest.fn(),
+        isReturningSession: true,
+      });
+
+      renderWithNavigation(<OnboardingNavigator />);
+
+      // SHOULD show keep going modal because user is returning and has incomplete steps
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.MODALS.ID,
+        expect.objectContaining({
+          screen: Routes.CARD.MODALS.CONFIRM_MODAL,
+        }),
+      );
+    });
+
+    it('does not show keep going modal when initialRouteName is COMPLETE', () => {
+      mockUseSelector.mockReturnValue('onboarding-123');
+      mockUseCardSDK.mockReturnValue({
+        user: {
+          id: 'user-123',
+          verificationState: 'VERIFIED',
+          addressLine1: '123 Main St',
+          city: 'New York',
+          zip: '10001',
+          countryOfNationality: 'US',
+        },
+        isLoading: false,
+        sdk: null,
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
+        fetchUserData: jest.fn(),
+        isReturningSession: true,
+      });
+
+      renderWithNavigation(<OnboardingNavigator />);
+
+      // Should NOT show modal because initialRouteName is COMPLETE
       expect(mockNavigate).not.toHaveBeenCalledWith(
         Routes.CARD.MODALS.ID,
         expect.anything(),
