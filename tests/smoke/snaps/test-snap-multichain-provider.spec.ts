@@ -1,14 +1,14 @@
-import { FlaskBuildTests } from '../../tags';
-import { loginToApp, navigateToBrowserView } from '../../viewHelper';
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import Assertions from '../../../tests/framework/Assertions';
-import TestSnaps from '../../pages/Browser/TestSnaps';
-import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
-import RequestTypes from '../../pages/Browser/Confirmations/RequestTypes';
+import { FlaskBuildTests } from '../../../e2e/tags';
+import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import Assertions from '../../framework/Assertions';
+import TestSnaps from '../../../e2e/pages/Browser/TestSnaps';
+import ConnectBottomSheet from '../../../e2e/pages/Browser/ConnectBottomSheet';
+import RequestTypes from '../../../e2e/pages/Browser/Confirmations/RequestTypes';
 import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
-import { confirmationFeatureFlags } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { mockGenesisBlocks } from './mocks';
 
 jest.setTimeout(150_000);

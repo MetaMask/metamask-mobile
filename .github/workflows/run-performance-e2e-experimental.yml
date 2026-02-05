@@ -1,0 +1,51 @@
+# Same as run-performance-e2e-release but for experimental builds (main branch, build-exp).
+# Triggers Bitrise build_android_main_exp / build_ios_main_exp and runs performance E2E.
+name: Performance E2E Tests for Experimental Builds
+on:
+  schedule:
+    - cron: '0 */3 * * 1-6'  # Every 3 hours, Mon–Fri (aligned with main performance workflow)
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: performance-e2e-experimental-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: false
+
+jobs:
+  check-experimental-trigger:
+    name: Check if Experimental Performance Tests Should Run
+    runs-on: ubuntu-latest
+    outputs:
+      should-run: ${{ steps.check.outputs.should-run }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check experimental trigger conditions
+        id: check
+        run: |
+          # Always run for manual dispatch or push to main
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" || ("${{ github.event_name }}" == "push" && "${{ github.ref_name }}" == "main") ]]; then
+            echo "should-run=true" >> "$GITHUB_OUTPUT"
+            echo "Experimental performance tests triggered by ${{ github.event_name }}"
+          # For scheduled runs, always run (periodic performance check on experimental builds)
+          elif [[ "${{ github.event_name }}" == "schedule" ]]; then
+            echo "should-run=true" >> "$GITHUB_OUTPUT"
+            echo "Scheduled run: experimental performance E2E"
+          else
+            echo "should-run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  run-performance-e2e-experimental:
+    name: Run Performance E2E Tests for Experimental Builds
+    uses: ./.github/workflows/run-performance-e2e.yml
+    needs: [check-experimental-trigger]
+    if: needs.check-experimental-trigger.outputs.should-run == 'true'
+    with:
+      branch_name: main
+      build_variant: exp
+    secrets: inherit

@@ -763,6 +763,14 @@ const CardHome = () => {
         dispatch(resetAuthenticatedData());
         dispatch(clearAllCache());
 
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          labelOptions: [
+            { label: strings('card.card_home.authentication_error') },
+          ],
+          hasNoTimeout: false,
+          iconName: IconName.Warning,
+        });
         navigation.dispatch(StackActions.replace(Routes.CARD.AUTHENTICATION));
       } catch (error) {
         if (!isComponentUnmountedRef.current) {
@@ -776,7 +784,7 @@ const CardHome = () => {
     };
 
     handleAuthenticationError();
-  }, [cardError, dispatch, isAuthenticated, navigation]);
+  }, [cardError, dispatch, isAuthenticated, navigation, toastRef]);
 
   useEffect(() => {
     if (isSDKLoading) {
