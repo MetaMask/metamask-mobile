@@ -46,8 +46,18 @@ runs:
         keys=$(echo "$secret_json" | jq -r 'keys[]')
         for key in $keys; do
           value=$(echo "$secret_json" | jq -r --arg k "$key" '.[$k]')
-          echo "::add-mask::$value"
-          echo "$key=$(printf '%s' "$value")" >> "$GITHUB_ENV"
+          # Mask each line (add-mask doesn't support multiline values)
+          printf '%s' "$value" | while IFS= read -r line; do
+            echo "::add-mask::$line"
+          done
+          # Use heredoc for GITHUB_ENV to support multiline values (e.g. base64 certs)
+          delimiter="$(uuidgen)"
+          {
+            echo "${key}<<${delimiter}"
+            printf '%s' "$value"
+            echo
+            echo "${delimiter}"
+          } >> "$GITHUB_ENV"
           echo "✅ Set secret for key: $key"
         done
 
