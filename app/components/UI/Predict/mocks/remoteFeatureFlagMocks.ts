@@ -15,6 +15,7 @@ export const mockedPredictFeatureFlagsEnabledState: Record<
 
 export const mockPredictMarketHighlightsFlag: PredictMarketHighlightsFlag = {
   enabled: true,
+  minimumVersion: '0.0.0',
   highlights: [
     {
       category: 'trending',

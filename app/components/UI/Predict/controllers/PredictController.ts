@@ -106,6 +106,10 @@ import {
   PredictLiveSportsFlag,
   PredictMarketHighlightsFlag,
 } from '../types/flags';
+import {
+  VersionGatedFeatureFlag,
+  validatedVersionGatedFeatureFlag,
+} from '../../../../util/remoteFeatureFlag';
 
 /**
  * State shape for PredictController
@@ -517,11 +521,19 @@ export class PredictController extends BaseController<
         ? filterSupportedLeagues(liveSportsFlag.leagues ?? [])
         : [];
 
-      const marketHighlightsFlag =
-        (remoteFeatureFlagState.remoteFeatureFlags
-          .predictMarketHighlights as unknown as
-          | PredictMarketHighlightsFlag
-          | undefined) ?? DEFAULT_MARKET_HIGHLIGHTS_FLAG;
+      const rawMarketHighlightsFlag = remoteFeatureFlagState.remoteFeatureFlags
+        .predictMarketHighlights as unknown as
+        | PredictMarketHighlightsFlag
+        | undefined;
+
+      const isHighlightsFlagValid = validatedVersionGatedFeatureFlag(
+        rawMarketHighlightsFlag as unknown as VersionGatedFeatureFlag,
+      );
+
+      const marketHighlightsFlag: PredictMarketHighlightsFlag =
+        isHighlightsFlagValid && rawMarketHighlightsFlag
+          ? rawMarketHighlightsFlag
+          : DEFAULT_MARKET_HIGHLIGHTS_FLAG;
 
       const paramsWithLiveSports = { ...params, liveSportsLeagues };
 
@@ -537,10 +549,7 @@ export class PredictController extends BaseController<
 
       const isFirstPage = !params.offset || params.offset === 0;
       const shouldFetchHighlights =
-        marketHighlightsFlag.enabled &&
-        isFirstPage &&
-        params.category &&
-        !params.q;
+        isHighlightsFlagValid && isFirstPage && params.category && !params.q;
 
       if (shouldFetchHighlights) {
         const highlightedMarketIds =
@@ -553,11 +562,15 @@ export class PredictController extends BaseController<
             params.providerId ?? 'polymarket',
           );
 
-          const highlightedMarkets =
+          const fetchedHighlightedMarkets =
             (await provider?.getMarketsByIds?.(
               highlightedMarketIds,
               liveSportsLeagues,
             )) ?? [];
+
+          const highlightedMarkets = fetchedHighlightedMarkets.filter(
+            (market) => market.status === 'open',
+          );
 
           const highlightedIdSet = new Set(highlightedMarkets.map((m) => m.id));
           markets = markets.filter(
