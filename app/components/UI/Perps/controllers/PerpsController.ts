@@ -1835,6 +1835,65 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Complete a withdrawal detected via ledger polling
+   * This is the simplified flow: when we detect a new completed withdrawal
+   * in the ledger that differs from lastWithdrawResult, we update state accordingly
+   *
+   * @param completedWithdrawal - The completed withdrawal data from the ledger API
+   */
+  completeWithdrawalFromLedger(completedWithdrawal: {
+    txHash: string;
+    amount: string;
+    timestamp: number;
+    asset?: string;
+  }): void {
+    this.update((state) => {
+      // Update lastWithdrawResult with the completed withdrawal
+      state.lastWithdrawResult = {
+        success: true,
+        txHash: completedWithdrawal.txHash,
+        amount: completedWithdrawal.amount,
+        asset: completedWithdrawal.asset || USDC_SYMBOL,
+        timestamp: completedWithdrawal.timestamp,
+        error: '',
+      };
+
+      // Set withdrawInProgress to false - the withdrawal is complete
+      state.withdrawInProgress = false;
+
+      // Clear pending/bridging entries from withdrawalRequests
+      state.withdrawalRequests = state.withdrawalRequests.filter(
+        (req) => req.status !== 'pending' && req.status !== 'bridging',
+      );
+
+      // Clear withdrawal progress
+      state.withdrawalProgress = {
+        progress: 0,
+        lastUpdated: Date.now(),
+        activeWithdrawalId: null,
+      };
+
+      state.lastUpdateTimestamp = Date.now();
+    });
+
+    this.debugLog('PerpsController: Completed withdrawal from ledger', {
+      txHash: completedWithdrawal.txHash,
+      amount: completedWithdrawal.amount,
+    });
+
+    // Track the completion
+    this.getMetrics().trackPerpsEvent(
+      PerpsAnalyticsEvent.WithdrawalTransaction,
+      {
+        [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.COMPLETED,
+        [PERPS_EVENT_PROPERTY.WITHDRAWAL_AMOUNT]: Number.parseFloat(
+          completedWithdrawal.amount,
+        ),
+      },
+    );
+  }
+
+  /**
    * Update withdrawal progress (persistent across navigation)
    */
   updateWithdrawalProgress(

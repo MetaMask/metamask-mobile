@@ -160,15 +160,22 @@ export class AccountService {
           context.stateManager.update((state) => {
             state.lastError = null;
             state.lastUpdateTimestamp = Date.now();
-            state.withdrawInProgress = false;
-            state.lastWithdrawResult = {
-              success: true,
-              txHash: result.txHash || '',
-              amount: params.amount,
-              asset: USDC_SYMBOL,
-              timestamp: Date.now(),
-              error: '',
-            };
+
+            // Only set withdrawInProgress to false if we have an immediate txHash
+            // Otherwise, keep it true - polling will detect completion via ledger API
+            if (result.txHash) {
+              state.withdrawInProgress = false;
+              state.lastWithdrawResult = {
+                success: true,
+                txHash: result.txHash,
+                amount: params.amount,
+                asset: USDC_SYMBOL,
+                timestamp: Date.now(),
+                error: '',
+              };
+            }
+            // If no txHash, keep withdrawInProgress = true
+            // lastWithdrawResult will be updated when polling detects the completed withdrawal
 
             // Update the withdrawal request by request ID
             if (state.withdrawalRequests.length > 0) {

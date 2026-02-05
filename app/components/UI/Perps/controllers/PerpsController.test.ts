@@ -3029,6 +3029,120 @@ describe('PerpsController', () => {
     });
   });
 
+  describe('completeWithdrawalFromLedger', () => {
+    const mockCompletedWithdrawal = {
+      txHash: '0xcompletedHash123',
+      amount: '50',
+      timestamp: Date.now(),
+      asset: 'USDC',
+    };
+
+    beforeEach(() => {
+      markControllerAsInitialized();
+      // Set up initial state with a pending withdrawal
+      controller.testUpdate((state) => {
+        state.withdrawInProgress = true;
+        state.lastWithdrawResult = null;
+        state.withdrawalRequests = [
+          {
+            id: 'pending-withdrawal-1',
+            amount: '50',
+            asset: 'USDC',
+            accountAddress: '0x123',
+            timestamp: Date.now() - 1000,
+            success: false,
+            status: 'bridging',
+            source: 'hyperliquid',
+          },
+        ];
+        state.withdrawalProgress = {
+          progress: 50,
+          lastUpdated: Date.now() - 1000,
+          activeWithdrawalId: 'pending-withdrawal-1',
+        };
+      });
+    });
+
+    it('updates lastWithdrawResult with completed withdrawal data', () => {
+      controller.completeWithdrawalFromLedger(mockCompletedWithdrawal);
+
+      expect(controller.state.lastWithdrawResult).toEqual({
+        success: true,
+        txHash: mockCompletedWithdrawal.txHash,
+        amount: mockCompletedWithdrawal.amount,
+        asset: mockCompletedWithdrawal.asset,
+        timestamp: mockCompletedWithdrawal.timestamp,
+        error: '',
+      });
+    });
+
+    it('sets withdrawInProgress to false', () => {
+      expect(controller.state.withdrawInProgress).toBe(true);
+
+      controller.completeWithdrawalFromLedger(mockCompletedWithdrawal);
+
+      expect(controller.state.withdrawInProgress).toBe(false);
+    });
+
+    it('clears pending/bridging withdrawal requests', () => {
+      // Add a completed withdrawal that should be kept
+      controller.testUpdate((state) => {
+        state.withdrawalRequests.push({
+          id: 'completed-withdrawal',
+          amount: '25',
+          asset: 'USDC',
+          accountAddress: '0x123',
+          timestamp: Date.now() - 5000,
+          success: true,
+          status: 'completed',
+          txHash: '0xoldHash',
+          source: 'hyperliquid',
+        });
+      });
+
+      expect(controller.state.withdrawalRequests).toHaveLength(2);
+
+      controller.completeWithdrawalFromLedger(mockCompletedWithdrawal);
+
+      // Only completed withdrawal should remain
+      expect(controller.state.withdrawalRequests).toHaveLength(1);
+      expect(controller.state.withdrawalRequests[0].status).toBe('completed');
+      expect(controller.state.withdrawalRequests[0].id).toBe(
+        'completed-withdrawal',
+      );
+    });
+
+    it('clears withdrawal progress', () => {
+      expect(controller.state.withdrawalProgress.progress).toBe(50);
+
+      controller.completeWithdrawalFromLedger(mockCompletedWithdrawal);
+
+      expect(controller.state.withdrawalProgress.progress).toBe(0);
+      expect(controller.state.withdrawalProgress.activeWithdrawalId).toBeNull();
+    });
+
+    it('updates lastUpdateTimestamp', () => {
+      const beforeTimestamp = controller.state.lastUpdateTimestamp;
+
+      controller.completeWithdrawalFromLedger(mockCompletedWithdrawal);
+
+      expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(
+        beforeTimestamp,
+      );
+    });
+
+    it('uses USDC as default asset if not provided', () => {
+      controller.completeWithdrawalFromLedger({
+        txHash: '0xhash',
+        amount: '100',
+        timestamp: Date.now(),
+        // asset not provided
+      });
+
+      expect(controller.state.lastWithdrawResult?.asset).toBe('USDC');
+    });
+  });
+
   describe('markFirstOrderCompleted', () => {
     beforeEach(() => {
       markControllerAsInitialized();

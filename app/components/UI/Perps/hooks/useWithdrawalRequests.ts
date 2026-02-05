@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { usePerpsSelector } from './usePerpsSelector';
@@ -21,7 +21,7 @@ export interface WithdrawalRequest {
 export interface UseWithdrawalRequestsOptions {
   /**
    * Start time for fetching withdrawal requests (in milliseconds)
-   * Defaults to start of today to see today's withdrawals
+   * Defaults to 0 to get all historical withdrawals
    */
   startTime?: number;
   /**
@@ -38,24 +38,35 @@ interface UseWithdrawalRequestsResult {
 }
 
 /**
- * Hook to fetch withdrawal requests combining:
- * 1. Pending withdrawals from PerpsController state (real-time)
- * 2. Completed withdrawals from HyperLiquid API (historical)
+ * Hook to fetch and track withdrawal requests.
  *
- * This provides the complete withdrawal lifecycle from initiation to completion
+ * Simplified flow:
+ * 1. When withdrawInProgress is true, poll the ledger API for completed withdrawals
+ * 2. Compare latest withdrawal's txHash with lastWithdrawResult.txHash
+ * 3. When different (new withdrawal detected), call completeWithdrawalFromLedger()
+ * 4. This clears pending requests and updates lastWithdrawResult
+ *
+ * Recovery: On mount, if withdrawInProgress is true, immediately check for completion
  */
 export const useWithdrawalRequests = (
   options: UseWithdrawalRequestsOptions = {},
 ): UseWithdrawalRequestsResult => {
-  const { startTime, skipInitialFetch = false } = options;
+  const { startTime = 0, skipInitialFetch = false } = options;
 
   // Get current selected account address
   const selectedAddress = useSelector(selectSelectedInternalAccountByScope)(
     'eip155:1',
   )?.address;
 
+  // Get withdrawal state from controller
+  const withdrawInProgress = usePerpsSelector(
+    (state) => state?.withdrawInProgress ?? false,
+  );
+  const lastWithdrawResult = usePerpsSelector(
+    (state) => state?.lastWithdrawResult ?? null,
+  );
+
   // Get pending withdrawals from controller state, filtered by current account
-  // useStableArray ensures we only get a new reference when the actual data changes
   const pendingWithdrawals = useStableArray(
     usePerpsSelector((state) => {
       const allWithdrawals = state?.withdrawalRequests || [];
@@ -67,67 +78,30 @@ export const useWithdrawalRequests = (
     }),
   );
 
-  // Track previous withdrawal states to detect meaningful changes
-  const prevWithdrawalStatesRef = useRef<Map<string, string>>(new Map());
-
-  // Log only meaningful withdrawal state changes (not on every render)
-  useEffect(() => {
-    const currentStates = new Map<string, string>();
-    pendingWithdrawals.forEach((w) => currentStates.set(w.id, w.status));
-
-    const prevStates = prevWithdrawalStatesRef.current;
-
-    // Check for new withdrawals (initialized)
-    for (const withdrawal of pendingWithdrawals) {
-      if (!prevStates.has(withdrawal.id)) {
-        DevLogger.log('Withdrawal initialized:', {
-          id: withdrawal.id,
-          amount: withdrawal.amount,
-          asset: withdrawal.asset,
-          status: withdrawal.status,
-          timestamp: new Date(withdrawal.timestamp).toISOString(),
-        });
-      }
-    }
-
-    // Check for status changes (progress) and completions
-    for (const withdrawal of pendingWithdrawals) {
-      const prevStatus = prevStates.get(withdrawal.id);
-      if (prevStatus && prevStatus !== withdrawal.status) {
-        if (withdrawal.status === 'completed') {
-          DevLogger.log('Withdrawal completed:', {
-            id: withdrawal.id,
-            amount: withdrawal.amount,
-            asset: withdrawal.asset,
-            txHash: withdrawal.txHash,
-          });
-        } else {
-          DevLogger.log('Withdrawal status changed:', {
-            id: withdrawal.id,
-            previousStatus: prevStatus,
-            newStatus: withdrawal.status,
-            amount: withdrawal.amount,
-          });
-        }
-      }
-    }
-
-    // Update ref with current states
-    prevWithdrawalStatesRef.current = currentStates;
-  }, [pendingWithdrawals]);
-
   const [completedWithdrawals, setCompletedWithdrawals] = useState<
     WithdrawalRequest[]
   >([]);
   const [isLoading, setIsLoading] = useState(!skipInitialFetch);
   const [error, setError] = useState<string | null>(null);
 
+  // Track if we've already processed a completion to prevent duplicate calls
+  const hasProcessedCompletionRef = useRef(false);
+
+  // Reset the processed flag when withdrawInProgress changes to true (new withdrawal started)
+  useEffect(() => {
+    if (withdrawInProgress) {
+      hasProcessedCompletionRef.current = false;
+    }
+  }, [withdrawInProgress]);
+
+  /**
+   * Fetch completed withdrawals from the ledger API
+   */
   const fetchCompletedWithdrawals = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
 
-      // Skip fetch if no selected address - can't attribute withdrawals to unknown account
       if (!selectedAddress) {
         DevLogger.log(
           'fetchCompletedWithdrawals: No selected address, skipping fetch',
@@ -146,19 +120,9 @@ export const useWithdrawalRequests = (
         throw new Error('No active provider available');
       }
 
-      // Check if provider has the getUserNonFundingLedgerUpdates method
       if (!('getUserNonFundingLedgerUpdates' in provider)) {
         throw new Error('Provider does not support non-funding ledger updates');
       }
-
-      // Use provided startTime or default to start of today (midnight UTC)
-      const now = new Date();
-      const startOfToday = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-      ).getTime();
-      const searchStartTime = startTime ?? startOfToday;
 
       const updates = await (
         provider as {
@@ -167,14 +131,13 @@ export const useWithdrawalRequests = (
           ) => Promise<unknown[]>;
         }
       ).getUserNonFundingLedgerUpdates({
-        startTime: searchStartTime,
+        startTime,
         endTime: undefined,
       });
 
-      // Ensure updates is an array before processing
       const safeUpdates = Array.isArray(updates) ? updates : [];
 
-      // Transform ledger updates to withdrawal requests
+      // Transform ledger updates to withdrawal requests (filter for withdrawals only)
       const withdrawalData = (
         safeUpdates as {
           delta: {
@@ -188,20 +151,17 @@ export const useWithdrawalRequests = (
           time: number;
         }[]
       )
-        .filter((update) => {
-          const isWithdrawal = update.delta.type === 'withdraw';
-          return isWithdrawal;
-        })
+        .filter((update) => update.delta.type === 'withdraw')
         .map((update) => ({
           id: `withdrawal-${update.hash}`,
           timestamp: update.time,
           amount: Math.abs(parseFloat(update.delta.usdc)).toString(),
-          asset: update.delta.coin || 'USDC', // Default to USDC if symbol is not specified (API uses 'coin')
-          accountAddress: selectedAddress, // selectedAddress is guaranteed to exist due to early return above
+          asset: update.delta.coin || 'USDC',
+          accountAddress: selectedAddress,
           txHash: update.hash,
-          status: 'completed' as const, // HyperLiquid ledger updates are completed transactions
-          destination: undefined, // Not available in ledger updates
-          withdrawalId: update.delta.nonce?.toString(), // Use nonce as withdrawal ID if available
+          status: 'completed' as const,
+          destination: undefined,
+          withdrawalId: update.delta.nonce?.toString(),
         }));
 
       setCompletedWithdrawals(withdrawalData);
@@ -217,194 +177,92 @@ export const useWithdrawalRequests = (
     }
   }, [startTime, selectedAddress]);
 
-  // Track which withdrawals have already been updated in the controller
-  // to prevent duplicate updateWithdrawalStatus calls
-  const updatedWithdrawalIdsRef = useRef<Set<string>>(new Set());
+  /**
+   * Check if a new withdrawal has completed and update controller state
+   * Simplified logic: compare latest withdrawal's txHash with lastWithdrawResult.txHash
+   */
+  const checkForWithdrawalCompletion = useCallback(() => {
+    // Skip if not waiting for a withdrawal to complete
+    if (!withdrawInProgress) return;
 
-  // Clear the updated withdrawal IDs ref when account changes to prevent stale data
-  // This handles the edge case where withdrawal IDs might not be globally unique
-  // across accounts (e.g., sequential IDs), ensuring the new account's withdrawals
-  // are properly processed
-  useEffect(() => {
-    if (selectedAddress) {
-      updatedWithdrawalIdsRef.current.clear();
+    // Skip if we've already processed this completion
+    if (hasProcessedCompletionRef.current) return;
+
+    // Get the latest completed withdrawal (sorted by timestamp, newest first)
+    const latestWithdrawal = completedWithdrawals[0];
+    if (!latestWithdrawal?.txHash) return;
+
+    // Compare with lastWithdrawResult - if different, we have a new completed withdrawal
+    const lastKnownTxHash = lastWithdrawResult?.txHash;
+
+    if (latestWithdrawal.txHash !== lastKnownTxHash) {
       DevLogger.log(
-        'useWithdrawalRequests: Cleared updatedWithdrawalIdsRef on account change',
-        { selectedAddress },
+        'useWithdrawalRequests: New withdrawal detected, completing',
+        {
+          newTxHash: latestWithdrawal.txHash,
+          lastKnownTxHash,
+          amount: latestWithdrawal.amount,
+        },
       );
-    }
-  }, [selectedAddress]);
 
-  // Combine pending and completed withdrawals (pure data transformation, no side effects)
-  const allWithdrawals = useMemo(() => {
-    // Build a list that merges pending withdrawals with their completed counterparts
-    const result: WithdrawalRequest[] = [];
+      // Mark as processed to prevent duplicate calls
+      hasProcessedCompletionRef.current = true;
 
-    // Track which completed withdrawals have been matched to prevent
-    // multiple same-amount pending withdrawals from matching the same completed one
-    const matchedCompletedIds = new Set<string>();
-
-    // First, add all pending/bridging withdrawals
-    for (const pending of pendingWithdrawals) {
-      if (pending.status === 'pending' || pending.status === 'bridging') {
-        // Check if this pending withdrawal has a matching UNMATCHED completed one
-        const matchingCompleted = completedWithdrawals.find((completed) => {
-          if (!completed.txHash) return false;
-          // Skip completed withdrawals that have already been matched
-          if (matchedCompletedIds.has(completed.id)) return false;
-
-          const amountDiff = Math.abs(
-            parseFloat(pending.amount) - parseFloat(completed.amount),
-          );
-          const isAmountMatch = amountDiff < 0.01;
-          const isAssetMatch = pending.asset === completed.asset;
-
-          return isAmountMatch && isAssetMatch;
+      // Update controller state
+      const controller = Engine.context.PerpsController;
+      if (controller) {
+        controller.completeWithdrawalFromLedger({
+          txHash: latestWithdrawal.txHash,
+          amount: latestWithdrawal.amount,
+          timestamp: latestWithdrawal.timestamp,
+          asset: latestWithdrawal.asset,
         });
-
-        if (matchingCompleted) {
-          // Mark this completed withdrawal as matched
-          matchedCompletedIds.add(matchingCompleted.id);
-          // Merge: use pending's ID but update with completed data
-          result.push({
-            ...pending,
-            status: 'completed',
-            txHash: matchingCompleted.txHash,
-            withdrawalId: matchingCompleted.withdrawalId,
-          });
-        } else {
-          // No match found, keep as pending/bridging
-          result.push(pending);
-        }
-      } else {
-        // Already completed or failed in controller state
-        // Check if this matches an API completed withdrawal to prevent duplicates
-        // This handles the case where controller state was updated in a previous render
-        if (pending.status === 'completed' && pending.txHash) {
-          const matchingApiCompleted = completedWithdrawals.find(
-            (completed) => completed.txHash === pending.txHash,
-          );
-          if (matchingApiCompleted) {
-            matchedCompletedIds.add(matchingApiCompleted.id);
-          }
-        }
-        result.push(pending);
       }
     }
+  }, [withdrawInProgress, completedWithdrawals, lastWithdrawResult?.txHash]);
 
-    // Add completed withdrawals that weren't matched to any pending ones
-    // (historical withdrawals that were completed before the app started tracking)
-    for (const completed of completedWithdrawals) {
-      // Skip if already matched to a pending withdrawal
-      if (matchedCompletedIds.has(completed.id)) {
-        continue;
-      }
-
-      if (!completed.txHash) {
-        result.push(completed);
-        continue;
-      }
-
-      // This completed withdrawal wasn't matched, add it to results
-      result.push(completed);
-    }
-
-    // Sort by timestamp (newest first)
-    return result.sort((a, b) => b.timestamp - a.timestamp);
-  }, [pendingWithdrawals, completedWithdrawals]);
-
-  // Update controller state when we detect completed withdrawals that match pending ones
-  // This is a side effect that should be in useEffect, not useMemo
+  // Check for completion whenever completedWithdrawals changes
   useEffect(() => {
-    const controller = Engine.context.PerpsController;
-    if (!controller) return;
+    checkForWithdrawalCompletion();
+  }, [checkForWithdrawalCompletion]);
 
-    // Track which pending withdrawals have been matched in THIS render cycle
-    // to prevent multiple completed withdrawals from matching the same pending one
-    const matchedPendingIdsThisCycle = new Set<string>();
-
-    for (const completed of completedWithdrawals) {
-      // Skip if no txHash (not confirmed on chain)
-      if (!completed.txHash) continue;
-
-      // Find first UNMATCHED pending withdrawal that matches this completed one
-      const matchingPending = pendingWithdrawals.find((w) => {
-        if (w.status !== 'pending' && w.status !== 'bridging') {
-          return false;
-        }
-        // Skip if already matched in this render cycle
-        if (matchedPendingIdsThisCycle.has(w.id)) {
-          return false;
-        }
-        // Skip if already updated in a previous render cycle
-        if (updatedWithdrawalIdsRef.current.has(w.id)) {
-          return false;
-        }
-
-        // Match by amount - allow for small differences (fees, rounding)
-        const amountDiff = Math.abs(
-          parseFloat(w.amount) - parseFloat(completed.amount),
-        );
-        const isAmountMatch = amountDiff < 0.01;
-
-        // Asset must match
-        const isAssetMatch = w.asset === completed.asset;
-
-        return isAmountMatch && isAssetMatch;
-      });
-
-      if (matchingPending) {
-        // Mark as matched in this cycle to prevent another completed from matching it
-        matchedPendingIdsThisCycle.add(matchingPending.id);
-
-        DevLogger.log(
-          'useWithdrawalRequests: Updating withdrawal status to completed',
-          {
-            pendingId: matchingPending.id,
-            txHash: completed.txHash,
-            amount: completed.amount,
-          },
-        );
-
-        // Mark as updated to prevent duplicate calls across render cycles
-        updatedWithdrawalIdsRef.current.add(matchingPending.id);
-
-        // Update the controller state to reflect the completion
-        controller.updateWithdrawalStatus(
-          matchingPending.id,
-          'completed',
-          completed.txHash,
-        );
-      }
-    }
-  }, [completedWithdrawals, pendingWithdrawals]);
-
-  // Initial fetch when component mounts
+  // Initial fetch and recovery check on mount
   useEffect(() => {
     if (!skipInitialFetch) {
       fetchCompletedWithdrawals();
     }
   }, [fetchCompletedWithdrawals, skipInitialFetch]);
 
-  // Poll for completed withdrawals when there are active withdrawals
+  // Poll for completed withdrawals when withdrawInProgress is true
   useEffect(() => {
-    const hasActiveWithdrawals = pendingWithdrawals.some(
-      (w) => w.status === 'pending' || w.status === 'bridging',
-    );
-
-    if (!hasActiveWithdrawals) {
-      return; // No need to poll if no active withdrawals
+    if (!withdrawInProgress) {
+      return; // No need to poll if no withdrawal in progress
     }
 
-    // Poll every 10 seconds when there are active withdrawals
+    DevLogger.log(
+      'useWithdrawalRequests: Starting polling for withdrawal completion',
+    );
+
+    // Poll every 10 seconds when waiting for withdrawal to complete
     const pollInterval = setInterval(() => {
       fetchCompletedWithdrawals();
-    }, 10000); // 10 seconds
+    }, 10000);
 
     return () => {
       clearInterval(pollInterval);
     };
-  }, [pendingWithdrawals, fetchCompletedWithdrawals]);
+  }, [withdrawInProgress, fetchCompletedWithdrawals]);
+
+  // Combine pending and completed for display
+  // Pending withdrawals show in-progress state, completed show history
+  const allWithdrawals = [...pendingWithdrawals, ...completedWithdrawals]
+    // Remove duplicates (prefer pending over completed if same txHash)
+    .filter((withdrawal, index, self) => {
+      if (!withdrawal.txHash) return true;
+      return index === self.findIndex((w) => w.txHash === withdrawal.txHash);
+    })
+    // Sort by timestamp (newest first)
+    .sort((a, b) => b.timestamp - a.timestamp);
 
   return {
     withdrawalRequests: allWithdrawals,

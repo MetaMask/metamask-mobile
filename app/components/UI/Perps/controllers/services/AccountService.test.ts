@@ -276,7 +276,7 @@ describe('AccountService', () => {
       );
     });
 
-    it('updates state with bridging status when no tx hash', async () => {
+    it('updates state with bridging status and keeps withdrawInProgress true when no tx hash', async () => {
       mockProvider.withdraw.mockResolvedValue({
         success: true,
         withdrawalId: 'withdrawal-123',
@@ -292,6 +292,42 @@ describe('AccountService', () => {
       const updateCalls = (mockContext.stateManager?.update as jest.Mock).mock
         .calls;
       expect(updateCalls.length).toBeGreaterThan(1);
+
+      // Apply the success update call to verify state
+      const successUpdateCall = updateCalls[1][0];
+      const mockState: Pick<
+        PerpsControllerState,
+        | 'withdrawInProgress'
+        | 'withdrawalRequests'
+        | 'lastError'
+        | 'lastUpdateTimestamp'
+        | 'lastWithdrawResult'
+      > = {
+        withdrawInProgress: true,
+        withdrawalRequests: [
+          {
+            id: 'withdraw-test',
+            status: 'pending',
+            amount: '10',
+            asset: 'USDC',
+            accountAddress: '0x123',
+            timestamp: Date.now(),
+            success: false,
+          },
+        ],
+        lastError: null,
+        lastUpdateTimestamp: 0,
+        lastWithdrawResult: null,
+      };
+      successUpdateCall(mockState);
+
+      // withdrawInProgress should stay true (waiting for ledger confirmation)
+      expect(mockState.withdrawInProgress).toBe(true);
+      // lastWithdrawResult should NOT be updated (stays null until ledger confirms)
+      expect(mockState.lastWithdrawResult).toBeNull();
+      // withdrawal request should be updated to bridging status
+      expect(mockState.withdrawalRequests[0].status).toBe('bridging');
+      expect(mockState.withdrawalRequests[0].success).toBe(true);
     });
 
     it('triggers account refresh after successful withdrawal', async () => {

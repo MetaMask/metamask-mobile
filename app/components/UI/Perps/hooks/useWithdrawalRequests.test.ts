@@ -41,6 +41,14 @@ describe('useWithdrawalRequests', () => {
     updateWithdrawalStatus: jest.MockedFunction<
       (id: string, status: string, txHash?: string) => void
     >;
+    completeWithdrawalFromLedger: jest.MockedFunction<
+      (data: {
+        txHash: string;
+        amount: string;
+        timestamp: number;
+        asset?: string;
+      }) => void
+    >;
   };
   let mockProvider: {
     getUserNonFundingLedgerUpdates: jest.MockedFunction<
@@ -151,6 +159,7 @@ describe('useWithdrawalRequests', () => {
     mockController = {
       getActiveProvider: jest.fn(),
       updateWithdrawalStatus: jest.fn(),
+      completeWithdrawalFromLedger: jest.fn(),
     };
 
     // Mock provider
@@ -166,9 +175,12 @@ describe('useWithdrawalRequests', () => {
     };
 
     // Mock usePerpsSelector to execute the selector function with mock state
+    // Now includes withdrawInProgress and lastWithdrawResult
     mockUsePerpsSelector.mockImplementation((selector) =>
       selector({
         withdrawalRequests: mockPendingWithdrawals,
+        withdrawInProgress: false,
+        lastWithdrawResult: null,
       } as Partial<PerpsControllerState> as PerpsControllerState),
     );
 
@@ -920,22 +932,12 @@ describe('useWithdrawalRequests', () => {
   });
 
   describe('polling behavior', () => {
-    it('polls when there are active withdrawals', async () => {
-      const activeWithdrawals = [
-        {
-          id: 'withdrawal-active',
-          timestamp: 1640995200000,
-          amount: '100',
-          asset: 'USDC',
-          accountAddress: mockAddress,
-          status: 'pending' as const,
-          destination: '0x123',
-        },
-      ];
-
+    it('polls when withdrawInProgress is true', async () => {
       mockUsePerpsSelector.mockImplementation((selector) =>
         selector({
-          withdrawalRequests: activeWithdrawals,
+          withdrawalRequests: mockPendingWithdrawals,
+          withdrawInProgress: true,
+          lastWithdrawResult: null,
         } as Partial<PerpsControllerState> as PerpsControllerState),
       );
 
@@ -963,22 +965,19 @@ describe('useWithdrawalRequests', () => {
       );
     });
 
-    it('does not poll when there are no active withdrawals', async () => {
-      const completedWithdrawals = [
-        {
-          id: 'withdrawal-completed',
-          timestamp: 1640995200000,
-          amount: '100',
-          asset: 'USDC',
-          accountAddress: mockAddress,
-          status: 'completed' as const,
-          txHash: '0x123',
-        },
-      ];
-
+    it('does not poll when withdrawInProgress is false', async () => {
       mockUsePerpsSelector.mockImplementation((selector) =>
         selector({
-          withdrawalRequests: completedWithdrawals,
+          withdrawalRequests: [],
+          withdrawInProgress: false,
+          lastWithdrawResult: {
+            success: true,
+            txHash: '0x123',
+            amount: '100',
+            asset: 'USDC',
+            timestamp: Date.now(),
+            error: '',
+          },
         } as Partial<PerpsControllerState> as PerpsControllerState),
       );
 
@@ -1007,21 +1006,11 @@ describe('useWithdrawalRequests', () => {
     });
 
     it('stops polling when component unmounts', async () => {
-      const activeWithdrawals = [
-        {
-          id: 'withdrawal-active',
-          timestamp: 1640995200000,
-          amount: '100',
-          asset: 'USDC',
-          accountAddress: mockAddress,
-          status: 'pending' as const,
-          destination: '0x123',
-        },
-      ];
-
       mockUsePerpsSelector.mockImplementation((selector) =>
         selector({
-          withdrawalRequests: activeWithdrawals,
+          withdrawalRequests: mockPendingWithdrawals,
+          withdrawInProgress: true,
+          lastWithdrawResult: null,
         } as Partial<PerpsControllerState> as PerpsControllerState),
       );
 
@@ -1045,6 +1034,228 @@ describe('useWithdrawalRequests', () => {
       expect(mockProvider.getUserNonFundingLedgerUpdates).toHaveBeenCalledTimes(
         1,
       );
+    });
+  });
+
+  describe('withdrawal completion detection', () => {
+    it('calls completeWithdrawalFromLedger when new withdrawal is detected', async () => {
+      // Setup: withdrawInProgress is true, lastWithdrawResult is null
+      mockUsePerpsSelector.mockImplementation((selector) =>
+        selector({
+          withdrawalRequests: mockPendingWithdrawals,
+          withdrawInProgress: true,
+          lastWithdrawResult: null,
+        } as Partial<PerpsControllerState> as PerpsControllerState),
+      );
+
+      // Mock ledger returns a completed withdrawal
+      mockProvider.getUserNonFundingLedgerUpdates.mockResolvedValue([
+        {
+          delta: {
+            coin: 'USDC',
+            usdc: '100',
+            type: 'withdraw',
+            nonce: 456,
+          },
+          hash: '0xnewWithdrawal',
+          time: 1640995200000,
+        },
+      ]);
+
+      renderHookWithProvider(() => useWithdrawalRequests(), {
+        state: createMockState(),
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(0);
+      });
+
+      // Should call completeWithdrawalFromLedger with the new withdrawal data
+      expect(mockController.completeWithdrawalFromLedger).toHaveBeenCalledWith({
+        txHash: '0xnewWithdrawal',
+        amount: '100',
+        timestamp: 1640995200000,
+        asset: 'USDC',
+      });
+    });
+
+    it('does not call completeWithdrawalFromLedger when txHash matches lastWithdrawResult', async () => {
+      const existingTxHash = '0xalreadyKnown';
+
+      mockUsePerpsSelector.mockImplementation((selector) =>
+        selector({
+          withdrawalRequests: [],
+          withdrawInProgress: true,
+          lastWithdrawResult: {
+            success: true,
+            txHash: existingTxHash,
+            amount: '100',
+            asset: 'USDC',
+            timestamp: Date.now(),
+            error: '',
+          },
+        } as Partial<PerpsControllerState> as PerpsControllerState),
+      );
+
+      // Mock ledger returns the same withdrawal
+      mockProvider.getUserNonFundingLedgerUpdates.mockResolvedValue([
+        {
+          delta: {
+            coin: 'USDC',
+            usdc: '100',
+            type: 'withdraw',
+            nonce: 456,
+          },
+          hash: existingTxHash, // Same as lastWithdrawResult
+          time: 1640995200000,
+        },
+      ]);
+
+      renderHookWithProvider(() => useWithdrawalRequests(), {
+        state: createMockState(),
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(0);
+      });
+
+      // Should NOT call completeWithdrawalFromLedger
+      expect(
+        mockController.completeWithdrawalFromLedger,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('does not call completeWithdrawalFromLedger when withdrawInProgress is false', async () => {
+      mockUsePerpsSelector.mockImplementation((selector) =>
+        selector({
+          withdrawalRequests: [],
+          withdrawInProgress: false,
+          lastWithdrawResult: null,
+        } as Partial<PerpsControllerState> as PerpsControllerState),
+      );
+
+      mockProvider.getUserNonFundingLedgerUpdates.mockResolvedValue([
+        {
+          delta: {
+            coin: 'USDC',
+            usdc: '100',
+            type: 'withdraw',
+            nonce: 456,
+          },
+          hash: '0xsomeWithdrawal',
+          time: 1640995200000,
+        },
+      ]);
+
+      renderHookWithProvider(() => useWithdrawalRequests(), {
+        state: createMockState(),
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(0);
+      });
+
+      // Should NOT call completeWithdrawalFromLedger
+      expect(
+        mockController.completeWithdrawalFromLedger,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('detects new withdrawal when lastWithdrawResult has different txHash', async () => {
+      mockUsePerpsSelector.mockImplementation((selector) =>
+        selector({
+          withdrawalRequests: mockPendingWithdrawals,
+          withdrawInProgress: true,
+          lastWithdrawResult: {
+            success: true,
+            txHash: '0xoldWithdrawal',
+            amount: '50',
+            asset: 'USDC',
+            timestamp: Date.now() - 10000,
+            error: '',
+          },
+        } as Partial<PerpsControllerState> as PerpsControllerState),
+      );
+
+      // Mock ledger returns a NEW withdrawal
+      mockProvider.getUserNonFundingLedgerUpdates.mockResolvedValue([
+        {
+          delta: {
+            coin: 'USDC',
+            usdc: '100',
+            type: 'withdraw',
+            nonce: 789,
+          },
+          hash: '0xnewWithdrawal', // Different from lastWithdrawResult
+          time: 1640995300000,
+        },
+      ]);
+
+      renderHookWithProvider(() => useWithdrawalRequests(), {
+        state: createMockState(),
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(0);
+      });
+
+      // Should call completeWithdrawalFromLedger with the new withdrawal
+      expect(mockController.completeWithdrawalFromLedger).toHaveBeenCalledWith({
+        txHash: '0xnewWithdrawal',
+        amount: '100',
+        timestamp: 1640995300000,
+        asset: 'USDC',
+      });
+    });
+
+    it('handles recovery on mount when withdrawInProgress is true', async () => {
+      // Simulates app restart with a pending withdrawal
+      mockUsePerpsSelector.mockImplementation((selector) =>
+        selector({
+          withdrawalRequests: [
+            {
+              id: 'stuck-withdrawal',
+              timestamp: 1640995200000,
+              amount: '100',
+              asset: 'USDC',
+              accountAddress: mockAddress,
+              status: 'bridging' as const,
+            },
+          ],
+          withdrawInProgress: true, // Was true when app closed
+          lastWithdrawResult: null,
+        } as Partial<PerpsControllerState> as PerpsControllerState),
+      );
+
+      // The withdrawal completed while app was closed
+      mockProvider.getUserNonFundingLedgerUpdates.mockResolvedValue([
+        {
+          delta: {
+            coin: 'USDC',
+            usdc: '100',
+            type: 'withdraw',
+            nonce: 456,
+          },
+          hash: '0xcompletedWhileAway',
+          time: 1640995250000,
+        },
+      ]);
+
+      renderHookWithProvider(() => useWithdrawalRequests(), {
+        state: createMockState(),
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(0);
+      });
+
+      // Should detect and complete the withdrawal on mount
+      expect(mockController.completeWithdrawalFromLedger).toHaveBeenCalledWith({
+        txHash: '0xcompletedWhileAway',
+        amount: '100',
+        timestamp: 1640995250000,
+        asset: 'USDC',
+      });
     });
   });
 
