@@ -177,6 +177,8 @@ import { selectSelectedInternalAccountByScope } from '../../../selectors/multich
 import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
+import { useUserProfileOptIn } from '../../hooks/useUserProfileOptIn';
+import UsernameBanner from '../../UI/UserProfile/UsernameBanner';
 import NftGrid from '../../UI/NftGrid/NftGrid';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { selectDisplayCardButton } from '../../../core/redux/slices/card';
@@ -1023,6 +1025,11 @@ const Wallet = ({
   useMultichainAccountsIntroModal();
 
   /**
+   * Show user profile opt-in modal if user hasn't seen it before
+   */
+  useUserProfileOptIn();
+
+  /**
    * Show PNA25 bottom sheet if remote feature flag is enabled and never showed before
    */
   usePna25BottomSheet();
@@ -1353,6 +1360,7 @@ const Wallet = ({
         <NetworkConnectionBanner />
       </View>
       <>
+        <UsernameBanner />
         <AccountGroupBalance />
 
         <AssetDetailsActions

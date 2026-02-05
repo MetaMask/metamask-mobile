@@ -6632,6 +6632,62 @@
       "no_networks_available": "No networks available"
     }
   },
+  "user_profile": {
+    "opt_in": {
+      "header_title": "Create your MetaMask profile",
+      "title": "Get your unique username",
+      "description_prefix": "Create a personalized identity with your own ",
+      "description_suffix": " username. Your profile lets you be recognized across the MetaMask ecosystem.",
+      "privacy_title": "You're in control",
+      "privacy_description": "Choose how visible your profile is. Keep it private and searchable, or make it public for leaderboards and community features.",
+      "create_profile_button": "Create profile",
+      "skip_button": "Maybe later"
+    },
+    "claim_username": {
+      "header_title": "Claim your username",
+      "edit_header_title": "Edit username",
+      "title": "Choose your username",
+      "description": "This will be your unique handle ending in @mm.io",
+      "input_placeholder": "Enter username",
+      "username_suffix": "@mm.io",
+      "checking_availability": "Checking availability...",
+      "username_available": "Username available!",
+      "username_taken": "Username already taken",
+      "username_invalid": "Invalid username",
+      "privacy_section_title": "Privacy preference",
+      "privacy_private_title": "Private",
+      "privacy_private_description": "Searchable by others, but hidden from leaderboards",
+      "privacy_public_title": "Public",
+      "privacy_public_description": "Visible on leaderboards and community features",
+      "claim_button": "Claim username",
+      "update_button": "Update username",
+      "claiming": "Claiming...",
+      "updating": "Updating...",
+      "cancel_button": "Cancel"
+    },
+    "settings": {
+      "title": "Profile settings",
+      "description": "Manage your username and privacy preferences",
+      "drawer_title": "Profile",
+      "drawer_description": "Manage your username and profile settings",
+      "username_section_title": "Your username",
+      "no_username": "No username claimed",
+      "claim_username_button": "Claim username",
+      "privacy_section_title": "Privacy",
+      "privacy_mode_label": "Profile visibility",
+      "privacy_private": "Private",
+      "privacy_public": "Public",
+      "edit_button": "Edit",
+      "disable_profile_title": "Disable profile",
+      "disable_profile_description": "Remove your profile and username",
+      "dev_section_title": "Developer Settings",
+      "dev_reset_description": "Reset all profile data and trigger the opt-in flow again. This is for testing purposes only.",
+      "dev_reset_button": "Reset & Test Flow"
+    },
+    "banner": {
+      "title": "Your profile"
+    }
+  },
   "deep_link_modal": {
     "private_link": {
       "title": "Redirecting you to MetaMask",
