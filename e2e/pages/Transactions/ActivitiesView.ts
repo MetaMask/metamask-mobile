@@ -5,6 +5,7 @@ import {
 import Matchers from '../../../tests/framework/Matchers';
 import Gestures from '../../../tests/framework/Gestures';
 import Assertions from '../../../tests/framework/Assertions';
+import Utilities from '../../../tests/framework/Utilities';
 
 class ActivitiesView {
   get title(): DetoxElement {
@@ -168,8 +169,6 @@ class ActivitiesView {
     rowIndex = 0,
     timeout = 45000,
   ): Promise<void> {
-    const { Utilities } = await import('../../../tests/framework');
-
     await Utilities.executeWithRetry(
       async () => {
         // Try to refresh the activity list - ignore failures if container not ready
