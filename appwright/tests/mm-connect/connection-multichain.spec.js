@@ -10,20 +10,28 @@ import BrowserPlaygroundDapp from '../../../wdio/screen-objects/BrowserPlaygroun
 import AndroidScreenHelpers from '../../../wdio/screen-objects/Native/Android.js';
 import DappConnectionModal from '../../../wdio/screen-objects/Modals/DappConnectionModal.js';
 import AppwrightHelpers from '../../../tests/framework/AppwrightHelpers.js';
-import PlaygroundDappServer from './helpers/PlaygroundDappServer.js';
+import {
+  StandaloneDappServer,
+  DappVariants,
+} from '../../../tests/framework/index.ts';
 
 // Local server configuration
 const DAPP_PORT = 8090;
 const DAPP_NAME = 'MetaMask MultiChain API Test Dapp';
 
+const playgroundServer = new StandaloneDappServer(
+  DappVariants.BROWSER_PLAYGROUND,
+  DAPP_PORT,
+);
+
 // Start local playground server before all tests
 test.beforeAll(async () => {
-  await PlaygroundDappServer.start(DAPP_PORT);
+  await playgroundServer.start(DAPP_PORT);
 });
 
 // Stop local playground server after all tests
 test.afterAll(async () => {
-  await PlaygroundDappServer.stop();
+  await playgroundServer.stop();
 });
 
 test('@metamask/connect-multichain - Connect via Multichain API to Local Browser Playground', async ({
@@ -31,7 +39,7 @@ test('@metamask/connect-multichain - Connect via Multichain API to Local Browser
 }) => {
   // Get platform-specific URL
   const platform = device.getPlatform?.() || 'android';
-  const DAPP_URL = PlaygroundDappServer.getUrl(platform);
+  const DAPP_URL = playgroundServer.getUrl(platform);
 
   // Initialize page objects with device
   WalletMainScreen.device = device;

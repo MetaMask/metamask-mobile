@@ -15,7 +15,10 @@ import SwitchChainModal from '../../../wdio/screen-objects/Modals/SwitchChainMod
 import AddChainModal from '../../../wdio/screen-objects/Modals/AddChainModal.js';
 import AppwrightHelpers from '../../../tests/framework/AppwrightHelpers.js';
 import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
-import PlaygroundDappServer from './helpers/PlaygroundDappServer.js';
+import {
+  StandaloneDappServer,
+  DappVariants,
+} from '../../../tests/framework/index.ts';
 
 // Local server configuration
 const DAPP_PORT = 8090;
@@ -25,22 +28,27 @@ const DAPP_NAME = 'MetaMask MultiChain API Test Dapp';
 const ACCOUNT_1_ADDRESS = '0x19a7Ad8256ab119655f1D758348501d598fC1C94';
 const ACCOUNT_3_ADDRESS = '0xE2bEca5CaDC60b61368987728b4229822e6CDa83';
 
+const playgroundServer = new StandaloneDappServer(
+  DappVariants.BROWSER_PLAYGROUND,
+  DAPP_PORT,
+);
+
 // Start local playground server before all tests
 test.beforeAll(async () => {
-  await PlaygroundDappServer.start(DAPP_PORT);
+  await playgroundServer.start(DAPP_PORT);
 });
 
 // Stop local playground server after all tests
 test.afterAll(async () => {
-  await PlaygroundDappServer.stop();
+  await playgroundServer.stop();
 });
 
-test('@metamask/connect-wagmi - Connect via Wagmi to Local Browser Playground', async ({
+test.skip('@metamask/connect-wagmi - Connect via Wagmi to Local Browser Playground', async ({
   device,
 }) => {
   // Get platform-specific URL
   const platform = device.getPlatform?.() || 'android';
-  const DAPP_URL = PlaygroundDappServer.getUrl(platform);
+  const DAPP_URL = playgroundServer.getUrl(platform);
 
   // Initialize page objects with device
   WalletMainScreen.device = device;

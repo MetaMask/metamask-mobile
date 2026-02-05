@@ -13,6 +13,11 @@ export { Logger, createLogger, LogLevel, logger } from './logger.ts';
 export { default as PortManager, ResourceType } from './PortManager.ts';
 export * from './types.ts';
 
+// Dapp server exports for standalone usage (e.g., Appwright tests)
+export { default as StandaloneDappServer } from './StandaloneDappServer.ts';
+export { default as DappServer } from './DappServer.ts';
+export { DappVariants, TestDapps } from './Constants.ts';
+
 // Example usage:
 // import { Assertions, Gestures, Matchers, sleep, PortManager, ResourceType } from '../framework';
 
