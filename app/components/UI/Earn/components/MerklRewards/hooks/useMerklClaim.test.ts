@@ -492,4 +492,56 @@ describe('useMerklClaim', () => {
     // isClaiming stays true - component will unmount and useMerklClaimStatus handles the rest
     expect(result.current.isClaiming).toBe(true);
   });
+
+  it('does not set error when user rejects the transaction (EIP-1193 code 4001)', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => createMockRewardData(),
+    });
+
+    // Create error with EIP-1193 user rejection code
+    const userRejectionError = Object.assign(
+      new Error('User rejected the request'),
+      { code: 4001 },
+    );
+    mockAddTransaction.mockRejectedValueOnce(userRejectionError);
+
+    const { result } = renderHook(() => useMerklClaim(mockAsset));
+
+    await act(async () => {
+      try {
+        await result.current.claimRewards();
+      } catch {
+        // Expected to throw
+      }
+    });
+
+    // Error should NOT be set for user rejection (code 4001)
+    expect(result.current.error).toBe(null);
+    expect(result.current.isClaiming).toBe(false);
+  });
+
+  it('sets error for non-user-rejection errors (no code 4001)', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => createMockRewardData(),
+    });
+
+    // Error without code 4001 should set error state
+    mockAddTransaction.mockRejectedValueOnce(new Error('Network error'));
+
+    const { result } = renderHook(() => useMerklClaim(mockAsset));
+
+    await act(async () => {
+      try {
+        await result.current.claimRewards();
+      } catch {
+        // Expected to throw
+      }
+    });
+
+    // Error SHOULD be set for non-user-rejection errors
+    expect(result.current.error).toBe('Network error');
+    expect(result.current.isClaiming).toBe(false);
+  });
 });
