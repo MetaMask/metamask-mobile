@@ -435,9 +435,9 @@ class CustomReporter {
       );
 
       const tracker = new PerformanceTracker();
+      const appProfilingHandler = new AppProfilingDataHandler();
 
       for (const session of this.sessions) {
-        const appProfilingHandler = new AppProfilingDataHandler();
         try {
           // Fetch video URL
           const videoURL = await tracker.getVideoURL(
@@ -449,11 +449,9 @@ class CustomReporter {
             session.videoURL = videoURL;
           } else {
             // Fallback: build URL from session details when getVideoURL fails (e.g. test timed out, video not ready)
-            const appProfilingHandlerForUrl = new AppProfilingDataHandler();
-            const sessionDetails =
-              await appProfilingHandlerForUrl.getSessionDetails(
-                session.sessionId,
-              );
+            const sessionDetails = await appProfilingHandler.getSessionDetails(
+              session.sessionId,
+            );
             if (sessionDetails?.buildId) {
               session.videoURL = `https://app-automate.browserstack.com/builds/${sessionDetails.buildId}/sessions/${session.sessionId}`;
               console.log(
@@ -463,7 +461,6 @@ class CustomReporter {
           }
 
           // Fetch profiling data from BrowserStack API
-          const appProfilingHandler = new AppProfilingDataHandler();
           try {
             console.log(
               `🔍 Fetching profiling data for ${session.testTitle}...`,
