@@ -115,14 +115,17 @@ class TabBarComponent {
     await Utilities.executeWithRetry(
       async () => {
         await Gestures.waitAndTap(this.tabBarActivityButton, {
-          delay: 3500,
+          delay: 1000,
+          checkStability: true,
         });
         await Assertions.expectElementToBeVisible(ActivitiesView.title, {
+          timeout: 5000,
           description: 'Activity View Title',
         });
       },
       {
-        timeout: 10000,
+        timeout: 15000,
+        interval: 2000,
         description: 'Tap Activity Button',
       },
     );

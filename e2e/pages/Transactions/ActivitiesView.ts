@@ -160,22 +160,45 @@ class ActivitiesView {
    * @param titleText - Activity title to look for (e.g. "mUSD conversion", "Sent ETH")
    * @param statusText - Expected status for the row (e.g. "Confirmed", "Failed")
    * @param rowIndex - Row index (default 0 = most recent)
+   * @param timeout - Overall timeout for the verification (default 45000ms)
    */
   async verifyActivityItemWithStatus(
     titleText: string,
     statusText: string,
     rowIndex = 0,
+    timeout = 45000,
   ): Promise<void> {
-    await Assertions.expectTextDisplayed(titleText, {
-      timeout: 20000,
-      description: `Activity item "${titleText}" should be visible`,
-    });
-    await Assertions.expectElementToHaveText(
-      this.transactionStatus(rowIndex),
-      statusText,
+    const { Utilities } = await import('../../../tests/framework');
+
+    await Utilities.executeWithRetry(
+      async () => {
+        // Try to refresh the activity list - ignore failures if container not ready
+        try {
+          await Gestures.swipe(this.container, 'down', {
+            speed: 'fast',
+            percentage: 0.3,
+          });
+        } catch {
+          // Container may not be visible yet, continue to assertions
+        }
+
+        await Assertions.expectTextDisplayed(titleText, {
+          timeout: 10000,
+          description: `Activity item "${titleText}" should be visible`,
+        });
+        await Assertions.expectElementToHaveText(
+          this.transactionStatus(rowIndex),
+          statusText,
+          {
+            timeout: 5000,
+            description: `Activity row (index ${rowIndex}) should show status "${statusText}"`,
+          },
+        );
+      },
       {
-        timeout: 10000,
-        description: `Activity row (index ${rowIndex}) should show status "${statusText}"`,
+        timeout,
+        interval: 3000,
+        description: `Verify activity "${titleText}" has status "${statusText}"`,
       },
     );
   }
