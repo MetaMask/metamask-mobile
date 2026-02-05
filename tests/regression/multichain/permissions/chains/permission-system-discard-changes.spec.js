@@ -1,14 +1,17 @@
-import TestHelpers from '../../../../helpers';
-import { RegressionNetworkAbstractions } from '../../../../tags';
-import Browser from '../../../../pages/Browser/BrowserView';
-import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
-import FixtureBuilder from '../../../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../../../tests/framework/fixtures/FixtureHelper';
-import { loginToApp, navigateToBrowserView } from '../../../../viewHelper';
-import Assertions from '../../../../../tests/framework/Assertions';
-import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
-import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
-import { DappVariants } from '../../../../../tests/framework/Constants';
+import TestHelpers from '../../../../../e2e/helpers';
+import { RegressionNetworkAbstractions } from '../../../../../e2e/tags';
+import Browser from '../../../../../e2e/pages/Browser/BrowserView';
+import ConnectedAccountsModal from '../../../../../e2e/pages/Browser/ConnectedAccountsModal';
+import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
+import {
+  loginToApp,
+  navigateToBrowserView,
+} from '../../../../../e2e/viewHelper';
+import Assertions from '../../../../framework/Assertions';
+import NetworkConnectMultiSelector from '../../../../../e2e/pages/Browser/NetworkConnectMultiSelector';
+import NetworkNonPemittedBottomSheet from '../../../../../e2e/pages/Network/NetworkNonPemittedBottomSheet';
+import { DappVariants } from '../../../../framework/Constants';
 
 describe(RegressionNetworkAbstractions('Chain Permission Management'), () => {
   beforeAll(async () => {

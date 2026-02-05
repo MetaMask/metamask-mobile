@@ -54,7 +54,10 @@ import {
   GetOrderStatusResponse,
 } from '../types';
 import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
-import { getCardBaanxToken } from '../util/cardTokenVault';
+import {
+  getCardBaanxToken,
+  removeCardBaanxToken,
+} from '../util/cardTokenVault';
 import { CaipChainId } from '@metamask/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { isZeroValue } from '../../../../util/number';
@@ -842,6 +845,48 @@ export class CardSDK {
 
     const data = await response.json();
     return data as CardLoginResponse;
+  };
+
+  /**
+   * Logs out the user from the Card provider.
+   *
+   * This method always clears the local token, regardless of whether the server
+   * logout succeeds. This ensures users can always log out even if the server
+   * is unreachable or the token is already invalidated server-side.
+   *
+   * @throws {CardError} If the server logout fails (after local cleanup is done)
+   */
+  logout = async (): Promise<void> => {
+    let serverError: Error | null = null;
+
+    try {
+      const response = await this.makeRequest('/v1/auth/logout', {
+        fetchOptions: { method: 'POST' },
+        authenticated: true,
+      });
+
+      if (!response.ok) {
+        serverError = this.logAndCreateError(
+          CardErrorType.SERVER_ERROR,
+          'Failed to logout from server.',
+          'logout',
+          'auth/logout',
+          response.status,
+        );
+      }
+    } catch (error) {
+      Logger.error(error as Error, {
+        message:
+          '[CardSDK] Server logout failed, proceeding with local cleanup',
+      });
+      serverError = error as Error;
+    }
+
+    await removeCardBaanxToken();
+
+    if (serverError) {
+      throw serverError;
+    }
   };
 
   sendOtpLogin = async (body: {

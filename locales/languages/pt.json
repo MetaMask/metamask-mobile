@@ -7484,7 +7484,7 @@
       "redeem_failure_title": "Falha ao resgatar",
       "redeem_failure_description": "Tente novamente mais tarde.",
       "reward_details": "Detalhes da recompensa",
-      "select_account_description": "Selecione a conta para onde deseja que a recompensa seja enviada. Os tokens serão distribuídos em até duas semanas."
+      "select_account_description": "Selecione a conta para onde deseja que a recompensa seja enviada."
     },
     "animation": {
       "could_not_load": "Não foi possível carregar"
