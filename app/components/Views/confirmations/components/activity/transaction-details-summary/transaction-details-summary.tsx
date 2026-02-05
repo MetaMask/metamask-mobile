@@ -40,10 +40,6 @@ import { useNetworkName } from '../../../hooks/useNetworkName';
 import { TransactionDetailsStatus } from '../transaction-details-status';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 import { POLYGON_USDCE } from '../../../constants/predict';
-import {
-  findMusdReceiveTransaction,
-  getMusdReceiveHash,
-} from './transaction-details-summary.utils';
 
 export function TransactionDetailsSummary() {
   const { styles } = useStyles(styleSheet, {});
@@ -374,14 +370,6 @@ function useBridgeReceiveData(
   const sourceNetworkName = useNetworkName(transaction.chainId);
   const targetNetworkName = useNetworkName(chainId);
 
-  // Fetch required transactions for mUSD receive hash lookup
-  const requiredTransactions = useSelector((state: RootState) =>
-    selectTransactionsByIds(
-      state,
-      parentTransaction.requiredTransactionIds ?? [],
-    ),
-  );
-
   if (hasTransactionType(transaction, [TransactionType.perpsDeposit])) {
     return {
       chainId: CHAIN_IDS.ARBITRUM,
@@ -402,19 +390,21 @@ function useBridgeReceiveData(
 
   // mUSD conversion: main transaction renders receive line only
   if (hasTransactionType(transaction, [TransactionType.musdConversion])) {
-    const musdReceiveTx = findMusdReceiveTransaction(
-      requiredTransactions,
-      transaction.chainId,
-    );
-    const receiveHash = getMusdReceiveHash(musdReceiveTx, transaction);
-
-    return {
+    const receiveData = {
       chainId: transaction.chainId,
-      hash: receiveHash,
+      hash: undefined as Hex | undefined,
       isReceiveOnly: true,
       targetNetworkName: sourceNetworkName,
       targetSymbol: 'mUSD',
     };
+
+    if (!transaction.hash || transaction.hash === '0x0') {
+      return receiveData;
+    }
+
+    receiveData.hash = transaction.hash as Hex;
+
+    return receiveData;
   }
 
   if (
@@ -437,7 +427,7 @@ function useBridgeReceiveData(
         sourceSymbol: sourceToken?.symbol,
       };
     }
-    // Skip mUSD receive transactions (handled by main musdConversion tx)
+    // Skip other mUSD transactions for send line show relay deposit only
     return { skip: true };
   }
 

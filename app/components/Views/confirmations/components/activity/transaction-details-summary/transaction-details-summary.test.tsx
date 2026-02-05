@@ -601,7 +601,7 @@ describe('TransactionDetailsSummary', () => {
       ).toBeDefined();
     });
 
-    it('uses receive transaction hash for receive line block explorer link', () => {
+    it('skips mUSD receive transactions and uses musdConversion hash for receive line', () => {
       render({
         transactions: [
           {
@@ -631,8 +631,8 @@ describe('TransactionDetailsSummary', () => {
         ],
       });
 
-      // Receive line uses the mUSD receive transaction hash
-      expect(useMultichainBlockExplorerTxUrlMock).toHaveBeenCalledWith({
+      // mUSD receive transaction is skipped, receive line uses musdConversion tx hash (undefined here)
+      expect(useMultichainBlockExplorerTxUrlMock).not.toHaveBeenCalledWith({
         chainId: Number(SOURCE_CHAIN_ID_MOCK),
         txHash: MUSD_RECEIVE_HASH,
       });
