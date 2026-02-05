@@ -330,7 +330,7 @@ describe('NotificationManager', () => {
         },
       };
       mockTransactionController.getTransactions.mockReturnValue([
-        mockTransaction as TransactionMeta,
+        mockTransaction as unknown as TransactionMeta,
       ]);
 
       const smartTransaction = {
@@ -439,7 +439,7 @@ describe('NotificationManager', () => {
       };
 
       mockTransactionController.state.transactions.push(
-        transactionMeta as TransactionMeta,
+        transactionMeta as unknown as TransactionMeta,
       );
 
       notificationManager.watchSubmittedTransaction({
@@ -484,7 +484,7 @@ describe('NotificationManager', () => {
 
       // Add EIP-7702 transaction to controller state
       mockTransactionController.state.transactions.push(
-        eip7702TransactionMeta as TransactionMeta,
+        eip7702TransactionMeta as unknown as TransactionMeta,
       );
 
       const originalTransaction = {
@@ -532,7 +532,7 @@ describe('NotificationManager', () => {
       };
 
       mockTransactionController.state.transactions.push(
-        transactionWithNullNonce as TransactionMeta,
+        transactionWithNullNonce as unknown as TransactionMeta,
       );
 
       notificationManager.watchSubmittedTransaction({
@@ -672,7 +672,7 @@ describe('NotificationManager', () => {
           mockTransactionController.state.transactions.push({
             type: TransactionType.perpsDeposit,
             status: transactionStatus,
-          } as TransactionMeta);
+          } as unknown as TransactionMeta);
         });
 
         it('does not show submit confirmation', () => {
@@ -747,7 +747,7 @@ describe('NotificationManager', () => {
         requiredTransactionIds: [
           mockTransactionController.state.transactions[0].id,
         ],
-      } as TransactionMeta);
+      } as unknown as TransactionMeta);
 
       notificationManager.watchSubmittedTransaction({
         id: '0x123',
@@ -766,7 +766,7 @@ describe('NotificationManager', () => {
       mockTransactionController.state.transactions.push({
         type: TransactionType.perpsDeposit,
         batchId,
-      } as TransactionMeta);
+      } as unknown as TransactionMeta);
 
       mockTransactionController.state.transactions[0].batchId = batchId;
 
