@@ -913,7 +913,7 @@ const AppFlow = () => (
       options={{ headerShown: false }}
     />
     <Stack.Screen
-      name="Rehydrate"
+      name={Routes.ONBOARDING.REHYDRATE}
       component={OAuthRehydration}
       options={{ headerShown: false }}
     />
@@ -922,7 +922,7 @@ const AppFlow = () => (
       component={MaxBrowserTabsModal}
     />
     <Stack.Screen
-      name="OnboardingRootNav"
+      name={Routes.ONBOARDING.ROOT_NAV}
       component={OnboardingRootNav}
       options={{ headerShown: false }}
     />
@@ -946,13 +946,13 @@ const AppFlow = () => (
     />
     {
       <Stack.Screen
-        name="ImportSRPView"
+        name={Routes.MULTI_SRP.IMPORT}
         component={ImportSRPView}
         options={{ animationEnabled: true }}
       />
     }
     <Stack.Screen
-      name="ConnectQRHardwareFlow"
+      name={Routes.HW.CONNECT_QR_DEVICE}
       component={ConnectQRHardwareFlow}
       options={{ animationEnabled: true }}
     />
