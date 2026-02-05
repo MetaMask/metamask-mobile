@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.64.0]
 
+### Uncategorized
+
+- Updates the transaction details page for musd conversions such that we support gasless transaction info (#25349)
+- Remove epd feature flag (#23725)
+- Added pull-to-refresh functionality to Wallet screen that refreshes account balance and active tab content (#23618)
+- chore(release): sync stable to main for version 7.65.0 (#25381)
+- Add tempo network logo. (#25187)
+- Gate rewards referral code in Perps PnL hero card behind `rewardsReferralCodeEnabled` feature flag (#25282)
+- Added .env in expo updates step (#25236)
+- Rewards feature flag cleanup (#25316)
+- Removed "Powered by Relay" from the mUSD conversion input screen (#25318)
+- Rewards modal copy changes for eos (#25313)
+- N/a (#25018)
+- Added mitmproxy documentation and Android debug config for WebSocket traffic inspection (#25155)
+- Stop using swaps fetchTokens function (#25109)
+- Remove support for token search on the browser (#25111)
+- chore: enable ota version display in production builds (#25225)
+- chore(release): sync stable to main for version 7.65.0 (#25200)
+- Remove withdrawals restrictions (#25189)
+- Bump tron-wallet-snap package to 1.19.2 (#25166)
+- Improved error messages in Perps trading to show user-friendly descriptions instead of technical error codes (#24986)
+
 ### Added
 
 - Added one-click trading for Perps, allowing users to deposit funds and execute trades seamlessly within the order view (#24964)
@@ -155,7 +177,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - fix: Android ANR bug (#25596)
 - fix(analytics): cp-7.63.1 correct capitalization in Deep link event name (#25599)
-- feat(perps): sdk reconnect on native socket event (#25022) (#25573)
+- feat(perps): sdk reconnect on native socket event (#25022, #25573)
 
 ## [7.63.0]
 
