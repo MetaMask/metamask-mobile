@@ -631,3 +631,10 @@ export interface RootStackParamList extends ParamListBase {
   // Feature flag route
   FeatureFlagOverride: undefined;
 }
+
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace ReactNavigation {
+    interface RootParamList extends RootStackParamList {}
+  }
+}
