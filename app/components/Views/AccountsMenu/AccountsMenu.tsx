@@ -18,7 +18,7 @@ import {
   Box,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard/HeaderCompactStandard';
 import ActionListItem from '../../../component-library/components-temp/ActionListItem';
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -169,7 +169,7 @@ const AccountsMenu = () => {
       edges={{ bottom: 'additive' }}
       style={tw.style('flex-1', { backgroundColor: colors.background.default })}
     >
-      <HeaderCenter
+      <HeaderCompactStandard
         onBack={handleBack}
         backButtonProps={{ testID: AccountsMenuSelectorsIDs.BACK_BUTTON }}
         includesTopInset
