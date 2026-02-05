@@ -37,15 +37,6 @@ jest.mock('../../../util/theme', () => ({
   }),
 }));
 
-jest.mock('../../UI/Ramp/hooks/useRampNavigation', () => ({
-  useRampNavigation: () => ({
-    goToBuy: jest.fn(),
-    goToSell: jest.fn(),
-    goToAggregator: jest.fn(),
-    goToDeposit: jest.fn(),
-  }),
-}));
-
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: jest.fn().mockReturnThis(),
@@ -67,6 +58,9 @@ jest.mock('../../../core/Analytics', () => ({
   },
   MetaMetricsEvents: {
     CARD_HOME_CLICKED: 'CARD_HOME_CLICKED',
+    NAVIGATION_TAPS_SEND_FEEDBACK: 'NAVIGATION_TAPS_SEND_FEEDBACK',
+    NAVIGATION_TAPS_GET_HELP: 'NAVIGATION_TAPS_GET_HELP',
+    NAVIGATION_TAPS_LOGOUT: 'NAVIGATION_TAPS_LOGOUT',
   },
 }));
 
@@ -86,30 +80,6 @@ jest.mock('../../../core/', () => ({
 
 jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
-}));
-
-jest.mock('../../../reducers/fiatOrders', () => ({
-  getDetectedGeolocation: jest.fn(),
-}));
-
-jest.mock('../../UI/Ramp/hooks/useRampsButtonClickData', () => ({
-  useRampsButtonClickData: () => ({
-    ramp_routing: 'test-routing',
-    is_authenticated: true,
-    preferred_provider: 'test-provider',
-    order_count: 0,
-  }),
-}));
-
-jest.mock('../../UI/Ramp/hooks/useRampsUnifiedV1Enabled', () =>
-  jest.fn(() => true),
-);
-
-jest.mock('../../../core/DeeplinkManager/DeeplinkManager', () => ({
-  __esModule: true,
-  default: {
-    parse: jest.fn(),
-  },
 }));
 
 describe('AccountsMenu', () => {
@@ -133,27 +103,32 @@ describe('AccountsMenu', () => {
     ).toBeDefined();
   });
 
-  it('should render Quick Actions buttons', () => {
-    const { getByText, getByTestId } = render(<AccountsMenu />);
-
-    expect(getByText('Deposit')).toBeDefined();
-    expect(getByText('Earn')).toBeDefined();
-    expect(getByText('Scan')).toBeDefined();
-    expect(getByTestId(AccountsMenuSelectorsIDs.DEPOSIT_BUTTON)).toBeDefined();
-    expect(getByTestId(AccountsMenuSelectorsIDs.EARN_BUTTON)).toBeDefined();
-    expect(getByTestId(AccountsMenuSelectorsIDs.SCAN_BUTTON)).toBeDefined();
-  });
-
   it('should render MANAGE section header', () => {
     const { getByText } = render(<AccountsMenu />);
 
-    expect(getByText('MANAGE')).toBeDefined();
+    expect(getByText('accounts_menu.manage')).toBeDefined();
   });
 
   it('should render RESOURCES section header', () => {
     const { getByText } = render(<AccountsMenu />);
 
-    expect(getByText('RESOURCES')).toBeDefined();
+    expect(getByText('accounts_menu.resources')).toBeDefined();
+  });
+
+  describe('Snapshots', () => {
+    it('should match snapshot when MetaMask Card is hidden', () => {
+      (useSelector as jest.Mock).mockReturnValue(false);
+
+      const { toJSON } = render(<AccountsMenu />);
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('should match snapshot when MetaMask Card is visible', () => {
+      (useSelector as jest.Mock).mockReturnValue(true);
+
+      const { toJSON } = render(<AccountsMenu />);
+      expect(toJSON()).toMatchSnapshot();
+    });
   });
 
   describe('MetaMask Card Button', () => {
@@ -162,7 +137,7 @@ describe('AccountsMenu', () => {
 
       const { getByText, getByTestId } = render(<AccountsMenu />);
 
-      expect(getByText('MetaMask Card')).toBeDefined();
+      expect(getByText('accounts_menu.card_title')).toBeDefined();
       expect(getByTestId(AccountsMenuSelectorsIDs.MANAGE_WALLET)).toBeDefined();
     });
 
@@ -171,7 +146,7 @@ describe('AccountsMenu', () => {
 
       const { queryByText, queryByTestId } = render(<AccountsMenu />);
 
-      expect(queryByText('MetaMask Card')).toBeNull();
+      expect(queryByText('accounts_menu.card_title')).toBeNull();
       expect(queryByTestId(AccountsMenuSelectorsIDs.MANAGE_WALLET)).toBeNull();
     });
 
@@ -192,7 +167,7 @@ describe('AccountsMenu', () => {
     it('should render Permissions row', () => {
       const { getByText, getByTestId } = render(<AccountsMenu />);
 
-      expect(getByText('Permissions')).toBeDefined();
+      expect(getByText('accounts_menu.permissions')).toBeDefined();
       expect(getByTestId(AccountsMenuSelectorsIDs.PERMISSIONS)).toBeDefined();
     });
 
@@ -215,7 +190,7 @@ describe('AccountsMenu', () => {
       it('should render About MetaMask row', () => {
         const { getByText, getByTestId } = render(<AccountsMenu />);
 
-        expect(getByText('About MetaMask')).toBeDefined();
+        expect(getByText('app_settings.info_title_beta')).toBeDefined();
         expect(
           getByTestId(AccountsMenuSelectorsIDs.ABOUT_METAMASK),
         ).toBeDefined();
@@ -237,7 +212,7 @@ describe('AccountsMenu', () => {
       it('should render Request a feature row', () => {
         const { getByText, getByTestId } = render(<AccountsMenu />);
 
-        expect(getByText('Request a feature')).toBeDefined();
+        expect(getByText('app_settings.request_feature')).toBeDefined();
         expect(
           getByTestId(AccountsMenuSelectorsIDs.REQUEST_FEATURE),
         ).toBeDefined();
@@ -265,7 +240,7 @@ describe('AccountsMenu', () => {
       it('should render Support row', () => {
         const { getByText, getByTestId } = render(<AccountsMenu />);
 
-        expect(getByText('Support')).toBeDefined();
+        expect(getByText('app_settings.contact_support')).toBeDefined();
         expect(getByTestId(AccountsMenuSelectorsIDs.SUPPORT)).toBeDefined();
       });
 
@@ -289,7 +264,7 @@ describe('AccountsMenu', () => {
       it('should render Log Out row', () => {
         const { getByText, getByTestId } = render(<AccountsMenu />);
 
-        expect(getByText('Log Out')).toBeDefined();
+        expect(getByText('drawer.lock')).toBeDefined();
         expect(getByTestId(AccountsMenuSelectorsIDs.LOCK)).toBeDefined();
       });
 
@@ -348,17 +323,55 @@ describe('AccountsMenu', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS.ROOT);
     });
 
-    it('should track SETTINGS_ABOUT_METAMASK_CLICKED event when About MetaMask is pressed', () => {
+    it('should track SETTINGS_ABOUT event when About MetaMask is pressed', () => {
       const { getByTestId } = render(<AccountsMenu />);
       const aboutButton = getByTestId(AccountsMenuSelectorsIDs.ABOUT_METAMASK);
 
       fireEvent.press(aboutButton);
 
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        'About MetaMask Clicked',
-      );
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith('About MetaMask');
       expect(mockTrackEvent).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS.COMPANY);
+    });
+
+    it('should track NAVIGATION_TAPS_SEND_FEEDBACK event when Request a feature is pressed', () => {
+      const { getByTestId } = render(<AccountsMenu />);
+      const requestFeatureButton = getByTestId(
+        AccountsMenuSelectorsIDs.REQUEST_FEATURE,
+      );
+
+      fireEvent.press(requestFeatureButton);
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        'NAVIGATION_TAPS_SEND_FEEDBACK',
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: 'https://community.metamask.io/c/feature-requests-ideas/',
+          title: 'app_settings.request_feature',
+        },
+      });
+    });
+
+    it('should track NAVIGATION_TAPS_GET_HELP event when Support is pressed', () => {
+      const { getByTestId } = render(<AccountsMenu />);
+      const supportButton = getByTestId(AccountsMenuSelectorsIDs.SUPPORT);
+
+      fireEvent.press(supportButton);
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        'NAVIGATION_TAPS_GET_HELP',
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: 'https://support.metamask.io',
+          title: 'app_settings.contact_support',
+        },
+      });
     });
   });
 });
