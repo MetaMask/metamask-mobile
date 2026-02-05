@@ -18,7 +18,7 @@ To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs
 - [Expo Development Environment Setup](./docs/readme/expo-environment.md)
 - [Native Development Environment Setup](./docs/readme/environment.md)
 - [Build Troubleshooting](./docs/readme/troubleshooting.md)
-- [Component Testing](./docs/readme/component-testing.md)
+- [Component View Testing](./docs/readme/component-testing.md)
 - [E2E Testing](./docs/readme/e2e-testing.md)
 - [Debugging](./docs/readme/debugging.md)
 - [Performance](./docs/readme/performance.md)

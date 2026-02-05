@@ -10,6 +10,23 @@ They sit between unit tests and E2E tests in the testing pyramid:
 - **Faster than E2E tests**: No device/simulator needed, run in Jest
 - **State-driven**: Control what you test by setting up state, not by clicking through the UI
 
+## When to Use Component View Tests
+
+Component tests sit between unit tests and E2E tests in the testing pyramid. Use this guidance to determine the right test type for your scenario.
+
+### Quick Reference Table
+
+| Scenario                                    | Unit | Component | E2E |
+| ------------------------------------------- | ---- | --------- | --- |
+| Testing pure logic or calculations          | ✅   | ❌        | ❌  |
+| Testing a screen with different state       | ❌   | ✅        | ❌  |
+| Testing button click behavior on one screen | ❌   | ✅        | ❌  |
+| Testing form validation display             | ❌   | ✅        | ❌  |
+| Testing multi-screen flow                   | ❌   | ✅        | ✅  |
+| Testing native features (biometrics, etc.)  | ❌   | ❌        | ✅  |
+| Testing dApp connection                     | ❌   | ❌        | ✅  |
+| Fast feedback in CI                         | ✅   | ✅        | ❌  |
+
 ## Unit Tests vs Component View Tests
 
 Many existing unit tests in our codebase are **shallow component tests** meaning they render a single component in isolation and replace its dependencies with mocks. Component view tests take the opposite approach where they render a full screen with real app state and only mock what is strictly necessary.
@@ -80,23 +97,6 @@ This framework provides:
 - Developer ergonomics:
   - View presets in `presets/*` give a "ready-to-render" baseline per view
   - Render helpers in `renderers/*` remove boilerplate and centralize routing
-
-## When to Use Component Tests
-
-Component tests sit between unit tests and E2E tests in the testing pyramid. Use this guidance to determine the right test type for your scenario.
-
-### Quick Reference Table
-
-| Scenario                                    | Unit | Component | E2E |
-| ------------------------------------------- | ---- | --------- | --- |
-| Testing pure logic or calculations          | ✅   | ❌        | ❌  |
-| Testing a screen with different state       | ❌   | ✅        | ❌  |
-| Testing button click behavior on one screen | ❌   | ✅        | ❌  |
-| Testing form validation display             | ❌   | ✅        | ❌  |
-| Testing multi-screen flow                   | ❌   | ✅        | ✅  |
-| Testing native features (biometrics, etc.)  | ❌   | ❌        | ✅  |
-| Testing dApp connection                     | ❌   | ❌        | ✅  |
-| Fast feedback in CI                         | ✅   | ✅        | ❌  |
 
 ### Component/View vs E2E
 
