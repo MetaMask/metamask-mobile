@@ -7484,7 +7484,7 @@
       "redeem_failure_title": "Einlösung fehlgeschlagen",
       "redeem_failure_description": "Bitte versuchen Sie es später erneut.",
       "reward_details": "Belohnungsdetails",
-      "select_account_description": "Wählen Sie das Konto, auf das diese Belohnung überwiesen werden soll, aus. Die Tokens werden innerhalb von zwei Wochen verteilt."
+      "select_account_description": "Wählen Sie das Konto, auf das diese Belohnung überwiesen werden soll, aus."
     },
     "animation": {
       "could_not_load": "Laden fehlgeschlagen"
