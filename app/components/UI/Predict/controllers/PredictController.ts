@@ -481,6 +481,9 @@ export class PredictController extends BaseController<
         break;
       case TransactionStatus.failed:
         this.clearPendingDeposit({ providerId: 'polymarket' });
+        // TODO: Add retry button functionality. The old React hooks could call
+        // deposit() directly, but from the controller we'd need a different
+        // approach (e.g., emitting an event that the UI can listen to).
         this.showFailureToast({
           title: strings('predict.deposit.error_title'),
           description: strings('predict.deposit.error_description'),
@@ -520,6 +523,7 @@ export class PredictController extends BaseController<
       }
       case TransactionStatus.failed:
         this.clearWithdrawTransaction();
+        // TODO: Add retry button functionality (see deposit handler comment)
         this.showFailureToast({
           title: strings('predict.withdraw.error_title'),
           description: strings('predict.withdraw.error_description'),
@@ -560,6 +564,7 @@ export class PredictController extends BaseController<
         this.refreshPositionsAfterTransaction();
         break;
       case TransactionStatus.failed:
+        // TODO: Add retry button functionality (see deposit handler comment)
         this.showFailureToast({
           title: strings('predict.claim.toasts.error.title'),
           description: strings('predict.claim.toasts.error.description'),
@@ -663,7 +668,11 @@ export class PredictController extends BaseController<
     if (!withdrawTransaction?.amount) {
       return '$0.00';
     }
-    return `$${withdrawTransaction.amount}`;
+    const amount =
+      typeof withdrawTransaction.amount === 'string'
+        ? parseFloat(withdrawTransaction.amount)
+        : withdrawTransaction.amount;
+    return `$${amount.toFixed(2)}`;
   }
 
   private getClaimableAmount(): string {

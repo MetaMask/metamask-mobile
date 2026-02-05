@@ -6311,7 +6311,7 @@ describe('PredictController', () => {
     });
 
     describe('getWithdrawAmount', () => {
-      it('returns formatted withdraw amount from state', () => {
+      it('returns formatted withdraw amount with two decimals from state', () => {
         withController(({ controller }) => {
           controller.updateStateForTesting((state) => {
             state.withdrawTransaction = {
@@ -6322,7 +6322,7 @@ describe('PredictController', () => {
 
           const result = (controller as any).getWithdrawAmount();
 
-          expect(result).toBe('$75.5');
+          expect(result).toBe('$75.50');
         });
       });
 
