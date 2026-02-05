@@ -301,7 +301,7 @@ builds:
 
   # Flask production release
   flask-prod:
-    github_environment: build-production
+    github_environment: build-flask-prod
     signing: *signing_flask_prod
     env:
       METAMASK_ENVIRONMENT: "production"
@@ -337,7 +337,7 @@ builds:
 
   # Flask E2E test builds (no Sentry)
   flask-e2e:
-    github_environment: build-e2e
+    github_environment: build-flask-e2e
     signing: *signing_flask_uat
     env:
       METAMASK_ENVIRONMENT: "e2e"
@@ -358,7 +358,7 @@ builds:
 
   # Flask local development / Expo development build (Runway .app for simulator)
   flask-dev:
-    github_environment: build-dev
+    github_environment: build-flask-dev
     env:
       METAMASK_ENVIRONMENT: "dev"
       METAMASK_BUILD_TYPE: "flask"
