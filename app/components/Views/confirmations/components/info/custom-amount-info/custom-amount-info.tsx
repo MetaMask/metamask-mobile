@@ -161,18 +161,14 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             overrideContent(amountHuman)
           ) : (
             <>
-              {/* Show PayTokenAmount only for deposits (not for withdrawals) */}
-              {!isWithdrawal && disablePay !== true && (
+              {disablePay !== true && (
                 <PayTokenAmount
                   amountHuman={amountHuman}
                   disabled={!hasTokens}
                 />
               )}
               {children}
-              {/* Show PayWithRow for deposits (when disablePay is false) OR for withdrawals when token picker is enabled */}
-              {((!isWithdrawal && disablePay !== true) ||
-                canSelectWithdrawalToken) &&
-                hasTokens && <PayWithRow />}
+              {disablePay !== true && hasTokens && <PayWithRow />}
             </>
           )}
         </Box>

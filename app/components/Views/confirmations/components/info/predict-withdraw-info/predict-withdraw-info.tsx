@@ -6,9 +6,12 @@ import { PredictWithdrawBalance } from '../../predict-confirmations/predict-with
 import { POLYGON_USDCE, PREDICT_CURRENCY } from '../../../constants/predict';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { useWithdrawalToken } from '../../../hooks/pay/useWithdrawalToken';
 
 export function PredictWithdrawInfo() {
   useNavbar(strings('confirm.title.predict_withdraw'));
+
+  const { canSelectWithdrawalToken } = useWithdrawalToken();
 
   useAddToken({
     chainId: CHAIN_IDS.POLYGON,
@@ -19,7 +22,11 @@ export function PredictWithdrawInfo() {
   });
 
   return (
-    <CustomAmountInfo hasMax currency={PREDICT_CURRENCY}>
+    <CustomAmountInfo
+      hasMax
+      currency={PREDICT_CURRENCY}
+      disablePay={!canSelectWithdrawalToken}
+    >
       <PredictWithdrawBalance />
     </CustomAmountInfo>
   );
