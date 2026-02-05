@@ -1,21 +1,21 @@
-import { DappVariants } from '../../../../tests/framework/Constants';
+import { DappVariants } from '../../../framework/Constants';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT_2,
-} from '../../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
-import TestHelpers from '../../../helpers';
-import { RegressionNetworkExpansion } from '../../../tags';
-import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
-import Browser from '../../../pages/Browser/BrowserView';
-import ConnectBottomSheet from '../../../pages/Browser/ConnectBottomSheet';
-import { requestPermissions } from './helpers';
+} from '../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import TestHelpers from '../../../../e2e/helpers';
+import { RegressionNetworkExpansion } from '../../../../e2e/tags';
+import { loginToApp, navigateToBrowserView } from '../../../../e2e/viewHelper';
+import Browser from '../../../../e2e/pages/Browser/BrowserView';
+import ConnectBottomSheet from '../../../../e2e/pages/Browser/ConnectBottomSheet';
+import { requestPermissions } from '../../../helpers/multichain/connections/helpers';
 import {
   navigateToSolanaTestDApp,
   connectSolanaTestDapp,
-} from '../solana-wallet-standard/testHelpers';
-import ConnectedAccountsModal from '../../../pages/Browser/ConnectedAccountsModal';
-import NetworkConnectMultiSelector from '../../../pages/Browser/NetworkConnectMultiSelector';
-import Assertions from '../../../../tests/framework/Assertions';
+} from '../../../flows/solana-connection.flow';
+import ConnectedAccountsModal from '../../../../e2e/pages/Browser/ConnectedAccountsModal';
+import NetworkConnectMultiSelector from '../../../../e2e/pages/Browser/NetworkConnectMultiSelector';
+import Assertions from '../../../framework/Assertions';
 import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
 
 describe(
