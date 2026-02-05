@@ -9,7 +9,6 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import { useSelector } from 'react-redux';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
-import { selectChainId } from '../../../../selectors/networkController';
 import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
 import Routes from '../../../../constants/navigation/Routes';
 import { useMetrics } from '../../../hooks/useMetrics';
@@ -94,7 +93,6 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const canSignTransactions = useSelector(selectCanSignTransactions);
-  const chainId = useSelector(selectChainId);
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const navigation = useNavigation();
   const { navigate } = navigation;
@@ -128,18 +126,6 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
     callback();
   }, []);
 
-  const getChainIdForAsset = useCallback(() => {
-    if (token.chainId) {
-      if (typeof token.chainId === 'string' && token.chainId.startsWith('0x')) {
-        const parsed = parseInt(token.chainId, 16);
-        return isNaN(parsed) ? getDecimalChainId(chainId) : parsed;
-      }
-      const parsed = parseInt(token.chainId, 10);
-      return isNaN(parsed) ? getDecimalChainId(chainId) : parsed;
-    }
-    return getDecimalChainId(chainId);
-  }, [token.chainId, chainId]);
-
   const handleBuyPress = useCallback(() => {
     withNavigationLock(() => {
       if (onBuy) {
@@ -156,7 +142,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
             .addProperties({
               text: 'Buy',
               location: 'TokenDetailsActions',
-              chain_id_destination: getChainIdForAsset(),
+              chain_id_destination: getDecimalChainId(token.chainId),
               ramp_type: rampUnifiedV1Enabled ? 'UNIFIED_BUY' : 'BUY',
               region: rampGeodetectedRegion,
               ramp_routing: rampsButtonClickData.ramp_routing,
@@ -182,9 +168,9 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
     goToBuy,
     goToAggregator,
     token.address,
+    token.chainId,
     trackEvent,
     createEventBuilder,
-    getChainIdForAsset,
     rampGeodetectedRegion,
     rampsButtonClickData,
   ]);

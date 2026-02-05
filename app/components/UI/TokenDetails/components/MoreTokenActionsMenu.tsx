@@ -16,7 +16,6 @@ import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
 import NotificationManager from '../../../../core/NotificationManager';
 import { selectTokenList } from '../../../../selectors/tokenListController';
-import { selectChainId } from '../../../../selectors/networkController';
 import { getDecimalChainId } from '../../../../util/networks';
 import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -75,7 +74,6 @@ const MoreTokenActionsMenu = () => {
   const rampsButtonClickData = useRampsButtonClickData();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const tokenList = useSelector(selectTokenList);
-  const chainId = useSelector(selectChainId);
   const explorer = useBlockExplorer(asset.chainId);
 
   const closeBottomSheetAndNavigate = useCallback(
@@ -101,18 +99,6 @@ const MoreTokenActionsMenu = () => {
     [closeBottomSheetAndNavigate, navigation],
   );
 
-  const getChainIdForAsset = useCallback(() => {
-    if (asset.chainId) {
-      if (typeof asset.chainId === 'string' && asset.chainId.startsWith('0x')) {
-        const parsed = parseInt(asset.chainId, 16);
-        return isNaN(parsed) ? getDecimalChainId(chainId) : parsed;
-      }
-      const parsed = parseInt(asset.chainId, 10);
-      return isNaN(parsed) ? getDecimalChainId(chainId) : parsed;
-    }
-    return getDecimalChainId(chainId);
-  }, [asset.chainId, chainId]);
-
   // Fund action handlers (same as FundActionMenu)
   const handleBuyUnified = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
@@ -129,7 +115,7 @@ const MoreTokenActionsMenu = () => {
           .addProperties({
             text: 'Buy',
             location: 'MoreTokenActionsMenu',
-            chain_id_destination: getChainIdForAsset(),
+            chain_id_destination: getDecimalChainId(asset.chainId),
             ramp_type: 'UNIFIED_BUY',
             region: rampGeodetectedRegion,
             ramp_routing: rampsButtonClickData.ramp_routing,
@@ -145,9 +131,9 @@ const MoreTokenActionsMenu = () => {
     onBuy,
     goToBuy,
     asset.address,
+    asset.chainId,
     trackEvent,
     createEventBuilder,
-    getChainIdForAsset,
     rampGeodetectedRegion,
     rampsButtonClickData,
   ]);
@@ -167,7 +153,7 @@ const MoreTokenActionsMenu = () => {
           .addProperties({
             text: 'Buy',
             location: 'MoreTokenActionsMenu',
-            chain_id_destination: getChainIdForAsset(),
+            chain_id_destination: getDecimalChainId(asset.chainId),
             ramp_type: 'BUY',
             region: rampGeodetectedRegion,
             ramp_routing: rampsButtonClickData.ramp_routing,
@@ -188,9 +174,9 @@ const MoreTokenActionsMenu = () => {
     onBuy,
     goToAggregator,
     asset.address,
+    asset.chainId,
     trackEvent,
     createEventBuilder,
-    getChainIdForAsset,
     rampGeodetectedRegion,
     rampsButtonClickData,
   ]);
@@ -251,7 +237,7 @@ const MoreTokenActionsMenu = () => {
                     token_standard: 'ERC20',
                     asset_type: 'token',
                     tokens: [`${tokenSymbol} - ${asset.address}`],
-                    chain_id: getDecimalChainId(chainId),
+                    chain_id: getDecimalChainId(asset.chainId),
                   })
                   .build(),
               );
@@ -270,7 +256,6 @@ const MoreTokenActionsMenu = () => {
     tokenList,
     trackEvent,
     createEventBuilder,
-    chainId,
   ]);
 
   const actionConfigs: ActionConfig[] = useMemo(() => {
