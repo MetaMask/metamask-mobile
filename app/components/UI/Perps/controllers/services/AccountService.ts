@@ -19,7 +19,6 @@ import {
 } from '../../constants/eventNames';
 import { USDC_SYMBOL } from '../../constants/hyperLiquidConfig';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
-import { PerpsCacheInvalidator } from '../../services/PerpsCacheInvalidator';
 
 /**
  * AccountService
@@ -222,7 +221,7 @@ export class AccountService {
         });
 
         // Invalidate readOnly caches so external hooks (e.g., usePerpsPositionForAsset) refresh
-        PerpsCacheInvalidator.invalidate('accountState');
+        this.deps.cacheInvalidator.invalidate({ cacheType: 'accountState' });
 
         traceData = {
           success: true,

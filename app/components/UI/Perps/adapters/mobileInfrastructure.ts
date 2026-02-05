@@ -15,6 +15,7 @@ import { setMeasurement } from '@sentry/react-native';
 import performance from 'react-native-performance';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import Engine from '../../../../core/Engine';
+import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import type {
   PerpsPlatformDependencies,
   PerpsMetrics,
@@ -22,6 +23,7 @@ import type {
   PerpsTraceValue,
   PerpsAnalyticsEvent,
   PerpsAnalyticsProperties,
+  InvalidateCacheParams,
 } from '../controllers/types';
 
 /**
@@ -129,6 +131,22 @@ function createStreamManagerAdapter() {
 }
 
 /**
+ * Creates a cache invalidator adapter that delegates to the mobile singleton.
+ * This allows controller services to invalidate caches without direct dependency
+ * on the mobile-specific PerpsCacheInvalidator singleton.
+ */
+function createCacheInvalidatorAdapter() {
+  return {
+    invalidate({ cacheType }: InvalidateCacheParams): void {
+      PerpsCacheInvalidator.invalidate(cacheType);
+    },
+    invalidateAll(): void {
+      PerpsCacheInvalidator.invalidateAll();
+    },
+  };
+}
+
+/**
  * Creates mobile-specific platform dependencies for PerpsController.
  * Controller access uses messenger pattern (messenger.call()).
  */
@@ -201,5 +219,8 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
           caipAccountId,
         ),
     },
+
+    // === Cache Invalidation ===
+    cacheInvalidator: createCacheInvalidatorAdapter(),
   };
 }

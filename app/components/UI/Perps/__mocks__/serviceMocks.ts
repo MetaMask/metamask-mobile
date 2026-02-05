@@ -57,6 +57,12 @@ export const createMockInfrastructure =
       rewards: {
         getFeeDiscount: jest.fn().mockResolvedValue(0),
       },
+
+      // === Cache Invalidation ===
+      cacheInvalidator: {
+        invalidate: jest.fn(),
+        invalidateAll: jest.fn(),
+      },
     }) as unknown as jest.Mocked<PerpsPlatformDependencies>;
 
 /**

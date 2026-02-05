@@ -28,7 +28,6 @@ import {
   type PerpsAnalyticsProperties,
   type PerpsPlatformDependencies,
 } from '../types';
-import { PerpsCacheInvalidator } from '../../services/PerpsCacheInvalidator';
 
 /**
  * Controller-level dependencies for TradingService.
@@ -369,8 +368,8 @@ export class TradingService {
         traceData = { success: true, orderId: result.orderId || '' };
 
         // Invalidate readOnly caches so external hooks (e.g., usePerpsPositionForAsset) refresh
-        PerpsCacheInvalidator.invalidate('positions');
-        PerpsCacheInvalidator.invalidate('accountState');
+        this.deps.cacheInvalidator.invalidate({ cacheType: 'positions' });
+        this.deps.cacheInvalidator.invalidate({ cacheType: 'accountState' });
       } else {
         traceData = { success: false, error: result.error || 'Unknown error' };
       }
@@ -1241,8 +1240,8 @@ export class TradingService {
         traceData = { success: true, filledSize: result.filledSize || '' };
 
         // Invalidate readOnly caches so external hooks (e.g., usePerpsPositionForAsset) refresh
-        PerpsCacheInvalidator.invalidate('positions');
-        PerpsCacheInvalidator.invalidate('accountState');
+        this.deps.cacheInvalidator.invalidate({ cacheType: 'positions' });
+        this.deps.cacheInvalidator.invalidate({ cacheType: 'accountState' });
       } else {
         traceData = { success: false, error: result.error || 'Unknown error' };
       }
@@ -1456,8 +1455,8 @@ export class TradingService {
 
       // Invalidate readOnly caches on successful batch close
       if (operationResult?.success && operationResult.successCount > 0) {
-        PerpsCacheInvalidator.invalidate('positions');
-        PerpsCacheInvalidator.invalidate('accountState');
+        this.deps.cacheInvalidator.invalidate({ cacheType: 'positions' });
+        this.deps.cacheInvalidator.invalidate({ cacheType: 'accountState' });
       }
 
       this.deps.tracer.endTrace({
@@ -1658,8 +1657,8 @@ export class TradingService {
         });
 
         // Invalidate readOnly caches so external hooks refresh
-        PerpsCacheInvalidator.invalidate('positions');
-        PerpsCacheInvalidator.invalidate('accountState');
+        this.deps.cacheInvalidator.invalidate({ cacheType: 'positions' });
+        this.deps.cacheInvalidator.invalidate({ cacheType: 'accountState' });
       }
 
       this.deps.tracer.endTrace({
@@ -1792,8 +1791,8 @@ export class TradingService {
         );
 
         // Invalidate readOnly caches so external hooks refresh
-        PerpsCacheInvalidator.invalidate('positions');
-        PerpsCacheInvalidator.invalidate('accountState');
+        this.deps.cacheInvalidator.invalidate({ cacheType: 'positions' });
+        this.deps.cacheInvalidator.invalidate({ cacheType: 'accountState' });
       }
 
       this.deps.tracer.endTrace({
