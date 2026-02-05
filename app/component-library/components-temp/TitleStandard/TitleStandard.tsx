@@ -41,49 +41,28 @@ const TitleStandard: React.FC<TitleStandardProps> = ({
   testID,
   twClassName,
 }) => {
-  // Render top content (topLabel takes priority over topAccessory)
-  const renderTopContent = () => {
-    if (topLabel) {
-      return (
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-          {...topLabelProps}
-        >
-          {topLabel}
-        </Text>
-      );
-    }
-    return topAccessory;
-  };
-
-  // Render bottom content (bottomLabel takes priority over bottomAccessory)
-  const renderBottomContent = () => {
-    if (bottomLabel) {
-      return (
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-          {...bottomLabelProps}
-        >
-          {bottomLabel}
-        </Text>
-      );
-    }
-    return bottomAccessory;
-  };
-
   const hasTopContent = topAccessory || topLabel;
   const hasBottomContent = bottomAccessory || bottomLabel;
 
   return (
     <Box twClassName={twClassName} testID={testID}>
-      {/* Top row */}
-      {hasTopContent && <Box>{renderTopContent()}</Box>}
+      {hasTopContent && (
+        <Box>
+          {topLabel ? (
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+              {...topLabelProps}
+            >
+              {topLabel}
+            </Text>
+          ) : (
+            topAccessory
+          )}
+        </Box>
+      )}
 
-      {/* Title row */}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -96,8 +75,22 @@ const TitleStandard: React.FC<TitleStandardProps> = ({
         {titleAccessory}
       </Box>
 
-      {/* Bottom row */}
-      {hasBottomContent && <Box>{renderBottomContent()}</Box>}
+      {hasBottomContent && (
+        <Box>
+          {bottomLabel ? (
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+              {...bottomLabelProps}
+            >
+              {bottomLabel}
+            </Text>
+          ) : (
+            bottomAccessory
+          )}
+        </Box>
+      )}
     </Box>
   );
 };

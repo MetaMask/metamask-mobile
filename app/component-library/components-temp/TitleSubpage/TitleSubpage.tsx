@@ -38,57 +38,47 @@ const TitleSubpage: React.FC<TitleSubpageProps> = ({
   bottomLabelProps,
   testID,
   twClassName,
-}) => {
-  // Render bottom content (bottomLabel takes priority over bottomAccessory)
-  const renderBottomContent = () => {
-    if (bottomLabel) {
-      return (
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-          {...bottomLabelProps}
-        >
-          {bottomLabel}
-        </Text>
-      );
-    }
-    return bottomAccessory;
-  };
+}) => (
+  <Box
+    flexDirection={BoxFlexDirection.Row}
+    alignItems={BoxAlignItems.Center}
+    gap={3}
+    twClassName={twClassName}
+    testID={testID}
+  >
+    {startAccessory}
 
-  const hasBottomContent = bottomAccessory || bottomLabel;
-
-  return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      gap={3}
-      twClassName={twClassName}
-      testID={testID}
-    >
-      {/* Start accessory */}
-      {startAccessory}
-
-      {/* Title and bottom content container */}
-      <Box twClassName="flex-1">
-        {/* Title row */}
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-        >
-          {title && (
-            <Text variant={TextVariant.HeadingMd} {...titleProps}>
-              {title}
-            </Text>
-          )}
-          {titleAccessory}
-        </Box>
-
-        {/* Bottom row */}
-        {hasBottomContent && <Box>{renderBottomContent()}</Box>}
+    <Box twClassName="flex-1">
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+      >
+        {title && (
+          <Text variant={TextVariant.HeadingMd} {...titleProps}>
+            {title}
+          </Text>
+        )}
+        {titleAccessory}
       </Box>
+
+      {(bottomAccessory || bottomLabel) && (
+        <Box>
+          {bottomLabel ? (
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+              {...bottomLabelProps}
+            >
+              {bottomLabel}
+            </Text>
+          ) : (
+            bottomAccessory
+          )}
+        </Box>
+      )}
     </Box>
-  );
-};
+  </Box>
+);
 
 export default TitleSubpage;
