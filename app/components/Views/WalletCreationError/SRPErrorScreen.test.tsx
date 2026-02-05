@@ -34,6 +34,14 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   getInitialURL: jest.fn(() => Promise.resolve(null)),
 }));
 
+jest.mock('../../../core', () => ({
+  Authentication: {
+    deleteWallet: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
+import { Authentication } from '../../../core';
+
 describe('SRPErrorScreen', () => {
   const mockError = new Error('Test wallet creation error');
   mockError.name = 'WalletCreationError';
@@ -103,13 +111,16 @@ describe('SRPErrorScreen', () => {
   });
 
   describe('handleTryAgain', () => {
-    it('navigates to onboarding root when Try again is pressed', () => {
+    it('deletes wallet and navigates to onboarding root when Try again is pressed', async () => {
       const { getByText } = renderWithProvider(
         <SRPErrorScreen error={mockError} />,
       );
 
-      fireEvent.press(getByText('Try again'));
+      await act(async () => {
+        fireEvent.press(getByText('Try again'));
+      });
 
+      expect(Authentication.deleteWallet).toHaveBeenCalled();
       expect(mockReset).toHaveBeenCalledWith({
         routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
       });

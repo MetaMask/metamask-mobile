@@ -24,6 +24,14 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   getInitialURL: jest.fn(() => Promise.resolve(null)),
 }));
 
+jest.mock('../../../core', () => ({
+  Authentication: {
+    deleteWallet: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
+import { Authentication } from '../../../core';
+
 describe('SocialLoginErrorSheet', () => {
   const mockError = new Error('Test social login error');
 
@@ -99,13 +107,17 @@ describe('SocialLoginErrorSheet', () => {
   });
 
   describe('handleTryAgain', () => {
-    it('navigates to onboarding root when Try again is pressed', () => {
+    it('deletes wallet and navigates to onboarding root when Try again is pressed', async () => {
       const { getByText } = renderWithProvider(
         <SocialLoginErrorSheet error={mockError} />,
       );
 
       fireEvent.press(getByText('Try again'));
 
+      // Wait for async deleteWallet to complete
+      await Promise.resolve();
+
+      expect(Authentication.deleteWallet).toHaveBeenCalled();
       expect(mockReset).toHaveBeenCalledWith({
         routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
       });

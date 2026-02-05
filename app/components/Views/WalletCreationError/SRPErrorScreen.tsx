@@ -23,6 +23,7 @@ import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { useStyles } from '../../../component-library/hooks/useStyles';
 import AppConstants from '../../../core/AppConstants';
+import { Authentication } from '../../../core';
 import styleSheet from './SRPErrorScreen.styles';
 
 interface SRPErrorScreenProps {
@@ -47,7 +48,9 @@ const SRPErrorScreen = ({ error }: SRPErrorScreenProps) => {
 
   const errorReport = `View: ChoosePassword\nError: ${error?.name || 'Unknown'}\n${error?.message || 'No message'}`;
 
-  const handleTryAgain = useCallback(() => {
+  const handleTryAgain = useCallback(async () => {
+    // Delete wallet
+    await Authentication.deleteWallet();
     navigation.reset({
       routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
     });

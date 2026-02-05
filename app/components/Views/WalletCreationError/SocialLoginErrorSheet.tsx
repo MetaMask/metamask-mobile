@@ -22,6 +22,7 @@ import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { useStyles } from '../../../component-library/hooks/useStyles';
 import AppConstants from '../../../core/AppConstants';
+import { Authentication } from '../../../core';
 import styleSheet from './SocialLoginErrorSheet.styles';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
@@ -36,7 +37,9 @@ const SocialLoginErrorSheet = ({ error }: SocialLoginErrorSheetProps) => {
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const { styles } = useStyles(styleSheet, {});
 
-  const handleTryAgain = useCallback(() => {
+  const handleTryAgain = useCallback(async () => {
+    // Delete wallet
+    await Authentication.deleteWallet();
     navigation.reset({
       routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
     });
