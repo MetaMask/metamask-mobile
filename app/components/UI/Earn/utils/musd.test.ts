@@ -6,6 +6,8 @@ import { MUSD_TOKEN_ADDRESS } from '../constants/musd';
 
 const LINEA_CHAIN_ID = '0xe708' as Hex;
 const MAINNET_CHAIN_ID = '0x1' as Hex;
+const SELECTED_ADDRESS = '0x1234567890123456789012345678901234567890';
+const OTHER_ADDRESS = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
 
 describe('musd utils', () => {
   describe('isMusdClaimForCurrentView', () => {
@@ -13,14 +15,18 @@ describe('musd utils', () => {
       type: TransactionType.musdClaim,
       status: 'confirmed',
       chainId: LINEA_CHAIN_ID,
+      txParams: {
+        from: SELECTED_ADDRESS,
+      },
     };
 
-    it('returns true when viewing mUSD by address with matching chainId', () => {
+    it('returns true when viewing mUSD by address with matching chainId and account', () => {
       const result = isMusdClaimForCurrentView({
         tx: baseTx,
         navAddress: MUSD_TOKEN_ADDRESS,
         navSymbol: 'musd',
         chainId: LINEA_CHAIN_ID,
+        selectedAddress: SELECTED_ADDRESS,
       });
       expect(result).toBe(true);
     });
@@ -31,6 +37,7 @@ describe('musd utils', () => {
         navAddress: '0xsomeotheraddress',
         navSymbol: 'musd',
         chainId: LINEA_CHAIN_ID,
+        selectedAddress: SELECTED_ADDRESS,
       });
       expect(result).toBe(true);
     });
@@ -41,6 +48,7 @@ describe('musd utils', () => {
         navAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
         navSymbol: 'usdc',
         chainId: LINEA_CHAIN_ID,
+        selectedAddress: SELECTED_ADDRESS,
       });
       expect(result).toBe(false);
     });
@@ -51,6 +59,7 @@ describe('musd utils', () => {
         navAddress: MUSD_TOKEN_ADDRESS,
         navSymbol: 'musd',
         chainId: LINEA_CHAIN_ID,
+        selectedAddress: SELECTED_ADDRESS,
       });
       expect(result).toBe(false);
     });
@@ -61,6 +70,7 @@ describe('musd utils', () => {
         navAddress: MUSD_TOKEN_ADDRESS,
         navSymbol: 'musd',
         chainId: MAINNET_CHAIN_ID,
+        selectedAddress: SELECTED_ADDRESS,
       });
       expect(result).toBe(false);
     });
@@ -71,6 +81,7 @@ describe('musd utils', () => {
         navAddress: MUSD_TOKEN_ADDRESS,
         navSymbol: 'musd',
         chainId: LINEA_CHAIN_ID,
+        selectedAddress: SELECTED_ADDRESS,
       });
       expect(result).toBe(false);
     });
@@ -81,6 +92,35 @@ describe('musd utils', () => {
         navAddress: '0xAcA92E438df0B2401fF60dA7E4337B687a2435DA', // checksummed
         navSymbol: 'other',
         chainId: LINEA_CHAIN_ID,
+        selectedAddress: SELECTED_ADDRESS,
+      });
+      expect(result).toBe(true);
+    });
+
+    it('returns false when transaction is from a different account', () => {
+      const result = isMusdClaimForCurrentView({
+        tx: {
+          ...baseTx,
+          txParams: { from: OTHER_ADDRESS },
+        },
+        navAddress: MUSD_TOKEN_ADDRESS,
+        navSymbol: 'musd',
+        chainId: LINEA_CHAIN_ID,
+        selectedAddress: SELECTED_ADDRESS,
+      });
+      expect(result).toBe(false);
+    });
+
+    it('handles checksummed from address comparison', () => {
+      const result = isMusdClaimForCurrentView({
+        tx: {
+          ...baseTx,
+          txParams: { from: '0x1234567890123456789012345678901234567890' },
+        },
+        navAddress: MUSD_TOKEN_ADDRESS,
+        navSymbol: 'musd',
+        chainId: LINEA_CHAIN_ID,
+        selectedAddress: '0x1234567890123456789012345678901234567890',
       });
       expect(result).toBe(true);
     });

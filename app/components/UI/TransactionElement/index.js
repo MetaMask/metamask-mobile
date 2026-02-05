@@ -311,9 +311,14 @@ class TransactionElement extends PureComponent {
           this.props.bridgeTxHistoryData?.bridgeTxHistoryItem,
       });
     } else if (hasTransactionType(tx, NEW_TRANSACTION_DETAILS_TYPES)) {
-      this.props.navigation.navigate(Routes.TRANSACTION_DETAILS, {
-        transactionId: tx.id,
-      });
+      // Navigate to TRANSACTIONS_VIEW first to ensure correct navigation context,
+      // then navigate to TRANSACTION_DETAILS (pattern from usePerpsToasts)
+      this.props.navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      setTimeout(() => {
+        this.props.navigation.navigate(Routes.TRANSACTION_DETAILS, {
+          transactionId: tx.id,
+        });
+      }, 100);
     } else {
       const { transactionElement, transactionDetails } = this.state;
       this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {

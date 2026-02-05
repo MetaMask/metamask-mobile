@@ -277,8 +277,9 @@ export const useTokenTransactions = (
         navAddress,
         navSymbol,
         chainId,
+        selectedAddress: selectedAddress ?? '',
       }),
-    [chainId, navAddress, navSymbol],
+    [chainId, navAddress, navSymbol, selectedAddress],
   );
 
   // ETH filter - for native token transactions

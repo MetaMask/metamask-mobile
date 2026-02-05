@@ -22,6 +22,9 @@ export interface IsMusdClaimForCurrentViewParams {
     type?: TransactionType;
     status?: string;
     chainId?: Hex;
+    txParams?: {
+      from?: string;
+    };
   };
   /** Token address being viewed (should be lowercased or checksummed) */
   navAddress: string;
@@ -29,6 +32,8 @@ export interface IsMusdClaimForCurrentViewParams {
   navSymbol: string;
   /** Current chain ID */
   chainId: Hex;
+  /** Currently selected account address */
+  selectedAddress: string;
 }
 
 /**
@@ -44,15 +49,21 @@ export function isMusdClaimForCurrentView({
   navAddress,
   navSymbol,
   chainId,
+  selectedAddress,
 }: IsMusdClaimForCurrentViewParams): boolean {
   const isMusdView =
     areAddressesEqual(navAddress, MUSD_TOKEN_ADDRESS) ||
     navSymbol === MUSD_TOKEN.symbol.toLowerCase();
+  const isFromSelectedAccount = areAddressesEqual(
+    tx.txParams?.from ?? '',
+    selectedAddress,
+  );
   return (
     tx.type === TransactionType.musdClaim &&
     tx.status !== 'unapproved' &&
     isMusdView &&
-    chainId === tx.chainId
+    chainId === tx.chainId &&
+    isFromSelectedAccount
   );
 }
 

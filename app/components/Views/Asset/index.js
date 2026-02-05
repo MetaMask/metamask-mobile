@@ -368,6 +368,7 @@ class Asset extends PureComponent {
       navAddress: this.navAddress,
       navSymbol: this.navSymbol?.toLowerCase() ?? '',
       chainId,
+      selectedAddress: this.selectedAddress,
     });
   };
 
