@@ -210,7 +210,7 @@ describe('ContractInteraction', () => {
         state: generateContractInteractionState,
       });
 
-      expect(getByText('Amount')).toBeDefined();
+      expect(getByText('Amount')).toBeOnTheScreen();
     });
 
     it('does not render ValueRow when simulation succeeds', () => {

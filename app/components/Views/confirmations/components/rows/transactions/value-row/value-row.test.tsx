@@ -18,15 +18,15 @@ describe('ValueRow', () => {
     expect(toJSON()).toBeNull();
   });
 
-  it('renders correctly with value', () => {
+  it('renders Amount label when transaction has value', () => {
     const state = cloneDeep(generateContractInteractionState);
     state.engine.backgroundState.TransactionController.transactions[0].txParams.value =
       '0x2386f26fc10000'; // 0.01 ETH
 
     const { getByText } = renderWithProvider(<ValueRow />, { state }, false);
 
-    // Expect the label "Amount" (from confirm.label.amount) to be present
-    expect(getByText('Amount')).toBeTruthy();
+    expect(getByText('Amount')).toBeOnTheScreen();
+    expect(getByText('0.01 ETH')).toBeOnTheScreen();
   });
 
   it('returns null if value is missing', () => {
