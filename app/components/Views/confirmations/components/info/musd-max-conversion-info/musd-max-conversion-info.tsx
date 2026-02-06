@@ -42,6 +42,7 @@ import styleSheet from './musd-max-conversion-info.styles';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import BigNumber from 'bignumber.js';
 import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import { PercentageRow } from '../../rows/percentage-row';
 
 /**
  * Navigation params for MusdMaxConversionInfo
@@ -185,22 +186,11 @@ export const MusdMaxConversionInfo = () => {
           </Text>
         </InfoRow>
 
-        {/* TODO: Only show Network fee instead of Network + Bridge fee rows */}
         <BridgeFeeRow />
-
         <TotalRow />
 
         {/* Earning Row */}
-        <InfoRow
-          label={strings('earn.musd_conversion.earning')}
-          rowVariant={InfoRowVariant.Small}
-          testID={MusdMaxConversionInfoTestIds.EARNING_ROW}
-        >
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Success}>
-            {/* TODO: Replace hardcoded 2% with constant until we have actual yield data */}
-            2%
-          </Text>
-        </InfoRow>
+        <PercentageRow />
       </View>
 
       {/* Confirm Button */}

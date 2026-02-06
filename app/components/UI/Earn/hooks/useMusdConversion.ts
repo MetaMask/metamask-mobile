@@ -198,7 +198,9 @@ export const useMusdConversion = () => {
           chainId: tokenChainId,
         });
 
-        // TODO: Check to see if this is still necessary or handled automatically.
+        // Must be called BEFORE updatePaymentToken.
+        TransactionPayController.setIsMaxAmount(transactionId, true);
+
         TransactionPayController.updatePaymentToken({
           transactionId,
           tokenAddress,
@@ -214,8 +216,6 @@ export const useMusdConversion = () => {
         navigation.navigate(Routes.EARN.MODALS.ROOT, {
           screen: Routes.EARN.MODALS.MUSD_MAX_CONVERSION,
           params: {
-            // maxValueMode required to display mUSD max conversion bottom sheet confirmation.
-            maxValueMode: true,
             conversionIntent: MusdConversionIntent.Max,
             token,
           },
