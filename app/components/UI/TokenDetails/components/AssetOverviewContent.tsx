@@ -11,11 +11,10 @@ import { useNavigation } from '@react-navigation/native';
 import type { Theme } from '@metamask/design-tokens';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
-import {
-  getFontFamily,
+import Text, {
+  TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import Text from '../../../Base/Text';
 import AppConstants from '../../../../core/AppConstants';
 import Routes from '../../../../constants/navigation/Routes';
 import { createWebviewNavDetails } from '../../../Views/SimpleWebview';
@@ -28,7 +27,7 @@ import { TokenI } from '../../Tokens/types';
 import { usePerpsActions } from '../hooks/usePerpsActions';
 import { usePerpsPositionForAsset } from '../../Perps/hooks/usePerpsPositionForAsset';
 import { PERPS_EVENT_VALUE } from '../../Perps/constants/eventNames';
-import PerpsCard from '../../Perps/components/PerpsCard';
+import PerpsPositionCard from '../../Perps/components/PerpsPositionCard';
 import Price from '../../AssetOverview/Price';
 import ChartNavigationButton from '../../AssetOverview/ChartNavigationButton';
 import Balance from '../../AssetOverview/Balance';
@@ -48,7 +47,7 @@ import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDe
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
-  const { colors, typography } = theme;
+  const { colors } = theme;
   return StyleSheet.create({
     wrapper: {
       paddingTop: 20,
@@ -58,19 +57,12 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 20,
     } as ViewStyle,
     warning: {
-      ...typography.sBodyMD,
-      fontFamily: getFontFamily(TextVariant.BodyMD),
       borderRadius: 8,
       borderWidth: 1,
       borderColor: colors.warning.default,
       backgroundColor: colors.warning.muted,
       padding: 20,
-    } as TextStyle,
-    warningLinks: {
-      ...typography.sBodyMD,
-      fontFamily: getFontFamily(TextVariant.BodyMD),
-      color: colors.primary.default,
-    } as TextStyle,
+    } as ViewStyle,
     chartNavigationWrapper: {
       display: 'flex',
       flexDirection: 'row',
@@ -85,8 +77,11 @@ const styleSheet = (params: { theme: Theme }) => {
     } as ViewStyle,
     perpsPositionCardContainer: {
       paddingHorizontal: 16,
-      paddingTop: 8,
+      paddingTop: 24,
     } as ViewStyle,
+    perpsPositionTitle: {
+      marginBottom: 8,
+    } as TextStyle,
   });
 };
 
@@ -232,14 +227,16 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       <TouchableOpacity
         onPress={() => goToBrowserUrl(AppConstants.URLS.TOKEN_BALANCE)}
       >
-        <Text style={styles.warning}>
-          {strings('asset_overview.were_unable')} {token.symbol}{' '}
-          {strings('asset_overview.balance')}{' '}
-          <Text style={styles.warningLinks}>
-            {strings('asset_overview.troubleshooting_missing')}
-          </Text>{' '}
-          {strings('asset_overview.for_help')}
-        </Text>
+        <View style={styles.warning}>
+          <Text variant={TextVariant.BodyMD}>
+            {strings('asset_overview.were_unable')} {token.symbol}{' '}
+            {strings('asset_overview.balance')}{' '}
+            <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
+              {strings('asset_overview.troubleshooting_missing')}
+            </Text>{' '}
+            {strings('asset_overview.for_help')}
+          </Text>
+        </View>
       </TouchableOpacity>
     </View>
   );
@@ -356,9 +353,16 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               <>
                 {perpsPosition ? (
                   <View style={styles.perpsPositionCardContainer}>
-                    <PerpsCard
+                    <Text
+                      variant={TextVariant.HeadingMD}
+                      style={styles.perpsPositionTitle}
+                    >
+                      {strings('perps.position.card.position_title')}
+                    </Text>
+                    <PerpsPositionCard
                       position={perpsPosition}
-                      source={PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN}
+                      compact
+                      onPress={handlePerpsDiscoveryPress}
                       testID={TokenOverviewSelectorsIDs.PERPS_POSITION_CARD}
                     />
                   </View>
