@@ -99,6 +99,41 @@ describe('usePredictTabs', () => {
 
       expect(result.current.activeIndex).toBe(0);
     });
+
+    it('recalculates index when hot tab loads after deeplink', () => {
+      mockRouteParams.tab = 'crypto';
+      mockHotTabFlag.enabled = false;
+
+      const { result, rerender } = renderHook(() => usePredictTabs());
+
+      expect(result.current.activeIndex).toBe(3);
+      expect(result.current.tabs[3].key).toBe('crypto');
+
+      mockHotTabFlag.enabled = true;
+      rerender({});
+
+      expect(result.current.tabs[4].key).toBe('crypto');
+      expect(result.current.activeIndex).toBe(4);
+    });
+
+    it('does not recalculate index after user manually changes tab', () => {
+      mockRouteParams.tab = 'crypto';
+      mockHotTabFlag.enabled = false;
+
+      const { result, rerender } = renderHook(() => usePredictTabs());
+
+      expect(result.current.activeIndex).toBe(3);
+
+      act(() => {
+        result.current.setActiveIndex(0);
+      });
+      expect(result.current.activeIndex).toBe(0);
+
+      mockHotTabFlag.enabled = true;
+      rerender({});
+
+      expect(result.current.activeIndex).toBe(0);
+    });
   });
 
   describe('initialTabKey', () => {

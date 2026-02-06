@@ -64,29 +64,46 @@ export const usePredictTabs = (): UsePredictTabsResult => {
     return fallbackIndex >= 0 ? fallbackIndex : 0;
   }, []);
 
-  const [activeIndex, setActiveIndex] = useState(() => getInitialIndex(tabs));
+  const [activeIndex, setActiveIndexState] = useState(() =>
+    getInitialIndex(tabs),
+  );
 
   const prevRequestedTabKeyRef = useRef<PredictTabKey | undefined>(
     requestedTabKey,
   );
+  const isFollowingDeeplinkRef = useRef(Boolean(requestedTabKey));
 
   useEffect(() => {
     if (!requestedTabKey) {
       prevRequestedTabKeyRef.current = undefined;
+      isFollowingDeeplinkRef.current = false;
       return;
     }
 
     const isNewDeeplinkNavigation =
       requestedTabKey !== prevRequestedTabKeyRef.current;
-    if (!isNewDeeplinkNavigation) return;
+
+    if (isNewDeeplinkNavigation) {
+      isFollowingDeeplinkRef.current = true;
+    }
+
+    if (!isFollowingDeeplinkRef.current) {
+      prevRequestedTabKeyRef.current = requestedTabKey;
+      return;
+    }
 
     const requestedIndex = tabs.findIndex((tab) => tab.key === requestedTabKey);
     if (requestedIndex >= 0) {
-      setActiveIndex(requestedIndex);
+      setActiveIndexState(requestedIndex);
     }
 
     prevRequestedTabKeyRef.current = requestedTabKey;
   }, [requestedTabKey, tabs]);
+
+  const setActiveIndex = useCallback((index: number) => {
+    isFollowingDeeplinkRef.current = false;
+    setActiveIndexState(index);
+  }, []);
 
   return {
     tabs,
