@@ -39,6 +39,8 @@ function withMusdFixturesOptions(
       },
     ],
     restartDevice: true,
+    // Skip reload in cleanup to avoid native crash (SIGSEGV) when sync was disabled during test (same as snaps)
+    skipReactNativeReload: true,
     testSpecificMock: setupMusdMocks,
   };
 }
@@ -113,6 +115,8 @@ describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
         // Go to Activity and verify mUSD conversion is confirmed (same pattern as send-native-token: no swipeDown)
         await TabBarComponent.tapActivity();
         await ActivitiesView.verifyMusdConversionConfirmed(0);
+        // gets back to wallet to avoid waiting fora rpc updated in the activity view
+        await TabBarComponent.tapWallet();
       },
     );
   });
@@ -133,8 +137,6 @@ describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
           description: 'Wallet view should be visible',
         });
 
-        // Scroll to top then to USDC row (UI shows symbol "USDC" on token row). tapTokenListItemConvertToMusdCta uses checkStability + delay so list is ready before tap.
-        await WalletView.scrollToTopOfTokensList();
         await WalletView.scrollToToken('USDCoin');
         await Assertions.expectElementToBeVisible(
           WalletView.tokenListItemConvertToMusdCta,
@@ -172,6 +174,8 @@ describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
         // Go to Activity and verify mUSD conversion is confirmed
         await TabBarComponent.tapActivity();
         await ActivitiesView.verifyMusdConversionConfirmed(0);
+        // gets back to wallet to avoid waiting fora rpc updated in the activity view
+        await TabBarComponent.tapWallet();
       },
     );
   });
@@ -230,6 +234,8 @@ describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
         // Go to Activity and verify mUSD conversion is confirmed
         await TabBarComponent.tapActivity();
         await ActivitiesView.verifyMusdConversionConfirmed(0);
+        // gets back to wallet to avoid waiting fora rpc updated in the activity view
+        await TabBarComponent.tapWallet();
       },
     );
   });
