@@ -5,7 +5,7 @@ import Assertions from '../../../tests/framework/Assertions';
 import {
   QuoteViewSelectorIDs,
   QuoteViewSelectorText,
-} from '../../selectors/Bridge/QuoteView.selectors';
+} from '../../../tests/selectors/Bridge/QuoteView.selectors';
 
 const TOKEN_LIST_MATCHER = by.id(QuoteViewSelectorIDs.TOKEN_LIST);
 

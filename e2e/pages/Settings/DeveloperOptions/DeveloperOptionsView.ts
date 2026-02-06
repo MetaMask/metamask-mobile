@@ -1,5 +1,5 @@
 import { Matchers, Gestures } from '../../../../tests/framework';
-import { DeveloperOptionsSelectorsText } from '../../../selectors/Settings/DeveloperOptions.selectors';
+import { DeveloperOptionsSelectorsText } from '../../../../tests/selectors/Settings/DeveloperOptions.selectors';
 
 class DeveloperOptionsView {
   get sampleFeatureButton() {
