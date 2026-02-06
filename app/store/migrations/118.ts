@@ -83,21 +83,23 @@ async function transformState(state: ValidState) {
     return state;
   }
 
-  Object.values(
-    snapControllerState.snaps as Record<string, Record<string, unknown>>,
-  ).forEach(async (snap) => {
-    const sourceCode = snap.sourceCode as string;
+  await Promise.all(
+    Object.values(
+      snapControllerState.snaps as Record<string, Record<string, unknown>>,
+    ).map(async (snap) => {
+      const sourceCode = snap.sourceCode as string;
 
-    const fullKey = `${STORAGE_KEY_PREFIX}SnapController:${snap.id}`;
+      const fullKey = `${STORAGE_KEY_PREFIX}SnapController:${snap.id}`;
 
-    await FilesystemStorage.setItem(
-      fullKey,
-      JSON.stringify({ sourceCode }),
-      Device.isIos(),
-    );
+      await FilesystemStorage.setItem(
+        fullKey,
+        JSON.stringify({ sourceCode }),
+        Device.isIos(),
+      );
 
-    delete snap.sourceCode;
-  });
+      delete snap.sourceCode;
+    }),
+  );
 
   return state;
 }
