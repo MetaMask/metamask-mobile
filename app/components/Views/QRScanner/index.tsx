@@ -273,20 +273,20 @@ const QRScanner = ({
               })
               .build(),
           );
-        } else {
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.QR_SCANNED)
-              .addProperties({
-                [QRScannerEventProperties.SCAN_SUCCESS]: false,
-                [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
-                [QRScannerEventProperties.SCAN_RESULT]:
-                  ScanResult.UNRECOGNIZED_QR_CODE,
-              })
-              .build(),
-          );
+          mountedRef.current = false;
+          return;
         }
 
-        mountedRef.current = false;
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+            .addProperties({
+              [QRScannerEventProperties.SCAN_SUCCESS]: false,
+              [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+              [QRScannerEventProperties.SCAN_RESULT]:
+                ScanResult.UNRECOGNIZED_QR_CODE,
+            })
+            .build(),
+        );
         end();
         return;
       }
