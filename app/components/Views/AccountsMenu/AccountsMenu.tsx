@@ -278,7 +278,7 @@ const AccountsMenu = () => {
               color={IconColor.ErrorDefault}
             />
           }
-          label={strings('drawer.lock')}
+          label={strings('accounts_menu.log_out')}
           labelTextProps={{ color: TextColor.ErrorDefault }}
           onPress={onPressLogOut}
           testID={AccountsMenuSelectorsIDs.LOCK}

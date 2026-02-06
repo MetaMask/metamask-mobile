@@ -278,7 +278,7 @@ describe('AccountsMenu', () => {
       it('render Log Out row', () => {
         const { getByText, getByTestId } = render(<AccountsMenu />);
 
-        expect(getByText('drawer.lock')).toBeOnTheScreen();
+        expect(getByText('accounts_menu.log_out')).toBeOnTheScreen();
         expect(getByTestId(AccountsMenuSelectorsIDs.LOCK)).toBeOnTheScreen();
       });
 

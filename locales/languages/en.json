@@ -2808,7 +2808,8 @@
     "resources": "Resources",
     "permissions": "Permissions",
     "card_title": "MetaMask Card",
-    "settings": "Settings"
+    "settings": "Settings",
+    "log_out": "Log out"
   },
   "app_settings": {
     "enabling_notifications": "Enabling notifications...",

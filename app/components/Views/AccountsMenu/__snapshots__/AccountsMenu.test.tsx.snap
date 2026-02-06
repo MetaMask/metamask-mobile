@@ -1193,7 +1193,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is hidden 1`] 
                   ]
                 }
               >
-                drawer.lock
+                accounts_menu.log_out
               </Text>
             </View>
           </View>
@@ -2542,7 +2542,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
                   ]
                 }
               >
-                drawer.lock
+                accounts_menu.log_out
               </Text>
             </View>
           </View>
