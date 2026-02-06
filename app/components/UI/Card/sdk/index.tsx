@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
+import Logger from '../../../../util/Logger';
 import { CardSDK } from './CardSDK';
 import {
   CardFeatureFlag,
@@ -15,7 +16,6 @@ import {
 } from '../../../../selectors/featureFlagController/card';
 import { useCardholderCheck } from '../hooks/useCardholderCheck';
 import { useCardAuthenticationVerification } from '../hooks/useCardAuthenticationVerification';
-import { removeCardBaanxToken } from '../util/cardTokenVault';
 import {
   selectUserCardLocation,
   selectOnboardingId,
@@ -137,7 +137,14 @@ export const CardSDKProvider = ({
       throw new Error('SDK not available for logout');
     }
 
-    await removeCardBaanxToken();
+    try {
+      await sdk.logout();
+    } catch (error) {
+      Logger.error(error as Error, {
+        message: '[CardSDK] Logout failed, clearing local state anyway',
+      });
+    }
+
     dispatch(resetAuthenticatedData());
     dispatch(clearAllCache());
     dispatch(resetOnboardingState());

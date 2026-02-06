@@ -17,6 +17,7 @@ interface FeesTooltipContentProps extends TooltipContentProps {
     protocolFeeRate?: number;
     originalMetamaskFeeRate?: number;
     feeDiscountPercentage?: number;
+    bridgeFeeFormatted?: string;
   };
 }
 
@@ -76,6 +77,18 @@ const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
           {providerFee}
         </Text>
       </View>
+
+      {/* Bridge Fee Row (when paying with custom token) */}
+      {data?.bridgeFeeFormatted ? (
+        <View style={styles.feeRow}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {strings('perps.tooltips.fees.bridge_fee')}
+          </Text>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {data.bridgeFeeFormatted}
+          </Text>
+        </View>
+      ) : null}
     </View>
   );
 };
