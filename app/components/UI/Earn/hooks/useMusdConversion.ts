@@ -20,7 +20,6 @@ import { selectPendingApprovals } from '../../../../selectors/approvalController
 import { RootState } from '../../../../reducers';
 import { selectTransactionsByIds } from '../../../../selectors/transactionController';
 import { AssetType } from '../../../Views/confirmations/types/token';
-import { useMusdQuickConvertPercentage } from './useMusdQuickConvertPercentage';
 import { toHex } from '@metamask/controller-utils';
 
 /**
@@ -127,8 +126,6 @@ export const useMusdConversion = () => {
     [pendingApprovals],
   );
 
-  const { applyPercentage } = useMusdQuickConvertPercentage();
-
   const pendingTransactionMetas = useSelector((state: RootState) =>
     selectTransactionsByIds(state, pendingApprovalIds),
   );
@@ -179,15 +176,11 @@ export const useMusdConversion = () => {
           );
         }
 
-        // Get adjusted amount (based on percentage from feature flag)
-        // Note: We use the token's rawBalance which is already in minimal units (hex)
-        const adjustedBalance = applyPercentage(token.rawBalance);
-
         const { transactionId } = await createMusdConversionTransaction({
           chainId: tokenChainId,
           fromAddress: toHex(selectedAddress),
           recipientAddress: toHex(selectedAddress),
-          amountHex: adjustedBalance,
+          amountHex: token.rawBalance,
           networkClientId,
         });
 
@@ -247,7 +240,7 @@ export const useMusdConversion = () => {
         setIsMaxConversionLoading(false);
       }
     },
-    [applyPercentage, navigation, selectedAddress],
+    [navigation, selectedAddress],
   );
 
   /**
