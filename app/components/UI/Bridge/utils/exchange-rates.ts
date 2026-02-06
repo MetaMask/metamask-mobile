@@ -38,9 +38,9 @@ export const convertFiatToUsd = (
   fiatValue: number,
   conversionRate: number | null | undefined,
   usdConversionRate: number | null | undefined,
-): number => {
+): number | undefined => {
   if (!conversionRate || !usdConversionRate) {
-    return 0;
+    return undefined;
   }
   return fiatValue * (usdConversionRate / conversionRate);
 };

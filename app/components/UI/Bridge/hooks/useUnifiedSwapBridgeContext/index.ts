@@ -55,11 +55,12 @@ export const useUnifiedSwapBridgeContext = () => {
   const currencyEntry = nativeCurrency
     ? evmMultiChainCurrencyRates?.[nativeCurrency]
     : undefined;
-  const usdAmountSource = convertFiatToUsd(
-    tokenFiatValue,
-    currencyEntry?.conversionRate,
-    currencyEntry?.usdConversionRate,
-  );
+  const usdAmountSource =
+    convertFiatToUsd(
+      tokenFiatValue,
+      currencyEntry?.conversionRate,
+      currencyEntry?.usdConversionRate,
+    ) ?? 0;
 
   return useMemo(
     () => ({
