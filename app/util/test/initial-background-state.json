@@ -753,14 +753,37 @@
     "accountMeta": {}
   },
   "RampsController": {
-    "countries": [],
-    "paymentMethods": [],
     "userRegion": null,
-    "selectedProvider": null,
-    "providers": [],
-    "selectedPaymentMethod": null,
-    "selectedToken": null,
-    "tokens": null,
+    "countries": {
+      "data": [],
+      "selected": null,
+      "isLoading": false,
+      "error": null
+    },
+    "providers": {
+      "data": [],
+      "selected": null,
+      "isLoading": false,
+      "error": null
+    },
+    "tokens": {
+      "data": null,
+      "selected": null,
+      "isLoading": false,
+      "error": null
+    },
+    "paymentMethods": {
+      "data": [],
+      "selected": null,
+      "isLoading": false,
+      "error": null
+    },
+    "quotes": {
+      "data": null,
+      "selected": null,
+      "isLoading": false,
+      "error": null
+    },
     "requests": {}
   }
 }

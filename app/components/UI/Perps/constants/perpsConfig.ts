@@ -129,6 +129,17 @@ export const ORDER_SLIPPAGE_CONFIG = {
 } as const;
 
 /**
+ * Redesigned confirmations screen header configuration (Perps)
+ * Controls whether the Perps header is shown when navigating to the confirmation screen
+ */
+export const CONFIRMATION_HEADER_CONFIG = {
+  /** Default: show Perps header when opening confirmations from Perps flows */
+  DefaultShowPerpsHeader: true,
+  /** Hide Perps header when navigating from deposit-and-trade flow */
+  ShowPerpsHeaderForDepositAndTrade: false,
+} as const;
+
+/**
  * Performance optimization constants
  * These values control debouncing and throttling for better performance
  */
@@ -547,7 +558,7 @@ export const STOP_LOSS_PROMPT_CONFIG = {
 
   // Minimum position age before showing any banner (milliseconds)
   // Prevents banner from appearing immediately after opening a position
-  PositionMinAgeMs: 60_000, // 60 seconds
+  PositionMinAgeMs: 120_000, // 2 minutes
 
   // Suggested stop loss ROE percentage
   // When suggesting a stop loss, calculate price at this ROE from entry

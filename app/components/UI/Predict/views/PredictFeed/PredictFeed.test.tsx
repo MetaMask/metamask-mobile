@@ -43,6 +43,20 @@ import { usePredictMarketData } from '../../hooks/usePredictMarketData';
 
 const mockUsePredictMarketData = usePredictMarketData as jest.Mock;
 
+const mockUseSelector = jest.fn();
+
+jest.mock('react-redux', () => {
+  const actualReactRedux = jest.requireActual('react-redux');
+  return {
+    ...actualReactRedux,
+    useSelector: (...args: unknown[]) => mockUseSelector(...args),
+  };
+});
+
+jest.mock('../../selectors/featureFlags', () => ({
+  selectPredictHotTabFlag: jest.fn(),
+}));
+
 jest.mock('../../../../hooks/useDebouncedValue', () => ({
   useDebouncedValue: jest.fn(),
 }));
@@ -218,6 +232,10 @@ describe('PredictFeed', () => {
     });
     mockUseFocusEffect.mockImplementation((callback: () => void) => callback());
     mockGetInstance.mockReturnValue(mockSessionManager);
+    mockUseSelector.mockReturnValue({
+      enabled: false,
+      queryParams: undefined,
+    });
     mockUseFeedScrollManager.mockReturnValue({
       headerTranslateY: { value: 0 },
       headerHidden: false,
@@ -682,6 +700,105 @@ describe('PredictFeed', () => {
       fireEvent.changeText(searchInput, 'test');
 
       expect(mockUseDebouncedValue).toHaveBeenCalledWith('test', 200);
+    });
+  });
+
+  describe('hot tab feature flag', () => {
+    it('renders Hot tab first when flag is enabled', () => {
+      mockUseSelector.mockReturnValue({
+        enabled: true,
+        queryParams: 'tag_id=149&order=volume24hr',
+      });
+
+      const { getByTestId } = render(<PredictFeed />);
+
+      expect(getByTestId('tab-hot')).toBeOnTheScreen();
+      expect(getByTestId('tab-trending')).toBeOnTheScreen();
+    });
+
+    it('does not render Hot tab when flag is disabled', () => {
+      mockUseSelector.mockReturnValue({
+        enabled: false,
+        queryParams: undefined,
+      });
+
+      const { queryByTestId, getByTestId } = render(<PredictFeed />);
+
+      expect(queryByTestId('tab-hot')).toBeNull();
+      expect(getByTestId('tab-trending')).toBeOnTheScreen();
+    });
+
+    it('renders six category tabs when hot tab is enabled', () => {
+      mockUseSelector.mockReturnValue({
+        enabled: true,
+        queryParams: 'tag_id=149',
+      });
+
+      const { getByTestId } = render(<PredictFeed />);
+
+      expect(getByTestId('tab-hot')).toBeOnTheScreen();
+      expect(getByTestId('tab-trending')).toBeOnTheScreen();
+      expect(getByTestId('tab-new')).toBeOnTheScreen();
+      expect(getByTestId('tab-sports')).toBeOnTheScreen();
+      expect(getByTestId('tab-crypto')).toBeOnTheScreen();
+      expect(getByTestId('tab-politics')).toBeOnTheScreen();
+    });
+
+    it('renders six pager pages when hot tab is enabled', () => {
+      mockUseSelector.mockReturnValue({
+        enabled: true,
+        queryParams: 'tag_id=149&tag_id=100995&order=volume24hr',
+      });
+
+      const { getByTestId } = render(<PredictFeed />);
+
+      expect(getByTestId('pager-page-0')).toBeOnTheScreen();
+      expect(getByTestId('pager-page-1')).toBeOnTheScreen();
+      expect(getByTestId('pager-page-2')).toBeOnTheScreen();
+      expect(getByTestId('pager-page-3')).toBeOnTheScreen();
+      expect(getByTestId('pager-page-4')).toBeOnTheScreen();
+      expect(getByTestId('pager-page-5')).toBeOnTheScreen();
+    });
+
+    it('tracks tab change for hot tab when swiped to', () => {
+      mockUseSelector.mockReturnValue({
+        enabled: true,
+        queryParams: 'tag_id=149',
+      });
+
+      const mockSetActiveIndex = jest.fn();
+      mockUseFeedScrollManager.mockReturnValue({
+        headerTranslateY: { value: 0 },
+        headerHidden: false,
+        headerHeight: 100,
+        tabBarHeight: 48,
+        layoutReady: true,
+        activeIndex: 1,
+        setActiveIndex: mockSetActiveIndex,
+        scrollHandler: jest.fn(),
+      });
+
+      const { getByTestId } = render(<PredictFeed />);
+      const hotTabPage = getByTestId('pager-page-0');
+
+      fireEvent(hotTabPage, 'onTouchEnd');
+
+      expect(mockSetActiveIndex).toHaveBeenCalledWith(0);
+      expect(mockSessionManager.trackTabChange).toHaveBeenCalledWith('hot');
+    });
+
+    it('starts session with hot as initial tab when flag is enabled', () => {
+      mockUseSelector.mockReturnValue({
+        enabled: true,
+        queryParams: 'tag_id=149',
+      });
+
+      render(<PredictFeed />);
+
+      expect(mockSessionManager.startSession).toHaveBeenCalledWith(
+        'homepage_new_prediction',
+        'hot',
+      );
     });
   });
 });

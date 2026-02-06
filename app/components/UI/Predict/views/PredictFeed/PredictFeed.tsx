@@ -5,6 +5,7 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
+import { useSelector } from 'react-redux';
 import {
   View,
   Pressable,
@@ -73,6 +74,7 @@ import {
   TabsBar,
 } from '../../../../../component-library/components-temp/Tabs';
 import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
+import { selectPredictHotTabFlag } from '../../selectors/featureFlags';
 
 interface FeedTab {
   key: PredictCategory;
@@ -212,6 +214,7 @@ interface PredictTabContentProps {
   headerHeight: number;
   tabBarHeight: number;
   headerHidden: boolean;
+  customQueryParams?: string;
 }
 
 const PredictTabContent: React.FC<PredictTabContentProps> = ({
@@ -221,6 +224,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
   headerHeight,
   tabBarHeight,
   headerHidden,
+  customQueryParams,
 }) => {
   const tw = useTailwind();
   const listRef = useRef<PredictFlashListRef>(null);
@@ -240,7 +244,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     refetch,
     fetchMore,
     isFetchingMore,
-  } = usePredictMarketData({ category, pageSize: 20 });
+  } = usePredictMarketData({ category, pageSize: 20, customQueryParams });
 
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -383,6 +387,7 @@ interface PredictFeedTabsProps {
   headerHeight: number;
   tabBarHeight: number;
   headerHidden: boolean;
+  hotTabQueryParams?: string;
 }
 
 const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
@@ -393,6 +398,7 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
   headerHeight,
   tabBarHeight,
   headerHidden,
+  hotTabQueryParams,
 }) => {
   const tw = useTailwind();
   const pagerRef = useRef<PagerView>(null);
@@ -430,6 +436,9 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
             headerHeight={headerHeight}
             tabBarHeight={tabBarHeight}
             headerHidden={headerHidden}
+            customQueryParams={
+              tab.key === 'hot' ? hotTabQueryParams : undefined
+            }
           />
         </View>
       ))}
@@ -574,18 +583,23 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
 };
 
 const PredictFeed: React.FC = () => {
-  // This can't be a constant at the top of the file because it would not
-  // react to locale changes in the app.
-  const tabs: FeedTab[] = useMemo(
-    () => [
+  const hotTabFlag = useSelector(selectPredictHotTabFlag);
+
+  const tabs: FeedTab[] = useMemo(() => {
+    const baseTabs: FeedTab[] = [
       { key: 'trending', label: strings('predict.category.trending') },
       { key: 'new', label: strings('predict.category.new') },
       { key: 'sports', label: strings('predict.category.sports') },
       { key: 'crypto', label: strings('predict.category.crypto') },
       { key: 'politics', label: strings('predict.category.politics') },
-    ],
-    [],
-  );
+    ];
+
+    if (hotTabFlag.enabled) {
+      baseTabs.unshift({ key: 'hot', label: strings('predict.category.hot') });
+    }
+
+    return baseTabs;
+  }, [hotTabFlag.enabled]);
 
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -596,6 +610,10 @@ const PredictFeed: React.FC = () => {
 
   const headerRef = useRef<View>(null);
   const tabBarRef = useRef<View>(null);
+
+  // Capture the initial tab key at mount to avoid re-triggering the analytics
+  // session when tabs array changes due to async feature flag loading
+  const initialTabKeyRef = useRef(tabs[0].key);
 
   const [isSearchVisible, setIsSearchVisible] = useState(false);
 
@@ -628,7 +646,10 @@ const PredictFeed: React.FC = () => {
 
   useEffect(() => {
     sessionManager.enableAppStateListener();
-    sessionManager.startSession(route.params?.entryPoint, 'trending');
+    sessionManager.startSession(
+      route.params?.entryPoint,
+      initialTabKeyRef.current,
+    );
 
     return () => {
       sessionManager.endSession();
@@ -723,6 +744,7 @@ const PredictFeed: React.FC = () => {
             headerHeight={headerHeight}
             tabBarHeight={tabBarHeight + 6}
             headerHidden={headerHidden}
+            hotTabQueryParams={hotTabFlag.queryParams}
           />
         )}
       </Box>

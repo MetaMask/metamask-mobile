@@ -4,9 +4,15 @@ import {
   type Hex,
   isValidHexAddress,
 } from '@metamask/utils';
+import {
+  SignTypedDataVersion,
+  type TypedMessageParams,
+} from '@metamask/keyring-controller';
 import { getChainId } from '../constants/hyperLiquidConfig';
 import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
 import type { PerpsPlatformDependencies } from '../controllers/types';
+import type { PerpsControllerMessenger } from '../controllers/PerpsController';
+import { getSelectedEvmAccount } from '../utils/accountUtils';
 
 /**
  * Service for MetaMask wallet integration with HyperLiquid SDK
@@ -15,15 +21,33 @@ import type { PerpsPlatformDependencies } from '../controllers/types';
 export class HyperLiquidWalletService {
   private isTestnet: boolean;
 
-  // Platform dependencies for account access and signing
+  // Platform dependencies for observability
   private readonly deps: PerpsPlatformDependencies;
+
+  // Messenger for inter-controller communication
+  private readonly messenger: PerpsControllerMessenger;
 
   constructor(
     deps: PerpsPlatformDependencies,
+    messenger: PerpsControllerMessenger,
     options: { isTestnet?: boolean } = {},
   ) {
     this.deps = deps;
+    this.messenger = messenger;
     this.isTestnet = options.isTestnet || false;
+  }
+
+  /**
+   * Sign typed data via messenger
+   */
+  private async signTypedMessage(
+    msgParams: TypedMessageParams,
+  ): Promise<string> {
+    return this.messenger.call(
+      'KeyringController:signTypedMessage',
+      msgParams,
+      SignTypedDataVersion.V4,
+    );
   }
 
   /**
@@ -47,8 +71,8 @@ export class HyperLiquidWalletService {
     }) => Promise<Hex>;
     getChainId?: () => Promise<number>;
   } {
-    // Get current EVM account using the injected controllers.accounts
-    const evmAccount = this.deps.controllers.accounts.getSelectedEvmAccount();
+    // Get current EVM account using messenger
+    const evmAccount = getSelectedEvmAccount(this.messenger);
 
     if (!evmAccount?.address) {
       throw new Error(PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED);
@@ -73,8 +97,7 @@ export class HyperLiquidWalletService {
       }): Promise<Hex> => {
         // Get FRESH account on every sign to handle account switches
         // This prevents race conditions where wallet adapter was created with old account
-        const currentEvmAccount =
-          this.deps.controllers.accounts.getSelectedEvmAccount();
+        const currentEvmAccount = getSelectedEvmAccount(this.messenger);
 
         if (!currentEvmAccount?.address) {
           throw new Error(PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED);
@@ -99,14 +122,11 @@ export class HyperLiquidWalletService {
           },
         );
 
-        // Use injected controllers.keyring to sign
-        const signature = await this.deps.controllers.keyring.signTypedMessage(
-          {
-            from: currentAddress,
-            data: typedData,
-          },
-          'V4',
-        );
+        // Use messenger to sign typed data
+        const signature = await this.signTypedMessage({
+          from: currentAddress,
+          data: typedData,
+        });
 
         return signature as Hex;
       },
@@ -116,10 +136,10 @@ export class HyperLiquidWalletService {
   }
 
   /**
-   * Get current account ID using the injected controllers.accounts
+   * Get current account ID using messenger
    */
   public async getCurrentAccountId(): Promise<CaipAccountId> {
-    const evmAccount = this.deps.controllers.accounts.getSelectedEvmAccount();
+    const evmAccount = getSelectedEvmAccount(this.messenger);
 
     if (!evmAccount?.address) {
       throw new Error(PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED);

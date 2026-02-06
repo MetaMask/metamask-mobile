@@ -87,7 +87,6 @@ pipelines:
     stages:
       - build_e2e_ios_android_stage: {}
       - run_release_e2e_ios_android_stage: {}
-      - report_results_stage: {}
       - notify: {}
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   pr_smoke_e2e_pipeline:
@@ -464,9 +463,6 @@ stages:
     workflows:
       - ios_run_regression_network_abstraction_tests_gns_disabled: {}
 
-  report_results_stage:
-    workflows:
-      - run_testrail_update_automated_test_results: {}
   # TODO: Remove this stage since it's not used anymore
   run_e2e_ios_android_stage:
     workflows:
@@ -1080,18 +1076,6 @@ workflows:
         machine_type_id: elite-xl
     after_run:
       - android_e2e_build
-  ### Report automated test results to TestRail
-  run_testrail_update_automated_test_results:
-    before_run:
-      - code_setup
-    steps:
-      - script@1:
-          title: 'Add Automated Test Results to TestRail'
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                echo 'REPORT AUTOMATED TEST RESULTS TO TESTRAIL'
-                node ./scripts/testrail/testrail.api.js
 
   ### Separating workflows so they run concurrently during smoke runs
   run_tag_smoke_multichain_api_ios:
@@ -1422,18 +1406,18 @@ workflows:
                 mkdir -p "$BITRISE_DEPLOY_DIR/performance-results"
 
                 # Copy performance JSON files if they exist
-                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/account-list-load-testing-performance-results.json" ]; then
-                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/account-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                if [ -f "$BITRISE_SOURCE_DIR/tests/smoke/performance/reports/account-list-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/tests/smoke/performance/reports/account-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
                   echo "Copied account-list-load-testing-performance-results.json"
                 fi
 
-                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/network-list-load-testing-performance-results.json" ]; then
-                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/network-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                if [ -f "$BITRISE_SOURCE_DIR/tests/smoke/performance/reports/network-list-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/tests/smoke/performance/reports/network-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
                   echo "Copied network-list-load-testing-performance-results.json"
                 fi
 
-                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" ]; then
-                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                if [ -f "$BITRISE_SOURCE_DIR/tests/smoke/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/tests/smoke/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
                   echo "Copied switching-accounts-to-dismiss-load-testing-performance-results.json"
                 fi
       - deploy-to-bitrise-io@2.3:
@@ -1551,18 +1535,18 @@ workflows:
                 mkdir -p "$BITRISE_DEPLOY_DIR/performance-results"
 
                 # Copy performance JSON files if they exist
-                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/account-list-load-testing-performance-results.json" ]; then
-                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/account-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                if [ -f "$BITRISE_SOURCE_DIR/tests/smoke/performance/reports/account-list-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/tests/smoke/performance/reports/account-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
                   echo "Copied account-list-load-testing-performance-results.json"
                 fi
 
-                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/network-list-load-testing-performance-results.json" ]; then
-                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/network-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                if [ -f "$BITRISE_SOURCE_DIR/tests/smoke/performance/reports/network-list-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/tests/smoke/performance/reports/network-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
                   echo "Copied network-list-load-testing-performance-results.json"
                 fi
 
-                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" ]; then
-                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                if [ -f "$BITRISE_SOURCE_DIR/tests/smoke/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/tests/smoke/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
                   echo "Copied switching-accounts-to-dismiss-load-testing-performance-results.json"
                 fi
       - deploy-to-bitrise-io@2.3:
@@ -2058,18 +2042,18 @@ workflows:
                 mkdir -p "$BITRISE_DEPLOY_DIR/performance-results"
 
                 # Copy performance JSON files if they exist
-                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/account-list-load-testing-performance-results.json" ]; then
-                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/account-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                if [ -f "$BITRISE_SOURCE_DIR/tests/smoke/performance/reports/account-list-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/tests/smoke/performance/reports/account-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
                   echo "Copied account-list-load-testing-performance-results.json"
                 fi
 
-                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/network-list-load-testing-performance-results.json" ]; then
-                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/network-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                if [ -f "$BITRISE_SOURCE_DIR/tests/smoke/performance/reports/network-list-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/tests/smoke/performance/reports/network-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
                   echo "Copied network-list-load-testing-performance-results.json"
                 fi
 
-                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" ]; then
-                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                if [ -f "$BITRISE_SOURCE_DIR/tests/smoke/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/tests/smoke/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
                   echo "Copied switching-accounts-to-dismiss-load-testing-performance-results.json"
                 fi
       - deploy-to-bitrise-io@2.3:
@@ -2202,18 +2186,18 @@ workflows:
                 mkdir -p "$BITRISE_DEPLOY_DIR/performance-results"
 
                 # Copy performance JSON files if they exist
-                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/account-list-load-testing-performance-results.json" ]; then
-                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/account-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                if [ -f "$BITRISE_SOURCE_DIR/tests/smoke/performance/reports/account-list-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/tests/smoke/performance/reports/account-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
                   echo "Copied account-list-load-testing-performance-results.json"
                 fi
 
-                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/network-list-load-testing-performance-results.json" ]; then
-                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/network-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                if [ -f "$BITRISE_SOURCE_DIR/tests/smoke/performance/reports/network-list-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/tests/smoke/performance/reports/network-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
                   echo "Copied network-list-load-testing-performance-results.json"
                 fi
 
-                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" ]; then
-                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                if [ -f "$BITRISE_SOURCE_DIR/tests/smoke/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/tests/smoke/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
                   echo "Copied switching-accounts-to-dismiss-load-testing-performance-results.json"
                 fi
       - deploy-to-bitrise-io@2.3:

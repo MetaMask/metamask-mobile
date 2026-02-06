@@ -93,6 +93,8 @@ export const ShareAddressQR = () => {
         <Box twClassName="mt-6 mb-4">
           <QRAccountDisplay
             accountAddress={address}
+            analyticsLocation="qr-code"
+            chainId={chainId}
             label={strings('multichain_accounts.share_address_qr.title', {
               networkName,
             })}
