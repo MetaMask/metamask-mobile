@@ -70,3 +70,12 @@ export const EARN_CONTRACT_INTERACTION_TYPES = [
  * Used when pay token selection is constrained to a single network (e.g. Perps).
  */
 export const HIDE_NETWORK_FILTER_TYPES = [TransactionType.perpsDepositAndOrder];
+
+/**
+ * Post-quote transaction types that use a "Receive as" token picker
+ * instead of "Pay with" for selecting the destination token.
+ */
+export const POST_QUOTE_TRANSACTION_TYPES = [
+  TransactionType.predictWithdraw,
+  // TransactionType.perpsWithdraw, // Add when implementing for Perps
+] as const;

@@ -14,6 +14,7 @@ import {
 
 import ppomUtil from '../../../../lib/ppom/ppom-util';
 import { addTransaction } from '../../../../util/transaction-controller';
+import { POST_QUOTE_TRANSACTION_TYPES } from '../constants/confirmations';
 
 const erc20Interface = new Interface(abiERC20);
 const erc721Interface = new Interface(abiERC721);
@@ -116,5 +117,18 @@ export function hasTransactionType(
     nestedTransactions?.some((tx) =>
       types.includes(tx.type as TransactionType),
     ) ?? false
+  );
+}
+
+/**
+ * Checks if the transaction is a post-quote type (predictWithdraw, perpsWithdraw, etc.)
+ * Post-quote transactions use "Receive as" instead of "Pay with" for token selection.
+ */
+export function isTransactionPayWithdraw(
+  transactionMeta: TransactionMeta | undefined,
+): boolean {
+  return hasTransactionType(
+    transactionMeta,
+    POST_QUOTE_TRANSACTION_TYPES as unknown as TransactionType[],
   );
 }

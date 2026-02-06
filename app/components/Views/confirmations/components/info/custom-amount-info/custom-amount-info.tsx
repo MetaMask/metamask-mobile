@@ -4,6 +4,7 @@ import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
 import { BridgeFeeRow } from '../../rows/bridge-fee-row';
 import { BridgeTimeRow } from '../../rows/bridge-time-row';
 import { TotalRow } from '../../rows/total-row';
+import { ReceiveRow } from '../../rows/receive-row';
 import { PercentageRow } from '../../rows/percentage-row';
 import {
   DepositKeyboard,
@@ -19,6 +20,7 @@ import {
   SetPayTokenRequest,
   useAutomaticTransactionPayToken,
 } from '../../../hooks/pay/useAutomaticTransactionPayToken';
+import { useTransactionPayPostQuote } from '../../../hooks/pay/useTransactionPayPostQuote';
 import { AlertMessage } from '../../alerts/alert-message';
 import {
   CustomAmount,
@@ -41,7 +43,10 @@ import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
 import { toCaipAssetType } from '@metamask/utils';
 import { AlignItems } from '../../../../../UI/Box/box.types';
 import { strings } from '../../../../../../../locales/i18n';
-import { hasTransactionType } from '../../../utils/transaction';
+import {
+  hasTransactionType,
+  isTransactionPayWithdraw,
+} from '../../../utils/transaction';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { TransactionType } from '@metamask/transaction-controller';
 import Button, {
@@ -86,21 +91,24 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     footerText,
   }) => {
     useClearConfirmationOnBackSwipe();
+
+    const transactionMeta = useTransactionMetadataRequest();
+    const isWithdraw = isTransactionPayWithdraw(transactionMeta);
+
+    // For withdrawals, disable auto-selection - we show POLYGON_USDCE by default in UI
     useAutomaticTransactionPayToken({
-      disable: disablePay,
+      disable: disablePay || isWithdraw,
       preferredToken,
     });
     useTransactionPayMetrics();
+    useTransactionPayPostQuote(); // Set isPostQuote=true for post-quote transactions
 
     const { isNative: isNativePayToken } = useTransactionPayToken();
     const { styles } = useStyles(styleSheet, {});
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
-    const availableTokens = useTransactionPayAvailableTokens();
-    const hasTokens = availableTokens.length > 0;
+    const { hasTokens } = useTransactionPayAvailableTokens();
 
-    const isResultReady = useIsResultReady({
-      isKeyboardVisible,
-    });
+    const isResultReady = useIsResultReady({ isKeyboardVisible });
 
     const {
       amountFiat,
@@ -161,7 +169,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             <Box>
               <BridgeFeeRow />
               <BridgeTimeRow />
-              <TotalRow />
+              {isWithdraw ? (
+                <ReceiveRow inputAmountUsd={amountFiat} />
+              ) : (
+                <TotalRow />
+              )}
               <PercentageRow />
             </Box>
           )}

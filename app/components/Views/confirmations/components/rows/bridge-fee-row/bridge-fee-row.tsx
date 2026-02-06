@@ -12,7 +12,10 @@ import {
 } from '@metamask/transaction-controller';
 import { Box } from '../../../../../UI/Box/Box';
 import { FlexDirection, JustifyContent } from '../../../../../UI/Box/box.types';
-import { hasTransactionType } from '../../../utils/transaction';
+import {
+  hasTransactionType,
+  isTransactionPayWithdraw,
+} from '../../../utils/transaction';
 import {
   TransactionPayQuote,
   TransactionPayTotals,
@@ -41,6 +44,7 @@ export function BridgeFeeRow() {
   const totals = useTransactionPayTotals();
   const { fieldAlerts } = useAlerts();
   const hasAlert = fieldAlerts.some((a) => a.field === RowAlertKey.PayWithFee);
+  const isWithdraw = isTransactionPayWithdraw(transactionMetadata);
 
   if (hasTransactionType(transactionMetadata, NETWORK_FEE_ONLY_TYPES)) {
     return (
@@ -53,6 +57,11 @@ export function BridgeFeeRow() {
         <MetaMaskFeeRow quotes={quotes} isLoading={isLoading} />
       </>
     );
+  }
+
+  // For withdrawals, only show provider fee (network fee is negligible on Polygon)
+  if (isWithdraw) {
+    return <WithdrawalProviderFeeRow totals={totals} isLoading={isLoading} />;
   }
 
   return (
@@ -202,6 +211,43 @@ function MetaMaskFeeRow({
     >
       <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
         {metamaskFeeUsd}
+      </Text>
+    </InfoRow>
+  );
+}
+
+/**
+ * Transaction fee row for withdrawals.
+ */
+function WithdrawalProviderFeeRow({
+  totals,
+  isLoading,
+}: {
+  totals?: TransactionPayTotals;
+  isLoading: boolean;
+}) {
+  const formatFiat = useFiatFormatter({ currency: 'usd' });
+
+  const transactionFeeUsd = useMemo(() => {
+    if (!totals?.fees?.provider?.usd) return '';
+    const providerFee = new BigNumber(totals.fees.provider.usd);
+    if (providerFee.isZero()) return '';
+    return formatFiat(providerFee);
+  }, [totals, formatFiat]);
+
+  if (isLoading)
+    return <InfoRowSkeleton testId="withdrawal-transaction-fee-row-skeleton" />;
+
+  if (!transactionFeeUsd) return null;
+
+  return (
+    <InfoRow
+      testID="withdrawal-transaction-fee-row"
+      label={strings('confirm.label.transaction_fee')}
+      rowVariant={InfoRowVariant.Small}
+    >
+      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        {transactionFeeUsd}
       </Text>
     </InfoRow>
   );

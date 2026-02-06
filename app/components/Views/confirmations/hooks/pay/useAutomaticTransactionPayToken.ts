@@ -26,7 +26,7 @@ export function useAutomaticTransactionPayToken({
   const isUpdated = useRef(false);
   const { setPayToken } = useTransactionPayToken();
   const requiredTokens = useTransactionPayRequiredTokens();
-  const tokens = useTransactionPayAvailableTokens();
+  const { availableTokens: tokens } = useTransactionPayAvailableTokens();
 
   const tokensWithBalance = useMemo(
     () => tokens.filter((t) => !t.disabled),

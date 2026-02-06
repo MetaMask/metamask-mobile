@@ -6136,7 +6136,9 @@
       "switching_to": "Switching to",
       "bridge_estimated_time": "Est. time",
       "pay_with": "Pay with",
+      "receive_as": "Receive",
       "total": "Total",
+      "you_receive": "You'll receive",
       "transaction_fee": "Transaction fee",
       "metamask_fee": "MetaMask fee",
       "network_fee": "Network fee",
@@ -7138,6 +7140,7 @@
   },
   "pay_with_modal": {
     "title": "Select payment method",
+    "title_receive": "Select receive token",
     "no_gas": "No native balance for gas"
   },
   "connection_removed_modal": {
