@@ -2804,8 +2804,8 @@
     "select_an_address": "Select an address"
   },
   "accounts_menu": {
-    "manage": "MANAGE",
-    "resources": "RESOURCES",
+    "manage": "Manage",
+    "resources": "Resources",
     "permissions": "Permissions",
     "card_title": "MetaMask Card",
     "settings": "Settings"
