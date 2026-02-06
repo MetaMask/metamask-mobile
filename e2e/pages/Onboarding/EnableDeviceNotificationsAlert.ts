@@ -1,7 +1,7 @@
 import Gestures from '../../../tests/framework/Gestures';
 import Matchers from '../../../tests/framework/Matchers';
 
-import { EnableDeviceNotificationsAlertSelectorText } from '../../selectors/Onboarding/EnableDeviceNotificationsAlert.selectors';
+import { EnableDeviceNotificationsAlertSelectorText } from '../../../tests/selectors/Onboarding/EnableDeviceNotificationsAlert.selectors';
 
 class EnableDeviceNotificationsAlert {
   get stepOneContainer(): DetoxElement {
