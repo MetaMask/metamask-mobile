@@ -58,7 +58,6 @@ interface SnapshotAccountSectionProps {
  * />
  */
 const SnapshotAccountSection: React.FC<SnapshotAccountSectionProps> = ({
-  eligibility,
   onEnterPress,
 }) => {
   const tw = useTailwind();
@@ -93,11 +92,6 @@ const SnapshotAccountSection: React.FC<SnapshotAccountSectionProps> = ({
   const handleEnterPress = useCallback(() => {
     onEnterPress?.();
   }, [onEnterPress]);
-
-  // Only show when canCommit is true
-  if (!eligibility?.canCommit) {
-    return null;
-  }
 
   return (
     <Box twClassName="w-full mt-6" testID="snapshot-account-section">
@@ -153,11 +147,12 @@ const SnapshotAccountSection: React.FC<SnapshotAccountSectionProps> = ({
       <Button
         variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
-        label={strings('rewards.snapshots.enter')}
         onPress={handleEnterPress}
         testID="snapshot-enter-button"
         twClassName="w-full"
-      />
+      >
+        {strings('rewards.snapshots.enter')}
+      </Button>
     </Box>
   );
 };

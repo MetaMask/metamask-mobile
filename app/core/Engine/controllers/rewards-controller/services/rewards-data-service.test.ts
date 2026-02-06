@@ -3864,7 +3864,7 @@ describe('RewardsDataService', () => {
         closesAt: '2025-03-15T00:00:00.000Z',
         calculatedAt: '2025-03-16T00:00:00.000Z',
         distributedAt: '2025-03-20T00:00:00.000Z',
-        backgroundImage: {
+        image: {
           lightModeUrl: 'https://example.com/light.png',
           darkModeUrl: 'https://example.com/dark.png',
         },
@@ -3876,7 +3876,7 @@ describe('RewardsDataService', () => {
         tokenSymbol: 'ETH',
         tokenAmount: '1000000000000000000',
         tokenChainId: '1',
-        backgroundImage: {
+        image: {
           lightModeUrl: 'https://example.com/light.png',
           darkModeUrl: 'https://example.com/dark.png',
         },

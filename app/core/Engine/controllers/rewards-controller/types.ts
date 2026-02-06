@@ -228,9 +228,15 @@ export interface SnapshotDto {
   distributedAt?: string;
 
   /**
-   * Background image for the snapshot tile
+   * Image for the snapshot tile
    */
-  backgroundImage: ThemeImage;
+  image: ThemeImage;
+
+  /**
+   * The current status of the snapshot
+   * @example SnapshotStatus.OPEN
+   */
+  status: SnapshotStatus;
 
   /**
    * Optional prerequisites that must be met to participate in the snapshot
@@ -239,24 +245,25 @@ export interface SnapshotDto {
 }
 
 /**
- * Snapshot status derived from dates
- * - upcoming: now < opensAt
- * - live: opensAt <= now < closesAt
- * - calculating: closesAt <= now && !calculatedAt
- * - distributing: calculatedAt && !distributedAt
- * - complete: distributedAt is set
+ * Snapshot status aligned with the backend enum.
+ * - UPCOMING: now < opensAt
+ * - OPEN: opensAt <= now < closesAt
+ * - CLOSED: closesAt <= now && !calculatedAt
+ * - CALCULATED: calculatedAt && !distributedAt
+ * - DISTRIBUTED: distributedAt is set
  */
-export type SnapshotStatus =
-  | 'upcoming'
-  | 'live'
-  | 'calculating'
-  | 'distributing'
-  | 'complete';
+export enum SnapshotStatus {
+  UPCOMING = 'UPCOMING',
+  OPEN = 'OPEN',
+  CLOSED = 'CLOSED',
+  CALCULATED = 'CALCULATED',
+  DISTRIBUTED = 'DISTRIBUTED',
+}
 
 /**
  * Extended prerequisite with eligibility status information
  */
-export interface SnapshotPrerequisiteStatusDto extends SnapshotPrerequisiteDto {
+export interface SnapshotPrerequisiteStatusDto {
   /**
    * Whether this prerequisite has been satisfied
    * @example true
@@ -268,6 +275,12 @@ export interface SnapshotPrerequisiteStatusDto extends SnapshotPrerequisiteDto {
    * @example 3
    */
   current: number;
+
+  /**
+   * The required number of the prerequisite
+   * @example 1
+   */
+  required: number;
 }
 
 /**
@@ -951,9 +964,9 @@ export type SeasonStatusBalanceDtoState = {
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SeasonTierState = {
-  currentTier: SeasonTierDtoState;
-  nextTier: SeasonTierDtoState | null;
-  nextTierPointsNeeded: number | null;
+  currentTier?: SeasonTierDtoState;
+  nextTier?: SeasonTierDtoState;
+  nextTierPointsNeeded?: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -1037,10 +1050,11 @@ export type SnapshotsState = {
     closesAt: string;
     calculatedAt?: string;
     distributedAt?: string;
-    backgroundImage: {
+    image: {
       lightModeUrl: string;
       darkModeUrl: string;
     };
+    status: SnapshotStatus;
     prerequisites?: SnapshotPrerequisitesState | null;
   }[];
   lastFetched: number;

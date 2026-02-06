@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
@@ -30,7 +30,7 @@ export const useSnapshotLeaderboard = (
   const [error, setError] = useState<string | null>(null);
   const isLoadingRef = useRef(false);
 
-  const refetch = useCallback(async (): Promise<void> => {
+  const fetchLeaderboard = useCallback(async (): Promise<void> => {
     if (!subscriptionId || !snapshotId) {
       setLeaderboard(null);
       setIsLoading(false);
@@ -38,16 +38,15 @@ export const useSnapshotLeaderboard = (
       return;
     }
 
-    // Prevent concurrent requests
     if (isLoadingRef.current) {
       return;
     }
+    isLoadingRef.current = true;
+
+    setIsLoading(true);
+    setError(null);
 
     try {
-      isLoadingRef.current = true;
-      setIsLoading(true);
-      setError(null);
-
       const response = await Engine.controllerMessenger.call(
         'RewardsController:getSnapshotLeaderboard',
         snapshotId,
@@ -66,10 +65,14 @@ export const useSnapshotLeaderboard = (
     }
   }, [snapshotId, subscriptionId]);
 
+  useEffect(() => {
+    fetchLeaderboard();
+  }, [fetchLeaderboard]);
+
   return {
     leaderboard,
     isLoading,
     error,
-    refetch,
+    refetch: fetchLeaderboard,
   };
 };

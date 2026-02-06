@@ -15,8 +15,9 @@ import {
 } from '../../../Bridge/hooks/useSwapBridgeNavigation';
 import {
   CTA_CONFIG,
-  getUniqueActivityTypesWithCTA,
+  getConditionsWithActivityTypes,
   CTAHandlerParams,
+  ConditionWithActivityType,
 } from './SnapshotCTAButtons.handlers';
 
 /**
@@ -50,9 +51,9 @@ const SnapshotCTAButtons: React.FC<SnapshotCTAButtonsProps> = ({
     sourcePage: 'snapshot_detail',
   });
 
-  // Extract unique activity types that have CTA handlers
-  const activityTypes = useMemo(
-    () => getUniqueActivityTypesWithCTA(prerequisites.conditions),
+  // Extract conditions with their unique activity types that have CTA handlers
+  const conditionsWithActivityTypes = useMemo(
+    () => getConditionsWithActivityTypes(prerequisites.conditions),
     [prerequisites.conditions],
   );
 
@@ -68,17 +69,18 @@ const SnapshotCTAButtons: React.FC<SnapshotCTAButtonsProps> = ({
 
   // Handle CTA button press
   const handleCTAPress = useCallback(
-    (activityType: string) => {
-      const config = CTA_CONFIG[activityType as keyof typeof CTA_CONFIG];
+    ({ condition, activityType }: ConditionWithActivityType) => {
+      const config = CTA_CONFIG[activityType];
       if (config) {
-        config.handler(handlerParams);
+        // TODO: Swap set source/dest token with chainId from condition?
+        config.handler(handlerParams, condition);
       }
     },
     [handlerParams],
   );
 
   // Don't render if no CTA buttons to show
-  if (activityTypes.length === 0) {
+  if (conditionsWithActivityTypes.length === 0) {
     return null;
   }
 
@@ -87,7 +89,7 @@ const SnapshotCTAButtons: React.FC<SnapshotCTAButtonsProps> = ({
       twClassName="flex-row flex-wrap gap-3 mt-6"
       testID="snapshot-cta-buttons"
     >
-      {activityTypes.map((activityType) => {
+      {conditionsWithActivityTypes.map(({ condition, activityType }) => {
         const config = CTA_CONFIG[activityType];
         if (!config) {
           return null;
@@ -100,12 +102,14 @@ const SnapshotCTAButtons: React.FC<SnapshotCTAButtonsProps> = ({
             testID={`snapshot-cta-button-container-${activityType}`}
           >
             <Button
-              variant={ButtonVariant.Secondary}
+              variant={ButtonVariant.Primary}
               size={ButtonSize.Lg}
-              label={config.label}
-              onPress={() => handleCTAPress(activityType)}
+              isFullWidth
+              onPress={() => handleCTAPress({ condition, activityType })}
               testID={`snapshot-cta-button-${activityType}`}
-            />
+            >
+              {config.label}
+            </Button>
           </Box>
         );
       })}

@@ -1,9 +1,15 @@
-import React from 'react';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import React, { useCallback } from 'react';
+import { FlatList, ListRenderItem } from 'react-native';
+import {
+  Box,
+  Text,
+  TextVariant,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 import type {
+  SnapshotPrerequisiteDto,
   SnapshotPrerequisitesDto,
   SnapshotPrerequisiteStatusDto,
-  SnapshotPrerequisiteDto,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import SnapshotPrerequisiteItem from './SnapshotPrerequisiteItem';
 
@@ -32,11 +38,12 @@ interface LogicSeparatorProps {
 }
 
 const LogicSeparator: React.FC<LogicSeparatorProps> = ({ logic }) => (
-  <Box twClassName="flex-row items-center py-2" testID="logic-separator">
+  <Box twClassName="flex-row items-center py-4" testID="logic-separator">
     <Box twClassName="flex-1 h-px bg-border-muted" />
     <Text
       variant={TextVariant.BodySm}
-      twClassName="mx-4 text-text-muted"
+      fontWeight={FontWeight.Medium}
+      twClassName="mx-4 text-alternative"
       testID="logic-separator-text"
     >
       {logic}
@@ -44,25 +51,6 @@ const LogicSeparator: React.FC<LogicSeparatorProps> = ({ logic }) => (
     <Box twClassName="flex-1 h-px bg-border-muted" />
   </Box>
 );
-
-/**
- * Finds the matching prerequisite status for a prerequisite
- * Matches by type and activityTypes array comparison
- */
-const findPrerequisiteStatus = (
-  prerequisite: SnapshotPrerequisiteDto,
-  prerequisiteStatuses?: SnapshotPrerequisiteStatusDto[],
-): SnapshotPrerequisiteStatusDto | undefined => {
-  if (!prerequisiteStatuses) {
-    return undefined;
-  }
-
-  return prerequisiteStatuses.find(
-    (prerequisiteStatus) =>
-      prerequisiteStatus.type === prerequisite.type &&
-      prerequisiteStatus.title === prerequisite.title,
-  );
-};
 
 /**
  * SnapshotPrerequisiteList renders multiple SnapshotPrerequisiteItem components with AND/OR logic separators.
@@ -79,29 +67,36 @@ const SnapshotPrerequisiteList: React.FC<SnapshotPrerequisiteListProps> = ({
 }) => {
   const { logic, conditions } = prerequisites;
 
+  const renderItem: ListRenderItem<SnapshotPrerequisiteDto> = useCallback(
+    ({ item, index }) => (
+      <SnapshotPrerequisiteItem
+        prerequisite={item}
+        status={prerequisiteStatuses?.[index]}
+      />
+    ),
+    [prerequisiteStatuses],
+  );
+
+  const keyExtractor = useCallback(
+    (item: SnapshotPrerequisiteDto, index: number) =>
+      `${item.type}-${item.activityTypes.join('-')}-${index}`,
+    [],
+  );
+
+  const ItemSeparator = useCallback(
+    () => <LogicSeparator logic={logic} />,
+    [logic],
+  );
+
   return (
     <Box testID="snapshot-prerequisite-list">
-      {conditions.map((prerequisite, index) => {
-        const prerequisiteStatus = findPrerequisiteStatus(
-          prerequisite,
-          prerequisiteStatuses,
-        );
-        const isLastItem = index === conditions.length - 1;
-
-        return (
-          <React.Fragment
-            key={`${prerequisite.type}-${prerequisite.activityTypes.join('-')}-${index}`}
-          >
-            <SnapshotPrerequisiteItem
-              prerequisite={prerequisite}
-              satisfied={prerequisiteStatus?.satisfied}
-              current={prerequisiteStatus?.current}
-              required={prerequisiteStatus?.required}
-            />
-            {!isLastItem && <LogicSeparator logic={logic} />}
-          </React.Fragment>
-        );
-      })}
+      <FlatList
+        data={conditions}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        ItemSeparatorComponent={ItemSeparator}
+        scrollEnabled={false}
+      />
     </Box>
   );
 };

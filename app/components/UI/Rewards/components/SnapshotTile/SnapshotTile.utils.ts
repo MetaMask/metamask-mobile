@@ -1,51 +1,9 @@
 import { IconName } from '@metamask/design-system-react-native';
-import type {
-  SnapshotDto,
+import {
   SnapshotStatus,
+  type SnapshotDto,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../locales/i18n';
-
-/**
- * Derives the status of a snapshot based on its date fields.
- *
- * Status logic:
- * - upcoming: now < opensAt
- * - live: opensAt <= now < closesAt
- * - calculating: closesAt <= now && !calculatedAt
- * - distributing: calculatedAt && !distributedAt
- * - complete: distributedAt is set
- *
- * @param snapshot - The snapshot data
- * @returns The derived status
- */
-export function getSnapshotStatus(snapshot: SnapshotDto): SnapshotStatus {
-  const now = new Date();
-  const opensAt = new Date(snapshot.opensAt);
-  const closesAt = new Date(snapshot.closesAt);
-
-  // Check if distribution is complete
-  if (snapshot.distributedAt) {
-    return 'complete';
-  }
-
-  // Check if results are calculated but not distributed yet
-  if (snapshot.calculatedAt) {
-    return 'distributing';
-  }
-
-  // Check if snapshot is still upcoming
-  if (now < opensAt) {
-    return 'upcoming';
-  }
-
-  // Check if snapshot is currently live
-  if (now >= opensAt && now < closesAt) {
-    return 'live';
-  }
-
-  // Snapshot has closed but results not calculated yet
-  return 'calculating';
-}
 
 const MONTHS = [
   'Jan',
@@ -93,23 +51,23 @@ export function formatSnapshotStatusLabel(
   snapshot: SnapshotDto,
 ): string {
   switch (status) {
-    case 'upcoming': {
+    case SnapshotStatus.UPCOMING: {
       const opensAt = new Date(snapshot.opensAt);
       return strings('rewards.snapshot.starts_date', {
         date: formatSnapshotDate(opensAt),
       });
     }
-    case 'live': {
+    case SnapshotStatus.OPEN: {
       const closesAt = new Date(snapshot.closesAt);
       return strings('rewards.snapshot.ends_date', {
         date: formatSnapshotDate(closesAt),
       });
     }
-    case 'calculating':
+    case SnapshotStatus.CLOSED:
       return strings('rewards.snapshot.results_coming_soon');
-    case 'distributing':
+    case SnapshotStatus.CALCULATED:
       return strings('rewards.snapshot.tokens_on_the_way');
-    case 'complete': {
+    case SnapshotStatus.DISTRIBUTED: {
       const distributedAt = snapshot.distributedAt
         ? new Date(snapshot.distributedAt)
         : new Date();
@@ -128,15 +86,15 @@ export function formatSnapshotStatusLabel(
  */
 export function getSnapshotPillLabel(status: SnapshotStatus): string {
   switch (status) {
-    case 'upcoming':
+    case SnapshotStatus.UPCOMING:
       return strings('rewards.snapshot.pill_up_next');
-    case 'live':
+    case SnapshotStatus.OPEN:
       return strings('rewards.snapshot.pill_live_now');
-    case 'calculating':
+    case SnapshotStatus.CLOSED:
       return strings('rewards.snapshot.pill_calculating');
-    case 'distributing':
+    case SnapshotStatus.CALCULATED:
       return strings('rewards.snapshot.pill_results_ready');
-    case 'complete':
+    case SnapshotStatus.DISTRIBUTED:
       return strings('rewards.snapshot.pill_complete');
     default:
       return '';
@@ -151,15 +109,15 @@ export function getSnapshotPillLabel(status: SnapshotStatus): string {
  */
 function getStatusIcon(status: SnapshotStatus): IconName {
   switch (status) {
-    case 'live':
+    case SnapshotStatus.OPEN:
       return IconName.Clock;
-    case 'complete':
+    case SnapshotStatus.DISTRIBUTED:
       return IconName.Confirmation;
-    case 'calculating':
+    case SnapshotStatus.CLOSED:
       return IconName.Loading;
-    case 'distributing':
+    case SnapshotStatus.CALCULATED:
       return IconName.Send;
-    case 'upcoming':
+    case SnapshotStatus.UPCOMING:
     default:
       return IconName.Speed;
   }
@@ -181,11 +139,10 @@ export interface SnapshotStatusInfo {
 export function getSnapshotStatusInfo(
   snapshot: SnapshotDto,
 ): SnapshotStatusInfo {
-  const status = getSnapshotStatus(snapshot);
   return {
-    status,
-    statusLabel: getSnapshotPillLabel(status),
-    statusDescription: formatSnapshotStatusLabel(status, snapshot),
-    statusDescriptionIcon: getStatusIcon(status),
+    status: snapshot.status,
+    statusLabel: getSnapshotPillLabel(snapshot.status),
+    statusDescription: formatSnapshotStatusLabel(snapshot.status, snapshot),
+    statusDescriptionIcon: getStatusIcon(snapshot.status),
   };
 }

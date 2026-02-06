@@ -63,7 +63,7 @@ const createTestSnapshot = (
   receivingBlockchain: 'Ethereum',
   opensAt: '2025-03-01T00:00:00.000Z',
   closesAt: '2025-03-15T00:00:00.000Z',
-  backgroundImage: {
+  image: {
     lightModeUrl: 'https://example.com/light.png',
     darkModeUrl: 'https://example.com/dark.png',
   },

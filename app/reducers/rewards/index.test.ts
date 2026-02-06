@@ -4353,7 +4353,7 @@ describe('setSnapshots', () => {
     closesAt: '2025-03-15T00:00:00.000Z',
     calculatedAt: '2025-03-16T00:00:00.000Z',
     distributedAt: '2025-03-20T00:00:00.000Z',
-    backgroundImage: {
+    image: {
       lightModeUrl: 'https://example.com/light.png',
       darkModeUrl: 'https://example.com/dark.png',
     },
@@ -4467,7 +4467,7 @@ describe('setSnapshotsLoading', () => {
       receivingBlockchain: 'Ethereum',
       opensAt: '2025-03-01T00:00:00.000Z',
       closesAt: '2025-03-15T00:00:00.000Z',
-      backgroundImage: {
+      image: {
         lightModeUrl: 'https://example.com/light.png',
         darkModeUrl: 'https://example.com/dark.png',
       },
@@ -4513,7 +4513,7 @@ describe('setSnapshotsLoading', () => {
       receivingBlockchain: 'Ethereum',
       opensAt: '2025-03-01T00:00:00.000Z',
       closesAt: '2025-03-15T00:00:00.000Z',
-      backgroundImage: {
+      image: {
         lightModeUrl: 'https://example.com/light.png',
         darkModeUrl: 'https://example.com/dark.png',
       },
@@ -4623,7 +4623,7 @@ describe('setSnapshotsError', () => {
       receivingBlockchain: 'Ethereum',
       opensAt: '2025-03-01T00:00:00.000Z',
       closesAt: '2025-03-15T00:00:00.000Z',
-      backgroundImage: {
+      image: {
         lightModeUrl: 'https://example.com/light.png',
         darkModeUrl: 'https://example.com/dark.png',
       },
