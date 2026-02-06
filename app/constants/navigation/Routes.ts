@@ -37,6 +37,7 @@ const Routes = {
     ID: 'MeldRamp',
     BUILD_QUOTE: 'MeldBuildQuote',
     QUOTES: 'MeldQuotes',
+    CHECKOUT: 'MeldCheckout',
   },
   DEPOSIT: {
     ID: 'Deposit',

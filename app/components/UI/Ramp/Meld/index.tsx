@@ -14,6 +14,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { MeldSDKProvider } from './MeldProvider';
 import MeldBuildQuote from './Views/BuildQuote/MeldBuildQuote';
 import MeldQuotes from './Views/Quotes/MeldQuotes';
+import MeldCheckout from './Views/Checkout/MeldCheckout';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import Routes from '../../../../constants/navigation/Routes';
 
@@ -41,6 +42,14 @@ const MeldRampFlow: React.FC = () => {
           name={Routes.MELD_RAMP.QUOTES}
           component={MeldQuotes}
           options={{ headerTitle: 'Select Provider' }}
+        />
+        <Stack.Screen
+          name={Routes.MELD_RAMP.CHECKOUT}
+          component={MeldCheckout}
+          options={{
+            headerTitle: 'Complete Purchase',
+            gestureEnabled: false,
+          }}
         />
       </Stack.Navigator>
     </MeldSDKProvider>

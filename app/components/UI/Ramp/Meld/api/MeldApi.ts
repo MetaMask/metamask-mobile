@@ -10,6 +10,7 @@
  * @see https://docs.meld.io/docs/whitelabel-api-guide
  */
 
+import { meldCache, ONE_WEEK_MS } from './MeldApiCache';
 import {
   MeldConfig,
   MeldCountry,
@@ -122,13 +123,18 @@ class MeldApi {
 
   /**
    * Get list of supported countries.
-   * Cache for ~1 week.
+   * Cached for 1 week.
    */
   async getCountries(): Promise<MeldCountry[]> {
+    const cacheKey = 'countries';
+    const cached = meldCache.get<MeldCountry[]>(cacheKey);
+    if (cached) return cached;
+
     const data = await this.get<MeldCountry[]>(
       '/service-providers/properties/countries',
       { accountFilter: 'true' },
     );
+    meldCache.set(cacheKey, data, ONE_WEEK_MS);
     return data;
   }
 
@@ -156,13 +162,18 @@ class MeldApi {
 
   /**
    * Get available fiat currencies for a country.
-   * Cache for ~1 week.
+   * Cached for 1 week.
    */
   async getFiatCurrencies(countryCode: string): Promise<MeldFiatCurrency[]> {
+    const cacheKey = `fiat-currencies-${countryCode}`;
+    const cached = meldCache.get<MeldFiatCurrency[]>(cacheKey);
+    if (cached) return cached;
+
     const data = await this.get<MeldFiatCurrency[]>(
       '/service-providers/properties/fiat-currencies',
       { countries: countryCode, accountFilter: 'true' },
     );
+    meldCache.set(cacheKey, data, ONE_WEEK_MS);
     return data;
   }
 
@@ -172,15 +183,20 @@ class MeldApi {
 
   /**
    * Get available payment methods for a fiat currency.
-   * Cache for ~1 week.
+   * Cached for 1 week.
    */
   async getPaymentMethods(
     fiatCurrencyCode: string,
   ): Promise<MeldPaymentMethod[]> {
+    const cacheKey = `payment-methods-${fiatCurrencyCode}`;
+    const cached = meldCache.get<MeldPaymentMethod[]>(cacheKey);
+    if (cached) return cached;
+
     const data = await this.get<MeldPaymentMethod[]>(
       '/service-providers/properties/payment-methods',
       { fiatCurrencies: fiatCurrencyCode, accountFilter: 'true' },
     );
+    meldCache.set(cacheKey, data, ONE_WEEK_MS);
     return data;
   }
 
@@ -190,15 +206,20 @@ class MeldApi {
 
   /**
    * Get available cryptocurrencies for a country.
-   * Cache for ~1 week.
+   * Cached for 1 week.
    */
   async getCryptoCurrencies(
     countryCode: string,
   ): Promise<MeldCryptoCurrency[]> {
+    const cacheKey = `crypto-currencies-${countryCode}`;
+    const cached = meldCache.get<MeldCryptoCurrency[]>(cacheKey);
+    if (cached) return cached;
+
     const data = await this.get<MeldCryptoCurrency[]>(
       '/service-providers/properties/crypto-currencies',
       { countries: countryCode, accountFilter: 'true' },
     );
+    meldCache.set(cacheKey, data, ONE_WEEK_MS);
     return data;
   }
 

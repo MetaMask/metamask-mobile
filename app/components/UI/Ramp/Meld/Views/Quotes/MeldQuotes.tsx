@@ -15,12 +15,10 @@ import React, { useCallback, useMemo, useState } from 'react';
 import {
   ScrollView,
   ActivityIndicator,
-  Alert,
   Pressable,
-  Linking,
   StyleSheet,
 } from 'react-native';
-import { useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 
 const pocStyles = StyleSheet.create({
   scrollView: { flex: 1 },
@@ -40,6 +38,7 @@ import { useMeldContext } from '../../MeldProvider';
 import useMeldQuotes from '../../hooks/useMeldQuotes';
 import useMeldWidgetSession from '../../hooks/useMeldWidgetSession';
 import { MeldQuote } from '../../types';
+import Routes from '../../../../../../constants/navigation/Routes';
 import Logger from '../../../../../../util/Logger';
 
 import Button, {
@@ -192,6 +191,7 @@ interface MeldQuotesRouteParams {
 
 const MeldQuotes: React.FC = () => {
   const tw = useTailwind();
+  const navigation = useNavigation();
   const route = useRoute<RouteProp<MeldQuotesRouteParams, 'MeldQuotes'>>();
   const { amount } = route.params;
 
@@ -224,29 +224,29 @@ const MeldQuotes: React.FC = () => {
     [quotes],
   );
 
-  // ── Handle "Continue" → create widget session & open WebView ──
+  // ── Handle "Continue" → create widget session & navigate to in-app WebView ──
   const handleContinue = useCallback(async () => {
     if (!selectedQuote) return;
 
     const session = await createSession(selectedQuote);
     if (session?.widgetUrl) {
-      Logger.log('[MeldQuotes] Widget URL:', session.widgetUrl);
-
-      // For PoC, open in external browser.
-      // In production, open in an in-app WebView (like the Aggregator Checkout).
-      Alert.alert(
-        'Open Provider Checkout',
-        `Provider: ${selectedQuote.serviceProvider}\n\nThis will open ${selectedQuote.serviceProvider}'s checkout in a browser.\n\nSession ID: ${session.id}`,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Open',
-            onPress: () => Linking.openURL(session.widgetUrl),
-          },
-        ],
+      Logger.log(
+        '[MeldQuotes] Widget session created, navigating to checkout:',
+        session.id,
       );
+
+      // Navigate to the in-app WebView checkout
+      (
+        navigation as {
+          navigate: (route: string, params: object) => void;
+        }
+      ).navigate(Routes.MELD_RAMP.CHECKOUT, {
+        widgetUrl: session.widgetUrl,
+        session,
+        quote: selectedQuote,
+      });
     }
-  }, [selectedQuote, createSession]);
+  }, [selectedQuote, createSession, navigation]);
 
   return (
     <Box twClassName="flex-1 bg-default">
