@@ -996,7 +996,7 @@ describe('ChoosePassword', () => {
         {
           name: Routes.ONBOARDING.WALLET_CREATION_ERROR,
           params: expect.objectContaining({
-            isSocialLogin: false,
+            metricsEnabled: true,
             error: passcodeError,
           }),
         },
@@ -1288,13 +1288,13 @@ describe('ChoosePassword', () => {
         },
       });
 
-      // Should navigate to error screen with isSocialLogin: true
+      // metricsEnabled param reflects user's consent status
       expect(mockNavigation.reset).toHaveBeenCalledWith({
         routes: [
           {
             name: Routes.ONBOARDING.WALLET_CREATION_ERROR,
             params: expect.objectContaining({
-              isSocialLogin: true,
+              metricsEnabled: true,
               error: walletError,
             }),
           },
@@ -1366,13 +1366,12 @@ describe('ChoosePassword', () => {
         },
       });
 
-      // Should navigate to error screen with isSocialLogin: false
       expect(mockNavigation.reset).toHaveBeenCalledWith({
         routes: [
           {
             name: Routes.ONBOARDING.WALLET_CREATION_ERROR,
             params: expect.objectContaining({
-              isSocialLogin: false,
+              metricsEnabled: true,
               error: walletError,
             }),
           },

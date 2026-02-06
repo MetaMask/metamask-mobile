@@ -45,10 +45,10 @@ describe('WalletCreationError', () => {
     jest.resetAllMocks();
   });
 
-  describe('routing based on isSocialLogin', () => {
-    it('renders SocialLoginErrorSheet when isSocialLogin is true', () => {
+  describe('routing based on metricsEnabled (consent status)', () => {
+    it('renders SocialLoginErrorSheet when metricsEnabled is true', () => {
       mockUseRoute.mockReturnValue({
-        params: { isSocialLogin: true, error: mockError },
+        params: { metricsEnabled: true, error: mockError },
       });
 
       const { getByTestId, queryByTestId } = render(<WalletCreationError />);
@@ -57,9 +57,9 @@ describe('WalletCreationError', () => {
       expect(queryByTestId('srp-error-screen')).toBeNull();
     });
 
-    it('renders SRPErrorScreen when isSocialLogin is false', () => {
+    it('renders SRPErrorScreen when metricsEnabled is false', () => {
       mockUseRoute.mockReturnValue({
-        params: { isSocialLogin: false, error: mockError },
+        params: { metricsEnabled: false, error: mockError },
       });
 
       const { getByTestId, queryByTestId } = render(<WalletCreationError />);
@@ -68,7 +68,7 @@ describe('WalletCreationError', () => {
       expect(queryByTestId('social-login-error-sheet')).toBeNull();
     });
 
-    it('renders SRPErrorScreen when isSocialLogin is undefined', () => {
+    it('renders SRPErrorScreen when metricsEnabled is undefined', () => {
       mockUseRoute.mockReturnValue({
         params: { error: mockError },
       });

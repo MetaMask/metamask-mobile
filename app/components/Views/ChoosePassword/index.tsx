@@ -336,11 +336,7 @@ const ChoosePassword = () => {
   );
 
   const handleWalletCreationError = useCallback(
-    async (
-      caughtError: Error,
-      isSocialLogin: boolean,
-      metricsEnabled: boolean,
-    ) => {
+    async (caughtError: Error, metricsEnabled: boolean) => {
       try {
         await recreateVault('');
       } catch (e) {
@@ -384,7 +380,7 @@ const ChoosePassword = () => {
           {
             name: Routes.ONBOARDING.WALLET_CREATION_ERROR,
             params: {
-              isSocialLogin,
+              metricsEnabled,
               error: caughtError,
             },
           },
@@ -448,11 +444,7 @@ const ChoosePassword = () => {
       endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
     } catch (err) {
       const metricsEnabled = metrics.isEnabled();
-      await handleWalletCreationError(
-        err as Error,
-        isSocialLogin ?? false,
-        metricsEnabled,
-      );
+      await handleWalletCreationError(err as Error, metricsEnabled);
     }
   }, [
     validatePasswordSubmission,
