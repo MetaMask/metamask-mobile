@@ -3546,6 +3546,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@expensify/react-native-wallet@npm:^0.1.15":
+  version: 0.1.15
+  resolution: "@expensify/react-native-wallet@npm:0.1.15"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10/7708a6f73112aec7ec19a9b3fc816dd757a063fe2cdf82d1c3c7be4d5ba2db72d7537596868650a82201e06a24e748fff1e07d09aa381a78dd437a49d394ac28
+  languageName: node
+  linkType: hard
+
 "@expo/apple-utils@npm:2.0.3":
   version: 2.0.3
   resolution: "@expo/apple-utils@npm:2.0.3"
@@ -9070,14 +9080,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^6.0.0":
-  version: 6.0.0
-  resolution: "@metamask/ramps-controller@npm:6.0.0"
+"@metamask/ramps-controller@npm:^7.0.0":
+  version: 7.0.0
+  resolution: "@metamask/ramps-controller@npm:7.0.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/controller-utils": "npm:^11.18.0"
     "@metamask/messenger": "npm:^0.3.0"
-  checksum: 10/a54560eb1cab00632ebcfe202dab7173827abaa14350874bfd8f09f66b450e48cae911f323fddd76c7af0b660032f517d02e8b9d94323b90b4cc2d4340f714a7
+  checksum: 10/12f16f32c7d12686c9af23c7c3a6d120f91f415993c91ba58f1ca656a000908da787d1a02fb2238ce166b0ee5fb450f8d35d5a8d9ee7e1b685dacb4adc902a24
   languageName: node
   linkType: hard
 
@@ -9678,7 +9688,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-controller@npm:^62.11.0, @metamask/transaction-controller@npm:^62.13.0":
+"@metamask/transaction-controller@npm:^62.11.0, @metamask/transaction-controller@npm:^62.13.0, @metamask/transaction-controller@npm:^62.14.0":
   version: 62.14.0
   resolution: "@metamask/transaction-controller@npm:62.14.0"
   dependencies:
@@ -21431,7 +21441,7 @@ __metadata:
 
 "appwright@patch:appwright@npm%3A0.1.45#~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch::version=0.1.45&hash=3beae4":
   version: 0.1.45
-  resolution: "appwright@patch:appwright@npm%3A0.1.45#~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch::version=0.1.45&hash=3beae4"
+  resolution: "appwright@patch:appwright@npm%3A0.1.45#~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch::version=0.1.45&hash=fe2da7"
   dependencies:
     "@empiricalrun/llm": "npm:^0.9.25"
     "@ffmpeg-installer/ffmpeg": "npm:^1.1.0"
@@ -21447,13 +21457,13 @@ __metadata:
     webdriver: "npm:^8.36.1"
   bin:
     appwright: dist/bin/index.js
-  checksum: 10/a7b98dc4bcdc19660a976927d6b508779b40ac22b786f90e96559ee8a3fa9df331ff85f8a0bdf28c16ea729011b38a95409b9f07e88e0695fff982735518c71b
+  checksum: 10/b6fc9278b1b25eb775e5bfdeec63533764bf38e2d3304396d783a6c75f1d7beed6411b35cfddfa812c2b02204d5a5a596bf2a9f619f45436722c8a48b95eddf3
   languageName: node
   linkType: hard
 
 "appwright@patch:appwright@patch%3Aappwright@npm%253A0.1.45%23~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%3A%3Aversion=0.1.45&hash=3beae4#~/.yarn/patches/appwright-patch-685d6e06a0.patch":
   version: 0.1.45
-  resolution: "appwright@patch:appwright@patch%3Aappwright@npm%253A0.1.45%23~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%3A%3Aversion=0.1.45&hash=3beae4#~/.yarn/patches/appwright-patch-685d6e06a0.patch::version=0.1.45&hash=2d02ee"
+  resolution: "appwright@patch:appwright@patch%3Aappwright@npm%253A0.1.45%23~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%3A%3Aversion=0.1.45&hash=fe2da7#~/.yarn/patches/appwright-patch-685d6e06a0.patch::version=0.1.45&hash=2d02ee"
   dependencies:
     "@empiricalrun/llm": "npm:^0.9.25"
     "@ffmpeg-installer/ffmpeg": "npm:^1.1.0"
@@ -21469,7 +21479,7 @@ __metadata:
     webdriver: "npm:^8.36.1"
   bin:
     appwright: dist/bin/index.js
-  checksum: 10/1ccf9e933937b35aaf15c152353596070dcd7175a5670def418ef0b3a124b750bc23ea4eed16ced52e2e5d631a9833a35be75553618b5ee8b0b88d17c4c9ba37
+  checksum: 10/6dcd6c9f0fdb7bf2f2a8e8d27137036e1cf3de94d864a23da630a6459aeeb7284652a7ff833a5a16b7f76b116cb76a315553aae7098c973adba88ac71c5f7768
   languageName: node
   linkType: hard
 
@@ -34682,6 +34692,7 @@ __metadata:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.7.2"
+    "@expensify/react-native-wallet": "npm:^0.1.15"
     "@expo/fingerprint": "npm:^0.15.0"
     "@expo/repack-app": "npm:^0.2.9"
     "@google/generative-ai": "npm:^0.24.1"
@@ -34774,7 +34785,7 @@ __metadata:
     "@metamask/profile-metrics-controller": "npm:^2.0.0"
     "@metamask/profile-sync-controller": "npm:^27.1.0"
     "@metamask/providers": "npm:^18.3.1"
-    "@metamask/ramps-controller": "npm:^6.0.0"
+    "@metamask/ramps-controller": "npm:^7.0.0"
     "@metamask/react-native-acm": "npm:^1.0.1"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
     "@metamask/react-native-button": "npm:^3.0.0"
