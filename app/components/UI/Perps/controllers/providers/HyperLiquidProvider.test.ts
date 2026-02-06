@@ -1,6 +1,9 @@
 import type { CaipAssetId, Hex } from '@metamask/utils';
 import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
-import { createMockInfrastructure } from '../../__mocks__/serviceMocks';
+import {
+  createMockInfrastructure,
+  createMockMessenger,
+} from '../../__mocks__/serviceMocks';
 import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscriptionService';
 import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
 import { REFERRAL_CONFIG } from '../../constants/hyperLiquidConfig';
@@ -286,6 +289,7 @@ const createMockExchangeClient = (overrides: Record<string, unknown> = {}) => ({
 // Create shared mock platform dependencies for provider tests
 const mockPlatformDependencies: PerpsPlatformDependencies =
   createMockInfrastructure();
+const mockMessenger = createMockMessenger();
 
 /**
  * Helper to create HyperLiquidProvider with mock platform dependencies
@@ -302,6 +306,7 @@ const createTestProvider = (
   new HyperLiquidProvider({
     ...options,
     platformDependencies: mockPlatformDependencies,
+    messenger: mockMessenger,
   });
 
 describe('HyperLiquidProvider', () => {

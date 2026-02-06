@@ -30,7 +30,10 @@ import { addSwapsTransaction } from '../swaps/swaps-transactions';
 import { Hex } from '@metamask/utils';
 import { getTransactionById, isLegacyTransaction } from '../transactions';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
-import { getClientForTransactionMetadata } from '../../constants/smartTransactions';
+import {
+  getClientForTransactionMetadata,
+  sanitizeOrigin,
+} from '../../constants/smartTransactions';
 
 type AllowedActions = never;
 
@@ -447,6 +450,7 @@ class SmartTransactionHook {
             signedTx.metadata = {
               txType: transactionMeta.type,
               client: getClientForTransactionMetadata(),
+              origin: sanitizeOrigin(transactionMeta.origin),
             };
           }
           return signedTx;
@@ -459,6 +463,7 @@ class SmartTransactionHook {
           metadata: {
             txType: this.#transactionMeta.type,
             client: getClientForTransactionMetadata(),
+            origin: sanitizeOrigin(this.#transactionMeta.origin),
           },
         },
       ];
@@ -472,6 +477,7 @@ class SmartTransactionHook {
         metadata: {
           txType: this.#transactionMeta.type,
           client: getClientForTransactionMetadata(),
+          origin: sanitizeOrigin(this.#transactionMeta.origin),
         },
       }));
     }

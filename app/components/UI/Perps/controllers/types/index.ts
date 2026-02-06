@@ -1233,7 +1233,7 @@ export type PerpsTraceValue = string | number | boolean;
 
 /**
  * Properties allowed in analytics events. More constrained than unknown.
- * Named PerpsAnalyticsProperties to avoid conflict with PerpsEventProperties
+ * Named PerpsAnalyticsProperties to avoid conflict with PERPS_EVENT_PROPERTY
  * constant object from eventNames.ts (which contains property key names).
  */
 export type PerpsAnalyticsProperties = Record<
@@ -1339,88 +1339,12 @@ export interface PerpsTracer {
   setMeasurement(name: string, value: number, unit: string): void;
 }
 
-/**
- * Injectable keyring controller interface for signing operations.
- * Allows services to sign typed messages without directly accessing Engine.
- */
-export interface PerpsKeyringController {
-  signTypedMessage(
-    msgParams: { from: string; data: unknown },
-    version: string,
-  ): Promise<string>;
-}
-
-/**
- * Injectable account utilities interface.
- * Provides access to selected account without coupling to Engine singleton.
- */
-export interface PerpsAccountUtils {
-  getSelectedEvmAccount(): { address: string } | undefined;
-  formatAccountToCaipId(address: string, chainId: string): string | null;
-}
-
 // ============================================================================
-// Controller Access Interfaces
-// These granular interfaces define the specific operations needed from each
-// controller, enabling cleaner dependency injection and easier testing.
+// Rewards Interface
 // ============================================================================
 
 /**
- * Network controller operations required by Perps.
- * Provides chain ID lookups and network client identification.
- */
-/**
- * Network controller operations required by Perps.
- * Provides chain ID lookups and network client identification.
- */
-export interface PerpsNetworkOperations {
-  /**
-   * Get the chain ID for a given network client.
-   */
-  getChainIdForNetwork(networkClientId: string): Hex;
-
-  /**
-   * Find the network client ID for a given chain.
-   */
-  findNetworkClientIdForChain(chainId: Hex): string | undefined;
-
-  /**
-   * Get the currently selected network client ID.
-   */
-  getSelectedNetworkClientId(): string;
-}
-
-/**
- * Transaction controller operations required by Perps.
- * Provides transaction submission capabilities.
- */
-export interface PerpsTransactionOperations {
-  /**
-   * Submit a transaction to the blockchain.
-   * Returns the result promise and transaction metadata.
-   */
-  submit(
-    txParams: {
-      from: string;
-      to?: string;
-      value?: string;
-      data?: string;
-    },
-    options: {
-      networkClientId: string;
-      origin?: string;
-      type?: string; // Will be bridged to TransactionType in adapter
-      skipInitialGasEstimate?: boolean;
-      gasFeeToken?: Hex;
-    },
-  ): Promise<{
-    result: Promise<string>; // Resolves to txHash
-    transactionMeta: { id: string; hash?: string };
-  }>;
-}
-
-/**
- * Rewards controller operations required by Perps (optional).
+ * Rewards controller operations required by Perps.
  * Provides fee discount capabilities for MetaMask rewards program.
  */
 export interface PerpsRewardsOperations {
@@ -1434,52 +1358,14 @@ export interface PerpsRewardsOperations {
 }
 
 /**
- * Authentication controller operations required by Perps (optional).
- * Provides bearer token access for authenticated API calls.
- */
-export interface PerpsAuthenticationOperations {
-  /**
-   * Get a bearer token for authenticated API requests.
-   */
-  getBearerToken(): Promise<string>;
-}
-
-/**
- * Consolidated controller access interface.
- * Groups ALL controller dependencies in one place for clarity.
- *
- * Benefits:
- * 1. Clear separation: observability utilities vs controller access
- * 2. Consistent pattern: all controllers accessed via deps.controllers.*
- * 3. Mockable: test can mock entire controllers object
- * 4. Future-proof: add new controller access without bloating top-level
- */
-export interface PerpsControllerAccess {
-  /** Account utilities - wraps AccountsController access */
-  accounts: PerpsAccountUtils;
-  /** Keyring operations - wraps KeyringController for signing */
-  keyring: PerpsKeyringController;
-  /** Network operations - wraps NetworkController for chain lookups */
-  network: PerpsNetworkOperations;
-  /** Transaction operations - wraps TransactionController for TX submission */
-  transaction: PerpsTransactionOperations;
-  /** Rewards operations - wraps RewardsController for fee discounts */
-  rewards: PerpsRewardsOperations;
-  /** Authentication operations - wraps AuthenticationController for bearer tokens */
-  authentication: PerpsAuthenticationOperations;
-}
-
-/**
- * Combined platform dependencies for PerpsController and services.
- * All platform-specific dependencies are bundled here for easy injection.
+ * Platform dependencies for PerpsController and services.
  *
  * Architecture:
- * - Observability: logger, debugLogger, metrics, performance, tracer (stateless utilities)
- * - Platform: streamManager (mobile/extension specific capabilities)
- * - Controllers: consolidated access to all external controllers
+ * - Observability: logger, debugLogger, metrics, performance, tracer
+ * - Platform: streamManager (mobile/extension specific)
+ * - Rewards: fee discount operations
  *
- * This interface enables dependency injection for platform-specific services,
- * allowing PerpsController to be moved to core without mobile-specific imports.
+ * Controller access uses messenger pattern (messenger.call()).
  */
 export interface PerpsPlatformDependencies {
   // === Observability (stateless utilities) ===
@@ -1492,6 +1378,6 @@ export interface PerpsPlatformDependencies {
   // === Platform Services (mobile/extension specific) ===
   streamManager: PerpsStreamManager;
 
-  // === Controller Access (ALL controllers consolidated) ===
-  controllers: PerpsControllerAccess;
+  // === Rewards (no standard messenger action in core) ===
+  rewards: PerpsRewardsOperations;
 }

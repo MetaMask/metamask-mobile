@@ -26,6 +26,12 @@ export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
 export SENTRY_DIST=$CURRENT_PROJECT_VERSION
 export SENTRY_RELEASE="$PRODUCT_BUNDLE_IDENTIFIER@$MARKETING_VERSION+$SENTRY_DIST"
 
+# Write source map to a fixed path so Bitrise (and other CI) can deploy it.
+# react-native-xcode.sh runs with CWD = PROJECT_ROOT (repo root), so the path
+# must be relative to repo root, not ios/.
+mkdir -p ../sourcemaps/ios
+export SOURCEMAP_FILE="${SOURCEMAP_FILE:-sourcemaps/ios/index.js.map}"
+
 
 # Generate JS bundle and upload Sentry source maps
 REACT_NATIVE_XCODE="../node_modules/react-native/scripts/react-native-xcode.sh"

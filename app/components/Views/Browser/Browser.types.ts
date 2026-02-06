@@ -34,7 +34,6 @@ export interface BrowserRoute {
 export interface BrowserComponentProps {
   navigation: BrowserNavigation;
   createNewTab: (url?: string, linkType?: string) => void;
-  closeAllTabs: () => void;
   closeTab: (id: number) => void;
   setActiveTab: (id: number) => void;
   updateTab: (id: number, data: Record<string, unknown>) => void;

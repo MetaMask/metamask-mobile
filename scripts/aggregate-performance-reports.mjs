@@ -151,19 +151,29 @@ function extractPlatformScenarioAndDevice(filePath) {
 function processTestReport(testReport) {
   const cleanedReport = {
     testName: testReport.testName,
+    testFilePath: testReport.testFilePath || null,
+    tags: testReport.tags || [],
     steps: testReport.steps || [],
     totalTime: testReport.total,
     videoURL: testReport.videoURL || null,
     sessionId: testReport.sessionId || null,
     device: testReport.device || null,
+    // Include team information
+    team: testReport.team || null,
     // Include profiling data if available
     profilingData: testReport.profilingData || null,
-    profilingSummary: testReport.profilingSummary || null
+    profilingSummary: testReport.profilingSummary || null,
+    // Include quality gates if available
+    qualityGates: testReport.qualityGates || null,
   };
   
   if (testReport.testFailed) {
     cleanedReport.testFailed = true;
     cleanedReport.failureReason = testReport.failureReason;
+    // Include quality gates violations for failed tests
+    if (testReport.qualityGates && !testReport.qualityGates.passed) {
+      cleanedReport.qualityGatesViolations = testReport.qualityGates.violations || null;
+    }
   }
   
   return cleanedReport;
@@ -287,6 +297,10 @@ function createSummary(groupedResults) {
   let totalMemoryUsage = 0;
   let profilingTestCount = 0;
   
+  // First pass: collect all test executions grouped by unique test key
+  // This allows us to determine if a test ultimately passed (at least one retry succeeded)
+  const testExecutions = {}; // Key: testName|platform|device -> { passed: bool, failed: bool, testInfo: {} }
+  
   Object.keys(groupedResults).forEach(platform => {
     Object.keys(groupedResults[platform]).forEach(device => {
       devices.push(`${platform}-${device}`);
@@ -308,8 +322,105 @@ function createSummary(groupedResults) {
           totalMemoryUsage += test.profilingSummary.memory?.avg || 0;
           profilingTestCount++;
         }
+        
+        // Track test executions by unique key (testName + platform + device)
+        const uniqueKey = `${test.testName}|${platform}|${device}`;
+        
+        if (!testExecutions[uniqueKey]) {
+          testExecutions[uniqueKey] = {
+            hasPassed: false,
+            hasFailed: false,
+            testInfo: {
+              testName: test.testName,
+              testFilePath: test.testFilePath,
+              tags: test.tags || [],
+              platform,
+              device,
+              team: test.team,
+              sessionId: test.sessionId || null,
+              videoURL: test.videoURL || null,
+              failureReason: test.failureReason,
+              qualityGates: test.qualityGates || null,
+              qualityGatesViolations: test.qualityGatesViolations || null,
+            }
+          };
+        }
+        
+        // Track if this test has ever passed or failed
+        if (test.testFailed) {
+          testExecutions[uniqueKey].hasFailed = true;
+          // Update failure reason and recording info with the latest execution
+          testExecutions[uniqueKey].testInfo.failureReason = test.failureReason;
+          if (test.sessionId) testExecutions[uniqueKey].testInfo.sessionId = test.sessionId;
+          if (test.videoURL) testExecutions[uniqueKey].testInfo.videoURL = test.videoURL;
+          // Update quality gates info if available
+          if (test.qualityGates) {
+            testExecutions[uniqueKey].testInfo.qualityGates = test.qualityGates;
+            testExecutions[uniqueKey].testInfo.qualityGatesViolations = test.qualityGatesViolations;
+          }
+        } else {
+          testExecutions[uniqueKey].hasPassed = true;
+        }
       });
     });
+  });
+  
+  // Second pass: determine final test status
+  // A test is only considered failed if ALL executions failed (no successful retry)
+  const failedTestsByTeam = {};
+  let totalFailedTests = 0;
+  const failedTestsByPlatform = { android: 0, ios: 0 };
+  
+  Object.values(testExecutions).forEach(execution => {
+    // If test passed at least once, it's considered passed (successful retry)
+    if (execution.hasPassed) {
+      return; // Skip - test ultimately passed
+    }
+    
+    // Test failed all executions - count as 1 failure
+    if (execution.hasFailed) {
+      totalFailedTests++;
+      
+      const { testInfo } = execution;
+      const platformKey = testInfo.platform.toLowerCase();
+      
+      // Track per-platform failures
+      if (platformKey === 'android' || platformKey === 'ios') {
+        failedTestsByPlatform[platformKey]++;
+      }
+      
+      // Track by team if team info available
+      if (testInfo.team) {
+        const teamId = testInfo.team.teamId || 'unknown';
+        if (!failedTestsByTeam[teamId]) {
+          failedTestsByTeam[teamId] = {
+            team: testInfo.team,
+            tests: []
+          };
+        }
+        
+        // Use quality_gates_exceeded when quality gates failed (for Slack "Quality gates FAILED")
+        const failureReason =
+          testInfo.qualityGates &&
+          testInfo.qualityGates.hasThresholds &&
+          !testInfo.qualityGates.passed
+            ? 'quality_gates_exceeded'
+            : (testInfo.failureReason ?? null);
+
+        failedTestsByTeam[teamId].tests.push({
+          testName: testInfo.testName,
+          testFilePath: testInfo.testFilePath,
+          tags: testInfo.tags,
+          platform: testInfo.platform,
+          device: testInfo.device,
+          sessionId: testInfo.sessionId ?? null,
+          recordingLink: testInfo.videoURL ?? null,
+          failureReason,
+          qualityGates: testInfo.qualityGates,
+          qualityGatesViolations: testInfo.qualityGatesViolations,
+        });
+      }
+    }
   });
   
   // Count tests by platform
@@ -352,14 +463,22 @@ function createSummary(groupedResults) {
       avgMemoryUsage: `${avgMemoryUsage} MB`,
       profilingTestCount
     },
+    // Failed tests grouped by team for Slack notifications
+    // Only includes tests that failed ALL retries (if a retry passed, test is not counted as failed)
+    failedTestsStats: {
+      totalFailedTests,
+      teamsAffected: Object.keys(failedTestsByTeam).length,
+      failedTestsByTeam
+    },
     metadata: {
       generatedAt: new Date().toISOString(),
       totalReports: summaryDevices.length,
       platforms,
       jobResults: {
-        android: "success", // This would need to be determined from actual test results
-        ios: "success"
+        android: failedTestsByPlatform.android > 0 ? "failure" : "success",
+        ios: failedTestsByPlatform.ios > 0 ? "failure" : "success"
       },
+      failedTestsByPlatform,
       branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
       commit: process.env.GITHUB_SHA || 'unknown',
       workflowRun: process.env.GITHUB_RUN_ID || 'unknown'
