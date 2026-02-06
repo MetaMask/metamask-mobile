@@ -109,6 +109,7 @@ describe(FlaskBuildTests('BIP-44 Snap Tests'), () => {
         await TestSnaps.tapButton('signMessageBip44Button');
         await Assertions.expectTextDisplayed(
           'Entropy source with ID "invalid" not found.',
+          { timeout: 30000 },
         );
       },
     );

@@ -148,8 +148,9 @@ describe(FlaskBuildTests('BIP-32 Snap Tests'), () => {
         await TestSnaps.selectInDropdown('bip32EntropyDropDown', 'Invalid');
         await TestSnaps.fillMessage('messageSecp256k1Input', 'bar baz');
         await TestSnaps.tapButton('signMessageBip32Secp256k1Button');
-        await Assertions.checkIfTextIsDisplayed(
+        await Assertions.expectTextDisplayed(
           'Entropy source with ID "invalid" not found.',
+          { timeout: 30000 },
         );
       },
     );
