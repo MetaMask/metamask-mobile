@@ -251,14 +251,20 @@ jobs:
       - run: yarn test:view --forceExit --silent --coverageReporters=json
         env:
           NODE_OPTIONS: --max_old_space_size=20480
-      - name: Rename coverage report for merge
+      - name: Rename coverage report and generate HTML
         shell: bash
         run: |
-          mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-view.json
+          mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-component-view.json
+          npx nyc report --temp-dir ./tests/coverage --report-dir ./tests/coverage-component-view-lcov --reporter html
       - uses: actions/upload-artifact@v4
         with:
           name: coverage-view
-          path: ./tests/coverage/coverage-view.json
+          path: ./tests/coverage/coverage-component-view.json
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage-component-view-html
+          path: ./tests/coverage-component-view-lcov/
           if-no-files-found: error
   smart-e2e-selection:
     name: 'Smart E2E Selection'
