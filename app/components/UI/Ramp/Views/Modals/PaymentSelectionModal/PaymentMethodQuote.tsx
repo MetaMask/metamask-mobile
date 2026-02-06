@@ -3,7 +3,7 @@ import { Box } from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+} from '../../../../../../component-library/components/Texts/Text';
 
 interface PaymentMethodQuoteProps {
   cryptoAmount: string;
