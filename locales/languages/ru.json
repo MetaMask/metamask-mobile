@@ -7484,7 +7484,7 @@
       "redeem_failure_title": "Не удалось использовать",
       "redeem_failure_description": "Повторите попытку позже.",
       "reward_details": "Сведения о бонусе",
-      "select_account_description": "Выберите счет, на который вы хотите получить этот бонус. Токены будут начислены в течение двух недель."
+      "select_account_description": "Выберите счет, на который вы хотите получить этот бонус."
     },
     "animation": {
       "could_not_load": "Ошибка загрузки"

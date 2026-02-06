@@ -4,31 +4,28 @@
 import React, { useCallback } from 'react';
 
 // External dependencies.
-import ButtonIcon from '../../Buttons/ButtonIcon';
-import Icon from '../../Icons/Icon';
+import ButtonIcon, { ButtonIconSizes } from '../../Buttons/ButtonIcon';
+import Icon, { IconName, IconSize, IconColor } from '../../Icons/Icon';
 import TextField from '../TextField/TextField';
 
 // Internal dependencies.
 import { TextFieldSearchProps } from './TextFieldSearch.types';
-import {
-  TEXTFIELDSEARCH_TEST_ID,
-  DEFAULT_TEXTFIELDSEARCH_SEARCHICON_NAME,
-  DEFAULT_TEXTFIELDSEARCH_SEARCHICON_SIZE,
-  DEFAULT_TEXTFIELDSEARCH_CLOSEICON_NAME,
-  DEFAULT_TEXTFIELDSEARCH_CLOSEICON_SIZE,
-} from './TextFieldSearch.constants';
+import { TEXTFIELDSEARCH_TEST_ID } from './TextFieldSearch.constants';
+import styles from './TextFieldSearch.styles';
 
 const TextFieldSearch: React.FC<TextFieldSearchProps> = ({
   showClearButton = false,
   onPressClearButton,
   clearButtonProps,
   value,
+  style,
   ...props
 }) => {
   const searchIcon = (
     <Icon
-      name={DEFAULT_TEXTFIELDSEARCH_SEARCHICON_NAME}
-      size={DEFAULT_TEXTFIELDSEARCH_SEARCHICON_SIZE}
+      name={IconName.Search}
+      size={IconSize.Md}
+      color={IconColor.Alternative}
     />
   );
 
@@ -38,8 +35,9 @@ const TextFieldSearch: React.FC<TextFieldSearchProps> = ({
 
   const clearButton = (
     <ButtonIcon
-      size={DEFAULT_TEXTFIELDSEARCH_CLOSEICON_SIZE}
-      iconName={DEFAULT_TEXTFIELDSEARCH_CLOSEICON_NAME}
+      size={ButtonIconSizes.Md}
+      iconName={IconName.CircleX}
+      iconColor={IconColor.Alternative}
       onPress={clearButtonHandler}
       {...clearButtonProps}
     />
@@ -50,6 +48,7 @@ const TextFieldSearch: React.FC<TextFieldSearchProps> = ({
       startAccessory={searchIcon}
       endAccessory={showClearButton && clearButton}
       testID={TEXTFIELDSEARCH_TEST_ID}
+      style={[style, styles.base]}
       {...props}
     />
   );

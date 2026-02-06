@@ -2,7 +2,7 @@ import React from 'react';
 import { render, waitFor, act, fireEvent } from '@testing-library/react-native';
 import { Linking } from 'react-native';
 import DaimoPayModal from './DaimoPayModal';
-import { DaimoPayModalSelectors } from '../../../../../../e2e/selectors/Card/DaimoPayModal.selectors';
+import { DaimoPayModalSelectors } from './DaimoPayModal.testIds';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { CardScreens } from '../../util/metrics';
 
