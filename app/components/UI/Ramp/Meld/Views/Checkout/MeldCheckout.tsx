@@ -8,13 +8,15 @@
 
 import React, { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
-import { WebView, WebViewNavigation } from 'react-native-webview';
+import { WebView, WebViewNavigation } from '@metamask/react-native-webview';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 
 import { useMeldContext } from '../../MeldProvider';
 import { addFiatOrder } from '../../../../../../reducers/fiatOrders';
+import NotificationManager from '../../../../../../core/NotificationManager';
+import { getNotificationDetails } from '../../../Aggregator/utils';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
@@ -168,15 +170,22 @@ const MeldCheckout: React.FC = () => {
 
         dispatch(addFiatOrder(fiatOrder));
 
+        // Show notification (same pattern as aggregator)
+        const notificationDetails = getNotificationDetails(fiatOrder);
+        if (notificationDetails) {
+          NotificationManager.showSimpleNotification(notificationDetails);
+        }
+
         Logger.log(
           '[MeldCheckout] Order created:',
           fiatOrder.id,
           fiatOrder.state,
         );
 
-        // Navigate back to the wallet
-        // Pop the entire Meld stack (Checkout -> Quotes -> BuildQuote)
-        navigation.getParent()?.goBack();
+        // Pop the entire Meld stack from the parent navigator
+        // This is the same pattern as Aggregator/Views/Checkout/Checkout.tsx
+        // @ts-expect-error navigation prop mismatch
+        navigation.dangerouslyGetParent()?.dangerouslyGetParent()?.pop();
       }
     },
     [
