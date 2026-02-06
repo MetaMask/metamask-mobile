@@ -47,13 +47,8 @@ jest.mock('../../../../core/redux/slices/confirmationMetrics', () => ({
   selectTransactionBridgeQuotesById: jest.fn(),
 }));
 
-// Mock stream manager
-const mockStreamManager = {
-  hasActiveDepositHandler: jest.fn(),
-};
-
 jest.mock('../providers/PerpsStreamManager', () => ({
-  getStreamManagerInstance: jest.fn(() => mockStreamManager),
+  getStreamManagerInstance: jest.fn(() => ({})),
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
@@ -87,7 +82,6 @@ describe('usePerpsDepositStatus', () => {
     mockUnsubscribe = jest.fn();
     mockShowToast = jest.fn();
     mockClearDepositResult = jest.fn();
-    mockStreamManager.hasActiveDepositHandler.mockReturnValue(false);
 
     mockEngine.controllerMessenger.subscribe = mockSubscribe;
     mockEngine.controllerMessenger.unsubscribe = mockUnsubscribe;
@@ -148,6 +142,26 @@ describe('usePerpsDepositStatus', () => {
             ],
             hapticsType: NotificationFeedbackType.Success,
           })),
+          takingLonger: {
+            variant: ToastVariants.Icon,
+            iconName: IconName.Warning,
+            hasNoTimeout: true,
+            labelOptions: [
+              { label: 'Deposit taking longer', isBold: true },
+              { label: 'Your deposit is still processing' },
+            ],
+            hapticsType: NotificationFeedbackType.Warning,
+          } as PerpsToastOptions,
+          tradeCanceled: {
+            variant: ToastVariants.Icon,
+            iconName: IconName.Warning,
+            hasNoTimeout: false,
+            labelOptions: [
+              { label: 'Trade canceled', isBold: true },
+              { label: 'Funds returned to account' },
+            ],
+            hapticsType: NotificationFeedbackType.Warning,
+          } as PerpsToastOptions,
         },
         oneClickTrade: {
           txCreationFailed: {} as PerpsToastOptions,
@@ -423,25 +437,6 @@ describe('usePerpsDepositStatus', () => {
       expect(
         mockPerpsToastOptions.accountManagement.deposit.inProgress,
       ).toHaveBeenCalledWith(60, 'test-tx-id'); // 60 seconds for other tokens
-    });
-
-    it('skips showing toast when active deposit handler exists', () => {
-      mockStreamManager.hasActiveDepositHandler.mockReturnValue(true);
-      mockShowToast.mockClear();
-
-      renderHook(() => usePerpsDepositStatus());
-      const transactionMeta: TransactionMeta = {
-        id: 'test-tx-id',
-        type: TransactionType.perpsDeposit,
-        status: TransactionStatus.approved,
-      } as TransactionMeta;
-
-      act(() => {
-        transactionHandler({ transactionMeta });
-      });
-
-      expect(mockShowToast).not.toHaveBeenCalled();
-      expect(mockStreamManager.hasActiveDepositHandler).toHaveBeenCalled();
     });
   });
 

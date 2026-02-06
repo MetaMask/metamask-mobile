@@ -15,8 +15,10 @@ import { useBalanceRefresh } from './hooks';
 
 import {
   ActivityIndicator,
+  DeviceEventEmitter,
   Linking,
   RefreshControl,
+  ScrollView,
   StyleSheet as RNStyleSheet,
   View,
 } from 'react-native';
@@ -569,6 +571,7 @@ const Wallet = ({
   const route = useRoute<RouteProp<ParamListBase, string>>();
   const walletRef = useRef(null);
   const walletTokensTabViewRef = useRef<WalletTokensTabViewHandle>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
   const isMountedRef = useRef(true);
   const refreshInProgressRef = useRef(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -842,6 +845,27 @@ const Wallet = ({
     isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
+    };
+  }, []);
+
+  // Listen for scroll-to-token events (e.g., after claiming mUSD rewards)
+  // This handles scrolling in the homepage .map() mode where TokenList can't scroll directly
+  useEffect(() => {
+    const subscription = DeviceEventEmitter.addListener(
+      'scrollToTokenIndex',
+      ({ offset }: { index: number; offset: number }) => {
+        // Add offset for content above tokens (balance, carousel, etc.)
+        // Approximate: AccountGroupBalance (~200px) + Carousel (~150px) + padding
+        const CONTENT_OFFSET_ABOVE_TOKENS = 400;
+        scrollViewRef.current?.scrollTo({
+          y: CONTENT_OFFSET_ABOVE_TOKENS + offset,
+          animated: true,
+        });
+      },
+    );
+
+    return () => {
+      subscription.remove();
     };
   }, []);
 
@@ -1398,6 +1422,7 @@ const Wallet = ({
             testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
           >
             <ConditionalScrollView
+              ref={scrollViewRef}
               isScrollEnabled={isHomepageRedesignV1Enabled}
               scrollViewProps={{
                 contentContainerStyle: scrollViewContentStyle,
