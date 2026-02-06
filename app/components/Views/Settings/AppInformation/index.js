@@ -116,6 +116,7 @@ class AppInformation extends PureComponent {
     appInfo: '',
     appVersion: '',
     showEnvironmentInfo: false,
+    buildTimeFeatureFlags: null,
   };
 
   updateNavBar = () => {
@@ -136,9 +137,22 @@ class AppInformation extends PureComponent {
     const appName = await getApplicationName();
     const appVersion = await getVersion();
     const buildNumber = await getBuildNumber();
+
+    // Parse build-time feature flag defaults
+    let buildTimeFeatureFlags = null;
+    try {
+      const defaults = process.env.REMOTE_FEATURE_FLAG_DEFAULTS;
+      if (defaults) {
+        buildTimeFeatureFlags = JSON.parse(defaults);
+      }
+    } catch (error) {
+      console.warn('Failed to parse build-time feature flags:', error);
+    }
+
     this.setState({
       appInfo: `${appName} v${appVersion} (${buildNumber})`,
       appVersion,
+      buildTimeFeatureFlags,
     });
   };
 
@@ -267,6 +281,22 @@ class AppInformation extends PureComponent {
                     {snap.name}: {snap.version} ({snap.status})
                   </Text>
                 ))}
+
+                {this.state.buildTimeFeatureFlags && (
+                  <>
+                    <View style={styles.division} />
+                    <Text style={styles.title}>
+                      Build-Time Feature Flag Defaults:
+                    </Text>
+                    {Object.entries(this.state.buildTimeFeatureFlags).map(
+                      ([key, value]) => (
+                        <Text key={key} style={styles.branchInfo}>
+                          {key}: {String(value)}
+                        </Text>
+                      ),
+                    )}
+                  </>
+                )}
               </>
             )}
           </View>
