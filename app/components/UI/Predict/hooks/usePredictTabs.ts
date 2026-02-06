@@ -4,16 +4,15 @@ import { useRoute, RouteProp } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
 import { selectPredictHotTabFlag } from '../selectors/featureFlags';
 import {
-  PREDICT_FEED_BASE_TABS,
-  PREDICT_FEED_DEFAULT_TAB,
-  PREDICT_FEED_HOT_TAB,
-  isPredictFeedTabKey,
-  type PredictFeedTabKey,
+  PREDICT_BASE_TABS,
+  PREDICT_HOT_TAB,
+  isPredictTabKey,
+  type PredictTabKey,
 } from '../constants/feedTabs';
 import type { PredictNavigationParamList } from '../types/navigation';
 
 export interface FeedTab {
-  key: PredictFeedTabKey;
+  key: PredictTabKey;
   label: string;
 }
 
@@ -21,7 +20,7 @@ export interface UsePredictTabsResult {
   tabs: FeedTab[];
   activeIndex: number;
   setActiveIndex: (index: number) => void;
-  initialTabKey: PredictFeedTabKey;
+  initialTabKey: PredictTabKey;
   hotTabQueryParams?: string;
 }
 
@@ -31,27 +30,27 @@ export const usePredictTabs = (): UsePredictTabsResult => {
   const hotTabFlag = useSelector(selectPredictHotTabFlag);
 
   const tabs: FeedTab[] = useMemo(() => {
-    const baseTabs: FeedTab[] = PREDICT_FEED_BASE_TABS.map((tab) => ({
+    const baseTabs: FeedTab[] = PREDICT_BASE_TABS.map((tab) => ({
       key: tab.key,
       label: strings(tab.labelKey),
     }));
 
     if (hotTabFlag.enabled) {
       baseTabs.unshift({
-        key: PREDICT_FEED_HOT_TAB.key,
-        label: strings(PREDICT_FEED_HOT_TAB.labelKey),
+        key: PREDICT_HOT_TAB.key,
+        label: strings(PREDICT_HOT_TAB.labelKey),
       });
     }
 
     return baseTabs;
   }, [hotTabFlag.enabled]);
 
-  const requestedTabKey = isPredictFeedTabKey(route.params?.tab)
+  const requestedTabKey = isPredictTabKey(route.params?.tab)
     ? route.params?.tab
     : undefined;
 
-  const initialTabKeyRef = useRef<PredictFeedTabKey>(
-    requestedTabKey ?? PREDICT_FEED_DEFAULT_TAB,
+  const initialTabKeyRef = useRef<PredictTabKey>(
+    requestedTabKey ?? tabs[0].key,
   );
 
   const getInitialIndex = useCallback((tabsArray: FeedTab[]): number => {
@@ -60,14 +59,14 @@ export const usePredictTabs = (): UsePredictTabsResult => {
     if (index >= 0) return index;
 
     const fallbackIndex = tabsArray.findIndex(
-      (tab) => tab.key === PREDICT_FEED_DEFAULT_TAB,
+      (tab) => tab.key === tabsArray[0].key,
     );
     return fallbackIndex >= 0 ? fallbackIndex : 0;
   }, []);
 
   const [activeIndex, setActiveIndex] = useState(() => getInitialIndex(tabs));
 
-  const prevRequestedTabKeyRef = useRef<PredictFeedTabKey | undefined>(
+  const prevRequestedTabKeyRef = useRef<PredictTabKey | undefined>(
     requestedTabKey,
   );
 

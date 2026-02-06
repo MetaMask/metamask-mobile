@@ -2,8 +2,8 @@ import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import {
-  isPredictFeedTabKey,
-  type PredictFeedTabKey,
+  isPredictTabKey,
+  type PredictTabKey,
 } from '../../../../components/UI/Predict/constants/feedTabs';
 
 interface HandlePredictUrlParams {
@@ -17,7 +17,7 @@ interface HandlePredictUrlParams {
 interface PredictNavigationParams {
   market?: string; // Market ID
   utmSource?: string; // UTM source for analytics tracking
-  tab?: PredictFeedTabKey; // Feed tab (when no market param)
+  tab?: PredictTabKey; // Feed tab (when no market param)
 }
 
 /**
@@ -36,7 +36,7 @@ const parsePredictNavigationParams = (
   const marketId = urlParams.get('market') || urlParams.get('marketId');
   const utmSource = urlParams.get('utm_source');
   const tabParam = urlParams.get('tab')?.toLowerCase();
-  const tab = isPredictFeedTabKey(tabParam) ? tabParam : undefined;
+  const tab = isPredictTabKey(tabParam) ? tabParam : undefined;
 
   return {
     market: marketId || undefined,

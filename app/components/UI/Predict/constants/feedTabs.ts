@@ -1,15 +1,13 @@
 import type { PredictCategory } from '../types';
 
-export type PredictFeedTabKey = PredictCategory;
+export type PredictTabKey = PredictCategory;
 
-export interface PredictFeedTabConfig {
-  key: PredictFeedTabKey;
+export interface PredictTabConfig {
+  key: PredictTabKey;
   labelKey: string;
 }
 
-export const PREDICT_FEED_DEFAULT_TAB: PredictFeedTabKey = 'trending';
-
-export const PREDICT_FEED_BASE_TABS: readonly PredictFeedTabConfig[] = [
+export const PREDICT_BASE_TABS: readonly PredictTabConfig[] = [
   { key: 'trending', labelKey: 'predict.category.trending' },
   { key: 'new', labelKey: 'predict.category.new' },
   { key: 'sports', labelKey: 'predict.category.sports' },
@@ -17,22 +15,20 @@ export const PREDICT_FEED_BASE_TABS: readonly PredictFeedTabConfig[] = [
   { key: 'politics', labelKey: 'predict.category.politics' },
 ];
 
-export const PREDICT_FEED_HOT_TAB: PredictFeedTabConfig = {
+export const PREDICT_HOT_TAB: PredictTabConfig = {
   key: 'hot',
   labelKey: 'predict.category.hot',
 };
 
-export const PREDICT_FEED_ALL_TABS: readonly PredictFeedTabConfig[] = [
-  ...PREDICT_FEED_BASE_TABS,
-  PREDICT_FEED_HOT_TAB,
+export const PREDICT_ALL_TABS: readonly PredictTabConfig[] = [
+  ...PREDICT_BASE_TABS,
+  PREDICT_HOT_TAB,
 ];
 
-const PREDICT_FEED_TAB_KEYS = PREDICT_FEED_ALL_TABS.map((tab) => tab.key);
-const PREDICT_FEED_TAB_KEYS_SET = new Set<PredictFeedTabKey>(
-  PREDICT_FEED_TAB_KEYS,
-);
+const PREDICT_TAB_KEYS = PREDICT_ALL_TABS.map((tab) => tab.key);
+const PREDICT_TAB_KEYS_SET = new Set<PredictTabKey>(PREDICT_TAB_KEYS);
 
-export const isPredictFeedTabKey = (
+export const isPredictTabKey = (
   value?: string | null,
-): value is PredictFeedTabKey =>
-  Boolean(value && PREDICT_FEED_TAB_KEYS_SET.has(value as PredictFeedTabKey));
+): value is PredictTabKey =>
+  Boolean(value && PREDICT_TAB_KEYS_SET.has(value as PredictTabKey));
