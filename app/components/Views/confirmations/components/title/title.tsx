@@ -172,6 +172,14 @@ const getTitleAndSubTitle = (
         };
       }
 
+      if (transactionType === TransactionType.musdConversion) {
+        return {
+          title: strings(
+            'earn.musd_conversion.quick_convert.confirmation.title',
+          ),
+        };
+      }
+
       // Default to contract interaction
       const shouldHideSubTitle =
         isBatched || EARN_CONTRACT_INTERACTION_TYPES.includes(transactionType);
