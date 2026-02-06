@@ -129,10 +129,7 @@ export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
       sourcePage: 'deeplink',
       bridgeViewMode: BridgeViewMode.Unified,
     };
-    NavigationService.navigation.navigate(Routes.BRIDGE.ROOT, {
-      screen: Routes.BRIDGE.BRIDGE_VIEW,
-      params,
-    });
+    NavigationService.navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW, params);
   } catch (error) {
     // Deep link processing failed - fallback to bridge view without parameters
     // This ensures the deep link never breaks the user experience
@@ -140,9 +137,6 @@ export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
       sourcePage: 'deeplink',
       bridgeViewMode: BridgeViewMode.Unified,
     };
-    NavigationService.navigation.navigate(Routes.BRIDGE.ROOT, {
-      screen: Routes.BRIDGE.BRIDGE_VIEW,
-      params,
-    });
+    NavigationService.navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW, params);
   }
 };

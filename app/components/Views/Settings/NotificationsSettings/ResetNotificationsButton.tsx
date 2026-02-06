@@ -18,9 +18,7 @@ export const ResetNotificationsButton = () => {
   const { styles } = useStyles(styleSheet, { theme });
 
   const onPressResetNotifications = useCallback(() => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.RESET_NOTIFICATIONS,
-    });
+    navigation.navigate(Routes.SHEET.RESET_NOTIFICATIONS);
   }, [navigation]);
 
   return (

@@ -54,7 +54,6 @@ import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
 
 export const createNetworkManagerNavDetails = createNavigationDetails(
-  Routes.MODAL.ROOT_MODAL_FLOW,
   Routes.SHEET.NETWORK_MANAGER,
 );
 

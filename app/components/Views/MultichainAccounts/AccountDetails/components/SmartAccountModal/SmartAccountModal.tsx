@@ -53,12 +53,9 @@ const SmartAccountModal = () => {
   }, []);
 
   const handleLearnMore = () => {
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: AppConstants.URLS.SMART_ACCOUNTS,
-        title: 'Smart Accounts',
-      },
+    navigation.navigate('SimpleWebview', {
+      url: AppConstants.URLS.SMART_ACCOUNTS,
+      title: 'Smart Accounts',
     });
   };
 

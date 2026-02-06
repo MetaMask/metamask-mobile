@@ -25,14 +25,11 @@ jest.mock('../../constants/navigation/Routes', () => ({
 }));
 
 interface TooltipModalNavigateParams {
-  screen: string;
-  params: {
-    title: string;
-    tooltip: string | React.ReactNode;
-    footerText?: string;
-    buttonText?: string;
-    bottomPadding?: number;
-  };
+  title: string;
+  tooltip: string | React.ReactNode;
+  footerText?: string;
+  buttonText?: string;
+  bottomPadding?: number;
 }
 
 describe('useTooltipModal', () => {
@@ -50,15 +47,12 @@ describe('useTooltipModal', () => {
     result.current.openTooltipModal(title, tooltip, footerText, buttonText);
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.TOOLTIP_MODAL,
-      params: {
-        title,
-        tooltip,
-        footerText,
-        buttonText,
-        bottomPadding: undefined,
-      },
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SHEET.TOOLTIP_MODAL, {
+      title,
+      tooltip,
+      footerText,
+      buttonText,
+      bottomPadding: undefined,
     });
   });
 
@@ -73,7 +67,7 @@ describe('useTooltipModal', () => {
     const navigateParams = mockNavigate.mock
       .calls[0][1] as TooltipModalNavigateParams;
 
-    expect(navigateParams.params.tooltip).toBe(tooltip);
+    expect(navigateParams.tooltip).toBe(tooltip);
   });
 
   it('includes bottomPadding when provided', () => {
@@ -87,15 +81,12 @@ describe('useTooltipModal', () => {
     });
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.TOOLTIP_MODAL,
-      params: {
-        title,
-        tooltip,
-        footerText: undefined,
-        buttonText: undefined,
-        bottomPadding,
-      },
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SHEET.TOOLTIP_MODAL, {
+      title,
+      tooltip,
+      footerText: undefined,
+      buttonText: undefined,
+      bottomPadding,
     });
   });
 

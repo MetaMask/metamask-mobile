@@ -9,7 +9,6 @@ import ActionListItem from '../../../../component-library/components-temp/Action
 import { strings } from '../../../../../locales/i18n';
 import { useMetrics } from '../../../hooks/useMetrics';
 import useBlockExplorer from '../../../hooks/useBlockExplorer';
-import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
 import NotificationManager from '../../../../core/NotificationManager';
 import { selectTokenList } from '../../../../selectors/tokenListController';
@@ -79,10 +78,7 @@ const MoreTokenActionsMenu = () => {
         if (await InAppBrowser.isAvailable()) {
           await InAppBrowser.open(url);
         } else {
-          navigation.navigate('Webview', {
-            screen: 'SimpleWebview',
-            params: { url, title },
-          });
+          navigation.navigate('SimpleWebview', { url, title });
         }
       });
     },
@@ -117,46 +113,43 @@ const MoreTokenActionsMenu = () => {
 
   const handleRemoveToken = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: 'AssetHideConfirmation',
-        params: {
-          onConfirm: () => {
-            navigation.navigate('WalletView');
-            try {
-              const { TokensController, NetworkController } = Engine.context;
-              const networkClientId =
-                NetworkController.findNetworkClientIdByChainId(
-                  asset.chainId as Hex,
-                );
-              TokensController.ignoreTokens([asset.address], networkClientId);
-
-              const tokenSymbol =
-                tokenList[asset.address?.toLowerCase()]?.symbol || null;
-
-              NotificationManager.showSimpleNotification({
-                status: 'simple_notification',
-                duration: 5000,
-                title: strings('wallet.token_toast.token_hidden_title'),
-                description: strings('wallet.token_toast.token_hidden_desc', {
-                  tokenSymbol,
-                }),
-              });
-
-              trackEvent(
-                createEventBuilder(MetaMetricsEvents.TOKENS_HIDDEN)
-                  .addProperties({
-                    location: 'token_details',
-                    token_standard: 'ERC20',
-                    asset_type: 'token',
-                    tokens: [`${tokenSymbol} - ${asset.address}`],
-                    chain_id: getDecimalChainId(asset.chainId),
-                  })
-                  .build(),
+      navigation.navigate('AssetHideConfirmation', {
+        onConfirm: () => {
+          navigation.navigate('WalletView');
+          try {
+            const { TokensController, NetworkController } = Engine.context;
+            const networkClientId =
+              NetworkController.findNetworkClientIdByChainId(
+                asset.chainId as Hex,
               );
-            } catch (err) {
-              Logger.log(err, 'MoreTokenActionsMenu: Failed to hide token!');
-            }
-          },
+            TokensController.ignoreTokens([asset.address], networkClientId);
+
+            const tokenSymbol =
+              tokenList[asset.address?.toLowerCase()]?.symbol || null;
+
+            NotificationManager.showSimpleNotification({
+              status: 'simple_notification',
+              duration: 5000,
+              title: strings('wallet.token_toast.token_hidden_title'),
+              description: strings('wallet.token_toast.token_hidden_desc', {
+                tokenSymbol,
+              }),
+            });
+
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.TOKENS_HIDDEN)
+                .addProperties({
+                  location: 'token_details',
+                  token_standard: 'ERC20',
+                  asset_type: 'token',
+                  tokens: [`${tokenSymbol} - ${asset.address}`],
+                  chain_id: getDecimalChainId(asset.chainId),
+                })
+                .build(),
+            );
+          } catch (err) {
+            Logger.log(err, 'MoreTokenActionsMenu: Failed to hide token!');
+          }
         },
       });
     });

@@ -173,16 +173,13 @@ const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
               onPress={() => {
                 DevLogger.log(`Disconnect account: ${account}`, accounts);
                 if (channelId && account) {
-                  navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-                    screen: Routes.SHEET.SDK_DISCONNECT,
-                    params: {
-                      channelId,
-                      accountsLength: permittedAccountsAddresses.length,
-                      account: account.address,
-                      accountName: account.name,
-                      dapp: urlOrTitle,
-                      isV2,
-                    },
+                  navigate(Routes.SHEET.SDK_DISCONNECT, {
+                    channelId,
+                    accountsLength: permittedAccountsAddresses.length,
+                    account: account.address,
+                    accountName: account.name,
+                    dapp: urlOrTitle,
+                    isV2,
                   });
                 }
               }}
@@ -198,15 +195,12 @@ const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
           style={styles.disconnectBtn}
           onPress={() => {
             DevLogger.log(`Disconnect all accounts channelId=${channelId}`);
-            navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-              screen: Routes.SHEET.SDK_DISCONNECT,
-              params: {
-                channelId,
-                account: undefined,
-                accountsLength: permittedAccountsAddresses.length,
-                dapp: urlOrTitle,
-                isV2,
-              },
+            navigate(Routes.SHEET.SDK_DISCONNECT, {
+              channelId,
+              account: undefined,
+              accountsLength: permittedAccountsAddresses.length,
+              dapp: urlOrTitle,
+              isV2,
             });
           }}
         />

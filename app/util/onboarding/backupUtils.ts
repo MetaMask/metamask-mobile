@@ -137,7 +137,5 @@ export const showSeedphraseDefinition = ({
   track(MetaMetricsEvents.SRP_DEFINITION_CLICKED, {
     location,
   });
-  navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-    screen: Routes.SHEET.SEEDPHRASE_MODAL,
-  });
+  navigation.navigate(Routes.SHEET.SEEDPHRASE_MODAL);
 };

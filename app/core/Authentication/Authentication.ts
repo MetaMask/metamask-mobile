@@ -1405,22 +1405,19 @@ class AuthenticationService {
     }
 
     // show seedless password outdated modal and force user to lock app
-    NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-      params: {
-        title: strings('login.seedless_password_outdated_modal_title'),
-        description: strings('login.seedless_password_outdated_modal_content'),
-        primaryButtonLabel: strings(
-          'login.seedless_password_outdated_modal_confirm',
-        ),
-        type: 'error',
-        icon: IconName.Danger,
-        isInteractable: false,
-        onPrimaryButtonPress: async () => {
-          await this.lockApp({ locked: true });
-        },
-        closeOnPrimaryButtonPress: true,
+    NavigationService.navigation?.navigate(Routes.SHEET.SUCCESS_ERROR_SHEET, {
+      title: strings('login.seedless_password_outdated_modal_title'),
+      description: strings('login.seedless_password_outdated_modal_content'),
+      primaryButtonLabel: strings(
+        'login.seedless_password_outdated_modal_confirm',
+      ),
+      type: 'error',
+      icon: IconName.Danger,
+      isInteractable: false,
+      onPrimaryButtonPress: async () => {
+        await this.lockApp({ locked: true });
       },
+      closeOnPrimaryButtonPress: true,
     });
   };
 

@@ -190,12 +190,9 @@ const LedgerConnect = ({
         })
         .build(),
     );
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: LEDGER_SUPPORT_LINK,
-        title: strings('ledger.how_to_install_eth_webview_title'),
-      },
+    navigation.navigate('SimpleWebview', {
+      url: LEDGER_SUPPORT_LINK,
+      title: strings('ledger.how_to_install_eth_webview_title'),
     });
   };
 

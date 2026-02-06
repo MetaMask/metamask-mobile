@@ -48,11 +48,8 @@ const PredictActivity: React.FC<PredictActivityProps> = ({ item }) => {
   return (
     <TouchableOpacity
       onPress={() => {
-        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-          screen: Routes.PREDICT.ACTIVITY_DETAIL,
-          params: {
-            activity: item,
-          },
+        navigation.navigate(Routes.PREDICT.ACTIVITY_DETAIL, {
+          activity: item,
         });
       }}
     >

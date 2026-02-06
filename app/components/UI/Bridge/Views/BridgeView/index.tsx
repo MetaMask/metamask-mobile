@@ -410,9 +410,7 @@ const BridgeView = () => {
     ) {
       setIsInputFocused(false);
       // open the quote tooltip modal
-      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-        screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
-      });
+      navigation.navigate(Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL);
     }
   }, [
     isExpired,

@@ -21,9 +21,7 @@ export const usePna25BottomSheet = () => {
 
   const checkAndShowPna25BottomSheet = useCallback(() => {
     if (shouldShowPna25 && !isE2ETest) {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.PNA25_NOTICE_BOTTOM_SHEET,
-      });
+      navigation.navigate(Routes.MODAL.PNA25_NOTICE_BOTTOM_SHEET);
     }
   }, [shouldShowPna25, navigation]);
 

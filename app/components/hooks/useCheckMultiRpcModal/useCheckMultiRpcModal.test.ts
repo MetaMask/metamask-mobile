@@ -62,9 +62,9 @@ describe('useCheckMultiRpcModal', () => {
   it('should navigate and dispatch action when conditions are met', () => {
     renderHook(() => useCheckMultiRpcModal());
 
-    expect(navigateMock).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.MULTI_RPC_MIGRATION_MODAL,
-    });
+    expect(navigateMock).toHaveBeenCalledWith(
+      Routes.MODAL.MULTI_RPC_MIGRATION_MODAL,
+    );
     expect(dispatchMock).toHaveBeenCalledWith(
       setMultiRpcMigrationModalOpen(true),
     );

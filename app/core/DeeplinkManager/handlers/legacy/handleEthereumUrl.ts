@@ -64,9 +64,8 @@ async function handleEthereumUrl({
 
     switch (ethUrl.function_name) {
       case ETH_ACTIONS.TRANSFER: {
-        NavigationService.navigation.navigate(Routes.SEND.DEFAULT, {
-          screen: Routes.SEND.RECIPIENT,
-          params: { txMeta: { ...txMeta, action: 'send-token' } },
+        NavigationService.navigation.navigate(Routes.SEND.RECIPIENT, {
+          txMeta: { ...txMeta, action: 'send-token' },
         });
         break;
       }
@@ -79,14 +78,12 @@ async function handleEthereumUrl({
           ethUrl.parameters.value = formattedDeeplinkParsedValue(
             ethUrl.parameters.value,
           );
-          NavigationService.navigation.navigate(Routes.SEND.DEFAULT, {
-            screen: Routes.SEND.RECIPIENT,
-            params: { txMeta: { ...txMeta, action: 'send-eth' } },
+          NavigationService.navigation.navigate(Routes.SEND.RECIPIENT, {
+            txMeta: { ...txMeta, action: 'send-eth' },
           });
         } else {
-          NavigationService.navigation.navigate(Routes.SEND.DEFAULT, {
-            screen: Routes.SEND.RECIPIENT,
-            params: { txMeta },
+          NavigationService.navigation.navigate(Routes.SEND.RECIPIENT, {
+            txMeta,
           });
         }
       }

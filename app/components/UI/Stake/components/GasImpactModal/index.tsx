@@ -101,23 +101,18 @@ const GasImpactModal = ({ route }: GasImpactModalProps) => {
           amountWeiString,
           selectedAccount?.address as string,
         );
-        navigate('StakeScreens', {
-          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-        });
+        navigate(Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS);
       } catch (error) {
         console.error(error);
       }
     } else {
-      navigate('StakeScreens', {
-        screen: Routes.STAKING.STAKE_CONFIRMATION,
-        params: {
-          amountWei: amountWeiString,
-          amountFiat,
-          annualRewardsETH,
-          annualRewardsFiat,
-          annualRewardRate,
-          chainId,
-        },
+      navigate(Routes.STAKING.STAKE_CONFIRMATION, {
+        amountWei: amountWeiString,
+        amountFiat,
+        annualRewardsETH,
+        annualRewardsFiat,
+        annualRewardRate,
+        chainId,
       });
     }
     metricsEvent(MetaMetricsEvents.STAKE_GAS_COST_IMPACT_PROCEEDED_CLICKED);

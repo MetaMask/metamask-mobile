@@ -148,12 +148,9 @@ class AppInformation extends PureComponent {
 
   goTo = (url, title) => {
     InteractionManager.runAfterInteractions(() => {
-      this.props.navigation.navigate('Webview', {
-        screen: 'SimpleWebview',
-        params: {
-          url,
-          title,
-        },
+      this.props.navigation.navigate('SimpleWebview', {
+        url,
+        title,
       });
     });
   };

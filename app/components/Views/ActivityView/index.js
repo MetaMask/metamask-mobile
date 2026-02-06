@@ -155,9 +155,7 @@ const ActivityView = () => {
   );
 
   const openAccountSelector = useCallback(() => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.ACCOUNT_SELECTOR,
-    });
+    navigation.navigate(Routes.SHEET.ACCOUNT_SELECTOR);
     // Track Event: "Opened Account Switcher"
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH)

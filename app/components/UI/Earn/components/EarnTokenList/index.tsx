@@ -147,20 +147,14 @@ const EarnTokenList = () => {
   const redirectToDepositScreen = async (token: TokenI) => {
     trace({ name: TraceName.EarnDepositScreen });
     closeBottomSheetAndNavigate(() => {
-      navigate('StakeScreens', {
-        screen: Routes.STAKING.STAKE,
-        params: { token },
-      });
+      navigate(Routes.STAKING.STAKE, { token });
     });
   };
 
   const redirectToWithdrawalScreen = (token: TokenI) => {
     trace({ name: TraceName.EarnWithdrawScreen });
     closeBottomSheetAndNavigate(() => {
-      navigate('StakeScreens', {
-        screen: Routes.STAKING.UNSTAKE,
-        params: { token },
-      });
+      navigate(Routes.STAKING.UNSTAKE, { token });
     });
   };
 

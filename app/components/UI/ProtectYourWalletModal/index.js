@@ -119,12 +119,9 @@ class ProtectYourWalletModal extends PureComponent {
 
   onLearnMore = () => {
     this.props.protectWalletModalNotVisible();
-    this.props.navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: 'https://support.metamask.io/privacy-and-security/basic-safety-and-security-tips-for-metamask/',
-        title: strings('protect_wallet_modal.title'),
-      },
+    this.props.navigation.navigate('SimpleWebview', {
+      url: 'https://support.metamask.io/privacy-and-security/basic-safety-and-security-tips-for-metamask/',
+      title: strings('protect_wallet_modal.title'),
     });
   };
 

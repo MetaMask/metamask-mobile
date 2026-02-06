@@ -11,10 +11,7 @@ import {
   GasFeeEstimateLevel,
   type GasFeeEstimates,
 } from '@metamask/transaction-controller';
-import {
-  LedgerReplacementTxTypes,
-  createLedgerTransactionModalNavDetails,
-} from '../../UI/LedgerModals/LedgerTransactionModal';
+import { LedgerReplacementTxTypes } from '../../UI/LedgerModals/LedgerTransactionModal';
 
 const mockNavigate = jest.fn();
 
@@ -51,7 +48,6 @@ jest.mock('../../UI/LedgerModals/LedgerTransactionModal', () => {
   );
   return {
     ...actual,
-    createLedgerTransactionModalNavDetails: jest.fn(),
   };
 });
 
@@ -458,13 +454,6 @@ describe('useUnifiedTxActions', () => {
       const tx = { id: '14' } as unknown as TransactionMeta;
       const gas = { isEIP1559Transaction: true };
 
-      (createLedgerTransactionModalNavDetails as jest.Mock).mockImplementation(
-        ({ onConfirmationComplete }) => [
-          'LedgerModal',
-          { onConfirmationComplete },
-        ],
-      );
-
       act(() => result.current.onSpeedUpAction(true, gas, tx));
       await act(async () => {
         await result.current.signLedgerTransaction({
@@ -474,7 +463,7 @@ describe('useUnifiedTxActions', () => {
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(
-        'LedgerModal',
+        'LedgerTransactionModal',
         expect.any(Object),
       );
 
@@ -493,13 +482,6 @@ describe('useUnifiedTxActions', () => {
       const tx = { id: '15' } as unknown as TransactionMeta;
       const gas = { isEIP1559Transaction: true };
 
-      (createLedgerTransactionModalNavDetails as jest.Mock).mockImplementation(
-        ({ onConfirmationComplete }) => [
-          'LedgerModal',
-          { onConfirmationComplete },
-        ],
-      );
-
       act(() => result.current.onCancelAction(true, gas, tx));
       await act(async () => {
         await result.current.signLedgerTransaction({
@@ -509,7 +491,7 @@ describe('useUnifiedTxActions', () => {
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(
-        'LedgerModal',
+        'LedgerTransactionModal',
         expect.any(Object),
       );
 

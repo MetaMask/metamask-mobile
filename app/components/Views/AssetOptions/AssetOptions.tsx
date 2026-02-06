@@ -139,12 +139,9 @@ const AssetOptions = (props: Props) => {
         if (await InAppBrowser.isAvailable()) {
           await InAppBrowser.open(url);
         } else {
-          navigation.navigate('Webview', {
-            screen: 'SimpleWebview',
-            params: {
-              url,
-              title,
-            },
+          navigation.navigate('SimpleWebview', {
+            url,
+            title,
           });
         }
       })();
@@ -221,63 +218,58 @@ const AssetOptions = (props: Props) => {
   };
 
   const removeToken = () => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: 'AssetHideConfirmation',
-      params: {
-        onConfirm: async () => {
-          navigation.navigate('WalletView');
-          try {
-            let tokenSymbol;
-            if (isNonEvmChainId(networkId)) {
-              // Use the utility function for non-EVM token removal
-              await removeNonEvmToken({
-                tokenAddress: address,
-                tokenChainId: networkId,
-                selectInternalAccountByScope,
-              });
-
-              // Get token symbol for notification
-              const { MultichainAssetsController } = Engine.context;
-              tokenSymbol =
-                MultichainAssetsController.state.assetsMetadata[
-                  address as CaipAssetType
-                ]?.symbol || null;
-            } else {
-              const { TokensController, NetworkController } = Engine.context;
-
-              const networkClientId =
-                NetworkController.findNetworkClientIdByChainId(
-                  networkId as Hex,
-                );
-              await TokensController.ignoreTokens([address], networkClientId);
-              tokenSymbol = tokenList[address.toLowerCase()]?.symbol || null;
-            }
-
-            NotificationManager.showSimpleNotification({
-              status: `simple_notification`,
-              duration: 5000,
-              title: strings('wallet.token_toast.token_hidden_title'),
-              description: strings('wallet.token_toast.token_hidden_desc', {
-                tokenSymbol,
-              }),
+    navigation.navigate('AssetHideConfirmation', {
+      onConfirm: async () => {
+        navigation.navigate('WalletView');
+        try {
+          let tokenSymbol;
+          if (isNonEvmChainId(networkId)) {
+            // Use the utility function for non-EVM token removal
+            await removeNonEvmToken({
+              tokenAddress: address,
+              tokenChainId: networkId,
+              selectInternalAccountByScope,
             });
-            trackEvent(
-              createEventBuilder(MetaMetricsEvents.TOKENS_HIDDEN)
-                .addProperties({
-                  location: 'token_details',
-                  token_standard: 'ERC20',
-                  asset_type: 'token',
-                  tokens: [
-                    `${tokenList[address.toLowerCase()]?.symbol} - ${address}`,
-                  ],
-                  chain_id: getDecimalChainId(chainId),
-                })
-                .build(),
-            );
-          } catch (err) {
-            Logger.log(err, 'AssetDetails: Failed to hide token!');
+
+            // Get token symbol for notification
+            const { MultichainAssetsController } = Engine.context;
+            tokenSymbol =
+              MultichainAssetsController.state.assetsMetadata[
+                address as CaipAssetType
+              ]?.symbol || null;
+          } else {
+            const { TokensController, NetworkController } = Engine.context;
+
+            const networkClientId =
+              NetworkController.findNetworkClientIdByChainId(networkId as Hex);
+            await TokensController.ignoreTokens([address], networkClientId);
+            tokenSymbol = tokenList[address.toLowerCase()]?.symbol || null;
           }
-        },
+
+          NotificationManager.showSimpleNotification({
+            status: `simple_notification`,
+            duration: 5000,
+            title: strings('wallet.token_toast.token_hidden_title'),
+            description: strings('wallet.token_toast.token_hidden_desc', {
+              tokenSymbol,
+            }),
+          });
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.TOKENS_HIDDEN)
+              .addProperties({
+                location: 'token_details',
+                token_standard: 'ERC20',
+                asset_type: 'token',
+                tokens: [
+                  `${tokenList[address.toLowerCase()]?.symbol} - ${address}`,
+                ],
+                chain_id: getDecimalChainId(chainId),
+              })
+              .build(),
+          );
+        } catch (err) {
+          Logger.log(err, 'AssetDetails: Failed to hide token!');
+        }
       },
     });
   };

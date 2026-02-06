@@ -19,10 +19,12 @@ export const handleEarnMusd = () => {
   DevLogger.log('[handleEarnMusd] Starting deeplink handling');
 
   try {
-    NavigationService.navigation.navigate(Routes.EARN.ROOT, {
-      screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
-      params: { isDeeplink: true },
-    });
+    NavigationService.navigation.navigate(
+      Routes.EARN.MUSD.CONVERSION_EDUCATION,
+      {
+        isDeeplink: true,
+      },
+    );
   } catch (error) {
     DevLogger.log('[handleEarnMusd] Failed to handle deeplink:', error);
     Logger.error(

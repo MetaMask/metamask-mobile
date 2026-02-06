@@ -61,10 +61,7 @@ const ReviewModal = () => {
 
   const openUrl = useCallback(
     async (url: string) => {
-      navigation.navigate('Webview', {
-        screen: 'SimpleWebview',
-        params: { url },
-      });
+      navigation.navigate('SimpleWebview', { url });
     },
     [navigation],
   );

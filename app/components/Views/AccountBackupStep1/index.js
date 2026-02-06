@@ -178,14 +178,11 @@ const AccountBackupStep1 = (props) => {
   const showRemindLater = () => {
     if (hasFunds) return;
 
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL,
-      params: {
-        onConfirm: skip,
-        onCancel: () => {
-          track(MetaMetricsEvents.WALLET_SECURITY_SKIP_CANCELED);
-          goNext();
-        },
+    navigation.navigate(Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL, {
+      onConfirm: skip,
+      onCancel: () => {
+        track(MetaMetricsEvents.WALLET_SECURITY_SKIP_CANCELED);
+        goNext();
       },
     });
     track(MetaMetricsEvents.WALLET_SECURITY_SKIP_INITIATED);
@@ -195,9 +192,7 @@ const AccountBackupStep1 = (props) => {
     track(MetaMetricsEvents.SRP_DEFINITION_CLICKED, {
       location: 'account_backup_step_1',
     });
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SEEDPHRASE_MODAL,
-    });
+    navigation.navigate(Routes.SHEET.SEEDPHRASE_MODAL);
   };
 
   return (

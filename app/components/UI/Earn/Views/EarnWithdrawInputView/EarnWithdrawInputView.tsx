@@ -465,16 +465,13 @@ const EarnWithdrawInputView = () => {
           withdrawalToken?.chainId as Hex
         ] ?? '';
 
-      navigation.navigate(Routes.EARN.ROOT, {
-        screen: Routes.EARN.LENDING_WITHDRAWAL_CONFIRMATION,
-        params: {
-          token: withdrawalToken,
-          amountTokenMinimalUnit: amountToWithdraw,
-          amountFiat: amountFiatNumber,
-          lendingProtocol: withdrawalToken?.experience?.market?.protocol,
-          lendingContractAddress: lendingPoolContractAddress,
-          healthFactorSimulation: simulatedHealthFactorAfterWithdrawal,
-        },
+      navigation.navigate(Routes.EARN.LENDING_WITHDRAWAL_CONFIRMATION, {
+        token: withdrawalToken,
+        amountTokenMinimalUnit: amountToWithdraw,
+        amountFiat: amountFiatNumber,
+        lendingProtocol: withdrawalToken?.experience?.market?.protocol,
+        lendingContractAddress: lendingPoolContractAddress,
+        healthFactorSimulation: simulatedHealthFactorAfterWithdrawal,
       });
     } catch (e) {
       setIsSubmittingStakeWithdrawalTransaction(false);
@@ -525,13 +522,13 @@ const EarnWithdrawInputView = () => {
         selectedAccount?.address as string,
       );
 
-      navigation.navigate('StakeScreens', {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-        params: {
+      navigation.navigate(
+        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        {
           amountWei: amountTokenMinimalUnit.toString(),
           amountFiat: amountFiatNumber,
         },
-      });
+      );
 
       const withRedesignedPropEventProperties = {
         ...unstakeButtonClickEventProperties,
@@ -547,12 +544,9 @@ const EarnWithdrawInputView = () => {
       return;
     }
 
-    navigation.navigate('StakeScreens', {
-      screen: Routes.STAKING.UNSTAKE_CONFIRMATION,
-      params: {
-        amountWei: amountTokenMinimalUnit.toString(),
-        amountFiat: amountFiatNumber,
-      },
+    navigation.navigate(Routes.STAKING.UNSTAKE_CONFIRMATION, {
+      amountWei: amountTokenMinimalUnit.toString(),
+      amountFiat: amountFiatNumber,
     });
 
     trackEvent(

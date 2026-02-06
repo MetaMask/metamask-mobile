@@ -17,13 +17,10 @@ export const PREDEFINED_SLIDES: CarouselSlide[] = [
     navigation: {
       type: 'function',
       navigate: () => [
-        Routes.MODAL.ROOT_MODAL_FLOW,
+        Routes.SHEET.ADD_ACCOUNT,
         {
-          screen: Routes.SHEET.ADD_ACCOUNT,
-          params: {
-            clientType: WalletClientType.Solana,
-            scope: SolScope.Mainnet,
-          },
+          clientType: WalletClientType.Solana,
+          scope: SolScope.Mainnet,
         },
       ],
     },

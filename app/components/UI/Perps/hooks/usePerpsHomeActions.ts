@@ -173,9 +173,7 @@ export const usePerpsHomeActions = (
 
     try {
       await ensureArbitrumNetworkExists();
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.WITHDRAW,
-      });
+      navigation.navigate(Routes.PERPS.WITHDRAW);
 
       DevLogger.log('[usePerpsHomeActions] Navigated to withdraw screen');
 

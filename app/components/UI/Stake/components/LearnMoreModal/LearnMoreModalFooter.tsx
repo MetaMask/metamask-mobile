@@ -32,11 +32,8 @@ export const LearnMoreModalFooter = ({
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const redirectToLearnMore = () => {
-    navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: learnMoreUrl,
-      },
+    navigate('SimpleWebview', {
+      url: learnMoreUrl,
     });
 
     trackEvent(

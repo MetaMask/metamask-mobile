@@ -211,10 +211,7 @@ const OptinMetrics = () => {
    */
   const onPressLink = useCallback(
     (linkParams: { url: string; title: string }) => {
-      navigation.navigate('Webview', {
-        screen: 'SimpleWebview',
-        params: linkParams,
-      });
+      navigation.navigate('SimpleWebview', linkParams);
     },
     [navigation],
   );

@@ -46,9 +46,7 @@ export const useMultichainAccountsIntroModal = () => {
       !hasSeenIntroModal && isUpdate && isMultichainAccountsUpdate;
 
     if (shouldShow && !isE2ETest) {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.MULTICHAIN_ACCOUNTS_INTRO,
-      });
+      navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNTS_INTRO);
     }
   }, [hasSeenIntroModal, navigation]);
 

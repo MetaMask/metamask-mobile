@@ -104,9 +104,7 @@ describe('usePerpsNavigation', () => {
 
       result.current.navigateToActions();
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.WALLET_ACTIONS,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.WALLET_ACTIONS);
     });
 
     it('navigates to activity view', () => {

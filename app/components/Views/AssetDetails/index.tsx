@@ -232,41 +232,38 @@ const AssetDetails = (props: InnerProps) => {
 
   const triggerHideToken = () => {
     const { TokensController } = Engine.context;
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: 'AssetHideConfirmation',
-      params: {
-        onConfirm: () => {
-          navigation.navigate('WalletView');
-          InteractionManager.runAfterInteractions(() => {
-            const { NetworkController } = Engine.context;
-            const networkClientId =
-              NetworkController.findNetworkClientIdByChainId(chainId);
-            try {
-              TokensController.ignoreTokens([address], networkClientId);
-              NotificationManager.showSimpleNotification({
-                status: `simple_notification`,
-                duration: 5000,
-                title: strings('wallet.token_toast.token_hidden_title'),
-                description: strings('wallet.token_toast.token_hidden_desc', {
-                  tokenSymbol: symbol,
-                }),
-              });
-              trackEvent(
-                createEventBuilder(MetaMetricsEvents.TOKENS_HIDDEN)
-                  .addProperties({
-                    location: 'token_details',
-                    token_standard: 'ERC20',
-                    asset_type: 'token',
-                    tokens: [`${symbol} - ${address}`],
-                    chain_id: getDecimalChainId(chainId),
-                  })
-                  .build(),
-              );
-            } catch (err) {
-              Logger.log(err, 'AssetDetails: Failed to hide token!');
-            }
-          });
-        },
+    navigation.navigate('AssetHideConfirmation', {
+      onConfirm: () => {
+        navigation.navigate('WalletView');
+        InteractionManager.runAfterInteractions(() => {
+          const { NetworkController } = Engine.context;
+          const networkClientId =
+            NetworkController.findNetworkClientIdByChainId(chainId);
+          try {
+            TokensController.ignoreTokens([address], networkClientId);
+            NotificationManager.showSimpleNotification({
+              status: `simple_notification`,
+              duration: 5000,
+              title: strings('wallet.token_toast.token_hidden_title'),
+              description: strings('wallet.token_toast.token_hidden_desc', {
+                tokenSymbol: symbol,
+              }),
+            });
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.TOKENS_HIDDEN)
+                .addProperties({
+                  location: 'token_details',
+                  token_standard: 'ERC20',
+                  asset_type: 'token',
+                  tokens: [`${symbol} - ${address}`],
+                  chain_id: getDecimalChainId(chainId),
+                })
+                .build(),
+            );
+          } catch (err) {
+            Logger.log(err, 'AssetDetails: Failed to hide token!');
+          }
+        });
       },
     });
   };
@@ -282,12 +279,9 @@ const AssetDetails = (props: InnerProps) => {
             <RNText
               suppressHighlighting
               onPress={() => {
-                navigation.navigate('Webview', {
-                  screen: 'SimpleWebview',
-                  params: {
-                    url: AppConstants.URLS.TOKEN_BALANCE,
-                    title: strings('asset_overview.troubleshoot'),
-                  },
+                navigation.navigate('SimpleWebview', {
+                  url: AppConstants.URLS.TOKEN_BALANCE,
+                  title: strings('asset_overview.troubleshoot'),
                 });
               }}
               style={styles.warningBannerLink}

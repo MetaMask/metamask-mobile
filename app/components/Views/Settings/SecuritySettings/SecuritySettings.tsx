@@ -382,9 +382,7 @@ const Settings: React.FC = () => {
   );
 
   const toggleBasicFunctionality = () => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.BASIC_FUNCTIONALITY,
-    });
+    navigation.navigate(Routes.SHEET.BASIC_FUNCTIONALITY);
   };
 
   const modalLoading = disableNotificationsLoading;

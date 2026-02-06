@@ -17,15 +17,12 @@ const useTooltipModal = () => {
       buttonText?: string,
       options?: TooltipOptions,
     ) =>
-      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.TOOLTIP_MODAL,
-        params: {
-          title,
-          tooltip,
-          footerText,
-          buttonText,
-          bottomPadding: options?.bottomPadding,
-        },
+      navigate(Routes.SHEET.TOOLTIP_MODAL, {
+        title,
+        tooltip,
+        footerText,
+        buttonText,
+        bottomPadding: options?.bottomPadding,
       }),
     [navigate],
   );

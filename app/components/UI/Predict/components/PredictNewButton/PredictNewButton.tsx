@@ -27,11 +27,8 @@ const PredictNewButton: React.FC<PredictNewButtonProps> = () => {
   const tw = useTailwind();
 
   const handlePress = () => {
-    navigation.navigate(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_LIST,
-      params: {
-        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_NEW_PREDICTION,
-      },
+    navigation.navigate(Routes.PREDICT.MARKET_LIST, {
+      entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_NEW_PREDICTION,
     });
   };
 

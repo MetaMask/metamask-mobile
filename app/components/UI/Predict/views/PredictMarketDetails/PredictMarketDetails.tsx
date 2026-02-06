@@ -606,12 +606,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const handlePolymarketResolution = useCallback(() => {
     InteractionManager.runAfterInteractions(() => {
-      navigation.navigate('Webview', {
-        screen: 'SimpleWebview',
-        params: {
-          url: 'https://docs.polymarket.com/polymarket-learn/markets/how-are-markets-resolved',
-          title: strings('predict.market_details.resolution_details'),
-        },
+      navigation.navigate('SimpleWebview', {
+        url: 'https://docs.polymarket.com/polymarket-learn/markets/how-are-markets-resolved',
+        title: strings('predict.market_details.resolution_details'),
       });
     });
   }, [navigation]);

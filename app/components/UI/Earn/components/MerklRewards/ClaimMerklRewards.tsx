@@ -103,10 +103,7 @@ const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({ asset }) => {
       onContinue: handleContinueClaim,
     };
 
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.CLAIM_ON_LINEA,
-      params,
-    });
+    navigation.navigate(Routes.MODAL.CLAIM_ON_LINEA, params);
   }, [trackClaimButtonClicked, handleContinueClaim, navigation]);
 
   return (

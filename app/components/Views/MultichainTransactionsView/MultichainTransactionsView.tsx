@@ -130,10 +130,7 @@ const MultichainTransactionsView = ({
       showDisclaimer={showDisclaimer}
       showExplorerLink={!isBitcoinNetwork}
       onViewMore={() => {
-        nav.navigate('Webview', {
-          screen: 'SimpleWebview',
-          params: { url },
-        });
+        nav.navigate('SimpleWebview', { url });
       }}
     />
   );

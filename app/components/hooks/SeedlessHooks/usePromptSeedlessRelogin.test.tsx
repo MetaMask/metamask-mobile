@@ -132,9 +132,9 @@ describe('usePromptSeedlessRelogin', () => {
       });
 
       // Assert
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-        params: {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SHEET.SUCCESS_ERROR_SHEET,
+        {
           type: 'error',
           title: strings('login.seedless_controller_error_prompt_title'),
           description: strings(
@@ -146,7 +146,7 @@ describe('usePromptSeedlessRelogin', () => {
           onPrimaryButtonPress: expect.any(Function),
           closeOnPrimaryButtonPress: true,
         },
-      });
+      );
     });
 
     it('creates error sheet with correct string translations', () => {

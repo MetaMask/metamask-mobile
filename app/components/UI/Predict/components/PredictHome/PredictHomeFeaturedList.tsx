@@ -40,11 +40,8 @@ const PredictHomeFeaturedList: React.FC<PredictHomeFeaturedListProps> = ({
   });
 
   const handleHeaderPress = useCallback(() => {
-    navigation.navigate(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_LIST,
-      params: {
-        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST,
-      },
+    navigation.navigate(Routes.PREDICT.MARKET_LIST, {
+      entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST,
     });
   }, [navigation]);
 

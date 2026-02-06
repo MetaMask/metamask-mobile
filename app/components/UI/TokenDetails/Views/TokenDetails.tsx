@@ -14,7 +14,6 @@ import { useStyles } from '../../../hooks/useStyles';
 import { RootState } from '../../../../reducers';
 import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
 import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../../constants/navigation/Routes';
 import { isMainnetByChainId } from '../../../../util/networks';
 import useBlockExplorer from '../../../hooks/useBlockExplorer';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
@@ -111,14 +110,11 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
     (isNativeToken && getBlockExplorerUrl(token.address, token.chainId));
 
   const openAssetOptions = () => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: 'AssetOptions',
-      params: {
-        isNativeCurrency: isNativeToken,
-        address: token.address,
-        chainId: token.chainId,
-        asset: token,
-      },
+    navigation.navigate('AssetOptions', {
+      isNativeCurrency: isNativeToken,
+      address: token.address,
+      chainId: token.chainId,
+      asset: token,
     });
   };
 

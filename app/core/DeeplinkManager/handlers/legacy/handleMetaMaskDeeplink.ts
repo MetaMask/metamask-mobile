@@ -37,9 +37,8 @@ export function handleMetaMaskDeeplink({
   if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
     if (params.redirect && origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
       SDKConnect.getInstance().state.navigation?.navigate(
-        Routes.MODAL.ROOT_MODAL_FLOW,
+        Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
         {
-          screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
           hideReturnToApp: !!params.hr,
         },
       );

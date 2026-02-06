@@ -16,10 +16,7 @@ const FooterLegalLinks = () => {
   const navigation = useNavigation();
 
   const handleNavigateToWebView = (url: string) =>
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: { url },
-    });
+    navigation.navigate('SimpleWebview', { url });
 
   return (
     <View style={styles.termsOfServiceButtonGroup}>

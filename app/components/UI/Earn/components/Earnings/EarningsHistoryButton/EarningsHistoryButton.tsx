@@ -25,10 +25,7 @@ const EarningsHistoryButton = ({ asset }: EarningsHistoryButtonProps) => {
     earnSelectors.selectEarnTokenPair(state, asset),
   );
   const onViewEarningsHistoryPress = () => {
-    navigate('StakeScreens', {
-      screen: Routes.STAKING.EARNINGS_HISTORY,
-      params: { asset },
-    });
+    navigate(Routes.STAKING.EARNINGS_HISTORY, { asset });
   };
 
   return (

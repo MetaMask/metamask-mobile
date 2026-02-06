@@ -64,9 +64,8 @@ const OfflineMode = ({ navigation, infuraBlocked }) => {
   };
 
   const learnMore = () => {
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: { url: AppConstants.URLS.CONNECTIVITY_ISSUES },
+    navigation.navigate('SimpleWebview', {
+      url: AppConstants.URLS.CONNECTIVITY_ISSUES,
     });
   };
 

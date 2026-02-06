@@ -922,9 +922,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
         // Check for cross-margin position (MetaMask only supports isolated margin)
         if (currentMarketPosition?.leverage?.type === 'cross') {
-          navigation.navigate(Routes.PERPS.MODALS.ROOT, {
-            screen: Routes.PERPS.MODALS.CROSS_MARGIN_WARNING,
-          });
+          navigation.navigate(Routes.PERPS.MODALS.CROSS_MARGIN_WARNING);
 
           track(MetaMetricsEvents.PERPS_ERROR, {
             [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
@@ -949,16 +947,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         const monitorOrders = true;
         const monitorPositions = true;
 
-        navigation.navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.MARKET_DETAILS,
-          params: {
-            market: navigationMarketData,
-            // Pass monitoring intent to destination screen for data-driven tab selection
-            monitoringIntent: {
-              asset: orderForm.asset,
-              monitorOrders,
-              monitorPositions,
-            },
+        navigation.navigate(Routes.PERPS.MARKET_DETAILS, {
+          market: navigationMarketData,
+          // Pass monitoring intent to destination screen for data-driven tab selection
+          monitoringIntent: {
+            asset: orderForm.asset,
+            monitorOrders,
+            monitorPositions,
           },
         });
 

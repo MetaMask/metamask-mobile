@@ -403,12 +403,9 @@ const UnifiedTransactionsView = ({
         : undefined;
     }
 
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url,
-        title,
-      },
+    navigation.navigate('SimpleWebview', {
+      url,
+      title,
     });
   }, [
     navigation,
@@ -457,11 +454,8 @@ const UnifiedTransactionsView = ({
       return;
     }
 
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: nonEvmExplorerUrl,
-      },
+    navigation.navigate('SimpleWebview', {
+      url: nonEvmExplorerUrl,
     });
   }, [navigation, nonEvmExplorerUrl]);
 

@@ -59,11 +59,8 @@ const NftOptions = (props: Props) => {
 
   const goToBrowserUrl = (url: string) => {
     modalRef.current?.dismissModal(() => {
-      navigation.navigate('Webview', {
-        screen: 'SimpleWebview',
-        params: {
-          url,
-        },
+      navigation.navigate('SimpleWebview', {
+        url,
       });
     });
   };

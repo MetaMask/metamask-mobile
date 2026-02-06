@@ -65,17 +65,10 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
         callback?.();
         switch (rootScreenName) {
           case Routes.WALLET_VIEW:
-            navigation.navigate(Routes.WALLET.HOME, {
-              screen: Routes.WALLET.TAB_STACK_FLOW,
-              params: {
-                screen: Routes.WALLET_VIEW,
-              },
-            });
+            navigation.navigate(Routes.WALLET_VIEW);
             break;
           case Routes.MODAL.WALLET_ACTIONS:
-            navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-              screen: Routes.MODAL.WALLET_ACTIONS,
-            });
+            navigation.navigate(Routes.MODAL.WALLET_ACTIONS);
             trackEvent(
               createEventBuilder(MetaMetricsEvents.ACTIONS_BUTTON_CLICKED)
                 .addProperties({
@@ -86,9 +79,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
             );
             break;
           case Routes.BROWSER.VIEW:
-            navigation.navigate(Routes.BROWSER.HOME, {
-              screen: Routes.BROWSER.VIEW,
-            });
+            navigation.navigate(Routes.BROWSER.VIEW);
             break;
           case Routes.TRANSACTIONS_VIEW:
             navigation.navigate(Routes.TRANSACTIONS_VIEW);
@@ -97,9 +88,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
             navigation.navigate(Routes.REWARDS_VIEW);
             break;
           case Routes.SETTINGS_VIEW:
-            navigation.navigate(Routes.SETTINGS_VIEW, {
-              screen: 'Settings',
-            });
+            navigation.navigate(Routes.SETTINGS_VIEW);
             break;
           case Routes.TRENDING_VIEW:
             if (isAssetsTrendingTokensEnabled) {

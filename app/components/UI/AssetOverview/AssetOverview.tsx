@@ -352,15 +352,15 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
     // Show QR code for receiving this specific asset
     if (addressForChain && selectedAccountGroup && chainId) {
-      navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
-        screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
-        params: {
+      navigation.navigate(
+        Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
+        {
           address: addressForChain,
           networkName: networkName || 'Unknown Network',
           chainId,
           groupId: selectedAccountGroup.id,
         },
-      });
+      );
     } else {
       Logger.error(
         new Error(

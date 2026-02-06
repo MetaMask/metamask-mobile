@@ -79,17 +79,14 @@ describe('TradeTabBarItem', () => {
     fireEvent.press(tradeTabItem);
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      'RootModalFlow',
+      'TradeWalletActions',
       expect.objectContaining({
-        screen: 'TradeWalletActions',
-        params: expect.objectContaining({
-          onDismiss: expect.any(Function),
-          buttonLayout: expect.objectContaining({
-            x: 123,
-            y: 456,
-            width: 100,
-            height: 50,
-          }),
+        onDismiss: expect.any(Function),
+        buttonLayout: expect.objectContaining({
+          x: 123,
+          y: 456,
+          width: 100,
+          height: 50,
         }),
       }),
     );

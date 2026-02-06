@@ -60,12 +60,9 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
       }
       // If no position or order, initialTab remains undefined and defaults to Overview
 
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_DETAILS,
-        params: {
-          market,
-          initialTab,
-        },
+      navigation.navigate(Routes.PERPS.MARKET_DETAILS, {
+        market,
+        initialTab,
       });
     },
     [navigation, positions, orders],

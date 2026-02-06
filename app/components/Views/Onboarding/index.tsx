@@ -609,15 +609,12 @@ const Onboarding = () => {
         socialLoginTraceCtx.current = undefined;
       }
 
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-        params: {
-          title: strings(`error_sheet.${errorMessage}_title`),
-          description: strings(`error_sheet.${errorMessage}_description`),
-          descriptionAlign: 'center',
-          buttonLabel: strings(`error_sheet.${errorMessage}_button`),
-          type: 'error',
-        },
+      navigation.navigate(Routes.SHEET.SUCCESS_ERROR_SHEET, {
+        title: strings(`error_sheet.${errorMessage}_title`),
+        description: strings(`error_sheet.${errorMessage}_description`),
+        descriptionAlign: 'center',
+        buttonLabel: strings(`error_sheet.${errorMessage}_button`),
+        type: 'error',
       });
     },
     [
@@ -635,21 +632,18 @@ const Onboarding = () => {
       try {
         const netState = await netInfoFetch();
         if (!netState.isConnected || netState.isInternetReachable === false) {
-          navigation.replace(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-            params: {
-              title: strings(`error_sheet.no_internet_connection_title`),
-              description: strings(
-                `error_sheet.no_internet_connection_description`,
-              ),
-              descriptionAlign: 'left',
-              buttonLabel: strings(`error_sheet.no_internet_connection_button`),
-              primaryButtonLabel: strings(
-                `error_sheet.no_internet_connection_button`,
-              ),
-              closeOnPrimaryButtonPress: true,
-              type: 'error',
-            },
+          navigation.replace(Routes.SHEET.SUCCESS_ERROR_SHEET, {
+            title: strings(`error_sheet.no_internet_connection_title`),
+            description: strings(
+              `error_sheet.no_internet_connection_description`,
+            ),
+            descriptionAlign: 'left',
+            buttonLabel: strings(`error_sheet.no_internet_connection_button`),
+            primaryButtonLabel: strings(
+              `error_sheet.no_internet_connection_button`,
+            ),
+            closeOnPrimaryButtonPress: true,
+            type: 'error',
           });
           return;
         }
@@ -745,15 +739,12 @@ const Onboarding = () => {
   const handleCtaActions = useCallback(
     async (actionType: string): Promise<void> => {
       if (SEEDLESS_ONBOARDING_ENABLED) {
-        navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.ONBOARDING_SHEET,
-          params: {
-            onPressCreate,
-            onPressImport,
-            onPressContinueWithGoogle,
-            onPressContinueWithApple,
-            createWallet: actionType === 'create',
-          },
+        navigation.navigate(Routes.SHEET.ONBOARDING_SHEET, {
+          onPressCreate,
+          onPressImport,
+          onPressContinueWithGoogle,
+          onPressContinueWithApple,
+          createWallet: actionType === 'create',
         });
         // else
       } else if (actionType === 'create') {

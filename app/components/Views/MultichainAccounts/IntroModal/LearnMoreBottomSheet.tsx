@@ -60,9 +60,7 @@ const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
       navigation.goBack(); // close modal
       if (isBasicFunctionalityEnabled) {
         dispatch(setMultichainAccountsIntroModalSeen(true));
-        navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.BASIC_FUNCTIONALITY,
-        });
+        navigation.navigate(Routes.SHEET.BASIC_FUNCTIONALITY);
       }
     }
   }, [isCheckboxChecked, navigation, isBasicFunctionalityEnabled, dispatch]);

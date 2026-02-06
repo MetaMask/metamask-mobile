@@ -196,10 +196,7 @@ export const useSwapBridgeNavigation = ({
         bridgeViewMode,
       };
 
-      navigation.navigate(Routes.BRIDGE.ROOT, {
-        screen: Routes.BRIDGE.BRIDGE_VIEW,
-        params,
-      });
+      navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW, params);
 
       // Track Swap button click with new consolidated event
       const isFromNavbar = location === SwapBridgeNavigationLocation.MainView;

@@ -53,26 +53,23 @@ export default async function navigateTermsOfUse(
 ) {
   const isUseTermsAccepted = await StorageWrapper.getItem(USE_TERMS);
   if (!isUseTermsAccepted) {
-    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.MODAL_MANDATORY,
-      params: {
-        containerTestId: TermsOfUseModalSelectorsIDs.CONTAINER,
-        buttonTestId: TermsOfUseModalSelectorsIDs.ACCEPT_BUTTON,
-        buttonText: strings('terms_of_use_modal.agree_cta'),
-        checkboxText: strings(
-          'terms_of_use_modal.terms_of_use_check_description',
-        ),
-        headerTitle: strings('terms_of_use_modal.title'),
-        onAccept: () => onConfirmUseTerms(onAccept),
-        footerHelpText: strings('terms_of_use_modal.accept_helper_description'),
-        body: {
-          source: 'WebView',
-          html: termsOfUse,
-        },
-        onRender: useTermsDisplayed,
-        isScrollToEndNeeded: true,
-        scrollEndBottomMargin: 50,
+    navigate(Routes.MODAL.MODAL_MANDATORY, {
+      containerTestId: TermsOfUseModalSelectorsIDs.CONTAINER,
+      buttonTestId: TermsOfUseModalSelectorsIDs.ACCEPT_BUTTON,
+      buttonText: strings('terms_of_use_modal.agree_cta'),
+      checkboxText: strings(
+        'terms_of_use_modal.terms_of_use_check_description',
+      ),
+      headerTitle: strings('terms_of_use_modal.title'),
+      onAccept: () => onConfirmUseTerms(onAccept),
+      footerHelpText: strings('terms_of_use_modal.accept_helper_description'),
+      body: {
+        source: 'WebView',
+        html: termsOfUse,
       },
+      onRender: useTermsDisplayed,
+      isScrollToEndNeeded: true,
+      scrollEndBottomMargin: 50,
     });
   }
 }

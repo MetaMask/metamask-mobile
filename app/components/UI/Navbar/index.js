@@ -897,9 +897,7 @@ export function getWalletNavbarOptions(
                 await Authentication.importAccountFromPrivateKey(
                   data.private_key,
                 );
-                navigation.navigate('ImportPrivateKeyView', {
-                  screen: 'ImportPrivateKeySuccess',
-                });
+                navigation.navigate('ImportPrivateKeySuccess');
               } catch {
                 Alert.alert(
                   strings('import_private_key.error_title'),

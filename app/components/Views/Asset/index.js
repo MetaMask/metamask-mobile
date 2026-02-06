@@ -655,14 +655,11 @@ class Asset extends PureComponent {
       this.props.networkConfigurations[asset.chainId]?.name;
 
     const openAssetOptions = () => {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: 'AssetOptions',
-        params: {
-          isNativeCurrency: isNativeToken,
-          address: params?.address,
-          chainId: params?.chainId || '0x1',
-          asset,
-        },
+      navigation.navigate('AssetOptions', {
+        isNativeCurrency: isNativeToken,
+        address: params?.address,
+        chainId: params?.chainId || '0x1',
+        asset,
       });
     };
 

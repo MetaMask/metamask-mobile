@@ -123,12 +123,9 @@ export const useNetworkSelection = ({
         // create a new bitcoin account (Bitcoin accounts are different per network)
         if (!bitcoAccountInScope) {
           // TODO: I cannot cancel or go back from the add account screen
-          NavigationService.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: Routes.SHEET.ADD_ACCOUNT,
-            params: {
-              clientType: WalletClientType.Bitcoin,
-              scope: chainId,
-            },
+          NavigationService.navigation.navigate(Routes.SHEET.ADD_ACCOUNT, {
+            clientType: WalletClientType.Bitcoin,
+            scope: chainId,
           });
 
           return;

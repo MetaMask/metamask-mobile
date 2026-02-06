@@ -59,14 +59,11 @@ const PredictMarketRowItem = ({
   }, [market.outcomes]);
 
   const handlePress = useCallback(() => {
-    navigation.navigate(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_DETAILS,
-      params: {
-        marketId: market.id,
-        entryPoint,
-        title: market.title,
-        image: market.image,
-      },
+    navigation.navigate(Routes.PREDICT.MARKET_DETAILS, {
+      marketId: market.id,
+      entryPoint,
+      title: market.title,
+      image: market.image,
     });
   }, [market, entryPoint, navigation]);
 

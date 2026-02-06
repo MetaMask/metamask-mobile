@@ -239,9 +239,7 @@ class WalletConnect2Session {
     const navigation = this.navigation;
 
     const showReturnNotification = () => {
-      navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
-      });
+      navigation?.navigate(Routes.SDK.RETURN_TO_DAPP_NOTIFICATION);
     };
 
     setTimeout(() => {

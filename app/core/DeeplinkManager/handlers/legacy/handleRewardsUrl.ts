@@ -70,8 +70,6 @@ export const handleRewardsUrl = async ({
   } catch (error) {
     DevLogger.log('Failed to handle rewards deeplink:', error);
     // Fallback to wallet home on error
-    NavigationService.navigation.navigate(Routes.WALLET_VIEW, {
-      screen: Routes.WALLET_VIEW,
-    });
+    NavigationService.navigation.navigate(Routes.WALLET_VIEW);
   }
 };

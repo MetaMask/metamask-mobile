@@ -139,14 +139,11 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   ) => {
     executeGuardedAction(
       () => {
-        navigation.navigate(Routes.PREDICT.ROOT, {
-          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-          params: {
-            market,
-            outcome,
-            outcomeToken,
-            entryPoint: resolvedEntryPoint,
-          },
+        navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
+          market,
+          outcome,
+          outcomeToken,
+          entryPoint: resolvedEntryPoint,
         });
       },
       {
@@ -164,14 +161,11 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
     <TouchableOpacity
       testID={testID}
       onPress={() => {
-        navigation.navigate(Routes.PREDICT.ROOT, {
-          screen: Routes.PREDICT.MARKET_DETAILS,
-          params: {
-            marketId: market.id,
-            entryPoint: resolvedEntryPoint,
-            title: market.title,
-            image: market.image,
-          },
+        navigation.navigate(Routes.PREDICT.MARKET_DETAILS, {
+          marketId: market.id,
+          entryPoint: resolvedEntryPoint,
+          title: market.title,
+          image: market.image,
         });
       }}
     >

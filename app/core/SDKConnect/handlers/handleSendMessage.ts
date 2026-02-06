@@ -82,8 +82,7 @@ export const handleSendMessage = async ({
 
     if (method) {
       connection.trigger = 'resume';
-      connection.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
+      connection.navigation?.navigate(Routes.SDK.RETURN_TO_DAPP_NOTIFICATION, {
         method,
         origin: connection.originatorInfo?.url,
         hideReturnToApp: connection.hideReturnToApp,

@@ -32,7 +32,6 @@ import {
 } from '@metamask/design-system-react-native';
 
 export const createTurnOffRememberMeModalNavDetails = createNavigationDetails(
-  Routes.MODAL.ROOT_MODAL_FLOW,
   Routes.MODAL.TURN_OFF_REMEMBER_ME,
 );
 

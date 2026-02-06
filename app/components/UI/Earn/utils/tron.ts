@@ -168,24 +168,18 @@ export const handleTronStakingNavigationResult = (
 
     navigation.goBack();
     requestAnimationFrame(() => {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-        params: {
-          title: strings(copy.successTitleKey),
-          description: strings(copy.successDescriptionKey),
-          type: 'success',
-          closeOnPrimaryButtonPress: true,
-        },
+      navigation.navigate(Routes.SHEET.SUCCESS_ERROR_SHEET, {
+        title: strings(copy.successTitleKey),
+        description: strings(copy.successDescriptionKey),
+        type: 'success',
+        closeOnPrimaryButtonPress: true,
       });
     });
   } else {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-      params: {
-        title: strings(copy.errorTitleKey),
-        description: getLocalizedErrorMessage(result?.errors),
-        type: 'error',
-      },
+    navigation.navigate(Routes.SHEET.SUCCESS_ERROR_SHEET, {
+      title: strings(copy.errorTitleKey),
+      description: getLocalizedErrorMessage(result?.errors),
+      type: 'error',
     });
   }
 };

@@ -254,9 +254,7 @@ const PerpsTutorialCarousel: React.FC = () => {
   );
 
   const navigateToMarketsList = useCallback(() => {
-    NavigationService.navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.PERPS_HOME,
-    });
+    NavigationService.navigation.navigate(Routes.PERPS.PERPS_HOME);
   }, []);
 
   const handleContinue = useCallback(async () => {

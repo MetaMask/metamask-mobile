@@ -182,11 +182,8 @@ const useBlockExplorer = (chainId?: string) => {
         return;
       }
 
-      navigation.navigate(Routes.WEBVIEW.MAIN, {
-        screen: Routes.WEBVIEW.SIMPLE,
-        params: {
-          url: accountLink,
-        },
+      navigation.navigate(Routes.WEBVIEW.SIMPLE, {
+        url: accountLink,
       });
     },
     [navigation, getBlockExplorerUrl],

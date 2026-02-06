@@ -60,11 +60,8 @@ const StakingButtons = ({
   const onUnstakePress = async () => {
     trace({ name: TraceName.EarnWithdrawScreen });
     await handleIsStakingSupportedChain();
-    navigate('StakeScreens', {
-      screen: Routes.STAKING.UNSTAKE,
-      params: {
-        token: outputToken,
-      },
+    navigate(Routes.STAKING.UNSTAKE, {
+      token: outputToken,
     });
     trackEvent(
       createEventBuilder(MetaMetricsEvents.STAKE_WITHDRAW_BUTTON_CLICKED)
@@ -81,11 +78,8 @@ const StakingButtons = ({
   const onStakePress = async () => {
     trace({ name: TraceName.EarnDepositScreen });
     await handleIsStakingSupportedChain();
-    navigate('StakeScreens', {
-      screen: Routes.STAKING.STAKE,
-      params: {
-        token: asset,
-      },
+    navigate(Routes.STAKING.STAKE, {
+      token: asset,
     });
     trackEvent(
       createEventBuilder(MetaMetricsEvents.STAKE_BUTTON_CLICKED)

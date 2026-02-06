@@ -44,11 +44,8 @@ const MultichainTransactionListItem = ({
 
   const handlePress = useCallback(() => {
     navigation.navigate(
-      Routes.MODAL.ROOT_MODAL_FLOW as never,
-      {
-        screen: Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS,
-        params: { displayData, transaction },
-      } as never,
+      Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS as never,
+      { displayData, transaction } as never,
     );
   }, [navigation, displayData, transaction]);
 
