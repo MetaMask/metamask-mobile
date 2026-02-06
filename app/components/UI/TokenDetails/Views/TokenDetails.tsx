@@ -109,33 +109,10 @@ const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const isTokenDetailsV2ButtonsEnabled = useSelector(
     selectTokenDetailsV2ButtonsEnabled,
   );
-
-  // Track page view on mount - centralized for all entry points
-  useEffect(() => {
-    const source = token.source ?? TokenDetailsSource.Unknown;
-    const hasBalance =
-      token.balance !== undefined &&
-      token.balance !== null &&
-      token.balance !== '0' &&
-      token.balance !== '';
-
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
-        .addProperties({
-          source,
-          chain_id: token.chainId,
-          token_symbol: token.symbol,
-          has_balance: hasBalance,
-        })
-        .build(),
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   useEffect(() => {
     endTrace({ name: TraceName.AssetDetails });
@@ -355,10 +332,40 @@ const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({
 };
 
 /**
+ * Fires TOKEN_DETAILS_OPENED for both V2 and legacy Asset view.
+ */
+const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  useEffect(() => {
+    const source = params.source ?? TokenDetailsSource.Unknown;
+    const hasBalance =
+      params.balance !== undefined &&
+      params.balance !== null &&
+      params.balance !== '0' &&
+      params.balance !== '';
+
+    const event = createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
+      .addProperties({
+        source,
+        chain_id: params.chainId,
+        token_symbol: params.symbol,
+        has_balance: hasBalance,
+      })
+      .build();
+    // eslint-disable-next-line no-console
+    console.log('TOKEN_DETAILS_OPENED', event);
+    trackEvent(event);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+};
+
+/**
  * Feature flag wrapper that toggles between new TokenDetails (V2) and legacy Asset view.
  */
 const TokenDetailsFeatureFlagWrapper: React.FC<TokenDetailsProps> = (props) => {
   const isTokenDetailsV2Enabled = useSelector(selectTokenDetailsV2Enabled);
+
+  useTokenDetailsOpenedTracking(props.route.params);
 
   return isTokenDetailsV2Enabled ? (
     <TokenDetails token={props.route.params} />
