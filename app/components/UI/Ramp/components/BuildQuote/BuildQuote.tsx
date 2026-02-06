@@ -115,7 +115,12 @@ function BuildQuote() {
   }, []);
 
   useEffect(() => {
-    if (!walletAddress || !selectedPaymentMethod) {
+    if (
+      !walletAddress ||
+      !selectedPaymentMethod ||
+      debouncedPollingAmount <= 0
+    ) {
+      stopQuotePolling();
       return;
     }
 
@@ -140,7 +145,12 @@ function BuildQuote() {
   }, []);
 
   const hasAmount = amountAsNumber > 0;
-  const canContinue = hasAmount && !quotesLoading && selectedQuote !== null;
+
+  const quoteMatchesAmount =
+    debouncedPollingAmount === amountAsNumber && debouncedPollingAmount > 0;
+
+  const canContinue =
+    hasAmount && !quotesLoading && selectedQuote !== null && quoteMatchesAmount;
 
   return (
     <ScreenLayout>

@@ -148,6 +148,20 @@ describe('BuildQuote', () => {
     expect(getByText('$100')).toBeOnTheScreen();
   });
 
+  it('displays region default amount when user has not entered amount and userRegion has defaultAmount', () => {
+    mockUserRegion = {
+      ...defaultUserRegion,
+      country: {
+        ...defaultUserRegion.country,
+        defaultAmount: 250,
+      },
+    };
+
+    const { getByText } = renderWithTheme(<BuildQuote />);
+
+    expect(getByText('$250')).toBeOnTheScreen();
+  });
+
   it('renders the keypad', () => {
     const { getByText, getByTestId } = renderWithTheme(<BuildQuote />);
 
