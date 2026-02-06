@@ -18,6 +18,8 @@ import {
   type MYXTicker,
 } from '../types/myx-types';
 import { fromMYXPrice } from '../constants/myxConfig';
+import { formatPerpsFiat, formatVolume } from './formatUtils';
+import { formatChange, formatPercentage } from './marketDataTransform';
 
 // ============================================================================
 // Market Transformation
@@ -98,20 +100,12 @@ export function adaptMarketDataFromMYX(
     volume = ticker.volume || '0';
   }
 
-  // Format price for display
+  // Format using shared formatting utilities (consistent with HyperLiquid)
   const priceNum = parseFloat(price);
-  const formattedPrice = formatPrice(priceNum);
-
-  // Format 24h change
-  const change24hAbs = Math.abs(change24h);
-  const changeSign = change24h >= 0 ? '+' : '-';
-  const formattedChange = `${changeSign}$${formatPriceChange(
-    priceNum,
-    change24h,
-  )}`;
-  const formattedChangePercent = `${changeSign}${change24hAbs.toFixed(2)}%`;
-
-  // Format volume
+  const formattedPrice = formatPerpsFiat(priceNum);
+  const priceChange = priceNum * (change24h / 100);
+  const formattedChange = formatChange(priceChange);
+  const formattedChangePercent = formatPercentage(change24h);
   const formattedVolume = formatVolume(parseFloat(volume));
 
   return {
@@ -213,67 +207,6 @@ export function extractSymbolFromPoolId(poolId: string): string {
   // The actual symbol comes from the pool's baseSymbol field
   // This is a fallback when baseSymbol is not available
   return poolId;
-}
-
-// ============================================================================
-// Formatting Helpers
-// ============================================================================
-
-/**
- * Format price for display
- */
-function formatPrice(price: number): string {
-  if (price === 0) return '$0.00';
-
-  if (price >= 1000) {
-    return `$${price.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
-  } else if (price >= 1) {
-    return `$${price.toFixed(2)}`;
-  } else if (price >= 0.01) {
-    return `$${price.toFixed(4)}`;
-  }
-  return `$${price.toFixed(6)}`;
-}
-
-/**
- * Calculate and format the absolute price change based on percentage
- */
-function formatPriceChange(
-  currentPrice: number,
-  changePercent: number,
-): string {
-  const priceChange = Math.abs(currentPrice * (changePercent / 100));
-
-  if (priceChange >= 1000) {
-    return priceChange.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-  } else if (priceChange >= 1) {
-    return priceChange.toFixed(2);
-  } else if (priceChange >= 0.01) {
-    return priceChange.toFixed(4);
-  }
-  return priceChange.toFixed(6);
-}
-
-/**
- * Format volume for display (e.g., $1.2M, $500K)
- */
-function formatVolume(volume: number): string {
-  if (volume === 0) return '$0';
-
-  if (volume >= 1_000_000_000) {
-    return `$${(volume / 1_000_000_000).toFixed(1)}B`;
-  } else if (volume >= 1_000_000) {
-    return `$${(volume / 1_000_000).toFixed(1)}M`;
-  } else if (volume >= 1_000) {
-    return `$${(volume / 1_000).toFixed(1)}K`;
-  }
-  return `$${volume.toFixed(0)}`;
 }
 
 /**
