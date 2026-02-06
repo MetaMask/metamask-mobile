@@ -37,7 +37,7 @@ permissions:
   id-token: write
 
 jobs:
-  # Load config 
+  # Load config
   prepare:
     runs-on: ubuntu-latest
     outputs:
@@ -70,31 +70,211 @@ jobs:
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_android_keystore_path=' + (signing && signing.android_keystore_path ? signing.android_keystore_path : '') + '\n');
           "
 
+  # Setup dependencies (no secrets) - platform-specific to match build OS
+  setup-dependencies:
+    name: Setup Dependencies (${{ matrix.platform }})
+    needs: [prepare]
+    strategy:
+      matrix:
+        platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
+    # CRITICAL: Match the OS with the build job so binaries work
+    runs-on: ${{ matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
+    # NO environment/secrets declared here ✅
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # iOS: Use MetaMask's setup action (handles Node, Ruby, CocoaPods, Xcode)
+      - name: Setup iOS environment
+        if: matrix.platform == 'ios'
+        timeout-minutes: 15
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
+        with:
+          platform: ios
+          setup-simulator: false
+
+      # Android: Setup Node
+      - name: Setup Node
+        if: matrix.platform == 'android'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies (NO SECRETS)
+        run: yarn install --immutable
+
+      - name: Run project setup (NO SECRETS)
+        run: |
+          echo "🔧 Running setup for ${{ matrix.platform }}..."
+          if [ "${{ matrix.platform }}" = "ios" ]; then
+            yarn setup:github-ci --build-ios --no-build-android
+          else
+            yarn setup:github-ci --no-build-ios
+          fi
+
+      - name: Verify setup completed
+        run: |
+          echo "✅ Verifying setup artifacts..."
+          if [ ! -d "node_modules" ]; then
+            echo "❌ node_modules not found"
+            exit 1
+          fi
+          if [ ! -f "app/core/InpageBridgeWeb3.js" ]; then
+            echo "❌ InpageBridgeWeb3.js not found"
+            exit 1
+          fi
+          if [ "${{ matrix.platform }}" = "ios" ]; then
+            if [ ! -f "ios/debug.xcconfig" ]; then
+              echo "❌ ios/debug.xcconfig not found"
+              exit 1
+            fi
+            if [ ! -f "ios/release.xcconfig" ]; then
+              echo "❌ ios/release.xcconfig not found"
+              exit 1
+            fi
+          fi
+          echo "✅ Setup verification passed"
+
+      # iOS: Cache CocoaPods for reuse in build job (paths are machine-specific, can't artifact)
+      - name: Cache CocoaPods
+        if: matrix.platform == 'ios'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ios/Pods
+            ~/Library/Caches/CocoaPods
+            ~/.cocoapods
+          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
+
+      - name: Create tarball with node_modules (preserves symlinks)
+        run: |
+          echo "📦 Creating tarball to preserve symlinks..."
+          if [ "${{ matrix.platform }}" = "ios" ]; then
+            tar -czf node-modules-${{ matrix.platform }}.tar.gz \
+              node_modules \
+              app/util/termsOfUse/termsOfUseContent.ts \
+              app/core/InpageBridgeWeb3.js \
+              scripts/inpage-bridge/dist \
+              ios/debug.xcconfig \
+              ios/release.xcconfig
+          else
+            tar -czf node-modules-${{ matrix.platform }}.tar.gz \
+              node_modules \
+              app/util/termsOfUse/termsOfUseContent.ts \
+              app/core/InpageBridgeWeb3.js \
+              scripts/inpage-bridge/dist
+          fi
+          echo "✅ Tarball created: $(du -h node-modules-${{ matrix.platform }}.tar.gz)"
+
+      - name: Upload node_modules tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: node-modules-${{ matrix.platform }}
+          path: node-modules-${{ matrix.platform }}.tar.gz
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: error
+
   # Build
   build:
-    needs: [prepare]
+    needs: [prepare, setup-dependencies]
+    timeout-minutes: 120
     strategy:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
     # Android: Cirrus lg (large) runner for 8GB Gradle heap; iOS: GitHub-hosted macOS
     runs-on: ${{ matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
-    environment: ${{ needs.prepare.outputs.github_environment }}
-    env:
-      # So bundle exec (in yarn pod:install) finds ios/Gemfile when running from repo root
-      BUNDLE_GEMFILE: ios/Gemfile
+    # Skip environment protection on feature branches (allows testing workflow changes)
+    environment: ${{ (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) && needs.prepare.outputs.github_environment || '' }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+        with:
+          submodules: recursive
+
+      # iOS: Use MetaMask's setup action (handles Node, Ruby, CocoaPods, Xcode)
+      - name: Setup iOS environment
+        if: matrix.platform == 'ios'
+        timeout-minutes: 15
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
+        with:
+          platform: ios
+          setup-simulator: false
+
+      # Android: Setup Node
+      - name: Setup Node
+        if: matrix.platform == 'android'
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
-      - run: yarn install --immutable
+
+      - name: Download node_modules tarball
+        uses: actions/download-artifact@v4
+        with:
+          name: node-modules-${{ matrix.platform }}
+
+      - name: Extract tarball (preserves symlinks)
+        run: |
+          echo "📦 Extracting tarball..."
+          tar -xzf node-modules-${{ matrix.platform }}.tar.gz
+          rm node-modules-${{ matrix.platform }}.tar.gz
+          echo "✅ Tarball extracted"
+
+      - name: Verify artifacts and symlinks
+        run: |
+          echo "✅ Verifying artifacts..."
+          if [ ! -d "node_modules" ]; then
+            echo "❌ node_modules not found"
+            exit 1
+          fi
+          if [ ! -f "app/core/InpageBridgeWeb3.js" ]; then
+            echo "❌ InpageBridgeWeb3.js not found"
+            exit 1
+          fi
+          echo "📦 node_modules size: $(du -sh node_modules | cut -f1)"
+
+          # iOS: Verify xcconfig files required by Xcode project
+          if [ "${{ matrix.platform }}" = "ios" ]; then
+            echo "🔍 Checking iOS xcconfig files..."
+            if [ ! -f "ios/debug.xcconfig" ]; then
+              echo "❌ ios/debug.xcconfig not found"
+              exit 1
+            fi
+            if [ ! -f "ios/release.xcconfig" ]; then
+              echo "❌ ios/release.xcconfig not found"
+              exit 1
+            fi
+            echo "✅ iOS xcconfig files found"
+          fi
+
+          # Verify symlinks in .bin directory
+          echo "🔍 Checking .bin symlinks..."
+          if [ -e "node_modules/.bin/react-native" ]; then
+            echo "✅ react-native symlink exists and target is valid"
+            ls -la node_modules/.bin/react-native
+          else
+            echo "❌ react-native symlink missing or broken"
+            ls -la node_modules/.bin/ | head -10
+            exit 1
+          fi
+
+          # Check React Native scripts
+          if [ -d "node_modules/react-native/scripts" ]; then
+            echo "✅ React Native scripts found"
+          else
+            echo "❌ React Native scripts missing"
+            exit 1
+          fi
+
+          echo "✅ All artifacts verified with working symlinks!"
 
       - name: Apply build config
         run: |
-          # Load env vars from builds.yml (this step only)
+          # Two-step config application is intentional:
+          # 1. Load env vars for THIS step only (eval sets vars in current shell)
           eval "$(node scripts/apply-build-config.js ${{ inputs.build_name }} --export)"
-          # Persist to GITHUB_ENV so later steps (e.g. Build) see CONFIGURATION, IS_SIM_BUILD, etc.
+          # 2. Persist env vars to GITHUB_ENV so LATER steps inherit them (build, signing, etc.)
           node scripts/apply-build-config.js ${{ inputs.build_name }} --export-github-env >> "$GITHUB_ENV"
 
       - name: Set secrets
@@ -148,6 +328,40 @@ jobs:
           WALLET_CONNECT_PROJECT_ID: ${{ secrets.WALLET_CONNECT_PROJECT_ID }}
         run: node scripts/set-secrets-from-config.js
 
+      # iOS: Cache CocoaPods (auto-restores at start, auto-saves at end)
+      - name: Cache CocoaPods
+        if: matrix.platform == 'ios'
+        uses: actions/cache@v4
+        with:
+          path: |
+            ios/Pods
+            ~/Library/Caches/CocoaPods
+            ~/.cocoapods
+          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
+      # iOS: Cache DerivedData to speed up Xcode builds
+      - name: Cache iOS DerivedData
+        if: matrix.platform == 'ios'
+        uses: actions/cache@v4
+        with:
+          path: ios/build
+          key: ${{ runner.os }}-ios-derived-${{ hashFiles('ios/Podfile.lock') }}-${{ hashFiles('**/*.m', '**/*.mm', '**/*.swift') }}
+          restore-keys: |
+            ${{ runner.os }}-ios-derived-${{ hashFiles('ios/Podfile.lock') }}-
+            ${{ runner.os }}-ios-derived-
+
+      # iOS: Cache Xcode module cache for faster compilation
+      - name: Cache Xcode Module Cache
+        if: matrix.platform == 'ios'
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData/ModuleCache.noindex
+          key: ${{ runner.os }}-xcode-modules-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-xcode-modules-
+
       # Android only: minimal env (SDK is pre-installed on Cirrus runner)
       - name: Set Android environment variables
         if: matrix.platform == 'android'
@@ -162,6 +376,16 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      # iOS: Clean up any existing keychains from previous runs
+      - name: Clean up existing keychains
+        if: matrix.platform == 'ios' && needs.prepare.outputs.signing_aws_role != ''
+        run: |
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+          if [ -f "$KEYCHAIN_PATH" ]; then
+            echo "🧹 Removing existing keychain..."
+            security delete-keychain "$KEYCHAIN_PATH" || true
+          fi
+
       # Signing: uses role + secret from builds.yml (skip for dev builds - main-dev, flask-dev, qa-dev use debug/simulator)
       - name: Configure signing certificates
         if: needs.prepare.outputs.signing_aws_role != ''
@@ -173,19 +397,26 @@ jobs:
           aws-secret-name: ${{ needs.prepare.outputs.signing_aws_secret }}
           android-keystore-path: ${{ needs.prepare.outputs.signing_android_keystore_path }}
 
-      - name: Setup project dependencies with retry
+      # iOS: Install/update CocoaPods (fast with cache, paths need to be correct for this machine)
+      - name: Install CocoaPods dependencies
+        if: matrix.platform == 'ios'
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: |
-            echo "🚀 Setting up project..."
-            if [ "${{ matrix.platform }}" = "ios" ]; then
-              yarn setup:github-ci --build-ios --no-build-android
-            else
-              yarn setup:github-ci --no-build-ios
-            fi
+          command: yarn pod:install
+
+      # iOS: Configure Node path for Xcode build scripts (React Native Codegen)
+      - name: Configure Node path for Xcode
+        if: matrix.platform == 'ios'
+        run: |
+          NODE_BINARY=$(command -v node)
+          echo "Node binary: $NODE_BINARY"
+          echo "export NODE_BINARY=\"$NODE_BINARY\"" > ios/.xcode.env.local
+          echo "✅ Created ios/.xcode.env.local"
+          cat ios/.xcode.env.local
+          node --version
 
       # Android: use CI Gradle settings (8GB heap, OOM handling) to avoid daemon OOM
       - name: Use CI Gradle properties (Android)
@@ -206,10 +437,70 @@ jobs:
             SCRIPT_NAME="build:${{ matrix.platform }}:${BUILD_NAME//-/:}"
             yarn run "$SCRIPT_NAME"
 
-      # Expo development builds: upload iOS .app for simulator (Runway-style artifact)
-      - name: Upload iOS Expo development build
-        if: matrix.platform == 'ios' && (inputs.build_name == 'main-dev' || inputs.build_name == 'flask-dev' || inputs.build_name == 'qa-dev')
+      # Debug: List build output to verify paths
+      - name: List build output
+        if: always()
+        run: |
+          echo "=== Current directory ==="
+          pwd
+          echo ""
+          echo "=== iOS build directory structure ==="
+          if [ -d "ios/build" ]; then
+            find ios/build -type d -name "*.app" -o -name "*.ipa" | head -20
+          else
+            echo "ios/build directory not found"
+          fi
+          echo ""
+          echo "=== Android build directory structure ==="
+          if [ -d "android/app/build/outputs" ]; then
+            find android/app/build/outputs -type f \( -name "*.apk" -o -name "*.aab" \) | head -20
+          else
+            echo "android/app/build/outputs directory not found"
+          fi
+
+      # iOS: Upload artifacts
+      # Simulator builds: .app bundle (dev, test, e2e builds)
+      - name: Upload iOS simulator build (.app)
+        if: matrix.platform == 'ios' && (inputs.build_name == 'main-dev' || inputs.build_name == 'main-test' || inputs.build_name == 'main-e2e' || inputs.build_name == 'flask-dev' || inputs.build_name == 'flask-test' || inputs.build_name == 'flask-e2e' || inputs.build_name == 'qa-dev')
         uses: actions/upload-artifact@v4
         with:
-          name: expo-dev-ios-${{ inputs.build_name }}
-          path: ios/build/Build/Products/Debug-iphonesimulator/
+          name: ios-${{ inputs.build_name }}
+          path: ios/build/Build/Products/Debug-iphonesimulator/*.app
+          if-no-files-found: warn
+
+      # Device builds: IPA for distribution (prod, rc only)
+      - name: Upload iOS device build (.ipa)
+        if: matrix.platform == 'ios' && (inputs.build_name == 'main-prod' || inputs.build_name == 'main-rc' || inputs.build_name == 'flask-prod' || inputs.build_name == 'qa-prod')
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-${{ inputs.build_name }}
+          path: ios/build/output/*.ipa
+          if-no-files-found: warn
+
+      # Android: Upload artifacts
+      # Dev builds: Debug APK
+      - name: Upload Android development build (debug APK)
+        if: matrix.platform == 'android' && (inputs.build_name == 'main-dev' || inputs.build_name == 'flask-dev' || inputs.build_name == 'qa-dev')
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-dev-${{ inputs.build_name }}
+          path: android/app/build/outputs/apk/**/*debug*.apk
+          if-no-files-found: warn
+
+      # Production builds: Release APK
+      - name: Upload Android production APK
+        if: matrix.platform == 'android' && (inputs.build_name == 'main-prod' || inputs.build_name == 'main-rc' || inputs.build_name == 'main-test' || inputs.build_name == 'main-e2e' || inputs.build_name == 'flask-prod' || inputs.build_name == 'flask-test' || inputs.build_name == 'flask-e2e' || inputs.build_name == 'qa-prod')
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk-${{ inputs.build_name }}
+          path: android/app/build/outputs/apk/**/*release*.apk
+          if-no-files-found: warn
+
+      # Production builds: AAB (bundle for Play Store)
+      - name: Upload Android App Bundle (AAB)
+        if: matrix.platform == 'android' && (inputs.build_name == 'main-prod' || inputs.build_name == 'main-rc' || inputs.build_name == 'flask-prod')
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-aab-${{ inputs.build_name }}
+          path: android/app/build/outputs/bundle/**/*.aab
+          if-no-files-found: warn
