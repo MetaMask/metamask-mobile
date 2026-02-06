@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
@@ -9,6 +9,10 @@ import {
   PredictPriceHistoryPoint,
 } from '../types';
 
+// Target number of samples for MAX timeframe to optimize performance
+const MAX_HISTORY_SAMPLES = 100;
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
+
 export interface UsePredictPriceHistoryOptions {
   marketIds: string[];
   interval?: PredictPriceHistoryInterval;
@@ -17,6 +21,8 @@ export interface UsePredictPriceHistoryOptions {
   fidelity?: number;
   providerId?: string;
   enabled?: boolean;
+  /** Market start date for dynamic fidelity calculation when interval is MAX */
+  marketStartDate?: string;
 }
 
 export interface UsePredictPriceHistoryResult {
@@ -27,6 +33,21 @@ export interface UsePredictPriceHistoryResult {
 }
 
 /**
+ * Calculates dynamic fidelity for MAX timeframe based on market start date
+ * to limit the number of data points returned from the API.
+ */
+const calculateMaxFidelity = (marketStartDate?: string): number => {
+  const startTs = marketStartDate
+    ? new Date(marketStartDate).getTime()
+    : Date.now() - 365 * DAY_IN_MS; // Fallback to 1 year ago if no startDate
+
+  const rangeMinutes = (Date.now() - startTs) / (60 * 1000);
+  // Calculate fidelity to get approximately MAX_HISTORY_SAMPLES points
+  // Ensure fidelity is at least 1 minute
+  return Math.max(1, Math.ceil(rangeMinutes / MAX_HISTORY_SAMPLES));
+};
+
+/**
  * Hook to fetch and manage price history data for multiple markets
  */
 export const usePredictPriceHistory = (
@@ -34,13 +55,28 @@ export const usePredictPriceHistory = (
 ): UsePredictPriceHistoryResult => {
   const {
     marketIds = [],
-    fidelity,
+    fidelity: fidelityOverride,
     interval = PredictPriceHistoryInterval.ONE_DAY,
     startTs,
     endTs,
     providerId,
     enabled = true,
+    marketStartDate,
   } = options;
+
+  // Calculate effective fidelity - use dynamic calculation for MAX interval
+  const fidelity = useMemo(() => {
+    // If a fidelity override is provided, use it
+    if (fidelityOverride !== undefined) {
+      return fidelityOverride;
+    }
+    // For MAX interval, calculate fidelity dynamically based on market start date
+    if (interval === PredictPriceHistoryInterval.MAX) {
+      return calculateMaxFidelity(marketStartDate);
+    }
+    // For other intervals, return undefined to use API defaults
+    return undefined;
+  }, [fidelityOverride, interval, marketStartDate]);
 
   const [priceHistories, setPriceHistories] = useState<
     PredictPriceHistoryPoint[][]
