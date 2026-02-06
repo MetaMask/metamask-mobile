@@ -32,6 +32,7 @@ import {
   PredictControllerMessenger,
   type PredictControllerState,
 } from './PredictController';
+import { analytics } from '../../../../util/analytics/analytics';
 
 // Mock the PolymarketProvider and its dependencies
 jest.mock('../providers/polymarket/PolymarketProvider');
@@ -58,6 +59,7 @@ const DEFAULT_REMOTE_FEATURE_FLAG_STATE = {
     },
     predictMarketHighlights: {
       enabled: false,
+      minimumVersion: '0.0.0',
       highlights: [],
     },
   },
@@ -69,6 +71,11 @@ const DEFAULT_NETWORK_CLIENT = {
     checkForLatestBlock: jest.fn().mockResolvedValue(undefined),
   },
 };
+
+// Mock react-native-device-info for version gating
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('99.0.0'),
+}));
 
 // Mock DevLogger (default export)
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
@@ -87,6 +94,13 @@ jest.mock('@metamask/controller-utils', () => {
     successfulFetch: jest.fn(),
   };
 });
+
+// Mock analytics module
+jest.mock('../../../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: jest.fn(),
+  },
+}));
 
 type AllPredictControllerMessengerActions =
   MessengerActions<PredictControllerMessenger>;
@@ -1803,11 +1817,16 @@ describe('PredictController', () => {
       title: `Market ${id}`,
       category,
       outcomes: ['YES', 'NO'],
+      status: 'open',
     });
 
     const createFlagState = (flag: {
       enabled: boolean;
-      highlights: { category: string; markets: string[] }[];
+      minimumVersion?: string;
+      highlights: {
+        category: string;
+        markets: string[];
+      }[];
     }) => ({
       remoteFeatureFlags: {
         predictFeeCollection: {
@@ -1821,7 +1840,10 @@ describe('PredictController', () => {
           enabled: false,
           leagues: [],
         },
-        predictMarketHighlights: flag,
+        predictMarketHighlights: {
+          ...flag,
+          minimumVersion: flag.minimumVersion ?? '0.0.0',
+        },
       },
       cacheTimestamp: Date.now(),
     });
@@ -2319,6 +2341,137 @@ describe('PredictController', () => {
                   {
                     category: 'trending',
                     markets: ['highlight-1', 'highlight-2'],
+                  },
+                ],
+              }),
+            ),
+          },
+        },
+      );
+    });
+
+    it('filters out closed highlighted markets', async () => {
+      const regularMarkets = [createMockMarket('regular-1')];
+      const closedHighlightedMarket = {
+        ...createMockMarket('highlight-1'),
+        status: 'closed',
+      };
+      const openHighlightedMarket = {
+        ...createMockMarket('highlight-2'),
+        status: 'open',
+      };
+
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue(
+            regularMarkets as any,
+          );
+          mockPolymarketProvider.getMarketsByIds.mockResolvedValue([
+            closedHighlightedMarket,
+            openHighlightedMarket,
+          ] as any);
+
+          const result = await controller.getMarkets({
+            providerId: 'polymarket',
+            category: 'trending',
+            offset: 0,
+          });
+
+          expect(result).toHaveLength(2);
+          expect(result[0].id).toBe('highlight-2');
+          expect(result[1].id).toBe('regular-1');
+          expect(result.find((m) => m.id === 'highlight-1')).toBeUndefined();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [
+                  {
+                    category: 'trending',
+                    markets: ['highlight-1', 'highlight-2'],
+                  },
+                ],
+              }),
+            ),
+          },
+        },
+      );
+    });
+
+    it('filters out resolved highlighted markets', async () => {
+      const regularMarkets = [createMockMarket('regular-1')];
+      const resolvedHighlightedMarket = {
+        ...createMockMarket('highlight-1'),
+        status: 'resolved',
+      };
+
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue(
+            regularMarkets as any,
+          );
+          mockPolymarketProvider.getMarketsByIds.mockResolvedValue([
+            resolvedHighlightedMarket,
+          ] as any);
+
+          const result = await controller.getMarkets({
+            providerId: 'polymarket',
+            category: 'trending',
+            offset: 0,
+          });
+
+          expect(result).toHaveLength(1);
+          expect(result[0].id).toBe('regular-1');
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [
+                  {
+                    category: 'trending',
+                    markets: ['highlight-1'],
+                  },
+                ],
+              }),
+            ),
+          },
+        },
+      );
+    });
+
+    it('skips highlights when version requirement not met', async () => {
+      const regularMarkets = [createMockMarket('regular-1')];
+
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue(
+            regularMarkets as any,
+          );
+
+          const result = await controller.getMarkets({
+            providerId: 'polymarket',
+            category: 'trending',
+            offset: 0,
+          });
+
+          expect(result).toHaveLength(1);
+          expect(result[0].id).toBe('regular-1');
+          expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                minimumVersion: '999.0.0',
+                highlights: [
+                  {
+                    category: 'trending',
+                    markets: ['highlight-1'],
                   },
                 ],
               }),
@@ -5780,6 +5933,88 @@ describe('PredictController', () => {
             marketConnected: false,
           });
         });
+      });
+    });
+  });
+
+  describe('Analytics Tracking', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('calls analytics.trackEvent for trackPredictOrderEvent', async () => {
+      await withController(async ({ controller }) => {
+        await controller.trackPredictOrderEvent({
+          status: 'succeeded',
+          analyticsProperties: { marketId: 'test' },
+          providerId: 'polymarket',
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('does not call analytics.trackEvent when analyticsProperties is missing for trackPredictOrderEvent', async () => {
+      await withController(async ({ controller }) => {
+        await controller.trackPredictOrderEvent({
+          status: 'succeeded',
+          providerId: 'polymarket',
+        });
+        expect(analytics.trackEvent).not.toHaveBeenCalled();
+      });
+    });
+
+    it('calls analytics.trackEvent for trackMarketDetailsOpened', () => {
+      withController(({ controller }) => {
+        controller.trackMarketDetailsOpened({
+          marketId: 'test',
+          marketTitle: 'test',
+          entryPoint: 'test',
+          marketDetailsViewed: 'test',
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackPositionViewed', () => {
+      withController(({ controller }) => {
+        controller.trackPositionViewed({ openPositionsCount: 5 });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackActivityViewed', () => {
+      withController(({ controller }) => {
+        controller.trackActivityViewed({ activityType: 'all' });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackGeoBlockTriggered', () => {
+      withController(({ controller }) => {
+        controller.trackGeoBlockTriggered({
+          providerId: 'polymarket',
+          attemptedAction: 'deposit',
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackFeedViewed', () => {
+      withController(({ controller }) => {
+        controller.trackFeedViewed({
+          sessionId: 'test',
+          feedTab: 'test',
+          numPagesViewed: 1,
+          sessionTime: 1000,
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackShareAction', () => {
+      withController(({ controller }) => {
+        controller.trackShareAction({ status: 'success' });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
       });
     });
   });

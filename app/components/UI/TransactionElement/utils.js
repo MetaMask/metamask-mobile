@@ -37,6 +37,7 @@ import { hasTransactionType } from '../../Views/confirmations/utils/transaction'
 import { BigNumber } from 'bignumber.js';
 
 const POSITIVE_TRANSFER_TRANSACTION_TYPES = [
+  TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
   TransactionType.predictDeposit,
@@ -861,6 +862,7 @@ export default async function decodeTransaction(args) {
     });
   } else {
     switch (actionKey) {
+      case strings('transactions.tx_review_musd_conversion'):
       case strings('transactions.tx_review_perps_deposit'):
       case strings('transactions.tx_review_predict_deposit'):
       case strings('transactions.tx_review_predict_withdraw'):
