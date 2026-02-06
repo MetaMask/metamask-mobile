@@ -197,25 +197,21 @@ export class GoogleWalletAdapter
       const cardStatus = await this.getCardStatus(params.lastFourDigits);
 
       if (cardStatus === 'requires_activation') {
-        // Find existing token for resume
         const existingToken = await this.findTokenByLastDigits(
           params.lastFourDigits,
         );
 
         if (existingToken) {
-          // Resume the provisioning automatically
-          return this.resumeProvisioning(
+          return await this.resumeProvisioning(
             existingToken.identifier,
             params.cardNetwork,
             params.cardholderName,
             params.lastFourDigits,
           );
         }
-        // Token not found - fall through to add new card
       }
 
-      // Normal flow - add new card
-      return this.addNewCard(params);
+      return await this.addNewCard(params);
     } catch (error) {
       logAdapterError('GoogleWalletAdapter', 'provisionCard', error);
       return createErrorResult(

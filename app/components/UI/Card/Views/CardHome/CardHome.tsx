@@ -97,7 +97,7 @@ import {
   getWalletName,
   type ProvisioningError,
 } from '../../pushProvisioning';
-import { AddToWalletButton } from '@expensify/react-native-wallet';
+import { AddToWalletButton } from '../../pushProvisioning/components/AddToWalletButton';
 import { CardScreenshotDeterrent } from '../../components/CardScreenshotDeterrent';
 import { createPasswordBottomSheetNavigationDetails } from '../../components/PasswordBottomSheet';
 import {
