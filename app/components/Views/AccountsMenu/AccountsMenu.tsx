@@ -242,7 +242,7 @@ const AccountsMenu = () => {
 
         {/* Resources Section */}
         <Box style={tw.style('px-4 py-3')}>
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('accounts_menu.resources')}
           </Text>
         </Box>
