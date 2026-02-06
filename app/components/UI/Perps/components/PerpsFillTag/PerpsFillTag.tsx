@@ -16,8 +16,8 @@ import { PERPS_SUPPORT_ARTICLES_URLS } from '../../constants/perpsConfig';
 import { usePerpsEventTracking } from '../../hooks';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
 } from '../../constants/eventNames';
 import { FillType, PerpsTransaction } from '../../types/transactionHistory';
 
@@ -36,7 +36,7 @@ interface PerpsFillTagProps {
  */
 const PerpsFillTag: React.FC<PerpsFillTagProps> = ({
   transaction,
-  screenName = PerpsEventValues.SCREEN_NAME.PERPS_ACTIVITY_HISTORY,
+  screenName = PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_ACTIVITY_HISTORY,
 }) => {
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
     EVM_SCOPE,
@@ -115,15 +115,15 @@ const PerpsFillTag: React.FC<PerpsFillTagProps> = ({
           console.error('Error opening ADL support article:', error);
         });
         track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-          [PerpsEventProperties.INTERACTION_TYPE]:
-            PerpsEventValues.INTERACTION_TYPE.TAP,
-          [PerpsEventProperties.SCREEN_NAME]: screenName,
-          [PerpsEventProperties.TAB_NAME]:
-            PerpsEventValues.PERPS_HISTORY_TABS.TRADES,
-          [PerpsEventProperties.ACTION_TYPE]:
-            PerpsEventValues.ACTION_TYPE.ADL_LEARN_MORE,
-          [PerpsEventProperties.ASSET]: transaction.asset,
-          [PerpsEventProperties.ORDER_TIMESTAMP]: transaction.timestamp,
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+          [PERPS_EVENT_PROPERTY.SCREEN_NAME]: screenName,
+          [PERPS_EVENT_PROPERTY.TAB_NAME]:
+            PERPS_EVENT_VALUE.PERPS_HISTORY_TABS.TRADES,
+          [PERPS_EVENT_PROPERTY.ACTION_TYPE]:
+            PERPS_EVENT_VALUE.ACTION_TYPE.ADL_LEARN_MORE,
+          [PERPS_EVENT_PROPERTY.ASSET]: transaction.asset,
+          [PERPS_EVENT_PROPERTY.ORDER_TIMESTAMP]: transaction.timestamp,
         });
       };
 

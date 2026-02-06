@@ -18,7 +18,7 @@ import Button, {
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
-import { OrderCompletedSelectors } from '../../../../../../e2e/selectors/Card/OrderCompleted.selectors';
+import { OrderCompletedSelectors } from './OrderCompleted.testIds';
 import MM_METAL_CARD from '../../../../../images/metal-card.png';
 import { useParams } from '../../../../../util/navigation/navUtils';
 

@@ -570,6 +570,7 @@ jobs:
         dedupe,
         scripts,
         unit-tests,
+        component-view-test,
         check-workflows,
         js-bundle-size-check,
         sonar-cloud-quality-gate-status,

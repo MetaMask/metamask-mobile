@@ -2,7 +2,7 @@ import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTa
 import {
   PortfolioPageSelectorsXpath,
   PortfolioPageSelectorsWebID,
-} from '../../selectors/Browser/PortfolioPage.selectors';
+} from '../../../tests/selectors/Browser/PortfolioPage.selectors';
 import Gestures from '../../../tests/framework/Gestures';
 import Matchers from '../../../tests/framework/Matchers';
 

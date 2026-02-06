@@ -7,10 +7,7 @@ require('dotenv').config({ path: '.e2e.env' });
 
 module.exports = {
   rootDir: '..',
-  testMatch: [
-    '<rootDir>/e2e/specs/**/*.spec.{js,ts}',
-    '<rootDir>/tests/**/*.spec.{js,ts}',
-  ],
+  testMatch: ['<rootDir>/tests/**/*.spec.{js,ts}'],
   testTimeout: 300000,
   maxWorkers: 1,
   clearMocks: true,
