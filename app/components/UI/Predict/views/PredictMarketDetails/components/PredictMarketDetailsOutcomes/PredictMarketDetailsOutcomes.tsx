@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react';
+import React, { memo } from 'react';
 import { Pressable } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import {
@@ -39,6 +39,10 @@ export interface PredictMarketDetailsOutcomesProps {
   openOutcomes: PredictOutcome[];
   closedOutcomes: PredictOutcome[];
   entryPoint: string | undefined;
+  isResolvedExpanded: boolean;
+  onResolvedExpandedToggle: (
+    value: boolean | ((prev: boolean) => boolean),
+  ) => void;
 }
 
 const PredictMarketDetailsOutcomes = memo(
@@ -55,9 +59,9 @@ const PredictMarketDetailsOutcomes = memo(
     openOutcomes,
     closedOutcomes,
     entryPoint,
+    isResolvedExpanded,
+    onResolvedExpandedToggle,
   }: PredictMarketDetailsOutcomesProps) => {
-    const [isResolvedExpanded, setIsResolvedExpanded] =
-      useState<boolean>(false);
     const tw = useTailwind();
     const { colors } = useTheme();
 
@@ -113,7 +117,7 @@ const PredictMarketDetailsOutcomes = memo(
             />
           ))}
           <Pressable
-            onPress={() => setIsResolvedExpanded((prev) => !prev)}
+            onPress={() => onResolvedExpandedToggle((prev: boolean) => !prev)}
             style={({ pressed }) =>
               tw.style(
                 'w-full rounded-xl bg-default px-4 py-3 mt-2 mb-4 bg-muted',

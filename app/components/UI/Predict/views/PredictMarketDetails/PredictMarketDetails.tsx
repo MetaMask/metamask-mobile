@@ -64,6 +64,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const [userSelectedTab, setUserSelectedTab] = useState<boolean>(false);
   const insets = useSafeAreaInsets();
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [isResolvedExpanded, setIsResolvedExpanded] = useState<boolean>(false);
 
   const { marketId, entryPoint, title, image } = route.params || {};
   const resolvedMarketId = marketId;
@@ -454,6 +455,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             openOutcomes={openOutcomes}
             closedOutcomes={closedOutcomes}
             entryPoint={entryPoint}
+            isResolvedExpanded={isResolvedExpanded}
+            onResolvedExpandedToggle={setIsResolvedExpanded}
           />
         )}
       </ScrollView>

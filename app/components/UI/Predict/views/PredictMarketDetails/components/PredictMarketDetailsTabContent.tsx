@@ -32,6 +32,10 @@ interface PredictMarketDetailsTabContentProps {
   openOutcomes: PredictOutcome[];
   closedOutcomes: PredictOutcome[];
   entryPoint?: string;
+  isResolvedExpanded: boolean;
+  onResolvedExpandedToggle: (
+    value: boolean | ((prev: boolean) => boolean),
+  ) => void;
 }
 
 const PredictMarketDetailsTabContent: React.FC<
@@ -54,6 +58,8 @@ const PredictMarketDetailsTabContent: React.FC<
   openOutcomes,
   closedOutcomes,
   entryPoint,
+  isResolvedExpanded,
+  onResolvedExpandedToggle,
 }) => {
   if (activeTab === null || !tabsReady) {
     return null;
@@ -107,6 +113,8 @@ const PredictMarketDetailsTabContent: React.FC<
           openOutcomes={openOutcomes}
           closedOutcomes={closedOutcomes}
           entryPoint={entryPoint}
+          isResolvedExpanded={isResolvedExpanded}
+          onResolvedExpandedToggle={onResolvedExpandedToggle}
         />
       </Box>
     );
