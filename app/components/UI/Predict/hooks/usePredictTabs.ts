@@ -56,12 +56,7 @@ export const usePredictTabs = (): UsePredictTabsResult => {
   const getInitialIndex = useCallback((tabsArray: FeedTab[]): number => {
     const key = initialTabKeyRef.current;
     const index = tabsArray.findIndex((tab) => tab.key === key);
-    if (index >= 0) return index;
-
-    const fallbackIndex = tabsArray.findIndex(
-      (tab) => tab.key === tabsArray[0].key,
-    );
-    return fallbackIndex >= 0 ? fallbackIndex : 0;
+    return Math.max(index, 0);
   }, []);
 
   const [activeIndex, setActiveIndexState] = useState(() =>
