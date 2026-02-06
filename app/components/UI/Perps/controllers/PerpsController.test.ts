@@ -40,7 +40,7 @@ jest.mock('../../../../util/transaction-controller', () => ({
 }));
 
 // Mock wait utility to speed up retry tests
-jest.mock('../utils/wait', () => ({
+jest.mock('./utils/wait', () => ({
   wait: jest.fn().mockResolvedValue(undefined),
 }));
 

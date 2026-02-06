@@ -13,9 +13,10 @@ import type { CandleData } from '../types/perps-types';
 import { CandlePeriod, calculateCandleCount } from '../constants/chartConfig';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { ensureError } from '../../../../util/errorUtils';
-import type {
-  SubscribeCandlesParams,
-  PerpsPlatformDependencies,
+import {
+  WebSocketConnectionState,
+  type SubscribeCandlesParams,
+  type PerpsPlatformDependencies,
 } from '../controllers/types';
 import { Hex } from '@metamask/utils';
 
@@ -46,15 +47,9 @@ export interface HyperLiquidWalletParams {
   getChainId?: () => Promise<number>;
 }
 
-/**
- * Connection states for WebSocket management
- */
-export enum WebSocketConnectionState {
-  Disconnected = 'disconnected',
-  Connecting = 'connecting',
-  Connected = 'connected',
-  Disconnecting = 'disconnecting',
-}
+// WebSocketConnectionState is now imported from controllers/types
+// Re-export for backward compatibility with existing consumers
+export { WebSocketConnectionState } from '../controllers/types';
 
 /**
  * Service for managing HyperLiquid SDK clients

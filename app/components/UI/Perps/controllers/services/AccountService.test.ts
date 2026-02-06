@@ -19,7 +19,7 @@ import type {
 } from '../PerpsController';
 
 jest.mock('uuid', () => ({ v4: () => 'mock-withdrawal-trace-id' }));
-jest.mock('../../constants/eventNames', () => ({
+jest.mock('../constants/eventNames', () => ({
   PERPS_EVENT_PROPERTY: {
     STATUS: 'status',
     WITHDRAWAL_AMOUNT: 'withdrawal_amount',
@@ -33,7 +33,7 @@ jest.mock('../../constants/eventNames', () => ({
     },
   },
 }));
-jest.mock('../../constants/hyperLiquidConfig', () => ({
+jest.mock('../constants/hyperLiquidConfig', () => ({
   USDC_SYMBOL: 'USDC',
 }));
 jest.mock('../perpsErrorCodes', () => ({

@@ -1,12 +1,12 @@
 import { ensureError } from '../../../../../util/errorUtils';
-import { isTPSLOrder } from '../../constants/orderTypes';
+import { isTPSLOrder } from '../constants/orderTypes';
 import { v4 as uuidv4 } from 'uuid';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import type { RewardsIntegrationService } from './RewardsIntegrationService';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
+} from '../constants/eventNames';
 import type { ServiceContext } from './ServiceContext';
 import {
   PerpsAnalyticsEvent,

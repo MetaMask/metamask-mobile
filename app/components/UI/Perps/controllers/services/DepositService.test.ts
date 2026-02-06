@@ -5,14 +5,14 @@ import {
   createMockInfrastructure,
   createMockMessenger,
 } from '../../__mocks__/serviceMocks';
-import { generateDepositId } from '../../utils/idUtils';
+import { generateDepositId } from '../utils/idUtils';
 import { toHex } from '@metamask/controller-utils';
 import { parseCaipAssetId } from '@metamask/utils';
 import { generateTransferData } from '../../../../../util/transactions';
 import type { PerpsProvider, PerpsPlatformDependencies } from '../types';
 import type { PerpsControllerMessenger } from '../PerpsController';
 
-jest.mock('../../utils/idUtils');
+jest.mock('../utils/idUtils');
 jest.mock('@metamask/utils');
 // Mock generateTransferData from util/transactions
 jest.mock('../../../../../util/transactions');

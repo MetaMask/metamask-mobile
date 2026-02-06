@@ -4,10 +4,10 @@ import type { TransactionParams } from '@metamask/transaction-controller';
 // Use generateTransferData from existing mobile utils which already handles
 // ethereumjs-abi types and ABI encoding
 import { generateTransferData } from '../../../../../util/transactions';
-import { generateDepositId } from '../../utils/idUtils';
+import { generateDepositId } from '../utils/idUtils';
 import type { PerpsProvider, PerpsPlatformDependencies } from '../types';
 import type { PerpsControllerMessenger } from '../PerpsController';
-import { getSelectedEvmAccount } from '../../utils/accountUtils';
+import { getSelectedEvmAccount } from '../utils/accountUtils';
 
 // Temporary to avoid estimation failures due to insufficient balance
 const DEPOSIT_GAS_LIMIT = toHex(100000);

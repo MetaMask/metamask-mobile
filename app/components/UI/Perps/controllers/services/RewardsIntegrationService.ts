@@ -2,7 +2,7 @@ import { ensureError } from '../../../../../util/errorUtils';
 import { formatAccountToCaipAccountId } from '../../utils/rewardsUtils';
 import type { PerpsControllerMessenger } from '../PerpsController';
 import type { PerpsPlatformDependencies } from '../types';
-import { getSelectedEvmAccount } from '../../utils/accountUtils';
+import { getSelectedEvmAccount } from '../utils/accountUtils';
 
 /**
  * RewardsIntegrationService

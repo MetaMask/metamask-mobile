@@ -1,7 +1,7 @@
 import type { PerpsProvider, Position, MarketInfo, Order } from '../types';
 import { createMockInfrastructure } from '../../__mocks__/serviceMocks';
 import { AggregatedPerpsProvider } from './AggregatedPerpsProvider';
-import { CandlePeriod } from '../../constants/chartConfig';
+import { CandlePeriod } from '../constants/chartConfig';
 
 // Create a comprehensive mock provider
 const createMockProvider = (providerId: string): jest.Mocked<PerpsProvider> => {

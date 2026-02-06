@@ -1,4 +1,4 @@
-import type { OrderBookLevel } from '../hooks/stream/usePerpsLiveOrderBook';
+import type { OrderBookLevel } from '../controllers/types';
 
 /**
  * Maximum API levels to request from Hyperliquid L2Book API.

@@ -6,7 +6,7 @@ import {
 } from '../../__mocks__/serviceMocks';
 import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscriptionService';
 import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
-import { REFERRAL_CONFIG } from '../../constants/hyperLiquidConfig';
+import { REFERRAL_CONFIG } from '../constants/hyperLiquidConfig';
 import {
   validateAssetSupport,
   validateBalance,
@@ -14,7 +14,7 @@ import {
   validateDepositParams,
   validateOrderParams,
   validateWithdrawalParams,
-} from '../../utils/hyperLiquidValidation';
+} from '../utils/hyperLiquidValidation';
 import type {
   ClosePositionParams,
   DepositParams,
@@ -37,7 +37,7 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
   getStreamManagerInstance: mockGetStreamManagerInstance,
 }));
 
-jest.mock('../../utils/hyperLiquidValidation', () => ({
+jest.mock('../utils/hyperLiquidValidation', () => ({
   validateOrderParams: jest.fn(),
   validateWithdrawalParams: jest.fn(),
   validateDepositParams: jest.fn(),
@@ -62,8 +62,8 @@ jest.mock('../../utils/hyperLiquidValidation', () => ({
 }));
 
 // Mock adapter functions
-jest.mock('../../utils/hyperLiquidAdapter', () => {
-  const actual = jest.requireActual('../../utils/hyperLiquidAdapter');
+jest.mock('../utils/hyperLiquidAdapter', () => {
+  const actual = jest.requireActual('../utils/hyperLiquidAdapter');
   return {
     ...actual,
     adaptHyperLiquidLedgerUpdateToUserHistoryItem: jest.fn((updates) => {

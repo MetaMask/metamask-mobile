@@ -22,8 +22,8 @@ import type {
   AssetRoute,
   PerpsPlatformDependencies,
 } from '../types';
-import type { CandleData } from '../../types/perps-types';
-import type { CandlePeriod } from '../../constants/chartConfig';
+import type { CandleData } from '../types/perps-types';
+import type { CandlePeriod } from '../constants/chartConfig';
 
 jest.mock('uuid', () => ({ v4: () => 'mock-trace-id' }));
 

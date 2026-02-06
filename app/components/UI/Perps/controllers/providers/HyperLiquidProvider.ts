@@ -1,5 +1,5 @@
 import { CaipAccountId, type Hex } from '@metamask/utils';
-import { createStandaloneInfoClient } from '../../utils/standaloneInfoClient';
+import { createStandaloneInfoClient } from '../utils/standaloneInfoClient';
 import { v4 as uuidv4 } from 'uuid';
 import { ensureError } from '../../../../../util/errorUtils';
 import {
@@ -18,15 +18,15 @@ import {
   TRADING_DEFAULTS,
   USDC_DECIMALS,
   USDH_CONFIG,
-} from '../../constants/hyperLiquidConfig';
+} from '../constants/hyperLiquidConfig';
 import {
   ORDER_SLIPPAGE_CONFIG,
   PERFORMANCE_CONFIG,
   PERPS_CONSTANTS,
   TP_SL_CONFIG,
   WITHDRAWAL_CONSTANTS,
-} from '../../constants/perpsConfig';
-import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../../constants/transactionsHistoryConfig';
+} from '../constants/perpsConfig';
+import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../constants/transactionsHistoryConfig';
 import {
   HyperLiquidClientService,
   WebSocketConnectionState,
@@ -49,24 +49,24 @@ import {
   formatHyperLiquidSize,
   parseAssetName,
   type RawHyperLiquidLedgerUpdate,
-} from '../../utils/hyperLiquidAdapter';
+} from '../utils/hyperLiquidAdapter';
 import {
   buildOrdersArray,
   calculateFinalPositionSize,
   calculateOrderPriceAndSize,
-} from '../../utils/orderCalculations';
+} from '../utils/orderCalculations';
 import {
   compileMarketPattern,
   shouldIncludeMarket,
   type CompiledMarketPattern,
-} from '../../utils/marketUtils';
+} from '../utils/marketUtils';
 import type {
   SDKOrderParams,
   MetaResponse,
   PerpsAssetCtx,
   FrontendOrder,
   SpotMetaResponse,
-} from '../../types/hyperliquid-types';
+} from '../types/hyperliquid-types';
 import {
   createErrorResult,
   getMaxOrderValue,
@@ -77,7 +77,7 @@ import {
   validateDepositParams,
   validateOrderParams,
   validateWithdrawalParams,
-} from '../../utils/hyperLiquidValidation';
+} from '../utils/hyperLiquidValidation';
 import { transformMarketData } from '../../utils/marketDataTransform';
 import type {
   AccountState,
@@ -139,10 +139,7 @@ import type {
   WithdrawResult,
 } from '../types';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
-import type {
-  ExtendedAssetMeta,
-  ExtendedPerpDex,
-} from '../../types/perps-types';
+import type { ExtendedAssetMeta, ExtendedPerpDex } from '../types/perps-types';
 import { getStreamManagerInstance } from '../../providers/PerpsStreamManager';
 
 /**

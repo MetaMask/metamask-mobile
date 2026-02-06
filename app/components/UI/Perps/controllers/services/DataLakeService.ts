@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ensureError } from '../../../../../util/errorUtils';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
-import { DATA_LAKE_API_CONFIG } from '../../constants/perpsConfig';
+import { DATA_LAKE_API_CONFIG } from '../constants/perpsConfig';
 import type { ServiceContext } from './ServiceContext';
 import {
   PerpsTraceNames,
@@ -9,7 +9,7 @@ import {
   type PerpsPlatformDependencies,
 } from '../types';
 import type { PerpsControllerMessenger } from '../PerpsController';
-import { getSelectedEvmAccount } from '../../utils/accountUtils';
+import { getSelectedEvmAccount } from '../utils/accountUtils';
 
 /**
  * DataLakeService

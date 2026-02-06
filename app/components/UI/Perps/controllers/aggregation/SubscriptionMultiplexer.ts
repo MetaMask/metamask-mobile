@@ -24,7 +24,7 @@ import type {
   SubscribeAccountParams,
 } from '../types';
 import { ensureError } from '../../../../../util/errorUtils';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 /**
  * Options for constructing SubscriptionMultiplexer

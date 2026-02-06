@@ -8,7 +8,7 @@ import {
 import {
   parseCommaSeparatedString,
   stripQuotes,
-} from '../../utils/stringParseUtils';
+} from '../utils/stringParseUtils';
 import type { ServiceContext } from './ServiceContext';
 import type { PerpsPlatformDependencies } from '../types';
 

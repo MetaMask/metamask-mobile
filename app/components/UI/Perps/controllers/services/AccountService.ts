@@ -10,14 +10,14 @@ import {
   type PerpsPlatformDependencies,
 } from '../types';
 import type { PerpsControllerMessenger } from '../PerpsController';
-import type { TransactionStatus } from '../../types/transactionTypes';
-import { getSelectedEvmAccount } from '../../utils/accountUtils';
+import type { TransactionStatus } from '../types/transactionTypes';
+import { getSelectedEvmAccount } from '../utils/accountUtils';
 import { v4 as uuidv4 } from 'uuid';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
-import { USDC_SYMBOL } from '../../constants/hyperLiquidConfig';
+} from '../constants/eventNames';
+import { USDC_SYMBOL } from '../constants/hyperLiquidConfig';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 
 /**

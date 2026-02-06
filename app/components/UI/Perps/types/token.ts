@@ -1,7 +1,4 @@
-import type { BridgeToken } from '../../Bridge/types';
-
 /**
- * PerpsToken is an alias for BridgeToken for backward compatibility
- * This type represents tokens that can be used in Perps trading
+ * Re-export PerpsToken from controllers for backward compatibility.
  */
-export type PerpsToken = BridgeToken;
+export type { PerpsToken } from '../controllers/types/token';

@@ -8,17 +8,22 @@ import type {
   Hex,
 } from '@metamask/utils';
 
-// Export navigation types
-export * from '../../types/navigation';
+// Import adapter types (resolved within controllers/ after Phase 1c moves)
+import type { RawHyperLiquidLedgerUpdate } from '../utils/hyperLiquidAdapter';
+import type { CandleData } from './perps-types';
+import type { CandlePeriod, TimeDuration } from '../constants/chartConfig';
 
-// Import adapter types
-import type { RawHyperLiquidLedgerUpdate } from '../../utils/hyperLiquidAdapter';
-import type { CandleData } from '../../types/perps-types';
-import type { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
-import { WebSocketConnectionState } from '../../services/HyperLiquidClientService';
-
-// Re-export WebSocketConnectionState for consumers of types
-export { WebSocketConnectionState };
+/**
+ * Connection states for WebSocket management.
+ * Defined inline to avoid importing from Mobile-only services.
+ * Must stay in sync with HyperLiquidClientService.WebSocketConnectionState.
+ */
+export enum WebSocketConnectionState {
+  Disconnected = 'disconnected',
+  Connecting = 'connecting',
+  Connected = 'connected',
+  Disconnecting = 'disconnecting',
+}
 
 // User history item for deposits and withdrawals
 export interface UserHistoryItem {
@@ -1385,3 +1390,10 @@ export interface PerpsPlatformDependencies {
   // === Rewards (no standard messenger action in core) ===
   rewards: PerpsRewardsOperations;
 }
+
+// ============================================================================
+// Navigation types (Mobile-only, type-only re-export for backward compatibility)
+// These are type-only exports so they don't create runtime dependencies
+// in the standalone package build.
+// ============================================================================
+export type { PerpsNavigationParamList } from '../../types/navigation';

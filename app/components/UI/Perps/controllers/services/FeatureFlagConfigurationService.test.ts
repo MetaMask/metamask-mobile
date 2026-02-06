@@ -6,7 +6,7 @@ import {
 import {
   parseCommaSeparatedString,
   stripQuotes,
-} from '../../utils/stringParseUtils';
+} from '../utils/stringParseUtils';
 import {
   validatedVersionGatedFeatureFlag,
   isVersionGatedFeatureFlag,
@@ -15,7 +15,7 @@ import type { ServiceContext } from './ServiceContext';
 import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import type { PerpsPlatformDependencies } from '../types';
 
-jest.mock('../../utils/stringParseUtils');
+jest.mock('../utils/stringParseUtils');
 jest.mock('../../../../../util/remoteFeatureFlag');
 
 describe('FeatureFlagConfigurationService', () => {
