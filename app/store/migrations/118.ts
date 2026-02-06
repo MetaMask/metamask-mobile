@@ -8,15 +8,23 @@ import {
 
 export const migrationVersion = 118;
 
+interface MigrationState {
+  security?: {
+    allowLoginWithRememberMe?: boolean;
+    osAuthEnabled?: boolean;
+  };
+}
+
 /**
- * Migration 118: Derive osAuthEnabled from legacy storage flags
+ * Migration 118: Derive osAuthEnabled from existing auth preferences
  *
- * This migration:
- * - Reads BIOMETRY_CHOICE_DISABLED and PASSCODE_DISABLED from StorageWrapper
- * - Sets state.security.osAuthEnabled based on the logic:
- * - osAuthEnabled = !biometryDisabled || !passcodeDisabled
- * - If either biometrics or passcode is enabled, osAuthEnabled is true
- * - If both are disabled (password-only mode), osAuthEnabled is false
+ * Priority order:
+ * 1. If allowLoginWithRememberMe is true → osAuthEnabled = false
+ *    (Remember Me takes precedence, biometric/passcode toggle should be disabled)
+ * 2. Otherwise, derive from legacy storage flags:
+ *    - If BIOMETRY_CHOICE_DISABLED doesn't exist OR PASSCODE_DISABLED doesn't exist
+ *      → osAuthEnabled = true (user is likely using one of them)
+ *    - If both exist and are truthy (both disabled) → osAuthEnabled = false
  *
  * @param state - The persisted Redux state
  * @returns The migrated Redux state
@@ -26,13 +34,28 @@ const migration = async (state: unknown): Promise<unknown> => {
     return state;
   }
 
+  const typedState = state as MigrationState;
+
   try {
+    // 1. If Remember Me is on, osAuthEnabled should be false
+    if (typedState.security?.allowLoginWithRememberMe) {
+      typedState.security.osAuthEnabled = false;
+      return state;
+    }
+
+    // 2. Derive from legacy storage flags
     const biometryDisabled = await StorageWrapper.getItem(
       BIOMETRY_CHOICE_DISABLED,
     );
     const passcodeDisabled = await StorageWrapper.getItem(PASSCODE_DISABLED);
+
+    // If either flag doesn't exist (null/undefined), osAuthEnabled is true
+    // Only false if BOTH exist and are truthy (both disabled)
     const osAuthEnabled = !biometryDisabled || !passcodeDisabled;
-    state.security.osAuthEnabled = osAuthEnabled;
+
+    if (typedState.security) {
+      typedState.security.osAuthEnabled = osAuthEnabled;
+    }
   } catch (error) {
     // Migration failures should not break the app
     captureException(
