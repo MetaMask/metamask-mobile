@@ -1885,6 +1885,9 @@
       "time": "Time",
       "apply": "Apply"
     },
+    "provider_selector": {
+      "title": "Select Provider"
+    },
     "market_type": {
       "filter_by": "Filter by"
     },
@@ -3811,6 +3814,7 @@
     "tx_review_predict_claim": "Claimed wins",
     "tx_review_predict_withdraw": "Predictions withdraw",
     "tx_review_musd_conversion": "mUSD conversion",
+    "claim": "Claim",
     "sent_ether": "Sent ETH",
     "self_sent_ether": "Sent yourself ETH",
     "received_ether": "Received ETH",
@@ -7584,6 +7588,7 @@
   "transaction_details": {
     "title": {
       "musd_conversion": "Converted to mUSD",
+      "musd_claim": "Claimed mUSD",
       "perps_deposit": "Funded perps account",
       "predict_claim": "Claimed winnings",
       "predict_deposit": "Funded Predict account",
@@ -7608,6 +7613,7 @@
       "bridge_receive_loading": "Bridge receive",
       "default": "Transaction",
       "musd_convert_send": "Sent {{sourceSymbol}} from {{sourceChain}}",
+      "musd_claim": "Claim mUSD",
       "perps_deposit": "Add funds",
       "predict_deposit": "Add funds",
       "swap": "Swap tokens",

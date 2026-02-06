@@ -132,6 +132,7 @@ import type {
   ToggleTestnetResult,
   TransferBetweenDexsParams,
   TransferBetweenDexsResult,
+  UpdateMarginParams,
   UpdatePositionTPSLParams,
   UserHistoryItem,
   WithdrawParams,
@@ -4249,6 +4250,7 @@ export class HyperLiquidProvider implements PerpsProvider {
    * @param params - Margin adjustment parameters
    * @param params.symbol - Asset symbol (e.g., 'BTC', 'ETH')
    * @param params.amount - Amount to adjust as string (positive = add, negative = remove)
+   * @param params.providerId - Optional provider identifier (ignored, always uses HyperLiquid)
    * @returns Promise resolving to margin adjustment result
    *
    * Note: HyperLiquid uses micro-units (multiply by 1e6) for the ntli parameter.
@@ -4257,10 +4259,7 @@ export class HyperLiquidProvider implements PerpsProvider {
    * - isBuy: Position direction (true for long, false for short)
    * - ntli: Amount in micro-units (amount * 1e6)
    */
-  async updateMargin(params: {
-    symbol: string;
-    amount: string;
-  }): Promise<MarginResult> {
+  async updateMargin(params: UpdateMarginParams): Promise<MarginResult> {
     try {
       this.deps.debugLogger.log('Updating position margin:', params);
 
