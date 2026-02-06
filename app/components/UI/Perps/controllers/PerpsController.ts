@@ -30,16 +30,22 @@ import {
   PERPS_EVENT_VALUE,
 } from '../constants/eventNames';
 import { ensureError } from '../../../../util/errorUtils';
+import {
+  validatedVersionGatedFeatureFlag,
+  isVersionGatedFeatureFlag,
+} from '../../../../util/remoteFeatureFlag';
 import type { CandleData } from '../types/perps-types';
 import { CandlePeriod } from '../constants/chartConfig';
 import {
   PERPS_CONSTANTS,
   MARKET_SORTING_CONFIG,
+  PROVIDER_CONFIG,
   type SortOptionId,
 } from '../constants/perpsConfig';
 import type { SortDirection } from '../utils/sortMarkets';
 import { PERPS_ERROR_CODES } from './perpsErrorCodes';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
+import { MYXProvider } from './providers/MYXProvider';
 import { AggregatedPerpsProvider } from './providers/AggregatedPerpsProvider';
 import { MarketDataService } from './services/MarketDataService';
 import { TradingService } from './services/TradingService';
@@ -753,6 +759,37 @@ export class PerpsController extends BaseController<
   private hip3ConfigSource: 'remote' | 'fallback' = 'fallback';
 
   /**
+   * Check if MYX provider is enabled via feature flag
+   * Uses same pattern as other feature flags in FeatureFlagConfigurationService
+   */
+  private isMYXProviderEnabled(): boolean {
+    try {
+      const remoteState = this.messenger.call(
+        'RemoteFeatureFlagController:getState',
+      );
+      const remoteFlag =
+        remoteState.remoteFeatureFlags?.perpsMyxProviderEnabled;
+
+      this.debugLog('PerpsController: MYX feature flag check', {
+        remoteFlag,
+        isVersionGated: isVersionGatedFeatureFlag(remoteFlag),
+      });
+
+      if (isVersionGatedFeatureFlag(remoteFlag)) {
+        const validated = validatedVersionGatedFeatureFlag(remoteFlag);
+        if (validated !== undefined) {
+          return validated;
+        }
+      }
+      // Fallback to environment variable
+      return process.env.MM_PERPS_MYX_PROVIDER_ENABLED === 'true';
+    } catch {
+      // If RemoteFeatureFlagController not ready, use fallback
+      return process.env.MM_PERPS_MYX_PROVIDER_ENABLED === 'true';
+    }
+  }
+
+  /**
    * Active provider instance for routing operations.
    * When activeProvider is 'hyperliquid' or 'myx': points to specific provider directly
    * When activeProvider is 'aggregated': points to AggregatedPerpsProvider wrapper
@@ -1185,11 +1222,23 @@ export class PerpsController extends BaseController<
         });
         this.providers.set('hyperliquid', hyperLiquidProvider);
 
+        // Register MYX provider if enabled via feature flag
+        const isMYXEnabled = this.isMYXProviderEnabled();
+        if (isMYXEnabled) {
+          const myxProvider = new MYXProvider({
+            isTestnet: PROVIDER_CONFIG.MYX_TESTNET_ONLY || this.state.isTestnet,
+            platformDependencies: this.options.infrastructure,
+          });
+          this.providers.set('myx', myxProvider);
+          this.debugLog('PerpsController: MYX provider registered', {
+            isTestnet: PROVIDER_CONFIG.MYX_TESTNET_ONLY || this.state.isTestnet,
+          });
+        }
+
         // Set up active provider based on activeProvider value in state
         // 'aggregated' is treated as just another provider that wraps others
         if (activeProvider === 'aggregated') {
           // Aggregated mode: wrap in AggregatedPerpsProvider for multi-provider support
-          // Future: register additional providers here (MYX, etc.)
           this.activeProviderInstance = new AggregatedPerpsProvider({
             providers: this.providers,
             defaultProvider: 'hyperliquid',
@@ -1205,10 +1254,28 @@ export class PerpsController extends BaseController<
           this.debugLog(
             `PerpsController: Using direct provider (${activeProvider})`,
           );
+        } else if (activeProvider === 'myx') {
+          // MYX provider mode
+          const myxProvider = this.providers.get('myx');
+          if (!myxProvider) {
+            // MYX feature flag is disabled — fall back to HyperLiquid
+            this.debugLog(
+              'PerpsController: MYX provider not available (feature flag disabled), falling back to hyperliquid',
+            );
+            this.activeProviderInstance = hyperLiquidProvider;
+            this.update((state) => {
+              state.activeProvider = 'hyperliquid';
+            });
+          } else {
+            this.activeProviderInstance = myxProvider;
+          }
+          this.debugLog(
+            `PerpsController: Using direct provider (${this.activeProviderInstance === hyperLiquidProvider ? 'hyperliquid' : activeProvider})`,
+          );
         } else {
           // Unsupported provider - throw error to prevent silent misconfiguration
           throw new Error(
-            `Unsupported provider: ${activeProvider}. Currently only 'hyperliquid' and 'aggregated' are supported.`,
+            `Unsupported provider: ${activeProvider}. Currently only 'hyperliquid', 'myx', and 'aggregated' are supported.`,
           );
         }
 
@@ -2078,12 +2145,13 @@ export class PerpsController extends BaseController<
    * Fetch historical candle data
    * Thin delegation to MarketDataService
    */
-  async fetchHistoricalCandles(
-    symbol: string,
-    interval: CandlePeriod,
-    limit: number = 100,
-    endTime?: number,
-  ): Promise<CandleData> {
+  async fetchHistoricalCandles(options: {
+    symbol: string;
+    interval: CandlePeriod;
+    limit?: number;
+    endTime?: number;
+  }): Promise<CandleData> {
+    const { symbol, interval, limit = 100, endTime } = options;
     const provider = this.getActiveProvider();
     return this.marketDataService.fetchHistoricalCandles({
       provider,
@@ -2250,10 +2318,13 @@ export class PerpsController extends BaseController<
 
   /**
    * Switch to a different provider
+   * Uses a full reinit approach: disconnect() → update state → init()
+   * This ensures complete state reset including WebSocket connections and caches.
    */
   async switchProvider(
     providerId: PerpsActiveProviderMode,
   ): Promise<SwitchProviderResult> {
+    // Validate provider is available
     // 'aggregated' is always valid, individual providers must exist in the map
     const isValidProvider =
       providerId === 'aggregated' || this.providers.has(providerId);
@@ -2266,11 +2337,100 @@ export class PerpsController extends BaseController<
       };
     }
 
-    this.update((state) => {
-      state.activeProvider = providerId;
-    });
+    // Skip if already on this provider
+    if (this.state.activeProvider === providerId) {
+      return { success: true, providerId };
+    }
 
-    return { success: true, providerId };
+    // Prevent concurrent switches
+    if (this.isReinitializing) {
+      return {
+        success: false,
+        providerId: this.state.activeProvider,
+        error: PERPS_ERROR_CODES.CLIENT_REINITIALIZING,
+      };
+    }
+
+    this.isReinitializing = true;
+
+    // Store previous provider for rollback on failure
+    const previousProvider = this.state.activeProvider;
+
+    try {
+      this.debugLog('PerpsController: Provider switch initiated', {
+        from: previousProvider,
+        to: providerId,
+        timestamp: new Date().toISOString(),
+      });
+
+      // Disconnect current provider
+      await this.disconnect();
+
+      // Update state with new provider
+      this.update((state) => {
+        state.activeProvider = providerId;
+        state.accountState = null;
+        state.initializationState = InitializationState.Uninitialized;
+      });
+
+      // Reset initialization state and reinitialize
+      this.isInitialized = false;
+      this.initializationPromise = null;
+      await this.init();
+
+      this.debugLog('PerpsController: Provider switch completed', {
+        providerId,
+        timestamp: new Date().toISOString(),
+      });
+
+      return { success: true, providerId };
+    } catch (error) {
+      // Rollback state to previous provider
+      this.update((state) => {
+        state.activeProvider = previousProvider;
+      });
+
+      this.logError(
+        ensureError(error),
+        this.getErrorContext('switchProvider', { providerId }),
+      );
+
+      // Attempt to reinitialize the previous provider via init(),
+      // which handles all provider modes including 'aggregated'.
+      try {
+        this.isInitialized = false;
+        this.initializationPromise = null;
+        await this.init();
+
+        this.debugLog(
+          'PerpsController: Rollback to previous provider succeeded',
+          {
+            previousProvider,
+            timestamp: new Date().toISOString(),
+          },
+        );
+      } catch (reinitError) {
+        // Reinit also failed — mark as failed
+        this.update((state) => {
+          state.initializationState = InitializationState.Failed;
+        });
+        this.logError(
+          ensureError(reinitError),
+          this.getErrorContext('switchProvider.rollback', { previousProvider }),
+        );
+      }
+
+      return {
+        success: false,
+        providerId: previousProvider,
+        error:
+          error instanceof Error
+            ? error.message
+            : PERPS_ERROR_CODES.UNKNOWN_ERROR,
+      };
+    } finally {
+      this.isReinitializing = false;
+    }
   }
 
   /**
@@ -2625,9 +2785,9 @@ export class PerpsController extends BaseController<
 
     try {
       // TODO: It would be good to have this location before we call this async function to avoid the race condition
-      const isEligible = await this.eligibilityService.checkEligibility(
-        this.blockedRegionList.list,
-      );
+      const isEligible = await this.eligibilityService.checkEligibility({
+        blockedRegions: this.blockedRegionList.list,
+      });
 
       // Only update state if the blocked region list hasn't changed while we were awaiting.
       // This prevents stale fallback-based eligibility checks from overwriting

@@ -207,3 +207,21 @@ export const selectPerpsRewardsReferralCodeEnabledFlag = createSelector(
     return validatedVersionGatedFeatureFlag(versionGatedFlag) ?? false;
   },
 );
+
+/**
+ * Selector for MYX Provider enabled flag
+ * Controls whether MYX is available as a provider option
+ *
+ * @returns boolean - true if MYX provider should be available, false otherwise
+ */
+export const selectPerpsMYXProviderEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    // Default to false (disabled by default for gradual rollout)
+    const localFlag = process.env.MM_PERPS_MYX_PROVIDER_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.perpsMyxProviderEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);

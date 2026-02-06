@@ -330,6 +330,8 @@ function getLineTitle({
       return strings('transaction_details.summary_title.swap');
     case TransactionType.swapApproval:
       return strings('transaction_details.summary_title.swap_approval');
+    case TransactionType.musdClaim:
+      return strings('transaction_details.summary_title.musd_claim');
     default:
       return strings('transaction_details.summary_title.default');
   }
@@ -409,6 +411,7 @@ function useBridgeReceiveData(
 
   if (
     hasTransactionType(parentTransaction, [
+      TransactionType.musdClaim,
       TransactionType.perpsDeposit,
       TransactionType.predictDeposit,
     ])
