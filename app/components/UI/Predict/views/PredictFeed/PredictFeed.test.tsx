@@ -230,7 +230,7 @@ describe('PredictFeed', () => {
         entryPoint: 'homepage_new_prediction',
       },
     });
-    mockUseFocusEffect.mockImplementation((callback: () => void) => callback());
+    mockUseFocusEffect.mockImplementation(() => undefined);
     mockGetInstance.mockReturnValue(mockSessionManager);
     mockUseSelector.mockReturnValue({
       enabled: false,
@@ -350,6 +350,11 @@ describe('PredictFeed', () => {
 
     it('tracks page view on screen focus', () => {
       render(<PredictFeed />);
+
+      const focusCallbacks = mockUseFocusEffect.mock.calls.map(
+        (call) => call[0],
+      );
+      focusCallbacks.forEach((cb) => cb?.());
 
       expect(mockSessionManager.trackPageView).toHaveBeenCalled();
     });
@@ -809,6 +814,78 @@ describe('PredictFeed', () => {
         'homepage_new_prediction',
         'hot',
       );
+    });
+  });
+
+  describe('query deeplink parameter', () => {
+    it('opens search overlay when query param is provided in route params', () => {
+      mockUseRoute.mockReturnValue({
+        params: {
+          entryPoint: 'deeplink',
+          query: 'bitcoin',
+        },
+      });
+
+      const { getByTestId } = render(<PredictFeed />);
+
+      expect(getByTestId('search-icon')).toBeOnTheScreen();
+    });
+
+    it('pre-fills search input with query from route params', () => {
+      mockUseRoute.mockReturnValue({
+        params: {
+          entryPoint: 'deeplink',
+          query: 'ethereum',
+        },
+      });
+
+      const { getByPlaceholderText } = render(<PredictFeed />);
+
+      const searchInput = getByPlaceholderText('Search prediction markets');
+      expect(searchInput.props.value).toBe('ethereum');
+    });
+
+    it('opens search overlay when query param is provided', () => {
+      mockUseRoute.mockReturnValue({
+        params: {
+          entryPoint: 'deeplink',
+          query: 'solana',
+        },
+      });
+
+      const { getByTestId } = render(<PredictFeed />);
+
+      expect(getByTestId('search-icon')).toBeOnTheScreen();
+    });
+
+    it('pre-fills search input with query from route params', () => {
+      mockUseRoute.mockReturnValue({
+        params: {
+          entryPoint: 'deeplink',
+          query: 'bitcoin',
+        },
+      });
+
+      const { getByPlaceholderText } = render(<PredictFeed />);
+
+      const searchInput = getByPlaceholderText('Search prediction markets');
+      expect(searchInput.props.value).toBe('bitcoin');
+    });
+
+    it('closes search overlay when cancel is pressed', () => {
+      mockUseRoute.mockReturnValue({
+        params: {
+          entryPoint: 'deeplink',
+          query: 'bitcoin',
+        },
+      });
+
+      const { getByText, getByTestId, queryByTestId } = render(<PredictFeed />);
+
+      expect(getByTestId('search-icon')).toBeOnTheScreen();
+
+      fireEvent.press(getByText('Cancel'));
+      expect(queryByTestId('search-icon')).toBeNull();
     });
   });
 });
