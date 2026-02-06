@@ -13,12 +13,15 @@ const styleSheet = (params: { theme: Theme }) => {
       right: 12,
       zIndex: 9999,
     },
-    // Wrapper with default background (close wrap: same edges, radius)
-    toastWrapper: {
+    // Inner toast content
+    toast: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
       borderRadius: 12,
       backgroundColor: colors.background.default,
-      padding: 2,
-      overflow: 'hidden',
       // Shadow for elevation
       shadowColor: colors.shadow.default,
       shadowOffset: {
@@ -28,16 +31,6 @@ const styleSheet = (params: { theme: Theme }) => {
       shadowOpacity: 0.3,
       shadowRadius: 8,
       elevation: 8,
-    },
-    // Inner toast content (muted background)
-    toast: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      borderRadius: 10,
-      backgroundColor: colors.background.muted,
     },
     // Icon container
     iconContainer: {

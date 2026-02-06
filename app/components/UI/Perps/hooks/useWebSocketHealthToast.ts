@@ -7,9 +7,6 @@ import { useWebSocketHealthToastContext } from '../components/PerpsWebSocketHeal
 /** Delay before automatically attempting to reconnect after disconnection */
 const AUTO_RETRY_DELAY_MS = 10000;
 
-/** Delay before showing offline/connecting banner to avoid flicker on quick reconnects */
-const OFFLINE_BANNER_DELAY_MS = 1000;
-
 /**
  * Hook to monitor WebSocket connection health and trigger toast notifications
  * when the connection is lost or restored.
@@ -23,9 +20,8 @@ const OFFLINE_BANNER_DELAY_MS = 1000;
  *
  * Behavior:
  * - On initial connection (fresh mount with CONNECTED state): No toast shown
- * - On mount/remount with DISCONNECTED or CONNECTING state: Toast shown after 1s delay
- * - On state transitions after mount: Offline/connecting toasts shown after 1s delay to avoid flicker on quick reconnects
- * - Connected toast is shown immediately when connection is restored
+ * - On mount/remount with DISCONNECTED or CONNECTING state: Toast shown immediately
+ * - On state transitions after mount: Toast shown for reconnection scenarios
  * - Auto-retry: After 10 seconds in DISCONNECTED state, automatically attempts reconnection
  */
 export function useWebSocketHealthToast(): void {
@@ -40,30 +36,6 @@ export function useWebSocketHealthToast(): void {
   // Timer for auto-retry
   const autoRetryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
-  );
-  // Timer for delayed offline/connecting banner (avoids flicker on quick reconnects)
-  const showBannerDelayTimeoutRef = useRef<ReturnType<
-    typeof setTimeout
-  > | null>(null);
-
-  // Clear show-banner delay timer (so we don't show after reconnecting)
-  const clearShowBannerDelayTimer = useCallback(() => {
-    if (showBannerDelayTimeoutRef.current) {
-      clearTimeout(showBannerDelayTimeoutRef.current);
-      showBannerDelayTimeoutRef.current = null;
-    }
-  }, []);
-
-  // Show offline/connecting toast after delay (only if still disconnected after delay)
-  const scheduleShowBanner = useCallback(
-    (connectionState: WebSocketConnectionState, attempt: number) => {
-      clearShowBannerDelayTimer();
-      showBannerDelayTimeoutRef.current = setTimeout(() => {
-        show(connectionState, attempt);
-        showBannerDelayTimeoutRef.current = null;
-      }, OFFLINE_BANNER_DELAY_MS);
-    },
-    [clearShowBannerDelayTimer, show],
   );
 
   // Clear auto-retry timer helper
@@ -116,18 +88,16 @@ export function useWebSocketHealthToast(): void {
             previousWsStateRef.current = newState;
 
             // If we mount/remount and the connection is already in a problematic state,
-            // show the toast after a delay to avoid flicker on quick reconnects.
+            // show the toast immediately. This handles the case where a user navigates
+            // away from Perps and returns while the WebSocket is disconnected or reconnecting.
             if (newState === WebSocketConnectionState.Disconnected) {
               hasExperiencedDisconnectionRef.current = true;
-              scheduleShowBanner(
-                WebSocketConnectionState.Disconnected,
-                attempt,
-              );
+              show(WebSocketConnectionState.Disconnected, attempt);
               // Schedule auto-retry for disconnected state
               scheduleAutoRetry();
             } else if (newState === WebSocketConnectionState.Connecting) {
               hasExperiencedDisconnectionRef.current = true;
-              scheduleShowBanner(WebSocketConnectionState.Connecting, attempt);
+              show(WebSocketConnectionState.Connecting, attempt);
               // Clear auto-retry when reconnecting (connection attempt in progress)
               clearAutoRetryTimer();
             }
@@ -143,14 +113,11 @@ export function useWebSocketHealthToast(): void {
           // Handle state transitions
           switch (newState) {
             case WebSocketConnectionState.Disconnected:
-              // Show disconnected toast after delay if:
+              // Show disconnected toast if:
               // 1. We were previously connected (direct disconnect), OR
               // 2. We've been trying to reconnect and gave up (max attempts reached)
               if (wasWsConnected || hasExperiencedDisconnectionRef.current) {
-                scheduleShowBanner(
-                  WebSocketConnectionState.Disconnected,
-                  attempt,
-                );
+                show(WebSocketConnectionState.Disconnected, attempt);
                 // Schedule auto-retry for disconnected state
                 scheduleAutoRetry();
               }
@@ -159,18 +126,13 @@ export function useWebSocketHealthToast(): void {
             case WebSocketConnectionState.Connecting:
               // Clear auto-retry when reconnecting (connection attempt in progress)
               clearAutoRetryTimer();
-              // Show connecting toast after delay when reconnecting (after a disconnection)
+              // Show connecting toast when reconnecting (after a disconnection)
               if (hasExperiencedDisconnectionRef.current) {
-                scheduleShowBanner(
-                  WebSocketConnectionState.Connecting,
-                  attempt,
-                );
+                show(WebSocketConnectionState.Connecting, attempt);
               }
               break;
 
             case WebSocketConnectionState.Connected:
-              // Clear show-banner delay so we don't show offline toast after reconnecting
-              clearShowBannerDelayTimer();
               // Clear auto-retry when connected
               clearAutoRetryTimer();
               // Show connected toast only if we've experienced a disconnection before
@@ -182,8 +144,7 @@ export function useWebSocketHealthToast(): void {
               break;
 
             default:
-              // DISCONNECTING state - no toast needed, cancel any pending banner
-              clearShowBannerDelayTimer();
+              // DISCONNECTING state - no toast needed
               clearAutoRetryTimer();
               break;
           }
@@ -195,7 +156,6 @@ export function useWebSocketHealthToast(): void {
 
     return () => {
       unsubscribe?.();
-      clearShowBannerDelayTimer();
       clearAutoRetryTimer();
       hide();
     };
@@ -204,9 +164,7 @@ export function useWebSocketHealthToast(): void {
     isInitialized,
     show,
     hide,
-    scheduleShowBanner,
     scheduleAutoRetry,
-    clearShowBannerDelayTimer,
     clearAutoRetryTimer,
   ]);
 }

@@ -86,7 +86,7 @@ const AdvancedDetailsRow = () => {
               withIcon={{
                 color: IconColor.Muted,
                 size: IconSize.Sm,
-                name: IconName.ArrowDown,
+                name: IconName.ArrowRight,
               }}
             />
           </InfoSection>

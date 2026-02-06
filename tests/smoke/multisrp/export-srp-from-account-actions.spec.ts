@@ -6,12 +6,14 @@ import {
   goToAccountActions,
   completeSrpQuiz,
 } from '../../flows/accounts.flow.ts';
+import { defaultOptions } from '../../seeder/anvil-manager.ts';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.ts';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks.ts';
 
 const FIRST_DEFAULT_HD_KEYRING_ACCOUNT = 0;
 const FIRST_IMPORTED_HD_KEYRING_ACCOUNT = 2;
 
-const DEFAULT_SRP =
-  'mercy future burger kiwi rather neglect upper income morning borrow soda section';
+const DEFAULT_SRP = defaultOptions.mnemonic;
 const IMPORTED_SRP =
   'lazy youth dentist air relief leave neither liquid belt aspect bone frame';
 
@@ -22,9 +24,15 @@ describe(
       await withFixtures(
         {
           fixture: new FixtureBuilder()
-            .withTwoImportedHdKeyringsAndTwoDefaultAccounts()
+            .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController()
             .build(),
           restartDevice: true,
+          testSpecificMock: async (mockServer) => {
+            await setupRemoteFeatureFlagsMock(
+              mockServer,
+              remoteFeatureMultichainAccountsAccountDetailsV2(false),
+            );
+          },
         },
         async () => {
           await loginToApp();
@@ -40,9 +48,15 @@ describe(
       await withFixtures(
         {
           fixture: new FixtureBuilder()
-            .withTwoImportedHdKeyringsAndTwoDefaultAccounts()
+            .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController()
             .build(),
           restartDevice: true,
+          testSpecificMock: async (mockServer) => {
+            await setupRemoteFeatureFlagsMock(
+              mockServer,
+              remoteFeatureMultichainAccountsAccountDetailsV2(false),
+            );
+          },
         },
         async () => {
           await loginToApp();

@@ -1,7 +1,6 @@
 import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
 import { useSelector } from 'react-redux';
-import type { PerpsNavigationParamList } from '../types/navigation';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native';
 import { IconName } from '@metamask/design-system-react-native';
@@ -37,10 +36,8 @@ import PerpsStreamBridge from '../components/PerpsStreamBridge';
 import { HIP3DebugView } from '../Debug';
 import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWarningBottomSheet';
 import { useTheme } from '../../../../util/theme';
-import { RouteProp, useRoute } from '@react-navigation/native';
-import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 
-const Stack = createStackNavigator<PerpsNavigationParamList>();
+const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
 
 const styles = StyleSheet.create({
@@ -49,34 +46,12 @@ const styles = StyleSheet.create({
   },
 });
 
-function getRedesignedConfirmationsHeaderOptions({
-  showPerpsHeader = CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader,
-}: PerpsNavigationParamList['RedesignedConfirmations'] = {}) {
-  return showPerpsHeader
-    ? {
-        headerLeft: () => null,
-        headerShown: true,
-        title: '',
-      }
-    : { header: () => null };
-}
-
-const PerpsConfirmScreen = (
-  props: React.ComponentProps<typeof Confirm> & {
-    route: RouteProp<PerpsNavigationParamList, 'RedesignedConfirmations'>;
-  },
-) => {
+const PerpsConfirmScreen = (props: React.ComponentProps<typeof Confirm>) => {
   const theme = useTheme();
-  const params =
-    useRoute<RouteProp<PerpsNavigationParamList, 'RedesignedConfirmations'>>();
-  const showPerpsHeader =
-    params?.params?.showPerpsHeader ??
-    CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader;
-
   return (
     <Confirm
       {...props}
-      disableSafeArea={!showPerpsHeader}
+      disableSafeArea
       fullscreenStyle={{
         backgroundColor: theme.colors.background.default,
       }}
@@ -409,9 +384,9 @@ const PerpsScreenStack = () => {
           <Stack.Screen
             name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
             component={PerpsConfirmScreen}
-            options={({ route }) =>
-              getRedesignedConfirmationsHeaderOptions(route.params)
-            }
+            options={{
+              header: () => null,
+            }}
           />
         </Stack.Navigator>
       </PerpsStreamProvider>

@@ -8,8 +8,8 @@ import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConf
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import {
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
+  PerpsEventProperties,
+  PerpsEventValues,
 } from '../constants/eventNames';
 
 // Mock dependencies
@@ -210,10 +210,9 @@ describe('usePerpsHomeActions', () => {
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.PERPS_SCREEN_VIEWED,
         {
-          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-            PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-          [PERPS_EVENT_PROPERTY.SOURCE]:
-            PERPS_EVENT_VALUE.SOURCE.DEPOSIT_BUTTON,
+          [PerpsEventProperties.SCREEN_TYPE]:
+            PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+          [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.DEPOSIT_BUTTON,
         },
       );
     });
@@ -297,8 +296,8 @@ describe('usePerpsHomeActions', () => {
       expect(mockTrack).not.toHaveBeenCalledWith(
         MetaMetricsEvents.PERPS_SCREEN_VIEWED,
         expect.objectContaining({
-          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-            PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+          [PerpsEventProperties.SCREEN_TYPE]:
+            PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
         }),
       );
     });
@@ -316,9 +315,9 @@ describe('usePerpsHomeActions', () => {
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.PERPS_UI_INTERACTION,
         expect.objectContaining({
-          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
-            PERPS_EVENT_VALUE.BUTTON_CLICKED.WITHDRAW,
-          [PERPS_EVENT_PROPERTY.IS_GEO_BLOCKED]: true,
+          [PerpsEventProperties.BUTTON_CLICKED]:
+            PerpsEventValues.BUTTON_CLICKED.WITHDRAW,
+          [PerpsEventProperties.IS_GEO_BLOCKED]: true,
         }),
       );
     });
@@ -338,9 +337,9 @@ describe('usePerpsHomeActions', () => {
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.PERPS_UI_INTERACTION,
         expect.objectContaining({
-          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
-            PERPS_EVENT_VALUE.BUTTON_CLICKED.WITHDRAW,
-          [PERPS_EVENT_PROPERTY.IS_GEO_BLOCKED]: false,
+          [PerpsEventProperties.BUTTON_CLICKED]:
+            PerpsEventValues.BUTTON_CLICKED.WITHDRAW,
+          [PerpsEventProperties.IS_GEO_BLOCKED]: false,
         }),
       );
     });

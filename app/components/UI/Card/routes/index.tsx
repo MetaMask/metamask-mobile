@@ -95,12 +95,7 @@ export const cardSpendingLimitNavigationOptions = ({
           style={headerStyle.icon}
           size={ButtonIconSize.Md}
           iconName={IconName.Close}
-          onPress={() =>
-            navigation.reset({
-              index: 0,
-              routes: [{ name: Routes.CARD.HOME }],
-            })
-          }
+          onPress={() => navigation.navigate(Routes.CARD.HOME)}
         />
       ) : (
         <View />

@@ -36,7 +36,7 @@ const PerpsMarketRowItem = ({
   onPress,
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
   displayMetric = 'volume',
-  showBadge = false, // We can re-enable this if/when we decide to render the badges for stocks and commodities
+  showBadge = true,
 }: PerpsMarketRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
 

@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
-import { PERPS_EVENT_PROPERTY } from '../constants/eventNames';
+import { PerpsEventProperties } from '../constants/eventNames';
 
 // Mock useMetrics hook
 const mockTrackEvent = jest.fn();
@@ -45,7 +45,7 @@ describe('usePerpsEventTracking', () => {
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(mockEvent);
       const eventBuilder = mockCreateEventBuilder.mock.results[0].value;
       expect(eventBuilder.addProperties).toHaveBeenCalledWith({
-        [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
+        [PerpsEventProperties.TIMESTAMP]: 1234567890,
       });
       expect(eventBuilder.build).toHaveBeenCalled();
       expect(mockTrackEvent).toHaveBeenCalledWith({ type: 'mock-event' });
@@ -67,7 +67,7 @@ describe('usePerpsEventTracking', () => {
 
       const eventBuilder = mockCreateEventBuilder.mock.results[0].value;
       expect(eventBuilder.addProperties).toHaveBeenCalledWith({
-        [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
+        [PerpsEventProperties.TIMESTAMP]: 1234567890,
         ...customProps,
       });
     });

@@ -7,16 +7,13 @@ import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import {
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
+  PerpsEventProperties,
+  PerpsEventValues,
 } from '../constants/eventNames';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
-import {
-  PERPS_CONSTANTS,
-  CONFIRMATION_HEADER_CONFIG,
-} from '../constants/perpsConfig';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 /**
  * Navigation handler result interface
@@ -148,11 +145,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
         .then(() => {
           navigation.navigate(
             Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-            {
-              ...params,
-              showPerpsHeader:
-                CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
-            },
+            params,
           );
         })
         .catch((error: unknown) => {
@@ -164,11 +157,10 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
           });
 
           track(MetaMetricsEvents.PERPS_ERROR, {
-            [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
-              PERPS_EVENT_VALUE.ERROR_TYPE.BACKEND,
-            [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: err.message,
-            [PERPS_EVENT_PROPERTY.SOURCE]:
-              PERPS_EVENT_VALUE.SOURCE.TRADE_ACTION,
+            [PerpsEventProperties.ERROR_TYPE]:
+              PerpsEventValues.ERROR_TYPE.BACKEND,
+            [PerpsEventProperties.ERROR_MESSAGE]: err.message,
+            [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.TRADE_ACTION,
           });
 
           showToast(

@@ -12,7 +12,6 @@ import {
   PredictEntryPoint,
 } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
-import { usePredictEntryPoint } from '../../contexts';
 import Routes from '../../../../../constants/navigation/Routes';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
@@ -32,23 +31,17 @@ interface PredictSportCardFooterProps {
 const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
   market,
   testID,
-  entryPoint: propEntryPoint,
+  entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
   isCarousel,
 }) => {
   const tw = useTailwind();
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
 
-  const contextEntryPoint = usePredictEntryPoint();
-  const baseEntryPoint =
-    contextEntryPoint ??
-    propEntryPoint ??
-    PredictEventValues.ENTRY_POINT.PREDICT_FEED;
-
   const resolvedEntryPoint = TrendingFeedSessionManager.getInstance()
     .isFromTrending
     ? PredictEventValues.ENTRY_POINT.TRENDING
-    : baseEntryPoint;
+    : entryPoint;
 
   const { positions, isLoading } = usePredictPositions({
     marketId: market.id,

@@ -133,7 +133,7 @@ export const useStopLossPrompt = ({
   // Reset hasBeenShownRef when position changes (from main)
   useEffect(() => {
     hasBeenShownRef.current = false;
-  }, [position?.symbol, position?.liquidationPrice, position?.entryPrice]);
+  }, [position?.symbol]);
 
   // Server timestamp bypass effect (from main)
   // If positionOpenedTimestamp shows position is >2 minutes old, bypass debounce AND position age check
@@ -239,36 +239,46 @@ export const useStopLossPrompt = ({
     return undefined;
   }, [enabled, roePercent, position, positionOpenedTimestamp, finishDebounce]);
 
-  // Calculate suggested stop loss price as midpoint between current price and liquidation price
-  // This provides a balanced protection point that limits losses while avoiding premature triggers
+  // Calculate suggested stop loss price based on entry price and target ROE
+  // Formula: For a position, SL price at -50% ROE = entryPrice * (1 + targetROE/100/leverage)
   const suggestedStopLossPrice = useMemo(() => {
     // Dev override: provide mock price for stop_loss variant without position
     if (__DEV__ && FORCE_BANNER_VARIANT === 'stop_loss' && !position) {
       return '45000'; // Mock price for display
     }
 
-    if (!position?.liquidationPrice || !currentPrice || currentPrice <= 0) {
+    if (!position?.entryPrice) {
       return null;
     }
 
-    const liquidationPrice = parseFloat(position.liquidationPrice);
+    const entryPrice = parseFloat(position.entryPrice);
+    const leverage = position.leverage?.value ?? 1;
+    const positionSize = parseFloat(position.size);
 
-    if (isNaN(liquidationPrice) || liquidationPrice <= 0) {
+    if (isNaN(entryPrice) || entryPrice <= 0 || leverage <= 0) {
       return null;
     }
 
-    // Calculate midpoint between current price and liquidation price
-    const midpointPrice = (currentPrice + liquidationPrice) / 2;
+    // Target ROE is configurable (default -50%)
+    const targetRoeDecimal = STOP_LOSS_PROMPT_CONFIG.SuggestedStopLossRoe / 100;
+
+    // Calculate price at target ROE
+    // ROE = (priceChange / entryPrice) * leverage * direction
+    // priceChange = ROE * entryPrice / leverage / direction
+    const isLong = positionSize >= 0;
+    const direction = isLong ? 1 : -1;
+    const priceChange = (targetRoeDecimal * entryPrice) / leverage / direction;
+    const slPrice = entryPrice + priceChange;
 
     // Ensure SL price is positive and reasonable
-    if (midpointPrice <= 0) {
+    if (slPrice <= 0) {
       return null;
     }
 
-    return midpointPrice.toString();
-  }, [position, currentPrice]);
+    return slPrice.toString();
+  }, [position]);
 
-  // Calculate the ROE percentage at the suggested stop loss price
+  // Return the target ROE percentage used to calculate the stop loss
   // This represents the ROE the user will experience if the stop loss triggers
   const suggestedStopLossPercent = useMemo(() => {
     // Dev override: provide mock percentage for stop_loss variant without position
@@ -276,47 +286,14 @@ export const useStopLossPrompt = ({
       return STOP_LOSS_PROMPT_CONFIG.SuggestedStopLossRoe;
     }
 
-    if (!suggestedStopLossPrice || !position?.entryPrice) {
+    // Return the configured target ROE if we have a valid stop loss price
+    if (!suggestedStopLossPrice) {
       return null;
     }
 
-    const entryPrice = parseFloat(position.entryPrice);
-    const slPrice = parseFloat(suggestedStopLossPrice);
-    const leverage = position.leverage?.value ?? 1;
-    const positionSize = parseFloat(position.size);
-
-    if (
-      isNaN(entryPrice) ||
-      entryPrice <= 0 ||
-      isNaN(slPrice) ||
-      leverage <= 0
-    ) {
-      return null;
-    }
-
-    // Calculate ROE at the suggested stop loss price
-    // ROE = (priceChange / entryPrice) * leverage * direction
-    const isLong = positionSize >= 0;
-    const direction = isLong ? 1 : -1;
-    const priceChange = slPrice - entryPrice;
-    const roe = (priceChange / entryPrice) * leverage * direction * 100;
-
-    return roe;
+    // The stop loss price was calculated to achieve this specific ROE
+    return STOP_LOSS_PROMPT_CONFIG.SuggestedStopLossRoe;
   }, [suggestedStopLossPrice, position]);
-
-  // Safety guard: Check if suggested SL price is too close to current price
-  // If within 3% of mark price, we should show "add_margin" instead to avoid accidental immediate fills
-  const isSuggestedSlTooClose = useMemo(() => {
-    if (!suggestedStopLossPrice || !currentPrice || currentPrice <= 0) {
-      return false;
-    }
-    const slPrice = parseFloat(suggestedStopLossPrice);
-    if (isNaN(slPrice) || slPrice <= 0) {
-      return false;
-    }
-    const distance = (Math.abs(currentPrice - slPrice) / currentPrice) * 100;
-    return distance < STOP_LOSS_PROMPT_CONFIG.LiquidationDistanceThreshold; // Within 3% of current price
-  }, [suggestedStopLossPrice, currentPrice]);
 
   // Determine if banner should show and which variant
   const { shouldShowBanner, variant } = useMemo((): {
@@ -381,17 +358,7 @@ export const useStopLossPrompt = ({
     }
 
     // Priority 2: ROE below threshold with debounce → Stop loss variant
-    // But if suggested SL is too close to current price (within 3%), show add_margin instead
     if (roeDebounceComplete) {
-      // Guard: Don't show stop_loss variant if we can't calculate a valid suggested price
-      // This prevents displaying garbled banner text like "Set a stop loss at ( ROE)"
-      if (!suggestedStopLossPrice) {
-        return { shouldShowBanner: true, variant: 'add_margin' };
-      }
-      if (isSuggestedSlTooClose) {
-        // Safety guard: SL price too close to current price, suggest adding margin instead
-        return { shouldShowBanner: true, variant: 'add_margin' };
-      }
       return { shouldShowBanner: true, variant: 'stop_loss' };
     }
 
@@ -401,8 +368,6 @@ export const useStopLossPrompt = ({
     position,
     liquidationDistance,
     roeDebounceComplete,
-    isSuggestedSlTooClose,
-    suggestedStopLossPrice,
     positionAgeCheckPassed,
     roePercent,
   ]);

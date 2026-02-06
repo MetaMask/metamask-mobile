@@ -42,8 +42,6 @@ jest.mock('../../../../core/Engine', () => ({
 
 // Auto-retry delay constant (must match the one in the hook)
 const AUTO_RETRY_DELAY_MS = 10000;
-// Offline banner delay (must match the one in the hook)
-const OFFLINE_BANNER_DELAY_MS = 1000;
 
 describe('useWebSocketHealthToast', () => {
   let mockUnsubscribe: jest.Mock;
@@ -87,18 +85,12 @@ describe('useWebSocketHealthToast', () => {
       expect(mockShow).not.toHaveBeenCalled();
     });
 
-    it('should show toast when initial state is DISCONNECTED (after delay)', () => {
+    it('should show toast when initial state is DISCONNECTED', () => {
       renderHook(() => useWebSocketHealthToast());
 
       // Simulate initial callback with DISCONNECTED state
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
-      });
-
-      expect(mockShow).not.toHaveBeenCalled();
-
-      act(() => {
-        jest.advanceTimersByTime(OFFLINE_BANNER_DELAY_MS);
       });
 
       expect(mockShow).toHaveBeenCalledWith(
@@ -107,18 +99,12 @@ describe('useWebSocketHealthToast', () => {
       );
     });
 
-    it('should show toast when initial state is CONNECTING (after delay)', () => {
+    it('should show toast when initial state is CONNECTING', () => {
       renderHook(() => useWebSocketHealthToast());
 
       // Simulate initial callback with CONNECTING state
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Connecting, 2);
-      });
-
-      expect(mockShow).not.toHaveBeenCalled();
-
-      act(() => {
-        jest.advanceTimersByTime(OFFLINE_BANNER_DELAY_MS);
       });
 
       expect(mockShow).toHaveBeenCalledWith(
@@ -129,7 +115,7 @@ describe('useWebSocketHealthToast', () => {
   });
 
   describe('State transitions', () => {
-    it('should show disconnected toast on CONNECTED → DISCONNECTED transition (after delay)', () => {
+    it('should show disconnected toast on CONNECTED → DISCONNECTED transition', () => {
       renderHook(() => useWebSocketHealthToast());
 
       // First callback: CONNECTED (initial state)
@@ -138,15 +124,9 @@ describe('useWebSocketHealthToast', () => {
       });
       mockShow.mockClear();
 
-      // Second callback: DISCONNECTED (transition - schedules show after delay)
+      // Second callback: DISCONNECTED (transition)
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
-      });
-
-      expect(mockShow).not.toHaveBeenCalled();
-
-      act(() => {
-        jest.advanceTimersByTime(OFFLINE_BANNER_DELAY_MS);
       });
 
       expect(mockShow).toHaveBeenCalledWith(
@@ -155,27 +135,18 @@ describe('useWebSocketHealthToast', () => {
       );
     });
 
-    it('should show connecting toast on DISCONNECTED → CONNECTING transition (after delay)', () => {
+    it('should show connecting toast on DISCONNECTED → CONNECTING transition', () => {
       renderHook(() => useWebSocketHealthToast());
 
       // First callback: DISCONNECTED (initial - marks as experienced disconnection)
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
       });
-      act(() => {
-        jest.advanceTimersByTime(OFFLINE_BANNER_DELAY_MS);
-      });
       mockShow.mockClear();
 
-      // Second callback: CONNECTING (transition - schedules show after delay)
+      // Second callback: CONNECTING (transition)
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Connecting, 2);
-      });
-
-      expect(mockShow).not.toHaveBeenCalled();
-
-      act(() => {
-        jest.advanceTimersByTime(OFFLINE_BANNER_DELAY_MS);
       });
 
       expect(mockShow).toHaveBeenCalledWith(
@@ -192,19 +163,19 @@ describe('useWebSocketHealthToast', () => {
         connectionStateCallback(WebSocketConnectionState.Connected, 0);
       });
 
-      // Disconnected (schedules show after delay; we reconnect before delay)
+      // Disconnected
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
       });
       mockShow.mockClear();
 
-      // Reconnecting (schedules show after delay; we reconnect before delay)
+      // Reconnecting
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Connecting, 2);
       });
       mockShow.mockClear();
 
-      // Reconnected successfully (clears delay, shows Connected immediately)
+      // Reconnected successfully
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Connected, 0);
       });
@@ -273,20 +244,11 @@ describe('useWebSocketHealthToast', () => {
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
       });
-      act(() => {
-        jest.advanceTimersByTime(OFFLINE_BANNER_DELAY_MS);
-      });
       mockShow.mockClear();
 
-      // Reconnecting with attempt 3 (schedules show after delay)
+      // Reconnecting with attempt 3
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Connecting, 3);
-      });
-
-      expect(mockShow).not.toHaveBeenCalled();
-
-      act(() => {
-        jest.advanceTimersByTime(OFFLINE_BANNER_DELAY_MS);
       });
 
       expect(mockShow).toHaveBeenCalledWith(
@@ -334,46 +296,6 @@ describe('useWebSocketHealthToast', () => {
       renderHook(() => useWebSocketHealthToast());
 
       expect(mockSubscribeToConnectionState).toHaveBeenCalled();
-    });
-  });
-
-  describe('Offline banner delay (flicker prevention)', () => {
-    it('should NOT show offline banner if reconnected within delay', () => {
-      renderHook(() => useWebSocketHealthToast());
-
-      // Initial: CONNECTED
-      act(() => {
-        connectionStateCallback(WebSocketConnectionState.Connected, 0);
-      });
-      mockShow.mockClear();
-
-      // Disconnected (schedules show after 1s)
-      act(() => {
-        connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
-      });
-
-      expect(mockShow).not.toHaveBeenCalled();
-
-      // Reconnect before delay expires
-      act(() => {
-        connectionStateCallback(WebSocketConnectionState.Connecting, 1);
-      });
-      act(() => {
-        connectionStateCallback(WebSocketConnectionState.Connected, 0);
-      });
-
-      // Advance past the banner delay - show was never scheduled for Disconnected/Connecting
-      // because we cleared the timer when we got Connected
-      act(() => {
-        jest.advanceTimersByTime(OFFLINE_BANNER_DELAY_MS);
-      });
-
-      // Should only have shown Connected (reconnection success), not Disconnected
-      expect(mockShow).toHaveBeenCalledTimes(1);
-      expect(mockShow).toHaveBeenCalledWith(
-        WebSocketConnectionState.Connected,
-        0,
-      );
     });
   });
 

@@ -18,7 +18,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { formatPercentage } from '../../utils/format';
-import { usePredictEntryPoint } from '../../contexts';
 
 interface PredictMarketRowItemProps {
   market: PredictMarketType;
@@ -29,17 +28,12 @@ interface PredictMarketRowItemProps {
 const PredictMarketRowItem = ({
   market,
   testID,
-  entryPoint: propEntryPoint,
+  entryPoint = PredictEventValues.ENTRY_POINT.TRENDING_SEARCH,
 }: PredictMarketRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const tw = useTailwind();
-  const contextEntryPoint = usePredictEntryPoint();
-  const entryPoint =
-    contextEntryPoint ??
-    propEntryPoint ??
-    PredictEventValues.ENTRY_POINT.TRENDING_SEARCH;
 
   // Get the highest probability open outcome
   // Outcomes are already sorted by first token price (descending) from the API

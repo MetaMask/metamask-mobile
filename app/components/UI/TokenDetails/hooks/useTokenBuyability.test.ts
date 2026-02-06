@@ -32,13 +32,13 @@ describe('useTokenBuyability', () => {
       testName: 'token list is null',
       hookReturn: null,
       token: getMockToken(),
-      expectedBuyable: false,
+      expected: false,
     },
     {
       testName: 'token is not in the list',
       hookReturn: [],
       token: getMockToken(),
-      expectedBuyable: false,
+      expected: false,
     },
     {
       testName: 'token is in the list but not supported',
@@ -50,7 +50,7 @@ describe('useTokenBuyability', () => {
         },
       ],
       token: getMockToken(),
-      expectedBuyable: false,
+      expected: false,
     },
     {
       testName: 'token is in the list and supported',
@@ -62,7 +62,7 @@ describe('useTokenBuyability', () => {
         },
       ],
       token: getMockToken(),
-      expectedBuyable: true,
+      expected: true,
     },
     {
       testName: 'token is native and supported',
@@ -74,34 +74,20 @@ describe('useTokenBuyability', () => {
         },
       ],
       token: getMockToken({ isNative: true }),
-      expectedBuyable: true,
+      expected: true,
     },
   ];
 
   it.each(testCases)(
-    '$testName - returns isBuyable: $expectedBuyable',
-    ({ hookReturn, token, expectedBuyable }) => {
+    '$testName - returns $expected',
+    ({ hookReturn, token, expected }) => {
       mockUseRampTokens.mockReturnValue({
         allTokens: hookReturn,
-        isLoading: false,
       } as UseRampTokensResult);
 
       const { result } = renderHook(() => useTokenBuyability(token));
 
-      expect(result.current.isBuyable).toBe(expectedBuyable);
-      expect(result.current.isLoading).toBe(false);
+      expect(result.current).toBe(expected);
     },
   );
-
-  it('returns isLoading: true when ramp tokens are loading', () => {
-    mockUseRampTokens.mockReturnValue({
-      allTokens: null,
-      isLoading: true,
-    } as UseRampTokensResult);
-
-    const { result } = renderHook(() => useTokenBuyability(getMockToken()));
-
-    expect(result.current.isBuyable).toBe(false);
-    expect(result.current.isLoading).toBe(true);
-  });
 });

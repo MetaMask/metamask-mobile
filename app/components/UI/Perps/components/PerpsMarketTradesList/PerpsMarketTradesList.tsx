@@ -18,7 +18,7 @@ import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import { usePerpsMarketFills } from '../../hooks/usePerpsMarketFills';
 import { transformFillsToTransactions } from '../../utils/transactionTransforms';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
-import { PERPS_EVENT_VALUE } from '../../constants/eventNames';
+import { PerpsEventValues } from '../../constants/eventNames';
 
 interface PerpsMarketTradesListProps {
   symbol: string; // Market symbol to filter trades
@@ -114,9 +114,7 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
                 </Text>
                 <PerpsFillTag
                   transaction={item}
-                  screenName={
-                    PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_MARKET_DETAILS
-                  }
+                  screenName={PerpsEventValues.SCREEN_NAME.PERPS_MARKET_DETAILS}
                 />
               </View>
               {!!item.subtitle && (

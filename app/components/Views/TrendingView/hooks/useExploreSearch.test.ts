@@ -1,6 +1,6 @@
 import { renderHook, waitFor, act } from '@testing-library/react-native';
 import { useExploreSearch } from './useExploreSearch';
-import type { SectionId } from '../sections.config';
+import { SECTIONS_ARRAY } from '../sections.config';
 
 const mockTrendingTokens = [
   { assetId: '1', symbol: 'BTC', name: 'Bitcoin' },
@@ -90,22 +90,6 @@ jest.mock('../../../UI/Sites/hooks/useSiteData/useSitesData', () => ({
     refetch: jest.fn(),
   }),
 }));
-
-// Mock useSectionsArray to return all sections for testing
-const mockSectionsArray: { id: SectionId }[] = [
-  { id: 'tokens' },
-  { id: 'perps' },
-  { id: 'predictions' },
-  { id: 'sites' },
-];
-
-jest.mock('../sections.config', () => {
-  const actual = jest.requireActual('../sections.config');
-  return {
-    ...actual,
-    useSectionsArray: () => mockSectionsArray,
-  };
-});
 
 describe('useExploreSearch', () => {
   beforeEach(() => {
@@ -233,7 +217,7 @@ describe('useExploreSearch', () => {
   it('processes all sections defined in config', () => {
     const { result } = renderHook(() => useExploreSearch(''));
 
-    mockSectionsArray.forEach((section) => {
+    SECTIONS_ARRAY.forEach((section) => {
       expect(result.current.data[section.id]).toBeDefined();
       expect(result.current.isLoading[section.id]).toBeDefined();
     });
@@ -243,7 +227,7 @@ describe('useExploreSearch', () => {
     const { result } = renderHook(() => useExploreSearch(''));
 
     expect(result.current.sectionsOrder).toEqual(
-      mockSectionsArray.map((s) => s.id),
+      SECTIONS_ARRAY.map((s) => s.id),
     );
   });
 

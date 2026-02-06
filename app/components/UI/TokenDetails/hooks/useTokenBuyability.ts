@@ -7,18 +7,13 @@ import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { parseCAIP19AssetId } from '../../Ramp/Aggregator/utils/parseCaip19AssetId';
 import { toLowerCaseEquals } from '../../../../util/general';
 
-export interface UseTokenBuyabilityResult {
-  isBuyable: boolean;
-  isLoading: boolean;
-}
-
 /**
  * Hook that determines if an token can be bought via ramp services.
  */
-export const useTokenBuyability = (token: TokenI): UseTokenBuyabilityResult => {
-  const { allTokens, isLoading } = useRampTokens();
+export const useTokenBuyability = (token: TokenI): boolean => {
+  const { allTokens } = useRampTokens();
 
-  const isBuyable = useMemo(() => {
+  const isTokenBuyable = useMemo(() => {
     if (!allTokens) return false;
 
     const chainIdInCaip = isCaipChainId(token.chainId)
@@ -44,7 +39,7 @@ export const useTokenBuyability = (token: TokenI): UseTokenBuyabilityResult => {
     return matchingToken?.tokenSupported ?? false;
   }, [allTokens, token.isNative, token.chainId, token.address]);
 
-  return { isBuyable, isLoading };
+  return isTokenBuyable;
 };
 
 export default useTokenBuyability;

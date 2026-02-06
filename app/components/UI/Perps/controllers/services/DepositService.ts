@@ -6,8 +6,6 @@ import type { TransactionParams } from '@metamask/transaction-controller';
 import { generateTransferData } from '../../../../../util/transactions';
 import { generateDepositId } from '../../utils/idUtils';
 import type { PerpsProvider, PerpsPlatformDependencies } from '../types';
-import type { PerpsControllerMessenger } from '../PerpsController';
-import { getSelectedEvmAccount } from '../../utils/accountUtils';
 
 // Temporary to avoid estimation failures due to insufficient balance
 const DEPOSIT_GAS_LIMIT = toHex(100000);
@@ -19,24 +17,17 @@ const DEPOSIT_GAS_LIMIT = toHex(100000);
  * Stateless service that prepares transaction data for TransactionController.
  * Controller handles TransactionController integration and promise lifecycle.
  *
- * Instance-based service with constructor injection of platform dependencies
- * and messenger for inter-controller communication.
+ * Instance-based service with constructor injection of platform dependencies.
  */
 export class DepositService {
   private readonly deps: PerpsPlatformDependencies;
-  private readonly messenger: PerpsControllerMessenger;
 
   /**
    * Create a new DepositService instance
    * @param deps - Platform dependencies for logging, metrics, etc.
-   * @param messenger - Messenger for inter-controller communication
    */
-  constructor(
-    deps: PerpsPlatformDependencies,
-    messenger: PerpsControllerMessenger,
-  ) {
+  constructor(deps: PerpsPlatformDependencies) {
     this.deps = deps;
-    this.messenger = messenger;
   }
 
   /**
@@ -70,8 +61,8 @@ export class DepositService {
       amount: '0x0',
     });
 
-    // Get EVM account from selected account group via messenger
-    const evmAccount = getSelectedEvmAccount(this.messenger);
+    // Get EVM account from selected account group via dependency injection
+    const evmAccount = this.deps.controllers.accounts.getSelectedEvmAccount();
     if (!evmAccount) {
       throw new Error(
         'No EVM-compatible account found in selected account group',

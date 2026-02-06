@@ -31,7 +31,6 @@ import {
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketSingle.styles';
 import { PredictEventValues } from '../../constants/eventNames';
-import { usePredictEntryPoint } from '../../contexts';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 
 interface SemiCircleYesPercentageProps {
@@ -133,19 +132,14 @@ interface PredictMarketSingleProps {
 const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   market,
   testID,
-  entryPoint: propEntryPoint,
+  entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
   isCarousel = false,
 }) => {
-  const contextEntryPoint = usePredictEntryPoint();
-  const baseEntryPoint =
-    contextEntryPoint ??
-    propEntryPoint ??
-    PredictEventValues.ENTRY_POINT.PREDICT_FEED;
-
+  // Auto-detect entry point based on trending session state
   const resolvedEntryPoint = TrendingFeedSessionManager.getInstance()
     .isFromTrending
     ? PredictEventValues.ENTRY_POINT.TRENDING
-    : baseEntryPoint;
+    : entryPoint;
 
   const outcome = market.outcomes[0];
   const navigation =

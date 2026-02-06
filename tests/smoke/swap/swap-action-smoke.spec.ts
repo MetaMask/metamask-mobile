@@ -34,7 +34,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
     jest.setTimeout(120000);
   });
 
-  it('swaps ETH to USDC with custom slippage', async (): Promise<void> => {
+  it('should swap ETH to USDC', async (): Promise<void> => {
     const quantity = '1';
     const sourceTokenSymbol = 'ETH';
     const destTokenSymbol = 'USDC';
@@ -90,13 +90,12 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
         await prepareSwapsTestEnvironment();
         await WalletView.tapWalletSwapButton();
 
-        // Submit swap with 3.5% custom slippage
+        // Submit the Swap
         await submitSwapUnifiedUI(
           quantity,
           sourceTokenSymbol,
           destTokenSymbol,
           chainId,
-          { slippage: '3.5' },
         );
 
         // Check the swap activity completed

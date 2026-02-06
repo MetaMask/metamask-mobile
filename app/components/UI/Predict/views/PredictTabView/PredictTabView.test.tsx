@@ -1,12 +1,17 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { render, act } from '@testing-library/react-native';
-import React, { Ref } from 'react';
+import React from 'react';
 import { PredictTabViewSelectorsIDs } from '../../Predict.testIds';
-import { PredictHomePositionsHandle } from '../../components/PredictHome/PredictHomePositions';
 
-interface MockPredictHomePositionsProps {
-  onError?: (error: string | null) => void;
-}
+/**
+ * Mock Strategy:
+ * - Only mock custom feature hooks and child components with complex dependencies
+ * - Do NOT mock: Routes, design system, icons, or other internal utilities
+ * - Child components are mocked because they have their own test coverage
+ * and we're testing the parent's orchestration behavior (error handling, refresh coordination)
+ */
 
+// Mock custom Predict hooks
 jest.mock('../../hooks/usePredictDepositToasts', () => ({
   usePredictDepositToasts: jest.fn(),
 }));
@@ -23,22 +28,42 @@ jest.mock('../../hooks/usePredictMeasurement', () => ({
   usePredictMeasurement: jest.fn(),
 }));
 
-jest.mock('../../components/PredictHome', () => {
+// Mock child components - they have their own test files and API dependencies
+jest.mock('../../components/PredictPositionsHeader', () => {
   const ReactLib = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    PredictHomePositions: ReactLib.forwardRef(
-      (
-        _props: MockPredictHomePositionsProps,
-        ref: Ref<PredictHomePositionsHandle>,
-      ) => {
+    default: ReactLib.forwardRef(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (_props: unknown, ref: any) => {
         ReactLib.useImperativeHandle(ref, () => ({
           refresh: jest.fn(),
         }));
         return (
-          <View testID="predict-home-positions">
-            <Text>Home Positions</Text>
+          <View testID="predict-account-state">
+            <Text>Account State</Text>
+          </View>
+        );
+      },
+    ),
+  };
+});
+
+jest.mock('../../components/PredictPositions/PredictPositions', () => {
+  const ReactLib = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ReactLib.forwardRef(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (_props: unknown, ref: any) => {
+        ReactLib.useImperativeHandle(ref, () => ({
+          refresh: jest.fn(),
+        }));
+        return (
+          <View testID="predict-positions">
+            <Text>Positions</Text>
           </View>
         );
       },
@@ -83,18 +108,7 @@ jest.mock('../../components/PredictOffline', () => {
   };
 });
 
-interface MockScrollViewProps {
-  refreshControl?: React.ReactElement;
-  testID?: string;
-  [key: string]: unknown;
-}
-
-interface MockConditionalScrollViewProps {
-  children: React.ReactNode;
-  scrollViewProps?: MockScrollViewProps;
-  isScrollEnabled?: boolean;
-}
-
+// Mock ConditionalScrollView - simplifies to ScrollView for testing
 jest.mock(
   '../../../../../component-library/components-temp/ConditionalScrollView',
   () => {
@@ -104,8 +118,15 @@ jest.mock(
       __esModule: true,
       default: ReactLib.forwardRef(
         (
-          { children, scrollViewProps }: MockConditionalScrollViewProps,
-          ref: Ref<typeof ScrollView>,
+          {
+            children,
+            scrollViewProps,
+          }: {
+            children: React.ReactNode;
+            scrollViewProps?: any;
+            isScrollEnabled?: boolean;
+          },
+          ref: any,
         ) => (
           <ScrollView ref={ref} {...scrollViewProps}>
             {children}
@@ -116,6 +137,7 @@ jest.mock(
   },
 );
 
+// Mock Redux useSelector to control feature flag and state returns
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
@@ -129,21 +151,28 @@ import { useSelector } from 'react-redux';
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
+// Control variable for homepage redesign flag
 let isHomepageRedesignEnabled = true;
 
 describe('PredictTabView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset to default
     isHomepageRedesignEnabled = true;
+    // Mock useSelector to return appropriate values based on call order
+    // The component typically calls: selectHomepageRedesignV1Enabled first
     let callCount = 0;
     mockUseSelector.mockImplementation(() => {
       callCount++;
+      // First call is usually for feature flag
       if (callCount === 1) {
         return isHomepageRedesignEnabled;
       }
+      // Second call might be for chain ID or other boolean flags
       if (callCount === 2) {
-        return true;
+        return true; // selectIsEvmNetworkSelected or similar
       }
+      // Other calls return chain ID
       return '0x1';
     });
   });
@@ -152,10 +181,16 @@ describe('PredictTabView', () => {
     jest.clearAllMocks();
   });
 
-  it('displays home positions component', () => {
+  it('displays account state header component', () => {
     const { getByTestId } = renderWithProviders(<PredictTabView />);
 
-    expect(getByTestId('predict-home-positions')).toBeOnTheScreen();
+    expect(getByTestId('predict-account-state')).toBeOnTheScreen();
+  });
+
+  it('displays positions list component', () => {
+    const { getByTestId } = renderWithProviders(<PredictTabView />);
+
+    expect(getByTestId('predict-positions')).toBeOnTheScreen();
   });
 
   it('displays add funds sheet component', () => {
@@ -164,7 +199,7 @@ describe('PredictTabView', () => {
     expect(getByTestId('predict-add-funds-sheet')).toBeOnTheScreen();
   });
 
-  it('invokes refresh on home positions component when pull-to-refresh executes', async () => {
+  it('invokes refresh on account state and positions components when pull-to-refresh executes', async () => {
     isHomepageRedesignEnabled = false;
     let callCount = 0;
     mockUseSelector.mockImplementation(() => {
@@ -177,25 +212,44 @@ describe('PredictTabView', () => {
       }
       return '0x1';
     });
-    const mockRefresh = jest.fn().mockResolvedValue(undefined);
-    const PredictHomeMock = jest.requireMock('../../components/PredictHome');
-    PredictHomeMock.PredictHomePositions = React.forwardRef(
-      (
-        _props: MockPredictHomePositionsProps,
-        ref: Ref<PredictHomePositionsHandle>,
-      ) => {
+    const mockRefreshFunctions = {
+      accountState: jest.fn().mockResolvedValue(undefined),
+      positions: jest.fn().mockResolvedValue(undefined),
+    };
+    const PredictAccountStateMock = jest.requireMock(
+      '../../components/PredictPositionsHeader',
+    );
+    const PredictPositionsMock = jest.requireMock(
+      '../../components/PredictPositions/PredictPositions',
+    );
+    PredictAccountStateMock.default = React.forwardRef(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (_props: unknown, ref: any) => {
         const { View, Text } = jest.requireActual('react-native');
         React.useImperativeHandle(ref, () => ({
-          refresh: mockRefresh,
+          refresh: mockRefreshFunctions.accountState,
         }));
         return (
-          <View testID="predict-home-positions">
-            <Text>Home Positions</Text>
+          <View testID="predict-account-state">
+            <Text>Account State</Text>
           </View>
         );
       },
     );
-
+    PredictPositionsMock.default = React.forwardRef(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (_props: unknown, ref: any) => {
+        const { View, Text } = jest.requireActual('react-native');
+        React.useImperativeHandle(ref, () => ({
+          refresh: mockRefreshFunctions.positions,
+        }));
+        return (
+          <View testID="predict-positions">
+            <Text>Positions</Text>
+          </View>
+        );
+      },
+    );
     const { getByTestId } = renderWithProviders(<PredictTabView />);
     const scrollView = getByTestId(PredictTabViewSelectorsIDs.SCROLL_VIEW);
     const refreshControl = scrollView.props.refreshControl;
@@ -204,7 +258,8 @@ describe('PredictTabView', () => {
       await refreshControl.props.onRefresh();
     });
 
-    expect(mockRefresh).toHaveBeenCalledTimes(1);
+    expect(mockRefreshFunctions.accountState).toHaveBeenCalledTimes(1);
+    expect(mockRefreshFunctions.positions).toHaveBeenCalledTimes(1);
   });
 
   it('sets refreshing state to false before pull-to-refresh executes', async () => {
@@ -220,6 +275,24 @@ describe('PredictTabView', () => {
       }
       return '0x1';
     });
+    const mockRefresh = jest.fn().mockResolvedValue(undefined);
+    const PredictAccountStateMock = jest.requireMock(
+      '../../components/PredictPositionsHeader',
+    );
+    PredictAccountStateMock.default = React.forwardRef(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (_props: unknown, ref: any) => {
+        const { View, Text } = jest.requireActual('react-native');
+        React.useImperativeHandle(ref, () => ({
+          refresh: mockRefresh,
+        }));
+        return (
+          <View testID="predict-account-state">
+            <Text>Account State</Text>
+          </View>
+        );
+      },
+    );
     const { getByTestId } = renderWithProviders(<PredictTabView />);
     const scrollView = getByTestId(PredictTabViewSelectorsIDs.SCROLL_VIEW);
     const refreshControl = scrollView.props.refreshControl;
@@ -229,13 +302,58 @@ describe('PredictTabView', () => {
     expect(initialRefreshingState).toBe(false);
   });
 
+  it('invokes refresh method when pull-to-refresh completes', async () => {
+    isHomepageRedesignEnabled = false;
+    let callCount = 0;
+    mockUseSelector.mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) {
+        return isHomepageRedesignEnabled;
+      }
+      if (callCount === 2) {
+        return true;
+      }
+      return '0x1';
+    });
+    const mockRefresh = jest.fn().mockResolvedValue(undefined);
+    const PredictAccountStateMock = jest.requireMock(
+      '../../components/PredictPositionsHeader',
+    );
+    PredictAccountStateMock.default = React.forwardRef(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (_props: unknown, ref: any) => {
+        const { View, Text } = jest.requireActual('react-native');
+        React.useImperativeHandle(ref, () => ({
+          refresh: mockRefresh,
+        }));
+        return (
+          <View testID="predict-account-state">
+            <Text>Account State</Text>
+          </View>
+        );
+      },
+    );
+    const { getByTestId } = renderWithProviders(<PredictTabView />);
+    const scrollView = getByTestId(PredictTabViewSelectorsIDs.SCROLL_VIEW);
+    const refreshControl = scrollView.props.refreshControl;
+
+    await act(async () => {
+      await refreshControl.props.onRefresh();
+    });
+
+    expect(mockRefresh).toHaveBeenCalled();
+  });
+
   describe('error handling', () => {
-    it('displays error state when home positions component reports error', () => {
-      const PredictHomeMock = jest.requireMock('../../components/PredictHome');
-      PredictHomeMock.PredictHomePositions = React.forwardRef(
+    it('displays error state and hides child components when positions component reports error', () => {
+      const PredictPositionsMock = jest.requireMock(
+        '../../components/PredictPositions/PredictPositions',
+      );
+      PredictPositionsMock.default = React.forwardRef(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (
-          { onError }: MockPredictHomePositionsProps,
-          ref: Ref<PredictHomePositionsHandle>,
+          { onError }: { onError?: (error: string | null) => void },
+          ref: any,
         ) => {
           const { View, Text } = jest.requireActual('react-native');
           React.useImperativeHandle(ref, () => ({
@@ -245,8 +363,8 @@ describe('PredictTabView', () => {
             onError?.('Positions error occurred');
           }, [onError]);
           return (
-            <View testID="predict-home-positions">
-              <Text>Home Positions</Text>
+            <View testID="predict-positions">
+              <Text>Positions</Text>
             </View>
           );
         },
@@ -257,28 +375,85 @@ describe('PredictTabView', () => {
       );
 
       expect(getByTestId('predict-error-state')).toBeOnTheScreen();
-      expect(queryByTestId('predict-home-positions')).not.toBeOnTheScreen();
+      expect(queryByTestId('predict-account-state')).not.toBeOnTheScreen();
+      expect(queryByTestId('predict-positions')).not.toBeOnTheScreen();
       expect(queryByTestId('predict-add-funds-sheet')).not.toBeOnTheScreen();
     });
 
-    it('displays retry button in error state', async () => {
-      const PredictHomeMock = jest.requireMock('../../components/PredictHome');
-      let capturedOnError: ((error: string | null) => void) | undefined;
-      PredictHomeMock.PredictHomePositions = React.forwardRef(
+    it('displays error state and hides child components when header component reports error', () => {
+      const PredictAccountStateMock = jest.requireMock(
+        '../../components/PredictPositionsHeader',
+      );
+      PredictAccountStateMock.default = React.forwardRef(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (
-          { onError }: MockPredictHomePositionsProps,
-          ref: Ref<PredictHomePositionsHandle>,
+          { onError }: { onError?: (error: string | null) => void },
+          ref: any,
         ) => {
           const { View, Text } = jest.requireActual('react-native');
           React.useImperativeHandle(ref, () => ({
             refresh: jest.fn(),
           }));
           React.useEffect(() => {
-            capturedOnError = onError;
+            onError?.('Header error occurred');
           }, [onError]);
           return (
-            <View testID="predict-home-positions">
-              <Text>Home Positions</Text>
+            <View testID="predict-account-state">
+              <Text>Account State</Text>
+            </View>
+          );
+        },
+      );
+
+      const { getByTestId, queryByTestId } = renderWithProviders(
+        <PredictTabView />,
+      );
+
+      expect(getByTestId('predict-error-state')).toBeOnTheScreen();
+      expect(queryByTestId('predict-account-state')).not.toBeOnTheScreen();
+      expect(queryByTestId('predict-positions')).not.toBeOnTheScreen();
+      expect(queryByTestId('predict-add-funds-sheet')).not.toBeOnTheScreen();
+    });
+
+    it('displays retry button in error state when positions component reports error', async () => {
+      renderWithProviders(<PredictTabView />);
+      const PredictPositionsMock = jest.requireMock(
+        '../../components/PredictPositions/PredictPositions',
+      );
+      const PredictAccountStateMock = jest.requireMock(
+        '../../components/PredictPositionsHeader',
+      );
+      let positionsOnError: ((error: string | null) => void) | undefined;
+      PredictPositionsMock.default = React.forwardRef(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (
+          { onError }: { onError?: (error: string | null) => void },
+          ref: any,
+        ) => {
+          React.useEffect(() => {
+            positionsOnError = onError;
+          }, [onError]);
+          const { View, Text } = jest.requireActual('react-native');
+          React.useImperativeHandle(ref, () => ({
+            refresh: jest.fn(),
+          }));
+          return (
+            <View testID="predict-positions">
+              <Text>Positions</Text>
+            </View>
+          );
+        },
+      );
+      PredictAccountStateMock.default = React.forwardRef(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (_props: unknown, ref: any) => {
+          const { View, Text } = jest.requireActual('react-native');
+          React.useImperativeHandle(ref, () => ({
+            refresh: jest.fn(),
+          }));
+          return (
+            <View testID="predict-account-state">
+              <Text>Account State</Text>
             </View>
           );
         },
@@ -287,20 +462,23 @@ describe('PredictTabView', () => {
       rerender(<PredictTabView />);
 
       act(() => {
-        capturedOnError?.('Test error');
+        positionsOnError?.('Test error');
       });
 
       expect(getByTestId('predict-error-state')).toBeOnTheScreen();
       expect(getByTestId('retry-button')).toBeOnTheScreen();
     });
 
-    it('hides home positions component when onError callback fires', () => {
-      const PredictHomeMock = jest.requireMock('../../components/PredictHome');
+    it('hides account state component when positions onError callback fires', () => {
+      const PredictPositionsMock = jest.requireMock(
+        '../../components/PredictPositions/PredictPositions',
+      );
       let capturedOnError: ((error: string | null) => void) | undefined;
-      PredictHomeMock.PredictHomePositions = React.forwardRef(
+      PredictPositionsMock.default = React.forwardRef(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (
-          { onError }: MockPredictHomePositionsProps,
-          ref: Ref<PredictHomePositionsHandle>,
+          { onError }: { onError?: (error: string | null) => void },
+          ref: any,
         ) => {
           const { View, Text } = jest.requireActual('react-native');
           React.useImperativeHandle(ref, () => ({
@@ -310,8 +488,8 @@ describe('PredictTabView', () => {
             capturedOnError = onError;
           }, [onError]);
           return (
-            <View testID="predict-home-positions">
-              <Text>Home Positions</Text>
+            <View testID="predict-positions">
+              <Text>Positions</Text>
             </View>
           );
         },
@@ -319,10 +497,44 @@ describe('PredictTabView', () => {
       const { queryByTestId } = renderWithProviders(<PredictTabView />);
 
       act(() => {
-        capturedOnError?.('Test error');
+        capturedOnError?.('Test positions error');
       });
 
-      expect(queryByTestId('predict-home-positions')).not.toBeOnTheScreen();
+      expect(queryByTestId('predict-account-state')).not.toBeOnTheScreen();
+    });
+
+    it('hides account state component when header onError callback fires', () => {
+      const PredictAccountStateMock = jest.requireMock(
+        '../../components/PredictPositionsHeader',
+      );
+      let capturedOnError: ((error: string | null) => void) | undefined;
+      PredictAccountStateMock.default = React.forwardRef(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (
+          { onError }: { onError?: (error: string | null) => void },
+          ref: any,
+        ) => {
+          const { View, Text } = jest.requireActual('react-native');
+          React.useImperativeHandle(ref, () => ({
+            refresh: jest.fn(),
+          }));
+          React.useEffect(() => {
+            capturedOnError = onError;
+          }, [onError]);
+          return (
+            <View testID="predict-account-state">
+              <Text>Account State</Text>
+            </View>
+          );
+        },
+      );
+      const { queryByTestId } = renderWithProviders(<PredictTabView />);
+
+      act(() => {
+        capturedOnError?.('Test header error');
+      });
+
+      expect(queryByTestId('predict-account-state')).not.toBeOnTheScreen();
     });
   });
 });

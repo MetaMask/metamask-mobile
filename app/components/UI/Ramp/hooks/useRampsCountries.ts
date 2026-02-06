@@ -1,6 +1,12 @@
 import { useSelector } from 'react-redux';
-import { selectCountries } from '../../../../selectors/rampsController';
-import { type Country } from '@metamask/ramps-controller';
+import {
+  selectCountries,
+  selectCountriesRequest,
+} from '../../../../selectors/rampsController';
+import {
+  RequestSelectorResult,
+  type Country,
+} from '@metamask/ramps-controller';
 
 /**
  * Result returned by the useRampsCountries hook.
@@ -27,11 +33,15 @@ export interface UseRampsCountriesResult {
  * @returns Countries state.
  */
 export function useRampsCountries(): UseRampsCountriesResult {
-  const { data: countries, isLoading, error } = useSelector(selectCountries);
+  const countries = useSelector(selectCountries);
+
+  const { isFetching, error } = useSelector(
+    selectCountriesRequest,
+  ) as RequestSelectorResult<Country[]>;
 
   return {
     countries,
-    isLoading,
+    isLoading: isFetching,
     error,
   };
 }

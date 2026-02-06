@@ -13,12 +13,3 @@ export const selectTokenDetailsV2Enabled = createSelector(
         DEFAULT_FEATURE_FLAG_VALUES[FeatureFlagNames.tokenDetailsV2],
     ),
 );
-
-export const selectTokenDetailsV2ButtonsEnabled = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) =>
-    Boolean(
-      remoteFeatureFlags[FeatureFlagNames.tokenDetailsV2Buttons] ??
-        DEFAULT_FEATURE_FLAG_VALUES[FeatureFlagNames.tokenDetailsV2Buttons],
-    ),
-);

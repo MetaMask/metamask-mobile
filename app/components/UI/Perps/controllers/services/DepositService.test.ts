@@ -3,14 +3,12 @@ import { createMockHyperLiquidProvider } from '../../__mocks__/providerMocks';
 import {
   createMockEvmAccount,
   createMockInfrastructure,
-  createMockMessenger,
 } from '../../__mocks__/serviceMocks';
 import { generateDepositId } from '../../utils/idUtils';
 import { toHex } from '@metamask/controller-utils';
 import { parseCaipAssetId } from '@metamask/utils';
 import { generateTransferData } from '../../../../../util/transactions';
 import type { PerpsProvider, PerpsPlatformDependencies } from '../types';
-import type { PerpsControllerMessenger } from '../PerpsController';
 
 jest.mock('../../utils/idUtils');
 jest.mock('@metamask/utils');
@@ -35,7 +33,6 @@ jest.mock('@metamask/controller-utils', () => {
 describe('DepositService', () => {
   let mockProvider: jest.Mocked<PerpsProvider>;
   let mockDeps: jest.Mocked<PerpsPlatformDependencies>;
-  let mockMessenger: jest.Mocked<PerpsControllerMessenger>;
   let service: DepositService;
   const mockEvmAccount = createMockEvmAccount();
   const mockDepositId = 'deposit-123';
@@ -48,8 +45,7 @@ describe('DepositService', () => {
       createMockHyperLiquidProvider() as unknown as jest.Mocked<PerpsProvider>;
 
     mockDeps = createMockInfrastructure();
-    mockMessenger = createMockMessenger();
-    service = new DepositService(mockDeps, mockMessenger);
+    service = new DepositService(mockDeps);
 
     mockProvider.getDepositRoutes.mockReturnValue([
       {
@@ -59,15 +55,10 @@ describe('DepositService', () => {
       },
     ]);
 
-    // Setup mock EVM account via messenger
-    (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
-      if (
-        action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
-      ) {
-        return [mockEvmAccount];
-      }
-      return undefined;
-    });
+    // Setup mock EVM account via dependency injection
+    mockDeps.controllers.accounts.getSelectedEvmAccount = jest
+      .fn()
+      .mockReturnValue(mockEvmAccount);
     (generateDepositId as jest.Mock).mockReturnValue(mockDepositId);
     // Mock generateTransferData to return a valid ERC-20 transfer data
     (generateTransferData as jest.Mock).mockReturnValue(
@@ -162,25 +153,20 @@ describe('DepositService', () => {
       expect(result.transaction.data).toMatch(/^0xa9059cbb/);
     });
 
-    it('retrieves EVM account from selected account group via messenger', async () => {
+    it('retrieves EVM account from selected account group via dependency injection', async () => {
       await service.prepareTransaction({
         provider: mockProvider,
       });
 
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'AccountTreeController:getAccountsFromSelectedAccountGroup',
-      );
+      expect(
+        mockDeps.controllers.accounts.getSelectedEvmAccount,
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('throws error when no EVM account is found', async () => {
-      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
-        if (
-          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
-        ) {
-          return [];
-        }
-        return undefined;
-      });
+      mockDeps.controllers.accounts.getSelectedEvmAccount = jest
+        .fn()
+        .mockReturnValue(null);
 
       await expect(
         service.prepareTransaction({
@@ -332,8 +318,7 @@ describe('DepositService', () => {
   describe('instance isolation', () => {
     it('each instance uses its own deps', async () => {
       const mockDeps2 = createMockInfrastructure();
-      const mockMessenger2 = createMockMessenger();
-      const service2 = new DepositService(mockDeps2, mockMessenger2);
+      const service2 = new DepositService(mockDeps2);
 
       await service.prepareTransaction({ provider: mockProvider });
       await service2.prepareTransaction({ provider: mockProvider });

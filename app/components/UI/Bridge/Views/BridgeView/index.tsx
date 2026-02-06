@@ -88,7 +88,6 @@ import { useIsGasIncludedSTXSendBundleSupported } from '../../hooks/useIsGasIncl
 import { useIsGasIncluded7702Supported } from '../../hooks/useIsGasIncluded7702Supported/index.ts';
 import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
-import { useRWAToken } from '../../hooks/useRWAToken.ts';
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -126,7 +125,6 @@ const BridgeView = () => {
   const bridgeViewMode = useSelector(selectBridgeViewMode);
   const { quotesLastFetched } = useSelector(selectBridgeControllerState);
   const { handleSwitchTokens } = useSwitchTokens();
-  const { isStockToken } = useRWAToken();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
@@ -259,12 +257,8 @@ const BridgeView = () => {
   const isError = isNoQuotesAvailable || quoteFetchError;
 
   // Primary condition for keypad visibility - when input is focused or we don't have valid inputs
-  // Also hide the keypad when a new quote is loading and input field is not focused like after
-  // user changing the slippage value.
   const shouldDisplayKeypad =
-    isInputFocused ||
-    !hasValidBridgeInputs ||
-    (!activeQuote && !isError && !isLoading);
+    isInputFocused || !hasValidBridgeInputs || (!activeQuote && !isError);
   // Hide quote whenever the keypad is displayed
   const shouldDisplayQuoteDetails = activeQuote && !shouldDisplayKeypad;
 
@@ -422,15 +416,6 @@ const BridgeView = () => {
     isSelectingToken,
     isSubmittingTx,
   ]);
-  const isRWATokenSelected = useMemo(
-    () =>
-      (sourceToken && isStockToken(sourceToken as BridgeToken)) ||
-      (destToken && isStockToken(destToken as BridgeToken)),
-    [isStockToken, sourceToken, destToken],
-  );
-  const genericErrorMessage = isRWATokenSelected
-    ? strings('bridge.stock_token_error_banner_description')
-    : strings('bridge.error_banner_description');
 
   const renderBottomContent = (submitDisabled: boolean) => {
     if (shouldDisplayKeypad && !isLoading) {
@@ -458,7 +443,7 @@ const BridgeView = () => {
         <Box style={styles.buttonContainer}>
           <BannerAlert
             severity={BannerAlertSeverity.Error}
-            description={genericErrorMessage}
+            description={strings('bridge.error_banner_description')}
             onClose={() => {
               setIsErrorBannerVisible(false);
               setIsInputFocused(true);

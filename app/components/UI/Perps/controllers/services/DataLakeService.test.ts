@@ -3,11 +3,9 @@ import {
   createMockServiceContext,
   createMockEvmAccount,
   createMockInfrastructure,
-  createMockMessenger,
 } from '../../__mocks__/serviceMocks';
 import type { ServiceContext } from './ServiceContext';
 import type { PerpsPlatformDependencies } from '../types';
-import type { PerpsControllerMessenger } from '../PerpsController';
 
 jest.mock('uuid', () => ({ v4: () => 'mock-trace-id' }));
 
@@ -20,15 +18,13 @@ global.setTimeout = jest.fn((fn: () => void) => {
 describe('DataLakeService', () => {
   let mockContext: ServiceContext;
   let mockDeps: jest.Mocked<PerpsPlatformDependencies>;
-  let mockMessenger: jest.Mocked<PerpsControllerMessenger>;
   let dataLakeService: DataLakeService;
   const mockEvmAccount = createMockEvmAccount();
   const mockToken = 'mock-bearer-token';
 
   beforeEach(() => {
     mockDeps = createMockInfrastructure();
-    mockMessenger = createMockMessenger();
-    dataLakeService = new DataLakeService(mockDeps, mockMessenger);
+    dataLakeService = new DataLakeService(mockDeps);
 
     mockContext = createMockServiceContext({
       errorContext: { controller: 'DataLakeService', method: 'test' },
@@ -38,18 +34,12 @@ describe('DataLakeService', () => {
       },
     });
 
-    // Configure messenger to return expected values
-    (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
-      if (
-        action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
-      ) {
-        return [mockEvmAccount];
-      }
-      if (action === 'AuthenticationController:getBearerToken') {
-        return Promise.resolve(mockToken);
-      }
-      return undefined;
-    });
+    (
+      mockDeps.controllers.accounts.getSelectedEvmAccount as jest.Mock
+    ).mockReturnValue(mockEvmAccount);
+    (
+      mockDeps.controllers.authentication.getBearerToken as jest.Mock
+    ).mockResolvedValue(mockToken);
     jest.clearAllMocks();
   });
 
@@ -91,9 +81,9 @@ describe('DataLakeService', () => {
       });
 
       expect(result).toEqual({ success: true });
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'AuthenticationController:getBearerToken',
-      );
+      expect(
+        mockDeps.controllers.authentication.getBearerToken,
+      ).toHaveBeenCalled();
       expect(fetch).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
@@ -145,17 +135,9 @@ describe('DataLakeService', () => {
     });
 
     it('returns error when account is missing', async () => {
-      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
-        if (
-          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
-        ) {
-          return [];
-        }
-        if (action === 'AuthenticationController:getBearerToken') {
-          return Promise.resolve(mockToken);
-        }
-        return undefined;
-      });
+      (
+        mockDeps.controllers.accounts.getSelectedEvmAccount as jest.Mock
+      ).mockReturnValue(null);
 
       const result = await dataLakeService.reportOrder({
         action: 'open',
@@ -176,17 +158,9 @@ describe('DataLakeService', () => {
     });
 
     it('returns error when token is missing', async () => {
-      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
-        if (
-          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
-        ) {
-          return [mockEvmAccount];
-        }
-        if (action === 'AuthenticationController:getBearerToken') {
-          return Promise.resolve(null);
-        }
-        return undefined;
-      });
+      (
+        mockDeps.controllers.authentication.getBearerToken as jest.Mock
+      ).mockResolvedValue(null);
 
       const result = await dataLakeService.reportOrder({
         action: 'open',

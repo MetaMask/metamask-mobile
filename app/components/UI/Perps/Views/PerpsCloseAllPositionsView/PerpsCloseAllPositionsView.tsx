@@ -36,8 +36,8 @@ import { useTheme } from '../../../../../util/theme';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
+  PerpsEventProperties,
+  PerpsEventValues,
 } from '../../constants/eventNames';
 import type { ClosePositionsResult } from '../../controllers/types';
 
@@ -87,9 +87,9 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     conditions: [!isInitialLoading],
     properties: {
-      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-        PERPS_EVENT_VALUE.SCREEN_TYPE.CLOSE_ALL_POSITIONS,
-      [PERPS_EVENT_PROPERTY.OPEN_POSITION]: positions?.length || 0,
+      [PerpsEventProperties.SCREEN_TYPE]:
+        PerpsEventValues.SCREEN_TYPE.CLOSE_ALL_POSITIONS,
+      [PerpsEventProperties.OPEN_POSITION]: positions?.length || 0,
     },
   });
 

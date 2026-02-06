@@ -50,8 +50,8 @@ import Logger from '../../../../../util/Logger';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import {
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
+  PerpsEventProperties,
+  PerpsEventValues,
 } from '../../constants/eventNames';
 import { buildReferralUrl } from '../../../Rewards/utils';
 import { usePerpsToasts } from '../../hooks';
@@ -63,7 +63,6 @@ import {
 import { useReferralDetails } from '../../../Rewards/hooks/useReferralDetails';
 import { useSeasonStatus } from '../../../Rewards/hooks/useSeasonStatus';
 import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
-import { ensureError } from '../../../../../util/errorUtils';
 
 // To add a new card, add the image to the array.
 const CARD_IMAGES: { image: ImageSourcePropType; id: number; name: string }[] =
@@ -146,23 +145,23 @@ const PerpsHeroCardView: React.FC = () => {
   // Track PnL hero card screen viewed
   // Determine entry point: asset_screen or close_toast
   const entryPoint =
-    source === PERPS_EVENT_VALUE.SOURCE.CLOSE_TOAST
-      ? PERPS_EVENT_VALUE.SOURCE.CLOSE_TOAST
-      : PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN;
+    source === PerpsEventValues.SOURCE.CLOSE_TOAST
+      ? PerpsEventValues.SOURCE.CLOSE_TOAST
+      : PerpsEventValues.SOURCE.PERP_ASSET_SCREEN;
 
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     properties: {
-      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-        PERPS_EVENT_VALUE.SCREEN_TYPE.PNL_HERO_CARD,
-      [PERPS_EVENT_PROPERTY.ASSET]: position.symbol,
-      [PERPS_EVENT_PROPERTY.DIRECTION]:
+      [PerpsEventProperties.SCREEN_TYPE]:
+        PerpsEventValues.SCREEN_TYPE.PNL_HERO_CARD,
+      [PerpsEventProperties.ASSET]: position.symbol,
+      [PerpsEventProperties.DIRECTION]:
         data.direction === 'long'
-          ? PERPS_EVENT_VALUE.DIRECTION.LONG
-          : PERPS_EVENT_VALUE.DIRECTION.SHORT,
-      [PERPS_EVENT_PROPERTY.SOURCE]: entryPoint,
-      [PERPS_EVENT_PROPERTY.PNL_DOLLAR]: data.pnl,
-      [PERPS_EVENT_PROPERTY.PNL_PERCENT]: data.roe,
+          ? PerpsEventValues.DIRECTION.LONG
+          : PerpsEventValues.DIRECTION.SHORT,
+      [PerpsEventProperties.SOURCE]: entryPoint,
+      [PerpsEventProperties.PNL_DOLLAR]: data.pnl,
+      [PerpsEventProperties.PNL_PERCENT]: data.roe,
     },
   });
 
@@ -171,16 +170,16 @@ const PerpsHeroCardView: React.FC = () => {
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_UI_INTERACTION,
     properties: {
-      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-        PERPS_EVENT_VALUE.INTERACTION_TYPE.DISPLAY_HERO_CARD,
-      [PERPS_EVENT_PROPERTY.ASSET]: position.symbol,
-      [PERPS_EVENT_PROPERTY.DIRECTION]:
+      [PerpsEventProperties.INTERACTION_TYPE]:
+        PerpsEventValues.INTERACTION_TYPE.DISPLAY_HERO_CARD,
+      [PerpsEventProperties.ASSET]: position.symbol,
+      [PerpsEventProperties.DIRECTION]:
         data.direction === 'long'
-          ? PERPS_EVENT_VALUE.DIRECTION.LONG
-          : PERPS_EVENT_VALUE.DIRECTION.SHORT,
-      [PERPS_EVENT_PROPERTY.SOURCE]: entryPoint,
-      [PERPS_EVENT_PROPERTY.PNL_DOLLAR]: data.pnl,
-      [PERPS_EVENT_PROPERTY.PNL_PERCENT]: data.roe,
+          ? PerpsEventValues.DIRECTION.LONG
+          : PerpsEventValues.DIRECTION.SHORT,
+      [PerpsEventProperties.SOURCE]: entryPoint,
+      [PerpsEventProperties.PNL_DOLLAR]: data.pnl,
+      [PerpsEventProperties.PNL_PERCENT]: data.roe,
     },
   });
 
@@ -363,7 +362,7 @@ const PerpsHeroCardView: React.FC = () => {
       }
       return null;
     } catch (error) {
-      Logger.error(ensureError(error), {
+      Logger.error(error as Error, {
         message: 'Error capturing Perps Hero Card',
         context: 'PerpsHeroCardView.captureCard',
       });
@@ -376,16 +375,16 @@ const PerpsHeroCardView: React.FC = () => {
     const imageSelected = CARD_IMAGES[currentTab].name;
 
     const sharedEventProperties = {
-      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-        PERPS_EVENT_VALUE.INTERACTION_TYPE.SHARE_PNL_HERO_CARD,
-      [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
-        PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_HERO_CARD,
-      [PERPS_EVENT_PROPERTY.ASSET]: data.asset,
-      [PERPS_EVENT_PROPERTY.DIRECTION]: data.direction,
-      [PERPS_EVENT_PROPERTY.LEVERAGE]: data.leverage,
-      [PERPS_EVENT_PROPERTY.PNL_PERCENT]: pnlDisplay,
-      [PERPS_EVENT_PROPERTY.IMAGE_SELECTED]: imageSelected,
-      [PERPS_EVENT_PROPERTY.TAB_NUMBER]: currentTab,
+      [PerpsEventProperties.INTERACTION_TYPE]:
+        PerpsEventValues.INTERACTION_TYPE.SHARE_PNL_HERO_CARD,
+      [PerpsEventProperties.SCREEN_NAME]:
+        PerpsEventValues.SCREEN_NAME.PERPS_HERO_CARD,
+      [PerpsEventProperties.ASSET]: data.asset,
+      [PerpsEventProperties.DIRECTION]: data.direction,
+      [PerpsEventProperties.LEVERAGE]: data.leverage,
+      [PerpsEventProperties.PNL_PERCENT]: pnlDisplay,
+      [PerpsEventProperties.IMAGE_SELECTED]: imageSelected,
+      [PerpsEventProperties.TAB_NUMBER]: currentTab,
     };
 
     let result: ShareOpenResult | null = null;
@@ -395,7 +394,7 @@ const PerpsHeroCardView: React.FC = () => {
       if (imageUri) {
         track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
           ...sharedEventProperties,
-          [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.INITIATED,
+          [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.INITIATED,
         });
 
         const message = effectiveReferralCode
@@ -419,7 +418,7 @@ const PerpsHeroCardView: React.FC = () => {
         if (result?.success) {
           track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
             ...sharedEventProperties,
-            [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.SUCCESS,
+            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.SUCCESS,
           });
           showToast(PerpsToastOptions.contentSharing.pnlHeroCard.shareSuccess);
         }
@@ -430,8 +429,8 @@ const PerpsHeroCardView: React.FC = () => {
 
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         ...sharedEventProperties,
-        [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
-        [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
+        [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
+        [PerpsEventProperties.ERROR_MESSAGE]: errorMessage,
       });
 
       // Don't show error toast if user dismissed the share dialog
@@ -439,7 +438,7 @@ const PerpsHeroCardView: React.FC = () => {
         showToast(PerpsToastOptions.contentSharing.pnlHeroCard.shareFailed);
       }
 
-      Logger.error(ensureError(error), {
+      Logger.error(error as Error, {
         message: 'Error sharing Perps Hero Card',
         context: 'PerpsHeroCardView.handleShare',
       });

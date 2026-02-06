@@ -12,8 +12,6 @@ import { useSelector } from 'react-redux';
 import { TransactionType } from '@metamask/transaction-controller';
 import { selectMusdConversionEducationSeen } from '../../../../reducers/user';
 import { trace, TraceName, TraceOperation } from '../../../../util/trace';
-import { RootState } from '../../../../reducers';
-import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 
 const mockTrace = trace as jest.MockedFunction<typeof trace>;
 
@@ -85,44 +83,21 @@ describe('useMusdConversion', () => {
   const setupUseSelectorMock = ({
     selectedAccount = mockSelectedAccount,
     hasSeenConversionEducationScreen = true,
-    pendingApprovals = {},
-    transactions = [],
   }: {
     selectedAccount?: typeof mockSelectedAccount | null;
     hasSeenConversionEducationScreen?: boolean;
-    pendingApprovals?: Record<string, unknown>;
-    transactions?: {
-      id: string;
-      type?: TransactionType;
-      chainId?: Hex;
-      txParams?: { from?: string };
-    }[];
   } = {}) => {
+    const mockAccountSelector = jest.fn(() => selectedAccount);
     mockUseSelector.mockReset();
-    const mockState = {
-      engine: {
-        backgroundState: {
-          ApprovalController: {
-            pendingApprovals,
-          },
-          TransactionController: {
-            transactions,
-          },
-        },
-      },
-    } as unknown as RootState;
-
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectMusdConversionEducationSeen) {
         return hasSeenConversionEducationScreen;
       }
 
-      if (selector === selectSelectedInternalAccountByScope) {
-        return () => selectedAccount;
-      }
-
-      return selector(mockState);
+      return mockAccountSelector;
     });
+
+    return { mockAccountSelector };
   };
 
   beforeEach(() => {
@@ -166,9 +141,7 @@ describe('useMusdConversion', () => {
 
       const { result } = renderHook(() => useMusdConversion());
 
-      await act(async () => {
-        await result.current.initiateConversion(mockConfig);
-      });
+      await result.current.initiateConversion(mockConfig);
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
         screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
@@ -180,109 +153,6 @@ describe('useMusdConversion', () => {
           },
         },
       });
-    });
-
-    it('returns same transaction ID for concurrent initiations before approval exists', async () => {
-      setupUseSelectorMock();
-
-      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
-        'mainnet',
-      );
-
-      let resolveAddTransaction!: (value: {
-        transactionMeta: { id: string };
-      }) => void;
-      const addTransactionPromise = new Promise<{
-        transactionMeta: { id: string };
-      }>((resolve) => {
-        resolveAddTransaction = resolve;
-      });
-      mockTransactionController.addTransaction.mockReturnValue(
-        addTransactionPromise,
-      );
-
-      const { result } = renderHook(() => useMusdConversion());
-
-      let transactionIds!: [string | void, string | void];
-      await act(async () => {
-        const firstCall = result.current.initiateConversion(mockConfig);
-        const secondCall = result.current.initiateConversion(mockConfig);
-
-        resolveAddTransaction({ transactionMeta: { id: 'tx-123' } });
-
-        transactionIds = await Promise.all([firstCall, secondCall]);
-      });
-
-      expect(transactionIds).toEqual(['tx-123', 'tx-123']);
-      expect(
-        mockNetworkController.findNetworkClientIdByChainId,
-      ).toHaveBeenCalledTimes(1);
-      expect(mockTransactionController.addTransaction).toHaveBeenCalledTimes(1);
-      expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
-    });
-
-    it('returns existing pending musdConversion transaction ID for same account and chain', async () => {
-      setupUseSelectorMock({
-        pendingApprovals: {
-          'tx-existing': { id: 'tx-existing' },
-        },
-        transactions: [
-          {
-            id: 'tx-existing',
-            type: TransactionType.musdConversion,
-            chainId: '0x1',
-            txParams: { from: mockSelectedAccount.address },
-          },
-        ],
-      });
-
-      const { result } = renderHook(() => useMusdConversion());
-
-      let transactionId!: string | void;
-      await act(async () => {
-        transactionId = await result.current.initiateConversion(mockConfig);
-      });
-
-      expect(transactionId).toBe('tx-existing');
-      expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
-      expect(
-        mockNetworkController.findNetworkClientIdByChainId,
-      ).not.toHaveBeenCalled();
-      expect(mockTransactionController.addTransaction).not.toHaveBeenCalled();
-    });
-
-    it('returns existing pending musdConversion transaction ID with mixed-case chainId and from address', async () => {
-      setupUseSelectorMock({
-        pendingApprovals: {
-          'tx-existing': { id: 'tx-existing' },
-        },
-        transactions: [
-          {
-            id: 'tx-existing',
-            type: TransactionType.musdConversion,
-            chainId: '0x1',
-            txParams: {
-              from: mockSelectedAccount.address.toUpperCase() as unknown as string,
-            },
-          },
-        ],
-      });
-
-      const { result } = renderHook(() => useMusdConversion());
-
-      let transactionId!: string | void;
-      await act(async () => {
-        transactionId = await result.current.initiateConversion({
-          preferredPaymentToken: {
-            ...mockConfig.preferredPaymentToken,
-            chainId: '0x1' as Hex,
-          },
-        });
-      });
-
-      expect(transactionId).toBe('tx-existing');
-      expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
-      expect(mockTransactionController.addTransaction).not.toHaveBeenCalled();
     });
 
     it('creates transaction with correct data structure', async () => {
@@ -297,9 +167,7 @@ describe('useMusdConversion', () => {
 
       const { result } = renderHook(() => useMusdConversion());
 
-      await act(async () => {
-        await result.current.initiateConversion(mockConfig);
-      });
+      await result.current.initiateConversion(mockConfig);
 
       expect(mockTransactionController.addTransaction).toHaveBeenCalledWith(
         {
@@ -374,10 +242,7 @@ describe('useMusdConversion', () => {
 
       const { result } = renderHook(() => useMusdConversion());
 
-      let transactionId!: string | void;
-      await act(async () => {
-        transactionId = await result.current.initiateConversion(mockConfig);
-      });
+      const transactionId = await result.current.initiateConversion(mockConfig);
 
       expect(transactionId).toBeUndefined();
       expect(mockTransactionController.addTransaction).not.toHaveBeenCalled();
@@ -410,12 +275,9 @@ describe('useMusdConversion', () => {
 
       const { result } = renderHook(() => useMusdConversion());
 
-      let transactionId!: string | void;
-      await act(async () => {
-        transactionId = await result.current.initiateConversion({
-          ...mockConfig,
-          skipEducationCheck: true,
-        });
+      const transactionId = await result.current.initiateConversion({
+        ...mockConfig,
+        skipEducationCheck: true,
       });
 
       expect(transactionId).toBe('tx-123');
@@ -472,9 +334,7 @@ describe('useMusdConversion', () => {
         navigationStack: 'CustomStack',
       };
 
-      await act(async () => {
-        await result.current.initiateConversion(configWithCustomStack);
-      });
+      await result.current.initiateConversion(configWithCustomStack);
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith('CustomStack', {
         screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
@@ -500,10 +360,7 @@ describe('useMusdConversion', () => {
 
       const { result } = renderHook(() => useMusdConversion());
 
-      let transactionId!: string | void;
-      await act(async () => {
-        transactionId = await result.current.initiateConversion(mockConfig);
-      });
+      const transactionId = await result.current.initiateConversion(mockConfig);
 
       expect(transactionId).toBe('tx-123');
     });
@@ -520,9 +377,7 @@ describe('useMusdConversion', () => {
 
       const { result } = renderHook(() => useMusdConversion());
 
-      await act(async () => {
-        await result.current.initiateConversion(mockConfig);
-      });
+      await result.current.initiateConversion(mockConfig);
 
       expect(mockTrace).toHaveBeenCalledWith({
         name: TraceName.MusdConversionNavigation,
@@ -554,9 +409,7 @@ describe('useMusdConversion', () => {
 
       const { result } = renderHook(() => useMusdConversion());
 
-      await act(async () => {
-        await result.current.initiateConversion(mockConfig);
-      });
+      await result.current.initiateConversion(mockConfig);
 
       expect(callOrder).toEqual(['trace', 'navigate']);
     });

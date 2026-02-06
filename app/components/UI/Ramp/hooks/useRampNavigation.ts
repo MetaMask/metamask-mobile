@@ -17,7 +17,6 @@ import {
 } from '../../../../reducers/fiatOrders';
 import { createRampUnsupportedModalNavigationDetails } from '../components/RampUnsupportedModal/RampUnsupportedModal';
 import { createEligibilityFailedModalNavigationDetails } from '../components/EligibilityFailedModal/EligibilityFailedModal';
-import { useRampsTokens } from './useRampsTokens';
 
 enum RampMode {
   AGGREGATOR = 'AGGREGATOR',
@@ -38,7 +37,6 @@ export const useRampNavigation = () => {
   const isRampsUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   const isRampsUnifiedV2Enabled = useRampsUnifiedV2Enabled();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
-  const { setSelectedToken } = useRampsTokens();
 
   const goToBuy = useCallback(
     (
@@ -76,8 +74,6 @@ export const useRampNavigation = () => {
         intent?.assetId &&
         !overrideUnifiedRouting
       ) {
-        // TODO: Check for provider support for the token and pass params to BuildQuote to show an error modal
-        setSelectedToken(intent.assetId);
         navigation.navigate(
           ...createBuildQuoteNavDetails({ assetId: intent.assetId }),
         );
@@ -119,7 +115,6 @@ export const useRampNavigation = () => {
       }
     },
     [
-      setSelectedToken,
       navigation,
       isRampsUnifiedV1Enabled,
       isRampsUnifiedV2Enabled,

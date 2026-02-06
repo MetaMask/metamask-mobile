@@ -19,8 +19,6 @@ import useCopyClipboard, {
 } from '../hooks/useCopyClipboard';
 import useStyles from '../useStyles';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { EVENT_NAME } from '../../../../../core/Analytics/MetaMetrics.events';
 
 type AddressFieldProps = ModalFieldAddress;
 
@@ -28,21 +26,8 @@ function AddressField(props: AddressFieldProps) {
   const { label, address } = props;
   const { styles } = useStyles();
   const copyToClipboard = useCopyClipboard();
-  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const accountAvatarType = useSelector(selectAvatarAccountType);
-
-  const handleCopy = () => {
-    copyToClipboard(address, CopyClipboardAlertMessage.address());
-
-    trackEvent(
-      createEventBuilder(EVENT_NAME.ADDRESS_COPIED)
-        .addProperties({
-          location: 'notification-details',
-        })
-        .build(),
-    );
-  };
 
   return (
     <View style={styles.row}>
@@ -56,10 +41,11 @@ function AddressField(props: AddressFieldProps) {
       <View style={styles.boxLeft}>
         <Text variant={TextVariant.BodyLGMedium}>{label}</Text>
         <Pressable
-          onPress={handleCopy}
+          onPress={() =>
+            copyToClipboard(address, CopyClipboardAlertMessage.address())
+          }
           hitSlop={{ top: 24, bottom: 24, left: 24, right: 24 }}
           style={styles.copyContainer}
-          testID="address-field-copy-button"
         >
           <EthereumAddress
             style={styles.addressLinkLabel}

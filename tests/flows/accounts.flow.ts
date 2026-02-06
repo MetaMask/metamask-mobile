@@ -62,7 +62,7 @@ export const goToAccountActions = async (accountIndex: number) => {
   await WalletView.tapIdenticon();
   await Assertions.expectElementToBeVisible(AccountListBottomSheet.accountList);
   await AccountListBottomSheet.tapEditAccountActionsAtIndex(accountIndex);
-  await AccountDetails.tapAccountSrpLink();
+  await AccountDetails.tapExportSrpButton();
 };
 
 export const startExportForKeyring = async (keyringId: string) => {

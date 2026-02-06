@@ -1,5 +1,6 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useWindowDimensions } from 'react-native';
+
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -16,8 +17,6 @@ import { useStyles } from '../../../../../../../component-library/hooks/useStyle
 import styleSheet from './WebviewModal.styles';
 import ErrorView from '../../../components/ErrorView';
 import Device from '../../../../../../../util/device';
-import Logger from '../../../../../../../util/Logger';
-import { shouldStartLoadWithRequest } from '../../../../../../../util/browser';
 
 export interface WebviewModalParams {
   sourceUrl: string;
@@ -51,11 +50,6 @@ function WebviewModal() {
     }
   };
 
-  const handleShouldStartLoadWithRequest = useCallback(
-    ({ url }: { url: string }) => shouldStartLoadWithRequest(url, Logger),
-    [],
-  );
-
   return (
     <BottomSheet
       ref={sheetRef}
@@ -75,7 +69,6 @@ function WebviewModal() {
               style={styles.webview}
               source={{ uri: sourceUrl }}
               onNavigationStateChange={handleNavigationStateChangeWithDedup}
-              onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
               onHttpError={(syntheticEvent) => {
                 const { nativeEvent } = syntheticEvent;
                 if (nativeEvent.url === sourceUrl) {

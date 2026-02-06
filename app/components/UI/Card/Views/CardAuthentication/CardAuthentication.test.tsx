@@ -3,6 +3,7 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import CardAuthentication from './CardAuthentication';
 import Routes from '../../../../../constants/navigation/Routes';
 import { CardAuthenticationSelectors } from './CardAuthentication.testIds';
+import { CardLocation } from '../../types';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 // Mock whenEngineReady to prevent async polling after test teardown
@@ -281,7 +282,7 @@ describe('CardAuthentication Component', () => {
   });
 
   describe('Login Step - Login Functionality', () => {
-    it('calls login with correct parameters', async () => {
+    it('calls login with correct parameters for international location', async () => {
       render();
       const emailInput = screen.getByTestId('email-field');
       const passwordInput = screen.getByTestId('password-field');
@@ -295,13 +296,14 @@ describe('CardAuthentication Component', () => {
 
       await waitFor(() => {
         expect(mockLogin).toHaveBeenCalledWith({
+          location: 'international',
           email: 'test@example.com',
           password: 'password123',
         });
       });
     });
 
-    it('calls login after selecting US location', async () => {
+    it('calls login with US location when selected', async () => {
       render();
       const usBox = screen.getByTestId('us-location-box');
       const emailInput = screen.getByTestId('email-field');
@@ -317,6 +319,7 @@ describe('CardAuthentication Component', () => {
 
       await waitFor(() => {
         expect(mockLogin).toHaveBeenCalledWith({
+          location: 'us' as CardLocation,
           email: 'test@example.com',
           password: 'password123',
         });
@@ -380,6 +383,7 @@ describe('CardAuthentication Component', () => {
 
       await waitFor(() => {
         expect(mockLogin).toHaveBeenCalledWith({
+          location: 'international',
           email: 'test@example.com',
           password: 'password123',
         });

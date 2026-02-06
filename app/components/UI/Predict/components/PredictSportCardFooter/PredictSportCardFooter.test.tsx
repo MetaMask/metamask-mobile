@@ -53,10 +53,6 @@ jest.mock('../../../Trending/services/TrendingFeedSessionManager', () => ({
   },
 }));
 
-jest.mock('../../contexts', () => ({
-  usePredictEntryPoint: () => undefined,
-}));
-
 jest.mock('../PredictActionButtons', () => {
   const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
   return {

@@ -1,9 +1,9 @@
-import { renderHook, act } from '@testing-library/react-native';
+import { renderHook, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
 import { useRampsUserRegion } from './useRampsUserRegion';
-import { UserRegion } from '@metamask/ramps-controller';
+import { RequestStatus, UserRegion } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
 
 const mockUserRegion: UserRegion = {
@@ -44,19 +44,22 @@ jest.mock('../../../../core/Engine', () => {
   return {
     context: {
       RampsController: {
+        init: jest.fn().mockResolvedValue(mockUserRegionValue),
         setUserRegion: jest.fn().mockResolvedValue(mockUserRegionValue),
       },
     },
   };
 });
 
-const createMockStore = (userRegion: UserRegion | null = null) =>
+const createMockStore = (rampsControllerState = {}) =>
   configureStore({
     reducer: {
       engine: () => ({
         backgroundState: {
           RampsController: {
-            userRegion,
+            userRegion: null,
+            requests: {},
+            ...rampsControllerState,
           },
         },
       }),
@@ -74,25 +77,118 @@ describe('useRampsUserRegion', () => {
   });
 
   describe('return value structure', () => {
-    it('returns userRegion and setUserRegion', () => {
+    it('returns userRegion, isLoading, error, fetchUserRegion, and setUserRegion', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
       expect(result.current).toMatchObject({
         userRegion: null,
+        isLoading: false,
+        error: null,
       });
+      expect(typeof result.current.fetchUserRegion).toBe('function');
       expect(typeof result.current.setUserRegion).toBe('function');
     });
   });
 
   describe('userRegion state', () => {
     it('returns userRegion from state', () => {
-      const store = createMockStore(mockUserRegion);
+      const store = createMockStore({ userRegion: mockUserRegion });
       const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
       expect(result.current.userRegion).toEqual(mockUserRegion);
+    });
+  });
+
+  describe('loading state', () => {
+    it('returns isLoading true when request is loading', () => {
+      const store = createMockStore({
+        requests: {
+          'init:[]': {
+            status: RequestStatus.LOADING,
+            data: null,
+            error: null,
+            timestamp: Date.now(),
+            lastFetchedAt: Date.now(),
+          },
+        },
+      });
+      const { result } = renderHook(() => useRampsUserRegion(), {
+        wrapper: wrapper(store),
+      });
+      expect(result.current.isLoading).toBe(true);
+    });
+  });
+
+  describe('error state', () => {
+    it('returns error from request state', () => {
+      const store = createMockStore({
+        requests: {
+          'init:[]': {
+            status: RequestStatus.ERROR,
+            data: null,
+            error: 'Network error',
+            timestamp: Date.now(),
+            lastFetchedAt: Date.now(),
+          },
+        },
+      });
+      const { result } = renderHook(() => useRampsUserRegion(), {
+        wrapper: wrapper(store),
+      });
+      expect(result.current.error).toBe('Network error');
+    });
+  });
+
+  describe('fetchUserRegion', () => {
+    it('calls init without options when called with no arguments', async () => {
+      const store = createMockStore();
+      const { result } = renderHook(() => useRampsUserRegion(), {
+        wrapper: wrapper(store),
+      });
+      await result.current.fetchUserRegion();
+      expect(Engine.context.RampsController.init).toHaveBeenCalledWith(
+        undefined,
+      );
+    });
+
+    it('calls init with forceRefresh true when specified', async () => {
+      const store = createMockStore();
+      const { result } = renderHook(() => useRampsUserRegion(), {
+        wrapper: wrapper(store),
+      });
+      await result.current.fetchUserRegion({ forceRefresh: true });
+      expect(Engine.context.RampsController.init).toHaveBeenCalledWith({
+        forceRefresh: true,
+      });
+    });
+
+    it('calls init with forceRefresh false when specified', async () => {
+      const store = createMockStore();
+      const { result } = renderHook(() => useRampsUserRegion(), {
+        wrapper: wrapper(store),
+      });
+      await result.current.fetchUserRegion({ forceRefresh: false });
+      expect(Engine.context.RampsController.init).toHaveBeenCalledWith({
+        forceRefresh: false,
+      });
+    });
+
+    it('rejects with error when init fails', async () => {
+      const store = createMockStore();
+      const mockInit = Engine.context.RampsController.init as jest.Mock;
+      mockInit.mockReset();
+      mockInit.mockRejectedValue(new Error('Network error'));
+
+      const { result } = renderHook(() => useRampsUserRegion(), {
+        wrapper: wrapper(store),
+      });
+
+      await expect(result.current.fetchUserRegion()).rejects.toThrow(
+        'Network error',
+      );
     });
   });
 
@@ -102,11 +198,7 @@ describe('useRampsUserRegion', () => {
       const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
-
-      await act(async () => {
-        await result.current.setUserRegion('US-CA');
-      });
-
+      await result.current.setUserRegion('US-CA');
       expect(Engine.context.RampsController.setUserRegion).toHaveBeenCalledWith(
         'US-CA',
         undefined,
@@ -118,15 +210,35 @@ describe('useRampsUserRegion', () => {
       const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
-
-      await act(async () => {
-        await result.current.setUserRegion('US-CA', { forceRefresh: true });
-      });
-
+      await result.current.setUserRegion('US-CA', { forceRefresh: true });
       expect(Engine.context.RampsController.setUserRegion).toHaveBeenCalledWith(
         'US-CA',
         { forceRefresh: true },
       );
+    });
+  });
+
+  describe('useEffect error handling', () => {
+    it('returns default state when fetchUserRegion rejects in useEffect', async () => {
+      const store = createMockStore();
+      const mockInit = Engine.context.RampsController.init as jest.Mock;
+      mockInit.mockReset();
+      mockInit.mockRejectedValue(new Error('Fetch failed'));
+
+      const { result } = renderHook(() => useRampsUserRegion(), {
+        wrapper: wrapper(store),
+      });
+
+      await waitFor(() => {
+        expect(mockInit).toHaveBeenCalled();
+      });
+
+      expect(result.current).toMatchObject({
+        userRegion: null,
+        isLoading: false,
+        error: null,
+      });
+      expect(typeof result.current.fetchUserRegion).toBe('function');
     });
   });
 });
