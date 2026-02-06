@@ -1,7 +1,7 @@
-import { ensureError } from '../../../../../util/errorUtils';
+import { ensureError } from '../utils/errorUtils';
 import { isTPSLOrder } from '../constants/orderTypes';
 import { v4 as uuidv4 } from 'uuid';
-import { PerpsMeasurementName } from '../../constants/performanceMetrics';
+import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import type { RewardsIntegrationService } from './RewardsIntegrationService';
 import {
   PERPS_EVENT_PROPERTY,

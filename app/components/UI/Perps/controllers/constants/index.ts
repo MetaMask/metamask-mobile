@@ -7,3 +7,4 @@ export * from './hyperLiquidConfig';
 export * from './orderTypes';
 export * from './perpsConfig';
 export * from './transactionsHistoryConfig';
+export * from './performanceMetrics';

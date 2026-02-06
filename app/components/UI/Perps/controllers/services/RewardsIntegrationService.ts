@@ -1,4 +1,4 @@
-import { ensureError } from '../../../../../util/errorUtils';
+import { ensureError } from '../utils/errorUtils';
 import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
 import type { PerpsControllerMessenger } from '../PerpsController';
 import type { PerpsPlatformDependencies } from '../types';

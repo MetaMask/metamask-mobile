@@ -1,6 +1,6 @@
 import { hasProperty } from '@metamask/utils';
 import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
-import { ensureError } from '../../../../../util/errorUtils';
+import { ensureError } from '../utils/errorUtils';
 import {
   parseCommaSeparatedString,
   stripQuotes,

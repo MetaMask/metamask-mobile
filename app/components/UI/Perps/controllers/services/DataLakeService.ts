@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
-import { ensureError } from '../../../../../util/errorUtils';
-import { PerpsMeasurementName } from '../../constants/performanceMetrics';
+import { ensureError } from '../utils/errorUtils';
+import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import { DATA_LAKE_API_CONFIG } from '../constants/perpsConfig';
 import type { ServiceContext } from './ServiceContext';
 import {

@@ -29,7 +29,7 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '../constants/eventNames';
-import { ensureError } from '../../../../util/errorUtils';
+import { ensureError } from './utils/errorUtils';
 import type { CandleData } from '../types/perps-types';
 import { CandlePeriod } from '../constants/chartConfig';
 import {

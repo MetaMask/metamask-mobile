@@ -10,7 +10,7 @@ import {
   CaipAccountId,
   parseCaipChainId,
 } from '@metamask/utils';
-import { ensureError } from '../../../../../util/errorUtils';
+import { ensureError } from './errorUtils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import type { PerpsLogger } from '../types';

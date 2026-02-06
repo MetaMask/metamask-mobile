@@ -1,6 +1,6 @@
 import { successfulFetch } from '@metamask/controller-utils';
 import { getEnvironment } from '../utils';
-import { ensureError } from '../../../../../util/errorUtils';
+import { ensureError } from '../utils/errorUtils';
 import type {
   PerpsPlatformDependencies,
   CheckEligibilityParams,

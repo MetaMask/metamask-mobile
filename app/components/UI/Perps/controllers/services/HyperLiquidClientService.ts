@@ -12,7 +12,7 @@ import type { CandleData } from '../types/perps-types';
 
 import { CandlePeriod, calculateCandleCount } from '../constants/chartConfig';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
-import { ensureError } from '../../../../../util/errorUtils';
+import { ensureError } from '../utils/errorUtils';
 import {
   WebSocketConnectionState,
   type SubscribeCandlesParams,

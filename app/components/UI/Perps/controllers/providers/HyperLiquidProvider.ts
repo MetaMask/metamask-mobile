@@ -1,7 +1,7 @@
 import { CaipAccountId, type Hex } from '@metamask/utils';
 import { createStandaloneInfoClient } from '../utils/standaloneInfoClient';
 import { v4 as uuidv4 } from 'uuid';
-import { ensureError } from '../../../../../util/errorUtils';
+import { ensureError } from '../utils/errorUtils';
 import {
   BASIS_POINTS_DIVISOR,
   BUILDER_FEE_CONFIG,

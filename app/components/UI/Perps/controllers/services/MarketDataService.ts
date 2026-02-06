@@ -1,6 +1,6 @@
-import { ensureError } from '../../../../../util/errorUtils';
+import { ensureError } from '../utils/errorUtils';
 import { v4 as uuidv4 } from 'uuid';
-import { PerpsMeasurementName } from '../../constants/performanceMetrics';
+import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import type { ServiceContext } from './ServiceContext';
 import {

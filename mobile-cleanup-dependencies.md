@@ -1,259 +1,127 @@
-# Perps Controller Dependency Cleanup — Progress Tracker
+# Perps Controller Portability — Migration Guide
 
 > **Goal**: Make `controllers/` fully portable so it can be published as `@metamask/perps-controller` without any Mobile-specific imports. Per ADR-041, Mobile is the source of truth; the sync script simply copies `controllers/`.
 
----
-
-## PR 1: Move constants + types + portable utils ✅
-
-All items completed and verified (tests passing, TypeScript clean).
-
-### Constants → `controllers/constants/`
-
-- [x] `hyperLiquidConfig.ts` — moved (no external deps)
-- [x] `transactionsHistoryConfig.ts` — moved (no imports)
-- [x] `eventNames.ts` — moved (no imports)
-- [x] `orderTypes.ts` — moved (no imports)
-- [x] `chartConfig.ts` — **split**: portable enums/calculations in `controllers/constants/chartConfig.ts`, UI parts (`PERPS_CHART_CONFIG`, `getCandlestickColors`, `CHART_INTERVALS`, `TIME_DURATIONS`) stay in `constants/chartConfig.ts`
-- [x] `perpsConfig.ts` — **split**: portable constants in `controllers/constants/perpsConfig.ts`, Mobile-only (`PERPS_BALANCE_*`, `isTokenTrustworthyForPerps`) stay in `constants/perpsConfig.ts`
-- [x] `controllers/constants/index.ts` — barrel re-export created
-
-### Types → `controllers/types/`
-
-- [x] `transactionTypes.ts` — moved (no imports)
-- [x] `config.ts` — moved (only `@metamask/utils`)
-- [x] `hyperliquid-types.ts` — moved (only `@nktkas/hyperliquid` types)
-- [x] `perps-types.ts` — moved (imports resolve within controllers/)
-- [x] `token.ts` — **Fix 2 applied**: replaced `BridgeToken` alias with independent `PerpsToken` interface using `@metamask/assets-controllers` + `@metamask/utils`
-- [x] `controllers/types/index.ts` — **Fix 3 applied**: `WebSocketConnectionState` enum defined inline (was importing from Mobile-only `HyperLiquidClientService`)
-- [x] `controllers/types/index.ts` — **Fix 10 applied**: removed `export * from '../../types/navigation'` (Mobile-only)
-
-### Utils → `controllers/utils/`
-
-- [x] `standaloneInfoClient.ts` — moved
-- [x] `hyperLiquidAdapter.ts` — moved (imports `significantFigures` locally)
-- [x] `orderCalculations.ts` — moved
-- [x] `hyperLiquidValidation.ts` — moved
-- [x] `accountUtils.ts` — moved
-- [x] `idUtils.ts` — moved
-- [x] `stringParseUtils.ts` — moved
-- [x] `wait.ts` — moved
-- [x] `significantFigures.ts` — **extracted** from `formatUtils.ts` (`countSignificantFigures`, `roundToSignificantFigures`, `hasExceededSignificantFigures`)
-- [x] `sortMarkets.ts` — **extracted** `parseVolume` from `hooks/usePerpsMarkets.ts`, combined with sort logic
-- [x] `marketUtils.ts` — **split**: portable pattern-matching + display functions in controllers/, badge/icon functions stay in `utils/marketUtils.ts`
-
-### Import path updates
-
-- [x] All files inside `controllers/` updated: `../../constants/X` → `../constants/X`, `../../utils/X` → `../utils/X`, `../../types/X` → `../types/X`
-- [x] Re-export stubs left at all original locations for backward compatibility (no blast radius)
-- [x] `utils/orderBookGrouping.ts` — **Fix 1 applied**: import changed from hooks to `controllers/types`
-- [x] `services/HyperLiquidClientService.ts` — updated to import `WebSocketConnectionState` from `controllers/types`
-- [x] `hooks/usePerpsMarkets.ts` — updated to import `parseVolume` from `controllers/utils/sortMarkets`
-- [x] `utils/formatUtils.ts` — updated to re-import significant figures functions from `controllers/utils/significantFigures`
-
-### Tests
-
-- [x] `yarn jest app/components/UI/Perps/ --no-coverage --passWithNoTests` — all passing
-- [x] `yarn tsc --noEmit` — clean
+> **Outcome**: Zero runtime imports in `controllers/` reach outside its boundary (excluding test files). Two type-only imports remain by design:
+>
+> - `PerpsNavigationParamList` from `../../types/navigation` — erased at compile time
+> - `RemoteFeatureFlagControllerState` from `@metamask/remote-feature-flag-controller` — **type-only** imports for the messenger contract (runtime access already uses `messenger.call('RemoteFeatureFlagController:getState')` and `messenger.subscribe('RemoteFeatureFlagController:stateChange', ...)`)
 
 ---
 
-## PR 2: Dependency injection + remove re-export stubs ✅
+## Step 1 — Move portable constants, types, and utils into controllers/
 
-Both utils made portable via dependency injection, moved to `controllers/utils/`, and re-export stubs removed.
+**Commit**: `446c01667e` — _refactor(perps): move portable constants, types, and utils into controllers/_
 
-### Fix 4: `rewardsUtils.ts` — inject logger ✅
+This is the bulk data-move. Every platform-independent constant, type definition, and utility function gets a home inside `controllers/`.
 
-- [x] Removed `import Logger from '../../../../util/Logger'`
-- [x] Added optional `logger?: PerpsLogger` param (reuses `PerpsLogger` interface from `controllers/types`)
-- [x] Guard calls: `logger?.error(ensureError(error), {...})`
-- [x] Moved to `controllers/utils/rewardsUtils.ts`
-- [x] **Stub removed** — all consumers updated to import directly from `controllers/utils/rewardsUtils`
+### What it does
 
-### Fix 6: `marketDataTransform.ts` — inject formatters ✅
+1. **Constants** — Copies portable constant files into `controllers/constants/` (eventNames, hyperLiquidConfig, orderTypes, transactionsHistoryConfig). For files with mixed content (`chartConfig.ts`, `perpsConfig.ts`), only the portable subset moves — enums and pure calculations go to `controllers/`, while UI-specific parts (colors, React Native config) stay at the original location.
 
-- [x] Removed Mobile-specific imports (`getIntlNumberFormatter`, `formatVolume`, `formatPerpsFiat`, `PRICE_RANGES_UNIVERSAL`)
-- [x] Defined `MarketDataFormatters` interface in `controllers/types`
-- [x] Injected formatters as parameter to `transformMarketData` and `formatChange`
-- [x] Moved to `controllers/utils/marketDataTransform.ts`
-- [x] **Stub removed** — replaced with `utils/mobileMarketDataFormatters.ts` (mobile wrapper that injects formatters)
+2. **Types** — Moves `transactionTypes.ts`, `config.ts`, `hyperliquid-types.ts`, and `perps-types.ts` into `controllers/types/`. For `token.ts`, instead of aliasing `BridgeToken` (which would pull in a Mobile-only import), an independent `PerpsToken` interface is defined using `@metamask/assets-controllers` primitives. `WebSocketConnectionState` is inlined in `controllers/types/index.ts` rather than imported from the Mobile-only `HyperLiquidClientService`.
 
-### Remove re-export stubs ✅
+3. **Utils** — Moves pure-logic utilities (accountUtils, hyperLiquidAdapter, orderCalculations, hyperLiquidValidation, idUtils, stringParseUtils, wait, standaloneInfoClient). Some require extraction: `significantFigures.ts` is carved out of `formatUtils.ts` (which can't move due to i18n deps), and `parseVolume` is extracted from the `usePerpsMarkets` hook into `sortMarkets.ts`. `marketUtils.ts` is split — portable pattern-matching functions go to `controllers/`, badge/icon functions stay.
 
-Deleted stubs and updated all import paths to point directly at `controllers/utils/`:
+4. **Re-export stubs** — Every moved file gets a thin re-export stub at its original path (`export * from '../controllers/constants/eventNames'`). This prevents a blast radius of 100+ import changes across Mobile — consumers can migrate at their own pace.
 
-**Deleted:**
+5. **Import rewrites inside controllers/** — All internal references change: `../../constants/X` → `../constants/X`, `../../types/X` → `../types/X`, etc.
 
-- `utils/rewardsUtils.ts` (9-line pure re-export)
-- `utils/marketDataTransform.ts` (~80-line wrapper)
+### Key files (48 changed)
 
-**Created:**
-
-- `utils/mobileMarketDataFormatters.ts` — mobile-specific wrapper that injects `mobileFormatters` into the portable `transformMarketData`, `formatChange`, `formatPercentage`; re-exports `calculateOpenInterestUSD` and `HyperLiquidMarketData`
-
-**Import path updates:**
-
-| File                                                    | Change                                                                             |
-| ------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| `hooks/usePerpsOrderFees.ts`                            | `../utils/rewardsUtils` → `../controllers/utils/rewardsUtils`                      |
-| `hooks/usePerpsCloseAllCalculations.ts`                 | `../utils/rewardsUtils` → `../controllers/utils/rewardsUtils`                      |
-| `hooks/usePerpsRewardAccountOptedIn.ts`                 | `../utils/rewardsUtils` → `../controllers/utils/rewardsUtils`                      |
-| `hooks/usePerpsRewardAccountOptedIn.test.ts`            | `../utils/rewardsUtils` → `../controllers/utils/rewardsUtils` (import + jest.mock) |
-| `Views/PerpsTransactionsView/PerpsTransactionsView.tsx` | `../../utils/rewardsUtils` → `../../controllers/utils/rewardsUtils`                |
-| `controllers/providers/HyperLiquidProvider.ts`          | `../../utils/marketDataTransform` → `../../utils/mobileMarketDataFormatters`       |
-| `services/HyperLiquidSubscriptionService.ts`            | `../utils/marketDataTransform` → `../controllers/utils/marketDataTransform`        |
-| `utils/marketDataTransform.test.ts`                     | `./marketDataTransform` → `./mobileMarketDataFormatters`                           |
-| `utils/rewardsUtils.test.ts`                            | `./rewardsUtils` → `../controllers/utils/rewardsUtils`                             |
-
-### Tests ✅
-
-- [x] `npx jest app/components/UI/Perps/ --no-coverage --passWithNoTests` — 250/251 pass (1 pre-existing failure in `hyperLiquidValidation.test.ts`)
-- [x] `npx tsc --noEmit` — clean
-- [x] `npx eslint` on all modified files — 0 errors (1 pre-existing warning)
+Destinations created: `controllers/constants/`, `controllers/types/`, `controllers/utils/` with barrel exports.
 
 ---
 
-## PR 3: Move HyperLiquid services into controllers/ ✅
+## Step 2 — Remove re-export stubs, update imports to controllers/utils/
 
-Moved 4 HyperLiquid service files + 1 utility into `controllers/` to make `HyperLiquidProvider.ts` imports fully internal. No DI/interfaces needed — just simple file moves.
+**Commit**: `991b690d6b` — _refactor(perps): remove re-export stubs, update imports to controllers/utils/_
 
-### Service files moved to `controllers/services/`
+Step 1 left re-export stubs everywhere. This step removes the ones that were more than simple pass-throughs and cleans up two files that had entangled Mobile logic.
 
-- [x] `services/HyperLiquidClientService.ts` → `controllers/services/HyperLiquidClientService.ts`
-- [x] `services/HyperLiquidSubscriptionService.ts` → `controllers/services/HyperLiquidSubscriptionService.ts`
-- [x] `services/HyperLiquidWalletService.ts` → `controllers/services/HyperLiquidWalletService.ts`
-- [x] `services/TradingReadinessCache.ts` → `controllers/services/TradingReadinessCache.ts`
-- [x] All test files moved alongside source files
+### What it does
 
-### Utility moved to `controllers/utils/`
+1. **Move `rewardsUtils.ts`** into `controllers/utils/` — the function already had no Mobile-specific logic. The Mobile `Logger` dependency is replaced with an injected `logger?: PerpsLogger` parameter. Callers outside `controllers/` pass `Logger` explicitly.
 
-- [x] `utils/hyperLiquidOrderBookProcessor.ts` → `controllers/utils/hyperLiquidOrderBookProcessor.ts`
-- [x] Test file moved alongside
+2. **Move `marketDataTransform.ts`** into `controllers/utils/` — this was the trickiest file. It used `getIntlNumberFormatter`, `formatVolume`, `formatPerpsFiat`, and `PRICE_RANGES_UNIVERSAL` from Mobile's `formatUtils`. These are replaced with an injected `MarketDataFormatters` interface. A new `utils/mobileMarketDataFormatters.ts` file provides the concrete Mobile implementation.
 
-### Import path updates
+3. **Delete stubs** for `rewardsUtils` and `marketDataTransform` — they were more than simple re-exports (they contained Mobile formatter injection logic), so replacing them with a clearly-named `mobileMarketDataFormatters.ts` is cleaner than keeping indirect stubs.
 
-- [x] `PerpsController.ts` — merged duplicate `WebSocketConnectionState` import into existing `./types` block
-- [x] `HyperLiquidProvider.ts` — service imports `../../services/` → `../services/` (now siblings within controllers/)
-- [x] `HyperLiquidProvider.ts` — `transformMarketData` now imported from portable `../utils/marketDataTransform` with `this.deps.marketDataFormatters`
-- [x] `controllers/types/index.ts` — added `marketDataFormatters: MarketDataFormatters` to `PerpsPlatformDependencies`
-- [x] `adapters/mobileInfrastructure.ts` — provides `marketDataFormatters` (formatVolume, formatPerpsFiat, formatPercentage via intl)
-- [x] `__mocks__/serviceMocks.ts` — provides mock `marketDataFormatters`
-- [x] All moved files: `../controllers/X` → `../X`, `../../../../util/` → `../../../../../util/`
-- [x] All moved test files: `../__mocks__/` → `../../__mocks__/`, deep mock paths updated
+4. **Update external consumers** — hooks like `usePerpsCloseAllCalculations`, `usePerpsOrderFees`, and `usePerpsRewardAccountOptedIn` are updated to import from `controllers/utils/` directly.
 
-### Re-export stubs
+### Key decision
 
-- [x] `services/TradingReadinessCache.ts` — stub kept (needed by `PerpsConnectionManager.ts`)
-- [x] 4 other stubs deleted (zero consumers outside controllers/)
-
-### Tests ✅
-
-- [x] `npx jest app/components/UI/Perps/ --no-coverage --passWithNoTests` — 250/251 pass (1 pre-existing failure in `hyperLiquidValidation.test.ts`)
-- [x] `npx tsc --noEmit` — clean
-- [x] Portability checks — zero non-portable imports in controllers/ (except `ensureError`)
+Stubs that are more than one-line re-exports should be removed, not kept. When a stub contains logic (like formatter injection), extract that logic into a file with a clear name indicating its purpose.
 
 ---
 
-## PR 4: Remaining controller import fixes (future)
+## Step 3 — Abstract mobile services, make controllers/ fully portable
 
-### Fix 5: `PerpsController.ts` — remove non-portable imports
+**Commit**: `b6f3554fc1` — _refactor(perps): abstract mobile services, make controllers/ fully portable_
 
-- [ ] `addTransaction` from `../../../../util/transaction-controller` → replace with `this.messenger.call('TransactionController:addTransaction', ...)` (messenger already configured — `TransactionControllerAddTransactionAction` is in `AllowedActions` and the messenger delegation is wired up)
-- [ ] `PerpsStreamChannelKey` from `../providers/PerpsStreamManager` → define string literal type in `controllers/types/`
-- [ ] `AssetType` from `../../../Views/confirmations/types/token` → define minimal type alias in `controllers/types/`
+At this point, `controllers/` still imports a few Mobile-specific services directly. This step introduces a thin dependency-injection boundary via `PerpsPlatformDependencies`.
 
-### Fix 8: `FeatureFlagConfigurationService.ts` — inject feature flag utils
+### What it does
 
-- [ ] `validatedVersionGatedFeatureFlag` / `isVersionGatedFeatureFlag` from `remoteFeatureFlag` → inject via `PerpsPlatformDependencies`
+1. **Define `PerpsPlatformDependencies`** in `controllers/types/index.ts` — an interface listing everything the controller needs from the host platform (logger, transaction submission, feature flags, etc.).
 
-### Fix 9: `DepositService.ts` — inject transfer data generator
+2. **Create `adapters/mobileInfrastructure.ts`** — the concrete Mobile implementation that wires up `Engine.context`, `Logger`, and other Mobile singletons behind the `PerpsPlatformDependencies` interface.
 
-- [ ] `generateTransferData` from Mobile utils → inject via `PerpsPlatformDependencies`
+3. **Update `PerpsController.ts`** — accepts `PerpsPlatformDependencies` instead of reaching for Mobile globals. The `addTransaction` import (previously from `../../../../util/transaction-controller`) is replaced by the messenger pattern that was already wired up (`TransactionControllerAddTransactionAction` in `AllowedActions`).
 
-### Fix 10: `PerpsMeasurementName` — move to controllers/constants/
+4. **Update `DepositService.ts` and `FeatureFlagConfigurationService.ts`** — these had direct Mobile imports that are now passed through the platform dependencies.
 
-- [ ] `PerpsMeasurementName` from `../../constants/performanceMetrics` used by TradingService, DataLakeService, MarketDataService
+5. **Add `transferData.ts`** to `controllers/utils/` — previously relied on a Mobile utility, now self-contained.
 
-### Tests
+### Key decision
 
-- [ ] All Perps tests pass
-- [ ] TypeScript clean
-- [ ] Verify: `grep -r "from '\.\./\.\./\.\./\.\." app/components/UI/Perps/controllers/ --include='*.ts' --exclude='*.test.ts'` returns no results (except `ensureError`)
+Moving services behind interfaces was considered but rejected as over-engineering. The HyperLiquid services aren't platform-specific — they're implementation details of the HyperLiquid provider. Only truly platform-specific concerns (logging, transactions, i18n formatting) use dependency injection.
 
 ---
 
-## Learnings & Decisions
+## Step 4 — Move HyperLiquid services and orderBookProcessor into controllers/
 
-### Pattern: re-export stubs for backward compatibility
+**Commit**: `705ad94dd4` — _refactor(perps): move HyperLiquid services and orderBookProcessor into controllers/_
 
-Every file moved into `controllers/` gets a thin stub left at the original path:
+With the DI boundary in place, the HyperLiquid services can move wholesale into `controllers/services/`.
 
-```typescript
-export * from '../controllers/constants/eventNames';
-```
+### What it does
 
-This prevents a blast radius of 100+ import changes across Mobile. Consumers can migrate at their own pace.
+1. **Move 4 service files**: `HyperLiquidClientService`, `HyperLiquidSubscriptionService`, `HyperLiquidWalletService`, `TradingReadinessCache` — each with its test file.
 
-### Pattern: SPLIT files for mixed portable/UI content
+2. **Move `hyperLiquidOrderBookProcessor.ts`** from `utils/` to `controllers/utils/`.
 
-Files like `chartConfig.ts`, `perpsConfig.ts`, `marketUtils.ts`, and `formatUtils.ts` have both portable and Mobile-specific exports. The portable parts move to `controllers/`, the Mobile-specific parts stay, and the original file re-exports the portable parts for backward compat.
+3. **Add `marketDataFormatters`** to `PerpsPlatformDependencies` — number formatting (`formatVolume`, `formatPerpsFiat`, `formatPercentage`) is platform-specific due to i18n, so it's injected from `mobileInfrastructure.ts`.
 
-### Decision: `PerpsToken` defined independently (not aliased to `BridgeToken`)
+4. **Keep one re-export stub**: `services/TradingReadinessCache.ts` — still consumed by `PerpsConnectionManager.ts` (outside `controllers/`). All other stubs are deleted immediately since they had no consumers.
 
-`types/token.ts` previously aliased `BridgeToken` from `../../Bridge/types`. Since `@metamask/assets-controllers` provides the building blocks (`Asset`, `TokenRwaData`), we defined `PerpsToken` as a standalone interface with the same shape. This breaks the Mobile-only dependency while maintaining type compatibility.
+5. **Update `HyperLiquidProvider.ts`** — all service imports are now internal to `controllers/`.
 
-### Decision: `WebSocketConnectionState` inlined in controller types
+### Key decision
 
-Rather than importing from `services/HyperLiquidClientService` (Mobile-only), the enum is defined directly in `controllers/types/index.ts`. The service now imports from controller types instead.
-
-### Decision: `parseVolume` extracted from hook into `controllers/utils/sortMarkets.ts`
-
-The `parseVolume` function was defined inside `hooks/usePerpsMarkets.ts` (a React hook file). Since it's pure logic needed by `sortMarkets`, it was extracted into the portable `controllers/utils/sortMarkets.ts`. The hook now imports it from there.
-
-### Decision: `significantFigures` extracted from `formatUtils.ts`
-
-Three pure math functions (`countSignificantFigures`, `roundToSignificantFigures`, `hasExceededSignificantFigures`) were extracted into `controllers/utils/significantFigures.ts` since `formatUtils.ts` itself can't move (it has i18n/intl dependencies). `hyperLiquidAdapter.ts` (now in controllers/) imports from the extracted file.
-
-### Decision: Remove re-export stubs, not keep them indefinitely
-
-After PR 1 left re-export stubs for backward compatibility, PR 2 removed them for `rewardsUtils` and `marketDataTransform`. The stubs added unnecessary indirection. For `marketDataTransform`, the stub was more than a re-export — it contained mobile formatter injection logic. This was extracted into a new file `utils/mobileMarketDataFormatters.ts` with a clear name indicating its purpose, rather than keeping the generic `marketDataTransform.ts` name at the old location. Pure-function consumers (like `HyperLiquidSubscriptionService`) now import directly from `controllers/utils/marketDataTransform`.
-
-### Decision: Move services into controllers/ instead of abstracting behind interfaces
-
-PR 3 originally planned to abstract HyperLiquid service classes behind interfaces and inject via DI. This was over-engineered — the services are implementation details of the HyperLiquid provider, not platform-specific code. Simply moving them into `controllers/services/` makes `HyperLiquidProvider.ts` imports fully internal. The `marketDataFormatters` dependency (number formatting is platform-specific due to i18n) was added to `PerpsPlatformDependencies` and injected via `mobileInfrastructure.ts`.
-
-### Decision: Only keep stubs when there are actual consumers
-
-PR 3 initially created 5 re-export stubs but only 1 had consumers (`TradingReadinessCache` used by `PerpsConnectionManager`). The other 4 were deleted immediately. Lesson: check actual import usage before creating stubs.
-
-### Decision: `addTransaction` uses messenger pattern, NOT dependency injection
-
-`PerpsController.ts` imports `addTransaction` from `../../../../util/transaction-controller` (a Mobile-only convenience wrapper around `Engine.context.TransactionController.addTransaction()`). This is a **cross-controller call**, not a platform utility — it should use the **messenger pattern**, not `PerpsPlatformDependencies`. The messenger is already wired up: `TransactionControllerAddTransactionAction` is in `AllowedActions` (line 678) and the delegation is configured. The controller already uses `this.messenger.call('TransactionController:addTransaction', ...)` in `submitTransaction`. Fix: remove the import and replace remaining usages with the messenger call.
+Only keep re-export stubs when there are actual consumers. Check `grep` before creating stubs — 4 out of 5 planned stubs were deleted immediately because nothing imported from the original paths.
 
 ---
 
-## Remaining non-portable imports in `controllers/`
+## Step 5 — Copy ensureError + move PerpsMeasurementName into controllers/
 
-After PR 3, these imports inside `controllers/` still reference Mobile-specific code:
+**Status**: Uncommitted (staged changes)
 
-| File                                          | Import                                                                                                | Fix                                                                                                                   |
-| --------------------------------------------- | ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `PerpsController.ts`                          | `addTransaction` from `../../../../util/transaction-controller`                                       | PR 4 — replace with `this.messenger.call('TransactionController:addTransaction', ...)` (messenger already configured) |
-| `PerpsController.ts`                          | `PerpsStreamChannelKey` from `../providers/PerpsStreamManager`                                        | PR 4 — define in `controllers/types/`                                                                                 |
-| `PerpsController.ts`                          | `AssetType` from `../../../Views/confirmations/types/token`                                           | PR 4 — define in `controllers/types/`                                                                                 |
-| `services/FeatureFlagConfigurationService.ts` | `remoteFeatureFlag` utils                                                                             | PR 4 — inject via `PerpsPlatformDependencies`                                                                         |
-| `services/DepositService.ts`                  | `generateTransferData` from Mobile utils                                                              | PR 4 — inject via `PerpsPlatformDependencies`                                                                         |
-| `services/TradingService.ts`                  | `PerpsMeasurementName` from `../../constants/performanceMetrics`                                      | PR 4 — move to `controllers/constants/`                                                                               |
-| `services/DataLakeService.ts`                 | `PerpsMeasurementName` from `../../constants/performanceMetrics`                                      | PR 4 — move to `controllers/constants/`                                                                               |
-| `services/MarketDataService.ts`               | `PerpsMeasurementName` from `../../constants/performanceMetrics`                                      | PR 4 — move to `controllers/constants/`                                                                               |
-| `providers/HyperLiquidProvider.ts`            | 4 service classes — ✅ resolved (moved to `controllers/services/`, now sibling imports)               | PR 3 ✅                                                                                                               |
-| `providers/HyperLiquidProvider.ts`            | `transformMarketData` — ✅ resolved (now uses portable version with `deps.marketDataFormatters`)      | PR 3 ✅                                                                                                               |
-| `services/RewardsIntegrationService.ts`       | `rewardsUtils` — ✅ resolved (imports from `../utils/rewardsUtils` within controllers/)               | PR 2 ✅                                                                                                               |
-| `services/MarketDataService.ts`               | `marketDataTransform` — ✅ resolved (imports from `../utils/marketDataTransform` within controllers/) | PR 2 ✅                                                                                                               |
+The final two portability gaps: `ensureError` imported from `app/util/errorUtils.ts`, and `PerpsMeasurementName` imported from `constants/performanceMetrics.ts`.
+
+### What it does
+
+1. **Copy `ensureError`** into `controllers/utils/errorUtils.ts` — a 25-line pure utility with zero dependencies. The original stays in `app/util/errorUtils.ts` (used by 8+ files outside the Perps feature). Copying is better than moving because those other files are outside our refactor scope.
+
+2. **Update 13 files** inside `controllers/` to import from the local `errorUtils` instead of `../../../../util/errorUtils`.
+
+3. **Move `performanceMetrics.ts`** (the `PerpsMeasurementName` enum) into `controllers/constants/`. Leave a re-export stub at the original location for external consumers.
+
+4. **Update `controllers/constants/index.ts`** barrel to include `PerpsMeasurementName`.
 
 ---
 
-## Verification Commands
+## Verification
 
 ```bash
 # Run Perps tests
@@ -262,16 +130,18 @@ yarn jest app/components/UI/Perps/ --no-coverage --passWithNoTests
 # TypeScript check
 yarn tsc --noEmit
 
-# After all 3 PRs — verify controllers/ is self-contained:
+# Verify controllers/ is self-contained — should return NO results:
 grep -r "from '\.\./\.\./\.\./\.\." app/components/UI/Perps/controllers/ \
-  --include='*.ts' --exclude='*.test.ts' \
-  | grep -v 'errorUtils'
-# Should return NO results
+  --include='*.ts' --exclude='*.test.ts'
+
+# Verify no imports from ../../constants/ in controllers/:
+grep -r "from '\.\./\.\./constants/" app/components/UI/Perps/controllers/ \
+  --include='*.ts' --exclude='*.test.ts'
 ```
 
 ---
 
-## Target Structure (after all PRs)
+## Final Directory Structure
 
 ```
 controllers/
@@ -287,26 +157,28 @@ controllers/
 │   ├── transactionsHistoryConfig.ts
 │   ├── eventNames.ts
 │   ├── chartConfig.ts              ← enums + pure calcs, NO Colors/UI
-│   └── orderTypes.ts
+│   ├── orderTypes.ts
+│   └── performanceMetrics.ts       ← PerpsMeasurementName enum
 ├── types/
-│   ├── index.ts                    ← WebSocketConnectionState inline, no navigation
+│   ├── index.ts                    ← WebSocketConnectionState inline, PerpsPlatformDependencies
 │   ├── perps-types.ts
 │   ├── hyperliquid-types.ts
 │   ├── config.ts
-│   ├── token.ts                    ← independent PerpsToken
+│   ├── token.ts                    ← independent PerpsToken (not aliased to BridgeToken)
 │   └── transactionTypes.ts
 ├── utils/
 │   ├── accountUtils.ts
+│   ├── errorUtils.ts               ← ensureError (copied from app/util/)
 │   ├── hyperLiquidAdapter.ts
-│   ├── hyperLiquidOrderBookProcessor.ts  ← PR 3: moved from utils/
+│   ├── hyperLiquidOrderBookProcessor.ts
 │   ├── hyperLiquidValidation.ts
 │   ├── idUtils.ts
-│   ├── marketDataTransform.ts      ← PR 2: injected formatters
+│   ├── marketDataTransform.ts      ← injected MarketDataFormatters
 │   ├── marketUtils.ts              ← portable functions only
 │   ├── orderCalculations.ts
-│   ├── rewardsUtils.ts             ← PR 2: injected logger
+│   ├── rewardsUtils.ts             ← injected PerpsLogger
 │   ├── significantFigures.ts       ← extracted from formatUtils
-│   ├── sortMarkets.ts              ← with parseVolume
+│   ├── sortMarkets.ts              ← with parseVolume extracted from hook
 │   ├── standaloneInfoClient.ts
 │   ├── stringParseUtils.ts
 │   ├── transferData.ts
@@ -320,12 +192,44 @@ controllers/
     ├── DepositService.ts
     ├── EligibilityService.ts
     ├── FeatureFlagConfigurationService.ts
-    ├── HyperLiquidClientService.ts       ← PR 3: moved from services/
-    ├── HyperLiquidSubscriptionService.ts ← PR 3: moved from services/
-    ├── HyperLiquidWalletService.ts       ← PR 3: moved from services/
+    ├── HyperLiquidClientService.ts
+    ├── HyperLiquidSubscriptionService.ts
+    ├── HyperLiquidWalletService.ts
     ├── MarketDataService.ts
     ├── RewardsIntegrationService.ts
     ├── ServiceContext.ts
-    ├── TradingReadinessCache.ts          ← PR 3: moved from services/
+    ├── TradingReadinessCache.ts
     └── TradingService.ts
 ```
+
+---
+
+## Learnings & Decisions (Reference)
+
+### Pattern: Re-export stubs for backward compatibility
+
+Every file moved into `controllers/` gets a thin stub left at the original path (`export * from '../controllers/constants/eventNames'`). This prevents a blast radius of 100+ import changes across Mobile. But only keep stubs when there are actual consumers — check with `grep` before creating them.
+
+### Pattern: Split files for mixed portable/UI content
+
+Files like `chartConfig.ts`, `perpsConfig.ts`, `marketUtils.ts`, and `formatUtils.ts` have both portable and Mobile-specific exports. The portable parts move to `controllers/`, the Mobile-specific parts stay, and the original file re-exports the portable parts for backward compat.
+
+### Pattern: Dependency injection only for truly platform-specific concerns
+
+Don't abstract everything behind interfaces. The HyperLiquid services are implementation details of the provider, not platform-specific code — they moved wholesale. Only logging (`PerpsLogger`), number formatting (`MarketDataFormatters`), and transaction submission use DI via `PerpsPlatformDependencies`.
+
+### Decision: `PerpsToken` defined independently (not aliased to `BridgeToken`)
+
+`types/token.ts` previously aliased `BridgeToken` from `../../Bridge/types`. Since `@metamask/assets-controllers` provides the building blocks, `PerpsToken` is defined as a standalone interface with the same shape.
+
+### Decision: `WebSocketConnectionState` inlined in controller types
+
+Rather than importing from `services/HyperLiquidClientService` (Mobile-only at the time), the enum is defined directly in `controllers/types/index.ts`. The service now imports from controller types instead.
+
+### Decision: `ensureError` copied rather than moved
+
+Used by 8+ files outside `controllers/`. Copying the 25-line pure function avoids touching files outside the Perps refactor scope.
+
+### Decision: `addTransaction` uses messenger pattern, NOT dependency injection
+
+`PerpsController.ts` already had `TransactionControllerAddTransactionAction` in `AllowedActions`. The messenger call replaces the Mobile-only convenience wrapper — this is a cross-controller call, not a platform utility.

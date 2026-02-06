@@ -23,7 +23,7 @@ import type {
   SubscribeOrdersParams,
   SubscribeAccountParams,
 } from '../types';
-import { ensureError } from '../../../../../util/errorUtils';
+import { ensureError } from '../utils/errorUtils';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 /**

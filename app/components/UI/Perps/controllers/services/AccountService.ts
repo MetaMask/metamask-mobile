@@ -1,4 +1,4 @@
-import { ensureError } from '../../../../../util/errorUtils';
+import { ensureError } from '../utils/errorUtils';
 import type { ServiceContext } from './ServiceContext';
 import {
   PerpsAnalyticsEvent,
