@@ -15,7 +15,6 @@ import { trace, TraceName, TraceOperation } from '../../../../util/trace';
 import { RootState } from '../../../../reducers';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { useMusdConversionTokens } from './useMusdConversionTokens';
-import { useMusdQuickConvertPercentage } from './useMusdQuickConvertPercentage';
 import { AssetType } from '../../../Views/confirmations/types/token';
 
 const mockTrace = trace as jest.MockedFunction<typeof trace>;
@@ -36,7 +35,6 @@ jest.mock('../../../../util/trace', () => ({
   },
 }));
 jest.mock('./useMusdConversionTokens');
-jest.mock('./useMusdQuickConvertPercentage');
 jest.mock(
   '../../../Views/confirmations/components/confirm/confirm-component',
   () => ({
@@ -49,10 +47,6 @@ jest.mock(
 const mockUseMusdConversionTokens =
   useMusdConversionTokens as jest.MockedFunction<
     typeof useMusdConversionTokens
-  >;
-const mockUseMusdQuickConvertPercentage =
-  useMusdQuickConvertPercentage as jest.MockedFunction<
-    typeof useMusdQuickConvertPercentage
   >;
 
 const mockNavigation = {
@@ -166,13 +160,6 @@ describe('useMusdConversion', () => {
       isConversionToken: jest.fn(),
       isMusdSupportedOnChain: jest.fn(),
       tokens: [],
-    });
-
-    mockUseMusdQuickConvertPercentage.mockReturnValue({
-      percentage: 1,
-      applyPercentage: jest.fn((balance) => balance),
-      isMaxMode: true,
-      buttonLabel: 'Max',
     });
   });
 
