@@ -483,6 +483,99 @@ describe('useMerklRewards', () => {
     expect(result.current.claimableReward).toBe(null);
   });
 
+  it('formats single decimal values to 2 decimal places (0.9 -> 0.90)', async () => {
+    const mockRewardData = {
+      token: {
+        address: AGLAMERKL_ADDRESS_MAINNET,
+        chainId: 1,
+        symbol: 'aglaMerkl',
+        decimals: 18,
+        price: null,
+      },
+      accumulated: '0',
+      unclaimed: '900000000000000000', // 0.9 tokens
+      pending: '0',
+      proofs: [],
+      amount: '900000000000000000',
+      claimed: '0',
+      recipient: mockSelectedAddress,
+    };
+
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
+    mockGetClaimedAmountFromContract.mockResolvedValueOnce('0');
+    // Simulate renderFromTokenMinimalUnit returning a value without trailing zero
+    mockRenderFromTokenMinimalUnit.mockReturnValueOnce('0.9');
+
+    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+
+    await waitFor(() => {
+      // Should format to 2 decimal places
+      expect(result.current.claimableReward).toBe('0.90');
+    });
+  });
+
+  it('formats whole numbers to 2 decimal places (1 -> 1.00)', async () => {
+    const mockRewardData = {
+      token: {
+        address: AGLAMERKL_ADDRESS_MAINNET,
+        chainId: 1,
+        symbol: 'aglaMerkl',
+        decimals: 18,
+        price: null,
+      },
+      accumulated: '0',
+      unclaimed: '1000000000000000000', // 1 token
+      pending: '0',
+      proofs: [],
+      amount: '1000000000000000000',
+      claimed: '0',
+      recipient: mockSelectedAddress,
+    };
+
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
+    mockGetClaimedAmountFromContract.mockResolvedValueOnce('0');
+    // Simulate renderFromTokenMinimalUnit returning a whole number
+    mockRenderFromTokenMinimalUnit.mockReturnValueOnce('1');
+
+    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+
+    await waitFor(() => {
+      // Should format to 2 decimal places
+      expect(result.current.claimableReward).toBe('1.00');
+    });
+  });
+
+  it('formats values like 12.5 to 12.50', async () => {
+    const mockRewardData = {
+      token: {
+        address: AGLAMERKL_ADDRESS_MAINNET,
+        chainId: 1,
+        symbol: 'aglaMerkl',
+        decimals: 18,
+        price: null,
+      },
+      accumulated: '0',
+      unclaimed: '12500000000000000000', // 12.5 tokens
+      pending: '0',
+      proofs: [],
+      amount: '12500000000000000000',
+      claimed: '0',
+      recipient: mockSelectedAddress,
+    };
+
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
+    mockGetClaimedAmountFromContract.mockResolvedValueOnce('0');
+    // Simulate renderFromTokenMinimalUnit returning single decimal
+    mockRenderFromTokenMinimalUnit.mockReturnValueOnce('12.5');
+
+    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+
+    await waitFor(() => {
+      // Should format to 2 decimal places
+      expect(result.current.claimableReward).toBe('12.50');
+    });
+  });
+
   it('converts "< 0.00001" to "< 0.01" for small amounts', async () => {
     const mockRewardData = {
       token: {

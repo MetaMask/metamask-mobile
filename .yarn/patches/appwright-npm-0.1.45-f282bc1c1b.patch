@@ -155,7 +155,7 @@ index 638c5df686413ffe050ef7e7329b9e9446e98002..679d1dca2b33aa531993e23bfed2e18f
          const sessionData = await getSessionDetails(sessionId);
          const sessionDetails = sessionData?.automation_session;
          const videoURL = sessionDetails?.video_url;
-@@ -241,7 +248,10 @@ class BrowserStackDeviceProvider {
+@@ -241,7 +248,13 @@ class BrowserStackDeviceProvider {
              capabilities: {
                  "bstack:options": {
                      debug: true,
@@ -164,9 +164,12 @@ index 638c5df686413ffe050ef7e7329b9e9446e98002..679d1dca2b33aa531993e23bfed2e18f
 +                    selfHeal: true,
 +                    appProfiling: true,
                      networkLogs: true,
++                    networkLogsOptions:{
++                        captureContent: true,
++                    },
                      appiumVersion: "2.6.0",
                      enableCameraImageInjection: this.project.use.device?.enableCameraImageInjection,
-@@ -250,10 +260,10 @@ class BrowserStackDeviceProvider {
+@@ -250,10 +261,10 @@ class BrowserStackDeviceProvider {
                      osVersion: this.project.use.device.osVersion,
                      platformName: platformName,
                      deviceOrientation: this.project.use.device?.orientation,

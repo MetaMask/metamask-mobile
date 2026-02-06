@@ -19,6 +19,7 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
       depositWithConfirmation: jest.fn(),
+      trackPredictOrderEvent: jest.fn(),
     },
     AccountTreeController: {
       getAccountsFromSelectedAccountGroup: jest.fn(() => [
@@ -214,6 +215,9 @@ describe('usePredictDeposit', () => {
     mockEligibilityResult.isEligible = true;
     (
       Engine.context.PredictController.depositWithConfirmation as jest.Mock
+    ).mockClear();
+    (
+      Engine.context.PredictController.trackPredictOrderEvent as jest.Mock
     ).mockClear();
   });
 
@@ -842,6 +846,115 @@ describe('usePredictDeposit', () => {
       expect(mockShowToast).not.toHaveBeenCalled();
 
       consoleErrorSpy.mockRestore();
+    });
+  });
+
+  describe('analytics tracking', () => {
+    it('tracks analytics event when analyticsProperties is provided', async () => {
+      (
+        Engine.context.PredictController.depositWithConfirmation as jest.Mock
+      ).mockResolvedValue({
+        success: true,
+        response: { batchId: 'batch-123' },
+      });
+      const { result } = setupUsePredictDepositTest();
+
+      await result.current.deposit({
+        amountUsd: 100,
+        analyticsProperties: {
+          entryPoint: 'homepage_balance',
+        },
+      });
+
+      expect(
+        Engine.context.PredictController.trackPredictOrderEvent,
+      ).toHaveBeenCalledWith({
+        status: 'initiated',
+        providerId: 'polymarket',
+        amountUsd: 100,
+        analyticsProperties: {
+          entryPoint: 'homepage_balance',
+          transactionType: 'mm_predict_deposit',
+        },
+      });
+    });
+
+    it('does not track analytics event when analyticsProperties is not provided', async () => {
+      (
+        Engine.context.PredictController.depositWithConfirmation as jest.Mock
+      ).mockResolvedValue({
+        success: true,
+        response: { batchId: 'batch-123' },
+      });
+      const { result } = setupUsePredictDepositTest();
+
+      await result.current.deposit();
+
+      expect(
+        Engine.context.PredictController.trackPredictOrderEvent,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('tracks analytics event with custom providerId', async () => {
+      (
+        Engine.context.PredictController.depositWithConfirmation as jest.Mock
+      ).mockResolvedValue({
+        success: true,
+        response: { batchId: 'batch-123' },
+      });
+      const { result } = setupUsePredictDepositTest(
+        {},
+        { providerId: 'custom-provider' },
+      );
+
+      await result.current.deposit({
+        amountUsd: 50,
+        analyticsProperties: {
+          entryPoint: 'buy_preview',
+          marketId: 'market-123',
+        },
+      });
+
+      expect(
+        Engine.context.PredictController.trackPredictOrderEvent,
+      ).toHaveBeenCalledWith({
+        status: 'initiated',
+        providerId: 'custom-provider',
+        amountUsd: 50,
+        analyticsProperties: {
+          entryPoint: 'buy_preview',
+          marketId: 'market-123',
+          transactionType: 'mm_predict_deposit',
+        },
+      });
+    });
+
+    it('tracks analytics event without amountUsd when not provided', async () => {
+      (
+        Engine.context.PredictController.depositWithConfirmation as jest.Mock
+      ).mockResolvedValue({
+        success: true,
+        response: { batchId: 'batch-123' },
+      });
+      const { result } = setupUsePredictDepositTest();
+
+      await result.current.deposit({
+        analyticsProperties: {
+          entryPoint: 'homepage_balance',
+        },
+      });
+
+      expect(
+        Engine.context.PredictController.trackPredictOrderEvent,
+      ).toHaveBeenCalledWith({
+        status: 'initiated',
+        providerId: 'polymarket',
+        amountUsd: undefined,
+        analyticsProperties: {
+          entryPoint: 'homepage_balance',
+          transactionType: 'mm_predict_deposit',
+        },
+      });
     });
   });
 });

@@ -6,7 +6,7 @@ import TestSnaps from '../../../e2e/pages/Browser/TestSnaps';
 import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
-import { TestSnapResultSelectorWebIDS } from '../../../e2e/selectors/Browser/TestSnaps.selectors';
+import { TestSnapResultSelectorWebIDS } from '../../selectors/Browser/TestSnaps.selectors';
 
 jest.setTimeout(150_000);
 
