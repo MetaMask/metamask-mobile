@@ -1186,7 +1186,7 @@ export class RewardsDataService {
     subscriptionId: string,
   ): Promise<SnapshotEligibilityDto> {
     const response = await this.makeRequest(
-      `/seasons/snapshots/${snapshotId}/eligibility`,
+      `/snapshots/${snapshotId}/eligibility`,
       {
         method: 'GET',
       },
@@ -1218,7 +1218,7 @@ export class RewardsDataService {
     subscriptionId: string,
   ): Promise<SnapshotLeaderboardDto> {
     const response = await this.makeRequest(
-      `/seasons/snapshots/${snapshotId}/leaderboard`,
+      `/snapshots/${snapshotId}/leaderboard`,
       {
         method: 'GET',
       },
