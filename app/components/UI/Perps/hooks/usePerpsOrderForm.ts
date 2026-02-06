@@ -272,7 +272,7 @@ export function usePerpsOrderForm(
 
   // Individual setters for common operations
   const setAmount = (amount: string) => {
-    setOrderForm((prev) => ({ ...prev, amount }));
+    setOrderForm((prev) => ({ ...prev, amount: amount || '0' }));
   };
 
   const setLeverage = (leverage: number) => {
