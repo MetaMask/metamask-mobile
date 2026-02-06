@@ -24,7 +24,7 @@ import {
   MM_WALLETCONNECT_DEEPLINK,
 } from '../../../constants/urls';
 import AppConstants from '../../../core/AppConstants';
-import { isInternalDeepLink } from '../../../core/DeeplinkManager/util/deeplinks';
+import { isMetaMaskUniversalLink } from '../../../core/DeeplinkManager/util/deeplinks';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import Engine from '../../../core/Engine';
 import type { EngineContext } from '../../../core/Engine/types';
@@ -244,7 +244,12 @@ const QRScanner = ({
       // On iOS, calling Linking.openURL() with a universal link that belongs to
       // the already-foregrounded app causes Safari to open instead, which then
       // redirects to the App Store — leaving the user stuck.
-      if (isInternalDeepLink(content)) {
+      //
+      // We intentionally use isMetaMaskUniversalLink (host-only check) rather
+      // than isInternalDeepLink here, because custom-scheme URLs (ethereum:,
+      // dapp:, metamask:) have their own dedicated handling paths below that
+      // include wallet-lock verification and URL redirect confirmation.
+      if (isMetaMaskUniversalLink(content)) {
         shouldReadBarCodeRef.current = false;
 
         const handledByDeeplink = await SharedDeeplinkManager.parse(content, {
