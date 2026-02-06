@@ -1,11 +1,11 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import Routes from '../../../constants/navigation/Routes';
-import TokenSelection from './components/TokenSelection';
-import BuildQuote from './components/BuildQuote';
-import UnsupportedTokenModal from './components/UnsupportedTokenModal';
-import SettingsModal from './components/Modals/SettingsModal';
-import PaymentSelectionModal from './components/PaymentSelectionModal';
+import TokenSelection from './Views/TokenSelection';
+import BuildQuote from './Views/BuildQuote';
+import UnsupportedTokenModal from './Views/Modals/UnsupportedTokenModal';
+import SettingsModal from './Views/Modals/SettingsModal';
+import PaymentSelectionModal from './Views/Modals/PaymentSelectionModal';
 
 const RootStack = createStackNavigator();
 const Stack = createStackNavigator();

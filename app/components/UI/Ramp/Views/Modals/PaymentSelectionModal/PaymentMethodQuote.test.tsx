@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import PaymentMethodQuote from './PaymentMethodQuote';
-import { ThemeContext, mockTheme } from '../../../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../../../../util/theme';
 
 const renderWithTheme = (component: React.ReactElement) =>
   render(

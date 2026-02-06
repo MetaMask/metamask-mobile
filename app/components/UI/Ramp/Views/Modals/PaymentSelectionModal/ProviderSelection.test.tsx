@@ -1,8 +1,8 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import ProviderSelection from './ProviderSelection';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { renderScreen } from '../../../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import type { Provider } from '@metamask/ramps-controller';
 
 const mockProviders: Provider[] = [

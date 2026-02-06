@@ -4,8 +4,8 @@ import Routes from '../../../../constants/navigation/Routes';
 import { useRampNavigation } from './useRampNavigation';
 import { createRampNavigationDetails } from '../Aggregator/routes/utils';
 import { createDepositNavigationDetails } from '../Deposit/routes/utils';
-import { createTokenSelectionNavDetails } from '../components/TokenSelection/TokenSelection';
-import { createBuildQuoteNavDetails } from '../components/BuildQuote';
+import { createTokenSelectionNavDetails } from '../Views/TokenSelection/TokenSelection';
+import { createBuildQuoteNavDetails } from '../Views/BuildQuote';
 import { RampType as AggregatorRampType } from '../Aggregator/types';
 import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
 import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
@@ -28,10 +28,8 @@ jest.mock('@react-navigation/compat', () => ({
 }));
 jest.mock('../Aggregator/routes/utils');
 jest.mock('../Deposit/routes/utils');
-jest.mock('../components/TokenSelection/TokenSelection', () => {
-  const actual = jest.requireActual(
-    '../components/TokenSelection/TokenSelection',
-  );
+jest.mock('../Views/TokenSelection/TokenSelection', () => {
+  const actual = jest.requireActual('../Views/TokenSelection/TokenSelection');
   const mockFn = jest.fn();
   return {
     ...actual,
@@ -39,7 +37,7 @@ jest.mock('../components/TokenSelection/TokenSelection', () => {
     createTokenSelectionNavigationDetails: mockFn, // Alias for hook compatibility
   };
 });
-jest.mock('../components/BuildQuote', () => {
+jest.mock('../Views/BuildQuote', () => {
   const mockFn = jest.fn();
   return {
     createBuildQuoteNavDetails: mockFn,

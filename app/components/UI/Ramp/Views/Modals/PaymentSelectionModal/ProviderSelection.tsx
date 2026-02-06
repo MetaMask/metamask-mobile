@@ -1,15 +1,15 @@
 import React from 'react';
 import { Box } from '@metamask/design-system-react-native';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
-import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
+import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
+import ListItemSelect from '../../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
   WidthType,
-} from '../../../../../component-library/components/List/ListItemColumn';
+} from '../../../../../../component-library/components/List/ListItemColumn';
 import Text, {
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '../../../../../../component-library/components/Texts/Text';
 import type { Provider } from '@metamask/ramps-controller';
-import { strings } from '../../../../../../locales/i18n';
+import { strings } from '../../../../../../../locales/i18n';
 
 interface ProviderSelectionProps {
   onBack: () => void;

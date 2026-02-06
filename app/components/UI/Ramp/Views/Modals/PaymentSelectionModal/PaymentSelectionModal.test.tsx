@@ -1,8 +1,8 @@
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import PaymentSelectionModal from './PaymentSelectionModal';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { renderScreen } from '../../../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
 jest.mock('react-native-reanimated', () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
@@ -15,12 +15,12 @@ jest.mock('react-native-reanimated', () => {
   };
 });
 
-jest.mock('../../../../Base/RemoteImage', () => jest.fn(() => null));
+jest.mock('../../../../../Base/RemoteImage', () => jest.fn(() => null));
 
 const mockOnCloseBottomSheet = jest.fn();
 
 jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
+  '../../../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
     const ReactActual = jest.requireActual('react');
     return ReactActual.forwardRef(
@@ -41,11 +41,11 @@ jest.mock(
   },
 );
 
-jest.mock('../../../../../util/navigation/navUtils', () => ({
+jest.mock('../../../../../../util/navigation/navUtils', () => ({
   createNavigationDetails: jest.fn(),
 }));
 
-jest.mock('../../../../../../locales/i18n', () => ({
+jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
@@ -123,7 +123,7 @@ const mockProviders = [
 const mockSetSelectedProvider = jest.fn();
 const mockSetSelectedPaymentMethod = jest.fn();
 
-jest.mock('../../hooks/useRampsController', () => ({
+jest.mock('../../../hooks/useRampsController', () => ({
   useRampsController: () => ({
     selectedProvider: mockSelectedProvider,
     providers: mockProviders,

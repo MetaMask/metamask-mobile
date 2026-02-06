@@ -1,11 +1,11 @@
 import React from 'react';
 import { fireEvent, screen, act } from '@testing-library/react-native';
 import RegionSelector from './RegionSelector';
-import { renderScreen } from '../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../util/test/initial-root-state';
-import Routes from '../../../../constants/navigation/Routes';
+import { renderScreen } from '../../../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../../util/test/initial-root-state';
+import Routes from '../../../../../../constants/navigation/Routes';
 import { Country, State, UserRegion } from '@metamask/ramps-controller';
-import useRampsController from '../../../../components/UI/Ramp/hooks/useRampsController';
+import useRampsController from '../../../hooks/useRampsController';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -122,7 +122,7 @@ const mockUseRampsControllerInitialValues: ReturnType<
 
 let mockUseRampsControllerValues = mockUseRampsControllerInitialValues;
 
-jest.mock('../../../../components/UI/Ramp/hooks/useRampsController', () =>
+jest.mock('../../../hooks/useRampsController', () =>
   jest.fn(() => mockUseRampsControllerValues),
 );
 

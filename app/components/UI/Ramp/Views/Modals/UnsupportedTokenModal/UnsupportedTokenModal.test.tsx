@@ -1,14 +1,14 @@
 import React from 'react';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import UnsupportedTokenModal from './UnsupportedTokenModal';
-import Routes from '../../../../../constants/navigation/Routes';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
+import Routes from '../../../../../../constants/navigation/Routes';
+import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { fireEvent } from '@testing-library/react-native';
 
 const mockOnCloseBottomSheet = jest.fn();
 
 jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
+  '../../../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
     const ReactActual = jest.requireActual('react');
     return ReactActual.forwardRef(

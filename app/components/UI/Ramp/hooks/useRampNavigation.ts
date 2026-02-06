@@ -7,8 +7,8 @@ import {
 } from '../Aggregator/types';
 import { createRampNavigationDetails } from '../Aggregator/routes/utils';
 import { createDepositNavigationDetails } from '../Deposit/routes/utils';
-import { createTokenSelectionNavDetails } from '../components/TokenSelection/TokenSelection';
-import { createBuildQuoteNavDetails } from '../components/BuildQuote';
+import { createTokenSelectionNavDetails } from '../Views/TokenSelection/TokenSelection';
+import { createBuildQuoteNavDetails } from '../Views/BuildQuote';
 import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
 import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
 import {
