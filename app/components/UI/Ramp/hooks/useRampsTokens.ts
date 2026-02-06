@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
   selectTokens,
@@ -45,7 +45,8 @@ export interface UseRampsTokensResult {
 /**
  * Hook to get tokens state from RampsController.
  * This hook assumes Engine is already initialized.
- * Automatically triggers token fetching when region and action are available.
+ * Tokens are fetched by hydrateState() which is called early in the app lifecycle.
+ * The controller handles caching and deduplication, so this hook only reads from state.
  *
  * @param region - Optional region code to use for request state. If not provided, uses userRegion from state.
  * @param action - Optional action type ('buy' or 'sell'). Defaults to 'buy'.
@@ -72,18 +73,6 @@ export function useRampsTokens(
   const { isFetching, error } = useSelector(
     requestSelector,
   ) as RequestSelectorResult<TokensResponse>;
-
-  // Trigger token fetch when region and action are available
-  // The controller handles caching, deduplication, and error handling
-  useEffect(() => {
-    if (regionCode) {
-      // Trigger fetch by calling getTokens through the controller
-      // Controller will handle duplicate calls gracefully (returns same promise if in progress)
-      Engine.context.RampsController.getTokens(regionCode, action).catch(() => {
-        // Error is stored in state via the request selector
-      });
-    }
-  }, [regionCode, action]);
 
   const setSelectedToken = useCallback(
     (assetId?: string) =>
