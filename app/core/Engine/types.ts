@@ -267,12 +267,6 @@ import {
   ActionConstraint,
   EventConstraint,
 } from '@metamask/messenger';
-import {
-  TokenSearchDiscoveryController,
-  TokenSearchDiscoveryControllerState,
-  TokenSearchDiscoveryControllerActions,
-  TokenSearchDiscoveryControllerEvents,
-} from '@metamask/token-search-discovery-controller';
 import { SnapKeyringEvents } from '@metamask/eth-snap-keyring';
 import {
   MultichainNetworkController,
@@ -500,7 +494,6 @@ type GlobalActions =
   | SmartTransactionsControllerActions
   | AssetsContractControllerActions
   | RemoteFeatureFlagControllerActions
-  | TokenSearchDiscoveryControllerActions
   | TokenSearchDiscoveryDataControllerActions
   | MultichainNetworkControllerActions
   | BridgeControllerActions
@@ -577,7 +570,6 @@ type GlobalEvents =
   | SmartTransactionsControllerEvents
   | AssetsContractControllerEvents
   | RemoteFeatureFlagControllerEvents
-  | TokenSearchDiscoveryControllerEvents
   | TokenSearchDiscoveryDataControllerEvents
   | SnapKeyringEvents
   | MultichainNetworkControllerEvents
@@ -665,7 +657,6 @@ export type Controllers = {
   TokenListController: TokenListController;
   TokenDetectionController: TokenDetectionController;
   TokenRatesController: TokenRatesController;
-  TokenSearchDiscoveryController: TokenSearchDiscoveryController;
   TokensController: TokensController;
   DeFiPositionsController: DeFiPositionsController;
   TransactionController: TransactionController;
@@ -743,7 +734,6 @@ export type EngineState = {
   PhishingController: PhishingControllerState;
   TokenBalancesController: TokenBalancesControllerState;
   TokenRatesController: TokenRatesControllerState;
-  TokenSearchDiscoveryController: TokenSearchDiscoveryControllerState;
   TransactionController: TransactionControllerState;
   TransactionPayController: TransactionPayControllerState;
   SmartTransactionsController: SmartTransactionsControllerState;
@@ -877,7 +867,6 @@ export type ControllersToInitialize =
   | 'TokenListController'
   | 'TokenRatesController'
   | 'TokensController'
-  | 'TokenSearchDiscoveryController'
   | 'TokenSearchDiscoveryDataController'
   | 'TransactionController'
   | 'TransactionPayController'

@@ -1,17 +1,17 @@
 /* eslint-disable no-restricted-syntax */
 import TestHelpers from '../../helpers';
-import { getDappPort } from '../../../tests/framework/fixtures/FixtureUtils';
+import { getDappUrl } from '../../../tests/framework/fixtures/FixtureUtils';
 import Matchers from '../../../tests/framework/Matchers';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import {
   MultichainTestDappViewSelectorsIDs,
   MULTICHAIN_TEST_TIMEOUTS,
-} from '../../selectors/Browser/MultichainTestDapp.selectors';
+} from '../../../tests/selectors/Browser/MultichainTestDapp.selectors';
 import Browser from './BrowserView';
 import Gestures from '../../../tests/framework/Gestures';
 import { waitFor } from 'detox';
 import ConnectBottomSheet from './ConnectBottomSheet';
-import MultichainUtilities from '../../utils/MultichainUtilities';
+import MultichainUtilities from '../../../tests/helpers/multichain/MultichainUtilities';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../wallet/TabBarComponent';
 import Assertions from '../../../tests/framework/Assertions';
@@ -22,8 +22,6 @@ const logger = createLogger({
   name: 'MultichainTestDApp',
 });
 
-// Use the same port as the regular test dapp - the multichainDapp flag controls which dapp is served
-export const MULTICHAIN_TEST_DAPP_LOCAL_URL = `http://localhost:${getDappPort(0)}`;
 export const DEFAULT_MULTICHAIN_TEST_DAPP_URL =
   'https://metamask.github.io/test-dapp-multichain/';
 
@@ -38,10 +36,10 @@ export function getMultichainTestDappUrl(): string {
   // Check for local development flag
   const useLocal = process.env.USE_LOCAL_DAPP !== 'false'; // default to true if not set
   if (useLocal) {
-    logger.debug(
-      `🏠 Using local multichain dapp URL: ${MULTICHAIN_TEST_DAPP_LOCAL_URL}`,
-    );
-    return MULTICHAIN_TEST_DAPP_LOCAL_URL;
+    // Call getDappUrl at runtime (not import time) so port is allocated
+    const localUrl = getDappUrl(0);
+    logger.debug(`🏠 Using local multichain dapp URL: ${localUrl}`);
+    return localUrl;
   }
 
   // Check for custom URL from environment

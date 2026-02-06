@@ -12,7 +12,6 @@ import { fontStyles } from '../../../styles/common';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
 import { toDateFormat } from '../../../util/date';
-import TransactionDetails from './TransactionDetails';
 import { safeToChecksumAddress } from '../../../util/address';
 import { connect, useSelector } from 'react-redux';
 import StyledButton from '../StyledButton';
@@ -22,6 +21,7 @@ import { TRANSACTION_TYPES } from '../../../util/transactions';
 import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
 import DetailsModal from '../../Base/DetailsModal';
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import { isTestNet } from '../../../util/networks';
 import { weiHexToGweiDec } from '@metamask/controller-utils';
 import {
@@ -57,7 +57,10 @@ import {
   getFontFamily,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { selectConversionRateByChainId } from '../../../selectors/currencyRateController';
+import {
+  selectConversionRateByChainId,
+  selectCurrencyRates,
+} from '../../../selectors/currencyRateController';
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
 import { selectTokensByChainIdAndAddress } from '../../../selectors/tokensController';
 import Routes from '../../../constants/navigation/Routes';
@@ -156,6 +159,7 @@ const transactionIconSwapFailed = require('../../../images/transaction-icons/swa
 /* eslint-enable import/no-commonjs */
 
 const NEW_TRANSACTION_DETAILS_TYPES = [
+  TransactionType.musdClaim,
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
@@ -252,7 +256,6 @@ class TransactionElement extends PureComponent {
     actionKey: undefined,
     cancelIsOpen: false,
     speedUpIsOpen: false,
-    detailsModalVisible: false,
     importModalVisible: false,
     transactionGas: {
       gasBN: undefined,
@@ -308,11 +311,26 @@ class TransactionElement extends PureComponent {
           this.props.bridgeTxHistoryData?.bridgeTxHistoryItem,
       });
     } else if (hasTransactionType(tx, NEW_TRANSACTION_DETAILS_TYPES)) {
-      this.props.navigation.navigate(Routes.TRANSACTION_DETAILS, {
-        transactionId: tx.id,
-      });
+      // Navigate to TRANSACTIONS_VIEW first to ensure correct navigation context,
+      // then navigate to TRANSACTION_DETAILS (pattern from usePerpsToasts)
+      this.props.navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      setTimeout(() => {
+        this.props.navigation.navigate(Routes.TRANSACTION_DETAILS, {
+          transactionId: tx.id,
+        });
+      }, 100);
     } else {
-      this.setState({ detailsModalVisible: true });
+      const { transactionElement, transactionDetails } = this.state;
+      this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.TRANSACTION_DETAILS,
+        params: {
+          tx,
+          transactionElement,
+          transactionDetails,
+          showSpeedUpModal: this.showSpeedUpModal,
+          showCancelModal: this.showCancelModal,
+        },
+      });
     }
   };
 
@@ -322,10 +340,6 @@ class TransactionElement extends PureComponent {
 
   onCloseImportWalletModal = () => {
     this.setState({ importModalVisible: false });
-  };
-
-  onCloseDetailsModal = () => {
-    this.setState({ detailsModalVisible: false });
   };
 
   renderTxTime = () => {
@@ -731,12 +745,8 @@ class TransactionElement extends PureComponent {
 
   render() {
     const { tx, selectedInternalAccount } = this.props;
-    const {
-      detailsModalVisible,
-      importModalVisible,
-      transactionElement,
-      transactionDetails,
-    } = this.state;
+    const { importModalVisible, transactionElement, transactionDetails } =
+      this.state;
 
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
@@ -760,33 +770,6 @@ class TransactionElement extends PureComponent {
           {this.renderTxElement(transactionElement)}
         </TouchableHighlight>
         {accountImportTime <= time && this.renderImportTime()}
-        {detailsModalVisible && (
-          <Modal
-            isVisible={detailsModalVisible}
-            onBackdropPress={this.onCloseDetailsModal}
-            onBackButtonPress={this.onCloseDetailsModal}
-            onSwipeComplete={this.onCloseDetailsModal}
-            swipeDirection={'down'}
-            backdropColor={colors.overlay.default}
-            backdropOpacity={1}
-          >
-            <DetailsModal>
-              <DetailsModal.Header>
-                <DetailsModal.Title onPress={this.onCloseDetailsModal}>
-                  {transactionElement?.actionKey}
-                </DetailsModal.Title>
-                <DetailsModal.CloseIcon onPress={this.onCloseDetailsModal} />
-              </DetailsModal.Header>
-              <TransactionDetails
-                transactionObject={tx}
-                transactionDetails={transactionDetails}
-                showSpeedUpModal={this.showSpeedUpModal}
-                showCancelModal={this.showCancelModal}
-                close={this.onCloseDetailsModal}
-              />
-            </DetailsModal>
-          </Modal>
-        )}
         <Modal
           isVisible={importModalVisible}
           onBackdropPress={this.onCloseImportWalletModal}
@@ -797,12 +780,12 @@ class TransactionElement extends PureComponent {
           backdropOpacity={1}
         >
           <DetailsModal>
-            <DetailsModal.Header>
-              <DetailsModal.Title onPress={this.onCloseImportWalletModal}>
-                {strings('transactions.import_wallet_label')}
-              </DetailsModal.Title>
-              <DetailsModal.CloseIcon onPress={this.onCloseImportWalletModal} />
-            </DetailsModal.Header>
+            <HeaderCompactStandard
+              title={strings('transactions.import_wallet_label')}
+              onClose={this.onCloseImportWalletModal}
+              titleProps={{ testID: 'details-modal-title' }}
+              closeButtonProps={{ testID: 'details-modal-close-icon' }}
+            />
             <View style={styles.summaryWrapper}>
               <Text style={styles.fromDeviceText}>
                 {strings('transactions.import_wallet_tip')}
@@ -824,6 +807,7 @@ const mapStateToProps = (state, ownProps) => ({
   swapsTokens: swapsControllerTokens(state),
   ticker: selectTickerByChainId(state, ownProps.txChainId),
   conversionRate: selectConversionRateByChainId(state, ownProps.txChainId),
+  currencyRates: selectCurrencyRates(state),
   contractExchangeRates: selectContractExchangeRatesByChainId(
     state,
     ownProps.txChainId,

@@ -37,6 +37,7 @@ const EmptyErrorTrendingState: React.FC<EmptyErrorTrendingStateProps> = ({
           variant={ButtonVariant.Primary}
           twClassName="self-stretch mt-6"
           onPress={onRetry}
+          testID="empty-error-trending-state--retry-button"
         >
           {strings('trending.empty_error_trending_state.try_again')}
         </Button>

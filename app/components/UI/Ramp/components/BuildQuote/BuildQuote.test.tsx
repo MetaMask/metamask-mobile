@@ -8,6 +8,8 @@ import type { CaipChainId } from '@metamask/utils';
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
 const mockGoBack = jest.fn();
+const mockStartQuotePolling = jest.fn();
+const mockStopQuotePolling = jest.fn();
 
 const MOCK_ASSET_ID =
   'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
@@ -65,10 +67,20 @@ jest.mock('../../hooks/useTokenNetworkInfo', () => ({
   useTokenNetworkInfo: () => mockGetTokenNetworkInfo,
 }));
 
+jest.mock('../../hooks/useRampAccountAddress', () => ({
+  __esModule: true,
+  default: () => '0x1234567890abcdef',
+}));
+
+jest.mock('../../../../hooks/useDebouncedValue', () => ({
+  useDebouncedValue: (value: number) => value,
+}));
+
 interface MockUserRegion {
   country: {
     currency: string;
     quickAmounts: number[];
+    defaultAmount?: number;
   };
   state: null;
   regionCode: string;
@@ -84,7 +96,7 @@ const defaultUserRegion: MockUserRegion = {
 };
 
 let mockUserRegion: MockUserRegion | null = defaultUserRegion;
-let mockPreferredProvider: unknown = null;
+let mockSelectedProvider: unknown = null;
 let mockTokens: {
   allTokens: ReturnType<typeof createMockToken>[];
   topTokens: ReturnType<typeof createMockToken>[];
@@ -96,8 +108,14 @@ let mockTokens: {
 jest.mock('../../hooks/useRampsController', () => ({
   useRampsController: () => ({
     userRegion: mockUserRegion,
-    preferredProvider: mockPreferredProvider,
-    tokens: mockTokens,
+    selectedProvider: mockSelectedProvider,
+    selectedToken: mockTokens?.allTokens?.[0] ?? null,
+    selectedQuote: null,
+    quotesLoading: false,
+    startQuotePolling: mockStartQuotePolling,
+    stopQuotePolling: mockStopQuotePolling,
+    paymentMethodsLoading: false,
+    selectedPaymentMethod: null,
   }),
 }));
 
@@ -112,7 +130,7 @@ describe('BuildQuote', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUserRegion = defaultUserRegion;
-    mockPreferredProvider = null;
+    mockSelectedProvider = null;
     mockTokens = {
       allTokens: [createMockToken()],
       topTokens: [createMockToken()],
@@ -124,10 +142,24 @@ describe('BuildQuote', () => {
     jest.resetAllMocks();
   });
 
-  it('displays initial amount as $0', () => {
+  it('displays initial amount as $100', () => {
     const { getByText } = renderWithTheme(<BuildQuote />);
 
-    expect(getByText('$0')).toBeOnTheScreen();
+    expect(getByText('$100')).toBeOnTheScreen();
+  });
+
+  it('displays region default amount when user has not entered amount and userRegion has defaultAmount', () => {
+    mockUserRegion = {
+      ...defaultUserRegion,
+      country: {
+        ...defaultUserRegion.country,
+        defaultAmount: 250,
+      },
+    };
+
+    const { getByText } = renderWithTheme(<BuildQuote />);
+
+    expect(getByText('$250')).toBeOnTheScreen();
   });
 
   it('renders the keypad', () => {
@@ -152,7 +184,7 @@ describe('BuildQuote', () => {
 
     fireEvent.press(getByText('5'));
 
-    expect(getByText('$5')).toBeOnTheScreen();
+    expect(getByText('$1005')).toBeOnTheScreen();
   });
 
   it('updates amount with multiple digit presses', () => {
@@ -162,7 +194,7 @@ describe('BuildQuote', () => {
     fireEvent.press(getByText('2'));
     fireEvent.press(getByText('3'));
 
-    expect(getByText('$123')).toBeOnTheScreen();
+    expect(getByText('$100123')).toBeOnTheScreen();
   });
 
   it('deletes last digit when delete button is pressed', () => {
@@ -172,7 +204,7 @@ describe('BuildQuote', () => {
     fireEvent.press(getByText('2'));
     fireEvent.press(getByTestId('keypad-delete-button'));
 
-    expect(getByText('$1')).toBeOnTheScreen();
+    expect(getByText('$1001')).toBeOnTheScreen();
   });
 
   it('sets navigation options with token and network data', () => {
@@ -199,7 +231,20 @@ describe('BuildQuote', () => {
     const { getByTestId, getByText } = renderWithTheme(<BuildQuote />);
 
     expect(getByTestId('payment-method-pill')).toBeOnTheScreen();
-    expect(getByText('fiat_on_ramp.debit_card')).toBeOnTheScreen();
+    expect(getByText('fiat_on_ramp.select_payment_method')).toBeOnTheScreen();
+  });
+
+  it('navigates to payment selection modal when payment method pill is pressed', () => {
+    const { getByTestId } = renderWithTheme(<BuildQuote />);
+
+    fireEvent.press(getByTestId('payment-method-pill'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'RampModals',
+      expect.objectContaining({
+        screen: 'RampPaymentSelectionModal',
+      }),
+    );
   });
 
   it('sets navigation options with undefined values when token is not found (shows skeleton)', () => {
@@ -227,8 +272,12 @@ describe('BuildQuote', () => {
     );
   });
 
-  it('renders quick amount buttons', () => {
-    const { getByText } = renderWithTheme(<BuildQuote />);
+  it('renders quick amount buttons when amount is zero', () => {
+    const { getByText, getByTestId } = renderWithTheme(<BuildQuote />);
+
+    fireEvent.press(getByTestId('keypad-delete-button'));
+    fireEvent.press(getByTestId('keypad-delete-button'));
+    fireEvent.press(getByTestId('keypad-delete-button'));
 
     expect(getByText('$50')).toBeOnTheScreen();
     expect(getByText('$100')).toBeOnTheScreen();
@@ -246,7 +295,11 @@ describe('BuildQuote', () => {
       regionCode: 'us',
     };
 
-    const { queryByTestId } = renderWithTheme(<BuildQuote />);
+    const { getByTestId, queryByTestId } = renderWithTheme(<BuildQuote />);
+
+    fireEvent.press(getByTestId('keypad-delete-button'));
+    fireEvent.press(getByTestId('keypad-delete-button'));
+    fireEvent.press(getByTestId('keypad-delete-button'));
 
     expect(queryByTestId('quick-amounts')).toBeNull();
   });
@@ -254,9 +307,11 @@ describe('BuildQuote', () => {
   it('updates amount when quick amount button is pressed', () => {
     const { getByTestId, getByText } = renderWithTheme(<BuildQuote />);
 
+    fireEvent.press(getByTestId('keypad-delete-button'));
+    fireEvent.press(getByTestId('keypad-delete-button'));
+    fireEvent.press(getByTestId('keypad-delete-button'));
     fireEvent.press(getByTestId('quick-amounts-button-100'));
 
-    // After pressing $100, the amount display shows $100
     expect(getByText('$100')).toBeOnTheScreen();
   });
 
@@ -265,20 +320,21 @@ describe('BuildQuote', () => {
       <BuildQuote />,
     );
 
-    // Initially, quick amounts are visible
+    fireEvent.press(getByTestId('keypad-delete-button'));
+    fireEvent.press(getByTestId('keypad-delete-button'));
+    fireEvent.press(getByTestId('keypad-delete-button'));
+
     expect(getByTestId('quick-amounts')).toBeOnTheScreen();
     expect(queryByTestId('build-quote-continue-button')).toBeNull();
 
-    // Enter an amount
     fireEvent.press(getByText('5'));
 
-    // Quick amounts should be hidden, continue button should appear
     expect(queryByTestId('quick-amounts')).toBeNull();
     expect(getByTestId('build-quote-continue-button')).toBeOnTheScreen();
   });
 
-  it('displays powered by provider text when preferred provider is set', () => {
-    mockPreferredProvider = {
+  it('displays powered by provider text when selected provider is set', () => {
+    mockSelectedProvider = {
       id: '/providers/transak',
       name: 'Transak',
       environmentType: 'PRODUCTION',
@@ -293,8 +349,8 @@ describe('BuildQuote', () => {
     expect(getByText('fiat_on_ramp.powered_by_provider')).toBeOnTheScreen();
   });
 
-  it('does not display powered by text when no preferred provider is set', () => {
-    mockPreferredProvider = null;
+  it('does not display powered by text when no selected provider is set', () => {
+    mockSelectedProvider = null;
 
     const { queryByText } = renderWithTheme(<BuildQuote />);
 

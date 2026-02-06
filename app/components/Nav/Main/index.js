@@ -95,7 +95,6 @@ import {
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import { useIsOnBridgeRoute } from '../../UI/Bridge/hooks/useIsOnBridgeRoute';
 import { CardVerification } from '../../UI/Card/sdk';
-import LegacySwapLiveness from '../../UI/Bridge/components/LegacySwapsLiveness';
 
 const Stack = createStackNavigator();
 
@@ -418,7 +417,6 @@ const Main = (props) => {
         <FadeOutOverlay />
         <Notification navigation={props.navigation} />
         <RampOrders />
-        <LegacySwapLiveness />
         <CardVerification />
         <EarnTransactionMonitor />
         {renderDeprecatedNetworkAlert(

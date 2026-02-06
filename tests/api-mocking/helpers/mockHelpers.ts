@@ -6,7 +6,7 @@ import {
   MockApiEndpoint,
   MockEventsObject,
 } from '../../framework';
-import { getDecodedProxiedURL } from '../../../e2e/specs/notifications/utils/helpers.ts';
+import { getDecodedProxiedURL } from '../../smoke/notifications/utils/helpers.ts';
 
 // Creates a logger with INFO level as the mockServer produces too much noise
 // Change this to DEBUG as needed

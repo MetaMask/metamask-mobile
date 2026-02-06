@@ -65,7 +65,6 @@ import { usePredictRewards } from '../../hooks/usePredictRewards';
 import { TraceName } from '../../../../../util/trace';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
-import { calculateMaxBetAmount } from '../../utils/orders';
 
 export const MINIMUM_BET = 1; // $1 minimum bet
 
@@ -200,11 +199,9 @@ const PredictBuyPreview = () => {
   const providerFee = preview?.fees?.providerFee ?? 0;
   const total = currentValue + providerFee + metamaskFee;
 
-  const hasInsufficientFunds = total > balance;
   const isBelowMinimum = currentValue > 0 && currentValue < MINIMUM_BET;
   const canPlaceBet =
     currentValue >= MINIMUM_BET &&
-    !hasInsufficientFunds &&
     preview &&
     !isLoading &&
     !isBalanceLoading &&
@@ -231,11 +228,6 @@ const PredictBuyPreview = () => {
     ? outcome.groupItemTitle
     : '';
 
-  const maxBetAmount = calculateMaxBetAmount(
-    balance,
-    preview?.fees?.totalFeePercentage ?? 0,
-  );
-
   const separator = '·';
   const outcomeTokenLabel = `${outcomeToken?.title} at ${formatCents(
     preview?.sharePrice ?? outcomeToken?.price ?? 0,
@@ -248,7 +240,7 @@ const PredictBuyPreview = () => {
   }, [dispatch, result]);
 
   const onPlaceBet = useCallback(async () => {
-    if (!preview || hasInsufficientFunds || isBelowMinimum) return;
+    if (!preview || isBelowMinimum) return;
 
     await placeOrder({
       providerId: outcome.providerId,
@@ -257,7 +249,6 @@ const PredictBuyPreview = () => {
     });
   }, [
     preview,
-    hasInsufficientFunds,
     isBelowMinimum,
     placeOrder,
     outcome.providerId,
@@ -363,7 +354,7 @@ const PredictBuyPreview = () => {
             amount={currentValueUSDString}
             onPress={() => keypadRef.current?.handleAmountPress()}
             isActive={isInputFocused}
-            hasError={hasInsufficientFunds}
+            hasError={false}
           />
         </Box>
         {/* Available balance */}
@@ -434,46 +425,10 @@ const PredictBuyPreview = () => {
       );
     }
 
-    if (hasInsufficientFunds) {
-      return (
-        <Box twClassName="px-12 pb-4">
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.ErrorDefault}
-            style={tw.style('text-center')}
-          >
-            {strings(
-              maxBetAmount < MINIMUM_BET
-                ? 'predict.order.no_funds_enough'
-                : 'predict.order.prediction_insufficient_funds',
-              {
-                amount: formatPrice(maxBetAmount, {
-                  minimumDecimals: 2,
-                  maximumDecimals: 2,
-                }),
-              },
-            )}
-          </Text>
-        </Box>
-      );
-    }
-
     return null;
   };
 
   const renderActionButton = () => {
-    if (hasInsufficientFunds) {
-      return (
-        <Button
-          label={strings('predict.deposit.add_funds')}
-          variant={ButtonVariants.Primary}
-          onPress={deposit}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-        />
-      );
-    }
-
     if (isLoading) {
       return (
         <Button
@@ -590,7 +545,6 @@ const PredictBuyPreview = () => {
         setCurrentValue={setCurrentValue}
         setCurrentValueUSDString={setCurrentValueUSDString}
         setIsInputFocused={setIsInputFocused}
-        hasInsufficientFunds={hasInsufficientFunds}
         onAddFunds={deposit}
       />
       {renderBottomContent()}

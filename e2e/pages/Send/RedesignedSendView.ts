@@ -3,7 +3,7 @@ import Matchers from '../../../tests/framework/Matchers';
 import { RedesignedSendViewSelectorsIDs } from '../../../app/components/Views/confirmations/components/send/RedesignedSendView.testIds';
 import { Utilities, Assertions } from '../../../tests/framework';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
-import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionView.selectors';
+import { SendActionViewSelectorsIDs } from '../../../tests/selectors/SendFlow/SendActionView.selectors';
 
 class SendView {
   get ethereumTokenButton(): DetoxElement {
