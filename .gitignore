@@ -176,4 +176,4 @@ temp/
 
 tests/coverage-systems/
 
-runway-artifacts/
+runway-artifacts/.claude/settings.local.json
