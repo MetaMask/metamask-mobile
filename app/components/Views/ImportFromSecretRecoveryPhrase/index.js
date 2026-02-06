@@ -31,7 +31,7 @@ import {
   parseSeedPhrase,
   parseVaultValue,
 } from '../../../util/validators';
-import Logger from '../../../util/Logger';
+import { captureException } from '@sentry/react-native';
 import {
   passwordRequirementsMet,
   MIN_PASSWORD_LENGTH,
@@ -513,18 +513,8 @@ const ImportFromSecretRecoveryPhrase = ({
           });
         }
       } catch (error) {
-        // Should we force people to enable passcode / biometrics?
-        if (error.toString() === PASSCODE_NOT_SET_ERROR) {
-          Alert.alert(
-            'Security Alert',
-            'In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)',
-          );
-          setLoading(false);
-        } else {
-          setLoading(false);
-          setError(error.message);
-          Logger.log('Error with seed phrase import', error.message);
-        }
+        setLoading(false);
+
         track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
           wallet_setup_type: 'import',
           error_type: error.toString(),
@@ -540,6 +530,39 @@ const ImportFromSecretRecoveryPhrase = ({
           });
           endTrace({ name: TraceName.OnboardingPasswordSetupError });
         }
+
+        if (error.toString() === PASSCODE_NOT_SET_ERROR) {
+          Alert.alert(
+            'Security Alert',
+            'In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)',
+          );
+          return;
+        }
+
+        // For errors, report to Sentry if metrics enabled and navigate to error screen
+        const metricsEnabled = isMetricsEnabled();
+
+        if (metricsEnabled) {
+          captureException(error, {
+            tags: {
+              view: 'ImportFromSecretRecoveryPhrase',
+              context: 'Wallet import failed - auto reported',
+            },
+          });
+        }
+
+        // Navigate to error screen based on metrics consent
+        navigation.reset({
+          routes: [
+            {
+              name: Routes.ONBOARDING.WALLET_CREATION_ERROR,
+              params: {
+                metricsEnabled,
+                error,
+              },
+            },
+          ],
+        });
       }
     }
   };
