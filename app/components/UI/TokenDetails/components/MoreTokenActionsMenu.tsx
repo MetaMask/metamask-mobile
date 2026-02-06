@@ -20,6 +20,9 @@ import Logger from '../../../../util/Logger';
 import { Hex } from '@metamask/utils';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { TokenI } from '../../Tokens/types';
+import { RootState } from '../../../../reducers';
+import { selectAsset } from '../../../../selectors/assets/assets-list';
+import { isMusdToken } from '../../../UI/Earn/constants/musd';
 
 export interface MoreTokenActionsMenuParams {
   hasPerpsMarket: boolean;
@@ -170,6 +173,14 @@ const MoreTokenActionsMenu = () => {
     createEventBuilder,
   ]);
 
+  const tokenIsInAccount = !!useSelector((state: RootState) =>
+    selectAsset(state, {
+      address: asset.address,
+      chainId: asset.chainId as string,
+      isStaked: asset.isStaked || false,
+    }),
+  );
+
   const actionConfigs: ActionConfig[] = useMemo(() => {
     const actions: ActionConfig[] = [];
 
@@ -210,8 +221,8 @@ const MoreTokenActionsMenu = () => {
       });
     }
 
-    // Remove token (only for non-native tokens)
-    if (!isNativeCurrency) {
+    // Remove token
+    if (!isNativeCurrency && tokenIsInAccount && !isMusdToken(asset.address)) {
       actions.push({
         type: 'remove-token',
         label: strings('asset_details.options.remove_token'),
@@ -224,6 +235,7 @@ const MoreTokenActionsMenu = () => {
 
     return actions;
   }, [
+    asset.address,
     hasPerpsMarket,
     hasBalance,
     isBuyable,
@@ -231,6 +243,7 @@ const MoreTokenActionsMenu = () => {
     asset.chainId,
     asset.symbol,
     explorer,
+    tokenIsInAccount,
     onReceive,
     handleReceive,
     handleBuy,
