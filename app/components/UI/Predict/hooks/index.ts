@@ -15,3 +15,8 @@ export {
   type UseLivePositionsOptions,
   type UseLivePositionsResult,
 } from './useLivePositions';
+
+export {
+  usePredictSearch,
+  type UsePredictSearchResult,
+} from './usePredictSearch';
