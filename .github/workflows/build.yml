@@ -436,10 +436,49 @@ jobs:
             SCRIPT_NAME="build:${{ matrix.platform }}:${BUILD_NAME//-/:}"
             yarn run "$SCRIPT_NAME"
 
-      # Expo development builds: upload iOS .app for simulator (Runway-style artifact)
-      - name: Upload iOS Expo development build
+      # iOS: Upload artifacts
+      # Dev builds: .app bundle for simulator
+      - name: Upload iOS development build (.app for simulator)
         if: matrix.platform == 'ios' && (inputs.build_name == 'main-dev' || inputs.build_name == 'flask-dev' || inputs.build_name == 'qa-dev')
         uses: actions/upload-artifact@v4
         with:
-          name: expo-dev-ios-${{ inputs.build_name }}
+          name: ios-dev-${{ inputs.build_name }}
           path: ios/build/Build/Products/Debug-iphonesimulator/
+          if-no-files-found: warn
+
+      # Production builds: IPA for distribution
+      - name: Upload iOS production build (.ipa)
+        if: matrix.platform == 'ios' && (inputs.build_name == 'main-prod' || inputs.build_name == 'main-rc' || inputs.build_name == 'main-test' || inputs.build_name == 'main-e2e' || inputs.build_name == 'flask-prod' || inputs.build_name == 'flask-test' || inputs.build_name == 'flask-e2e' || inputs.build_name == 'qa-prod')
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-${{ inputs.build_name }}
+          path: ios/build/**/*.ipa
+          if-no-files-found: warn
+
+      # Android: Upload artifacts
+      # Dev builds: Debug APK
+      - name: Upload Android development build (debug APK)
+        if: matrix.platform == 'android' && (inputs.build_name == 'main-dev' || inputs.build_name == 'flask-dev' || inputs.build_name == 'qa-dev')
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-dev-${{ inputs.build_name }}
+          path: android/app/build/outputs/apk/**/*debug*.apk
+          if-no-files-found: warn
+
+      # Production builds: Release APK
+      - name: Upload Android production APK
+        if: matrix.platform == 'android' && (inputs.build_name == 'main-prod' || inputs.build_name == 'main-rc' || inputs.build_name == 'main-test' || inputs.build_name == 'main-e2e' || inputs.build_name == 'flask-prod' || inputs.build_name == 'flask-test' || inputs.build_name == 'flask-e2e' || inputs.build_name == 'qa-prod')
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk-${{ inputs.build_name }}
+          path: android/app/build/outputs/apk/**/*release*.apk
+          if-no-files-found: warn
+
+      # Production builds: AAB (bundle for Play Store)
+      - name: Upload Android App Bundle (AAB)
+        if: matrix.platform == 'android' && (inputs.build_name == 'main-prod' || inputs.build_name == 'main-rc' || inputs.build_name == 'flask-prod')
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-aab-${{ inputs.build_name }}
+          path: android/app/build/outputs/bundle/**/*.aab
+          if-no-files-found: warn
