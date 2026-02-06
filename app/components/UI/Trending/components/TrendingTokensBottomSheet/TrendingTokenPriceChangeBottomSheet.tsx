@@ -14,7 +14,7 @@ import Icon, {
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
-import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import Button, {
   ButtonVariants,
   ButtonWidthTypes,
@@ -156,7 +156,7 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
       onClose={handleSheetClose}
       testID="trending-token-price-change-bottom-sheet"
     >
-      <HeaderCenter
+      <HeaderCompactStandard
         title={strings('trending.sort_by')}
         onClose={handleClose}
         closeButtonProps={{ testID: 'close-button' }}

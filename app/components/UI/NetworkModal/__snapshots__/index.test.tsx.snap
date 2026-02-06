@@ -490,7 +490,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                 style={
                   {
                     "flexDirection": "row",
-                    "paddingHorizontal": 8,
+                    "paddingHorizontal": 16,
                     "paddingVertical": 4,
                   }
                 }
