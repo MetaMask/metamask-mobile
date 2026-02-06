@@ -43,7 +43,7 @@ import type { CaipAccountId } from '@metamask/utils';
 import { TP_SL_CONFIG, PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { ensureError } from '../../../../util/errorUtils';
 import { processBboData } from '../utils/hyperLiquidOrderBookProcessor';
-import { calculateOpenInterestUSD } from '../utils/marketDataTransform';
+import { calculateOpenInterestUSD } from '../controllers/utils/marketDataTransform';
 
 /**
  * Service for managing HyperLiquid WebSocket subscriptions

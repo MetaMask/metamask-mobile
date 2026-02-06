@@ -8,7 +8,7 @@ import {
   formatChange,
   formatPercentage,
   HyperLiquidMarketData,
-} from './marketDataTransform';
+} from './mobileMarketDataFormatters';
 import {
   formatVolume,
   formatPerpsFiat,

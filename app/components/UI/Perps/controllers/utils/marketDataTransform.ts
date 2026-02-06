@@ -1,3 +1,9 @@
+/**
+ * Market data transformation utilities.
+ *
+ * Portable: no mobile-specific imports.
+ * Formatters are injected via MarketDataFormatters interface.
+ */
 import type {
   AllMidsResponse,
   PerpsUniverse,
@@ -6,13 +12,11 @@ import type {
 } from '../types/hyperliquid-types';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { HYPERLIQUID_CONFIG } from '../constants/hyperLiquidConfig';
-import type { PerpsMarketData, MarketType } from '../controllers/types';
-import {
-  formatVolume,
-  formatPerpsFiat,
-  PRICE_RANGES_UNIVERSAL,
-} from './formatUtils';
-import { getIntlNumberFormatter } from '../../../../util/intl';
+import type {
+  PerpsMarketData,
+  MarketType,
+  MarketDataFormatters,
+} from '../types';
 import { parseAssetName } from './hyperLiquidAdapter';
 
 /**
@@ -162,10 +166,13 @@ function extractFundingData(params: ExtractFundingDataParams): FundingData {
 /**
  * Transform raw HyperLiquid market data to UI-friendly format
  * @param hyperLiquidData - Raw data from HyperLiquid API
+ * @param formatters - Injectable formatters for platform-agnostic formatting
+ * @param assetMarketTypes - Optional mapping of asset symbols to market types
  * @returns Transformed market data ready for UI consumption
  */
 export function transformMarketData(
   hyperLiquidData: HyperLiquidMarketData,
+  formatters: MarketDataFormatters,
   assetMarketTypes?: Record<string, MarketType>,
 ): PerpsMarketData[] {
   const { universe, assetCtxs, allMids, predictedFundings } = hyperLiquidData;
@@ -252,19 +259,21 @@ export function transformMarketData(
       maxLeverage: `${asset.maxLeverage}x`,
       price: isNaN(currentPrice)
         ? PERPS_CONSTANTS.FallbackPriceDisplay
-        : formatPerpsFiat(currentPrice, { ranges: PRICE_RANGES_UNIVERSAL }),
+        : formatters.formatPerpsFiat(currentPrice, {
+            ranges: formatters.priceRangesUniversal,
+          }),
       change24h: isNaN(change24h)
         ? PERPS_CONSTANTS.ZeroAmountDetailedDisplay
-        : formatChange(change24h),
+        : formatChange(change24h, formatters),
       change24hPercent: isNaN(change24hPercent)
         ? '0.00%'
-        : formatPercentage(change24hPercent),
+        : formatters.formatPercentage(change24hPercent),
       volume: isNaN(volume)
         ? PERPS_CONSTANTS.FallbackPriceDisplay
-        : formatVolume(volume),
+        : formatters.formatVolume(volume),
       openInterest: isNaN(openInterest)
         ? PERPS_CONSTANTS.FallbackPriceDisplay
-        : formatVolume(openInterest),
+        : formatters.formatVolume(openInterest),
       nextFundingTime: fundingData.nextFundingTime,
       fundingIntervalHours: fundingData.fundingIntervalHours,
       fundingRate,
@@ -281,36 +290,21 @@ export function transformMarketData(
  * Uses more decimal places for smaller amounts to show meaningful precision.
  *
  * @param change - The price change value to format
+ * @param formatters - Injectable formatters
  * @returns Formatted change string with sign and dollar symbol
  */
-export function formatChange(change: number): string {
+export function formatChange(
+  change: number,
+  formatters: MarketDataFormatters,
+): string {
   if (isNaN(change) || !isFinite(change)) return '$0.00';
   if (change === 0) return '$0.00';
 
-  const formatted = formatPerpsFiat(Math.abs(change), {
-    ranges: PRICE_RANGES_UNIVERSAL,
+  const formatted = formatters.formatPerpsFiat(Math.abs(change), {
+    ranges: formatters.priceRangesUniversal,
   });
 
   // Remove $ sign and add it back with proper sign placement
   const valueWithoutDollar = formatted.replace('$', '');
   return change > 0 ? `+$${valueWithoutDollar}` : `-$${valueWithoutDollar}`;
-}
-
-/**
- * Format percentage change with sign.
- *
- * @param percent - The percentage value to format
- * @returns Formatted percentage string with sign
- */
-export function formatPercentage(percent: number): string {
-  if (isNaN(percent) || !isFinite(percent)) return '0.00%';
-  if (percent === 0) return '0.00%';
-
-  const formatted = getIntlNumberFormatter('en-US', {
-    style: 'percent',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(percent / 100);
-
-  return percent > 0 ? `+${formatted}` : formatted;
 }

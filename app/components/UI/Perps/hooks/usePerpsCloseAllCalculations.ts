@@ -8,7 +8,7 @@ import type {
 import Engine from '../../../../core/Engine';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectChainId } from '../../../../selectors/networkController';
-import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
+import { formatAccountToCaipAccountId } from '../controllers/utils/rewardsUtils';
 
 /**
  * Aggregated calculations result for closing all positions

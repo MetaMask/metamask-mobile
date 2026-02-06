@@ -1,5 +1,5 @@
 import { ensureError } from '../../../../../util/errorUtils';
-import { formatAccountToCaipAccountId } from '../../utils/rewardsUtils';
+import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
 import type { PerpsControllerMessenger } from '../PerpsController';
 import type { PerpsPlatformDependencies } from '../types';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
@@ -81,10 +81,11 @@ export class RewardsIntegrationService {
         return undefined;
       }
 
-      // Use pure utility function for CAIP formatting
+      // Use pure utility function for CAIP formatting (pass logger for error reporting)
       const caipAccountId = formatAccountToCaipAccountId(
         evmAccount.address,
         chainId,
+        this.deps.logger,
       );
 
       if (!caipAccountId) {

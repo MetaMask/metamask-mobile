@@ -23,7 +23,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { PerpsNavigationParamList } from '../../types/navigation';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { selectChainId } from '../../../../../selectors/networkController';
-import { formatAccountToCaipAccountId } from '../../utils/rewardsUtils';
+import { formatAccountToCaipAccountId } from '../../controllers/utils/rewardsUtils';
 
 // Import PerpsController hooks
 import PerpsTransactionItem from '../../components/PerpsTransactionItem';

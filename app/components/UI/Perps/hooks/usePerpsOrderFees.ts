@@ -16,7 +16,7 @@ import {
   DEVELOPMENT_CONFIG,
   PERFORMANCE_CONFIG,
 } from '../constants/perpsConfig';
-import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
+import { formatAccountToCaipAccountId } from '../controllers/utils/rewardsUtils';
 import { usePerpsTrading } from './usePerpsTrading';
 import { determineMakerStatus } from '../utils/orderUtils';
 

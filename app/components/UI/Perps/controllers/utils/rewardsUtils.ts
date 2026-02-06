@@ -1,22 +1,26 @@
 /**
  * Shared rewards utilities for Perps components
  * Handles CAIP account formatting and rewards integration
+ *
+ * Portable: no mobile-specific imports.
+ * Logger is injected as optional parameter for platform-agnostic error reporting.
  */
 import {
   toCaipAccountId,
   CaipAccountId,
   parseCaipChainId,
 } from '@metamask/utils';
-import { ensureError } from '../../../../util/errorUtils';
+import { ensureError } from '../../../../../util/errorUtils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
-import Logger from '../../../../util/Logger';
+import type { PerpsLogger } from '../types';
 
 /**
  * Formats an address to CAIP-10 account ID format
  *
  * @param address - The wallet address to format
  * @param chainId - The chain ID (e.g., '1' for mainnet, '42161' for Arbitrum)
+ * @param logger - Optional logger for error reporting
  * @returns CAIP-10 formatted account ID or null if formatting fails
  *
  * @example
@@ -28,6 +32,7 @@ import Logger from '../../../../util/Logger';
 export const formatAccountToCaipAccountId = (
   address: string,
   chainId: string,
+  logger?: PerpsLogger,
 ): CaipAccountId | null => {
   try {
     const caipChainId = formatChainIdToCaip(chainId);
@@ -41,11 +46,11 @@ export const formatAccountToCaipAccountId = (
 
     return toCaipAccountId(namespace, reference, normalizedAddress);
   } catch (error) {
-    Logger.error(ensureError(error), {
-      message: 'Rewards: Failed to format CAIP Account ID',
-      context: 'rewardsUtils.formatAccountToCaipAccountId',
-      address,
-      chainId,
+    logger?.error(ensureError(error), {
+      context: {
+        name: 'rewardsUtils.formatAccountToCaipAccountId',
+        data: { address, chainId },
+      },
     });
     return null;
   }
@@ -69,17 +74,20 @@ export const isCaipAccountId = (value: unknown): value is CaipAccountId => {
  * Helper to handle rewards-related errors consistently
  *
  * @param error - The error that occurred
+ * @param logger - Optional logger for error reporting
  * @param context - Optional context information
  * @returns A user-friendly error message
  */
 export const handleRewardsError = (
   error: unknown,
+  logger?: PerpsLogger,
   context?: Record<string, unknown>,
 ): string => {
-  Logger.error(ensureError(error), {
-    message: 'Rewards: Error occurred',
-    context: 'rewardsUtils.handleRewardsError',
-    additionalContext: context,
+  logger?.error(ensureError(error), {
+    context: {
+      name: 'rewardsUtils.handleRewardsError',
+      data: { additionalContext: context },
+    },
   });
 
   return 'Rewards operation failed';

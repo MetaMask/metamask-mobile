@@ -58,33 +58,58 @@ All items completed and verified (tests passing, TypeScript clean).
 
 ---
 
-## PR 2: Dependency injection for `rewardsUtils` + `marketDataTransform` (next)
+## PR 2: Dependency injection + remove re-export stubs ✅
 
-These two utils are portable _except_ for Mobile-specific logger/formatter imports. Fix by injecting dependencies as parameters, then move into `controllers/utils/`.
+Both utils made portable via dependency injection, moved to `controllers/utils/`, and re-export stubs removed.
 
-### Fix 4: `rewardsUtils.ts` — inject logger
+### Fix 4: `rewardsUtils.ts` — inject logger ✅
 
-- [ ] Remove `import Logger from '../../../../util/Logger'`
-- [ ] Add optional `logger?: PerpsLogger` param (reuse existing `PerpsLogger` interface from `controllers/types`)
-- [ ] Guard calls: `logger?.error(ensureError(error), {...})`
-- [ ] Move to `controllers/utils/rewardsUtils.ts`
-- [ ] Leave re-export stub at original location
-- [ ] Update `RewardsIntegrationService.ts` to pass logger when calling
+- [x] Removed `import Logger from '../../../../util/Logger'`
+- [x] Added optional `logger?: PerpsLogger` param (reuses `PerpsLogger` interface from `controllers/types`)
+- [x] Guard calls: `logger?.error(ensureError(error), {...})`
+- [x] Moved to `controllers/utils/rewardsUtils.ts`
+- [x] **Stub removed** — all consumers updated to import directly from `controllers/utils/rewardsUtils`
 
-### Fix 6: `marketDataTransform.ts` — inject formatters
+### Fix 6: `marketDataTransform.ts` — inject formatters ✅
 
-- [ ] Remove `import { getIntlNumberFormatter } from '../../../../util/intl'`
-- [ ] Remove `import { formatVolume, formatPerpsFiat, PRICE_RANGES_UNIVERSAL } from './formatUtils'`
-- [ ] Define `MarketDataFormatters` interface with `formatVolume`, `formatPerpsFiat`, `getIntlNumberFormatter`
-- [ ] Inject as parameter to transform functions
-- [ ] Move to `controllers/utils/marketDataTransform.ts`
-- [ ] Leave re-export stub at original location
-- [ ] Update consumers to pass formatter implementations
+- [x] Removed Mobile-specific imports (`getIntlNumberFormatter`, `formatVolume`, `formatPerpsFiat`, `PRICE_RANGES_UNIVERSAL`)
+- [x] Defined `MarketDataFormatters` interface in `controllers/types`
+- [x] Injected formatters as parameter to `transformMarketData` and `formatChange`
+- [x] Moved to `controllers/utils/marketDataTransform.ts`
+- [x] **Stub removed** — replaced with `utils/mobileMarketDataFormatters.ts` (mobile wrapper that injects formatters)
 
-### Tests
+### Remove re-export stubs ✅
 
-- [ ] All Perps tests pass
-- [ ] TypeScript clean
+Deleted stubs and updated all import paths to point directly at `controllers/utils/`:
+
+**Deleted:**
+
+- `utils/rewardsUtils.ts` (9-line pure re-export)
+- `utils/marketDataTransform.ts` (~80-line wrapper)
+
+**Created:**
+
+- `utils/mobileMarketDataFormatters.ts` — mobile-specific wrapper that injects `mobileFormatters` into the portable `transformMarketData`, `formatChange`, `formatPercentage`; re-exports `calculateOpenInterestUSD` and `HyperLiquidMarketData`
+
+**Import path updates:**
+
+| File                                                    | Change                                                                             |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `hooks/usePerpsOrderFees.ts`                            | `../utils/rewardsUtils` → `../controllers/utils/rewardsUtils`                      |
+| `hooks/usePerpsCloseAllCalculations.ts`                 | `../utils/rewardsUtils` → `../controllers/utils/rewardsUtils`                      |
+| `hooks/usePerpsRewardAccountOptedIn.ts`                 | `../utils/rewardsUtils` → `../controllers/utils/rewardsUtils`                      |
+| `hooks/usePerpsRewardAccountOptedIn.test.ts`            | `../utils/rewardsUtils` → `../controllers/utils/rewardsUtils` (import + jest.mock) |
+| `Views/PerpsTransactionsView/PerpsTransactionsView.tsx` | `../../utils/rewardsUtils` → `../../controllers/utils/rewardsUtils`                |
+| `controllers/providers/HyperLiquidProvider.ts`          | `../../utils/marketDataTransform` → `../../utils/mobileMarketDataFormatters`       |
+| `services/HyperLiquidSubscriptionService.ts`            | `../utils/marketDataTransform` → `../controllers/utils/marketDataTransform`        |
+| `utils/marketDataTransform.test.ts`                     | `./marketDataTransform` → `./mobileMarketDataFormatters`                           |
+| `utils/rewardsUtils.test.ts`                            | `./rewardsUtils` → `../controllers/utils/rewardsUtils`                             |
+
+### Tests ✅
+
+- [x] `npx jest app/components/UI/Perps/ --no-coverage --passWithNoTests` — 250/251 pass (1 pre-existing failure in `hyperLiquidValidation.test.ts`)
+- [x] `npx tsc --noEmit` — clean
+- [x] `npx eslint` on all modified files — 0 errors (1 pre-existing warning)
 
 ---
 
@@ -152,6 +177,10 @@ The `parseVolume` function was defined inside `hooks/usePerpsMarkets.ts` (a Reac
 
 Three pure math functions (`countSignificantFigures`, `roundToSignificantFigures`, `hasExceededSignificantFigures`) were extracted into `controllers/utils/significantFigures.ts` since `formatUtils.ts` itself can't move (it has i18n/intl dependencies). `hyperLiquidAdapter.ts` (now in controllers/) imports from the extracted file.
 
+### Decision: Remove re-export stubs, not keep them indefinitely
+
+After PR 1 left re-export stubs for backward compatibility, PR 2 removed them for `rewardsUtils` and `marketDataTransform`. The stubs added unnecessary indirection. For `marketDataTransform`, the stub was more than a re-export — it contained mobile formatter injection logic. This was extracted into a new file `utils/mobileMarketDataFormatters.ts` with a clear name indicating its purpose, rather than keeping the generic `marketDataTransform.ts` name at the old location. Pure-function consumers (like `HyperLiquidSubscriptionService`) now import directly from `controllers/utils/marketDataTransform`.
+
 ### Decision: `addTransaction` uses messenger pattern, NOT dependency injection
 
 `PerpsController.ts` imports `addTransaction` from `../../../../util/transaction-controller` (a Mobile-only convenience wrapper around `Engine.context.TransactionController.addTransaction()`). This is a **cross-controller call**, not a platform utility — it should use the **messenger pattern**, not `PerpsPlatformDependencies`. The messenger is already wired up: `TransactionControllerAddTransactionAction` is in `AllowedActions` (line 678) and the delegation is configured. The controller already uses `this.messenger.call('TransactionController:addTransaction', ...)` in `submitTransaction`. Fix: remove the import and replace remaining usages with the messenger call.
@@ -162,17 +191,17 @@ Three pure math functions (`countSignificantFigures`, `roundToSignificantFigures
 
 After PR 1, these imports inside `controllers/` still reference Mobile-specific code:
 
-| File                                          | Import                                                          | Fix                                                                                                                   |
-| --------------------------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `PerpsController.ts`                          | `addTransaction` from `../../../../util/transaction-controller` | PR 3 — replace with `this.messenger.call('TransactionController:addTransaction', ...)` (messenger already configured) |
-| `PerpsController.ts`                          | `PerpsStreamChannelKey` from `../providers/PerpsStreamManager`  | PR 3 — define in `controllers/types/`                                                                                 |
-| `PerpsController.ts`                          | `AssetType` from `../../../Views/confirmations/types/token`     | PR 3 — define in `controllers/types/`                                                                                 |
-| `providers/HyperLiquidProvider.ts`            | 4 service classes from `../../services/`                        | PR 3 — abstract behind interfaces                                                                                     |
-| `providers/HyperLiquidProvider.ts`            | `PerpsStreamManager` from `../../providers/PerpsStreamManager`  | PR 3 — abstract behind interface                                                                                      |
-| `services/FeatureFlagConfigurationService.ts` | `remoteFeatureFlag` utils                                       | PR 3 — inject via `PerpsPlatformDependencies`                                                                         |
-| `services/DepositService.ts`                  | `generateTransferData` from Mobile utils                        | PR 3 — inject via `PerpsPlatformDependencies`                                                                         |
-| `services/RewardsIntegrationService.ts`       | `rewardsUtils` (after PR 2 move, this resolves)                 | PR 2                                                                                                                  |
-| `services/MarketDataService.ts`               | `marketDataTransform` (after PR 2 move, this resolves)          | PR 2                                                                                                                  |
+| File                                          | Import                                                                                                | Fix                                                                                                                   |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `PerpsController.ts`                          | `addTransaction` from `../../../../util/transaction-controller`                                       | PR 3 — replace with `this.messenger.call('TransactionController:addTransaction', ...)` (messenger already configured) |
+| `PerpsController.ts`                          | `PerpsStreamChannelKey` from `../providers/PerpsStreamManager`                                        | PR 3 — define in `controllers/types/`                                                                                 |
+| `PerpsController.ts`                          | `AssetType` from `../../../Views/confirmations/types/token`                                           | PR 3 — define in `controllers/types/`                                                                                 |
+| `providers/HyperLiquidProvider.ts`            | 4 service classes from `../../services/`                                                              | PR 3 — abstract behind interfaces                                                                                     |
+| `providers/HyperLiquidProvider.ts`            | `PerpsStreamManager` from `../../providers/PerpsStreamManager`                                        | PR 3 — abstract behind interface                                                                                      |
+| `services/FeatureFlagConfigurationService.ts` | `remoteFeatureFlag` utils                                                                             | PR 3 — inject via `PerpsPlatformDependencies`                                                                         |
+| `services/DepositService.ts`                  | `generateTransferData` from Mobile utils                                                              | PR 3 — inject via `PerpsPlatformDependencies`                                                                         |
+| `services/RewardsIntegrationService.ts`       | `rewardsUtils` — ✅ resolved (imports from `../utils/rewardsUtils` within controllers/)               | PR 2 ✅                                                                                                               |
+| `services/MarketDataService.ts`               | `marketDataTransform` — ✅ resolved (imports from `../utils/marketDataTransform` within controllers/) | PR 2 ✅                                                                                                               |
 
 ---
 
