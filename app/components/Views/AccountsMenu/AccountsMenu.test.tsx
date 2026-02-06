@@ -56,11 +56,16 @@ jest.mock('../../../core/Analytics', () => ({
       trackEvent: mockTrackEvent,
     }),
   },
-  MetaMetricsEvents: {
-    CARD_HOME_CLICKED: 'CARD_HOME_CLICKED',
-    NAVIGATION_TAPS_SEND_FEEDBACK: 'NAVIGATION_TAPS_SEND_FEEDBACK',
-    NAVIGATION_TAPS_GET_HELP: 'NAVIGATION_TAPS_GET_HELP',
-    NAVIGATION_TAPS_LOGOUT: 'NAVIGATION_TAPS_LOGOUT',
+}));
+
+jest.mock('../../../core/Analytics/MetaMetrics.events', () => ({
+  EVENT_NAME: {
+    CARD_HOME_CLICKED: 'Card Home Clicked',
+    SETTINGS_VIEWED: 'Settings Viewed',
+    SETTINGS_ABOUT: 'About MetaMask',
+    NAVIGATION_TAPS_SEND_FEEDBACK: 'Send Feedback',
+    NAVIGATION_TAPS_GET_HELP: 'Get Help',
+    NAVIGATION_TAPS_LOGOUT: 'Logout',
   },
 }));
 
@@ -326,9 +331,7 @@ describe('AccountsMenu', () => {
         fireEvent.press(logOutButton);
 
         // At this point, analytics NOT be tracked yet (just showing alert)
-        expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
-          'NAVIGATION_TAPS_LOGOUT',
-        );
+        expect(mockCreateEventBuilder).not.toHaveBeenCalledWith('Logout');
 
         // Get the onPress callback from the OK button and execute it
         const alertCall = mockAlert.mock.calls[0];
@@ -336,9 +339,7 @@ describe('AccountsMenu', () => {
         await okButton.onPress();
 
         // Now analytics be tracked (user confirmed)
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          'NAVIGATION_TAPS_LOGOUT',
-        );
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith('Logout');
         expect(mockTrackEvent).toHaveBeenCalled();
       });
     });
@@ -375,9 +376,7 @@ describe('AccountsMenu', () => {
 
       fireEvent.press(requestFeatureButton);
 
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        'NAVIGATION_TAPS_SEND_FEEDBACK',
-      );
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith('Send Feedback');
       expect(mockTrackEvent).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith('Webview', {
         screen: 'SimpleWebview',
@@ -394,9 +393,7 @@ describe('AccountsMenu', () => {
 
       fireEvent.press(supportButton);
 
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        'NAVIGATION_TAPS_GET_HELP',
-      );
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith('Get Help');
       expect(mockTrackEvent).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith('Webview', {
         screen: 'SimpleWebview',
