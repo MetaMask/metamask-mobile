@@ -227,7 +227,7 @@
     "@metamask/error-reporting-service": "^3.0.0",
     "@metamask/eth-hd-keyring": "^13.0.0",
     "@metamask/eth-json-rpc-filters": "^9.0.0",
-    "@metamask/eth-json-rpc-middleware": "^22.0.0",
+    "@metamask/eth-json-rpc-middleware": "^23.1.0",
     "@metamask/eth-ledger-bridge-keyring": "11.1.0",
     "@metamask/eth-qr-keyring": "^1.1.0",
     "@metamask/eth-query": "^4.0.0",
