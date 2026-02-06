@@ -11,16 +11,8 @@ import {
 
 import { strings } from '../../../../../../locales/i18n';
 import TextField from '../../../../../component-library/components/Form/TextField';
-import Input from '../../../../../component-library/components/Form/TextField/foundation/Input';
-import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import { useSendContext } from '../../context/send-context/send-context';
-
-const INPUT_STYLE_OVERRIDE = {
-  height: undefined,
-  lineHeight: undefined,
-  paddingVertical: 0,
-};
 
 export const RecipientInput = ({
   isRecipientSelectedFromList,
@@ -104,30 +96,21 @@ export const RecipientInput = ({
   return (
     <Box twClassName="w-full px-4 py-2">
       <TextField
+        ref={inputRef}
         endAccessory={renderEndAccessory}
         startAccessory={defaultStartAccessory}
-        inputElement={
-          <Input
-            textVariant={TextVariant.BodyMD}
-            ref={inputRef}
-            value={to}
-            onChangeText={handleTextChange}
-            autoCorrect={false}
-            multiline={false}
-            numberOfLines={1}
-            scrollEnabled={false}
-            textAlignVertical="center"
-            textBreakStrategy="simple"
-            spellCheck={false}
-            autoComplete="off"
-            autoCapitalize="none"
-            placeholder={strings('send.enter_address_to_send_to')}
-            autoFocus={false}
-            testID="recipient-address-input"
-            isStateStylesDisabled
-            style={INPUT_STYLE_OVERRIDE}
-          />
-        }
+        value={to}
+        onChangeText={handleTextChange}
+        autoCorrect={false}
+        scrollEnabled={false}
+        textAlignVertical="center"
+        textBreakStrategy="simple"
+        spellCheck={false}
+        autoComplete="off"
+        autoCapitalize="none"
+        placeholder={strings('send.enter_address_to_send_to')}
+        autoFocus={false}
+        testID="recipient-address-input"
       />
     </Box>
   );

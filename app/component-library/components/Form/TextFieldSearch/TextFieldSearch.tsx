@@ -45,7 +45,7 @@ const TextFieldSearch: React.FC<TextFieldSearchProps> = ({
     <TextField
       value={value}
       startAccessory={searchIcon}
-      endAccessory={!!value && clearButton}
+      endAccessory={Boolean(value) && clearButton}
       testID={TEXTFIELDSEARCH_TEST_ID}
       style={[style, styles.base]}
       {...props}
