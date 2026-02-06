@@ -188,14 +188,14 @@ describe('TokenDetailsActions', () => {
         });
       });
 
-      describe('token hasno balance', () => {
+      describe('token has no balance', () => {
         it('renders Receive, More buttons', () => {
           const { getByTestId, queryByTestId } = renderWithProvider(
             <TokenDetailsActions
               {...defaultProps}
               hasPerpsMarket={false}
               isBuyable={false}
-              hasBalance
+              hasBalance={false}
             />,
             { state: mockInitialState },
           );
