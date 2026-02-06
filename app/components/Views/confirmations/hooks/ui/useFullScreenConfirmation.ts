@@ -4,27 +4,27 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { useParams } from '../../../../../util/navigation/navUtils';
 import { FULL_SCREEN_CONFIRMATIONS } from '../../constants/confirmations';
 import { useIsInternalConfirmation } from '../transactions/useIsInternalConfirmation';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import useApprovalRequest from '../useApprovalRequest';
 import { hasTransactionType } from '../../utils/transaction';
+import { MusdConversionIntent } from '../../../../UI/Earn/hooks/useMusdConversion';
+import { useParams } from '../../../../../util/navigation/navUtils';
 
 const getIsFullScreenConfirmation = (
   approvalRequest: ApprovalRequest<TransactionMeta> | undefined,
   transactionMetadata: TransactionMeta | undefined,
   isWalletInitiated: boolean,
-  maxValueMode = false,
+  conversionIntent: MusdConversionIntent,
 ): boolean => {
   if (!isWalletInitiated) {
     return false;
   }
 
-  // TODO: Consider creating array of constants for this (similar to FULL_SCREEN_CONFIRMATIONS) instead of checking for musdConversion specifically.
   // Max mode mUSD conversion should render as bottom sheet
   if (
-    maxValueMode &&
+    conversionIntent === MusdConversionIntent.Max &&
     transactionMetadata?.type === TransactionType.musdConversion
   ) {
     return false;
@@ -48,13 +48,15 @@ export const useFullScreenConfirmation = () => {
   const { approvalRequest } = useApprovalRequest();
   const transactionMetadata = useTransactionMetadataRequest();
   const isInternalConfirmation = useIsInternalConfirmation();
-  const { maxValueMode } = useParams<{ maxValueMode?: boolean }>();
+  const { conversionIntent } = useParams<{
+    conversionIntent: MusdConversionIntent;
+  }>();
 
   const isFullScreenConfirmation = getIsFullScreenConfirmation(
     approvalRequest,
     transactionMetadata,
     isInternalConfirmation,
-    maxValueMode,
+    conversionIntent,
   );
 
   return { isFullScreenConfirmation };

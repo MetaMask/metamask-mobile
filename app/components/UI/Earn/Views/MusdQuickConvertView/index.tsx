@@ -135,6 +135,8 @@ const MusdBalanceCard = ({ chainId, style }: MusdBalanceCardProps) => {
       <View style={styles.left}>
         <MusdBadge chainId={chainId} size={32} />
         <View>
+          {/* TODO: Fix displayed balance in useMusdBalance hook. */}
+          {/* @ts-expect-error - temp mUSD balance displayed while building UI. */}
           <Text variant={TextVariant.BodyMDMedium}>{musdBalance}</Text>
           <Text
             variant={TextVariant.BodySMMedium}
@@ -191,7 +193,6 @@ const MusdQuickConvertView = () => {
   const navigation = useNavigation();
   const { initiateCustomConversion, initiateMaxConversion } =
     useMusdConversion();
-  const { getMusdOutputChainId } = useMusdConversionTokens();
 
   // Feature flags
   const isMusdFlowEnabled = useSelector(selectIsMusdConversionFlowEnabledFlag);
@@ -225,17 +226,14 @@ const MusdQuickConvertView = () => {
   // navigate to existing confirmation screen
   const handleEditPress = useCallback(
     async (token: AssetType) => {
-      const outputChainId = getMusdOutputChainId(token.chainId);
-
       await initiateCustomConversion({
-        outputChainId,
         preferredPaymentToken: {
           address: token.address as Hex,
           chainId: token.chainId as Hex,
         },
       });
     },
-    [initiateCustomConversion, getMusdOutputChainId],
+    [initiateCustomConversion],
   );
 
   const tokensWithBalance = useMemo(
