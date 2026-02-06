@@ -617,6 +617,10 @@ export interface OrderFill {
 }
 
 // Parameter interfaces - all fully optional for better UX
+export interface CheckEligibilityParams {
+  blockedRegions: string[]; // List of blocked region codes (e.g., ['US', 'CN'])
+}
+
 export interface GetPositionsParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
   includeHistory?: boolean; // Optional: include historical positions
@@ -708,7 +712,7 @@ export interface SubscribeOrdersParams {
 }
 
 export interface SubscribeAccountParams {
-  callback: (account: AccountState) => void;
+  callback: (account: AccountState | null) => void;
   accountId?: CaipAccountId; // Optional: defaults to selected account
 }
 
