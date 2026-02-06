@@ -15,34 +15,30 @@ import { MeldSDKProvider } from './MeldProvider';
 import MeldBuildQuote from './Views/BuildQuote/MeldBuildQuote';
 import MeldQuotes from './Views/Quotes/MeldQuotes';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
+import Routes from '../../../../constants/navigation/Routes';
 
 const Stack = createStackNavigator();
 
-interface MeldRampFlowProps {
-  /** Optional initial wallet address. If not provided, uses the active account. */
-  walletAddress?: string;
-}
-
-const MeldRampFlow: React.FC<MeldRampFlowProps> = ({ walletAddress }) => {
+const MeldRampFlow: React.FC = () => {
   // Get the active account address directly from the accounts controller
   const selectedAccount = useSelector(selectSelectedInternalAccount);
-  const address = walletAddress || selectedAccount?.address || '';
+  const address = selectedAccount?.address || '';
 
   return (
     <MeldSDKProvider initialWalletAddress={address}>
       <Stack.Navigator
+        initialRouteName={Routes.MELD_RAMP.BUILD_QUOTE}
         screenOptions={{
           headerShown: true,
-          headerTitle: 'Buy Crypto (Meld PoC)',
         }}
       >
         <Stack.Screen
-          name="MeldBuildQuote"
+          name={Routes.MELD_RAMP.BUILD_QUOTE}
           component={MeldBuildQuote}
-          options={{ headerTitle: 'Buy Crypto' }}
+          options={{ headerTitle: 'Buy Crypto (Meld PoC)' }}
         />
         <Stack.Screen
-          name="MeldQuotes"
+          name={Routes.MELD_RAMP.QUOTES}
           component={MeldQuotes}
           options={{ headerTitle: 'Select Provider' }}
         />

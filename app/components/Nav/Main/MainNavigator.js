@@ -59,6 +59,7 @@ import { RampType } from '../../UI/Ramp/Aggregator/types';
 import RampSettings from '../../UI/Ramp/Aggregator/Views/Settings';
 import RampActivationKeyForm from '../../UI/Ramp/Aggregator/Views/Settings/ActivationKeyForm';
 import TokenListRoutes from '../../UI/Ramp/routes';
+import MeldRampFlow from '../../UI/Ramp/Meld';
 
 import DepositOrderDetails from '../../UI/Ramp/Deposit/Views/DepositOrderDetails/DepositOrderDetails';
 import DepositRoutes from '../../UI/Ramp/Deposit/routes';
@@ -1090,6 +1091,7 @@ const MainNavigator = () => {
       <Stack.Screen name={Routes.RAMP.SELL}>
         {() => <RampRoutes rampType={RampType.SELL} />}
       </Stack.Screen>
+      <Stack.Screen name={Routes.MELD_RAMP.ID} component={MeldRampFlow} />
       <Stack.Screen name={Routes.DEPOSIT.ID} component={DepositRoutes} />
       <Stack.Screen name={Routes.BRIDGE.ROOT} component={BridgeScreenStack} />
       <Stack.Screen

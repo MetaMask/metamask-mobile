@@ -18,11 +18,18 @@ import {
 import { createRampUnsupportedModalNavigationDetails } from '../components/RampUnsupportedModal/RampUnsupportedModal';
 import { createEligibilityFailedModalNavigationDetails } from '../components/EligibilityFailedModal/EligibilityFailedModal';
 import { useRampsTokens } from './useRampsTokens';
+import Routes from '../../../../constants/navigation/Routes';
 
 enum RampMode {
   AGGREGATOR = 'AGGREGATOR',
   DEPOSIT = 'DEPOSIT',
 }
+
+/**
+ * PoC flag: when MELD_API_KEY is set, route Buy through Meld instead of
+ * the aggregator. Remove this when the PoC is concluded.
+ */
+const USE_MELD_POC = Boolean(process.env.MELD_API_KEY);
 
 /**
  * Hook that returns functions to navigate to ramp flows.
@@ -48,6 +55,12 @@ export const useRampNavigation = () => {
         overrideUnifiedRouting?: boolean;
       },
     ) => {
+      // PoC: Route to Meld direct integration when MELD_API_KEY is set
+      if (USE_MELD_POC) {
+        navigation.navigate(Routes.MELD_RAMP.ID);
+        return;
+      }
+
       const { mode = RampMode.AGGREGATOR, overrideUnifiedRouting = false } =
         options || {};
 
@@ -164,5 +177,13 @@ export const useRampNavigation = () => {
     [goToBuy],
   );
 
-  return { goToBuy, goToAggregator, goToSell, goToDeposit };
+  /**
+   * Navigate to the Meld direct integration PoC flow.
+   * This bypasses the aggregator and talks directly to Meld's White-Label API.
+   */
+  const goToMeld = useCallback(() => {
+    navigation.navigate(Routes.MELD_RAMP.ID);
+  }, [navigation]);
+
+  return { goToBuy, goToAggregator, goToSell, goToDeposit, goToMeld };
 };

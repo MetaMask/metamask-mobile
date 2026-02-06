@@ -53,6 +53,7 @@ import {
   MeldFiatCurrency,
   MeldPaymentMethodType,
 } from '../../types';
+import Routes from '../../../../../../constants/navigation/Routes';
 
 import Button, {
   ButtonVariants,
@@ -192,10 +193,9 @@ const MeldBuildQuote: React.FC = () => {
     }
 
     // Navigate to the Meld quotes screen
-    // For PoC, we pass params via navigation
     (
       navigation as { navigate: (route: string, params: object) => void }
-    ).navigate('MeldQuotes', { amount });
+    ).navigate(Routes.MELD_RAMP.QUOTES, { amount });
   }, [
     navigation,
     selectedCountry,
