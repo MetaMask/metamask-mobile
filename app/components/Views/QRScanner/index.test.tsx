@@ -193,6 +193,15 @@ describe('QrScanner', () => {
     mockGoBack.mockClear();
     mockLinkingOpenURL.mockClear();
 
+    // Reset isInternalDeepLink to default (false) — individual tests
+    // that need it to return true will override this.
+    const deeplinksUtilModule = jest.requireMock(
+      '../../../core/DeeplinkManager/util/deeplinks',
+    );
+    (deeplinksUtilModule.isInternalDeepLink as jest.Mock).mockReturnValue(
+      false,
+    );
+
     // Setup useSelector mock
     mockUseSelector.mockImplementation(
       (selector: (state: unknown) => unknown) => {
@@ -751,23 +760,8 @@ describe('QrScanner', () => {
       });
 
       it('routes MetaMask internal deeplinks through DeeplinkManager instead of Linking.openURL', async () => {
-        const validatorsModule = jest.requireMock('../../../util/validators');
-        (validatorsModule.isValidMnemonic as jest.Mock).mockReturnValue(false);
-        (
-          validatorsModule.failedSeedPhraseRequirements as jest.Mock
-        ).mockReturnValue(true);
-
-        const ethereumjsUtilModule = jest.requireMock('ethereumjs-util');
-        (ethereumjsUtilModule.isValidAddress as jest.Mock).mockReturnValue(
-          false,
-        );
-
-        const generalUtilsModule = jest.requireMock('../../../util/general');
-        (generalUtilsModule.getURLProtocol as jest.Mock).mockReturnValue(
-          'https',
-        );
-
-        // Mock isInternalDeepLink to return true for MetaMask deeplinks
+        // isInternalDeepLink identifies the link, isMwpDeeplink must be false
+        // so we don't get caught by the MWP handler above.
         const deeplinksUtilModule = jest.requireMock(
           '../../../core/DeeplinkManager/util/deeplinks',
         );
@@ -782,7 +776,6 @@ describe('QrScanner', () => {
           false,
         );
 
-        // DeeplinkManager should handle the link
         (SharedDeeplinkManager.parse as jest.Mock).mockResolvedValue(true);
 
         const mockOnScanSuccess = jest.fn();
@@ -794,7 +787,6 @@ describe('QrScanner', () => {
           expect(onCodeScannedCallback).toBeDefined();
         });
 
-        // Scan a MetaMask internal deeplink (e.g., metamask.app.link/dapp/...)
         await act(async () => {
           onCodeScannedCallback?.([
             { value: 'https://metamask.app.link/dapp/example.com' },
@@ -802,16 +794,24 @@ describe('QrScanner', () => {
         });
 
         await waitFor(() => {
-          // Should NOT show URL redirection modal (mockNavigate should not be called for modal)
-          // Should NOT call Linking.openURL
+          // Must NOT open externally — on iOS this would bounce to Safari → App Store
           expect(mockLinkingOpenURL).not.toHaveBeenCalled();
-          // Should pass the link to DeeplinkManager
+
+          // Must route through DeeplinkManager for in-app handling
           expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(
             'https://metamask.app.link/dapp/example.com',
             expect.objectContaining({
               origin: 'qr-code',
             }),
           );
+
+          // Must track as a successfully handled deeplink
+          expect(mockTrackEvent).toHaveBeenCalled();
+          expect(mockAddProperties).toHaveBeenCalledWith({
+            [QRScannerEventProperties.SCAN_SUCCESS]: true,
+            [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+            [QRScannerEventProperties.SCAN_RESULT]: ScanResult.DEEPLINK_HANDLED,
+          });
         });
       });
 

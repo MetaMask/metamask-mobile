@@ -239,19 +239,62 @@ const QRScanner = ({
         return;
       }
 
+      // MetaMask universal links (metamask.app.link, link.metamask.io, etc.)
+      // must be handled in-app via DeeplinkManager, not opened externally.
+      // On iOS, calling Linking.openURL() with a universal link that belongs to
+      // the already-foregrounded app causes Safari to open instead, which then
+      // redirects to the App Store — leaving the user stuck.
+      if (isInternalDeepLink(content)) {
+        shouldReadBarCodeRef.current = false;
+
+        const handledByDeeplink = await SharedDeeplinkManager.parse(content, {
+          origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
+          onHandled: () => {
+            const stackNavigation = navigation as {
+              pop?: (count: number) => void;
+            };
+            stackNavigation.pop?.(2);
+          },
+        });
+
+        if (handledByDeeplink) {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+              .addProperties({
+                [QRScannerEventProperties.SCAN_SUCCESS]: true,
+                [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+                [QRScannerEventProperties.SCAN_RESULT]:
+                  ScanResult.DEEPLINK_HANDLED,
+              })
+              .build(),
+          );
+        } else {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+              .addProperties({
+                [QRScannerEventProperties.SCAN_SUCCESS]: false,
+                [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+                [QRScannerEventProperties.SCAN_RESULT]:
+                  ScanResult.UNRECOGNIZED_QR_CODE,
+              })
+              .build(),
+          );
+        }
+
+        mountedRef.current = false;
+        end();
+        return;
+      }
+
       const contentProtocol = getURLProtocol(content);
       const isWalletConnect = content.startsWith(MM_WALLETCONNECT_DEEPLINK);
       const isSDK = content.startsWith(MM_SDK_DEEPLINK);
-      // Check if this is a MetaMask internal deeplink (e.g., metamask.app.link, link.metamask.io)
-      // These should be handled by the DeeplinkManager, not opened externally via Safari
-      const isMetaMaskDeeplink = isInternalDeepLink(content);
       if (
         (contentProtocol === PROTOCOLS.HTTP ||
           contentProtocol === PROTOCOLS.HTTPS ||
           contentProtocol === PROTOCOLS.DAPP) &&
         !isWalletConnect &&
-        !isSDK &&
-        !isMetaMaskDeeplink
+        !isSDK
       ) {
         if (contentProtocol === PROTOCOLS.DAPP) {
           content = content.replace(PROTOCOLS.DAPP, PROTOCOLS.HTTPS);
