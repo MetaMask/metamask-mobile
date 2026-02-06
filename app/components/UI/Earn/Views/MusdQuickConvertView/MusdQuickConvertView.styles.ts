@@ -46,6 +46,9 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingHorizontal: 6,
       borderRadius: 4,
     },
+    termsApply: {
+      textDecorationLine: 'underline',
+    },
   });
 };
 

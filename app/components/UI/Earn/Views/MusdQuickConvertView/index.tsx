@@ -1,11 +1,11 @@
 import React, { useCallback, useMemo } from 'react';
 import {
   View,
-  FlatList,
-  ActivityIndicator,
+  SectionList,
   StyleSheet,
   Image,
   ViewStyle,
+  Linking,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -30,9 +30,12 @@ import styleSheet from './MusdQuickConvertView.styles';
 import { MusdQuickConvertViewTestIds } from './MusdQuickConvertView.types';
 import Tag from '../../../../../component-library/components/Tags/Tag';
 import { TagProps } from '../../../../../component-library/components/Tags/Tag/Tag.types';
-import { MUSD_CONVERSION_APY, MUSD_TOKEN } from '../../constants/musd';
+import {
+  MUSD_CONVERSION_APY,
+  MUSD_TOKEN,
+  MUSD_TOKEN_ADDRESS,
+} from '../../constants/musd';
 import { Theme } from '../../../../../util/theme/models';
-import { useMusdBalance } from '../../hooks/useMusdBalance';
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
@@ -41,7 +44,10 @@ import Badge, {
 } from '../../../../../component-library/components/Badges/Badge';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { hexToDecimal } from '../../../../../util/conversions';
+import AppConstants from '../../../../../core/AppConstants';
+import { selectAsset } from '../../../../../selectors/assets/assets-list';
+import { RootState } from '../../../../../reducers';
+import { toFormattedAddress } from '../../../../../util/address';
 
 const musdBadgeStyles = (params: { theme: Theme; vars: { size: number } }) => {
   const {
@@ -113,19 +119,19 @@ interface MusdBalanceCardProps {
 const MusdBalanceCard = ({ chainId, style }: MusdBalanceCardProps) => {
   const { styles } = useStyles(musdBalanceStyles, {});
 
-  const { balancesByChain } = useMusdBalance();
-
-  // TODO: Currency must be formatted using the user's currency.
-  // TODO: Fix balance displaying incorrectly.
-  const musdBalance = useMemo(
-    () => hexToDecimal(balancesByChain?.[chainId] ?? '0x0') ?? '$0.00',
-    [balancesByChain, chainId],
+  const musdBalance = useSelector((state: RootState) =>
+    selectAsset(state, {
+      address: toFormattedAddress(MUSD_TOKEN_ADDRESS),
+      chainId,
+      isStaked: false,
+    }),
   );
 
-  // TODO: Replace with actual percent change value.
-  const percentChange = 0.1;
+  const percentChange = MUSD_CONVERSION_APY;
   const percentChangeFormatted =
-    percentChange > 0 ? `+${percentChange}` : `-${percentChange}`;
+    percentChange > 0
+      ? `+${percentChange.toFixed(2)}%`
+      : `-${percentChange.toFixed(2)}%`;
   const percentChangeColor =
     percentChange > 0 ? TextColor.Success : TextColor.Error;
 
@@ -135,9 +141,9 @@ const MusdBalanceCard = ({ chainId, style }: MusdBalanceCardProps) => {
       <View style={styles.left}>
         <MusdBadge chainId={chainId} size={32} />
         <View>
-          {/* TODO: Fix displayed balance in useMusdBalance hook. */}
-          {/* @ts-expect-error - temp mUSD balance displayed while building UI. */}
-          <Text variant={TextVariant.BodyMDMedium}>{musdBalance}</Text>
+          <Text variant={TextVariant.BodyMDMedium}>
+            {musdBalance?.balanceFiat ?? '--.--'}
+          </Text>
           <Text
             variant={TextVariant.BodySMMedium}
             color={TextColor.Alternative}
@@ -149,7 +155,7 @@ const MusdBalanceCard = ({ chainId, style }: MusdBalanceCardProps) => {
       </View>
       {/* Right side: No boost and boost amount */}
       <View style={styles.right}>
-        {/* TODO: Replace with actual boost copy. */}
+        {/* TODO: Replace with actual boost value */}
         <Text variant={TextVariant.BodyMDMedium}>
           {strings('earn.musd_conversion.no_boost')}
         </Text>
@@ -178,6 +184,12 @@ const SectionHeader = ({ title, tag }: TokenListDividerProps) => {
   );
 };
 
+interface TokenSection {
+  title: string;
+  tag?: TagProps;
+  data: AssetType[];
+}
+
 /**
  * Quick Convert Token List screen.
  *
@@ -185,8 +197,6 @@ const SectionHeader = ({ title, tag }: TokenListDividerProps) => {
  * - Max: Opens a bottom sheet for quick full-balance conversion
  * - Edit: Navigates to the existing custom amount confirmation screen
  */
-// TODO: Update header to match latest designs.
-// TODO: Update Top Banner
 const MusdQuickConvertView = () => {
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = theme;
@@ -216,8 +226,10 @@ const MusdQuickConvertView = () => {
   const handleMaxPress = useCallback(
     async (token: AssetType) => {
       if (!token.rawBalance) {
+        // TODO: Handle error instead of returning silently.
         return;
       }
+
       await initiateMaxConversion(token);
     },
     [initiateMaxConversion],
@@ -244,6 +256,21 @@ const MusdQuickConvertView = () => {
     [conversionTokens],
   );
 
+  // Keep this as a SectionList even while we only have one section today.
+  // In the near future we'll add additional sections (e.g. non-stablecoins) below.
+  const tokenSections = useMemo<TokenSection[]>(() => {
+    if (tokensWithBalance.length === 0) {
+      return [];
+    }
+
+    return [
+      {
+        title: strings('earn.your_stablecoins'),
+        data: tokensWithBalance,
+      },
+    ];
+  }, [tokensWithBalance]);
+
   // Render individual token row
   const renderTokenItem = useCallback(
     ({ item }: { item: AssetType }) => (
@@ -257,13 +284,20 @@ const MusdQuickConvertView = () => {
   );
 
   // TODO: This may be the same as the createTokenChainKey util. If yes, replace with createTokenChainKey call.
-  // Key extractor for FlatList
+  // Key extractor for SectionList
   const keyExtractor = useCallback(
     (item: AssetType) => `${item.address}-${item.chainId}`,
     [],
   );
 
-  // Render empty state
+  const renderSectionHeader = useCallback(
+    ({ section }: { section: TokenSection }) => (
+      <SectionHeader title={section.title} tag={section.tag} />
+    ),
+    [],
+  );
+
+  // Ideally users can't get to the quick convert view if they don't have any tokens to convert.
   const renderEmptyState = () => (
     <View
       style={styles.emptyContainer}
@@ -275,34 +309,13 @@ const MusdQuickConvertView = () => {
     </View>
   );
 
-  // Render loading state
-  const renderLoading = () => (
-    <View
-      style={styles.loadingContainer}
-      testID={MusdQuickConvertViewTestIds.LOADING}
-    >
-      <ActivityIndicator size="large" color={colors.primary.default} />
-    </View>
-  );
+  const handleTermsOfUsePressed = useCallback(() => {
+    Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
+  }, []);
 
   // If feature flags are not enabled, don't render
   if (!isMusdFlowEnabled || !isQuickConvertEnabled) {
     return null;
-  }
-
-  // TODO: Add actual loading state when we have a way to detect initial load (if necessary).
-  const isLoading = false;
-
-  if (isLoading) {
-    return (
-      <SafeAreaView
-        style={styles.container}
-        edges={['bottom']}
-        testID={MusdQuickConvertViewTestIds.CONTAINER}
-      >
-        {renderLoading()}
-      </SafeAreaView>
-    );
   }
 
   return (
@@ -318,15 +331,22 @@ const MusdQuickConvertView = () => {
       >
         <View style={styles.headerTextContainer}>
           <Text variant={TextVariant.HeadingLG}>
-            {strings('earn.musd_conversion.convert_and_get_boost', {
+            {strings('earn.musd_conversion.quick_convert.title', {
               apy: MUSD_CONVERSION_APY,
             })}
           </Text>
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {strings(
-              'earn.musd_conversion.convert_and_hold_your_stablecoins_as_musd_and_receive_boost_on_your_money',
-              { apy: MUSD_CONVERSION_APY },
-            )}
+            {strings('earn.musd_conversion.quick_convert.subtitle', {
+              apy: MUSD_CONVERSION_APY,
+            })}{' '}
+            <Text
+              variant={TextVariant.BodySM}
+              color={TextColor.Alternative}
+              style={styles.termsApply}
+              onPress={handleTermsOfUsePressed}
+            >
+              {strings('earn.musd_conversion.education.terms_apply')}
+            </Text>
           </Text>
         </View>
         <View>
@@ -344,19 +364,16 @@ const MusdQuickConvertView = () => {
       </View>
 
       {/* Token list */}
-      <FlatList
+      <SectionList<AssetType, TokenSection>
         style={styles.listContainer}
-        data={tokensWithBalance}
+        sections={tokenSections}
         renderItem={renderTokenItem}
         keyExtractor={keyExtractor}
+        renderSectionHeader={renderSectionHeader}
         ListEmptyComponent={renderEmptyState}
         showsVerticalScrollIndicator={false}
         testID={MusdQuickConvertViewTestIds.TOKEN_LIST}
-        ListHeaderComponent={
-          // TODO: Replace with i18n string.
-          // TODO: Refactor to support creating groups of tokens (e.g. stablecoins and crypto)
-          <SectionHeader title="Your stablecoins" />
-        }
+        stickySectionHeadersEnabled={false}
       />
     </SafeAreaView>
   );
