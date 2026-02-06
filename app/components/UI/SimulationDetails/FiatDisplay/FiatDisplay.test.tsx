@@ -131,6 +131,18 @@ describe('FiatDisplay', () => {
       expect(toJSON()).toBeNull();
     });
 
+    it('returns null when total fiat equals zero', () => {
+      const { toJSON } = renderWithProvider(
+        <TotalFiatDisplay
+          fiatAmounts={
+            [new BigNumber(100), new BigNumber(-100)] as unknown as FiatAmount[]
+          }
+        />,
+        { state: mockStateWithTestnet },
+      );
+      expect(toJSON()).toBeNull();
+    });
+
     it('does not render anything if hideFiatForTestnet is true', () => {
       const mockFiatAmounts = [
         new BigNumber(100),
