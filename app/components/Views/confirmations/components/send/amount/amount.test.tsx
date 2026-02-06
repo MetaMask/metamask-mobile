@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import { merge } from 'lodash';
 
 import renderWithProvider, {
@@ -78,6 +78,20 @@ jest.mock('../../../../../../components/hooks/useMetrics', () => ({
 
 jest.mock('../../../hooks/send/metrics/useAmountSelectionMetrics', () => ({
   useAmountSelectionMetrics: jest.fn(),
+}));
+
+jest.mock('../../../../../hooks/useIpfsGateway', () => ({
+  __esModule: true,
+  default: () => 'https://cloudflare-ipfs.com/ipfs/',
+}));
+
+jest.mock('@metamask/assets-controllers', () => ({
+  ...jest.requireActual('@metamask/assets-controllers'),
+  getFormattedIpfsUrl: jest
+    .fn()
+    .mockResolvedValue(
+      'https://cloudflare-ipfs.com/ipfs/QmY783gjv6wcX44G3qB2G8rJQAJ63hFi7ZwGeTTVVMrCrm',
+    ),
 }));
 
 const mockSetOptions = jest.fn();
@@ -286,14 +300,19 @@ describe('Amount', () => {
     expect(queryByTestId('fiat_toggle')).toBeNull();
   });
 
-  it('display image and NFT details for NFT asset', () => {
+  it('display image and NFT details for NFT asset', async () => {
     mockUseSendContext.mockReturnValue({
       asset: MOCK_NFT1155,
       updateValue: jest.fn(),
     } as unknown as ReturnType<typeof useSendContext>);
 
     const { getByTestId, getByText } = renderComponent();
-    expect(getByTestId('nft-image')).toBeTruthy();
+
+    // Wait for IPFS URL to be resolved and image to render
+    await waitFor(() => {
+      expect(getByTestId('nft-image')).toBeTruthy();
+    });
+
     expect(getByText('Doodleverse (Draw Me Closer) Pack')).toBeTruthy();
     expect(getByText('17')).toBeTruthy();
   });
