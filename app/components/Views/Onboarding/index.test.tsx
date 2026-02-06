@@ -62,6 +62,9 @@ import { fetch as netInfoFetch } from '@react-native-community/netinfo';
 
 const mockNetInfoFetch = netInfoFetch as jest.Mock;
 
+// Helper to flush all pending promises
+const flushPromises = () => new Promise((resolve) => setImmediate(resolve));
+
 const mockInitialState = {
   engine: {
     backgroundState: {
@@ -154,8 +157,8 @@ jest.mock('../../../util/analytics/analytics', () => ({
   analytics: {
     isEnabled: jest.fn(() => false),
     trackEvent: jest.fn(),
-    optIn: jest.fn(),
-    optOut: jest.fn(),
+    optIn: jest.fn().mockResolvedValue(undefined),
+    optOut: jest.fn().mockResolvedValue(undefined),
     getAnalyticsId: jest.fn().mockResolvedValue('test-analytics-id'),
     identify: jest.fn(),
     trackView: jest.fn(),
@@ -195,6 +198,29 @@ interface MetricsProps {
 import { analytics } from '../../../util/analytics/analytics';
 
 const mockAnalytics = analytics as jest.Mocked<typeof analytics>;
+
+// Mock useAnalytics hook to use our mocked analytics
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockAnalytics.trackEvent,
+    enable: async (enable?: boolean) => {
+      if (enable === false) {
+        await mockAnalytics.optOut();
+      } else {
+        await mockAnalytics.optIn();
+      }
+    },
+    addTraitsToUser: mockAnalytics.identify,
+    createDataDeletionTask: jest.fn(),
+    checkDataDeleteStatus: jest.fn(),
+    getDeleteRegulationCreationDate: jest.fn(),
+    getDeleteRegulationId: jest.fn(),
+    isDataRecorded: jest.fn(),
+    isEnabled: mockAnalytics.isEnabled,
+    getAnalyticsId: mockAnalytics.getAnalyticsId,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 jest.mock(
   '../../hooks/useMetrics/withMetricsAwareness',
@@ -595,21 +621,23 @@ describe('Onboarding', () => {
 
       await act(async () => {
         fireEvent.press(importSeedButton);
+        await flushPromises();
+        await flushPromises();
       });
 
-      await act(async () => {
-        await Promise.resolve();
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+          expect.objectContaining({
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            onboardingTraceCtx: expect.any(Object),
+          }),
+        );
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-        expect.objectContaining({
-          [PREVIOUS_SCREEN]: ONBOARDING,
-          onboardingTraceCtx: expect.any(Object),
-        }),
-      );
-
-      expect(mockAnalytics.optOut).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockAnalytics.optOut).toHaveBeenCalled();
+      });
     });
   });
 
@@ -1500,17 +1528,21 @@ describe('Onboarding', () => {
       mockNavigate.mockClear();
       await act(async () => {
         await googleOAuthFunction(true);
+        await flushPromises();
+        await flushPromises();
       });
 
       // Verify fallback was attempted
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
 
       // Verify error is handled via ErrorBoundary flow (triggers trackEvent with Error Screen Viewed)
-      expect(mockAnalytics.trackEvent).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          name: 'Error Screen Viewed',
-        }),
-      );
+      await waitFor(() => {
+        expect(mockAnalytics.trackEvent).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            name: 'Error Screen Viewed',
+          }),
+        );
+      });
 
       Platform.OS = 'ios';
     });
@@ -1548,9 +1580,13 @@ describe('Onboarding', () => {
 
       await act(async () => {
         await googleOAuthFunction(true);
+        await flushPromises();
+        await flushPromises();
       });
 
-      expect(mockAnalytics.optIn).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockAnalytics.optIn).toHaveBeenCalled();
+      });
     });
   });
 
@@ -2007,13 +2043,17 @@ describe('Onboarding', () => {
 
       await act(async () => {
         await appleOAuthFunction(false);
+        await flushPromises();
+        await flushPromises();
       });
 
-      expect(mockAnalytics.trackEvent).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          name: 'Error Screen Viewed',
-        }),
-      );
+      await waitFor(() => {
+        expect(mockAnalytics.trackEvent).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            name: 'Error Screen Viewed',
+          }),
+        );
+      });
     });
 
     it('does not trigger ErrorBoundary for OAuth login failures when analytics enabled', async () => {
@@ -2049,11 +2089,13 @@ describe('Onboarding', () => {
         await appleOAuthFunction(false);
       });
 
-      expect(mockAnalytics.trackEvent).not.toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          name: 'Error Screen Viewed',
-        }),
-      );
+      await waitFor(() => {
+        expect(mockAnalytics.trackEvent).not.toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            name: 'Error Screen Viewed',
+          }),
+        );
+      });
     });
   });
 });

@@ -77,6 +77,11 @@ const store = mockStore(initialState);
 describe('TransactionElement', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('renders correctly', () => {
@@ -139,7 +144,12 @@ describe('TransactionElement', () => {
       // Press the transaction element
       fireEvent.press(getByText('Test Action'));
 
-      // Verify navigation to unified TransactionDetails screen
+      // First, navigation goes to TRANSACTIONS_VIEW to ensure correct context
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+
+      // Then after timeout, navigates to TRANSACTION_DETAILS
+      jest.advanceTimersByTime(100);
+
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTION_DETAILS, {
         transactionId: musdConversionTx.id,
       });

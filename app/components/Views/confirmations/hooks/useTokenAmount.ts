@@ -36,6 +36,10 @@ import { useCallback, useMemo } from 'react';
 import { updateEditableParams } from '../../../../util/transaction-controller';
 import { selectTokensByChainIdAndAddress } from '../../../../selectors/tokensController';
 import { getTokenTransferData } from '../utils/transaction-pay';
+import {
+  convertMusdClaimAmount,
+  decodeMerklClaimAmount,
+} from '../../../UI/Earn/utils/musd';
 
 interface TokenAmountProps {
   /**
@@ -214,6 +218,32 @@ export const useTokenAmount = ({
       usdValue = usdConversionRateFromCurrencyRates
         ? usdAmount.toFixed(2)
         : null;
+      break;
+    }
+    case TransactionType.musdClaim: {
+      const claimAmountRaw = decodeMerklClaimAmount(txParams?.data as string);
+      if (claimAmountRaw) {
+        const { claimAmountDecimal, fiatValue } = convertMusdClaimAmount({
+          claimAmountRaw,
+          conversionRate: nativeConversionRate,
+          usdConversionRate,
+        });
+
+        return {
+          amount: formatAmount(I18n.locale, claimAmountDecimal),
+          amountNative: undefined,
+          amountPrecise: formatAmountMaxPrecision(
+            I18n.locale,
+            claimAmountDecimal,
+          ),
+          amountUnformatted: claimAmountDecimal.toString(),
+          fiat: fiatFormatter(fiatValue),
+          fiatUnformatted: fiatValue.toString(),
+          isNative: false,
+          updateTokenAmount,
+          usdValue: claimAmountDecimal.toFixed(2),
+        };
+      }
       break;
     }
     default: {
