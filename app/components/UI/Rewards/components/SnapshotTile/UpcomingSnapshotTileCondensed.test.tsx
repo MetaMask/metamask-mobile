@@ -48,7 +48,7 @@ function createTestSnapshot(overrides: Partial<SnapshotDto> = {}): SnapshotDto {
     closesAt: '2024-01-31T23:59:59Z',
     calculatedAt: undefined,
     distributedAt: undefined,
-    backgroundImage: {
+    image: {
       lightModeUrl: 'https://example.com/light.png',
       darkModeUrl: 'https://example.com/dark.png',
     },

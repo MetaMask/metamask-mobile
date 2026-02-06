@@ -1,5 +1,5 @@
 import { BaseController, StateMetadata } from '@metamask/base-controller';
-import { maxBy } from 'lodash';
+import { maxBy, minBy } from 'lodash';
 import {
   type RewardsControllerState,
   type RewardsAccountState,
@@ -305,6 +305,21 @@ export class RewardsController extends BaseController<
     currentTierId: string,
     currentPoints: number,
   ): SeasonTierState {
+    // Season without tiers maybe?
+    if (
+      !currentTierId ||
+      currentTierId === '00000000-0000-0000-0000-000000000000'
+    ) {
+      const lowestTier = seasonTiers?.length
+        ? minBy(seasonTiers, 'pointsNeeded')
+        : undefined;
+      return {
+        currentTier: lowestTier ?? undefined,
+        nextTier: lowestTier ?? undefined,
+        nextTierPointsNeeded: lowestTier?.pointsNeeded ?? undefined,
+      };
+    }
+
     // Sort tiers by points needed (ascending)
     const sortedTiers = [...seasonTiers].sort(
       (a, b) => a.pointsNeeded - b.pointsNeeded,
@@ -339,8 +354,8 @@ export class RewardsController extends BaseController<
 
     return {
       currentTier,
-      nextTier,
-      nextTierPointsNeeded,
+      nextTier: nextTier ?? undefined,
+      nextTierPointsNeeded: nextTierPointsNeeded ?? undefined,
     };
   }
 

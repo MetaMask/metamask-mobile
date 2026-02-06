@@ -15,8 +15,10 @@ import {
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 import { useFocusEffect } from '@react-navigation/native';
-import type { SnapshotDto } from '../../../../core/Engine/controllers/rewards-controller/types';
-import { getSnapshotStatus } from '../components/SnapshotTile/SnapshotTile.utils';
+import {
+  SnapshotStatus,
+  type SnapshotDto,
+} from '../../../../core/Engine/controllers/rewards-controller/types';
 import { selectSnapshotsRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 
 interface CategorizedSnapshots {
@@ -95,22 +97,25 @@ export const useSnapshots = (): UseSnapshotsReturn => {
     const upcoming: SnapshotDto[] = [];
     const previous: SnapshotDto[] = [];
 
-    snapshots.forEach((snapshot) => {
-      const status = getSnapshotStatus(snapshot);
-      switch (status) {
-        case 'live':
-          active.push(snapshot);
-          break;
-        case 'upcoming':
-          upcoming.push(snapshot);
-          break;
-        case 'calculating':
-        case 'distributing':
-        case 'complete':
-          previous.push(snapshot);
-          break;
-      }
-    });
+    try {
+      snapshots.forEach((snapshot) => {
+        switch (snapshot.status) {
+          case SnapshotStatus.OPEN:
+            active.push(snapshot);
+            break;
+          case SnapshotStatus.UPCOMING:
+            upcoming.push(snapshot);
+            break;
+          case SnapshotStatus.CLOSED:
+          case SnapshotStatus.CALCULATED:
+          case SnapshotStatus.DISTRIBUTED:
+            previous.push(snapshot);
+            break;
+        }
+      });
+    } catch {
+      dispatch(setSnapshots(null));
+    }
 
     // Sort upcoming by opensAt date (earliest first)
     upcoming.sort(
@@ -123,7 +128,7 @@ export const useSnapshots = (): UseSnapshotsReturn => {
     );
 
     return { active, upcoming, previous };
-  }, [snapshots]);
+  }, [snapshots, dispatch]);
 
   useFocusEffect(
     useCallback(() => {

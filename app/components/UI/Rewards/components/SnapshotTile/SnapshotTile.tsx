@@ -12,7 +12,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
-import type { SnapshotDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
+import {
+  SnapshotStatus,
+  type SnapshotDto,
+} from '../../../../../core/Engine/controllers/rewards-controller/types';
 import RewardsThemeImageComponent from '../ThemeImageComponent';
 import { getSnapshotStatusInfo } from './SnapshotTile.utils';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -74,7 +77,7 @@ const SnapshotTile: React.FC<SnapshotTileProps> = ({
         {/* Background Image */}
         <View style={tw.style('absolute w-full h-full')}>
           <RewardsThemeImageComponent
-            themeImage={snapshot.backgroundImage}
+            themeImage={snapshot.image}
             style={tw.style('w-full h-full')}
             resizeMode="cover"
           />
@@ -92,7 +95,7 @@ const SnapshotTile: React.FC<SnapshotTileProps> = ({
             alignItems={BoxAlignItems.Center}
             twClassName="gap-1"
           >
-            {status === 'calculating' ? (
+            {status === SnapshotStatus.CLOSED ? (
               <ActivityIndicator size="small" color="white" />
             ) : (
               <Icon

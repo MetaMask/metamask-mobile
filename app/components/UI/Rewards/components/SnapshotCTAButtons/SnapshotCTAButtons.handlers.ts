@@ -1,8 +1,10 @@
 import { Linking } from 'react-native';
-import type { NavigationProp } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { SHIELD_WEBSITE_URL } from '../../../../../constants/shield';
-import type { PointsEventEarnType } from '../../../../../core/Engine/controllers/rewards-controller/types';
+import type {
+  PointsEventEarnType,
+  SnapshotPrerequisiteDto,
+} from '../../../../../core/Engine/controllers/rewards-controller/types';
 
 /**
  * Configuration for CTA buttons based on activity type
@@ -16,14 +18,19 @@ interface CTAConfig {
   /**
    * Handler function to execute on button press
    */
-  handler: (params: CTAHandlerParams) => void;
+  handler: (
+    params: CTAHandlerParams,
+    prerequisite: SnapshotPrerequisiteDto,
+  ) => void;
 }
 
 /**
  * Parameters passed to CTA handlers
  */
 interface CTAHandlerParams {
-  navigation: NavigationProp<ReactNavigation.RootParamList>;
+  navigation: {
+    navigate: (route: string, params?: Record<string, unknown>) => void;
+  };
   goToSwaps: () => void;
   isFirstTimePerpsUser?: boolean;
 }
@@ -117,25 +124,36 @@ export const CTA_CONFIG: Partial<Record<PointsEventEarnType, CTAConfig>> = {
 };
 
 /**
- * Gets unique activity types from prerequisite conditions that have CTA handlers
+ * Represents a condition with its activity type that has a CTA handler
+ */
+interface ConditionWithActivityType {
+  condition: SnapshotPrerequisiteDto;
+  activityType: PointsEventEarnType;
+}
+
+/**
+ * Gets unique activity types from prerequisite conditions that have CTA handlers,
+ * paired with their source conditions.
  *
  * @param conditions - Array of prerequisite conditions
- * @returns Array of unique activity types that have CTA configurations
+ * @returns Array of objects containing condition and activity type pairs
  */
-export const getUniqueActivityTypesWithCTA = (
-  conditions: { activityTypes: PointsEventEarnType[] }[],
-): PointsEventEarnType[] => {
-  const activityTypesSet = new Set<PointsEventEarnType>();
+export const getConditionsWithActivityTypes = (
+  conditions: SnapshotPrerequisiteDto[],
+): ConditionWithActivityType[] => {
+  const seenActivityTypes = new Set<PointsEventEarnType>();
+  const result: ConditionWithActivityType[] = [];
 
   conditions.forEach((condition) => {
     condition.activityTypes.forEach((activityType) => {
-      if (CTA_CONFIG[activityType]) {
-        activityTypesSet.add(activityType);
+      if (CTA_CONFIG[activityType] && !seenActivityTypes.has(activityType)) {
+        seenActivityTypes.add(activityType);
+        result.push({ condition, activityType });
       }
     });
   });
 
-  return Array.from(activityTypesSet);
+  return result;
 };
 
-export type { CTAConfig, CTAHandlerParams };
+export type { CTAConfig, CTAHandlerParams, ConditionWithActivityType };

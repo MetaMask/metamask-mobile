@@ -7536,13 +7536,18 @@
     },
     "snapshot_detail": {
         "title": "Snapshot",
-        "heading": "Snapshot",
         "not_found": "Snapshot not found",
         "error_title": "Unable to load snapshot",
         "error_description": "We couldn't load the snapshot. Please try again.",
         "retry": "Retry",
         "toast_not_found_title": "Snapshot Not Found",
-        "toast_not_found_description": "Please try again later"
+        "toast_not_found_description": "Please try again later",
+        "qualify_now": "Qualify Now",
+        "leaderboard": "Leaderboard",
+        "leaderboard_of": "of {{total}}",
+        "leaderboard_pts": "{{points}} pts",
+        "leaderboard_change": "Change",
+        "leaderboard_add_more_points": "Add more points"
     },
     "snapshots": {
       "select_account_description": "Select an account and enter",
@@ -7550,7 +7555,10 @@
       "add_points_for": "Add Points for {{snapshotName}}",
       "enter_snapshot": "Enter {{snapshotName}}",
       "points_available": "{{points}} points available",
-      "commit": "Submit"
+      "commit": "Submit",
+      "enter_the_snapshot": "Enter the snapshot",
+      "spend_points_title": "Spend points and climb the leaderboard",
+      "spend_points_description": "The more you spend, the more you receive."
     }
   },
   "time": {

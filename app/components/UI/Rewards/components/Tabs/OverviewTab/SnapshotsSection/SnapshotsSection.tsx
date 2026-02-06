@@ -120,7 +120,7 @@ const SnapshotsSection: React.FC = () => {
           <Text variant={TextVariant.HeadingMd} twClassName="text-default">
             {strings('rewards.snapshots_section.title')}
           </Text>
-          {isLoading && hasSnapshots && <ActivityIndicator size="small" />}
+          {isLoading && !hasSnapshots && <ActivityIndicator size="small" />}
         </Box>
       </Box>
 
