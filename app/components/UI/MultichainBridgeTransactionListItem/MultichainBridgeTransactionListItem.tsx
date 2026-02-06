@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { Transaction } from '@metamask/keyring-api';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
+import { StatusTypes } from '@metamask/bridge-controller';
 import { useTheme } from '../../../util/theme';
 import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
@@ -29,6 +30,8 @@ import Badge, {
 } from '../../../component-library/components/Badges/Badge';
 import { getNetworkImageSource } from '../../../util/networks';
 import { parseCaipAssetType } from '@metamask/utils';
+import { getEffectiveTransactionStatus } from '../../../util/transactions/statusMapping';
+import { TransactionStatus } from '@metamask/transaction-controller';
 
 const MultichainBridgeTransactionListItem = ({
   transaction,
@@ -58,8 +61,16 @@ const MultichainBridgeTransactionListItem = ({
     });
   };
 
+  // Get effective status prioritizing BridgeStatusController when available
+  const transactionStatus = getEffectiveTransactionStatus(
+    transaction,
+    bridgeHistoryItem,
+  );
+  const bridgeStatus = bridgeHistoryItem?.status?.status;
+
   const renderTxElementIcon = () => {
-    const isFailedTransaction = transaction.status === 'failed';
+    const isFailedTransaction =
+      bridgeStatus === StatusTypes.FAILED || transactionStatus === 'failed';
     const icon = getTransactionIcon(
       isSwap ? 'swap' : 'bridge',
       isFailedTransaction,
@@ -131,13 +142,13 @@ const MultichainBridgeTransactionListItem = ({
               {!isBridgeComplete && !isSwap && (
                 <BridgeActivityItemTxSegments
                   bridgeTxHistoryItem={bridgeHistoryItem}
-                  transactionStatus={transaction.status}
+                  transactionStatus={transactionStatus as TransactionStatus}
                 />
               )}
               {(isBridgeComplete || isSwap) && (
                 <StatusText
                   testID={`transaction-status-${transaction.id}`}
-                  status={transaction.status}
+                  status={transactionStatus}
                   style={style.listItemStatus as TextStyle}
                   context="transaction"
                 />
