@@ -10,7 +10,11 @@ import { selectCurrencyRates } from '../../../../../selectors/currencyRateContro
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { selectMultichainAssetsRates } from '../../../../../selectors/multichain';
-import { calcTokenFiatValue } from '../../utils/exchange-rates';
+import {
+  calcTokenFiatValue,
+  convertFiatToUsd,
+} from '../../utils/exchange-rates';
+import { Hex } from '@metamask/utils';
 
 export const useUnifiedSwapBridgeContext = () => {
   const smartTransactionsEnabled = useSelector(selectShouldUseSmartTransaction);
@@ -25,7 +29,6 @@ export const useUnifiedSwapBridgeContext = () => {
   );
   const nonEvmMultichainAssetRates = useSelector(selectMultichainAssetsRates);
 
-  const usdConversionRate = evmMultiChainCurrencyRates?.usd?.conversionRate;
   const tokenFiatValue = useMemo(
     () =>
       calcTokenFiatValue({
@@ -46,9 +49,17 @@ export const useUnifiedSwapBridgeContext = () => {
     ],
   );
 
-  const usdAmountSource = usdConversionRate
-    ? tokenFiatValue / usdConversionRate
-    : 0;
+  const nativeCurrency = fromToken?.chainId
+    ? networkConfigurationsByChainId[fromToken.chainId as Hex]?.nativeCurrency
+    : undefined;
+  const currencyEntry = nativeCurrency
+    ? evmMultiChainCurrencyRates?.[nativeCurrency]
+    : undefined;
+  const usdAmountSource = convertFiatToUsd(
+    tokenFiatValue,
+    currencyEntry?.conversionRate,
+    currencyEntry?.usdConversionRate,
+  );
 
   return useMemo(
     () => ({

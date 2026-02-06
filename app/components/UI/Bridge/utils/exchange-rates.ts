@@ -23,6 +23,28 @@ import { safeToChecksumAddress } from '../../../../util/address';
 import { toAssetId } from '../hooks/useAssetMetadata/utils';
 import { formatCurrency } from './currencyUtils';
 
+/**
+ * Converts a fiat value from the user's current currency to USD.
+ * Uses the ratio of usdConversionRate / conversionRate for the chain's native
+ * currency, since both rates share the same native token denominator
+ * (e.g. USD/ETH ÷ EUR/ETH = USD/EUR).
+ *
+ * @param fiatValue - The value in the user's current fiat currency
+ * @param conversionRate - Native token to user's fiat currency rate (e.g. 1 ETH = 2300 EUR)
+ * @param usdConversionRate - Native token to USD rate (e.g. 1 ETH = 2500 USD)
+ * @returns The value in USD, or 0 if rates are unavailable
+ */
+export const convertFiatToUsd = (
+  fiatValue: number,
+  conversionRate: number | null | undefined,
+  usdConversionRate: number | null | undefined,
+): number => {
+  if (!conversionRate || !usdConversionRate) {
+    return 0;
+  }
+  return fiatValue * (usdConversionRate / conversionRate);
+};
+
 export interface CalcTokenFiatValueParams {
   token: BridgeToken | undefined;
   amount: string | undefined;
