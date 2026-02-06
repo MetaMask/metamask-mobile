@@ -4,9 +4,8 @@
 /**
  * React Native configuration for autolinking.
  *
- * NOTE: This is the base configuration. Platform-specific branches will modify this:
- * - feat/google-in-app-provisioning: Conditionally enables Android based on SDK presence
- * - feat/apple-in-app-provisioning: Enables iOS autolinking for react-native-wallet
+ * Apple Wallet provisioning is enabled on iOS.
+ * Android is disabled in this branch.
  */
 
 // Build dependencies config
@@ -16,12 +15,10 @@ const dependencies = {
       ios: null, // disable Android platform, other platforms will still autolink if provided
     },
   },
-  // Base branch disables wallet library on both platforms
-  // Platform-specific branches will enable their respective platform
+  // Enable iOS for Apple Wallet provisioning, disable Android
   '@expensify/react-native-wallet': {
     platforms: {
       android: null,
-      ios: null,
     },
   },
 };
