@@ -31,6 +31,7 @@ import { useRampsController } from '../../hooks/useRampsController';
 import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
+import type { Quote, QuotesResponse } from '@metamask/ramps-controller';
 
 interface BuildQuoteParams {
   assetId?: string;
@@ -39,94 +40,59 @@ interface BuildQuoteParams {
 export const createBuildQuoteNavDetails =
   createNavigationDetails<BuildQuoteParams>(Routes.RAMP.AMOUNT_INPUT);
 
+const DEFAULT_AMOUNT = 100;
+
 function BuildQuote() {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const { assetId } = useParams<BuildQuoteParams>();
 
-  const [amount, setAmount] = useState<string>('0');
-  const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
+  const [amount, setAmount] = useState<string>(() => String(DEFAULT_AMOUNT));
+  const [amountAsNumber, setAmountAsNumber] = useState<number>(DEFAULT_AMOUNT);
   const [userHasEnteredAmount, setUserHasEnteredAmount] = useState(false);
-  const [isPendingQuote, setIsPendingQuote] = useState(false);
-  const [isPaymentMethodReady, setIsPaymentMethodReady] = useState(false);
 
-  // Get user region, selected provider, tokens, quotes, and payment methods from RampsController
   const {
     userRegion,
     selectedProvider,
-    selectedToken: controllerSelectedToken,
+    selectedToken,
     setSelectedToken,
+    selectedPaymentMethod,
     selectedQuote,
     quotesLoading,
     startQuotePolling,
     stopQuotePolling,
-    paymentMethods,
-    selectedPaymentMethod,
-    setSelectedPaymentMethod,
-    paymentMethodsLoading,
   } = useRampsController();
 
-  // Get currency, quick amounts, and default amount from user's region
   const currency = userRegion?.country?.currency || 'USD';
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
-  const defaultAmount = userRegion?.country?.defaultAmount ?? 100;
 
-  // Get network info helper
+  useEffect(() => {
+    if (!userHasEnteredAmount && userRegion?.country?.defaultAmount != null) {
+      const regionDefault = userRegion.country.defaultAmount;
+      setAmount(String(regionDefault));
+      setAmountAsNumber(regionDefault);
+    }
+  }, [userRegion?.country?.defaultAmount, userHasEnteredAmount]);
+
   const getTokenNetworkInfo = useTokenNetworkInfo();
 
-  // Set the token in controller when assetId param is provided
   useEffect(() => {
-    if (assetId && controllerSelectedToken?.assetId !== assetId) {
+    if (assetId && selectedToken?.assetId !== assetId) {
       setSelectedToken(assetId);
     }
-  }, [assetId, controllerSelectedToken?.assetId, setSelectedToken]);
+  }, [assetId, selectedToken?.assetId, setSelectedToken]);
 
-  // Use the controller's selected token (which matches assetId param)
-  const selectedToken = controllerSelectedToken;
-
-  // Get wallet address for the selected token's chain
   const walletAddress = useRampAccountAddress(
     selectedToken?.chainId as CaipChainId,
   );
 
-  // Amount to use for polling: user's amount if entered, otherwise defaultAmount
-  const pollingAmount = userHasEnteredAmount ? amountAsNumber : defaultAmount;
+  const debouncedPollingAmount = useDebouncedValue(amountAsNumber, 500);
 
-  // Debounce the polling amount to avoid spamming requests while user types
-  const debouncedPollingAmount = useDebouncedValue(pollingAmount, 500);
-
-  // Get network info for the selected token
   const networkInfo = useMemo(() => {
     if (!selectedToken) return null;
     return getTokenNetworkInfo(selectedToken.chainId as CaipChainId);
   }, [selectedToken, getTokenNetworkInfo]);
 
-  // Auto-select first payment method when available and loaded
-  useEffect(() => {
-    if (
-      !selectedPaymentMethod &&
-      !paymentMethodsLoading &&
-      paymentMethods.length > 0
-    ) {
-      setSelectedPaymentMethod(paymentMethods[0]);
-      // Mark payment method as ready after a brief delay to ensure controller state is updated
-      setTimeout(() => setIsPaymentMethodReady(true), 100);
-    }
-  }, [
-    paymentMethods,
-    selectedPaymentMethod,
-    setSelectedPaymentMethod,
-    paymentMethodsLoading,
-  ]);
-
-  // Mark payment method as ready when it's already selected (e.g., from controller state)
-  useEffect(() => {
-    if (selectedPaymentMethod && !isPaymentMethodReady) {
-      setIsPaymentMethodReady(true);
-    }
-  }, [selectedPaymentMethod, isPaymentMethodReady]);
-
-  // Update navigation options - shows skeleton when data is loading
   useEffect(() => {
     navigation.setOptions(
       getRampsBuildQuoteNavbarOptions(navigation, {
@@ -147,7 +113,6 @@ function BuildQuote() {
       setAmount(value || '0');
       setAmountAsNumber(valueAsNumber || 0);
       setUserHasEnteredAmount(true);
-      setIsPendingQuote(true); // Immediately show loading to prevent race condition
     },
     [],
   );
@@ -156,41 +121,10 @@ function BuildQuote() {
     setAmount(String(quickAmount));
     setAmountAsNumber(quickAmount);
     setUserHasEnteredAmount(true);
-    setIsPendingQuote(true);
   }, []);
 
-  // Clear pending state when controller finishes loading
   useEffect(() => {
-    if (!quotesLoading) {
-      setIsPendingQuote(false);
-    }
-  }, [quotesLoading]);
-
-  // Start polling on mount with defaultAmount for initial quote
-  useEffect(() => {
-    if (!walletAddress || !isPaymentMethodReady || !userRegion) {
-      return;
-    }
-
-    startQuotePolling({
-      walletAddress,
-      amount: defaultAmount,
-    });
-
-    return () => {
-      stopQuotePolling();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    walletAddress,
-    isPaymentMethodReady,
-    userRegion?.regionCode,
-    defaultAmount,
-  ]);
-
-  // Restart polling when user changes amount (debounced)
-  useEffect(() => {
-    if (!walletAddress || !isPaymentMethodReady || !userHasEnteredAmount) {
+    if (!walletAddress || !selectedPaymentMethod) {
       return;
     }
 
@@ -198,12 +132,16 @@ function BuildQuote() {
       walletAddress,
       amount: debouncedPollingAmount,
     });
+
+    return () => {
+      stopQuotePolling();
+    };
   }, [
-    debouncedPollingAmount,
     walletAddress,
-    isPaymentMethodReady,
-    userHasEnteredAmount,
+    selectedPaymentMethod,
+    debouncedPollingAmount,
     startQuotePolling,
+    stopQuotePolling,
   ]);
 
   const handleContinuePress = useCallback(() => {
@@ -211,8 +149,7 @@ function BuildQuote() {
   }, []);
 
   const hasAmount = amountAsNumber > 0;
-  const isQuoteLoading = quotesLoading || isPendingQuote;
-  const canContinue = hasAmount && !isQuoteLoading && selectedQuote !== null;
+  const canContinue = hasAmount && !quotesLoading && selectedQuote !== null;
 
   return (
     <ScreenLayout>
@@ -236,6 +173,13 @@ function BuildQuote() {
                   // TODO: Open payment method selector
                 }}
               />
+              {/* <QuotesDebugPanel
+                quotes={quotes}
+                selectedQuote={selectedQuote}
+                quotesLoading={quotesLoading}
+                quotesError={quotesError}
+                styles={styles}
+              /> */}
             </View>
           </View>
 
@@ -254,7 +198,7 @@ function BuildQuote() {
                 onPress={handleContinuePress}
                 isFullWidth
                 isDisabled={!canContinue}
-                isLoading={isQuoteLoading}
+                isLoading={quotesLoading}
                 testID="build-quote-continue-button"
               >
                 {strings('fiat_on_ramp.continue')}
