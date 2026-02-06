@@ -589,6 +589,8 @@ export const STOP_LOSS_PROMPT_CONFIG = {
  * See selectPerpsMYXProviderEnabledFlag selector for details.
  */
 export const PROVIDER_CONFIG = {
+  /** Default perpetual DEX provider when no explicit selection exists */
+  DefaultProvider: 'hyperliquid' as const,
   /** Force MYX to testnet only (mainnet credentials not yet available) */
   MYX_TESTNET_ONLY: true,
 } as const;

@@ -20,7 +20,11 @@ import type {
   AccountState,
   PerpsMarketData,
 } from '../controllers/types';
-import { PERFORMANCE_CONFIG, PERPS_CONSTANTS } from '../constants/perpsConfig';
+import {
+  PERFORMANCE_CONFIG,
+  PERPS_CONSTANTS,
+  PROVIDER_CONFIG,
+} from '../constants/perpsConfig';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
 import { findEvmAccount } from '../utils/accountUtils';
@@ -1223,7 +1227,8 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
 
     // Get current provider ID
     const controller = Engine.context.PerpsController;
-    const currentProviderId = controller.state?.activeProvider || 'hyperliquid';
+    const currentProviderId =
+      controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider;
 
     // Invalidate cache if provider changed
     if (this.cachedProviderId && this.cachedProviderId !== currentProviderId) {
@@ -1299,7 +1304,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         this.cache.set('markets', data);
         this.lastFetchTime = Date.now();
         this.cachedProviderId =
-          controller.state?.activeProvider || 'hyperliquid';
+          controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider;
 
         // Notify all subscribers
         this.notifySubscribers(data);

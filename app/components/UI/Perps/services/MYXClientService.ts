@@ -12,7 +12,10 @@ import { MyxClient } from '@myx-trade/sdk';
 import { ensureError } from '../../../../util/errorUtils';
 import type { PerpsPlatformDependencies } from '../controllers/types';
 import type { MYXPoolSymbol, MYXTicker } from '../types/myx-types';
-import { MYX_PRICE_POLLING_INTERVAL_MS } from '../constants/myxConfig';
+import {
+  MYX_PRICE_POLLING_INTERVAL_MS,
+  getMYXChainId,
+} from '../constants/myxConfig';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 // ============================================================================
@@ -68,7 +71,7 @@ export class MYXClientService {
 
     // Stage 1: Force testnet - mainnet credentials not available
     this.isTestnet = options.isTestnet ?? true;
-    this.chainId = this.isTestnet ? 97 : 56; // BNB testnet/mainnet
+    this.chainId = getMYXChainId(this.isTestnet ? 'testnet' : 'mainnet');
 
     // Initialize MyxClient
     this.myxClient = new MyxClient({
@@ -230,8 +233,8 @@ export class MYXClientService {
     this.pollingSymbols = poolIds;
     this.pollingCallback = callback;
 
-    // Start sequential polling
-    this.scheduleNextPoll();
+    // Fetch immediately, then schedule subsequent polls
+    this.pollPrices();
 
     this.deps.debugLogger.log('[MYXClientService] Started price polling', {
       symbols: poolIds.length,
