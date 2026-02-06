@@ -27,6 +27,9 @@ export const remoteFeatureFlagControllerInit: ControllerInitFunction<
   RemoteFeatureFlagControllerMessenger
 > = ({ controllerMessenger, persistedState, getState, analyticsId }) => {
   const disabled = !selectBasicFunctionalityEnabled(getState());
+  // Last persisted version of the app
+  const prevClientVersion =
+    persistedState?.AppMetadataController?.currentAppVersion;
 
   const controller = new RemoteFeatureFlagController({
     messenger: controllerMessenger,
@@ -45,6 +48,7 @@ export const remoteFeatureFlagControllerInit: ControllerInitFunction<
     fetchInterval: __DEV__
       ? 1000
       : AppConstants.FEATURE_FLAGS_API.DEFAULT_FETCH_INTERVAL,
+    prevClientVersion,
   });
 
   if (disabled) {
