@@ -22,6 +22,11 @@ import { selectTransactionsByIds } from '../../../../selectors/transactionContro
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { toHex } from '@metamask/controller-utils';
 
+export enum MusdConversionIntent {
+  Max = 'max',
+  Custom = 'custom',
+}
+
 /**
  * Why do we have BOTH `existingPendingMusdConversion` AND `inFlightInitiationPromises`?
  *
@@ -186,8 +191,6 @@ export const useMusdConversion = () => {
 
         const { TransactionPayController } = Engine.context;
 
-        TransactionPayController.setIsMaxAmount(transactionId, true);
-
         // Set payment token - this triggers automatic Relay quote fetching
         Logger.log('[mUSD Max Conversion] Setting payment token:', {
           transactionId,
@@ -213,15 +216,13 @@ export const useMusdConversion = () => {
           params: {
             // maxValueMode required to display mUSD max conversion bottom sheet confirmation.
             maxValueMode: true,
-            // TODO: Update to NOT use outputChainId. The output chain is always derived from the paymentToken's chainId.
-            outputChainId: tokenChainId,
+            conversionIntent: MusdConversionIntent.Max,
             token,
           },
         });
 
         return {
           transactionId,
-          outputChainId: tokenChainId,
         };
       } catch (err) {
         const errorMessage =
@@ -246,7 +247,7 @@ export const useMusdConversion = () => {
   /**
    * Navigates to the custom amount conversion screen.
    */
-  const navigateToConversionScreen = useCallback(
+  const navigateToCustomConversionScreen = useCallback(
     ({
       preferredPaymentToken,
       navigationStack = Routes.EARN.ROOT,
@@ -265,6 +266,7 @@ export const useMusdConversion = () => {
         params: {
           loader: ConfirmationLoader.CustomAmount,
           preferredPaymentToken,
+          conversionIntent: MusdConversionIntent.Custom,
         },
       });
     },
@@ -336,7 +338,7 @@ export const useMusdConversion = () => {
          * Typically caused by the user quickly clicking the CTA multiple times in quick succession.
          */
         if (existingPendingMusdConversion?.id) {
-          navigateToConversionScreen(config);
+          navigateToCustomConversionScreen(config);
           return existingPendingMusdConversion.id;
         }
 
@@ -370,7 +372,7 @@ export const useMusdConversion = () => {
            * since there can be a delay between the user's button press and
            * transaction creation in the background.
            */
-          navigateToConversionScreen(config);
+          navigateToCustomConversionScreen(config);
 
           try {
             const ZERO_HEX_VALUE = '0x0';
@@ -415,7 +417,7 @@ export const useMusdConversion = () => {
     },
     [
       handleEducationRedirectIfNeeded,
-      navigateToConversionScreen,
+      navigateToCustomConversionScreen,
       navigation,
       pendingTransactionMetas,
       selectedAddress,
