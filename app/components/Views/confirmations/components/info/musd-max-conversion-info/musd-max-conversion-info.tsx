@@ -156,7 +156,7 @@ export const MusdMaxConversionInfo = () => {
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
           {token?.symbol}
         </Text>
-        <Text variant={TextVariant.BodyLGMedium}>
+        <Text style={styles.assetAmount}>
           {token?.fiat?.balance
             ? formatFiat(new BigNumber(token.fiat.balance))
             : ''}
