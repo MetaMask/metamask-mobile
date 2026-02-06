@@ -86,13 +86,13 @@ export const calcUsdAmountFromFiat = ({
   // Try the chain's native currency first, then fall back to any entry with
   // both rates. The fallback covers non-EVM chains whose nativeCurrency
   // (a CAIP asset ID) won't exist in the EVM-only currency rates map.
-  const chainCurrencyEntry = nativeCurrency
+  const evmChainCurrencyEntry = nativeCurrency
     ? evmMultiChainCurrencyRates?.[nativeCurrency]
     : undefined;
-  const fallbackCurrencyEntry = Object.values(
+  const fallbackEvmCurrencyEntry = Object.values(
     evmMultiChainCurrencyRates ?? {},
   ).find((entry) => entry?.conversionRate && entry?.usdConversionRate);
-  const currencyEntry = chainCurrencyEntry ?? fallbackCurrencyEntry;
+  const currencyEntry = evmChainCurrencyEntry ?? fallbackEvmCurrencyEntry;
   return convertFiatToUsd(
     tokenFiatValue,
     currencyEntry?.conversionRate,
