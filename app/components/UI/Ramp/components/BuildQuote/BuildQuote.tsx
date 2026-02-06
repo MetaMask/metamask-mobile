@@ -28,7 +28,6 @@ import { useRampsController } from '../../hooks/useRampsController';
 import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
-import type { Quote, QuotesResponse } from '@metamask/ramps-controller';
 import { createPaymentSelectionModalNavigationDetails } from '../PaymentSelectionModal';
 
 interface BuildQuoteParams {
@@ -52,7 +51,6 @@ function BuildQuote() {
     userRegion,
     selectedProvider,
     selectedToken,
-    setSelectedToken,
     selectedQuote,
     quotesLoading,
     startQuotePolling,
@@ -74,7 +72,6 @@ function BuildQuote() {
   }, [userRegion?.country?.defaultAmount, userHasEnteredAmount]);
 
   const getTokenNetworkInfo = useTokenNetworkInfo();
-
 
   const walletAddress = useRampAccountAddress(
     selectedToken?.chainId as CaipChainId,
@@ -173,13 +170,6 @@ function BuildQuote() {
                   );
                 }}
               />
-              {/* <QuotesDebugPanel
-                quotes={quotes}
-                selectedQuote={selectedQuote}
-                quotesLoading={quotesLoading}
-                quotesError={quotesError}
-                styles={styles}
-              /> */}
             </View>
           </View>
 
