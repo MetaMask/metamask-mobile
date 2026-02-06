@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.65.0",
+  "version": "7.66.0",
   "private": true,
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
@@ -83,7 +83,7 @@
     "build:ios:qa": "./scripts/build.sh ios QA",
     "build:attribution": "./scripts/generate-attributions.sh",
     "test": "yarn test:unit",
-    "test:unit": "jest ./app/ ./locales/ ./tests/**/*.test.ts .github/**/*.test.ts --testPathIgnorePatterns='.*/e2e/specs/.*\\.spec\\.(ts|tsx|js)$|.*\\.view(\\..*)?\\.test\\.(ts|tsx|js|jsx)$'",
+    "test:unit": "jest ./app/ ./locales/ ./tests/**/*.test.ts .github/**/*.test.ts --testPathIgnorePatterns='.*/tests/(smoke|regression)/.*\\.spec\\.(ts|tsx|js)$|.*/e2e/.*\\.spec\\.(ts|tsx|js)$|.*\\.view(\\..*)?\\.test\\.(ts|tsx|js|jsx)$'",
     "test:view": "jest -c jest.config.view.js --runInBand --no-watchman --verbose --testPathPattern='.*\\.view(\\..*)?\\.test\\.(ts|tsx|js|jsx)$'",
     "test:unit:update": "time jest -u ./app/",
     "test:api-specs": "detox reset-lock-file && detox test -c ios.sim.apiSpecs",
@@ -192,6 +192,7 @@
     "@consensys/on-ramp-sdk": "2.1.12",
     "@craftzdog/react-native-buffer": "^6.1.0",
     "@ethersproject/abi": "^5.7.0",
+    "@expensify/react-native-wallet": "^0.1.15",
     "@expo/fingerprint": "^0.15.0",
     "@expo/repack-app": "^0.2.9",
     "@keystonehq/bc-ur-registry-eth": "^0.21.0",
