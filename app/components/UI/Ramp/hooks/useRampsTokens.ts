@@ -74,17 +74,16 @@ export function useRampsTokens(
   ) as RequestSelectorResult<TokensResponse>;
 
   // Trigger token fetch when region and action are available
-  // The controller handles caching and deduplication, so we only need to check
-  // if we have a region and aren't already fetching
+  // The controller handles caching, deduplication, and error handling
   useEffect(() => {
-    if (regionCode && !isFetching) {
+    if (regionCode) {
       // Trigger fetch by calling getTokens through the controller
-      // Controller will handle: caching, deduplication, and error handling
+      // Controller will handle duplicate calls gracefully (returns same promise if in progress)
       Engine.context.RampsController.getTokens(regionCode, action).catch(() => {
         // Error is stored in state via the request selector
       });
     }
-  }, [regionCode, action, isFetching]);
+  }, [regionCode, action]);
 
   const setSelectedToken = useCallback(
     (assetId?: string) =>
