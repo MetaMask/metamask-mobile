@@ -514,6 +514,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
           "optionId": "volume",
         },
         "perpsBalances": {},
+        "selectedPaymentToken": null,
         "tradeConfigurations": {
           "mainnet": {},
           "testnet": {},
@@ -587,12 +588,37 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "syncQueue": {},
       },
       "RampsController": {
-        "paymentMethods": [],
-        "preferredProvider": null,
-        "providers": [],
+        "countries": {
+          "data": [],
+          "error": null,
+          "isLoading": false,
+          "selected": null,
+        },
+        "paymentMethods": {
+          "data": [],
+          "error": null,
+          "isLoading": false,
+          "selected": null,
+        },
+        "providers": {
+          "data": [],
+          "error": null,
+          "isLoading": false,
+          "selected": null,
+        },
+        "quotes": {
+          "data": null,
+          "error": null,
+          "isLoading": false,
+          "selected": null,
+        },
         "requests": {},
-        "selectedPaymentMethod": null,
-        "tokens": null,
+        "tokens": {
+          "data": null,
+          "error": null,
+          "isLoading": false,
+          "selected": null,
+        },
         "userRegion": null,
       },
       "RemoteFeatureFlagController": {
@@ -605,9 +631,11 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "accounts": {},
         "activeAccount": null,
         "activeBoosts": {},
+        "pointsEstimateHistory": [],
         "pointsEvents": {},
         "seasonStatuses": {},
         "seasons": {},
+        "snapshots": {},
         "subscriptionReferralDetails": {},
         "subscriptions": {},
         "unlockedRewards": {},
@@ -759,15 +787,10 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "tokenBalances": {},
       },
       "TokenListController": {
-        "preventPollingOnNetworkRestart": false,
         "tokensChainsCache": {},
       },
       "TokenRatesController": {
         "marketData": {},
-      },
-      "TokenSearchDiscoveryController": {
-        "lastSearchTimestamp": null,
-        "recentSearches": [],
       },
       "TokenSearchDiscoveryDataController": {
         "tokenDisplayData": [],
@@ -1310,6 +1333,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           "optionId": "volume",
         },
         "perpsBalances": {},
+        "selectedPaymentToken": null,
         "tradeConfigurations": {
           "mainnet": {},
           "testnet": {},
@@ -1383,12 +1407,37 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "syncQueue": {},
       },
       "RampsController": {
-        "paymentMethods": [],
-        "preferredProvider": null,
-        "providers": [],
+        "countries": {
+          "data": [],
+          "error": null,
+          "isLoading": false,
+          "selected": null,
+        },
+        "paymentMethods": {
+          "data": [],
+          "error": null,
+          "isLoading": false,
+          "selected": null,
+        },
+        "providers": {
+          "data": [],
+          "error": null,
+          "isLoading": false,
+          "selected": null,
+        },
+        "quotes": {
+          "data": null,
+          "error": null,
+          "isLoading": false,
+          "selected": null,
+        },
         "requests": {},
-        "selectedPaymentMethod": null,
-        "tokens": null,
+        "tokens": {
+          "data": null,
+          "error": null,
+          "isLoading": false,
+          "selected": null,
+        },
         "userRegion": null,
       },
       "RemoteFeatureFlagController": {
@@ -1401,9 +1450,11 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "accounts": {},
         "activeAccount": null,
         "activeBoosts": {},
+        "pointsEstimateHistory": [],
         "pointsEvents": {},
         "seasonStatuses": {},
         "seasons": {},
+        "snapshots": {},
         "subscriptionReferralDetails": {},
         "subscriptions": {},
         "unlockedRewards": {},
@@ -1538,15 +1589,10 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "tokenBalances": {},
       },
       "TokenListController": {
-        "preventPollingOnNetworkRestart": false,
         "tokensChainsCache": {},
       },
       "TokenRatesController": {
         "marketData": {},
-      },
-      "TokenSearchDiscoveryController": {
-        "lastSearchTimestamp": null,
-        "recentSearches": [],
       },
       "TokenSearchDiscoveryDataController": {
         "tokenDisplayData": [],

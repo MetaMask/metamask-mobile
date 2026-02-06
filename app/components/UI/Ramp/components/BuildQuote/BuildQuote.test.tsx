@@ -84,7 +84,7 @@ const defaultUserRegion: MockUserRegion = {
 };
 
 let mockUserRegion: MockUserRegion | null = defaultUserRegion;
-let mockPreferredProvider: unknown = null;
+let mockSelectedProvider: unknown = null;
 let mockTokens: {
   allTokens: ReturnType<typeof createMockToken>[];
   topTokens: ReturnType<typeof createMockToken>[];
@@ -93,11 +93,19 @@ let mockTokens: {
   topTokens: [createMockToken()],
 };
 
+jest.mock('../../hooks/useRampsTokens', () => ({
+  useRampsTokens: () => ({
+    selectedToken: mockTokens?.allTokens?.[0] ?? null,
+  }),
+}));
+
 jest.mock('../../hooks/useRampsController', () => ({
   useRampsController: () => ({
     userRegion: mockUserRegion,
-    preferredProvider: mockPreferredProvider,
-    tokens: mockTokens,
+    selectedProvider: mockSelectedProvider,
+    selectedToken: mockTokens?.allTokens?.[0] ?? null,
+    paymentMethodsLoading: false,
+    selectedPaymentMethod: null,
   }),
 }));
 
@@ -112,7 +120,7 @@ describe('BuildQuote', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUserRegion = defaultUserRegion;
-    mockPreferredProvider = null;
+    mockSelectedProvider = null;
     mockTokens = {
       allTokens: [createMockToken()],
       topTokens: [createMockToken()],
@@ -199,7 +207,20 @@ describe('BuildQuote', () => {
     const { getByTestId, getByText } = renderWithTheme(<BuildQuote />);
 
     expect(getByTestId('payment-method-pill')).toBeOnTheScreen();
-    expect(getByText('fiat_on_ramp.debit_card')).toBeOnTheScreen();
+    expect(getByText('fiat_on_ramp.select_payment_method')).toBeOnTheScreen();
+  });
+
+  it('navigates to payment selection modal when payment method pill is pressed', () => {
+    const { getByTestId } = renderWithTheme(<BuildQuote />);
+
+    fireEvent.press(getByTestId('payment-method-pill'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'RampModals',
+      expect.objectContaining({
+        screen: 'RampPaymentSelectionModal',
+      }),
+    );
   });
 
   it('sets navigation options with undefined values when token is not found (shows skeleton)', () => {
@@ -277,8 +298,8 @@ describe('BuildQuote', () => {
     expect(getByTestId('build-quote-continue-button')).toBeOnTheScreen();
   });
 
-  it('displays powered by provider text when preferred provider is set', () => {
-    mockPreferredProvider = {
+  it('displays powered by provider text when selected provider is set', () => {
+    mockSelectedProvider = {
       id: '/providers/transak',
       name: 'Transak',
       environmentType: 'PRODUCTION',
@@ -293,8 +314,8 @@ describe('BuildQuote', () => {
     expect(getByText('fiat_on_ramp.powered_by_provider')).toBeOnTheScreen();
   });
 
-  it('does not display powered by text when no preferred provider is set', () => {
-    mockPreferredProvider = null;
+  it('does not display powered by text when no selected provider is set', () => {
+    mockSelectedProvider = null;
 
     const { queryByText } = renderWithTheme(<BuildQuote />);
 

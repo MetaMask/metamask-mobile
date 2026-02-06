@@ -17,10 +17,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../util/navigation/navUtils';
+import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import { getRampsBuildQuoteNavbarOptions } from '../../../Navbar';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -29,6 +26,7 @@ import { formatCurrency } from '../../utils/formatCurrency';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import { useRampsController } from '../../hooks/useRampsController';
 import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
+import { createPaymentSelectionModalNavigationDetails } from '../PaymentSelectionModal';
 
 interface BuildQuoteParams {
   assetId?: string;
@@ -40,26 +38,21 @@ export const createBuildQuoteNavDetails =
 function BuildQuote() {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
-  const { assetId } = useParams<BuildQuoteParams>();
-
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
 
-  // Get user region, preferred provider, and tokens from RampsController
-  const { userRegion, preferredProvider, tokens } = useRampsController();
+  const {
+    userRegion,
+    selectedProvider,
+    selectedToken,
+    paymentMethodsLoading,
+    selectedPaymentMethod,
+  } = useRampsController();
 
-  // Get currency and quick amounts from user's region
   const currency = userRegion?.country?.currency || 'USD';
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
 
-  // Get network info helper
   const getTokenNetworkInfo = useTokenNetworkInfo();
-
-  // Find the selected token from assetId param
-  const selectedToken = useMemo(() => {
-    if (!assetId || !tokens?.allTokens) return null;
-    return tokens.allTokens.find((token) => token.assetId === assetId) ?? null;
-  }, [assetId, tokens?.allTokens]);
 
   // Get network info for the selected token
   const networkInfo = useMemo(() => {
@@ -119,19 +112,25 @@ function BuildQuote() {
                 })}
               </Text>
               <PaymentMethodPill
-                label={strings('fiat_on_ramp.debit_card')}
+                label={
+                  selectedPaymentMethod?.name ||
+                  strings('fiat_on_ramp.select_payment_method')
+                }
+                isLoading={paymentMethodsLoading}
                 onPress={() => {
-                  // TODO: Open payment method selector
+                  navigation.navigate(
+                    ...createPaymentSelectionModalNavigationDetails(),
+                  );
                 }}
               />
             </View>
           </View>
 
           <View style={styles.actionSection}>
-            {preferredProvider && (
+            {selectedProvider && (
               <Text variant={TextVariant.BodySM} style={styles.poweredByText}>
                 {strings('fiat_on_ramp.powered_by_provider', {
-                  provider: preferredProvider.name,
+                  provider: selectedProvider.name,
                 })}
               </Text>
             )}

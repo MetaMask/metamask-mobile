@@ -4,8 +4,11 @@ import {
   getNativeTokenAddress,
   TokenListState,
 } from '@metamask/assets-controllers';
-import { MULTICHAIN_NETWORK_DECIMAL_PLACES } from '@metamask/multichain-network-controller';
-import { CaipChainId, Hex, hexToBigInt } from '@metamask/utils';
+import {
+  MULTICHAIN_NETWORK_DECIMAL_PLACES,
+  toEvmCaipChainId,
+} from '@metamask/multichain-network-controller';
+import { CaipChainId, Hex, hexToBigInt, isCaipChainId } from '@metamask/utils';
 import { createSelector } from 'reselect';
 
 import I18n from '../../../locales/i18n';
@@ -29,6 +32,7 @@ import {
 import { sortAssetsWithPriority } from '../../components/UI/Tokens/util/sortAssetsWithPriority';
 import { selectAllTokens } from '../tokensController';
 import { selectSelectedInternalAccountAddress } from '../accountsController';
+import { selectSelectedInternalAccountByScope } from '../multichainAccounts/accounts';
 
 const getStateForAssetSelector = (state: RootState) => {
   const {
@@ -264,6 +268,7 @@ export const selectAsset = createSelector(
       state.engine.backgroundState.TokenListController.tokensChainsCache,
     selectAllTokens,
     selectSelectedInternalAccountAddress,
+    selectSelectedInternalAccountByScope,
     (
       _state: RootState,
       params: { address: string; chainId: string; isStaked?: boolean },
@@ -283,20 +288,33 @@ export const selectAsset = createSelector(
     tokensChainsCache,
     allTokens,
     selectedAddress,
+    getAccountByScope,
     address,
     chainId,
     isStaked,
   ) => {
+    const chainIdInCaip = isCaipChainId(chainId)
+      ? chainId
+      : toEvmCaipChainId(chainId as Hex);
+
+    // Get the account for this chain from the selected account group
+    const scopedAccountId = getAccountByScope(chainIdInCaip)?.id;
+
     const asset = isStaked
       ? stakedAssets.find(
           (item) =>
-            item.chainId === chainId && item.stakedAsset.assetId === address,
+            item.chainId === chainId &&
+            (!scopedAccountId || item.accountId === scopedAccountId) &&
+            item.stakedAsset.assetId === address,
         )?.stakedAsset
       : assets[chainId]?.find((item: Asset & { isStaked?: boolean }) => {
-          // Normalize isStaked values: treat undefined as false
           const itemIsStaked = Boolean(item.isStaked);
           const targetIsStaked = Boolean(isStaked);
-          return item.assetId === address && itemIsStaked === targetIsStaked;
+          return (
+            item.assetId === address &&
+            (!scopedAccountId || item.accountId === scopedAccountId) &&
+            itemIsStaked === targetIsStaked
+          );
         });
 
     // Look up rwaData from the original token in allTokens

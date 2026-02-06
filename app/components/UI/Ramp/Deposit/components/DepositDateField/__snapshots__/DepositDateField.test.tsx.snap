@@ -61,9 +61,9 @@ exports[`DepositDateField Platform specific rendering date picker matches snapsh
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#ffffff",
-        "borderColor": "#b7bbc8",
-        "borderRadius": 8,
+        "backgroundColor": "#3c4d9d0f",
+        "borderColor": "#b7bbc866",
+        "borderRadius": 12,
         "borderWidth": 1,
         "flexDirection": "row",
         "height": 48,
@@ -76,7 +76,7 @@ exports[`DepositDateField Platform specific rendering date picker matches snapsh
     <View
       style={
         {
-          "marginRight": 8,
+          "marginRight": 12,
         }
       }
       testID="textfield-startacccessory"
@@ -195,9 +195,9 @@ exports[`DepositDateField Platform specific rendering date picker matches snapsh
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#ffffff",
-        "borderColor": "#b7bbc8",
-        "borderRadius": 8,
+        "backgroundColor": "#3c4d9d0f",
+        "borderColor": "#b7bbc866",
+        "borderRadius": 12,
         "borderWidth": 1,
         "flexDirection": "row",
         "height": 48,
@@ -210,7 +210,7 @@ exports[`DepositDateField Platform specific rendering date picker matches snapsh
     <View
       style={
         {
-          "marginRight": 8,
+          "marginRight": 12,
         }
       }
       testID="textfield-startacccessory"
@@ -329,9 +329,9 @@ exports[`DepositDateField render matches snapshot 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#ffffff",
-        "borderColor": "#b7bbc8",
-        "borderRadius": 8,
+        "backgroundColor": "#3c4d9d0f",
+        "borderColor": "#b7bbc866",
+        "borderRadius": 12,
         "borderWidth": 1,
         "flexDirection": "row",
         "height": 48,
@@ -344,7 +344,7 @@ exports[`DepositDateField render matches snapshot 1`] = `
     <View
       style={
         {
-          "marginRight": 8,
+          "marginRight": 12,
         }
       }
       testID="textfield-startacccessory"
@@ -463,9 +463,9 @@ exports[`DepositDateField render matches snapshot with a value 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#ffffff",
-        "borderColor": "#b7bbc8",
-        "borderRadius": 8,
+        "backgroundColor": "#3c4d9d0f",
+        "borderColor": "#b7bbc866",
+        "borderRadius": 12,
         "borderWidth": 1,
         "flexDirection": "row",
         "height": 48,
@@ -478,7 +478,7 @@ exports[`DepositDateField render matches snapshot with a value 1`] = `
     <View
       style={
         {
-          "marginRight": 8,
+          "marginRight": 12,
         }
       }
       testID="textfield-startacccessory"
@@ -597,9 +597,9 @@ exports[`DepositDateField render matches snapshot with an error 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#ffffff",
-        "borderColor": "#b7bbc8",
-        "borderRadius": 8,
+        "backgroundColor": "#3c4d9d0f",
+        "borderColor": "#b7bbc866",
+        "borderRadius": 12,
         "borderWidth": 1,
         "flexDirection": "row",
         "height": 48,
@@ -612,7 +612,7 @@ exports[`DepositDateField render matches snapshot with an error 1`] = `
     <View
       style={
         {
-          "marginRight": 8,
+          "marginRight": 12,
         }
       }
       testID="textfield-startacccessory"
@@ -746,9 +746,9 @@ exports[`DepositDateField render matches snapshot with empty value 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#ffffff",
-        "borderColor": "#b7bbc8",
-        "borderRadius": 8,
+        "backgroundColor": "#3c4d9d0f",
+        "borderColor": "#b7bbc866",
+        "borderRadius": 12,
         "borderWidth": 1,
         "flexDirection": "row",
         "height": 48,
@@ -761,7 +761,7 @@ exports[`DepositDateField render matches snapshot with empty value 1`] = `
     <View
       style={
         {
-          "marginRight": 8,
+          "marginRight": 12,
         }
       }
       testID="textfield-startacccessory"

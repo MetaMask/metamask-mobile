@@ -53,6 +53,10 @@ jest.mock('../../../Trending/services/TrendingFeedSessionManager', () => ({
   },
 }));
 
+jest.mock('../../contexts', () => ({
+  usePredictEntryPoint: () => undefined,
+}));
+
 jest.mock('../PredictActionButtons', () => {
   const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
   return {
@@ -231,7 +235,6 @@ describe('PredictSportCardFooter', () => {
     mockUsePredictActionGuard.mockReturnValue({
       executeGuardedAction: mockExecuteGuardedAction,
       isEligible: true,
-      hasNoBalance: false,
     });
 
     mockUsePredictClaim.mockReturnValue({
@@ -510,7 +513,6 @@ describe('PredictSportCardFooter', () => {
         expect(mockExecuteGuardedAction).toHaveBeenCalledWith(
           expect.any(Function),
           {
-            checkBalance: true,
             attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
           },
         );

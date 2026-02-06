@@ -2,6 +2,7 @@ import React, { PropsWithChildren, useMemo } from 'react';
 import Fuse, { type FuseOptions } from 'fuse.js';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
+import { useSelector } from 'react-redux';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import TrendingTokenRowItem from '../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
@@ -13,6 +14,7 @@ import type { PredictMarket as PredictMarketType } from '../../UI/Predict/types'
 import type { PerpsNavigationParamList } from '../../UI/Perps/types/navigation';
 import PredictMarketSkeleton from '../../UI/Predict/components/PredictMarketSkeleton';
 import { usePredictMarketData } from '../../UI/Predict/hooks/usePredictMarketData';
+import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { usePerpsMarkets } from '../../UI/Perps/hooks';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
@@ -22,6 +24,11 @@ import SiteRowItemWrapper from '../../UI/Sites/components/SiteRowItemWrapper/Sit
 import SiteSkeleton from '../../UI/Sites/components/SiteSkeleton/SiteSkeleton';
 import { useSitesData } from '../../UI/Sites/hooks/useSiteData/useSitesData';
 import { useTrendingSearch } from '../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
+import {
+  TimeOption,
+  PriceChangeOption,
+} from '../../UI/Trending/components/TrendingTokensBottomSheet';
+import type { TrendingFilterContext } from '../../UI/Trending/components/TrendingTokensList/TrendingTokensList';
 import { filterMarketsByQuery } from '../../UI/Perps/utils/marketUtils';
 import PredictMarketRowItem from '../../UI/Predict/components/PredictMarketRowItem';
 import SectionCard from './components/Sections/SectionTypes/SectionCard';
@@ -41,10 +48,12 @@ interface SectionConfig {
   viewAllAction: (navigation: NavigationProp<ParamListBase>) => void;
   RowItem: React.ComponentType<{
     item: unknown;
+    index: number;
     navigation: NavigationProp<ParamListBase>;
   }>;
   OverrideRowItemSearch?: React.ComponentType<{
     item: unknown;
+    index?: number;
     navigation: NavigationProp<ParamListBase>;
   }>;
   Skeleton: React.ComponentType;
@@ -123,6 +132,28 @@ const PREDICTIONS_FUSE_OPTIONS: FuseOptions<PredictMarketType> = {
  * - Section headers with "View All" navigation
  */
 
+/**
+ * Default filter context for tokens in the Trending View home section.
+ * Used for analytics tracking of token clicks from the home page.
+ */
+const DEFAULT_TOKENS_FILTER_CONTEXT: TrendingFilterContext = {
+  timeFilter: TimeOption.TwentyFourHours,
+  sortOption: PriceChangeOption.PriceChange,
+  networkFilter: 'all',
+  isSearchResult: false,
+};
+
+/**
+ * Filter context for tokens in search results on the Explore page.
+ * Used for analytics tracking of token clicks from search results.
+ */
+const SEARCH_TOKENS_FILTER_CONTEXT: TrendingFilterContext = {
+  timeFilter: TimeOption.TwentyFourHours,
+  sortOption: PriceChangeOption.PriceChange,
+  networkFilter: 'all',
+  isSearchResult: true,
+};
+
 export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   tokens: {
     id: 'tokens',
@@ -131,8 +162,19 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     viewAllAction: (navigation) => {
       navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW);
     },
-    RowItem: ({ item }) => (
-      <TrendingTokenRowItem token={item as TrendingAsset} />
+    RowItem: ({ item, index }) => (
+      <TrendingTokenRowItem
+        token={item as TrendingAsset}
+        position={index}
+        filterContext={DEFAULT_TOKENS_FILTER_CONTEXT}
+      />
+    ),
+    OverrideRowItemSearch: ({ item, index }) => (
+      <TrendingTokenRowItem
+        token={item as TrendingAsset}
+        position={index}
+        filterContext={SEARCH_TOKENS_FILTER_CONTEXT}
+      />
     ),
     Skeleton: TrendingTokensSkeleton,
     Section: SectionCard,
@@ -167,7 +209,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         },
       });
     },
-    RowItem: ({ item, navigation }) => (
+    RowItem: ({ item, index: _index, navigation }) => (
       <PerpsMarketRowItem
         market={item as PerpsMarketData}
         onPress={() => {
@@ -217,7 +259,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         screen: Routes.PREDICT.MARKET_LIST,
       });
     },
-    RowItem: ({ item }) => (
+    RowItem: ({ item, index: _index }) => (
       <Box twClassName="py-2">
         <PredictMarket
           market={item as PredictMarketType}
@@ -257,7 +299,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     viewAllAction: (navigation) => {
       navigation.navigate(Routes.SITES_FULL_VIEW);
     },
-    RowItem: ({ item, navigation }) => (
+    RowItem: ({ item, index: _index, navigation }) => (
       <SiteRowItemWrapper site={item as SiteData} navigation={navigation} />
     ),
     Skeleton: SiteSkeleton,
@@ -270,7 +312,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
 };
 
 // Sorted by order on the main screen
-export const HOME_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
+const HOME_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
   SECTIONS_CONFIG.predictions,
   SECTIONS_CONFIG.tokens,
   SECTIONS_CONFIG.perps,
@@ -278,12 +320,36 @@ export const HOME_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
 ];
 
 // Sorted by order on the QuickAction buttons and SearchResults
-export const SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
+const SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
   SECTIONS_CONFIG.tokens,
   SECTIONS_CONFIG.perps,
   SECTIONS_CONFIG.predictions,
   SECTIONS_CONFIG.sites,
 ];
+
+export const useHomeSections = (): (SectionConfig & { id: SectionId })[] => {
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+
+  return useMemo(
+    () =>
+      isPerpsEnabled
+        ? HOME_SECTIONS_ARRAY
+        : HOME_SECTIONS_ARRAY.filter((section) => section.id !== 'perps'),
+    [isPerpsEnabled],
+  );
+};
+
+export const useSectionsArray = (): (SectionConfig & { id: SectionId })[] => {
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+
+  return useMemo(
+    () =>
+      isPerpsEnabled
+        ? SECTIONS_ARRAY
+        : SECTIONS_ARRAY.filter((section) => section.id !== 'perps'),
+    [isPerpsEnabled],
+  );
+};
 
 /**
  * Centralized hook that fetches data for all sections.
