@@ -138,7 +138,7 @@ const AccountsMenu = () => {
   const separator = useMemo(
     () => (
       <Box
-        style={tw.style('h-px my-2', {
+        style={tw.style('h-px my-2 mx-4', {
           backgroundColor: colors.border.muted,
           opacity: 0.75,
         })}
