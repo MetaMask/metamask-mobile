@@ -135,9 +135,7 @@ const updateRouteParams = (params: Partial<MoreTokenActionsMenuParams>) => {
 describe('MoreTokenActionsMenu', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Default: token is in account so Remove token shows when other conditions allow
     (selectAsset as unknown as jest.Mock).mockReturnValue({});
-    // Reset route params to defaults
     Object.assign(mockRouteParams, {
       hasPerpsMarket: false,
       hasBalance: false,
