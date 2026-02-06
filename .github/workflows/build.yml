@@ -437,18 +437,18 @@ jobs:
             yarn run "$SCRIPT_NAME"
 
       # iOS: Upload artifacts
-      # Dev builds: .app bundle for simulator
-      - name: Upload iOS development build (.app for simulator)
-        if: matrix.platform == 'ios' && (inputs.build_name == 'main-dev' || inputs.build_name == 'flask-dev' || inputs.build_name == 'qa-dev')
+      # Simulator builds: .app bundle (dev, test, e2e builds)
+      - name: Upload iOS simulator build (.app)
+        if: matrix.platform == 'ios' && (inputs.build_name == 'main-dev' || inputs.build_name == 'main-test' || inputs.build_name == 'main-e2e' || inputs.build_name == 'flask-dev' || inputs.build_name == 'flask-test' || inputs.build_name == 'flask-e2e' || inputs.build_name == 'qa-dev')
         uses: actions/upload-artifact@v4
         with:
-          name: ios-dev-${{ inputs.build_name }}
+          name: ios-${{ inputs.build_name }}
           path: ios/build/Build/Products/Debug-iphonesimulator/
           if-no-files-found: warn
 
-      # Production builds: IPA for distribution
-      - name: Upload iOS production build (.ipa)
-        if: matrix.platform == 'ios' && (inputs.build_name == 'main-prod' || inputs.build_name == 'main-rc' || inputs.build_name == 'main-test' || inputs.build_name == 'main-e2e' || inputs.build_name == 'flask-prod' || inputs.build_name == 'flask-test' || inputs.build_name == 'flask-e2e' || inputs.build_name == 'qa-prod')
+      # Device builds: IPA for distribution (prod, rc only)
+      - name: Upload iOS device build (.ipa)
+        if: matrix.platform == 'ios' && (inputs.build_name == 'main-prod' || inputs.build_name == 'main-rc' || inputs.build_name == 'flask-prod' || inputs.build_name == 'qa-prod')
         uses: actions/upload-artifact@v4
         with:
           name: ios-${{ inputs.build_name }}
