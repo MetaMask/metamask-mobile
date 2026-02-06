@@ -9,7 +9,7 @@ export const PRICE_API_MOCKS: MockEventsObject = {
   GET: [
     {
       urlEndpoint:
-        /^https:\/\/price\.api\.cx\.metamask\.io\/v1\/supportedVsCurrencies$/,
+        /https:\/\/price\.api\.cx\.metamask\.io\/v1\/supportedVsCurrencies/,
       responseCode: 200,
       response: [
         'usd',
@@ -68,7 +68,7 @@ export const PRICE_API_MOCKS: MockEventsObject = {
     },
     {
       urlEndpoint:
-        /^https:\/\/price\.api\.cx\.metamask\.io\/v2\/supportedNetworks$/,
+        /https:\/\/price\.api\.cx\.metamask\.io\/v2\/supportedNetworks/,
       responseCode: 200,
       response: [
         'eip155:1',
@@ -96,8 +96,7 @@ export const PRICE_API_MOCKS: MockEventsObject = {
       ],
     },
     {
-      urlEndpoint:
-        /^https:\/\/price\.api\.cx\.metamask\.io\/v1\/exchange-rates\?baseCurrency=.*$/,
+      urlEndpoint: /https:\/\/price\.api\.cx\.metamask\.io\/v1\/exchange-rates/,
       responseCode: 200,
       response: {
         usd: {
@@ -139,38 +138,12 @@ export const PRICE_API_MOCKS: MockEventsObject = {
         },
       },
     },
+    // NOTE: v3/spot-prices is intentionally NOT mocked.
+    // Any static mock response causes NaN because the app expects prices for
+    // dynamically requested asset IDs. When assets aren't in the response,
+    // calculations result in NaN. Letting this endpoint use live API works correctly.
     {
-      urlEndpoint:
-        /^https:\/\/price\.api\.cx\.metamask\.io\/v3\/spot-prices(\?.*)?$/,
-      responseCode: 200,
-      response: {
-        'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f': {
-          usd: 0.999588,
-          eth: 0.000233,
-        },
-        'eip155:1/slip44:60': {
-          usd: 4280.15,
-          eth: 1.0,
-        },
-        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': {
-          usd: 1.0,
-          eth: 0.000233,
-        },
-        'eip155:137/erc20:0x2791bca1f2de4661ed88a30c99a7a9449aa84174': {
-          usd: 1.0,
-          eth: 0.000344,
-          price: 1.0,
-        },
-        'eip155:137/slip44:966': {
-          usd: 1.0,
-          price: 1.0,
-          eth: 0.000344,
-        },
-      },
-    },
-    {
-      urlEndpoint:
-        /^https:\/\/min-api\.cryptocompare\.com\/data\/pricemulti\?.*$/,
+      urlEndpoint: /https:\/\/min-api\.cryptocompare\.com\/data\/pricemulti/,
       responseCode: 200,
       response: {
         BTC: { USD: 120000 },
@@ -183,13 +156,13 @@ export const PRICE_API_MOCKS: MockEventsObject = {
       },
     },
     {
-      urlEndpoint: /^https:\/\/min-api\.cryptocompare\.com\/data\/price\?.*$/,
+      urlEndpoint: /https:\/\/min-api\.cryptocompare\.com\/data\/price/,
       responseCode: 200,
       response: {},
     },
     {
       urlEndpoint:
-        /^https:\/\/price\.api\.cx\.metamask\.io\/v2\/chains\/\d+\/spot-prices\?.*$/,
+        /https:\/\/price\.api\.cx\.metamask\.io\/v2\/chains\/\d+\/spot-prices/,
       responseCode: 200,
       response: {
         '0x0000000000000000000000000000000000000000': {
@@ -238,7 +211,7 @@ export const PRICE_API_MOCKS: MockEventsObject = {
     },
     {
       urlEndpoint:
-        /^https:\/\/price\.api\.cx\.metamask\.io\/v1\/chains\/\d+\/historical-prices\/0x[a-fA-F0-9]{40}\?.*$/,
+        /https:\/\/price\.api\.cx\.metamask\.io\/v1\/chains\/\d+\/historical-prices/,
       responseCode: 200,
       response: {
         prices: [
