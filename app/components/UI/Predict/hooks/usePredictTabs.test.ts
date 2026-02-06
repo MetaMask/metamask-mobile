@@ -116,6 +116,25 @@ describe('usePredictTabs', () => {
       expect(result.current.activeIndex).toBe(4);
     });
 
+    it('recalculates index even after programmatic sync with same value', () => {
+      mockRouteParams.tab = 'crypto';
+      mockHotTabFlag.enabled = false;
+
+      const { result, rerender } = renderHook(() => usePredictTabs());
+
+      expect(result.current.activeIndex).toBe(3);
+
+      act(() => {
+        result.current.setActiveIndex(3);
+      });
+      expect(result.current.activeIndex).toBe(3);
+
+      mockHotTabFlag.enabled = true;
+      rerender({});
+
+      expect(result.current.activeIndex).toBe(4);
+    });
+
     it('does not recalculate index after user manually changes tab', () => {
       mockRouteParams.tab = 'crypto';
       mockHotTabFlag.enabled = false;

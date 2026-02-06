@@ -96,8 +96,12 @@ export const usePredictTabs = (): UsePredictTabsResult => {
   }, [requestedTabKey, tabs]);
 
   const setActiveIndex = useCallback((index: number) => {
-    isFollowingDeeplinkRef.current = false;
-    setActiveIndexState(index);
+    setActiveIndexState((prevIndex) => {
+      if (index !== prevIndex) {
+        isFollowingDeeplinkRef.current = false;
+      }
+      return index;
+    });
   }, []);
 
   return {
