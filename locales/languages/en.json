@@ -5928,7 +5928,10 @@
       "tooltip_content": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin. Earn {{apy}} yield on every dollar you hold.",
       "quick_convert": {
         "title": "Convert and get {{apy}}%",
-        "subtitle": "Convert your stablecoins to mUSD and receive up to a {{apy}}% bonus."
+        "subtitle": "Convert your stablecoins to mUSD and receive up to a {{apy}}% bonus.",
+        "confirmation": {
+          "title": "Convert Max"
+        }
       }
     },
     "bonus_claim": {
