@@ -1,7 +1,7 @@
 import { CaipAssetType, Hex } from '@metamask/utils';
 import { useCallback } from 'react';
-import { ParamListBase, useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { errorCodes } from '@metamask/rpc-errors';
 
@@ -23,30 +23,14 @@ interface SnapConfirmSendResult {
   transactionId?: string;
 }
 
-interface HandleSubmitPressOptions {
-  /**
-   * When true, indicates that the recipient screen was skipped (e.g., predefinedRecipient flow).
-   * This affects navigation on error - we pop fewer screens since we didn't navigate through Recipient.
-   */
-  skipRecipient?: boolean;
-}
-
 export const useSendActions = () => {
-  const {
-    asset,
-    chainId,
-    fromAccount,
-    from,
-    maxValueMode,
-    to,
-    updateSubmitError,
-    value,
-  } = useSendContext();
+  const { asset, chainId, fromAccount, from, maxValueMode, to, value } =
+    useSendContext();
   const navigation = useNavigation();
   const { isEvmSendType } = useSendType();
   const { captureSendExit } = useSendExitMetrics();
   const handleSubmitPress = useCallback(
-    async (recipientAddress?: string, options?: HandleSubmitPressOptions) => {
+    async (recipientAddress?: string) => {
       if (!chainId || !asset) {
         return;
       }
@@ -54,16 +38,6 @@ export const useSendActions = () => {
       // Context update is not immediate when submitting from the recipient list
       // so we use the passed recipientAddress or fall back to the context value
       const toAddress = recipientAddress || to;
-
-      // Clear any previous submit error
-      updateSubmitError(undefined);
-
-      // Determine how many screens to pop on error based on whether recipient screen was skipped.
-      // The snap confirmation is a modal/overlay, not a navigation screen, so we only need to
-      // account for the screens we actually navigated through:
-      // - From Recipient screen: pop 1 to get back to Amount
-      // - From Amount screen (predefinedRecipient): don't pop, stay on Amount to show the error
-      const screensToPopOnError = options?.skipRecipient ? 0 : 1;
 
       if (isEvmSendType) {
         submitEvmTransaction({
@@ -100,14 +74,7 @@ export const useSendActions = () => {
             const errorMessage = result?.errors?.length
               ? mapSnapErrorCodeIntoTranslation(result.errors[0].code)
               : strings('send.transaction_error');
-            updateSubmitError(errorMessage);
-            // Navigate back to the Amount screen where the error can be displayed
-            // (Recipient screen may not have a visible button when recipient is selected from list)
-            if (screensToPopOnError > 0) {
-              (navigation as StackNavigationProp<ParamListBase>).pop(
-                screensToPopOnError,
-              );
-            }
+            Alert.alert(errorMessage);
             return;
           }
 
@@ -119,19 +86,11 @@ export const useSendActions = () => {
           const isUserRejection =
             errorCode === errorCodes.provider.userRejectedRequest;
 
-          if (isUserRejection) {
-            // User deliberately cancelled - clear error and navigate back silently
-            updateSubmitError(undefined);
-          } else {
+          if (!isUserRejection) {
             // Actual snap/internal error - display error message to user
-            updateSubmitError(strings('send.transaction_error'));
+            Alert.alert(strings('send.transaction_error'));
           }
 
-          if (screensToPopOnError > 0) {
-            (navigation as StackNavigationProp<ParamListBase>).pop(
-              screensToPopOnError,
-            );
-          }
           Logger.log('Multichain transaction for review rejected: ', error);
         }
       }
@@ -145,7 +104,6 @@ export const useSendActions = () => {
       isEvmSendType,
       maxValueMode,
       to,
-      updateSubmitError,
       value,
     ],
   );

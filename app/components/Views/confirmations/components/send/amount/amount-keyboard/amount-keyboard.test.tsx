@@ -218,7 +218,6 @@ describe('Amount', () => {
     expect(mockUpdateTo).toHaveBeenCalledWith(predefinedRecipientAddress);
     expect(mockHandleSubmitPress).toHaveBeenCalledWith(
       predefinedRecipientAddress,
-      { skipRecipient: true },
     );
     expect(mockNavigate).not.toHaveBeenCalled();
   });

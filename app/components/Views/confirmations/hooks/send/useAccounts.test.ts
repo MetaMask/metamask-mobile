@@ -183,7 +183,6 @@ describe('useAccounts', () => {
       from: undefined,
       maxValueMode: false,
       updateAsset: jest.fn(),
-      updateSubmitError: jest.fn(),
       updateTo: jest.fn(),
       updateValue: jest.fn(),
     });
@@ -250,7 +249,6 @@ describe('useAccounts', () => {
         from: '0x1234567890123456789012345678901234567890',
         maxValueMode: false,
         updateAsset: jest.fn(),
-        updateSubmitError: jest.fn(),
         updateTo: jest.fn(),
         updateValue: jest.fn(),
       });
@@ -346,7 +344,6 @@ describe('useAccounts', () => {
         from: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
         maxValueMode: false,
         updateAsset: jest.fn(),
-        updateSubmitError: jest.fn(),
         updateTo: jest.fn(),
         updateValue: jest.fn(),
       });
@@ -404,7 +401,6 @@ describe('useAccounts', () => {
         from: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
         maxValueMode: false,
         updateAsset: jest.fn(),
-        updateSubmitError: jest.fn(),
         updateTo: jest.fn(),
         updateValue: jest.fn(),
       });

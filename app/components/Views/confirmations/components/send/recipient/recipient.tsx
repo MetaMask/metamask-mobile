@@ -31,7 +31,7 @@ export const Recipient = () => {
   const [isRecipientSelectedFromList, setIsRecipientSelectedFromList] =
     useState(false);
   const [pastedRecipient, setPastedRecipient] = useState<string>();
-  const { to, updateTo, asset, chainId, submitError } = useSendContext();
+  const { to, updateTo, asset, chainId } = useSendContext();
   const { handleSubmitPress } = useSendActions();
   const accounts = useAccounts();
   const contacts = useContacts();
@@ -45,8 +45,7 @@ export const Recipient = () => {
     resolvedAddress,
   } = useToAddressValidation();
 
-  const isReviewButtonDisabled =
-    Boolean(toAddressError) || Boolean(submitError);
+  const isReviewButtonDisabled = Boolean(toAddressError);
   // This hook needs to be called to update ERC721 NFTs in send flow
   // because that flow is triggered directly from the asset details page and user is redirected to the recipient page
   useRouteParams();
@@ -208,16 +207,14 @@ export const Recipient = () => {
                 size={ButtonBaseSize.Lg}
                 onPress={handleSubmitPressLocal}
                 twClassName="w-full"
-                isDanger={
-                  !loading && (Boolean(toAddressError) || Boolean(submitError))
-                }
+                isDanger={!loading && Boolean(toAddressError)}
                 disabled={
-                  isReviewButtonDisabled || isSubmittingTransaction || loading
+                  Boolean(toAddressError) || isSubmittingTransaction || loading
                 }
                 isLoading={isSubmittingTransaction || loading}
               >
                 {isReviewButtonDisabled
-                  ? (toAddressError ?? submitError)
+                  ? toAddressError
                   : strings('send.review')}
               </Button>
             </Box>
