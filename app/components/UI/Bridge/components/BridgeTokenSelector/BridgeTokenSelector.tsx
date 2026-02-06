@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import { getHeaderCenterNavbarOptions } from '../../../../../component-library/components-temp/HeaderCenter';
+import { getHeaderCompactStandardNavbarOptions } from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { FlatList } from 'react-native-gesture-handler';
 import { NetworkPills } from './NetworkPills';
 import { CaipChainId } from '@metamask/utils';
@@ -106,7 +106,7 @@ export const BridgeTokenSelector: React.FC = () => {
   // Set navigation options for header
   useEffect(() => {
     navigation.setOptions(
-      getHeaderCenterNavbarOptions({
+      getHeaderCompactStandardNavbarOptions({
         title: strings('bridge.select_token'),
         onBack: () => navigation.goBack(),
         includesTopInset: true,

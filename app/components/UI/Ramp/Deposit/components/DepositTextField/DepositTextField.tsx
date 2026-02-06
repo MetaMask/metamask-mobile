@@ -11,13 +11,11 @@ import Label from '../../../../../../component-library/components/Form/Label';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import TextField, {
-  TextFieldSize,
-} from '../../../../../../component-library/components/Form/TextField';
+import TextField from '../../../../../../component-library/components/Form/TextField';
 import { TextFieldProps } from '../../../../../../component-library/components/Form/TextField/TextField.types';
 import { Theme } from '../../../../../../util/theme/models';
 
-interface DepositTextFieldProps extends Omit<TextFieldProps, 'size'> {
+interface DepositTextFieldProps extends TextFieldProps {
   label: string | React.ReactNode;
   error?: string;
   containerStyle?: StyleProp<ViewStyle>;
@@ -56,7 +54,6 @@ const DepositTextField = forwardRef<TextInput, DepositTextFieldProps>(
           <View style={styles.label}>{label}</View>
         )}
         <TextField
-          size={TextFieldSize.Lg}
           placeholderTextColor={theme.colors.text.muted}
           keyboardAppearance={theme.themeAppearance}
           style={style}
