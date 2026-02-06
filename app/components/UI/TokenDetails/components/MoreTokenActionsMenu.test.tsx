@@ -6,6 +6,8 @@ import { TokenI } from '../../Tokens/types';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../Views/WalletActions/WalletActionsBottomSheet.testIds';
+import { selectAsset } from '../../../../selectors/assets/assets-list';
+import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
 
 jest.mock('react-native-safe-area-context', () => {
   const inset = { top: 0, right: 0, bottom: 0, left: 0 };
@@ -108,6 +110,16 @@ jest.mock('react-native-inappbrowser-reborn', () => ({
   open: jest.fn(),
 }));
 
+jest.mock('../../../../selectors/assets/assets-list', () => {
+  const actual = jest.requireActual('../../../../selectors/assets/assets-list');
+  return {
+    ...actual,
+    selectAsset: jest.fn((...args: unknown[]) =>
+      (actual.selectAsset as (...a: unknown[]) => unknown)(...args),
+    ),
+  };
+});
+
 const mockInitialState = {
   engine: {
     backgroundState: {
@@ -123,6 +135,8 @@ const updateRouteParams = (params: Partial<MoreTokenActionsMenuParams>) => {
 describe('MoreTokenActionsMenu', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default: token is in account so Remove token shows when other conditions allow
+    (selectAsset as unknown as jest.Mock).mockReturnValue({});
     // Reset route params to defaults
     Object.assign(mockRouteParams, {
       hasPerpsMarket: false,
@@ -276,6 +290,47 @@ describe('MoreTokenActionsMenu', () => {
       expect(
         getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
       ).toBeOnTheScreen();
+      expect(getByTestId('more-actions-view-explorer')).toBeOnTheScreen();
+      expect(queryByTestId('more-actions-remove-token')).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('remove token visibility', () => {
+    it('does not render Remove token when tokenIsInAccount is false', () => {
+      updateRouteParams({
+        hasPerpsMarket: false,
+        hasBalance: true,
+        isBuyable: false,
+        isNativeCurrency: false,
+      });
+      (selectAsset as unknown as jest.Mock).mockReturnValue(null);
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoreTokenActionsMenu />,
+        { state: mockInitialState },
+      );
+
+      expect(getByTestId('more-actions-view-explorer')).toBeOnTheScreen();
+      expect(queryByTestId('more-actions-remove-token')).not.toBeOnTheScreen();
+    });
+
+    it('does not render Remove token when asset address is MUSD', () => {
+      updateRouteParams({
+        hasPerpsMarket: false,
+        hasBalance: true,
+        isBuyable: false,
+        isNativeCurrency: false,
+        asset: {
+          ...mockRouteParams.asset,
+          address: MUSD_TOKEN_ADDRESS,
+        },
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoreTokenActionsMenu />,
+        { state: mockInitialState },
+      );
+
       expect(getByTestId('more-actions-view-explorer')).toBeOnTheScreen();
       expect(queryByTestId('more-actions-remove-token')).not.toBeOnTheScreen();
     });
