@@ -6,6 +6,8 @@ import {
   selectTokenDetailsV2Enabled,
   selectTokenDetailsV2ButtonsEnabled,
 } from '../../../../selectors/featureFlagController/tokenDetailsV2';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import Asset from '../../../Views/Asset';
 import { TokenI } from '../../Tokens/types';
@@ -51,9 +53,33 @@ import {
 } from '../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../locales/i18n';
 
+/**
+ * Source of navigation to Token Details page
+ */
+export enum TokenDetailsSource {
+  /** Token list on main wallet screen (compact view) */
+  MobileTokenList = 'mobile-token-list',
+  /** Token list in full page view */
+  MobileTokenListPage = 'mobile-token-list-page',
+  /** Trending tokens section */
+  Trending = 'trending',
+  /** Swap/Bridge token selector */
+  Swap = 'swap',
+  /** Fallback when source cannot be determined */
+  Unknown = 'unknown',
+}
+
+/**
+ * Extended route params for Token Details page
+ * Includes source tracking for analytics
+ */
+export interface TokenDetailsRouteParams extends TokenI {
+  source?: TokenDetailsSource;
+}
+
 interface TokenDetailsProps {
   route: {
-    params: TokenI;
+    params: TokenDetailsRouteParams;
   };
 }
 
@@ -83,14 +109,39 @@ const styleSheet = (params: { theme: Theme }) => {
  * TokenDetails component - Clean orchestrator that fetches data and sets layout.
  * All business logic is delegated to hooks and presentation to AssetOverviewContent.
  */
-const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
+const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({
+  token,
+}) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const isTokenDetailsV2ButtonsEnabled = useSelector(
     selectTokenDetailsV2ButtonsEnabled,
   );
+
+  // Track page view on mount - centralized for all entry points
+  useEffect(() => {
+    const source = token.source ?? TokenDetailsSource.Unknown;
+    const hasBalance =
+      token.balance !== undefined &&
+      token.balance !== null &&
+      token.balance !== '0' &&
+      token.balance !== '';
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
+        .addProperties({
+          source,
+          chain_id: token.chainId,
+          token_symbol: token.symbol,
+          has_balance: hasBalance,
+        })
+        .build(),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     endTrace({ name: TraceName.AssetDetails });

@@ -45,6 +45,7 @@ import StockBadge from '../../../shared/StockBadge';
 import { useAddPopularNetwork } from '../../../../hooks/useAddPopularNetwork';
 import TrendingFeedSessionManager from '../../services/TrendingFeedSessionManager';
 import type { TrendingFilterContext } from '../TrendingTokensList/TrendingTokensList';
+import { TokenDetailsSource } from '../../../TokenDetails/Views/TokenDetails';
 
 /**
  * Extracts CAIP chain ID from asset ID
@@ -182,6 +183,7 @@ const getAssetNavigationParams = (token: TrendingAsset) => {
     isNative: isNativeToken,
     isETH: isNativeToken && hexChainId === '0x1',
     isFromTrending: true,
+    source: TokenDetailsSource.Trending,
     rwaData: token.rwaData,
   };
 };
