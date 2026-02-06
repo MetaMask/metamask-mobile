@@ -125,11 +125,16 @@ export function useABTest<T extends ABTestVariants>(
       : (flagData as string | undefined);
 
   // Determine the variant name: use flag value if it's a valid variant, otherwise fallback to 'control'
+  // Use hasOwnProperty to avoid matching prototype methods (e.g. "toString", "constructor")
+  // since flagValue comes from remote feature flags (external data)
+  const hasVariant = (key: string) =>
+    Object.prototype.hasOwnProperty.call(variants, key);
+
   const variantName =
-    flagValue && Object.hasOwn(variants, flagValue) ? flagValue : 'control';
+    flagValue && hasVariant(flagValue) ? flagValue : 'control';
 
   // Check if the test is active (flag is set AND matches a valid variant)
-  const isActive = Boolean(flagValue && Object.hasOwn(variants, flagValue));
+  const isActive = Boolean(flagValue && hasVariant(flagValue));
 
   return {
     variant: variants[variantName as keyof T],
