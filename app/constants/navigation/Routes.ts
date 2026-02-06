@@ -33,6 +33,11 @@ const Routes = {
       BUILD_QUOTE_SETTINGS: 'RampBuildQuoteSettingsModal',
     },
   },
+  MELD_RAMP: {
+    ID: 'MeldRamp',
+    BUILD_QUOTE: 'MeldBuildQuote',
+    QUOTES: 'MeldQuotes',
+  },
   DEPOSIT: {
     ID: 'Deposit',
     ROOT: 'DepositRoot',
