@@ -31,25 +31,6 @@ const styleSheet = (params: { theme: Theme }) => {
       textAlign: 'center',
       color: theme.colors.text.alternative,
     },
-    debugPanel: {
-      marginTop: 16,
-      padding: 12,
-      backgroundColor: theme.colors.background.alternative,
-      borderRadius: 8,
-      gap: 4,
-      maxHeight: 200,
-    },
-    debugTitle: {
-      fontWeight: '600',
-      marginBottom: 4,
-    },
-    debugRow: {
-      fontFamily: 'monospace',
-      fontSize: 11,
-    },
-    debugList: {
-      gap: 2,
-    },
   });
 };
 
