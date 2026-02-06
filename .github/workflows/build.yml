@@ -25,7 +25,6 @@ on:
           - flask-test
           - flask-e2e
           - flask-dev
-          - flask-uat
           - qa-prod
           - qa-dev
       platform:
@@ -79,7 +78,7 @@ jobs:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
     # CRITICAL: Match the OS with the build job so binaries work
-    runs-on: ${{ matrix.platform == 'ios' && 'macos-latest' || 'ubuntu-latest' }}
+    runs-on: ${{ matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
     # NO environment/secrets declared here ✅
     steps:
       - uses: actions/checkout@v4
@@ -126,6 +125,16 @@ jobs:
             echo "❌ InpageBridgeWeb3.js not found"
             exit 1
           fi
+          if [ "${{ matrix.platform }}" = "ios" ]; then
+            if [ ! -f "ios/debug.xcconfig" ]; then
+              echo "❌ ios/debug.xcconfig not found"
+              exit 1
+            fi
+            if [ ! -f "ios/release.xcconfig" ]; then
+              echo "❌ ios/release.xcconfig not found"
+              exit 1
+            fi
+          fi
           echo "✅ Setup verification passed"
 
       # iOS: Cache CocoaPods for reuse in build job (paths are machine-specific, can't artifact)
@@ -142,11 +151,21 @@ jobs:
       - name: Create tarball with node_modules (preserves symlinks)
         run: |
           echo "📦 Creating tarball to preserve symlinks..."
-          tar -czf node-modules-${{ matrix.platform }}.tar.gz \
-            node_modules \
-            app/util/termsOfUse/termsOfUseContent.ts \
-            app/core/InpageBridgeWeb3.js \
-            scripts/inpage-bridge/dist
+          if [ "${{ matrix.platform }}" = "ios" ]; then
+            tar -czf node-modules-${{ matrix.platform }}.tar.gz \
+              node_modules \
+              app/util/termsOfUse/termsOfUseContent.ts \
+              app/core/InpageBridgeWeb3.js \
+              scripts/inpage-bridge/dist \
+              ios/debug.xcconfig \
+              ios/release.xcconfig
+          else
+            tar -czf node-modules-${{ matrix.platform }}.tar.gz \
+              node_modules \
+              app/util/termsOfUse/termsOfUseContent.ts \
+              app/core/InpageBridgeWeb3.js \
+              scripts/inpage-bridge/dist
+          fi
           echo "✅ Tarball created: $(du -h node-modules-${{ matrix.platform }}.tar.gz)"
 
       - name: Upload node_modules tarball
@@ -213,18 +232,32 @@ jobs:
             exit 1
           fi
           echo "📦 node_modules size: $(du -sh node_modules | cut -f1)"
-          
+
+          # iOS: Verify xcconfig files required by Xcode project
+          if [ "${{ matrix.platform }}" = "ios" ]; then
+            echo "🔍 Checking iOS xcconfig files..."
+            if [ ! -f "ios/debug.xcconfig" ]; then
+              echo "❌ ios/debug.xcconfig not found"
+              exit 1
+            fi
+            if [ ! -f "ios/release.xcconfig" ]; then
+              echo "❌ ios/release.xcconfig not found"
+              exit 1
+            fi
+            echo "✅ iOS xcconfig files found"
+          fi
+
           # Verify symlinks in .bin directory
           echo "🔍 Checking .bin symlinks..."
-          if [ -L "node_modules/.bin/react-native" ]; then
-            echo "✅ react-native symlink exists"
+          if [ -e "node_modules/.bin/react-native" ]; then
+            echo "✅ react-native symlink exists and target is valid"
             ls -la node_modules/.bin/react-native
           else
             echo "❌ react-native symlink missing or broken"
             ls -la node_modules/.bin/ | head -10
             exit 1
           fi
-          
+
           # Check React Native scripts
           if [ -d "node_modules/react-native/scripts" ]; then
             echo "✅ React Native scripts found"
@@ -232,14 +265,15 @@ jobs:
             echo "❌ React Native scripts missing"
             exit 1
           fi
-          
+
           echo "✅ All artifacts verified with working symlinks!"
 
       - name: Apply build config
         run: |
-          # Load env vars from builds.yml (this step only)
+          # Two-step config application is intentional:
+          # 1. Load env vars for THIS step only (eval sets vars in current shell)
           eval "$(node scripts/apply-build-config.js ${{ inputs.build_name }} --export)"
-          # Persist to GITHUB_ENV so later steps (e.g. Build) see CONFIGURATION, IS_SIM_BUILD, etc.
+          # 2. Persist env vars to GITHUB_ENV so LATER steps inherit them (build, signing, etc.)
           node scripts/apply-build-config.js ${{ inputs.build_name }} --export-github-env >> "$GITHUB_ENV"
 
       - name: Set secrets
@@ -293,7 +327,7 @@ jobs:
           WALLET_CONNECT_PROJECT_ID: ${{ secrets.WALLET_CONNECT_PROJECT_ID }}
         run: node scripts/set-secrets-from-config.js
 
-      # iOS: Cache CocoaPods
+      # iOS: Cache CocoaPods (auto-restores at start, auto-saves at end)
       - name: Cache CocoaPods
         if: matrix.platform == 'ios'
         uses: actions/cache@v4
@@ -305,17 +339,6 @@ jobs:
           key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-pods-
-
-      # iOS: Restore CocoaPods cache from setup job
-      - name: Restore CocoaPods cache
-        if: matrix.platform == 'ios'
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            ios/Pods
-            ~/Library/Caches/CocoaPods
-            ~/.cocoapods
-          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
 
       # iOS: Cache DerivedData to speed up Xcode builds
       - name: Cache iOS DerivedData
@@ -351,6 +374,16 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+
+      # iOS: Clean up any existing keychains from previous runs
+      - name: Clean up existing keychains
+        if: matrix.platform == 'ios' && needs.prepare.outputs.signing_aws_role != ''
+        run: |
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+          if [ -f "$KEYCHAIN_PATH" ]; then
+            echo "🧹 Removing existing keychain..."
+            security delete-keychain "$KEYCHAIN_PATH" || true
+          fi
 
       # Signing: uses role + secret from builds.yml (skip for dev builds - main-dev, flask-dev, qa-dev use debug/simulator)
       - name: Configure signing certificates
