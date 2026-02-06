@@ -1284,7 +1284,7 @@ describe('ChoosePassword', () => {
       expect(mockCaptureException).toHaveBeenCalledWith(walletError, {
         tags: {
           view: 'ChoosePassword',
-          context: 'OAuth password creation failed - auto reported',
+          context: 'Wallet creation failed - auto reported',
         },
       });
 
@@ -1362,7 +1362,7 @@ describe('ChoosePassword', () => {
       expect(mockCaptureException).toHaveBeenCalledWith(walletError, {
         tags: {
           view: 'ChoosePassword',
-          context: 'OAuth password creation failed - auto reported',
+          context: 'Wallet creation failed - auto reported',
         },
       });
 

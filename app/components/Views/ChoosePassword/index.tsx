@@ -336,7 +336,11 @@ const ChoosePassword = () => {
   );
 
   const handleWalletCreationError = useCallback(
-    async (caughtError: Error, isSocialLogin: boolean) => {
+    async (
+      caughtError: Error,
+      isSocialLogin: boolean,
+      metricsEnabled: boolean,
+    ) => {
       try {
         await recreateVault('');
       } catch (e) {
@@ -365,11 +369,11 @@ const ChoosePassword = () => {
         endTrace({ name: TraceName.OnboardingPasswordSetupError });
       }
 
-      if (isSocialLogin || metrics.isEnabled()) {
+      if (metricsEnabled) {
         captureException(caughtError, {
           tags: {
             view: 'ChoosePassword',
-            context: 'OAuth password creation failed - auto reported',
+            context: 'Wallet creation failed - auto reported',
           },
         });
       }
@@ -387,7 +391,7 @@ const ChoosePassword = () => {
         ],
       });
     },
-    [recreateVault, dispatch, track, route.params, metrics, navigation],
+    [recreateVault, dispatch, track, route.params, navigation],
   );
 
   const onPressCreate = useCallback(async () => {
@@ -443,7 +447,12 @@ const ChoosePassword = () => {
       });
       endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
     } catch (err) {
-      await handleWalletCreationError(err as Error, isSocialLogin ?? false);
+      const metricsEnabled = metrics.isEnabled();
+      await handleWalletCreationError(
+        err as Error,
+        isSocialLogin ?? false,
+        metricsEnabled,
+      );
     }
   }, [
     validatePasswordSubmission,
@@ -454,6 +463,7 @@ const ChoosePassword = () => {
     handleWalletCreation,
     handlePostWalletCreation,
     handleWalletCreationError,
+    metrics,
   ]);
 
   const onPasswordChange = useCallback(
