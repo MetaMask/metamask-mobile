@@ -21,6 +21,7 @@ import { ensureError, parseErrorMessage } from '../utils/predictErrorHandler';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
 import { usePredictBalance } from './usePredictBalance';
 import { usePredictDeposit } from './usePredictDeposit';
+import { PredictEventValues } from '../constants/eventNames';
 
 interface UsePredictPlaceOrderOptions {
   /**
@@ -135,7 +136,14 @@ export function usePredictPlaceOrder(
       // Check if user has sufficient balance for the bet amount
       // maxAmountSpent includes the bet amount plus all fees
       if (side === Side.BUY && balance < maxAmountSpent) {
-        await deposit();
+        await deposit({
+          amountUsd: maxAmountSpent,
+          analyticsProperties: {
+            ...orderParams.analyticsProperties,
+            marketId: orderParams.preview.marketId,
+            entryPoint: PredictEventValues.ENTRY_POINT.BUY_PREVIEW,
+          },
+        });
         return;
       }
 

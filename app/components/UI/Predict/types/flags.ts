@@ -19,8 +19,7 @@ export interface PredictMarketHighlight {
   markets: string[];
 }
 
-export interface PredictMarketHighlightsFlag {
-  enabled: boolean;
+export interface PredictMarketHighlightsFlag extends VersionGatedFeatureFlag {
   highlights: PredictMarketHighlight[];
 }
 

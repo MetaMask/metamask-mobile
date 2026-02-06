@@ -48,7 +48,7 @@ async function parseXml(content) {
  * jest-junit outputs XML with structure:
  * <testsuites>
  *   <testsuite name="TestSuite" tests="N" failures="N" ...>
- *     <testcase name="test name" classname="e2e/specs/path/to/file.spec.ts" time="N">
+ *     <testcase name="test name" classname="tests/smoke/path/to/file.spec.ts" time="N">
  *       <failure>...</failure>  <!-- only if failed -->
  *     </testcase>
  *   </testsuite>
