@@ -31,12 +31,6 @@ import {
   isNetworkRampSupported,
 } from '../../Ramp/Aggregator/utils';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
-import {
-  selectDepositActiveFlag,
-  selectDepositMinimumVersionFlag,
-} from '../../../../selectors/featureFlagController/deposit';
-import { getVersion } from 'react-native-device-info';
-import compareVersions from 'compare-versions';
 import AppConstants from '../../../../core/AppConstants';
 import { getIsSwapsAssetAllowed } from '../../../Views/Asset/utils';
 import ActivityHeader from '../../../Views/Asset/ActivityHeader';
@@ -185,26 +179,11 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
   const displaySwapsButton = isSwapsAssetAllowed && AppConstants.SWAPS.ACTIVE;
 
   const rampNetworks = useSelector(getRampNetworks);
-  const depositMinimumVersionFlag = useSelector(
-    selectDepositMinimumVersionFlag,
-  );
-  const depositActiveFlag = useSelector(selectDepositActiveFlag);
-
-  const isDepositEnabled = (() => {
-    if (!depositMinimumVersionFlag) return false;
-    const currentVersion = getVersion();
-    return (
-      depositActiveFlag &&
-      compareVersions.compare(currentVersion, depositMinimumVersionFlag, '>=')
-    );
-  })();
 
   const chainIdForRamp = token.chainId ?? '';
   const isRampAvailable = isNativeToken
     ? isNetworkRampNativeTokenSupported(chainIdForRamp, rampNetworks)
     : isNetworkRampSupported(chainIdForRamp, rampNetworks);
-
-  const displayBuyButton = isDepositEnabled || isRampAvailable;
 
   const renderHeader = () => (
     <>
@@ -223,7 +202,7 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
         chartNavigationButtons={chartNavigationButtons}
         isPerpsEnabled={isPerpsEnabled}
         isMerklCampaignClaimingEnabled={isMerklCampaignClaimingEnabled}
-        displayBuyButton={displayBuyButton}
+        displayBuyButton={isRampAvailable}
         displaySwapsButton={displaySwapsButton}
         currentCurrency={currentCurrency}
         onBuy={onBuy}
