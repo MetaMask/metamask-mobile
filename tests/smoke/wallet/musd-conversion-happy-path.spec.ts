@@ -1,5 +1,4 @@
 import { SmokeWalletPlatform } from '../../../e2e/tags';
-import TestHelpers from '../../../e2e/helpers';
 import WalletView from '../../../e2e/pages/wallet/WalletView';
 import { loginToApp } from '../../../e2e/viewHelper';
 import Assertions from '../../framework/Assertions';
@@ -48,7 +47,10 @@ function withMusdFixturesOptions(
 describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await TestHelpers.launchApp();
+    // Do not launch app here: launch happens inside withFixtures (restartDevice: true)
+    // so that setupMusdMocks and fixture are ready first. Launching in beforeAll causes
+    // NetworkIdlingResource timeout on Android CI because the app hits real/slow APIs
+    // before mocks are available.
   });
 
   it('converts USDC to mUSD successfully (First Time User)', async () => {
