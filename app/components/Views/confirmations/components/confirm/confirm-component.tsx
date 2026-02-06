@@ -47,17 +47,12 @@ const TRANSACTION_TYPES_DISABLE_ALERT_BANNER = [
   TransactionType.predictWithdraw,
 ];
 
-export enum ConfirmationLoader {
-  Default = 'default',
-  CustomAmount = 'customAmount',
-  PredictClaim = 'predictClaim',
-  Transfer = 'transfer',
-}
-
-export interface ConfirmationParams {
-  loader?: ConfirmationLoader;
-  maxValueMode?: boolean;
-}
+export { ConfirmationLoader } from './confirm-component.types';
+export type { ConfirmationParams } from './confirm-component.types';
+import {
+  ConfirmationLoader,
+  type ConfirmationParams,
+} from './confirm-component.types';
 
 const ConfirmWrapped = ({
   styles,

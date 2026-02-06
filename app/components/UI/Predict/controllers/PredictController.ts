@@ -51,7 +51,7 @@ import {
   ToastLinkButtonOptions,
 } from '../../../../component-library/components/Toast/Toast.types';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
-import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
+import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component.types';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
 import {
