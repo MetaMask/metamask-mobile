@@ -89,6 +89,7 @@ exports[`BuildQuote matches snapshot 1`] = `
             </Text>
             <TouchableOpacity
               activeOpacity={0.7}
+              disabled={false}
               onPress={[Function]}
               style={
                 {
@@ -137,7 +138,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                   }
                 }
               >
-                fiat_on_ramp.debit_card
+                fiat_on_ramp.select_payment_method
               </Text>
               <View
                 style={

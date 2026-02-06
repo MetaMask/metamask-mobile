@@ -58,6 +58,7 @@ import { Colors } from '../../../util/theme/models';
 import { Hex } from '@metamask/utils';
 import { selectLastSelectedEvmAccount } from '../../../selectors/accountsController';
 import { TokenI } from '../../UI/Tokens/types';
+import { isMusdToken } from '../../UI/Earn/constants/musd';
 import { areAddressesEqual } from '../../../util/address';
 // Perps Discovery Banner imports
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
@@ -465,7 +466,7 @@ const AssetDetails = (props: InnerProps) => {
             {renderSectionDescription(aggregators.join(', '))}
           </>
         )}
-        {renderHideButton()}
+        {!isMusdToken(address) && renderHideButton()}
       </ScrollView>
     </View>
   );

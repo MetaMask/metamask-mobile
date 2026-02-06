@@ -70,7 +70,11 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
   const handleAddFunds = useCallback(() => {
     executeGuardedAction(
       () => {
-        deposit();
+        deposit({
+          analyticsProperties: {
+            entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
+          },
+        });
       },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.DEPOSIT },
     );

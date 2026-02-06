@@ -85,12 +85,6 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
   const React = jest.requireActual('react');
   const { TextInput } = jest.requireActual('react-native');
 
-  const TextFieldSize = {
-    Sm: 'sm',
-    Md: 'md',
-    Lg: 'lg',
-  };
-
   const MockTextField = ({
     testID,
     onChangeText,
@@ -98,7 +92,6 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
     value,
     placeholder,
     maxLength,
-    size,
     accessibilityLabel,
     ...props
   }: {
@@ -108,7 +101,6 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
     value?: string;
     placeholder?: string;
     maxLength?: number;
-    size?: string;
     accessibilityLabel?: string;
   }) =>
     React.createElement(TextInput, {
@@ -122,12 +114,9 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
       ...props,
     });
 
-  MockTextField.Size = TextFieldSize;
-
   return {
     __esModule: true,
     default: MockTextField,
-    TextFieldSize,
   };
 });
 
