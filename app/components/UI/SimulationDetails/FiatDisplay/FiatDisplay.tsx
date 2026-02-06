@@ -26,15 +26,6 @@ const sharedTextProps = {
   variant: TextVariant.BodyMD,
 } as const;
 
-const FiatNotAvailableDisplay: React.FC = () => {
-  const { styles } = useStyles(styleSheet, {});
-  return (
-    <Text {...sharedTextProps} style={styles.base}>
-      {strings('simulation_details.fiat_not_available')}
-    </Text>
-  );
-};
-
 export function calculateTotalFiat(fiatAmounts: FiatAmount[]): BigNumber {
   return fiatAmounts.reduce(
     (total: BigNumber, fiat) =>
@@ -43,18 +34,6 @@ export function calculateTotalFiat(fiatAmounts: FiatAmount[]): BigNumber {
       ),
     new BigNumber(0),
   );
-}
-
-export function calculateTotalFiatValue(
-  fiatAmounts: FiatAmount[],
-): BigNumber | null {
-  const allUnavailable = fiatAmounts.every((fiat) => fiat === FIAT_UNAVAILABLE);
-
-  if (allUnavailable) {
-    return null;
-  }
-
-  return calculateTotalFiat(fiatAmounts);
 }
 
 /**
@@ -114,19 +93,17 @@ export const TotalFiatDisplay: React.FC<{
   const hideFiatForTestnet = useHideFiatForTestnet();
   const { styles } = useStyles(styleSheet, {});
   const fiatFormatter = useFiatFormatter();
-  const totalFiat = calculateTotalFiatValue(fiatAmounts);
+  const totalFiat = calculateTotalFiat(fiatAmounts);
 
   if (hideFiatForTestnet) {
     return null;
   }
 
-  if (totalFiat === null) {
+  if (totalFiat === null || totalFiat.eq(0)) {
     return null;
   }
 
-  return totalFiat.eq(0) ? (
-    <FiatNotAvailableDisplay />
-  ) : (
+  return (
     <Text {...sharedTextProps} variant={TextVariant.BodySM} style={styles.base}>
       {strings('simulation_details.total_fiat', {
         currency: fiatFormatter(totalFiat.abs()),
