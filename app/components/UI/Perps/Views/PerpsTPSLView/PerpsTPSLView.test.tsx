@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react-native';
 import PerpsTPSLView from './PerpsTPSLView';
 import type { Position } from '../../controllers/types';
-import { PerpsEventValues } from '../../constants/eventNames';
+import { PERPS_EVENT_VALUE } from '../../constants/eventNames';
 
 // Mock dependencies
 jest.mock('react-native-reanimated', () =>
@@ -499,7 +499,7 @@ describe('PerpsTPSLView', () => {
 
       expect(mockOnConfirm).toHaveBeenCalledWith('3150.00', '2850.00', {
         direction: 'long',
-        source: PerpsEventValues.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
+        source: PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
         positionSize: 0,
         takeProfitPercentage: undefined,
         stopLossPercentage: undefined,
@@ -520,7 +520,7 @@ describe('PerpsTPSLView', () => {
 
       expect(mockOnConfirm).toHaveBeenCalledWith(undefined, undefined, {
         direction: 'long',
-        source: PerpsEventValues.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
+        source: PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
         positionSize: 0,
         takeProfitPercentage: undefined,
         stopLossPercentage: undefined,

@@ -13,6 +13,12 @@ interface UseIsInsufficientBalanceParams {
   amount: string | undefined;
   token: BridgeToken | undefined;
   latestAtomicBalance: BigNumber | undefined;
+  /**
+   * If true, performs a simple balance check without considering gas fees.
+   * Used for quote requests to avoid circular dependencies.
+   * If false (default), includes gas fees in the calculation for UI display.
+   */
+  ignoreGasFees?: boolean;
 }
 
 const normalizeAmount = (value: string, decimals: number): string => {
@@ -47,17 +53,23 @@ const useIsInsufficientBalance = ({
   amount,
   token,
   latestAtomicBalance,
+  ignoreGasFees = false,
 }: UseIsInsufficientBalanceParams): boolean => {
   const quotes = useSelector(selectBridgeQuotes);
   const minSolBalance = useSelector(selectMinSolBalance);
 
   // Extract only the required data from quote to prevent
-  // uneccessary rerenders that can use infinite loops.
+  // unnecessary rerenders that can cause infinite loops.
+  // When ignoreGasFees is true, we skip gas data to avoid circular dependencies.
   const bestQuote = quotes?.recommendedQuote;
-  const gasIncluded = bestQuote?.quote?.gasIncluded;
-  const gasIncluded7702 = bestQuote?.quote?.gasIncluded7702;
-  const gasSponsored = bestQuote?.quote?.gasSponsored;
-  const gasAmount = bestQuote?.gasFee?.effective?.amount;
+  const gasIncluded = ignoreGasFees ? false : bestQuote?.quote?.gasIncluded;
+  const gasIncluded7702 = ignoreGasFees
+    ? false
+    : bestQuote?.quote?.gasIncluded7702;
+  const gasSponsored = ignoreGasFees ? false : bestQuote?.quote?.gasSponsored;
+  const gasAmount = ignoreGasFees
+    ? undefined
+    : bestQuote?.gasFee?.effective?.amount;
 
   return useMemo(() => {
     const isValidAmount =

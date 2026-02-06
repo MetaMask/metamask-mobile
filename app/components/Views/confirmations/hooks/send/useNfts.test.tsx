@@ -7,7 +7,11 @@ import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { AccountGroupType } from '@metamask/account-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { AccountId } from '@metamask/accounts-controller';
-import { Nft, NftControllerState } from '@metamask/assets-controllers';
+import {
+  Nft,
+  NftControllerState,
+  getFormattedIpfsUrl,
+} from '@metamask/assets-controllers';
 import BigNumber from 'bignumber.js';
 
 import Engine from '../../../../../core/Engine';
@@ -31,6 +35,10 @@ jest.mock('../../../../../core/Engine', () => ({
       findNetworkClientIdByChainId: jest.fn(),
     },
   },
+}));
+
+jest.mock('@metamask/assets-controllers', () => ({
+  getFormattedIpfsUrl: jest.fn(),
 }));
 
 jest.mock('../../../../../selectors/multichainAccounts/accountTreeController');
@@ -59,6 +67,9 @@ const mockGetNetworkBadgeSource = getNetworkBadgeSource as jest.MockedFunction<
 const mockuseSendScope = useSendScope as jest.MockedFunction<
   typeof useSendScope
 >;
+const mockGetFormattedIpfsUrl = getFormattedIpfsUrl as jest.MockedFunction<
+  typeof getFormattedIpfsUrl
+>;
 
 const mockAssetsContractController = Engine.context
   .AssetsContractController as jest.Mocked<
@@ -72,9 +83,23 @@ const createMockStore = () =>
   configureStore({
     reducer: {
       app: () => ({}),
+      engine: () => ({
+        backgroundState: {
+          PreferencesController: {
+            ipfsGateway: 'https://ipfs.io/ipfs/',
+          },
+        },
+      }),
     },
     preloadedState: {
       app: {},
+      engine: {
+        backgroundState: {
+          PreferencesController: {
+            ipfsGateway: 'https://ipfs.io/ipfs/',
+          },
+        },
+      },
     },
   });
 
@@ -204,6 +229,7 @@ describe('useEVMNfts', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       new BigNumber('1') as any,
     );
+    mockGetFormattedIpfsUrl.mockResolvedValue(undefined as unknown as string);
   });
 
   it('returns empty array when isEvm is false', async () => {
@@ -632,6 +658,76 @@ describe('useEVMNfts', () => {
 
     await waitFor(() => {
       expect(result.current[0].image).toBeUndefined();
+    });
+  });
+
+  it('continues to next URL when IPFS URL resolves to empty string', async () => {
+    const nftWithFailingIpfs = {
+      ...mockNft,
+      image: 'ipfs://QmFailingHash',
+      imageUrl: 'https://example.com/valid-fallback.png',
+    };
+
+    mockGetFormattedIpfsUrl.mockResolvedValue('');
+    mockSelectSelectedAccountGroup.mockReturnValue(
+      createMockAccountGroup(['account-1']),
+    );
+    mockSelectInternalAccountsById.mockReturnValue(
+      createMockInternalAccountsById({
+        'account-1': mockAccount,
+      }),
+    );
+    mockSelectAllNfts.mockReturnValue(
+      createMockAllNfts({
+        [mockAccount.address]: {
+          '0x1': [nftWithFailingIpfs],
+        },
+      }),
+    );
+
+    const { result } = renderHookWithStore(() => useEVMNfts());
+
+    await waitFor(() => {
+      expect(result.current[0].image).toBe(
+        'https://example.com/valid-fallback.png',
+      );
+    });
+  });
+
+  it('continues to next URL when IPFS URL resolves to null', async () => {
+    const nftWithNullIpfs = {
+      ...mockNft,
+      image: 'ipfs://QmNullHash',
+      imageUrl: undefined,
+      collection: {
+        ...mockNft.collection,
+        imageUrl: 'https://example.com/collection-fallback.png',
+      },
+    };
+
+    mockGetFormattedIpfsUrl.mockResolvedValue(null as unknown as string);
+    mockSelectSelectedAccountGroup.mockReturnValue(
+      createMockAccountGroup(['account-1']),
+    );
+    mockSelectInternalAccountsById.mockReturnValue(
+      createMockInternalAccountsById({
+        'account-1': mockAccount,
+      }),
+    );
+    mockSelectAllNfts.mockReturnValue(
+      createMockAllNfts({
+        [mockAccount.address]: {
+          '0x1': [nftWithNullIpfs],
+        },
+      }),
+    );
+
+    const { result } = renderHookWithStore(() => useEVMNfts());
+
+    await waitFor(() => {
+      expect(result.current[0].image).toBe(
+        'https://example.com/collection-fallback.png',
+      );
     });
   });
 

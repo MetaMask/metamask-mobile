@@ -4,8 +4,11 @@ import {
   getNativeTokenAddress,
   TokenListState,
 } from '@metamask/assets-controllers';
-import { MULTICHAIN_NETWORK_DECIMAL_PLACES } from '@metamask/multichain-network-controller';
-import { CaipChainId, Hex, hexToBigInt } from '@metamask/utils';
+import {
+  MULTICHAIN_NETWORK_DECIMAL_PLACES,
+  toEvmCaipChainId,
+} from '@metamask/multichain-network-controller';
+import { CaipChainId, Hex, hexToBigInt, isCaipChainId } from '@metamask/utils';
 import { createSelector } from 'reselect';
 
 import I18n from '../../../locales/i18n';
@@ -28,10 +31,8 @@ import {
 } from '../../core/Multichain/constants';
 import { sortAssetsWithPriority } from '../../components/UI/Tokens/util/sortAssetsWithPriority';
 import { selectAllTokens } from '../tokensController';
-import {
-  selectSelectedInternalAccountAddress,
-  selectSelectedInternalAccountId,
-} from '../accountsController';
+import { selectSelectedInternalAccountAddress } from '../accountsController';
+import { selectSelectedInternalAccountByScope } from '../multichainAccounts/accounts';
 
 const getStateForAssetSelector = (state: RootState) => {
   const {
@@ -267,7 +268,7 @@ export const selectAsset = createSelector(
       state.engine.backgroundState.TokenListController.tokensChainsCache,
     selectAllTokens,
     selectSelectedInternalAccountAddress,
-    selectSelectedInternalAccountId,
+    selectSelectedInternalAccountByScope,
     (
       _state: RootState,
       params: { address: string; chainId: string; isStaked?: boolean },
@@ -287,37 +288,31 @@ export const selectAsset = createSelector(
     tokensChainsCache,
     allTokens,
     selectedAddress,
-    selectedAccountId,
+    getAccountByScope,
     address,
     chainId,
     isStaked,
   ) => {
-    /**
-     * Note: Without this, the selector would return the wrong asset for the selected account on EVM chains.
-     * This caused Staked Ethereum to not update when switching accounts.
-     * We want to apply this to EVM chains only.
-     */
-    const shouldScopeToSelectedAccount =
-      Boolean(selectedAccountId) && typeof chainId === 'string'
-        ? chainId.startsWith('0x')
-        : false;
+    const chainIdInCaip = isCaipChainId(chainId)
+      ? chainId
+      : toEvmCaipChainId(chainId as Hex);
+
+    // Get the account for this chain from the selected account group
+    const scopedAccountId = getAccountByScope(chainIdInCaip)?.id;
 
     const asset = isStaked
       ? stakedAssets.find(
           (item) =>
             item.chainId === chainId &&
-            (!shouldScopeToSelectedAccount ||
-              item.accountId === selectedAccountId) &&
+            (!scopedAccountId || item.accountId === scopedAccountId) &&
             item.stakedAsset.assetId === address,
         )?.stakedAsset
       : assets[chainId]?.find((item: Asset & { isStaked?: boolean }) => {
-          // Normalize isStaked values: treat undefined as false
           const itemIsStaked = Boolean(item.isStaked);
           const targetIsStaked = Boolean(isStaked);
           return (
             item.assetId === address &&
-            (!shouldScopeToSelectedAccount ||
-              item.accountId === selectedAccountId) &&
+            (!scopedAccountId || item.accountId === scopedAccountId) &&
             itemIsStaked === targetIsStaked
           );
         });
