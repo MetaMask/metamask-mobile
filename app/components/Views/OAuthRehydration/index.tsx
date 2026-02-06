@@ -145,7 +145,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const {
     styles,
-    theme: { colors, themeAppearance },
+    theme: { themeAppearance },
   } = useStyles(stylesheet, EmptyRecordConstant);
 
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
