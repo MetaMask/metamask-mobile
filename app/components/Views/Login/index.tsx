@@ -131,13 +131,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
 
-  const {
-    unlockWallet,
-    lockApp,
-    getAuthType,
-    componentAuthenticationType,
-    checkIsSeedlessPasswordOutdated,
-  } = useAuthentication();
+  const { unlockWallet, lockApp, getAuthType } = useAuthentication();
 
   const track = (
     event: IMetaMetricsEvent,
@@ -368,20 +362,13 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     endTrace({ name: TraceName.LoginUserInteraction });
 
     try {
-      // do not update AuthPreference unless seedless password is outdated
-      const isGlobalPasswordOutdated =
-        await checkIsSeedlessPasswordOutdated(false);
-      const authPreference = isGlobalPasswordOutdated
-        ? await componentAuthenticationType(true, false)
-        : undefined;
-
       await trace(
         {
           name: TraceName.AuthenticateUser,
           op: TraceOperation.Login,
         },
         async () => {
-          await unlockWallet({ password, authPreference });
+          await unlockWallet({ password });
         },
       );
     } catch (loginErr) {
@@ -399,9 +386,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     password,
     loading,
     handleLoginError,
-    componentAuthenticationType,
     unlockWallet,
-    checkIsSeedlessPasswordOutdated,
     handleBiometricCancellation,
   ]);
 
