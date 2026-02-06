@@ -14,12 +14,6 @@ import {
 } from '../transaction-pay.ts';
 import { MUSD_MAINNET } from '../../../constants/musd-mainnet.ts';
 import { MUSD_RAMP_TOKENS_RESPONSE } from './musd-ramp-tokens-response.ts';
-import {
-  MUSD_SPOT_PRICES_V3_RESPONSE,
-  MUSD_CHAINS_SPOT_PRICES_V2_RESPONSE,
-  MUSD_EXCHANGE_RATES_V1_RESPONSE,
-  MUSD_HISTORICAL_PRICES_RESPONSE,
-} from './musd-price-responses.ts';
 import { MUSD_TOKEN_API_RESPONSE } from './musd-token-response.ts';
 
 export async function setupMusdMocks(mockServer: Mockttp): Promise<void> {
@@ -62,33 +56,8 @@ export async function setupMusdMocks(mockServer: Mockttp): Promise<void> {
     responseCode: 200,
   });
 
-  await setupMockRequest(mockServer, {
-    url: /price\.api\.cx\.metamask\.io\/v3\/spot-prices/,
-    response: MUSD_SPOT_PRICES_V3_RESPONSE,
-    requestMethod: 'GET',
-    responseCode: 200,
-  });
-
-  await setupMockRequest(mockServer, {
-    url: /price\.api\.cx\.metamask\.io\/v2\/chains\/\d+\/spot-prices/,
-    response: MUSD_CHAINS_SPOT_PRICES_V2_RESPONSE,
-    requestMethod: 'GET',
-    responseCode: 200,
-  });
-
-  await setupMockRequest(mockServer, {
-    url: /price\.api\.cx\.metamask\.io\/v1\/exchange-rates/,
-    response: MUSD_EXCHANGE_RATES_V1_RESPONSE,
-    requestMethod: 'GET',
-    responseCode: 200,
-  });
-
-  await setupMockRequest(mockServer, {
-    url: /price\.api\.cx\.metamask\.io\/v3\/historical-prices/,
-    response: MUSD_HISTORICAL_PRICES_RESPONSE,
-    requestMethod: 'GET',
-    responseCode: 200,
-  });
+  // Price API (v3/spot-prices, v2/chains/spot-prices, v1/exchange-rates, v3/historical-prices)
+  // is provided by the global default mocks (PRICE_API_MOCKS) which include mUSD.
 
   await setupMockRequest(mockServer, {
     url: new RegExp(

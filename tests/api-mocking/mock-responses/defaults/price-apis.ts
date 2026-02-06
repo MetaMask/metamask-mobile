@@ -1,4 +1,5 @@
 import { MockEventsObject } from '../../../framework';
+import { MUSD_MAINNET } from '../../../constants/musd-mainnet.ts';
 
 /**
  * Mock data for cryptocurrency price API endpoints used in E2E testing.
@@ -228,6 +229,13 @@ export const PRICE_API_MOCKS: MockEventsObject = {
           eth: 0.000233,
           pricePercentChange1d: -0.01,
         },
+        // mUSD (MetaMask USD) - used by mUSD conversion E2E
+        [`eip155:1/erc20:${MUSD_MAINNET}`]: {
+          price: 1.0,
+          usd: 1.0,
+          eth: 0.000233,
+          pricePercentChange1d: 0.0,
+        },
       },
     },
     {
@@ -295,6 +303,41 @@ export const PRICE_API_MOCKS: MockEventsObject = {
           pricePercentChange200d: 0,
           pricePercentChange1y: 0,
         },
+        [MUSD_MAINNET]: {
+          id: 'metamask-usd',
+          price: 1.0,
+          marketCap: 120000000,
+          allTimeHigh: 1.1,
+          allTimeLow: 0.1,
+          totalVolume: 9000000,
+          high1d: 1.05,
+          low1d: 0.95,
+          circulatingSupply: 120000000,
+          dilutedMarketCap: 120000000,
+          marketCapPercentChange1d: 0,
+          priceChange1d: 0,
+          pricePercentChange1h: 0,
+          pricePercentChange1d: 0,
+          pricePercentChange7d: 0,
+          pricePercentChange14d: 0,
+          pricePercentChange30d: 0,
+          pricePercentChange200d: 0,
+          pricePercentChange1y: 0,
+        },
+      },
+    },
+    {
+      urlEndpoint:
+        /https:\/\/price\.api\.cx\.metamask\.io\/v3\/historical-prices/,
+      responseCode: 200,
+      response: {
+        prices: [
+          [1756219032177, 1.0],
+          [1756219379449, 1.0],
+          [1756219657580, 1.0],
+          [1756219967818, 1.0],
+          [1756220274872, 1.0],
+        ],
       },
     },
     {
