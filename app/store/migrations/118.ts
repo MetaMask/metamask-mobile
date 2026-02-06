@@ -14,7 +14,7 @@ export const migrationVersion = 118;
  * This migration:
  * - Reads BIOMETRY_CHOICE_DISABLED and PASSCODE_DISABLED from StorageWrapper
  * - Sets state.security.osAuthEnabled based on the logic:
- *   osAuthEnabled = !biometryDisabled || !passcodeDisabled
+ * - osAuthEnabled = !biometryDisabled || !passcodeDisabled
  * - If either biometrics or passcode is enabled, osAuthEnabled is true
  * - If both are disabled (password-only mode), osAuthEnabled is false
  *
