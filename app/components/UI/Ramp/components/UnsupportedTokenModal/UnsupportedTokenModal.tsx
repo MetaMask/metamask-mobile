@@ -7,7 +7,7 @@ import Text, {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { strings } from '../../../../../../locales/i18n';
 import styleSheet from './UnsupportedTokenModal.styles';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -26,12 +26,11 @@ function UnsupportedTokenModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader
+      <HeaderCompactStandard
+        title={strings('deposit.token_modal.unsupported_token_title')}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}
-        closeButtonProps={{ testID: 'bottomsheetheader-close-button' }}
-      >
-        {strings('deposit.token_modal.unsupported_token_title')}
-      </BottomSheetHeader>
+        closeButtonProps={{ testID: 'unsupported-token-modal-close-button' }}
+      />
 
       <View style={styles.content}>
         <Text variant={TextVariant.BodyMD}>

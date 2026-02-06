@@ -417,11 +417,11 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "height": 56,
+                                  "paddingLeft": 8,
+                                  "paddingRight": 8,
                                 },
                                 false,
-                                {
-                                  "paddingHorizontal": 16,
-                                },
+                                undefined,
                               ]
                             }
                             testID="header"
@@ -440,20 +440,36 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                                 ]
                               }
                             >
-                              <Text
-                                accessibilityRole="text"
+                              <View
                                 style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist-Bold",
-                                    "fontSize": 18,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "alignItems": "center",
+                                      "display": "flex",
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
-                                Region not supported
-                              </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    [
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "Geist-Bold",
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  Region not supported
+                                </Text>
+                              </View>
                             </View>
                           </View>
                           <View
@@ -1013,11 +1029,11 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "height": 56,
+                                  "paddingLeft": 8,
+                                  "paddingRight": 8,
                                 },
                                 false,
-                                {
-                                  "paddingHorizontal": 16,
-                                },
+                                undefined,
                               ]
                             }
                             testID="header"
@@ -1036,20 +1052,36 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                                 ]
                               }
                             >
-                              <Text
-                                accessibilityRole="text"
+                              <View
                                 style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist-Bold",
-                                    "fontSize": 18,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "alignItems": "center",
+                                      "display": "flex",
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
-                                Region not supported
-                              </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    [
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "Geist-Bold",
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  Region not supported
+                                </Text>
+                              </View>
                             </View>
                           </View>
                           <View

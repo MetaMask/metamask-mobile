@@ -9,7 +9,7 @@ import Text, {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -63,11 +63,9 @@ function UnsupportedRegionModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack isInteractable={false}>
-      <BottomSheetHeader>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('fiat_on_ramp_aggregator.region.unsupported')}
-        </Text>
-      </BottomSheetHeader>
+      <HeaderCompactStandard
+        title={strings('fiat_on_ramp_aggregator.region.unsupported')}
+      />
 
       <View style={styles.content}>
         <Text variant={TextVariant.BodyMD} color={TextColor.Default}>

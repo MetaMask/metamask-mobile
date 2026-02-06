@@ -4,7 +4,7 @@ import { strings } from '../../../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCompactStandard from '../../../../../../../component-library/components-temp/HeaderCompactStandard';
 import { IconName } from '../../../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
@@ -65,9 +65,11 @@ function SettingsModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader onClose={handleClosePress}>
-        {strings('fiat_on_ramp_aggregator.settings_modal.title')}
-      </BottomSheetHeader>
+      <HeaderCompactStandard
+        title={strings('fiat_on_ramp_aggregator.settings_modal.title')}
+        onClose={handleClosePress}
+        closeButtonProps={{ testID: 'aggregator-settings-modal-close-button' }}
+      />
       <MenuItem
         iconName={IconName.Clock}
         title={strings('deposit.configuration_modal.view_order_history')}

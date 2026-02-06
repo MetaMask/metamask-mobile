@@ -22,7 +22,7 @@ import {
   ToastVariants,
 } from '../../../../../../component-library/components/Toast';
 import Logger from '../../../../../../util/Logger';
-import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import MenuItem from '../../../components/MenuItem';
 import { useRampsController } from '../../../hooks/useRampsController';
 import {
@@ -147,9 +147,11 @@ function SettingsModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader onClose={handleClosePress}>
-        {strings('fiat_on_ramp.build_quote_settings_modal.title')}
-      </BottomSheetHeader>
+      <HeaderCompactStandard
+        title={strings('fiat_on_ramp.build_quote_settings_modal.title')}
+        onClose={handleClosePress}
+        closeButtonProps={{ testID: 'settings-modal-close-button' }}
+      />
       <MenuItem
         iconName={IconName.Clock}
         title={strings(
