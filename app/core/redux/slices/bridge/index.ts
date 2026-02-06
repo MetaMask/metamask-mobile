@@ -28,16 +28,12 @@ import {
   BridgeToken,
   BridgeViewMode,
 } from '../../../../components/UI/Bridge/types';
-import { PopularList } from '../../../../util/networks/customNetworks';
 import { selectGasFeeControllerEstimates } from '../../../../selectors/gasFeeController';
 import { MetaMetrics } from '../../../Analytics';
 import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 import { getTokenExchangeRate } from '../../../../components/UI/Bridge/utils/exchange-rates';
-import {
-  selectHasCreatedSolanaMainnetAccount,
-  selectCanSignTransactions,
-} from '../../../../selectors/accountsController';
+import { selectCanSignTransactions } from '../../../../selectors/accountsController';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { hasMinimumRequiredVersion } from './utils/hasMinimumRequiredVersion';
 import { Bip44TokensForDefaultPairs } from '../../../../components/UI/Bridge/constants/default-swap-dest-tokens';
@@ -335,7 +331,9 @@ export const selectIsBridgeEnabledSourceFactory = createSelector(
 
     return (
       bridgeFeatureFlags.support &&
-      bridgeFeatureFlags.chains[caipChainId]?.isActiveSrc
+      bridgeFeatureFlags.chainRanking?.some(
+        (chain) => chain.chainId === caipChainId,
+      )
     );
   },
 );
@@ -366,39 +364,11 @@ export const selectEnabledSourceChains = createSelector(
   selectAllBridgeableNetworks,
   selectBridgeFeatureFlags,
   (networks, bridgeFeatureFlags) =>
-    networks.filter(
-      ({ chainId }) =>
-        bridgeFeatureFlags.chains[formatChainIdToCaip(chainId)]?.isActiveSrc,
+    networks.filter(({ chainId }) =>
+      bridgeFeatureFlags.chainRanking?.some(
+        (chain) => chain.chainId === formatChainIdToCaip(chainId),
+      ),
     ),
-);
-
-export const selectEnabledDestChains = createSelector(
-  selectAllBridgeableNetworks,
-  selectBridgeFeatureFlags,
-  selectHasCreatedSolanaMainnetAccount,
-  (networks, bridgeFeatureFlags, hasSolanaAccount) => {
-    // We always want to show the popular list in the destination chain selector
-    const popularListFormatted = PopularList.map(
-      ({ chainId, nickname, rpcUrl, ticker, rpcPrefs }) => ({
-        chainId,
-        name: nickname,
-        rpcUrl,
-        ticker,
-        rpcPrefs,
-      }),
-    );
-
-    return uniqBy([...networks, ...popularListFormatted], 'chainId').filter(
-      ({ chainId }) => {
-        const caipChainId = formatChainIdToCaip(chainId);
-        // Only include Solana chains as active destinations if user has a Solana account
-        if (isSolanaChainId(chainId) && !hasSolanaAccount) {
-          return false;
-        }
-        return bridgeFeatureFlags.chains[caipChainId]?.isActiveDest;
-      },
-    );
-  },
 );
 
 // Combined selectors for related state
@@ -665,29 +635,6 @@ export const selectIsBridgeEnabledSource = createSelector(
   selectIsBridgeEnabledSourceFactory,
   (_: RootState, chainId: Hex | CaipChainId) => chainId,
   (getIsBridgeEnabledSource, chainId) => getIsBridgeEnabledSource(chainId),
-);
-
-export const selectIsBridgeEnabledDest = createSelector(
-  selectBridgeFeatureFlags,
-  (_: RootState, chainId: Hex | CaipChainId) => chainId,
-  (bridgeFeatureFlags, chainId) => {
-    const caipChainId = formatChainIdToCaip(chainId);
-
-    return (
-      bridgeFeatureFlags.support &&
-      bridgeFeatureFlags.chains[caipChainId]?.isActiveDest
-    );
-  },
-);
-
-export const selectIsSwapsLive = createSelector(
-  [
-    (state: RootState, chainId: Hex | CaipChainId) =>
-      selectIsBridgeEnabledSource(state, chainId),
-    (state: RootState, chainId: Hex | CaipChainId) =>
-      selectIsBridgeEnabledDest(state, chainId),
-  ],
-  (isEnabledSource, isEnabledDest) => isEnabledSource || isEnabledDest,
 );
 
 // Actions
