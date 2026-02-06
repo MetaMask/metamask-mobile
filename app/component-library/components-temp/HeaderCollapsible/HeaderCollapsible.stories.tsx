@@ -93,7 +93,13 @@ export const Default = {
         <HeaderCollapsible
           title="Send"
           onBack={() => console.log('Back pressed')}
-          expandedContent={<TitleStandard topLabel="Send" title="$4.42" />}
+          expandedContent={
+            <TitleStandard
+              topLabel="Send"
+              title="$4.42"
+              twClassName="px-4 pt-1 pb-3 "
+            />
+          }
           scrollY={scrollYValue}
           onExpandedHeightChange={setExpandedHeight}
         />
@@ -109,7 +115,13 @@ export const OnBack = {
         <HeaderCollapsible
           title="Send"
           onBack={() => console.log('Back pressed')}
-          expandedContent={<TitleStandard topLabel="Send" title="$4.42" />}
+          expandedContent={
+            <TitleStandard
+              topLabel="Send"
+              title="$4.42"
+              twClassName="px-4 pt-1 pb-3 "
+            />
+          }
           scrollY={scrollYValue}
           onExpandedHeightChange={setExpandedHeight}
         />
@@ -130,6 +142,7 @@ export const WithBottomLabel = {
               topLabel="Send"
               title="$4.42"
               bottomLabel="0.002 ETH"
+              twClassName="px-4 pt-1 pb-3 "
             />
           }
           scrollY={scrollYValue}
@@ -148,7 +161,13 @@ export const WithSubtitle = {
           title="Send"
           subtitle="0.002 ETH"
           onBack={() => console.log('Back pressed')}
-          expandedContent={<TitleStandard topLabel="Send" title="$4.42" />}
+          expandedContent={
+            <TitleStandard
+              topLabel="Send"
+              title="$4.42"
+              twClassName="px-4 pt-1 pb-3 "
+            />
+          }
           scrollY={scrollYValue}
           onExpandedHeightChange={setExpandedHeight}
         />
@@ -164,7 +183,13 @@ export const OnClose = {
         <HeaderCollapsible
           title="Send"
           onClose={() => console.log('Close pressed')}
-          expandedContent={<TitleStandard topLabel="Send" title="$4.42" />}
+          expandedContent={
+            <TitleStandard
+              topLabel="Send"
+              title="$4.42"
+              twClassName="px-4 pt-1 pb-3 "
+            />
+          }
           scrollY={scrollYValue}
           onExpandedHeightChange={setExpandedHeight}
         />
@@ -181,7 +206,13 @@ export const BackAndClose = {
           title="Send"
           onBack={() => console.log('Back pressed')}
           onClose={() => console.log('Close pressed')}
-          expandedContent={<TitleStandard topLabel="Send" title="$4.42" />}
+          expandedContent={
+            <TitleStandard
+              topLabel="Send"
+              title="$4.42"
+              twClassName="px-4 pt-1 pb-3 "
+            />
+          }
           scrollY={scrollYValue}
           onExpandedHeightChange={setExpandedHeight}
         />
@@ -203,7 +234,13 @@ export const EndButtonIconProps = {
               onPress: () => console.log('Close pressed'),
             },
           ]}
-          expandedContent={<TitleStandard topLabel="Send" title="$4.42" />}
+          expandedContent={
+            <TitleStandard
+              topLabel="Send"
+              title="$4.42"
+              twClassName="px-4 pt-1 pb-3 "
+            />
+          }
           scrollY={scrollYValue}
           onExpandedHeightChange={setExpandedHeight}
         />
@@ -222,7 +259,11 @@ export const BackButtonProps = {
             onPress: () => console.log('Custom back pressed'),
           }}
           expandedContent={
-            <TitleStandard topLabel="Receive" title="$1,234.56" />
+            <TitleStandard
+              topLabel="Receive"
+              title="$1,234.56"
+              twClassName="px-4 pt-1 pb-3 "
+            />
           }
           scrollY={scrollYValue}
           onExpandedHeightChange={setExpandedHeight}
