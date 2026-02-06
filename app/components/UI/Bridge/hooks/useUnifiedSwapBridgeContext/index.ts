@@ -12,9 +12,8 @@ import { selectNetworkConfigurations } from '../../../../../selectors/networkCon
 import { selectMultichainAssetsRates } from '../../../../../selectors/multichain';
 import {
   calcTokenFiatValue,
-  convertFiatToUsd,
+  calcUsdAmountFromFiat,
 } from '../../utils/exchange-rates';
-import { Hex } from '@metamask/utils';
 
 export const useUnifiedSwapBridgeContext = () => {
   const smartTransactionsEnabled = useSelector(selectShouldUseSmartTransaction);
@@ -49,18 +48,13 @@ export const useUnifiedSwapBridgeContext = () => {
     ],
   );
 
-  const nativeCurrency = fromToken?.chainId
-    ? networkConfigurationsByChainId[fromToken.chainId as Hex]?.nativeCurrency
-    : undefined;
-  const currencyEntry = nativeCurrency
-    ? evmMultiChainCurrencyRates?.[nativeCurrency]
-    : undefined;
   const usdAmountSource =
-    convertFiatToUsd(
+    calcUsdAmountFromFiat({
       tokenFiatValue,
-      currencyEntry?.conversionRate,
-      currencyEntry?.usdConversionRate,
-    ) ?? 0;
+      chainId: fromToken?.chainId,
+      networkConfigurationsByChainId,
+      evmMultiChainCurrencyRates,
+    }) ?? 0;
 
   return useMemo(
     () => ({

@@ -45,6 +45,61 @@ export const convertFiatToUsd = (
   return fiatValue * (usdConversionRate / conversionRate);
 };
 
+/**
+ * Calculates the USD value of a token amount by converting from the user's
+ * fiat currency to USD.
+ *
+ * Looks up the native currency for the given chain to find conversionRate and
+ * usdConversionRate. For non-EVM chains (where the native currency won't exist
+ * in evmMultiChainCurrencyRates), falls back to any available EVM entry since
+ * the ratio usdConversionRate/conversionRate is a pure fiat-to-USD rate,
+ * independent of which native token it's derived from.
+ *
+ * @param tokenFiatValue - The token's value in the user's current fiat currency
+ * @param chainId - The chain ID of the source token
+ * @param networkConfigurationsByChainId - Network configurations keyed by chain ID (includes both EVM and non-EVM chains)
+ * @param evmMultiChainCurrencyRates - Currency rates keyed by native currency ticker
+ * @returns The value in USD, or undefined if rates are unavailable
+ */
+export const calcUsdAmountFromFiat = ({
+  tokenFiatValue,
+  chainId,
+  networkConfigurationsByChainId,
+  evmMultiChainCurrencyRates,
+}: {
+  tokenFiatValue: number;
+  chainId: string | undefined;
+  networkConfigurationsByChainId: Record<string, { nativeCurrency: string }>;
+  evmMultiChainCurrencyRates:
+    | Record<
+        string,
+        { conversionRate: number | null; usdConversionRate?: number | null }
+      >
+    | undefined;
+}): number | undefined => {
+  // For EVM chains this is a ticker (e.g. "ETH", "POL"), for non-EVM chains
+  // it's a full CAIP asset type (e.g. "solana:5eykt.../slip44:501")
+  const nativeCurrency = chainId
+    ? networkConfigurationsByChainId[chainId]?.nativeCurrency
+    : undefined;
+
+  // Try the chain's native currency first, then fall back to any entry with
+  // both rates. The fallback covers non-EVM chains whose nativeCurrency
+  // (a CAIP asset ID) won't exist in the EVM-only currency rates map.
+  const chainCurrencyEntry = nativeCurrency
+    ? evmMultiChainCurrencyRates?.[nativeCurrency]
+    : undefined;
+  const fallbackCurrencyEntry = Object.values(
+    evmMultiChainCurrencyRates ?? {},
+  ).find((entry) => entry?.conversionRate && entry?.usdConversionRate);
+  const currencyEntry = chainCurrencyEntry ?? fallbackCurrencyEntry;
+  return convertFiatToUsd(
+    tokenFiatValue,
+    currencyEntry?.conversionRate,
+    currencyEntry?.usdConversionRate,
+  );
+};
+
 export interface CalcTokenFiatValueParams {
   token: BridgeToken | undefined;
   amount: string | undefined;
