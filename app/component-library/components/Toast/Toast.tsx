@@ -23,7 +23,11 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { IconColor, IconSize , Spinner } from '@metamask/design-system-react-native';
+import {
+  IconColor,
+  IconSize,
+  Spinner,
+} from '@metamask/design-system-react-native';
 
 // External dependencies.
 import Avatar, { AvatarSize, AvatarVariant } from '../Avatars/Avatar';
