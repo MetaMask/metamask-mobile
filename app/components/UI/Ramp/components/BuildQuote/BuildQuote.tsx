@@ -17,10 +17,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../util/navigation/navUtils';
+import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import { getRampsBuildQuoteNavbarOptions } from '../../../Navbar';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -32,6 +29,7 @@ import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import type { Quote, QuotesResponse } from '@metamask/ramps-controller';
+import { createPaymentSelectionModalNavigationDetails } from '../PaymentSelectionModal';
 
 interface BuildQuoteParams {
   assetId?: string;
@@ -45,7 +43,6 @@ const DEFAULT_AMOUNT = 100;
 function BuildQuote() {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
-  const { assetId } = useParams<BuildQuoteParams>();
 
   const [amount, setAmount] = useState<string>(() => String(DEFAULT_AMOUNT));
   const [amountAsNumber, setAmountAsNumber] = useState<number>(DEFAULT_AMOUNT);
@@ -56,11 +53,12 @@ function BuildQuote() {
     selectedProvider,
     selectedToken,
     setSelectedToken,
-    selectedPaymentMethod,
     selectedQuote,
     quotesLoading,
     startQuotePolling,
     stopQuotePolling,
+    paymentMethodsLoading,
+    selectedPaymentMethod,
   } = useRampsController();
 
   const currency = userRegion?.country?.currency || 'USD';
@@ -71,16 +69,12 @@ function BuildQuote() {
       const regionDefault = userRegion.country.defaultAmount;
       setAmount(String(regionDefault));
       setAmountAsNumber(regionDefault);
+      setUserHasEnteredAmount(true);
     }
   }, [userRegion?.country?.defaultAmount, userHasEnteredAmount]);
 
   const getTokenNetworkInfo = useTokenNetworkInfo();
 
-  useEffect(() => {
-    if (assetId && selectedToken?.assetId !== assetId) {
-      setSelectedToken(assetId);
-    }
-  }, [assetId, selectedToken?.assetId, setSelectedToken]);
 
   const walletAddress = useRampAccountAddress(
     selectedToken?.chainId as CaipChainId,
@@ -168,9 +162,15 @@ function BuildQuote() {
                 })}
               </Text>
               <PaymentMethodPill
-                label={strings('fiat_on_ramp.debit_card')}
+                label={
+                  selectedPaymentMethod?.name ||
+                  strings('fiat_on_ramp.select_payment_method')
+                }
+                isLoading={paymentMethodsLoading}
                 onPress={() => {
-                  // TODO: Open payment method selector
+                  navigation.navigate(
+                    ...createPaymentSelectionModalNavigationDetails(),
+                  );
                 }}
               />
               {/* <QuotesDebugPanel
