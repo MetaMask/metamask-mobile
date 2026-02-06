@@ -5,7 +5,6 @@ import React, {
   useContext,
   useState,
   useCallback,
-  useMemo,
 } from 'react';
 import { useSelector } from 'react-redux';
 import { isAddress as isEvmAddress } from 'ethers/lib/utils';
@@ -104,34 +103,23 @@ export const SendContextProvider: React.FC<{
       ? toHex(asset.chainId)
       : asset?.chainId;
 
-  const contextValue = useMemo(
-    () => ({
-      asset,
-      chainId: chainId as string | undefined,
-      fromAccount,
-      from: fromAccount?.address as string,
-      maxValueMode,
-      to,
-      updateAsset: handleUpdateAsset,
-      updateTo,
-      updateValue,
-      value,
-    }),
-    [
-      asset,
-      chainId,
-      fromAccount,
-      maxValueMode,
-      to,
-      handleUpdateAsset,
-      updateTo,
-      updateValue,
-      value,
-    ],
-  );
-
   return (
-    <SendContext.Provider value={contextValue}>{children}</SendContext.Provider>
+    <SendContext.Provider
+      value={{
+        asset,
+        chainId: chainId as string | undefined,
+        fromAccount,
+        from: fromAccount?.address as string,
+        maxValueMode,
+        to,
+        updateAsset: handleUpdateAsset,
+        updateTo,
+        updateValue,
+        value,
+      }}
+    >
+      {children}
+    </SendContext.Provider>
   );
 };
 

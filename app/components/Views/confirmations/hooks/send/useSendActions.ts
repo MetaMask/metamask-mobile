@@ -38,7 +38,6 @@ export const useSendActions = () => {
       // Context update is not immediate when submitting from the recipient list
       // so we use the passed recipientAddress or fall back to the context value
       const toAddress = recipientAddress || to;
-
       if (isEvmSendType) {
         submitEvmTransaction({
           asset: asset as AssetType,
