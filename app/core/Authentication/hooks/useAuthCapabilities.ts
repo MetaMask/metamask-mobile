@@ -8,7 +8,8 @@ import { Authentication } from '../Authentication';
 
 /**
  * Hook that detects device authentication capabilities using expo-local-authentication.
- *
+ * Considers both osAuthEnabled and allowLoginWithRememberMe preferences.
+ * Priority: REMEMBER_ME > BIOMETRIC > PASSCODE > PASSWORD
  */
 const useAuthCapabilities = (): UseAuthCapabilitiesResult => {
   const [isLoading, setIsLoading] = useState(true);
@@ -17,6 +18,9 @@ const useAuthCapabilities = (): UseAuthCapabilitiesResult => {
   >(null);
   const osAuthEnabled = useSelector(
     (state: RootState) => state.security.osAuthEnabled,
+  );
+  const allowLoginWithRememberMe = useSelector(
+    (state: RootState) => state.security.allowLoginWithRememberMe,
   );
   const dispatch = useDispatch();
 
@@ -27,9 +31,11 @@ const useAuthCapabilities = (): UseAuthCapabilitiesResult => {
   const fetchAuthCapabilities = useCallback(async () => {
     setIsLoading(true);
     try {
-      const capabilities =
-        await Authentication.getAuthCapabilities(osAuthEnabled);
-      setCapabilities(capabilities);
+      const result = await Authentication.getAuthCapabilities(
+        osAuthEnabled,
+        allowLoginWithRememberMe,
+      );
+      setCapabilities(result);
     } catch (error) {
       // On error, default to no capabilities
       setCapabilities({
@@ -38,16 +44,17 @@ const useAuthCapabilities = (): UseAuthCapabilitiesResult => {
         isAuthToggleVisible: false,
         authToggleLabel: '',
         osAuthEnabled,
+        allowLoginWithRememberMe,
         authStorageType: AUTHENTICATION_TYPE.PASSWORD,
       });
     } finally {
       setIsLoading(false);
     }
-  }, [osAuthEnabled]);
+  }, [osAuthEnabled, allowLoginWithRememberMe]);
 
   useEffect(() => {
     fetchAuthCapabilities();
-  }, [fetchAuthCapabilities, osAuthEnabled]);
+  }, [fetchAuthCapabilities, osAuthEnabled, allowLoginWithRememberMe]);
 
   return {
     isLoading,

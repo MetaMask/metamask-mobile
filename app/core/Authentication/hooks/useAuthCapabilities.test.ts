@@ -25,16 +25,25 @@ jest.mock('expo-local-authentication', () => ({
 // Mock react-redux
 const mockDispatch = jest.fn();
 let mockOsAuthEnabled = true;
+let mockAllowLoginWithRememberMe = false;
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector) =>
-    selector({ security: { osAuthEnabled: mockOsAuthEnabled } }),
+    selector({
+      security: {
+        osAuthEnabled: mockOsAuthEnabled,
+        allowLoginWithRememberMe: mockAllowLoginWithRememberMe,
+      },
+    }),
   ),
   useDispatch: () => mockDispatch,
 }));
 
 // Mock Authentication
-const mockGetAuthCapabilities = jest.fn<Promise<AuthCapabilities>, [boolean]>();
+const mockGetAuthCapabilities = jest.fn<
+  Promise<AuthCapabilities>,
+  [boolean, boolean]
+>();
 
 describe('useAuthCapabilities', () => {
   let getAuthCapabilitiesSpy: jest.SpyInstance;
@@ -45,12 +54,14 @@ describe('useAuthCapabilities', () => {
     isAuthToggleVisible: true,
     authToggleLabel: 'Face ID',
     osAuthEnabled: true,
+    allowLoginWithRememberMe: false,
     authStorageType: AUTHENTICATION_TYPE.BIOMETRIC,
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockOsAuthEnabled = true;
+    mockAllowLoginWithRememberMe = false;
     getAuthCapabilitiesSpy = jest
       .spyOn(Authentication, 'getAuthCapabilities')
       .mockImplementation(mockGetAuthCapabilities);
@@ -98,7 +109,10 @@ describe('useAuthCapabilities', () => {
     expect(result.current.isLoading).toBe(false);
 
     expect(getAuthCapabilitiesSpy).toHaveBeenCalledTimes(1);
-    expect(getAuthCapabilitiesSpy).toHaveBeenCalledWith(mockOsAuthEnabled);
+    expect(getAuthCapabilitiesSpy).toHaveBeenCalledWith(
+      mockOsAuthEnabled,
+      mockAllowLoginWithRememberMe,
+    );
   });
 
   it('returns default capabilities on error', async () => {
@@ -119,11 +133,15 @@ describe('useAuthCapabilities', () => {
       isAuthToggleVisible: false,
       authToggleLabel: '',
       osAuthEnabled: mockOsAuthEnabled,
+      allowLoginWithRememberMe: mockAllowLoginWithRememberMe,
       authStorageType: AUTHENTICATION_TYPE.PASSWORD,
     });
 
     expect(getAuthCapabilitiesSpy).toHaveBeenCalledTimes(1);
-    expect(getAuthCapabilitiesSpy).toHaveBeenCalledWith(mockOsAuthEnabled);
+    expect(getAuthCapabilitiesSpy).toHaveBeenCalledWith(
+      mockOsAuthEnabled,
+      mockAllowLoginWithRememberMe,
+    );
   });
 
   it('calls getAuthCapabilities again when refresh is called', async () => {
