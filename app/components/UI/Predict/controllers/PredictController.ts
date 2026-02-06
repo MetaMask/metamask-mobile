@@ -694,19 +694,29 @@ export class PredictController extends BaseController<
     }
     this.isRetrying = true;
 
-    this.navigateToConfirmation({
-      loader: ConfirmationLoader.CustomAmount,
-    });
-
-    this.depositWithConfirmation({ providerId: 'polymarket' })
-      .catch((error) => {
-        DevLogger.log('PredictController: Failed to retry deposit', {
-          error: error instanceof Error ? error.message : 'Unknown error',
-        });
-      })
-      .finally(() => {
-        this.isRetrying = false;
+    try {
+      this.navigateToConfirmation({
+        loader: ConfirmationLoader.CustomAmount,
       });
+
+      this.depositWithConfirmation({ providerId: 'polymarket' })
+        .catch((error) => {
+          DevLogger.log('PredictController: Failed to retry deposit', {
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
+        })
+        .finally(() => {
+          this.isRetrying = false;
+        });
+    } catch (error) {
+      this.isRetrying = false;
+      Logger.error(
+        error as Error,
+        {
+          message: 'PredictController: retryDeposit navigation failed',
+        } as LoggerErrorOptions,
+      );
+    }
   }
 
   private retryWithdraw(): void {
@@ -715,19 +725,29 @@ export class PredictController extends BaseController<
     }
     this.isRetrying = true;
 
-    this.navigateToConfirmation({
-      loader: ConfirmationLoader.CustomAmount,
-    });
-
-    this.prepareWithdraw({ providerId: 'polymarket' })
-      .catch((error) => {
-        DevLogger.log('PredictController: Failed to retry withdraw', {
-          error: error instanceof Error ? error.message : 'Unknown error',
-        });
-      })
-      .finally(() => {
-        this.isRetrying = false;
+    try {
+      this.navigateToConfirmation({
+        loader: ConfirmationLoader.CustomAmount,
       });
+
+      this.prepareWithdraw({ providerId: 'polymarket' })
+        .catch((error) => {
+          DevLogger.log('PredictController: Failed to retry withdraw', {
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
+        })
+        .finally(() => {
+          this.isRetrying = false;
+        });
+    } catch (error) {
+      this.isRetrying = false;
+      Logger.error(
+        error as Error,
+        {
+          message: 'PredictController: retryWithdraw navigation failed',
+        } as LoggerErrorOptions,
+      );
+    }
   }
 
   private retryClaim(): void {
@@ -736,21 +756,31 @@ export class PredictController extends BaseController<
     }
     this.isRetrying = true;
 
-    this.navigateToConfirmation({
-      headerShown: false,
-      loader: ConfirmationLoader.PredictClaim,
-      stack: Routes.PREDICT.ROOT,
-    });
-
-    this.claimWithConfirmation({ providerId: 'polymarket' })
-      .catch((error) => {
-        DevLogger.log('PredictController: Failed to retry claim', {
-          error: error instanceof Error ? error.message : 'Unknown error',
-        });
-      })
-      .finally(() => {
-        this.isRetrying = false;
+    try {
+      this.navigateToConfirmation({
+        headerShown: false,
+        loader: ConfirmationLoader.PredictClaim,
+        stack: Routes.PREDICT.ROOT,
       });
+
+      this.claimWithConfirmation({ providerId: 'polymarket' })
+        .catch((error) => {
+          DevLogger.log('PredictController: Failed to retry claim', {
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
+        })
+        .finally(() => {
+          this.isRetrying = false;
+        });
+    } catch (error) {
+      this.isRetrying = false;
+      Logger.error(
+        error as Error,
+        {
+          message: 'PredictController: retryClaim navigation failed',
+        } as LoggerErrorOptions,
+      );
+    }
   }
 
   private getDepositAmount(transactionMeta: TransactionMeta): string {
