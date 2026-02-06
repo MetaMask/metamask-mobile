@@ -48,11 +48,12 @@ const TRANSACTION_TYPES_DISABLE_ALERT_BANNER = [
 ];
 
 export { ConfirmationLoader } from './confirm-component.types';
-export type { ConfirmationParams } from './confirm-component.types';
-import {
-  ConfirmationLoader,
-  type ConfirmationParams,
-} from './confirm-component.types';
+import { ConfirmationLoader } from './confirm-component.types';
+
+export interface ConfirmationParams {
+  loader?: ConfirmationLoader;
+  maxValueMode?: boolean;
+}
 
 const ConfirmWrapped = ({
   styles,

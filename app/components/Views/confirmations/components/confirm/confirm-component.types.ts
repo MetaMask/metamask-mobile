@@ -4,8 +4,3 @@ export enum ConfirmationLoader {
   PredictClaim = 'predictClaim',
   Transfer = 'transfer',
 }
-
-export interface ConfirmationParams {
-  loader?: ConfirmationLoader;
-  maxValueMode?: boolean;
-}
