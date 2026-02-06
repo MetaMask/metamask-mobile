@@ -10,12 +10,12 @@ import type {
   SubscribeOrderFillsParams,
   SubscribePositionsParams,
   SubscribePricesParams,
-} from '../controllers/types';
+} from '../types';
 import type { HyperLiquidClientService } from './HyperLiquidClientService';
 import { HyperLiquidSubscriptionService } from './HyperLiquidSubscriptionService';
 import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
 import { adaptAccountStateFromSDK } from '../utils/hyperLiquidAdapter';
-import { createMockInfrastructure } from '../__mocks__/serviceMocks';
+import { createMockInfrastructure } from '../../__mocks__/serviceMocks';
 
 // Mock HyperLiquid SDK types
 interface MockSubscription {
@@ -69,14 +69,14 @@ jest.mock('../utils/hyperLiquidAdapter', () => ({
 }));
 
 // Mock DevLogger
-jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
+jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
     log: jest.fn(),
   },
 }));
 
 // Mock trace utilities
-jest.mock('../../../../util/trace', () => ({
+jest.mock('../../../../../util/trace', () => ({
   trace: jest.fn(),
   TraceName: {
     PerpsWebSocketConnected: 'Perps WebSocket Connected',

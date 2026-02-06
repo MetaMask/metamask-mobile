@@ -9,9 +9,9 @@ import {
   type TypedMessageParams,
 } from '@metamask/keyring-controller';
 import { getChainId } from '../constants/hyperLiquidConfig';
-import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
-import type { PerpsPlatformDependencies } from '../controllers/types';
-import type { PerpsControllerMessenger } from '../controllers/PerpsController';
+import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
+import type { PerpsPlatformDependencies } from '../types';
+import type { PerpsControllerMessenger } from '../PerpsController';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
 
 /**

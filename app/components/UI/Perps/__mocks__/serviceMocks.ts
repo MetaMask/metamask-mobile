@@ -62,6 +62,14 @@ export const createMockInfrastructure =
       featureFlags: {
         validateVersionGated: jest.fn().mockReturnValue(undefined),
       },
+
+      // === Market Data Formatting ===
+      marketDataFormatters: {
+        formatVolume: jest.fn((v: number) => `$${v.toFixed(0)}`),
+        formatPerpsFiat: jest.fn((v: number) => `$${v.toFixed(2)}`),
+        formatPercentage: jest.fn((p: number) => `${p.toFixed(2)}%`),
+        priceRangesUniversal: [],
+      },
     }) as unknown as jest.Mocked<PerpsPlatformDependencies>;
 
 /**

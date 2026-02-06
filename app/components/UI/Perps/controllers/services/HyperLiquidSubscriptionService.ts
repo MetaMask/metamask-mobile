@@ -29,7 +29,7 @@ import type {
   OrderBookData,
   OrderBookLevel,
   PerpsPlatformDependencies,
-} from '../controllers/types';
+} from '../types';
 import {
   adaptPositionFromSDK,
   adaptOrderFromSDK,
@@ -41,9 +41,9 @@ import type { HyperLiquidClientService } from './HyperLiquidClientService';
 import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
 import type { CaipAccountId } from '@metamask/utils';
 import { TP_SL_CONFIG, PERPS_CONSTANTS } from '../constants/perpsConfig';
-import { ensureError } from '../../../../util/errorUtils';
+import { ensureError } from '../../../../../util/errorUtils';
 import { processBboData } from '../utils/hyperLiquidOrderBookProcessor';
-import { calculateOpenInterestUSD } from '../controllers/utils/marketDataTransform';
+import { calculateOpenInterestUSD } from '../utils/marketDataTransform';
 
 /**
  * Service for managing HyperLiquid WebSocket subscriptions

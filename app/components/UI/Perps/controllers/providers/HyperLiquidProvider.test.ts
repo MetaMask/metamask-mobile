@@ -1,11 +1,11 @@
 import type { CaipAssetId, Hex } from '@metamask/utils';
-import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
+import { HyperLiquidClientService } from '../services/HyperLiquidClientService';
 import {
   createMockInfrastructure,
   createMockMessenger,
 } from '../../__mocks__/serviceMocks';
-import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscriptionService';
-import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
+import { HyperLiquidSubscriptionService } from '../services/HyperLiquidSubscriptionService';
+import { HyperLiquidWalletService } from '../services/HyperLiquidWalletService';
 import { REFERRAL_CONFIG } from '../constants/hyperLiquidConfig';
 import {
   validateAssetSupport,
@@ -24,11 +24,11 @@ import type {
 } from '../types';
 import { HyperLiquidProvider } from './HyperLiquidProvider';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
-import { TradingReadinessCache } from '../../services/TradingReadinessCache';
+import { TradingReadinessCache } from '../services/TradingReadinessCache';
 
-jest.mock('../../services/HyperLiquidClientService');
-jest.mock('../../services/HyperLiquidWalletService');
-jest.mock('../../services/HyperLiquidSubscriptionService');
+jest.mock('../services/HyperLiquidClientService');
+jest.mock('../services/HyperLiquidWalletService');
+jest.mock('../services/HyperLiquidSubscriptionService');
 // Mock stream manager - will be set up in test
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mockStreamManagerInstance: any;
@@ -83,7 +83,7 @@ jest.mock('../utils/hyperLiquidAdapter', () => {
 
 // Mock TradingReadinessCache - global singleton for signing operation caching
 // Use jest.createMockFromModule for proper mock creation
-jest.mock('../../services/TradingReadinessCache');
+jest.mock('../services/TradingReadinessCache');
 
 const MockedHyperLiquidClientService =
   HyperLiquidClientService as jest.MockedClass<typeof HyperLiquidClientService>;
@@ -7432,7 +7432,7 @@ describe('HyperLiquidProvider', () => {
   describe('WebSocket connection state methods', () => {
     // Import actual enum to ensure type compatibility
     const { WebSocketConnectionState } = jest.requireActual(
-      '../../services/HyperLiquidClientService',
+      '../services/HyperLiquidClientService',
     );
 
     beforeEach(() => {

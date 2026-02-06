@@ -11,7 +11,7 @@ import {
   type ValidCandleInterval,
 } from './HyperLiquidClientService';
 import { CandlePeriod } from '../constants/chartConfig';
-import { createMockInfrastructure } from '../__mocks__/serviceMocks';
+import { createMockInfrastructure } from '../../__mocks__/serviceMocks';
 
 // Mock WebSocket for Jest environment (React Native provides this globally)
 (global as any).WebSocket = jest.fn();
@@ -80,7 +80,7 @@ jest.mock('../constants/hyperLiquidConfig', () => ({
 }));
 
 // Mock DevLogger
-jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
+jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
     log: jest.fn(),
   },

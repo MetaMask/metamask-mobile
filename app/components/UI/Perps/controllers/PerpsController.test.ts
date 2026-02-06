@@ -3568,7 +3568,7 @@ describe('PerpsController', () => {
   describe('WebSocket connection state', () => {
     // Import actual enum to ensure type compatibility
     const { WebSocketConnectionState } = jest.requireActual(
-      '../services/HyperLiquidClientService',
+      './services/HyperLiquidClientService',
     );
 
     it('getWebSocketConnectionState returns state from active provider', () => {

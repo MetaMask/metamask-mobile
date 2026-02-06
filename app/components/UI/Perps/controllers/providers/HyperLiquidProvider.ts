@@ -30,13 +30,13 @@ import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../constants/transactionsH
 import {
   HyperLiquidClientService,
   WebSocketConnectionState,
-} from '../../services/HyperLiquidClientService';
-import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscriptionService';
-import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
+} from '../services/HyperLiquidClientService';
+import { HyperLiquidSubscriptionService } from '../services/HyperLiquidSubscriptionService';
+import { HyperLiquidWalletService } from '../services/HyperLiquidWalletService';
 import {
   TradingReadinessCache,
   PerpsSigningCache,
-} from '../../services/TradingReadinessCache';
+} from '../services/TradingReadinessCache';
 import type { PerpsControllerMessenger } from '../PerpsController';
 import {
   adaptAccountStateFromSDK,
@@ -78,7 +78,7 @@ import {
   validateOrderParams,
   validateWithdrawalParams,
 } from '../utils/hyperLiquidValidation';
-import { transformMarketData } from '../../utils/mobileMarketDataFormatters';
+import { transformMarketData } from '../utils/marketDataTransform';
 import type {
   AccountState,
   AssetRoute,
@@ -5514,6 +5514,7 @@ export class HyperLiquidProvider implements PerpsProvider {
         assetCtxs: combinedAssetCtxs,
         allMids: combinedAllMids,
       },
+      this.deps.marketDataFormatters,
       HIP3_ASSET_MARKET_TYPES,
     );
   }

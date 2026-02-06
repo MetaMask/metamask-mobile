@@ -51,8 +51,8 @@ import { FeatureFlagConfigurationService } from './services/FeatureFlagConfigura
 import { RewardsIntegrationService } from './services/RewardsIntegrationService';
 import type { ServiceContext } from './services/ServiceContext';
 // PerpsStreamChannelKey removed: using string for channel keys (PerpsStreamManager.pauseChannel takes string)
-import { WebSocketConnectionState } from '../services/HyperLiquidClientService';
 import {
+  WebSocketConnectionState,
   PerpsAnalyticsEvent,
   type AccountState,
   type AssetRoute,

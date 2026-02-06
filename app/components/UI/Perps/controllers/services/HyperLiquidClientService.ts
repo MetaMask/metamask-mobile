@@ -7,17 +7,17 @@ import {
 } from '@nktkas/hyperliquid';
 import { HYPERLIQUID_TRANSPORT_CONFIG } from '../constants/hyperLiquidConfig';
 import type { HyperLiquidNetwork } from '../types/config';
-import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
+import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import type { CandleData } from '../types/perps-types';
 
 import { CandlePeriod, calculateCandleCount } from '../constants/chartConfig';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
-import { ensureError } from '../../../../util/errorUtils';
+import { ensureError } from '../../../../../util/errorUtils';
 import {
   WebSocketConnectionState,
   type SubscribeCandlesParams,
   type PerpsPlatformDependencies,
-} from '../controllers/types';
+} from '../types';
 import { Hex } from '@metamask/utils';
 
 /**
@@ -49,7 +49,7 @@ export interface HyperLiquidWalletParams {
 
 // WebSocketConnectionState is now imported from controllers/types
 // Re-export for backward compatibility with existing consumers
-export { WebSocketConnectionState } from '../controllers/types';
+export { WebSocketConnectionState } from '../types';
 
 /**
  * Service for managing HyperLiquid SDK clients

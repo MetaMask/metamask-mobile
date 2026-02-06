@@ -56,27 +56,27 @@ jest.mock('@metamask/utils', () => ({
   ),
 }));
 
-jest.mock('../../../../store', () => ({
+jest.mock('../../../../../store', () => ({
   store: {
     getState: jest.fn(() => MOCK_STORE_STATE),
   },
 }));
 
 // Mock selectors
-jest.mock('../../../../selectors/accountsController', () => ({
+jest.mock('../../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccountAddress: jest.fn(
     () => MOCK_SELECTED_ACCOUNT.address,
   ),
 }));
 
-jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
+jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
   selectSelectedInternalAccountByScope: jest.fn(
     () => () => MOCK_SELECTED_ACCOUNT,
   ),
 }));
 
 // Mock Engine with proper hoisting
-jest.mock('../../../../core/Engine', () => {
+jest.mock('../../../../../core/Engine', () => {
   const mockKeyringController = {
     signTypedMessage: jest.fn().mockResolvedValue('0xSignatureResult'),
   };
@@ -107,7 +107,7 @@ jest.mock('../constants/hyperLiquidConfig', () => ({
 }));
 
 // Mock DevLogger
-jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
+jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
     log: jest.fn(),
   },
@@ -119,8 +119,8 @@ import {
   createMockInfrastructure,
   createMockMessenger,
   createMockEvmAccount,
-} from '../__mocks__/serviceMocks';
-import type { PerpsControllerMessenger } from '../controllers/PerpsController';
+} from '../../__mocks__/serviceMocks';
+import type { PerpsControllerMessenger } from '../PerpsController';
 
 describe('HyperLiquidWalletService', () => {
   let service: HyperLiquidWalletService;

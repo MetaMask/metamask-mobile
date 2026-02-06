@@ -1402,6 +1402,9 @@ export interface PerpsPlatformDependencies {
      */
     validateVersionGated(flag: VersionGatedFeatureFlag): boolean | undefined;
   };
+
+  // === Market Data Formatting (platform-specific number formatting) ===
+  marketDataFormatters: MarketDataFormatters;
 }
 
 // ============================================================================
