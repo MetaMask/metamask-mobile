@@ -329,11 +329,8 @@ export const selectIsBridgeEnabledSourceFactory = createSelector(
   (bridgeFeatureFlags) => (chainId: Hex | CaipChainId) => {
     const caipChainId = formatChainIdToCaip(chainId);
 
-    return (
-      bridgeFeatureFlags.support &&
-      bridgeFeatureFlags.chainRanking?.some(
-        (chain) => chain.chainId === caipChainId,
-      )
+    return bridgeFeatureFlags.chainRanking?.some(
+      (chain) => chain.chainId === caipChainId,
     );
   },
 );
