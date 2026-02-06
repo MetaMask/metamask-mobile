@@ -209,15 +209,6 @@ class AccountListBottomSheet {
     );
   }
 
-  async scrollToAccountV2(_index: number): Promise<void> {
-    await Gestures.scrollToElement(
-      Matchers.getElementByID('random-id'),
-      Matchers.getIdentifier(
-        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
-      ),
-    );
-  }
-
   async scrollToBottomOfAccountList(): Promise<void> {
     await Gestures.swipe(this.accountList, 'up', {
       speed: 'fast',
