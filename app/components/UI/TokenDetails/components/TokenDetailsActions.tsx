@@ -10,13 +10,6 @@ import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.tes
 import { useSelector } from 'react-redux';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
 import Routes from '../../../../constants/navigation/Routes';
-import { useMetrics } from '../../../hooks/useMetrics';
-import {
-  trackActionButtonClick,
-  ActionButtonType,
-  ActionLocation,
-  ActionPosition,
-} from '../../../../util/analytics/actionButtonTracking';
 import { TokenI } from '../../Tokens/types';
 
 // Height of MainActionButton: paddingVertical (16 * 2) + Icon (24px) + label marginTop (2) + label lineHeight (~16)
@@ -45,7 +38,7 @@ export interface TokenDetailsActionsProps {
   isBuyable: boolean;
   isNativeCurrency: boolean;
   token: TokenI;
-  onBuy?: () => void;
+  onBuy: () => void;
   onLong?: () => void;
   onShort?: () => void;
   onSend: () => void;
@@ -93,7 +86,6 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const navigation = useNavigation();
   const { navigate } = navigation;
-  const { trackEvent, createEventBuilder } = useMetrics();
 
   // Prevent rapid navigation clicks - locks all buttons during navigation
   const navigationLockRef = useRef(false);
@@ -121,33 +113,8 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
   }, []);
 
   const handleBuyPress = useCallback(() => {
-    withNavigationLock(() => {
-      trackActionButtonClick(trackEvent, createEventBuilder, {
-        action_name: ActionButtonType.BUY,
-        action_position: ActionPosition.FIRST_POSITION,
-        button_label: strings('asset_overview.cash_buy_button'),
-        location: ActionLocation.HOME,
-      });
-
-      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.FUND_ACTION_MENU,
-        params: {
-          onBuy,
-          asset: {
-            address: token.address,
-            chainId: token.chainId,
-          },
-        },
-      });
-    });
-  }, [
-    withNavigationLock,
-    trackEvent,
-    createEventBuilder,
-    navigate,
-    onBuy,
-    token,
-  ]);
+    withNavigationLock(onBuy);
+  }, [withNavigationLock, onBuy]);
 
   const handleLongPress = useCallback(() => {
     withNavigationLock(() => {
@@ -213,7 +180,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
           iconName: IconName.AttachMoney,
           label: strings('asset_overview.cash_buy_button'),
           onPress: handleBuyPress,
-          isDisabled: !onBuy,
+          isDisabled: false,
           testID: TokenOverviewSelectorsIDs.BUY_BUTTON,
         });
       }
@@ -322,7 +289,6 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
     handleReceivePress,
     handleMorePress,
     canSignTransactions,
-    onBuy,
     onLong,
     onShort,
   ]);
