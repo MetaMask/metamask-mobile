@@ -4,7 +4,11 @@ import { merge } from 'lodash';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-import { IndividualFiatDisplay, TotalFiatDisplay } from './FiatDisplay';
+import {
+  IndividualFiatDisplay,
+  TotalFiatDisplay,
+  calculateTotalFiatValue,
+} from './FiatDisplay';
 import { mockNetworkState } from '../../../../util/test/network';
 import { FIAT_UNAVAILABLE, FiatAmount } from '../types';
 
@@ -45,7 +49,6 @@ const mockStateWithHideFiatOnTestnets = merge({}, mockStateWithTestnet, {
 describe('FiatDisplay', () => {
   describe('IndividualFiatDisplay', () => {
     it.each([
-      [FIAT_UNAVAILABLE, 'Not available'],
       [new BigNumber(100), '$100'],
       [new BigNumber(-100), '$100'],
       [new BigNumber(-100.5), '$100.50'],
@@ -56,6 +59,14 @@ describe('FiatDisplay', () => {
         { state: mockStateWithTestnet },
       );
       expect(await findByText(expected)).toBeTruthy();
+    });
+
+    it('returns null when fiatAmount is FIAT_UNAVAILABLE', () => {
+      const { toJSON } = renderWithProvider(
+        <IndividualFiatDisplay fiatAmount={FIAT_UNAVAILABLE} />,
+        { state: mockStateWithTestnet },
+      );
+      expect(toJSON()).toBeNull();
     });
 
     it('does not render anything if hideFiatForTestnet is true', () => {
@@ -69,8 +80,6 @@ describe('FiatDisplay', () => {
 
   describe('TotalFiatDisplay', () => {
     it.each([
-      [[FIAT_UNAVAILABLE, FIAT_UNAVAILABLE], 'Not available'],
-      [[], 'Not available'],
       [
         [
           new BigNumber(100),
@@ -110,6 +119,22 @@ describe('FiatDisplay', () => {
       },
     );
 
+    it('returns null when all fiatAmounts are FIAT_UNAVAILABLE', () => {
+      const { toJSON } = renderWithProvider(
+        <TotalFiatDisplay fiatAmounts={[FIAT_UNAVAILABLE, FIAT_UNAVAILABLE]} />,
+        { state: mockStateWithTestnet },
+      );
+      expect(toJSON()).toBeNull();
+    });
+
+    it('returns null when fiatAmounts is empty', () => {
+      const { toJSON } = renderWithProvider(
+        <TotalFiatDisplay fiatAmounts={[]} />,
+        { state: mockStateWithTestnet },
+      );
+      expect(toJSON()).toBeNull();
+    });
+
     it('does not render anything if hideFiatForTestnet is true', () => {
       const mockFiatAmounts = [
         new BigNumber(100),
@@ -122,6 +147,71 @@ describe('FiatDisplay', () => {
         { state: mockStateWithHideFiatOnTestnets },
       );
       expect(queryByText('600')).toBe(null);
+    });
+  });
+
+  describe('calculateTotalFiatValue', () => {
+    it('returns null when all fiat amounts are FIAT_UNAVAILABLE', () => {
+      const fiatAmounts = [
+        FIAT_UNAVAILABLE,
+        FIAT_UNAVAILABLE,
+        FIAT_UNAVAILABLE,
+      ];
+
+      const result = calculateTotalFiatValue(fiatAmounts);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null when array is empty', () => {
+      const fiatAmounts: FiatAmount[] = [];
+
+      const result = calculateTotalFiatValue(fiatAmounts);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns total when at least one fiat amount is available', () => {
+      const fiatAmounts = [
+        new BigNumber(100),
+        FIAT_UNAVAILABLE,
+        new BigNumber(200),
+      ] as unknown as FiatAmount[];
+
+      const result = calculateTotalFiatValue(fiatAmounts);
+
+      expect(result).not.toBeNull();
+      expect(result?.toNumber()).toBe(300);
+    });
+
+    it('returns total when all fiat amounts are available', () => {
+      const fiatAmounts = [
+        new BigNumber(100),
+        new BigNumber(200),
+        new BigNumber(300),
+      ] as unknown as FiatAmount[];
+
+      const result = calculateTotalFiatValue(fiatAmounts);
+
+      expect(result).not.toBeNull();
+      expect(result?.toNumber()).toBe(600);
+    });
+
+    it('returns total with single FIAT_UNAVAILABLE in array', () => {
+      const fiatAmounts = [FIAT_UNAVAILABLE] as FiatAmount[];
+
+      const result = calculateTotalFiatValue(fiatAmounts);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns total with single available amount', () => {
+      const fiatAmounts = [new BigNumber(500)] as unknown as FiatAmount[];
+
+      const result = calculateTotalFiatValue(fiatAmounts);
+
+      expect(result).not.toBeNull();
+      expect(result?.toNumber()).toBe(500);
     });
   });
 });

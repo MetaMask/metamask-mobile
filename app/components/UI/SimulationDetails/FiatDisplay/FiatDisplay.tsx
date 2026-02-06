@@ -45,6 +45,18 @@ export function calculateTotalFiat(fiatAmounts: FiatAmount[]): BigNumber {
   );
 }
 
+export function calculateTotalFiatValue(
+  fiatAmounts: FiatAmount[],
+): BigNumber | null {
+  const allUnavailable = fiatAmounts.every((fiat) => fiat === FIAT_UNAVAILABLE);
+
+  if (allUnavailable) {
+    return null;
+  }
+
+  return calculateTotalFiat(fiatAmounts);
+}
+
 /**
  * Displays the fiat value of a single balance change.
  *
@@ -70,7 +82,7 @@ export const IndividualFiatDisplay: React.FC<IndividualFiatDisplayProps> = ({
   }
 
   if (fiatAmount === FIAT_UNAVAILABLE) {
-    return <FiatNotAvailableDisplay />;
+    return null;
   }
   const absFiat = new BigNumber(fiatAmount).abs();
 
@@ -102,9 +114,13 @@ export const TotalFiatDisplay: React.FC<{
   const hideFiatForTestnet = useHideFiatForTestnet();
   const { styles } = useStyles(styleSheet, {});
   const fiatFormatter = useFiatFormatter();
-  const totalFiat = calculateTotalFiat(fiatAmounts);
+  const totalFiat = calculateTotalFiatValue(fiatAmounts);
 
   if (hideFiatForTestnet) {
+    return null;
+  }
+
+  if (totalFiat === null) {
     return null;
   }
 
