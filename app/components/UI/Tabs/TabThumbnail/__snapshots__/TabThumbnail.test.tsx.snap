@@ -26,17 +26,18 @@ exports[`TabThumbnail should render correctly 1`] = `
       [
         {
           "borderColor": "#b7bbc8",
-          "borderRadius": 12,
+          "borderRadius": 10,
           "borderWidth": 1,
-          "elevation": 4,
-          "height": 345.94,
-          "justifyContent": "flex-start",
+          "elevation": 8,
+          "height": 266.8,
+          "justifyContent": "space-evenly",
+          "marginBottom": 15,
           "overflow": "hidden",
-          "width": 353,
+          "width": 720,
         },
         {
           "borderColor": "#4459ff",
-          "borderWidth": 3,
+          "borderWidth": 5,
         },
       ]
     }
@@ -48,18 +49,17 @@ exports[`TabThumbnail should render correctly 1`] = `
           "alignItems": "center",
           "backgroundColor": "#ffffff",
           "flexDirection": "row",
-          "padding": 6,
+          "padding": 8,
         }
       }
     >
       <View
         style={
           {
-            "alignItems": "center",
             "backgroundColor": "transparent",
             "flex": 1,
             "flexDirection": "row",
-            "marginRight": 24,
+            "marginRight": 40,
           }
         }
       >
@@ -68,11 +68,12 @@ exports[`TabThumbnail should render correctly 1`] = `
             {
               "backgroundColor": "#ffffff",
               "borderRadius": 16,
-              "height": 16,
+              "height": 22,
               "marginLeft": 2,
-              "marginRight": 4,
+              "marginRight": 5,
+              "marginTop": 1,
               "overflow": "hidden",
-              "width": 16,
+              "width": 22,
             }
           }
         >
@@ -96,13 +97,13 @@ exports[`TabThumbnail should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "flex": 1,
               "fontFamily": "Geist-Bold",
-              "fontSize": 12,
+              "fontSize": 18,
               "letterSpacing": 0,
               "lineHeight": 24,
-              "marginLeft": 4,
-              "marginRight": 24,
+              "marginLeft": 5,
+              "marginRight": 40,
+              "marginTop": 0,
             }
           }
         >
@@ -156,6 +157,7 @@ exports[`TabThumbnail should render correctly 1`] = `
           {
             "bottom": 0,
             "left": 0,
+            "paddingTop": 1044,
             "position": "absolute",
             "resizeMode": "cover",
             "right": 0,

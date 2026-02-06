@@ -28,8 +28,8 @@ import { PerpsNavigationParamList } from '../../types/navigation';
 import { PerpsOrderTransactionRouteProp } from '../../types/transactionHistory';
 import {
   formatPerpsFiat,
+  formatPositiveFiat,
   formatTransactionDate,
-  PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsOrderTransactionView.styles';
 
@@ -96,9 +96,7 @@ const PerpsOrderTransactionView: React.FC = () => {
     },
     {
       label: strings('perps.transactions.order.limit_price'),
-      value: formatPerpsFiat(transaction.order?.limitPrice ?? 0, {
-        ranges: PRICE_RANGES_UNIVERSAL,
-      }),
+      value: formatPositiveFiat(transaction.order?.limitPrice ?? 0),
     },
     {
       label: strings('perps.transactions.order.filled'),
@@ -108,22 +106,20 @@ const PerpsOrderTransactionView: React.FC = () => {
 
   const isFilled = transaction.order?.text === 'Filled';
 
-  // Fee breakdown - use PRICE_RANGES_UNIVERSAL to show exact values instead of "< $0.01"
-  const formatFee = (fee: number) =>
-    formatPerpsFiat(fee, { ranges: PRICE_RANGES_UNIVERSAL });
+  // Fee breakdown
 
   const feeRows = [
     {
       label: strings('perps.transactions.order.metamask_fee'),
-      value: formatFee(isFilled ? metamaskFee : 0),
+      value: formatPositiveFiat(isFilled ? metamaskFee : 0),
     },
     {
       label: strings('perps.transactions.order.hyperliquid_fee'),
-      value: formatFee(isFilled ? protocolFee : 0),
+      value: formatPositiveFiat(isFilled ? protocolFee : 0),
     },
     {
       label: strings('perps.transactions.order.total_fee'),
-      value: formatFee(isFilled ? totalFee : 0),
+      value: formatPositiveFiat(isFilled ? totalFee : 0),
     },
   ];
 

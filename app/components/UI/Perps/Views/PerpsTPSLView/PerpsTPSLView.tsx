@@ -30,8 +30,8 @@ import { useTheme } from '../../../../../util/theme';
 
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import {
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
+  PerpsEventProperties,
+  PerpsEventValues,
 } from '../../constants/eventNames';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
@@ -212,21 +212,21 @@ const PerpsTPSLView: React.FC = () => {
   // Determine if this is create (new order) or edit (existing position) TP/SL
   const isEditingExistingPosition = !!position;
   const tpslScreenType = isEditingExistingPosition
-    ? PERPS_EVENT_VALUE.SCREEN_TYPE.EDIT_TPSL
-    : PERPS_EVENT_VALUE.SCREEN_TYPE.CREATE_TPSL;
+    ? PerpsEventValues.SCREEN_TYPE.EDIT_TPSL
+    : PerpsEventValues.SCREEN_TYPE.CREATE_TPSL;
 
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     properties: {
-      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: tpslScreenType,
-      [PERPS_EVENT_PROPERTY.ASSET]: asset,
-      [PERPS_EVENT_PROPERTY.DIRECTION]:
+      [PerpsEventProperties.SCREEN_TYPE]: tpslScreenType,
+      [PerpsEventProperties.ASSET]: asset,
+      [PerpsEventProperties.DIRECTION]:
         actualDirection === 'long'
-          ? PERPS_EVENT_VALUE.DIRECTION.LONG
-          : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+          ? PerpsEventValues.DIRECTION.LONG
+          : PerpsEventValues.DIRECTION.SHORT,
       // Add initial TP/SL state to understand what user already has set
-      [PERPS_EVENT_PROPERTY.HAS_TAKE_PROFIT]: !!initialTakeProfitPrice,
-      [PERPS_EVENT_PROPERTY.HAS_STOP_LOSS]: !!initialStopLossPrice,
+      [PerpsEventProperties.HAS_TAKE_PROFIT]: !!initialTakeProfitPrice,
+      [PerpsEventProperties.HAS_STOP_LOSS]: !!initialStopLossPrice,
     },
   });
 
@@ -370,8 +370,8 @@ const PerpsTPSLView: React.FC = () => {
       const trackingData = {
         direction: actualDirection,
         source: isEditingExistingPosition
-          ? PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.POSITION_SCREEN
-          : PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
+          ? PerpsEventValues.RISK_MANAGEMENT_SOURCE.POSITION_SCREEN
+          : PerpsEventValues.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
         positionSize: position?.size ? Math.abs(parseFloat(position.size)) : 0,
         takeProfitPercentage: formattedTakeProfitPercentage
           ? parseFloat(formattedTakeProfitPercentage.replace('%', ''))

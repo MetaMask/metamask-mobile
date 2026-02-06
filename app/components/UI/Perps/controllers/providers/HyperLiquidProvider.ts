@@ -37,7 +37,6 @@ import {
   TradingReadinessCache,
   PerpsSigningCache,
 } from '../../services/TradingReadinessCache';
-import type { PerpsControllerMessenger } from '../PerpsController';
 import {
   adaptAccountStateFromSDK,
   adaptHyperLiquidLedgerUpdateToUserHistoryItem,
@@ -325,7 +324,6 @@ export class HyperLiquidProvider implements PerpsProvider {
     blocklistMarkets?: string[];
     useDexAbstraction?: boolean;
     platformDependencies: PerpsPlatformDependencies;
-    messenger: PerpsControllerMessenger;
   }) {
     this.deps = options.platformDependencies;
     const isTestnet = options.isTestnet ?? false;
@@ -338,13 +336,9 @@ export class HyperLiquidProvider implements PerpsProvider {
     // Attempt native balance abstraction, fallback to programmatic transfer if unsupported
     this.useDexAbstraction = options.useDexAbstraction ?? true;
 
-    // Initialize services with injected platform dependencies and messenger
+    // Initialize services with injected platform dependencies
     this.clientService = new HyperLiquidClientService(this.deps, { isTestnet });
-    this.walletService = new HyperLiquidWalletService(
-      this.deps,
-      options.messenger,
-      { isTestnet },
-    );
+    this.walletService = new HyperLiquidWalletService(this.deps, { isTestnet });
     this.subscriptionService = new HyperLiquidSubscriptionService(
       this.clientService,
       this.walletService,

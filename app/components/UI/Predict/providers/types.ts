@@ -43,9 +43,6 @@ export interface GetMarketsParams {
 
   // Live sports configuration
   liveSportsLeagues?: string[];
-
-  // Custom query params for Hot tab
-  customQueryParams?: string;
 }
 
 export interface Signer {

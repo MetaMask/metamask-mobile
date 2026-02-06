@@ -40,8 +40,8 @@ import { useRoute, RouteProp } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TraceName } from '../../../../../util/trace';
 import {
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
+  PerpsEventProperties,
+  PerpsEventValues,
 } from '../../constants/eventNames';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
@@ -148,22 +148,22 @@ const PerpsMarketListView = ({
     (category: MarketTypeFilter) => {
       // Track analytics for category changes
       const categoryMap: Record<string, string | null> = {
-        crypto: PERPS_EVENT_VALUE.BUTTON_CLICKED.CRYPTO,
-        stocks: PERPS_EVENT_VALUE.BUTTON_CLICKED.STOCKS,
-        commodities: PERPS_EVENT_VALUE.BUTTON_CLICKED.COMMODITIES,
-        forex: PERPS_EVENT_VALUE.BUTTON_CLICKED.FOREX,
-        new: PERPS_EVENT_VALUE.BUTTON_CLICKED.NEW,
+        crypto: PerpsEventValues.BUTTON_CLICKED.CRYPTO,
+        stocks: PerpsEventValues.BUTTON_CLICKED.STOCKS,
+        commodities: PerpsEventValues.BUTTON_CLICKED.COMMODITIES,
+        forex: PerpsEventValues.BUTTON_CLICKED.FOREX,
+        new: PerpsEventValues.BUTTON_CLICKED.NEW,
         all: null,
       };
 
       const targetCategory = categoryMap[category];
       if (targetCategory) {
         track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-            PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: targetCategory,
-          [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
-            PERPS_EVENT_VALUE.BUTTON_LOCATION.MARKET_LIST,
+          [PerpsEventProperties.INTERACTION_TYPE]:
+            PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
+          [PerpsEventProperties.BUTTON_CLICKED]: targetCategory,
+          [PerpsEventProperties.BUTTON_LOCATION]:
+            PerpsEventValues.BUTTON_LOCATION.MARKET_LIST,
         });
       }
       setMarketTypeFilter(category);
@@ -197,8 +197,8 @@ const PerpsMarketListView = ({
       preSearchFilterRef.current = marketTypeFilter;
       // Track the event
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-          PERPS_EVENT_VALUE.INTERACTION_TYPE.SEARCH_CLICKED,
+        [PerpsEventProperties.INTERACTION_TYPE]:
+          PerpsEventValues.INTERACTION_TYPE.SEARCH_CLICKED,
       });
     }
   }, [
@@ -218,7 +218,7 @@ const PerpsMarketListView = ({
 
   // Track markets screen viewed event
   const source =
-    route.params?.source || PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON;
+    route.params?.source || PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON;
 
   // Get perp balance status and provider info for tracking
   const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 5000 });
@@ -235,15 +235,15 @@ const PerpsMarketListView = ({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     conditions: [filteredMarkets.length > 0],
     properties: {
-      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-        PERPS_EVENT_VALUE.SCREEN_TYPE.MARKET_LIST,
-      [PERPS_EVENT_PROPERTY.SOURCE]: source,
-      [PERPS_EVENT_PROPERTY.HAS_PERP_BALANCE]: hasPerpBalance,
+      [PerpsEventProperties.SCREEN_TYPE]:
+        PerpsEventValues.SCREEN_TYPE.MARKET_LIST,
+      [PerpsEventProperties.SOURCE]: source,
+      [PerpsEventProperties.HAS_PERP_BALANCE]: hasPerpBalance,
       ...(buttonClicked && {
-        [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: buttonClicked,
+        [PerpsEventProperties.BUTTON_CLICKED]: buttonClicked,
       }),
       ...(buttonLocation && {
-        [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]: buttonLocation,
+        [PerpsEventProperties.BUTTON_LOCATION]: buttonLocation,
       }),
     },
   });

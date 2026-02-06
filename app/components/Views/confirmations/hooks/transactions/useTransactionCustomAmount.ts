@@ -35,7 +35,6 @@ export function useTransactionCustomAmount({
   const totals = useTransactionPayTotals();
   const hasSourceAmount = useTransactionPayHasSourceAmount();
   const { setConfirmationMetric } = useConfirmationMetricEvents();
-  const [isTokenAmountUpdated, setIsTokenAmountUpdated] = useState(false);
 
   const debounceSetAmountDelayed = useMemo(
     () =>
@@ -155,19 +154,20 @@ export function useTransactionCustomAmount({
 
   const updateTokenAmount = useCallback(() => {
     updateTokenAmountCallback(amountHuman);
-    setIsTokenAmountUpdated(true);
-  }, [amountHuman, updateTokenAmountCallback]);
 
-  useEffect(() => {
-    if (isTokenAmountUpdated && hasSourceAmount) {
+    if (hasSourceAmount) {
       setConfirmationMetric({
         properties: {
           mm_pay_quote_requested: true,
         },
       });
-      setIsTokenAmountUpdated(false);
     }
-  }, [hasSourceAmount, isTokenAmountUpdated, setConfirmationMetric]);
+  }, [
+    amountHuman,
+    hasSourceAmount,
+    setConfirmationMetric,
+    updateTokenAmountCallback,
+  ]);
 
   return {
     amountFiat,

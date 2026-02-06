@@ -4,7 +4,12 @@ import useCardProviderAuthentication from './useCardProviderAuthentication';
 import { useCardSDK } from '../sdk';
 import { storeCardBaanxToken } from '../util/cardTokenVault';
 import { generatePKCEPair, generateState } from '../util/pkceHelpers';
-import { CardError, CardErrorType, CardLoginInitiateResponse } from '../types';
+import {
+  CardError,
+  CardErrorType,
+  CardLocation,
+  CardLoginInitiateResponse,
+} from '../types';
 import { CardSDK } from '../sdk/CardSDK';
 import { strings } from '../../../../../locales/i18n';
 import { useDispatch } from 'react-redux';
@@ -18,16 +23,12 @@ jest.mock('../sdk');
 jest.mock('../util/cardTokenVault');
 jest.mock('../util/pkceHelpers');
 jest.mock('../../../../../locales/i18n');
-
-const mockUseSelector = jest.fn();
 jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
-  useSelector: (selector: unknown) => mockUseSelector(selector),
 }));
 jest.mock('../../../../core/redux/slices/card', () => ({
   setIsAuthenticatedCard: jest.fn(),
   setUserCardLocation: jest.fn(),
-  selectUserCardLocation: jest.fn(),
 }));
 
 const mockUuid4 = uuid4 as jest.MockedFunction<typeof uuid4>;
@@ -87,7 +88,6 @@ describe('useCardProviderAuthentication', () => {
     });
     mockStrings.mockImplementation((key: string) => `mocked_${key}`);
     mockUseDispatch.mockReturnValue(mockDispatch);
-    mockUseSelector.mockReturnValue('international'); // Default location
     mockSetIsAuthenticatedCard.mockReturnValue({
       type: 'card/setIsAuthenticatedCard',
       payload: true,
@@ -116,6 +116,7 @@ describe('useCardProviderAuthentication', () => {
   describe('successful login flow', () => {
     it('completes authentication flow and stores token', async () => {
       const loginParams = {
+        location: 'us' as CardLocation,
         email: 'test@example.com',
         password: 'password123',
       };
@@ -160,33 +161,35 @@ describe('useCardProviderAuthentication', () => {
       expect(mockSdk.initiateCardProviderAuthentication).toHaveBeenCalledWith({
         state: mockStateUuid,
         codeChallenge: mockCodeChallenge,
-        location: 'international',
+        location: loginParams.location,
       });
       expect(mockSdk.login).toHaveBeenCalledWith({
         email: loginParams.email,
         password: loginParams.password,
-        location: 'international',
+        location: loginParams.location,
       });
       expect(mockSdk.authorize).toHaveBeenCalledWith({
         initiateAccessToken: mockInitiateResponse.token,
         loginAccessToken: mockLoginResponse.accessToken,
-        location: 'international',
+        location: loginParams.location,
       });
       expect(mockSdk.exchangeToken).toHaveBeenCalledWith({
         code: mockAuthorizeResponse.code,
         codeVerifier: mockCodeVerifier,
         grantType: 'authorization_code',
-        location: 'international',
+        location: loginParams.location,
       });
       expect(mockStoreCardBaanxToken).toHaveBeenCalledWith({
         accessToken: mockExchangeTokenResponse.accessToken,
         refreshToken: mockExchangeTokenResponse.refreshToken,
         accessTokenExpiresAt: mockExchangeTokenResponse.expiresIn,
         refreshTokenExpiresAt: mockExchangeTokenResponse.refreshTokenExpiresIn,
-        location: 'international',
+        location: loginParams.location,
       });
       expect(mockSetIsAuthenticatedCard).toHaveBeenCalledWith(true);
-      expect(mockSetUserCardLocation).toHaveBeenCalledWith('international');
+      expect(mockSetUserCardLocation).toHaveBeenCalledWith(
+        loginParams.location,
+      );
       expect(mockDispatch).toHaveBeenCalledTimes(2);
       expect(result.current.error).toBeNull();
       expect(result.current.loading).toBe(false);
@@ -196,6 +199,7 @@ describe('useCardProviderAuthentication', () => {
   describe('loading state management', () => {
     it('sets loading to true during authentication flow', async () => {
       const loginParams = {
+        location: 'international' as CardLocation,
         email: 'test@example.com',
         password: 'password123',
       };
@@ -298,6 +302,7 @@ describe('useCardProviderAuthentication', () => {
       'handles $errorType error and sets appropriate error message',
       async ({ errorType, expectedStringKey }) => {
         const loginParams = {
+          location: 'us' as CardLocation,
           email: 'test@example.com',
           password: 'password123',
         };
@@ -323,6 +328,7 @@ describe('useCardProviderAuthentication', () => {
 
     it('handles validation error with localized message', async () => {
       const loginParams = {
+        location: 'us' as CardLocation,
         email: 'test@example.com',
         password: 'password123',
       };
@@ -356,6 +362,7 @@ describe('useCardProviderAuthentication', () => {
 
     it('handles ACCOUNT_DISABLED error with custom message from error', async () => {
       const loginParams = {
+        location: 'us' as CardLocation,
         email: 'test@example.com',
         password: 'password123',
       };
@@ -386,6 +393,7 @@ describe('useCardProviderAuthentication', () => {
 
     it('handles non-CardError instances with unknown error message', async () => {
       const loginParams = {
+        location: 'us' as CardLocation,
         email: 'test@example.com',
         password: 'password123',
       };
@@ -421,6 +429,7 @@ describe('useCardProviderAuthentication', () => {
       });
 
       const loginParams = {
+        location: 'us' as CardLocation,
         email: 'test@example.com',
         password: 'password123',
       };
@@ -438,6 +447,7 @@ describe('useCardProviderAuthentication', () => {
   describe('state validation', () => {
     it('throws error when authorize response state does not match', async () => {
       const loginParams = {
+        location: 'us' as CardLocation,
         email: 'test@example.com',
         password: 'password123',
       };
@@ -479,6 +489,7 @@ describe('useCardProviderAuthentication', () => {
   describe('clearError functionality', () => {
     it('clears error when clearError is called', async () => {
       const loginParams = {
+        location: 'us' as CardLocation,
         email: 'test@example.com',
         password: 'password123',
       };
@@ -512,6 +523,7 @@ describe('useCardProviderAuthentication', () => {
   describe('OTP login flow', () => {
     it('returns login response when OTP is required', async () => {
       const loginParams = {
+        location: 'us' as CardLocation,
         email: 'test@example.com',
         password: 'password123',
       };
@@ -540,12 +552,12 @@ describe('useCardProviderAuthentication', () => {
       });
 
       expect(mockSdk.initiateCardProviderAuthentication).toHaveBeenCalledWith({
-        location: 'international',
+        location: loginParams.location,
         state: mockStateUuid,
         codeChallenge: mockCodeChallenge,
       });
       expect(mockSdk.login).toHaveBeenCalledWith({
-        location: 'international',
+        location: loginParams.location,
         email: loginParams.email,
         password: loginParams.password,
       });
@@ -559,6 +571,7 @@ describe('useCardProviderAuthentication', () => {
 
     it('completes authentication flow when OTP code is provided', async () => {
       const loginParams = {
+        location: 'us' as CardLocation,
         email: 'test@example.com',
         password: 'password123',
         otpCode: '123456',
@@ -602,28 +615,28 @@ describe('useCardProviderAuthentication', () => {
       });
 
       expect(mockSdk.login).toHaveBeenCalledWith({
+        location: loginParams.location,
         email: loginParams.email,
         password: loginParams.password,
         otpCode: loginParams.otpCode,
-        location: 'international',
       });
       expect(mockSdk.authorize).toHaveBeenCalledWith({
+        location: loginParams.location,
         initiateAccessToken: mockInitiateResponse.token,
         loginAccessToken: mockLoginResponse.accessToken,
-        location: 'international',
       });
       expect(mockSdk.exchangeToken).toHaveBeenCalledWith({
+        location: loginParams.location,
         code: mockAuthorizeResponse.code,
         codeVerifier: mockCodeVerifier,
         grantType: 'authorization_code',
-        location: 'international',
       });
       expect(mockStoreCardBaanxToken).toHaveBeenCalledWith({
         accessToken: mockExchangeTokenResponse.accessToken,
         refreshToken: mockExchangeTokenResponse.refreshToken,
         accessTokenExpiresAt: mockExchangeTokenResponse.expiresIn,
         refreshTokenExpiresAt: mockExchangeTokenResponse.refreshTokenExpiresIn,
-        location: 'international',
+        location: loginParams.location,
       });
       expect(mockSetIsAuthenticatedCard).toHaveBeenCalledWith(true);
       expect(mockDispatch).toHaveBeenCalledWith({
@@ -639,6 +652,7 @@ describe('useCardProviderAuthentication', () => {
     it('sends OTP login request', async () => {
       const otpParams = {
         userId: 'user-123',
+        location: 'us' as CardLocation,
       };
 
       mockSdk.sendOtpLogin.mockResolvedValue(undefined);
@@ -651,7 +665,7 @@ describe('useCardProviderAuthentication', () => {
 
       expect(mockSdk.sendOtpLogin).toHaveBeenCalledWith({
         userId: otpParams.userId,
-        location: 'international',
+        location: otpParams.location,
       });
       expect(result.current.otpError).toBeNull();
       expect(result.current.otpLoading).toBe(false);
@@ -660,6 +674,7 @@ describe('useCardProviderAuthentication', () => {
     it('sets otpLoading to true during OTP request', async () => {
       const otpParams = {
         userId: 'user-123',
+        location: 'us' as CardLocation,
       };
 
       let resolveSendOtp: (() => void) | undefined;
@@ -690,6 +705,7 @@ describe('useCardProviderAuthentication', () => {
     it('handles error when sending OTP fails', async () => {
       const otpParams = {
         userId: 'user-123',
+        location: 'us' as CardLocation,
       };
 
       const cardError = new CardError(
@@ -716,6 +732,7 @@ describe('useCardProviderAuthentication', () => {
     it('handles ACCOUNT_DISABLED error when sending OTP', async () => {
       const otpParams = {
         userId: 'user-123',
+        location: 'us' as CardLocation,
       };
 
       const accountDisabledMessage =
@@ -744,6 +761,7 @@ describe('useCardProviderAuthentication', () => {
 
       const otpParams = {
         userId: 'user-123',
+        location: 'us' as CardLocation,
       };
 
       const { result } = renderHook(() => useCardProviderAuthentication());
@@ -760,6 +778,7 @@ describe('useCardProviderAuthentication', () => {
     it('clears OTP error when clearOtpError is called', async () => {
       const otpParams = {
         userId: 'user-123',
+        location: 'us' as CardLocation,
       };
 
       const cardError = new CardError(

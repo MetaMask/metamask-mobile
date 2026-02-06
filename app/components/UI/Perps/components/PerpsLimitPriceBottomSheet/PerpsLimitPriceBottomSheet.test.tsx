@@ -127,14 +127,14 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
 
 // Mock eventNames constants
 jest.mock('../../constants/eventNames', () => ({
-  PERPS_EVENT_PROPERTY: {
+  PerpsEventProperties: {
     INTERACTION_TYPE: 'interaction_type',
     SETTING_TYPE: 'setting_type',
     INPUT_METHOD: 'input_method',
     ASSET: 'asset',
     DIRECTION: 'direction',
   },
-  PERPS_EVENT_VALUE: {
+  PerpsEventValues: {
     INTERACTION_TYPE: { SETTING_CHANGED: 'setting_changed' },
     INPUT_METHOD: {
       PRESET: 'preset',

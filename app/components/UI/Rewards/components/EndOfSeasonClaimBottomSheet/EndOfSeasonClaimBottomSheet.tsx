@@ -9,8 +9,7 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import useRewardsToast from '../../hooks/useRewardsToast';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import { TouchableOpacity } from 'react-native';
@@ -95,7 +94,7 @@ const EndOfSeasonClaimBottomSheet = ({
   const tw = useTailwind();
   const { showToast: showRewardsToast, RewardsToastOptions } =
     useRewardsToast();
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { claimReward, isClaimingReward } = useClaimReward();
   const { lineaTokenReward } = useLineaSeasonOneTokenReward();
   const {

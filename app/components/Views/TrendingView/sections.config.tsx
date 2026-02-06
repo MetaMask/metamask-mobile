@@ -2,7 +2,6 @@ import React, { PropsWithChildren, useMemo } from 'react';
 import Fuse, { type FuseOptions } from 'fuse.js';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
-import { useSelector } from 'react-redux';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import TrendingTokenRowItem from '../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
@@ -14,7 +13,6 @@ import type { PredictMarket as PredictMarketType } from '../../UI/Predict/types'
 import type { PerpsNavigationParamList } from '../../UI/Perps/types/navigation';
 import PredictMarketSkeleton from '../../UI/Predict/components/PredictMarketSkeleton';
 import { usePredictMarketData } from '../../UI/Predict/hooks/usePredictMarketData';
-import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { usePerpsMarkets } from '../../UI/Perps/hooks';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
@@ -312,7 +310,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
 };
 
 // Sorted by order on the main screen
-const HOME_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
+export const HOME_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
   SECTIONS_CONFIG.predictions,
   SECTIONS_CONFIG.tokens,
   SECTIONS_CONFIG.perps,
@@ -320,36 +318,12 @@ const HOME_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
 ];
 
 // Sorted by order on the QuickAction buttons and SearchResults
-const SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
+export const SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
   SECTIONS_CONFIG.tokens,
   SECTIONS_CONFIG.perps,
   SECTIONS_CONFIG.predictions,
   SECTIONS_CONFIG.sites,
 ];
-
-export const useHomeSections = (): (SectionConfig & { id: SectionId })[] => {
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-
-  return useMemo(
-    () =>
-      isPerpsEnabled
-        ? HOME_SECTIONS_ARRAY
-        : HOME_SECTIONS_ARRAY.filter((section) => section.id !== 'perps'),
-    [isPerpsEnabled],
-  );
-};
-
-export const useSectionsArray = (): (SectionConfig & { id: SectionId })[] => {
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-
-  return useMemo(
-    () =>
-      isPerpsEnabled
-        ? SECTIONS_ARRAY
-        : SECTIONS_ARRAY.filter((section) => section.id !== 'perps'),
-    [isPerpsEnabled],
-  );
-};
 
 /**
  * Centralized hook that fetches data for all sections.

@@ -41,8 +41,8 @@ import {
   USDC_TOKEN_ICON_URL,
 } from '../../constants/hyperLiquidConfig';
 import {
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
+  PerpsEventProperties,
+  PerpsEventValues,
 } from '../../constants/eventNames';
 import {
   usePerpsMeasurement,
@@ -162,8 +162,8 @@ const PerpsWithdrawView: React.FC = () => {
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     properties: {
-      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-        PERPS_EVENT_VALUE.SCREEN_TYPE.WITHDRAWAL,
+      [PerpsEventProperties.SCREEN_TYPE]:
+        PerpsEventValues.SCREEN_TYPE.WITHDRAWAL,
     },
   });
 

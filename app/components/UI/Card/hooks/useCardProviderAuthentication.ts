@@ -2,11 +2,15 @@ import { useCallback, useMemo, useState } from 'react';
 import { useCardSDK } from '../sdk';
 import { storeCardBaanxToken } from '../util/cardTokenVault';
 import { generatePKCEPair, generateState } from '../util/pkceHelpers';
-import { CardError, CardErrorType, CardLoginResponse } from '../types';
-import { strings } from '../../../../../locales/i18n';
-import { useDispatch, useSelector } from 'react-redux';
 import {
-  selectUserCardLocation,
+  CardError,
+  CardErrorType,
+  CardLocation,
+  CardLoginResponse,
+} from '../types';
+import { strings } from '../../../../../locales/i18n';
+import { useDispatch } from 'react-redux';
+import {
   setIsAuthenticatedCard as setIsAuthenticatedAction,
   setUserCardLocation,
 } from '../../../../core/redux/slices/card';
@@ -47,6 +51,7 @@ const getErrorMessage = (error: unknown): string => {
 
 interface UseCardProviderAuthenticationResponse {
   login: (params: {
+    location: CardLocation;
     email: string;
     password: string;
     otpCode?: string;
@@ -55,7 +60,10 @@ interface UseCardProviderAuthenticationResponse {
   error: string | null;
   clearError: () => void;
   otpLoading: boolean;
-  sendOtpLogin: (params: { userId: string }) => Promise<void>;
+  sendOtpLogin: (params: {
+    userId: string;
+    location: CardLocation;
+  }) => Promise<void>;
   otpError: string | null;
   clearOtpError: () => void;
 }
@@ -67,7 +75,6 @@ const useCardProviderAuthentication =
     const [loading, setLoading] = useState(false);
     const [otpLoading, setOtpLoading] = useState(false);
     const [otpError, setOtpError] = useState<string | null>(null);
-    const location = useSelector(selectUserCardLocation);
     const { sdk } = useCardSDK();
 
     const clearOtpError = useCallback(() => {
@@ -79,7 +86,10 @@ const useCardProviderAuthentication =
     }, []);
 
     const sendOtpLogin = useCallback(
-      async (params: { userId: string }): Promise<void> => {
+      async (params: {
+        userId: string;
+        location: CardLocation;
+      }): Promise<void> => {
         if (!sdk) {
           throw new Error('Card SDK not initialized');
         }
@@ -89,7 +99,7 @@ const useCardProviderAuthentication =
           setOtpLoading(true);
           await sdk.sendOtpLogin({
             userId: params.userId,
-            location,
+            location: params.location,
           });
         } catch (err) {
           setOtpError(getErrorMessage(err));
@@ -97,11 +107,12 @@ const useCardProviderAuthentication =
           setOtpLoading(false);
         }
       },
-      [sdk, location],
+      [sdk],
     );
 
     const login = useCallback(
       async (params: {
+        location: CardLocation;
         email: string;
         password: string;
         otpCode?: string;
@@ -120,14 +131,14 @@ const useCardProviderAuthentication =
             {
               state,
               codeChallenge,
-              location,
+              location: params.location,
             },
           );
 
           const loginResponse = await sdk.login({
             email: params.email,
             password: params.password,
-            location,
+            location: params.location,
             ...(params.otpCode ? { otpCode: params.otpCode } : {}),
           });
 
@@ -138,7 +149,7 @@ const useCardProviderAuthentication =
           const authorizeResponse = await sdk.authorize({
             initiateAccessToken: initiateResponse.token,
             loginAccessToken: loginResponse.accessToken,
-            location,
+            location: params.location,
           });
 
           if (authorizeResponse.state !== state) {
@@ -149,7 +160,7 @@ const useCardProviderAuthentication =
             code: authorizeResponse.code,
             codeVerifier,
             grantType: 'authorization_code',
-            location,
+            location: params.location,
           });
 
           await storeCardBaanxToken({
@@ -157,12 +168,12 @@ const useCardProviderAuthentication =
             refreshToken: exchangeTokenResponse.refreshToken,
             accessTokenExpiresAt: exchangeTokenResponse.expiresIn,
             refreshTokenExpiresAt: exchangeTokenResponse.refreshTokenExpiresIn,
-            location,
+            location: params.location,
           });
 
           setError(null);
           dispatch(setIsAuthenticatedAction(true));
-          dispatch(setUserCardLocation(location));
+          dispatch(setUserCardLocation(params.location));
 
           return loginResponse;
         } catch (err) {
@@ -174,7 +185,7 @@ const useCardProviderAuthentication =
           setLoading(false);
         }
       },
-      [sdk, dispatch, location],
+      [sdk, dispatch],
     );
 
     return useMemo(

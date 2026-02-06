@@ -24,12 +24,12 @@ import { useTheme } from '../../../../../util/theme';
 import useCardProviderAuthentication from '../../hooks/useCardProviderAuthentication';
 import { CardAuthenticationSelectors } from './CardAuthentication.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
+import { CardLocation } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import {
-  selectUserCardLocation,
   setOnboardingId,
   setUserCardLocation,
 } from '../../../../../core/redux/slices/card';
@@ -53,7 +53,7 @@ const CardAuthentication = () => {
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
-  const location = useSelector(selectUserCardLocation);
+  const [location, setLocation] = useState<CardLocation>('international');
   const [otpData, setOtpData] = useState<{
     userId: string;
     maskedPhoneNumber?: string;
@@ -116,6 +116,7 @@ const CardAuthentication = () => {
         try {
           await sendOtpLogin({
             userId: otpData.userId,
+            location,
           });
           // Reset countdown when OTP is sent
           setResendCooldown(60);
@@ -126,7 +127,7 @@ const CardAuthentication = () => {
 
       sendOtp();
     }
-  }, [step, otpData?.userId, sendOtpLogin]);
+  }, [step, otpData?.userId, sendOtpLogin, location]);
 
   // Cooldown timer effect
   useEffect(() => {
@@ -172,6 +173,7 @@ const CardAuthentication = () => {
       try {
         setLoading(true);
         const loginResponse = await login({
+          location,
           email,
           password,
           ...(otpCode ? { otpCode } : {}),
@@ -188,6 +190,7 @@ const CardAuthentication = () => {
         }
 
         if (loginResponse?.phase) {
+          dispatch(setUserCardLocation(location));
           dispatch(setOnboardingId(loginResponse.userId));
           navigation.reset({
             index: 0,
@@ -214,6 +217,7 @@ const CardAuthentication = () => {
     },
     [
       email,
+      location,
       login,
       password,
       step,
@@ -249,12 +253,13 @@ const CardAuthentication = () => {
     try {
       await sendOtpLogin({
         userId: otpData.userId,
+        location,
       });
       setResendCooldown(60);
     } catch (err) {
       Logger.log('CardAuthentication::Resend OTP failed', err);
     }
-  }, [resendCooldown, otpData?.userId, sendOtpLogin, otpLoading]);
+  }, [resendCooldown, otpData?.userId, sendOtpLogin, location, otpLoading]);
 
   const handleBackToLogin = useCallback(() => {
     setStep('login');
@@ -362,7 +367,7 @@ const CardAuthentication = () => {
         <>
           <Box twClassName="flex-row justify-between gap-2">
             <TouchableOpacity
-              onPress={() => dispatch(setUserCardLocation('international'))}
+              onPress={() => setLocation('international')}
               style={tw.style(
                 `flex flex-col items-center justify-center flex-1 bg-background-muted rounded-lg ${location === 'international' ? 'border border-text-default' : ''}`,
               )}
@@ -381,7 +386,7 @@ const CardAuthentication = () => {
               </Box>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => dispatch(setUserCardLocation('us'))}
+              onPress={() => setLocation('us')}
               style={tw.style(
                 `flex flex-col items-center justify-center flex-1 bg-background-muted rounded-lg ${location === 'us' ? 'border border-text-default' : ''}`,
               )}
@@ -460,6 +465,7 @@ const CardAuthentication = () => {
       handlePasswordChange,
       handleResendOtp,
       isPasswordVisible,
+      location,
       otpError,
       otpLoading,
       password,
@@ -467,8 +473,6 @@ const CardAuthentication = () => {
       resendCooldown,
       step,
       tw,
-      dispatch,
-      location,
     ],
   );
   const actions = useMemo(

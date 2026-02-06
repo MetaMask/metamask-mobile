@@ -27,10 +27,6 @@ jest.mock('../../../Trending/services/TrendingFeedSessionManager', () => ({
   },
 }));
 
-jest.mock('../../contexts', () => ({
-  usePredictEntryPoint: () => undefined,
-}));
-
 jest.mock('../PredictSportScoreboard/PredictSportScoreboard', () => {
   const { View, Text } = jest.requireActual('react-native');
   return {

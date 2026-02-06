@@ -150,9 +150,6 @@ jest.mock('@metamask/design-system-react-native', () => {
     BoxAlignItems: {
       Center: 'center',
     },
-    BoxJustifyContent: {
-      Between: 'space-between',
-    },
     ButtonSize: {
       Sm: 'sm',
       Md: 'md',
@@ -610,21 +607,20 @@ describe('PerpsMarketBalanceActions', () => {
       });
 
       // Act
-      const { getByText, getByTestId } = renderWithProvider(
+      const { getByText, getByTestId, queryByTestId } = renderWithProvider(
         <PerpsMarketBalanceActions />,
         { state: createMockState() },
         false, // Disable NavigationContainer
       );
 
-      // Assert - Should show empty state UI: $0.00 balance and Add Funds button
+      // Assert - Should show empty state UI instead of balance display
       expect(
-        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE),
-      ).toBeOnTheScreen();
-      expect(getByText('$0.00')).toBeOnTheScreen();
-      expect(
-        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON),
+        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.EMPTY_STATE_TITLE),
       ).toBeOnTheScreen();
       expect(getByText('perps.add_funds')).toBeOnTheScreen();
+      expect(
+        queryByTestId(PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE),
+      ).toBeNull();
     });
   });
 

@@ -2,7 +2,6 @@ import { AccountService } from './AccountService';
 import {
   createMockServiceContext,
   createMockInfrastructure,
-  createMockMessenger,
 } from '../../__mocks__/serviceMocks';
 import { createMockHyperLiquidProvider } from '../../__mocks__/providerMocks';
 import type { ServiceContext } from './ServiceContext';
@@ -13,20 +12,17 @@ import {
   type WithdrawResult,
   type PerpsPlatformDependencies,
 } from '../types';
-import type {
-  PerpsControllerState,
-  PerpsControllerMessenger,
-} from '../PerpsController';
+import type { PerpsControllerState } from '../PerpsController';
 
 jest.mock('uuid', () => ({ v4: () => 'mock-withdrawal-trace-id' }));
 jest.mock('../../constants/eventNames', () => ({
-  PERPS_EVENT_PROPERTY: {
+  PerpsEventProperties: {
     STATUS: 'status',
     WITHDRAWAL_AMOUNT: 'withdrawal_amount',
     COMPLETION_DURATION: 'completion_duration',
     ERROR_MESSAGE: 'error_message',
   },
-  PERPS_EVENT_VALUE: {
+  PerpsEventValues: {
     STATUS: {
       EXECUTED: 'executed',
       FAILED: 'failed',
@@ -49,7 +45,6 @@ describe('AccountService', () => {
   let mockContext: ServiceContext;
   let mockRefreshAccountState: jest.Mock;
   let mockDeps: PerpsPlatformDependencies;
-  let mockMessenger: jest.Mocked<PerpsControllerMessenger>;
   let accountService: AccountService;
 
   const mockWithdrawParams: WithdrawParams = {
@@ -68,8 +63,7 @@ describe('AccountService', () => {
 
     // Create mock dependencies and service instance
     mockDeps = createMockInfrastructure();
-    mockMessenger = createMockMessenger();
-    accountService = new AccountService(mockDeps, mockMessenger);
+    accountService = new AccountService(mockDeps);
 
     jest.clearAllMocks();
 

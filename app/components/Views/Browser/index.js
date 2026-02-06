@@ -16,6 +16,7 @@ import { strings } from '../../../../locales/i18n';
 import { selectPermissionControllerState } from '../../../selectors/snaps';
 import { BrowserViewSelectorsIDs } from '../BrowserTab/BrowserView.testIds';
 import {
+  closeAllTabs,
   closeTab,
   createNewTab,
   setActiveTab,
@@ -43,8 +44,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
 import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
-import { IDLE_TIME_CALC_INTERVAL, IDLE_TIME_MAX } from './constants';
-import { THUMB_WIDTH, THUMB_HEIGHT } from '../../UI/Tabs/Tabs.constants';
+import {
+  THUMB_WIDTH,
+  THUMB_HEIGHT,
+  IDLE_TIME_CALC_INTERVAL,
+  IDLE_TIME_MAX,
+} from './constants';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
 import Routes from '../../../constants/navigation/Routes';
@@ -63,6 +68,7 @@ export const BrowserPure = (props) => {
     route,
     navigation,
     createNewTab,
+    closeAllTabs: triggerCloseAllTabs,
     closeTab: triggerCloseTab,
     setActiveTab,
     updateTab,
@@ -107,18 +113,17 @@ export const BrowserPure = (props) => {
           });
           setCurrentUrl(url);
           setShouldShowTabs(false);
-          return true; // Tab was updated successfully
+        } else {
+          // If replaceActiveIfMax is false or no URL was provided, show the max browser tabs modal
+          navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
         }
-        // If replaceActiveIfMax is false or no URL was provided, show the max browser tabs modal
-        navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
-        return false; // No tab was created, modal shown instead
+      } else {
+        const newTabUrl = isTokenDiscoveryBrowserEnabled()
+          ? undefined
+          : url || homePageUrl();
+        // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
+        createNewTab(newTabUrl, linkType);
       }
-      const newTabUrl = isTokenDiscoveryBrowserEnabled()
-        ? undefined
-        : url || homePageUrl();
-      // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
-      createNewTab(newTabUrl, linkType);
-      return true; // Tab was created successfully
     },
     [
       tabs,
@@ -393,6 +398,13 @@ export const BrowserPure = (props) => {
     setShouldShowTabs(true);
   }, [activeTabUrl, activeTabId, takeScreenshot]);
 
+  const closeAllTabs = useCallback(() => {
+    if (tabs.length) {
+      triggerCloseAllTabs();
+      setCurrentUrl(null);
+    }
+  }, [tabs, triggerCloseAllTabs, setCurrentUrl]);
+
   const closeTab = useCallback(
     (tab) => {
       // If the tab was selected we have to select
@@ -422,19 +434,11 @@ export const BrowserPure = (props) => {
 
   const closeTabsView = useCallback(() => {
     setShouldShowTabs(false);
-
-    // Check if the active tab still exists in the tabs list
-    const activeTabExists = tabs.some((tab) => tab.id === activeTabId);
-
-    // Navigate to Explore if:
-    // 1. No tabs exist, OR
-    // 2. Active tab was closed (activeTabId not in tabs)
-    if (tabs.length === 0 || !activeTabExists) {
-      navigation.navigate(Routes.TRENDING_VIEW, {
-        screen: Routes.TRENDING_FEED,
-      });
+    // If no tabs left, navigate away from browser
+    if (tabs.length === 0) {
+      navigation.goBack();
     }
-  }, [tabs, activeTabId, setShouldShowTabs, navigation]);
+  }, [tabs, setShouldShowTabs, navigation]);
 
   const renderTabList = useCallback(() => {
     if (shouldShowTabs) {
@@ -446,6 +450,7 @@ export const BrowserPure = (props) => {
           newTab={newTab}
           closeTab={closeTab}
           closeTabsView={closeTabsView}
+          closeAllTabs={closeAllTabs}
         />
       );
     }
@@ -458,6 +463,7 @@ export const BrowserPure = (props) => {
     newTab,
     closeTab,
     closeTabsView,
+    closeAllTabs,
   ]);
 
   const renderBrowserTabWindows = useCallback(
@@ -528,6 +534,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
   createNewTab: (url, linkType) => dispatch(createNewTab(url, linkType)),
+  closeAllTabs: () => dispatch(closeAllTabs()),
   closeTab: (id) => dispatch(closeTab(id)),
   setActiveTab: (id) => dispatch(setActiveTab(id)),
   updateTab: (id, url) => dispatch(updateTab(id, url)),
@@ -542,6 +549,10 @@ BrowserPure.propTypes = {
    * Function to create a new tab
    */
   createNewTab: PropTypes.func,
+  /**
+   * Function to close all the existing tabs
+   */
+  closeAllTabs: PropTypes.func,
   /**
    * Function to close a specific tab
    */

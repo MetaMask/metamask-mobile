@@ -27,8 +27,6 @@ import {
   NavigationProp,
   ParamListBase,
   useNavigation,
-  useRoute,
-  RouteProp,
 } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
 import { View, ActivityIndicator, Alert } from 'react-native';
@@ -115,19 +113,7 @@ const OnboardingNavigator: React.FC = () => {
   const { user, isLoading, fetchUserData, isReturningSession } = useCardSDK();
   const [isMounted, setIsMounted] = useState(false);
   const navigation = useNavigation();
-  const route =
-    useRoute<
-      RouteProp<
-        { OnboardingNavigator: { screen?: string } },
-        'OnboardingNavigator'
-      >
-    >();
   const hasShownKeepGoingModal = useRef(false);
-
-  // Check if deeplink is navigating directly to Complete screen
-  const isDeeplinkToComplete =
-    route.params?.screen === Routes.CARD.ONBOARDING.COMPLETE;
-
   // Fetch fresh user data on mount if user data is missing
   // This ensures we always have the most up-to-date onboarding information
   // when the navigator is accessed
@@ -226,15 +212,13 @@ const OnboardingNavigator: React.FC = () => {
   // Show "keep going" modal only when a returning user resumes an incomplete flow
   // isReturningSession is determined at CardSDKProvider mount (when card flow starts),
   // not when this navigator mounts, so it correctly identifies returning users
-  // Skip when deeplink navigates directly to Complete screen (e.g., KYC notification)
   useEffect(() => {
     if (
       isReturningSession &&
       initialRouteName !== Routes.CARD.ONBOARDING.SIGN_UP &&
       initialRouteName !== Routes.CARD.ONBOARDING.COMPLETE &&
       !hasShownKeepGoingModal.current &&
-      user?.verificationState !== 'REJECTED' &&
-      !isDeeplinkToComplete
+      user?.verificationState !== 'REJECTED'
     ) {
       hasShownKeepGoingModal.current = true;
       navigation.navigate(Routes.CARD.MODALS.ID, {
@@ -257,7 +241,6 @@ const OnboardingNavigator: React.FC = () => {
     initialRouteName,
     navigation,
     user?.verificationState,
-    isDeeplinkToComplete,
   ]);
 
   if (isLoading && !user) {

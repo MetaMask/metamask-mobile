@@ -10,10 +10,12 @@ import {
 import { RefreshControl, View } from 'react-native';
 import type { TabRefreshHandle } from '../../../../Views/Wallet/types';
 import { useSelector } from 'react-redux';
-import {
-  PredictHomePositions,
-  PredictHomePositionsHandle,
-} from '../../components/PredictHome';
+import PredictPositionsHeader, {
+  PredictPositionsHeaderHandle,
+} from '../../components/PredictPositionsHeader';
+import PredictPositions, {
+  PredictPositionsHandle,
+} from '../../components/PredictPositions/PredictPositions';
 import PredictAddFundsSheet from '../../components/PredictAddFundsSheet/PredictAddFundsSheet';
 import PredictOffline from '../../components/PredictOffline';
 import { usePredictDepositToasts } from '../../hooks/usePredictDepositToasts';
@@ -33,9 +35,12 @@ const PredictTabView = forwardRef<TabRefreshHandle, PredictTabViewProps>(
   ({ isVisible }, ref) => {
     const tw = useTailwind();
     const [isRefreshing, setIsRefreshing] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [positionsError, setPositionsError] = useState<string | null>(null);
+    const [headerError, setHeaderError] = useState<string | null>(null);
 
-    const homePositionsRef = useRef<PredictHomePositionsHandle>(null);
+    const predictPositionsRef = useRef<PredictPositionsHandle>(null);
+    const predictPositionsHeaderRef =
+      useRef<PredictPositionsHeaderHandle>(null);
 
     const isHomepageRedesignV1Enabled = useSelector(
       selectHomepageRedesignV1Enabled,
@@ -45,20 +50,37 @@ const PredictTabView = forwardRef<TabRefreshHandle, PredictTabViewProps>(
     usePredictClaimToasts();
     usePredictWithdrawToasts();
 
+    const hasError = Boolean(positionsError || headerError);
+
+    // Track positions tab load performance
     usePredictMeasurement({
       traceName: TraceName.PredictTabView,
-      conditions: [!error, !isRefreshing, isVisible === true],
+      conditions: [
+        !positionsError,
+        !headerError,
+        !isRefreshing,
+        isVisible === true,
+      ],
       debugContext: {
-        hasErrors: !!error,
+        hasErrors: !!(positionsError || headerError),
+        errorStates: {
+          positionsError: !!positionsError,
+          headerError: !!headerError,
+        },
         isRefreshing,
       },
     });
 
     const handleRefresh = useCallback(async () => {
       setIsRefreshing(true);
-      setError(null);
+      // Clear errors before refreshing
+      setPositionsError(null);
+      setHeaderError(null);
       try {
-        await homePositionsRef.current?.refresh();
+        await Promise.all([
+          predictPositionsRef.current?.refresh(),
+          predictPositionsHeaderRef.current?.refresh(),
+        ]);
       } finally {
         setIsRefreshing(false);
       }
@@ -68,16 +90,24 @@ const PredictTabView = forwardRef<TabRefreshHandle, PredictTabViewProps>(
       refresh: handleRefresh,
     }));
 
-    const handleError = useCallback((err: string | null) => {
-      setError(err);
+    const handlePositionsError = useCallback((error: string | null) => {
+      setPositionsError(error);
+    }, []);
+
+    const handleHeaderError = useCallback((error: string | null) => {
+      setHeaderError(error);
     }, []);
 
     const content = (
       <>
-        <PredictHomePositions
-          ref={homePositionsRef}
+        <PredictPositionsHeader
+          ref={predictPositionsHeaderRef}
+          onError={handleHeaderError}
+        />
+        <PredictPositions
+          ref={predictPositionsRef}
+          onError={handlePositionsError}
           isVisible={isVisible}
-          onError={handleError}
         />
         <PredictAddFundsSheet />
       </>
@@ -94,7 +124,7 @@ const PredictTabView = forwardRef<TabRefreshHandle, PredictTabViewProps>(
             : undefined
         }
       >
-        {error ? (
+        {hasError ? (
           <PredictOffline onRetry={handleRefresh} />
         ) : (
           <ConditionalScrollView

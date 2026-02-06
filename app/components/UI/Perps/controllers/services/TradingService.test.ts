@@ -53,6 +53,8 @@ describe('TradingService', () => {
     };
     // Set controller dependencies for fee discount calculation
     tradingService.setControllerDependencies({
+      controllers: mockDeps.controllers,
+      messenger: {} as never,
       rewardsIntegrationService: mockRewardsIntegrationService as never,
     });
     mockProvider =

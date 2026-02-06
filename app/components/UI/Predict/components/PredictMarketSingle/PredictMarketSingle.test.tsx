@@ -55,11 +55,6 @@ jest.mock('../../../Trending/services/TrendingFeedSessionManager', () => ({
   },
 }));
 
-// Mock PredictEntryPointContext
-jest.mock('../../contexts', () => ({
-  usePredictEntryPoint: () => undefined,
-}));
-
 // Mock hooks
 const mockPlaceBuyOrder = jest.fn();
 

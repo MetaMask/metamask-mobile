@@ -7,7 +7,10 @@ import Assertions from '../../../framework/Assertions';
 import TokenOverview from '../../../../e2e/pages/wallet/TokenOverview';
 import NetworkManager from '../../../../e2e/pages/wallet/NetworkManager';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureFlagTronAccounts } from '../../../api-mocking/mock-responses/feature-flags-mocks.ts';
+import {
+  remoteFeatureFlagTronAccounts,
+  remoteFeatureMultichainAccountsAccountDetailsV2,
+} from '../../../api-mocking/mock-responses/feature-flags-mocks.ts';
 
 const ETHEREUM_NAME = 'Ethereum';
 const AVAX_NAME = 'AVAX';
@@ -101,6 +104,7 @@ describe(RegressionAssets('Asset list - '), () => {
         testSpecificMock: async (mockServer) => {
           await setupRemoteFeatureFlagsMock(mockServer, {
             ...remoteFeatureFlagTronAccounts(true),
+            ...remoteFeatureMultichainAccountsAccountDetailsV2(true),
           });
         },
       },
@@ -130,6 +134,11 @@ describe(RegressionAssets('Asset list - '), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
+        testSpecificMock: async (mockServer) => {
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureMultichainAccountsAccountDetailsV2(true),
+          });
+        },
       },
       async () => {
         await loginToApp();

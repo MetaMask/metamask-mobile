@@ -3,7 +3,7 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
 import { useRampsCountries } from './useRampsCountries';
-import { type Country } from '@metamask/ramps-controller';
+import { RequestStatus, type Country } from '@metamask/ramps-controller';
 
 const mockCountries: Country[] = [
   {
@@ -32,19 +32,19 @@ const mockCountries: Country[] = [
   },
 ];
 
-const createMockStore = (countriesState = {}) =>
+const createMockStore = (rampsControllerState = {}) =>
   configureStore({
     reducer: {
       engine: () => ({
         backgroundState: {
           RampsController: {
-            countries: {
-              data: [],
-              selected: null,
-              isLoading: false,
-              error: null,
-              ...countriesState,
-            },
+            userRegion: null,
+            selectedProvider: null,
+            providers: [],
+            tokens: null,
+            countries: [],
+            requests: {},
+            ...rampsControllerState,
           },
         },
       }),
@@ -77,7 +77,7 @@ describe('useRampsCountries', () => {
 
   describe('countries state', () => {
     it('returns countries from state', () => {
-      const store = createMockStore({ data: mockCountries });
+      const store = createMockStore({ countries: mockCountries });
       const { result } = renderHook(() => useRampsCountries(), {
         wrapper: wrapper(store),
       });
@@ -94,9 +94,17 @@ describe('useRampsCountries', () => {
   });
 
   describe('loading state', () => {
-    it('returns isLoading true when isLoading is true', () => {
+    it('returns isLoading true when request is loading', () => {
       const store = createMockStore({
-        isLoading: true,
+        requests: {
+          'getCountries:[]': {
+            status: RequestStatus.LOADING,
+            data: null,
+            error: null,
+            timestamp: Date.now(),
+            lastFetchedAt: Date.now(),
+          },
+        },
       });
       const { result } = renderHook(() => useRampsCountries(), {
         wrapper: wrapper(store),
@@ -104,7 +112,7 @@ describe('useRampsCountries', () => {
       expect(result.current.isLoading).toBe(true);
     });
 
-    it('returns isLoading false when isLoading is false', () => {
+    it('returns isLoading false when request is not loading', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsCountries(), {
         wrapper: wrapper(store),
@@ -114,9 +122,17 @@ describe('useRampsCountries', () => {
   });
 
   describe('error state', () => {
-    it('returns error from state', () => {
+    it('returns error from request state', () => {
       const store = createMockStore({
-        error: 'Network error',
+        requests: {
+          'getCountries:[]': {
+            status: RequestStatus.ERROR,
+            data: null,
+            error: 'Network error',
+            timestamp: Date.now(),
+            lastFetchedAt: Date.now(),
+          },
+        },
       });
       const { result } = renderHook(() => useRampsCountries(), {
         wrapper: wrapper(store),

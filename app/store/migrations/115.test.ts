@@ -20,6 +20,7 @@ const mockCaptureException = captureException as jest.MockedFunction<
 describe(`Migration ${migrationVersion}`, () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default implementation: use the actual hasProperty function
     mockHasProperty.mockImplementation(
       jest.requireActual('@metamask/utils').hasProperty,
     );
@@ -126,16 +127,20 @@ describe(`Migration ${migrationVersion}`, () => {
 
     const actualHasProperty = jest.requireActual('@metamask/utils').hasProperty;
 
+    // Allow the first two calls (in ensureValidState) to succeed,
+    // then throw on the third call (first call in the try block)
     mockHasProperty
-      .mockImplementationOnce(actualHasProperty)
-      .mockImplementationOnce(actualHasProperty)
+      .mockImplementationOnce(actualHasProperty) // ensureValidState: check for 'engine'
+      .mockImplementationOnce(actualHasProperty) // ensureValidState: check for 'backgroundState'
       .mockImplementationOnce(() => {
         throw new Error('Test error');
       });
 
     const result = migrate(state);
 
+    // State should be returned unchanged (migration catches the error)
     expect(result).toStrictEqual(state);
+    // Verify the error was captured
     expect(mockCaptureException).toHaveBeenCalledWith(
       expect.objectContaining({
         message: expect.stringContaining('Migration 115 failed'),
