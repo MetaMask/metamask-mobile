@@ -301,9 +301,13 @@ export class MYXClientService {
   async ping(timeoutMs = 5000): Promise<void> {
     this.deps.debugLogger.log('[MYXClientService] Ping - checking REST health');
 
-    const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('MYX ping timeout')), timeoutMs),
-    );
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(
+        () => reject(new Error('MYX ping timeout')),
+        timeoutMs,
+      );
+    });
 
     try {
       await Promise.race([
@@ -319,6 +323,8 @@ export class MYXClientService {
         error: err.message,
       });
       throw err;
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 

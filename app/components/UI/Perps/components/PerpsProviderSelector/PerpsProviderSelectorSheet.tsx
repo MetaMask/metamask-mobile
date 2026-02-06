@@ -16,10 +16,8 @@ import BottomSheet, {
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { strings } from '../../../../../../locales/i18n';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
-import {
-  PROVIDER_DISPLAY_INFO,
-  type PerpsProviderSelectorSheetProps,
-} from './PerpsProviderSelector.types';
+import type { PerpsProviderSelectorSheetProps } from './PerpsProviderSelector.types';
+import { PROVIDER_DISPLAY_INFO } from './PerpsProviderSelector.constants';
 import { styleSheet } from './PerpsProviderSelector.styles';
 import type { PerpsProviderType } from '../../controllers/types';
 

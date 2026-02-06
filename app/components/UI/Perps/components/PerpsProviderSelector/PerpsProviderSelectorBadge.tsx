@@ -13,10 +13,8 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
-import {
-  PROVIDER_DISPLAY_INFO,
-  type PerpsProviderSelectorBadgeProps,
-} from './PerpsProviderSelector.types';
+import type { PerpsProviderSelectorBadgeProps } from './PerpsProviderSelector.types';
+import { PROVIDER_DISPLAY_INFO } from './PerpsProviderSelector.constants';
 import { styleSheet } from './PerpsProviderSelector.styles';
 
 /**
@@ -38,12 +36,9 @@ const PerpsProviderSelectorBadge: React.FC<PerpsProviderSelectorBadgeProps> = ({
   const { activeProvider, isMultiProviderEnabled } = usePerpsProvider();
 
   const handlePress = useCallback(() => {
-    navigation.navigate(
-      Routes.PERPS.MODALS.ROOT as never,
-      {
-        screen: Routes.PERPS.MODALS.SELECT_PROVIDER,
-      } as never,
-    );
+    navigation.navigate(Routes.PERPS.MODALS.ROOT, {
+      screen: Routes.PERPS.MODALS.SELECT_PROVIDER,
+    });
   }, [navigation]);
 
   // Don't render if only one provider available

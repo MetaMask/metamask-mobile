@@ -112,10 +112,8 @@ export class MYXProvider implements PerpsProvider {
   // Configuration
   private isTestnet: boolean;
 
-  // Cache for pools
+  // Cache for pools (freshness delegated to MYXClientService)
   private poolsCache: MYXPoolSymbol[] = [];
-  private poolsCacheTimestamp = 0;
-  private readonly POOLS_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
   private poolSymbolMap: Map<string, string> = new Map();
 
   // Ticker cache for price data
@@ -209,7 +207,6 @@ export class MYXProvider implements PerpsProvider {
       this.clientService.disconnect();
       this.isInitialized = false;
       this.poolsCache = [];
-      this.poolsCacheTimestamp = 0;
       this.poolSymbolMap.clear();
       this.tickersCache.clear();
       this.priceCallback = undefined;
@@ -251,20 +248,9 @@ export class MYXProvider implements PerpsProvider {
 
   async getMarkets(_params?: GetMarketsParams): Promise<MarketInfo[]> {
     try {
-      const now = Date.now();
-      const cacheValid =
-        this.poolsCache.length > 0 &&
-        now - this.poolsCacheTimestamp < this.POOLS_CACHE_TTL_MS;
-
-      // Return cached pools if available and not expired
-      if (cacheValid) {
-        return this.poolsCache.map((pool) => adaptMarketFromMYX(pool));
-      }
-
-      // Fetch fresh data
+      // Delegate cache freshness to MYXClientService
       const pools = await this.clientService.getMarkets();
       this.poolsCache = filterMYXExclusiveMarkets(pools);
-      this.poolsCacheTimestamp = now;
       this.poolSymbolMap = buildPoolSymbolMap(this.poolsCache);
 
       return this.poolsCache.map((pool) => adaptMarketFromMYX(pool));

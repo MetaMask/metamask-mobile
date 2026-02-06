@@ -5,4 +5,4 @@ export type {
   PerpsProviderSelectorSheetProps,
   ProviderDisplayInfo,
 } from './PerpsProviderSelector.types';
-export { PROVIDER_DISPLAY_INFO } from './PerpsProviderSelector.types';
+export { PROVIDER_DISPLAY_INFO } from './PerpsProviderSelector.constants';
