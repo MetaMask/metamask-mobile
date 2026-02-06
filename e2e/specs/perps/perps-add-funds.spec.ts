@@ -1,7 +1,7 @@
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { LocalNodeType, TestSuiteParams } from '../../../tests/framework/types';
-import { Hardfork } from '../../seeder/anvil-manager';
+import { Hardfork } from '../../../tests/seeder/anvil-manager';
 import { SmokePerps } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import { PERPS_ARBITRUM_MOCKS } from '../../../tests/api-mocking/mock-responses/perps-arbitrum-mocks';

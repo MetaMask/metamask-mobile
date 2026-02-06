@@ -5,7 +5,7 @@ import {
   createMockInfrastructure,
 } from '../../__mocks__/serviceMocks';
 import type { ServiceContext } from './ServiceContext';
-import type { IPerpsPlatformDependencies } from '../types';
+import type { PerpsPlatformDependencies } from '../types';
 
 jest.mock('uuid', () => ({ v4: () => 'mock-trace-id' }));
 
@@ -17,7 +17,7 @@ global.setTimeout = jest.fn((fn: () => void) => {
 
 describe('DataLakeService', () => {
   let mockContext: ServiceContext;
-  let mockDeps: jest.Mocked<IPerpsPlatformDependencies>;
+  let mockDeps: jest.Mocked<PerpsPlatformDependencies>;
   let dataLakeService: DataLakeService;
   const mockEvmAccount = createMockEvmAccount();
   const mockToken = 'mock-bearer-token';
@@ -28,9 +28,6 @@ describe('DataLakeService', () => {
 
     mockContext = createMockServiceContext({
       errorContext: { controller: 'DataLakeService', method: 'test' },
-      messenger: {
-        call: jest.fn().mockResolvedValue(mockToken),
-      } as never,
       tracingContext: {
         provider: 'hyperliquid',
         isTestnet: false,
@@ -40,6 +37,9 @@ describe('DataLakeService', () => {
     (
       mockDeps.controllers.accounts.getSelectedEvmAccount as jest.Mock
     ).mockReturnValue(mockEvmAccount);
+    (
+      mockDeps.controllers.authentication.getBearerToken as jest.Mock
+    ).mockResolvedValue(mockToken);
     jest.clearAllMocks();
   });
 
@@ -81,9 +81,9 @@ describe('DataLakeService', () => {
       });
 
       expect(result).toEqual({ success: true });
-      expect(mockContext.messenger?.call).toHaveBeenCalledWith(
-        'AuthenticationController:getBearerToken',
-      );
+      expect(
+        mockDeps.controllers.authentication.getBearerToken,
+      ).toHaveBeenCalled();
       expect(fetch).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
@@ -158,18 +158,15 @@ describe('DataLakeService', () => {
     });
 
     it('returns error when token is missing', async () => {
-      const contextWithoutToken = {
-        ...mockContext,
-        messenger: {
-          call: jest.fn().mockResolvedValue(null),
-        } as never,
-      };
+      (
+        mockDeps.controllers.authentication.getBearerToken as jest.Mock
+      ).mockResolvedValue(null);
 
       const result = await dataLakeService.reportOrder({
         action: 'open',
         symbol: 'BTC',
         isTestnet: false,
-        context: contextWithoutToken,
+        context: mockContext,
       });
 
       expect(result).toEqual({
@@ -177,26 +174,6 @@ describe('DataLakeService', () => {
         error: 'No account or token available',
       });
       expect(fetch).not.toHaveBeenCalled();
-    });
-
-    it('returns error when messenger is not available', async () => {
-      const contextWithoutMessenger = createMockServiceContext({
-        errorContext: { controller: 'DataLakeService', method: 'test' },
-        messenger: undefined,
-      });
-
-      const result = await dataLakeService.reportOrder({
-        action: 'open',
-        symbol: 'BTC',
-        isTestnet: false,
-        context: contextWithoutMessenger,
-      });
-
-      expect(result).toEqual({
-        success: false,
-        error: 'Messenger not available in ServiceContext',
-      });
-      expect(mockDeps.logger.error).toHaveBeenCalled();
     });
 
     it('retries on network error with exponential backoff', async () => {

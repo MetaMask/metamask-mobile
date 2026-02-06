@@ -116,7 +116,7 @@ describe('PerpsFillTag', () => {
     fireEvent.press(getByText('Auto-deleveraging'));
 
     expect(Linking.openURL).toHaveBeenCalledWith(
-      PERPS_SUPPORT_ARTICLES_URLS.ADL_URL,
+      PERPS_SUPPORT_ARTICLES_URLS.AdlUrl,
     );
   });
 

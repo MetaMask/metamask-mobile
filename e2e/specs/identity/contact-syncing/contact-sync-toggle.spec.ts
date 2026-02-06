@@ -89,7 +89,7 @@ describe(SmokeIdentity('Contacts syncing - Settings'), () => {
         await Assertions.expectElementToBeVisible(ContactsView.container);
         await ContactsView.expectContactIsVisible(TEST_CONTACT_NAME);
         await CommonView.tapBackButton();
-        await SettingsView.tapCloseButton();
+        await SettingsView.tapBackButton();
 
         // Disable contact syncing
         await TabBarComponent.tapSettings();
@@ -110,7 +110,7 @@ describe(SmokeIdentity('Contacts syncing - Settings'), () => {
         );
 
         await CommonView.tapBackButton();
-        await SettingsView.tapCloseButton();
+        await SettingsView.tapBackButton();
 
         // Add second contact while sync is disabled
         await TabBarComponent.tapSettings();

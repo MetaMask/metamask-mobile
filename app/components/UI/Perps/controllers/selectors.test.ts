@@ -254,8 +254,8 @@ describe('PerpsController selectors', () => {
       const result = selectMarketFilterPreferences(state);
 
       expect(result).toEqual({
-        optionId: MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
-        direction: MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+        optionId: MARKET_SORTING_CONFIG.DefaultSortOptionId,
+        direction: MARKET_SORTING_CONFIG.DefaultDirection,
       });
     });
 
@@ -268,7 +268,7 @@ describe('PerpsController selectors', () => {
 
       expect(result).toEqual({
         optionId: 'priceChange',
-        direction: MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+        direction: MARKET_SORTING_CONFIG.DefaultDirection,
       });
     });
 
@@ -307,7 +307,7 @@ describe('PerpsController selectors', () => {
 
       expect(result).toEqual({
         optionId: 'volume',
-        direction: MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+        direction: MARKET_SORTING_CONFIG.DefaultDirection,
       });
     });
   });

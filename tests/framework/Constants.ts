@@ -1,7 +1,7 @@
 /* eslint-disable import/no-nodejs-modules */
 import path from 'path';
 import { GanacheHardfork } from './types.ts';
-import { DEFAULT_ANVIL_PORT } from '../../e2e/seeder/anvil-manager.ts';
+import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager.ts';
 
 // The RPC URL for the local node
 // This should be used in fixtures where a url is needed.

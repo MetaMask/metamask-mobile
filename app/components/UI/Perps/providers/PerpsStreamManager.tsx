@@ -445,7 +445,7 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
     if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
       setTimeout(
         () => this.connect(),
-        PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS,
+        PERPS_CONSTANTS.ReconnectionCleanupDelayMs,
       );
       return;
     }
@@ -482,7 +482,7 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
 
           // Log WebSocket performance measurement
           DevLogger.log(
-            `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsWS: First order data received`,
+            `${PERFORMANCE_CONFIG.LoggingMarkers.WebsocketPerformance} PerpsWS: First order data received`,
             {
               duration: `${firstDataDuration.toFixed(0)}ms`,
             },
@@ -580,7 +580,7 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
     if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
       setTimeout(
         () => this.connect(),
-        PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS,
+        PERPS_CONSTANTS.ReconnectionCleanupDelayMs,
       );
       return;
     }
@@ -620,9 +620,9 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
 
           // Log WebSocket performance measurement
           DevLogger.log(
-            `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsWS: First position data received`,
+            `${PERFORMANCE_CONFIG.LoggingMarkers.WebsocketPerformance} PerpsWS: First position data received`,
             {
-              metric: PerpsMeasurementName.PERPS_WEBSOCKET_FIRST_POSITION_DATA,
+              metric: PerpsMeasurementName.PerpsWebsocketFirstPositionData,
               duration: `${firstDataDuration.toFixed(0)}ms`,
             },
           );
@@ -846,7 +846,7 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
     if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
       setTimeout(
         () => this.connect(),
-        PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS,
+        PERPS_CONSTANTS.ReconnectionCleanupDelayMs,
       );
       return;
     }
@@ -886,7 +886,7 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
 
           // Log WebSocket performance measurement
           DevLogger.log(
-            `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsWS: First account data received`,
+            `${PERFORMANCE_CONFIG.LoggingMarkers.WebsocketPerformance} PerpsWS: First account data received`,
             {
               duration: `${firstDataDuration.toFixed(0)}ms`,
             },
@@ -983,7 +983,7 @@ class OICapStreamChannel extends StreamChannel<string[]> {
     if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
       setTimeout(
         () => this.connect(),
-        PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS,
+        PERPS_CONSTANTS.ReconnectionCleanupDelayMs,
       );
       return;
     }
@@ -1159,7 +1159,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   private lastFetchTime = 0;
   private fetchPromise: Promise<void> | null = null;
   private readonly CACHE_DURATION =
-    PERFORMANCE_CONFIG.MARKET_DATA_CACHE_DURATION_MS;
+    PERFORMANCE_CONFIG.MarketDataCacheDurationMs;
 
   protected connect() {
     // Check if connection manager is still connecting - retry later if so
@@ -1182,7 +1182,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
       // Don't await - just trigger the fetch and handle errors
       this.fetchMarketData().catch((error) => {
         Logger.error(
-          error instanceof Error ? error : new Error(String(error)),
+          ensureError(error, 'PerpsStreamManager.fetchMarketData.background'),
           'PerpsStreamManager: Failed to fetch market data',
         );
       });
@@ -1213,7 +1213,13 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         );
 
         const controller = Engine.context.PerpsController;
-        const provider = controller.getActiveProvider();
+        const provider = controller.getActiveProviderOrNull();
+        if (!provider) {
+          DevLogger.log(
+            'PerpsStreamManager: Provider not ready, skipping fetch',
+          );
+          return;
+        }
         const data = await provider.getMarketDataWithPrices();
         const fetchTime = Date.now() - fetchStartTime;
 
@@ -1233,13 +1239,10 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         });
       } catch (error) {
         const fetchTime = Date.now() - fetchStartTime;
-        Logger.error(
-          error instanceof Error ? error : new Error(String(error)),
-          {
-            context: 'PerpsStreamManager.fetchMarketData',
-            fetchTimeMs: fetchTime,
-          },
-        );
+        Logger.error(ensureError(error, 'PerpsStreamManager.fetchMarketData'), {
+          context: 'PerpsStreamManager.fetchMarketData',
+          fetchTimeMs: fetchTime,
+        });
         // Keep existing cache if fetch fails
         const existing = this.cache.get('markets');
         if (existing) {
@@ -1282,12 +1285,9 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   public prewarm(): () => void {
     // Fetch data immediately to populate cache
     this.fetchMarketData().catch((error) => {
-      Logger.error(
-        ensureError(error, 'PerpsStreamManager.fetchMarketData.background'),
-        {
-          context: 'MarketDataChannel.prewarm',
-        },
-      );
+      Logger.error(error instanceof Error ? error : new Error(String(error)), {
+        context: 'MarketDataChannel.prewarm',
+      });
     });
 
     // No cleanup needed for REST data
@@ -1334,6 +1334,27 @@ export class PerpsStreamManager {
   // Future channels can be added here:
   // public readonly funding = new FundingStreamChannel();
   // public readonly trades = new TradeStreamChannel();
+
+  // UI coordination: Track if a component is actively handling deposit toasts
+  // This prevents duplicate toasts between usePerpsDepositStatus and usePerpsOrderDepositTracking
+  private activeDepositHandler = false;
+
+  /**
+   * Set whether a component is actively handling deposit toasts
+   * Used by PerpsOrderView to prevent duplicate toasts from usePerpsDepositStatus
+   * @param isActive - Whether a component is actively handling deposit toasts
+   */
+  public setActiveDepositHandler(isActive: boolean): void {
+    this.activeDepositHandler = isActive;
+  }
+
+  /**
+   * Check if a component is actively handling deposit toasts
+   * @returns true if a component is actively handling deposit toasts
+   */
+  public hasActiveDepositHandler(): boolean {
+    return this.activeDepositHandler;
+  }
 
   /**
    * Force reconnection of all stream channels after WebSocket reconnection

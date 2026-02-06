@@ -306,23 +306,22 @@ const ImportNewSecretRecoveryPhrase = () => {
             )}
             uniqueId={uniqueId}
             onCurrentWordChange={setCurrentInputWord}
-          />
-        </View>
-        <View style={styles.buttonWrapper}>
-          <Button
-            variant={ButtonVariants.Primary}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label={strings('import_new_secret_recovery_phrase.cta_text')}
-            onPress={onSubmit}
-            isDisabled={
-              isSRPContinueButtonDisabled || Boolean(error) || loading
-            }
-            loading={loading}
-            testID={ImportSRPIDs.IMPORT_BUTTON}
+            autoFocus={false}
           />
         </View>
       </KeyboardAwareScrollView>
+      <View style={styles.fixedBottomContainer}>
+        <Button
+          variant={ButtonVariants.Primary}
+          size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+          label={strings('import_new_secret_recovery_phrase.cta_text')}
+          onPress={onSubmit}
+          isDisabled={isSRPContinueButtonDisabled || loading}
+          loading={loading}
+          testID={ImportSRPIDs.IMPORT_BUTTON}
+        />
+      </View>
       {isSrpWordSuggestionsEnabled && isKeyboardVisible && (
         <KeyboardStickyView
           offset={{ closed: 0, opened: 0 }}

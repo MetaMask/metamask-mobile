@@ -9,6 +9,16 @@ import { AssetType, Nft } from '../../types/token';
 import { useSendContext } from '../../context/send-context';
 import { useEVMNfts } from './useNfts';
 
+/**
+ * Creates an asset with default zero balance from navigation params.
+ * Used when the user navigates to send a token they don't own.
+ */
+const createAssetFromParams = (paramsAsset: AssetType): AssetType => ({
+  ...paramsAsset,
+  balance: paramsAsset.balance ?? '0',
+  rawBalance: paramsAsset.rawBalance ?? '0x0',
+});
+
 export const useRouteParams = () => {
   const assets = useSelector(selectAssetsBySelectedAccountGroup);
   const flatAssets = useMemo(() => Object.values(assets).flat(), [assets]);
@@ -47,6 +57,12 @@ export const useRouteParams = () => {
 
       if (filteredAsset) {
         updateAsset(filteredAsset);
+      } else if (paramsAsset.symbol || paramsAsset.ticker) {
+        // If the asset is not found in the user's owned assets or NFTs,
+        // but has token symbol information (e.g., from trending/discovery),
+        // use the params asset with default zero balance.
+        // This ensures token details are displayed on the Send screen.
+        updateAsset(createAssetFromParams(paramsAsset));
       }
     }
   }, [asset, paramsAsset, nfts, flatAssets, updateAsset]);

@@ -146,6 +146,11 @@ exports[`EarnTokenList render matches snapshot 1`] = `
           }
           testID="header"
         >
+          <View>
+            <View
+              onLayout={[Function]}
+            />
+          </View>
           <View
             style={
               [
@@ -174,6 +179,45 @@ exports[`EarnTokenList render matches snapshot 1`] = `
             >
               Select a token to deposit
             </Text>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            >
+              <TouchableOpacity
+                accessible={true}
+                activeOpacity={1}
+                disabled={false}
+                onPress={[Function]}
+                onPressIn={[Function]}
+                onPressOut={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "borderRadius": 8,
+                    "height": 32,
+                    "justifyContent": "center",
+                    "opacity": 1,
+                    "width": 32,
+                  }
+                }
+                testID="earn-token-list-close-button"
+              >
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={24}
+                  name="Close"
+                  style={
+                    {
+                      "height": 24,
+                      "width": 24,
+                    }
+                  }
+                  width={24}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
         <View

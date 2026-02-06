@@ -84,6 +84,7 @@ jest.mock(
 );
 
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -91,7 +92,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualNav,
     useNavigation: () => ({
       navigate: mockNavigate,
-      goBack: jest.fn(),
+      goBack: mockGoBack,
     }),
     useRoute: () => ({
       params: {
@@ -818,6 +819,31 @@ describe('EarnTokenList', () => {
       // Should not call polling when feature flags are disabled and component doesn't render
       expect(useEarnNetworkPollingSpy).not.toHaveBeenCalled();
     });
+  });
+
+  it('closes the bottom sheet when close button is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <SafeAreaProvider initialMetrics={initialMetrics}>
+        <EarnTokenList />
+      </SafeAreaProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    const closeButton = getByTestId('earn-token-list-close-button');
+
+    expect(closeButton).toBeDefined();
+
+    // Press the close button - this triggers:
+    // 1. handleClose callback
+    // 2. bottomSheetRef.current?.onCloseBottomSheet()
+    // 3. BottomSheet animates closed and calls onCloseCB
+    // 4. onCloseCB calls navigation.goBack() (when shouldNavigateBack is true)
+    fireEvent.press(closeButton);
+
+    // Verify that navigation.goBack() was called, confirming the bottom sheet close flow executed
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   describe('Tron tokens', () => {

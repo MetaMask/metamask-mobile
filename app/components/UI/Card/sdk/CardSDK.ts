@@ -49,9 +49,15 @@ import {
   GetOnboardingConsentResponse,
   CardDetailsTokenRequest,
   CardDetailsTokenResponse,
+  CreateOrderRequest,
+  CreateOrderResponse,
+  GetOrderStatusResponse,
 } from '../types';
 import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
-import { getCardBaanxToken } from '../util/cardTokenVault';
+import {
+  getCardBaanxToken,
+  removeCardBaanxToken,
+} from '../util/cardTokenVault';
 import { CaipChainId } from '@metamask/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { isZeroValue } from '../../../../util/number';
@@ -225,7 +231,7 @@ export class CardSDK {
       tags: {
         feature: 'card',
         operation,
-        errorType: type.toLowerCase().replace(/_/g, '_'),
+        errorType: type.toLowerCase(),
       },
       context: {
         name: this.getContextName(operation),
@@ -839,6 +845,48 @@ export class CardSDK {
 
     const data = await response.json();
     return data as CardLoginResponse;
+  };
+
+  /**
+   * Logs out the user from the Card provider.
+   *
+   * This method always clears the local token, regardless of whether the server
+   * logout succeeds. This ensures users can always log out even if the server
+   * is unreachable or the token is already invalidated server-side.
+   *
+   * @throws {CardError} If the server logout fails (after local cleanup is done)
+   */
+  logout = async (): Promise<void> => {
+    let serverError: Error | null = null;
+
+    try {
+      const response = await this.makeRequest('/v1/auth/logout', {
+        fetchOptions: { method: 'POST' },
+        authenticated: true,
+      });
+
+      if (!response.ok) {
+        serverError = this.logAndCreateError(
+          CardErrorType.SERVER_ERROR,
+          'Failed to logout from server.',
+          'logout',
+          'auth/logout',
+          response.status,
+        );
+      }
+    } catch (error) {
+      Logger.error(error as Error, {
+        message:
+          '[CardSDK] Server logout failed, proceeding with local cleanup',
+      });
+      serverError = error as Error;
+    }
+
+    await removeCardBaanxToken();
+
+    if (serverError) {
+      throw serverError;
+    }
   };
 
   sendOtpLogin = async (body: {
@@ -1867,7 +1915,10 @@ export class CardSDK {
       },
     );
 
-  getRegistrationStatus = async (onboardingId: string): Promise<UserResponse> =>
+  getRegistrationStatus = async (
+    onboardingId: string,
+    location?: CardLocation,
+  ): Promise<UserResponse> =>
     this.withErrorHandling(
       'getRegistrationStatus',
       'auth/register',
@@ -1878,6 +1929,7 @@ export class CardSDK {
           {
             fetchOptions: { method: 'GET' },
             authenticated: false,
+            ...(location && { location }),
           },
         );
 
@@ -2007,6 +2059,93 @@ export class CardSDK {
         );
 
         this.logDebugInfo('linkUserToConsent response', data);
+        return data;
+      },
+    );
+  };
+
+  /**
+   * Creates a new order for a product (e.g., premium account upgrade, metal card)
+   * POST /v1/order
+   *
+   * @param request - The order creation request
+   * @param location - User's card location (us or international)
+   * @returns Promise resolving to order response with orderId and payment configuration
+   */
+  createOrder = async (): Promise<CreateOrderResponse> => {
+    const request: CreateOrderRequest = {
+      productId: 'PREMIUM_SUBSCRIPTION',
+      paymentMethod: 'CRYPTO_EXTERNAL_DAIMO',
+    };
+    this.logDebugInfo('createOrder', request);
+
+    return this.withErrorHandling(
+      'createOrder',
+      'order',
+      'Failed to create order',
+      async () => {
+        const response = await this.makeRequest('/v1/order', {
+          fetchOptions: {
+            method: 'POST',
+            body: JSON.stringify(request),
+          },
+          authenticated: true,
+        });
+
+        const data = await this.handleApiResponse<CreateOrderResponse>(
+          response,
+          'createOrder',
+          'order',
+          'Failed to create order',
+        );
+
+        this.logDebugInfo('createOrder response', data);
+        return data;
+      },
+    );
+  };
+
+  /**
+   * Fetches the status of an order by ID
+   * GET /v1/order/:orderId
+   *
+   * Can be used for polling async completion of an order after interactive payment
+   *
+   * @param orderId - The unique order identifier
+   * @param location - User's card location (us or international)
+   * @returns Promise resolving to order status response
+   */
+  getOrderStatus = async (orderId: string): Promise<GetOrderStatusResponse> => {
+    this.logDebugInfo('getOrderStatus', { orderId });
+
+    return this.withErrorHandling(
+      'getOrderStatus',
+      `order/${orderId}`,
+      'Failed to get order status',
+      async () => {
+        const response = await this.makeRequest(`/v1/order/${orderId}`, {
+          fetchOptions: {
+            method: 'GET',
+          },
+          authenticated: true,
+        });
+
+        // Handle 404 - order not found
+        if (response.status === 404) {
+          throw new CardError(
+            CardErrorType.NOT_FOUND,
+            `Order not found: ${orderId}`,
+          );
+        }
+
+        const data = await this.handleApiResponse<GetOrderStatusResponse>(
+          response,
+          'getOrderStatus',
+          `order/${orderId}`,
+          'Failed to get order status',
+        );
+
+        this.logDebugInfo('getOrderStatus response', data);
         return data;
       },
     );

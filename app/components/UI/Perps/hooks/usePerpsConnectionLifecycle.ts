@@ -105,7 +105,7 @@ export function usePerpsConnectionLifecycle({
             ) {
               handleConnection();
             }
-          }, PERPS_CONSTANTS.RECONNECTION_DELAY_ANDROID_MS);
+          }, PERPS_CONSTANTS.ReconnectionDelayAndroidMs);
           // Store timer to clean up if component unmounts
           return () => clearTimeout(timer);
         }

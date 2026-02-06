@@ -26,6 +26,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     Text: RNText,
     BoxFlexDirection: { Row: 'row' },
     BoxAlignItems: { Center: 'center' },
+    IconName: { Search: 'Search' },
   };
 });
 
@@ -91,6 +92,55 @@ jest.mock('../../../../../component-library/hooks', () => ({
     },
   }),
 }));
+
+jest.mock(
+  '../../../../../component-library/components-temp/HeaderCenter',
+  () => {
+    const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({
+        title,
+        onBack,
+        endButtonIconProps,
+        testID,
+      }: {
+        title: string;
+        onBack: () => void;
+        endButtonIconProps?: {
+          iconName: string;
+          onPress: () => void;
+          testID?: string;
+        }[];
+        testID?: string;
+      }) => (
+        <View testID={testID}>
+          <TouchableOpacity
+            testID={testID ? `${testID}-back-button` : undefined}
+            onPress={onBack}
+          >
+            <Text>Back</Text>
+          </TouchableOpacity>
+          <Text>{title}</Text>
+          {endButtonIconProps?.map(
+            (
+              props: { iconName: string; onPress: () => void; testID?: string },
+              index: number,
+            ) => (
+              <TouchableOpacity
+                key={index}
+                testID={props.testID}
+                onPress={props.onPress}
+              >
+                <Text>{props.iconName}</Text>
+              </TouchableOpacity>
+            ),
+          )}
+        </View>
+      ),
+    };
+  },
+);
 
 describe('PerpsMarketListHeader', () => {
   const mockGoBack = jest.fn();
@@ -225,10 +275,11 @@ describe('PerpsMarketListHeader', () => {
   });
 
   describe('Keyboard Behavior', () => {
-    it('dismisses keyboard when header is pressed', () => {
+    it('dismisses keyboard when header is pressed in search mode', () => {
       const dismissSpy = jest.spyOn(Keyboard, 'dismiss');
       const { getByTestId } = render(
         <PerpsMarketListHeader
+          isSearchVisible
           onSearchToggle={jest.fn()}
           testID="market-list-header"
         />,
@@ -238,6 +289,22 @@ describe('PerpsMarketListHeader', () => {
       fireEvent.press(header);
 
       expect(dismissSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not dismiss keyboard when header is pressed in non-search mode', () => {
+      const dismissSpy = jest.spyOn(Keyboard, 'dismiss');
+      const { getByTestId } = render(
+        <PerpsMarketListHeader
+          isSearchVisible={false}
+          onSearchToggle={jest.fn()}
+          testID="market-list-header"
+        />,
+      );
+
+      const header = getByTestId('market-list-header');
+      fireEvent.press(header);
+
+      expect(dismissSpy).not.toHaveBeenCalled();
     });
   });
 

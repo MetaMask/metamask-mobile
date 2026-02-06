@@ -8,6 +8,8 @@ export const NetworkNonPemittedBottomSheetSelectorsText = {
   ELYSIUM_TESTNET_NETWORK_NAME: 'Elysium Testnet',
   SOLANA_NETWORK_NAME: 'Solana',
   LINEA_MAINNET_NETWORK_NAME: 'Linea Main Network',
+  TRON_NETWORK_NAME: 'Tron',
+  BITCOIN_NETWORK_NAME: 'Bitcoin',
 };
 
 export const NetworkNonPemittedBottomSheetSelectorsIDs = {

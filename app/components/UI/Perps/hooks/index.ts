@@ -67,6 +67,7 @@ export { usePerpsOrderForm } from './usePerpsOrderForm';
 export { usePerpsOrderValidation } from './usePerpsOrderValidation';
 export { usePerpsClosePositionValidation } from './usePerpsClosePositionValidation';
 export { usePerpsOrderExecution } from './usePerpsOrderExecution';
+export { usePerpsOrderDepositTracking } from './usePerpsOrderDepositTracking';
 export { useIsPriceDeviatedAboveThreshold } from './useIsPriceDeviatedAboveThreshold';
 export { usePerpsFirstTimeUser } from './usePerpsFirstTimeUser';
 export { usePerpsTPSLForm } from './usePerpsTPSLForm';
@@ -94,6 +95,9 @@ export { usePerpsBlockExplorerUrl } from './usePerpsBlockExplorerUrl';
 
 // Utility hooks
 export { useStableArray } from './useStableArray';
+
+// Tab view hooks
+export { usePerpsTabExploreData } from './usePerpsTabExploreData';
 
 // Stream hooks (WebSocket subscriptions)
 export * from './stream';

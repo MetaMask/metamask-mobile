@@ -1,4 +1,5 @@
 import type { SortOptionId } from '../../../../constants/perpsConfig';
+import type { MarketTypeFilter } from '../../../../controllers/types';
 
 /**
  * Props for PerpsMarketFiltersBar component
@@ -15,19 +16,19 @@ export interface PerpsMarketFiltersBarProps {
   onSortPress: () => void;
 
   /**
-   * Whether to show stocks/commodities dropdown (only for Stocks tab)
+   * Selected market type filter
    */
-  showStocksCommoditiesDropdown?: boolean;
+  marketTypeFilter: MarketTypeFilter;
 
   /**
-   * Selected stocks/commodities filter
+   * Callback when a category is selected
    */
-  stocksCommoditiesFilter?: 'all' | 'equity' | 'commodity';
+  onCategorySelect: (category: MarketTypeFilter) => void;
 
   /**
-   * Callback when stocks/commodities dropdown is pressed
+   * Optional list of available categories (for hiding empty categories)
    */
-  onStocksCommoditiesPress?: () => void;
+  availableCategories?: Exclude<MarketTypeFilter, 'all'>[];
 
   /**
    * Optional test ID for testing

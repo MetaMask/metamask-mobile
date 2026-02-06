@@ -117,6 +117,7 @@ function TransactionSummary({
   const title = getLineTitle({
     approvalBridgeHistory,
     networkName: sourceNetworkName,
+    parentTransaction,
     symbol: sourceSymbol,
     transactionMeta: transaction,
   });
@@ -261,16 +262,19 @@ function getLineTitle({
   approvalBridgeHistory,
   isReceive,
   networkName,
+  parentTransaction,
   symbol,
   transactionMeta,
 }: {
   approvalBridgeHistory?: BridgeHistoryItem;
   isReceive?: boolean;
   networkName?: string;
+  parentTransaction?: TransactionMeta;
   symbol?: string;
   transactionMeta: TransactionMeta;
 }): string | undefined {
   const { type } = transactionMeta;
+  const { type: parentType } = parentTransaction ?? {};
   const approveSymbol = approvalBridgeHistory?.quote?.srcAsset?.symbol;
 
   if (isReceive) {
@@ -283,6 +287,12 @@ function getLineTitle({
   }
 
   if (symbol && networkName) {
+    if (parentType === TransactionType.musdConversion) {
+      return strings('transaction_details.summary_title.musd_convert_send', {
+        sourceSymbol: symbol,
+        sourceChain: networkName,
+      });
+    }
     return strings('transaction_details.summary_title.bridge_send', {
       sourceSymbol: symbol,
       sourceChain: networkName,
@@ -346,6 +356,15 @@ function useBridgeReceiveData(
   const sourceNetworkName = useNetworkName(transaction.chainId);
   const targetNetworkName = useNetworkName(chainId);
 
+  if (hasTransactionType(transaction, [TransactionType.musdConversion])) {
+    return {
+      chainId: transaction.chainId,
+      isReceiveOnly: true,
+      targetNetworkName: sourceNetworkName,
+      targetSymbol: 'mUSD',
+    };
+  }
+
   if (hasTransactionType(transaction, [TransactionType.perpsDeposit])) {
     return {
       chainId: CHAIN_IDS.ARBITRUM,
@@ -366,6 +385,7 @@ function useBridgeReceiveData(
 
   if (
     hasTransactionType(parentTransaction, [
+      TransactionType.musdConversion,
       TransactionType.perpsDeposit,
       TransactionType.predictDeposit,
     ])

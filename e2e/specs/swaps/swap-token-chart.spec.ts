@@ -15,7 +15,7 @@ import { submitSwapUnifiedUI } from './helpers/swap-unified-ui';
 import { testSpecificMock } from '../swaps/helpers/swap-mocks';
 import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
 import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
-import { AnvilManager } from '../../seeder/anvil-manager';
+import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 
 describe(RegressionTrade('Swap from Token view'), (): void => {
   jest.setTimeout(120000);

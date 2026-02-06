@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity, StyleProp, ViewStyle } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import Text, {
   TextVariant,
@@ -14,6 +14,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import type {
   PerpsMarketData,
   PerpsNavigationParamList,
+  MarketTypeFilter,
 } from '../../controllers/types';
 import { useStyles } from '../../../../../component-library/hooks';
 import type { SortField } from '../../utils/sortMarkets';
@@ -27,19 +28,19 @@ export interface PerpsMarketTypeSectionProps {
   /** Markets to display */
   markets: PerpsMarketData[];
   /** Market type for filtering when "See All" is pressed */
-  marketType:
-    | 'crypto'
-    | 'equity'
-    | 'commodity'
-    | 'forex'
-    | 'all'
-    | 'stocks_and_commodities';
+  marketType: MarketTypeFilter;
   /** Sort field for market list */
   sortBy?: SortField;
   /** Whether markets are loading */
   isLoading?: boolean;
   /** Test ID for component */
   testID?: string;
+  /** Optional style override for the section container */
+  style?: StyleProp<ViewStyle>;
+  /** Optional style override for the header */
+  headerStyle?: StyleProp<ViewStyle>;
+  /** Optional style override for the content container */
+  contentContainerStyle?: StyleProp<ViewStyle>;
 }
 
 /**
@@ -72,6 +73,9 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
   sortBy = 'volume',
   isLoading,
   testID,
+  style,
+  headerStyle,
+  contentContainerStyle,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
@@ -99,9 +103,12 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
   // Header component - full row is pressable with chevron icon next to title
   const SectionHeader = useCallback(
     () => (
-      <TouchableOpacity style={styles.header} onPress={handleViewAll}>
+      <TouchableOpacity
+        style={[styles.header, headerStyle]}
+        onPress={handleViewAll}
+      >
         <View style={styles.titleRow}>
-          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+          <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
             {title}
           </Text>
           <Icon
@@ -112,15 +119,15 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
         </View>
       </TouchableOpacity>
     ),
-    [styles.header, styles.titleRow, title, handleViewAll],
+    [styles.header, styles.titleRow, title, handleViewAll, headerStyle],
   );
 
   // Show skeleton during initial load
   if (isLoading) {
     return (
-      <View style={styles.section} testID={testID}>
+      <View style={[styles.section, style]} testID={testID}>
         <SectionHeader />
-        <View style={styles.contentContainer}>
+        <View style={[styles.contentContainer, contentContainerStyle]}>
           <PerpsRowSkeleton count={5} />
         </View>
       </View>
@@ -134,9 +141,9 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
 
   // Render market list
   return (
-    <View style={styles.section} testID={testID}>
+    <View style={[styles.section, style]} testID={testID}>
       <SectionHeader />
-      <View style={styles.contentContainer}>
+      <View style={[styles.contentContainer, contentContainerStyle]}>
         <PerpsMarketList
           markets={markets}
           sortBy={sortBy}

@@ -157,7 +157,7 @@ source .e2e.env && yarn test:e2e:ios:debug:run --testNamePattern="Smoke"
 source .e2e.env && yarn test:e2e:android:debug:run --testNamePattern="Smoke"
 ```
 
-To know more about the E2E testing framework, see [E2E Testing Architecture and Framework](../../e2e/docs/README.md).
+To know more about the E2E testing framework, see [E2E Testing Architecture and Framework](../../tests/docs/README.md).
 
 ## Flask E2E Testing (Snaps Support)
 
@@ -518,11 +518,11 @@ For more details on our CI pipelines, see the [Bitrise Pipelines Overview](#bitr
 ### API Spec Tests
 
 **Platform**: iOS  
-**Test Location**: `e2e/api-specs/json-rpc-coverage.js`
+**Test Location**: `tests/smoke/api-specs/json-rpc-coverage.js`
 
 The API Spec tests use the `@open-rpc/test-coverage` tool to generate tests from our [api-specs](https://github.com/MetaMask/api-specs) OpenRPC Document. These tests are currently executed only on iOS and use the same build as the Detox tests for iOS.
 
-- **Test Coverage Tool**: The `test-coverage` tool uses `Rules` and `Reporters` to generate and report test results. These are passed as parameters in the test coverage tool call located in [e2e/api-specs/json-rpc-coverage.js](../../e2e/api-specs/json-rpc-coverage.js). For more details on `Rules` and `Reporters`, refer to the [OpenRPC test coverage documentation](https://github.com/open-rpc/test-coverage?tab=readme-ov-file#extending-with-a-rule).
+- **Test Coverage Tool**: The `test-coverage` tool uses `Rules` and `Reporters` to generate and report test results. These are passed as parameters in the test coverage tool call located in [tests/smoke/api-specs/json-rpc-coverage.js](../../tests/smoke/api-specs/json-rpc-coverage.js). For more details on `Rules` and `Reporters`, refer to the [OpenRPC test coverage documentation](https://github.com/open-rpc/test-coverage?tab=readme-ov-file#extending-with-a-rule).
 
 #### Commands
 

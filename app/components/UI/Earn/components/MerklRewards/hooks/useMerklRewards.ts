@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
@@ -6,15 +6,27 @@ import { renderFromTokenMinimalUnit } from '../../../../../../util/number';
 import { TokenI } from '../../../../Tokens/types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../../constants/musd';
-import { AGLAMERKL_ADDRESS } from '../constants';
-import { fetchMerklRewardsForAsset } from '../merkl-client';
+import {
+  AGLAMERKL_ADDRESS_MAINNET,
+  AGLAMERKL_ADDRESS_LINEA,
+} from '../constants';
+import {
+  fetchMerklRewardsForAsset,
+  getClaimedAmountFromContract,
+  getClaimChainId,
+} from '../merkl-client';
+import Logger from '../../../../../../util/Logger';
 
 const MUSD_ADDRESS = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET];
+const MUSD_ADDRESS_MAINNET = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET];
 
 // Map of chains and eligible tokens
+// mUSD on mainnet is eligible because users earn rewards for holding it,
+// even though the actual reward claiming happens on Linea
 export const eligibleTokens: Record<Hex, Hex[]> = {
-  [CHAIN_IDS.MAINNET]: [AGLAMERKL_ADDRESS], // Testing
-  [CHAIN_IDS.LINEA_MAINNET]: [MUSD_ADDRESS], // Musd
+  [CHAIN_IDS.MAINNET]: [AGLAMERKL_ADDRESS_MAINNET, MUSD_ADDRESS_MAINNET], // mUSD and test token
+  [CHAIN_IDS.LINEA_MAINNET]: [AGLAMERKL_ADDRESS_LINEA, MUSD_ADDRESS], // mUSD and test token
+  ['0xe709' as Hex]: [AGLAMERKL_ADDRESS_LINEA], // Linea fork
 };
 
 /**
@@ -43,11 +55,11 @@ export const isEligibleForMerklRewards = (
 
 interface UseMerklRewardsOptions {
   asset: TokenI | undefined;
-  exchangeRate?: number;
 }
 
 interface UseMerklRewardsReturn {
   claimableReward: string | null;
+  refetch: () => void;
 }
 
 /**
@@ -62,41 +74,37 @@ export const useMerklRewards = ({
     selectSelectedInternalAccountFormattedAddress,
   );
 
-  useEffect(() => {
-    // Guard against undefined asset (can happen during race conditions)
-    if (!asset) {
-      setClaimableReward(null);
-      return;
-    }
+  const fetchClaimableRewards = useCallback(
+    async (abortController?: AbortController) => {
+      // Guard against undefined asset (can happen when selector returns undefined)
+      if (!asset) {
+        setClaimableReward(null);
+        return;
+      }
 
-    const isEligible = isEligibleForMerklRewards(
-      asset.chainId as Hex,
-      asset.address as Hex | undefined,
-    );
+      const isEligible = isEligibleForMerklRewards(
+        asset.chainId as Hex,
+        asset.address as Hex | undefined,
+      );
 
-    if (!isEligible || !selectedAddress) {
-      setClaimableReward(null);
-      return;
-    }
+      if (!isEligible || !selectedAddress) {
+        setClaimableReward(null);
+        return;
+      }
 
-    // Reset claimableReward when switching assets to prevent stale data
-    setClaimableReward(null);
+      const controller = abortController || new AbortController();
 
-    // Create AbortController to cancel fetch if effect is cleaned up
-    const abortController = new AbortController();
-
-    const fetchClaimableRewards = async () => {
       try {
         // Use throwOnError=false to silently handle API errors
         const matchingReward = await fetchMerklRewardsForAsset(
           asset,
           selectedAddress,
-          abortController.signal,
+          controller.signal,
           false, // Don't throw on error, return null instead
         );
 
         // Check if aborted after fetch (defensive check)
-        if (abortController.signal.aborted) {
+        if (controller.signal.aborted) {
           return;
         }
 
@@ -104,11 +112,29 @@ export const useMerklRewards = ({
           return;
         }
 
+        // Get the claimed amount from the contract instead of the API
+        // The API's claimed value doesn't update immediately after claiming,
+        // but the contract's claimed mapping is updated immediately
+        // If the contract call fails, fall back to the API's claimed value
+        // For mUSD, we always check the Linea contract since that's where claims happen
+        const claimChainId = getClaimChainId(asset);
+        const claimedFromContract = await getClaimedAmountFromContract(
+          selectedAddress,
+          matchingReward.token.address as Hex,
+          claimChainId,
+        );
+
+        // Use contract value if available, otherwise fall back to API value
+        const claimedAmount =
+          claimedFromContract !== null
+            ? claimedFromContract
+            : matchingReward.claimed;
+
         // Use unclaimed amount as it represents claimable rewards in the Merkle tree
         // Use token decimals from API response, fallback to asset decimals
         // Convert string amounts to BigInt for subtraction, then back to string
         const unclaimedBaseUnits =
-          BigInt(matchingReward.amount) - BigInt(matchingReward.claimed);
+          BigInt(matchingReward.amount) - BigInt(claimedAmount);
         const tokenDecimals =
           matchingReward.token.decimals ?? asset.decimals ?? 18;
 
@@ -119,37 +145,61 @@ export const useMerklRewards = ({
             tokenDecimals,
             2, // Show 2 decimal places
           );
+          // Handle the "< 0.00001" case from renderFromTokenMinimalUnit
+          // by showing "< 0.01" for consistency with 2 decimal places
+          const displayAmount = unclaimedAmount.startsWith('<')
+            ? '< 0.01'
+            : unclaimedAmount;
           // Double-check that the rendered amount is not '0' or '0.00'
           // This handles edge cases where very small amounts round to zero
           if (
-            unclaimedAmount &&
-            unclaimedAmount !== '0' &&
-            unclaimedAmount !== '0.00'
+            displayAmount &&
+            displayAmount !== '0' &&
+            displayAmount !== '0.00'
           ) {
             // Final check before setting state to ensure effect is still active
-            if (!abortController.signal.aborted) {
-              setClaimableReward(unclaimedAmount);
+            if (!controller.signal.aborted) {
+              setClaimableReward(displayAmount);
             }
           }
+        } else if (!controller.signal.aborted) {
+          // No claimable rewards left
+          setClaimableReward(null);
         }
       } catch (error) {
         // Ignore AbortError - this is expected when effect is cleaned up
         if (error instanceof Error && error.name === 'AbortError') {
           return;
         }
-        // Silently handle other errors - component will show no rewards if fetch fails
+        // Log other errors for debugging
+        Logger.error(
+          error as Error,
+          'useMerklRewards: Error fetching claimable rewards',
+        );
       }
-    };
+    },
+    [asset, selectedAddress],
+  );
 
+  // refetch can be called externally to refresh data
+  const refetch = useCallback(() => {
     fetchClaimableRewards();
+  }, [fetchClaimableRewards]);
+
+  useEffect(() => {
+    // Create AbortController to cancel fetch if effect is cleaned up
+    const abortController = new AbortController();
+
+    fetchClaimableRewards(abortController);
 
     // Cleanup function to abort fetch
     return () => {
       abortController.abort();
     };
-  }, [asset, selectedAddress]);
+  }, [fetchClaimableRewards]);
 
   return {
     claimableReward,
+    refetch,
   };
 };

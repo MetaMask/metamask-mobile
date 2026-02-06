@@ -7,7 +7,7 @@ import Assertions from '../../../../../../tests/framework/Assertions';
 import TestHelpers from '../../../../../helpers';
 import FixtureBuilder from '../../../../../../tests/framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../../../../tests/framework/fixtures/FixtureHelper';
-import { CustomNetworks } from '../../../../../resources/networks.e2e';
+import { CustomNetworks } from '../../../../../../tests/resources/networks.e2e';
 import Browser from '../../../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../../../pages/wallet/TabBarComponent';
 import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';

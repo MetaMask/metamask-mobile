@@ -30,6 +30,8 @@ ignores:
   # Appwright will be used in a follow up PR. We will remove once PR is ready
   - 'appwright'
   # Appium drivers are used by Appwright for mobile automation
+  - 'appium-adb'
+  - 'appium-chromium-driver'
   - 'appium-uiautomator2-driver'
   - 'appium-xcuitest-driver'
   # ESBuild is used for AI E2E script compilation

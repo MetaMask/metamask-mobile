@@ -30,8 +30,11 @@ import handleFastOnboarding from './handleFastOnboarding';
 import { handleEnableCardButton } from './handleEnableCardButton';
 import { handleCardOnboarding } from './handleCardOnboarding';
 import { handleCardHome } from './handleCardHome';
+import { handleCardKycNotification } from './handleCardKycNotification';
 import { handleTrendingUrl } from './handleTrendingUrl';
+import { handleEarnMusd } from './handleEarnMusd';
 import { RampType } from '../../../../reducers/fiatOrders/types';
+import { SHIELD_WEBSITE_URL } from '../../../../constants/shield';
 import {
   createDeepLinkUsedEventBuilder,
   mapSupportedActionToRoute,
@@ -77,7 +80,10 @@ const SUPPORTED_ACTIONS = {
   ENABLE_CARD_BUTTON: ACTIONS.ENABLE_CARD_BUTTON,
   CARD_ONBOARDING: ACTIONS.CARD_ONBOARDING,
   CARD_HOME: ACTIONS.CARD_HOME,
+  CARD_KYC_NOTIFICATION: ACTIONS.CARD_KYC_NOTIFICATION,
   TRENDING: ACTIONS.TRENDING,
+  SHIELD: ACTIONS.SHIELD,
+  EARN_MUSD: ACTIONS.EARN_MUSD,
   // MetaMask SDK specific actions
   ANDROID_SDK: ACTIONS.ANDROID_SDK,
   CONNECT: ACTIONS.CONNECT,
@@ -95,6 +101,7 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.ENABLE_CARD_BUTTON,
   SUPPORTED_ACTIONS.CARD_ONBOARDING,
   SUPPORTED_ACTIONS.CARD_HOME,
+  SUPPORTED_ACTIONS.CARD_KYC_NOTIFICATION,
   SUPPORTED_ACTIONS.PERPS,
   SUPPORTED_ACTIONS.PERPS_MARKETS,
   SUPPORTED_ACTIONS.PERPS_ASSET,
@@ -552,6 +559,14 @@ async function handleUniversalLink({
       });
       break;
     }
+    case SUPPORTED_ACTIONS.SHIELD: {
+      // shield is only available on extension for now, open shield website from in app browser
+      handleBrowserUrl({
+        url: SHIELD_WEBSITE_URL,
+        callback: browserCallBack,
+      });
+      return;
+    }
     case SUPPORTED_ACTIONS.WC: {
       const { params: wcParams } = extractURLParams(urlObj.href);
       const wcURL = wcParams?.uri;
@@ -577,8 +592,16 @@ async function handleUniversalLink({
       handleCardHome();
       break;
     }
+    case SUPPORTED_ACTIONS.CARD_KYC_NOTIFICATION: {
+      handleCardKycNotification();
+      break;
+    }
     case SUPPORTED_ACTIONS.TRENDING: {
       handleTrendingUrl();
+      break;
+    }
+    case SUPPORTED_ACTIONS.EARN_MUSD: {
+      handleEarnMusd();
       break;
     }
   }

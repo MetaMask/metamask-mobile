@@ -12,8 +12,6 @@ import {
   createMockSnapInternalAccount,
 } from '../../../util/test/accountsControllerTestUtils';
 import { TokenOverviewSelectorsIDs } from './TokenOverview.testIds';
-// eslint-disable-next-line import/no-namespace
-import * as transactions from '../../../util/transactions';
 import { mockNetworkState } from '../../../util/test/network';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
@@ -671,8 +669,6 @@ describe('AssetOverview', () => {
   });
 
   it('should handle send button press for native asset when isETH is false', async () => {
-    const spyOnGetEther = jest.spyOn(transactions, 'getEther');
-
     const nativeAsset = {
       balance: '400',
       balanceFiat: '1500',
@@ -735,8 +731,13 @@ describe('AssetOverview', () => {
     // Wait for async operations to complete
     await Promise.resolve();
 
-    expect(navigate.mock.calls[1][0]).toEqual('Send');
-    expect(spyOnGetEther).toHaveBeenCalledWith('BNB');
+    // onSend now navigates to home first, then calls navigateToSendPage
+    expect(navigate).toHaveBeenCalledWith(
+      Routes.WALLET.HOME,
+      expect.objectContaining({
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+      }),
+    );
   });
 
   it('should handle swap button press', async () => {
@@ -1728,7 +1729,7 @@ describe('AssetOverview', () => {
         [testTokenAddress.toLowerCase()]: { price: 0.0005 },
       });
 
-      const { findByText } = renderWithProvider(
+      const { findAllByText } = renderWithProvider(
         <AssetOverview asset={testToken} />,
         {
           state: {
@@ -1746,7 +1747,9 @@ describe('AssetOverview', () => {
         },
       );
 
-      await findByText(testToken.name);
+      // Name appears in multiple places (Price header and Balance section) after Stock badge changes
+      const nameElements = await findAllByText(testToken.name);
+      expect(nameElements.length).toBeGreaterThanOrEqual(1);
       expect(handleFetch).toHaveBeenCalledWith(
         expect.stringContaining('price.api.cx.metamask.io/v3/spot-prices'),
       );
@@ -1858,12 +1861,14 @@ describe('AssetOverview', () => {
         [SOLANA_ASSET_ID]: { price: 0.431111 },
       });
 
-      const { findByText } = renderWithProvider(
+      const { findAllByText } = renderWithProvider(
         <AssetOverview asset={solanaToken} />,
         { state: createSolanaState() },
       );
 
-      await findByText(solanaToken.name);
+      // Name appears in multiple places (Price header and Balance section) after Stock badge changes
+      const nameElements = await findAllByText(solanaToken.name);
+      expect(nameElements.length).toBeGreaterThanOrEqual(1);
       expect(handleFetch).toHaveBeenCalledWith(
         expect.stringContaining('price.api.cx.metamask.io/v3/spot-prices'),
       );

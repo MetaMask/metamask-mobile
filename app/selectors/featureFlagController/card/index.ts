@@ -244,3 +244,13 @@ export const selectCardFeatureFlag = createSelector(
       : defaultCardFeatureFlag;
   },
 );
+
+export const selectMetalCardCheckoutFeatureFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.metalCardCheckoutEnabled as unknown as GateVersionedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);

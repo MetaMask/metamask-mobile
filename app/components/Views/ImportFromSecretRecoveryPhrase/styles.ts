@@ -211,6 +211,9 @@ const createStyles = (colors: any) =>
     checkbox: {
       alignItems: 'flex-start',
     },
+    errorBorder: {
+      borderColor: colors.error.default,
+    },
     inputPadding: {
       padding: Platform.OS === 'ios' ? 4 : 3,
       height: 40,
@@ -234,6 +237,11 @@ const createStyles = (colors: any) =>
       bottom: 0,
       left: 0,
       right: 0,
+    },
+    fixedBottomContainer: {
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      backgroundColor: colors.background.default,
     },
   });
 

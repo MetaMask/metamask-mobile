@@ -13,15 +13,21 @@ export default class AppwrightGestures {
    * @param options - Configuration options for retry behavior
    * @param maxRetries - Maximum number of tap attempts
    * @param retryDelay - Delay between tap attempts
+   * @param expectScreenChange - If true, "not visible" errors are treated as success (element disappeared because screen changed after tap)
    */
   static async tap(
     elem: Promise<AppwrightLocator> | AppwrightLocator,
     options: {
       maxRetries?: number;
       retryDelay?: number;
+      expectScreenChange?: boolean;
     } = {},
   ): Promise<void> {
-    const { maxRetries = 2, retryDelay = 1000 } = options;
+    const {
+      maxRetries = 2,
+      retryDelay = 1000,
+      expectScreenChange = false,
+    } = options;
     let lastError: Error | undefined;
     const elementToTap = await elem;
 
@@ -31,6 +37,16 @@ export default class AppwrightGestures {
         return; // Success, exit early
       } catch (error: unknown) {
         lastError = error as Error;
+        const errorMessage = lastError.message.toLowerCase();
+
+        // If expectScreenChange is true and element is "not visible" (not "not found"),
+        // assume tap succeeded and screen changed, causing element to disappear
+        if (expectScreenChange && errorMessage.includes('not visible')) {
+          console.log(
+            'Tap likely succeeded - element disappeared (screen changed)',
+          );
+          return;
+        }
 
         // Check if it's a "not found" error and we have retries left
         // This is needed because of the system dialogs that pop up specifically on iOS
@@ -47,6 +63,22 @@ export default class AppwrightGestures {
     if (lastError) {
       throw lastError;
     }
+  }
+
+  /**
+   *
+   * @param x - The x coordinate to tap
+   * @param y - The y coordinate to tap
+   */
+  static async tapByCoordinates(
+    testDevice: Device,
+    { x, y }: { x: number; y: number },
+    options: { delay?: number } = {},
+  ): Promise<void> {
+    if (options.delay) {
+      await new Promise((resolve) => setTimeout(resolve, options.delay));
+    }
+    await testDevice.tap({ x, y });
   }
 
   /**
@@ -270,14 +302,32 @@ export default class AppwrightGestures {
   }
 
   /**
-   * Hide keyboard (Android only)
+   * Hide keyboard for both Android and iOS
    * @param deviceInstance - The device object
+   * @param keyName - The key to press on iOS keyboard (default: 'Done'). Common values: 'Done', 'Return', 'Search', 'Go', 'Next'
    */
-  static async hideKeyboard(deviceInstance: Device): Promise<void> {
+  static async hideKeyboard(
+    deviceInstance: Device,
+    keyName: string = 'Done',
+  ): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const webDriverClient = (deviceInstance as any).webDriverClient;
+
     if (AppwrightSelectors.isAndroid(deviceInstance)) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const webDriverClient = (deviceInstance as any).webDriverClient;
-      await webDriverClient.hideKeyboard(); // only needed for Android
+      await webDriverClient.hideKeyboard();
+    } else {
+      // iOS - try pressKey strategy first, fallback to tap outside
+      try {
+        await webDriverClient.executeScript('mobile: hideKeyboard', [
+          {
+            strategy: 'pressKey',
+            key: keyName,
+          },
+        ]);
+      } catch {
+        // Fallback: tap outside the keyboard area (top of screen)
+        await deviceInstance.tap({ x: 100, y: 150 });
+      }
     }
   }
 

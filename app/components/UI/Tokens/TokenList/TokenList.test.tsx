@@ -50,6 +50,14 @@ jest.mock('../../../../selectors/featureFlagController/homepage', () => ({
   selectHomepageRedesignV1Enabled: jest.fn(() => true),
 }));
 
+jest.mock('../../Earn/hooks/useMusdCtaVisibility', () => ({
+  useMusdCtaVisibility: jest.fn(() => ({
+    shouldShowGetMusdCta: false,
+    shouldShowConversionTokenListItemCta: jest.fn(() => false),
+    shouldShowConversionAssetDetailCta: jest.fn(() => false),
+  })),
+}));
+
 // Mock child components
 jest.mock('./TokenListItem/TokenListItem', () => ({
   TokenListItem: ({ assetKey }: { assetKey: { address: string } }) => {

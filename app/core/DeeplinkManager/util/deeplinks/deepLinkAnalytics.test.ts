@@ -511,6 +511,11 @@ describe('deepLinkAnalytics', () => {
       expect(result).toBe(DeepLinkRoute.SELL);
     });
 
+    it('extract shield route', () => {
+      const result = extractRouteFromUrl('https://link.metamask.io/shield');
+      expect(result).toBe(DeepLinkRoute.SHIELD);
+    });
+
     it('extract home route for empty path', () => {
       const result = extractRouteFromUrl('https://link.metamask.io/');
       expect(result).toBe(DeepLinkRoute.HOME);

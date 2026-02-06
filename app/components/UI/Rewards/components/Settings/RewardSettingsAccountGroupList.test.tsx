@@ -14,6 +14,7 @@ import { selectAvatarAccountType } from '../../../../../selectors/settings';
 // Mock dependencies
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
+  useDispatch: jest.fn(() => jest.fn()),
 }));
 
 // Import the mocked selector to compare against
@@ -45,6 +46,29 @@ jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
+
+jest.mock('@react-navigation/native', () => ({
+  useFocusEffect: jest.fn((callback) => callback()),
+}));
+
+// Mock ReferredByCodeSection component
+jest.mock('./ReferredByCodeSection', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+
+  return ReactActual.forwardRef(
+    (
+      props: {
+        testID?: string;
+      },
+      ref: React.Ref<unknown>,
+    ) =>
+      ReactActual.createElement(View, {
+        testID: props.testID || 'referred-by-code-section',
+        ref,
+      }),
+  );
+});
 
 // Mock FlashList
 jest.mock('@shopify/flash-list', () => {
@@ -457,7 +481,7 @@ describe('RewardSettingsAccountGroupList', () => {
   });
 
   describe('Loading State', () => {
-    it('should render loading skeleton when isLoading is true', () => {
+    it('renders loading skeleton when isLoading is true', () => {
       mockUseRewardOptinSummary.mockReturnValue({
         byWallet: [],
         isLoading: true,
@@ -476,7 +500,7 @@ describe('RewardSettingsAccountGroupList', () => {
       expect(getByTestId('rewards-settings-skeleton-2')).toBeOnTheScreen();
     });
 
-    it('should render header and footer in loading state', () => {
+    it('renders header and footer in loading state', () => {
       mockUseRewardOptinSummary.mockReturnValue({
         byWallet: [],
         isLoading: true,
@@ -490,12 +514,12 @@ describe('RewardSettingsAccountGroupList', () => {
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
 
       expect(getByTestId('rewards-settings-header')).toBeOnTheScreen();
-      expect(getByTestId('rewards-settings-footer')).toBeOnTheScreen();
+      expect(getByTestId('rewards-settings-opt-out')).toBeOnTheScreen();
     });
   });
 
   describe('Error State', () => {
-    it('should render error banner when hasError is true', () => {
+    it('renders error banner when hasError is true', () => {
       mockUseRewardOptinSummary.mockReturnValue({
         byWallet: [],
         isLoading: false,
@@ -512,7 +536,7 @@ describe('RewardSettingsAccountGroupList', () => {
       expect(getByTestId('rewards-settings-error-banner')).toBeOnTheScreen();
     });
 
-    it('should call refresh when retry button is pressed', () => {
+    it('calls refresh when retry button is pressed', () => {
       mockUseRewardOptinSummary.mockReturnValue({
         byWallet: [],
         isLoading: false,
@@ -531,7 +555,7 @@ describe('RewardSettingsAccountGroupList', () => {
       expect(mockFetchOptInStatus).toHaveBeenCalledTimes(1);
     });
 
-    it('should render header and footer in error state', () => {
+    it('renders header and footer in error state', () => {
       mockUseRewardOptinSummary.mockReturnValue({
         byWallet: [],
         isLoading: false,
@@ -545,18 +569,18 @@ describe('RewardSettingsAccountGroupList', () => {
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
 
       expect(getByTestId('rewards-settings-header')).toBeOnTheScreen();
-      expect(getByTestId('rewards-settings-footer')).toBeOnTheScreen();
+      expect(getByTestId('rewards-settings-opt-out')).toBeOnTheScreen();
     });
   });
 
   describe('Success State', () => {
-    it('should render FlashList with correct data', () => {
+    it('renders FlashList with correct data', () => {
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
 
       expect(getByTestId('rewards-settings-flash-list')).toBeOnTheScreen();
     });
 
-    it('should render wallet headers and account groups', () => {
+    it('renders wallet headers and account groups', () => {
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
 
       expect(getByTestId('wallet-header-wallet-1')).toBeOnTheScreen();
@@ -566,37 +590,22 @@ describe('RewardSettingsAccountGroupList', () => {
       expect(getByTestId('account-group-group-3')).toBeOnTheScreen();
     });
 
-    it('should render header and footer components', () => {
+    it('renders header and footer components', () => {
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
 
       expect(getByTestId('rewards-settings-header')).toBeOnTheScreen();
-      expect(getByTestId('rewards-settings-footer')).toBeOnTheScreen();
+      expect(getByTestId('rewards-settings-opt-out')).toBeOnTheScreen();
     });
 
-    it('should render opt-out button', () => {
+    it('renders opt-out button', () => {
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
 
       expect(getByTestId('rewards-opt-out-button')).toBeOnTheScreen();
     });
   });
 
-  describe('Opt-out Button Functionality', () => {
-    it('should disable opt-out button when isOptingOut is true', () => {
-      mockUseOptout.mockReturnValue({
-        optout: jest.fn().mockResolvedValue(true),
-        isLoading: true,
-        showOptoutBottomSheet: mockShowOptoutBottomSheet,
-      });
-
-      const { getByTestId } = render(<RewardSettingsAccountGroupList />);
-
-      const optOutButton = getByTestId('rewards-opt-out-button');
-      expect(optOutButton.props.disabled).toBe(true);
-    });
-  });
-
   describe('Data Processing', () => {
-    it('should handle wallet items with missing metadata name', () => {
+    it('handles wallet items with missing metadata name', () => {
       const walletDataWithMissingName = [
         {
           wallet: {
@@ -629,7 +638,7 @@ describe('RewardSettingsAccountGroupList', () => {
       expect(getByTestId('wallet-header-wallet-no-name')).toBeOnTheScreen();
     });
 
-    it('should handle account groups with missing IDs', () => {
+    it('handles account groups with missing IDs', () => {
       const walletDataWithMissingGroupId = [
         {
           wallet: {
@@ -672,7 +681,7 @@ describe('RewardSettingsAccountGroupList', () => {
       expect(getByTestId('account-group-unknown')).toBeOnTheScreen();
     });
 
-    it('should handle account groups with unsupported accounts', () => {
+    it('handles account groups with unsupported accounts', () => {
       // Arrange
       const walletDataWithUnsupportedAccounts = [
         {
@@ -739,7 +748,7 @@ describe('RewardSettingsAccountGroupList', () => {
   });
 
   describe('Key Extractor', () => {
-    it('should generate correct keys for wallet items', () => {
+    it('generates correct keys for wallet items', () => {
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
 
       // The FlashList mock uses keyExtractor to generate testIDs
@@ -747,7 +756,7 @@ describe('RewardSettingsAccountGroupList', () => {
       expect(getByTestId('flash-list-item-wallet-wallet-2')).toBeOnTheScreen();
     });
 
-    it('should generate correct keys for account group items', () => {
+    it('generates correct keys for account group items', () => {
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
 
       expect(
@@ -761,14 +770,14 @@ describe('RewardSettingsAccountGroupList', () => {
       ).toBeOnTheScreen();
     });
 
-    it('should handle fallback keys for unknown item types', () => {
+    it('handles fallback keys for unknown item types', () => {
       // This would be tested by passing invalid data, but our mock doesn't support that
       // The keyExtractor function handles this case with the fallback `item-${index}`
     });
   });
 
   describe('getItemType', () => {
-    it('should return correct item type for wallet items', () => {
+    it('returns correct item type for wallet items', () => {
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
 
       // The FlashList mock stores item type in accessibilityLabel when getItemType is provided
@@ -781,7 +790,7 @@ describe('RewardSettingsAccountGroupList', () => {
       expect(walletItem2.props.accessibilityLabel).toBe('wallet');
     });
 
-    it('should return correct item type for account group items', () => {
+    it('returns correct item type for account group items', () => {
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
 
       const accountGroup1 = getByTestId('flash-list-item-accountGroup-group-1');
@@ -798,7 +807,7 @@ describe('RewardSettingsAccountGroupList', () => {
   });
 
   describe('allAddresses Data', () => {
-    it('should pass allAddresses to account group items', () => {
+    it('passes allAddresses to account group items', () => {
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
 
       // Verify account groups are rendered (they receive allAddresses as prop)
@@ -807,7 +816,7 @@ describe('RewardSettingsAccountGroupList', () => {
       expect(getByTestId('account-group-group-3')).toBeOnTheScreen();
     });
 
-    it('should handle empty addresses for account groups', () => {
+    it('handles empty addresses for account groups', () => {
       // Mock selector to return empty array for a group
       mockSelectInternalAccountsByGroupId.mockImplementation(
         (groupId: string) => {
@@ -832,7 +841,7 @@ describe('RewardSettingsAccountGroupList', () => {
   });
 
   describe('Memoization', () => {
-    it('should memoize the component to prevent unnecessary re-renders', () => {
+    it('memoizes the component to prevent unnecessary re-renders', () => {
       const { rerender } = render(<RewardSettingsAccountGroupList />);
 
       // Re-render with same props
@@ -844,13 +853,13 @@ describe('RewardSettingsAccountGroupList', () => {
   });
 
   describe('Accessibility', () => {
-    it('should have proper testIDs for accessibility testing', () => {
+    it('has proper testIDs for accessibility testing', () => {
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
 
       // Test that all major components have testIDs
       expect(getByTestId('rewards-settings-flash-list')).toBeOnTheScreen();
       expect(getByTestId('rewards-settings-header')).toBeOnTheScreen();
-      expect(getByTestId('rewards-settings-footer')).toBeOnTheScreen();
+      expect(getByTestId('rewards-settings-opt-out')).toBeOnTheScreen();
       expect(getByTestId('rewards-opt-out-button')).toBeOnTheScreen();
     });
   });

@@ -167,8 +167,8 @@ describe('Remote Feature Flags Helper', () => {
       expect(confirmationData.customArray).toEqual(testArray);
       expect(confirmationData.customString).toBe('test');
 
-      // Should still preserve other default properties
-      expect(Object.keys(confirmationData).length).toBeGreaterThan(2);
+      // Should have exactly the custom properties we added
+      expect(Object.keys(confirmationData).length).toBe(2);
     });
 
     it('should handle null values', () => {

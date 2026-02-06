@@ -13,8 +13,8 @@ import {
   PerpsAnalyticsEvent,
   PerpsTraceNames,
   PerpsTraceOperations,
-  type IPerpsProvider,
-  type IPerpsControllerAccess,
+  type PerpsProvider,
+  type PerpsControllerAccess,
   type OrderParams,
   type OrderResult,
   type EditOrderParams,
@@ -28,7 +28,7 @@ import {
   type Position,
   type UpdatePositionTPSLParams,
   type PerpsAnalyticsProperties,
-  type IPerpsPlatformDependencies,
+  type PerpsPlatformDependencies,
 } from '../types';
 
 /**
@@ -36,7 +36,7 @@ import {
  * These are singletons that don't change per-call, injected once via setControllerDependencies().
  */
 export interface TradingServiceControllerDeps {
-  controllers: IPerpsControllerAccess;
+  controllers: PerpsControllerAccess;
   messenger: PerpsControllerMessenger;
   rewardsIntegrationService: RewardsIntegrationService;
 }
@@ -55,7 +55,7 @@ export class TradingService {
   /**
    * Platform dependencies for logging, metrics, etc.
    */
-  private readonly deps: IPerpsPlatformDependencies;
+  private readonly deps: PerpsPlatformDependencies;
 
   /**
    * Controller-level dependencies for fee discount calculation.
@@ -67,7 +67,7 @@ export class TradingService {
    * Create a new TradingService instance
    * @param deps - Platform dependencies for logging, metrics, etc.
    */
-  constructor(deps: IPerpsPlatformDependencies) {
+  constructor(deps: PerpsPlatformDependencies) {
     this.deps = deps;
   }
 
@@ -253,7 +253,7 @@ export class TradingService {
    * Ensures fee discount is always cleared after operation (success or failure)
    */
   private async withFeeDiscount<T>(options: {
-    provider: IPerpsProvider;
+    provider: PerpsProvider;
     feeDiscountBips?: number;
     operation: () => Promise<T>;
   }): Promise<T> {
@@ -289,7 +289,7 @@ export class TradingService {
    * Handles tracing, fee discounts, state management, analytics, and data lake reporting
    */
   async placeOrder(options: {
-    provider: IPerpsProvider;
+    provider: PerpsProvider;
     params: OrderParams;
     context: ServiceContext;
     reportOrderToDataLake: (params: {
@@ -309,9 +309,9 @@ export class TradingService {
     try {
       // Start trace for the entire operation
       this.deps.tracer.trace({
-        name: PerpsTraceNames.PLACE_ORDER,
+        name: PerpsTraceNames.PlaceOrder,
         id: traceId,
-        op: PerpsTraceOperations.ORDER_SUBMISSION,
+        op: PerpsTraceOperations.OrderSubmission,
         tags: {
           provider: context.tracingContext.provider,
           orderType: params.orderType,
@@ -421,7 +421,7 @@ export class TradingService {
     } finally {
       // Always end trace on exit (success or failure)
       this.deps.tracer.endTrace({
-        name: PerpsTraceNames.PLACE_ORDER,
+        name: PerpsTraceNames.PlaceOrder,
         id: traceId,
         data: traceData,
       });
@@ -442,10 +442,10 @@ export class TradingService {
       const positions = context.getPositions
         ? await context.getPositions()
         : [];
-      const position = positions.find((p) => p.symbol === symbol);
+      const position = positions.find((pos) => pos.symbol === symbol);
 
       this.deps.tracer.setMeasurement(
-        PerpsMeasurementName.PERPS_GET_POSITIONS_OPERATION,
+        PerpsMeasurementName.PerpsGetPositionsOperation,
         this.deps.performance.now() - positionLoadStart,
         'millisecond',
       );
@@ -741,7 +741,7 @@ export class TradingService {
 
     // Record measurement
     this.deps.tracer.setMeasurement(
-      PerpsMeasurementName.PERPS_REWARDS_ORDER_EXECUTION_FEE_DISCOUNT_API_CALL,
+      PerpsMeasurementName.PerpsRewardsOrderExecutionFeeDiscountApiCall,
       orderExecutionFeeDiscountDuration,
       'millisecond',
     );
@@ -762,7 +762,7 @@ export class TradingService {
    * Handles tracing, fee discounts, state management, and analytics
    */
   async editOrder(options: {
-    provider: IPerpsProvider;
+    provider: PerpsProvider;
     params: EditOrderParams;
     context: ServiceContext;
   }): Promise<OrderResult> {
@@ -775,9 +775,9 @@ export class TradingService {
 
     try {
       this.deps.tracer.trace({
-        name: PerpsTraceNames.EDIT_ORDER,
+        name: PerpsTraceNames.EditOrder,
         id: traceId,
-        op: PerpsTraceOperations.ORDER_SUBMISSION,
+        op: PerpsTraceOperations.OrderSubmission,
         tags: {
           provider: context.tracingContext.provider,
           orderType: params.newOrder.orderType,
@@ -897,7 +897,7 @@ export class TradingService {
       throw error;
     } finally {
       this.deps.tracer.endTrace({
-        name: PerpsTraceNames.EDIT_ORDER,
+        name: PerpsTraceNames.EditOrder,
         id: traceId,
         data: traceData,
       });
@@ -909,7 +909,7 @@ export class TradingService {
    * Handles tracing, state management, and analytics
    */
   async cancelOrder(options: {
-    provider: IPerpsProvider;
+    provider: PerpsProvider;
     params: CancelOrderParams;
     context: ServiceContext;
   }): Promise<CancelOrderResult> {
@@ -923,9 +923,9 @@ export class TradingService {
     try {
       // Start trace for the entire operation
       this.deps.tracer.trace({
-        name: PerpsTraceNames.CANCEL_ORDER,
+        name: PerpsTraceNames.CancelOrder,
         id: traceId,
-        op: PerpsTraceOperations.ORDER_SUBMISSION,
+        op: PerpsTraceOperations.OrderSubmission,
         tags: {
           provider: context.tracingContext.provider,
           market: params.symbol,
@@ -1003,7 +1003,7 @@ export class TradingService {
       throw error;
     } finally {
       this.deps.tracer.endTrace({
-        name: PerpsTraceNames.CANCEL_ORDER,
+        name: PerpsTraceNames.CancelOrder,
         id: traceId,
         data: traceData,
       });
@@ -1015,7 +1015,7 @@ export class TradingService {
    * Handles tracing, stream pausing, filtering, batch operations, and analytics
    */
   async cancelOrders(options: {
-    provider: IPerpsProvider;
+    provider: PerpsProvider;
     params: CancelOrdersParams;
     context: ServiceContext;
     withStreamPause: <T>(
@@ -1032,9 +1032,9 @@ export class TradingService {
     try {
       // Start trace for batch operation
       this.deps.tracer.trace({
-        name: PerpsTraceNames.CANCEL_ORDER,
+        name: PerpsTraceNames.CancelOrder,
         id: traceId,
-        op: PerpsTraceOperations.ORDER_SUBMISSION,
+        op: PerpsTraceOperations.OrderSubmission,
         tags: {
           provider: context.tracingContext.provider,
           isBatch: 'true',
@@ -1060,17 +1060,17 @@ export class TradingService {
         if (params.cancelAll || (!params.symbols && !params.orderIds)) {
           // Cancel all orders (excluding TP/SL orders for positions)
           ordersToCancel = orders.filter(
-            (o) => !isTPSLOrder(o.detailedOrderType),
+            (order) => !isTPSLOrder(order.detailedOrderType),
           );
         } else if (params.orderIds && params.orderIds.length > 0) {
           // Cancel specific order IDs
-          ordersToCancel = orders.filter((o) =>
-            params.orderIds?.includes(o.orderId),
+          ordersToCancel = orders.filter((order) =>
+            params.orderIds?.includes(order.orderId),
           );
         } else if (params.symbols && params.symbols.length > 0) {
           // Cancel orders for specific symbols
-          ordersToCancel = orders.filter((o) =>
-            params.symbols?.includes(o.symbol),
+          ordersToCancel = orders.filter((order) =>
+            params.symbols?.includes(order.symbol),
           );
         }
 
@@ -1106,7 +1106,7 @@ export class TradingService {
 
         // Aggregate results
         const successCount = results.filter(
-          (r) => r.status === 'fulfilled' && r.value.success,
+          (res) => res.status === 'fulfilled' && res.value.success,
         ).length;
         const failureCount = results.length - successCount;
 
@@ -1167,7 +1167,7 @@ export class TradingService {
       );
 
       this.deps.tracer.endTrace({
-        name: PerpsTraceNames.CANCEL_ORDER,
+        name: PerpsTraceNames.CancelOrder,
         id: traceId,
       });
     }
@@ -1178,7 +1178,7 @@ export class TradingService {
    * Handles tracing, fee discounts, state management, analytics, and data lake reporting
    */
   async closePosition(options: {
-    provider: IPerpsProvider;
+    provider: PerpsProvider;
     params: ClosePositionParams;
     context: ServiceContext;
     reportOrderToDataLake: (params: {
@@ -1197,9 +1197,9 @@ export class TradingService {
 
     try {
       this.deps.tracer.trace({
-        name: PerpsTraceNames.CLOSE_POSITION,
+        name: PerpsTraceNames.ClosePosition,
         id: traceId,
-        op: PerpsTraceOperations.POSITION_MANAGEMENT,
+        op: PerpsTraceOperations.PositionManagement,
         tags: {
           provider: context.tracingContext.provider,
           symbol: params.symbol,
@@ -1293,7 +1293,7 @@ export class TradingService {
     } finally {
       // Always end trace on exit (success or failure)
       this.deps.tracer.endTrace({
-        name: PerpsTraceNames.CLOSE_POSITION,
+        name: PerpsTraceNames.ClosePosition,
         id: traceId,
         data: traceData,
       });
@@ -1305,7 +1305,7 @@ export class TradingService {
    * Handles tracing, fee discounts, batch operations, and analytics
    */
   async closePositions(options: {
-    provider: IPerpsProvider;
+    provider: PerpsProvider;
     params: ClosePositionsParams;
     context: ServiceContext;
   }): Promise<ClosePositionsResult> {
@@ -1318,9 +1318,9 @@ export class TradingService {
     try {
       // Start trace for batch operation
       this.deps.tracer.trace({
-        name: PerpsTraceNames.CLOSE_POSITION,
+        name: PerpsTraceNames.ClosePosition,
         id: traceId,
-        op: PerpsTraceOperations.POSITION_MANAGEMENT,
+        op: PerpsTraceOperations.PositionManagement,
         tags: {
           provider: context.tracingContext.provider,
           isBatch: 'true',
@@ -1336,7 +1336,9 @@ export class TradingService {
         providerType: provider.protocolId,
         hasBatchMethod: !!provider.closePositions,
         methodType: typeof provider.closePositions,
-        providerKeys: Object.keys(provider).filter((k) => k.includes('close')),
+        providerKeys: Object.keys(provider).filter((key) =>
+          key.includes('close'),
+        ),
       });
 
       // Use batch close if provider supports it (provider handles filtering)
@@ -1364,7 +1366,7 @@ export class TradingService {
         const positionsToClose =
           params.closeAll || !params.symbols || params.symbols.length === 0
             ? positions
-            : positions.filter((p) => params.symbols?.includes(p.symbol));
+            : positions.filter((pos) => params.symbols?.includes(pos.symbol));
 
         if (positionsToClose.length === 0) {
           operationResult = {
@@ -1389,7 +1391,7 @@ export class TradingService {
 
         // Aggregate results
         const successCount = results.filter(
-          (r) => r.status === 'fulfilled' && r.value.success,
+          (res) => res.status === 'fulfilled' && res.value.success,
         ).length;
         const failureCount = results.length - successCount;
 
@@ -1452,7 +1454,7 @@ export class TradingService {
       );
 
       this.deps.tracer.endTrace({
-        name: PerpsTraceNames.CLOSE_POSITION,
+        name: PerpsTraceNames.ClosePosition,
         id: traceId,
       });
     }
@@ -1463,7 +1465,7 @@ export class TradingService {
    * Handles tracing, fee discounts, state management, and analytics
    */
   async updatePositionTPSL(options: {
-    provider: IPerpsProvider;
+    provider: PerpsProvider;
     params: UpdatePositionTPSLParams;
     context: ServiceContext;
   }): Promise<OrderResult> {
@@ -1486,9 +1488,9 @@ export class TradingService {
 
     try {
       this.deps.tracer.trace({
-        name: PerpsTraceNames.UPDATE_TPSL,
+        name: PerpsTraceNames.UpdateTpsl,
         id: traceId,
-        op: PerpsTraceOperations.POSITION_MANAGEMENT,
+        op: PerpsTraceOperations.PositionManagement,
         tags: {
           provider: context.tracingContext.provider,
           market: params.symbol,
@@ -1588,7 +1590,7 @@ export class TradingService {
       );
 
       this.deps.tracer.endTrace({
-        name: PerpsTraceNames.UPDATE_TPSL,
+        name: PerpsTraceNames.UpdateTpsl,
         id: traceId,
         data: traceData,
       });
@@ -1599,7 +1601,7 @@ export class TradingService {
    * Update margin for an existing position (add or remove)
    */
   async updateMargin(options: {
-    provider: IPerpsProvider;
+    provider: PerpsProvider;
     symbol: string;
     amount: string;
     context: ServiceContext;
@@ -1610,9 +1612,9 @@ export class TradingService {
 
     try {
       this.deps.tracer.trace({
-        name: PerpsTraceNames.UPDATE_MARGIN,
+        name: PerpsTraceNames.UpdateMargin,
         id: traceId,
-        op: PerpsTraceOperations.POSITION_MANAGEMENT,
+        op: PerpsTraceOperations.PositionManagement,
         tags: {
           provider: context.tracingContext.provider,
           symbol,
@@ -1650,7 +1652,7 @@ export class TradingService {
       }
 
       this.deps.tracer.endTrace({
-        name: PerpsTraceNames.UPDATE_MARGIN,
+        name: PerpsTraceNames.UpdateMargin,
         id: traceId,
         data: { success: result.success, error: result.error || '' },
       });
@@ -1678,7 +1680,7 @@ export class TradingService {
       });
 
       this.deps.tracer.endTrace({
-        name: PerpsTraceNames.UPDATE_MARGIN,
+        name: PerpsTraceNames.UpdateMargin,
         id: traceId,
         data: { success: false, error: errorMessage },
       });
@@ -1691,7 +1693,7 @@ export class TradingService {
    * Flip position (reverse direction while keeping size and leverage)
    */
   async flipPosition(options: {
-    provider: IPerpsProvider;
+    provider: PerpsProvider;
     position: Position;
     context: ServiceContext;
   }): Promise<OrderResult> {
@@ -1701,9 +1703,9 @@ export class TradingService {
 
     try {
       this.deps.tracer.trace({
-        name: PerpsTraceNames.FLIP_POSITION,
+        name: PerpsTraceNames.FlipPosition,
         id: traceId,
-        op: PerpsTraceOperations.POSITION_MANAGEMENT,
+        op: PerpsTraceOperations.PositionManagement,
         tags: {
           provider: context.tracingContext.provider,
           symbol: position.symbol,
@@ -1780,7 +1782,7 @@ export class TradingService {
       }
 
       this.deps.tracer.endTrace({
-        name: PerpsTraceNames.FLIP_POSITION,
+        name: PerpsTraceNames.FlipPosition,
         id: traceId,
         data: { success: result.success ?? false, error: result.error || '' },
       });
@@ -1806,7 +1808,7 @@ export class TradingService {
       });
 
       this.deps.tracer.endTrace({
-        name: PerpsTraceNames.FLIP_POSITION,
+        name: PerpsTraceNames.FlipPosition,
         id: traceId,
         data: { success: false, error: errorMessage },
       });

@@ -5,6 +5,8 @@ import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import WalletView from '../../pages/wallet/WalletView';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import Assertions from '../../../tests/framework/Assertions';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 
 describe(SmokeNetworkAbstractions('Add all popular networks'), () => {
   beforeAll(async () => {
@@ -16,6 +18,12 @@ describe(SmokeNetworkAbstractions('Add all popular networks'), () => {
       {
         fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
+        testSpecificMock: async (mockServer) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            remoteFeatureMultichainAccountsAccountDetailsV2(false),
+          );
+        },
       },
       async () => {
         await loginToApp();

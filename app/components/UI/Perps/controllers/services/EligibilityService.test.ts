@@ -2,13 +2,13 @@ import { EligibilityService } from './EligibilityService';
 import { successfulFetch } from '@metamask/controller-utils';
 import { getEnvironment } from '../utils';
 import { createMockInfrastructure } from '../../__mocks__/serviceMocks';
-import type { IPerpsPlatformDependencies } from '../types';
+import type { PerpsPlatformDependencies } from '../types';
 
 jest.mock('@metamask/controller-utils');
 jest.mock('../utils');
 
 describe('EligibilityService', () => {
-  let mockDeps: jest.Mocked<IPerpsPlatformDependencies>;
+  let mockDeps: jest.Mocked<PerpsPlatformDependencies>;
   let service: EligibilityService;
 
   beforeEach(() => {

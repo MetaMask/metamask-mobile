@@ -26,6 +26,7 @@ import Label from '../../../../../component-library/components/Form/Label';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
+import type { ShippingAddress } from '../../Views/ReviewOrder';
 import useRegisterPhysicalAddress from '../../hooks/useRegisterPhysicalAddress';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -38,6 +39,7 @@ import {
   setSelectedCountry,
   setUserCardLocation,
 } from '../../../../../core/redux/slices/card';
+import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import useRegisterUserConsent from '../../hooks/useRegisterUserConsent';
 import { CardError } from '../../types';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
@@ -128,6 +130,7 @@ export const AddressFields = ({
           onChangeText={handleAddressLine1Change}
           numberOfLines={1}
           size={TextFieldSize.Lg}
+          autoComplete="one-time-code"
           value={addressLine1}
           keyboardType="default"
           maxLength={255}
@@ -149,6 +152,7 @@ export const AddressFields = ({
           onChangeText={handleAddressLine2Change}
           numberOfLines={1}
           size={TextFieldSize.Lg}
+          autoComplete="one-time-code"
           value={addressLine2}
           keyboardType="default"
           maxLength={255}
@@ -168,6 +172,7 @@ export const AddressFields = ({
           onChangeText={handleCityChange}
           numberOfLines={1}
           size={TextFieldSize.Lg}
+          autoComplete="one-time-code"
           value={city}
           keyboardType="default"
           maxLength={255}
@@ -203,6 +208,7 @@ export const AddressFields = ({
           onChangeText={handleZipCodeChange}
           numberOfLines={1}
           size={TextFieldSize.Lg}
+          autoComplete="one-time-code"
           value={zipCode}
           keyboardType="default"
           maxLength={255}
@@ -240,6 +246,9 @@ const PhysicalAddress = () => {
   const onboardingId = useSelector(selectOnboardingId);
   const initialSelectedCountry = useSelector(selectSelectedCountry);
   const existingConsentSetId = useSelector(selectConsentSetId);
+  const isMetalCardCheckoutEnabled = useSelector(
+    selectMetalCardCheckoutFeatureFlag,
+  );
   const { trackEvent, createEventBuilder } = useMetrics();
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
@@ -541,11 +550,24 @@ const PhysicalAddress = () => {
             setUser(userDetails);
 
             if (currentVerificationState === 'VERIFIED') {
-              // KYC verified - proceed to SpendingLimit
-              stopPollingAndNavigate({
-                name: Routes.CARD.SPENDING_LIMIT,
-                params: { flow: 'onboarding' },
-              });
+              if (location === 'us' && isMetalCardCheckoutEnabled) {
+                const shippingAddress: ShippingAddress = {
+                  line1: addressLine1,
+                  line2: addressLine2 || undefined,
+                  city,
+                  state,
+                  zip: zipCode,
+                };
+                stopPollingAndNavigate({
+                  name: Routes.CARD.CHOOSE_YOUR_CARD,
+                  params: { flow: 'onboarding', shippingAddress },
+                });
+              } else {
+                stopPollingAndNavigate({
+                  name: Routes.CARD.SPENDING_LIMIT,
+                  params: { flow: 'onboarding' },
+                });
+              }
             } else if (currentVerificationState === 'REJECTED') {
               // KYC rejected - show failure screen
               stopPollingAndNavigate({

@@ -102,10 +102,16 @@ jobs:
 
       - name: Install Android System Images
         if: ${{ inputs.platform == 'android' }}
-        run: |
-          echo "📱 Installing Android system images for E2E tests..."
-          "$ANDROID_SDK_ROOT"/cmdline-tools/latest/bin/sdkmanager "system-images;android-34;google_apis;x86_64"
-          echo "✅ System images installed"
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            set -e
+            echo "📱 Installing Android system images for E2E tests..."
+            "$ANDROID_SDK_ROOT"/cmdline-tools/latest/bin/sdkmanager "system-images;android-34;google_apis;x86_64"
+            echo "✅ System images installed"
 
       - name: Set up E2E environment
         timeout-minutes: 15

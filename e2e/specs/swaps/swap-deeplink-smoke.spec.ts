@@ -4,7 +4,7 @@ import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { LocalNode, LocalNodeType } from '../../../tests/framework/types';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { AnvilManager } from '../../seeder/anvil-manager';
+import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
 import { SmokeTrade } from '../../tags';
 import Assertions from '../../../tests/framework/Assertions';

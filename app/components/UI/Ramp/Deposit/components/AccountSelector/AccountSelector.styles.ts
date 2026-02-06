@@ -13,8 +13,6 @@ const stylesheet = (params: { theme: Theme }) => {
       backgroundColor: theme.colors.background.muted,
       borderRadius: 12,
       padding: 8,
-      borderWidth: 1,
-      borderColor: theme.colors.border.muted,
       alignSelf: 'flex-start',
     },
   });

@@ -14,7 +14,7 @@ import {
 } from '../../../tests/framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../../tests/framework/Constants';
 import { LocalNode } from '../../../tests/framework/types';
-import { AnvilManager } from '../../seeder/anvil-manager';
+import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 
 describe.skip(RegressionAssets('NFT Details page'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;

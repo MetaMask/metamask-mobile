@@ -201,7 +201,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
         if (hasActiveSubscribers && !this.wsSubscriptions.has(cacheKey)) {
           this.connect(symbol, interval, cacheKey);
         }
-      }, PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS);
+      }, PERPS_CONSTANTS.ReconnectionCleanupDelayMs);
       return;
     }
 
@@ -210,7 +210,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     const unsubscribe = Engine.context.PerpsController.subscribeToCandles({
       symbol,
       interval,
-      duration: TimeDuration.YEAR_TO_DATE, // Always fetch max candles
+      duration: TimeDuration.YearToDate, // Always fetch max candles
       callback: (candleData: CandleData) => {
         // Update cache
         this.cache.set(cacheKey, candleData);
@@ -289,7 +289,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   protected getClearedData(): CandleData {
     return {
       symbol: '',
-      interval: CandlePeriod.ONE_HOUR,
+      interval: CandlePeriod.OneHour,
       candles: [],
     };
   }
@@ -423,7 +423,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       // Log to Sentry: fetch failures affect multiple subscribers
       Logger.error(errorInstance, {
         tags: {
-          feature: PERPS_CONSTANTS.FEATURE_NAME,
+          feature: PERPS_CONSTANTS.FeatureName,
           component: 'CandleStreamChannel',
         },
         context: {

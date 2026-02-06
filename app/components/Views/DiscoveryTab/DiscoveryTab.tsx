@@ -4,7 +4,6 @@ import { useSelector } from 'react-redux';
 import { processUrlForBrowser } from '../../../util/browser';
 import Device from '../../../util/device';
 import ErrorBoundary from '../ErrorBoundary';
-import Routes from '../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
@@ -74,18 +73,11 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
    */
   const onSelect = useCallback(
     (item: AutocompleteSearchResult) => {
-      if (item.category === 'tokens') {
-        navigation.navigate(Routes.BROWSER.ASSET_LOADER, {
-          chainId: item.chainId,
-          address: item.address,
-        });
-      } else {
-        // Unfocus the url bar and hide the autocomplete results
-        urlBarRef.current?.hide();
-        onSubmitEditing(item.url);
-      }
+      // Unfocus the url bar and hide the autocomplete results
+      urlBarRef.current?.hide();
+      onSubmitEditing(item.url);
     },
-    [onSubmitEditing, navigation],
+    [onSubmitEditing],
   );
 
   /**

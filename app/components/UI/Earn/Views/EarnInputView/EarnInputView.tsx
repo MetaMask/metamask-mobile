@@ -73,7 +73,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useEndTraceOnMount } from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
-import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
+
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import useTronStake from '../../hooks/useTronStake';
 import useTronStakeApy from '../../hooks/useTronStakeApy';
@@ -313,12 +313,8 @@ const EarnInputView = () => {
     ],
   );
 
-  const confirmationRedesignFlags = useSelector(
-    selectConfirmationRedesignFlags,
-  );
-
-  const isStakingDepositRedesignedEnabled =
-    confirmationRedesignFlags?.staking_confirmations;
+  // TODO: Remove dead code as we are not using the legacy confirmations anymore
+  const isStakingDepositRedesignedEnabled = true;
 
   const handleLendingFlow = useCallback(async () => {
     if (

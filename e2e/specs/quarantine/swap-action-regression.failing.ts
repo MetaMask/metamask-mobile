@@ -12,7 +12,7 @@ import { loginToApp } from '../../viewHelper';
 import { prepareSwapsTestEnvironment } from '../swaps/helpers/prepareSwapsTestEnvironment';
 import { testSpecificMock } from '../swaps/helpers/swap-mocks';
 import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
-import { AnvilManager } from '../../seeder/anvil-manager';
+import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 
 describe(RegressionTrade('Multiple Swaps from Actions'), (): void => {
   beforeEach(async (): Promise<void> => {

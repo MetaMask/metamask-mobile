@@ -10,7 +10,7 @@ import NetworkAddedBottomSheet from '../../pages/Network/NetworkAddedBottomSheet
 import NetworkApprovalBottomSheet from '../../pages/Network/NetworkApprovalBottomSheet';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
-import { PopularNetworksList } from '../../resources/networks.e2e';
+import { PopularNetworksList } from '../../../tests/resources/networks.e2e';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
 describe(SmokeTrade('Buy Crypto Deeplinks'), () => {

@@ -364,7 +364,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
             ? formatPerpsFiat(currentPrice, {
                 ranges: PRICE_RANGES_UNIVERSAL,
               })
-            : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
+            : PERPS_CONSTANTS.FallbackPriceDisplay}
         </Text>
 
         {/* Quick preset buttons - Mid/Bid/Ask + percentage presets */}
@@ -411,7 +411,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
               </TouchableOpacity>
 
               {/* Percentage presets */}
-              {LIMIT_PRICE_CONFIG.LONG_PRESETS.map((percentage) => (
+              {LIMIT_PRICE_CONFIG.LongPresets.map((percentage) => (
                 <TouchableOpacity
                   key={percentage}
                   style={styles.percentageButton}
@@ -463,7 +463,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
               </TouchableOpacity>
 
               {/* Percentage presets */}
-              {LIMIT_PRICE_CONFIG.SHORT_PRESETS.map((percentage) => (
+              {LIMIT_PRICE_CONFIG.ShortPresets.map((percentage) => (
                 <TouchableOpacity
                   key={percentage}
                   style={styles.percentageButton}

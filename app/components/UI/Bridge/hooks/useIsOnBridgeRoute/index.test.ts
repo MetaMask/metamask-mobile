@@ -42,9 +42,6 @@ describe('useIsOnBridgeRoute', () => {
         {
           key: 'BridgeModals-AE5Kmve-nkUf4tfhh4seK',
           name: 'BridgeModals',
-          params: {
-            screen: 'BridgeSourceTokenSelector',
-          },
         },
       ];
 
@@ -259,8 +256,8 @@ describe('getAllRouteValues', () => {
       const routeObject = {
         ROOT: 'Bridge',
         MODALS: {
-          SOURCE_TOKEN: 'BridgeSourceTokenSelector',
-          DEST_TOKEN: 'BridgeDestTokenSelector',
+          ROOT: 'BridgeModals',
+          SLIPPAGE_MODAL: 'SlippageModal',
         },
       };
 
@@ -268,11 +265,7 @@ describe('getAllRouteValues', () => {
       const result = getAllRouteValues(routeObject);
 
       // Assert
-      expect(result).toEqual([
-        'Bridge',
-        'BridgeSourceTokenSelector',
-        'BridgeDestTokenSelector',
-      ]);
+      expect(result).toEqual(['Bridge', 'BridgeModals', 'SlippageModal']);
     });
 
     it('extracts string values from deeply nested object', () => {

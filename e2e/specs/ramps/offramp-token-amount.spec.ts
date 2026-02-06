@@ -4,7 +4,7 @@ import FundActionMenu from '../../pages/UI/FundActionMenu';
 import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { SmokeRamps } from '../../tags';
-import { CustomNetworks } from '../../resources/networks.e2e';
+import { CustomNetworks } from '../../../tests/resources/networks.e2e';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import Assertions from '../../../tests/framework/Assertions';
 import {

@@ -22,7 +22,7 @@ jest.mock('../../../../../core/SDKConnect/utils/DevLogger');
 describe('usePerpsLiveCandles', () => {
   const mockCandleData: CandleData = {
     symbol: 'BTC',
-    interval: CandlePeriod.ONE_HOUR,
+    interval: CandlePeriod.OneHour,
     candles: [
       {
         time: 1700000000000,
@@ -46,15 +46,15 @@ describe('usePerpsLiveCandles', () => {
     renderHook(() =>
       usePerpsLiveCandles({
         symbol: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
       }),
     );
 
     expect(mockCandleSubscribe).toHaveBeenCalledWith({
       symbol: 'BTC',
-      interval: CandlePeriod.ONE_HOUR,
-      duration: TimeDuration.ONE_DAY,
+      interval: CandlePeriod.OneHour,
+      duration: TimeDuration.OneDay,
       callback: expect.any(Function),
       throttleMs: 1000,
       onError: expect.any(Function),
@@ -68,8 +68,8 @@ describe('usePerpsLiveCandles', () => {
     const { unmount } = renderHook(() =>
       usePerpsLiveCandles({
         symbol: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
       }),
     );
 
@@ -86,8 +86,8 @@ describe('usePerpsLiveCandles', () => {
       ({ symbol }) =>
         usePerpsLiveCandles({
           symbol,
-          interval: CandlePeriod.ONE_HOUR,
-          duration: TimeDuration.ONE_DAY,
+          interval: CandlePeriod.OneHour,
+          duration: TimeDuration.OneDay,
         }),
       {
         initialProps: { symbol: 'BTC' },
@@ -104,8 +104,8 @@ describe('usePerpsLiveCandles', () => {
     expect(mockCandleSubscribe).toHaveBeenCalledTimes(2);
     expect(mockCandleSubscribe).toHaveBeenLastCalledWith({
       symbol: 'ETH',
-      interval: CandlePeriod.ONE_HOUR,
-      duration: TimeDuration.ONE_DAY,
+      interval: CandlePeriod.OneHour,
+      duration: TimeDuration.OneDay,
       callback: expect.any(Function),
       throttleMs: 1000,
       onError: expect.any(Function),
@@ -121,25 +121,25 @@ describe('usePerpsLiveCandles', () => {
         usePerpsLiveCandles({
           symbol: 'BTC',
           interval,
-          duration: TimeDuration.ONE_DAY,
+          duration: TimeDuration.OneDay,
         }),
       {
-        initialProps: { interval: CandlePeriod.ONE_HOUR },
+        initialProps: { interval: CandlePeriod.OneHour },
       },
     );
 
     expect(mockCandleSubscribe).toHaveBeenCalledTimes(1);
 
     // Change interval
-    rerender({ interval: CandlePeriod.FIVE_MINUTES });
+    rerender({ interval: CandlePeriod.FiveMinutes });
 
     // Should resubscribe
     expect(mockUnsubscribe).toHaveBeenCalled();
     expect(mockCandleSubscribe).toHaveBeenCalledTimes(2);
     expect(mockCandleSubscribe).toHaveBeenLastCalledWith({
       symbol: 'BTC',
-      interval: CandlePeriod.FIVE_MINUTES,
-      duration: TimeDuration.ONE_DAY,
+      interval: CandlePeriod.FiveMinutes,
+      duration: TimeDuration.OneDay,
       callback: expect.any(Function),
       throttleMs: 1000,
       onError: expect.any(Function),
@@ -152,15 +152,15 @@ describe('usePerpsLiveCandles', () => {
     const { result } = renderHook(() =>
       usePerpsLiveCandles({
         symbol: '',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
       }),
     );
 
     // Empty symbol returns stable empty data object, not null
     expect(result.current.candleData).toEqual({
       symbol: '',
-      interval: CandlePeriod.ONE_HOUR,
+      interval: CandlePeriod.OneHour,
       candles: [],
     });
     expect(result.current.isLoading).toBe(false);
@@ -177,8 +177,8 @@ describe('usePerpsLiveCandles', () => {
     const { result } = renderHook(() =>
       usePerpsLiveCandles({
         symbol: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
       }),
     );
 
@@ -207,15 +207,15 @@ describe('usePerpsLiveCandles', () => {
     const { result } = renderHook(() =>
       usePerpsLiveCandles({
         symbol: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
       }),
     );
 
     // Send update for wrong interval
     const wrongIntervalData: CandleData = {
       ...mockCandleData,
-      interval: CandlePeriod.FIVE_MINUTES,
+      interval: CandlePeriod.FiveMinutes,
     };
 
     act(() => {
@@ -237,8 +237,8 @@ describe('usePerpsLiveCandles', () => {
     const { result } = renderHook(() =>
       usePerpsLiveCandles({
         symbol: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
       }),
     );
 
@@ -267,15 +267,15 @@ describe('usePerpsLiveCandles', () => {
     renderHook(() =>
       usePerpsLiveCandles({
         symbol: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
       }),
     );
 
     expect(mockCandleSubscribe).toHaveBeenCalledWith({
       symbol: 'BTC',
-      interval: CandlePeriod.ONE_HOUR,
-      duration: TimeDuration.ONE_DAY,
+      interval: CandlePeriod.OneHour,
+      duration: TimeDuration.OneDay,
       callback: expect.any(Function),
       throttleMs: 1000,
       onError: expect.any(Function),
@@ -289,8 +289,8 @@ describe('usePerpsLiveCandles', () => {
       ({ symbol }) =>
         usePerpsLiveCandles({
           symbol,
-          interval: CandlePeriod.ONE_HOUR,
-          duration: TimeDuration.ONE_DAY,
+          interval: CandlePeriod.OneHour,
+          duration: TimeDuration.OneDay,
         }),
       {
         initialProps: { symbol: 'BTC' },
@@ -316,17 +316,17 @@ describe('usePerpsLiveCandles', () => {
         usePerpsLiveCandles({
           symbol: 'BTC',
           interval,
-          duration: TimeDuration.ONE_DAY,
+          duration: TimeDuration.OneDay,
         }),
       {
-        initialProps: { interval: CandlePeriod.ONE_HOUR },
+        initialProps: { interval: CandlePeriod.OneHour },
       },
     );
 
     // Verify initial state
     expect(result.current.isLoading).toBe(true);
 
-    rerender({ interval: CandlePeriod.FIVE_MINUTES });
+    rerender({ interval: CandlePeriod.FiveMinutes });
 
     // State should be reset for new interval
     expect(result.current.isLoading).toBe(true);
@@ -341,24 +341,24 @@ describe('usePerpsLiveCandles', () => {
       ({ duration }) =>
         usePerpsLiveCandles({
           symbol: 'BTC',
-          interval: CandlePeriod.ONE_HOUR,
+          interval: CandlePeriod.OneHour,
           duration,
         }),
       {
-        initialProps: { duration: TimeDuration.ONE_DAY },
+        initialProps: { duration: TimeDuration.OneDay },
       },
     );
 
     expect(mockCandleSubscribe).toHaveBeenCalledTimes(1);
 
-    rerender({ duration: TimeDuration.ONE_WEEK });
+    rerender({ duration: TimeDuration.OneWeek });
 
     expect(mockUnsubscribe).toHaveBeenCalled();
     expect(mockCandleSubscribe).toHaveBeenCalledTimes(2);
     expect(mockCandleSubscribe).toHaveBeenLastCalledWith({
       symbol: 'BTC',
-      interval: CandlePeriod.ONE_HOUR,
-      duration: TimeDuration.ONE_WEEK,
+      interval: CandlePeriod.OneHour,
+      duration: TimeDuration.OneWeek,
       callback: expect.any(Function),
       throttleMs: 1000,
       onError: expect.any(Function),
@@ -371,16 +371,16 @@ describe('usePerpsLiveCandles', () => {
     renderHook(() =>
       usePerpsLiveCandles({
         symbol: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
         throttleMs: 2000,
       }),
     );
 
     expect(mockCandleSubscribe).toHaveBeenCalledWith({
       symbol: 'BTC',
-      interval: CandlePeriod.ONE_HOUR,
-      duration: TimeDuration.ONE_DAY,
+      interval: CandlePeriod.OneHour,
+      duration: TimeDuration.OneDay,
       callback: expect.any(Function),
       throttleMs: 2000,
       onError: expect.any(Function),
@@ -396,8 +396,8 @@ describe('usePerpsLiveCandles', () => {
     const { result } = renderHook(() =>
       usePerpsLiveCandles({
         symbol: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
       }),
     );
 
@@ -412,8 +412,8 @@ describe('usePerpsLiveCandles', () => {
     const { result } = renderHook(() =>
       usePerpsLiveCandles({
         symbol: '',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
       }),
     );
 
@@ -432,8 +432,8 @@ describe('usePerpsLiveCandles', () => {
     const { result } = renderHook(() =>
       usePerpsLiveCandles({
         symbol: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
       }),
     );
 
@@ -443,8 +443,8 @@ describe('usePerpsLiveCandles', () => {
 
     expect(mockFetchHistoricalCandles).toHaveBeenCalledWith(
       'BTC',
-      CandlePeriod.ONE_HOUR,
-      TimeDuration.ONE_DAY,
+      CandlePeriod.OneHour,
+      TimeDuration.OneDay,
     );
   });
 
@@ -460,8 +460,8 @@ describe('usePerpsLiveCandles', () => {
     const { result } = renderHook(() =>
       usePerpsLiveCandles({
         symbol: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
-        duration: TimeDuration.ONE_DAY,
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
       }),
     );
 

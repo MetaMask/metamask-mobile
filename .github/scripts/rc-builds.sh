@@ -131,3 +131,26 @@ if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
   echo "bitrise-pipeline-url=https://app.bitrise.io/app/$BITRISE_APP_ID/pipelines/$BUILD_SLUG" >> "$GITHUB_OUTPUT"
   echo "build-number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
 fi
+
+# Post Slack notification if bot token is configured (fail open - non-critical)
+if [[ -n "${SLACK_BOT_TOKEN:-}" ]]; then
+  echo ""
+  echo "Posting Slack notification..."
+
+  # Export variables for the TypeScript script
+  export SEMVER
+  export BUILD_NUMBER
+  export ANDROID_PUBLIC_URL
+  export BITRISE_PIPELINE_URL="https://app.bitrise.io/app/$BITRISE_APP_ID/pipelines/$BUILD_SLUG"
+  export SLACK_BOT_TOKEN
+
+  # Run the Slack notification script (fail open - don't fail the build if notification fails)
+  if node ./scripts/slack-rc-notification.mjs; then
+    echo "Slack notification sent successfully"
+  else
+    echo "⚠️ Slack notification failed, but continuing (non-critical)"
+  fi
+else
+  echo ""
+  echo "Skipping Slack notification (SLACK_BOT_TOKEN not set)"
+fi

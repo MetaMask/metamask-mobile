@@ -156,7 +156,9 @@ const transactionIconSwapFailed = require('../../../images/transaction-icons/swa
 /* eslint-enable import/no-commonjs */
 
 const NEW_TRANSACTION_DETAILS_TYPES = [
+  TransactionType.musdConversion,
   TransactionType.perpsDeposit,
+  TransactionType.perpsDepositAndOrder,
   TransactionType.predictClaim,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
@@ -496,6 +498,7 @@ class TransactionElement extends PureComponent {
       bridgeTxHistoryData: { bridgeTxHistoryItem, isBridgeComplete },
     } = this.props;
     const isBridgeTransaction = type === TransactionType.bridge;
+    const isUnifiedSwap = type === TransactionType.swap && bridgeTxHistoryItem;
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
     const { value, fiatValue = false, actionKey } = transactionElement;
@@ -518,7 +521,7 @@ class TransactionElement extends PureComponent {
     const renderLedgerActions =
       transactionStatus === 'approved' && isLedgerAccount;
     let title = actionKey;
-    if (isBridgeTransaction && bridgeTxHistoryItem) {
+    if ((isBridgeTransaction || isUnifiedSwap) && bridgeTxHistoryItem) {
       title = getSwapBridgeTxActivityTitle(bridgeTxHistoryItem) ?? title;
     }
 

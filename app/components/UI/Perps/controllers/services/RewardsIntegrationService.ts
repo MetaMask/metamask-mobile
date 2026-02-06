@@ -1,8 +1,8 @@
 import { ensureError } from '../../../../../util/errorUtils';
 import type { PerpsControllerMessenger } from '../PerpsController';
 import type {
-  IPerpsPlatformDependencies,
-  IPerpsControllerAccess,
+  PerpsPlatformDependencies,
+  PerpsControllerAccess,
 } from '../types';
 
 /**
@@ -14,13 +14,13 @@ import type {
  * Instance-based service with constructor injection of platform dependencies.
  */
 export class RewardsIntegrationService {
-  private readonly deps: IPerpsPlatformDependencies;
+  private readonly deps: PerpsPlatformDependencies;
 
   /**
    * Create a new RewardsIntegrationService instance
    * @param deps - Platform dependencies for logging, metrics, etc.
    */
-  constructor(deps: IPerpsPlatformDependencies) {
+  constructor(deps: PerpsPlatformDependencies) {
     this.deps = deps;
   }
 
@@ -32,18 +32,10 @@ export class RewardsIntegrationService {
    * @param options.messenger - Controller messenger for network state access
    */
   async calculateUserFeeDiscount(options: {
-    controllers: IPerpsControllerAccess;
+    controllers: PerpsControllerAccess;
     messenger: PerpsControllerMessenger;
   }): Promise<number | undefined> {
     const { controllers, messenger } = options;
-
-    // Fee discount may not be available in all environments (e.g., extension)
-    if (!controllers.rewards?.getFeeDiscount) {
-      this.deps.debugLogger.log(
-        'RewardsIntegrationService: getFeeDiscount not available, no discount',
-      );
-      return undefined;
-    }
 
     try {
       const evmAccount = controllers.accounts.getSelectedEvmAccount();

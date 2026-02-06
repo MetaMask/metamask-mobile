@@ -27,7 +27,13 @@ export function getTokenListControllerMessenger(
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: ['NetworkController:getNetworkClientById'],
+    actions: [
+      'NetworkController:getNetworkClientById',
+      'StorageService:getAllKeys',
+      'StorageService:setItem',
+      'StorageService:getItem',
+      'StorageService:removeItem',
+    ],
     events: ['NetworkController:stateChange'],
     messenger,
   });
