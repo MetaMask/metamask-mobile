@@ -328,25 +328,6 @@ class CustomReporter {
   }
 
   /**
-   * Try to extract device info from profiling data metadata
-   * @param {Object} profilingData - The profiling data object
-   * @returns {Object|null} Device info or null
-   */
-  getDeviceInfoFromProfiling(profilingData) {
-    if (
-      profilingData?.metadata?.device &&
-      profilingData?.metadata?.os_version
-    ) {
-      return {
-        name: profilingData.metadata.device,
-        osVersion: profilingData.metadata.os_version,
-        provider: 'browserstack',
-      };
-    }
-    return null;
-  }
-
-  /**
    * Safely access nested object properties with null/undefined protection
    * @param {Object} obj - The object to access
    * @param {string} path - Dot-separated path (e.g., 'cpu.avg')
