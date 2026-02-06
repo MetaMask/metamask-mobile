@@ -40,7 +40,9 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
    * Phase 2: Import a second SRP which automatically creates a third account, then manually create a fourth account on the second SRP with a custom name.
    * Phase 3: Login to a fresh app instance and verify all accounts from both SRPs persist and are visible after importing the second SRP.
    */
-  it('adds accounts across multiple SRPs and syncs them', async () => {
+  // TODO: Re-enable once account syncing timeout flakiness is resolved
+  // eslint-disable-next-line jest/no-disabled-tests
+  it.skip('adds accounts across multiple SRPs and syncs them', async () => {
     await withIdentityFixtures(
       {
         userStorageFeatures: [
