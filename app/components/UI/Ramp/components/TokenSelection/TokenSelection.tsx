@@ -145,11 +145,15 @@ function TokenSelection() {
         });
       }
       // V1 flow: close the modal before navigating to Deposit/Aggregator
-      // V2 flow: navigate within the same stack, no need to close modal
-      if (!isRampsUnifiedV2Enabled) {
+      // V2 flow: navigate within the same stack directly to AMOUNT_INPUT
+      if (isRampsUnifiedV2Enabled) {
+        // When already on TokenSelection screen (inside MainRoutes stack),
+        // navigate directly to AMOUNT_INPUT within the same stack
+        navigation.navigate(Routes.RAMP.AMOUNT_INPUT, { assetId });
+      } else {
         navigation.dangerouslyGetParent()?.goBack();
+        goToBuy({ assetId });
       }
-      goToBuy({ assetId });
     },
     [
       supportedTokens,
