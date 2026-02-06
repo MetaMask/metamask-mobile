@@ -11,6 +11,4 @@ export default () => ({
   revealPrivateKey: Authentication.revealPrivateKey,
   getAuthType: Authentication.getType,
   componentAuthenticationType: Authentication.componentAuthenticationType,
-  checkIsSeedlessPasswordOutdated:
-    Authentication.checkIsSeedlessPasswordOutdated,
 });
