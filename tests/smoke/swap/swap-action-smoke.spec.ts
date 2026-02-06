@@ -19,7 +19,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
     jest.setTimeout(180000);
   });
 
-  it('should complete multiple ETH swaps from wallet actions', async (): Promise<void> => {
+  it('swaps ETH->USDC with custom slippage and USDC->ETH', async (): Promise<void> => {
     await withFixtures(
       {
         fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
@@ -61,8 +61,10 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
         await prepareSwapsTestEnvironment();
         await WalletView.tapWalletSwapButton();
 
-        // Submit first swap: ETH->ERC20 (USDC)
-        await submitSwapUnifiedUI('1', 'ETH', 'USDC', '0x1');
+        // Submit first swap: ETH->ERC20 (USDC) with custom slippage
+        await submitSwapUnifiedUI('1', 'ETH', 'USDC', '0x1', {
+          slippage: '3.5',
+        });
         await checkSwapActivity('ETH', 'USDC');
 
         await TabBarComponent.tapWallet();

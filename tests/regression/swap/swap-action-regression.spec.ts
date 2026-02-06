@@ -19,7 +19,7 @@ describe(RegressionTrade('Swap ETH <-> WETH from Actions'), (): void => {
     jest.setTimeout(180000);
   });
 
-  it('should complete multiple ETH <-> WETH swaps from wallet actions', async (): Promise<void> => {
+  it('swaps ETH->WETH and WETH->ETH', async (): Promise<void> => {
     await withFixtures(
       {
         fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
