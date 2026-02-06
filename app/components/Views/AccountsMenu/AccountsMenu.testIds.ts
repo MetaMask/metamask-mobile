@@ -12,8 +12,8 @@ export const AccountsMenuSelectorsIDs = {
   EARN_BUTTON: 'earn-button',
   SCAN_BUTTON: 'scan-button',
 
-  // Manage Wallet
-  MANAGE_WALLET: 'manage-wallet',
+  // Manage Card
+  MANAGE_CARD: 'manage-card',
 
   // Settings Link
   SETTINGS: 'settings-link',

@@ -149,7 +149,7 @@ describe('AccountsMenu', () => {
 
       expect(getByText('accounts_menu.card_title')).toBeOnTheScreen();
       expect(
-        getByTestId(AccountsMenuSelectorsIDs.MANAGE_WALLET),
+        getByTestId(AccountsMenuSelectorsIDs.MANAGE_CARD),
       ).toBeOnTheScreen();
     });
 
@@ -159,14 +159,14 @@ describe('AccountsMenu', () => {
       const { queryByText, queryByTestId } = render(<AccountsMenu />);
 
       expect(queryByText('accounts_menu.card_title')).toBeNull();
-      expect(queryByTestId(AccountsMenuSelectorsIDs.MANAGE_WALLET)).toBeNull();
+      expect(queryByTestId(AccountsMenuSelectorsIDs.MANAGE_CARD)).toBeNull();
     });
 
     it('navigate to card and track analytics when MetaMask Card is pressed', () => {
       (useSelector as jest.Mock).mockReturnValue(true);
 
       const { getByTestId } = render(<AccountsMenu />);
-      const cardButton = getByTestId(AccountsMenuSelectorsIDs.MANAGE_WALLET);
+      const cardButton = getByTestId(AccountsMenuSelectorsIDs.MANAGE_CARD);
 
       fireEvent.press(cardButton);
 

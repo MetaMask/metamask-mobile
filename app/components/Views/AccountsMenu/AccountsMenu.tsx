@@ -214,7 +214,7 @@ const AccountsMenu = () => {
             label={strings('accounts_menu.card_title')}
             onPress={onPressManageWallet}
             endAccessory={arrowRightIcon}
-            testID={AccountsMenuSelectorsIDs.MANAGE_WALLET}
+            testID={AccountsMenuSelectorsIDs.MANAGE_CARD}
           />
         )}
 

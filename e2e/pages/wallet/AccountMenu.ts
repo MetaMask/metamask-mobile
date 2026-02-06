@@ -21,8 +21,8 @@ class AccountMenu {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.CONTACTS);
   }
 
-  get manageWalletButton(): DetoxElement {
-    return Matchers.getElementByID(AccountsMenuSelectorsIDs.MANAGE_WALLET);
+  get manageCardButton(): DetoxElement {
+    return Matchers.getElementByID(AccountsMenuSelectorsIDs.MANAGE_CARD);
   }
 
   get permissionsButton(): DetoxElement {
@@ -63,8 +63,8 @@ class AccountMenu {
     });
   }
 
-  async tapManageWallet(): Promise<void> {
-    await Gestures.waitAndTap(this.manageWalletButton, {
+  async tapManageCard(): Promise<void> {
+    await Gestures.waitAndTap(this.manageCardButton, {
       elemDescription: 'Manage wallet button',
     });
   }
