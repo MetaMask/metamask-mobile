@@ -7,6 +7,7 @@ import { selectSelectedInternalAccount } from '../../../../selectors/accountsCon
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
+import { selectAssetsBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
   ActionButtonType,
@@ -49,6 +50,10 @@ jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
 
 jest.mock('../../../../reducers/fiatOrders', () => ({
   getDetectedGeolocation: jest.fn(),
+}));
+
+jest.mock('../../../../selectors/assets/assets-list', () => ({
+  selectAssetsBySelectedAccountGroup: jest.fn(),
 }));
 
 const mockTrackEvent = jest.fn();
@@ -113,6 +118,11 @@ jest.mock('../../Bridge/hooks/useSwapBridgeNavigation', () => ({
   isAssetFromTrending: jest.fn(() => false),
 }));
 
+jest.mock('../../Bridge/utils/tokenUtils', () => ({
+  getDefaultDestToken: jest.fn(),
+  getNativeSourceToken: jest.fn(),
+}));
+
 jest.mock('../../../../core/Engine', () => ({
   context: {
     NetworkController: {
@@ -155,33 +165,72 @@ describe('useTokenActions', () => {
     isNative: false,
   } as TokenI;
 
+  /**
+   * Sets up default selector mocks and returns individual mock functions
+   * that can be overridden in specific tests.
+   *
+   * @example
+   * // Override a specific selector in a test:
+   * const mocks = setupDefaultMocks();
+   * mocks.mockSelectAssetsBySelectedAccountGroup.mockReturnValue({ '0x1': [...] });
+   */
   const setupDefaultMocks = () => {
+    const mockSelectEvmChainId = jest.fn().mockReturnValue('0x1');
+    const mockSelectSelectedInternalAccount = jest
+      .fn()
+      .mockReturnValue(mockAccount);
+    const mockSelectSelectedAccountGroup = jest
+      .fn()
+      .mockReturnValue(mockAccountGroup);
+    const mockSelectSelectedInternalAccountByScope = jest
+      .fn()
+      .mockReturnValue(() => mockAccount);
+    const mockGetDetectedGeolocation = jest.fn().mockReturnValue('US');
+    const mockSelectAssetsBySelectedAccountGroup = jest
+      .fn()
+      .mockReturnValue({}); // Empty object of user assets (keyed by chainId)
+
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectEvmChainId) {
-        return '0x1';
+        return mockSelectEvmChainId();
       }
       if (selector === selectSelectedInternalAccount) {
-        return mockAccount;
+        return mockSelectSelectedInternalAccount();
       }
       if (selector === selectSelectedAccountGroup) {
-        return mockAccountGroup;
+        return mockSelectSelectedAccountGroup();
       }
       if (selector === selectSelectedInternalAccountByScope) {
-        return () => mockAccount;
+        return mockSelectSelectedInternalAccountByScope();
       }
       if (selector === getDetectedGeolocation) {
-        return 'US';
+        return mockGetDetectedGeolocation();
+      }
+      if (selector === selectAssetsBySelectedAccountGroup) {
+        return mockSelectAssetsBySelectedAccountGroup();
       }
       if (typeof selector === 'function') {
         return 'ETH';
       }
       return undefined;
     });
+
+    return {
+      mockSelectEvmChainId,
+      mockSelectSelectedInternalAccount,
+      mockSelectSelectedAccountGroup,
+      mockSelectSelectedInternalAccountByScope,
+      mockGetDetectedGeolocation,
+      mockSelectAssetsBySelectedAccountGroup,
+    };
   };
+
+  // Store mocks returned from setupDefaultMocks for per-test overrides
+  let selectorMocks: ReturnType<typeof setupDefaultMocks>;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    setupDefaultMocks();
+    selectorMocks = setupDefaultMocks();
   });
 
   describe('getSwapTokens', () => {
@@ -210,12 +259,16 @@ describe('useTokenActions', () => {
       expect(result.current).toHaveProperty('onSend');
       expect(result.current).toHaveProperty('onReceive');
       expect(result.current).toHaveProperty('goToSwaps');
+      expect(result.current).toHaveProperty('handleBuyPress');
+      expect(result.current).toHaveProperty('handleSellPress');
       expect(result.current).toHaveProperty('networkModal');
 
       expect(typeof result.current.onBuy).toBe('function');
       expect(typeof result.current.onSend).toBe('function');
       expect(typeof result.current.onReceive).toBe('function');
       expect(typeof result.current.goToSwaps).toBe('function');
+      expect(typeof result.current.handleBuyPress).toBe('function');
+      expect(typeof result.current.handleSellPress).toBe('function');
     });
   });
 
@@ -315,6 +368,175 @@ describe('useTokenActions', () => {
             groupId: 'group-1',
           },
         },
+      );
+    });
+  });
+
+  describe('handleBuyPress', () => {
+    it('routes to on-ramp when no eligible tokens exist', () => {
+      // Empty user assets (no tokens with balance) - uses default from setupDefaultMocks
+      const { result } = renderHook(() =>
+        useTokenActions({
+          token: defaultToken,
+          networkName: 'Ethereum Mainnet',
+        }),
+      );
+
+      result.current.handleBuyPress();
+
+      expect(mockGoToBuy).toHaveBeenCalledTimes(1);
+      expect(mockGoToSwaps).not.toHaveBeenCalled();
+    });
+
+    it('calls goToSwaps with source and dest tokens when user has eligible tokens on same chain', () => {
+      // Override selectAssetsBySelectedAccountGroup with tokens that have balance
+      selectorMocks.mockSelectAssetsBySelectedAccountGroup.mockReturnValue({
+        '0x1': [
+          {
+            assetId: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+            chainId: '0x1',
+            decimals: 18,
+            symbol: 'WETH',
+            name: 'Wrapped Ether',
+            image: '',
+            fiat: { balance: 1000 },
+          },
+        ],
+      });
+
+      const { result } = renderHook(() =>
+        useTokenActions({
+          token: defaultToken,
+          networkName: 'Ethereum Mainnet',
+        }),
+      );
+
+      result.current.handleBuyPress();
+
+      expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
+      expect(mockGoToSwaps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+          chainId: '0x1',
+          symbol: 'WETH',
+        }),
+        expect.objectContaining({
+          address: defaultToken.address,
+          chainId: defaultToken.chainId,
+          symbol: defaultToken.symbol,
+        }),
+      );
+      expect(mockGoToBuy).not.toHaveBeenCalled();
+    });
+
+    it('uses highest USD value token from any chain when no tokens on same chain', () => {
+      // Override selectAssetsBySelectedAccountGroup with tokens on a different chain
+      selectorMocks.mockSelectAssetsBySelectedAccountGroup.mockReturnValue({
+        '0xa': [
+          {
+            assetId: '0x7F5c764cBc14f9669B88837ca1490cCa17c31607',
+            chainId: '0xa',
+            decimals: 6,
+            symbol: 'USDC',
+            name: 'USD Coin',
+            image: '',
+            fiat: { balance: 500 },
+          },
+        ],
+      });
+
+      const { result } = renderHook(() =>
+        useTokenActions({
+          token: defaultToken,
+          networkName: 'Ethereum Mainnet',
+        }),
+      );
+
+      result.current.handleBuyPress();
+
+      expect(mockGoToSwaps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          chainId: '0xa',
+          symbol: 'USDC',
+        }),
+        expect.objectContaining({
+          address: defaultToken.address,
+        }),
+      );
+    });
+
+    it('allows cross-chain bridging of native tokens with same zero address', () => {
+      // Native token on Ethereum (zero address)
+      const nativeEthToken = {
+        ...defaultToken,
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x1',
+        symbol: 'ETH',
+        name: 'Ethereum',
+        isNative: true,
+      } as TokenI;
+
+      // User has native ETH on Optimism (same zero address, different chain)
+      selectorMocks.mockSelectAssetsBySelectedAccountGroup.mockReturnValue({
+        '0xa': [
+          {
+            assetId: '0x0000000000000000000000000000000000000000',
+            chainId: '0xa',
+            decimals: 18,
+            symbol: 'ETH',
+            name: 'Ethereum',
+            image: '',
+            fiat: { balance: 2000 },
+          },
+        ],
+      });
+
+      const { result } = renderHook(() =>
+        useTokenActions({
+          token: nativeEthToken,
+          networkName: 'Ethereum Mainnet',
+        }),
+      );
+
+      result.current.handleBuyPress();
+
+      // Should use Optimism ETH as source for cross-chain bridge
+      expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
+      expect(mockGoToSwaps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          address: '0x0000000000000000000000000000000000000000',
+          chainId: '0xa',
+          symbol: 'ETH',
+        }),
+        expect.objectContaining({
+          address: '0x0000000000000000000000000000000000000000',
+          chainId: '0x1',
+          symbol: 'ETH',
+        }),
+      );
+      expect(mockGoToBuy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('handleSellPress', () => {
+    it('calls goToSwaps with current token as source and undefined dest (swap UI handles dest selection)', () => {
+      const { result } = renderHook(() =>
+        useTokenActions({
+          token: defaultToken,
+          networkName: 'Ethereum Mainnet',
+        }),
+      );
+
+      result.current.handleSellPress();
+
+      expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
+      expect(mockGoToSwaps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          address: defaultToken.address,
+          chainId: defaultToken.chainId,
+          symbol: defaultToken.symbol,
+        }),
+        undefined,
       );
     });
   });

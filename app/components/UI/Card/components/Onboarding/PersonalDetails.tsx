@@ -402,13 +402,20 @@ const PersonalDetails = () => {
             isError={isSSNTouched && isSSNError}
             testID="personal-details-ssn-input"
           />
-          {isSSNTouched && isSSNError && (
+          {isSSNTouched && isSSNError ? (
             <Text
               variant={TextVariant.BodySm}
               testID="personal-details-ssn-error"
               twClassName="text-error-default"
             >
               {strings('card.card_onboarding.personal_details.invalid_ssn')}
+            </Text>
+          ) : (
+            <Text
+              variant={TextVariant.BodySm}
+              twClassName="text-text-alternative"
+            >
+              {strings('card.card_onboarding.personal_details.ssn_description')}
             </Text>
           )}
         </Box>

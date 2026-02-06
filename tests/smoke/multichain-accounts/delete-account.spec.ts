@@ -1,8 +1,7 @@
-import { Mockttp } from 'mockttp';
 import { SmokeWalletPlatform } from '../../../e2e/tags';
 import {
   SIMPLE_KEYPAIR_ACCOUNT,
-  goToAccountDetails,
+  goToAccountDetailsV2,
 } from '../../helpers/multichain-accounts/common';
 import AccountDetails from '../../../e2e/pages/MultichainAccounts/AccountDetails';
 import DeleteAccount from '../../../e2e/pages/MultichainAccounts/DeleteAccount';
@@ -14,8 +13,6 @@ import AccountListBottomSheet from '../../../e2e/pages/wallet/AccountListBottomS
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../../e2e/viewHelper';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 const deleteAccount = async () => {
   await AccountDetails.tapDeleteAccountLink();
@@ -23,50 +20,39 @@ const deleteAccount = async () => {
   await DeleteAccount.tapDeleteAccount();
 };
 
-// TODO: Update test to be BIP-44 compatible
-// https://github.com/MetaMask/metamask-mobile/issues/24144
-// eslint-disable-next-line jest/no-disabled-tests
-describe.skip(
-  SmokeWalletPlatform('Multichain Accounts: Account Details'),
-  () => {
-    beforeEach(async () => {
-      await TestHelpers.reverseServerPort();
-    });
+describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
+  beforeEach(async () => {
+    await TestHelpers.reverseServerPort();
+  });
 
-    it('deletes the account', async () => {
-      const testSpecificMock = async (mockServer: Mockttp) => {
-        await setupRemoteFeatureFlagsMock(
-          mockServer,
-          remoteFeatureMultichainAccountsAccountDetailsV2(true),
+  it('deletes the account', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder()
+          .withImportedHdKeyringAndTwoDefaultAccountsSimpleKeyPairAccount()
+          .build(),
+        restartDevice: true,
+      },
+      async () => {
+        await loginToApp();
+        await WalletView.tapIdenticon();
+
+        await Assertions.expectElementToBeVisible(
+          AccountListBottomSheet.accountList,
         );
-      };
 
-      await withFixtures(
-        {
-          fixture: new FixtureBuilder()
-            .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountOneQrAccountOneSimpleKeyPairAccount()
-            .build(),
-          restartDevice: true,
-          testSpecificMock,
-        },
-        async () => {
-          await loginToApp();
-          await WalletView.tapIdenticon();
+        await goToAccountDetailsV2({
+          ...SIMPLE_KEYPAIR_ACCOUNT,
+          index: 2,
+        });
+        await deleteAccount();
+        // Go back to account list
+        await WalletView.tapIdenticon();
 
-          await Assertions.expectElementToBeVisible(
-            AccountListBottomSheet.accountList,
-          );
-
-          await goToAccountDetails(SIMPLE_KEYPAIR_ACCOUNT);
-          await deleteAccount();
-          // Go back to account list
-          await WalletView.tapIdenticon();
-
-          const importedAccountsSection =
-            Matchers.getElementByText('Imported Accounts');
-          await Assertions.expectElementToNotBeVisible(importedAccountsSection);
-        },
-      );
-    });
-  },
-);
+        const importedAccountsSection =
+          Matchers.getElementByText('Imported Accounts');
+        await Assertions.expectElementToNotBeVisible(importedAccountsSection);
+      },
+    );
+  });
+});
