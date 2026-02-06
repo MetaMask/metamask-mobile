@@ -16,6 +16,7 @@ import {
   hasTransactionType,
   isTransactionPayWithdraw,
 } from '../../../utils/transaction';
+import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import {
   TransactionPayQuote,
   TransactionPayTotals,
@@ -45,6 +46,7 @@ export function BridgeFeeRow() {
   const { fieldAlerts } = useAlerts();
   const hasAlert = fieldAlerts.some((a) => a.field === RowAlertKey.PayWithFee);
   const isWithdraw = isTransactionPayWithdraw(transactionMetadata);
+  const { canSelectWithdrawToken } = useTransactionPayWithdraw();
 
   if (hasTransactionType(transactionMetadata, NETWORK_FEE_ONLY_TYPES)) {
     return (
@@ -61,7 +63,13 @@ export function BridgeFeeRow() {
 
   // For withdrawals, only show provider fee (network fee is negligible on Polygon)
   if (isWithdraw) {
-    return <WithdrawalProviderFeeRow totals={totals} isLoading={isLoading} />;
+    return (
+      <WithdrawalProviderFeeRow
+        totals={totals}
+        isLoading={isLoading}
+        showTooltip={canSelectWithdrawToken}
+      />
+    );
   }
 
   return (
@@ -218,13 +226,16 @@ function MetaMaskFeeRow({
 
 /**
  * Transaction fee row for withdrawals.
+ * When the token picker is visible (showTooltip=true), uses plural label and adds a tooltip.
  */
 function WithdrawalProviderFeeRow({
   totals,
   isLoading,
+  showTooltip,
 }: {
   totals?: TransactionPayTotals;
   isLoading: boolean;
+  showTooltip: boolean;
 }) {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
 
@@ -240,16 +251,31 @@ function WithdrawalProviderFeeRow({
 
   if (!transactionFeeUsd) return null;
 
+  const label = showTooltip
+    ? strings('confirm.label.transaction_fees')
+    : strings('confirm.label.transaction_fee');
+
   return (
-    <InfoRow
+    <AlertRow
       testID="withdrawal-transaction-fee-row"
-      label={strings('confirm.label.transaction_fee')}
+      alertField={RowAlertKey.PayWithFee}
+      label={label}
+      tooltip={
+        showTooltip
+          ? strings('confirm.tooltip.predict_withdraw.transaction_fee')
+          : undefined
+      }
+      tooltipTitle={
+        showTooltip
+          ? strings('confirm.tooltip.title.transaction_fee')
+          : undefined
+      }
       rowVariant={InfoRowVariant.Small}
     >
       <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
         {transactionFeeUsd}
       </Text>
-    </InfoRow>
+    </AlertRow>
   );
 }
 
