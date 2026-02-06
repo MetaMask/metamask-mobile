@@ -74,14 +74,6 @@ import {
   TabsBar,
 } from '../../../../../component-library/components-temp/Tabs';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
-import { selectPredictHotTabFlag } from '../../selectors/featureFlags';
-import {
-  PREDICT_FEED_BASE_TABS,
-  PREDICT_FEED_DEFAULT_TAB,
-  PREDICT_FEED_HOT_TAB,
-  isPredictFeedTabKey,
-} from '../../constants/feedTabs';
-import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 
 type PredictFlashListRef = FlashListRef<PredictMarketType>;
 type PredictFlashListProps = FlashListProps<PredictMarketType> & {
