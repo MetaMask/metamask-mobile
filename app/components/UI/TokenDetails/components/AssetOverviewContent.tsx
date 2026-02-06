@@ -355,14 +355,16 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             isTokenTrustworthy &&
             !isPerpsPositionLoading && (
               <>
+                <View style={styles.perpsPositionCardContainer}>
+                  <Text
+                    variant={TextVariant.HeadingMD}
+                    style={styles.perpsPositionTitle}
+                  >
+                    {strings('asset_overview.perps_position')}
+                  </Text>
+                </View>
                 {perpsPosition ? (
                   <View style={styles.perpsPositionCardContainer}>
-                    <Text
-                      variant={TextVariant.HeadingMD}
-                      style={styles.perpsPositionTitle}
-                    >
-                      {strings('perps.position.card.position_title')}
-                    </Text>
                     <PerpsPositionCard
                       position={perpsPosition}
                       compact
