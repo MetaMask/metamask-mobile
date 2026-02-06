@@ -28,9 +28,13 @@ const styleSheet = (params: { theme: Theme }) => {
     assetInfo: {
       flex: 1,
     },
+    assetAmount: {
+      fontSize: 20,
+      fontWeight: '500',
+    },
     detailsSection: {
-      backgroundColor: colors.background.alternative,
-      borderRadius: 8,
+      backgroundColor: colors.background.default,
+      borderRadius: 12,
       paddingHorizontal: 16,
       paddingVertical: 8,
       marginBottom: 16,
