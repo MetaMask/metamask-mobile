@@ -135,7 +135,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+          <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
             {strings('perps.home.recent_activity')}
           </Text>
         </View>
@@ -148,7 +148,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+          <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
             {strings('perps.home.recent_activity')}
           </Text>
         </View>
@@ -167,7 +167,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
     <View style={styles.container}>
       <TouchableOpacity style={styles.header} onPress={handleSeeAll}>
         <View style={styles.titleRow}>
-          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+          <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
             {strings('perps.home.recent_activity')}
           </Text>
           <Icon
