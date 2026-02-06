@@ -8,6 +8,7 @@ import {
   GET_QUOTE_ETH_USDC_RESPONSE,
   GET_QUOTE_ETH_USDC_RESPONSE_CUSTOM_SLIPPAGE,
   GET_QUOTE_ETH_DAI_RESPONSE,
+  GET_QUOTE_USDC_ETH_RESPONSE,
   GET_QUOTE_USDC_USDT_RESPONSE,
   GET_TOKENS_MAINNET_RESPONSE,
   GET_POPULAR_TOKENS_MAINNET_RESPONSE,
@@ -18,13 +19,24 @@ import {
 export const testSpecificMock: TestSpecificMock = async (
   mockServer: Mockttp,
 ) => {
+  // Mock spot prices with regex to catch all price requests (prevents NaN balance issues)
   await setupMockRequest(mockServer, {
-    url: 'https://price.api.cx.metamask.io/v3/spot-prices?assetIds=eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48,eip155:1/slip44:60&vsCurrency=usd',
+    url: /price\.api\.cx\.metamask\.io\/v3\/spot-prices/,
     response: {
+      // ETH
+      'eip155:1/slip44:60': { usd: 1926.42 },
+      // USDC
       'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': {
         usd: 0.999806,
       },
-      'eip155:1/slip44:60': { usd: 4583.48 },
+      // DAI
+      'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f': {
+        usd: 0.9998,
+      },
+      // USDT
+      'eip155:1/erc20:0xdac17f958d2ee523a2206206994597c13d831ec7': {
+        usd: 1.0001,
+      },
     },
     requestMethod: 'GET',
     responseCode: 200,
@@ -59,6 +71,14 @@ export const testSpecificMock: TestSpecificMock = async (
     requestMethod: 'GET',
     url: /getQuote.*destTokenAddress=0xdAC17F958D2ee523a2206206994597C13D831ec7/i,
     response: GET_QUOTE_USDC_USDT_RESPONSE,
+    responseCode: 200,
+  });
+
+  // Mock USDC->ETH (ETH native token address is 0x0000...0000)
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /getQuote.*srcTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.*destTokenAddress=0x0000000000000000000000000000000000000000/i,
+    response: GET_QUOTE_USDC_ETH_RESPONSE,
     responseCode: 200,
   });
 
