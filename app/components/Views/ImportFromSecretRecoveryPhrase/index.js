@@ -470,9 +470,16 @@ const ImportFromSecretRecoveryPhrase = ({
             true,
           );
         } catch (err) {
-          // retry faceID if the user cancels the
-          if (Device.isIos && err.toString() === IOS_REJECTED_BIOMETRICS_ERROR)
+          // retry faceID if the user cancels biometric prompt
+          if (
+            Device.isIos &&
+            err.toString() === IOS_REJECTED_BIOMETRICS_ERROR
+          ) {
             await handleRejectedOsBiometricPrompt(parsedSeed);
+          } else {
+            // Re-throw other errors
+            throw err;
+          }
         }
         setLoading(false);
         passwordSet();

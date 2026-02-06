@@ -1730,6 +1730,93 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
       expect(mockNewWalletAndRestore).toHaveBeenCalledTimes(2);
     });
+
+    it('reports to Sentry when wallet import fails with metrics enabled', async () => {
+      mockIsEnabled.mockReturnValue(true);
+      mockCaptureException.mockClear();
+
+      jest
+        .spyOn(Authentication, 'componentAuthenticationType')
+        .mockResolvedValueOnce({
+          currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+          availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+        });
+
+      const importError = new Error('Wallet import failed');
+      jest
+        .spyOn(Authentication, 'newWalletAndRestore')
+        .mockRejectedValueOnce(importError);
+
+      const { getByTestId } = await renderCreatePasswordUI();
+
+      const passwordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+      const learnMoreCheckbox = getByTestId(
+        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
+      );
+      const confirmButton = getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+
+      fireEvent.changeText(passwordInput, 'StrongPass123!');
+      fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
+      fireEvent.press(learnMoreCheckbox);
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(mockCaptureException).toHaveBeenCalledWith(importError, {
+          tags: {
+            view: 'ImportFromSecretRecoveryPhrase',
+            context: 'Wallet import failed - auto reported',
+          },
+        });
+      });
+    });
+
+    it('does not report to Sentry when wallet import fails with metrics disabled', async () => {
+      mockIsEnabled.mockReturnValue(false);
+      mockCaptureException.mockClear();
+
+      jest
+        .spyOn(Authentication, 'componentAuthenticationType')
+        .mockResolvedValueOnce({
+          currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+          availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+        });
+
+      const importError = new Error('Wallet import failed');
+      jest
+        .spyOn(Authentication, 'newWalletAndRestore')
+        .mockRejectedValueOnce(importError);
+
+      const { getByTestId } = await renderCreatePasswordUI();
+
+      const passwordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+      const learnMoreCheckbox = getByTestId(
+        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
+      );
+      const confirmButton = getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+
+      fireEvent.changeText(passwordInput, 'StrongPass123!');
+      fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
+      fireEvent.press(learnMoreCheckbox);
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(mockCaptureException).not.toHaveBeenCalled();
+      });
+    });
   });
 
   describe('useEffect hooks', () => {
