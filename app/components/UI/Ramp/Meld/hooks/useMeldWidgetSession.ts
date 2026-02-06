@@ -45,6 +45,11 @@ export default function useMeldWidgetSession(): UseMeldWidgetSessionResult {
       setError(null);
 
       try {
+        // Use a valid HTTPS callback URL. In production, this would be
+        // a MetaMask-owned endpoint that redirects back to the app via deep link.
+        const redirectUrl =
+          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback';
+
         const request: MeldWidgetSessionRequest = {
           sessionData: {
             walletAddress,
@@ -54,7 +59,7 @@ export default function useMeldWidgetSession(): UseMeldWidgetSessionResult {
             destinationCurrencyCode: quote.destinationCurrencyCode,
             serviceProvider: quote.serviceProvider,
             paymentMethodType: quote.paymentMethodType,
-            redirectUrl: 'metamask://',
+            redirectUrl,
           },
           sessionType: isBuy ? 'BUY' : 'SELL',
           externalCustomerId: walletAddress,

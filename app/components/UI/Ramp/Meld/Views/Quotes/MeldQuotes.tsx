@@ -258,8 +258,8 @@ const MeldQuotes: React.FC = () => {
             : `${quotes.length} quotes found`}
         </Text>
         <Text variant={TextVariant.BodySm} twClassName="text-muted">
-          {selectedFiatCurrency?.currencyCode} {amount} →{' '}
-          {selectedCrypto?.currencyName} • {selectedCountry?.countryCode}
+          {selectedFiatCurrency?.currencyCode} {amount} → {selectedCrypto?.name}{' '}
+          • {selectedCountry?.countryCode}
         </Text>
       </Box>
 

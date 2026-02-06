@@ -51,7 +51,7 @@ import {
   MeldCountry,
   MeldCryptoCurrency,
   MeldFiatCurrency,
-  MeldPaymentMethodType,
+  MeldPaymentMethod,
 } from '../../types';
 import Routes from '../../../../../../constants/navigation/Routes';
 
@@ -258,7 +258,7 @@ const MeldBuildQuote: React.FC = () => {
           label="Country"
           value={
             selectedCountry
-              ? `${selectedCountry.countryCode} — ${selectedCountry.countryName}`
+              ? `${selectedCountry.countryCode} — ${selectedCountry.name}`
               : ''
           }
           isLoading={isFetchingCountries}
@@ -267,7 +267,7 @@ const MeldBuildQuote: React.FC = () => {
               showPicker<MeldCountry>(
                 'Select Country',
                 countries,
-                (c) => `${c.countryCode} — ${c.countryName}`,
+                (c) => `${c.countryCode} — ${c.name}`,
                 setSelectedCountry,
               );
             }
@@ -279,7 +279,7 @@ const MeldBuildQuote: React.FC = () => {
           label="Pay with"
           value={
             selectedFiatCurrency
-              ? `${selectedFiatCurrency.currencyCode}${selectedFiatCurrency.currencyName ? ` (${selectedFiatCurrency.currencyName})` : ''}`
+              ? `${selectedFiatCurrency.currencyCode}${selectedFiatCurrency.name ? ` (${selectedFiatCurrency.name})` : ''}`
               : ''
           }
           isLoading={isFetchingFiat}
@@ -288,7 +288,7 @@ const MeldBuildQuote: React.FC = () => {
               showPicker<MeldFiatCurrency>(
                 'Select Fiat Currency',
                 fiatCurrencies,
-                (f) => `${f.currencyCode} — ${f.currencyName}`,
+                (f) => `${f.currencyCode} — ${f.name}`,
                 setSelectedFiatCurrency,
               );
             }
@@ -300,7 +300,7 @@ const MeldBuildQuote: React.FC = () => {
           label="Receive"
           value={
             selectedCrypto
-              ? `${selectedCrypto.currencyName} (${selectedCrypto.networkName})`
+              ? `${selectedCrypto.name} (${selectedCrypto.chainName})`
               : ''
           }
           isLoading={isFetchingCrypto}
@@ -309,7 +309,7 @@ const MeldBuildQuote: React.FC = () => {
               showPicker<MeldCryptoCurrency>(
                 'Select Crypto',
                 cryptoCurrencies,
-                (c) => `${c.currencyName} (${c.networkName})`,
+                (c) => `${c.name} (${c.chainName})`,
                 setSelectedCrypto,
               );
             }
@@ -323,14 +323,11 @@ const MeldBuildQuote: React.FC = () => {
           isLoading={isFetchingPayments}
           onPress={() => {
             if (paymentMethods) {
-              showPicker<{
-                paymentMethodType: MeldPaymentMethodType;
-                name: string;
-              }>(
+              showPicker<MeldPaymentMethod>(
                 'Select Payment Method',
                 paymentMethods,
-                (p) => p.name || p.paymentMethodType.replace(/_/g, ' '),
-                (p) => setSelectedPaymentMethod(p.paymentMethodType),
+                (p) => p.name || p.paymentMethod.replace(/_/g, ' '),
+                (p) => setSelectedPaymentMethod(p.paymentMethod),
               );
             }
           }}

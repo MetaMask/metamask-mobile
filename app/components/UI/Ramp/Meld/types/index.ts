@@ -1,8 +1,7 @@
 /**
  * Meld White-Label API Types
  *
- * These types represent the Meld API response shapes and internal
- * PoC types. In production, these would be generated from an OpenAPI spec.
+ * Types match the ACTUAL Meld API v2025-03-04 response shapes.
  *
  * @see https://docs.meld.io/docs/whitelabel-api-guide
  */
@@ -13,9 +12,9 @@
 
 export interface MeldCountry {
   countryCode: string;
-  countryName: string;
-  states?: string[];
-  flagUrl?: string;
+  name: string;
+  flagImageUrl: string | null;
+  regions: string[] | null;
 }
 
 export interface MeldCountryDefaults {
@@ -30,19 +29,18 @@ export interface MeldCountryDefaults {
 
 export interface MeldFiatCurrency {
   currencyCode: string;
-  currencyName: string;
-  symbol?: string;
-  flagUrl?: string;
+  name: string;
+  symbolImageUrl: string | null;
 }
 
 export interface MeldCryptoCurrency {
   currencyCode: string;
-  currencyName: string;
-  networkCode: string;
-  networkName: string;
-  chainId?: string;
-  contractAddress?: string;
-  iconUrl?: string;
+  name: string;
+  chainCode: string;
+  chainName: string;
+  chainId: string | null;
+  contractAddress: string | null;
+  symbolImageUrl: string | null;
 }
 
 // ──────────────────────────────────────────────
@@ -58,12 +56,16 @@ export type MeldPaymentMethodType =
   | 'SEPA'
   | 'ACH'
   | 'BINANCE_CASH_BALANCE'
-  | string; // Allow for new payment methods
+  | string;
 
 export interface MeldPaymentMethod {
-  paymentMethodType: MeldPaymentMethodType;
+  paymentMethod: MeldPaymentMethodType;
   name: string;
-  icon?: string;
+  paymentType: string;
+  logos: {
+    dark: string;
+    light: string;
+  } | null;
 }
 
 // ──────────────────────────────────────────────
@@ -177,30 +179,6 @@ export interface MeldTransaction {
   walletAddress: string;
   createdAt: string;
   updatedAt: string;
-}
-
-// ──────────────────────────────────────────────
-// API Responses (wrappers)
-// ──────────────────────────────────────────────
-
-export interface MeldCountriesResponse {
-  countries: MeldCountry[];
-}
-
-export interface MeldFiatCurrenciesResponse {
-  fiatCurrencies: MeldFiatCurrency[];
-}
-
-export interface MeldCryptoCurrenciesResponse {
-  cryptoCurrencies: MeldCryptoCurrency[];
-}
-
-export interface MeldPaymentMethodsResponse {
-  paymentMethods: MeldPaymentMethod[];
-}
-
-export interface MeldPurchaseLimitsResponse {
-  limits: MeldPurchaseLimits;
 }
 
 // ──────────────────────────────────────────────

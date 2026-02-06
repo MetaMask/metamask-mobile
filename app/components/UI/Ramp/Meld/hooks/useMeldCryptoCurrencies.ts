@@ -33,9 +33,7 @@ export default function useMeldCryptoCurrencies() {
   useEffect(() => {
     if (cryptoCurrencies && cryptoCurrencies.length > 0 && !selectedCrypto) {
       const eth = cryptoCurrencies.find(
-        (c) =>
-          c.currencyCode === 'ETH_ETHEREUM' ||
-          (c.currencyCode === 'ETH' && c.networkCode === 'ETHEREUM'),
+        (c) => c.currencyCode === 'ETH' && c.chainCode === 'ETH',
       );
       setSelectedCrypto(eth ?? cryptoCurrencies[0]);
     }
