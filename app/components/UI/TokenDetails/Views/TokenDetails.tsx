@@ -352,8 +352,6 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
         has_balance: hasBalance,
       })
       .build();
-    // eslint-disable-next-line no-console
-    console.log('TOKEN_DETAILS_OPENED', event);
     trackEvent(event);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
