@@ -6459,7 +6459,7 @@ describe('PredictController', () => {
         });
       });
 
-      it('returns "Balance" when totalFiat is missing', () => {
+      it('returns "$0" when totalFiat is missing', () => {
         withController(({ controller }) => {
           const transactionMeta = {
             metamaskPay: {},
@@ -6467,7 +6467,7 @@ describe('PredictController', () => {
 
           const result = (controller as any).getDepositAmount(transactionMeta);
 
-          expect(result).toBe('Balance');
+          expect(result).toBe('$0');
         });
       });
 

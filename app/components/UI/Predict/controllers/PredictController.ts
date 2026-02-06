@@ -754,18 +754,10 @@ export class PredictController extends BaseController<
   }
 
   private getDepositAmount(transactionMeta: TransactionMeta): string {
-    const totalFiat = transactionMeta.metamaskPay?.totalFiat;
-    const bridgeFeeFiat = transactionMeta.metamaskPay?.bridgeFeeFiat;
-    const networkFeeFiat = transactionMeta.metamaskPay?.networkFeeFiat;
-
-    if (!totalFiat) {
-      return 'Balance';
-    }
-
     const netAmount = calculateNetAmount({
-      totalFiat,
-      bridgeFeeFiat,
-      networkFeeFiat,
+      totalFiat: transactionMeta.metamaskPay?.totalFiat,
+      bridgeFeeFiat: transactionMeta.metamaskPay?.bridgeFeeFiat,
+      networkFeeFiat: transactionMeta.metamaskPay?.networkFeeFiat,
     });
 
     return formatPrice(netAmount, { maximumDecimals: 2 });
