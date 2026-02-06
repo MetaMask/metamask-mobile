@@ -3,7 +3,7 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { ScrollView } from 'react-native';
-import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useTheme } from '../../../../../util/theme';
 
 import { useRoute, RouteProp } from '@react-navigation/native';
@@ -125,7 +125,7 @@ const PoolStakingLearnMoreModal = () => {
   return (
     <BottomSheet ref={sheetRef} isInteractable={false}>
       <ScrollView bounces={false}>
-        <HeaderCenter
+        <HeaderCompactStandard
           title={strings('stake.stake_eth_and_earn')}
           onClose={handleClose}
         />
