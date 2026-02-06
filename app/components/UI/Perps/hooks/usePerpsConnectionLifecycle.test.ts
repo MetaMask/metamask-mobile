@@ -220,7 +220,7 @@ describe('usePerpsConnectionLifecycle', () => {
       // Return to foreground - should reconnect after delay
       act(() => {
         mockAppStateListener?.('active');
-        jest.advanceTimersByTime(PERPS_CONSTANTS.RECONNECTION_DELAY_ANDROID_MS);
+        jest.advanceTimersByTime(PERPS_CONSTANTS.ReconnectionDelayAndroidMs);
       });
       expect(mockOnConnect).toHaveBeenCalledTimes(2);
     });

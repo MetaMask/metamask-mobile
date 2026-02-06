@@ -30,6 +30,7 @@ interface UseSitesDataResult {
 
 const PORTFOLIO_API_BASE_URL = 'https://portfolio.api.cx.metamask.io/';
 const DEFAULT_SITES_LIMIT = 200;
+const PORTFOLIO_HOSTNAME = 'portfolio.metamask.io';
 
 /**
  * Hardcoded Portfolio site entry to ensure it's always included
@@ -38,8 +39,8 @@ const DEFAULT_SITES_LIMIT = 200;
 const PORTFOLIO_SITE: SiteData = {
   id: 'metamask-portfolio',
   name: 'MetaMask Portfolio',
-  url: 'https://portfolio.metamask.io',
-  displayUrl: 'portfolio.metamask.io',
+  url: `https://${PORTFOLIO_HOSTNAME}`,
+  displayUrl: PORTFOLIO_HOSTNAME,
   logoUrl:
     'https://raw.githubusercontent.com/MetaMask/metamask-mobile/main/logo.png',
   featured: true,
@@ -58,6 +59,19 @@ const extractDisplayUrl = (url: string): string => {
   }
 };
 
+const isPortfolioSiteUrl = (url: string): boolean => {
+  try {
+    const trimmedUrl = url.trim();
+    const normalizedUrl =
+      trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')
+        ? trimmedUrl
+        : `https://${trimmedUrl}`;
+    return new URL(normalizedUrl).hostname === PORTFOLIO_HOSTNAME;
+  } catch {
+    return false;
+  }
+};
+
 /**
  * Helper function to merge Portfolio site with API sites,
  * ensuring Portfolio is always included at the beginning
@@ -65,9 +79,7 @@ const extractDisplayUrl = (url: string): string => {
 const mergePortfolioSite = (sites: SiteData[]): SiteData[] => {
   // Check if Portfolio is already in the list (by URL match)
   const portfolioExists = sites.some(
-    (site) =>
-      site.url.includes('portfolio.metamask.io') ||
-      site.id === PORTFOLIO_SITE.id,
+    (site) => isPortfolioSiteUrl(site.url) || site.id === PORTFOLIO_SITE.id,
   );
 
   if (portfolioExists) {

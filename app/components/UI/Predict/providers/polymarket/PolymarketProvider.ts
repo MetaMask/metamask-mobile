@@ -7,7 +7,7 @@ import { Hex, numberToHex } from '@metamask/utils';
 import { parseUnits } from 'ethers/lib/utils';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../../util/Logger';
-import { MetaMetrics } from '../../../../../core/Analytics';
+import { analytics } from '../../../../../util/analytics/analytics';
 import { UserProfileProperty } from '../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import {
   generateTransferData,
@@ -1403,28 +1403,11 @@ export class PolymarketProvider implements PredictProvider {
 
   /**
    * Set user trait for Polymarket account creation via MetaMask
-   * Fire-and-forget operation that logs errors but doesn't fail
    */
   private setPolymarketAccountCreatedTrait(): void {
-    MetaMetrics.getInstance()
-      .addTraitsToUser({
-        [UserProfileProperty.CREATED_POLYMARKET_ACCOUNT_VIA_MM]: true,
-      })
-      .catch((error) => {
-        // Log error but don't fail the deposit preparation
-        Logger.error(error as Error, {
-          tags: {
-            feature: PREDICT_CONSTANTS.FEATURE_NAME,
-            provider: 'polymarket',
-          },
-          context: {
-            name: 'PolymarketProvider',
-            data: {
-              method: 'setPolymarketAccountCreatedTrait',
-            },
-          },
-        });
-      });
+    analytics.identify({
+      [UserProfileProperty.CREATED_POLYMARKET_ACCOUNT_VIA_MM]: true,
+    });
   }
 
   public async prepareDeposit(

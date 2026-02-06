@@ -325,4 +325,16 @@ describe('CustomAmountInfo', () => {
       queryByText(new RegExp(strings('confirm.label.pay_with'))),
     ).toBeNull();
   });
+
+  it('calls onAmountSubmit when Done button is pressed', async () => {
+    const mockOnAmountSubmit = jest.fn();
+
+    const { getByText } = render({ onAmountSubmit: mockOnAmountSubmit });
+
+    await act(async () => {
+      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+    });
+
+    expect(mockOnAmountSubmit).toHaveBeenCalledTimes(1);
+  });
 });

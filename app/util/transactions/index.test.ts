@@ -57,7 +57,6 @@ import {
   calcTokenValue,
   getTransactionToName,
   addAccountTimeFlagFilter,
-  getNormalizedTxState,
   getActiveTabUrl,
   getTicker,
   getEther,
@@ -105,16 +104,6 @@ interface TransactionToNameConfig {
 
 interface TransactionWithTime {
   time: number;
-}
-
-interface TransactionStateData {
-  transaction?: {
-    id: string;
-    transaction: {
-      value: string;
-      gasPrice: string;
-    };
-  };
 }
 
 interface BrowserTab {
@@ -2343,41 +2332,6 @@ describe('Transactions utils :: addAccountTimeFlagFilter', () => {
       accountAddedTimeInsertPointFound as unknown as object,
     );
     expect(result).toBe(false);
-  });
-});
-
-describe('Transactions utils :: getNormalizedTxState', () => {
-  it('returns merged transaction state when transaction exists', () => {
-    const state: TransactionStateData = {
-      transaction: {
-        id: '1',
-        transaction: {
-          value: '0x1',
-          gasPrice: '0x2',
-        },
-      },
-    };
-
-    const result = getNormalizedTxState(state);
-    expect(result).toEqual({
-      id: '1',
-      value: '0x1',
-      gasPrice: '0x2',
-      transaction: {
-        value: '0x1',
-        gasPrice: '0x2',
-      },
-    });
-  });
-
-  it('returns undefined when no transaction exists', () => {
-    const state: TransactionStateData = {};
-    const result = getNormalizedTxState(state);
-    expect(result).toBeUndefined();
-  });
-
-  it('throws error when state is null', () => {
-    expect(() => getNormalizedTxState(null)).toThrow();
   });
 });
 

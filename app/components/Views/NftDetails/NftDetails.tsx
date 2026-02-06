@@ -37,7 +37,6 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { formatCurrency } from '../../../util/confirm-tx';
-import { newAssetTransaction } from '../../../actions/transaction';
 import CollectibleMedia from '../../../components/UI/CollectibleMedia';
 import ContentDisplay from '../../../components/UI/AssetOverview/AboutAsset/ContentDisplay';
 import BigNumber from 'bignumber.js';
@@ -187,14 +186,11 @@ const NftDetails = () => {
         networkClientId as string,
       );
     }
-    dispatch(
-      newAssetTransaction({ contractName: collectible.name, ...collectible }),
-    );
     navigateToSendPage({
       location: InitSendLocation.NftDetails,
       asset: collectible,
     });
-  }, [collectible, chainId, dispatch, navigateToSendPage]);
+  }, [collectible, chainId, navigateToSendPage]);
 
   const isTradable = useCallback(
     () =>

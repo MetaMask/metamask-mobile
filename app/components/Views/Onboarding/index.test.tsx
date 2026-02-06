@@ -1338,6 +1338,183 @@ describe('Onboarding', () => {
       Platform.OS = 'ios';
     });
 
+    it('attempts browser fallback when user disabled One Tap feature in Android', async () => {
+      Platform.OS = 'android';
+      const userDisabledOneTapError = new OAuthError(
+        '',
+        OAuthErrorType.GoogleLoginUserDisabledOneTapFeature,
+      );
+      const fallbackError = new OAuthError('', OAuthErrorType.GoogleLoginError);
+
+      mockCreateLoginHandler
+        .mockReturnValueOnce('mockGoogleHandler')
+        .mockReturnValueOnce('mockGoogleFallbackHandler');
+      mockOAuthService.handleOAuthLogin
+        .mockRejectedValueOnce(userDisabledOneTapError)
+        .mockRejectedValueOnce(fallbackError);
+
+      mockNavigate.mockClear();
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+
+      mockNavigate.mockClear();
+      await act(async () => {
+        await googleOAuthFunction(true);
+      });
+
+      // Verify fallback was attempted
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'android',
+        'google',
+        true,
+      );
+      expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
+
+      Platform.OS = 'ios';
+    });
+
+    it('attempts browser fallback when One Tap failure occurs in Android', async () => {
+      Platform.OS = 'android';
+      const oneTapFailureError = new OAuthError(
+        '',
+        OAuthErrorType.GoogleLoginOneTapFailure,
+      );
+      const fallbackError = new OAuthError('', OAuthErrorType.GoogleLoginError);
+
+      mockCreateLoginHandler
+        .mockReturnValueOnce('mockGoogleHandler')
+        .mockReturnValueOnce('mockGoogleFallbackHandler');
+      mockOAuthService.handleOAuthLogin
+        .mockRejectedValueOnce(oneTapFailureError)
+        .mockRejectedValueOnce(fallbackError);
+
+      mockNavigate.mockClear();
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+
+      mockNavigate.mockClear();
+      await act(async () => {
+        await googleOAuthFunction(true);
+      });
+
+      // Verify fallback was attempted
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'android',
+        'google',
+        true,
+      );
+      expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
+
+      Platform.OS = 'ios';
+    });
+
+    it('wraps non-OAuthError from browser fallback as OAuthError with UnknownError type', async () => {
+      Platform.OS = 'android';
+      // Analytics disabled triggers ErrorBoundary flow with trackEvent
+      (mockAnalytics.isEnabled as jest.Mock).mockReturnValueOnce(false);
+      mockCreateEventBuilder.mockReturnValue({
+        addProperties: jest.fn().mockReturnThis(),
+        build: jest.fn().mockReturnValue({ name: 'Error Screen Viewed' }),
+      });
+
+      const noCredentialError = new OAuthError(
+        '',
+        OAuthErrorType.GoogleLoginNoCredential,
+      );
+      // Simulate a non-OAuthError being thrown from browser fallback
+      const genericError = new Error('Browser fallback network failure');
+
+      mockCreateLoginHandler
+        .mockReturnValueOnce('mockGoogleHandler')
+        .mockReturnValueOnce('mockGoogleFallbackHandler');
+      mockOAuthService.handleOAuthLogin
+        .mockRejectedValueOnce(noCredentialError)
+        .mockRejectedValueOnce(genericError);
+
+      mockNavigate.mockClear();
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+
+      mockNavigate.mockClear();
+      await act(async () => {
+        await googleOAuthFunction(true);
+      });
+
+      // Verify fallback was attempted
+      expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
+
+      // Verify error is handled via ErrorBoundary flow (triggers trackEvent with Error Screen Viewed)
+      expect(mockAnalytics.trackEvent).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          name: 'Error Screen Viewed',
+        }),
+      );
+
+      Platform.OS = 'ios';
+    });
+
     it('enables social login metrics when OAuth login succeeds', async () => {
       mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
       mockOAuthService.handleOAuthLogin.mockResolvedValue({

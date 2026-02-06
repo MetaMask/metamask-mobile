@@ -57,7 +57,6 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
       activeUrl,
       setIsUrlBarFocused,
       isUrlBarFocused,
-      showCloseButton,
       showTabs,
     },
     ref,
@@ -143,19 +142,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
         );
       }
 
-      if (showCloseButton) {
-        return (
-          <ButtonIcon
-            iconName={IconName.Close}
-            onPress={onCancelInput}
-            iconColor={colors.icon.default}
-            size={ButtonIconSizes.Lg}
-            style={styles.closeButton}
-            testID={BrowserURLBarSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID}
-          />
-        );
-      }
-
+      // Always show "Cancel" text when focused
       return (
         <TouchableOpacity
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
@@ -170,12 +157,9 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
       );
     }, [
       isUrlBarFocused,
-      showCloseButton,
       selectedAddress,
       handleAccountRightButtonPress,
       onCancelInput,
-      colors.icon.default,
-      styles.closeButton,
       styles.cancelButton,
       styles.cancelButtonText,
     ]);
@@ -212,42 +196,52 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
       return iconName;
     }, [connectionType]);
 
-    const onBlurInput = () => {
+    const onBlurInput = useCallback(() => {
       if (!shouldTriggerBlurCallbackRef.current) {
         shouldTriggerBlurCallbackRef.current = true;
         return;
       }
       unfocusInput();
       onBlur();
-    };
+    }, [unfocusInput, onBlur]);
 
-    const onFocusInput = () => {
+    const onFocusInput = useCallback(() => {
       setIsUrlBarFocused(true);
       onFocus();
-    };
+    }, [setIsUrlBarFocused, onFocus]);
 
-    const onChangeTextInput = (text: string) => {
-      inputRef?.current?.setNativeProps({ text });
-      onChangeText(text);
-    };
+    const onPressUrlText = useCallback(() => {
+      inputRef?.current?.focus();
+    }, []);
 
-    const onSubmitEditingInput = ({
-      nativeEvent: { text },
-    }: NativeSyntheticEvent<TextInputSubmitEditingEventData>) => {
-      const trimmedText = text.trim();
-      inputValueRef.current = trimmedText;
-      onSubmitEditing(trimmedText);
-    };
+    const onChangeTextInput = useCallback(
+      (text: string) => {
+        inputRef?.current?.setNativeProps({ text });
+        onChangeText(text);
+      },
+      [onChangeText],
+    );
+
+    const onSubmitEditingInput = useCallback(
+      ({
+        nativeEvent: { text },
+      }: NativeSyntheticEvent<TextInputSubmitEditingEventData>) => {
+        const trimmedText = text.trim();
+        inputValueRef.current = trimmedText;
+        onSubmitEditing(trimmedText);
+      },
+      [onSubmitEditing],
+    );
 
     /**
      * Clears the input value and calls the onChangeText callback
      */
-    const onClearInput = () => {
+    const onClearInput = useCallback(() => {
       const clearedText = '';
       inputRef?.current?.clear();
       inputValueRef.current = clearedText;
       onChangeText(clearedText);
-    };
+    }, [onChangeText]);
 
     return (
       <View style={styles.browserUrlBarWrapper}>
@@ -279,9 +273,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
               onBlur={onBlurInput}
               onFocus={onFocusInput}
             />
-            <TouchableWithoutFeedback
-              onPress={() => inputRef?.current?.focus()}
-            >
+            <TouchableWithoutFeedback onPress={onPressUrlText}>
               <Text
                 style={styles.urlBarText}
                 numberOfLines={1}
@@ -323,4 +315,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
   },
 );
 
-export default BrowserUrlBar;
+const BrowserUrlBarMemoized = React.memo(BrowserUrlBar);
+BrowserUrlBarMemoized.displayName = 'BrowserUrlBar';
+
+export default BrowserUrlBarMemoized;

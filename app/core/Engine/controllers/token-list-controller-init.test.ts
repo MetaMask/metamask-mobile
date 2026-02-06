@@ -13,7 +13,18 @@ import {
 } from '@metamask/assets-controllers';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
-jest.mock('@metamask/assets-controllers');
+const mockInitialize = jest.fn().mockResolvedValue(undefined);
+
+jest.mock('@metamask/assets-controllers', () => {
+  const MockTokenListController = jest.fn().mockImplementation(function (this: {
+    initialize: jest.Mock;
+  }) {
+    this.initialize = mockInitialize;
+  });
+  return {
+    TokenListController: MockTokenListController,
+  };
+});
 
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<
@@ -62,6 +73,10 @@ function getInitRequestMock(): jest.Mocked<
 }
 
 describe('tokenListControllerInit', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('initializes the controller', () => {
     const { controller } = tokenListControllerInit(getInitRequestMock());
     expect(controller).toBeInstanceOf(TokenListController);
@@ -76,5 +91,10 @@ describe('tokenListControllerInit', () => {
       chainId: '0x1',
       onNetworkStateChange: expect.any(Function),
     });
+  });
+
+  it('calls initialize on the controller', () => {
+    tokenListControllerInit(getInitRequestMock());
+    expect(mockInitialize).toHaveBeenCalled();
   });
 });

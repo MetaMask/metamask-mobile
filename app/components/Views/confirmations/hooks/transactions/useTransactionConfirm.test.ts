@@ -15,7 +15,6 @@ import { transactionApprovalControllerMock } from '../../__mocks__/controllers/a
 import Routes from '../../../../../constants/navigation/Routes';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { useFullScreenConfirmation } from '../ui/useFullScreenConfirmation';
-import { resetTransaction } from '../../../../../actions/transaction';
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { flushPromises } from '../../../../../util/test/utils';
@@ -35,7 +34,6 @@ jest.mock('../useApprovalRequest');
 jest.mock('./useTransactionMetadataRequest');
 jest.mock('../../../../../selectors/smartTransactionsController');
 jest.mock('../ui/useFullScreenConfirmation');
-jest.mock('../../../../../actions/transaction');
 jest.mock('../../../../../util/networks');
 jest.mock('../../../../hooks/useNetworkEnablement/useNetworkEnablement');
 jest.mock('../gas/useGasFeeToken');
@@ -55,7 +53,7 @@ jest.mock('@react-navigation/native', () => ({
 const CHAIN_ID_MOCK = '0x123';
 
 function renderHook() {
-  return renderHookWithProvider(useTransactionConfirm, {
+  return renderHookWithProvider(() => useTransactionConfirm(), {
     state: merge(
       {},
       simpleSendTransactionControllerMock,
@@ -69,7 +67,6 @@ describe('useTransactionConfirm', () => {
   const useApprovalRequestMock = jest.mocked(useApprovalRequest);
   const onApprovalConfirm = jest.fn();
   const useFullScreenConfirmationMock = jest.mocked(useFullScreenConfirmation);
-  const resetTransactionMock = jest.mocked(resetTransaction);
   const useNetworkEnablementMock = jest.mocked(useNetworkEnablement);
   const useSelectedGasFeeTokenMock = jest.mocked(useSelectedGasFeeToken);
   const isSendBundleSupportedMock = jest.mocked(isSendBundleSupported);
@@ -110,10 +107,6 @@ describe('useTransactionConfirm', () => {
 
     useFullScreenConfirmationMock.mockReturnValue({
       isFullScreenConfirmation: true,
-    });
-
-    resetTransactionMock.mockReturnValue({
-      type: 'reset',
     });
 
     useNetworkEnablementMock.mockReturnValue({
@@ -187,16 +180,6 @@ describe('useTransactionConfirm', () => {
       }),
       expect.anything(),
     );
-  });
-
-  it('resets transaction state', async () => {
-    const { result } = renderHook();
-
-    await act(async () => {
-      await result.current.onConfirm();
-    });
-
-    expect(resetTransactionMock).toHaveBeenCalled();
   });
 
   it('calls tryEnableEvmNetwork', async () => {
@@ -280,6 +263,22 @@ describe('useTransactionConfirm', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
       });
+    });
+
+    it('skips navigation if perps deposit and order (caller handles navigation)', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        type: TransactionType.perpsDepositAndOrder,
+      } as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
 
     it('wallet home if musdConversion', async () => {

@@ -230,9 +230,27 @@ class WalletMainScreen {
     }
   }
 
-  async checkActiveAccount(name) {
-    const element = await AppwrightSelectors.getElementByText(this.device, name);
-    await appwrightExpect(element).toBeVisible();
+  async checkActiveAccount(name, timeout = 10000) {
+    const startTime = Date.now();
+
+    while (Date.now() - startTime < timeout) {
+      try {
+        // Look for the account name text directly
+        const accountText = await AppwrightSelectors.getElementByText(this.device, name, true);
+        const isVisible = await accountText.isVisible({ timeout: 1000 });
+
+        if (isVisible) {
+          return; // Success - found the account name
+        }
+      } catch {
+        // Element not found yet, continue polling
+      }
+
+      // Wait 500ms before retrying
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    throw new Error(`Expected account "${name}" to be visible after ${timeout}ms`);
   }
 
 

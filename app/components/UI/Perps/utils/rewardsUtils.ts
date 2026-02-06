@@ -7,6 +7,7 @@ import {
   CaipAccountId,
   parseCaipChainId,
 } from '@metamask/utils';
+import { ensureError } from '../../../../util/errorUtils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import Logger from '../../../../util/Logger';
@@ -40,7 +41,7 @@ export const formatAccountToCaipAccountId = (
 
     return toCaipAccountId(namespace, reference, normalizedAddress);
   } catch (error) {
-    Logger.error(error as Error, {
+    Logger.error(ensureError(error), {
       message: 'Rewards: Failed to format CAIP Account ID',
       context: 'rewardsUtils.formatAccountToCaipAccountId',
       address,
@@ -75,7 +76,7 @@ export const handleRewardsError = (
   error: unknown,
   context?: Record<string, unknown>,
 ): string => {
-  Logger.error(error as Error, {
+  Logger.error(ensureError(error), {
     message: 'Rewards: Error occurred',
     context: 'rewardsUtils.handleRewardsError',
     additionalContext: context,

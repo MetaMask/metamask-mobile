@@ -4,7 +4,7 @@ import { AccountGroupId } from '@metamask/account-api';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { strings } from '../../../../../../locales/i18n';
 import {
   ParamListBase,
@@ -71,7 +71,7 @@ export const ShareAddressQR = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <HeaderCenter
+      <HeaderCompactStandard
         title={`${accountGroupName} / ${networkName}`}
         onClose={handleOnBack}
         closeButtonProps={{ testID: ShareAddressQRIds.GO_BACK }}
@@ -93,6 +93,8 @@ export const ShareAddressQR = () => {
         <Box twClassName="mt-6 mb-4">
           <QRAccountDisplay
             accountAddress={address}
+            analyticsLocation="qr-code"
+            chainId={chainId}
             label={strings('multichain_accounts.share_address_qr.title', {
               networkName,
             })}

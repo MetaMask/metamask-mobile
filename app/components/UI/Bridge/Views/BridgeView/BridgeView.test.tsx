@@ -18,6 +18,7 @@ import { RequestStatus, type QuoteResponse } from '@metamask/bridge-controller';
 import { SolScope } from '@metamask/keyring-api';
 import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { useRWAToken } from '../../hooks/useRWAToken';
 import { strings } from '../../../../../../locales/i18n';
 import { isHardwareAccount } from '../../../../../util/address';
 import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/test/keyringControllerTestUtils';
@@ -266,6 +267,12 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
     .mockImplementation(() => mockUseBridgeQuoteData),
 }));
 
+jest.mock('../../hooks/useRWAToken', () => ({
+  useRWAToken: jest.fn().mockImplementation(() => ({
+    isStockToken: jest.fn().mockReturnValue(false),
+  })),
+}));
+
 jest.mock('../../../../../util/address', () => ({
   ...jest.requireActual('../../../../../util/address'),
   isHardwareAccount: jest.fn(),
@@ -336,12 +343,12 @@ describe('BridgeView', () => {
     fireEvent.press(tokenButton);
 
     // Verify navigation to BridgeTokenSelector
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.TOKEN_SELECTOR, {
+      type: 'source',
     });
   });
 
-  it('should open BridgeDestNetworkSelector when clicking destination token area', async () => {
+  it('should open token selector when clicking destination token area', async () => {
     const { getByText } = renderScreen(
       BridgeView,
       {
@@ -357,11 +364,8 @@ describe('BridgeView', () => {
     fireEvent.press(destTokenArea);
 
     // Verify navigation to BridgeTokenSelector
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR,
-      params: {
-        shouldGoToTokens: true,
-      },
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.TOKEN_SELECTOR, {
+      type: 'dest',
     });
   });
 
@@ -570,6 +574,78 @@ describe('BridgeView', () => {
     expect(setDestToken).toHaveBeenCalledWith(
       mockStateWithTokens.bridge.sourceToken,
     );
+  });
+
+  it('disables switch button when destination token network is disabled', () => {
+    const avalancheChainId = '0xa86a' as Hex; // Avalanche C-Chain
+
+    // Create base state with the disabled network configuration
+    const baseStateWithDisabledNetwork = {
+      ...mockState,
+      engine: {
+        ...mockState.engine,
+        backgroundState: {
+          ...mockState.engine?.backgroundState,
+          NetworkEnablementController: {
+            enabledNetworkMap: {
+              eip155: {
+                '0x1': true, // Ethereum enabled
+                [avalancheChainId]: false, // Avalanche disabled
+              },
+              solana: {
+                'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': true,
+              },
+              bip122: {
+                'bip122:000000000019d6689c085ae165831e93': true,
+              },
+              tron: {
+                'tron:728126428': true,
+              },
+            },
+          },
+        },
+      },
+    } as DeepPartial<RootState>;
+
+    const testState = createBridgeTestState(
+      {
+        bridgeReducerOverrides: {
+          sourceToken: {
+            address: '0x0000000000000000000000000000000000000000',
+            chainId: '0x1' as Hex,
+            decimals: 18,
+            image: '',
+            name: 'Ether',
+            symbol: 'ETH',
+          },
+          destToken: {
+            address: '0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E', // USDC on Avalanche
+            chainId: avalancheChainId,
+            decimals: 6,
+            image: '',
+            name: 'USD Coin',
+            symbol: 'USDC',
+          },
+          selectedDestChainId: avalancheChainId,
+        },
+      },
+      baseStateWithDisabledNetwork,
+    );
+
+    const { getByTestId } = renderScreen(
+      BridgeView,
+      {
+        name: Routes.BRIDGE.ROOT,
+      },
+      { state: testState },
+    );
+
+    const arrowButton = getByTestId('arrow-button');
+
+    // Button should be disabled when dest network is disabled
+    expect(arrowButton.props.disabled).toBe(true);
+    // When disabled, onPress is set to undefined in FLipQuoteButton
+    expect(arrowButton.props.onPress).toBeUndefined();
   });
 
   describe('Solana Swap', () => {
@@ -1101,6 +1177,72 @@ describe('BridgeView', () => {
       });
 
       noFeeSpy.mockRestore();
+    });
+  });
+
+  // TODO: This test suite is temporary and will be replaced by another behavior once geolocation detection will be implemented.
+  describe('Error Banner for RWA tokens', () => {
+    beforeEach(() => {
+      // Mock quote data to show an error
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          quoteFetchError: 'Error fetching quote',
+          isNoQuotesAvailable: true,
+          isLoading: false,
+        }));
+    });
+    it('should show regular error banner when no quotes and no RWA token selected', async () => {
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [],
+          quotesLastFetched: 12,
+        },
+      });
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      const expected = strings('bridge.error_banner_description');
+
+      await waitFor(() => {
+        expect(getByText(expected)).toBeTruthy();
+      });
+    });
+
+    it('should show error banner about geolocation restriction when no quotes and RWA token selected', async () => {
+      jest.mocked(useRWAToken as jest.Mock).mockImplementation(() => ({
+        isStockToken: jest.fn().mockReturnValue(true),
+      }));
+
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [],
+          quotesLastFetched: 12,
+        },
+      });
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      const expected = strings('bridge.stock_token_error_banner_description');
+
+      await waitFor(() => {
+        expect(getByText(expected)).toBeTruthy();
+      });
     });
   });
 

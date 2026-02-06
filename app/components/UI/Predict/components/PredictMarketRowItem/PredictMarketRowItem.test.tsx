@@ -8,6 +8,7 @@ import {
   PredictMarket as PredictMarketType,
 } from '../../types';
 import { PredictEventValues } from '../../constants/eventNames';
+import { PredictEntryPointProvider } from '../../contexts';
 import PredictMarketRowItem from './';
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -503,5 +504,60 @@ describe('PredictMarketRowItem', () => {
     expect(
       queryByText('Monad FDV one day after launch?'),
     ).not.toBeOnTheScreen();
+  });
+
+  it('uses context entryPoint when available', () => {
+    const market = createMockMarket();
+
+    const { getByText } = renderWithProvider(
+      <PredictEntryPointProvider
+        entryPoint={PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST}
+      >
+        <PredictMarketRowItem market={market} />
+      </PredictEntryPointProvider>,
+      { state: initialState },
+    );
+
+    const touchable = getByText('Monad FDV one day after launch?');
+    fireEvent.press(touchable);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_DETAILS,
+      params: {
+        marketId: 'test-market-1',
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST,
+        title: 'Monad FDV one day after launch?',
+        image: 'https://example.com/monad.jpg',
+      },
+    });
+  });
+
+  it('prioritizes context entryPoint over prop entryPoint', () => {
+    const market = createMockMarket();
+
+    const { getByText } = renderWithProvider(
+      <PredictEntryPointProvider
+        entryPoint={PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST}
+      >
+        <PredictMarketRowItem
+          market={market}
+          entryPoint={PredictEventValues.ENTRY_POINT.SEARCH}
+        />
+      </PredictEntryPointProvider>,
+      { state: initialState },
+    );
+
+    const touchable = getByText('Monad FDV one day after launch?');
+    fireEvent.press(touchable);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_DETAILS,
+      params: {
+        marketId: 'test-market-1',
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST,
+        title: 'Monad FDV one day after launch?',
+        image: 'https://example.com/monad.jpg',
+      },
+    });
   });
 });

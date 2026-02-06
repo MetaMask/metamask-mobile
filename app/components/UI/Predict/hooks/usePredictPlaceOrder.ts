@@ -19,6 +19,9 @@ import { strings } from '../../../../../locales/i18n';
 import { formatPrice } from '../utils/format';
 import { ensureError, parseErrorMessage } from '../utils/predictErrorHandler';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
+import { usePredictBalance } from './usePredictBalance';
+import { usePredictDeposit } from './usePredictDeposit';
+import { PredictEventValues } from '../constants/eventNames';
 
 interface UsePredictPlaceOrderOptions {
   /**
@@ -53,6 +56,8 @@ export function usePredictPlaceOrder(
   const [error, setError] = useState<string>();
   const [result, setResult] = useState<Result | null>(null);
   const { toastRef } = useContext(ToastContext);
+  const { balance } = usePredictBalance({ loadOnMount: false });
+  const { deposit } = usePredictDeposit();
 
   const showCashedOutToast = useCallback(
     (amount: string) => {
@@ -125,8 +130,22 @@ export function usePredictPlaceOrder(
   const placeOrder = useCallback(
     async (orderParams: PlaceOrderParams) => {
       const {
-        preview: { minAmountReceived, side },
+        preview: { minAmountReceived, side, maxAmountSpent },
       } = orderParams;
+
+      // Check if user has sufficient balance for the bet amount
+      // maxAmountSpent includes the bet amount plus all fees
+      if (side === Side.BUY && balance < maxAmountSpent) {
+        await deposit({
+          amountUsd: maxAmountSpent,
+          analyticsProperties: {
+            ...orderParams.analyticsProperties,
+            marketId: orderParams.preview.marketId,
+            entryPoint: PredictEventValues.ENTRY_POINT.BUY_PREVIEW,
+          },
+        });
+        return;
+      }
 
       try {
         setIsLoading(true);
@@ -186,10 +205,12 @@ export function usePredictPlaceOrder(
       }
     },
     [
+      balance,
+      deposit,
       controllerPlaceOrder,
       onComplete,
-      showCashedOutToast,
       showOrderPlacedToast,
+      showCashedOutToast,
       onError,
     ],
   );

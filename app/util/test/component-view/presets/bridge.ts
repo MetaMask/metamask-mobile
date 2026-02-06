@@ -33,6 +33,7 @@ export const initialStateBridge = (options?: InitialStateBridgeOptions) => {
     .withMinimalTokenRates()
     .withMinimalMultichainAssetsRates()
     .withMinimalMultichainBalances()
+    .withMinimalAnalyticsController()
     .withAccountTreeForSelectedAccount()
     .withRemoteFeatureFlags({});
 

@@ -5,7 +5,7 @@ import {
   AnvilManager,
   Hardfork,
   DEFAULT_ANVIL_PORT,
-} from '../../../e2e/seeder/anvil-manager.ts';
+} from '../../seeder/anvil-manager.ts';
 import Ganache, { DEFAULT_GANACHE_PORT } from '../../../app/util/test/ganache';
 import GanacheSeeder from '../../../app/util/test/ganache-seeder';
 import axios from 'axios';
@@ -20,7 +20,7 @@ import { dismissDevScreens } from '../../../e2e/viewHelper.ts';
 import TestHelpers from '../../../e2e/helpers';
 import MockServerE2E from '../../api-mocking/MockServerE2E.ts';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.ts';
-import { AnvilSeeder } from '../../../e2e/seeder/anvil-seeder.ts';
+import { AnvilSeeder } from '../../seeder/anvil-seeder.ts';
 import {
   LocalNodeConfig,
   LocalNodeOptionsInput,
@@ -45,7 +45,7 @@ import {
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder.ts';
 import { createLogger } from '../logger.ts';
-import { mockNotificationServices } from '../../../e2e/specs/notifications/utils/mocks.ts';
+import { mockNotificationServices } from '../../smoke/notifications/utils/mocks.ts';
 import PortManager, { ResourceType } from '../PortManager.ts';
 import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
 import CommandQueueServer from './CommandQueueServer.ts';

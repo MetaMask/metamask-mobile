@@ -10,6 +10,7 @@ import { ControllerInitRequest } from '../../types';
 import { ApprovalControllerInit } from './approval-controller-init';
 import { ApprovalTypes } from '../../../RPCMethods/RPCMethodMiddleware';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { DIALOG_APPROVAL_TYPES } from '@metamask/snaps-rpc-methods';
 
 jest.mock('@metamask/approval-controller');
 
@@ -68,6 +69,7 @@ describe('ApprovalController Init', () => {
         ApprovalType.Transaction,
         ApprovalType.WatchAsset,
         ApprovalTypes.SMART_TRANSACTION_STATUS,
+        DIALOG_APPROVAL_TYPES.default,
       ]);
     });
 

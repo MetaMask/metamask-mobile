@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
 const styleSheet = () =>
   StyleSheet.create({
@@ -10,7 +10,8 @@ const styleSheet = () =>
       fontStyle: 'italic',
     },
     footer: {
-      paddingVertical: 16,
+      paddingTop: 24,
+      paddingBottom: Platform.OS === 'android' ? 0 : 16,
       paddingHorizontal: 16,
     },
   });

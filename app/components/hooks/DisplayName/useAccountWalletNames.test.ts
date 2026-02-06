@@ -4,7 +4,6 @@ import { useAccountWalletNames } from './useAccountWalletNames';
 import { NameType } from '../../UI/Name/Name.types';
 import { UseDisplayNameRequest } from './useDisplayName';
 import { selectInternalAccountsById } from '../../../selectors/accountsController';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import {
   selectAccountToWalletMap,
   selectWalletsMap,
@@ -61,7 +60,7 @@ describe('useAccountWalletNames', () => {
     jest.clearAllMocks();
   });
 
-  it('returns wallet names when multichain state2 is enabled and multiple wallets exist', () => {
+  it('returns wallet names when multiple wallets exist', () => {
     const requests: UseDisplayNameRequest[] = [
       {
         type: NameType.EthereumAddress,
@@ -84,9 +83,6 @@ describe('useAccountWalletNames', () => {
       }
       if (selector === selectWalletsMap) {
         return mockWalletsMap;
-      }
-      if (selector === selectMultichainAccountsState2Enabled) {
-        return true;
       }
       return undefined;
     });
@@ -115,45 +111,12 @@ describe('useAccountWalletNames', () => {
       if (selector === selectWalletsMap) {
         return mockWalletsMap;
       }
-      if (selector === selectMultichainAccountsState2Enabled) {
-        return true;
-      }
       return undefined;
     });
 
     const { result } = renderHook(() => useAccountWalletNames(requests));
 
     expect(result.current).toEqual(['Wallet 1']);
-  });
-
-  it('returns empty array when multichain state2 is disabled', () => {
-    const requests: UseDisplayNameRequest[] = [
-      {
-        type: NameType.EthereumAddress,
-        value: '0x1234567890123456789012345678901234567890',
-        variation: 'normal',
-      },
-    ];
-
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectInternalAccountsById) {
-        return mockInternalAccountsById;
-      }
-      if (selector === selectAccountToWalletMap) {
-        return mockAccountToWalletMap;
-      }
-      if (selector === selectWalletsMap) {
-        return mockWalletsMap;
-      }
-      if (selector === selectMultichainAccountsState2Enabled) {
-        return false;
-      }
-      return undefined;
-    });
-
-    const { result } = renderHook(() => useAccountWalletNames(requests));
-
-    expect(result.current).toEqual([]);
   });
 
   it('returns empty array when only one wallet exists', () => {
@@ -174,9 +137,6 @@ describe('useAccountWalletNames', () => {
       }
       if (selector === selectWalletsMap) {
         return mockSingleWalletMap;
-      }
-      if (selector === selectMultichainAccountsState2Enabled) {
-        return true;
       }
       return undefined;
     });
@@ -204,9 +164,6 @@ describe('useAccountWalletNames', () => {
       }
       if (selector === selectWalletsMap) {
         return mockWalletsMap;
-      }
-      if (selector === selectMultichainAccountsState2Enabled) {
-        return true;
       }
       return undefined;
     });
@@ -239,9 +196,6 @@ describe('useAccountWalletNames', () => {
       }
       if (selector === selectWalletsMap) {
         return mockWalletsMap;
-      }
-      if (selector === selectMultichainAccountsState2Enabled) {
-        return true;
       }
       return undefined;
     });
@@ -280,9 +234,6 @@ describe('useAccountWalletNames', () => {
       if (selector === selectWalletsMap) {
         return mockWalletsMap;
       }
-      if (selector === selectMultichainAccountsState2Enabled) {
-        return true;
-      }
       return undefined;
     });
 
@@ -303,9 +254,6 @@ describe('useAccountWalletNames', () => {
       }
       if (selector === selectWalletsMap) {
         return mockWalletsMap;
-      }
-      if (selector === selectMultichainAccountsState2Enabled) {
-        return true;
       }
       return undefined;
     });
@@ -343,9 +291,6 @@ describe('useAccountWalletNames', () => {
       }
       if (selector === selectWalletsMap) {
         return mockWalletsMap;
-      }
-      if (selector === selectMultichainAccountsState2Enabled) {
-        return true;
       }
       return undefined;
     });

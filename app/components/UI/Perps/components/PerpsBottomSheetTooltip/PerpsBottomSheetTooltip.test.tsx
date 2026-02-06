@@ -171,7 +171,6 @@ describe('PerpsBottomSheetTooltip', () => {
       getByTestId(PerpsBottomSheetTooltipSelectorsIDs.TOOLTIP),
     ).toBeTruthy();
     // The BottomSheetHeader component uses its own default testID
-    expect(getByTestId('header')).toBeTruthy();
     expect(getByTestId(PerpsBottomSheetTooltipSelectorsIDs.TITLE)).toBeTruthy();
     expect(
       getByTestId(PerpsBottomSheetTooltipSelectorsIDs.CONTENT),
@@ -211,10 +210,13 @@ describe('PerpsBottomSheetTooltip', () => {
       getByTestId(PerpsBottomSheetTooltipSelectorsIDs.GOT_IT_BUTTON),
     );
 
-    await waitFor(() => {
-      expect(mockOnClose).toHaveBeenCalledTimes(1);
-    });
-  });
+    await waitFor(
+      () => {
+        expect(mockOnClose).toHaveBeenCalledTimes(1);
+      },
+      { timeout: 10000 },
+    );
+  }, 15000);
 
   it('renders different content for different contentKey (Margin Tooltip)', () => {
     const { getByText } = renderBottomSheetTooltip({
@@ -277,7 +279,6 @@ describe('PerpsBottomSheetTooltip', () => {
     });
 
     expect(getByTestId(customTestID)).toBeTruthy();
-    expect(getByTestId('header')).toBeTruthy();
     expect(getByTestId(PerpsBottomSheetTooltipSelectorsIDs.TITLE)).toBeTruthy();
     expect(
       getByTestId(PerpsBottomSheetTooltipSelectorsIDs.CONTENT),

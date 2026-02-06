@@ -38,8 +38,8 @@ import { selectPerpsEligibility } from '../../selectors/perpsController';
 import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
 } from '../../constants/eventNames';
 
 /**
@@ -146,9 +146,10 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
       trackEvent(
         createEventBuilder(MetaMetricsEvents.PERPS_SCREEN_VIEWED)
           .addProperties({
-            [PerpsEventProperties.SCREEN_TYPE]:
-              PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-            [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.CANCEL_ORDER,
+            [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+              PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+            [PERPS_EVENT_PROPERTY.SOURCE]:
+              PERPS_EVENT_VALUE.SOURCE.CANCEL_ORDER,
           })
           .build(),
       );

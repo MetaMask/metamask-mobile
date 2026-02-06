@@ -33,8 +33,8 @@ const initialState = {
   },
 };
 
-const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -42,7 +42,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       navigate: mockNavigate,
-      setOptions: mockSetOptions,
+      goBack: mockGoBack,
     }),
   };
 });
@@ -67,6 +67,26 @@ describe('Settings', () => {
     });
     expect(toJSON()).toMatchSnapshot();
   });
+
+  it('renders header with correct title', () => {
+    const { getByTestId, getByText } = renderWithProvider(<Settings />, {
+      state: initialState,
+    });
+    const header = getByTestId(SettingsViewSelectorsIDs.SETTINGS_HEADER);
+    expect(header).toBeDefined();
+    expect(getByText(strings('app_settings.title'))).toBeDefined();
+  });
+
+  it('navigates back when back button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<Settings />, {
+      state: initialState,
+    });
+    const header = getByTestId(SettingsViewSelectorsIDs.SETTINGS_HEADER);
+    const backButton = header.findByProps({ iconName: 'ArrowLeft' });
+    fireEvent.press(backButton);
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
   it('renders general settings button', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,

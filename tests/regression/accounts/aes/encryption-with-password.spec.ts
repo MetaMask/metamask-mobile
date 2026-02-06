@@ -1,0 +1,58 @@
+import { RegressionAccounts } from '../../../../e2e/tags';
+import TestHelpers from '../../../../e2e/helpers';
+import Assertions from '../../../framework/Assertions';
+import type { IndexableNativeElement } from 'detox/detox';
+import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
+import SettingsView from '../../../../e2e/pages/Settings/SettingsView';
+import { loginToApp } from '../../../../e2e/viewHelper';
+import AesCryptoTestForm from '../../../../e2e/pages/Settings/AesCryptoTestForm';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+
+describe(
+  RegressionAccounts('AES Crypto - Encryption and decryption with password'),
+  (): void => {
+    const PASSWORD_ONE: string = '123123123';
+    const PASSWORD_TWO: string = '456456456';
+    const DATA_TO_ENCRYPT_ONE: string = 'random data to encrypt';
+    const DATA_TO_ENCRYPT_TWO: string = 'more random data to encrypt';
+
+    beforeAll(async (): Promise<void> => {
+      jest.setTimeout(150000);
+      await TestHelpers.reverseServerPort();
+    });
+
+    it('encrypts and decrypts using password', async (): Promise<void> => {
+      await withFixtures(
+        {
+          fixture: new FixtureBuilder().build(),
+          restartDevice: true,
+        },
+        async () => {
+          await loginToApp();
+          await TabBarComponent.tapSettings();
+          await SettingsView.scrollToAesCryptoButton();
+          await SettingsView.tapAesCryptoTestForm();
+
+          await AesCryptoTestForm.encrypt(DATA_TO_ENCRYPT_ONE, PASSWORD_ONE);
+          await Assertions.expectElementToBeVisible(
+            AesCryptoTestForm.responseText,
+          );
+          await AesCryptoTestForm.decrypt(PASSWORD_ONE);
+          await Assertions.expectElementToHaveLabel(
+            AesCryptoTestForm.decryptResponse as Promise<IndexableNativeElement>,
+            DATA_TO_ENCRYPT_ONE,
+          );
+
+          // encrypt and decrypt with password second piece of data
+          await AesCryptoTestForm.encrypt(DATA_TO_ENCRYPT_TWO, PASSWORD_TWO);
+          await AesCryptoTestForm.decrypt(PASSWORD_TWO);
+          await Assertions.expectElementToHaveLabel(
+            AesCryptoTestForm.decryptResponse as Promise<IndexableNativeElement>,
+            DATA_TO_ENCRYPT_TWO,
+          );
+        },
+      );
+    });
+  },
+);

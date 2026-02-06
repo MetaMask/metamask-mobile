@@ -43,6 +43,7 @@ describe('PerpsOrderContext', () => {
     handleMaxAmount: jest.fn(),
     handleMinAmount: jest.fn(),
     maxPossibleAmount: 1000,
+    balanceForValidation: 1000,
   };
 
   beforeEach(() => {
@@ -92,6 +93,7 @@ describe('PerpsOrderContext', () => {
         initialAmount: undefined,
         initialLeverage: undefined,
         initialType: undefined,
+        effectiveAvailableBalance: undefined,
       });
     });
 
@@ -110,7 +112,10 @@ describe('PerpsOrderContext', () => {
         </PerpsOrderProvider>,
       );
 
-      expect(mockUsePerpsOrderForm).toHaveBeenCalledWith(initialProps);
+      expect(mockUsePerpsOrderForm).toHaveBeenCalledWith({
+        ...initialProps,
+        effectiveAvailableBalance: undefined,
+      });
     });
 
     it('provides the order form state to context', () => {

@@ -1105,6 +1105,7 @@ describe('OnboardingStep4', () => {
       expect(mockOptin).toHaveBeenCalledWith({
         referralCode: 'TEST123',
         isPrefilled: false,
+        bulkLink: false,
       });
     });
 

@@ -924,6 +924,58 @@ describe('useSpendingLimit', () => {
         selectedToken: undefined,
       });
     });
+
+    it('does not overwrite user selection when quickSelectTokens loads after returning from bottom sheet', () => {
+      const userSelectedToken = createMockToken({
+        symbol: 'ETH',
+        caipChainId: LINEA_CAIP_CHAIN_ID,
+      });
+
+      // Store the focus callback
+      let focusCallback: (() => void) | null = null;
+      mockUseFocusEffect.mockImplementation((callback) => {
+        focusCallback = callback;
+      });
+
+      // Start with empty allTokens (simulating async loading)
+      const { result, rerender } = renderHook(
+        (props: UseSpendingLimitParams) => useSpendingLimit(props),
+        {
+          initialProps: createDefaultParams({
+            allTokens: [],
+            delegationSettings: null,
+            routeParams: { returnedSelectedToken: userSelectedToken },
+          }),
+        },
+      );
+
+      // Simulate user returning from bottom sheet with their selection
+      act(() => {
+        if (focusCallback) {
+          focusCallback();
+        }
+      });
+
+      // Verify user's selection is set
+      expect(result.current.selectedToken).toEqual(userSelectedToken);
+
+      // Now simulate quickSelectTokens loading with mUSD available
+      const loadedTokens = [
+        createMockToken({ symbol: 'mUSD' }),
+        createMockToken({ symbol: 'USDC' }),
+      ];
+
+      rerender(
+        createDefaultParams({
+          allTokens: loadedTokens,
+          delegationSettings: createMockDelegationSettings(),
+          routeParams: {},
+        }),
+      );
+
+      // User's selection should NOT be overwritten by mUSD fallback
+      expect(result.current.selectedToken).toEqual(userSelectedToken);
+    });
   });
 
   describe('isLoading', () => {

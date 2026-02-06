@@ -11,12 +11,12 @@ import type {
   ClearinghouseStateResponse,
   SpotClearinghouseStateResponse,
   MetaResponse,
-  SpotMetaResponse,
   FrontendOpenOrdersResponse,
   MetaAndAssetCtxsResponse,
   AllMidsResponse,
   PredictedFundingsResponse,
   OrderParameters,
+  SpotMetaResponse,
 } from '@nktkas/hyperliquid';
 
 // Clearinghouse (Account) Types
@@ -39,9 +39,9 @@ export type {
   ClearinghouseStateResponse,
   SpotClearinghouseStateResponse,
   MetaResponse,
-  SpotMetaResponse,
   FrontendOpenOrdersResponse,
   AllMidsResponse,
   MetaAndAssetCtxsResponse,
   PredictedFundingsResponse,
+  SpotMetaResponse,
 };

@@ -1,17 +1,24 @@
 import { AccountGroupId } from '@metamask/account-api';
 import type { Theme } from '@metamask/design-tokens';
 import React, {
+  forwardRef,
   useCallback,
   useContext,
   useEffect,
+  useImperativeHandle,
   useMemo,
   useRef,
   useState,
 } from 'react';
+import type { TabRefreshHandle, WalletTokensTabViewHandle } from './types';
+import { useBalanceRefresh } from './hooks';
 
 import {
   ActivityIndicator,
+  DeviceEventEmitter,
   Linking,
+  RefreshControl,
+  ScrollView,
   StyleSheet as RNStyleSheet,
   View,
 } from 'react-native';
@@ -76,7 +83,6 @@ import {
   selectEvmNetworkConfigurationsByChainId,
   selectIsAllNetworks,
   selectIsPopularNetwork,
-  selectNativeCurrencyByChainId,
   selectNetworkClientId,
   selectNetworkConfigurations,
   selectProviderConfig,
@@ -137,10 +143,7 @@ import {
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import DeFiPositionsList from '../../UI/DeFiPositions/DeFiPositionsList';
 import AssetDetailsActions from '../AssetDetails/AssetDetailsActions';
-
-import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
-import { getEther } from '../../../util/transactions';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
@@ -176,7 +179,6 @@ import { selectSelectedInternalAccountByScope } from '../../../selectors/multich
 import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
-import { useRewardsIntroModal } from '../../UI/Rewards/hooks/useRewardsIntroModal';
 import NftGrid from '../../UI/NftGrid/NftGrid';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { selectDisplayCardButton } from '../../../core/redux/slices/card';
@@ -220,6 +222,7 @@ interface WalletProps {
   currentRouteName: string;
   storePrivacyPolicyClickedOrClosed: () => void;
 }
+
 interface WalletTokensTabViewProps {
   navigation: WalletProps['navigation'];
   onChangeTab: (changeTabProperties: {
@@ -228,13 +231,84 @@ interface WalletTokensTabViewProps {
   }) => void;
   defiEnabled: boolean;
   collectiblesEnabled: boolean;
-  navigationParams?: {
-    shouldSelectPerpsTab?: boolean;
-    initialTab?: string;
-  };
 }
 
-const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
+interface WalletRouteParams {
+  openNetworkSelector?: boolean | null;
+  shouldSelectPerpsTab?: boolean | null;
+  initialTab?: string | null;
+}
+
+export const useHomeDeepLinkEffects = (opts: {
+  isPerpsEnabled: boolean;
+  onPerpsTabSelected: () => void;
+  onNetworkSelectorSelected: () => void;
+  navigation: NavigationProp<ParamListBase>;
+}) => {
+  const {
+    isPerpsEnabled,
+    onPerpsTabSelected,
+    onNetworkSelectorSelected,
+    navigation,
+  } = opts;
+
+  const route = useRoute<RouteProp<{ params: WalletRouteParams }, 'params'>>();
+
+  // Handle tab selection from navigation params (e.g., from deeplinks)
+  // This uses useFocusEffect to ensure the tab selection happens when the screen receives focus
+  useFocusEffect(
+    useCallback(() => {
+      const params = route.params;
+
+      const clearParams = () => {
+        if (navigation?.setParams) {
+          // React-Navigation shallow merges params, so we need to set each param to null to clear them
+          const nullParams: Record<string, null> = {};
+          Object.keys(params).forEach((key) => {
+            nullParams[key] = null;
+          });
+          navigation.setParams(nullParams);
+        }
+      };
+
+      const handleDelayedDeeplinkAction = (action: () => void) => {
+        const timer = setTimeout(() => {
+          // Call action
+          action();
+
+          // Clear all deeplink params
+          clearParams();
+          return;
+        }, PERFORMANCE_CONFIG.NavigationParamsDelayMs);
+
+        return () => clearTimeout(timer);
+      };
+
+      // Perps Tab Selection Deeplink
+      const shouldSelectPerpsTab = params?.shouldSelectPerpsTab;
+      const initialTab = params?.initialTab;
+      if ((shouldSelectPerpsTab || initialTab === 'perps') && isPerpsEnabled) {
+        return handleDelayedDeeplinkAction(() => onPerpsTabSelected());
+      }
+
+      // Network Picker Deeplink
+      if (params?.openNetworkSelector) {
+        return handleDelayedDeeplinkAction(() => onNetworkSelectorSelected());
+      }
+    }, [
+      route.params,
+      isPerpsEnabled,
+      navigation,
+      onPerpsTabSelected,
+      onNetworkSelectorSelected,
+    ]),
+  );
+};
+
+const WalletTokensTabView = forwardRef<
+  WalletTokensTabViewHandle,
+  WalletTokensTabViewProps
+>((props, ref) => {
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const isMultichainAccountsState2Enabled = useSelector(
@@ -255,14 +329,8 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     [isPredictFlagEnabled],
   );
 
-  const {
-    navigation,
-    onChangeTab,
-    defiEnabled,
-    collectiblesEnabled,
-    navigationParams,
-  } = props;
-  const route = useRoute<RouteProp<ParamListBase, string>>();
+  const { navigation, onChangeTab, defiEnabled, collectiblesEnabled } = props;
+
   const tabsListRef = useRef<TabsListRef>(null);
   const { enabledNetworks: allEnabledNetworks } = useCurrentNetworkInfo();
 
@@ -280,6 +348,11 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
 
   // Track current tab index for Perps visibility
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
+
+  // Refs for tab components that have refresh functionality
+  const tokensRef = useRef<TabRefreshHandle>(null);
+  const predictRef = useRef<TabRefreshHandle>(null);
+  const nftsRef = useRef<TabRefreshHandle>(null);
 
   const tokensTabProps = useMemo(
     () => ({
@@ -335,6 +408,55 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     [onChangeTab],
   );
 
+  // Build ordered list of tab refs based on which tabs are enabled
+  // Returns null for tabs without refresh (Perps uses WebSocket, DeFi uses selectors)
+  const getTabRefByIndex = useCallback(
+    (index: number): React.RefObject<TabRefreshHandle> | null => {
+      // Build array matching tab order: [tokens, perps?, predict?, defi?, nfts?]
+      // Use null for tabs without refresh functionality
+      const tabRefs: (React.RefObject<TabRefreshHandle> | null)[] = [tokensRef];
+
+      if (isPerpsEnabled) {
+        tabRefs.push(null); // Perps uses WebSocket streaming, no refresh needed
+      }
+      if (isPredictEnabled) {
+        tabRefs.push(predictRef);
+      }
+      if (!enabledNetworksIsSolana) {
+        if (defiEnabled) {
+          tabRefs.push(null); // DeFi uses Redux selectors, no refresh needed
+        }
+        if (collectiblesEnabled) {
+          tabRefs.push(nftsRef);
+        }
+      }
+
+      return tabRefs[index] || null;
+    },
+    [
+      isPerpsEnabled,
+      isPredictEnabled,
+      defiEnabled,
+      collectiblesEnabled,
+      enabledNetworksIsSolana,
+    ],
+  );
+
+  // Expose refresh method to parent
+  useImperativeHandle(ref, () => ({
+    refresh: async (onBalanceRefresh: () => Promise<void>) => {
+      const activeTabRef = getTabRefByIndex(currentTabIndex);
+
+      // Always refresh balance + tab-specific content if available
+      const promises = [
+        onBalanceRefresh(),
+        activeTabRef?.current?.refresh(),
+      ].filter(Boolean);
+
+      await Promise.all(promises);
+    },
+  }));
+
   // Calculate Perps tab visibility
   const perpsTabIndex = isPerpsEnabled ? 1 : -1;
   const isPerpsTabVisible = currentTabIndex === perpsTabIndex;
@@ -360,44 +482,25 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     }
   }, [currentTabIndex, perpsTabIndex, isPerpsTabVisible, isPerpsEnabled]);
 
-  // Handle tab selection from navigation params (e.g., from deeplinks)
-  // This uses useFocusEffect to ensure the tab selection happens when the screen receives focus
-  useFocusEffect(
-    useCallback(() => {
-      // Check both navigationParams prop and route params for tab selection
-      // Type assertion needed as route params are not strongly typed in navigation
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const params = navigationParams || (route.params as any);
-      const shouldSelectPerpsTab = params?.shouldSelectPerpsTab;
-      const initialTab = params?.initialTab;
-
-      if ((shouldSelectPerpsTab || initialTab === 'perps') && isPerpsEnabled) {
-        // Calculate the index of the Perps tab
-        // Tokens is always at index 0, Perps is at index 1 when enabled
-        const targetPerpsTabIndex = 1;
-
-        // Small delay ensures the TabsList is fully rendered before selection
-        const timer = setTimeout(() => {
-          tabsListRef.current?.goToTabIndex(targetPerpsTabIndex);
-
-          // Clear the params to prevent re-selection on subsequent focuses
-          // This is important for navigation state management
-          if (navigation?.setParams) {
-            navigation.setParams({
-              shouldSelectPerpsTab: false,
-              initialTab: undefined,
-            });
-          }
-        }, PERFORMANCE_CONFIG.NAVIGATION_PARAMS_DELAY_MS);
-
-        return () => clearTimeout(timer);
-      }
-    }, [route.params, isPerpsEnabled, navigationParams, navigation]),
-  );
+  // Handle deep link effects
+  useHomeDeepLinkEffects({
+    navigation,
+    isPerpsEnabled,
+    onPerpsTabSelected: () => {
+      tabsListRef.current?.goToTabIndex(1);
+    },
+    onNetworkSelectorSelected: () => {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.NETWORK_SELECTOR,
+      });
+    },
+  });
 
   // Build tabs array dynamically based on enabled features
   const tabsToRender = useMemo(() => {
-    const tabs = [<Tokens {...tokensTabProps} key={tokensTabProps.key} />];
+    const tabs = [
+      <Tokens ref={tokensRef} {...tokensTabProps} key={tokensTabProps.key} />,
+    ];
 
     if (isPerpsEnabled) {
       tabs.push(
@@ -415,6 +518,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     if (isPredictEnabled) {
       tabs.push(
         <PredictTabView
+          ref={predictRef}
           {...predictTabProps}
           key={predictTabProps.key}
           isVisible={isPredictTabVisible}
@@ -436,7 +540,9 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     }
 
     if (collectiblesEnabled) {
-      tabs.push(<NftGrid {...nftsTabProps} key={nftsTabProps.key} />);
+      tabs.push(
+        <NftGrid ref={nftsRef} {...nftsTabProps} key={nftsTabProps.key} />,
+      );
     }
 
     return tabs;
@@ -491,6 +597,8 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   );
 });
 
+WalletTokensTabView.displayName = 'WalletTokensTabView';
+
 /**
  * Main view for the wallet
  */
@@ -501,8 +609,13 @@ const Wallet = ({
   storePrivacyPolicyClickedOrClosed,
 }: WalletProps) => {
   const { navigate } = useNavigation();
-  const route = useRoute<RouteProp<ParamListBase, string>>();
   const walletRef = useRef(null);
+  const walletTokensTabViewRef = useRef<WalletTokensTabViewHandle>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
+  const isMountedRef = useRef(true);
+  const refreshInProgressRef = useRef(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const { refreshBalance } = useBalanceRefresh();
   const theme = useTheme();
 
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
@@ -564,10 +677,6 @@ const Wallet = ({
   }, [enabledNetworks, isMultichainAccountsState2Enabled, allEnabledNetworks]);
 
   const prevChainId = usePrevious(chainId);
-
-  const nativeCurrency = useSelector((state: RootState) =>
-    selectNativeCurrencyByChainId(state, chainId),
-  );
 
   // Setup for AssetDetailsActions
   const { goToSwaps } = useSwapBridgeNavigation({
@@ -668,35 +777,15 @@ const Wallet = ({
       }
       ///: END:ONLY_INCLUDE_IF
 
-      // Ensure consistent transaction initialization before navigation
-      if (nativeCurrency) {
-        // Initialize transaction with native currency
-        dispatch(newAssetTransaction(getEther(nativeCurrency)));
-      } else {
-        // Initialize with a default ETH transaction as fallback
-        // This ensures consistent state even when nativeCurrency is not available
-        console.warn(
-          'Native currency not available, using ETH as fallback for transaction initialization',
-        );
-        dispatch(newAssetTransaction(getEther('ETH')));
-      }
-
-      // Navigate to send flow after successful transaction initialization
       navigateToSendPage({ location: InitSendLocation.HomePage });
     } catch (error) {
-      // Handle any errors that occur during the send flow initiation
       console.error('Error initiating send flow:', error);
-
-      // Still attempt to navigate to maintain user flow, but without transaction initialization
-      // The SendFlow view should handle the lack of initialized transaction gracefully
       navigateToSendPage({ location: InitSendLocation.HomePage });
     }
   }, [
     trackEvent,
     createEventBuilder,
-    nativeCurrency,
     navigateToSendPage,
-    dispatch,
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     sendNonEvmAsset,
     ///: END:ONLY_INCLUDE_IF
@@ -790,6 +879,35 @@ const Wallet = ({
     networks: allNetworks,
   });
   const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
+
+  // Track component mount state to prevent state updates after unmount
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  // Listen for scroll-to-token events (e.g., after claiming mUSD rewards)
+  // This handles scrolling in the homepage .map() mode where TokenList can't scroll directly
+  useEffect(() => {
+    const subscription = DeviceEventEmitter.addListener(
+      'scrollToTokenIndex',
+      ({ offset }: { index: number; offset: number }) => {
+        // Add offset for content above tokens (balance, carousel, etc.)
+        // Approximate: AccountGroupBalance (~200px) + Carousel (~150px) + padding
+        const CONTENT_OFFSET_ABOVE_TOKENS = 400;
+        scrollViewRef.current?.scrollTo({
+          y: CONTENT_OFFSET_ABOVE_TOKENS + offset,
+          animated: true,
+        });
+      },
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   useEffect(() => {
     // do not prompt for social login flow
@@ -967,11 +1085,6 @@ const Wallet = ({
    * Show multichain accounts intro modal if state 2 is enabled and never showed before
    */
   useMultichainAccountsIntroModal();
-
-  /**
-   * Show rewards intro modal if ff is enabled and never showed before
-   */
-  useRewardsIntroModal();
 
   /**
    * Show PNA25 bottom sheet if remote feature flag is enabled and never showed before
@@ -1260,6 +1373,29 @@ const Wallet = ({
     [styles.wrapper, isHomepageRedesignV1Enabled],
   );
 
+  const handleRefresh = useCallback(async () => {
+    // Prevent concurrent refreshes
+    if (refreshInProgressRef.current) {
+      return;
+    }
+
+    refreshInProgressRef.current = true;
+    setRefreshing(true);
+
+    try {
+      await walletTokensTabViewRef.current?.refresh(refreshBalance);
+    } catch (error) {
+      Logger.error(error as Error, 'Error refreshing wallet');
+    } finally {
+      refreshInProgressRef.current = false;
+
+      // Only update state if component is still mounted
+      if (isMountedRef.current) {
+        setRefreshing(false);
+      }
+    }
+  }, [refreshBalance]);
+
   const content = (
     <>
       <AssetPollingProvider />
@@ -1298,11 +1434,11 @@ const Wallet = ({
         {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
 
         <WalletTokensTabView
+          ref={walletTokensTabViewRef}
           navigation={navigation}
           onChangeTab={onChangeTab}
           defiEnabled={defiEnabled}
           collectiblesEnabled={collectiblesEnabled}
-          navigationParams={route.params}
         />
       </>
     </>
@@ -1325,10 +1461,19 @@ const Wallet = ({
             testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
           >
             <ConditionalScrollView
+              ref={scrollViewRef}
               isScrollEnabled={isHomepageRedesignV1Enabled}
               scrollViewProps={{
                 contentContainerStyle: scrollViewContentStyle,
                 showsVerticalScrollIndicator: false,
+                refreshControl: isHomepageRedesignV1Enabled ? (
+                  <RefreshControl
+                    colors={[colors.primary.default]}
+                    tintColor={colors.icon.default}
+                    refreshing={refreshing}
+                    onRefresh={handleRefresh}
+                  />
+                ) : undefined,
               }}
             >
               {content}

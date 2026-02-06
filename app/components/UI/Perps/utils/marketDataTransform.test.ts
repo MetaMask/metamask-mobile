@@ -79,6 +79,8 @@ describe('marketDataTransform', () => {
         fundingRate: 0.01,
         marketSource: undefined, // Main DEX has no source
         marketType: undefined, // Main DEX has no type
+        isHip3: false, // Main DEX is not HIP-3
+        isNewMarket: false, // Main DEX assets are not "new"
         openInterest: '$52.00B', // 1M contracts * $52K price
       });
     });
@@ -330,6 +332,8 @@ describe('marketDataTransform', () => {
       expect(result[0].symbol).toBe('xyz:XYZ100');
       expect(result[0].marketSource).toBe('xyz');
       expect(result[0].marketType).toBe('equity');
+      expect(result[0].isHip3).toBe(true);
+      expect(result[0].isNewMarket).toBe(false); // Explicitly mapped, not "new"
     });
 
     it('extracts marketSource and marketType for HIP-3 commodity assets', () => {
@@ -355,9 +359,11 @@ describe('marketDataTransform', () => {
       expect(result[0].symbol).toBe('xyz:GOLD');
       expect(result[0].marketSource).toBe('xyz');
       expect(result[0].marketType).toBe('commodity');
+      expect(result[0].isHip3).toBe(true);
+      expect(result[0].isNewMarket).toBe(false); // Explicitly mapped, not "new"
     });
 
-    it('handles unmapped HIP-3 DEX - defaults to equity marketType', () => {
+    it('handles unmapped HIP-3 DEX - no marketType, marked as new', () => {
       const unknownDexAsset = {
         name: 'unknown:ASSET1',
         maxLeverage: 10,
@@ -376,7 +382,9 @@ describe('marketDataTransform', () => {
       expect(result).toHaveLength(1);
       expect(result[0].symbol).toBe('unknown:ASSET1');
       expect(result[0].marketSource).toBe('unknown');
-      expect(result[0].marketType).toBe('equity');
+      expect(result[0].marketType).toBeUndefined(); // No longer defaults to equity
+      expect(result[0].isHip3).toBe(true);
+      expect(result[0].isNewMarket).toBe(true); // Uncategorized HIP-3 markets are "new"
     });
 
     it('handles main DEX assets with no marketSource or marketType', () => {
@@ -391,6 +399,8 @@ describe('marketDataTransform', () => {
       expect(result[0].symbol).toBe('BTC');
       expect(result[0].marketSource).toBeUndefined();
       expect(result[0].marketType).toBeUndefined();
+      expect(result[0].isHip3).toBe(false); // Main DEX is not HIP-3
+      expect(result[0].isNewMarket).toBe(false); // Main DEX assets are not "new"
     });
   });
 

@@ -22,23 +22,21 @@ import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controlle
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
-import { useRoute } from '@react-navigation/native';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { EMPTY_ADDRESS } from '../../../../../../constants/transaction';
 import { getAvailableTokens } from '../../../utils/transaction-pay';
+import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
+import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
 
 jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 jest.mock('../../../utils/transaction-pay');
+jest.mock('../../../../../UI/Perps/hooks/usePerpsPaymentToken');
+jest.mock('../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter');
 
 jest.mock('../../../hooks/send/useAccountTokens', () => ({
   useAccountTokens: () => [],
-}));
-
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useRoute: jest.fn(),
 }));
 
 const CHAIN_ID_1_MOCK = CHAIN_IDS.MAINNET as Hex;
@@ -164,14 +162,18 @@ function render({ minimumFiatBalance }: { minimumFiatBalance?: number } = {}) {
 
 describe('PayWithModal', () => {
   const setPayTokenMock = jest.fn();
+  const onPerpsPaymentTokenChangeMock = jest.fn();
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const getAvailableTokensMock = jest.mocked(getAvailableTokens);
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
   );
-  const mockUseRoute = useRoute as jest.MockedFunction<typeof useRoute>;
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
+  );
+  const usePerpsPaymentTokenMock = jest.mocked(usePerpsPaymentToken);
+  const usePerpsBalanceTokenFilterMock = jest.mocked(
+    usePerpsBalanceTokenFilter,
   );
 
   beforeEach(() => {
@@ -185,10 +187,6 @@ describe('PayWithModal', () => {
       setPayToken: setPayTokenMock,
     } as unknown as ReturnType<typeof useTransactionPayToken>);
 
-    mockUseRoute.mockReturnValue({
-      params: {},
-    } as unknown as ReturnType<typeof useRoute>);
-
     useTransactionMetadataRequestMock.mockReturnValue({
       id: transactionIdMock,
       chainId: CHAIN_ID_1_MOCK,
@@ -200,6 +198,14 @@ describe('PayWithModal', () => {
       },
       type: TransactionType.simpleSend,
     } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+
+    usePerpsPaymentTokenMock.mockReturnValue({
+      onPaymentTokenChange: onPerpsPaymentTokenChangeMock,
+    } as unknown as ReturnType<typeof usePerpsPaymentToken>);
+
+    usePerpsBalanceTokenFilterMock.mockReturnValue(
+      jest.fn((tokens: AssetType[]) => tokens),
+    );
   });
 
   it('renders tokens', async () => {
@@ -227,5 +233,49 @@ describe('PayWithModal', () => {
         chainId: TOKENS_MOCK[1].chainId,
       });
     });
+
+    it('calls onPerpsPaymentTokenChange via close callback when type is perpsDepositAndOrder', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_1_MOCK,
+        networkClientId: '',
+        status: TransactionStatus.unapproved,
+        time: 0,
+        txParams: { from: EMPTY_ADDRESS },
+        type: TransactionType.perpsDepositAndOrder,
+      } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+
+      const { getByText } = render();
+
+      await waitFor(() => {
+        fireEvent.press(getByText('Test Token 1'));
+      });
+
+      expect(onPerpsPaymentTokenChangeMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          address: TOKENS_MOCK[1].address,
+          chainId: TOKENS_MOCK[1].chainId,
+        }),
+      );
+    });
+  });
+
+  it('uses perpsBalanceTokenFilter when transaction type is perpsDepositAndOrder', () => {
+    const perpsFilterFn = jest.fn((tokens: AssetType[]) => tokens);
+    usePerpsBalanceTokenFilterMock.mockReturnValue(perpsFilterFn);
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: transactionIdMock,
+      chainId: CHAIN_ID_1_MOCK,
+      networkClientId: '',
+      status: TransactionStatus.unapproved,
+      time: 0,
+      txParams: { from: EMPTY_ADDRESS },
+      type: TransactionType.perpsDepositAndOrder,
+    } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+
+    render();
+
+    expect(perpsFilterFn).toHaveBeenCalledWith(TOKENS_MOCK);
   });
 });

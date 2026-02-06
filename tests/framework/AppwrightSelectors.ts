@@ -19,8 +19,9 @@ export default class AppwrightSelectors {
   static async getElementByText(
     testDevice: Device,
     text: string,
+    exact: boolean = false,
   ): Promise<AppwrightLocator> {
-    return await testDevice.getByText(text);
+    return await testDevice.getByText(text, { exact });
   }
 
   // Catch-all xpath selector that works on both platforms

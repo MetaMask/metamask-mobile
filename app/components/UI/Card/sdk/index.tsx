@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
+import Logger from '../../../../util/Logger';
 import { CardSDK } from './CardSDK';
 import {
   CardFeatureFlag,
@@ -15,7 +16,6 @@ import {
 } from '../../../../selectors/featureFlagController/card';
 import { useCardholderCheck } from '../hooks/useCardholderCheck';
 import { useCardAuthenticationVerification } from '../hooks/useCardAuthenticationVerification';
-import { removeCardBaanxToken } from '../util/cardTokenVault';
 import {
   selectUserCardLocation,
   selectOnboardingId,
@@ -76,12 +76,11 @@ export const CardSDKProvider = ({
         userCardLocation,
       });
       setSdk(cardSDK);
+      setIsLoading(false);
     } else {
       setSdk(null);
       setIsLoading(false);
     }
-
-    setIsLoading(false);
   }, [cardFeatureFlag, userCardLocation]);
 
   const fetchUserData = useCallback(async () => {
@@ -92,7 +91,10 @@ export const CardSDKProvider = ({
     setIsLoading(true);
 
     try {
-      const userData = await sdk.getRegistrationStatus(onboardingId);
+      const userData = await sdk.getRegistrationStatus(
+        onboardingId,
+        userCardLocation,
+      );
 
       if (userData.contactVerificationId) {
         dispatch(setContactVerificationId(userData.contactVerificationId));
@@ -112,7 +114,7 @@ export const CardSDKProvider = ({
     } finally {
       setIsLoading(false);
     }
-  }, [sdk, onboardingId, dispatch]);
+  }, [sdk, onboardingId, dispatch, userCardLocation]);
 
   // Track whether onboardingId existed at initial mount (for resuming incomplete onboarding)
   const [hasInitialOnboardingId] = useState(() => !!onboardingId);
@@ -135,7 +137,14 @@ export const CardSDKProvider = ({
       throw new Error('SDK not available for logout');
     }
 
-    await removeCardBaanxToken();
+    try {
+      await sdk.logout();
+    } catch (error) {
+      Logger.error(error as Error, {
+        message: '[CardSDK] Logout failed, clearing local state anyway',
+      });
+    }
+
     dispatch(resetAuthenticatedData());
     dispatch(clearAllCache());
     dispatch(resetOnboardingState());

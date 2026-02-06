@@ -23,7 +23,7 @@ import { AnimationDuration } from '../../../../../../component-library/constants
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCenter from '../../../../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import ListItemSelect from '../../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
   WidthType,
@@ -333,7 +333,7 @@ function RegionSelectorModal() {
       onClose={onModalHide}
       keyboardAvoidingViewEnabled={false}
     >
-      <HeaderCenter
+      <HeaderCompactStandard
         title={
           activeView === RegionViewType.COUNTRY
             ? strings('fiat_on_ramp_aggregator.region.title')

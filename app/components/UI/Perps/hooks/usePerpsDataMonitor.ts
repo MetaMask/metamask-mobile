@@ -65,7 +65,7 @@ export function usePerpsDataMonitor(
     asset,
     monitorOrders = true,
     monitorPositions = true,
-    timeoutMs = PERPS_CONSTANTS.DEFAULT_MONITORING_TIMEOUT_MS,
+    timeoutMs = PERPS_CONSTANTS.DefaultMonitoringTimeoutMs,
     onDataDetected,
     enabled = false,
   } = params;

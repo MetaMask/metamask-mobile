@@ -1,13 +1,31 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
+import { Linking } from 'react-native';
 import PendingMerklRewards from './PendingMerklRewards';
-import { TokenI } from '../../../Tokens/types';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
+
+const mockOpenTooltipModal = jest.fn();
+jest.mock('../../../../hooks/useTooltipModal', () => ({
+  __esModule: true,
+  default: () => ({
+    openTooltipModal: mockOpenTooltipModal,
+  }),
+}));
+
+jest.mock('../../../../../core/AppConstants', () => ({
+  URLS: {
+    MUSD_CONVERSION_BONUS_TERMS_OF_USE:
+      'https://metamask.io/musd-bonus-terms-of-use',
+  },
+}));
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string, values?: Record<string, string>) => {
     const mockStrings: Record<string, string> = {
       'asset_overview.merkl_rewards.claimable_bonus': 'Claimable bonus',
+      'asset_overview.merkl_rewards.claimable_bonus_tooltip_description':
+        'mUSD bonuses are claimed on Linea.',
+      'asset_overview.merkl_rewards.terms_apply': 'Terms apply.',
+      'asset_overview.merkl_rewards.ok': 'OK',
       'asset_overview.merkl_rewards.annual_bonus': '{{apy}}% bonus',
     };
     let template = mockStrings[key] || key;
@@ -26,7 +44,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
   return {
     Box: ({
       children,
@@ -46,6 +64,22 @@ jest.mock('@metamask/design-system-react-native', () => {
     }) => ReactActual.createElement(Text, props, children),
     Icon: ({ name, ...props }: { name: string; [key: string]: unknown }) =>
       ReactActual.createElement(View, { testID: `icon-${name}`, ...props }),
+    ButtonIcon: ({
+      testID,
+      onPress,
+      iconName,
+      ...props
+    }: {
+      testID?: string;
+      onPress?: () => void;
+      iconName?: string;
+      [key: string]: unknown;
+    }) =>
+      ReactActual.createElement(
+        TouchableOpacity,
+        { testID, onPress, ...props },
+        ReactActual.createElement(View, { testID: `icon-${iconName}` }),
+      ),
     BoxAlignItems: {
       Center: 'center',
     },
@@ -54,14 +88,22 @@ jest.mock('@metamask/design-system-react-native', () => {
     },
     BoxJustifyContent: {
       Between: 'space-between',
+      Center: 'center',
     },
     IconName: {
       MoneyBag: 'MoneyBag',
       Calendar: 'Calendar',
       ArrowRight: 'ArrowRight',
+      Info: 'Info',
     },
     IconSize: {
       Md: 'md',
+      Sm: 'sm',
+    },
+    IconColor: {
+      IconAlternative: 'alternative',
+    },
+    ButtonIconSize: {
       Sm: 'sm',
     },
     TextVariant: {
@@ -80,25 +122,14 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
-const mockAsset: TokenI = {
-  name: 'Angle Merkl',
-  symbol: 'aglaMerkl',
-  address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898' as const,
-  chainId: CHAIN_IDS.MAINNET,
-  decimals: 18,
-  aggregators: [],
-  image: '',
-  balance: '1000',
-  balanceFiat: '$100',
-  logo: '',
-  isETH: false,
-  isNative: false,
-};
-
 describe('PendingMerklRewards', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('returns null when claimableReward is null', () => {
     const { queryByText } = render(
-      <PendingMerklRewards asset={mockAsset} claimableReward={null} />,
+      <PendingMerklRewards claimableReward={null} />,
     );
 
     // Component should not render anything when claimableReward is null
@@ -109,32 +140,65 @@ describe('PendingMerklRewards', () => {
 
   it('renders claimable bonus section when claimableReward is provided', () => {
     const { getByText } = render(
-      <PendingMerklRewards asset={mockAsset} claimableReward="1.5" />,
+      <PendingMerklRewards claimableReward="10.01" />,
     );
 
     expect(getByText('Claimable bonus')).toBeTruthy();
     expect(getByText('3% bonus')).toBeTruthy();
-    expect(getByText('1.5 aglaMerkl')).toBeTruthy();
+    expect(getByText('$10.01')).toBeTruthy();
   });
 
   it('renders money bag icon in claimable bonus section', () => {
     const { getByTestId } = render(
-      <PendingMerklRewards asset={mockAsset} claimableReward="1.5" />,
+      <PendingMerklRewards claimableReward="10.01" />,
     );
 
     expect(getByTestId('icon-MoneyBag')).toBeTruthy();
   });
 
-  it('displays correct asset symbol in claimable reward amount', () => {
-    const customAsset = {
-      ...mockAsset,
-      symbol: 'mUSD',
-    };
-
-    const { getByText } = render(
-      <PendingMerklRewards asset={customAsset} claimableReward="2.5" />,
+  it('renders info button next to claimable bonus text', () => {
+    const { getByTestId } = render(
+      <PendingMerklRewards claimableReward="10.01" />,
     );
 
-    expect(getByText('2.5 mUSD')).toBeTruthy();
+    expect(getByTestId('claimable-bonus-info-button')).toBeTruthy();
+    expect(getByTestId('icon-Info')).toBeTruthy();
+  });
+
+  it('opens tooltip modal when info button is pressed', () => {
+    const { getByTestId } = render(
+      <PendingMerklRewards claimableReward="10.01" />,
+    );
+
+    fireEvent.press(getByTestId('claimable-bonus-info-button'));
+
+    expect(mockOpenTooltipModal).toHaveBeenCalledTimes(1);
+    expect(mockOpenTooltipModal).toHaveBeenCalledWith(
+      'Claimable bonus',
+      expect.any(Object), // React element with tooltip content
+      undefined,
+      'OK',
+    );
+  });
+
+  it('opens terms URL when terms link is pressed in tooltip', () => {
+    const linkingSpy = jest.spyOn(Linking, 'openURL');
+
+    const { getByTestId } = render(
+      <PendingMerklRewards claimableReward="10.01" />,
+    );
+
+    fireEvent.press(getByTestId('claimable-bonus-info-button'));
+
+    // Get the tooltip content (second argument to openTooltipModal)
+    const tooltipContent = mockOpenTooltipModal.mock.calls[0][1];
+
+    // Render the tooltip content to access the terms link
+    const { getByText } = render(tooltipContent);
+    fireEvent.press(getByText('Terms apply.'));
+
+    expect(linkingSpy).toHaveBeenCalledWith(
+      'https://metamask.io/musd-bonus-terms-of-use',
+    );
   });
 });

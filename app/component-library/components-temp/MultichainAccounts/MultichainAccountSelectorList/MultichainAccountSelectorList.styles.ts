@@ -33,7 +33,7 @@ const createStyles = (params: {
     searchTextField: {
       backgroundColor: theme.colors.background.muted,
       borderWidth: 0,
-      borderRadius: 16,
+      borderRadius: 9999,
       padding: 0,
     },
     listContainer: {

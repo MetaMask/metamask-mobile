@@ -29,12 +29,13 @@ export interface CalculateMaxRemovableMarginParams {
   notionalValue?: number;
 }
 
-export interface CalculateNewLiquidationPriceParams {
+export interface EstimateLiquidationPriceParams {
+  isLong: boolean;
+  currentMargin: number;
   newMargin: number;
   positionSize: number;
-  entryPrice: number;
-  isLong: boolean;
   currentLiquidationPrice: number;
+  maxLeverage: number;
 }
 
 /**
@@ -70,11 +71,11 @@ export function assessMarginRemovalRisk(
   const riskRatio = priceDiff / newLiquidationPrice;
 
   let riskLevel: RiskLevel;
-  if (riskRatio < MARGIN_ADJUSTMENT_CONFIG.LIQUIDATION_RISK_THRESHOLD - 1) {
+  if (riskRatio < MARGIN_ADJUSTMENT_CONFIG.LiquidationRiskThreshold - 1) {
     riskLevel = 'danger'; // <20% buffer - critical risk
   } else if (
     riskRatio <
-    MARGIN_ADJUSTMENT_CONFIG.LIQUIDATION_WARNING_THRESHOLD - 1
+    MARGIN_ADJUSTMENT_CONFIG.LiquidationWarningThreshold - 1
   ) {
     riskLevel = 'warning'; // <50% buffer - moderate risk
   } else {
@@ -150,7 +151,7 @@ export function calculateMaxRemovableMargin(
   // NOT the 2% that 50x max leverage would imply
   const initialMarginRequired = notionalValue / positionLeverage;
   const tenPercentMargin =
-    notionalValue * MARGIN_ADJUSTMENT_CONFIG.MARGIN_REMOVAL_SAFETY_BUFFER;
+    notionalValue * MARGIN_ADJUSTMENT_CONFIG.MarginRemovalSafetyBuffer;
 
   // Transfer margin required is the MAX of these two constraints
   const transferMarginRequired = Math.max(
@@ -166,44 +167,69 @@ export function calculateMaxRemovableMargin(
 }
 
 /**
- * Calculate new liquidation price after margin adjustment
- * Estimates where the liquidation price will move based on margin change
- * Note: This is a simplified calculation; actual liquidation price may vary based on protocol
- * @param params - New margin amount, position size, entry price, direction, and current liquidation price
- * @returns Estimated new liquidation price
+ * Estimate liquidation price after margin change using anchored + delta approach.
+ *
+ * Core formula:
+ * newLiqPrice = currentLiqPrice + (direction × marginDelta / positionSize) / adjustmentFactor
+ *
+ * - direction: -1 for long (adding margin moves liq down), +1 for short (adding margin moves liq up)
+ * - adjustmentFactor: accounts for maintenance margin's effect on liquidation dynamics
+ *
+ * Hyperliquid-specific:
+ * adjustmentFactor = 1 - (maintenanceMarginRate × side)
+ * where maintenanceMarginRate = 1/(2 × maxLeverage)
+ *
+ * This anchors to the provider's authoritative liquidation price rather than recalculating
+ * from scratch, avoiding protocol-specific edge cases we might miss.
+ *
+ * See: https://hyperliquid.gitbook.io/hyperliquid-docs/trading/margin-and-pnl
+ *
+ * Future: Could abstract adjustmentFactor as a provider-supplied parameter for multi-provider support.
  */
-export function calculateNewLiquidationPrice(
-  params: CalculateNewLiquidationPriceParams,
+export function estimateLiquidationPrice(
+  params: EstimateLiquidationPriceParams,
 ): number {
   const {
+    isLong,
+    currentMargin,
     newMargin,
     positionSize,
-    entryPrice,
-    isLong,
     currentLiquidationPrice,
+    maxLeverage,
   } = params;
 
-  // Validate inputs
+  // Return current price if no change or invalid inputs
   if (
-    isNaN(newMargin) ||
-    isNaN(positionSize) ||
-    isNaN(entryPrice) ||
+    !Number.isFinite(newMargin) ||
     newMargin <= 0 ||
+    !Number.isFinite(positionSize) ||
     positionSize <= 0 ||
-    entryPrice <= 0
+    !Number.isFinite(currentLiquidationPrice) ||
+    currentLiquidationPrice <= 0 ||
+    !Number.isFinite(currentMargin) ||
+    currentMargin <= 0
   ) {
-    return currentLiquidationPrice; // Return current if invalid inputs
+    return currentLiquidationPrice;
   }
 
-  // Calculate margin per unit of position
-  const marginPerUnit = newMargin / positionSize;
-
-  // For long positions: liquidation price is below entry price
-  // liquidationPrice = entryPrice - marginPerUnit
-  // For short positions: liquidation price is above entry price
-  // liquidationPrice = entryPrice + marginPerUnit
-  if (isLong) {
-    return Math.max(0, entryPrice - marginPerUnit);
+  const marginDelta = newMargin - currentMargin;
+  if (!Number.isFinite(marginDelta)) {
+    return currentLiquidationPrice;
   }
-  return entryPrice + marginPerUnit;
+
+  const side = isLong ? 1 : -1;
+  const maintenanceMarginRate =
+    Number.isFinite(maxLeverage) && maxLeverage > 0 ? 1 / (2 * maxLeverage) : 0;
+  const denominator = 1 - maintenanceMarginRate * side;
+  const safeDenominator = Math.abs(denominator) < 0.0001 ? 1 : denominator;
+
+  // For long: adding margin moves liquidation price down (safer)
+  // For short: adding margin moves liquidation price up (safer)
+  const directionMultiplier = isLong ? -1 : 1;
+
+  const estimatedLiquidationPrice =
+    currentLiquidationPrice +
+    (directionMultiplier * marginDelta) / positionSize / safeDenominator;
+
+  return Math.max(0, estimatedLiquidationPrice);
 }

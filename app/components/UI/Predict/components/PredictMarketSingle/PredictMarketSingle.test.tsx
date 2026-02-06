@@ -55,6 +55,11 @@ jest.mock('../../../Trending/services/TrendingFeedSessionManager', () => ({
   },
 }));
 
+// Mock PredictEntryPointContext
+jest.mock('../../contexts', () => ({
+  usePredictEntryPoint: () => undefined,
+}));
+
 // Mock hooks
 const mockPlaceBuyOrder = jest.fn();
 
@@ -342,25 +347,6 @@ describe('PredictMarketSingle', () => {
     // which should resolve to 'Yes' and 'No' based on the mock data
     expect(getByText('Yes')).toBeOnTheScreen();
     expect(getByText('No')).toBeOnTheScreen();
-  });
-
-  it('navigates to add funds sheet when user has no balance', () => {
-    // Mock user has no balance
-    mockUsePredictBalance.mockReturnValue({
-      hasNoBalance: true,
-    });
-
-    const { getByText } = renderWithProvider(
-      <PredictMarketSingle market={mockMarket} />,
-      { state: initialState },
-    );
-
-    const yesButton = getByText('Yes');
-    fireEvent.press(yesButton);
-
-    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
-      screen: 'PredictAddFundsSheet',
-    });
   });
 
   it('checks eligibility before balance for Yes button', () => {

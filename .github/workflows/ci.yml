@@ -190,7 +190,7 @@ jobs:
   merge-unit-tests:
     runs-on: ubuntu-latest
     needs: unit-tests
-    if: ${{ !cancelled() }}
+    if: ${{ !cancelled() && github.event_name != 'merge_group' }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -382,6 +382,23 @@ jobs:
         }}
     secrets: inherit
 
+  e2e-smoke-tests-ios-flask:
+    name: 'iOS Flask E2E Smoke Tests'
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection]
+    uses: ./.github/workflows/run-e2e-smoke-tests-ios-flask.yml
+    with:
+      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+      selected_tags: >-
+        ${{
+          (needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          '["ALL"]'
+        }}
+    secrets: inherit
+
   js-bundle-size-check:
     runs-on: ubuntu-latest
     steps:
@@ -436,7 +453,7 @@ jobs:
   sonar-cloud:
     runs-on: ubuntu-latest
     needs: merge-unit-tests
-    if: ${{ !cancelled() }}
+    if: ${{ !cancelled() && github.event_name != 'merge_group' }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -453,7 +470,7 @@ jobs:
         continue-on-error: true
         uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70
       - name: SonarCloud Scan
-        if: ${{ env.HAVE_SONAR_TOKEN == 'true' && github.event_name == 'pull_request' }}
+        if: ${{ env.HAVE_SONAR_TOKEN == 'true' }}
         continue-on-error: true
         # This is SonarSource/sonarqube-scan-action@v5.3.1
         uses: SonarSource/sonarqube-scan-action@1a6d90ebcb0e6a6b1d87e37ba693fe453195ae25
@@ -479,7 +496,7 @@ jobs:
   sonar-cloud-quality-gate-status:
     runs-on: ubuntu-latest
     needs: sonar-cloud
-    if: ${{ !cancelled() }}
+    if: ${{ !cancelled() && github.event_name != 'merge_group' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -546,6 +563,7 @@ jobs:
   all-jobs-pass:
     name: All jobs pass
     runs-on: ubuntu-latest
+    if: ${{ !cancelled() }}
     needs:
       [
         check-diff,
@@ -561,7 +579,38 @@ jobs:
     steps:
       - name: Set jobs passed status
         id: jobs-passed-status
-        run: echo "ALL_JOBS_PASSED=true" >> "$GITHUB_OUTPUT"
+        env:
+          NEEDS_CONTEXT: ${{ toJSON(needs) }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          # Check results of all required jobs dynamically
+          # On merge_group events, "skipped" is acceptable (some jobs intentionally skip)
+          # On other events (PR, push), all jobs must succeed
+
+          FAILED="false"
+
+          while read -r job_name result; do
+            if [[ "$result" == "failure" ]] || [[ "$result" == "cancelled" ]]; then
+              echo "::error::Job '$job_name' failed with result: $result"
+              FAILED="true"
+            elif [[ "$result" == "skipped" ]]; then
+              if [[ "$EVENT_NAME" == "merge_group" ]]; then
+                echo "Job '$job_name' was skipped (OK for merge_group events)"
+              else
+                echo "::error::Job '$job_name' was unexpectedly skipped on $EVENT_NAME event"
+                FAILED="true"
+              fi
+            else
+              echo "Job '$job_name' passed"
+            fi
+          done < <(echo "$NEEDS_CONTEXT" | jq -r 'to_entries[] | "\(.key) \(.value.result)"')
+
+          if [[ "$FAILED" == "true" ]]; then
+            echo "Some required jobs failed"
+            exit 1
+          fi
+
+          echo "ALL_JOBS_PASSED=true" >> "$GITHUB_OUTPUT"
   check-all-jobs-pass:
     name: Check all jobs pass
     if: ${{ !cancelled() }}
@@ -572,6 +621,7 @@ jobs:
       - e2e-smoke-tests-android
       - e2e-smoke-tests-ios
       - e2e-smoke-tests-android-flask
+      - e2e-smoke-tests-ios-flask
     steps:
       - run: |
           # Check if all non-E2E jobs passed
@@ -597,9 +647,15 @@ jobs:
               exit 1
             fi
 
-            FLASK_RESULT="${{ needs.e2e-smoke-tests-android-flask.result }}"
-            if [[ "$FLASK_RESULT" == "failure" ]] || [[ "$FLASK_RESULT" == "cancelled" ]]; then
-              echo "Android Flask E2E tests failed (result: $FLASK_RESULT)"
+            ANDROID_FLASK_RESULT="${{ needs.e2e-smoke-tests-android-flask.result }}"
+            if [[ "$ANDROID_FLASK_RESULT" == "failure" ]] || [[ "$ANDROID_FLASK_RESULT" == "cancelled" ]]; then
+              echo "Android Flask E2E tests failed (result: $ANDROID_FLASK_RESULT)"
+              exit 1
+            fi
+
+            IOS_FLASK_RESULT="${{ needs.e2e-smoke-tests-ios-flask.result }}"
+            if [[ "$IOS_FLASK_RESULT" == "failure" ]] || [[ "$IOS_FLASK_RESULT" == "cancelled" ]]; then
+              echo "iOS Flask E2E tests failed (result: $IOS_FLASK_RESULT)"
               exit 1
             fi
           fi

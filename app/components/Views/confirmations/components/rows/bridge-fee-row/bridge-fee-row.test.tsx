@@ -85,8 +85,8 @@ describe('BridgeFeeRow', () => {
     expect(getByTestId(ConfirmationRowComponentIDs.NETWORK_FEE)).toBeDefined();
     expect(getByText('$0.23')).toBeDefined();
     expect(queryByText('$1.23')).toBeNull();
+    expect(queryByTestId('metamask-fee-row')).toBeDefined();
     expect(queryByTestId('bridge-fee-row')).toBeNull();
-    expect(queryByTestId('metamask-fee-row')).toBeNull();
   });
 
   it('renders skeleton if musdConversion network fee is loading', () => {

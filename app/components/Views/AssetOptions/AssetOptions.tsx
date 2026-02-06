@@ -36,6 +36,7 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
+import { isMusdToken } from '../../UI/Earn/constants/musd';
 
 // Wrapped SOL token address on Solana
 const WRAPPED_SOL_ADDRESS = 'So11111111111111111111111111111111111111111';
@@ -308,6 +309,7 @@ const AssetOptions = (props: Props) => {
         icon: IconName.DocumentCode,
       });
     !isNativeToken &&
+      !isMusdToken(address) &&
       tokenExistsInState &&
       options.push({
         label: strings('asset_details.options.remove_token'),

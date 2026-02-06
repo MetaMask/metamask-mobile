@@ -1,13 +1,8 @@
 /**
  * Mobile Infrastructure Adapter
  *
- * Provides platform-specific implementations of IPerpsPlatformDependencies interfaces
- * for the mobile app. This adapter wraps existing mobile utilities to allow
- * PerpsController and its services to remain platform-agnostic.
- *
- * When migrating to core monorepo:
- * - This file stays in the mobile app
- * - Core will have its own adapter or mock implementations
+ * Provides mobile-specific implementations of PerpsPlatformDependencies.
+ * Controller access uses messenger pattern (messenger.call()).
  */
 
 import Logger from '../../../../util/Logger';
@@ -19,18 +14,10 @@ import { trace, endTrace, TraceName } from '../../../../util/trace';
 import { setMeasurement } from '@sentry/react-native';
 import performance from 'react-native-performance';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
-import { findEvmAccount } from '../utils/accountUtils';
-import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
 import Engine from '../../../../core/Engine';
-import {
-  SignTypedDataVersion,
-  type TypedMessageParams,
-} from '@metamask/keyring-controller';
-import { TransactionType } from '@metamask/transaction-controller';
 import type {
-  IPerpsPlatformDependencies,
-  IPerpsMetrics,
-  IPerpsControllerAccess,
+  PerpsPlatformDependencies,
+  PerpsMetrics,
   PerpsTraceName,
   PerpsTraceValue,
   PerpsAnalyticsEvent,
@@ -46,9 +33,9 @@ function toTraceName(name: PerpsTraceName): TraceName {
 }
 
 /**
- * Creates a mobile-specific MetaMetrics adapter that implements IPerpsMetrics
+ * Creates a mobile-specific MetaMetrics adapter that implements PerpsMetrics
  */
-function createMobileMetrics(): IPerpsMetrics {
+function createMobileMetrics(): PerpsMetrics {
   const metricsInstance: IMetaMetrics = MetaMetrics.getInstance();
 
   return {
@@ -129,18 +116,23 @@ function createStreamManagerAdapter() {
         }
       }
     },
+    clearAllChannels(): void {
+      const streamManager = getStreamManagerInstance();
+      if (
+        streamManager &&
+        typeof streamManager.clearAllChannels === 'function'
+      ) {
+        streamManager.clearAllChannels();
+      }
+    },
   };
 }
 
 /**
- * Creates mobile-specific platform dependencies for PerpsController
- *
- * This function wraps all mobile-specific dependencies into a single
- * dependencies object that can be injected into PerpsController.
- *
- * @returns IPerpsPlatformDependencies - All platform dependencies bundled
+ * Creates mobile-specific platform dependencies for PerpsController.
+ * Controller access uses messenger pattern (messenger.call()).
  */
-export function createMobileInfrastructure(): IPerpsPlatformDependencies {
+export function createMobileInfrastructure(): PerpsPlatformDependencies {
   return {
     // === Observability (stateless utilities) ===
     logger: {
@@ -202,103 +194,12 @@ export function createMobileInfrastructure(): IPerpsPlatformDependencies {
     // === Platform Services ===
     streamManager: createStreamManagerAdapter(),
 
-    // === Controller Access (ALL controllers consolidated) ===
-    controllers: createControllerAccessAdapter(),
-  };
-}
-
-/**
- * Creates a consolidated controller access adapter that wraps Engine.context controllers.
- * This unified adapter provides ALL controller dependencies in one place.
- *
- * Architecture:
- * - accounts: AccountsController access (selected account, CAIP formatting)
- * - keyring: KeyringController (signing operations)
- * - network: NetworkController (chain ID lookups)
- * - transaction: TransactionController (TX submission)
- * - rewards: RewardsController (fee discounts, optional)
- *
- * Benefits:
- * 1. Clear separation - all controller access via deps.controllers.*
- * 2. Consistent pattern - utilities flat, controllers grouped
- * 3. Mockable - test can mock entire controllers object
- * 4. Future-proof - add new controller access without bloating top-level
- */
-function createControllerAccessAdapter(): IPerpsControllerAccess {
-  return {
-    // === Account Operations (wraps AccountsController) ===
-    accounts: {
-      getSelectedEvmAccount: () => {
-        // Inline implementation (was getEvmAccountFromSelectedAccountGroup)
-        // Uses pure findEvmAccount from accountUtils + Engine access
-        const { AccountTreeController } = Engine.context;
-        const accounts =
-          AccountTreeController.getAccountsFromSelectedAccountGroup();
-        return findEvmAccount(accounts) ?? undefined;
-      },
-      formatAccountToCaipId: (address, chainId) =>
-        formatAccountToCaipAccountId(address, chainId),
-    },
-
-    // === Keyring Operations (wraps KeyringController) ===
-    keyring: {
-      signTypedMessage: async (msgParams, version) => {
-        // Map version string to SignTypedDataVersion enum
-        let versionEnum: SignTypedDataVersion;
-        switch (version) {
-          case 'V4':
-            versionEnum = SignTypedDataVersion.V4;
-            break;
-          case 'V3':
-            versionEnum = SignTypedDataVersion.V3;
-            break;
-          default:
-            versionEnum = SignTypedDataVersion.V1;
-        }
-
-        return Engine.context.KeyringController.signTypedMessage(
-          msgParams as TypedMessageParams,
-          versionEnum,
-        );
-      },
-    },
-
-    // === Network Operations (wraps NetworkController) ===
-    network: {
-      getChainIdForNetwork: (networkClientId) => {
-        const client =
-          Engine.context.NetworkController.getNetworkClientById(
-            networkClientId,
-          );
-        return client.configuration.chainId;
-      },
-      findNetworkClientIdForChain: (chainId) =>
-        Engine.context.NetworkController.findNetworkClientIdByChainId(chainId),
-    },
-
-    // === Transaction Operations (wraps TransactionController) ===
-    transaction: {
-      submit: (txParams, options) =>
-        Engine.context.TransactionController.addTransaction(txParams, {
-          ...options,
-          // Bridge string type to TransactionType enum for actual controller
-          type: options.type as TransactionType | undefined,
-        }),
-    },
-
-    // === Rewards Operations (wraps RewardsController, optional) ===
-    // Check if RewardsController exists - may not in all environments (e.g., extension)
-    // Uses getter to defer Engine.context access until actually needed (lazy evaluation)
-    get rewards() {
-      if (!Engine.context.RewardsController) {
-        return undefined;
-      }
-      return {
-        getFeeDiscount: (caipAccountId: `${string}:${string}:${string}`) =>
-          Engine.context.RewardsController.getPerpsDiscountForAccount(
-            caipAccountId,
-          ),
-      };
+    // === Rewards ===
+    rewards: {
+      getFeeDiscount: (caipAccountId: `${string}:${string}:${string}`) =>
+        Engine.context.RewardsController.getPerpsDiscountForAccount(
+          caipAccountId,
+        ),
     },
   };
 }

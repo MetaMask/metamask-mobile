@@ -25,6 +25,7 @@ import { RewardSettingsAccountGroupListFlatListItem } from './types';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../reducers';
 import { selectIconSeedAddressByAccountGroupId } from '../../../../../selectors/multichainAccounts/accounts';
+import { selectBulkLinkIsRunning } from '../../../../../reducers/rewards/selectors';
 import { View, ActivityIndicator } from 'react-native';
 import { useTheme } from '../../../../../util/theme';
 
@@ -60,6 +61,7 @@ const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
 
   const { linkAccountGroup, isLoading } = useLinkAccountGroup();
   const navigation = useNavigation();
+  const isBulkLinkRunning = useSelector(selectBulkLinkIsRunning);
 
   // Inline handlers for each account group
   const handleLinkAccountGroup = useCallback(async () => {
@@ -204,7 +206,9 @@ const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
             <ButtonIcon
               iconName={linkButtonIconName}
               size={ButtonIconSize.Lg}
-              isDisabled={accountGroup.optedOutAccounts.length === 0}
+              isDisabled={
+                accountGroup.optedOutAccounts.length === 0 || isBulkLinkRunning
+              }
               onPress={handleLinkAccountGroup}
               testID={`rewards-account-group-link-button-${accountGroup.id}`}
               twClassName="bg-subsection rounded-xl"

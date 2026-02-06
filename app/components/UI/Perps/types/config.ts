@@ -13,7 +13,7 @@ export interface AssetNetworkConfig {
 }
 
 export interface HyperLiquidAssetConfigs {
-  USDC: AssetNetworkConfig;
+  usdc: AssetNetworkConfig;
 }
 
 // Bridge contract configuration interface

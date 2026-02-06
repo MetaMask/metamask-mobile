@@ -887,7 +887,7 @@ describe('Dynamic signature verification', () => {
 | `sell` / `sell-crypto` | Sell crypto                 | `handleRampUrl`          |                                                 |
 | `deposit`              | Cash deposit                | `handleDepositCashUrl`   |                                                 |
 | `send`                 | Send transaction            | Recursive `parse()` call |                                                 |
-| `home`                 | Navigate home               | `navigateToHomeUrl`      |                                                 |
+| `home`                 | Navigate home               | `navigateToHomeUrl`      | Params: `previewToken`, `openNetworkSelector`   |
 | `dapp`                 | Open dApp browser           | `handleBrowserUrl`       |                                                 |
 | `create-account`       | Create new account          | `handleCreateAccountUrl` |                                                 |
 | `perps`                | Perpetuals trading          | `handlePerpsUrl`         | Params: `screen` (tabs/markets/asset), `symbol` |

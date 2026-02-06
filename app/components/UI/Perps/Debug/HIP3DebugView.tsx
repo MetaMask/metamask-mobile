@@ -11,6 +11,7 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import { ensureError } from '../../../../util/errorUtils';
 import styleSheet from './HIP3DebugView.styles';
 import Engine from '../../../../core/Engine';
 import type { HyperLiquidProvider } from '../controllers/providers/HyperLiquidProvider';
@@ -96,10 +97,8 @@ const HIP3DebugView: React.FC = () => {
           DevLogger.log('  3. API connectivity issues');
         }
       } catch (error) {
-        const errorInfo =
-          error instanceof Error
-            ? { message: error.message, stack: error.stack }
-            : String(error);
+        const ensured = ensureError(error);
+        const errorInfo = { message: ensured.message, stack: ensured.stack };
         DevLogger.log(
           '❌ Failed to load DEXs:\n' + JSON.stringify(errorInfo, null, 2),
         );
@@ -142,10 +141,8 @@ const HIP3DebugView: React.FC = () => {
           );
         }
       } catch (error) {
-        const errorInfo =
-          error instanceof Error
-            ? { message: error.message, stack: error.stack }
-            : String(error);
+        const ensured = ensureError(error);
+        const errorInfo = { message: ensured.message, stack: ensured.stack };
         DevLogger.log(
           '❌ Failed to load markets:\n' + JSON.stringify(errorInfo, null, 2),
         );
@@ -210,10 +207,8 @@ const HIP3DebugView: React.FC = () => {
 
       DevLogger.log('✅ Balance check complete');
     } catch (error) {
-      const errorInfo =
-        error instanceof Error
-          ? { message: error.message, stack: error.stack }
-          : String(error);
+      const ensured = ensureError(error);
+      const errorInfo = { message: ensured.message, stack: ensured.stack };
       DevLogger.log(
         '❌ Failed to check balances:\n' + JSON.stringify(errorInfo, null, 2),
       );
@@ -250,15 +245,12 @@ const HIP3DebugView: React.FC = () => {
         throw new Error(result.error || 'Transfer failed');
       }
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : String(error);
-      const errorInfo =
-        error instanceof Error
-          ? { message: error.message, stack: error.stack }
-          : String(error);
+      const ensured = ensureError(error);
+      const errorInfo = { message: ensured.message, stack: ensured.stack };
       DevLogger.log(
         '❌ Transfer failed:\n' + JSON.stringify(errorInfo, null, 2),
       );
-      setTransferResult({ status: 'error', error: errorMsg });
+      setTransferResult({ status: 'error', error: ensured.message });
     }
   };
 
@@ -311,15 +303,12 @@ const HIP3DebugView: React.FC = () => {
         throw new Error(result.error || 'Transfer failed');
       }
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : String(error);
-      const errorInfo =
-        error instanceof Error
-          ? { message: error.message, stack: error.stack }
-          : String(error);
+      const ensured = ensureError(error);
+      const errorInfo = { message: ensured.message, stack: ensured.stack };
       DevLogger.log(
         '❌ Transfer failed:\n' + JSON.stringify(errorInfo, null, 2),
       );
-      setTransferResult({ status: 'error', error: errorMsg });
+      setTransferResult({ status: 'error', error: ensured.message });
     }
   };
 
@@ -414,13 +403,10 @@ const HIP3DebugView: React.FC = () => {
         throw new Error(result.error || 'Order failed');
       }
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : String(error);
-      const errorInfo =
-        error instanceof Error
-          ? { message: error.message, stack: error.stack }
-          : String(error);
+      const ensured = ensureError(error);
+      const errorInfo = { message: ensured.message, stack: ensured.stack };
       DevLogger.log('❌ Order failed:\n' + JSON.stringify(errorInfo, null, 2));
-      setOrderResult({ status: 'error', error: errorMsg });
+      setOrderResult({ status: 'error', error: ensured.message });
     }
   };
 
@@ -467,13 +453,10 @@ const HIP3DebugView: React.FC = () => {
         throw new Error(result.error || 'Close failed');
       }
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : String(error);
-      const errorInfo =
-        error instanceof Error
-          ? { message: error.message, stack: error.stack }
-          : String(error);
+      const ensured = ensureError(error);
+      const errorInfo = { message: ensured.message, stack: ensured.stack };
       DevLogger.log('❌ Close failed:\n' + JSON.stringify(errorInfo, null, 2));
-      setCloseResult({ status: 'error', error: errorMsg });
+      setCloseResult({ status: 'error', error: ensured.message });
     }
   };
 

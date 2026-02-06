@@ -22,6 +22,16 @@ export const MUSD_TOKEN_ADDRESS_BY_CHAIN: Record<Hex, Hex> = {
 };
 
 /**
+ * Check if the given token address is mUSD.
+ * mUSD has the same address on all supported chains.
+ */
+export const isMusdToken = (address?: string): boolean => {
+  if (!address) return false;
+  const musdAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET];
+  return address.toLowerCase() === musdAddress.toLowerCase();
+};
+
+/**
  * Chains where mUSD CTA should show (buy routes available).
  * BSC is excluded as buy routes are not yet available.
  */
@@ -41,6 +51,9 @@ export const MUSD_TOKEN_ASSET_ID_BY_CHAIN: Record<Hex, string> = {
 
 export const MUSD_CURRENCY = 'MUSD';
 export const MUSD_CONVERSION_APY = 3;
+
+// Delay before cleaning up toast tracking entries after final transaction status
+export const TOAST_TRACKING_CLEANUP_DELAY_MS = 5000;
 
 /**
  * Default blocked countries for mUSD conversion when no remote or env config is available.

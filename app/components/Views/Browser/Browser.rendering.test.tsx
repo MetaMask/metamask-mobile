@@ -5,7 +5,7 @@
 // 2. if tabs.length <= 4, create a new tab
 
 import React from 'react';
-import { Browser } from './index';
+import { BrowserPure as BrowserComponent } from './index';
 import Routes from '../../../constants/navigation/Routes';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -26,6 +26,10 @@ import {
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
 import { parseCaipAccountId } from '@metamask/utils';
+
+const Browser = BrowserComponent as React.ComponentType<
+  Record<string, unknown>
+>;
 
 jest.useFakeTimers();
 
@@ -124,8 +128,7 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 }));
 
 jest.mock('../../../util/phishingDetection', () => ({
-  isProductSafetyDappScanningEnabled: jest.fn().mockReturnValue(false),
-  getPhishingTestResult: jest.fn().mockReturnValue({ result: false }),
+  getPhishingTestResultAsync: jest.fn().mockResolvedValue({ result: false }),
 }));
 
 jest.mock('../../../util/browser', () => ({
@@ -199,7 +202,6 @@ describe('Browser - Rendering and Initialization', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={jest.fn}
-                    closeAllTabs={jest.fn}
                     closeTab={jest.fn}
                     setActiveTab={jest.fn}
                     updateTab={jest.fn}
@@ -232,7 +234,6 @@ describe('Browser - Rendering and Initialization', () => {
                   activeTab={1}
                   navigation={mockNavigation}
                   createNewTab={mockCreateNewTab}
-                  closeAllTabs={jest.fn}
                   closeTab={jest.fn}
                   setActiveTab={jest.fn}
                   updateTab={jest.fn}
@@ -264,7 +265,6 @@ describe('Browser - Rendering and Initialization', () => {
                   activeTab={1}
                   navigation={mockNavigation}
                   createNewTab={mockCreateNewTab}
-                  closeAllTabs={jest.fn}
                   closeTab={jest.fn}
                   setActiveTab={jest.fn}
                   updateTab={jest.fn}
@@ -295,7 +295,6 @@ describe('Browser - Rendering and Initialization', () => {
                   activeTab={1}
                   navigation={mockNavigation}
                   createNewTab={jest.fn}
-                  closeAllTabs={jest.fn}
                   closeTab={jest.fn}
                   setActiveTab={jest.fn}
                   updateTab={jest.fn}
@@ -325,7 +324,6 @@ describe('Browser - Rendering and Initialization', () => {
                   activeTab={1}
                   navigation={mockNavigation}
                   createNewTab={jest.fn}
-                  closeAllTabs={jest.fn}
                   closeTab={jest.fn}
                   setActiveTab={jest.fn}
                   updateTab={jest.fn}
@@ -361,7 +359,6 @@ describe('Browser - Rendering and Initialization', () => {
                   activeTab={1}
                   navigation={mockNavigation}
                   createNewTab={mockCreateNewTab}
-                  closeAllTabs={jest.fn}
                   closeTab={jest.fn}
                   setActiveTab={jest.fn}
                   updateTab={mockUpdateTab}
@@ -396,7 +393,6 @@ describe('Browser - Rendering and Initialization', () => {
                   activeTab={1}
                   navigation={mockNavigation}
                   createNewTab={mockCreateNewTab}
-                  closeAllTabs={jest.fn}
                   closeTab={jest.fn}
                   setActiveTab={jest.fn}
                   updateTab={mockUpdateTab}
@@ -444,7 +440,6 @@ describe('Browser - Rendering and Initialization', () => {
                   activeTab={1}
                   navigation={mockNavigation}
                   createNewTab={jest.fn}
-                  closeAllTabs={jest.fn}
                   closeTab={jest.fn}
                   setActiveTab={jest.fn}
                   updateTab={mockUpdateTab}
@@ -618,7 +613,6 @@ describe('Browser - Rendering and Initialization', () => {
     const defaultBrowserProps = {
       navigation: mockNavigation,
       createNewTab: jest.fn(),
-      closeAllTabs: jest.fn(),
       closeTab: jest.fn(),
       setActiveTab: jest.fn(),
       updateTab: jest.fn(),

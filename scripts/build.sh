@@ -384,23 +384,7 @@ prebuild_ios(){
   fi
 }
 
-installICULibraries(){
-	# Install ICU libraries for Hermes
-	echo "Installing ICU libraries for Hermes..."
-	
-	if [[ "$OSTYPE" == "darwin"* ]]; then
-		# macOS - use Homebrew
-		brew install icu4c
-	else
-		# Linux (GitHub CI uses Ubuntu) - use apt-get
-		sudo apt-get update && sudo apt-get install -y libicu-dev
-	fi
-}
-
 prebuild_android(){
-	# Install ICU libraries if on Linux
-	installICULibraries
-	
 	# Copy JS files for injection
 	yes | cp -rf app/core/InpageBridgeWeb3.js android/app/src/main/assets/.
 	# Copy fonts with iconset
@@ -739,10 +723,10 @@ buildExpoUpdate() {
 		exit 1
 	fi
 
-		if [ -z "${EXPO_KEY_PRIV}" ]; then
-			echo "::error title=Missing EXPO_KEY_PRIV::EXPO_KEY_PRIV secret is not configured. Cannot sign update." >&2
-			exit 1
-		fi
+	if [ -z "${EXPO_KEY_PRIV}" ]; then
+		echo "::error title=Missing EXPO_KEY_PRIV::EXPO_KEY_PRIV secret is not configured. Cannot sign update." >&2
+		exit 1
+	fi
 
 	# Prepare Expo update signing key
 	mkdir -p keys

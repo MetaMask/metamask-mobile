@@ -44,13 +44,13 @@ export const setupRegionAwareOnRampMocks = async (
     // 3. Countries endpoints (both UAT and prod) - Add more countries as needed - RAMPS_COUNTRIES_RESPONSE in on-ramp-mocks.ts
     {
       urlEndpoint:
-        /^https:\/\/on-ramp-cache\.api\.cx\.metamask\.io\/regions\/countries\?.*$/,
+        /^https:\/\/on-ramp-cache\.api\.cx\.metamask\.io(\/v2)?\/regions\/countries\?.*$/,
       responseCode: 200,
       response: RAMPS_COUNTRIES_RESPONSE,
     },
     {
       urlEndpoint:
-        /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/regions\/countries\?.*$/,
+        /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io(\/v2)?\/regions\/countries\?.*$/,
       responseCode: 200,
       response: RAMPS_COUNTRIES_RESPONSE,
     },

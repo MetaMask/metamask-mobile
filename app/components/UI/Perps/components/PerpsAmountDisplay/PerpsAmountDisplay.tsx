@@ -58,7 +58,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
     if (amount) {
       return formatPerpsFiat(amount, { ranges: PRICE_RANGES_MINIMAL_VIEW });
     }
-    return PERPS_CONSTANTS.ZERO_AMOUNT_DISPLAY;
+    return PERPS_CONSTANTS.ZeroAmountDisplay;
   })();
 
   useEffect(() => {

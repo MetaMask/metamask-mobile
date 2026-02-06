@@ -1,7 +1,7 @@
 import { successfulFetch } from '@metamask/controller-utils';
 import { getEnvironment } from '../utils';
 import { ensureError } from '../../../../../util/errorUtils';
-import type { IPerpsPlatformDependencies } from '../types';
+import type { PerpsPlatformDependencies } from '../types';
 
 // Geo-blocking API URLs
 const ON_RAMP_GEO_BLOCKING_URLS = {
@@ -28,7 +28,7 @@ interface GeoLocationCache {
  */
 export class EligibilityService {
   private readonly GEO_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
-  private readonly deps: IPerpsPlatformDependencies;
+  private readonly deps: PerpsPlatformDependencies;
 
   private geoLocationCache: GeoLocationCache | null = null;
   private geoLocationFetchPromise: Promise<string> | null = null;
@@ -37,7 +37,7 @@ export class EligibilityService {
    * Create a new EligibilityService instance
    * @param deps - Platform dependencies for logging, metrics, etc.
    */
-  constructor(deps: IPerpsPlatformDependencies) {
+  constructor(deps: PerpsPlatformDependencies) {
     this.deps = deps;
   }
 

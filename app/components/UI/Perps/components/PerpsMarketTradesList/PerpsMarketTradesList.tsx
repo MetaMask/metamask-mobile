@@ -18,7 +18,7 @@ import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import { usePerpsMarketFills } from '../../hooks/usePerpsMarketFills';
 import { transformFillsToTransactions } from '../../utils/transactionTransforms';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
-import { PerpsEventValues } from '../../constants/eventNames';
+import { PERPS_EVENT_VALUE } from '../../constants/eventNames';
 
 interface PerpsMarketTradesListProps {
   symbol: string; // Market symbol to filter trades
@@ -44,7 +44,7 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
   // Note: marketFills is already filtered by symbol and sorted by the hook
   const trades = useMemo(() => {
     const transactions = transformFillsToTransactions(marketFills);
-    return transactions.slice(0, PERPS_CONSTANTS.RECENT_ACTIVITY_LIMIT);
+    return transactions.slice(0, PERPS_CONSTANTS.RecentActivityLimit);
   }, [marketFills]);
 
   const handleSeeAll = useCallback(() => {
@@ -114,7 +114,9 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
                 </Text>
                 <PerpsFillTag
                   transaction={item}
-                  screenName={PerpsEventValues.SCREEN_NAME.PERPS_MARKET_DETAILS}
+                  screenName={
+                    PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_MARKET_DETAILS
+                  }
                 />
               </View>
               {!!item.subtitle && (

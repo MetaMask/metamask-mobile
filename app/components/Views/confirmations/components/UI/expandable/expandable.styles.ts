@@ -1,7 +1,6 @@
 import { StyleSheet } from 'react-native';
 
 import { Theme } from '../../../../../../util/theme/models';
-import { fontStyles } from '../../../../../../styles/common';
 
 const styleSheet = (params: {
   theme: Theme;
@@ -25,21 +24,11 @@ const styleSheet = (params: {
       backgroundColor: theme.colors.background.alternative,
       paddingTop: 24,
       paddingBottom: 34,
-      paddingHorizontal: 16,
       borderTopLeftRadius: 8,
       borderTopRightRadius: 8,
     },
-    modalHeader: {
-      display: 'flex',
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingBottom: 16,
-    },
-    expandedContentTitle: {
-      color: theme.colors.text.default,
-      ...fontStyles.bold,
-      width: '90%',
-      textAlign: 'center',
+    modalExpandedContent: {
+      paddingHorizontal: 16,
     },
   });
 };

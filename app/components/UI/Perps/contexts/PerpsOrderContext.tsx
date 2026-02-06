@@ -19,6 +19,8 @@ interface PerpsOrderProviderProps {
   initialLeverage?: number;
   initialType?: OrderType;
   existingPosition?: Position;
+  /** When paying with a custom token, the selected token amount in USD; caps maxPossibleAmount and amount handlers */
+  effectiveAvailableBalance?: number;
 }
 
 export const PerpsOrderProvider = ({
@@ -29,6 +31,7 @@ export const PerpsOrderProvider = ({
   initialLeverage,
   initialType,
   existingPosition,
+  effectiveAvailableBalance,
 }: PerpsOrderProviderProps) => {
   const orderFormState = usePerpsOrderForm({
     initialAsset,
@@ -36,6 +39,7 @@ export const PerpsOrderProvider = ({
     initialAmount,
     initialLeverage: initialLeverage ?? existingPosition?.leverage?.value,
     initialType,
+    effectiveAvailableBalance,
   });
 
   return (

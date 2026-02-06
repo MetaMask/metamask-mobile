@@ -81,12 +81,12 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
   }, [isVisible]);
 
   /**
-   * Handle option press - either select new option or toggle direction (only for priceChange)
+   * Handle option press - either select new option or toggle direction
    */
   const handleOptionPress = useCallback(
     (optionId: SortOptionId) => {
-      // If clicking the same option AND it's priceChange, toggle sort direction
-      if (selectedOption === optionId && optionId === 'priceChange') {
+      // If clicking the same option, toggle sort direction
+      if (selectedOption === optionId) {
         const newDirection = sortDirection === 'asc' ? 'desc' : 'asc';
         setSortDirection(newDirection);
       } else {
@@ -102,7 +102,7 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
    * Handle apply button - applies selection and closes sheet
    */
   const handleApply = useCallback(() => {
-    const option = MARKET_SORTING_CONFIG.SORT_OPTIONS.find(
+    const option = MARKET_SORTING_CONFIG.SortOptions.find(
       (opt) => opt.id === selectedOption,
     );
     if (option) {
@@ -130,7 +130,7 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
       </BottomSheetHeader>
       <View style={styles.optionsList}>
         {/* Render sort options */}
-        {MARKET_SORTING_CONFIG.SORT_OPTIONS.map((option) => {
+        {MARKET_SORTING_CONFIG.SortOptions.map((option) => {
           const isSelected = selectedOption === option.id;
           return (
             <TouchableOpacity
@@ -143,7 +143,7 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
               <Text variant={TextVariant.BodyMD}>
                 {strings(option.labelKey)}
               </Text>
-              {isSelected && option.id === 'priceChange' && (
+              {isSelected && (
                 <View
                   style={styles.arrowContainer}
                   testID={testID ? `${testID}-direction-indicator` : undefined}
@@ -167,15 +167,6 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
                     color={IconColor.Alternative}
                   />
                 </View>
-              )}
-              {isSelected && option.id !== 'priceChange' && (
-                <Icon
-                  name={IconName.Check}
-                  size={IconSize.Md}
-                  testID={
-                    testID ? `${testID}-checkmark-${option.id}` : undefined
-                  }
-                />
               )}
             </TouchableOpacity>
           );

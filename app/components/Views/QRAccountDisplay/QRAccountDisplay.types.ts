@@ -24,4 +24,14 @@ export interface QRAccountDisplayProps {
    * Optional props to pass to the Text component when description is a string
    */
   descriptionProps?: Partial<TextProps>;
+  /**
+   * Optional location identifier for analytics tracking.
+   * When provided, tracks "Copied Address" event with this location.
+   */
+  analyticsLocation?: string;
+  /**
+   * Optional chain ID for analytics tracking.
+   * Should be in CAIP format (e.g., 'eip155:1' for Ethereum mainnet).
+   */
+  chainId?: string;
 }

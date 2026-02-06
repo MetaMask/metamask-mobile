@@ -1,14 +1,14 @@
 import { createSelector } from 'reselect';
 import {
-  createRequestSelector,
   type UserRegion,
   type Provider,
   type Country,
-  type RampsControllerState,
+  type PaymentMethod,
+  type RampsToken,
+  type TokensResponse,
+  type ResourceState,
 } from '@metamask/ramps-controller';
 import { RootState } from '../../reducers';
-
-type TokensResponse = NonNullable<RampsControllerState['tokens']>;
 
 /**
  * Selects the RampsController state from Redux.
@@ -19,100 +19,70 @@ export const selectRampsControllerState = (state: RootState) =>
   state.engine.backgroundState.RampsController;
 
 /**
- * Selects the user's region from state.
- * Returns UserRegion | null (UserRegion contains country, state, and regionCode).
+ * Default resource state for when the controller state is unavailable.
+ */
+const createDefaultResourceState = <TData, TSelected = null>(
+  data: TData,
+  selected: TSelected = null as TSelected,
+): ResourceState<TData, TSelected> => ({
+  data,
+  selected,
+  isLoading: false,
+  error: null,
+});
+
+/**
+ * Selects the user region from RampsController state (UserRegion | null).
  */
 export const selectUserRegion = createSelector(
   selectRampsControllerState,
-  (rampsControllerState) => rampsControllerState?.userRegion ?? null,
+  (rampsControllerState): UserRegion | null =>
+    rampsControllerState?.userRegion ?? null,
 );
 
 /**
- * Selects the user's preferred provider from state.
+ * Selects the countries resource state (data, isLoading, error).
  */
-export const selectPreferredProvider = createSelector(
+export const selectCountries = createSelector(
   selectRampsControllerState,
-  (rampsControllerState) => rampsControllerState?.preferredProvider ?? null,
+  (rampsControllerState): ResourceState<Country[]> =>
+    rampsControllerState?.countries ??
+    createDefaultResourceState<Country[]>([]),
 );
 
 /**
- * Selects the list of providers available for the current region.
+ * Selects the providers resource state (data, selected, isLoading, error).
  */
 export const selectProviders = createSelector(
   selectRampsControllerState,
-  (rampsControllerState) => rampsControllerState?.providers ?? [],
+  (rampsControllerState): ResourceState<Provider[], Provider | null> =>
+    rampsControllerState?.providers ??
+    createDefaultResourceState<Provider[], Provider | null>([], null),
 );
 
 /**
- * Selects the tokens fetched for the current region and action.
+ * Selects the tokens resource state (data, selected, isLoading, error).
  */
 export const selectTokens = createSelector(
   selectRampsControllerState,
-  (rampsControllerState) => rampsControllerState?.tokens ?? null,
+  (
+    rampsControllerState,
+  ): ResourceState<TokensResponse | null, RampsToken | null> =>
+    rampsControllerState?.tokens ??
+    createDefaultResourceState<TokensResponse | null, RampsToken | null>(
+      null,
+      null,
+    ),
 );
 
 /**
- * Selects the user region request state.
+ * Selects the payment methods resource state (data, selected, isLoading, error).
  */
-export const selectUserRegionRequest = createRequestSelector<
-  RootState,
-  UserRegion | null
->(selectRampsControllerState, 'updateUserRegion', []);
-
-/**
- * Selects the countries request state for a given action.
- *
- * @param action - The ramp action type ('buy' or 'sell').
- * @returns Request selector for countries.
- */
-export const selectCountriesRequest = (action: 'buy' | 'sell' = 'buy') =>
-  createRequestSelector<RootState, Country[]>(
-    selectRampsControllerState,
-    'getCountries',
-    [action],
-  );
-
-/**
- * Selects the tokens request state for a given region and action.
- *
- * @param region - The region code (e.g., "us", "fr", "us-ny").
- * @param action - The ramp action type ('buy' or 'sell').
- * @returns Request selector for tokens.
- */
-export const selectTokensRequest = (
-  region: string,
-  action: 'buy' | 'sell' = 'buy',
-) =>
-  createRequestSelector<RootState, TokensResponse>(
-    selectRampsControllerState,
-    'getTokens',
-    [region.toLowerCase().trim(), action],
-  );
-
-/**
- * Selects the providers request state for a given region.
- *
- * @param region - The region code (e.g., "us", "fr", "us-ny").
- * @param options - Optional filter options for the request cache key.
- * @returns Request selector for providers.
- */
-export const selectProvidersRequest = (
-  region: string,
-  options?: {
-    provider?: string | string[];
-    crypto?: string | string[];
-    fiat?: string | string[];
-    payments?: string | string[];
-  },
-) =>
-  createRequestSelector<RootState, { providers: Provider[] }>(
-    selectRampsControllerState,
-    'getProviders',
-    [
-      region.toLowerCase().trim(),
-      options?.provider,
-      options?.crypto,
-      options?.fiat,
-      options?.payments,
-    ],
-  );
+export const selectPaymentMethods = createSelector(
+  selectRampsControllerState,
+  (
+    rampsControllerState,
+  ): ResourceState<PaymentMethod[], PaymentMethod | null> =>
+    rampsControllerState?.paymentMethods ??
+    createDefaultResourceState<PaymentMethod[], PaymentMethod | null>([], null),
+);

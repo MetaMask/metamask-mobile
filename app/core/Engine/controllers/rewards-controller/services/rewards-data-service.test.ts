@@ -20,6 +20,7 @@ import type {
   DiscoverSeasonsDto,
   SeasonMetadataDto,
   LineaTokenRewardDto,
+  SnapshotDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import type { CaipAccountId } from '@metamask/utils';
@@ -513,6 +514,75 @@ describe('RewardsDataService', () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         'https://api.rewards.test/seasons/current/points-events?cursor=cursor%2Fwith%2Bspecial%3Dchars',
+        expect.any(Object),
+      );
+    });
+
+    it('successfully gets points events with type filter', async () => {
+      const requestWithType = {
+        ...mockGetPointsEventsRequest,
+        type: 'SWAP' as const,
+      };
+
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockPointsEventsResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const result = await service.getPointsEvents(requestWithType);
+
+      expect(result).toEqual(mockPointsEventsResponse);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/seasons/current/points-events?type=SWAP',
+        expect.objectContaining({
+          method: 'GET',
+          credentials: 'omit',
+        }),
+      );
+    });
+
+    it('successfully gets points events with both cursor and type', async () => {
+      const requestWithCursorAndType = {
+        ...mockGetPointsEventsRequest,
+        cursor: 'cursor-abc123',
+        type: 'PREDICT' as const,
+      };
+
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockPointsEventsResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const result = await service.getPointsEvents(requestWithCursorAndType);
+
+      expect(result).toEqual(mockPointsEventsResponse);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/seasons/current/points-events?cursor=cursor-abc123&type=PREDICT',
+        expect.objectContaining({
+          method: 'GET',
+          credentials: 'omit',
+        }),
+      );
+    });
+
+    it('properly encodes type parameter in URL', async () => {
+      const requestWithType = {
+        ...mockGetPointsEventsRequest,
+        type: 'SIGN_UP_BONUS' as const,
+      };
+
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockPointsEventsResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await service.getPointsEvents(requestWithType);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/seasons/current/points-events?type=SIGN_UP_BONUS',
         expect.any(Object),
       );
     });
@@ -1581,7 +1651,8 @@ describe('RewardsDataService', () => {
     const mockReferralDetailsResponse: SubscriptionSeasonReferralDetailsDto = {
       referralCode: 'TEST123',
       totalReferees: 5,
-      referralPoints: 100,
+      referredByCode: 'REFERRER100',
+      referralPoints: 500,
     };
 
     beforeEach(() => {
@@ -3587,6 +3658,361 @@ describe('RewardsDataService', () => {
         subscriptionId: mockSubscriptionId,
         amount: '1000',
       } as LineaTokenRewardDto);
+    });
+  });
+
+  describe('applyReferralCode', () => {
+    const mockSubscriptionId = 'test-subscription-123';
+    const mockToken = 'test-access-token';
+    const mockReferralCode = 'ABC123';
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+    });
+
+    it('should successfully apply referral code', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: true,
+        status: 204,
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      await service.applyReferralCode(
+        { referralCode: mockReferralCode },
+        mockSubscriptionId,
+      );
+
+      // Assert
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/wr/subscriptions/apply-referral',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ referralCode: mockReferralCode }),
+          headers: expect.objectContaining({
+            'Accept-Language': 'en-US',
+            'Content-Type': 'application/json',
+            'rewards-client-id': 'mobile-7.50.1',
+            'rewards-access-token': mockToken,
+          }),
+          credentials: 'omit',
+          signal: expect.any(AbortSignal),
+        }),
+      );
+    });
+
+    it('should throw error for invalid referral code', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 400,
+        json: jest.fn().mockResolvedValue({ message: 'Invalid referral code' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(
+        service.applyReferralCode(
+          { referralCode: mockReferralCode },
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Invalid referral code');
+    });
+
+    it('should throw error when already referred by another user', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 400,
+        json: jest
+          .fn()
+          .mockResolvedValue({ message: 'Already referred by another user' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(
+        service.applyReferralCode(
+          { referralCode: mockReferralCode },
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Already referred by another user');
+    });
+
+    it('should throw error when using own referral code', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 400,
+        json: jest
+          .fn()
+          .mockResolvedValue({ message: 'Cannot use your own referral code' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(
+        service.applyReferralCode(
+          { referralCode: mockReferralCode },
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Cannot use your own referral code');
+    });
+
+    it('should throw error with server message for other errors', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 500,
+        json: jest.fn().mockResolvedValue({ message: 'Internal server error' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(
+        service.applyReferralCode(
+          { referralCode: mockReferralCode },
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Internal server error');
+    });
+
+    it('should throw error with status code when no error message', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 500,
+        json: jest.fn().mockResolvedValue({}),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(
+        service.applyReferralCode(
+          { referralCode: mockReferralCode },
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Apply referral code failed: 500');
+    });
+
+    it('should throw error when fetch fails', async () => {
+      // Arrange
+      const fetchError = new Error('Network error');
+      mockFetch.mockRejectedValue(fetchError);
+
+      // Act & Assert
+      await expect(
+        service.applyReferralCode(
+          { referralCode: mockReferralCode },
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Network error');
+    });
+
+    it('should handle missing subscription token gracefully', async () => {
+      // Arrange
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: false,
+        token: undefined,
+      });
+      const mockResponse = {
+        ok: true,
+        status: 204,
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      await service.applyReferralCode(
+        { referralCode: mockReferralCode },
+        mockSubscriptionId,
+      );
+
+      // Assert
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.not.objectContaining({
+            'rewards-access-token': expect.any(String),
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('getSnapshots', () => {
+    const mockSeasonId = 'season-123';
+    const mockSubscriptionId = 'sub-456';
+    const mockToken = 'test-bearer-token';
+
+    const mockSnapshotsResponse: SnapshotDto[] = [
+      {
+        id: '01974010-377f-7553-a365-0c33c8130980',
+        seasonId: mockSeasonId,
+        name: 'Monad Airdrop',
+        description: 'Earn Monad tokens by participating in the airdrop',
+        tokenSymbol: 'MONAD',
+        tokenAmount: '50000000000000000000000',
+        tokenChainId: '1',
+        tokenAddress: '0x1234567890abcdef1234567890abcdef12345678',
+        receivingBlockchain: 'Ethereum',
+        opensAt: '2025-03-01T00:00:00.000Z',
+        closesAt: '2025-03-15T00:00:00.000Z',
+        calculatedAt: '2025-03-16T00:00:00.000Z',
+        distributedAt: '2025-03-20T00:00:00.000Z',
+        backgroundImage: {
+          lightModeUrl: 'https://example.com/light.png',
+          darkModeUrl: 'https://example.com/dark.png',
+        },
+      },
+      {
+        id: '02985121-488g-8664-b476-1d44d9241091',
+        seasonId: mockSeasonId,
+        name: 'ETH Rewards',
+        tokenSymbol: 'ETH',
+        tokenAmount: '1000000000000000000',
+        tokenChainId: '1',
+        backgroundImage: {
+          lightModeUrl: 'https://example.com/light.png',
+          darkModeUrl: 'https://example.com/dark.png',
+        },
+        receivingBlockchain: 'Ethereum',
+        opensAt: '2025-04-01T00:00:00.000Z',
+        closesAt: '2025-04-15T00:00:00.000Z',
+      },
+    ];
+
+    beforeEach(() => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockSnapshotsResponse),
+      } as unknown as Response;
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue(mockResponse);
+    });
+
+    it('should successfully get snapshots', async () => {
+      // Act
+      const result = await service.getSnapshots(
+        mockSeasonId,
+        mockSubscriptionId,
+      );
+
+      // Assert
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://api.rewards.test/v1/seasons/${mockSeasonId}/snapshots`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'Accept-Language': 'en-US',
+            'Content-Type': 'application/json',
+            'rewards-client-id': 'mobile-7.50.1',
+          }),
+          credentials: 'omit',
+        }),
+      );
+      expect(result).toEqual(mockSnapshotsResponse);
+      expect(result).toHaveLength(2);
+      expect(result[0].id).toBe('01974010-377f-7553-a365-0c33c8130980');
+      expect(result[0].name).toBe('Monad Airdrop');
+      expect(result[1].name).toBe('ETH Rewards');
+    });
+
+    it('should handle empty snapshots array', async () => {
+      // Arrange
+      const emptyResponse: SnapshotDto[] = [];
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(emptyResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      const result = await service.getSnapshots(
+        mockSeasonId,
+        mockSubscriptionId,
+      );
+
+      // Assert
+      expect(result).toEqual([]);
+      expect(result).toHaveLength(0);
+    });
+
+    it('should throw error when response is not ok', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 404,
+      } as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(
+        service.getSnapshots(mockSeasonId, mockSubscriptionId),
+      ).rejects.toThrow('Get snapshots failed: 404');
+    });
+
+    it('should throw error when response is 500', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 500,
+      } as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(
+        service.getSnapshots(mockSeasonId, mockSubscriptionId),
+      ).rejects.toThrow('Get snapshots failed: 500');
+    });
+
+    it('should throw error when fetch fails', async () => {
+      // Arrange
+      const fetchError = new Error('Network error');
+      mockFetch.mockRejectedValue(fetchError);
+
+      // Act & Assert
+      await expect(
+        service.getSnapshots(mockSeasonId, mockSubscriptionId),
+      ).rejects.toThrow('Network error');
+    });
+
+    it('should handle different season IDs correctly', async () => {
+      // Arrange
+      const differentSeasonId = 'current-season';
+
+      // Act
+      await service.getSnapshots(differentSeasonId, mockSubscriptionId);
+
+      // Assert
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://api.rewards.test/v1/seasons/${differentSeasonId}/snapshots`,
+        expect.any(Object),
+      );
+    });
+
+    it('should include subscription token in authentication', async () => {
+      // Act
+      await service.getSnapshots(mockSeasonId, mockSubscriptionId);
+
+      // Assert
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'rewards-client-id': 'mobile-7.50.1',
+          }),
+        }),
+      );
     });
   });
 });

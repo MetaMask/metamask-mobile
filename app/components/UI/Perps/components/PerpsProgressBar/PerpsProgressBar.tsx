@@ -178,7 +178,10 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
     }: {
       transactionMeta: TransactionMeta;
     }) => {
-      if (transactionMeta.type === TransactionType.perpsDeposit) {
+      if (
+        transactionMeta.type === TransactionType.perpsDeposit ||
+        transactionMeta.type === TransactionType.perpsDepositAndOrder
+      ) {
         const progress = getProgressFromStatus(transactionMeta.status);
         setTransactionProgress(progress);
 

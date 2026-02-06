@@ -3,25 +3,15 @@ import { useSelector } from 'react-redux';
 import { useAccountNames } from './useAccountNames';
 import { NameType } from '../../UI/Name/Name.types';
 import { UseDisplayNameRequest } from './useDisplayName';
-import {
-  selectInternalAccounts,
-  selectInternalAccountsById,
-} from '../../../selectors/accountsController';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
+import { selectInternalAccountsById } from '../../../selectors/accountsController';
 import { selectAccountGroups } from '../../../selectors/multichainAccounts/accountTreeController';
-import { areAddressesEqual } from '../../../util/address';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../../../util/address', () => ({
-  areAddressesEqual: jest.fn(),
-}));
-
 describe('useAccountNames', () => {
   const mockUseSelector = useSelector as jest.Mock;
-  const mockAreAddressesEqual = areAddressesEqual as jest.Mock;
 
   const mockAccount1 = {
     id: 'account1',
@@ -53,12 +43,9 @@ describe('useAccountNames', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockAreAddressesEqual.mockImplementation(
-      (a: string, b: string) => a.toLowerCase() === b.toLowerCase(),
-    );
   });
 
-  it('returns account names for matching addresses when multichain state2 is disabled', () => {
+  it('returns group names for matching addresses', () => {
     const requests: UseDisplayNameRequest[] = [
       {
         type: NameType.EthereumAddress,
@@ -73,54 +60,18 @@ describe('useAccountNames', () => {
     ];
 
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectInternalAccounts) {
-        return [mockAccount1, mockAccount2];
-      }
       if (selector === selectInternalAccountsById) {
         return mockInternalAccountsById;
       }
       if (selector === selectAccountGroups) {
         return mockAccountGroups;
       }
-      if (selector === selectMultichainAccountsState2Enabled) {
-        return false;
-      }
       return undefined;
     });
 
     const { result } = renderHook(() => useAccountNames(requests));
 
-    expect(result.current).toEqual(['Account 1', 'Account 2']);
-  });
-
-  it('returns account names for matching addresses when multichain state2 is enabled', () => {
-    const requests: UseDisplayNameRequest[] = [
-      {
-        type: NameType.EthereumAddress,
-        value: '0x1234567890123456789012345678901234567890',
-        variation: 'normal',
-      },
-    ];
-
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectInternalAccounts) {
-        return [mockAccount1, mockAccount2];
-      }
-      if (selector === selectInternalAccountsById) {
-        return mockInternalAccountsById;
-      }
-      if (selector === selectAccountGroups) {
-        return mockAccountGroups;
-      }
-      if (selector === selectMultichainAccountsState2Enabled) {
-        return true;
-      }
-      return undefined;
-    });
-
-    const { result } = renderHook(() => useAccountNames(requests));
-
-    expect(result.current).toEqual(['Group 1']);
+    expect(result.current).toEqual(['Group 1', 'Group 2']);
   });
 
   it('returns undefined for non-matching addresses', () => {
@@ -133,22 +84,14 @@ describe('useAccountNames', () => {
     ];
 
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectInternalAccounts) {
-        return [mockAccount1, mockAccount2];
-      }
       if (selector === selectInternalAccountsById) {
         return mockInternalAccountsById;
       }
       if (selector === selectAccountGroups) {
         return mockAccountGroups;
       }
-      if (selector === selectMultichainAccountsState2Enabled) {
-        return false;
-      }
       return undefined;
     });
-
-    mockAreAddressesEqual.mockReturnValue(false);
 
     const { result } = renderHook(() => useAccountNames(requests));
 
@@ -159,17 +102,11 @@ describe('useAccountNames', () => {
     const requests: UseDisplayNameRequest[] = [];
 
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectInternalAccounts) {
-        return [mockAccount1, mockAccount2];
-      }
       if (selector === selectInternalAccountsById) {
         return mockInternalAccountsById;
       }
       if (selector === selectAccountGroups) {
         return mockAccountGroups;
-      }
-      if (selector === selectMultichainAccountsState2Enabled) {
-        return false;
       }
       return undefined;
     });
@@ -177,78 +114,6 @@ describe('useAccountNames', () => {
     const { result } = renderHook(() => useAccountNames(requests));
 
     expect(result.current).toEqual([]);
-  });
-
-  it('handles accounts with missing metadata gracefully', () => {
-    const accountWithoutMetadata = {
-      id: 'account3',
-      address: '0xaddresswithoutmetadata1234567890123456',
-      metadata: undefined,
-    };
-
-    const requests: UseDisplayNameRequest[] = [
-      {
-        type: NameType.EthereumAddress,
-        value: '0xaddresswithoutmetadata1234567890123456',
-        variation: 'normal',
-      },
-    ];
-
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectInternalAccounts) {
-        return [accountWithoutMetadata];
-      }
-      if (selector === selectInternalAccountsById) {
-        return { account3: accountWithoutMetadata };
-      }
-      if (selector === selectAccountGroups) {
-        return [];
-      }
-      if (selector === selectMultichainAccountsState2Enabled) {
-        return false;
-      }
-      return undefined;
-    });
-
-    const { result } = renderHook(() => useAccountNames(requests));
-
-    expect(result.current).toEqual([undefined]);
-  });
-
-  it('handles accounts with empty metadata name', () => {
-    const accountWithEmptyName = {
-      id: 'account4',
-      address: '0xaddresswithemptyname1234567890123456',
-      metadata: { name: '' },
-    };
-
-    const requests: UseDisplayNameRequest[] = [
-      {
-        type: NameType.EthereumAddress,
-        value: '0xaddresswithemptyname1234567890123456',
-        variation: 'normal',
-      },
-    ];
-
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectInternalAccounts) {
-        return [accountWithEmptyName];
-      }
-      if (selector === selectInternalAccountsById) {
-        return { account4: accountWithEmptyName };
-      }
-      if (selector === selectAccountGroups) {
-        return [];
-      }
-      if (selector === selectMultichainAccountsState2Enabled) {
-        return false;
-      }
-      return undefined;
-    });
-
-    const { result } = renderHook(() => useAccountNames(requests));
-
-    expect(result.current).toEqual(['']);
   });
 
   it('processes multiple requests with mixed results', () => {
@@ -271,28 +136,41 @@ describe('useAccountNames', () => {
     ];
 
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectInternalAccounts) {
-        return [mockAccount1, mockAccount2];
-      }
       if (selector === selectInternalAccountsById) {
         return mockInternalAccountsById;
       }
       if (selector === selectAccountGroups) {
         return mockAccountGroups;
       }
-      if (selector === selectMultichainAccountsState2Enabled) {
-        return false;
-      }
       return undefined;
-    });
-
-    mockAreAddressesEqual.mockImplementation((a: string, b: string) => {
-      if (b === '0xnonexistentaddress1234567890123456789012') return false;
-      return a.toLowerCase() === b.toLowerCase();
     });
 
     const { result } = renderHook(() => useAccountNames(requests));
 
-    expect(result.current).toEqual(['Account 1', undefined, 'Account 2']);
+    expect(result.current).toEqual(['Group 1', undefined, 'Group 2']);
+  });
+
+  it('handles case-insensitive address matching', () => {
+    const requests: UseDisplayNameRequest[] = [
+      {
+        type: NameType.EthereumAddress,
+        value: '0X1234567890123456789012345678901234567890',
+        variation: 'normal',
+      },
+    ];
+
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectInternalAccountsById) {
+        return mockInternalAccountsById;
+      }
+      if (selector === selectAccountGroups) {
+        return mockAccountGroups;
+      }
+      return undefined;
+    });
+
+    const { result } = renderHook(() => useAccountNames(requests));
+
+    expect(result.current).toEqual(['Group 1']);
   });
 });

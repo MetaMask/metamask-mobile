@@ -625,6 +625,40 @@ describe('AssetOptions Component', () => {
 
       expect(queryByText('Remove token')).not.toBeOnTheScreen();
     });
+
+    it('hides Remove token option for mUSD token', () => {
+      const musdAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup)
+          return {
+            '0x1': [
+              {
+                assetId: musdAddress,
+                chainId: '0x1',
+              },
+            ],
+          };
+        if (selector.name === 'selectEvmChainId') return '0x1';
+        if (selector.name === 'selectTokenList') return {};
+        return {};
+      });
+
+      const { queryByText } = render(
+        <AssetOptions
+          route={{
+            params: {
+              address: musdAddress,
+              chainId: '0x1',
+              isNativeCurrency: false,
+              asset: mockAsset as unknown as TokenI,
+            },
+          }}
+        />,
+      );
+
+      expect(queryByText('Remove token')).not.toBeOnTheScreen();
+    });
   });
 
   describe('Token removal', () => {

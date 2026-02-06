@@ -2,27 +2,31 @@ import { AccountService } from './AccountService';
 import {
   createMockServiceContext,
   createMockInfrastructure,
+  createMockMessenger,
 } from '../../__mocks__/serviceMocks';
 import { createMockHyperLiquidProvider } from '../../__mocks__/providerMocks';
 import type { ServiceContext } from './ServiceContext';
 import {
   PerpsAnalyticsEvent,
-  type IPerpsProvider,
+  type PerpsProvider,
   type WithdrawParams,
   type WithdrawResult,
-  type IPerpsPlatformDependencies,
+  type PerpsPlatformDependencies,
 } from '../types';
-import type { PerpsControllerState } from '../PerpsController';
+import type {
+  PerpsControllerState,
+  PerpsControllerMessenger,
+} from '../PerpsController';
 
 jest.mock('uuid', () => ({ v4: () => 'mock-withdrawal-trace-id' }));
 jest.mock('../../constants/eventNames', () => ({
-  PerpsEventProperties: {
+  PERPS_EVENT_PROPERTY: {
     STATUS: 'status',
     WITHDRAWAL_AMOUNT: 'withdrawal_amount',
     COMPLETION_DURATION: 'completion_duration',
     ERROR_MESSAGE: 'error_message',
   },
-  PerpsEventValues: {
+  PERPS_EVENT_VALUE: {
     STATUS: {
       EXECUTED: 'executed',
       FAILED: 'failed',
@@ -41,10 +45,11 @@ jest.mock('../perpsErrorCodes', () => ({
 // The mock is set up via createMockInfrastructure() in serviceMocks.ts
 
 describe('AccountService', () => {
-  let mockProvider: jest.Mocked<IPerpsProvider>;
+  let mockProvider: jest.Mocked<PerpsProvider>;
   let mockContext: ServiceContext;
   let mockRefreshAccountState: jest.Mock;
-  let mockDeps: IPerpsPlatformDependencies;
+  let mockDeps: PerpsPlatformDependencies;
+  let mockMessenger: jest.Mocked<PerpsControllerMessenger>;
   let accountService: AccountService;
 
   const mockWithdrawParams: WithdrawParams = {
@@ -55,7 +60,7 @@ describe('AccountService', () => {
 
   beforeEach(() => {
     mockProvider =
-      createMockHyperLiquidProvider() as unknown as jest.Mocked<IPerpsProvider>;
+      createMockHyperLiquidProvider() as unknown as jest.Mocked<PerpsProvider>;
     mockContext = createMockServiceContext({
       errorContext: { controller: 'AccountService', method: 'test' },
     });
@@ -63,7 +68,8 @@ describe('AccountService', () => {
 
     // Create mock dependencies and service instance
     mockDeps = createMockInfrastructure();
-    accountService = new AccountService(mockDeps);
+    mockMessenger = createMockMessenger();
+    accountService = new AccountService(mockDeps, mockMessenger);
 
     jest.clearAllMocks();
 

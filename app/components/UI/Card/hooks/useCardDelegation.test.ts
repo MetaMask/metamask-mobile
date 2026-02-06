@@ -775,6 +775,7 @@ describe('useCardDelegation', () => {
         token_chain_id: params.network,
         delegation_type: 'limited',
         delegation_amount: 100,
+        faucet: false,
       });
     });
 

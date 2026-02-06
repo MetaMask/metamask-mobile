@@ -1,6 +1,11 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { CaipChainId, Hex } from '@metamask/utils';
+import {
+  CaipChainId,
+  Hex,
+  isCaipChainId,
+  parseCaipChainId,
+} from '@metamask/utils';
 import { TokenI } from '../../../Tokens/types';
 import { selectTokensBalances } from '../../../../../selectors/tokenBalancesController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
@@ -17,7 +22,9 @@ import { selectTokenSortConfig } from '../../../../../selectors/preferencesContr
 import { selectAccountTokensAcrossChainsForAddress } from '../../../../../selectors/multichain/evm';
 import { BridgeToken } from '../../types';
 import { RootState } from '../../../../../reducers';
-import { renderNumber, renderFiat } from '../../../../../util/number';
+import { renderNumber } from '../../../../../util/number';
+import { formatWithThreshold } from '../../../../../util/assets';
+import I18n from '../../../../../../locales/i18n';
 import { formatUnits } from 'ethers/lib/utils';
 import { BigNumber } from 'ethers';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
@@ -26,10 +33,12 @@ import { selectSelectedAccountGroupInternalAccounts } from '../../../../../selec
 import { EthScope } from '@metamask/keyring-api';
 import { useNonEvmTokensWithBalance } from '../useNonEvmTokensWithBalance';
 import { getTokenIconUrl } from '../../utils';
+import { toHex } from '@metamask/controller-utils';
 import {
   formatAddressToAssetId,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
+import { isTradableToken } from '../../utils/isTradableToken';
 
 interface CalculateFiatBalancesParams {
   assets: TokenI[];
@@ -180,10 +189,21 @@ export const useTokensWithBalance: ({
       return [];
     }
 
+    // Convert CAIP chain IDs to Hex for EVM chains
+    const evmChainIds = chainIds.reduce((acc, chainId) => {
+      if (isCaipChainId(chainId)) {
+        const { namespace, reference } = parseCaipChainId(chainId);
+        if (namespace === 'eip155') {
+          return [...acc, toHex(reference)];
+        }
+      }
+      return [...acc, chainId as Hex];
+    }, [] as Hex[]);
+
     const allEvmAccountTokens = (
       Object.values(evmAccountTokensAcrossChains).flat() as TokenI[]
     )
-      .filter((token) => chainIds.includes(token.chainId as Hex))
+      .filter((token) => evmChainIds.includes(token.chainId as Hex))
       .filter((token) => !token.isStaked);
 
     const allNonEvmAccountTokens = Object.values(nonEvmTokens)
@@ -204,20 +224,41 @@ export const useTokensWithBalance: ({
     const allTokens = [...allEvmAccountTokens, ...allNonEvmAccountTokens];
 
     const properTokens: BridgeToken[] = allTokens
-      .filter((token) => Boolean(token.chainId)) // Ensure token has a chainId
+      .filter((token) => Boolean(token.chainId) && isTradableToken(token)) // Ensure token has a chainId and is tradable
       .map((token, i) => {
         const evmBalance = evmBalances?.[i]?.balance;
         const nonEvmBalance = renderNumber(token.balance ?? '0');
         const chainId = token.chainId as Hex | CaipChainId;
 
-        const evmBalanceFiat = evmBalances?.[i]?.balanceFiat;
-        const nonEvmBalanceFiat = renderFiat(
-          Number(token.balanceFiat ?? 0),
-          currentCurrency,
-        );
-
         const evmTokenFiatAmount = evmBalances?.[i]?.tokenFiatAmount;
         const nonEvmTokenFiatAmount = Number(token.balanceFiat);
+        const tokenFiatAmount = evmTokenFiatAmount ?? nonEvmTokenFiatAmount;
+
+        // Use formatWithThreshold for consistent decimal formatting across all currencies
+        // Matches the formatting used by the main asset list (assets-list.ts)
+        const balanceFiat = formatWithThreshold(
+          tokenFiatAmount ?? 0,
+          0.01,
+          I18n.locale,
+          {
+            style: 'currency',
+            currency: currentCurrency,
+          },
+        );
+
+        // Safely get token icon URL - formatAddressToAssetId may throw for unsupported chains
+        let tokenImage = token.image;
+        try {
+          const assetId = formatAddressToAssetId(token.address, chainId);
+          if (assetId) {
+            tokenImage =
+              getTokenIconUrl(assetId, isNonEvmChainId(chainId)) || token.image;
+          }
+        } catch (error) {
+          // formatAddressToAssetId can throw for chains not supported by XChain Swaps
+          // (e.g., Linea Sepolia, Hyperliquid). Fall back to token.image
+          tokenImage = token.image;
+        }
 
         return {
           address: token.address,
@@ -225,15 +266,18 @@ export const useTokensWithBalance: ({
           decimals: token.decimals,
           symbol: token.isETH ? 'ETH' : token.symbol, // TODO: not sure why symbol is ETHEREUM, will also break the token icon for ETH
           chainId,
-          image:
-            getTokenIconUrl(
-              formatAddressToAssetId(token.address, chainId),
-              isNonEvmChainId(chainId),
-            ) || token.image,
-          tokenFiatAmount: evmTokenFiatAmount ?? nonEvmTokenFiatAmount,
+          image: tokenImage,
+          tokenFiatAmount,
           balance: evmBalance ?? nonEvmBalance,
-          balanceFiat: evmBalanceFiat ?? nonEvmBalanceFiat,
+          balanceFiat,
           accountType: token.accountType,
+          aggregators: token.aggregators ?? [],
+          metadata: ('metadata' in token
+            ? token.metadata
+            : undefined) as BridgeToken['metadata'],
+          rwaData: ('rwaData' in token
+            ? token.rwaData
+            : undefined) as BridgeToken['rwaData'],
         };
       });
     return sortAssets(properTokens, tokenSortConfig);

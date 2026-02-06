@@ -69,8 +69,8 @@ import {
 } from '../../utils/positionCalculations';
 import { createStyles } from './PerpsClosePositionView.styles';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
 } from '../../constants/eventNames';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { TraceName } from '../../../../../util/trace';
@@ -175,7 +175,7 @@ const PerpsClosePositionView: React.FC = () => {
     // Defensive fallback if market data fails to load - prevents crashes
     // Real szDecimals should come from market data (varies by asset)
     const szDecimals =
-      marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FALLBACK_SIZE_DECIMALS;
+      marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals;
 
     const { tokenAmount, usdValue } = calculateCloseAmountFromPercentage({
       percentage: closePercentage,
@@ -327,17 +327,17 @@ const PerpsClosePositionView: React.FC = () => {
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     properties: {
-      [PerpsEventProperties.SCREEN_TYPE]:
-        PerpsEventValues.SCREEN_TYPE.POSITION_CLOSE,
-      [PerpsEventProperties.ASSET]: position.symbol,
-      [PerpsEventProperties.DIRECTION]: isLong
-        ? PerpsEventValues.DIRECTION.LONG
-        : PerpsEventValues.DIRECTION.SHORT,
-      [PerpsEventProperties.POSITION_SIZE]: absSize,
-      [PerpsEventProperties.UNREALIZED_PNL_DOLLAR]: pnl,
-      [PerpsEventProperties.UNREALIZED_PNL_PERCENT]: unrealizedPnlPercent,
-      [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.PERP_ASSET_SCREEN,
-      [PerpsEventProperties.RECEIVED_AMOUNT]: receiveAmount,
+      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+        PERPS_EVENT_VALUE.SCREEN_TYPE.POSITION_CLOSE,
+      [PERPS_EVENT_PROPERTY.ASSET]: position.symbol,
+      [PERPS_EVENT_PROPERTY.DIRECTION]: isLong
+        ? PERPS_EVENT_VALUE.DIRECTION.LONG
+        : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+      [PERPS_EVENT_PROPERTY.POSITION_SIZE]: absSize,
+      [PERPS_EVENT_PROPERTY.UNREALIZED_PNL_DOLLAR]: pnl,
+      [PERPS_EVENT_PROPERTY.UNREALIZED_PNL_PERCENT]: unrealizedPnlPercent,
+      [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+      [PERPS_EVENT_PROPERTY.RECEIVED_AMOUNT]: receiveAmount,
     },
   });
 
@@ -402,8 +402,8 @@ const PerpsClosePositionView: React.FC = () => {
         priceAtCalculation: effectivePrice,
         maxSlippageBps:
           orderType === 'limit'
-            ? ORDER_SLIPPAGE_CONFIG.DEFAULT_LIMIT_SLIPPAGE_BPS // 1% for limit orders
-            : ORDER_SLIPPAGE_CONFIG.DEFAULT_MARKET_SLIPPAGE_BPS, // 3% for market orders
+            ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps // 1% for limit orders
+            : ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps, // 3% for market orders
       },
     });
   };

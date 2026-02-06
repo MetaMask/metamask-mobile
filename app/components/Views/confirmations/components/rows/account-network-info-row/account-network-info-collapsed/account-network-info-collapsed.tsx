@@ -104,7 +104,7 @@ const AccountNetworkInfoCollapsed = () => {
         <Icon
           color={IconColor.Muted}
           size={IconSize.Sm}
-          name={IconName.ArrowRight}
+          name={IconName.ArrowDown}
         />
       </View>
     </InfoSection>

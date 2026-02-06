@@ -30,6 +30,7 @@ export interface AssetProps {
   includeNoBalance?: boolean;
   onTokenSelect?: (token: AssetType) => void;
   tokenFilter?: (assets: AssetType[]) => AssetType[];
+  hideNetworkFilter?: boolean;
 }
 
 export const Asset: React.FC<AssetProps> = (props = {}) => {
@@ -38,6 +39,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
     includeNoBalance = false,
     onTokenSelect,
     tokenFilter,
+    hideNetworkFilter = false,
   } = props;
 
   const originalTokens = useSendTokens({ includeNoBalance });
@@ -138,13 +140,15 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
           }}
         />
       </Box>
-      <NetworkFilter
-        tokens={tokens}
-        onFilteredTokensChange={handleFilteredTokensChange}
-        onNetworkFilterStateChange={handleNetworkFilterStateChange}
-        onExposeFilterControls={handleExposeFilterControls}
-        onNetworkFilterChange={handleNetworkFilterChange}
-      />
+      {!hideNetworkFilter && (
+        <NetworkFilter
+          tokens={tokens}
+          onFilteredTokensChange={handleFilteredTokensChange}
+          onNetworkFilterStateChange={handleNetworkFilterStateChange}
+          onExposeFilterControls={handleExposeFilterControls}
+          onNetworkFilterChange={handleNetworkFilterChange}
+        />
+      )}
       <ScrollView
         contentContainerStyle={{
           paddingBottom: bottomOffset,

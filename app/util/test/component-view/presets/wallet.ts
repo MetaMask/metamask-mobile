@@ -28,6 +28,7 @@ export const initialStateWallet = (options?: InitialStateWalletOptions) => {
     .withMinimalKeyringController()
     .withMinimalTokenRates()
     .withMinimalMultichainAssetsRates()
+    .withMinimalAnalyticsController()
     .withAccountTreeForSelectedAccount()
     .withRemoteFeatureFlags({})
     .withOverrides({
@@ -49,6 +50,15 @@ export const initialStateWallet = (options?: InitialStateWalletOptions) => {
           },
           TokenBalancesController: {
             tokenBalances: {},
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                '0x0000000000000000000000000000000000000001': [],
+              },
+            },
+            allDetectedTokens: {},
+            allIgnoredTokens: {},
           },
           MultichainBalancesController: {
             balances: {},

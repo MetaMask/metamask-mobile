@@ -62,13 +62,10 @@ const styleSheet = ({
     },
     cancelButtonText: {
       fontSize: 14,
-      color: colors.primary.default,
-      ...fontStyles.normal,
+      color: colors.text.default,
+      fontWeight: '500',
     },
     rightButton: { height: 50, justifyContent: 'center' },
-    closeButton: {
-      marginRight: 16,
-    },
     tabsButton: {
       height: 50,
       justifyContent: 'center',

@@ -248,9 +248,14 @@ describe('usePerpsTransactionHistory', () => {
         endTime: undefined,
       });
 
-      expect(mockTransformFillsToTransactions).toHaveBeenCalledWith(mockFills);
+      // Fills are enriched with detailedOrderType from matching orders
+      expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([
+        { ...mockFills[0], detailedOrderType: 'Market' },
+      ]);
+      // Orders are passed with a fillSizeByOrderId Map for accurate filled percentage calculation
       expect(mockTransformOrdersToTransactions).toHaveBeenCalledWith(
         mockOrders,
+        expect.any(Map),
       );
       expect(mockTransformFundingToTransactions).toHaveBeenCalledWith(
         mockFunding,
@@ -921,6 +926,116 @@ describe('usePerpsTransactionHistory', () => {
       expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([
         { ...mockFills[0], detailedOrderType: undefined },
       ]);
+    });
+  });
+
+  describe('connection state transitions', () => {
+    it('triggers fetch when skipInitialFetch transitions from true to false', async () => {
+      // Reset mocks to track calls clearly
+      mockProvider.getOrderFills.mockClear();
+      mockProvider.getOrders.mockClear();
+      mockProvider.getFunding.mockClear();
+
+      // Start with skipInitialFetch: true (simulating not connected state)
+      const { rerender } = renderHook(
+        ({ skipInitialFetch }) =>
+          usePerpsTransactionHistory({ skipInitialFetch }),
+        { initialProps: { skipInitialFetch: true } },
+      );
+
+      // Verify no fetch was made while skipInitialFetch is true
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+      expect(mockProvider.getOrderFills).not.toHaveBeenCalled();
+
+      // Clear mocks to track only the new calls
+      mockProvider.getOrderFills.mockClear();
+      mockProvider.getOrders.mockClear();
+      mockProvider.getFunding.mockClear();
+
+      // Transition to skipInitialFetch: false (simulating connection established)
+      rerender({ skipInitialFetch: false });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Verify fetch was triggered after the transition
+      expect(mockProvider.getOrderFills).toHaveBeenCalledTimes(1);
+      expect(mockProvider.getOrders).toHaveBeenCalledTimes(1);
+      expect(mockProvider.getFunding).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not duplicate fetch when skipInitialFetch starts as false', async () => {
+      // Reset mocks to track calls clearly
+      mockProvider.getOrderFills.mockClear();
+      mockProvider.getOrders.mockClear();
+      mockProvider.getFunding.mockClear();
+
+      // Start with skipInitialFetch: false (already connected)
+      renderHook(() => usePerpsTransactionHistory({ skipInitialFetch: false }));
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Verify fetch was made exactly once (no duplicate)
+      expect(mockProvider.getOrderFills).toHaveBeenCalledTimes(1);
+      expect(mockProvider.getOrders).toHaveBeenCalledTimes(1);
+      expect(mockProvider.getFunding).toHaveBeenCalledTimes(1);
+    });
+
+    it('fetches once per true-to-false transition during rapid state changes', async () => {
+      // Reset mocks to track calls clearly
+      mockProvider.getOrderFills.mockClear();
+      mockProvider.getOrders.mockClear();
+      mockProvider.getFunding.mockClear();
+
+      // Start with skipInitialFetch: true
+      const { rerender } = renderHook(
+        ({ skipInitialFetch }) =>
+          usePerpsTransactionHistory({ skipInitialFetch }),
+        { initialProps: { skipInitialFetch: true } },
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // No fetch yet
+      expect(mockProvider.getOrderFills).not.toHaveBeenCalled();
+
+      // Transition to connected
+      rerender({ skipInitialFetch: false });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // First fetch
+      expect(mockProvider.getOrderFills).toHaveBeenCalledTimes(1);
+
+      // Clear and transition back to disconnected
+      mockProvider.getOrderFills.mockClear();
+      rerender({ skipInitialFetch: true });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // No additional fetch while disconnected
+      expect(mockProvider.getOrderFills).not.toHaveBeenCalled();
+
+      // Reconnect - should fetch again
+      rerender({ skipInitialFetch: false });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Should fetch on reconnection
+      expect(mockProvider.getOrderFills).toHaveBeenCalledTimes(1);
     });
   });
 });

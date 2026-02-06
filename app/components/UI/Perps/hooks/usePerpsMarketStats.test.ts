@@ -48,7 +48,7 @@ describe('usePerpsMarketStats', () => {
 
   const mockCandleData = {
     symbol: 'BTC',
-    interval: CandlePeriod.ONE_HOUR,
+    interval: CandlePeriod.OneHour,
     candles: [
       {
         open: '44000',

@@ -9,7 +9,6 @@ import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 import {
   HYPERLIQUID_MAINNET_CHAIN_ID,
   HYPERLIQUID_TESTNET_CHAIN_ID,
-  TRADING_DEFAULTS,
   USDC_ARBITRUM_MAINNET_ADDRESS,
   USDC_DECIMALS,
   USDC_SYMBOL,
@@ -22,14 +21,14 @@ import { usePerpsLiveAccount } from './stream';
 /**
  * Hook to get all payment tokens for Perps, including:
  * - USDC on Hyperliquid (from Perps account) - always shown first
- * - All funded tokens across networks that meet minimum order requirement
+ * - All tokens across networks (similar to Tokens tab in wallet view)
  *
  * Tokens are sorted by priority:
  * 1. USDC on Hyperliquid (fastest, instant settlement)
  * 2. Other USDC tokens (easier to bridge)
  * 3. Other tokens sorted by balance (highest first)
  *
- * Only shows tokens with balance >= minimum order amount ($10 mainnet, $11 testnet)
+ * Shows all tokens owned by the user, regardless of balance amount
  */
 export function usePerpsPaymentTokens(): PerpsToken[] {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
@@ -46,11 +45,18 @@ export function usePerpsPaymentTokens(): PerpsToken[] {
     account?.availableBalance?.toString() || '0',
   );
 
-  // Get all chain IDs to search for tokens
+  // Get all chain IDs to search for tokens (exclude Hyperliquid chains)
   const allChainIds = useMemo(() => {
     if (!networkConfigurations) return [];
-    return Object.keys(networkConfigurations) as Hex[];
-  }, [networkConfigurations]);
+    const hyperliquidChainId =
+      currentNetwork === 'testnet'
+        ? HYPERLIQUID_TESTNET_CHAIN_ID
+        : HYPERLIQUID_MAINNET_CHAIN_ID;
+    // Filter out Hyperliquid chain IDs to avoid token icon errors
+    return Object.keys(networkConfigurations).filter(
+      (chainId) => chainId !== hyperliquidChainId,
+    ) as Hex[];
+  }, [networkConfigurations, currentNetwork]);
 
   // Get all tokens with balances across networks
   const tokensWithBalance = useTokensWithBalance({ chainIds: allChainIds });
@@ -84,22 +90,14 @@ export function usePerpsPaymentTokens(): PerpsToken[] {
     // Always show Hyperliquid USDC first (even if balance is 0)
     tokens.push(hyperliquidUsdc);
 
-    // Filter for all tokens that meet minimum order requirement
-    const minimumOrderAmount =
-      currentNetwork === 'mainnet'
-        ? TRADING_DEFAULTS.amount.mainnet
-        : TRADING_DEFAULTS.amount.testnet;
-
+    // Get all tokens (not filtered by minimum order requirement)
+    // User should see all their tokens, similar to the Tokens tab
     const otherFundedTokens = tokensWithBalance
       .filter((token) => {
         // Skip Hyperliquid chain tokens (already added above)
         if (token.chainId === hyperliquidChainId) return false;
-
-        // Check if balance meets minimum order requirement
-        const balanceFiat = Number.parseFloat(
-          token.balanceFiat?.replace(/[^0-9.-]+/g, '') || '0',
-        );
-        return balanceFiat >= minimumOrderAmount;
+        // Show all tokens with any balance (including zero balance for visibility)
+        return true;
       })
       .map((token) => {
         // Enhance with icon if needed

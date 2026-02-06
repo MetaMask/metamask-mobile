@@ -1,3 +1,4 @@
+import { BigNumber } from 'bignumber.js';
 import {
   transformFillsToTransactions,
   transformOrdersToTransactions,
@@ -942,7 +943,7 @@ describe('transactionTransforms', () => {
       timestamp: 1640995200000,
     };
 
-    it('transforms filled order correctly', () => {
+    it('transforms filled order correctly (defaults to 100% without fill data)', () => {
       const result = transformOrdersToTransactions([mockOrder]);
 
       expect(result).toHaveLength(1);
@@ -960,7 +961,7 @@ describe('transactionTransforms', () => {
           type: 'limit',
           size: '50000',
           limitPrice: '50000',
-          filled: '50%',
+          filled: '100%', // Filled status without fill data defaults to 100%
         },
       });
     });
@@ -1115,14 +1116,15 @@ describe('transactionTransforms', () => {
       expect(result[0].order.type).toBe('market');
     });
 
-    it('calculates filled percentage correctly', () => {
-      const partiallyFilledOrder = {
+    it('calculates filled percentage from size fields for open orders', () => {
+      const partiallyFilledOpenOrder = {
         ...mockOrder,
+        status: 'open' as const, // Open orders use size-based calculation
         size: '0.2',
         originalSize: '1',
       };
 
-      const result = transformOrdersToTransactions([partiallyFilledOrder]);
+      const result = transformOrdersToTransactions([partiallyFilledOpenOrder]);
 
       if (!result[0]?.order) {
         return;
@@ -1181,6 +1183,220 @@ describe('transactionTransforms', () => {
       const result = transformOrdersToTransactions([regularOrder]);
 
       expect(result[0].subtitle).toBe('0.5 BTC');
+    });
+
+    describe('fill-based percentage calculation', () => {
+      it('calculates accurate percentage from fill data map', () => {
+        // Arrange: Order with originalSize 1, actual fills totaling 0.3 (30%)
+        const order = {
+          ...mockOrder,
+          orderId: 'order-with-fills',
+          originalSize: '1',
+          size: '0', // HyperLiquid returns 0 for historical orders
+          status: 'canceled' as const,
+        };
+
+        const fillSizeByOrderId = new Map<string, BigNumber>();
+        fillSizeByOrderId.set('order-with-fills', BigNumber('0.3'));
+
+        // Act
+        const result = transformOrdersToTransactions(
+          [order],
+          fillSizeByOrderId,
+        );
+
+        // Assert: Should show 30% based on actual fills, not 0% or 100%
+        expect(result[0].order?.filled).toBe('30%');
+      });
+
+      it('shows 0% for canceled order without any fills', () => {
+        // Arrange: Canceled order with no fills in the map
+        const canceledOrder = {
+          ...mockOrder,
+          orderId: 'canceled-no-fills',
+          originalSize: '1',
+          size: '0',
+          status: 'canceled' as const,
+        };
+
+        // No entry in fill map for this order
+        const fillSizeByOrderId = new Map<string, BigNumber>();
+
+        // Act
+        const result = transformOrdersToTransactions(
+          [canceledOrder],
+          fillSizeByOrderId,
+        );
+
+        // Assert: Should show 0% since canceled without fills
+        expect(result[0].order?.filled).toBe('0%');
+      });
+
+      it('shows 100% for fully filled order from fill data', () => {
+        // Arrange: Order with originalSize 2, fills totaling 2 (100%)
+        const filledOrder = {
+          ...mockOrder,
+          orderId: 'fully-filled',
+          originalSize: '2',
+          size: '0',
+          status: 'filled' as const,
+        };
+
+        const fillSizeByOrderId = new Map<string, BigNumber>();
+        fillSizeByOrderId.set('fully-filled', BigNumber('2'));
+
+        // Act
+        const result = transformOrdersToTransactions(
+          [filledOrder],
+          fillSizeByOrderId,
+        );
+
+        // Assert: Should show 100%
+        expect(result[0].order?.filled).toBe('100%');
+      });
+
+      it('handles partial fill then cancel scenario correctly', () => {
+        // Arrange: Order for 10 units, 7 filled then canceled (70%)
+        const partialThenCanceled = {
+          ...mockOrder,
+          orderId: 'partial-canceled',
+          originalSize: '10',
+          size: '0', // HyperLiquid sets to 0 for all historical orders
+          status: 'canceled' as const,
+        };
+
+        const fillSizeByOrderId = new Map<string, BigNumber>();
+        fillSizeByOrderId.set('partial-canceled', BigNumber('7'));
+
+        // Act
+        const result = transformOrdersToTransactions(
+          [partialThenCanceled],
+          fillSizeByOrderId,
+        );
+
+        // Assert: Should show 70% based on actual fills
+        expect(result[0].order?.filled).toBe('70%');
+      });
+
+      it('rounds percentage to whole number', () => {
+        // Arrange: Order that would result in 33.333...%
+        const order = {
+          ...mockOrder,
+          orderId: 'fractional',
+          originalSize: '3',
+          size: '0',
+          status: 'canceled' as const,
+        };
+
+        const fillSizeByOrderId = new Map<string, BigNumber>();
+        fillSizeByOrderId.set('fractional', BigNumber('1'));
+
+        // Act
+        const result = transformOrdersToTransactions(
+          [order],
+          fillSizeByOrderId,
+        );
+
+        // Assert: Should round to 33%
+        expect(result[0].order?.filled).toBe('33%');
+      });
+
+      it('handles multiple fills for same order', () => {
+        // Arrange: The fill map should contain the SUM of all fills
+        // (this is done in usePerpsTransactionHistory, we just test that the function uses the sum)
+        const order = {
+          ...mockOrder,
+          orderId: 'multi-fill',
+          originalSize: '1',
+          size: '0',
+          status: 'filled' as const,
+        };
+
+        // Simulating sum of fills: 0.3 + 0.4 + 0.3 = 1.0
+        const fillSizeByOrderId = new Map<string, BigNumber>();
+        fillSizeByOrderId.set('multi-fill', BigNumber('1'));
+
+        // Act
+        const result = transformOrdersToTransactions(
+          [order],
+          fillSizeByOrderId,
+        );
+
+        // Assert: Should show 100%
+        expect(result[0].order?.filled).toBe('100%');
+      });
+
+      it('falls back to status-based logic when fill map not provided', () => {
+        // Arrange: Filled order without fill map
+        const filledOrder = {
+          ...mockOrder,
+          status: 'filled' as const,
+        };
+
+        // Act: No fill map provided
+        const result = transformOrdersToTransactions([filledOrder]);
+
+        // Assert: Should default to 100% for filled status
+        expect(result[0].order?.filled).toBe('100%');
+      });
+
+      it('falls back to 0% for rejected order without fill data', () => {
+        // Arrange
+        const rejectedOrder = {
+          ...mockOrder,
+          status: 'rejected' as const,
+        };
+
+        const fillSizeByOrderId = new Map<string, BigNumber>();
+
+        // Act
+        const result = transformOrdersToTransactions(
+          [rejectedOrder],
+          fillSizeByOrderId,
+        );
+
+        // Assert
+        expect(result[0].order?.filled).toBe('0%');
+      });
+
+      it('returns 0% for position-bound TP/SL orders with zero size (not filled yet)', () => {
+        // Arrange: Position-bound TP/SL orders have size=0 and originalSize=0
+        // because they're tied to the position size, not a fixed amount
+        const positionTpslOrder = {
+          ...mockOrder,
+          orderId: 'position-tpsl-order',
+          size: '0', // No fixed size - tied to position
+          originalSize: '0', // No fixed original size
+          status: 'open' as const,
+          isTrigger: true,
+          reduceOnly: true,
+          detailedOrderType: 'Take Profit Limit',
+        };
+
+        // Act: No fill map - test the fallback logic
+        const result = transformOrdersToTransactions([positionTpslOrder]);
+
+        // Assert: Should show 0% (not triggered yet), NOT 100%
+        expect(result[0].order?.filled).toBe('0%');
+      });
+
+      it('returns 100% for regular order with zero remaining size (fully filled)', () => {
+        // Arrange: Regular order that was fully filled
+        // originalSize > 0 but size = 0 means it was filled
+        const fullyFilledOrder = {
+          ...mockOrder,
+          orderId: 'fully-filled-regular',
+          size: '0', // All filled
+          originalSize: '1', // Started with 1
+          status: 'open' as const, // Testing the size-based fallback
+        };
+
+        // Act: No fill map - test the fallback logic
+        const result = transformOrdersToTransactions([fullyFilledOrder]);
+
+        // Assert: Should show 100% (nothing remaining)
+        expect(result[0].order?.filled).toBe('100%');
+      });
     });
   });
 

@@ -96,17 +96,20 @@ const SecondaryMessage = ({ content }: { content: React.ReactNode }) => (
   </Text>
 );
 
-const UpdateRpcButton = ({
+/**
+ * Shared button component for action links in the banner
+ */
+const ActionButton = ({
   isLowerCase,
   isOnlyChild,
-  updateRpc,
+  onPress,
+  text,
 }: {
   isLowerCase: boolean;
   isOnlyChild: boolean;
-  updateRpc: () => void;
+  onPress: () => void;
+  text: string;
 }) => {
-  const updateRpcText = strings('network_connection_banner.update_rpc');
-
   const tw = useTailwind();
 
   // Not using TextButton directly because the extra Text around it seems to
@@ -127,7 +130,7 @@ const UpdateRpcButton = ({
               : 'translate-y-[6px]'),
         )
       }
-      onPress={updateRpc}
+      onPress={onPress}
     >
       {({ pressed }) => (
         <Text
@@ -140,14 +143,46 @@ const UpdateRpcButton = ({
               : 'text-primary-default no-underline',
           )}
         >
-          {isLowerCase
-            ? updateRpcText[0].toLowerCase() + updateRpcText.slice(1)
-            : updateRpcText}
+          {isLowerCase ? text[0].toLowerCase() + text.slice(1) : text}
         </Text>
       )}
     </Pressable>
   );
 };
+
+const UpdateRpcButton = ({
+  isLowerCase,
+  isOnlyChild,
+  updateRpc,
+}: {
+  isLowerCase: boolean;
+  isOnlyChild: boolean;
+  updateRpc: () => void;
+}) => (
+  <ActionButton
+    isLowerCase={isLowerCase}
+    isOnlyChild={isOnlyChild}
+    onPress={updateRpc}
+    text={strings('network_connection_banner.update_rpc')}
+  />
+);
+
+const SwitchToInfuraButton = ({
+  isLowerCase,
+  isOnlyChild,
+  switchToInfura,
+}: {
+  isLowerCase: boolean;
+  isOnlyChild: boolean;
+  switchToInfura: () => Promise<void>;
+}) => (
+  <ActionButton
+    isLowerCase={isLowerCase}
+    isOnlyChild={isOnlyChild}
+    onPress={switchToInfura}
+    text={strings('network_connection_banner.switch_to_metamask_default_rpc')}
+  />
+);
 
 const getBannerContent = (
   theme: Theme,
@@ -156,12 +191,17 @@ const getBannerContent = (
     { visible: false }
   >,
   updateRpc: () => void,
+  switchToInfura: () => Promise<void>,
 ): {
   primaryMessage: React.ReactNode;
   secondaryMessage: React.ReactNode;
   backgroundColor: string;
   icon: BannerIcon;
 } => {
+  // Check if we have an Infura endpoint available to switch to
+  const hasInfuraEndpoint =
+    networkConnectionBannerState.infuraNetworkClientId !== undefined;
+
   if (networkConnectionBannerState.status === 'degraded') {
     const primaryMessage = (
       <PrimaryMessage
@@ -169,18 +209,25 @@ const getBannerContent = (
         networkConnectionBannerState={networkConnectionBannerState}
       />
     );
-    const secondaryMessage =
-      networkConnectionBannerState.isInfuraEndpoint ? null : (
-        <SecondaryMessage
-          content={
-            <UpdateRpcButton
-              isLowerCase={false}
-              isOnlyChild
-              updateRpc={updateRpc}
-            />
-          }
+
+    let secondaryMessage: React.ReactNode = null;
+    if (!networkConnectionBannerState.isInfuraEndpoint) {
+      // For custom endpoints, show either "Switch to MetaMask default RPC" or "Update RPC"
+      const buttonContent = hasInfuraEndpoint ? (
+        <SwitchToInfuraButton
+          isLowerCase={false}
+          isOnlyChild
+          switchToInfura={switchToInfura}
+        />
+      ) : (
+        <UpdateRpcButton
+          isLowerCase={false}
+          isOnlyChild
+          updateRpc={updateRpc}
         />
       );
+      secondaryMessage = <SecondaryMessage content={buttonContent} />;
+    }
 
     return {
       primaryMessage,
@@ -200,10 +247,30 @@ const getBannerContent = (
       networkConnectionBannerState={networkConnectionBannerState}
     />
   );
-  const secondaryMessageContent =
-    networkConnectionBannerState.isInfuraEndpoint ? (
-      strings('network_connection_banner.check_network_connectivity')
-    ) : (
+
+  let secondaryMessageContent: React.ReactNode;
+  if (networkConnectionBannerState.isInfuraEndpoint) {
+    // Already on Infura, just show connectivity message
+    secondaryMessageContent = strings(
+      'network_connection_banner.check_network_connectivity',
+    );
+  } else if (hasInfuraEndpoint) {
+    // Has Infura endpoint available, show "Switch to MetaMask default RPC"
+    secondaryMessageContent = (
+      <>
+        {strings('network_connection_banner.check_network_connectivity_or')}{' '}
+        <SwitchToInfuraButton
+          key="switchToInfura"
+          isLowerCase
+          isOnlyChild={false}
+          switchToInfura={switchToInfura}
+        />
+        {'.'}
+      </>
+    );
+  } else {
+    // No Infura endpoint available, show "Update RPC"
+    secondaryMessageContent = (
       <>
         {strings('network_connection_banner.check_network_connectivity_or')}{' '}
         <UpdateRpcButton
@@ -215,6 +282,8 @@ const getBannerContent = (
         {'.'}
       </>
     );
+  }
+
   const secondaryMessage = (
     <SecondaryMessage content={secondaryMessageContent} />
   );
@@ -236,7 +305,7 @@ const getBannerContent = (
 export const NetworkConnectionBanner = () => {
   const theme = useAppTheme();
   const tw = useTailwind();
-  const { networkConnectionBannerState, updateRpc } =
+  const { networkConnectionBannerState, updateRpc, switchToInfura } =
     useNetworkConnectionBanner();
 
   const handleUpdateRpc = useCallback(() => {
@@ -254,7 +323,12 @@ export const NetworkConnectionBanner = () => {
   }
 
   const { primaryMessage, secondaryMessage, backgroundColor, icon } =
-    getBannerContent(theme, networkConnectionBannerState, handleUpdateRpc);
+    getBannerContent(
+      theme,
+      networkConnectionBannerState,
+      handleUpdateRpc,
+      switchToInfura,
+    );
 
   return (
     <BannerBase

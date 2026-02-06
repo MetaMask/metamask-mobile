@@ -4,6 +4,7 @@ import { isNonEvmChainId } from '../../core/Multichain/utils';
 import { getAllowedSmartTransactionsChainIds } from '../../constants/smartTransactions';
 import { selectSmartTransactionsOptInStatus } from '../../selectors/preferencesController';
 import { useRefreshSmartTransactionsLiveness } from './useRefreshSmartTransactionsLiveness';
+import { Hex, CaipChainId } from '@metamask/utils';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector) => selector()),
@@ -91,8 +92,17 @@ describe('useRefreshSmartTransactionsLiveness', () => {
     });
   });
 
+  it('fetches liveness for supported EVM chain with CAIP format', () => {
+    renderHook(() => useRefreshSmartTransactionsLiveness('eip155:1'));
+
+    expect(mockFetchLiveness).toHaveBeenCalledTimes(1);
+    expect(mockFetchLiveness).toHaveBeenCalledWith({
+      chainId: '0x1',
+    });
+  });
+
   it('re-fetches when chainId changes to another supported chain', () => {
-    const { rerender } = renderHook<{ chainId: string }, void>(
+    const { rerender } = renderHook<{ chainId: Hex | CaipChainId }, void>(
       ({ chainId }) => useRefreshSmartTransactionsLiveness(chainId),
       { initialProps: { chainId: '0x1' } },
     );

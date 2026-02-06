@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useMemo } from 'react';
 import { useMetrics, MetaMetricsEvents } from '../../../hooks/useMetrics';
-import { PerpsEventProperties } from '../constants/eventNames';
+import { PERPS_EVENT_PROPERTY } from '../constants/eventNames';
 
 // Static helper function - moved outside component to avoid recreation
 const allTrue = (conditionArray: boolean[]): boolean =>
@@ -58,7 +58,7 @@ export const usePerpsEventTracking = (options?: EventTrackingOptions) => {
       properties: Record<string, unknown> = {},
     ) => {
       const props = {
-        [PerpsEventProperties.TIMESTAMP]: Date.now(),
+        [PERPS_EVENT_PROPERTY.TIMESTAMP]: Date.now(),
         ...properties,
       };
       trackEvent(createEventBuilder(eventName).addProperties(props).build());
