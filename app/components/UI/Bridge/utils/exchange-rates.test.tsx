@@ -19,8 +19,8 @@ jest.mock('@metamask/assets-controllers');
 describe('exchange-rates', () => {
   describe('convertFiatToUsd', () => {
     it('converts fiat value to USD using the rate ratio', () => {
-      // 100 EUR * (2500 USD/ETH / 2300 EUR/ETH) ≈ 108.6957 USD
-      expect(convertFiatToUsd(100, 2300, 2500)).toBeCloseTo(108.6957, 4);
+      // 100 EUR * (2500 USD/ETH / 2000 EUR/ETH) = 125 USD
+      expect(convertFiatToUsd(100, 2000, 2500)).toBe(125);
     });
 
     it('returns undefined when conversionRate is null', () => {
@@ -28,7 +28,7 @@ describe('exchange-rates', () => {
     });
 
     it('returns undefined when usdConversionRate is null', () => {
-      expect(convertFiatToUsd(100, 2300, null)).toBeUndefined();
+      expect(convertFiatToUsd(100, 2000, null)).toBeUndefined();
     });
 
     it('returns undefined when conversionRate is undefined', () => {
@@ -36,7 +36,7 @@ describe('exchange-rates', () => {
     });
 
     it('returns undefined when usdConversionRate is undefined', () => {
-      expect(convertFiatToUsd(100, 2300, undefined)).toBeUndefined();
+      expect(convertFiatToUsd(100, 2000, undefined)).toBeUndefined();
     });
 
     it('returns undefined when both rates are zero', () => {
@@ -44,7 +44,7 @@ describe('exchange-rates', () => {
     });
 
     it('returns 0 when fiatValue is 0', () => {
-      expect(convertFiatToUsd(0, 2300, 2500)).toBe(0);
+      expect(convertFiatToUsd(0, 2000, 2500)).toBe(0);
     });
 
     it('returns the same value when rates are equal (1:1 ratio)', () => {
@@ -59,8 +59,8 @@ describe('exchange-rates', () => {
     };
 
     const mockEvmMultiChainCurrencyRates = {
-      ETH: { conversionRate: 2300, usdConversionRate: 2500 },
-      POL: { conversionRate: 0.9, usdConversionRate: 1.0 },
+      ETH: { conversionRate: 2000, usdConversionRate: 2500 },
+      POL: { conversionRate: 0.5, usdConversionRate: 1.0 },
     };
 
     it('converts fiat to USD using the correct chain native currency rates', () => {
@@ -71,8 +71,8 @@ describe('exchange-rates', () => {
         evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
       });
 
-      // 100 * (2500 / 2300) ≈ 108.6957
-      expect(result).toBeCloseTo(108.6957, 4);
+      // 100 * (2500 / 2000) = 125
+      expect(result).toBe(125);
     });
 
     it('uses the correct rates for a different chain', () => {
@@ -83,8 +83,8 @@ describe('exchange-rates', () => {
         evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
       });
 
-      // 50 * (1.0 / 0.9) ≈ 55.5556
-      expect(result).toBeCloseTo(55.5556, 4);
+      // 50 * (1.0 / 0.5) = 100
+      expect(result).toBe(100);
     });
 
     it('falls back to any available entry for non-EVM chains', () => {
@@ -103,11 +103,11 @@ describe('exchange-rates', () => {
         evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
       });
 
-      // Falls back to ETH entry: 100 * (2500 / 2300) ≈ 108.6957
-      expect(result).toBeCloseTo(108.6957, 4);
+      // Falls back to ETH entry: 100 * (2500 / 2000) = 125
+      expect(result).toBe(125);
     });
 
-    it('returns undefined when chainId is undefined', () => {
+    it('falls back to any entry when chainId is undefined', () => {
       const result = calcUsdAmountFromFiat({
         tokenFiatValue: 100,
         chainId: undefined,
@@ -115,8 +115,8 @@ describe('exchange-rates', () => {
         evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
       });
 
-      // Falls back to any entry with both rates: ETH
-      expect(result).toBeCloseTo(108.6957, 4);
+      // Falls back to any entry with both rates: ETH → 100 * (2500 / 2000) = 125
+      expect(result).toBe(125);
     });
 
     it('returns undefined when evmMultiChainCurrencyRates is undefined', () => {
@@ -163,7 +163,7 @@ describe('exchange-rates', () => {
       });
 
       // No native currency found, falls back to first entry with both rates
-      expect(result).toBeCloseTo(108.6957, 4);
+      expect(result).toBe(125);
     });
   });
 
