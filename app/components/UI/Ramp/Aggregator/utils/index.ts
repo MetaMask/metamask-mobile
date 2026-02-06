@@ -120,6 +120,34 @@ export const timeToDescription = (timeArr: number[]) => {
   ];
 };
 
+export const renderDelayToken = (token: TimeDescriptions | string): string => {
+  switch (token) {
+    case TimeDescriptions.instant:
+      return strings('fiat_on_ramp_aggregator.payment_method.instant');
+    case TimeDescriptions.less_than:
+      return strings('fiat_on_ramp_aggregator.payment_method.less_than');
+    case TimeDescriptions.separator:
+      return '-';
+    case TimeDescriptions.minutes:
+      return strings('fiat_on_ramp_aggregator.payment_method.minutes');
+    case TimeDescriptions.minute:
+      return strings('fiat_on_ramp_aggregator.payment_method.minute');
+    case TimeDescriptions.hours:
+      return strings('fiat_on_ramp_aggregator.payment_method.hours');
+    case TimeDescriptions.hour:
+      return strings('fiat_on_ramp_aggregator.payment_method.hour');
+    case TimeDescriptions.business_days:
+      return strings('fiat_on_ramp_aggregator.payment_method.business_days');
+    case TimeDescriptions.business_day:
+      return strings('fiat_on_ramp_aggregator.payment_method.business_day');
+    default:
+      return String(token);
+  }
+};
+
+export const formatDelayFromArray = (delay: number[]): string =>
+  timeToDescription(delay).map(renderDelayToken).join(' ');
+
 export const formatId = (id: string) => {
   if (!id) {
     return id;

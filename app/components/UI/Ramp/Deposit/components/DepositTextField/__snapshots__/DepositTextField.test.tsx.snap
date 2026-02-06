@@ -18,7 +18,6 @@ exports[`DepositTextField should render default settings correctly 1`] = `
   <ForwardRef
     keyboardAppearance="light"
     placeholderTextColor="#888888"
-    size="48"
     testID="deposit-field-test-id"
   />
 </View>

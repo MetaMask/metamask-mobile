@@ -181,39 +181,6 @@ const MoreTokenActionsMenu = () => {
     }),
   );
 
-  console.log('DKJAHHKDJKHJADKJHADHKJDA', {
-    tokenIsInAccount,
-  });
-
-  // console.log('DKJAHHKDJKHJADKJHADHKJDA', {
-  //   assetChainId: asset.chainId,
-  //   address: asset.address,
-  //   xxxx: assets[asset.chainId as string]?.find((assetItem) =>
-  //     assetItem.chainId.startsWith('0x'),
-  //   ),
-  //   yyyy: assets[asset.chainId as string]?.find(
-  //     (assetItem) => !assetItem.chainId.startsWith('0x'),
-  //   ),
-  // });
-
-  // const tokenExistsInAccount = useMemo(() => {
-  //   const chainAssets = assets[asset.chainId as string];
-  //   if (!chainAssets?.length) {
-  //     return false;
-  //   }
-
-  //   if (isNonEvmChainId(networkId)) {
-  //     // For non-EVM chains, the address is already in CAIP asset format (e.g., "solana:mainnet/token:...")
-  //     // Check if any asset has a matching assetId
-  //     return chainAssets.some((assetItem) => assetItem.assetId === address);
-  //   }
-
-  //   // For EVM tokens, asset.assetId equals the address (already in hex)
-  //   return chainAssets.some((assetItem) =>
-  //     assetItem.assetId ? areAddressesEqual(assetItem.assetId, address) : false,
-  //   );
-  // }, [assets, networkId, address]);
-
   const actionConfigs: ActionConfig[] = useMemo(() => {
     const actions: ActionConfig[] = [];
 
@@ -254,7 +221,7 @@ const MoreTokenActionsMenu = () => {
       });
     }
 
-    // Remove token (only for non-native tokens)
+    // Remove token
     if (!isNativeCurrency && tokenIsInAccount && !isMusdToken(asset.address)) {
       actions.push({
         type: 'remove-token',
@@ -268,6 +235,7 @@ const MoreTokenActionsMenu = () => {
 
     return actions;
   }, [
+    asset.address,
     hasPerpsMarket,
     hasBalance,
     isBuyable,
