@@ -226,6 +226,9 @@ export const useSwapBridgeNavigation = ({
         from_trending: isFromTrending,
       };
 
+      // 🔧 DEBUG: Log event properties for testing - REMOVE BEFORE COMMIT!
+      console.log('🔍 [A/B Test] SWAP_BUTTON_CLICKED (Unified SwapBridge Button Clicked) event fired:', swapEventProperties);
+
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
           .addProperties(swapEventProperties)

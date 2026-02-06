@@ -1,11 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  selectTokenDetailsV2Enabled,
-  selectTokenDetailsV2ButtonsEnabled,
-} from '../../../../selectors/featureFlagController/tokenDetailsV2';
+import { selectTokenDetailsV2Enabled } from '../../../../selectors/featureFlagController/tokenDetailsV2';
+import { useTokenDetailsABTest } from '../hooks/useTokenDetailsABTest';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import Asset from '../../../Views/Asset';
 import { TokenI } from '../../Tokens/types';
@@ -51,9 +50,33 @@ import {
 } from '../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../locales/i18n';
 
+/**
+ * Valid source values for TOKEN_DETAILS_OPENED event tracking
+ */
+export type TokenDetailsSource =
+  | 'mobile-token-list' // Home page token list (default view)
+  | 'mobile-token-list-page' // Full page token list view
+  | 'trending' // Trending tokens flow
+  | 'swap' // Swap/Bridge token selector
+  | 'unknown'; // Fallback when source can't be determined
+
+interface TokenDetailsRouteParams extends TokenI {
+  /**
+   * Source from which the user navigated to token details
+   * Used for analytics tracking
+   */
+  source?: TokenDetailsSource;
+  /**
+   * @deprecated Use `source: 'trending'` instead
+   * Legacy flag from trending flow navigation
+   */
+  isFromTrending?: boolean;
+  scrollToMerklRewards?: boolean;
+}
+
 interface TokenDetailsProps {
   route: {
-    params: TokenI;
+    params: TokenDetailsRouteParams;
   };
 }
 
@@ -80,21 +103,92 @@ const styleSheet = (params: { theme: Theme }) => {
 };
 
 /**
+ * Determines the source from which the user navigated to token details
+ * Checks explicit source param first, then infers from legacy flags
+ */
+const getNavigationSource = (params: TokenDetailsRouteParams): TokenDetailsSource => {
+  // Prefer explicit source if provided
+  if (params.source) {
+    return params.source;
+  }
+  // Infer from legacy flags
+  if (params.isFromTrending) {
+    return 'trending';
+  }
+  // Default to mobile-token-list (home page) - the most common entry point
+  return 'mobile-token-list';
+};
+
+/**
  * TokenDetails component - Clean orchestrator that fetches data and sets layout.
  * All business logic is delegated to hooks and presentation to AssetOverviewContent.
  */
-const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
+const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({ token }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
-  const isTokenDetailsV2ButtonsEnabled = useSelector(
-    selectTokenDetailsV2ButtonsEnabled,
-  );
+  // A/B test hook for layout selection
+  const { useNewLayout, variantName, isTestActive } = useTokenDetailsABTest();
+
+  // Track page view once per token
+  const hasTrackedPageView = useRef(false);
 
   useEffect(() => {
     endTrace({ name: TraceName.AssetDetails });
   }, []);
+
+  // Determine source for analytics (where user navigated from)
+  const navigationSource = getNavigationSource(token);
+
+  // Track TOKEN_DETAILS_OPENED event on mount
+  // This ensures the event fires regardless of entry point (token list, trending, swap, etc.)
+  useEffect(() => {
+    if (hasTrackedPageView.current) return;
+    hasTrackedPageView.current = true;
+
+    // Determine if user has a balance for this token
+    const hasBalance = Boolean(token.balance && parseFloat(token.balance) > 0);
+
+    // 🔧 DEBUG: Log event properties for testing - REMOVE BEFORE COMMIT!
+    console.log('🔍 [A/B Test] TOKEN_DETAILS_OPENED event fired:', {
+      source: navigationSource,
+      chain_id: token.chainId,
+      token_symbol: token.symbol,
+      has_balance: hasBalance,
+      isTestActive,
+      variantName,
+      useNewLayout,
+      ab_tests: isTestActive
+        ? { token_details_layout: variantName }
+        : 'N/A (test not active)',
+    });
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
+        .addProperties({
+          source: navigationSource,
+          chain_id: token.chainId,
+          token_symbol: token.symbol,
+          has_balance: hasBalance,
+          // A/B test attribution
+          ...(isTestActive && {
+            ab_tests: { token_details_layout: variantName },
+          }),
+        })
+        .build(),
+    );
+  }, [
+    navigationSource,
+    token.chainId,
+    token.symbol,
+    token.balance,
+    isTestActive,
+    variantName,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, token.chainId),
@@ -256,7 +350,7 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
         networkName={networkName ?? ''}
         onBackPress={() => navigation.goBack()}
         onOptionsPress={
-          shouldShowMoreOptionsInNavBar && !isTokenDetailsV2ButtonsEnabled
+          shouldShowMoreOptionsInNavBar && !useNewLayout
             ? openAssetOptions
             : undefined
         }
@@ -292,7 +386,7 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
         />
       )}
       {networkModal}
-      {isTokenDetailsV2ButtonsEnabled && !txLoading && displaySwapsButton && (
+      {useNewLayout && !txLoading && displaySwapsButton && (
         <BottomSheetFooter
           style={{
             ...styles.bottomSheetFooter,
@@ -331,7 +425,7 @@ const TokenDetailsFeatureFlagWrapper: React.FC<TokenDetailsProps> = (props) => {
   const isTokenDetailsV2Enabled = useSelector(selectTokenDetailsV2Enabled);
 
   return isTokenDetailsV2Enabled ? (
-    <TokenDetails token={props.route.params} />
+    <TokenDetails token={props.route.params as TokenDetailsRouteParams} />
   ) : (
     <Asset {...props} />
   );

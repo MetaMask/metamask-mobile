@@ -6,7 +6,6 @@ import {
   TextStyle,
   ViewStyle,
 } from 'react-native';
-import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { Theme } from '@metamask/design-tokens';
 import { strings } from '../../../../../locales/i18n';
@@ -38,7 +37,7 @@ import MerklRewards from '../../Earn/components/MerklRewards';
 import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
 import { useScrollToMerklRewards } from '../../AssetOverview/hooks/useScrollToMerklRewards';
-import { selectTokenDetailsV2ButtonsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsV2';
+import { useTokenDetailsABTest } from '../hooks/useTokenDetailsABTest';
 import useTokenBuyability from '../hooks/useTokenBuyability';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
@@ -189,9 +188,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
   const isTokenTrustworthy = isTokenTrustworthyForPerps(token);
 
-  const isTokenDetailsV2ButtonsEnabled = useSelector(
-    selectTokenDetailsV2ButtonsEnabled,
-  );
+  // A/B test hook for layout selection
+  const { useNewLayout } = useTokenDetailsABTest();
 
   const goToBrowserUrl = (url: string) => {
     const [screen, params] = createWebviewNavDetails({
@@ -272,7 +270,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           <View style={styles.chartNavigationWrapper}>
             {renderChartNavigationButton()}
           </View>
-          {isTokenDetailsV2ButtonsEnabled ? (
+          {useNewLayout ? (
             <TokenDetailsActions
               hasPerpsMarket={hasPerpsMarket}
               hasBalance={balance != null && Number(balance) > 0}

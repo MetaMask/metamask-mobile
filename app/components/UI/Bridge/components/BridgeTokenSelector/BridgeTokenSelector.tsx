@@ -346,7 +346,7 @@ export const BridgeTokenSelector: React.FC = () => {
       );
       const networkName = chainData?.name ?? '';
 
-      navigation.navigate('Asset', { ...item });
+      navigation.navigate('Asset', { ...item, source: 'swap' });
 
       Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
         UnifiedSwapBridgeEventName.AssetDetailTooltipClicked,

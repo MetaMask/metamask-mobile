@@ -254,24 +254,17 @@ export const TokenListItem = React.memo(
     const onItemPress = useCallback(
       (token: TokenI, scrollToMerklRewards?: boolean) => {
         trace({ name: TraceName.AssetDetails });
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
-            .addProperties({
-              source: isFullView
-                ? 'mobile-token-list-page'
-                : 'mobile-token-list',
-              chain_id: token.chainId,
-              token_symbol: token.symbol,
-            })
-            .build(),
-        );
-
+        // Note: TOKEN_DETAILS_OPENED event is now tracked centrally in TokenDetails.tsx
+        // to ensure consistent tracking across all entry points (token list, trending, swap, etc.)
         navigation.navigate('Asset', {
           ...token,
           scrollToMerklRewards,
+          // Pass source for analytics - TokenDetails.tsx will use this for event tracking
+          // Distinguish between full page token list view and home page token list
+          source: isFullView ? 'mobile-token-list-page' : 'mobile-token-list',
         });
       },
-      [isFullView, trackEvent, createEventBuilder, navigation],
+      [navigation, isFullView],
     );
 
     const handleLendingRedirect = useStablecoinLendingRedirect({

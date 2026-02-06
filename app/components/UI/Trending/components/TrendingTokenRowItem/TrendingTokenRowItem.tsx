@@ -181,7 +181,8 @@ const getAssetNavigationParams = (token: TrendingAsset) => {
       : undefined,
     isNative: isNativeToken,
     isETH: isNativeToken && hexChainId === '0x1',
-    isFromTrending: true,
+    isFromTrending: true, // Legacy flag - kept for backward compatibility
+    source: 'trending', // Explicit source for analytics tracking
     rwaData: token.rwaData,
   };
 };

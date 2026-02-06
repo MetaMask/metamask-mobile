@@ -29,5 +29,6 @@ export default function useRampsUnifiedV2Enabled() {
     rampsUnifiedBuyV2ActiveFlag,
   );
 
-  return isRampsUnifiedV2Enabled;
+  // return isRampsUnifiedV2Enabled;
+  return false;
 }
