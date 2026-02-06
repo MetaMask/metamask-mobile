@@ -344,7 +344,7 @@ yarn jest -c jest.config.view.js <path/to/test> -t "<test-name>" --runInBand --s
 
 ### Enforcement
 
-To enforce component-view purity, we rely on a static ESLint guard that blocks unauthorized mocks:
+To enforce component view tests purity, we rely on a static ESLint guard that blocks unauthorized mocks:
 
 **ESLint Configuration:**
 
@@ -369,7 +369,7 @@ To enforce component-view purity, we rely on a static ESLint guard that blocks u
         selector:
           "CallExpression[callee.object.name='jest'][callee.property.name='mock'][arguments.0.type='Literal'][arguments.0.value!='../../../core/Engine'][arguments.0.value!='../../../core/Engine/Engine'][arguments.0.value!='react-native-device-info']",
         message:
-          'Only Engine and react-native-device-info can be mocked in component-view tests.',
+          'Only Engine and react-native-device-info can be mocked in component view tests.',
       },
     ],
   },

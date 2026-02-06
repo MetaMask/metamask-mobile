@@ -1,6 +1,6 @@
 # Component View Testing Rules (Mobile)
 
-This document defines the rules for writin component-view tests in this project. It complements the framework docs at `app/util/test/view/README.md` and must be followed for new and existing component-view tests.
+This document defines the rules for writing component view tests in this project. It complements the framework docs at `app/util/test/view/README.md` and must be followed for new and existing component view tests.
 
 These rules are written to align with Cursor Context Rules so the guidance is easy to consume inside Cursor. See the official guidance: [Cursor Context Rules](https://cursor.com/docs/context/rules).
 
@@ -27,7 +27,7 @@ These rules are written to align with Cursor Context Rules so the guidance is ea
 
 1. Only mock the Engine (and allowed native modules)
 
-- Allowed mocks in component-view tests:
+- Allowed mocks in component view tests:
   - `../../../core/Engine`
   - `../../../core/Engine/Engine`
   - `react-native-device-info`
@@ -40,7 +40,7 @@ These rules are written to align with Cursor Context Rules so the guidance is ea
 - Do not mock hooks or selectors.
 - Provide all required data through the Redux state using the state fixture.
 
-3. Reuse the component-view test framework pieces
+3. Reuse the component view test framework pieces
 
 - Presets:
   - `initialStateBridge` → `app/util/test/component-view/presets/bridge.ts`
@@ -155,7 +155,7 @@ yarn jest -c jest.config.view.js <path/to/test> -t "<name>" --runInBand --silent
 - Don’t:
   - Mock hooks or selectors
   - Rebuild entire background state manually (use presets)
-  - Use arbitrary `jest.mock` in component-view files (blocked)
+  - Use arbitrary `jest.mock` in component view test files (blocked)
 
 ## Where to Find Things
 

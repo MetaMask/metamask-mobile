@@ -7,12 +7,12 @@ globs:
 alwaysApply: false
 ---
 
-## component-view Tests (Local Rules)
+## Component-view Tests (Local Rules)
 
 These rules apply to files under `app/util/test/component-view` and related test suites.
 
 - **Always import the global mocks**
-  - Add `import '../../util/test/component-view/mocks';` at the top of component-view tests.
+  - Add `import '../../util/test/component-view/mocks';` at the top of component view tests.
 
 - **Prefer presets + renderers**
   - Bridge: `initialStateBridge` + `renderBridgeView`

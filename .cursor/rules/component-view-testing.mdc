@@ -8,7 +8,7 @@ alwaysApply: false
 
 ## Component-view Testing (Project-wide)
 
-Follow these rules for all component-view tests. Nested, component-specific rules may also apply.
+Follow these rules for all component view tests. Nested, component-specific rules may also apply.
 
 ## Mock Policy - MANDATORY
 
