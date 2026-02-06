@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Change CardHome button colors (#25737)
 - Added one-click trading for Perps, allowing users to deposit funds and execute trades seamlessly within the order view (#24964)
 - Update slippage UI, adding option for users to set a custom slippage (#25124)
 - Updated stablecoin lending cta to be right-aligned and not render the percentage (#25351)
