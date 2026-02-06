@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   selectTokenDetailsV2Enabled,
-  isTokenDetailsRevampedEnabled,
+  selectTokenDetailsV2ButtonsEnabled,
 } from '../../../../selectors/featureFlagController/tokenDetailsV2';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import Asset from '../../../Views/Asset';
@@ -21,7 +21,6 @@ import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader
 import AssetOverviewContent from '../components/AssetOverviewContent';
 import { useTokenPrice } from '../hooks/useTokenPrice';
 import { useTokenBalance } from '../hooks/useTokenBalance';
-import { useTokenBuyability } from '../hooks/useTokenBuyability';
 import { useTokenActions } from '../hooks/useTokenActions';
 import { useTokenTransactions } from '../hooks/useTokenTransactions';
 import { selectPerpsEnabledFlag } from '../../Perps';
@@ -89,6 +88,10 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
 
+  const isTokenDetailsV2ButtonsEnabled = useSelector(
+    selectTokenDetailsV2ButtonsEnabled,
+  );
+
   useEffect(() => {
     endTrace({ name: TraceName.AssetDetails });
   }, []);
@@ -145,8 +148,6 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
     stakedTrxAsset,
     ///: END:ONLY_INCLUDE_IF
   } = useTokenBalance(token);
-
-  const isTokenBuyable = useTokenBuyability(token);
 
   const {
     onBuy,
@@ -224,7 +225,6 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
         isMerklCampaignClaimingEnabled={isMerklCampaignClaimingEnabled}
         displayBuyButton={displayBuyButton}
         displaySwapsButton={displaySwapsButton}
-        isTokenBuyable={isTokenBuyable}
         currentCurrency={currentCurrency}
         onBuy={onBuy}
         onSend={onSend}
@@ -256,7 +256,9 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
         networkName={networkName ?? ''}
         onBackPress={() => navigation.goBack()}
         onOptionsPress={
-          shouldShowMoreOptionsInNavBar ? openAssetOptions : undefined
+          shouldShowMoreOptionsInNavBar && !isTokenDetailsV2ButtonsEnabled
+            ? openAssetOptions
+            : undefined
         }
       />
       {txLoading ? (
@@ -290,7 +292,7 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
         />
       )}
       {networkModal}
-      {isTokenDetailsRevampedEnabled() && !txLoading && displaySwapsButton && (
+      {isTokenDetailsV2ButtonsEnabled && !txLoading && displaySwapsButton && (
         <BottomSheetFooter
           style={{
             ...styles.bottomSheetFooter,

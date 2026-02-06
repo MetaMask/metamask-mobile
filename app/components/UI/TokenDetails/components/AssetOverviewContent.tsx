@@ -6,11 +6,12 @@ import {
   TextStyle,
   ViewStyle,
 } from 'react-native';
+import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { Theme } from '@metamask/design-tokens';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
-import DSText, {
+import {
   getFontFamily,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
@@ -24,20 +25,23 @@ import {
   TokenPrice,
 } from '../../../hooks/useTokenHistoricalPrices';
 import { TokenI } from '../../Tokens/types';
-import { usePerpsMarketForAsset } from '../../Perps/hooks/usePerpsMarketForAsset';
+import { usePerpsActions } from '../hooks/usePerpsActions';
 import { usePerpsPositionForAsset } from '../../Perps/hooks/usePerpsPositionForAsset';
 import { PERPS_EVENT_VALUE } from '../../Perps/constants/eventNames';
-import PerpsPositionCard from '../../Perps/components/PerpsPositionCard';
+import PerpsCard from '../../Perps/components/PerpsCard';
 import Price from '../../AssetOverview/Price';
 import ChartNavigationButton from '../../AssetOverview/ChartNavigationButton';
 import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
 import { PriceChartProvider } from '../../AssetOverview/PriceChart/PriceChart.context';
 import AssetDetailsActions from '../../../Views/AssetDetails/AssetDetailsActions';
+import { TokenDetailsActions } from './TokenDetailsActions';
 import MerklRewards from '../../Earn/components/MerklRewards';
 import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
 import { useScrollToMerklRewards } from '../../AssetOverview/hooks/useScrollToMerklRewards';
+import { selectTokenDetailsV2ButtonsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsV2';
+import useTokenBuyability from '../hooks/useTokenBuyability';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
 ///: END:ONLY_INCLUDE_IF
@@ -79,10 +83,6 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 20,
       paddingHorizontal: 16,
     } as ViewStyle,
-    perpsPositionHeader: {
-      paddingHorizontal: 16,
-      paddingTop: 24,
-    } as ViewStyle,
     perpsPositionCardContainer: {
       paddingHorizontal: 16,
       paddingTop: 8,
@@ -118,7 +118,6 @@ export interface AssetOverviewContentProps {
   // Display flags
   displayBuyButton: boolean;
   displaySwapsButton: boolean;
-  isTokenBuyable: boolean;
 
   // Currency
   currentCurrency: string;
@@ -162,7 +161,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   isMerklCampaignClaimingEnabled,
   displayBuyButton,
   displaySwapsButton,
-  isTokenBuyable,
   currentCurrency,
   onBuy,
   onSend,
@@ -175,13 +173,21 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const navigation = useNavigation();
   const merklRewardsRef = useRef<View>(null);
   const merklRewardsYInHeaderRef = useRef<number | null>(null);
-  const chainId = token.chainId;
 
   useScrollToMerklRewards(merklRewardsYInHeaderRef);
 
-  const { hasPerpsMarket, marketData } = usePerpsMarketForAsset(
-    isPerpsEnabled ? token.symbol : null,
-  );
+  const {
+    hasPerpsMarket,
+    marketData,
+    isLoading: isPerpsLoading,
+    handlePerpsAction,
+  } = usePerpsActions({
+    symbol: isPerpsEnabled ? token.symbol : null,
+  });
+
+  const { isBuyable, isLoading: isBuyableLoading } = useTokenBuyability(token);
+
+  const isButtonsLoading = isBuyableLoading || isPerpsLoading;
 
   // Check if user has a position for this asset (only if perps is enabled and market exists)
   const { position: perpsPosition, isLoading: isPerpsPositionLoading } =
@@ -190,6 +196,10 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     );
 
   const isTokenTrustworthy = isTokenTrustworthyForPerps(token);
+
+  const isTokenDetailsV2ButtonsEnabled = useSelector(
+    selectTokenDetailsV2ButtonsEnabled,
+  );
 
   const goToBrowserUrl = (url: string) => {
     const [screen, params] = createWebviewNavDetails({
@@ -270,18 +280,35 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           <View style={styles.chartNavigationWrapper}>
             {renderChartNavigationButton()}
           </View>
-          <AssetDetailsActions
-            displayBuyButton={displayBuyButton && isTokenBuyable}
-            displaySwapsButton={displaySwapsButton}
-            goToSwaps={goToSwaps}
-            onBuy={onBuy}
-            onReceive={onReceive}
-            onSend={onSend}
-            asset={{
-              address: token.address,
-              chainId,
-            }}
-          />
+          {isTokenDetailsV2ButtonsEnabled ? (
+            <TokenDetailsActions
+              hasPerpsMarket={hasPerpsMarket}
+              hasBalance={balance != null && Number(balance) > 0}
+              isBuyable={isBuyable}
+              isNativeCurrency={token.isETH || token.isNative || false}
+              token={token}
+              onBuy={onBuy}
+              onLong={handlePerpsAction}
+              onShort={handlePerpsAction}
+              onSend={onSend}
+              onReceive={onReceive}
+              isLoading={isButtonsLoading}
+            />
+          ) : (
+            <AssetDetailsActions
+              displayBuyButton={displayBuyButton && isBuyable}
+              displaySwapsButton={displaySwapsButton}
+              goToSwaps={goToSwaps}
+              onBuy={onBuy}
+              onReceive={onReceive}
+              onSend={onSend}
+              asset={{
+                address: token.address,
+                chainId: token.chainId,
+              }}
+            />
+          )}
+
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
             isTronNative && <TronEnergyBandwidthDetail />
@@ -327,23 +354,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             isTokenTrustworthy &&
             !isPerpsPositionLoading && (
               <>
-                <View style={styles.perpsPositionHeader}>
-                  <DSText variant={TextVariant.HeadingMD}>
-                    {strings('asset_overview.perps_position')}
-                  </DSText>
-                </View>
                 {perpsPosition ? (
-                  <TouchableOpacity
-                    style={styles.perpsPositionCardContainer}
-                    onPress={handlePerpsDiscoveryPress}
-                    testID={TokenOverviewSelectorsIDs.PERPS_POSITION_CARD}
-                    activeOpacity={0.8}
-                  >
-                    <PerpsPositionCard
+                  <View style={styles.perpsPositionCardContainer}>
+                    <PerpsCard
                       position={perpsPosition}
-                      currentPrice={undefined} // Don't show liquidation distance % - spot price differs from perps mark price
+                      source={PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN}
+                      testID={TokenOverviewSelectorsIDs.PERPS_POSITION_CARD}
                     />
-                  </TouchableOpacity>
+                  </View>
                 ) : (
                   <PerpsDiscoveryBanner
                     symbol={marketData.symbol}

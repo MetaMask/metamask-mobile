@@ -73,7 +73,6 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../component-library/components/Texts/Text';
-import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import { CommonActions } from '@react-navigation/native';
 import {
   SRP_LENGTHS,
@@ -661,7 +660,6 @@ const ImportFromSecretRecoveryPhrase = ({
                   {strings('import_from_seed.create_new_password')}
                 </Label>
                 <TextField
-                  size={TextFieldSize.Lg}
                   value={password}
                   onChangeText={onPasswordChange}
                   onFocus={() => setIsPasswordFieldFocused(true)}
@@ -714,7 +712,6 @@ const ImportFromSecretRecoveryPhrase = ({
                 </Label>
                 <TextField
                   ref={confirmPasswordInput}
-                  size={TextFieldSize.Lg}
                   onChangeText={onPasswordConfirmChange}
                   secureTextEntry={showPasswordIndex.includes(1)}
                   autoComplete="new-password"
