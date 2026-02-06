@@ -189,7 +189,7 @@ describe('usePerpsTabExploreData', () => {
       expect(result.current.exploreMarkets[7].symbol).toBe('TOKEN7');
     });
 
-    it('filters out non-crypto/equity market types', () => {
+    it('includes all market types without filtering', () => {
       // Arrange
       const mixedMarkets: PerpsMarketDataWithVolumeNumber[] = [
         { ...mockMarkets[0], marketType: undefined }, // crypto (no type)
@@ -197,7 +197,7 @@ describe('usePerpsTabExploreData', () => {
         {
           ...mockMarkets[2],
           marketType: 'forex' as PerpsMarketData['marketType'],
-        }, // forex - should be filtered out
+        }, // forex
       ];
       mockUsePerpsMarkets.mockReturnValue({
         markets: mixedMarkets,
@@ -212,13 +212,13 @@ describe('usePerpsTabExploreData', () => {
         usePerpsTabExploreData({ enabled: true }),
       );
 
-      // Assert - forex should be filtered out
-      expect(result.current.exploreMarkets).toHaveLength(2);
-      expect(
-        result.current.exploreMarkets.every(
-          (m) => !m.marketType || m.marketType === 'equity',
-        ),
-      ).toBe(true);
+      // Assert - all market types are included (no filtering)
+      expect(result.current.exploreMarkets).toHaveLength(3);
+      expect(result.current.exploreMarkets.map((m) => m.symbol)).toEqual([
+        'BTC',
+        'ETH',
+        'SOL',
+      ]);
     });
 
     it('returns empty watchlist when no symbols match', () => {

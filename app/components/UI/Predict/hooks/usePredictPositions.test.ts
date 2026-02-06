@@ -126,6 +126,27 @@ describe('usePredictPositions', () => {
     expect(mockGetPositions).not.toHaveBeenCalled();
   });
 
+  it('initializes isLoading to false when loadOnMount is false', () => {
+    mockGetPositions.mockResolvedValue([]);
+
+    const { result } = renderHook(() =>
+      usePredictPositions({ loadOnMount: false }),
+    );
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.positions).toEqual([]);
+  });
+
+  it('does not report stale data before first load completes', () => {
+    mockGetPositions.mockResolvedValue([]);
+
+    const { result } = renderHook(() =>
+      usePredictPositions({ loadOnMount: false }),
+    );
+
+    expect(result.current.isLoading).toBe(false);
+  });
+
   it('handles errors correctly', async () => {
     const testError = new Error('Failed to load positions');
     mockGetPositions.mockRejectedValue(testError);

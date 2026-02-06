@@ -37,4 +37,5 @@ export const tooltipContentRegistry: ContentRegistry = {
   after_hours_trading: MarketHoursContent,
   oracle_price: undefined,
   spread: undefined,
+  pay_with: undefined,
 };

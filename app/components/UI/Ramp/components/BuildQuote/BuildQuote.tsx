@@ -17,7 +17,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 
-import { useParams } from '../../../../../util/navigation/navUtils';
 import { getRampsBuildQuoteNavbarOptions } from '../../../Navbar';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -26,6 +25,9 @@ import { formatCurrency } from '../../utils/formatCurrency';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import { useRampsController } from '../../hooks/useRampsController';
 import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
+import useRampAccountAddress from '../../hooks/useRampAccountAddress';
+import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
+import { createPaymentSelectionModalNavigationDetails } from '../PaymentSelectionModal';
 
 interface BuildQuoteParams {
   assetId?: string;
@@ -47,7 +49,8 @@ export const createBuildQuoteNavDetails = (
       params?: BuildQuoteParams;
     };
   },
-] => [
+] =>
+  [
     Routes.RAMP.TOKEN_SELECTION,
     {
       screen: Routes.RAMP.TOKEN_SELECTION,
@@ -58,37 +61,53 @@ export const createBuildQuoteNavDetails = (
     },
   ] as const;
 
+const DEFAULT_AMOUNT = 100;
+
 function BuildQuote() {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
-  const { assetId } = useParams<BuildQuoteParams>();
 
-  const [amount, setAmount] = useState<string>('0');
-  const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
+  const [amount, setAmount] = useState<string>(() => String(DEFAULT_AMOUNT));
+  const [amountAsNumber, setAmountAsNumber] = useState<number>(DEFAULT_AMOUNT);
+  const [userHasEnteredAmount, setUserHasEnteredAmount] = useState(false);
 
-  // Get user region, selected provider, and tokens from RampsController
-  const { userRegion, selectedProvider, tokens } = useRampsController();
+  const {
+    userRegion,
+    selectedProvider,
+    selectedToken,
+    selectedQuote,
+    quotesLoading,
+    startQuotePolling,
+    stopQuotePolling,
+    paymentMethodsLoading,
+    selectedPaymentMethod,
+  } = useRampsController();
 
-  // Get currency and quick amounts from user's region
   const currency = userRegion?.country?.currency || 'USD';
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
 
-  // Get network info helper
+  useEffect(() => {
+    if (!userHasEnteredAmount && userRegion?.country?.defaultAmount != null) {
+      const regionDefault = userRegion.country.defaultAmount;
+      setAmount(String(regionDefault));
+      setAmountAsNumber(regionDefault);
+      setUserHasEnteredAmount(true);
+    }
+  }, [userRegion?.country?.defaultAmount, userHasEnteredAmount]);
+
   const getTokenNetworkInfo = useTokenNetworkInfo();
 
-  // Find the selected token from assetId param
-  const selectedToken = useMemo(() => {
-    if (!assetId || !tokens?.allTokens) return null;
-    return tokens.allTokens.find((token) => token.assetId === assetId) ?? null;
-  }, [assetId, tokens?.allTokens]);
+  const walletAddress = useRampAccountAddress(
+    selectedToken?.chainId as CaipChainId,
+  );
 
-  // Get network info for the selected token
+  const debouncedPollingAmount = useDebouncedValue(amountAsNumber, 500);
+
   const networkInfo = useMemo(() => {
     if (!selectedToken) return null;
     return getTokenNetworkInfo(selectedToken.chainId as CaipChainId);
   }, [selectedToken, getTokenNetworkInfo]);
 
-  // Update navigation options - shows skeleton when data is loading
   useEffect(() => {
     navigation.setOptions(
       getRampsBuildQuoteNavbarOptions(navigation, {
@@ -108,6 +127,7 @@ function BuildQuote() {
     ({ value, valueAsNumber }: KeypadChangeData) => {
       setAmount(value || '0');
       setAmountAsNumber(valueAsNumber || 0);
+      setUserHasEnteredAmount(true);
     },
     [],
   );
@@ -115,13 +135,46 @@ function BuildQuote() {
   const handleQuickAmountPress = useCallback((quickAmount: number) => {
     setAmount(String(quickAmount));
     setAmountAsNumber(quickAmount);
+    setUserHasEnteredAmount(true);
   }, []);
+
+  useEffect(() => {
+    if (
+      !walletAddress ||
+      !selectedPaymentMethod ||
+      debouncedPollingAmount <= 0
+    ) {
+      stopQuotePolling();
+      return;
+    }
+
+    startQuotePolling({
+      walletAddress,
+      amount: debouncedPollingAmount,
+    });
+
+    return () => {
+      stopQuotePolling();
+    };
+  }, [
+    walletAddress,
+    selectedPaymentMethod,
+    debouncedPollingAmount,
+    startQuotePolling,
+    stopQuotePolling,
+  ]);
 
   const handleContinuePress = useCallback(() => {
     // TODO: Navigate to next screen with amount
   }, []);
 
   const hasAmount = amountAsNumber > 0;
+
+  const quoteMatchesAmount =
+    debouncedPollingAmount === amountAsNumber && debouncedPollingAmount > 0;
+
+  const canContinue =
+    hasAmount && !quotesLoading && selectedQuote !== null && quoteMatchesAmount;
 
   return (
     <ScreenLayout>
@@ -140,9 +193,15 @@ function BuildQuote() {
                 })}
               </Text>
               <PaymentMethodPill
-                label={strings('fiat_on_ramp.debit_card')}
+                label={
+                  selectedPaymentMethod?.name ||
+                  strings('fiat_on_ramp.select_payment_method')
+                }
+                isLoading={paymentMethodsLoading}
                 onPress={() => {
-                  // TODO: Open payment method selector
+                  navigation.navigate(
+                    ...createPaymentSelectionModalNavigationDetails(),
+                  );
                 }}
               />
             </View>
@@ -162,6 +221,8 @@ function BuildQuote() {
                 size={ButtonSize.Lg}
                 onPress={handleContinuePress}
                 isFullWidth
+                isDisabled={!canContinue}
+                isLoading={quotesLoading}
                 testID="build-quote-continue-button"
               >
                 {strings('fiat_on_ramp.continue')}
