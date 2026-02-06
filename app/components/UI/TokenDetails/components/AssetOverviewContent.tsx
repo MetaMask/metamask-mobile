@@ -371,20 +371,19 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                     />
                   </View>
                 ) : (
-                  <View style={styles.perpsPositionCardContainer}>
-                    <Text
-                      variant={TextVariant.HeadingMD}
-                      style={styles.perpsPositionTitle}
-                    >
-                      {strings('asset_overview.perps_position')}
-                    </Text>
+                  <>
+                    <View style={styles.perpsPositionCardContainer}>
+                      <Text variant={TextVariant.HeadingMD}>
+                        {strings('asset_overview.perps_position')}
+                      </Text>
+                    </View>
                     <PerpsDiscoveryBanner
                       symbol={marketData.symbol}
                       maxLeverage={marketData.maxLeverage}
                       onPress={handlePerpsDiscoveryPress}
                       testID={TokenOverviewSelectorsIDs.PERPS_DISCOVERY_BANNER}
                     />
-                  </View>
+                  </>
                 )}
               </>
             )}
