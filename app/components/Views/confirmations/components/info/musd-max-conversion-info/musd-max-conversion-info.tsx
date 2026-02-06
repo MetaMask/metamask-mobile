@@ -47,7 +47,6 @@ import AvatarToken from '../../../../../../component-library/components/Avatars/
  * Navigation params for MusdMaxConversionInfo
  */
 export interface MusdMaxConversionParams {
-  outputChainId: string;
   token: AssetType;
 }
 
