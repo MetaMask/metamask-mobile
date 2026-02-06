@@ -285,8 +285,12 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               isNativeCurrency={token.isETH || token.isNative || false}
               token={token}
               onBuy={onBuy}
-              onLong={handlePerpsAction}
-              onShort={handlePerpsAction}
+              onLong={
+                handlePerpsAction ? () => handlePerpsAction('long') : undefined
+              }
+              onShort={
+                handlePerpsAction ? () => handlePerpsAction('short') : undefined
+              }
               onSend={onSend}
               onReceive={onReceive}
               isLoading={isButtonsLoading}
