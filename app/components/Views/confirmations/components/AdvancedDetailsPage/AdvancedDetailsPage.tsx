@@ -13,7 +13,7 @@ import {
 } from '@metamask/design-system-react-native';
 
 import { strings } from '../../../../../../locales/i18n';
-import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -86,7 +86,7 @@ const AdvancedDetailsPage = () => {
       edges={['top', 'bottom']}
     >
       <Box twClassName="flex-1">
-        <HeaderCenter
+        <HeaderCompactStandard
           title={strings('stake.advanced_details')}
           onBack={handleGoBack}
         />
