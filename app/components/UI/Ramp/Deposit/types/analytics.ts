@@ -194,6 +194,7 @@ interface RampsTransactionCompleted {
   currency_destination_symbol?: string;
   currency_destination_network?: string;
   currency_source: string;
+  provider_onramp: string;
 }
 
 interface RampsTransactionFailed {
@@ -214,6 +215,7 @@ interface RampsTransactionFailed {
   currency_destination_network?: string;
   currency_source: string;
   error_message: string;
+  provider_onramp: string;
 }
 
 interface RampsKycApplicationFailed {

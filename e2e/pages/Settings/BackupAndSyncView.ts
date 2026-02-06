@@ -1,4 +1,4 @@
-import { BackupAndSyncViewSelectorsIDs } from '../../selectors/Settings/BackupAndSyncView.selectors';
+import { BackupAndSyncViewSelectorsIDs } from '../../../tests/selectors/Settings/BackupAndSyncView.selectors';
 import Gestures from '../../../tests/framework/Gestures';
 import Matchers from '../../../tests/framework/Matchers';
 
