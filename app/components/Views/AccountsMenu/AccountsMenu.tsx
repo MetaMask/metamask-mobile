@@ -21,7 +21,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard/HeaderCompactStandard';
 import ActionListItem from '../../../component-library/components-temp/ActionListItem';
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core/';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
@@ -82,9 +81,7 @@ const AccountsMenu = () => {
 
   const onPressRequestFeature = useCallback(() => {
     trackEvent(
-      createEventBuilder(
-        MetaMetricsEvents.NAVIGATION_TAPS_SEND_FEEDBACK,
-      ).build(),
+      createEventBuilder(EVENT_NAME.NAVIGATION_TAPS_SEND_FEEDBACK).build(),
     );
     goToBrowserUrl(
       'https://community.metamask.io/c/feature-requests-ideas/',
@@ -100,9 +97,7 @@ const AccountsMenu = () => {
     ///: END:ONLY_INCLUDE_IF
 
     goToBrowserUrl(supportUrl, strings('app_settings.contact_support'));
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP).build(),
-    );
+    trackEvent(createEventBuilder(EVENT_NAME.NAVIGATION_TAPS_GET_HELP).build());
   }, [goToBrowserUrl, trackEvent, createEventBuilder]);
 
   const onPressLock = useCallback(async () => {
@@ -123,9 +118,7 @@ const AccountsMenu = () => {
           text: strings('drawer.lock_ok'),
           onPress: async () => {
             trackEvent(
-              createEventBuilder(
-                MetaMetricsEvents.NAVIGATION_TAPS_LOGOUT,
-              ).build(),
+              createEventBuilder(EVENT_NAME.NAVIGATION_TAPS_LOGOUT).build(),
             );
             await onPressLock();
           },
