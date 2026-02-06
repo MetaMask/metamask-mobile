@@ -579,15 +579,56 @@ describe('bridge slice', () => {
       expect(hasEthereum).toBe(true);
     });
 
-    it('returns all chains without filtering (unlike selectSourceChainRanking)', () => {
+    it('returns all supported chains without filtering by user-configured networks', () => {
       const result = selectDestChainRanking(
         mockRootState as unknown as RootState,
       );
 
-      // selectDestChainRanking should return all chains from feature flags
+      // selectDestChainRanking should return all supported chains from feature flags
       // This is the key difference from selectSourceChainRanking which filters
       // by user-configured networks
       expect(result.length).toBeGreaterThan(0);
+    });
+
+    it('filters out chains not in ALLOWED_BRIDGE_CHAIN_IDS', () => {
+      const mockState = cloneDeep(mockRootState);
+      // Add an unsupported chain to chainRanking (simulates LD adding a new network)
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking =
+        [
+          ...mockState.engine.backgroundState.RemoteFeatureFlagController
+            .remoteFeatureFlags.bridgeConfigV2.chainRanking,
+          { chainId: 'eip155:99999', name: 'Unsupported Future Chain' },
+        ];
+
+      const result = selectDestChainRanking(mockState as unknown as RootState);
+
+      // The unsupported chain should be filtered out
+      expect(result.some((chain) => chain.chainId === 'eip155:99999')).toBe(
+        false,
+      );
+
+      // Supported chains should still be present
+      expect(result.some((chain) => chain.chainId === 'eip155:1')).toBe(true);
+    });
+  });
+
+  describe('selectIsBridgeEnabledSource - ALLOWED_BRIDGE_CHAIN_IDS filtering', () => {
+    it('returns false for a chain in chainRanking but not in ALLOWED_BRIDGE_CHAIN_IDS', () => {
+      const mockState = cloneDeep(mockRootState);
+      // Add an unsupported chain to chainRanking
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking =
+        [
+          ...mockState.engine.backgroundState.RemoteFeatureFlagController
+            .remoteFeatureFlags.bridgeConfigV2.chainRanking,
+          { chainId: 'eip155:99999', name: 'Unsupported Future Chain' },
+        ];
+
+      const result = selectIsBridgeEnabledSource(
+        mockState as unknown as RootState,
+        '0x1869F' as Hex, // hex for 99999
+      );
+
+      expect(result).toBe(false);
     });
   });
 });
