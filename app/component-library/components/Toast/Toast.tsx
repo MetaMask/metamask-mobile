@@ -23,17 +23,17 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  IconColor as ReactNativeDsIconColor,
-  IconSize as ReactNativeDsIconSize,
-} from '@metamask/design-system-react-native';
+import { IconColor, IconSize } from '@metamask/design-system-react-native';
 import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 
 // External dependencies.
 import Avatar, { AvatarSize, AvatarVariant } from '../Avatars/Avatar';
 import Text, { TextColor, TextVariant } from '../Texts/Text';
 import Button, { ButtonVariants } from '../Buttons/Button';
-import Icon, { IconName, IconSize } from '../Icons/Icon';
+import LegacyIcon, {
+  IconName as LegacyIconName,
+  IconSize as LegacyIconSize,
+} from '../Icons/Icon';
 import { useAppThemeFromContext } from '../../../util/theme';
 
 // Internal dependencies.
@@ -206,28 +206,28 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
         return (
           <View style={accessoryStyle}>
             <Spinner
-              color={ReactNativeDsIconColor.PrimaryDefault}
-              spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }}
+              color={IconColor.PrimaryDefault}
+              spinnerIconProps={{ size: IconSize.Lg }}
             />
           </View>
         );
       case StatusToastType.Success:
         return (
           <View style={accessoryStyle}>
-            <Icon
-              name={IconName.Confirmation}
+            <LegacyIcon
+              name={LegacyIconName.Confirmation}
               color={theme.colors.success.default}
-              size={IconSize.Lg}
+              size={LegacyIconSize.Lg}
             />
           </View>
         );
       case StatusToastType.Failure:
         return (
           <View style={accessoryStyle}>
-            <Icon
-              name={IconName.Danger}
+            <LegacyIcon
+              name={LegacyIconName.Danger}
               color={theme.colors.error.default}
-              size={IconSize.Lg}
+              size={LegacyIconSize.Lg}
             />
           </View>
         );
