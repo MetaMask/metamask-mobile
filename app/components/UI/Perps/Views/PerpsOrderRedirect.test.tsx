@@ -34,7 +34,7 @@ jest.mock('../hooks/usePerpsToasts', () => ({
   default: jest.fn(),
 }));
 
-const MockPerpsLoader = jest.fn(() => null);
+const MockPerpsLoader = jest.fn((_props: Record<string, unknown>) => null);
 jest.mock('../components/PerpsLoader', () => ({
   __esModule: true,
   default: (props: Record<string, unknown>) => MockPerpsLoader(props),
