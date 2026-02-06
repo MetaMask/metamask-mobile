@@ -695,15 +695,17 @@ class AuthenticationService {
 
   /**
    * Fetches the authentication capabilities of the device.
-   * Prioritizes biometrics first, then passcode/pincode/pattern, then password.
+   * Prioritizes Remember Me first, then biometrics, then passcode/pincode/pattern, then password.
    * iOS: "Face ID" | "Touch ID" | "Device Passcode"
    * Android: "Biometrics" | "Device PIN/Pattern"
    *
    * @param osAuthEnabled - Whether the OS-level authentication is enabled from user settings (from user preference state in Redux)
+   * @param allowLoginWithRememberMe - Whether Remember Me is enabled from user settings (from user preference state in Redux)
    * @returns {AuthCapabilities} - The authentication capabilities of the device.
    */
   getAuthCapabilities = async (
     osAuthEnabled: boolean,
+    allowLoginWithRememberMe: boolean,
   ): Promise<AuthCapabilities> => {
     try {
       // Fetch all capabilities in parallel
@@ -731,9 +733,12 @@ class AuthenticationService {
       const isAuthToggleVisible = isBiometricsAvailable || passcodeAvailable;
 
       // Derive the authentication type for keychain storage based on capabilities + user preference
+      // Priority: REMEMBER_ME > BIOMETRIC > PASSCODE > PASSWORD
       let authStorageType: AUTHENTICATION_TYPE;
 
-      if (isBiometricsAvailable && osAuthEnabled) {
+      if (allowLoginWithRememberMe) {
+        authStorageType = AUTHENTICATION_TYPE.REMEMBER_ME;
+      } else if (isBiometricsAvailable && osAuthEnabled) {
         authStorageType = AUTHENTICATION_TYPE.BIOMETRIC;
       } else if (passcodeAvailable && osAuthEnabled) {
         authStorageType = AUTHENTICATION_TYPE.PASSCODE;
@@ -751,6 +756,7 @@ class AuthenticationService {
           passcodeAvailable,
         }),
         osAuthEnabled,
+        allowLoginWithRememberMe,
         authStorageType,
       };
     } catch (error) {
@@ -761,6 +767,7 @@ class AuthenticationService {
         isAuthToggleVisible: false,
         authToggleLabel: '',
         osAuthEnabled,
+        allowLoginWithRememberMe,
         authStorageType: AUTHENTICATION_TYPE.PASSWORD,
       };
     }

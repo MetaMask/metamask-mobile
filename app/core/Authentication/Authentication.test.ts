@@ -4882,6 +4882,48 @@ describe('Authentication', () => {
       jest.clearAllMocks();
     });
 
+    describe('when allowLoginWithRememberMe is true', () => {
+      beforeEach(() => {
+        mockIsEnrolledAsync.mockResolvedValue(true);
+        mockSupportedAuthenticationTypesAsync.mockResolvedValue([
+          AuthenticationType.FACIAL_RECOGNITION,
+        ]);
+        mockGetEnrolledLevelAsync.mockResolvedValue(
+          SecurityLevel.BIOMETRIC_STRONG,
+        );
+      });
+
+      it('returns REMEMBER_ME storage type regardless of other settings', async () => {
+        const osAuthEnabled = true;
+        const allowLoginWithRememberMe = true;
+        const result = await Authentication.getAuthCapabilities(
+          osAuthEnabled,
+          allowLoginWithRememberMe,
+        );
+
+        expect(result).toEqual({
+          isBiometricsAvailable: true,
+          biometricsDisabledOnOS: false,
+          isAuthToggleVisible: true,
+          authToggleLabel: expect.any(String),
+          osAuthEnabled,
+          allowLoginWithRememberMe,
+          authStorageType: AUTHENTICATION_TYPE.REMEMBER_ME,
+        });
+      });
+
+      it('returns REMEMBER_ME even when osAuthEnabled is false', async () => {
+        const osAuthEnabled = false;
+        const allowLoginWithRememberMe = true;
+        const result = await Authentication.getAuthCapabilities(
+          osAuthEnabled,
+          allowLoginWithRememberMe,
+        );
+
+        expect(result.authStorageType).toBe(AUTHENTICATION_TYPE.REMEMBER_ME);
+      });
+    });
+
     describe('when biometrics is available', () => {
       beforeEach(() => {
         mockIsEnrolledAsync.mockResolvedValue(true);
@@ -4895,21 +4937,11 @@ describe('Authentication', () => {
 
       it('returns BIOMETRIC storage type when osAuthEnabled is true', async () => {
         const osAuthEnabled = true;
-        const result = await Authentication.getAuthCapabilities(osAuthEnabled);
-
-        expect(result).toEqual({
-          isBiometricsAvailable: true,
-          biometricsDisabledOnOS: false,
-          isAuthToggleVisible: true,
-          authToggleLabel: expect.any(String),
-          osAuthEnabled: true,
-          authStorageType: AUTHENTICATION_TYPE.BIOMETRIC,
-        });
-      });
-
-      it('returns PASSWORD storage type when osAuthEnabled is false', async () => {
-        const osAuthEnabled = false;
-        const result = await Authentication.getAuthCapabilities(osAuthEnabled);
+        const allowLoginWithRememberMe = false;
+        const result = await Authentication.getAuthCapabilities(
+          osAuthEnabled,
+          allowLoginWithRememberMe,
+        );
 
         expect(result).toEqual({
           isBiometricsAvailable: true,
@@ -4917,6 +4949,26 @@ describe('Authentication', () => {
           isAuthToggleVisible: true,
           authToggleLabel: expect.any(String),
           osAuthEnabled,
+          allowLoginWithRememberMe,
+          authStorageType: AUTHENTICATION_TYPE.BIOMETRIC,
+        });
+      });
+
+      it('returns PASSWORD storage type when osAuthEnabled is false', async () => {
+        const osAuthEnabled = false;
+        const allowLoginWithRememberMe = false;
+        const result = await Authentication.getAuthCapabilities(
+          osAuthEnabled,
+          allowLoginWithRememberMe,
+        );
+
+        expect(result).toEqual({
+          isBiometricsAvailable: true,
+          biometricsDisabledOnOS: false,
+          isAuthToggleVisible: true,
+          authToggleLabel: expect.any(String),
+          osAuthEnabled,
+          allowLoginWithRememberMe,
           authStorageType: AUTHENTICATION_TYPE.PASSWORD,
         });
       });
@@ -4933,7 +4985,11 @@ describe('Authentication', () => {
 
       it('returns PASSCODE storage type when osAuthEnabled is true', async () => {
         const osAuthEnabled = true;
-        const result = await Authentication.getAuthCapabilities(osAuthEnabled);
+        const allowLoginWithRememberMe = false;
+        const result = await Authentication.getAuthCapabilities(
+          osAuthEnabled,
+          allowLoginWithRememberMe,
+        );
 
         expect(result).toEqual({
           isBiometricsAvailable: false,
@@ -4941,13 +4997,18 @@ describe('Authentication', () => {
           isAuthToggleVisible: true,
           authToggleLabel: expect.any(String),
           osAuthEnabled,
+          allowLoginWithRememberMe,
           authStorageType: AUTHENTICATION_TYPE.PASSCODE,
         });
       });
 
       it('returns PASSWORD storage type when osAuthEnabled is false', async () => {
         const osAuthEnabled = false;
-        const result = await Authentication.getAuthCapabilities(osAuthEnabled);
+        const allowLoginWithRememberMe = false;
+        const result = await Authentication.getAuthCapabilities(
+          osAuthEnabled,
+          allowLoginWithRememberMe,
+        );
 
         expect(result).toEqual({
           isBiometricsAvailable: false,
@@ -4955,6 +5016,7 @@ describe('Authentication', () => {
           isAuthToggleVisible: true,
           authToggleLabel: expect.any(String),
           osAuthEnabled,
+          allowLoginWithRememberMe,
           authStorageType: AUTHENTICATION_TYPE.PASSWORD,
         });
       });
@@ -4968,7 +5030,10 @@ describe('Authentication', () => {
       });
 
       it('returns PASSWORD storage type regardless of osAuthEnabled', async () => {
-        const resultEnabled = await Authentication.getAuthCapabilities(true);
+        const resultEnabled = await Authentication.getAuthCapabilities(
+          true,
+          false,
+        );
 
         expect(resultEnabled.authStorageType).toBe(
           AUTHENTICATION_TYPE.PASSWORD,
@@ -4976,7 +5041,7 @@ describe('Authentication', () => {
       });
 
       it('sets isAuthToggleVisible to false', async () => {
-        const result = await Authentication.getAuthCapabilities(true);
+        const result = await Authentication.getAuthCapabilities(true, false);
 
         expect(result.isAuthToggleVisible).toBe(false);
       });
@@ -4985,9 +5050,13 @@ describe('Authentication', () => {
     describe('error handling', () => {
       it('returns default capabilities when LocalAuthentication APIs fail', async () => {
         const osAuthEnabled = true;
+        const allowLoginWithRememberMe = false;
         mockIsEnrolledAsync.mockRejectedValue(new Error('API error'));
 
-        const result = await Authentication.getAuthCapabilities(osAuthEnabled);
+        const result = await Authentication.getAuthCapabilities(
+          osAuthEnabled,
+          allowLoginWithRememberMe,
+        );
 
         expect(result).toEqual({
           isBiometricsAvailable: false,
@@ -4995,6 +5064,7 @@ describe('Authentication', () => {
           isAuthToggleVisible: false,
           authToggleLabel: '',
           osAuthEnabled,
+          allowLoginWithRememberMe,
           authStorageType: AUTHENTICATION_TYPE.PASSWORD,
         });
       });
@@ -5012,7 +5082,7 @@ describe('Authentication', () => {
       });
 
       it('calls all LocalAuthentication APIs in parallel', async () => {
-        await Authentication.getAuthCapabilities(true);
+        await Authentication.getAuthCapabilities(true, false);
 
         expect(mockIsEnrolledAsync).toHaveBeenCalledTimes(1);
         expect(mockSupportedAuthenticationTypesAsync).toHaveBeenCalledTimes(1);

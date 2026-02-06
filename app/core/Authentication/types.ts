@@ -34,6 +34,8 @@ export interface AuthCapabilities {
   authToggleLabel: string;
   /** Whether the OS-level authentication is enabled (from user preference in Redux) */
   osAuthEnabled: boolean;
-  /** The derived AUTHENTICATION_TYPE for keychain storage based on capabilities + user preference */
+  /** Whether Remember Me is enabled (from user preference in Redux) */
+  allowLoginWithRememberMe: boolean;
+  /** The derived AUTHENTICATION_TYPE for keychain storage based on capabilities + user preference. Priority: REMEMBER_ME > BIOMETRIC > PASSCODE > PASSWORD */
   authStorageType: AUTHENTICATION_TYPE;
 }
