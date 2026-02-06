@@ -452,7 +452,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ios-${{ inputs.build_name }}
-          path: ios/build/**/*.ipa
+          path: ios/build/output/*.ipa
           if-no-files-found: warn
 
       # Android: Upload artifacts
