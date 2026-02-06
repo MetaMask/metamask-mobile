@@ -218,7 +218,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 {isLong ? 'long' : 'short'}
               </Text>
               <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-                {absoluteSize} {displaySymbol}
+                {formatPositionSize(absoluteSize.toString())} {displaySymbol}
               </Text>
             </View>
           </View>
