@@ -47,7 +47,7 @@ runs:
         for key in $keys; do
           value=$(echo "$secret_json" | jq -r --arg k "$key" '.[$k]')
           # Mask each line (add-mask doesn't support multiline values)
-          printf '%s' "$value" | while IFS= read -r line; do
+          printf '%s' "$value" | while IFS= read -r line || [[ -n "$line" ]]; do
             echo "::add-mask::$line"
           done
           # Use heredoc for GITHUB_ENV to support multiline values (e.g. base64 certs)
@@ -121,5 +121,7 @@ runs:
         cp "$PROFILE_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/
         echo "✅ Installed provisioning profile"
 
+        # Add keychain to search list (codesign searches this; default-keychain alone is insufficient)
+        security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"' | xargs)
         security default-keychain -s "$KEYCHAIN_PATH"
-        echo "✅ Default keychain set"
+        echo "✅ Keychain added to search list and set as default"
