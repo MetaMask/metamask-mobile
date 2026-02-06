@@ -23,6 +23,7 @@ import Logger from '../../../../util/Logger';
  * 3. NO_CREDENTIAL - no Google account available
  * 4. NO_MATCHING_CREDENTIAL - account exists but doesn't match (contains "matching credential")
  * 5. ONE_TAP_FAILURE - generic One Tap failure (catch-all for other One Tap issues)
+ * 6. TIMEOUT - timeout errors for slow devices
  *
  * If you modify these patterns or add new ones, ensure the check order in login()
  * handles overlapping matches correctly.
@@ -33,15 +34,61 @@ const ACM_ERRORS_REGEX = {
   NO_MATCHING_CREDENTIAL: /matching credential/i,
   USER_DISABLED_FEATURE: /user disabled the feature/i,
   ONE_TAP_FAILURE: /failure response from one tap/i,
+  TIMEOUT: /timeout|timed out/i,
 };
 
 /**
+ * Wraps a promise with a timeout to prevent infinite hangs on slow devices
+ *
+ * @param promise - The promise to wrap
+ * @param timeoutMs - Timeout in milliseconds
+ * @param errorMessage - Error message if timeout occurs
+ * @returns The promise result or throws timeout error
+ */
+function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  errorMessage: string,
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      reject(new Error(errorMessage));
+    }, timeoutMs);
+
+    promise
+      .then((result) => {
+        clearTimeout(timeoutId);
+        resolve(result);
+      })
+      .catch((error) => {
+        clearTimeout(timeoutId);
+        reject(error);
+      });
+  });
+}
+
+/**
+ * Delay helper for retry logic
+ *
+ * @param ms - Delay in milliseconds
+ */
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
  * AndroidGoogleLoginHandler is the login handler for the Google login on android.
+ * Includes timeout and retry logic optimized for low-end devices.
  */
 export class AndroidGoogleLoginHandler extends BaseLoginHandler {
   readonly #scope = ['email', 'profile', 'openid'];
 
-  private retried: boolean = false;
+  private retryCount: number = 0;
+
+  // Configuration for low-end device support
+  private readonly MAX_RETRIES = 2;
+  private readonly RETRY_DELAY_MS = 2000; // 2 seconds between retries
+  private readonly LOGIN_TIMEOUT_MS = 45000; // 45 second timeout for login
 
   protected clientId: string;
 
@@ -69,86 +116,153 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
   }
 
   /**
-   * This method is used to login with google seemsless via react-native-google-acm.
+   * Reset retry state - call this before starting a new login flow
+   */
+  resetRetryState(): void {
+    this.retryCount = 0;
+  }
+
+  /**
+   * Check if error is retryable (transient errors that may succeed on retry)
+   *
+   * @param errorMessage - The error message to check
+   * @returns true if the error is retryable
+   */
+  private isRetryableError(errorMessage: string): boolean {
+    return (
+      ACM_ERRORS_REGEX.NO_CREDENTIAL.test(errorMessage) ||
+      ACM_ERRORS_REGEX.NO_MATCHING_CREDENTIAL.test(errorMessage) ||
+      ACM_ERRORS_REGEX.ONE_TAP_FAILURE.test(errorMessage) ||
+      ACM_ERRORS_REGEX.TIMEOUT.test(errorMessage)
+    );
+  }
+
+  /**
+   * Perform the actual Google sign-in with timeout wrapper
+   * This prevents infinite hangs on low-end devices where the native
+   * Android Credential Manager may be slow to respond.
+   *
+   * @returns LoginHandlerIdTokenResult on success
+   */
+  private async performSignIn(): Promise<LoginHandlerIdTokenResult> {
+    const signInPromise = signInWithGoogle({
+      serverClientId: this.clientId,
+      nonce: this.nonce,
+      autoSelectEnabled: true,
+      filterByAuthorizedAccounts: false,
+    });
+
+    // Wrap with timeout for low-end devices
+    const result = await withTimeout(
+      signInPromise,
+      this.LOGIN_TIMEOUT_MS,
+      `Google sign-in timed out after ${this.LOGIN_TIMEOUT_MS / 1000} seconds`,
+    );
+
+    if (result?.type === 'google-signin') {
+      return {
+        authConnection: this.authConnection,
+        idToken: result.idToken,
+        clientId: this.clientId,
+      };
+    }
+
+    throw new OAuthError(
+      'handleGoogleLogin: Invalid response from Google sign-in',
+      OAuthErrorType.UnknownError,
+    );
+  }
+
+  /**
+   * This method is used to login with google seamlessly via react-native-google-acm.
+   * Includes timeout and retry logic for better support on low-end devices.
    *
    * @returns LoginHandlerIdTokenResult
    */
   async login(): Promise<LoginHandlerIdTokenResult> {
     try {
-      const result = await signInWithGoogle({
-        serverClientId: this.clientId,
-        nonce: this.nonce,
-        autoSelectEnabled: true,
-        filterByAuthorizedAccounts: false,
-      });
+      const result = await this.performSignIn();
+      // Reset retry count on success
+      this.retryCount = 0;
+      return result;
+    } catch (error) {
+      Logger.log(
+        error,
+        `handleGoogleLogin: error (attempt ${this.retryCount + 1})`,
+      );
 
-      if (result?.type === 'google-signin') {
-        return {
-          authConnection: this.authConnection,
-          idToken: result.idToken,
-          clientId: this.clientId,
-        };
+      if (error instanceof OAuthError) {
+        throw error;
+      }
+
+      if (error instanceof Error) {
+        const errorMessage = error.message;
+
+        // Handle user cancellation - don't retry
+        if (ACM_ERRORS_REGEX.CANCEL.test(errorMessage)) {
+          throw new OAuthError(
+            'handleGoogleLogin: User cancelled the login process',
+            OAuthErrorType.UserCancelled,
+          );
+        }
+
+        // Handle user disabled feature - don't retry
+        if (ACM_ERRORS_REGEX.USER_DISABLED_FEATURE.test(errorMessage)) {
+          throw new OAuthError(
+            'handleGoogleLogin: User disabled One Tap sign-in feature',
+            OAuthErrorType.GoogleLoginUserDisabledOneTapFeature,
+          );
+        }
+
+        // Check if we should retry (with delay for low-end devices)
+        if (
+          this.isRetryableError(errorMessage) &&
+          this.retryCount < this.MAX_RETRIES
+        ) {
+          this.retryCount++;
+          Logger.log(
+            `handleGoogleLogin: Retrying (${this.retryCount}/${this.MAX_RETRIES}) after ${this.RETRY_DELAY_MS}ms delay`,
+          );
+          await delay(this.RETRY_DELAY_MS);
+          return await this.login();
+        }
+
+        // Map to specific error types after retries exhausted
+        if (ACM_ERRORS_REGEX.TIMEOUT.test(errorMessage)) {
+          throw new OAuthError(
+            'handleGoogleLogin: Google sign-in timed out. Please try again.',
+            OAuthErrorType.GoogleLoginOneTapFailure,
+          );
+        }
+
+        if (ACM_ERRORS_REGEX.NO_CREDENTIAL.test(errorMessage)) {
+          throw new OAuthError(
+            'handleGoogleLogin: Google login has no credential',
+            OAuthErrorType.GoogleLoginNoCredential,
+          );
+        }
+
+        if (ACM_ERRORS_REGEX.NO_MATCHING_CREDENTIAL.test(errorMessage)) {
+          throw new OAuthError(
+            'handleGoogleLogin: Google login has no matching credential',
+            OAuthErrorType.GoogleLoginNoMatchingCredential,
+          );
+        }
+
+        if (ACM_ERRORS_REGEX.ONE_TAP_FAILURE.test(errorMessage)) {
+          throw new OAuthError(
+            `handleGoogleLogin: One tap failure - ${errorMessage}`,
+            OAuthErrorType.GoogleLoginOneTapFailure,
+          );
+        }
+
+        throw new OAuthError(error, OAuthErrorType.UnknownError);
       }
 
       throw new OAuthError(
         'handleGoogleLogin: Unknown error',
         OAuthErrorType.UnknownError,
       );
-    } catch (error) {
-      Logger.log(error, 'handleGoogleLogin: error');
-      if (error instanceof OAuthError) {
-        throw error;
-      } else if (error instanceof Error) {
-        if (ACM_ERRORS_REGEX.CANCEL.test(error.message)) {
-          throw new OAuthError(
-            'handleGoogleLogin: User cancelled the login process',
-            OAuthErrorType.UserCancelled,
-          );
-        } else if (ACM_ERRORS_REGEX.USER_DISABLED_FEATURE.test(error.message)) {
-          // User has disabled One Tap sign-in feature - treat as user cancellation
-          // This should not be sent to Sentry as it's a user preference
-          throw new OAuthError(
-            'handleGoogleLogin: User disabled One Tap sign-in feature',
-            OAuthErrorType.GoogleLoginUserDisabledOneTapFeature,
-          );
-        } else if (ACM_ERRORS_REGEX.NO_CREDENTIAL.test(error.message)) {
-          if (!this.retried) {
-            this.retried = true;
-            return await this.login();
-          }
-          throw new OAuthError(
-            'handleGoogleLogin: Google login has no credential',
-            OAuthErrorType.GoogleLoginNoCredential,
-          );
-        } else if (
-          ACM_ERRORS_REGEX.NO_MATCHING_CREDENTIAL.test(error.message)
-        ) {
-          if (!this.retried) {
-            this.retried = true;
-            return await this.login();
-          }
-          throw new OAuthError(
-            'handleGoogleLogin: Google login has no matching credential',
-            OAuthErrorType.GoogleLoginNoMatchingCredential,
-          );
-        } else if (ACM_ERRORS_REGEX.ONE_TAP_FAILURE.test(error.message)) {
-          if (!this.retried) {
-            this.retried = true;
-            return await this.login();
-          }
-          throw new OAuthError(
-            `handleGoogleLogin: One tap failure - ${error.message}`,
-            OAuthErrorType.GoogleLoginOneTapFailure,
-          );
-        } else {
-          throw new OAuthError(error, OAuthErrorType.UnknownError);
-        }
-      } else {
-        throw new OAuthError(
-          'handleGoogleLogin: Unknown error',
-          OAuthErrorType.UnknownError,
-        );
-      }
     }
   }
 

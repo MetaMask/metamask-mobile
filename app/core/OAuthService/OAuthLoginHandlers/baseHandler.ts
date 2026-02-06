@@ -18,7 +18,13 @@ import { toByteArray, fromByteArray } from 'react-native-quick-base64';
 import QuickCrypto from 'react-native-quick-crypto';
 
 /**
- * Get the auth tokens from the auth server
+ * Timeout duration for auth server requests (30 seconds)
+ * This prevents infinite hangs on slow networks or low-end devices
+ */
+const AUTH_SERVER_TIMEOUT_MS = 30000;
+
+/**
+ * Get the auth tokens from the auth server with timeout support
  *
  * @param params - The params required to get the auth tokens
  * @param params.authConnection - The auth connection type (Google, Apple, etc.)
@@ -35,28 +41,48 @@ export async function getAuthTokens(
   pathname: string,
   authServerUrl: string,
 ): Promise<AuthResponse> {
-  const res = await fetch(`${authServerUrl}/${pathname}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ ...params, access_type: 'offline' }),
-  });
-
-  if (res.status === 200 || res.status === 201) {
-    const data: AuthResponse = (await res.json()) satisfies AuthResponse;
-    return data;
-  }
-
-  throw new OAuthError(
-    `AuthServer Error, request failed with status: [${
-      res.status
-    }]: ${await res.text()}`,
-    OAuthErrorType.AuthServerError,
-    {
-      status: res.status,
-    },
+  const controller = new AbortController();
+  const timeoutId = setTimeout(
+    () => controller.abort(),
+    AUTH_SERVER_TIMEOUT_MS,
   );
+
+  try {
+    const res = await fetch(`${authServerUrl}/${pathname}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ ...params, access_type: 'offline' }),
+      signal: controller.signal,
+    });
+
+    if (res.status === 200 || res.status === 201) {
+      const data: AuthResponse = (await res.json()) satisfies AuthResponse;
+      return data;
+    }
+
+    throw new OAuthError(
+      `AuthServer Error, request failed with status: [${
+        res.status
+      }]: ${await res.text()}`,
+      OAuthErrorType.AuthServerError,
+      {
+        status: res.status,
+      },
+    );
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new OAuthError(
+        `Auth server request timed out after ${AUTH_SERVER_TIMEOUT_MS / 1000} seconds`,
+        OAuthErrorType.AuthServerError,
+        { timeout: AUTH_SERVER_TIMEOUT_MS },
+      );
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 export interface BaseHandlerOptions {

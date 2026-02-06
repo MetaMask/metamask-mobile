@@ -218,7 +218,7 @@ describe('BaseLoginHandler', () => {
 
       expect(global.fetch).toHaveBeenCalledWith(
         `${mockAuthServerUrl}/auth/google`,
-        {
+        expect.objectContaining({
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -232,7 +232,8 @@ describe('BaseLoginHandler', () => {
             code_verifier: 'mock-code-verifier',
             access_type: 'offline',
           }),
-        },
+          signal: expect.any(AbortSignal),
+        }),
       );
 
       expect(result).toEqual(mockResponse);
@@ -266,7 +267,7 @@ describe('BaseLoginHandler', () => {
 
       expect(global.fetch).toHaveBeenCalledWith(
         `${mockAuthServerUrl}/auth/google`,
-        {
+        expect.objectContaining({
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -280,7 +281,8 @@ describe('BaseLoginHandler', () => {
             code_verifier: 'mock-code-verifier',
             access_type: 'offline',
           }),
-        },
+          signal: expect.any(AbortSignal),
+        }),
       );
 
       expect(result).toEqual(mockResponse);
@@ -373,7 +375,7 @@ describe('BaseLoginHandler', () => {
 
       expect(global.fetch).toHaveBeenCalledWith(
         `${mockAuthServerUrl}/${mockPathname}`,
-        {
+        expect.objectContaining({
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -387,7 +389,8 @@ describe('BaseLoginHandler', () => {
             code_verifier: 'mock-code-verifier',
             access_type: 'offline',
           }),
-        },
+          signal: expect.any(AbortSignal),
+        }),
       );
 
       expect(result).toEqual(mockResponse);
@@ -426,7 +429,7 @@ describe('BaseLoginHandler', () => {
 
       expect(global.fetch).toHaveBeenCalledWith(
         `${mockAuthServerUrl}/${mockPathname}`,
-        {
+        expect.objectContaining({
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -440,10 +443,52 @@ describe('BaseLoginHandler', () => {
             code_verifier: 'mock-code-verifier',
             access_type: 'offline',
           }),
-        },
+          signal: expect.any(AbortSignal),
+        }),
       );
 
       expect(result).toEqual(mockResponse);
+    });
+
+    it('throws timeout error when request exceeds timeout', async () => {
+      // Mock fetch to never resolve (simulating a hanging request)
+      (global.fetch as jest.Mock).mockImplementationOnce(
+        (_url: string, options: { signal: AbortSignal }) =>
+          new Promise((_, reject) => {
+            options.signal.addEventListener('abort', () => {
+              const error = new Error('Aborted');
+              error.name = 'AbortError';
+              reject(error);
+            });
+          }),
+      );
+
+      const params: HandleFlowParams = {
+        authConnection: AuthConnection.Google,
+        code: 'mock-code',
+        clientId: 'mock-client-id',
+        redirectUri: 'mock-redirect-uri',
+        codeVerifier: 'mock-code-verifier',
+        web3AuthNetwork: Web3AuthNetwork.Mainnet,
+      };
+
+      // Use jest.useFakeTimers() to fast-forward the timeout
+      jest.useFakeTimers();
+      const promise = getAuthTokens(
+        mockHandler.getAuthTokenRequestData(params),
+        mockPathname,
+        mockAuthServerUrl,
+      );
+
+      // Fast-forward past the timeout
+      jest.advanceTimersByTime(31000);
+
+      await expect(promise).rejects.toMatchObject({
+        message: expect.stringContaining('timed out'),
+        code: OAuthErrorType.AuthServerError,
+      });
+
+      jest.useRealTimers();
     });
   });
 });

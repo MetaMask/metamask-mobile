@@ -219,6 +219,17 @@ export class OAuthService {
         OAuthErrorType.LoginInProgress,
       );
     }
+
+    // Reset handler retry state before starting new login
+    // This ensures clean state for each login attempt, especially important
+    // for low-end devices where previous attempts may have failed
+    if (
+      'resetRetryState' in loginHandler &&
+      typeof loginHandler.resetRetryState === 'function'
+    ) {
+      (loginHandler as { resetRetryState: () => void }).resetRetryState();
+    }
+
     this.updateLocalState({ userClickedRehydration });
     this.#dispatchLogin();
 
