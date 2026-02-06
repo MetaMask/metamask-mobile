@@ -1,9 +1,7 @@
 import { toHex } from '@metamask/controller-utils';
 import { parseCaipAssetId, type Hex } from '@metamask/utils';
 import type { TransactionParams } from '@metamask/transaction-controller';
-// Use generateTransferData from existing mobile utils which already handles
-// ethereumjs-abi types and ABI encoding
-import { generateTransferData } from '../../../../../util/transactions';
+import { generateERC20TransferData } from '../utils/transferData';
 import { generateDepositId } from '../utils/idUtils';
 import type { PerpsProvider, PerpsPlatformDependencies } from '../types';
 import type { PerpsControllerMessenger } from '../PerpsController';
@@ -64,11 +62,11 @@ export class DepositService {
     const route = depositRoutes[0];
     const bridgeContractAddress = route.contractAddress;
 
-    // Generate transfer data for ERC-20 token transfer
-    const transferData = generateTransferData('transfer', {
-      toAddress: bridgeContractAddress,
-      amount: '0x0',
-    });
+    // Generate transfer data for ERC-20 token transfer (portable, no mobile imports)
+    const transferData = generateERC20TransferData(
+      bridgeContractAddress,
+      '0x0',
+    );
 
     // Get EVM account from selected account group via messenger
     const evmAccount = getSelectedEvmAccount(this.messenger);

@@ -1389,6 +1389,87 @@ export interface PerpsPlatformDependencies {
 
   // === Rewards (no standard messenger action in core) ===
   rewards: PerpsRewardsOperations;
+
+  // === Feature Flags (platform-specific version gating) ===
+  featureFlags: {
+    /**
+     * Validate a version-gated feature flag against current app version.
+     * Returns true if flag is enabled AND app meets minimum version,
+     * false if flag is disabled, or undefined if flag is misconfigured/overridden.
+     *
+     * Platform-specific because it uses react-native-device-info (mobile)
+     * or browser APIs (extension) to get the app version.
+     */
+    validateVersionGated(flag: VersionGatedFeatureFlag): boolean | undefined;
+  };
+}
+
+// ============================================================================
+// Market Data Formatting
+// ============================================================================
+
+/**
+ * Injectable formatters for market data transformation.
+ * Decouples marketDataTransform from mobile-specific intl/formatUtils imports.
+ *
+ * Range configs are opaque (unknown[]) because the concrete type
+ * (FiatRangeConfig on mobile) is platform-specific. The formatter
+ * implementation casts internally.
+ */
+export interface MarketDataFormatters {
+  /** Format a number as a USD volume string (e.g., '$1.2B', '$850M') */
+  formatVolume(value: number): string;
+  /** Format a number as a USD fiat string with adaptive precision */
+  formatPerpsFiat(value: number, options?: { ranges?: unknown[] }): string;
+  /** Format a number as a percentage string (e.g., '2.50%', '-1.80%') */
+  formatPercentage(percent: number): string;
+  /** Universal price ranges for formatting (opaque to portable code) */
+  priceRangesUniversal: unknown[];
+}
+
+// ============================================================================
+// Payment Token (portable replacement for mobile-only AssetType)
+// ============================================================================
+
+/**
+ * Minimal payment token for deposit flow.
+ * Only the fields actually used by PerpsController are included.
+ * Replaces the mobile-only AssetType (which extends TokenI and uses ImageSourcePropType).
+ */
+export interface PaymentToken {
+  description?: string;
+  address: string;
+  chainId?: string;
+}
+
+// ============================================================================
+// Version-gated Feature Flag (portable)
+// ============================================================================
+
+/**
+ * Structure for a version-gated feature flag from LaunchDarkly.
+ * Portable: no platform-specific imports.
+ */
+export interface VersionGatedFeatureFlag {
+  enabled: boolean;
+  minimumVersion: string;
+}
+
+/**
+ * Type guard for VersionGatedFeatureFlag.
+ * Pure logic, no platform dependencies.
+ */
+export function isVersionGatedFeatureFlag(
+  value: unknown,
+): value is VersionGatedFeatureFlag {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'enabled' in value &&
+    'minimumVersion' in value &&
+    typeof (value as { enabled: unknown }).enabled === 'boolean' &&
+    typeof (value as { minimumVersion: unknown }).minimumVersion === 'string'
+  );
 }
 
 // ============================================================================

@@ -50,8 +50,7 @@ import { DepositService } from './services/DepositService';
 import { FeatureFlagConfigurationService } from './services/FeatureFlagConfigurationService';
 import { RewardsIntegrationService } from './services/RewardsIntegrationService';
 import type { ServiceContext } from './services/ServiceContext';
-import { addTransaction } from '../../../../util/transaction-controller';
-import { type PerpsStreamChannelKey } from '../providers/PerpsStreamManager';
+// PerpsStreamChannelKey removed: using string for channel keys (PerpsStreamManager.pauseChannel takes string)
 import { WebSocketConnectionState } from '../services/HyperLiquidClientService';
 import {
   PerpsAnalyticsEvent,
@@ -111,6 +110,7 @@ import {
   type PerpsLogger,
   type PerpsActiveProviderMode,
   type PerpsProviderType,
+  type PaymentToken,
 } from './types';
 
 /** Derived type for logger options from PerpsLogger interface */
@@ -124,7 +124,7 @@ import type { Json } from '@metamask/utils';
 import { wait } from '../utils/wait';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
-import type { AssetType } from '../../../Views/confirmations/types/token';
+// PaymentToken: minimal interface for deposit flow (replaces mobile-only AssetType)
 
 /**
  * Minimal payment token stored in PerpsController state.
@@ -1055,9 +1055,9 @@ export class PerpsController extends BaseController<
    */
   private async withStreamPause<T>(
     operation: () => Promise<T>,
-    channels: PerpsStreamChannelKey[],
+    channels: string[],
   ): Promise<T> {
-    const pausedChannels: PerpsStreamChannelKey[] = [];
+    const pausedChannels: string[] = [];
     const { streamManager } = this.options.infrastructure;
 
     // Pause emission on specified channels (WebSocket stays connected)
@@ -1491,7 +1491,7 @@ export class PerpsController extends BaseController<
         getOpenOrders: () => this.getOpenOrders(),
       }),
       withStreamPause: <T>(operation: () => Promise<T>, channels: string[]) =>
-        this.withStreamPause(operation, channels as PerpsStreamChannelKey[]),
+        this.withStreamPause(operation, channels),
     });
   }
 
@@ -1639,16 +1639,13 @@ export class PerpsController extends BaseController<
       };
 
       if (placeOrder) {
-        // Use addTransaction to create transaction without navigating to confirmation screen
-        const { transactionMeta: addedTransactionMeta } = await addTransaction(
-          transaction,
-          {
-            ...defaultTransactionOptions,
-            type: TransactionType.perpsDepositAndOrder,
-          },
-        );
-        transactionMeta = addedTransactionMeta;
-        // For addTransaction, we don't get a result promise - transaction will be confirmed via useTransactionConfirm
+        // Use messenger-based addTransaction to create transaction without navigating to confirmation screen
+        const addResult = await this.submitTransaction(transaction, {
+          ...defaultTransactionOptions,
+          type: TransactionType.perpsDepositAndOrder,
+        });
+        transactionMeta = addResult.transactionMeta;
+        // For deposit+order, we don't await the result promise - transaction will be confirmed via useTransactionConfirm
         // Return a resolved promise that never resolves (transaction handled via confirmation flow)
         result = new Promise(() => {
           // Never resolves - transaction handled via confirmation flow
@@ -2995,8 +2992,8 @@ export class PerpsController extends BaseController<
    * Pass null or a token with description PERPS_CONSTANTS.PerpsBalanceTokenDescription to select Perps balance.
    * Only required fields (description, address, chainId) are stored in state.
    */
-  setSelectedPaymentToken(token: AssetType | null): void {
-    let normalized: AssetType | null = null;
+  setSelectedPaymentToken(token: PaymentToken | null): void {
+    let normalized: PaymentToken | null = null;
     if (
       token != null &&
       token.description !== PERPS_CONSTANTS.PerpsBalanceTokenDescription

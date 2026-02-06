@@ -22,7 +22,9 @@ import type {
   PerpsTraceValue,
   PerpsAnalyticsEvent,
   PerpsAnalyticsProperties,
+  VersionGatedFeatureFlag,
 } from '../controllers/types';
+import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
 
 /**
  * Type conversion helper - isolated cast for platform bridge.
@@ -200,6 +202,13 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
         Engine.context.RewardsController.getPerpsDiscountForAccount(
           caipAccountId,
         ),
+    },
+
+    // === Feature Flags ===
+    featureFlags: {
+      validateVersionGated(flag: VersionGatedFeatureFlag): boolean | undefined {
+        return validatedVersionGatedFeatureFlag(flag);
+      },
     },
   };
 }

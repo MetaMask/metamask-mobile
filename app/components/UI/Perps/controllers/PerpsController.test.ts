@@ -2766,22 +2766,24 @@ describe('PerpsController', () => {
       depositController.testSetProviders(
         new Map([['hyperliquid', mockProvider]]),
       );
-      mockAddTransaction.mockResolvedValue({
-        transactionMeta: mockTransactionMeta,
-      });
 
       await depositController.depositWithConfirmation({
         amount: '100',
         placeOrder: true,
       });
 
-      expect(mockAddTransaction).toHaveBeenCalledWith(mockTransaction, {
-        networkClientId: mockNetworkClientId,
-        origin: 'metamask',
-        type: 'perpsDepositAndOrder',
-        skipInitialGasEstimate: true,
-      });
-      // TransactionController:addTransaction should not be called for placeOrder (uses addTransaction helper instead)
+      // placeOrder uses messenger-based submitTransaction with perpsDepositAndOrder type
+      expect(depositMessengerMock).toHaveBeenCalledWith(
+        'TransactionController:addTransaction',
+        mockTransaction,
+        {
+          networkClientId: mockNetworkClientId,
+          origin: 'metamask',
+          type: 'perpsDepositAndOrder',
+          skipInitialGasEstimate: true,
+        },
+      );
+      // Should NOT also call with perpsDeposit type
       expect(depositMessengerMock).not.toHaveBeenCalledWith(
         'TransactionController:addTransaction',
         expect.anything(),

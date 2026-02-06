@@ -7,16 +7,11 @@ import {
   parseCommaSeparatedString,
   stripQuotes,
 } from '../utils/stringParseUtils';
-import {
-  validatedVersionGatedFeatureFlag,
-  isVersionGatedFeatureFlag,
-} from '../../../../../util/remoteFeatureFlag';
 import type { ServiceContext } from './ServiceContext';
 import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import type { PerpsPlatformDependencies } from '../types';
 
 jest.mock('../utils/stringParseUtils');
-jest.mock('../../../../../util/remoteFeatureFlag');
 
 describe('FeatureFlagConfigurationService', () => {
   let mockContext: ServiceContext;
@@ -106,10 +101,12 @@ describe('FeatureFlagConfigurationService', () => {
     });
 
     it('updates config when equity flag changes', () => {
-      (isVersionGatedFeatureFlag as unknown as jest.Mock).mockReturnValue(true);
-      (validatedVersionGatedFeatureFlag as jest.Mock).mockReturnValue(true);
+      // isVersionGatedFeatureFlag is now a real function from types - provide valid flag data
+      (mockDeps.featureFlags.validateVersionGated as jest.Mock).mockReturnValue(
+        true,
+      );
       mockRemoteFeatureFlagState.remoteFeatureFlags = {
-        perpsHip3Enabled: { enabled: true },
+        perpsHip3Enabled: { enabled: true, minimumVersion: '1.0.0' },
       };
 
       featureFlagConfigurationService.refreshHip3Config({
@@ -126,10 +123,12 @@ describe('FeatureFlagConfigurationService', () => {
     });
 
     it('increments version when equity flag changes', () => {
-      (isVersionGatedFeatureFlag as unknown as jest.Mock).mockReturnValue(true);
-      (validatedVersionGatedFeatureFlag as jest.Mock).mockReturnValue(true);
+      // isVersionGatedFeatureFlag is now a real function from types - provide valid flag data
+      (mockDeps.featureFlags.validateVersionGated as jest.Mock).mockReturnValue(
+        true,
+      );
       mockRemoteFeatureFlagState.remoteFeatureFlags = {
-        perpsHip3Enabled: { enabled: true },
+        perpsHip3Enabled: { enabled: true, minimumVersion: '1.0.0' },
       };
 
       featureFlagConfigurationService.refreshHip3Config({
@@ -141,9 +140,7 @@ describe('FeatureFlagConfigurationService', () => {
     });
 
     it('parses allowlist markets from comma-separated string', () => {
-      (isVersionGatedFeatureFlag as unknown as jest.Mock).mockReturnValue(
-        false,
-      );
+      // No equity flag in this test (isVersionGatedFeatureFlag returns false for non-flag objects)
       mockRemoteFeatureFlagState.remoteFeatureFlags = {
         perpsHip3AllowlistMarkets: 'BTC,ETH,SOL',
       };
@@ -162,9 +159,7 @@ describe('FeatureFlagConfigurationService', () => {
     });
 
     it('parses allowlist markets from array', () => {
-      (isVersionGatedFeatureFlag as unknown as jest.Mock).mockReturnValue(
-        false,
-      );
+      // No equity flag in this test (isVersionGatedFeatureFlag returns false for non-flag objects)
       mockRemoteFeatureFlagState.remoteFeatureFlags = {
         perpsHip3AllowlistMarkets: ['BTC', 'ETH', 'SOL'],
       };
@@ -182,9 +177,7 @@ describe('FeatureFlagConfigurationService', () => {
     });
 
     it('trims and filters empty allowlist markets from array', () => {
-      (isVersionGatedFeatureFlag as unknown as jest.Mock).mockReturnValue(
-        false,
-      );
+      // No equity flag in this test (isVersionGatedFeatureFlag returns false for non-flag objects)
       mockRemoteFeatureFlagState.remoteFeatureFlags = {
         perpsHip3AllowlistMarkets: ['BTC ', ' ETH', '  ', 'SOL'],
       };
@@ -202,9 +195,7 @@ describe('FeatureFlagConfigurationService', () => {
     });
 
     it('strips quotes from array values', () => {
-      (isVersionGatedFeatureFlag as unknown as jest.Mock).mockReturnValue(
-        false,
-      );
+      // No equity flag in this test (isVersionGatedFeatureFlag returns false for non-flag objects)
       // Mock stripQuotes to actually strip quotes for this test
       (stripQuotes as jest.Mock).mockImplementation((s: string) =>
         s.replace(/^["']|["']$/g, ''),
@@ -229,9 +220,7 @@ describe('FeatureFlagConfigurationService', () => {
     });
 
     it('skips invalid allowlist markets format', () => {
-      (isVersionGatedFeatureFlag as unknown as jest.Mock).mockReturnValue(
-        false,
-      );
+      // No equity flag in this test (isVersionGatedFeatureFlag returns false for non-flag objects)
       mockRemoteFeatureFlagState.remoteFeatureFlags = {
         perpsHip3AllowlistMarkets: 123,
       };
@@ -249,9 +238,7 @@ describe('FeatureFlagConfigurationService', () => {
     });
 
     it('parses blocklist markets from comma-separated string', () => {
-      (isVersionGatedFeatureFlag as unknown as jest.Mock).mockReturnValue(
-        false,
-      );
+      // No equity flag in this test (isVersionGatedFeatureFlag returns false for non-flag objects)
       mockRemoteFeatureFlagState.remoteFeatureFlags = {
         perpsHip3BlocklistMarkets: 'MEME,DOGE',
       };
@@ -270,9 +257,7 @@ describe('FeatureFlagConfigurationService', () => {
     });
 
     it('parses blocklist markets from array', () => {
-      (isVersionGatedFeatureFlag as unknown as jest.Mock).mockReturnValue(
-        false,
-      );
+      // No equity flag in this test (isVersionGatedFeatureFlag returns false for non-flag objects)
       mockRemoteFeatureFlagState.remoteFeatureFlags = {
         perpsHip3BlocklistMarkets: ['MEME', 'DOGE'],
       };
@@ -294,10 +279,12 @@ describe('FeatureFlagConfigurationService', () => {
       mockCurrentHip3Config.allowlistMarkets = ['BTC', 'ETH'];
       mockCurrentHip3Config.blocklistMarkets = ['MEME'];
 
-      (isVersionGatedFeatureFlag as unknown as jest.Mock).mockReturnValue(true);
-      (validatedVersionGatedFeatureFlag as jest.Mock).mockReturnValue(true);
+      // isVersionGatedFeatureFlag is now a real function from types - provide valid flag data
+      (mockDeps.featureFlags.validateVersionGated as jest.Mock).mockReturnValue(
+        true,
+      );
       mockRemoteFeatureFlagState.remoteFeatureFlags = {
-        perpsHip3Enabled: { enabled: true },
+        perpsHip3Enabled: { enabled: true, minimumVersion: '1.0.0' },
         perpsHip3AllowlistMarkets: ['BTC', 'ETH'],
         perpsHip3BlocklistMarkets: ['MEME'],
       };
@@ -313,9 +300,7 @@ describe('FeatureFlagConfigurationService', () => {
 
     it('detects change even when markets are in different order', () => {
       mockCurrentHip3Config.allowlistMarkets = ['BTC', 'ETH'];
-      (isVersionGatedFeatureFlag as unknown as jest.Mock).mockReturnValue(
-        false,
-      );
+      // No equity flag in this test (isVersionGatedFeatureFlag returns false for non-flag objects)
       mockRemoteFeatureFlagState.remoteFeatureFlags = {
         perpsHip3AllowlistMarkets: ['ETH', 'SOL'],
       };
@@ -329,10 +314,12 @@ describe('FeatureFlagConfigurationService', () => {
     });
 
     it('logs config change details', () => {
-      (isVersionGatedFeatureFlag as unknown as jest.Mock).mockReturnValue(true);
-      (validatedVersionGatedFeatureFlag as jest.Mock).mockReturnValue(true);
+      // isVersionGatedFeatureFlag is now a real function from types - provide valid flag data
+      (mockDeps.featureFlags.validateVersionGated as jest.Mock).mockReturnValue(
+        true,
+      );
       mockRemoteFeatureFlagState.remoteFeatureFlags = {
-        perpsHip3Enabled: { enabled: true },
+        perpsHip3Enabled: { enabled: true, minimumVersion: '1.0.0' },
       };
 
       featureFlagConfigurationService.refreshHip3Config({
@@ -351,11 +338,13 @@ describe('FeatureFlagConfigurationService', () => {
     });
 
     it('logs version increment', () => {
-      (isVersionGatedFeatureFlag as unknown as jest.Mock).mockReturnValue(true);
-      (validatedVersionGatedFeatureFlag as jest.Mock).mockReturnValue(true);
+      // isVersionGatedFeatureFlag is now a real function from types - provide valid flag data
+      (mockDeps.featureFlags.validateVersionGated as jest.Mock).mockReturnValue(
+        true,
+      );
       (mockContext.incrementHip3ConfigVersion as jest.Mock).mockReturnValue(42);
       mockRemoteFeatureFlagState.remoteFeatureFlags = {
-        perpsHip3Enabled: { enabled: true },
+        perpsHip3Enabled: { enabled: true, minimumVersion: '1.0.0' },
       };
 
       featureFlagConfigurationService.refreshHip3Config({
@@ -370,9 +359,7 @@ describe('FeatureFlagConfigurationService', () => {
     });
 
     it('handles empty string for allowlist markets', () => {
-      (isVersionGatedFeatureFlag as unknown as jest.Mock).mockReturnValue(
-        false,
-      );
+      // No equity flag in this test (isVersionGatedFeatureFlag returns false for non-flag objects)
       (parseCommaSeparatedString as jest.Mock).mockReturnValue([]);
       mockRemoteFeatureFlagState.remoteFeatureFlags = {
         perpsHip3AllowlistMarkets: '',
@@ -390,9 +377,7 @@ describe('FeatureFlagConfigurationService', () => {
     });
 
     it('handles empty string for blocklist markets', () => {
-      (isVersionGatedFeatureFlag as unknown as jest.Mock).mockReturnValue(
-        false,
-      );
+      // No equity flag in this test (isVersionGatedFeatureFlag returns false for non-flag objects)
       (parseCommaSeparatedString as jest.Mock).mockReturnValue([]);
       mockRemoteFeatureFlagState.remoteFeatureFlags = {
         perpsHip3BlocklistMarkets: '',

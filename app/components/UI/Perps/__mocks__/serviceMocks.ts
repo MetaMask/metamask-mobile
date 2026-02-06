@@ -57,6 +57,11 @@ export const createMockInfrastructure =
       rewards: {
         getFeeDiscount: jest.fn().mockResolvedValue(0),
       },
+
+      // === Feature Flags (platform-specific version gating) ===
+      featureFlags: {
+        validateVersionGated: jest.fn().mockReturnValue(undefined),
+      },
     }) as unknown as jest.Mocked<PerpsPlatformDependencies>;
 
 /**

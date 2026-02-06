@@ -2,15 +2,14 @@ import { hasProperty } from '@metamask/utils';
 import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import { ensureError } from '../../../../../util/errorUtils';
 import {
-  validatedVersionGatedFeatureFlag,
-  isVersionGatedFeatureFlag,
-} from '../../../../../util/remoteFeatureFlag';
-import {
   parseCommaSeparatedString,
   stripQuotes,
 } from '../utils/stringParseUtils';
 import type { ServiceContext } from './ServiceContext';
-import type { PerpsPlatformDependencies } from '../types';
+import {
+  isVersionGatedFeatureFlag,
+  type PerpsPlatformDependencies,
+} from '../types';
 
 /**
  * FeatureFlagConfigurationService
@@ -153,7 +152,7 @@ export class FeatureFlagConfigurationService {
     // Use type guard to validate before calling - validatedVersionGatedFeatureFlag also
     // handles invalid flags internally, but proper typing requires the guard
     const validatedEquity = isVersionGatedFeatureFlag(equityFlag)
-      ? validatedVersionGatedFeatureFlag(equityFlag)
+      ? this.deps.featureFlags.validateVersionGated(equityFlag)
       : undefined;
 
     this.deps.debugLogger.log('PerpsController: HIP-3 equity flag validation', {

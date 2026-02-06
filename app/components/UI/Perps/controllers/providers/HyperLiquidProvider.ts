@@ -78,7 +78,7 @@ import {
   validateOrderParams,
   validateWithdrawalParams,
 } from '../utils/hyperLiquidValidation';
-import { transformMarketData } from '../../utils/marketDataTransform';
+import { transformMarketData } from '../../utils/mobileMarketDataFormatters';
 import type {
   AccountState,
   AssetRoute,
@@ -140,7 +140,7 @@ import type {
 } from '../types';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import type { ExtendedAssetMeta, ExtendedPerpDex } from '../types/perps-types';
-import { getStreamManagerInstance } from '../../providers/PerpsStreamManager';
+// getStreamManagerInstance removed: use this.deps.streamManager instead
 
 /**
  * Type guard to check if a status is an object (not a string literal like "waitingForFill")
@@ -429,8 +429,7 @@ export class HyperLiquidProvider implements PerpsProvider {
             '[HyperLiquidProvider] WebSocket reconnected, restoring subscriptions',
           );
           await this.subscriptionService.restoreSubscriptions();
-          const streamManager = getStreamManagerInstance();
-          streamManager.clearAllChannels();
+          this.deps.streamManager.clearAllChannels();
         } catch (restoreError) {
           this.deps.debugLogger.log(
             '[HyperLiquidProvider] Failed to restore subscriptions',

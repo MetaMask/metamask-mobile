@@ -8,14 +8,14 @@ import {
 import { generateDepositId } from '../utils/idUtils';
 import { toHex } from '@metamask/controller-utils';
 import { parseCaipAssetId } from '@metamask/utils';
-import { generateTransferData } from '../../../../../util/transactions';
+import { generateERC20TransferData } from '../utils/transferData';
 import type { PerpsProvider, PerpsPlatformDependencies } from '../types';
 import type { PerpsControllerMessenger } from '../PerpsController';
 
 jest.mock('../utils/idUtils');
 jest.mock('@metamask/utils');
-// Mock generateTransferData from util/transactions
-jest.mock('../../../../../util/transactions');
+// Mock generateERC20TransferData from portable transferData util
+jest.mock('../utils/transferData');
 jest.mock('@metamask/controller-utils', () => {
   const actual = jest.requireActual('@metamask/controller-utils');
   return {
@@ -69,8 +69,8 @@ describe('DepositService', () => {
       return undefined;
     });
     (generateDepositId as jest.Mock).mockReturnValue(mockDepositId);
-    // Mock generateTransferData to return a valid ERC-20 transfer data
-    (generateTransferData as jest.Mock).mockReturnValue(
+    // Mock generateERC20TransferData to return a valid ERC-20 transfer data
+    (generateERC20TransferData as jest.Mock).mockReturnValue(
       '0xa9059cbb000000000000000000000000',
     );
     (parseCaipAssetId as jest.Mock).mockReturnValue({
