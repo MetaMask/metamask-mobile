@@ -38,7 +38,7 @@ const Settings = () => {
   const styles = createStyles(colors);
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation();
 
   const seedphraseBackedUp = useSelector(
     // TODO: Replace "any" with type

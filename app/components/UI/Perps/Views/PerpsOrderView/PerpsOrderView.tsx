@@ -1,7 +1,6 @@
 import {
   useNavigation,
   useRoute,
-  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
 import React, {
@@ -98,7 +97,6 @@ import type {
   InputMethod,
   OrderParams,
   OrderType,
-  PerpsNavigationParamList,
   Position,
 } from '../../controllers/types';
 import {
@@ -194,7 +192,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const source = TrendingFeedSessionManager.getInstance().isFromTrending
     ? 'trending'
     : undefined;
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
 

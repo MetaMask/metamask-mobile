@@ -2,7 +2,6 @@ import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-
 import {
   useNavigation,
   useRoute,
-  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
 import React, {
@@ -16,7 +15,6 @@ import { Linking, RefreshControl, ScrollView, View } from 'react-native';
 import type {
   Position,
   PerpsMarketData,
-  PerpsNavigationParamList,
   TPSLTrackingData,
 } from '../../controllers/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -167,7 +165,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const { handleUpdateTPSL } = usePerpsTPSLUpdate();
 
   // Keep direct navigation for configuration methods (setOptions, setParams)
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
   const { market: routeMarket, monitoringIntent, source } = route.params || {};

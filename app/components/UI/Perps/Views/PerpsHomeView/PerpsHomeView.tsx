@@ -15,7 +15,6 @@ import {
   useNavigation,
   useRoute,
   useFocusEffect,
-  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
 import {
@@ -74,7 +73,7 @@ import PerpsNavigationCard, {
 const PerpsHomeView = () => {
   const { styles } = useStyles(styleSheet, {});
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
   const { trackEvent, createEventBuilder } = useMetrics();

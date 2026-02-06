@@ -25,7 +25,6 @@ import NftGridItemActionSheet from './NftGridItemActionSheet';
 import NftGridHeader from './NftGridHeader';
 import NftGridSkeleton from './NftGridSkeleton';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { CollectiblesEmptyState } from '../CollectiblesEmptyState';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
@@ -45,11 +44,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../util/theme';
 import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import { useNftDetection } from '../../hooks/useNftDetection';
-
-interface NFTNavigationParamList {
-  AddAsset: { assetType: string };
-  [key: string]: undefined | object;
-}
 
 interface NftGridProps {
   isFullView?: boolean;
@@ -91,8 +85,7 @@ const NftGridContent = ({
 
 const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
   ({ isFullView = false }, ref) => {
-    const navigation =
-      useNavigation<StackNavigationProp<NFTNavigationParamList, 'AddAsset'>>();
+    const navigation = useNavigation();
     const { trackEvent, createEventBuilder } = useMetrics();
     const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
     const [longPressedCollectible, setLongPressedCollectible] =

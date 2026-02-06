@@ -60,10 +60,7 @@ import {
   handleSkipBackup,
   showSeedphraseDefinition,
 } from '../../../util/onboarding/backupUtils';
-import type {
-  ManualBackupStep1NavigationProp,
-  ManualBackupStep1RouteProp,
-} from './ManualBackupStep1.types';
+import type { ManualBackupStep1RouteProp } from './ManualBackupStep1.types';
 
 import darkBlurImage from '../../../images/dark-blur.png';
 import lightBlurImage from '../../../images/blur.png';
@@ -73,7 +70,7 @@ import lightBlurImage from '../../../images/blur.png';
  * the backup seed phrase flow
  */
 const ManualBackupStep1 = () => {
-  const navigation = useNavigation<ManualBackupStep1NavigationProp>();
+  const navigation = useNavigation();
   const route = useRoute<ManualBackupStep1RouteProp>();
   const dispatch = useDispatch();
 

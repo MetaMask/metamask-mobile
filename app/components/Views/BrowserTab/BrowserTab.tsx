@@ -90,7 +90,6 @@ import {
   type IpfsContentResult,
   WebViewNavigationEventName,
 } from './types';
-import { StackNavigationProp } from '@react-navigation/stack';
 import {
   WebViewNavigationEvent,
   WebViewErrorEvent,
@@ -148,7 +147,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
   }) => {
     // This any can be removed when react navigation is bumped to v6 - issue https://github.com/react-navigation/react-navigation/issues/9037#issuecomment-735698288
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const navigation = useNavigation<StackNavigationProp<any>>();
+    const navigation = useNavigation();
     const { styles } = useStyles(styleSheet, {});
     const [backEnabled, setBackEnabled] = useState(false);
     const [forwardEnabled, setForwardEnabled] = useState(false);

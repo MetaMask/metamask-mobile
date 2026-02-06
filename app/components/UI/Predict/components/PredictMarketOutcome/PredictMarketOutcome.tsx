@@ -7,7 +7,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Image, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -27,10 +27,7 @@ import {
   PredictOutcomeToken,
   PredictOutcome as PredictOutcomeType,
 } from '../../types';
-import {
-  PredictNavigationParamList,
-  PredictEntryPoint,
-} from '../../types/navigation';
+import { PredictEntryPoint } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import {
   formatCents,
@@ -58,8 +55,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation();
 
   const { executeGuardedAction } = usePredictActionGuard({
     providerId: market.providerId,

@@ -52,13 +52,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { fetch as netInfoFetch } from '@react-native-community/netinfo';
-import {
-  useNavigation,
-  useRoute,
-  RouteProp,
-  ParamListBase,
-} from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import {
   TraceName,
   TraceOperation,
@@ -122,7 +116,7 @@ interface OnboardingRouteParams {
 }
 
 const Onboarding = () => {
-  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+  const navigation = useNavigation();
   const route =
     useRoute<RouteProp<{ params: OnboardingRouteParams }, 'params'>>();
   const dispatch = useDispatch();

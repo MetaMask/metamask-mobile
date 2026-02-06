@@ -17,8 +17,7 @@ import { ButtonVariants } from '../../../../../component-library/components/Butt
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { PredictNavigationParamList } from '../../types/navigation';
+import { useNavigation } from '@react-navigation/native';
 import { PredictEventValues } from '../../constants/eventNames';
 import {
   usePredictBottomSheet,
@@ -36,8 +35,7 @@ const PredictAddFundsSheet = forwardRef<
   PredictAddFundsSheetProps
 >(({ onDismiss }, ref) => {
   const tw = useTailwind();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation();
   const { deposit } = usePredictDeposit();
   const { executeGuardedAction } = usePredictActionGuard({
     providerId: POLYMARKET_PROVIDER_ID,
