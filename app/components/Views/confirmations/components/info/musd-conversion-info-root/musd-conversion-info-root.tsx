@@ -7,7 +7,6 @@ import { MusdConversionIntent } from '../../../../../UI/Earn/hooks/useMusdConver
 
 export interface MusdConversionInfoRootRouteParams {
   conversionIntent: 'max' | 'custom';
-  maxValueMode?: boolean;
   token: AssetType;
 }
 
