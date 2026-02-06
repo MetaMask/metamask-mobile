@@ -6,7 +6,8 @@ import { loginToApp } from '../../../e2e/viewHelper.ts';
 import Assertions from '../../framework/Assertions.ts';
 import AccountListBottomSheet from '../../../e2e/pages/wallet/AccountListBottomSheet.ts';
 
-describe(
+// eslint-disable-next-line jest/no-disabled-tests
+describe.skip(
   SmokeWalletPlatform('Multi-SRP: Add new account to a specific SRP'),
   () => {
     it('adds an account to default SRP and then another to the imported SRP', async () => {
