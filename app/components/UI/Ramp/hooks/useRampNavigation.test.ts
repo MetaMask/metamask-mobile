@@ -16,6 +16,12 @@ import {
 import { createEligibilityFailedModalNavigationDetails } from '../components/EligibilityFailedModal/EligibilityFailedModal';
 import { createRampUnsupportedModalNavigationDetails } from '../components/RampUnsupportedModal/RampUnsupportedModal';
 
+const mockSetSelectedToken = jest.fn();
+jest.mock('./useRampsTokens', () => ({
+  useRampsTokens: () => ({
+    setSelectedToken: mockSetSelectedToken,
+  }),
+}));
 jest.mock('@react-navigation/native');
 jest.mock('@react-navigation/compat', () => ({
   withNavigation: jest.fn((component) => component),
@@ -80,6 +86,7 @@ const mockGetRampRoutingDecision =
 describe('useRampNavigation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSetSelectedToken.mockClear();
 
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
@@ -126,6 +133,7 @@ describe('useRampNavigation', () => {
 
         result.current.goToBuy(intent);
 
+        expect(mockSetSelectedToken).toHaveBeenCalledWith(intent.assetId);
         expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
           assetId: intent.assetId,
         });
@@ -148,6 +156,7 @@ describe('useRampNavigation', () => {
 
         result.current.goToBuy();
 
+        expect(mockSetSelectedToken).not.toHaveBeenCalled();
         expect(mockCreateBuildQuoteNavDetails).not.toHaveBeenCalled();
         expect(mockCreateTokenSelectionNavigationDetails).toHaveBeenCalled();
         expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
@@ -162,6 +171,7 @@ describe('useRampNavigation', () => {
 
         result.current.goToBuy(intent, { overrideUnifiedRouting: true });
 
+        expect(mockSetSelectedToken).not.toHaveBeenCalled();
         expect(mockCreateBuildQuoteNavDetails).not.toHaveBeenCalled();
         expect(mockCreateRampNavigationDetails).toHaveBeenCalledWith(
           AggregatorRampType.BUY,
@@ -186,6 +196,7 @@ describe('useRampNavigation', () => {
 
         result.current.goToBuy(intent);
 
+        expect(mockSetSelectedToken).toHaveBeenCalledWith(intent.assetId);
         expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
           assetId: intent.assetId,
         });
@@ -205,6 +216,7 @@ describe('useRampNavigation', () => {
 
           result.current.goToBuy(intent);
 
+          expect(mockSetSelectedToken).not.toHaveBeenCalled();
           expect(mockNavigate).toHaveBeenCalledWith(...navDetails);
           expect(mockCreateBuildQuoteNavDetails).not.toHaveBeenCalled();
         });
@@ -220,6 +232,7 @@ describe('useRampNavigation', () => {
 
           result.current.goToBuy(intent);
 
+          expect(mockSetSelectedToken).not.toHaveBeenCalled();
           expect(mockNavigate).toHaveBeenCalledWith(...navDetails);
           expect(mockCreateBuildQuoteNavDetails).not.toHaveBeenCalled();
         });

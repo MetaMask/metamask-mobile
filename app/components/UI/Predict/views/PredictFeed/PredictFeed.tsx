@@ -73,7 +73,7 @@ import {
   TabItem,
   TabsBar,
 } from '../../../../../component-library/components-temp/Tabs';
-import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { selectPredictHotTabFlag } from '../../selectors/featureFlags';
 
 interface FeedTab {
@@ -706,7 +706,7 @@ const PredictFeed: React.FC = () => {
           paddingTop: insets.top,
         })}
       >
-        <HeaderCenter
+        <HeaderCompactStandard
           title={strings('wallet.predict')}
           onBack={handleBackPress}
           backButtonProps={{
