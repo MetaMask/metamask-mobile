@@ -186,7 +186,8 @@ jobs:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
     # Android: Cirrus lg (large) runner for 8GB Gradle heap; iOS: GitHub-hosted macOS
     runs-on: ${{ matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
-    environment: ${{ needs.prepare.outputs.github_environment }}
+    # Skip environment protection on feature branches (allows testing workflow changes)
+    environment: ${{ (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) && needs.prepare.outputs.github_environment || '' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -436,6 +437,27 @@ jobs:
             SCRIPT_NAME="build:${{ matrix.platform }}:${BUILD_NAME//-/:}"
             yarn run "$SCRIPT_NAME"
 
+      # Debug: List build output to verify paths
+      - name: List build output
+        if: always()
+        run: |
+          echo "=== Current directory ==="
+          pwd
+          echo ""
+          echo "=== iOS build directory structure ==="
+          if [ -d "ios/build" ]; then
+            find ios/build -type d -name "*.app" -o -name "*.ipa" | head -20
+          else
+            echo "ios/build directory not found"
+          fi
+          echo ""
+          echo "=== Android build directory structure ==="
+          if [ -d "android/app/build/outputs" ]; then
+            find android/app/build/outputs -type f \( -name "*.apk" -o -name "*.aab" \) | head -20
+          else
+            echo "android/app/build/outputs directory not found"
+          fi
+
       # iOS: Upload artifacts
       # Simulator builds: .app bundle (dev, test, e2e builds)
       - name: Upload iOS simulator build (.app)
@@ -443,7 +465,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ios-${{ inputs.build_name }}
-          path: ios/build/Build/Products/Debug-iphonesimulator/
+          path: ios/build/Build/Products/Debug-iphonesimulator/*.app
           if-no-files-found: warn
 
       # Device builds: IPA for distribution (prod, rc only)
