@@ -291,8 +291,11 @@ const PerpsTabView = () => {
 
   const handleSeeAllPerps = useCallback(() => {
     navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.PERPS_HOME,
-      params: { source: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB },
+      screen: Routes.PERPS.MARKET_LIST,
+      params: {
+        defaultMarketTypeFilter: 'all',
+        source: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB,
+      },
     });
   }, [navigation]);
 

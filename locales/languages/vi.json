@@ -7484,7 +7484,7 @@
       "redeem_failure_title": "Đổi không thành công",
       "redeem_failure_description": "Vui lòng thử lại sau.",
       "reward_details": "Chi tiết phần thưởng",
-      "select_account_description": "Chọn tài khoản mà bạn muốn nhận phần thưởng này. Token sẽ được phân phối trong vòng hai tuần."
+      "select_account_description": "Chọn tài khoản mà bạn muốn nhận phần thưởng này."
     },
     "animation": {
       "could_not_load": "Không thể tải"

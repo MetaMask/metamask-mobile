@@ -147,9 +147,15 @@ export const useMerklRewards = ({
           );
           // Handle the "< 0.00001" case from renderFromTokenMinimalUnit
           // by showing "< 0.01" for consistency with 2 decimal places
-          const displayAmount = unclaimedAmount.startsWith('<')
-            ? '< 0.01'
-            : unclaimedAmount;
+          // Also ensure we always show exactly 2 decimal places for currency display
+          let displayAmount: string;
+          if (unclaimedAmount.startsWith('<')) {
+            displayAmount = '< 0.01';
+          } else {
+            // Ensure exactly 2 decimal places (e.g., "0.9" -> "0.90")
+            const numValue = parseFloat(unclaimedAmount);
+            displayAmount = numValue.toFixed(2);
+          }
           // Double-check that the rendered amount is not '0' or '0.00'
           // This handles edge cases where very small amounts round to zero
           if (
