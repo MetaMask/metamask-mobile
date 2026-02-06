@@ -1,10 +1,26 @@
 import React from 'react';
-import { useTransactionPayIsMaxAmount } from '../../../hooks/pay/useTransactionPayData';
 import { MusdConversionInfo } from '../musd-conversion-info';
 import { MusdMaxConversionInfo } from '../musd-max-conversion-info';
+import { useParams } from '../../../../../../util/navigation/navUtils';
+import { AssetType } from '../../../types/token';
+import { MusdConversionIntent } from '../../../../../UI/Earn/hooks/useMusdConversion';
+
+export interface MusdConversionInfoRootRouteParams {
+  conversionIntent: 'max' | 'custom';
+  maxValueMode?: boolean;
+  token: AssetType;
+}
 
 export const MusdConversionInfoRoot = () => {
-  const isMaxAmount = useTransactionPayIsMaxAmount();
+  const { conversionIntent } = useParams<MusdConversionInfoRootRouteParams>();
 
-  return isMaxAmount ? <MusdMaxConversionInfo /> : <MusdConversionInfo />;
+  if (!conversionIntent) {
+    throw new Error('Conversion intent is required in MusdConversionInfoRoot');
+  }
+
+  return conversionIntent === MusdConversionIntent.Max ? (
+    <MusdMaxConversionInfo />
+  ) : (
+    <MusdConversionInfo />
+  );
 };
