@@ -11,7 +11,6 @@ import {
   LOGIN_OPTIONS,
   META_METRICS_DATA_MARKETING_SECTION,
   META_METRICS_SECTION,
-  SDK_SECTION,
   SECURITY_SETTINGS_DELETE_WALLET_BUTTON,
   TURN_ON_REMEMBER_ME,
 } from './SecuritySettings.constants';
@@ -123,7 +122,6 @@ describe('SecuritySettings', () => {
     expect(getByTestId(AUTO_LOCK_SECTION)).toBeTruthy();
     expect(getByTestId(LOGIN_OPTIONS)).toBeTruthy();
     expect(getByTestId(TURN_ON_REMEMBER_ME)).toBeTruthy();
-    expect(getByTestId(SDK_SECTION)).toBeTruthy();
     expect(getByTestId(CLEAR_PRIVACY_SECTION)).toBeTruthy();
     expect(getByTestId(CLEAR_BROWSER_HISTORY_SECTION)).toBeTruthy();
     expect(getByTestId(META_METRICS_SECTION)).toBeTruthy();

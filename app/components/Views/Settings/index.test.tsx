@@ -15,6 +15,13 @@ jest.mock('../../../core', () => ({
   },
 }));
 
+// Mock whenEngineReady to prevent Jest environment teardown errors
+jest.mock('../../../core/Analytics/whenEngineReady', () => ({
+  whenEngineReady: jest.fn(() => Promise.resolve()),
+  isEngineReady: jest.fn(() => false),
+  getEngine: jest.fn(() => ({})),
+}));
+
 // Import the mocked Authentication
 import { Authentication } from '../../../core';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
@@ -59,6 +66,12 @@ jest.mock('../../../util/notifications/constants/config', () => ({
 describe('Settings', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterAll(() => {
+    jest.clearAllTimers();
+    jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   it('renders settings component with all sections', () => {
@@ -108,13 +121,6 @@ describe('Settings', () => {
     const advancedSettings = getByTestId(SettingsViewSelectorsIDs.ADVANCED);
     expect(advancedSettings).toBeDefined();
   });
-  it('renders contacts settings button', () => {
-    const { getByTestId } = renderWithProvider(<Settings />, {
-      state: initialState,
-    });
-    const contactsSettings = getByTestId(SettingsViewSelectorsIDs.CONTACTS);
-    expect(contactsSettings).toBeDefined();
-  });
   it('render feature request button', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
@@ -130,34 +136,6 @@ describe('Settings', () => {
       SettingsViewSelectorsIDs.EXPERIMENTAL,
     );
     expect(experimentalSettings).toBeDefined();
-  });
-  it('renders about metamask button', () => {
-    const { getByTestId } = renderWithProvider(<Settings />, {
-      state: initialState,
-    });
-    const aboutMetamask = getByTestId(SettingsViewSelectorsIDs.ABOUT_METAMASK);
-    expect(aboutMetamask).toBeDefined();
-  });
-  it('renders request feature button', () => {
-    const { getByTestId } = renderWithProvider(<Settings />, {
-      state: initialState,
-    });
-    const requestFeature = getByTestId(SettingsViewSelectorsIDs.REQUEST);
-    expect(requestFeature).toBeDefined();
-  });
-  it('renders contact support button', () => {
-    const { getByTestId } = renderWithProvider(<Settings />, {
-      state: initialState,
-    });
-    const contactSupport = getByTestId(SettingsViewSelectorsIDs.CONTACT);
-    expect(contactSupport).toBeDefined();
-  });
-  it('renders lock button', () => {
-    const { getByTestId } = renderWithProvider(<Settings />, {
-      state: initialState,
-    });
-    const lock = getByTestId(SettingsViewSelectorsIDs.LOCK);
-    expect(lock).toBeDefined();
   });
   it('renders permissions settings button when enabled', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {

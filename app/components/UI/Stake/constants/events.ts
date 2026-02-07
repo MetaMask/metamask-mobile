@@ -15,4 +15,5 @@ export const EVENT_LOCATIONS = {
   UNSTAKE_CONFIRMATION_VIEW: 'UnstakeConfirmationView',
   WALLET_ACTIONS_BOTTOM_SHEET: 'WalletActionsBottomSheet',
   UNIT_TEST: 'UnitTest',
+  ACCOUNTS_MENU: 'AccountsMenu',
 };
