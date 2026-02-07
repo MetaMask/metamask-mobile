@@ -163,14 +163,29 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # iOS: Setup Ruby (required for CocoaPods and bundler)
-      - name: Setup Ruby
+      # iOS: Install Ruby using rbenv (already present on Cirrus macOS runner)
+      - name: Install Ruby
         if: matrix.platform == 'ios'
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version-file: .ruby-version
-          bundler-cache: true
-          working-directory: ios
+        run: |
+          RUBY_VERSION=$(cat .ruby-version)
+          echo "📦 Installing Ruby ${RUBY_VERSION}..."
+          
+          # Install Ruby version if not already installed
+          if ! rbenv versions | grep -q "${RUBY_VERSION}"; then
+            rbenv install "${RUBY_VERSION}"
+          fi
+          
+          # Set Ruby version globally for this runner
+          rbenv global "${RUBY_VERSION}"
+          
+          # Verify installation
+          ruby --version
+          
+          # Install bundler
+          gem install bundler -v 2.5.8
+          
+          # Install gems from ios/Gemfile
+          cd ios && bundle install
 
       # iOS: Cache CocoaPods
       - name: Cache CocoaPods
