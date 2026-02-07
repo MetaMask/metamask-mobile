@@ -76,7 +76,6 @@ export const useRampNavigation = () => {
         intent?.assetId &&
         !overrideUnifiedRouting
       ) {
-        // TODO: Check for provider support for the token and pass params to BuildQuote to show an error modal
         setSelectedToken(intent.assetId);
         navigation.navigate(
           ...createBuildQuoteNavDetails({ assetId: intent.assetId }),
