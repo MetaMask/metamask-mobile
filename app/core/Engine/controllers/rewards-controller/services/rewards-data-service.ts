@@ -25,6 +25,9 @@ import type {
   LineaTokenRewardDto,
   ApplyReferralDto,
   SnapshotDto,
+  SnapshotEligibilityDto,
+  SnapshotLeaderboardDto,
+  SnapshotStatus,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -78,6 +81,27 @@ const SERVICE_NAME = 'RewardsDataService';
 
 // Default timeout for all API requests (10 seconds)
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
+
+/**
+ * Maps backend snapshot status values (uppercase) to mobile format (lowercase).
+ * Backend: UPCOMING, OPEN, CALCULATING, DISTRIBUTING, CLOSED
+ * Mobile: upcoming, live, calculating, distributing, complete
+ */
+const BACKEND_STATUS_MAP: Record<string, SnapshotStatus> = {
+  UPCOMING: 'upcoming',
+  OPEN: 'live',
+  CALCULATING: 'calculating',
+  DISTRIBUTING: 'distributing',
+  CLOSED: 'complete',
+};
+
+/**
+ * Normalizes snapshot status from backend format to mobile format.
+ * Falls back to input if already in mobile format or unknown.
+ */
+function normalizeSnapshotStatus(status: string): SnapshotStatus {
+  return BACKEND_STATUS_MAP[status] || (status as SnapshotStatus);
+}
 
 // Geolocation URLs for different environments
 const GEOLOCATION_URLS = {
@@ -196,6 +220,16 @@ export interface RewardsDataServiceGetSnapshotsAction {
   handler: RewardsDataService['getSnapshots'];
 }
 
+export interface RewardsDataServiceGetSnapshotEligibilityAction {
+  type: `${typeof SERVICE_NAME}:getSnapshotEligibility`;
+  handler: RewardsDataService['getSnapshotEligibility'];
+}
+
+export interface RewardsDataServiceGetSnapshotLeaderboardAction {
+  type: `${typeof SERVICE_NAME}:getSnapshotLeaderboard`;
+  handler: RewardsDataService['getSnapshotLeaderboard'];
+}
+
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
@@ -218,7 +252,9 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetSeasonMetadataAction
   | RewardsDataServiceGetSeasonOneLineaRewardTokensAction
   | RewardsDataServiceApplyReferralCodeAction
-  | RewardsDataServiceGetSnapshotsAction;
+  | RewardsDataServiceGetSnapshotsAction
+  | RewardsDataServiceGetSnapshotEligibilityAction
+  | RewardsDataServiceGetSnapshotLeaderboardAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -348,6 +384,14 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getSnapshots`,
       this.getSnapshots.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getSnapshotEligibility`,
+      this.getSnapshotEligibility.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getSnapshotLeaderboard`,
+      this.getSnapshotLeaderboard.bind(this),
     );
   }
 
@@ -1129,5 +1173,62 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as SnapshotDto[];
+  }
+
+  /**
+   * Get eligibility status for a snapshot.
+   * @param snapshotId - The ID of the snapshot.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The eligibility status including prerequisites with progress.
+   */
+  async getSnapshotEligibility(
+    snapshotId: string,
+    subscriptionId: string,
+  ): Promise<SnapshotEligibilityDto> {
+    const response = await this.makeRequest(
+      `/snapshots/${snapshotId}/eligibility`,
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get snapshot eligibility failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Normalize snapshot status from backend format (OPEN, UPCOMING, etc.)
+    // to mobile format (live, upcoming, etc.)
+    return {
+      ...data,
+      snapshotStatus: normalizeSnapshotStatus(data.snapshotStatus),
+    } as SnapshotEligibilityDto;
+  }
+
+  /**
+   * Get leaderboard data for a snapshot.
+   * @param snapshotId - The ID of the snapshot.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The leaderboard data including top 20 entries, totals, and user position.
+   */
+  async getSnapshotLeaderboard(
+    snapshotId: string,
+    subscriptionId: string,
+  ): Promise<SnapshotLeaderboardDto> {
+    const response = await this.makeRequest(
+      `/snapshots/${snapshotId}/leaderboard`,
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get snapshot leaderboard failed: ${response.status}`);
+    }
+
+    return (await response.json()) as SnapshotLeaderboardDto;
   }
 }

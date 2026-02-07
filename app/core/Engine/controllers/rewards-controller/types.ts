@@ -75,6 +75,77 @@ export interface ApplyReferralDto {
 }
 
 /**
+ * Type of prerequisite condition for snapshot eligibility
+ * @example 'ACTIVITY_COUNT'
+ */
+export type SnapshotPrerequisiteType = 'ACTIVITY_COUNT';
+
+/**
+ * A single prerequisite condition for snapshot eligibility
+ */
+export interface SnapshotPrerequisiteDto {
+  /**
+   * The type of prerequisite
+   * @example 'ACTIVITY_COUNT'
+   */
+  type: SnapshotPrerequisiteType;
+
+  /**
+   * Activity types that count toward this prerequisite
+   * @example ['SWAP', 'PERPS']
+   */
+  activityTypes: PointsEventEarnType[];
+
+  /**
+   * Minimum count required to satisfy this prerequisite
+   * @example 5
+   */
+  minCount: number;
+
+  /**
+   * Optional chain ID restriction for the activity
+   * @example 1
+   */
+  chainId?: number;
+
+  /**
+   * Display title for the prerequisite
+   * @example 'Complete 5 swaps'
+   */
+  title: string;
+
+  /**
+   * Display description for the prerequisite
+   * @example 'Swap tokens at least 5 times to qualify'
+   */
+  description: string;
+
+  /**
+   * Icon name to display for this prerequisite
+   * @example 'swap'
+   */
+  iconName: string;
+}
+
+/**
+ * Container for snapshot prerequisites with logical operator
+ */
+export interface SnapshotPrerequisitesDto {
+  /**
+   * Logical operator for combining conditions
+   * - AND: All conditions must be met
+   * - OR: At least one condition must be met
+   * @example 'AND'
+   */
+  logic: 'AND' | 'OR';
+
+  /**
+   * Array of prerequisite conditions
+   */
+  conditions: SnapshotPrerequisiteDto[];
+}
+
+/**
  * DTO for snapshot data from the backend
  */
 export interface SnapshotDto {
@@ -157,25 +228,156 @@ export interface SnapshotDto {
   distributedAt?: string;
 
   /**
-   * Background image for the snapshot tile
+   * Image for the snapshot tile
    */
-  backgroundImage: ThemeImage;
+  image: ThemeImage;
+
+  /**
+   * The current status of the snapshot
+   * @example SnapshotStatus.OPEN
+   */
+  status: SnapshotStatus;
+
+  /**
+   * Optional prerequisites that must be met to participate in the snapshot
+   */
+  prerequisites?: SnapshotPrerequisitesDto | null;
 }
 
 /**
- * Snapshot status derived from dates
- * - upcoming: now < opensAt
- * - live: opensAt <= now < closesAt
- * - calculating: closesAt <= now && !calculatedAt
- * - distributing: calculatedAt && !distributedAt
- * - complete: distributedAt is set
+ * Snapshot status aligned with the backend enum.
+ * - UPCOMING: now < opensAt
+ * - OPEN: opensAt <= now < closesAt
+ * - CLOSED: closesAt <= now && !calculatedAt
+ * - CALCULATED: calculatedAt && !distributedAt
+ * - DISTRIBUTED: distributedAt is set
  */
-export type SnapshotStatus =
-  | 'upcoming'
-  | 'live'
-  | 'calculating'
-  | 'distributing'
-  | 'complete';
+export enum SnapshotStatus {
+  UPCOMING = 'UPCOMING',
+  OPEN = 'OPEN',
+  CLOSED = 'CLOSED',
+  CALCULATED = 'CALCULATED',
+  DISTRIBUTED = 'DISTRIBUTED',
+}
+
+/**
+ * Extended prerequisite with eligibility status information
+ */
+export interface SnapshotPrerequisiteStatusDto {
+  /**
+   * Whether this prerequisite has been satisfied
+   * @example true
+   */
+  satisfied: boolean;
+
+  /**
+   * The user's current progress toward the requirement
+   * @example 3
+   */
+  current: number;
+
+  /**
+   * The required number of the prerequisite
+   * @example 1
+   */
+  required: number;
+}
+
+/**
+ * Response DTO for snapshot eligibility check
+ */
+export interface SnapshotEligibilityDto {
+  /**
+   * The snapshot ID this eligibility is for
+   * @example '01974010-377f-7553-a365-0c33c8130980'
+   */
+  snapshotId: string;
+
+  /**
+   * Whether the user is eligible for the snapshot
+   * @example true
+   */
+  eligible: boolean;
+
+  /**
+   * The logic operator for combining prerequisites
+   * @example 'AND'
+   */
+  prerequisiteLogic: 'AND' | 'OR';
+
+  /**
+   * Array of prerequisites with their status
+   */
+  prerequisites: SnapshotPrerequisiteStatusDto[];
+
+  /**
+   * Current status of the snapshot
+   * @example 'live'
+   */
+  snapshotStatus: SnapshotStatus;
+
+  /**
+   * Whether the user can commit points to this snapshot
+   * @example true
+   */
+  canCommit: boolean;
+}
+
+/**
+ * A single entry on the snapshot leaderboard
+ */
+export interface LeaderboardEntryDto {
+  /**
+   * The rank of this entry on the leaderboard
+   * @example 1
+   */
+  rank: number;
+
+  /**
+   * The number of points committed by this participant
+   * @example 10000
+   */
+  points: number;
+
+  /**
+   * Masked identifier for the participant (shortened address or referral code)
+   * @example '0x1234...5678'
+   */
+  identifier?: string;
+}
+
+/**
+ * Response DTO for snapshot leaderboard
+ */
+export interface SnapshotLeaderboardDto {
+  /**
+   * The unique identifier of the snapshot
+   * @example '123e4567-e89b-12d3-a456-426614174000'
+   */
+  snapshotId: string;
+
+  /**
+   * Total number of unique participants who committed points
+   * @example 1500
+   */
+  totalParticipants: number;
+
+  /**
+   * Total points committed by all participants in the snapshot
+   * @example 5000000
+   */
+  totalPointsCommitted: number;
+
+  /**
+   * Top 20 entries on the leaderboard
+   */
+  top20: LeaderboardEntryDto[];
+
+  /**
+   * The authenticated user's position on the leaderboard (null if user hasn't committed)
+   */
+  userPosition?: LeaderboardEntryDto;
+}
 
 export interface EstimateAssetDto {
   /**
@@ -762,9 +964,9 @@ export type SeasonStatusBalanceDtoState = {
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SeasonTierState = {
-  currentTier: SeasonTierDtoState;
-  nextTier: SeasonTierDtoState | null;
-  nextTierPointsNeeded: number | null;
+  currentTier?: SeasonTierDtoState;
+  nextTier?: SeasonTierDtoState;
+  nextTierPointsNeeded?: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -809,6 +1011,29 @@ export type UnlockedRewardsState = {
   lastFetched: number;
 };
 
+/**
+ * State shape for a single prerequisite in serializable form
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SnapshotPrerequisiteState = {
+  type: SnapshotPrerequisiteType;
+  activityTypes: PointsEventEarnType[];
+  minCount: number;
+  chainId?: number;
+  title: string;
+  description: string;
+  iconName: string;
+};
+
+/**
+ * State shape for prerequisites container in serializable form
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SnapshotPrerequisitesState = {
+  logic: 'AND' | 'OR';
+  conditions: SnapshotPrerequisiteState[];
+};
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SnapshotsState = {
   snapshots: {
@@ -825,11 +1050,45 @@ export type SnapshotsState = {
     closesAt: string;
     calculatedAt?: string;
     distributedAt?: string;
-    backgroundImage: {
+    image: {
       lightModeUrl: string;
       darkModeUrl: string;
     };
+    status: SnapshotStatus;
+    prerequisites?: SnapshotPrerequisitesState | null;
   }[];
+  lastFetched: number;
+};
+
+/**
+ * State shape for prerequisite status in serializable form
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SnapshotPrerequisiteStatusState = {
+  type: SnapshotPrerequisiteType;
+  activityTypes: PointsEventEarnType[];
+  minCount: number;
+  chainId?: number;
+  title: string;
+  description: string;
+  iconName: string;
+  satisfied: boolean;
+  current: number;
+};
+
+/**
+ * State shape for snapshot eligibility cache (JSON-serializable)
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SnapshotEligibilityState = {
+  eligibility: {
+    snapshotId: string;
+    eligible: boolean;
+    prerequisiteLogic: 'AND' | 'OR';
+    prerequisites: SnapshotPrerequisiteStatusState[];
+    snapshotStatus: SnapshotStatus;
+    canCommit: boolean;
+  };
   lastFetched: number;
 };
 
@@ -1166,6 +1425,7 @@ export type RewardsControllerState = {
   unlockedRewards: { [compositeId: string]: UnlockedRewardsState };
   pointsEvents: { [compositeId: string]: PointsEventsDtoState };
   snapshots: { [seasonId: string]: SnapshotsState };
+  snapshotEligibilities: { [compositeId: string]: SnapshotEligibilityState };
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.
@@ -1532,6 +1792,28 @@ export interface RewardsControllerApplyReferralCodeAction {
 }
 
 /**
+ * Action for getting snapshot eligibility status
+ */
+export interface RewardsControllerGetSnapshotEligibilityAction {
+  type: 'RewardsController:getSnapshotEligibility';
+  handler: (
+    snapshotId: string,
+    subscriptionId: string,
+  ) => Promise<SnapshotEligibilityDto>;
+}
+
+/**
+ * Action for getting snapshot leaderboard data
+ */
+export interface RewardsControllerGetSnapshotLeaderboardAction {
+  type: 'RewardsController:getSnapshotLeaderboard';
+  handler: (
+    snapshotId: string,
+    subscriptionId: string,
+  ) => Promise<SnapshotLeaderboardDto>;
+}
+
+/**
  * Actions that can be performed by the RewardsController
  */
 export type RewardsControllerActions =
@@ -1563,7 +1845,9 @@ export type RewardsControllerActions =
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerResetAllAction
-  | RewardsControllerApplyReferralCodeAction;
+  | RewardsControllerApplyReferralCodeAction
+  | RewardsControllerGetSnapshotEligibilityAction
+  | RewardsControllerGetSnapshotLeaderboardAction;
 
 /**
  * Input DTO for getting opt-in status of multiple addresses

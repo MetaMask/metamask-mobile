@@ -1,5 +1,5 @@
 import { BaseController, StateMetadata } from '@metamask/base-controller';
-import { maxBy } from 'lodash';
+import { maxBy, minBy } from 'lodash';
 import {
   type RewardsControllerState,
   type RewardsAccountState,
@@ -31,6 +31,8 @@ import {
   type SeasonMetadataDto,
   type SeasonStateDto,
   type LineaTokenRewardDto,
+  type SnapshotEligibilityDto,
+  type SnapshotLeaderboardDto,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import {
@@ -92,6 +94,9 @@ const UNLOCKED_REWARDS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Snapshots cache threshold
 const SNAPSHOTS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+
+// Snapshot eligibility cache threshold
+const SNAPSHOT_ELIGIBILITY_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Points events cache threshold (first page only)
 const POINTS_EVENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache
@@ -166,6 +171,12 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
+  snapshotEligibilities: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
   pointsEstimateHistory: {
     includeInStateLogs: true,
     persist: true,
@@ -188,6 +199,7 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   unlockedRewards: {},
   pointsEvents: {},
   snapshots: {},
+  snapshotEligibilities: {},
   pointsEstimateHistory: [],
 });
 
@@ -293,6 +305,21 @@ export class RewardsController extends BaseController<
     currentTierId: string,
     currentPoints: number,
   ): SeasonTierState {
+    // Season without tiers maybe?
+    if (
+      !currentTierId ||
+      currentTierId === '00000000-0000-0000-0000-000000000000'
+    ) {
+      const lowestTier = seasonTiers?.length
+        ? minBy(seasonTiers, 'pointsNeeded')
+        : undefined;
+      return {
+        currentTier: lowestTier ?? undefined,
+        nextTier: lowestTier ?? undefined,
+        nextTierPointsNeeded: lowestTier?.pointsNeeded ?? undefined,
+      };
+    }
+
     // Sort tiers by points needed (ascending)
     const sortedTiers = [...seasonTiers].sort(
       (a, b) => a.pointsNeeded - b.pointsNeeded,
@@ -322,8 +349,8 @@ export class RewardsController extends BaseController<
 
     return {
       currentTier,
-      nextTier,
-      nextTierPointsNeeded,
+      nextTier: nextTier ?? undefined,
+      nextTierPointsNeeded: nextTierPointsNeeded ?? undefined,
     };
   }
 
@@ -572,6 +599,14 @@ export class RewardsController extends BaseController<
       'RewardsController:applyReferralCode',
       this.applyReferralCode.bind(this),
     );
+    this.messenger.registerActionHandler(
+      'RewardsController:getSnapshotEligibility',
+      this.getSnapshotEligibility.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:getSnapshotLeaderboard',
+      this.getSnapshotLeaderboard.bind(this),
+    );
   }
 
   /**
@@ -642,6 +677,16 @@ export class RewardsController extends BaseController<
     subscriptionId: string,
   ): string {
     return `${seasonId}:${subscriptionId}`;
+  }
+
+  /**
+   * Create composite key for snapshot-specific state storage
+   */
+  private createSnapshotSubscriptionCompositeKey(
+    snapshotId: string,
+    subscriptionId: string,
+  ): string {
+    return `${snapshotId}:${subscriptionId}`;
   }
 
   /**
@@ -3157,6 +3202,110 @@ export class RewardsController extends BaseController<
     });
 
     return result;
+  }
+
+  /**
+   * Get snapshot eligibility status.
+   * @param snapshotId - The snapshot ID to get eligibility for
+   * @param subscriptionId - The subscription ID for authentication
+   * @returns The eligibility status including prerequisites with progress
+   */
+  async getSnapshotEligibility(
+    snapshotId: string,
+    subscriptionId: string,
+  ): Promise<SnapshotEligibilityDto> {
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) {
+      throw new Error('Rewards are not enabled');
+    }
+    if (!this.#isSnapshotsEnabled()) {
+      throw new Error('Snapshots feature is not enabled');
+    }
+
+    const result = await wrapWithCache<SnapshotEligibilityDto>({
+      key: this.createSnapshotSubscriptionCompositeKey(
+        snapshotId,
+        subscriptionId,
+      ),
+      ttl: SNAPSHOT_ELIGIBILITY_CACHE_THRESHOLD_MS,
+      readCache: (key) => {
+        const cached = this.state.snapshotEligibilities[key] || undefined;
+        if (!cached) return;
+        return {
+          payload: cached.eligibility,
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () => {
+        try {
+          Logger.log(
+            'RewardsController: Fetching fresh snapshot eligibility via API call for snapshotId',
+            snapshotId,
+          );
+          const response = (await this.messenger.call(
+            'RewardsDataService:getSnapshotEligibility',
+            snapshotId,
+            subscriptionId,
+          )) as SnapshotEligibilityDto;
+          return response;
+        } catch (error) {
+          Logger.log(
+            'RewardsController: Failed to get snapshot eligibility:',
+            error instanceof Error ? error.message : String(error),
+          );
+          throw error;
+        }
+      },
+      writeCache: (key, payload) => {
+        this.update((state: RewardsControllerState) => {
+          state.snapshotEligibilities[key] = {
+            eligibility: payload,
+            lastFetched: Date.now(),
+          };
+        });
+      },
+    });
+
+    return result;
+  }
+
+  /**
+   * Get leaderboard data for a snapshot.
+   * Note: No client-side caching as the backend handles caching (3-min TTL when snapshot is OPEN).
+   * @param snapshotId - The snapshot ID
+   * @param subscriptionId - The subscription ID for authentication
+   * @returns The leaderboard data including top 20 entries, totals, and user position
+   */
+  async getSnapshotLeaderboard(
+    snapshotId: string,
+    subscriptionId: string,
+  ): Promise<SnapshotLeaderboardDto> {
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) {
+      throw new Error('Rewards are not enabled');
+    }
+    if (!this.#isSnapshotsEnabled()) {
+      throw new Error('Snapshots feature is not enabled');
+    }
+
+    try {
+      Logger.log(
+        'RewardsController: Fetching snapshot leaderboard via API call for snapshotId',
+        snapshotId,
+      );
+      const response = (await this.messenger.call(
+        'RewardsDataService:getSnapshotLeaderboard',
+        snapshotId,
+        subscriptionId,
+      )) as SnapshotLeaderboardDto;
+      return response;
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to get snapshot leaderboard:',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
   }
 
   /**
