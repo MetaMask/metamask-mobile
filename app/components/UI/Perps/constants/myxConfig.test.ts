@@ -37,8 +37,8 @@ describe('myxConfig', () => {
       expect(fromMYXPrice(myxPrice)).toBe(65000);
     });
 
-    it('returns NaN for non-numeric string (BigNumber does not throw)', () => {
-      expect(fromMYXPrice('not-a-number')).toBeNaN();
+    it('returns 0 for invalid string', () => {
+      expect(fromMYXPrice('not-a-number')).toBe(0);
     });
   });
 
@@ -59,8 +59,8 @@ describe('myxConfig', () => {
       expect(result).toBe(expected);
     });
 
-    it('returns "NaN" for non-numeric string (BigNumber does not throw)', () => {
-      expect(toMYXPrice('invalid')).toBe('NaN');
+    it('returns "0" for invalid string', () => {
+      expect(toMYXPrice('invalid')).toBe('0');
     });
   });
 
@@ -80,8 +80,8 @@ describe('myxConfig', () => {
       expect(fromMYXSize('')).toBe(0);
     });
 
-    it('returns NaN for non-numeric string', () => {
-      expect(fromMYXSize('xyz')).toBeNaN();
+    it('returns 0 for invalid string', () => {
+      expect(fromMYXSize('xyz')).toBe(0);
     });
   });
 
@@ -102,8 +102,8 @@ describe('myxConfig', () => {
       expect(result).toBe(expected);
     });
 
-    it('returns "NaN" for non-numeric string', () => {
-      expect(toMYXSize('bad')).toBe('NaN');
+    it('returns "0" for invalid string', () => {
+      expect(toMYXSize('bad')).toBe('0');
     });
   });
 
@@ -124,8 +124,8 @@ describe('myxConfig', () => {
       expect(fromMYXCollateral('')).toBe(0);
     });
 
-    it('returns NaN for non-numeric string', () => {
-      expect(fromMYXCollateral('garbage')).toBeNaN();
+    it('returns 0 for invalid string', () => {
+      expect(fromMYXCollateral('garbage')).toBe(0);
     });
   });
 

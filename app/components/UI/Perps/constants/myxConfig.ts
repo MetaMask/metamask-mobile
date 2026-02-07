@@ -127,6 +127,7 @@ export function fromMYXPrice(myxPrice: string): number {
 
   try {
     const bn = new BigNumber(myxPrice);
+    if (bn.isNaN()) return 0;
     const divisor = new BigNumber(10).pow(MYX_PRICE_DECIMALS);
     return bn.dividedBy(divisor).toNumber();
   } catch {
@@ -142,6 +143,7 @@ export function fromMYXPrice(myxPrice: string): number {
 export function toMYXPrice(price: number | string): string {
   try {
     const bn = new BigNumber(price);
+    if (bn.isNaN()) return '0';
     const multiplier = new BigNumber(10).pow(MYX_PRICE_DECIMALS);
     return bn.multipliedBy(multiplier).toFixed(0);
   } catch {
@@ -159,6 +161,7 @@ export function fromMYXSize(myxSize: string): number {
 
   try {
     const bn = new BigNumber(myxSize);
+    if (bn.isNaN()) return 0;
     const divisor = new BigNumber(10).pow(MYX_SIZE_DECIMALS);
     return bn.dividedBy(divisor).toNumber();
   } catch {
@@ -174,6 +177,7 @@ export function fromMYXSize(myxSize: string): number {
 export function toMYXSize(size: number | string): string {
   try {
     const bn = new BigNumber(size);
+    if (bn.isNaN()) return '0';
     const multiplier = new BigNumber(10).pow(MYX_SIZE_DECIMALS);
     return bn.multipliedBy(multiplier).toFixed(0);
   } catch {
@@ -191,6 +195,7 @@ export function fromMYXCollateral(myxCollateral: string): number {
 
   try {
     const bn = new BigNumber(myxCollateral);
+    if (bn.isNaN()) return 0;
     const divisor = new BigNumber(10).pow(MYX_COLLATERAL_DECIMALS);
     return bn.dividedBy(divisor).toNumber();
   } catch {
