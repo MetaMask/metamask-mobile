@@ -79,7 +79,7 @@ describe('useAddressTrustSignals', () => {
       });
     });
 
-    it('returns Unknown state for benign address', () => {
+    it('returns Unknown state for benign address without label', () => {
       const requests = [{ address: TEST_ADDRESS_1, chainId: TEST_CHAIN_ID }];
 
       const { result } = renderHookWithProvider(
@@ -109,6 +109,40 @@ describe('useAddressTrustSignals', () => {
       expect(result.current[0]).toEqual({
         state: TrustSignalDisplayState.Unknown,
         label: null,
+      });
+    });
+
+    it('returns Verified state for benign address with label', () => {
+      const requests = [{ address: TEST_ADDRESS_1, chainId: TEST_CHAIN_ID }];
+
+      const { result } = renderHookWithProvider(
+        () => useAddressTrustSignals(requests),
+        {
+          state: {
+            engine: {
+              backgroundState: {
+                PhishingController: {
+                  // @ts-expect-error - AddressScanResultType is not exported in PhishingController
+                  addressScanCache: {
+                    [`${TEST_CHAIN_ID.toLowerCase()}:${TEST_ADDRESS_1.toLowerCase()}`]:
+                      {
+                        data: {
+                          result_type: 'Benign',
+                          label: 'OpenSea: NFT Marketplace',
+                        },
+                      },
+                  },
+                },
+              },
+            },
+          },
+        },
+      );
+
+      expect(result.current).toHaveLength(1);
+      expect(result.current[0]).toEqual({
+        state: TrustSignalDisplayState.Verified,
+        label: 'OpenSea: NFT Marketplace',
       });
     });
 
