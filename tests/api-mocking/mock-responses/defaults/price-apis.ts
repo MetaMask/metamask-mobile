@@ -1,4 +1,5 @@
 import { MockEventsObject } from '../../../framework';
+import { MUSD_MAINNET } from '../../../constants/musd-mainnet.ts';
 
 /**
  * Mock data for cryptocurrency price API endpoints used in E2E testing.
@@ -9,7 +10,7 @@ export const PRICE_API_MOCKS: MockEventsObject = {
   GET: [
     {
       urlEndpoint:
-        /^https:\/\/price\.api\.cx\.metamask\.io\/v1\/supportedVsCurrencies$/,
+        /https:\/\/price\.api\.cx\.metamask\.io\/v1\/supportedVsCurrencies/,
       responseCode: 200,
       response: [
         'usd',
@@ -68,7 +69,7 @@ export const PRICE_API_MOCKS: MockEventsObject = {
     },
     {
       urlEndpoint:
-        /^https:\/\/price\.api\.cx\.metamask\.io\/v2\/supportedNetworks$/,
+        /https:\/\/price\.api\.cx\.metamask\.io\/v2\/supportedNetworks/,
       responseCode: 200,
       response: [
         'eip155:1',
@@ -96,8 +97,7 @@ export const PRICE_API_MOCKS: MockEventsObject = {
       ],
     },
     {
-      urlEndpoint:
-        /^https:\/\/price\.api\.cx\.metamask\.io\/v1\/exchange-rates\?baseCurrency=.*$/,
+      urlEndpoint: /https:\/\/price\.api\.cx\.metamask\.io\/v1\/exchange-rates/,
       responseCode: 200,
       response: {
         usd: {
@@ -140,37 +140,106 @@ export const PRICE_API_MOCKS: MockEventsObject = {
       },
     },
     {
-      urlEndpoint:
-        /^https:\/\/price\.api\.cx\.metamask\.io\/v3\/spot-prices(\?.*)?$/,
+      // v3/spot-prices with full market data matching the live API response format.
+      // Requests include includeMarketData=true, so response must include market data fields.
+      urlEndpoint: /https:\/\/price\.api\.cx\.metamask\.io\/v3\/spot-prices/,
       responseCode: 200,
       response: {
-        'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f': {
-          usd: 0.999588,
-          eth: 0.000233,
-        },
+        // Ethereum Mainnet
         'eip155:1/slip44:60': {
-          usd: 4280.15,
+          price: 4291.85,
+          usd: 4291.85,
           eth: 1.0,
+          marketCap: 516000000000,
+          allTimeHigh: 4878.26,
+          allTimeLow: 0.43,
+          totalVolume: 15000000000,
+          high1d: 4350.0,
+          low1d: 4200.0,
+          circulatingSupply: 120000000,
+          dilutedMarketCap: 516000000000,
+          marketCapPercentChange1d: -1.5,
+          priceChange1d: -65.0,
+          pricePercentChange1h: -0.2,
+          pricePercentChange1d: -1.5,
+          pricePercentChange7d: 2.3,
+          pricePercentChange14d: 5.1,
+          pricePercentChange30d: 8.7,
+          pricePercentChange200d: 45.2,
+          pricePercentChange1y: 120.5,
+        },
+        // Linea (ETH on Linea)
+        'eip155:59144/slip44:60': {
+          price: 4291.85,
+          usd: 4291.85,
+          eth: 1.0,
+          marketCap: 516000000000,
+          allTimeHigh: 4878.26,
+          allTimeLow: 0.43,
+          totalVolume: 15000000000,
+          high1d: 4350.0,
+          low1d: 4200.0,
+          pricePercentChange1d: -1.5,
+        },
+        // Bitcoin
+        'bip122:000000000019d6689c085ae165831e93/slip44:0': {
+          price: 100000,
+          usd: 100000,
+          eth: 23.3,
+          marketCap: 1950000000000,
+          allTimeHigh: 108000,
+          allTimeLow: 67.81,
+          totalVolume: 35000000000,
+          high1d: 101500,
+          low1d: 98500,
+          pricePercentChange1d: -0.8,
+        },
+        // Solana
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': {
+          price: 75,
+          usd: 75,
+          eth: 0.0175,
+          marketCap: 35000000000,
+          pricePercentChange1d: -2.1,
+        },
+        // Polygon
+        'eip155:137/slip44:966': {
+          price: 0.5,
+          usd: 0.5,
+          eth: 0.000116,
+          marketCap: 5000000000,
+          pricePercentChange1d: -1.2,
+        },
+        // Common ERC20 tokens
+        'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f': {
+          price: 1.0,
+          usd: 1.0,
+          eth: 0.000233,
+          pricePercentChange1d: 0.01,
         },
         'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': {
+          price: 1.0,
           usd: 1.0,
           eth: 0.000233,
+          pricePercentChange1d: 0.0,
         },
-        'eip155:137/erc20:0x2791bca1f2de4661ed88a30c99a7a9449aa84174': {
-          usd: 1.0,
-          eth: 0.000344,
+        'eip155:1/erc20:0xdac17f958d2ee523a2206206994597c13d831ec7': {
           price: 1.0,
+          usd: 1.0,
+          eth: 0.000233,
+          pricePercentChange1d: -0.01,
         },
-        'eip155:137/slip44:966': {
-          usd: 1.0,
+        // mUSD (MetaMask USD) - used by mUSD conversion E2E
+        [`eip155:1/erc20:${MUSD_MAINNET}`]: {
           price: 1.0,
-          eth: 0.000344,
+          usd: 1.0,
+          eth: 0.000233,
+          pricePercentChange1d: 0.0,
         },
       },
     },
     {
-      urlEndpoint:
-        /^https:\/\/min-api\.cryptocompare\.com\/data\/pricemulti\?.*$/,
+      urlEndpoint: /https:\/\/min-api\.cryptocompare\.com\/data\/pricemulti/,
       responseCode: 200,
       response: {
         BTC: { USD: 120000 },
@@ -183,13 +252,13 @@ export const PRICE_API_MOCKS: MockEventsObject = {
       },
     },
     {
-      urlEndpoint: /^https:\/\/min-api\.cryptocompare\.com\/data\/price\?.*$/,
+      urlEndpoint: /https:\/\/min-api\.cryptocompare\.com\/data\/price/,
       responseCode: 200,
       response: {},
     },
     {
       urlEndpoint:
-        /^https:\/\/price\.api\.cx\.metamask\.io\/v2\/chains\/\d+\/spot-prices\?.*$/,
+        /https:\/\/price\.api\.cx\.metamask\.io\/v2\/chains\/\d+\/spot-prices/,
       responseCode: 200,
       response: {
         '0x0000000000000000000000000000000000000000': {
@@ -234,11 +303,46 @@ export const PRICE_API_MOCKS: MockEventsObject = {
           pricePercentChange200d: 0,
           pricePercentChange1y: 0,
         },
+        [MUSD_MAINNET]: {
+          id: 'metamask-usd',
+          price: 1.0,
+          marketCap: 120000000,
+          allTimeHigh: 1.1,
+          allTimeLow: 0.1,
+          totalVolume: 9000000,
+          high1d: 1.05,
+          low1d: 0.95,
+          circulatingSupply: 120000000,
+          dilutedMarketCap: 120000000,
+          marketCapPercentChange1d: 0,
+          priceChange1d: 0,
+          pricePercentChange1h: 0,
+          pricePercentChange1d: 0,
+          pricePercentChange7d: 0,
+          pricePercentChange14d: 0,
+          pricePercentChange30d: 0,
+          pricePercentChange200d: 0,
+          pricePercentChange1y: 0,
+        },
       },
     },
     {
       urlEndpoint:
-        /^https:\/\/price\.api\.cx\.metamask\.io\/v1\/chains\/\d+\/historical-prices\/0x[a-fA-F0-9]{40}\?.*$/,
+        /https:\/\/price\.api\.cx\.metamask\.io\/v3\/historical-prices/,
+      responseCode: 200,
+      response: {
+        prices: [
+          [1756219032177, 1.0],
+          [1756219379449, 1.0],
+          [1756219657580, 1.0],
+          [1756219967818, 1.0],
+          [1756220274872, 1.0],
+        ],
+      },
+    },
+    {
+      urlEndpoint:
+        /https:\/\/price\.api\.cx\.metamask\.io\/v1\/chains\/\d+\/historical-prices/,
       responseCode: 200,
       response: {
         prices: [
