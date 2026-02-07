@@ -175,12 +175,12 @@ const AssetStackFlow = (props) => (
     }}
   >
     <Stack.Screen
-      name={'Asset'}
+      name="Asset"
       component={TokenDetails}
       initialParams={props.route.params}
     />
     <Stack.Screen
-      name={'AssetDetails'}
+      name="AssetDetails"
       component={AssetDetails}
       initialParams={{ address: props.route.params?.address }}
     />
@@ -194,11 +194,11 @@ const AssetStackFlow = (props) => (
 
 const AssetNavigator = (props) => (
   <Stack.Navigator
-    initialRouteName={'AssetStackFlow'}
+    initialRouteName="AssetStackFlow"
     screenOptions={clearStackNavigatorOptions}
   >
     <Stack.Screen
-      name={'AssetStackFlow'}
+      name="AssetStackFlow"
       component={AssetStackFlow}
       initialParams={props.route.params}
     />
@@ -207,9 +207,9 @@ const AssetNavigator = (props) => (
 /* eslint-enable react/prop-types */
 
 const WalletTabStackFlow = () => (
-  <Stack.Navigator initialRouteName={'WalletView'}>
+  <Stack.Navigator initialRouteName={Routes.WALLET_VIEW}>
     <Stack.Screen
-      name="WalletView"
+      name={Routes.WALLET_VIEW}
       component={WalletModalFlow}
       options={{ headerShown: false }}
     />
@@ -366,19 +366,22 @@ const SettingsFlow = () => (
       options={{ headerShown: false }}
     />
     <Stack.Screen
-      name="GeneralSettings"
+      name={Routes.ONBOARDING.GENERAL_SETTINGS}
       component={GeneralSettings}
       options={{ headerShown: false }}
     />
     <Stack.Screen
-      name="AdvancedSettings"
+      name={Routes.SETTINGS.ADVANCED_SETTINGS}
       component={AdvancedSettings}
       options={AdvancedSettings.navigationOptions}
     />
-    <Stack.Screen name="SDKSessionsManager" component={SDKSessionsManager} />
+    <Stack.Screen
+      name={Routes.SETTINGS.SDK_SESSIONS_MANAGER}
+      component={SDKSessionsManager}
+    />
     <Stack.Screen name="PermissionsManager" component={PermissionsManager} />
     <Stack.Screen
-      name="SecuritySettings"
+      name={Routes.SETTINGS.SECURITY_SETTINGS}
       component={SecuritySettings}
       options={SecuritySettings.navigationOptions}
     />
@@ -404,7 +407,7 @@ const SettingsFlow = () => (
       )
     }
     <Stack.Screen
-      name="ExperimentalSettings"
+      name={Routes.SETTINGS.EXPERIMENTAL_SETTINGS}
       component={ExperimentalSettings}
       options={ExperimentalSettings.navigationOptions}
     />
@@ -427,7 +430,7 @@ const SettingsFlow = () => (
       options={Contacts.navigationOptions}
     />
     <Stack.Screen
-      name="ContactForm"
+      name={Routes.SETTINGS.CONTACT_FORM}
       component={ContactForm}
       options={ContactForm.navigationOptions}
     />
@@ -449,7 +452,7 @@ const SettingsFlow = () => (
       options={WalletConnectSessions.navigationOptions}
     />
     <Stack.Screen
-      name="ResetPassword"
+      name={Routes.SETTINGS.CHANGE_PASSWORD}
       component={ResetPassword}
       options={ResetPassword.navigationOptions}
     />
@@ -459,22 +462,22 @@ const SettingsFlow = () => (
       options={WalletRecovery.navigationOptions}
     />
     <Stack.Screen
-      name="AccountBackupStep1B"
+      name={Routes.ACCOUNT_BACKUP.STEP_1_B}
       component={AccountBackupStep1B}
       options={AccountBackupStep1B.navigationOptions}
     />
     <Stack.Screen
-      name="ManualBackupStep1"
+      name={Routes.ONBOARDING.MANUAL_BACKUP.STEP_1}
       component={ManualBackupStep1}
       options={ManualBackupStep1.navigationOptions}
     />
     <Stack.Screen
-      name="ManualBackupStep2"
+      name={Routes.ONBOARDING.MANUAL_BACKUP.STEP_2}
       component={ManualBackupStep2}
       options={ManualBackupStep2.navigationOptions}
     />
     <Stack.Screen
-      name="ManualBackupStep3"
+      name={Routes.ONBOARDING.MANUAL_BACKUP.STEP_3}
       component={ManualBackupStep3}
       options={ManualBackupStep3.navigationOptions}
     />
@@ -742,7 +745,7 @@ const HomeTabs = () => {
 const Webview = () => (
   <Stack.Navigator>
     <Stack.Screen
-      name="SimpleWebview"
+      name={Routes.WEBVIEW.SIMPLE}
       component={SimpleWebview}
       mode={'modal'}
     />
@@ -778,7 +781,7 @@ const NftDetailsFullImageModeView = (props) => (
 const AddBookmarkView = () => (
   <Stack.Navigator>
     <Stack.Screen
-      name="AddBookmark"
+      name="AddBookmarkView"
       component={AddBookmark}
       options={AddBookmark.navigationOptions}
     />
@@ -788,7 +791,7 @@ const AddBookmarkView = () => (
 const OfflineModeView = () => (
   <Stack.Navigator>
     <Stack.Screen
-      name="OfflineMode"
+      name="OfflineModeView"
       component={OfflineMode}
       options={OfflineMode.navigationOptions}
     />
@@ -798,7 +801,7 @@ const OfflineModeView = () => (
 const PaymentRequestView = () => (
   <Stack.Navigator>
     <Stack.Screen
-      name="PaymentRequest"
+      name="PaymentRequestView"
       component={PaymentRequest}
       options={PaymentRequest.navigationOptions}
     />
@@ -835,7 +838,7 @@ const NotificationsModeView = (props) => (
       options={NotificationsDetails.navigationOptions}
     />
     <Stack.Screen
-      name="ContactForm"
+      name={Routes.SETTINGS.CONTACT_FORM}
       component={ContactForm}
       options={ContactForm.navigationOptions}
     />
@@ -845,7 +848,7 @@ const NotificationsModeView = (props) => (
 const SetPasswordFlow = () => (
   <Stack.Navigator>
     <Stack.Screen
-      name="ChoosePassword"
+      name={Routes.ONBOARDING.CHOOSE_PASSWORD}
       component={ChoosePassword}
       options={ChoosePassword.navigationOptions}
     />
@@ -855,27 +858,27 @@ const SetPasswordFlow = () => (
       options={{ headerShown: false, gestureEnabled: false }}
     />
     <Stack.Screen
-      name="AccountBackupStep1B"
+      name={Routes.ACCOUNT_BACKUP.STEP_1_B}
       component={AccountBackupStep1B}
       options={AccountBackupStep1B.navigationOptions}
     />
     <Stack.Screen
-      name="ManualBackupStep1"
+      name={Routes.SET_PASSWORD_FLOW.MANUAL_BACKUP_STEP_1}
       component={ManualBackupStep1}
       options={ManualBackupStep1.navigationOptions}
     />
     <Stack.Screen
-      name="ManualBackupStep2"
+      name={Routes.SET_PASSWORD_FLOW.MANUAL_BACKUP_STEP_2}
       component={ManualBackupStep2}
       options={ManualBackupStep2.navigationOptions}
     />
     <Stack.Screen
-      name="ManualBackupStep3"
+      name={Routes.SET_PASSWORD_FLOW.MANUAL_BACKUP_STEP_3}
       component={ManualBackupStep3}
       options={ManualBackupStep3.navigationOptions}
     />
     <Stack.Screen
-      name="OptinMetrics"
+      name={Routes.ONBOARDING.OPTIN_METRICS}
       component={OptinMetrics}
       options={OptinMetrics.navigationOptions}
     />
@@ -911,7 +914,7 @@ const MainNavigator = () => {
         headerShown: false,
       }}
       mode={'modal'}
-      initialRouteName={'Home'}
+      initialRouteName="Home"
     >
       <Stack.Screen
         name="CollectiblesDetails"
@@ -1004,7 +1007,7 @@ const MainNavigator = () => {
         }}
       />
       <Stack.Screen
-        name="TrendingTokensFullView"
+        name={Routes.WALLET.TRENDING_TOKENS_FULL_VIEW}
         component={TrendingTokensFullView}
         options={{
           animationEnabled: true,
@@ -1023,9 +1026,9 @@ const MainNavigator = () => {
         }}
       />
 
-      <Stack.Screen name="Webview" component={Webview} />
+      <Stack.Screen name={Routes.WEBVIEW.MAIN} component={Webview} />
       <Stack.Screen
-        name="Send"
+        name={Routes.SEND.DEFAULT}
         component={Send}
         options={{ gestureEnabled: false }}
       />
@@ -1303,7 +1306,7 @@ const MainNavigator = () => {
         </>
       )}
       <Stack.Screen
-        name="SetPasswordFlow"
+        name={Routes.SET_PASSWORD_FLOW.ROOT}
         component={SetPasswordFlow}
         headerTitle={() => (
           <Image
@@ -1317,7 +1320,7 @@ const MainNavigator = () => {
       />
       {/* TODO: This is added to support slide 4 in the carousel - once changed this can be safely removed*/}
       <Stack.Screen
-        name="GeneralSettings"
+        name={Routes.ONBOARDING.GENERAL_SETTINGS}
         component={GeneralSettings}
         options={{ headerShown: false }}
       />
