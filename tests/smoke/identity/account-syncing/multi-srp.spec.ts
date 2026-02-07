@@ -74,6 +74,16 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
           prepareEventsEmittedCounter,
           waitUntilSyncedAccountsNumberEquals,
         } = arrangeTestUtils(userStorageMockttpController);
+
+        // Wait for the initial full sync to complete before adding accounts.
+        // The AccountTreeController's enqueueSingleGroupSync silently drops
+        // sync requests when isAccountTreeSyncingInProgress is true or
+        // hasAccountTreeSyncingSyncedAtLeastOnce is false, so we must ensure
+        // the first full sync has finished pushing the initial group.
+        await waitUntilSyncedAccountsNumberEquals(1);
+
+        // Set up event counter AFTER the initial sync completes so it only
+        // tracks events from subsequent account mutations.
         const { waitUntilEventsEmittedNumberEquals } =
           prepareEventsEmittedCounter(
             UserStorageMockttpControllerEvents.PUT_SINGLE,
