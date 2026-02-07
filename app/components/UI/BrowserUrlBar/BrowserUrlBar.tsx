@@ -138,6 +138,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
           <AccountRightButton
             selectedAddress={selectedAddress}
             onPress={handleAccountRightButtonPress}
+            activeUrl={activeUrl}
           />
         );
       }
@@ -162,6 +163,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
       onCancelInput,
       styles.cancelButton,
       styles.cancelButtonText,
+      activeUrl,
     ]);
 
     useImperativeHandle(ref, () => ({

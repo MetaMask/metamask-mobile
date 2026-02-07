@@ -63,6 +63,7 @@ const styles = StyleSheet.create({
 const AccountRightButton = ({
   selectedAddress,
   onPress,
+  activeUrl,
 }: AccountRightButtonProps) => {
   // Placeholder ref for dismissing keyboard. Works when the focused input is within a Webview.
   const placeholderInputRef = useRef<TextInput>(null);
@@ -156,7 +157,8 @@ const AccountRightButton = ({
 
   const route = useRoute<RouteProp<Record<string, { url: string }>, string>>();
   // url is defined if opened while in a dapp
-  const currentUrl = route.params?.url;
+  // Use activeUrl prop if provided (for browser fullscreen mode), otherwise fall back to route params
+  const currentUrl = activeUrl || route.params?.url;
   let hostname;
   if (currentUrl) {
     hostname = new UrlParser(currentUrl)?.origin;
