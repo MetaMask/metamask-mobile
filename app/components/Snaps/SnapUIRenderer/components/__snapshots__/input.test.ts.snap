@@ -126,6 +126,7 @@ exports[`SnapUIInput handles disabled input 1`] = `
                     onBlur={[Function]}
                     onChangeText={[Function]}
                     onFocus={[Function]}
+                    placeholderTextColor="#686e7d"
                     style={
                       {
                         "backgroundColor": "inherit",
@@ -138,7 +139,6 @@ exports[`SnapUIInput handles disabled input 1`] = `
                         "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
-                        "paddingVertical": 2,
                         "textAlignVertical": "center",
                       }
                     }
@@ -286,6 +286,7 @@ exports[`SnapUIInput renders with initial value 1`] = `
                     onBlur={[Function]}
                     onChangeText={[Function]}
                     onFocus={[Function]}
+                    placeholderTextColor="#686e7d"
                     style={
                       {
                         "backgroundColor": "inherit",
@@ -298,7 +299,6 @@ exports[`SnapUIInput renders with initial value 1`] = `
                         "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
-                        "paddingVertical": 2,
                         "textAlignVertical": "center",
                       }
                     }

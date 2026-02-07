@@ -186,7 +186,7 @@ exports[`ResetPassword render matches snapshot 1`] = `
                       onFocus={[Function]}
                       onSubmitEditing={[Function]}
                       placeholder="Password"
-                      placeholderTextColor="#b7bbc8"
+                      placeholderTextColor="#686e7d"
                       secureTextEntry={true}
                       style={
                         {
@@ -200,7 +200,6 @@ exports[`ResetPassword render matches snapshot 1`] = `
                           "height": 46,
                           "letterSpacing": 0,
                           "opacity": 1,
-                          "paddingVertical": 2,
                           "textAlignVertical": "center",
                         }
                       }

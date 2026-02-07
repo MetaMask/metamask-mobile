@@ -40,11 +40,7 @@ const styleSheet = (params: { theme: Theme; vars: InputStyleSheetVars }) => {
         borderWidth: 1,
         borderColor: colors.transparent,
         backgroundColor: theme.colors.background.default,
-        height: 24,
         ...stateObj,
-        // Fix for placeholder text shifting with custom Geist fonts
-        // Use minimal padding that works cross-platform with preloaded fonts
-        paddingVertical: Platform.OS === 'ios' ? 2 : 1,
         fontFamily: getFontFamily(textVariant),
         fontWeight: theme.typography[textVariant].fontWeight,
         fontSize: theme.typography[textVariant].fontSize,

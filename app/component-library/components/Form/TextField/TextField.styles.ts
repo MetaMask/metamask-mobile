@@ -24,11 +24,11 @@ const styleSheet = (params: {
   const { theme, vars } = params;
   const { style, isError, isDisabled, isFocused } = vars;
   let borderColor = theme.colors.border.muted;
-  if (isError) {
-    borderColor = theme.colors.error.default;
-  }
   if (isFocused) {
     borderColor = theme.colors.border.default;
+  }
+  if (isError) {
+    borderColor = theme.colors.error.default;
   }
 
   return StyleSheet.create({

@@ -859,6 +859,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search token by name or address"
+                                  placeholderTextColor="#686e7d"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
@@ -871,7 +872,6 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                       "height": 46,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 2,
                                       "textAlignVertical": "center",
                                     }
                                   }
@@ -3094,6 +3094,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search token by name or address"
+                                  placeholderTextColor="#686e7d"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
@@ -3106,7 +3107,6 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                       "height": 46,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 2,
                                       "textAlignVertical": "center",
                                     }
                                   }

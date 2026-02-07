@@ -859,6 +859,7 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search by cryptocurrency"
+                                  placeholderTextColor="#686e7d"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
@@ -871,7 +872,6 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                                       "height": 46,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 2,
                                       "textAlignVertical": "center",
                                     }
                                   }

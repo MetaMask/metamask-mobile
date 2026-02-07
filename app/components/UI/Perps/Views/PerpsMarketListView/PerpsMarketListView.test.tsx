@@ -321,14 +321,12 @@ jest.mock(
       onChangeText,
       placeholder,
       testID,
-      showClearButton,
       onPressClearButton,
     }: {
       value: string;
       onChangeText: (text: string) => void;
       placeholder: string;
       testID: string;
-      showClearButton?: boolean;
       onPressClearButton?: () => void;
     }) {
       return (
@@ -339,7 +337,7 @@ jest.mock(
             placeholder={placeholder}
             testID={testID}
           />
-          {showClearButton && (
+          {!!value && (
             <RNTouchableOpacity
               onPress={onPressClearButton}
               testID={`${testID}-clear`}

@@ -123,7 +123,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const route = useRoute<RouteProp<{ params: LoginRouteParams }, 'params'>>();
   const {
     styles,
-    theme: { colors, themeAppearance },
+    theme: { themeAppearance },
   } = useStyles(stylesheet, EmptyRecordConstant);
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
@@ -415,7 +415,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             <View style={styles.field}>
               <TextField
                 placeholder={strings('login.password_placeholder')}
-                placeholderTextColor={colors.text.alternative}
                 testID={LoginViewSelectors.PASSWORD_INPUT}
                 returnKeyType={'done'}
                 autoCapitalize="none"

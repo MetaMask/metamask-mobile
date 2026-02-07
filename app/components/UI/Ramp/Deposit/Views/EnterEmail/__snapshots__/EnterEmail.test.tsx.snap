@@ -617,7 +617,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                     onFocus={[Function]}
                                     onSubmitEditing={[Function]}
                                     placeholder="name@domain.com"
-                                    placeholderTextColor="#b7bbc8"
+                                    placeholderTextColor="#686e7d"
                                     returnKeyType="done"
                                     style={
                                       {
@@ -631,7 +631,6 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                         "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
-                                        "paddingVertical": 2,
                                         "textAlignVertical": "center",
                                       }
                                     }
@@ -1338,7 +1337,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                     onFocus={[Function]}
                                     onSubmitEditing={[Function]}
                                     placeholder="name@domain.com"
-                                    placeholderTextColor="#b7bbc8"
+                                    placeholderTextColor="#686e7d"
                                     returnKeyType="done"
                                     style={
                                       {
@@ -1352,7 +1351,6 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                         "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
-                                        "paddingVertical": 2,
                                         "textAlignVertical": "center",
                                       }
                                     }
@@ -2073,7 +2071,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                     onFocus={[Function]}
                                     onSubmitEditing={[Function]}
                                     placeholder="name@domain.com"
-                                    placeholderTextColor="#b7bbc8"
+                                    placeholderTextColor="#686e7d"
                                     returnKeyType="done"
                                     style={
                                       {
@@ -2087,7 +2085,6 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                         "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
-                                        "paddingVertical": 2,
                                         "textAlignVertical": "center",
                                       }
                                     }
@@ -2794,7 +2791,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                     onFocus={[Function]}
                                     onSubmitEditing={[Function]}
                                     placeholder="name@domain.com"
-                                    placeholderTextColor="#b7bbc8"
+                                    placeholderTextColor="#686e7d"
                                     returnKeyType="done"
                                     style={
                                       {
@@ -2808,7 +2805,6 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                         "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
-                                        "paddingVertical": 2,
                                         "textAlignVertical": "center",
                                       }
                                     }
