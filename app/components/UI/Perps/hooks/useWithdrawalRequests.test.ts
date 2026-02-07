@@ -40,12 +40,15 @@ describe('useWithdrawalRequests', () => {
   let mockController: {
     getActiveProvider: jest.MockedFunction<() => unknown>;
     completeWithdrawalFromHistory: jest.MockedFunction<
-      (data: {
-        txHash: string;
-        amount: string;
-        timestamp: number;
-        asset?: string;
-      }) => void
+      (
+        withdrawalRequestId: string,
+        completedWithdrawal: {
+          txHash: string;
+          amount: string;
+          timestamp: number;
+          asset?: string;
+        },
+      ) => void
     >;
   };
   let mockProvider: {
@@ -177,11 +180,10 @@ describe('useWithdrawalRequests', () => {
       PerpsController: mockController,
     };
 
-    // Mock usePerpsSelector - default to no active withdrawal
+    // Mock usePerpsSelector - default to pending withdrawals in queue
     mockUsePerpsSelector.mockImplementation((selector) =>
       selector({
         withdrawalRequests: mockPendingWithdrawals,
-        withdrawInProgress: false,
         lastWithdrawResult: null,
       } as Partial<PerpsControllerState> as PerpsControllerState),
     );
@@ -237,11 +239,10 @@ describe('useWithdrawalRequests', () => {
   });
 
   describe('polling behavior', () => {
-    it('polls when withdrawInProgress is true', async () => {
+    it('polls when pending queue has withdrawals', async () => {
       mockUsePerpsSelector.mockImplementation((selector) =>
         selector({
           withdrawalRequests: mockPendingWithdrawals,
-          withdrawInProgress: true,
           lastWithdrawResult: null,
         } as Partial<PerpsControllerState> as PerpsControllerState),
       );
@@ -266,11 +267,10 @@ describe('useWithdrawalRequests', () => {
       expect(mockProvider.getUserHistory).toHaveBeenCalledTimes(2);
     });
 
-    it('does not poll when withdrawInProgress is false', async () => {
+    it('does not poll when pending queue is empty', async () => {
       mockUsePerpsSelector.mockImplementation((selector) =>
         selector({
           withdrawalRequests: [],
-          withdrawInProgress: false,
           lastWithdrawResult: null,
         } as Partial<PerpsControllerState> as PerpsControllerState),
       );
@@ -283,15 +283,14 @@ describe('useWithdrawalRequests', () => {
         jest.advanceTimersByTime(0);
       });
 
-      // Should not call getUserHistory when withdrawInProgress is false
+      // Should not call getUserHistory when queue is empty
       expect(mockProvider.getUserHistory).not.toHaveBeenCalled();
     });
 
-    it('stops polling when component unmounts', async () => {
+    it('stops polling when component unmounts with pending queue', async () => {
       mockUsePerpsSelector.mockImplementation((selector) =>
         selector({
           withdrawalRequests: mockPendingWithdrawals,
-          withdrawInProgress: true,
           lastWithdrawResult: null,
         } as Partial<PerpsControllerState> as PerpsControllerState),
       );
@@ -322,7 +321,6 @@ describe('useWithdrawalRequests', () => {
       mockUsePerpsSelector.mockImplementation((selector) =>
         selector({
           withdrawalRequests: mockPendingWithdrawals,
-          withdrawInProgress: true,
           lastWithdrawResult: null,
         } as Partial<PerpsControllerState> as PerpsControllerState),
       );
@@ -331,7 +329,7 @@ describe('useWithdrawalRequests', () => {
       mockProvider.getUserHistory.mockResolvedValue([
         {
           id: 'history-1',
-          timestamp: 1640995200000,
+          timestamp: 1640995200500,
           type: 'withdrawal',
           amount: '100',
           asset: 'USDC',
@@ -351,42 +349,42 @@ describe('useWithdrawalRequests', () => {
 
       // Should call completeWithdrawalFromHistory with the new withdrawal data
       expect(mockController.completeWithdrawalFromHistory).toHaveBeenCalledWith(
+        'withdrawal-1',
         {
           txHash: '0xnewWithdrawal',
           amount: '100',
-          timestamp: 1640995200000,
+          timestamp: 1640995200500,
           asset: 'USDC',
         },
       );
     });
 
-    it('does not call completeWithdrawalFromHistory when txHash matches lastWithdrawResult', async () => {
-      const existingTxHash = '0xalreadyKnown';
+    it('does not match completion when timestamp is not newer than lastCompletedTimestamp', async () => {
+      const lastCompletedTimestamp = 1640995205000;
 
       mockUsePerpsSelector.mockImplementation((selector) =>
         selector({
-          withdrawalRequests: [],
-          withdrawInProgress: true,
+          withdrawalRequests: mockPendingWithdrawals,
           lastWithdrawResult: {
             success: true,
-            txHash: existingTxHash,
+            txHash: '0xalreadyKnown',
             amount: '100',
             asset: 'USDC',
-            timestamp: Date.now(),
+            timestamp: lastCompletedTimestamp,
             error: '',
           },
         } as Partial<PerpsControllerState> as PerpsControllerState),
       );
 
-      // Mock history returns the same withdrawal
+      // Mock history returns a completed withdrawal older than the last completed timestamp
       mockProvider.getUserHistory.mockResolvedValue([
         {
           id: 'history-1',
-          timestamp: 1640995200000,
+          timestamp: 1640995204000,
           type: 'withdrawal',
           amount: '100',
           asset: 'USDC',
-          txHash: existingTxHash,
+          txHash: '0xalreadyKnown',
           status: 'completed',
           details: { source: 'HyperLiquid' },
         },
@@ -400,23 +398,16 @@ describe('useWithdrawalRequests', () => {
         jest.advanceTimersByTime(0);
       });
 
-      // Should call completeWithdrawalFromHistory to clear stale state
-      // (defensive case - withdrawInProgress is true but txHash matches)
-      expect(mockController.completeWithdrawalFromHistory).toHaveBeenCalledWith(
-        {
-          txHash: existingTxHash,
-          amount: '100',
-          timestamp: 1640995200000,
-          asset: 'USDC',
-        },
-      );
+      // No match because completion is not newer than lastCompletedTimestamp
+      expect(
+        mockController.completeWithdrawalFromHistory,
+      ).not.toHaveBeenCalled();
     });
 
-    it('does not call completeWithdrawalFromHistory when withdrawInProgress is false', async () => {
+    it('does not call completeWithdrawalFromHistory when pending queue is empty', async () => {
       mockUsePerpsSelector.mockImplementation((selector) =>
         selector({
           withdrawalRequests: [],
-          withdrawInProgress: false,
           lastWithdrawResult: null,
         } as Partial<PerpsControllerState> as PerpsControllerState),
       );
@@ -442,33 +433,34 @@ describe('useWithdrawalRequests', () => {
         jest.advanceTimersByTime(0);
       });
 
-      // Should NOT call - no active withdrawal
+      // Should NOT call - no pending withdrawals
       expect(
         mockController.completeWithdrawalFromHistory,
       ).not.toHaveBeenCalled();
     });
 
-    it('detects new withdrawal when lastWithdrawResult has different txHash', async () => {
+    it('matches completion after lastCompletedTimestamp', async () => {
+      const lastCompletedTimestamp = 1640995200100;
+
       mockUsePerpsSelector.mockImplementation((selector) =>
         selector({
           withdrawalRequests: mockPendingWithdrawals,
-          withdrawInProgress: true,
           lastWithdrawResult: {
             success: true,
             txHash: '0xoldWithdrawal',
             amount: '50',
             asset: 'USDC',
-            timestamp: Date.now() - 10000,
+            timestamp: lastCompletedTimestamp,
             error: '',
           },
         } as Partial<PerpsControllerState> as PerpsControllerState),
       );
 
-      // Mock history returns a NEW withdrawal
+      // Mock history returns a NEW withdrawal after lastCompletedTimestamp
       mockProvider.getUserHistory.mockResolvedValue([
         {
           id: 'history-1',
-          timestamp: 1640995300000,
+          timestamp: 1640995200200,
           type: 'withdrawal',
           amount: '100',
           asset: 'USDC',
@@ -488,16 +480,17 @@ describe('useWithdrawalRequests', () => {
 
       // Should call completeWithdrawalFromHistory with the new withdrawal
       expect(mockController.completeWithdrawalFromHistory).toHaveBeenCalledWith(
+        'withdrawal-1',
         {
           txHash: '0xnewWithdrawal',
           amount: '100',
-          timestamp: 1640995300000,
+          timestamp: 1640995200200,
           asset: 'USDC',
         },
       );
     });
 
-    it('handles recovery on mount when withdrawInProgress is true', async () => {
+    it('handles recovery on mount when pending queue has items', async () => {
       // Simulates app restart with a pending withdrawal
       mockUsePerpsSelector.mockImplementation((selector) =>
         selector({
@@ -511,7 +504,6 @@ describe('useWithdrawalRequests', () => {
               status: 'bridging' as const,
             },
           ],
-          withdrawInProgress: true,
           lastWithdrawResult: null,
         } as Partial<PerpsControllerState> as PerpsControllerState),
       );
@@ -540,6 +532,7 @@ describe('useWithdrawalRequests', () => {
 
       // Should detect and complete the withdrawal on mount
       expect(mockController.completeWithdrawalFromHistory).toHaveBeenCalledWith(
+        'stuck-withdrawal',
         {
           txHash: '0xcompletedWhileAway',
           amount: '100',
@@ -554,8 +547,7 @@ describe('useWithdrawalRequests', () => {
     it('handles provider errors gracefully', async () => {
       mockUsePerpsSelector.mockImplementation((selector) =>
         selector({
-          withdrawalRequests: [],
-          withdrawInProgress: true,
+          withdrawalRequests: mockPendingWithdrawals,
           lastWithdrawResult: null,
         } as Partial<PerpsControllerState> as PerpsControllerState),
       );
@@ -577,8 +569,7 @@ describe('useWithdrawalRequests', () => {
     it('handles controller errors gracefully', async () => {
       mockUsePerpsSelector.mockImplementation((selector) =>
         selector({
-          withdrawalRequests: [],
-          withdrawInProgress: true,
+          withdrawalRequests: mockPendingWithdrawals,
           lastWithdrawResult: null,
         } as Partial<PerpsControllerState> as PerpsControllerState),
       );
@@ -600,8 +591,7 @@ describe('useWithdrawalRequests', () => {
     it('handles provider method not supported', async () => {
       mockUsePerpsSelector.mockImplementation((selector) =>
         selector({
-          withdrawalRequests: [],
-          withdrawInProgress: true,
+          withdrawalRequests: mockPendingWithdrawals,
           lastWithdrawResult: null,
         } as Partial<PerpsControllerState> as PerpsControllerState),
       );
@@ -626,8 +616,7 @@ describe('useWithdrawalRequests', () => {
     it('handles API errors gracefully', async () => {
       mockUsePerpsSelector.mockImplementation((selector) =>
         selector({
-          withdrawalRequests: [],
-          withdrawInProgress: true,
+          withdrawalRequests: mockPendingWithdrawals,
           lastWithdrawResult: null,
         } as Partial<PerpsControllerState> as PerpsControllerState),
       );
@@ -671,7 +660,6 @@ describe('useWithdrawalRequests', () => {
       mockUsePerpsSelector.mockImplementation((selector) =>
         selector({
           withdrawalRequests: [],
-          withdrawInProgress: false,
           lastWithdrawResult: null,
         } as Partial<PerpsControllerState> as PerpsControllerState),
       );
@@ -687,7 +675,6 @@ describe('useWithdrawalRequests', () => {
       mockUsePerpsSelector.mockImplementation((selector) =>
         selector({
           withdrawalRequests: mockPendingWithdrawals,
-          withdrawInProgress: true,
           lastWithdrawResult: null,
         } as Partial<PerpsControllerState> as PerpsControllerState),
       );
@@ -743,7 +730,6 @@ describe('useWithdrawalRequests', () => {
       mockUsePerpsSelector.mockImplementation((selector) =>
         selector({
           withdrawalRequests: unsortedWithdrawals,
-          withdrawInProgress: false,
           lastWithdrawResult: null,
         } as Partial<PerpsControllerState> as PerpsControllerState),
       );
