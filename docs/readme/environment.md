@@ -116,22 +116,59 @@ yarn --version
 
 ## Android
 
-Install [Android Studio](https://developer.android.com/studio)
+Follow the official [React Native Environment Setup](https://reactnative.dev/docs/set-up-your-environment?platform=android) guide for Android, then return here for MetaMask-specific requirements.
 
-- Set environment variable `JAVA_HOME=/Applications/Android Studio.app/Contents/jbr/Contents/Home` to use the Java version shipped with Android Studio
-- Go to Settings > Languages & Frameworks > Android SDK
-- Shortcut: Selecting `More Actions` > `SDK Manager` from the "Welcome to Android Studio" page will also bring you here.
-  - Select `SDK Tools` tab
-  - Check `Show Package Details` option below the tools list to show available versions
-  - Locate `NDK (Side-by-side)` option in the tools list
-  - Check NDK version `26.1.10909125`
-  - Locate `CMake` option in the tools list
-  - Check CMake version `3.22.1`
-  - Click "Apply" or "OK" to download
-- Finally, start the emulator from Android Studio:
-  - Open "Virtual Device Manager"
-  - Launch emulator for "Pixel 5 <relevant API version mentioned in [React Native Getting Started](https://reactnative.dev/docs/environment-setup#installing-dependencies)>"
+### Shell Configuration (Required)
 
-WIP
+Add the following to your shell configuration file (`~/.zshrc` or `~/.bashrc`):
+
+```bash
+# Android SDK Configuration
+export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+export ANDROID_HOME="$HOME/Library/Android/sdk"
+export PATH="$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
+```
+
+Reload and verify:
+
+```bash
+source ~/.zshrc && java -version && adb --version
+```
+
+### MetaMask-Specific SDK Requirements
+
+In Android Studio (**Settings > Languages & Frameworks > Android SDK > SDK Tools**), ensure these specific versions are installed:
+
+| Component               | Required Version |
+| ----------------------- | ---------------- |
+| Android SDK Build-Tools | 35.0.0           |
+| NDK (Side-by-side)      | 26.1.10909125    |
+| CMake                   | 3.22.1           |
+
+### Android Emulator
+
+Create an emulator in Android Studio's **Device Manager**:
+
+- Select a Pixel device and API 33+ system image
+
+Start from command line:
+
+```bash
+emulator -avd <emulator-name>
+```
+
+<details>
+  <summary>Troubleshooting</summary>
+
+| Issue                           | Solution                                   |
+| ------------------------------- | ------------------------------------------ |
+| `adb: command not found`        | Add `$ANDROID_HOME/platform-tools` to PATH |
+| `Unable to locate Java Runtime` | Set `JAVA_HOME` and restart terminal       |
+| `SDK Platform not found`        | Install required SDK via Android Studio    |
+| `Build Tools corrupted`         | Remove and reinstall via SDK Manager       |
+
+</details>
+
+## Ready to Build
 
 You are ready to setup metamask-mobile project in your system!
