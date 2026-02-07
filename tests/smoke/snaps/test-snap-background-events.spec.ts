@@ -119,7 +119,8 @@ describe(FlaskBuildTests('Background Events Snap Tests'), () => {
 
         await TestSnaps.fillMessage('backgroundEventDateInput', pastDate);
         await TestSnaps.tapButton('scheduleBackgroundEventWithDateButton');
-        await Assertions.expectTextDisplayed(
+        await TestSnaps.checkResultSpanIncludes(
+          'scheduleBackgroundEventResultSpan',
           'Cannot schedule an event in the past.',
           { timeout: 30000 },
         );

@@ -2,7 +2,6 @@ import { FlaskBuildTests } from '../../../e2e/tags';
 import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import Assertions from '../../framework/Assertions';
 import TestSnaps from '../../../e2e/pages/Browser/TestSnaps';
 
 jest.setTimeout(150_000);
@@ -107,7 +106,8 @@ describe(FlaskBuildTests('BIP-44 Snap Tests'), () => {
         await TestSnaps.selectInDropdown('bip44EntropyDropDown', 'Invalid');
         await TestSnaps.fillMessage('messageBip44Input', 'foo bar');
         await TestSnaps.tapButton('signMessageBip44Button');
-        await Assertions.expectTextDisplayed(
+        await TestSnaps.checkResultSpanIncludes(
+          'bip44SignResultSpan',
           'Entropy source with ID "invalid" not found.',
           { timeout: 30000 },
         );
