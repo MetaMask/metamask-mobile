@@ -380,7 +380,7 @@ export const hasPermissionsToSwitchChainRequest = async (
   if (!existingNetwork) {
     DevLogger.log(`WC::checkWCPermissions no existing network found`);
     throw rpcErrors.invalidParams({
-      message: `Invalid parameters: active chainId is different than the one provided.`,
+      message: `Unsupported chainId: ${hexChainIdString}. No network configuration found for the requested chain.`,
     });
   }
 
