@@ -684,7 +684,7 @@ Our CI/CD process is automated through various Bitrise pipelines, each designed 
         166 |   }
         167 |
         168 |   static async checkIfNotVisible(elementId) {
-      at Function.withTimeout (e2e/helpers.js:165:8)
+      at Function.withTimeout (tests/helpers.js:165:8)
       ...
   ```
 
@@ -704,6 +704,6 @@ Our CI/CD process is automated through various Bitrise pipelines, each designed 
 
 For detailed E2E framework documentation, patterns, and best practices, see:
 
-- **[E2E Framework Guide](../../tests/framework/README.md)** - Comprehensive guide to the TypeScript testing framework
-- **[Mocking Guide](../../e2e/MOCKING.md)** - Guide on how to mock API call in tests
+- **[E2E Framework Guide](../../tests/docs/README.md)** - Comprehensive guide to the TypeScript testing framework
+- **[Mocking Guide](../../tests/docs/MOCKING.md)** - Guide on how to mock API call in tests
 - **[General E2E Best Practices](https://github.com/MetaMask/contributor-docs/blob/main/docs/testing/e2e-testing.md)** - MetaMask-wide testing guidelines

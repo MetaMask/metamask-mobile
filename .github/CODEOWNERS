@@ -243,11 +243,9 @@ app/core/Engine/messengers/gator-permissions-controller-messenger     @MetaMask/
 
 # QA Team - E2E Framework
 tests/api-mocking/                             @MetaMask/qa
-e2e/fixtures/                                @MetaMask/qa
 tests/framework/                               @MetaMask/qa
-e2e/pages/                                   @MetaMask/qa
-e2e/utils/                                   @MetaMask/qa
-e2e/viewHelper.ts                            @MetaMask/qa
+e2e/pages/                                     @MetaMask/qa
+e2e/viewHelper.ts                              @MetaMask/qa
 # Note: Test builds (main-test, flask-test) in build/builds.yml are owned by QA team
 # but the file itself is protected by mobile-platform for consistency
 

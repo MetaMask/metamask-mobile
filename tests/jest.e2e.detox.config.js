@@ -11,7 +11,7 @@ module.exports = {
   testTimeout: 300000,
   maxWorkers: 1,
   clearMocks: true,
-  setupFilesAfterEnv: ['<rootDir>/e2e/init.js'],
+  setupFilesAfterEnv: ['<rootDir>/tests/init.detox.js'],
   globalSetup: 'detox/runners/jest/globalSetup',
   globalTeardown: 'detox/runners/jest/globalTeardown',
   reporters: [
@@ -19,7 +19,7 @@ module.exports = {
     [
       'jest-junit',
       {
-        outputDirectory: './e2e/reports',
+        outputDirectory: './tests/reports',
         classNameTemplate: '{filepath}',
         outputName: (() => {
           const timestamp = new Date().toISOString().replace(/[:.]/g, '-');

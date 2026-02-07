@@ -1370,9 +1370,9 @@ workflows:
           is_always_run: true
           is_skippable: true
           inputs:
-            - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
+            - base_path: $BITRISE_SOURCE_DIR/tests/reports/
             - test_name: E2E Tests
-            - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
+            - search_pattern: $BITRISE_SOURCE_DIR/tests/reports/junit.xml
       - deploy-to-bitrise-io@2.2.3:
           title: Deploy test report files
           is_always_run: true
@@ -1500,9 +1500,9 @@ workflows:
           is_always_run: true
           is_skippable: true
           inputs:
-            - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
+            - base_path: $BITRISE_SOURCE_DIR/tests/reports/
             - test_name: E2E Tests
-            - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
+            - search_pattern: $BITRISE_SOURCE_DIR/tests/reports/junit.xml
       - deploy-to-bitrise-io@2.2.3:
           title: Deploy test report files
           is_always_run: true
@@ -2006,9 +2006,9 @@ workflows:
           is_skippable: false
           title: Export test results
           inputs:
-            - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
+            - base_path: $BITRISE_SOURCE_DIR/tests/reports/
             - test_name: E2E Tests
-            - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
+            - search_pattern: $BITRISE_SOURCE_DIR/tests/reports/junit.xml
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
           is_skippable: true
@@ -2151,9 +2151,9 @@ workflows:
           is_skippable: false
           title: Export test results
           inputs:
-            - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
+            - base_path: $BITRISE_SOURCE_DIR/tests/reports/
             - test_name: E2E Tests
-            - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
+            - search_pattern: $BITRISE_SOURCE_DIR/tests/reports/junit.xml
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
           is_skippable: true
