@@ -62,7 +62,7 @@ jest.mock('../hooks/useTokenBalance', () => ({
 }));
 
 jest.mock('../hooks/useTokenBuyability', () => ({
-  useTokenBuyability: () => true,
+  useTokenBuyability: () => ({ isBuyable: true, isLoading: false }),
 }));
 
 const mockHandleBuyPress = jest.fn();

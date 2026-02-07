@@ -17,7 +17,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 
-import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import { getRampsBuildQuoteNavbarOptions } from '../../../Navbar';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -34,8 +33,33 @@ interface BuildQuoteParams {
   assetId?: string;
 }
 
-export const createBuildQuoteNavDetails =
-  createNavigationDetails<BuildQuoteParams>(Routes.RAMP.AMOUNT_INPUT);
+/**
+ * Creates navigation details for the BuildQuote screen (RampAmountInput).
+ * This screen is nested inside TokenListRoutes, so navigation must go through
+ * the parent route Routes.RAMP.TOKEN_SELECTION.
+ */
+export const createBuildQuoteNavDetails = (
+  params?: BuildQuoteParams,
+): readonly [
+  string,
+  {
+    screen: string;
+    params: {
+      screen: string;
+      params?: BuildQuoteParams;
+    };
+  },
+] =>
+  [
+    Routes.RAMP.TOKEN_SELECTION,
+    {
+      screen: Routes.RAMP.TOKEN_SELECTION,
+      params: {
+        screen: Routes.RAMP.AMOUNT_INPUT,
+        params,
+      },
+    },
+  ] as const;
 
 const DEFAULT_AMOUNT = 100;
 

@@ -44,6 +44,7 @@ import {
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../locales/i18n';
+import { useTokenBuyability } from '../hooks/useTokenBuyability';
 
 interface TokenDetailsProps {
   route: {
@@ -185,6 +186,9 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
     ? isNetworkRampNativeTokenSupported(chainIdForRamp, rampNetworks)
     : isNetworkRampSupported(chainIdForRamp, rampNetworks);
 
+  const { isBuyable } = useTokenBuyability(token);
+  const displayBuyButton = isRampAvailable && isBuyable;
+
   const renderHeader = () => (
     <>
       <AssetOverviewContent
@@ -278,12 +282,17 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
             paddingBottom: insets.bottom + 6,
           }}
           buttonPropsArray={[
-            {
-              variant: ButtonVariants.Primary,
-              label: strings('asset_overview.buy_button'),
-              size: ButtonSize.Lg,
-              onPress: handleBuyPress,
-            },
+            // Only show Buy button if token is available in ramps
+            ...(displayBuyButton
+              ? [
+                  {
+                    variant: ButtonVariants.Primary,
+                    label: strings('asset_overview.buy_button'),
+                    size: ButtonSize.Lg,
+                    onPress: handleBuyPress,
+                  },
+                ]
+              : []),
             // Only show Sell button if user has balance of this token
             ...(balance && parseFloat(String(balance)) > 0
               ? [

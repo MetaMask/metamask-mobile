@@ -110,8 +110,14 @@ describe('useRampNavigation', () => {
     ] as unknown as ReturnType<typeof createTokenSelectionNavDetails>);
 
     mockCreateBuildQuoteNavDetails.mockReturnValue([
-      Routes.RAMP.AMOUNT_INPUT,
-      { assetId: 'eip155:1/erc20:0x123' },
+      Routes.RAMP.TOKEN_SELECTION,
+      {
+        screen: Routes.RAMP.TOKEN_SELECTION,
+        params: {
+          screen: Routes.RAMP.AMOUNT_INPUT,
+          params: { assetId: 'eip155:1/erc20:0x123' },
+        },
+      },
     ] as unknown as ReturnType<typeof createBuildQuoteNavDetails>);
   });
 
@@ -124,8 +130,14 @@ describe('useRampNavigation', () => {
       it('navigates to BuildQuote when assetId is provided', () => {
         const intent = { assetId: 'eip155:1/erc20:0x123' };
         const mockNavDetails = [
-          Routes.RAMP.AMOUNT_INPUT,
-          { assetId: intent.assetId },
+          Routes.RAMP.TOKEN_SELECTION,
+          {
+            screen: Routes.RAMP.TOKEN_SELECTION,
+            params: {
+              screen: Routes.RAMP.AMOUNT_INPUT,
+              params: { assetId: intent.assetId },
+            },
+          },
         ] as const;
         mockCreateBuildQuoteNavDetails.mockReturnValue(mockNavDetails);
 
@@ -187,8 +199,14 @@ describe('useRampNavigation', () => {
         );
         const intent = { assetId: 'eip155:1/erc20:0x123' };
         const mockNavDetails = [
-          Routes.RAMP.AMOUNT_INPUT,
-          { assetId: intent.assetId },
+          Routes.RAMP.TOKEN_SELECTION,
+          {
+            screen: Routes.RAMP.TOKEN_SELECTION,
+            params: {
+              screen: Routes.RAMP.AMOUNT_INPUT,
+              params: { assetId: intent.assetId },
+            },
+          },
         ] as const;
         mockCreateBuildQuoteNavDetails.mockReturnValue(mockNavDetails);
 
