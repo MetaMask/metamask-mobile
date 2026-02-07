@@ -273,6 +273,7 @@ describe('rewardsReducer', () => {
             },
           ],
           activityTypes: [],
+          waysToEarn: [],
         },
         balance: {
           total: 500,
@@ -372,9 +373,9 @@ describe('rewardsReducer', () => {
         ...initialState,
         seasonActivityTypes: [
           {
+            id: 'activity-referral',
             type: 'REFERRAL',
             title: 'Referral',
-            description: 'Refer a friend',
             icon: 'UserCircleAdd',
           },
         ],
@@ -1480,9 +1481,9 @@ describe('rewardsReducer', () => {
           ],
           seasonActivityTypes: [
             {
+              id: 'activity-predict',
               type: 'PREDICT',
               title: 'Predict',
-              description: 'Prediction',
               icon: 'Speedometer',
             },
           ],
@@ -2280,9 +2281,9 @@ describe('rewardsReducer', () => {
         seasonId: 'persisted-season-id',
         seasonActivityTypes: [
           {
+            id: 'activity-musd-deposit',
             type: 'MUSD_DEPOSIT',
             title: 'mUSD deposit',
-            description: 'Deposit mUSD',
             icon: 'Coin',
           },
         ],

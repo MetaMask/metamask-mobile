@@ -1563,6 +1563,7 @@ describe('RewardsDataService', () => {
         },
       ],
       activityTypes: [],
+      waysToEarn: [],
     };
 
     beforeEach(() => {

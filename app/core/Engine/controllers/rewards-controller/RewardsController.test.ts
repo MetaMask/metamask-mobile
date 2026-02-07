@@ -245,6 +245,7 @@ const createTestSeasonStatus = (
     endDate: new Date(Date.now() + 86400000), // 1 day from now
     tiers: createTestTiers(),
     activityTypes: [],
+    waysToEarn: [],
   };
 
   return {
@@ -274,6 +275,7 @@ const createTestSeasonStatusState = (
     endDate: Date.now() + 86400000,
     tiers: [],
     activityTypes: [],
+    waysToEarn: [],
   },
   balance: {
     total: 100,
@@ -769,6 +771,7 @@ describe('RewardsController', () => {
         endDate: new Date(now + 86400000), // 1 day from now
         tiers: createTestTiers(),
         activityTypes: [],
+        waysToEarn: [],
       };
 
       // Use fake timers to control Date constructor
@@ -824,6 +827,7 @@ describe('RewardsController', () => {
         endDate: new Date(now + 86400000), // 1 day from now
         tiers: createTestTiers(),
         activityTypes: [],
+        waysToEarn: [],
       };
 
       // Use fake timers to control Date constructor
@@ -891,6 +895,7 @@ describe('RewardsController', () => {
         endDate: new Date(now + 86400000), // 1 day from now
         tiers: createTestTiers(),
         activityTypes: [],
+        waysToEarn: [],
       };
 
       // Use fake timers to control Date constructor
@@ -980,6 +985,7 @@ describe('RewardsController', () => {
         endDate: new Date(now + 86400000), // 1 day from now
         tiers: createTestTiers(),
         activityTypes: [],
+        waysToEarn: [],
       };
 
       // Use fake timers to control Date constructor
@@ -1061,6 +1067,7 @@ describe('RewardsController', () => {
         endDate: new Date(now + 86400000),
         tiers: createTestTiers(),
         activityTypes: [],
+        waysToEarn: [],
       };
 
       jest.useFakeTimers();
@@ -1170,6 +1177,7 @@ describe('RewardsController', () => {
         endDate: new Date(now + 86400000),
         tiers: createTestTiers(),
         activityTypes: [],
+        waysToEarn: [],
       };
 
       jest.useFakeTimers();
@@ -1241,6 +1249,7 @@ describe('RewardsController', () => {
         endDate: new Date(now + 86400000),
         tiers: createTestTiers(),
         activityTypes: [],
+        waysToEarn: [],
       };
 
       jest.useFakeTimers();
@@ -1316,6 +1325,7 @@ describe('RewardsController', () => {
         endDate: new Date(now + 86400000),
         tiers: createTestTiers(),
         activityTypes: [],
+        waysToEarn: [],
       };
 
       jest.useFakeTimers();
@@ -1398,6 +1408,7 @@ describe('RewardsController', () => {
         endDate: new Date(now + 86400000),
         tiers: createTestTiers(),
         activityTypes: [],
+        waysToEarn: [],
       };
 
       jest.useFakeTimers();
@@ -1451,6 +1462,7 @@ describe('RewardsController', () => {
         endDate: new Date(now + 86400000),
         tiers: createTestTiers(),
         activityTypes: [],
+        waysToEarn: [],
       };
 
       jest.useFakeTimers();
@@ -1527,6 +1539,7 @@ describe('RewardsController', () => {
         endDate: new Date(now + 86400000),
         tiers: createTestTiers(),
         activityTypes: [],
+        waysToEarn: [],
       };
 
       jest.useFakeTimers();
@@ -1998,6 +2011,7 @@ describe('RewardsController', () => {
         endDate: new Date(now + 86400000), // 1 day from now
         tiers: createTestTiers(),
         activityTypes: [],
+        waysToEarn: [],
       };
 
       // Use fake timers to control Date constructor
@@ -2108,6 +2122,7 @@ describe('RewardsController', () => {
         endDate: new Date(now + 86400000), // 1 day from now
         tiers: createTestTiers(),
         activityTypes: [],
+        waysToEarn: [],
       };
 
       // Use fake timers to control Date constructor
@@ -2150,6 +2165,7 @@ describe('RewardsController', () => {
         endDate: new Date(now), // Today
         tiers: createTestTiers(),
         activityTypes: [],
+        waysToEarn: [],
       };
 
       // Use fake timers to control Date constructor
@@ -4447,6 +4463,7 @@ describe('RewardsController', () => {
         endDate: Date.now() + 86400000, // 1 day from now
         tiers: createTestTiers(),
         activityTypes: [],
+        waysToEarn: [],
       };
 
       const mockSeasonStatus: SeasonStatusState = {
@@ -4546,7 +4563,7 @@ describe('RewardsController', () => {
       expect(result).toEqual(mockSeasonStatus);
       expect(result?.season.id).toBe(mockSeasonId);
       expect(result?.balance.total).toBe(1500);
-      expect(result?.tier.currentTier.id).toBe('silver');
+      expect(result?.tier.currentTier?.id).toBe('silver');
       expect(result?.tier.nextTier?.id).toBe('gold');
       expect(result?.tier.nextTierPointsNeeded).toBe(3500);
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
@@ -4567,6 +4584,7 @@ describe('RewardsController', () => {
         endDate: new Date('2024-12-31T23:59:59Z'),
         tiers: createTestTiers(),
         activityTypes: [],
+        waysToEarn: [],
       };
       const mockApiResponse = createTestSeasonStatus({
         season: mockSeasonMetadata,
@@ -4592,6 +4610,7 @@ describe('RewardsController', () => {
               endDate: new Date('2024-12-31T23:59:59Z').getTime(),
               tiers: createTestTiers(),
               activityTypes: [],
+              waysToEarn: [],
               lastFetched: Date.now() - 7200000, // 2 hours ago (stale)
             },
           },
@@ -4630,7 +4649,7 @@ describe('RewardsController', () => {
       // Expect the result to be the converted state object, not the original DTO
       expect(result).toBeDefined();
       expect(result?.balance.total).toBe(1500);
-      expect(result?.tier.currentTier.id).toBe('silver');
+      expect(result?.tier.currentTier?.id).toBe('silver');
       expect(result?.lastFetched).toBeGreaterThan(Date.now() - 1000);
     });
 
@@ -4642,6 +4661,7 @@ describe('RewardsController', () => {
         endDate: new Date('2024-12-31T23:59:59Z'),
         tiers: createTestTiers(),
         activityTypes: [],
+        waysToEarn: [],
       };
       const mockApiResponse = createTestSeasonStatus({
         season: mockSeasonMetadata,
@@ -4669,6 +4689,7 @@ describe('RewardsController', () => {
               endDate: new Date('2024-12-31T23:59:59Z').getTime(),
               tiers: createTestTiers(),
               activityTypes: [],
+              waysToEarn: [],
               lastFetched: Date.now(),
             },
           },
@@ -4694,7 +4715,7 @@ describe('RewardsController', () => {
       // Check that the result is the converted state object
       expect(result).toBeDefined();
       expect(result?.balance.total).toBe(2500);
-      expect(result?.tier.currentTier.id).toBe('gold');
+      expect(result?.tier.currentTier?.id).toBe('gold');
       expect(result?.tier.nextTier?.id).toBe('platinum');
       expect(result?.tier.nextTierPointsNeeded).toBe(7500); // 10000 - 2500
       expect(result?.lastFetched).toBeGreaterThan(Date.now() - 1000);
@@ -4761,6 +4782,7 @@ describe('RewardsController', () => {
               endDate: new Date('2024-12-31T23:59:59Z').getTime(),
               tiers: createTestTiers(),
               activityTypes: [],
+              waysToEarn: [],
               lastFetched: Date.now(),
             },
           },
@@ -4813,6 +4835,7 @@ describe('RewardsController', () => {
             endDate: new Date('2024-12-31T23:59:59Z').getTime(),
             tiers: createTestTiers(),
             activityTypes: [],
+            waysToEarn: [],
             lastFetched: Date.now(),
           },
         };
@@ -4860,6 +4883,7 @@ describe('RewardsController', () => {
         endDate: new Date('2024-12-31T23:59:59Z'),
         tiers: createTestTiers(),
         activityTypes: [],
+        waysToEarn: [],
       };
       const mockSeasonStatus = createTestSeasonStatus({
         season: mockSeasonMetadata,
@@ -4905,6 +4929,7 @@ describe('RewardsController', () => {
             endDate: new Date('2024-12-31T23:59:59Z').getTime(),
             tiers: createTestTiers(),
             activityTypes: [],
+            waysToEarn: [],
             lastFetched: Date.now(),
           },
         };
@@ -4951,7 +4976,7 @@ describe('RewardsController', () => {
       expect(result?.season.id).toBe(mockSeasonId);
       expect(result?.season.name).toBe('Mock Season');
       expect(result?.balance.total).toBe(0);
-      expect(result?.tier.currentTier.id).toBe('bronze');
+      expect(result?.tier.currentTier?.id).toBe('bronze');
       expect(result?.lastFetched).toBe(1000000);
 
       // Verify reauth was attempted and status was fetched again
@@ -5026,6 +5051,7 @@ describe('RewardsController', () => {
             endDate: new Date('2024-12-31T23:59:59Z').getTime(),
             tiers: createTestTiers(),
             activityTypes: [],
+            waysToEarn: [],
             lastFetched: Date.now(),
           },
         };
@@ -5121,6 +5147,7 @@ describe('RewardsController', () => {
         endDate: new Date('2024-12-31T23:59:59Z'),
         tiers: createTestTiers(),
         activityTypes: [],
+        waysToEarn: [],
       };
       const mockSeasonStatus = createTestSeasonStatus({
         season: mockSeasonMetadata,
@@ -5175,6 +5202,7 @@ describe('RewardsController', () => {
             endDate: new Date('2024-12-31T23:59:59Z').getTime(),
             tiers: createTestTiers(),
             activityTypes: [],
+            waysToEarn: [],
             lastFetched: Date.now(),
           },
         };
@@ -5222,7 +5250,7 @@ describe('RewardsController', () => {
       expect(result?.season.name).toBe('Mock Season');
       expect(result?.season.tiers).toHaveLength(4);
       expect(result?.balance.total).toBe(0);
-      expect(result?.tier.currentTier.id).toBe('bronze');
+      expect(result?.tier.currentTier?.id).toBe('bronze');
       expect(result?.tier.nextTier?.id).toBe('silver');
       expect(result?.tier.nextTierPointsNeeded).toBe(1000);
       expect(result?.lastFetched).toBe(1000000);
@@ -5270,6 +5298,7 @@ describe('RewardsController', () => {
         endDate: new Date('2024-12-31T23:59:59Z'),
         tiers: createTestTiers(),
         activityTypes: [],
+        waysToEarn: [],
       };
       const mockSeasonStatus = createTestSeasonStatus({
         season: mockSeasonMetadata,
@@ -5332,6 +5361,7 @@ describe('RewardsController', () => {
             endDate: new Date('2024-12-31T23:59:59Z').getTime(),
             tiers: createTestTiers(),
             activityTypes: [],
+            waysToEarn: [],
             lastFetched: Date.now(),
           },
         };
@@ -5379,7 +5409,7 @@ describe('RewardsController', () => {
       expect(result?.season.name).toBe('Mock Season');
       expect(result?.season.tiers).toHaveLength(4);
       expect(result?.balance.total).toBe(0);
-      expect(result?.tier.currentTier.id).toBe('bronze');
+      expect(result?.tier.currentTier?.id).toBe('bronze');
       expect(result?.tier.nextTier?.id).toBe('silver');
       expect(result?.tier.nextTierPointsNeeded).toBe(1000);
       expect(result?.lastFetched).toBe(1000000);
@@ -5453,6 +5483,7 @@ describe('RewardsController', () => {
             endDate: new Date('2024-12-31T23:59:59Z').getTime(),
             tiers: createTestTiers(),
             activityTypes: [],
+            waysToEarn: [],
             lastFetched: Date.now(),
           },
         };
@@ -5552,6 +5583,7 @@ describe('RewardsController', () => {
             endDate: new Date('2024-12-31T23:59:59Z').getTime(),
             tiers: createTestTiers(),
             activityTypes: [],
+            waysToEarn: [],
             lastFetched: Date.now(),
           },
         };
@@ -5640,6 +5672,7 @@ describe('RewardsController', () => {
             endDate: new Date('2024-12-31T23:59:59Z').getTime(),
             tiers: createTestTiers(),
             activityTypes: [],
+            waysToEarn: [],
             lastFetched: Date.now(),
           },
         };
@@ -5719,6 +5752,7 @@ describe('RewardsController', () => {
             endDate: new Date('2024-12-31T23:59:59Z').getTime(),
             tiers: createTestTiers(),
             activityTypes: [],
+            waysToEarn: [],
             lastFetched: Date.now(),
           },
         };
@@ -5794,6 +5828,7 @@ describe('RewardsController', () => {
             endDate: new Date('2024-12-31T23:59:59Z').getTime(),
             tiers: createTestTiers(),
             activityTypes: [],
+            waysToEarn: [],
             lastFetched: Date.now(),
           },
         };
@@ -5853,6 +5888,7 @@ describe('RewardsController', () => {
             endDate: new Date('2024-12-31T23:59:59Z').getTime(),
             tiers: createTestTiers(),
             activityTypes: [],
+            waysToEarn: [],
             lastFetched: Date.now(),
           },
         };
@@ -5911,6 +5947,7 @@ describe('RewardsController', () => {
             endDate: new Date('2024-12-31T23:59:59Z').getTime(),
             tiers: createTestTiers(),
             activityTypes: [],
+            waysToEarn: [],
             lastFetched: Date.now(),
           },
         };
@@ -5967,6 +6004,7 @@ describe('RewardsController', () => {
         endDate: Date.now() + 86400000,
         tiers: createTestTiers(),
         activityTypes: [],
+        waysToEarn: [],
         lastFetched: recentTime,
       };
 
@@ -6002,6 +6040,7 @@ describe('RewardsController', () => {
         endDate: Date.now() - 86400000, // 1 day ago (expired)
         tiers: createTestTiers(),
         activityTypes: [],
+        waysToEarn: [],
         lastFetched: expiredTime,
       };
 
@@ -6070,6 +6109,7 @@ describe('RewardsController', () => {
         endDate: Date.now() + 86400000,
         tiers: createTestTiers(),
         activityTypes: [],
+        waysToEarn: [],
         lastFetched: staleTime,
       };
 
@@ -8110,7 +8150,7 @@ describe('RewardsController', () => {
       );
 
       // Assert
-      expect(result.currentTier.id).toBe(lastTierCurrentTierId);
+      expect(result.currentTier?.id).toBe(lastTierCurrentTierId);
       expect(result.nextTier).toBeNull();
       expect(result.nextTierPointsNeeded).toBeNull();
     });
@@ -8131,7 +8171,7 @@ describe('RewardsController', () => {
       );
 
       // Assert
-      expect(result.currentTier.id).toBe('silver');
+      expect(result.currentTier?.id).toBe('silver');
       expect(result.nextTier?.id).toBe('gold');
       expect(result.nextTierPointsNeeded).toBe(0); // Math.max(0, 5000 - 6000) = 0
     });
@@ -8150,7 +8190,7 @@ describe('RewardsController', () => {
       );
 
       // Assert
-      expect(result.currentTier.id).toBe('bronze');
+      expect(result.currentTier?.id).toBe('bronze');
       expect(result.nextTier?.id).toBe('silver');
       expect(result.nextTierPointsNeeded).toBe(750); // Math.max(0, 1000 - 250) = 750
     });
@@ -8214,7 +8254,7 @@ describe('RewardsController', () => {
       );
 
       // Assert - Should correctly identify next tier as Gold despite unsorted input
-      expect(result.currentTier.id).toBe('silver');
+      expect(result.currentTier?.id).toBe('silver');
       expect(result.nextTier?.id).toBe('gold');
       expect(result.nextTierPointsNeeded).toBe(3500); // 5000 - 1500
     });
@@ -8231,6 +8271,7 @@ describe('RewardsController', () => {
         endDate: 1640995200000, // 2022-01-01
         tiers,
         activityTypes: [],
+        waysToEarn: [],
       };
 
       const seasonState: SeasonStateDto = {
@@ -8269,6 +8310,7 @@ describe('RewardsController', () => {
         endDate: endTimestamp,
         tiers: createTestTiers(),
         activityTypes: [],
+        waysToEarn: [],
       };
 
       const seasonState: SeasonStateDto = {
@@ -8299,6 +8341,7 @@ describe('RewardsController', () => {
         endDate: Date.now() + 86400000,
         tiers: createTestTiers(),
         activityTypes: [],
+        waysToEarn: [],
       };
 
       const updatedAtDate = new Date('2025-10-20T10:30:00.000Z');
@@ -8353,6 +8396,7 @@ describe('RewardsController', () => {
         endDate: Date.now() + 1000000,
         tiers: customTiers,
         activityTypes: [],
+        waysToEarn: [],
       };
 
       const seasonState: SeasonStateDto = {
@@ -8385,6 +8429,7 @@ describe('RewardsController', () => {
         endDate: Date.now() + 86400000,
         tiers: createTestTiers(),
         activityTypes: [],
+        waysToEarn: [],
       };
 
       const seasonState: SeasonStateDto = {
@@ -8413,6 +8458,7 @@ describe('RewardsController', () => {
         endDate: Date.now() + 86400000,
         tiers: createTestTiers(),
         activityTypes: [],
+        waysToEarn: [],
       };
 
       const largeBalance = 999999999;
@@ -8441,6 +8487,7 @@ describe('RewardsController', () => {
         endDate: Date.now() + 86400000,
         tiers: createTestTiers(),
         activityTypes: [],
+        waysToEarn: [],
         shouldInstallNewVersion: '1.2.3',
       };
 
@@ -8469,6 +8516,7 @@ describe('RewardsController', () => {
         endDate: Date.now() + 86400000,
         tiers: createTestTiers(),
         activityTypes: [],
+        waysToEarn: [],
         // shouldInstallNewVersion is intentionally omitted
       };
 
@@ -9194,6 +9242,7 @@ describe('RewardsController', () => {
               endDate: Date.now() + 1000,
               tiers: [],
               activityTypes: [],
+              waysToEarn: [],
               lastFetched: Date.now(),
             },
           },
@@ -9215,6 +9264,7 @@ describe('RewardsController', () => {
                 endDate: Date.now(),
                 tiers: [],
                 activityTypes: [],
+                waysToEarn: [],
               },
               balance: { total: 100 },
               tier: {
@@ -12479,6 +12529,7 @@ describe('RewardsController', () => {
               endDate: Date.now() + 86400000,
               tiers: [],
               activityTypes: [],
+              waysToEarn: [],
             },
             balance: { total: 1000 },
             tier: {
@@ -12633,6 +12684,7 @@ describe('RewardsController', () => {
               endDate: Date.now() + 86400000,
               tiers: [],
               activityTypes: [],
+              waysToEarn: [],
             },
             balance: { total: 1000 },
             tier: {
@@ -12744,6 +12796,7 @@ describe('RewardsController', () => {
               endDate: Date.now() + 86400000,
               tiers: [],
               activityTypes: [],
+              waysToEarn: [],
             },
             balance: { total: 500 },
             tier: {
@@ -12768,6 +12821,7 @@ describe('RewardsController', () => {
               endDate: Date.now() + 86400000,
               tiers: [],
               activityTypes: [],
+              waysToEarn: [],
             },
             balance: { total: 1000 },
             tier: {
@@ -12792,6 +12846,7 @@ describe('RewardsController', () => {
               endDate: Date.now() + 86400000,
               tiers: [],
               activityTypes: [],
+              waysToEarn: [],
             },
             balance: { total: 1500 },
             tier: {
@@ -12816,6 +12871,7 @@ describe('RewardsController', () => {
               endDate: Date.now() + 86400000,
               tiers: [],
               activityTypes: [],
+              waysToEarn: [],
             },
             balance: { total: 2000 },
             tier: {
@@ -14877,6 +14933,7 @@ describe('RewardsController', () => {
               endDate: Date.now() + 86400000,
               tiers: [],
               activityTypes: [],
+              waysToEarn: [],
             },
             balance: { total: 1000 },
             tier: {
@@ -15080,6 +15137,7 @@ describe('RewardsController', () => {
               endDate: Date.now() + 86400000,
               tiers: [],
               activityTypes: [],
+              waysToEarn: [],
             },
             balance: { total: 500 },
             tier: {
