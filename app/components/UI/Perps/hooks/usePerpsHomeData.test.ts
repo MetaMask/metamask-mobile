@@ -5,7 +5,7 @@ import type {
   OrderFill,
   PerpsMarketData,
   Position,
-} from '../controllers/types';
+} from '@metamask/perps-controller/types';
 import type { PerpsTransaction } from '../types/transactionHistory';
 import { sortMarkets, type SortField } from '../utils/sortMarkets';
 import { FillType } from '../components/PerpsTransactionItem/PerpsTransactionItem';

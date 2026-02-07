@@ -17,7 +17,7 @@ import {
   PERPS_EVENT_VALUE,
 } from '../../constants/eventNames';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import type { OrderType } from '../../controllers/types';
+import type { OrderType } from '@metamask/perps-controller/types';
 
 interface PerpsOrderTypeBottomSheetProps {
   isVisible?: boolean;

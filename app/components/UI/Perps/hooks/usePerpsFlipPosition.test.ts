@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { usePerpsFlipPosition } from './usePerpsFlipPosition';
-import type { Position } from '../controllers/types';
+import type { Position } from '@metamask/perps-controller/types';
 
 const mockFlipPosition = jest.fn();
 const mockShowToast = jest.fn();

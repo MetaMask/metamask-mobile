@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import type { BridgeToken } from '../../Bridge/types';
-import type { AccountState } from '../controllers/types';
+import type { AccountState } from '@metamask/perps-controller/types';
 import { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
 
 // Mock all dependencies

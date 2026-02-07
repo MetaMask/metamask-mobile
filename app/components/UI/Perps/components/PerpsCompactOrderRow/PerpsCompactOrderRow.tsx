@@ -12,7 +12,7 @@ import {
 } from '../../utils/formatUtils';
 import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import styleSheet from './PerpsCompactOrderRow.styles';
-import type { Order } from '../../controllers/types';
+import type { Order } from '@metamask/perps-controller/types';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 
 interface PerpsCompactOrderRowProps {

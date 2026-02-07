@@ -7,8 +7,8 @@ import {
   VALIDATION_THRESHOLDS,
 } from '../constants/perpsConfig';
 import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
-import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
-import type { OrderParams } from '../controllers/types';
+import { PERPS_ERROR_CODES } from '@metamask/perps-controller/perpsErrorCodes';
+import type { OrderParams } from '@metamask/perps-controller/types';
 import type { OrderFormState } from '../types/perps-types';
 import { formatPerpsFiat } from '../utils/formatUtils';
 import { getMaxOrderValue } from '../utils/hyperLiquidValidation';

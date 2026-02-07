@@ -2,7 +2,7 @@ import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { usePerpsCloseAllPositions } from './usePerpsCloseAllPositions';
 import Engine from '../../../../core/Engine';
-import type { Position } from '../controllers/types';
+import type { Position } from '@metamask/perps-controller/types';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({

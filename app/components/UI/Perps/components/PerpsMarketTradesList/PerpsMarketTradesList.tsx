@@ -7,7 +7,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import type { PerpsNavigationParamList } from '../../controllers/types';
+import type { PerpsNavigationParamList } from '@metamask/perps-controller/types';
 import type { PerpsTransaction } from '../../types/transactionHistory';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import PerpsFillTag from '../PerpsFillTag';

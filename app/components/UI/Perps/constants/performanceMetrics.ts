@@ -1,1 +1,1 @@
-export { PerpsMeasurementName } from '../controllers/constants/performanceMetrics';
+export { PerpsMeasurementName } from '@metamask/perps-controller/constants/performanceMetrics';

@@ -2,7 +2,7 @@ import { FeatureFlagConfigurationService } from './FeatureFlagConfigurationServi
 import {
   createMockServiceContext,
   createMockInfrastructure,
-} from '../../__mocks__/serviceMocks';
+} from '../../../components/UI/Perps/__mocks__/serviceMocks';
 import {
   parseCommaSeparatedString,
   stripQuotes,

@@ -8,7 +8,7 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import type { PerpsNavigationParamList } from '../../controllers/types';
+import type { PerpsNavigationParamList } from '@metamask/perps-controller/types';
 import {
   formatPerpsFiat,
   formatPnl,

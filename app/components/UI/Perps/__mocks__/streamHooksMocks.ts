@@ -10,7 +10,7 @@ import type {
   Position,
   Order,
   PriceUpdate,
-} from '../controllers/types';
+} from '@metamask/perps-controller/types';
 
 /**
  * Default mock account state for testing

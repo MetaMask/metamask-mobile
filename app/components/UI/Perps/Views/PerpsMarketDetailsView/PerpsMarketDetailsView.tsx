@@ -18,7 +18,7 @@ import type {
   PerpsMarketData,
   PerpsNavigationParamList,
   TPSLTrackingData,
-} from '../../controllers/types';
+} from '@metamask/perps-controller/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';

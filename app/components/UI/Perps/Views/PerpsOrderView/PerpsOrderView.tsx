@@ -100,7 +100,7 @@ import type {
   OrderType,
   PerpsNavigationParamList,
   Position,
-} from '../../controllers/types';
+} from '@metamask/perps-controller/types';
 import {
   useHasExistingPosition,
   useMinimumOrderAmount,

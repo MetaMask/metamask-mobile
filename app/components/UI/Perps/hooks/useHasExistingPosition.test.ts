@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
 import { useHasExistingPosition } from './useHasExistingPosition';
 import { usePerpsLivePositions, usePerpsLiveFills } from './stream';
-import type { Position, OrderFill } from '../controllers/types';
+import type { Position, OrderFill } from '@metamask/perps-controller/types';
 
 // Mock the stream hooks
 jest.mock('./stream', () => ({

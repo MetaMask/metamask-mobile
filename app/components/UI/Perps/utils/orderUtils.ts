@@ -3,7 +3,7 @@ import type {
   OrderParams,
   Order,
   PerpsDebugLogger,
-} from '../controllers/types';
+} from '@metamask/perps-controller/types';
 import { Position } from '../hooks';
 
 /**

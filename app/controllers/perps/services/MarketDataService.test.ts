@@ -2,12 +2,12 @@ import { MarketDataService } from './MarketDataService';
 import {
   createMockServiceContext,
   createMockInfrastructure,
-} from '../../__mocks__/serviceMocks';
+} from '../../../components/UI/Perps/__mocks__/serviceMocks';
 import {
   createMockHyperLiquidProvider,
   createMockPosition,
   createMockOrder,
-} from '../../__mocks__/providerMocks';
+} from '../../../components/UI/Perps/__mocks__/providerMocks';
 import type { ServiceContext } from './ServiceContext';
 import type {
   PerpsProvider,

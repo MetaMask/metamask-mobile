@@ -39,7 +39,7 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '../../constants/eventNames';
-import type { ClosePositionsResult } from '../../controllers/types';
+import type { ClosePositionsResult } from '@metamask/perps-controller/types';
 
 interface PerpsCloseAllPositionsViewProps {
   sheetRef?: React.RefObject<BottomSheetRef>;

@@ -20,7 +20,7 @@ import type {
   Funding,
   UpdatePositionTPSLParams,
   UserHistoryItem,
-} from '../../../../app/components/UI/Perps/controllers/types';
+} from '@metamask/perps-controller/types';
 
 export class PerpsE2EMockService {
   private static instance: PerpsE2EMockService;

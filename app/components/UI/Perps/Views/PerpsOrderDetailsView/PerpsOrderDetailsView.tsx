@@ -25,7 +25,7 @@ import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOrderFees } from '../../hooks/usePerpsOrderFees';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
 import { TraceName } from '../../../../../util/trace';
-import type { Order } from '../../controllers/types';
+import type { Order } from '@metamask/perps-controller/types';
 import styleSheet from './PerpsOrderDetailsView.styles';
 import PerpsTokenLogo from '../../components/PerpsTokenLogo';
 import {

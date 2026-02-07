@@ -5,7 +5,7 @@ import {
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
-import type { Position } from '../../controllers/types';
+import type { Position } from '@metamask/perps-controller/types';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import PerpsAdjustMarginActionSheet, {
   type AdjustMarginAction,

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { usePerpsLiveFills } from './stream';
-import type { OrderFill } from '../controllers/types';
+import type { OrderFill } from '@metamask/perps-controller/types';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';

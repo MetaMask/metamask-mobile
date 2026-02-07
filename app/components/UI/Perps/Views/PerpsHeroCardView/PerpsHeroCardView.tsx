@@ -43,7 +43,7 @@ import NegativePnlCharacter1 from '../../../../../images/negative_pnl_character_
 import NegativePnlCharacter2 from '../../../../../images/negative_pnl_character_2_3x.png';
 import PositivePnlCharacter2 from '../../../../../images/positive_pnl_character_2_3x.png';
 import PositivePnlCharacter3 from '../../../../../images/positive_pnl_character_3_3x.png';
-import type { Position } from '../../controllers/types';
+import type { Position } from '@metamask/perps-controller/types';
 import { darkTheme } from '@metamask/design-tokens';
 import styleSheet from './PerpsHeroCardView.styles';
 import Logger from '../../../../../util/Logger';

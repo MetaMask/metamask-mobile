@@ -12,7 +12,7 @@ import {
   filterMarketsByQuery,
 } from './marketUtils';
 import type { CandleData } from '../types/perps-types';
-import type { PerpsMarketData } from '../controllers/types';
+import type { PerpsMarketData } from '@metamask/perps-controller/types';
 import { CandlePeriod } from '../constants/chartConfig';
 
 jest.mock('../constants/hyperLiquidConfig', () => ({

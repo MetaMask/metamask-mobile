@@ -1,8 +1,8 @@
 import { createSelector } from 'reselect';
 
-import { MARKET_SORTING_CONFIG, SortOptionId } from '../constants/perpsConfig';
+import { MARKET_SORTING_CONFIG, SortOptionId } from './constants/perpsConfig';
 import type { PerpsControllerState } from './PerpsController';
-import type { SortDirection } from '../utils/sortMarkets';
+import type { SortDirection } from './utils/sortMarkets';
 
 /**
  * Select whether the user is a first-time perps user

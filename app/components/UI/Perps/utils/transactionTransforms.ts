@@ -5,7 +5,7 @@ import {
   Order,
   OrderFill,
   UserHistoryItem,
-} from '../controllers/types';
+} from '@metamask/perps-controller/types';
 import {
   FillType,
   PerpsOrderTransactionStatus,

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
-import type { AccountState } from '../../controllers/types';
+import type { AccountState } from '@metamask/perps-controller/types';
 
 export interface UsePerpsLiveAccountOptions {
   /** Throttle delay in milliseconds (default: 1000ms for balance updates) */

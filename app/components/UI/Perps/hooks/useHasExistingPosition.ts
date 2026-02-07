@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { Position } from '../controllers/types';
+import type { Position } from '@metamask/perps-controller/types';
 import { usePerpsLivePositions, usePerpsLiveFills } from './stream';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';

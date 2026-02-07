@@ -3,13 +3,13 @@
  * Provides reusable mock implementations for ServiceContext and related types
  */
 
-import type { ServiceContext } from '../controllers/services/ServiceContext';
+import type { ServiceContext } from '@metamask/perps-controller/services/ServiceContext';
 import type {
   PerpsControllerState,
   InitializationState,
   PerpsControllerMessenger,
-} from '../controllers/PerpsController';
-import type { PerpsPlatformDependencies } from '../controllers/types';
+} from '@metamask/perps-controller/PerpsController';
+import type { PerpsPlatformDependencies } from '@metamask/perps-controller/types';
 
 /**
  * Create a mock PerpsPlatformDependencies instance.

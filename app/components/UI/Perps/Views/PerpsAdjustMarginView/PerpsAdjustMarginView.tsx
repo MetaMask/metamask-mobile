@@ -13,7 +13,7 @@ import Button, {
   ButtonSize,
 } from '../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../locales/i18n';
-import type { Position } from '../../controllers/types';
+import type { Position } from '@metamask/perps-controller/types';
 import styleSheet from './PerpsAdjustMarginView.styles';
 import { useTheme } from '../../../../../util/theme';
 import Icon, {

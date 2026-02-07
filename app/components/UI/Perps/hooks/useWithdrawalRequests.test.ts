@@ -4,7 +4,7 @@ import { useWithdrawalRequests } from './useWithdrawalRequests';
 import Engine from '../../../../core/Engine';
 import { usePerpsSelector } from './usePerpsSelector';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import type { PerpsControllerState } from '../controllers/PerpsController';
+import type { PerpsControllerState } from '@metamask/perps-controller/PerpsController';
 import type { RootState } from '../../../../reducers';
 import {
   createMockInternalAccount,

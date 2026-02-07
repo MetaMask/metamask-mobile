@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { usePerpsTrading } from './usePerpsTrading';
-import type { Position } from '../controllers/types';
+import type { Position } from '@metamask/perps-controller/types';
 import { captureException } from '@sentry/react-native';
 import usePerpsToasts from './usePerpsToasts';
 import { getPerpsDisplaySymbol } from '../utils/marketUtils';

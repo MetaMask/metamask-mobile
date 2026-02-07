@@ -5,7 +5,7 @@
  * are re-exported from controllers. Mobile-only functions (badge types,
  * icon URLs) remain here.
  */
-import type { PerpsMarketData } from '../controllers/types';
+import type { PerpsMarketData } from '@metamask/perps-controller/types';
 import type { BadgeType } from '../components/PerpsBadge/PerpsBadge.types';
 import {
   HYPERLIQUID_ASSET_ICONS_BASE_URL,
@@ -27,7 +27,7 @@ export {
   calculateFundingCountdown,
   calculate24hHighLow,
   filterMarketsByQuery,
-} from '../controllers/utils/marketUtils';
+} from '@metamask/perps-controller/utils/marketUtils';
 
 /**
  * Determine badge type for a market based on its metadata

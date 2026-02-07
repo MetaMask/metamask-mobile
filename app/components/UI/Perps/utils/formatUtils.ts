@@ -19,7 +19,7 @@ export {
   countSignificantFigures,
   hasExceededSignificantFigures,
   roundToSignificantFigures,
-} from '../controllers/utils/significantFigures';
+} from '@metamask/perps-controller/utils/significantFigures';
 
 /**
  * Price threshold constants for PRICE_RANGES_UNIVERSAL

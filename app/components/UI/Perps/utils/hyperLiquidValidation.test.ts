@@ -15,8 +15,8 @@ import {
   getMaxOrderValue,
 } from './hyperLiquidValidation';
 import type { CaipAssetId, Hex } from '@metamask/utils';
-import type { GetSupportedPathsParams } from '../controllers/types';
-import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
+import type { GetSupportedPathsParams } from '@metamask/perps-controller/types';
+import { PERPS_ERROR_CODES } from '@metamask/perps-controller/perpsErrorCodes';
 
 jest.mock('@metamask/utils', () => ({
   isValidHexAddress: (address: string) => /^0x[0-9a-fA-F]{40}$/.test(address),

@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import Engine from '../../../../core/Engine';
-import { selectOrderBookGrouping } from '../controllers/selectors';
+import { selectOrderBookGrouping } from '@metamask/perps-controller/selectors';
 import { usePerpsSelector } from './usePerpsSelector';
 
 /**

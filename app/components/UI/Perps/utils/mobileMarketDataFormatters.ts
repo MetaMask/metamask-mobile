@@ -8,13 +8,13 @@ import type {
   PerpsMarketData,
   MarketType,
   MarketDataFormatters,
-} from '../controllers/types';
+} from '@metamask/perps-controller/types';
 import {
   calculateOpenInterestUSD,
   transformMarketData as transformMarketDataPortable,
   formatChange as formatChangePortable,
   type HyperLiquidMarketData,
-} from '../controllers/utils/marketDataTransform';
+} from '@metamask/perps-controller/utils/marketDataTransform';
 import {
   formatVolume,
   formatPerpsFiat,

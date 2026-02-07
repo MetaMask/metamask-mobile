@@ -1,4 +1,4 @@
 /**
  * Re-export from controllers for backward compatibility.
  */
-export * from '../controllers/types/hyperliquid-types';
+export * from '@metamask/perps-controller/types/hyperliquid-types';

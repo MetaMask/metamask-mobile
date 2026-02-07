@@ -8,7 +8,11 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '../constants/eventNames';
-import type { OrderParams, OrderResult, Position } from '../controllers/types';
+import type {
+  OrderParams,
+  OrderResult,
+  Position,
+} from '@metamask/perps-controller/types';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { usePerpsMeasurement } from './usePerpsMeasurement';
 import { usePerpsTrading } from './usePerpsTrading';

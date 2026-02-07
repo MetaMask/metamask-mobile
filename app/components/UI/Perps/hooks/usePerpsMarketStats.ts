@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import { CandlePeriod, TimeDuration } from '../constants/chartConfig';
-import type { PriceUpdate } from '../controllers/types';
+import type { PriceUpdate } from '@metamask/perps-controller/types';
 import {
   formatFundingRate,
   formatLargeNumber,

@@ -19,7 +19,7 @@ import type {
   OrderFill,
   AccountState,
   PerpsMarketData,
-} from '../controllers/types';
+} from '@metamask/perps-controller/types';
 import { PERFORMANCE_CONFIG, PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';

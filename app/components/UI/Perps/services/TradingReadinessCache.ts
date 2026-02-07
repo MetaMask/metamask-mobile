@@ -5,4 +5,4 @@
 export {
   TradingReadinessCache,
   PerpsSigningCache,
-} from '../controllers/services/TradingReadinessCache';
+} from '@metamask/perps-controller/services/TradingReadinessCache';

@@ -1,4 +1,4 @@
-import type { MarketTypeFilter } from '../../controllers/types';
+import type { MarketTypeFilter } from '@metamask/perps-controller/types';
 
 export interface PerpsMarketCategoryBadgesProps {
   /**

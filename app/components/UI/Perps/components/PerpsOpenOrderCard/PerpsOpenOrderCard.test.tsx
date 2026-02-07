@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import { Text } from 'react-native';
 import { PerpsOpenOrderCardSelectorsIDs } from '../../Perps.testIds';
 import PerpsOpenOrderCard from './PerpsOpenOrderCard';
-import type { Order } from '../../controllers/types';
+import type { Order } from '@metamask/perps-controller/types';
 
 // Mock the selector module first
 jest.mock('../../selectors/perpsController', () => ({

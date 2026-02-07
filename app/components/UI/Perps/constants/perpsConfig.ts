@@ -10,7 +10,7 @@ import type { Hex } from '@metamask/utils';
 import { TokenI } from '../../Tokens/types';
 
 // Re-export all portable constants for backward compatibility
-export * from '../controllers/constants/perpsConfig';
+export * from '@metamask/perps-controller/constants/perpsConfig';
 
 /** Address used to represent "Perps balance" as the payment token (synthetic option). */
 export const PERPS_BALANCE_PLACEHOLDER_ADDRESS =

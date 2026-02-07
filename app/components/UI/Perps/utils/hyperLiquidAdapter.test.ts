@@ -24,7 +24,7 @@ import {
   adaptHyperLiquidLedgerUpdateToUserHistoryItem,
   type RawHyperLiquidLedgerUpdate,
 } from './hyperLiquidAdapter';
-import type { OrderParams } from '../controllers/types';
+import type { OrderParams } from '@metamask/perps-controller/types';
 import type {
   AssetPosition,
   SpotBalance,

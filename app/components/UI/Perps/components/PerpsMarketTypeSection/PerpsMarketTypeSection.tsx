@@ -15,7 +15,7 @@ import type {
   PerpsMarketData,
   PerpsNavigationParamList,
   MarketTypeFilter,
-} from '../../controllers/types';
+} from '@metamask/perps-controller/types';
 import { useStyles } from '../../../../../component-library/hooks';
 import type { SortField } from '../../utils/sortMarkets';
 import PerpsMarketList from '../PerpsMarketList';

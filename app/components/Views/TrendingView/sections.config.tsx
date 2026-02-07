@@ -8,7 +8,7 @@ import { strings } from '../../../../locales/i18n';
 import TrendingTokenRowItem from '../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import TrendingTokensSkeleton from '../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import PerpsMarketRowItem from '../../UI/Perps/components/PerpsMarketRowItem';
-import type { PerpsMarketData } from '../../UI/Perps/controllers/types';
+import type { PerpsMarketData } from '@metamask/perps-controller/types';
 import PredictMarket from '../../UI/Predict/components/PredictMarket';
 import type { PredictMarket as PredictMarketType } from '../../UI/Predict/types';
 import type { PerpsNavigationParamList } from '../../UI/Perps/types/navigation';

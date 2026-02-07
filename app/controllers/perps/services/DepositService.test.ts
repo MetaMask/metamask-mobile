@@ -1,10 +1,10 @@
 import { DepositService } from './DepositService';
-import { createMockHyperLiquidProvider } from '../../__mocks__/providerMocks';
+import { createMockHyperLiquidProvider } from '../../../components/UI/Perps/__mocks__/providerMocks';
 import {
   createMockEvmAccount,
   createMockInfrastructure,
   createMockMessenger,
-} from '../../__mocks__/serviceMocks';
+} from '../../../components/UI/Perps/__mocks__/serviceMocks';
 import { generateDepositId } from '../utils/idUtils';
 import { toHex } from '@metamask/controller-utils';
 import { parseCaipAssetId } from '@metamask/utils';

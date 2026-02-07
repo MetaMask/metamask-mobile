@@ -1,5 +1,5 @@
 import type { UsePerpsMarketStatsReturn } from '../hooks/usePerpsMarketStats';
-import type { Position, Order } from '../controllers/types';
+import type { Position, Order } from '@metamask/perps-controller/types';
 
 /**
  * Default mock implementations for Perps hooks

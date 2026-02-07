@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsCompactOrderRow from './PerpsCompactOrderRow';
-import type { Order } from '../../controllers/types';
+import type { Order } from '@metamask/perps-controller/types';
 
 // Mock dependencies
 jest.mock('../../../../../component-library/hooks', () => ({

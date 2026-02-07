@@ -11,7 +11,7 @@ import {
   PERPS_CONSTANTS,
   HOME_SCREEN_CONFIG,
 } from '../../constants/perpsConfig';
-import type { PerpsMarketData } from '../../controllers/types';
+import type { PerpsMarketData } from '@metamask/perps-controller/types';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import {
   getPerpsDisplaySymbol,

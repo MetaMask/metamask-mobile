@@ -5,9 +5,9 @@ import {
   selectWatchlistMarkets,
   selectIsWatchlistMarket,
   selectMarketFilterPreferences,
-} from '../../controllers/selectors';
-import { InitializationState } from '../../controllers/PerpsController';
-import type { PerpsActiveProviderMode } from '../../controllers/types';
+} from '@metamask/perps-controller/selectors';
+import { InitializationState } from '@metamask/perps-controller/PerpsController';
+import type { PerpsActiveProviderMode } from '@metamask/perps-controller/types';
 
 const selectPerpsControllerState = (state: RootState) =>
   state.engine.backgroundState.PerpsController;

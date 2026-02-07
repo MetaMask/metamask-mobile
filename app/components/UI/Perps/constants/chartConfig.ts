@@ -20,7 +20,7 @@ export {
   getCandlePeriodsForDuration,
   getDefaultCandlePeriodForDuration,
   calculateCandleCount,
-} from '../controllers/constants/chartConfig';
+} from '@metamask/perps-controller/constants/chartConfig';
 
 type Colors = Theme['colors'];
 
@@ -63,7 +63,7 @@ export const PERPS_CHART_CONFIG = {
 import {
   ChartInterval,
   TimeDuration,
-} from '../controllers/constants/chartConfig';
+} from '@metamask/perps-controller/constants/chartConfig';
 
 /**
  * Available time intervals for candlestick chart

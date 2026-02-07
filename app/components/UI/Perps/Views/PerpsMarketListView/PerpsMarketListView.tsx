@@ -34,7 +34,7 @@ import { PerpsMarketListViewProps } from './PerpsMarketListView.types';
 import type {
   PerpsMarketData,
   MarketTypeFilter,
-} from '../../controllers/types';
+} from '@metamask/perps-controller/types';
 import { PerpsMarketListViewSelectorsIDs } from '../../Perps.testIds';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';

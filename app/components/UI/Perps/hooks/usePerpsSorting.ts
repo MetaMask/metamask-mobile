@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import type { PerpsMarketData } from '../controllers/types';
+import type { PerpsMarketData } from '@metamask/perps-controller/types';
 import {
   sortMarkets,
   type SortField,

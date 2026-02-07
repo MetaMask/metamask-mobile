@@ -96,7 +96,7 @@ export {
   usePerpsTrading,
   usePerpsNetworkConfig,
   usePerpsNetwork,
-} from '../hooks';
+} from '../../components/UI/Perps/hooks';
 
 // Removed with Live Market Prices component:
 // - usePerpsPrices

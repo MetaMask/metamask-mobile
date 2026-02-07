@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import { View, Text as RNText } from 'react-native';
 import PerpsMarketList from './PerpsMarketList';
-import type { PerpsMarketData } from '../../controllers/types';
+import type { PerpsMarketData } from '@metamask/perps-controller/types';
 import type { SortField } from '../../utils/sortMarkets';
 
 // Mock dependencies

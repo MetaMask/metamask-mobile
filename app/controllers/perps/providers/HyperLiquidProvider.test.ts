@@ -3,7 +3,7 @@ import { HyperLiquidClientService } from '../services/HyperLiquidClientService';
 import {
   createMockInfrastructure,
   createMockMessenger,
-} from '../../__mocks__/serviceMocks';
+} from '../../../components/UI/Perps/__mocks__/serviceMocks';
 import { HyperLiquidSubscriptionService } from '../services/HyperLiquidSubscriptionService';
 import { HyperLiquidWalletService } from '../services/HyperLiquidWalletService';
 import { REFERRAL_CONFIG } from '../constants/hyperLiquidConfig';
@@ -33,7 +33,7 @@ jest.mock('../services/HyperLiquidSubscriptionService');
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mockStreamManagerInstance: any;
 const mockGetStreamManagerInstance = jest.fn(() => mockStreamManagerInstance);
-jest.mock('../../providers/PerpsStreamManager', () => ({
+jest.mock('../../../components/UI/Perps/providers/PerpsStreamManager', () => ({
   getStreamManagerInstance: mockGetStreamManagerInstance,
 }));
 

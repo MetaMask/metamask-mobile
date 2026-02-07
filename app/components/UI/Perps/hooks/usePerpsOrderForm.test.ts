@@ -14,7 +14,7 @@ import {
   PerpsStreamProvider,
   PerpsStreamManager,
 } from '../providers/PerpsStreamManager';
-import type { Position } from '../controllers/types';
+import type { Position } from '@metamask/perps-controller/types';
 
 jest.mock('./usePerpsNetwork');
 jest.mock('./stream/usePerpsLiveAccount');

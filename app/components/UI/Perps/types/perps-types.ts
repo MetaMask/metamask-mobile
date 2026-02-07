@@ -1,4 +1,4 @@
 /**
  * Re-export from controllers for backward compatibility.
  */
-export * from '../controllers/types/perps-types';
+export * from '@metamask/perps-controller/types/perps-types';

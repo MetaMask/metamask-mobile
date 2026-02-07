@@ -11,7 +11,7 @@ import type {
   Order,
   PerpsMarketData,
   OrderFill,
-} from '../controllers/types';
+} from '@metamask/perps-controller/types';
 import type { PerpsTransaction } from '../types/transactionHistory';
 import { transformFillsToTransactions } from '../utils/transactionTransforms';
 import Engine from '../../../../core/Engine';

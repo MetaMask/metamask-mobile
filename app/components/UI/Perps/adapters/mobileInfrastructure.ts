@@ -24,7 +24,7 @@ import type {
   PerpsAnalyticsProperties,
   VersionGatedFeatureFlag,
   MarketDataFormatters,
-} from '../controllers/types';
+} from '@metamask/perps-controller/types';
 import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
 import {
   formatVolume,

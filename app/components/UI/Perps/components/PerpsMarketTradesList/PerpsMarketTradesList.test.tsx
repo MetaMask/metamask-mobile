@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsMarketTradesList from './PerpsMarketTradesList';
 import Routes from '../../../../../constants/navigation/Routes';
 import { usePerpsMarketFills } from '../../hooks/usePerpsMarketFills';
-import type { OrderFill } from '../../controllers/types';
+import type { OrderFill } from '@metamask/perps-controller/types';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({

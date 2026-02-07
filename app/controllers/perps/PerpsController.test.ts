@@ -24,18 +24,18 @@ import type {
   SubscribeAccountParams,
 } from './types';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
-import { createMockHyperLiquidProvider } from '../__mocks__/providerMocks';
+import { createMockHyperLiquidProvider } from '../../components/UI/Perps/__mocks__/providerMocks';
 import {
   createMockInfrastructure,
   createMockMessenger,
-} from '../__mocks__/serviceMocks';
-import Engine from '../../../../core/Engine';
+} from '../../components/UI/Perps/__mocks__/serviceMocks';
+import Engine from '../../core/Engine';
 
 jest.mock('./providers/HyperLiquidProvider');
 
 // Mock transaction controller utility
 const mockAddTransaction = jest.fn();
-jest.mock('../../../../util/transaction-controller', () => ({
+jest.mock('../../util/transaction-controller', () => ({
   addTransaction: (...args: unknown[]) => mockAddTransaction(...args),
 }));
 
@@ -53,12 +53,12 @@ const mockStreamManager = {
   orderFills: { pause: jest.fn(), resume: jest.fn() },
 };
 
-jest.mock('../providers/PerpsStreamManager', () => ({
+jest.mock('../../components/UI/Perps/providers/PerpsStreamManager', () => ({
   getStreamManagerInstance: jest.fn(() => mockStreamManager),
 }));
 
 // Create persistent mock controllers INSIDE jest.mock factory
-jest.mock('../../../../core/Engine', () => {
+jest.mock('../../core/Engine', () => {
   const mockRewardsController = {
     getPerpsDiscountForAccount: jest.fn(),
   };

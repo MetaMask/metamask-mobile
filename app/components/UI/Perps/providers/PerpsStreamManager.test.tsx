@@ -14,7 +14,7 @@ import type {
   PerpsMarketData,
   Order,
   AccountState,
-} from '../controllers/types';
+} from '@metamask/perps-controller/types';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 
 jest.mock('../../../../core/Engine');

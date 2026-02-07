@@ -6,7 +6,7 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import PerpsFlipPositionConfirmSheet from './PerpsFlipPositionConfirmSheet';
-import type { Position } from '../../controllers/types';
+import type { Position } from '@metamask/perps-controller/types';
 
 const mockHandleFlipPosition = jest.fn();
 let mockIsFlipping = false;

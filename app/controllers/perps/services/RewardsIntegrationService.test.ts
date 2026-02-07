@@ -3,7 +3,7 @@ import {
   createMockEvmAccount,
   createMockInfrastructure,
   createMockMessenger,
-} from '../../__mocks__/serviceMocks';
+} from '../../../components/UI/Perps/__mocks__/serviceMocks';
 import type { PerpsControllerMessenger } from '../PerpsController';
 import type { PerpsPlatformDependencies } from '../types';
 

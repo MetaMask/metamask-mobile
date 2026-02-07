@@ -1,7 +1,7 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import React from 'react';
 import { usePerpsLiveFills } from './index';
-import type { OrderFill } from '../../controllers/types';
+import type { OrderFill } from '@metamask/perps-controller/types';
 
 // Mock the stream provider
 const mockSubscribe = jest.fn();

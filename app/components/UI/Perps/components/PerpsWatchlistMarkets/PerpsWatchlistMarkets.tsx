@@ -12,7 +12,7 @@ import type {
   PerpsNavigationParamList,
   Position,
   Order,
-} from '../../controllers/types';
+} from '@metamask/perps-controller/types';
 import PerpsMarketRowItem from '../PerpsMarketRowItem';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsWatchlistMarkets.styles';

@@ -2,7 +2,7 @@
 jest.useFakeTimers();
 
 // Mock perpsErrorCodes to avoid heavy import chain
-jest.mock('../controllers/perpsErrorCodes', () => ({
+jest.mock('@metamask/perps-controller/perpsErrorCodes', () => ({
   PERPS_ERROR_CODES: {
     CLIENT_NOT_INITIALIZED: 'CLIENT_NOT_INITIALIZED',
     CLIENT_REINITIALIZING: 'CLIENT_REINITIALIZING',
@@ -40,7 +40,7 @@ jest.mock('../controllers/perpsErrorCodes', () => ({
 }));
 
 import { strings } from '../../../../../locales/i18n';
-import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
+import { PERPS_ERROR_CODES } from '@metamask/perps-controller/perpsErrorCodes';
 import {
   translatePerpsError,
   isPerpsErrorCode,

@@ -42,4 +42,4 @@ export type {
   Position,
   OrderFill,
   AccountState,
-} from '../../controllers/types';
+} from '@metamask/perps-controller/types';

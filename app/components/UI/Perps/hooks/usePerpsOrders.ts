@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
-import type { Order, GetOrdersParams } from '../controllers/types';
+import type { Order, GetOrdersParams } from '@metamask/perps-controller/types';
 
 export interface UsePerpsOrdersResult {
   /**

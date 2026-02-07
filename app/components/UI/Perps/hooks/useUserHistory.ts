@@ -1,7 +1,10 @@
 import { useCallback, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { UserHistoryItem, GetUserHistoryParams } from '../controllers/types';
+import {
+  UserHistoryItem,
+  GetUserHistoryParams,
+} from '@metamask/perps-controller/types';
 import type { CaipAccountId } from '@metamask/utils';
 
 interface UseUserHistoryParams {

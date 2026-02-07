@@ -17,7 +17,7 @@ import type {
   SubscribePricesParams,
   WithdrawParams,
   WithdrawResult,
-} from '../controllers/types';
+} from '@metamask/perps-controller/types';
 import { usePerpsTrading } from './usePerpsTrading';
 
 // Mock Engine

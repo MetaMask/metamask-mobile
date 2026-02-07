@@ -5,7 +5,7 @@ import type {
   PerpsActiveProviderMode,
   SwitchProviderResult,
   ToggleTestnetResult,
-} from '../controllers/types';
+} from '@metamask/perps-controller/types';
 
 // Mock Engine
 jest.mock('../../../../core/Engine', () => ({

@@ -34,7 +34,7 @@ import {
 import type {
   PerpsNavigationParamList,
   PerpsMarketData,
-} from '../../controllers/types';
+} from '@metamask/perps-controller/types';
 import {
   usePerpsEventTracking,
   usePerpsFirstTimeUser,

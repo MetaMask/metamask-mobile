@@ -1,7 +1,7 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { usePerpsOrderExecution } from './usePerpsOrderExecution';
 import { usePerpsTrading } from './usePerpsTrading';
-import type { OrderParams, Position } from '../controllers/types';
+import type { OrderParams, Position } from '@metamask/perps-controller/types';
 
 jest.mock('./usePerpsTrading');
 jest.mock('../../../../../locales/i18n', () => ({

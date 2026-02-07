@@ -2,7 +2,11 @@ import { useCallback } from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import type { PerpsNavigationParamList } from '../types/navigation';
-import type { PerpsMarketData, Position, Order } from '../controllers/types';
+import type {
+  PerpsMarketData,
+  Position,
+  Order,
+} from '@metamask/perps-controller/types';
 import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsEventTracking } from './usePerpsEventTracking';

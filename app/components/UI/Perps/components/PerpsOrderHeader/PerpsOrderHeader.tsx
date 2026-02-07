@@ -16,7 +16,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
-import type { OrderType } from '../../controllers/types';
+import type { OrderType } from '@metamask/perps-controller/types';
 import {
   formatPercentage,
   formatPerpsFiat,

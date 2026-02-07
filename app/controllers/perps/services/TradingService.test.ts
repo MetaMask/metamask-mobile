@@ -19,8 +19,8 @@ import {
   createMockServiceContext,
   createMockPerpsControllerState,
   createMockInfrastructure,
-} from '../../__mocks__/serviceMocks';
-import { createMockHyperLiquidProvider } from '../../__mocks__/providerMocks';
+} from '../../../components/UI/Perps/__mocks__/serviceMocks';
+import { createMockHyperLiquidProvider } from '../../../components/UI/Perps/__mocks__/providerMocks';
 
 jest.mock('uuid', () => ({ v4: () => 'mock-trace-id' }));
 

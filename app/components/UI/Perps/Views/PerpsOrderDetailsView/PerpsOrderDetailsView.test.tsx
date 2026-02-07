@@ -6,7 +6,7 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import PerpsOrderDetailsView from './PerpsOrderDetailsView';
-import type { Order } from '../../controllers/types';
+import type { Order } from '@metamask/perps-controller/types';
 
 let mockRouteParams: { order?: Order } = {};
 const mockCancelOrder = jest.fn();

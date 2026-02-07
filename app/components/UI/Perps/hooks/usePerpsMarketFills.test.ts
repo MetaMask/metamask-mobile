@@ -2,7 +2,7 @@ import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { usePerpsMarketFills } from './usePerpsMarketFills';
 import { usePerpsLiveFills } from './stream';
 import Engine from '../../../../core/Engine';
-import type { OrderFill } from '../controllers/types';
+import type { OrderFill } from '@metamask/perps-controller/types';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 // Mock dependencies

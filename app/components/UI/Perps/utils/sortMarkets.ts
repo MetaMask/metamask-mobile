@@ -7,4 +7,4 @@ export {
   type SortField,
   type SortDirection,
   type SortMarketsParams,
-} from '../controllers/utils/sortMarkets';
+} from '@metamask/perps-controller/utils/sortMarkets';

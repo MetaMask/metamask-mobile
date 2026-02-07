@@ -6,14 +6,26 @@ import {
   PerpsControllerMessenger,
   PerpsControllerState,
   InitializationState,
-} from '../../../../components/UI/Perps/controllers';
-import { MARKET_SORTING_CONFIG } from '../../../../components/UI/Perps/constants/perpsConfig';
+} from '@metamask/perps-controller';
+import { MARKET_SORTING_CONFIG } from '@metamask/perps-controller/constants/perpsConfig';
 import { perpsControllerInit } from '.';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
-jest.mock('../../../../components/UI/Perps/controllers', () => {
+// Mock mobile-specific modules that ./index.ts imports to avoid pulling in
+// Engine and React Native dependencies in the test environment
+jest.mock(
+  '../../../../components/UI/Perps/adapters/mobileInfrastructure',
+  () => ({
+    createMobileInfrastructure: jest.fn(() => ({})),
+  }),
+);
+jest.mock('../../../../components/UI/Perps/utils/e2eBridgePerps', () => ({
+  applyE2EControllerMocks: jest.fn(),
+}));
+
+jest.mock('@metamask/perps-controller', () => {
   const actualPerpsController = jest.requireActual(
-    '../../../../components/UI/Perps/controllers',
+    '@metamask/perps-controller/PerpsController',
   );
 
   return {
@@ -65,7 +77,7 @@ describe('perps controller init', () => {
 
   it('controller state should be default state when no initial state is passed in', () => {
     const defaultPerpsControllerState = jest
-      .requireActual('../../../../components/UI/Perps/controllers')
+      .requireActual('@metamask/perps-controller/PerpsController')
       .getDefaultPerpsControllerState();
 
     perpsControllerInit(initRequestMock);

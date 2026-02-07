@@ -3,7 +3,7 @@ import { usePerpsPortfolioBalance } from './usePerpsPortfolioBalance';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectPerpsBalances } from '../selectors/perpsController';
-import { AccountState } from '../controllers/types';
+import { AccountState } from '@metamask/perps-controller/types';
 import { usePerpsLiveAccount } from './stream';
 
 // Type for mock balances

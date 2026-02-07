@@ -26,7 +26,7 @@ import HeaderCompactStandard from '../../../../../component-library/components-t
 import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
 import { usePerpsBlockExplorerUrl } from '../../hooks';
 import { PerpsNavigationParamList } from '../../types/navigation';
-import type { PerpsMarketData } from '../../controllers/types';
+import type { PerpsMarketData } from '@metamask/perps-controller/types';
 import {
   PerpsPositionTransactionRouteProp,
   PerpsTransaction,

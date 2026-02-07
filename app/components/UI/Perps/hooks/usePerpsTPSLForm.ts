@@ -4,7 +4,7 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { strings } from '../../../../../locales/i18n';
 import { regex } from '../../../../util/regex';
 import { DECIMAL_PRECISION_CONFIG } from '../constants/perpsConfig';
-import type { Position } from '../controllers/types';
+import type { Position } from '@metamask/perps-controller/types';
 import { formatPerpsFiat, PRICE_RANGES_UNIVERSAL } from '../utils/formatUtils';
 import { calculatePositionSize } from '../utils/orderCalculations';
 import { calculateExpectedPnL } from '../utils/pnlCalculations';

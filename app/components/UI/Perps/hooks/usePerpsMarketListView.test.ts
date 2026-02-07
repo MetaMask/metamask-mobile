@@ -5,7 +5,7 @@ import { usePerpsMarkets } from './usePerpsMarkets';
 import { usePerpsSearch } from './usePerpsSearch';
 import { usePerpsSorting } from './usePerpsSorting';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
-import type { PerpsMarketData } from '../controllers/types';
+import type { PerpsMarketData } from '@metamask/perps-controller/types';
 import {
   sortMarkets,
   type SortField,

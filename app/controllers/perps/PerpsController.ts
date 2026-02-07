@@ -20,24 +20,24 @@ import {
   TransactionControllerTransactionSubmittedEvent,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { USDC_SYMBOL } from '../constants/hyperLiquidConfig';
+import { USDC_SYMBOL } from './constants/hyperLiquidConfig';
 import {
   LastTransactionResult,
   TransactionStatus,
-} from '../types/transactionTypes';
+} from './types/transactionTypes';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../constants/eventNames';
+} from './constants/eventNames';
 import { ensureError } from './utils/errorUtils';
-import type { CandleData } from '../types/perps-types';
-import { CandlePeriod } from '../constants/chartConfig';
+import type { CandleData } from './types/perps-types';
+import { CandlePeriod } from './constants/chartConfig';
 import {
   PERPS_CONSTANTS,
   MARKET_SORTING_CONFIG,
   type SortOptionId,
-} from '../constants/perpsConfig';
-import type { SortDirection } from '../utils/sortMarkets';
+} from './constants/perpsConfig';
+import type { SortDirection } from './utils/sortMarkets';
 import { PERPS_ERROR_CODES } from './perpsErrorCodes';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import { AggregatedPerpsProvider } from './providers/AggregatedPerpsProvider';
@@ -121,8 +121,8 @@ import type {
   RemoteFeatureFlagControllerGetStateAction,
 } from '@metamask/remote-feature-flag-controller';
 import type { Json } from '@metamask/utils';
-import { wait } from '../utils/wait';
-import { getSelectedEvmAccount } from '../utils/accountUtils';
+import { wait } from './utils/wait';
+import { getSelectedEvmAccount } from './utils/accountUtils';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 // PaymentToken: minimal interface for deposit flow (replaces mobile-only AssetType)
 

@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react-native';
-import type { PerpsMarketData } from '../controllers/types';
+import type { PerpsMarketData } from '@metamask/perps-controller/types';
 import { usePerpsSearch } from './usePerpsSearch';
 
 describe('usePerpsSearch', () => {

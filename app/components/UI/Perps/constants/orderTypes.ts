@@ -1,4 +1,4 @@
 /**
  * Re-export from controllers for backward compatibility.
  */
-export * from '../controllers/constants/orderTypes';
+export * from '@metamask/perps-controller/constants/orderTypes';

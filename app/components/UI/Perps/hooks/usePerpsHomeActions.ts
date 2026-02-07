@@ -8,7 +8,7 @@ import { selectPerpsEligibility } from '../selectors/perpsController';
 import { usePerpsTrading } from './usePerpsTrading';
 import { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
-import type { PerpsNavigationParamList } from '../controllers/types';
+import type { PerpsNavigationParamList } from '@metamask/perps-controller/types';
 import { ensureError } from '../../../../util/errorUtils';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import {

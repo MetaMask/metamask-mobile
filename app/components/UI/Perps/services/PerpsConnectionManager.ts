@@ -23,7 +23,7 @@ import {
 import { selectHip3ConfigVersion } from '../selectors/featureFlags';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import type { ReconnectOptions } from '../types/perps-types';
-import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
+import { PERPS_ERROR_CODES } from '@metamask/perps-controller/perpsErrorCodes';
 import { ensureError } from '../../../../util/errorUtils';
 import { wait } from '../utils/wait';
 import { TradingReadinessCache } from './TradingReadinessCache';

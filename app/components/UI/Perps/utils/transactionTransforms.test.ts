@@ -8,7 +8,7 @@ import {
   transformDepositRequestsToTransactions,
   aggregateFillsByTimestamp,
 } from './transactionTransforms';
-import { OrderFill } from '../controllers/types';
+import { OrderFill } from '@metamask/perps-controller/types';
 import { FillType } from '../components/PerpsTransactionItem/PerpsTransactionItem';
 import {
   PerpsOrderTransactionStatus,

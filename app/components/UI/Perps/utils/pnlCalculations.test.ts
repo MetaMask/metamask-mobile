@@ -13,7 +13,7 @@ import {
   type PnLFromUnrealizedParams,
   type TotalPnLParams,
 } from './pnlCalculations';
-import type { Position } from '../controllers/types';
+import type { Position } from '@metamask/perps-controller/types';
 
 describe('pnlCalculations', () => {
   describe('calculatePnL', () => {

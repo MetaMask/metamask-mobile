@@ -1,6 +1,6 @@
 import { RootState } from '../../../../../reducers';
-import type { AccountState } from '../../controllers/types';
-import { InitializationState } from '../../controllers/PerpsController';
+import type { AccountState } from '@metamask/perps-controller/types';
+import { InitializationState } from '@metamask/perps-controller/PerpsController';
 import {
   selectPerpsProvider,
   selectPerpsAccountState,

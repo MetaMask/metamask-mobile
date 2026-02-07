@@ -2,7 +2,7 @@ import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { usePerpsCancelAllOrders } from './usePerpsCancelAllOrders';
 import Engine from '../../../../core/Engine';
-import type { Order } from '../controllers/types';
+import type { Order } from '@metamask/perps-controller/types';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({

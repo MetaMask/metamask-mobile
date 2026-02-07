@@ -35,7 +35,11 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
-import type { InputMethod, OrderType, Position } from '../../controllers/types';
+import type {
+  InputMethod,
+  OrderType,
+  Position,
+} from '@metamask/perps-controller/types';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
   DECIMAL_PRECISION_CONFIG,

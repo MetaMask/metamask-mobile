@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import type { Position, PriceUpdate } from '../../controllers/types';
+import type { Position, PriceUpdate } from '@metamask/perps-controller/types';
 import { calculateRoEForPrice } from '../../utils/tpslValidation';
 
 // Stable empty array reference to prevent re-renders

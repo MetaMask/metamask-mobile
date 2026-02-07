@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { usePerpsMarkets } from './usePerpsMarkets';
 import { selectPerpsWatchlistMarkets } from '../selectors/perpsController';
-import type { PerpsMarketData } from '../controllers/types';
+import type { PerpsMarketData } from '@metamask/perps-controller/types';
 
 const EXPLORE_MARKETS_LIMIT = 8;
 

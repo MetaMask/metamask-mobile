@@ -1,5 +1,5 @@
 import Engine from '../../../../core/Engine';
-import { selectIsFirstTimeUser } from '../controllers/selectors';
+import { selectIsFirstTimeUser } from '@metamask/perps-controller/selectors';
 import { usePerpsSelector } from './usePerpsSelector';
 
 /**

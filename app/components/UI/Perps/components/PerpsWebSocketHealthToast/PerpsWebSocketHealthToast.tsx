@@ -23,7 +23,7 @@ import Icon, {
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
-import { WebSocketConnectionState } from '../../controllers/types';
+import { WebSocketConnectionState } from '@metamask/perps-controller/types';
 import { PerpsWebSocketHealthToastSelectorsIDs } from '../../Perps.testIds';
 import toastStyleSheet from './PerpsWebSocketHealthToast.styles';
 import { useWebSocketHealthToastContext } from './PerpsWebSocketHealthToast.context';

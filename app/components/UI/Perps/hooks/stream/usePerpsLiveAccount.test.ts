@@ -1,5 +1,5 @@
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import type { AccountState } from '../../controllers/types';
+import type { AccountState } from '@metamask/perps-controller/types';
 import { usePerpsLiveAccount } from './usePerpsLiveAccount';
 
 // Mock i18n

@@ -25,7 +25,7 @@ import { OrderDirection } from '../types/perps-types';
 import { formatPerpsFiat } from '../utils/formatUtils';
 import { handlePerpsError } from '../utils/translatePerpsError';
 import { formatDurationForDisplay } from '../utils/time';
-import { Position } from '../controllers/types';
+import { Position } from '@metamask/perps-controller/types';
 import { getPerpsDisplaySymbol } from '../utils/marketUtils';
 
 export type PerpsToastOptions = Omit<ToastOptions, 'labelOptions'> & {

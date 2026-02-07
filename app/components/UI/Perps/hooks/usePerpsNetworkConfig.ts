@@ -4,7 +4,7 @@ import type {
   PerpsActiveProviderMode,
   SwitchProviderResult,
   ToggleTestnetResult,
-} from '../controllers/types';
+} from '@metamask/perps-controller/types';
 
 /**
  * Hook for network and provider configuration

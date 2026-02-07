@@ -19,8 +19,8 @@ import type {
   LiquidationPriceParams,
   Funding,
   UpdatePositionTPSLParams,
-} from '../../../app/components/UI/Perps/controllers/types';
-import type { PerpsControllerState } from '../../../app/components/UI/Perps/controllers/PerpsController';
+} from '@metamask/perps-controller/types';
+import type { PerpsControllerState } from '@metamask/perps-controller/PerpsController';
 
 // Interface for controller with update method access
 interface ControllerWithUpdate {

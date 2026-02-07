@@ -1,5 +1,5 @@
 import type { SortOptionId } from '../../../../constants/perpsConfig';
-import type { MarketTypeFilter } from '../../../../controllers/types';
+import type { MarketTypeFilter } from '@metamask/perps-controller/types';
 
 /**
  * Props for PerpsMarketFiltersBar component

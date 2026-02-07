@@ -5,7 +5,7 @@ import type {
   OrderType,
   PerpsMarketData,
   TPSLTrackingData,
-} from '../controllers/types';
+} from '@metamask/perps-controller/types';
 import { PerpsTransaction } from './transactionHistory';
 import type { DataMonitorParams } from '../hooks/usePerpsDataMonitor';
 

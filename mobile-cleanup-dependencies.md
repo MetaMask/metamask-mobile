@@ -125,17 +125,21 @@ The final two portability gaps: `ensureError` imported from `app/util/errorUtils
 
 ```bash
 # Run Perps tests
+yarn jest app/controllers/perps/ --no-coverage --passWithNoTests
 yarn jest app/components/UI/Perps/ --no-coverage --passWithNoTests
+
+# Engine tests
+yarn jest app/core/Engine/controllers/perps-controller/ --no-coverage --passWithNoTests
 
 # TypeScript check
 yarn tsc --noEmit
 
-# Verify controllers/ is self-contained — should return NO results:
-grep -r "from '\.\./\.\./\.\./\.\." app/components/UI/Perps/controllers/ \
-  --include='*.ts' --exclude='*.test.ts'
+# Verify no relative imports into controllers/perps/ from outside (should return 0):
+grep -r "from '.*controllers/perps" app/ --include='*.ts' --include='*.tsx' \
+  | grep -v 'node_modules' | grep -v '@metamask/perps-controller'
 
-# Verify no imports from ../../constants/ in controllers/:
-grep -r "from '\.\./\.\./constants/" app/components/UI/Perps/controllers/ \
+# Verify controllers/ is self-contained — should return NO results:
+grep -r "from '\.\./\.\./\.\./\.\." app/controllers/perps/ \
   --include='*.ts' --exclude='*.test.ts'
 ```
 
@@ -144,7 +148,7 @@ grep -r "from '\.\./\.\./constants/" app/components/UI/Perps/controllers/ \
 ## Final Directory Structure
 
 ```
-controllers/
+app/controllers/perps/    (aliased as @metamask/perps-controller)
 ├── PerpsController.ts
 ├── index.ts
 ├── perpsErrorCodes.ts
@@ -233,3 +237,52 @@ Used by 8+ files outside `controllers/`. Copying the 25-line pure function avoid
 ### Decision: `addTransaction` uses messenger pattern, NOT dependency injection
 
 `PerpsController.ts` already had `TransactionControllerAddTransactionAction` in `AllowedActions`. The messenger call replaces the Mobile-only convenience wrapper — this is a cross-controller call, not a platform utility.
+
+---
+
+## Step 6 — Migrate all imports to alias + move controllers/ to app/controllers/perps/
+
+**Status**: Uncommitted (staged changes)
+
+The portability refactor is complete, but controllers/ still lived inside the UI component tree at `app/components/UI/Perps/controllers/`. This step migrates all ~230 external consumers to the `@metamask/perps-controller` alias and physically moves the directory for stronger isolation.
+
+### What it does
+
+1. **Phase 0 — Fix internal imports**: `PerpsController.ts` and `selectors.ts` had 11 imports going through re-export stubs outside controllers/ (e.g. `from '../constants/perpsConfig'`). These are rewritten to internal relative paths (`from './constants/perpsConfig'`).
+
+2. **Phase 1 — Migrate all external imports**: A mechanical transformation of ~230 files, replacing every relative import path containing `controllers/` with the `@metamask/perps-controller` alias. This covers hooks, views, components, utils, mocks, test files, Engine consumers, DeeplinkManager, and test/ directory files. Re-export stubs are also updated (`export * from '@metamask/perps-controller/constants/eventNames'`).
+
+3. **Phase 2 — Physical move**: `git mv app/components/UI/Perps/controllers app/controllers/perps`. All 4 config files updated to point to the new location. Internal references that broke after the move are fixed:
+   - `index.ts`: hooks re-export → `../../components/UI/Perps/hooks`
+   - `types/index.ts`: navigation type → `../../../components/UI/Perps/types/navigation`
+   - `PerpsController.test.ts`: mock imports → `../../components/UI/Perps/__mocks__/*`, Engine → `../../core/Engine`
+   - 14 service/provider test files: mock imports → `../../../components/UI/Perps/__mocks__/*`
+
+4. **Phase 3 — ESLint rule**: Added `import/no-restricted-paths` override in `.eslintrc.js` that prevents any file outside `app/controllers/perps/` from importing it with a relative path. Internal files are exempted via `excludedFiles`.
+
+### Key decision
+
+Moving to `app/controllers/perps/` (outside the Perps UI tree) makes the boundary physical, not just logical. The ESLint rule enforces the alias convention going forward, so no new relative imports can slip in.
+
+---
+
+## Path alias: `@metamask/perps-controller` → app/controllers/perps/
+
+The TypeScript/Metro/Jest/Babel path alias maps `@metamask/perps-controller` to `app/controllers/perps/`. All external consumers use this alias. When the real package ships to the core monorepo, only the alias config is removed — zero import changes needed.
+
+**Files configured:**
+
+- `tsconfig.json` — `paths`: `"@metamask/perps-controller": ["./app/controllers/perps"]`
+- `metro.config.js` — `resolver.extraNodeModules`: `path.resolve(__dirname, 'app/controllers/perps')`
+- `babel.config.js` — `babel-plugin-module-resolver` alias: `'./app/controllers/perps'`
+- `jest.config.js` — `moduleNameMapper`: `'<rootDir>/app/controllers/perps'`
+
+**Convention:** Internal controllers/ imports stay as relative paths (standard npm package practice). Only external consumers use the `@metamask/perps-controller` alias.
+
+**ESLint enforcement:** `import/no-restricted-paths` in `.eslintrc.js` blocks relative imports into `app/controllers/perps/` from outside. Internal files are exempt.
+
+### Future work
+
+- Create the actual `@metamask/perps-controller` package in the core monorepo
+- Set up the sync script (ADR-041) to copy controllers/ → core package
+- Remove re-export stubs once all Mobile consumers import from the alias directly

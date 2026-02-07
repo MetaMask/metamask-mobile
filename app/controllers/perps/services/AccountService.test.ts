@@ -3,8 +3,8 @@ import {
   createMockServiceContext,
   createMockInfrastructure,
   createMockMessenger,
-} from '../../__mocks__/serviceMocks';
-import { createMockHyperLiquidProvider } from '../../__mocks__/providerMocks';
+} from '../../../components/UI/Perps/__mocks__/serviceMocks';
+import { createMockHyperLiquidProvider } from '../../../components/UI/Perps/__mocks__/providerMocks';
 import type { ServiceContext } from './ServiceContext';
 import {
   PerpsAnalyticsEvent,

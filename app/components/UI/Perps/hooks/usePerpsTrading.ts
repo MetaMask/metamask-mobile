@@ -30,7 +30,7 @@ import type {
   UpdatePositionTPSLParams,
   WithdrawParams,
   WithdrawResult,
-} from '../controllers/types';
+} from '@metamask/perps-controller/types';
 
 /**
  * Hook for trading operations

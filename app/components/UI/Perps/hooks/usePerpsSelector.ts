@@ -1,6 +1,6 @@
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
-import type { PerpsControllerState } from '../controllers/PerpsController';
+import type { PerpsControllerState } from '@metamask/perps-controller/PerpsController';
 
 /**
  * Generic hook for selecting data from PerpsController state
