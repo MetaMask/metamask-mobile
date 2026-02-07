@@ -370,16 +370,20 @@ class TransactionElement extends PureComponent {
       selfSent =
         incoming && safeToChecksumAddress(tx.txParams.from) === selectedAddress;
     }
-    return `${
-      (!incoming || selfSent) && tx.deviceConfirmedOn === WalletDevice.MM_MOBILE
-        ? `#${parseInt(tx.txParams.nonce, 16)} - ${toDateFormat(
-            tx.time,
-          )} ${strings(
-            'transactions.from_device_label',
-            // eslint-disable-next-line no-mixed-spaces-and-tabs
-          )}`
-        : `${toDateFormat(tx.time)}`
-    }`;
+    const shouldShowFromDevice =
+      (!incoming || selfSent) &&
+      tx.deviceConfirmedOn === WalletDevice.MM_MOBILE;
+    const hasNonce = tx.txParams?.nonce;
+
+    if (shouldShowFromDevice && hasNonce) {
+      return `#${parseInt(tx.txParams.nonce, 16)} - ${toDateFormat(
+        tx.time,
+      )} ${strings('transactions.from_device_label')}`;
+    }
+    if (shouldShowFromDevice && !hasNonce) {
+      return `${toDateFormat(tx.time)} ${strings('transactions.from_device_label')}`;
+    }
+    return `${toDateFormat(tx.time)}`;
   };
 
   /**

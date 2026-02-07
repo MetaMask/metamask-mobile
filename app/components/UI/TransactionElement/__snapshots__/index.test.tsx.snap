@@ -1,3 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`TransactionElement renderTxTime - "from this device" label renders "from this device" label with nonce when nonce exists 1`] = `null`;
+
+exports[`TransactionElement renderTxTime - "from this device" label renders "from this device" label without nonce for EIP-7702 transactions 1`] = `null`;
+
+exports[`TransactionElement renderTxTime - "from this device" label renders date only when deviceConfirmedOn is not MM_MOBILE 1`] = `null`;
+
 exports[`TransactionElement renders correctly 1`] = `null`;
