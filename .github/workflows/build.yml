@@ -163,6 +163,15 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      # iOS: Setup Ruby (required for CocoaPods and bundler)
+      - name: Setup Ruby
+        if: matrix.platform == 'ios'
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version-file: .ruby-version
+          bundler-cache: true
+          working-directory: ios
+
       # iOS: Cache CocoaPods
       - name: Cache CocoaPods
         if: matrix.platform == 'ios'
