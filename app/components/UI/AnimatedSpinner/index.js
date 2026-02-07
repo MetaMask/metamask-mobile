@@ -4,6 +4,7 @@ import { View, Animated, Easing, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { isE2E } from '../../../util/test/utils';
 
 export const SpinnerSize = {
   MD: 'MD',
@@ -91,7 +92,9 @@ export default class AnimatedSpinner extends PureComponent {
 
   componentDidMount() {
     this.mounted = true;
-    this.spin();
+    if (!isE2E) {
+      this.spin();
+    }
   }
 
   componentWillUnmount() {
@@ -128,16 +131,32 @@ export default class AnimatedSpinner extends PureComponent {
   };
 
   render() {
-    const { size = SpinnerSize.MD } = this.props;
+    const { size = SpinnerSize.MD, testID } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors, measures[size]);
+
+    // In E2E mode, render a static spinner without animation to prevent Detox synchronization issues
+    if (isE2E) {
+      return (
+        <View style={styles.static} testID={testID}>
+          <View style={styles.view}>
+            <Icon
+              name="loading"
+              size={measures[size].static.iconSize}
+              color={colors.primary.default}
+            />
+          </View>
+        </View>
+      );
+    }
+
     const spin = this.spinValue.interpolate({
       inputRange: [0, 1],
       outputRange: ['0deg', '360deg'],
     });
 
     return (
-      <View style={styles.static}>
+      <View style={styles.static} testID={testID}>
         <Animated.View style={[styles.view, { transform: [{ rotate: spin }] }]}>
           <Icon
             name="loading"

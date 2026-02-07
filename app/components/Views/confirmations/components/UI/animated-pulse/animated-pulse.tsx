@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { Animated, View, ViewProps } from 'react-native';
+import { isE2E } from '../../../../../../util/test/utils';
 
 interface AnimatedPulseProps extends ViewProps {
   children: React.ReactNode;
@@ -21,7 +22,7 @@ const AnimatedPulse = ({
   preventPulse = false,
   ...props
 }: AnimatedPulseProps) => {
-  const opacity = useRef(new Animated.Value(0.3)).current;
+  const opacity = useRef(new Animated.Value(isE2E ? 1 : 0.3)).current;
   const currentAnimationRef = useRef<Animated.CompositeAnimation | null>(null);
   const isCurrentlyPulsingRef = useRef(isPulsing);
   const cyclesNeededRef = useRef(isPulsing ? minCycles : 0);
@@ -99,6 +100,10 @@ const AnimatedPulse = ({
 
   // Handle animation lifecycle
   useEffect(() => {
+    if (isE2E) {
+      return;
+    }
+
     // Only start animation if:
     // 1. We should be pulsing, OR
     // 2. We just stopped pulsing but need to complete cycles
@@ -121,7 +126,7 @@ const AnimatedPulse = ({
     return cleanup;
   }, [cleanup, isPulsing, opacity, runSinglePulseCycle]);
 
-  if (preventPulse) {
+  if (preventPulse || isE2E) {
     return <View testID={props.testID}>{children}</View>;
   }
 
