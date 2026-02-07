@@ -13,7 +13,7 @@ const styleSheet = (params: { theme: Theme }) => {
     header: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginBottom: 8,
+      marginBottom: 12,
       paddingHorizontal: 16,
     },
     titleRow: {
@@ -28,16 +28,17 @@ const styleSheet = (params: { theme: Theme }) => {
     activityItem: {
       flexDirection: 'row',
       alignItems: 'center',
-      padding: 12,
+      paddingVertical: 16,
+      paddingHorizontal: 16,
       backgroundColor: colors.background.section,
     },
     activityItemFirst: {
-      borderTopLeftRadius: 8,
-      borderTopRightRadius: 8,
+      borderTopLeftRadius: 16,
+      borderTopRightRadius: 16,
     },
     activityItemLast: {
-      borderBottomLeftRadius: 8,
-      borderBottomRightRadius: 8,
+      borderBottomLeftRadius: 16,
+      borderBottomRightRadius: 16,
     },
     leftSection: {
       flexDirection: 'row',
@@ -45,7 +46,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
     },
     iconContainer: {
-      marginRight: 12,
+      marginRight: 16,
     },
     activityInfo: {
       flex: 1,

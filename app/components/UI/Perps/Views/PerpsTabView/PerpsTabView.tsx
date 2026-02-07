@@ -116,6 +116,11 @@ const PerpsTabView = () => {
       ? styles.exploreSectionHeaderWithBalance // 24px/4px
       : styles.exploreSectionHeaderNoBalance; // 16px/4px
 
+  // Orders header: depends on whether positions are visible
+  const ordersHeaderStyle = hasPositions
+    ? styles.ordersHeaderBelowPositions // 20px/8px
+    : styles.ordersHeaderAtTop; // 24px/4px
+
   // Track wallet home perps tab viewed - declarative (main's event name, privacy-compliant count)
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
@@ -204,7 +209,7 @@ const PerpsTabView = () => {
 
     return (
       <>
-        <View style={styles.sectionHeader}>
+        <View style={[styles.sectionHeader, ordersHeaderStyle]}>
           <Text variant={TextVariant.BodyMDMedium} style={styles.sectionTitle}>
             {strings('perps.order.open_orders')}
           </Text>
@@ -242,7 +247,7 @@ const PerpsTabView = () => {
 
     return (
       <>
-        <View style={styles.sectionHeader}>
+        <View style={[styles.sectionHeader, styles.positionsHeader]}>
           <Text
             variant={TextVariant.BodyMDMedium}
             style={styles.sectionTitle}

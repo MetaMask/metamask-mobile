@@ -129,7 +129,7 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
   // Title row content (pressable when action is available)
   const titleRowContent = (
     <>
-      <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+      <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
         {title}
       </Text>
       {showAction && (
