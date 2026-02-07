@@ -30,5 +30,9 @@ export const styleSheet = (params: {
       backgroundColor: getBackgroundColor(theme, amountError, submitDisabled),
       marginBottom: 12,
     },
+    additionalRowContainer: {
+      paddingTop: 16,
+      paddingBottom: 8,
+    },
   });
 };

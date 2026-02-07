@@ -17,8 +17,6 @@ const styleSheet = (params: { theme: Theme }) =>
     },
     percentageButton: {
       borderRadius: 12,
-      color: params.theme.colors.text.default,
-      backgroundColor: params.theme.colors.background.muted,
       height: 48,
       flexGrow: 1,
     },
