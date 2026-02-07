@@ -13,8 +13,6 @@ import * as Networks7702 from '../../../hooks/7702/useEIP7702Networks';
 import { EIP7702NetworkConfiguration } from '../../../hooks/7702/useEIP7702Networks';
 import SwitchAccountTypeModal from './switch-account-type-modal';
 
-import {} from '../../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
-
 jest.mock('../../../hooks/tokens/useTokenWithBalance');
 jest.mock('../../../hooks/gas/useGasFeeToken');
 
@@ -64,13 +62,6 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
-jest.mock(
-  '../../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
-  () => ({
-    selectMultichainAccountsState1Enabled: () => false,
-  }),
-);
-
 const MOCK_STATE = {
   engine: {
     backgroundState: {
@@ -89,13 +80,18 @@ describe('Switch Account Type Modal', () => {
       networkSupporting7702Present: true,
     });
 
-    const { getByText } = renderWithProvider(<SwitchAccountTypeModal />, {
-      state: MOCK_STATE,
-    });
+    const { getByText, getByTestId } = renderWithProvider(
+      <SwitchAccountTypeModal />,
+      {
+        state: MOCK_STATE,
+      },
+    );
+    // Verify account name is displayed
     expect(getByText('Account 1')).toBeTruthy();
+    // Verify network name is displayed
     expect(getByText('Sepolia')).toBeTruthy();
-    expect(getByText('Smart account')).toBeTruthy();
-    expect(getByText('Switch back')).toBeTruthy();
+    // Verify smart account switch is present
+    expect(getByTestId('smart-account-switch')).toBeTruthy();
   });
 
   it('displays spinner when network list is loading', () => {
@@ -108,11 +104,10 @@ describe('Switch Account Type Modal', () => {
     const container = renderWithProvider(<SwitchAccountTypeModal />, {
       state: MOCK_STATE,
     });
-    const { getByTestId, queryByText } = container;
+    const { getByTestId, queryByText, queryByTestId } = container;
     expect(queryByText('Account 1')).toBeNull();
     expect(queryByText('Sepolia')).toBeNull();
-    expect(queryByText('Smart account')).toBeNull();
-    expect(queryByText('Switch')).toBeNull();
+    expect(queryByTestId('smart-account-switch')).toBeNull();
     expect(getByTestId('network-data-loader')).toBeTruthy();
   });
 

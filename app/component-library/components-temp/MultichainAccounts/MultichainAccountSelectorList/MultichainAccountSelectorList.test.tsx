@@ -75,6 +75,84 @@ describe('MultichainAccountSelectorList', () => {
     jest.clearAllMocks();
   });
 
+  describe('Empty state handling', () => {
+    it('returns empty walletSections when accountSections is empty', () => {
+      const mockState = createMockState([], {});
+
+      const { getByTestId } = renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[]}
+        />,
+        { state: mockState },
+      );
+
+      // Should render empty state
+      expect(
+        getByTestId(MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID),
+      ).toBeTruthy();
+    });
+
+    it('returns empty walletSections when accountSections is undefined', () => {
+      // Create state without accountTreeController data
+      const mockState = {
+        engine: {
+          backgroundState: {
+            AccountsController: {
+              internalAccounts: {
+                accounts: {},
+                selectedAccount: '',
+              },
+            },
+            AccountTreeController: {
+              accountTree: {
+                selectedAccountGroup: undefined,
+                wallets: {},
+              },
+            },
+            PreferencesController: {
+              privacyMode: false,
+            },
+          },
+        },
+        settings: {
+          avatarAccountType: 'Maskicon',
+        },
+        user: {
+          seedphraseBackedUp: true,
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[]}
+        />,
+        { state: mockState },
+      );
+
+      // Should render empty state since there are no wallet sections
+      expect(
+        getByTestId(MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID),
+      ).toBeTruthy();
+    });
+
+    it('displays empty state message when no accounts exist', () => {
+      const mockState = createMockState([], {});
+
+      const { getByText } = renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[]}
+        />,
+        { state: mockState },
+      );
+
+      // Should show the no accounts found message
+      expect(getByText('No accounts found')).toBeTruthy();
+    });
+  });
+
   // Helper function to perform search and wait for results
   const performSearch = async (
     getByTestId: ReturnType<typeof renderWithProvider>['getByTestId'],
@@ -1025,6 +1103,183 @@ describe('MultichainAccountSelectorList', () => {
           expect(mockSetKeyboardAvoidingViewEnabled).toHaveBeenLastCalledWith(
             true,
           );
+        },
+        { timeout: 500 },
+      );
+    });
+  });
+
+  describe('External account functionality', () => {
+    const EXTERNAL_ADDRESS = '0x1234567890abcdef1234567890abcdef12345678';
+
+    it('shows external account cell when showExternalAccountOnEmptySearch is true and no matches found', async () => {
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'My Account',
+      );
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+      const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+      const mockState = createMockState([wallet1], internalAccounts);
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[]}
+          showExternalAccountOnEmptySearch
+        />,
+        { state: mockState },
+      );
+
+      const searchInput = getByTestId(
+        MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(searchInput, EXTERNAL_ADDRESS);
+      });
+
+      await waitFor(
+        () => {
+          expect(getByText('External account')).toBeTruthy();
+        },
+        { timeout: 500 },
+      );
+    });
+
+    it('does not show external account cell when showExternalAccountOnEmptySearch is false', async () => {
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'My Account',
+      );
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+      const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+      const mockState = createMockState([wallet1], internalAccounts);
+
+      const { getByTestId, queryByText } = renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[]}
+          showExternalAccountOnEmptySearch={false}
+        />,
+        { state: mockState },
+      );
+
+      const searchInput = getByTestId(
+        MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(searchInput, EXTERNAL_ADDRESS);
+      });
+
+      await waitFor(
+        () => {
+          expect(queryByText('External account')).toBeFalsy();
+        },
+        { timeout: 500 },
+      );
+    });
+
+    it('calls onSelectExternalAccount when external account is pressed', async () => {
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'My Account',
+      );
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+      const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+      const mockState = createMockState([wallet1], internalAccounts);
+      const mockOnSelectExternalAccount = jest.fn();
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[]}
+          showExternalAccountOnEmptySearch
+          onSelectExternalAccount={mockOnSelectExternalAccount}
+        />,
+        { state: mockState },
+      );
+
+      const searchInput = getByTestId(
+        MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(searchInput, EXTERNAL_ADDRESS);
+      });
+
+      await waitFor(
+        () => {
+          expect(getByText('External account')).toBeTruthy();
+        },
+        { timeout: 500 },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByText('External account'));
+      });
+
+      expect(mockOnSelectExternalAccount).toHaveBeenCalledWith(
+        EXTERNAL_ADDRESS,
+      );
+    });
+
+    it('initializes search with selectedExternalAddress when provided', () => {
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'My Account',
+      );
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+      const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+      const mockState = createMockState([wallet1], internalAccounts);
+
+      const { getByTestId } = renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[]}
+          showExternalAccountOnEmptySearch
+          selectedExternalAddress={EXTERNAL_ADDRESS}
+        />,
+        { state: mockState },
+      );
+
+      const searchInput = getByTestId(
+        MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
+      );
+
+      expect(searchInput.props.value).toBe(EXTERNAL_ADDRESS);
+    });
+
+    it('does not show external account when there are matching internal accounts', async () => {
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'Test Account',
+      );
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+      const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+      const mockState = createMockState([wallet1], internalAccounts);
+
+      const { getByTestId, queryByText, getByText } = renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[]}
+          showExternalAccountOnEmptySearch
+        />,
+        { state: mockState },
+      );
+
+      const searchInput = getByTestId(
+        MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(searchInput, 'Test');
+      });
+
+      await waitFor(
+        () => {
+          expect(getByText('Test Account')).toBeTruthy();
+          expect(queryByText('External account')).toBeFalsy();
         },
         { timeout: 500 },
       );
