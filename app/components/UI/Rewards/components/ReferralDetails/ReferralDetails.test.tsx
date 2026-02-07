@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, screen } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import ReferralDetails from './ReferralDetails';
 import Clipboard from '@react-native-clipboard/clipboard';
@@ -21,17 +21,6 @@ jest.mock('./ReferralInfoSection', () => {
       Text,
       { testID: 'referral-info-section' },
       'ReferralInfoSection',
-    );
-  };
-});
-jest.mock('./ReferralStatsSummary', () => {
-  const mockReact = jest.requireActual('react');
-  const { Text } = jest.requireActual('@metamask/design-system-react-native');
-  return function MockReferralStatsSummary() {
-    return mockReact.createElement(
-      Text,
-      { testID: 'referral-stats-summary' },
-      'ReferralStatsSummary',
     );
   };
 });
@@ -227,7 +216,9 @@ describe('ReferralDetails', () => {
 
       // Assert
       expect(getByTestId('referral-info-section')).toBeTruthy();
-      expect(getByTestId('referral-stats-summary')).toBeTruthy();
+      expect(
+        screen.getByText('rewards.referral_stats_earned_from_referrals'),
+      ).toBeTruthy();
       expect(getByTestId('referral-actions-section')).toBeTruthy();
     });
 
@@ -262,12 +253,14 @@ describe('ReferralDetails', () => {
   });
 
   describe('props passing to child components', () => {
-    it('renders ReferralStatsSummary', () => {
+    it('renders ReferralStatsSection', () => {
       // Arrange & Act
-      const { getByTestId } = renderComponent();
+      renderComponent();
 
       // Assert
-      expect(getByTestId('referral-stats-summary')).toBeTruthy();
+      expect(
+        screen.getByText('rewards.referral_stats_earned_from_referrals'),
+      ).toBeTruthy();
     });
 
     it('passes loading state to ReferralActionsSection when referral details are loading', () => {
@@ -453,10 +446,12 @@ describe('ReferralDetails', () => {
       });
 
       // Act
-      const { getByTestId } = renderComponent();
+      renderComponent();
 
       // Assert - Component should render despite loading state
-      expect(getByTestId('referral-stats-summary')).toBeTruthy();
+      expect(
+        screen.getByText('rewards.referral_stats_earned_from_referrals'),
+      ).toBeTruthy();
     });
 
     it('should handle referral details loading state', () => {
@@ -495,7 +490,9 @@ describe('ReferralDetails', () => {
 
       // Assert
       expect(getByTestId('referral-info-section')).toBeTruthy();
-      expect(getByTestId('referral-stats-summary')).toBeTruthy();
+      expect(
+        screen.getByText('rewards.referral_stats_earned_from_referrals'),
+      ).toBeTruthy();
       expect(getByTestId('referral-actions-section')).toBeTruthy();
     });
   });
@@ -539,7 +536,9 @@ describe('ReferralDetails', () => {
 
       // Assert - All child components should be present in column layout
       expect(getByTestId('referral-info-section')).toBeTruthy();
-      expect(getByTestId('referral-stats-summary')).toBeTruthy();
+      expect(
+        screen.getByText('rewards.referral_stats_earned_from_referrals'),
+      ).toBeTruthy();
       expect(getByTestId('referral-actions-section')).toBeTruthy();
     });
   });
@@ -568,7 +567,9 @@ describe('ReferralDetails', () => {
       expect(getByTestId('error-description')).toBeTruthy();
       // Other components should not be rendered
       expect(queryByTestId('referral-info-section')).toBeNull();
-      expect(queryByTestId('referral-stats-summary')).toBeNull();
+      expect(
+        screen.queryByText('rewards.referral_stats_earned_from_referrals'),
+      ).toBeNull();
       expect(queryByTestId('referral-actions-section')).toBeNull();
     });
 
@@ -618,7 +619,9 @@ describe('ReferralDetails', () => {
       expect(getByTestId('error-description')).toBeTruthy();
       expect(getByTestId('error-retry-button')).toBeTruthy();
       // Stats and actions sections should not be rendered
-      expect(queryByTestId('referral-stats-summary')).toBeNull();
+      expect(
+        screen.queryByText('rewards.referral_stats_earned_from_referrals'),
+      ).toBeNull();
       expect(queryByTestId('referral-actions-section')).toBeNull();
       // Info section should still be rendered
       expect(queryByTestId('referral-info-section')).toBeTruthy();
@@ -644,7 +647,9 @@ describe('ReferralDetails', () => {
       // Assert
       expect(queryByText("Referral details couldn't be loaded")).toBeNull();
       // Normal components should render
-      expect(getByTestId('referral-stats-summary')).toBeTruthy();
+      expect(
+        screen.getByText('rewards.referral_stats_earned_from_referrals'),
+      ).toBeTruthy();
       expect(getByTestId('referral-actions-section')).toBeTruthy();
     });
 
@@ -668,7 +673,9 @@ describe('ReferralDetails', () => {
       // Assert
       expect(queryByText("Referral details couldn't be loaded")).toBeNull();
       // Normal components should render
-      expect(getByTestId('referral-stats-summary')).toBeTruthy();
+      expect(
+        screen.getByText('rewards.referral_stats_earned_from_referrals'),
+      ).toBeTruthy();
       expect(getByTestId('referral-actions-section')).toBeTruthy();
     });
 
@@ -709,7 +716,9 @@ describe('ReferralDetails', () => {
 
       // Assert - All components should be findable, indicating proper accessibility
       const infoSection = getByTestId('referral-info-section');
-      const statsSection = getByTestId('referral-stats-summary');
+      const statsSection = screen.getByText(
+        'rewards.referral_stats_earned_from_referrals',
+      );
       const actionsSection = getByTestId('referral-actions-section');
 
       expect(infoSection).toBeTruthy();

@@ -18,7 +18,7 @@ import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { SwapSupportedNetworksSection } from './SwapSupportedNetworksSection';
-import ReferralStatsSummary from '../../../ReferralDetails/ReferralStatsSummary';
+import ReferralStatsSummary from './ReferralStatsSummary';
 import MetamaskRewardsPointsImage from '../../../../../../../images/rewards/metamask-rewards-points.svg';
 import { ModalType } from '../../../../components/RewardsBottomSheetModal';
 import { useSelector } from 'react-redux';

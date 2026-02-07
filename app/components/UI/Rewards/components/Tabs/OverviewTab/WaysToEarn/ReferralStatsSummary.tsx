@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
-import { strings } from '../../../../../../locales/i18n';
+import { strings } from '../../../../../../../../locales/i18n';
 import {
   selectBalanceRefereePortion,
   selectReferralCode,
@@ -10,11 +10,11 @@ import {
   selectReferralDetailsLoading,
   selectSeasonStatusError,
   selectSeasonStartDate,
-} from '../../../../../reducers/rewards/selectors';
-import { useReferralDetails } from '../../hooks/useReferralDetails';
-import RewardsErrorBanner from '../RewardsErrorBanner';
-import ReferralStatsSection from './ReferralStatsSection';
-import { SeasonWayToEarnSpecificReferralDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
+} from '../../../../../../../reducers/rewards/selectors';
+import { useReferralDetails } from '../../../../hooks/useReferralDetails';
+import RewardsErrorBanner from '../../../RewardsErrorBanner';
+import ReferralStatsSection from '../../../ReferralDetails/ReferralStatsSection';
+import { SeasonWayToEarnSpecificReferralDto } from '../../../../../../../core/Engine/controllers/rewards-controller/types';
 
 const ReferralStatsSummary = ({
   referralPointsTitle,

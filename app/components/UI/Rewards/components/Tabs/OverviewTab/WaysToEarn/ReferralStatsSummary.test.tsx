@@ -12,7 +12,7 @@ jest.mock('react-redux', () => ({
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 // Mock strings
-jest.mock('../../../../../../locales/i18n', () => ({
+jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
       'rewards.season_status_error.error_fetching_title':
@@ -30,16 +30,16 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 // Mock useReferralDetails hook
-jest.mock('../../hooks/useReferralDetails', () => ({
+jest.mock('../../../../hooks/useReferralDetails', () => ({
   useReferralDetails: jest.fn(),
 }));
 
 const mockUseReferralDetails = jest.requireMock(
-  '../../hooks/useReferralDetails',
+  '../../../../hooks/useReferralDetails',
 ).useReferralDetails;
 
 // Mock RewardsErrorBanner
-jest.mock('../RewardsErrorBanner', () => {
+jest.mock('../../../RewardsErrorBanner', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
   return {
@@ -79,7 +79,7 @@ jest.mock('../RewardsErrorBanner', () => {
 });
 
 // Mock ReferralStatsSection
-jest.mock('./ReferralStatsSection', () => {
+jest.mock('../../../ReferralDetails/ReferralStatsSection', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
   return {
