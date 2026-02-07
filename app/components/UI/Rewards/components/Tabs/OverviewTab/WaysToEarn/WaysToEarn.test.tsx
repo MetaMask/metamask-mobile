@@ -69,7 +69,7 @@ jest.mock('./SwapSupportedNetworksSection', () => ({
 }));
 
 // Mock ReferralStatsSummary component
-jest.mock('../../../ReferralDetails/ReferralStatsSummary', () => {
+jest.mock('./ReferralStatsSummary', () => {
   const ReactActual = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
   return {
