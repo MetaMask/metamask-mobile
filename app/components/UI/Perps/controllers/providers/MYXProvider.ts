@@ -78,8 +78,8 @@ import type {
   UserHistoryItem,
   WithdrawParams,
   WithdrawResult,
+  RawLedgerUpdate,
 } from '../types';
-import type { RawHyperLiquidLedgerUpdate } from '../../utils/hyperLiquidAdapter';
 import { WebSocketConnectionState } from '../../services/HyperLiquidClientService';
 
 // ============================================================================
@@ -516,13 +516,11 @@ export class MYXProvider implements PerpsProvider {
     };
   }
 
-  // TODO: Refactor to provider-agnostic ledger update type when MYX ledger support is added.
-  // Currently returns RawHyperLiquidLedgerUpdate[] to satisfy the PerpsProvider interface.
   async getUserNonFundingLedgerUpdates(_params?: {
     accountId?: string;
     startTime?: number;
     endTime?: number;
-  }): Promise<RawHyperLiquidLedgerUpdate[]> {
+  }): Promise<RawLedgerUpdate[]> {
     return [];
   }
 

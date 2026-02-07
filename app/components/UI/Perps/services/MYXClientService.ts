@@ -63,14 +63,10 @@ export class MYXClientService {
   // Platform dependencies
   private readonly deps: PerpsPlatformDependencies;
 
-  constructor(
-    deps: PerpsPlatformDependencies,
-    config: Partial<MYXClientConfig> = {},
-  ) {
+  constructor(deps: PerpsPlatformDependencies, config: MYXClientConfig) {
     this.deps = deps;
 
-    // Stage 1: Force testnet - mainnet credentials not available
-    this.isTestnet = config.isTestnet ?? true;
+    this.isTestnet = config.isTestnet;
     this.chainId = getMYXChainId(this.isTestnet ? 'testnet' : 'mainnet');
 
     // Initialize MyxClient
