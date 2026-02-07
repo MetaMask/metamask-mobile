@@ -21,10 +21,10 @@ import Engine from '../../../../../core/Engine';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
   ZERO_BALANCE,
-  HYPERLIQUID_WITHDRAWAL_PROGRESS_INTERVAL_MS,
   WITHDRAWAL_PROGRESS_STAGES,
   PROGRESS_BAR_COMPLETION_DELAY_MS,
-} from '../../constants/hyperLiquidConfig';
+} from '@metamask/perps-controller/constants/hyperLiquidConfig';
+import { HYPERLIQUID_WITHDRAWAL_PROGRESS_INTERVAL_MS } from '../../constants/perpsUIConfig';
 
 interface PerpsProgressBarProps {
   /**
