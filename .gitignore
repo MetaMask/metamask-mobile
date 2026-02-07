@@ -177,3 +177,5 @@ temp/
 tests/coverage-systems/
 
 runway-artifacts/
+# CodeTour files
+.tours/
