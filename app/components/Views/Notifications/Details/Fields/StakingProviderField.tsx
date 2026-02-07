@@ -25,10 +25,10 @@ function StakingProviderField(props: StakingProviderFieldProps) {
         placeholderStyle={styles.circleLogoPlaceholder}
       />
       <View style={styles.boxLeft}>
-        <Text variant={TextVariant.BodyLGMedium}>
+        <Text variant={TextVariant.BodyMD}>
           {strings('notifications.staking_provider')}
         </Text>
-        <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+        <Text color={TextColor.Alternative} variant={TextVariant.BodySM}>
           {stakingProvider}
         </Text>
       </View>
