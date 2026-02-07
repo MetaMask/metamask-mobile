@@ -91,6 +91,7 @@ describe('useSeasonStatus', () => {
     endDate: Date.now() + 86400000,
     tiers: [],
     activityTypes: [],
+    waysToEarn: [],
   };
 
   const mockSeasonStatus: SeasonStatusState = {
@@ -101,6 +102,7 @@ describe('useSeasonStatus', () => {
       endDate: Date.now() + 86400000,
       tiers: [],
       activityTypes: [],
+      waysToEarn: [],
     },
     balance: {
       total: 1000,
