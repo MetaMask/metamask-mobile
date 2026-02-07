@@ -135,7 +135,7 @@ export class MYXClientService {
 
       // Update cache
       this.marketsCache = pools || [];
-      this.marketsCacheTimestamp = now;
+      this.marketsCacheTimestamp = Date.now();
 
       this.deps.debugLogger.log('[MYXClientService] Markets fetched', {
         count: this.marketsCache.length,

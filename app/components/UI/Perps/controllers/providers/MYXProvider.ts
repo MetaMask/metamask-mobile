@@ -663,7 +663,21 @@ export class MYXProvider implements PerpsProvider {
     };
   }
 
-  subscribeToOrderBook(_params: SubscribeOrderBookParams): () => void {
+  subscribeToOrderBook(params: SubscribeOrderBookParams): () => void {
+    // Stage 1: No order book - immediately call back with empty data
+    setTimeout(
+      () =>
+        params.callback({
+          bids: [],
+          asks: [],
+          spread: '0',
+          spreadPercentage: '0',
+          midPrice: '0',
+          lastUpdated: Date.now(),
+          maxTotal: '0',
+        }),
+      0,
+    );
     return () => {
       /* noop */
     };
