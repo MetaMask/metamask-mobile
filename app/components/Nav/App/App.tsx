@@ -154,6 +154,7 @@ import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
 import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 import MultichainTransactionDetailsSheet from '../../UI/MultichainTransactionDetailsModal/MultichainTransactionDetailsSheet';
 import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDetailsSheet';
+import ImportWalletTipBottomSheet from '../../UI/TransactionElement/ImportWalletTipBottomSheet';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -606,6 +607,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.SHEET.TRANSACTION_DETAILS}
       component={TransactionDetailsSheet}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.IMPORT_WALLET_TIP}
+      component={ImportWalletTipBottomSheet}
     />
   </Stack.Navigator>
 );

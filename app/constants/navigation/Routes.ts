@@ -206,6 +206,7 @@ const Routes = {
     UNSUPPORTED_REGION_MODAL: 'UnsupportedRegionModal',
     MULTICHAIN_TRANSACTION_DETAILS: 'MultichainTransactionDetails',
     TRANSACTION_DETAILS: 'TransactionDetailsSheet',
+    IMPORT_WALLET_TIP: 'ImportWalletTipSheet',
     MULTICHAIN_ACCOUNT_DETAILS: {
       ACCOUNT_ACTIONS: 'MultichainAccountActions',
       EDIT_ACCOUNT_NAME: 'EditMultichainAccountName',
