@@ -8075,22 +8075,25 @@ describe('RewardsController', () => {
   });
 
   describe('calculateTierStatus', () => {
-    it('should throw error when current tier ID is not found in season tiers', () => {
+    it('should return null immediately when current tier ID is not found in season tiers', () => {
       // Arrange
       const tiers = createTestTiers();
       const invalidCurrentTierId = 'invalid-tier';
       const currentPoints = 1500;
 
-      // Act & Assert
-      expect(() => {
-        controller.calculateTierStatus(
-          tiers,
-          invalidCurrentTierId,
-          currentPoints,
-        );
-      }).toThrow(
-        `Current tier ${invalidCurrentTierId} not found in season tiers`,
+      // Act
+      const result = controller.calculateTierStatus(
+        tiers,
+        invalidCurrentTierId,
+        currentPoints,
       );
+
+      // Assert
+      expect(result).toEqual({
+        currentTier: null,
+        nextTier: null,
+        nextTierPointsNeeded: null,
+      });
     });
 
     it('should return null for next tier when current tier is the last tier', () => {
