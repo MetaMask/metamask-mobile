@@ -754,6 +754,7 @@ class AuthenticationService {
           isBiometricsAvailable,
           supportedOSAuthenticationTypes,
           passcodeAvailable,
+          allowLoginWithRememberMe,
         }),
         osAuthEnabled,
         allowLoginWithRememberMe,

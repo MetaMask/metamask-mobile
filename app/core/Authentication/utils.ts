@@ -77,21 +77,28 @@ export const handlePasswordSubmissionError = (error: Error) => {
 
 /**
  * Gets a human-readable label for the authentication toggle based on device capabilities.
- * Prioritizes biometrics first, then device passcode, with platform-specific labels.
+ * Priority: Remember Me > Biometrics > Device Passcode > ""
  *
- * iOS: "Face ID" | "Touch ID" | "Device Passcode" | ""
- * Android: "Biometrics" | "Device PIN/Pattern" | ""
+ * iOS: "Remember Me" | "Face ID" | "Touch ID" | "Device Passcode" | ""
+ * Android: "Remember Me" | "Biometrics" | "Device PIN/Pattern" | ""
  */
 export const getAuthToggleLabel = ({
   isBiometricsAvailable,
   supportedOSAuthenticationTypes,
   passcodeAvailable,
+  allowLoginWithRememberMe = false,
 }: {
   isBiometricsAvailable: boolean;
   supportedOSAuthenticationTypes: AuthenticationType[];
   passcodeAvailable: boolean;
+  allowLoginWithRememberMe?: boolean;
 }): string => {
-  // Priority 1: Biometrics (if available)
+  // Priority 1: Remember Me (if enabled)
+  if (allowLoginWithRememberMe) {
+    return 'Remember Me';
+  }
+
+  // Priority 2: Biometrics (if available)
   if (isBiometricsAvailable && supportedOSAuthenticationTypes.length > 0) {
     if (Platform.OS === 'ios') {
       if (
@@ -112,12 +119,12 @@ export const getAuthToggleLabel = ({
     }
   }
 
-  // Priority 2: Device passcode (if available)
+  // Priority 3: Device passcode (if available)
   if (passcodeAvailable) {
     return Platform.OS === 'ios' ? 'Device Passcode' : 'Device PIN/Pattern';
   }
 
-  // Priority 3: No OS authentication available
+  // Priority 4: No OS authentication available
   return '';
 };
 
