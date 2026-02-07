@@ -205,6 +205,7 @@
     "@metamask/address-book-controller": "^7.0.1",
     "@metamask/analytics-controller": "^1.0.0",
     "@metamask/app-metadata-controller": "^2.0.0",
+    "@metamask/client-state-controller": "file:../core/packages/client-state-controller",
     "@metamask/approval-controller": "^8.0.0",
     "@metamask/assets-controllers": "^99.0.0",
     "@metamask/base-controller": "^9.0.0",

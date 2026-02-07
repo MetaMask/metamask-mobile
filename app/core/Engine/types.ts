@@ -332,6 +332,11 @@ import {
   AppMetadataControllerEvents,
   AppMetadataControllerState,
 } from '@metamask/app-metadata-controller';
+import {
+  ClientStateController,
+  ClientStateControllerActions,
+  ClientStateControllerEvents,
+} from '@metamask/client-state-controller';
 import type {
   ErrorReportingService,
   ErrorReportingServiceActions,
@@ -504,6 +509,7 @@ type GlobalActions =
   | RewardsControllerActions
   | RewardsDataServiceActions
   | AppMetadataControllerActions
+  | ClientStateControllerActions
   | MultichainRouterActions
   | DeFiPositionsControllerActions
   | ErrorReportingServiceActions
@@ -580,6 +586,7 @@ type GlobalEvents =
   | PredictControllerEvents
   | RewardsControllerEvents
   | AppMetadataControllerEvents
+  | ClientStateControllerEvents
   | SeedlessOnboardingControllerEvents
   | DeFiPositionsControllerEvents
   | AccountTreeControllerEvents
@@ -631,6 +638,7 @@ export type Controllers = {
   AccountTrackerController: AccountTrackerController;
   AddressBookController: AddressBookController;
   AppMetadataController: AppMetadataController;
+  ClientStateController: ClientStateController;
   ConnectivityController: ConnectivityController;
   ApprovalController: ApprovalController;
   AssetsContractController: AssetsContractController;
@@ -827,6 +835,7 @@ export type ControllersToInitialize =
   | 'NotificationServicesController'
   | 'NotificationServicesPushController'
   | 'AppMetadataController'
+  | 'ClientStateController'
   | 'SubjectMetadataController'
   | 'UserStorageController'
   ///: END:ONLY_INCLUDE_IF
