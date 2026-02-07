@@ -107,7 +107,7 @@ describe('useTronStakeApy', () => {
   });
 
   describe('APY data extraction', () => {
-    it('sets apyDecimal from witness annualizedRate', async () => {
+    it('sets apyDecimal from witness annualizedRate converted to decimal', async () => {
       const witness = createMockWitnessData({ annualizedRate: '5.25' });
       mockGetWitnesses.mockResolvedValue(
         createMockWitnessesResponse([witness]),
@@ -117,7 +117,8 @@ describe('useTronStakeApy', () => {
 
       await waitForNextUpdate();
 
-      expect(result.current.apyDecimal).toBe('5.25');
+      // API returns 5.25 (meaning 5.25%), should be converted to decimal 0.0525
+      expect(result.current.apyDecimal).toBe('0.0525');
     });
 
     it('sets apyPercent with truncated rate and percent symbol', async () => {
@@ -133,7 +134,7 @@ describe('useTronStakeApy', () => {
       expect(result.current.apyPercent).toBe('4.56%');
     });
 
-    it('returns null APY values when Consensys witness not found', async () => {
+    it('returns fallback APY values when Consensys witness not found', async () => {
       const otherWitness = createMockWitnessData({
         address: 'TDifferentAddress12345',
       });
@@ -145,19 +146,19 @@ describe('useTronStakeApy', () => {
 
       await waitForNextUpdate();
 
-      expect(result.current.apyDecimal).toBeNull();
-      expect(result.current.apyPercent).toBeNull();
+      expect(result.current.apyDecimal).toBe('0.0244');
+      expect(result.current.apyPercent).toBe('2.44%');
     });
 
-    it('returns null APY values when witnesses data is empty', async () => {
+    it('returns fallback APY values when witnesses data is empty', async () => {
       mockGetWitnesses.mockResolvedValue(createMockWitnessesResponse([]));
 
       const { result, waitForNextUpdate } = renderHook(() => useTronStakeApy());
 
       await waitForNextUpdate();
 
-      expect(result.current.apyDecimal).toBeNull();
-      expect(result.current.apyPercent).toBeNull();
+      expect(result.current.apyDecimal).toBe('0.0244');
+      expect(result.current.apyPercent).toBe('2.44%');
     });
   });
 
@@ -183,15 +184,15 @@ describe('useTronStakeApy', () => {
       expect(result.current.errorMessage).toBe('Unknown error occurred');
     });
 
-    it('clears APY values when error occurs', async () => {
+    it('returns fallback APY values when error occurs', async () => {
       mockGetWitnesses.mockRejectedValue(new Error('API Error'));
 
       const { result, waitForNextUpdate } = renderHook(() => useTronStakeApy());
 
       await waitForNextUpdate();
 
-      expect(result.current.apyDecimal).toBeNull();
-      expect(result.current.apyPercent).toBeNull();
+      expect(result.current.apyDecimal).toBe('0.0244');
+      expect(result.current.apyPercent).toBe('2.44%');
     });
   });
 
@@ -238,14 +239,15 @@ describe('useTronStakeApy', () => {
   });
 
   describe('refetch', () => {
-    it('clears APY values before refetching', async () => {
+    it('uses fallback values during refetch', async () => {
       mockGetWitnesses.mockResolvedValue(createMockWitnessesResponse());
 
       const { result, waitForNextUpdate } = renderHook(() => useTronStakeApy());
 
       await waitForNextUpdate();
 
-      expect(result.current.apyDecimal).toBe('4.56');
+      // API returns 4.56 (meaning 4.56%), converted to decimal 0.0456
+      expect(result.current.apyDecimal).toBe('0.0456');
 
       let resolveSecondCall: (
         value: ReturnType<typeof createMockWitnessesResponse>,
@@ -261,8 +263,9 @@ describe('useTronStakeApy', () => {
         result.current.refetch();
       });
 
-      expect(result.current.apyDecimal).toBeNull();
-      expect(result.current.apyPercent).toBeNull();
+      // During refetch, fallback values are used
+      expect(result.current.apyDecimal).toBe('0.0244');
+      expect(result.current.apyPercent).toBe('2.44%');
 
       await act(async () => {
         resolveSecondCall(createMockWitnessesResponse());

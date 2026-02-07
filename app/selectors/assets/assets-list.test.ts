@@ -1056,13 +1056,16 @@ describe('selectTronResourcesBySelectedAccountGroup', () => {
     const result =
       selectTronResourcesBySelectedAccountGroup(stateWithTronAssets);
 
-    expect(result.map((a) => a.assetId).sort()).toEqual([
-      'tron:728126428/slip44:bandwidth',
-      'tron:728126428/slip44:energy',
-    ]);
+    // Verify the object structure with named properties
+    expect(result.energy?.assetId).toBe('tron:728126428/slip44:energy');
+    expect(result.bandwidth?.assetId).toBe('tron:728126428/slip44:bandwidth');
+    expect(result.maxEnergy).toBeUndefined();
+    expect(result.maxBandwidth).toBeUndefined();
+    expect(result.stakedTrxForEnergy).toBeUndefined();
+    expect(result.stakedTrxForBandwidth).toBeUndefined();
   });
 
-  it('returns empty list when Tron network is disabled', () => {
+  it('returns empty object when Tron network is disabled', () => {
     const stateWithTronDisabled = {
       ...mockState(),
       engine: {
@@ -1125,6 +1128,15 @@ describe('selectTronResourcesBySelectedAccountGroup', () => {
       stateWithTronDisabled,
     );
 
-    expect(result).toEqual([]);
+    // When Tron is disabled, all asset properties should be undefined and total should be 0
+    expect(result).toEqual({
+      energy: undefined,
+      bandwidth: undefined,
+      maxEnergy: undefined,
+      maxBandwidth: undefined,
+      stakedTrxForEnergy: undefined,
+      stakedTrxForBandwidth: undefined,
+      totalStakedTrx: 0,
+    });
   });
 });

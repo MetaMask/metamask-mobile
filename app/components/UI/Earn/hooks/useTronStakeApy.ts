@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import BigNumber from 'bignumber.js';
 import { tronStakingApiService } from '../../Stake/sdk/stakeSdkProvider';
 import { ChainId } from '@metamask/stake-sdk';
 import { truncateNumber } from '../utils';
@@ -10,6 +11,13 @@ const CONSENSYS_WITNESS_ADDRESS_BY_CHAIN_ID: Record<TronChainId, string> = {
   [ChainId.TRON_MAINNET]: 'TVMwGfdDz58VvM7yTzGMWWSHsmofSxa9jH',
   [ChainId.TRON_NILE]: 'TBSX9dpxbNrsLgTADXtkC2ASmxW4Q2mTgY',
 };
+
+/**
+ * Fallback APR used when the API hasn't responded yet or fails.
+ * Based on the current MetaMask witness annualized rate from Tronscan.
+ */
+const DEFAULT_APY_DECIMAL = '0.0244';
+const DEFAULT_APY_PERCENT = '2.44%';
 
 interface UseTronStakeApyOptions {
   fetchOnMount?: boolean;
@@ -38,7 +46,12 @@ const useTronStakeApy = ({
       );
 
       if (consensysWitness) {
-        setApyDecimal(consensysWitness.annualizedRate);
+        // API returns percentage format (e.g., '4.56' for 4.56%), convert to decimal for calculations
+        // Use BigNumber to avoid floating-point precision errors (e.g., 4.56/100 = 0.045599999999999995)
+        const rateDecimal = new BigNumber(consensysWitness.annualizedRate)
+          .dividedBy(100)
+          .toString();
+        setApyDecimal(rateDecimal);
         setApyPercent(`${truncateNumber(consensysWitness.annualizedRate)}%`);
       } else {
         setApyDecimal(null);
@@ -71,8 +84,8 @@ const useTronStakeApy = ({
   return {
     isLoading,
     errorMessage,
-    apyDecimal,
-    apyPercent,
+    apyDecimal: apyDecimal ?? DEFAULT_APY_DECIMAL,
+    apyPercent: apyPercent ?? DEFAULT_APY_PERCENT,
     refetch,
   };
 };
