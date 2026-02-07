@@ -1,33 +1,74 @@
 {
+  /* --- 1. Tooling and Schema Configuration --- */
+
+  // YAML Schema Mapping: Associates specific file patterns with a local or global schema.
+  // NOTE: The original path contained a user-specific absolute path. 
+  // This must be fixed to a relative path or project-shared schema for portability.
   "yaml.schemas": {
-    "file:///Users/bruno/.vscode/extensions/gizmos.docs-yaml-0.1.5/schemas/toc.schema.json": "/toc\\.yml/i"
+    // Example: Use a project-local schema for files named 'toc.yml' (case-insensitive)
+    "./schemas/toc.schema.json": "/toc\\.yml/i",
+    // To fix the original issue, ensure 'toc.schema.json' is committed to the project.
+    // "file:///Users/bruno/.vscode/extensions/gizmos.docs-yaml-0.1.5/schemas/toc.schema.json": "/toc\\.yml/i" 
   },
 
+  /* --- 2. Testing and Automation (Cucumber/Gherkin) --- */
+
+  // Define the location of JavaScript step definitions for Cucumber autocompletion.
   "cucumberautocomplete.steps": ["wdio/step-definitions/**/*.js"],
+
+  // Define the location of Gherkin feature files for synchronization.
   "cucumberautocomplete.syncfeatures": "wdio/to/features/*.feature",
+
+  // Enforce strict Gherkin syntax completion for better quality control.
   "cucumberautocomplete.strictGherkinCompletion": true,
+
+  /* --- 3. JavaScript and TypeScript Configuration --- */
+
+  // Use the local project TypeScript version for consistency.
   "typescript.tsdk": "node_modules/typescript/lib",
+
+  // Use relative paths when generating module imports for cleaner code.
   "javascript.preferences.importModuleSpecifier": "relative",
   "typescript.preferences.importModuleSpecifier": "relative",
 
-  // Tailwind CSS configuration
+  /* --- 4. Tailwind CSS Language Server Configuration --- */
+
+  // List of languages where Tailwind CSS IntelliSense should be active.
   "tailwindCSS.includeLanguages": {
     "javascript": "javascript",
     "typescript": "typescript",
     "typescriptreact": "typescriptreact"
   },
+
+  // Custom attributes (e.g., from CSS-in-JS libraries) that should be scanned for Tailwind classes.
   "tailwindCSS.classAttributes": ["twClassName", "style"],
+
+  // Regular expressions to extract Tailwind classes from dynamic template literals (e.g., 'tw`...`').
   "tailwindCSS.experimental.classRegex": [
     ["tw`([^`]*)`", "$1"],
     ["tw\\('([^']*)'\\)", "$1"],
     ["tw\\(\"([^\"]*)\"\\)", "$1"]
   ],
+
+  // Enable Emmet abbreviations to be expanded with Tailwind classes.
   "tailwindCSS.emmetCompletions": true,
+
+  // Enable validation and linting for Tailwind classes.
   "tailwindCSS.validate": true,
+
+  // Show pixel equivalents next to rem/em values in hover/completions.
   "tailwindCSS.showPixelEquivalents": true,
+
+  // Display color swatch decorators next to Tailwind color utility classes.
   "tailwindCSS.colorDecorators": true,
+
+  /* --- 5. General Editor Features --- */
+
+  // Enable quick suggestions within string literals (crucial for Tailwind class completion).
   "editor.quickSuggestions": {
     "strings": true
   },
+
+  // Enable Inlay Hints for function signatures, types, etc., to enhance code readability.
   "editor.inlayHints.enabled": "on"
 }
