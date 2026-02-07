@@ -32,6 +32,14 @@ import {
 import Engine from '../../../../core/Engine';
 
 jest.mock('./providers/HyperLiquidProvider');
+jest.mock('./providers/MYXProvider');
+
+// Mock feature flag resolver for MYX provider tests
+const mockResolvePerpsMyxProviderEnabled = jest.fn(() => false);
+jest.mock('../selectors/featureFlags', () => ({
+  resolvePerpsMyxProviderEnabled: (...args: unknown[]) =>
+    mockResolvePerpsMyxProviderEnabled(...args),
+}));
 
 // Mock transaction controller utility
 const mockAddTransaction = jest.fn();
@@ -3803,6 +3811,168 @@ describe('PerpsController', () => {
       controller.resetSelectedPaymentToken();
 
       expect(controller.state.selectedPaymentToken).toBeNull();
+    });
+  });
+
+  describe('switchProvider', () => {
+    it('returns success without re-init when switching to same provider', async () => {
+      await controller.init();
+
+      const result = await controller.switchProvider('hyperliquid');
+
+      expect(result.success).toBe(true);
+      expect(result.providerId).toBe('hyperliquid');
+    });
+
+    it('returns error when already reinitializing', async () => {
+      await controller.init();
+
+      // Register myx in providers map so it passes the isValidProvider check
+      const mockMYXProvider = {
+        ...createMockHyperLiquidProvider(),
+        protocolId: 'myx',
+      };
+      const providers = controller.testGetProviders();
+      providers.set('myx', mockMYXProvider as any);
+      controller.testSetProviders(providers);
+
+      (controller as any).isReinitializing = true;
+
+      const result = await controller.switchProvider('myx');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe(PERPS_ERROR_CODES.CLIENT_REINITIALIZING);
+    });
+
+    it('returns error for invalid provider not in providers map', async () => {
+      await controller.init();
+
+      const result = await controller.switchProvider('myx');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Provider myx not available');
+    });
+
+    it('allows aggregated even without explicit map entry', async () => {
+      await controller.init();
+
+      // 'aggregated' is always valid according to the validation logic
+      const result = await controller.switchProvider('aggregated');
+
+      // The key assertion is that it didn't return "not available" error
+      // aggregated proceeds to the init path and succeeds
+      expect(result.success).toBe(true);
+    });
+
+    it('switches to myx provider successfully', async () => {
+      // Enable MYX feature flag so init() creates the MYX provider
+      mockResolvePerpsMyxProviderEnabled.mockReturnValue(true);
+
+      await controller.init();
+
+      // Register a mock MYX provider
+      const mockMYXProvider = {
+        ...createMockHyperLiquidProvider(),
+        protocolId: 'myx',
+      };
+      const providers = controller.testGetProviders();
+      providers.set('myx', mockMYXProvider as any);
+      controller.testSetProviders(providers);
+
+      const result = await controller.switchProvider('myx');
+
+      expect(result.success).toBe(true);
+      expect(result.providerId).toBe('myx');
+      expect(controller.state.activeProvider).toBe('myx');
+
+      // Restore default
+      mockResolvePerpsMyxProviderEnabled.mockReturnValue(false);
+    });
+
+    it('rolls back to previous provider on init failure', async () => {
+      await controller.init();
+
+      // Register a mock MYX provider
+      const mockMYXProvider = {
+        ...createMockHyperLiquidProvider(),
+        protocolId: 'myx',
+      };
+      const providers = controller.testGetProviders();
+      providers.set('myx', mockMYXProvider as any);
+      controller.testSetProviders(providers);
+
+      // Make init set state to Failed so switchProvider detects failure
+      jest.spyOn(controller, 'init').mockImplementationOnce(async () => {
+        controller.testUpdate((state) => {
+          state.initializationState = InitializationState.Failed;
+          state.initializationError = 'MYX init failed';
+        });
+      });
+
+      const result = await controller.switchProvider('myx');
+
+      expect(result.success).toBe(false);
+      // Should roll back to previous provider
+      expect(controller.state.activeProvider).toBe('hyperliquid');
+
+      // Restore init for further tests
+      jest.restoreAllMocks();
+    });
+
+    it('clears isReinitializing flag after success', async () => {
+      await controller.init();
+
+      const mockMYXProvider = {
+        ...createMockHyperLiquidProvider(),
+        protocolId: 'myx',
+      };
+      const providers = controller.testGetProviders();
+      providers.set('myx', mockMYXProvider as any);
+      controller.testSetProviders(providers);
+
+      await controller.switchProvider('myx');
+
+      expect((controller as any).isReinitializing).toBe(false);
+    });
+
+    it('clears isReinitializing flag after failure', async () => {
+      await controller.init();
+
+      const mockMYXProvider = {
+        ...createMockHyperLiquidProvider(),
+        protocolId: 'myx',
+      };
+      const providers = controller.testGetProviders();
+      providers.set('myx', mockMYXProvider as any);
+      controller.testSetProviders(providers);
+
+      jest.spyOn(controller, 'init').mockImplementationOnce(async () => {
+        controller.testUpdate((state) => {
+          state.initializationState = InitializationState.Failed;
+          state.initializationError = 'fail';
+        });
+      });
+
+      await controller.switchProvider('myx');
+
+      expect((controller as any).isReinitializing).toBe(false);
+
+      jest.restoreAllMocks();
+    });
+  });
+
+  describe('init - MYX fallback', () => {
+    it('falls back to hyperliquid when activeProvider is myx but MYX feature flag is disabled', async () => {
+      // Set state to myx before init
+      controller.testUpdate((state) => {
+        state.activeProvider = 'myx';
+      });
+
+      // resolvePerpsMyxProviderEnabled is mocked to return false by default
+      await controller.init();
+
+      // The init path should detect MYX is not available and fall back
+      expect(controller.state.activeProvider).toBe('hyperliquid');
     });
   });
 });
