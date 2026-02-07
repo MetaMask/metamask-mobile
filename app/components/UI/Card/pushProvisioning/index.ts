@@ -42,8 +42,7 @@ export {
   GalileoCardAdapter,
   // Wallet provider adapters
   type IWalletProviderAdapter,
-  // NOTE: Platform-specific adapters (GoogleWalletAdapter, AppleWalletAdapter)
-  // are exported from platform-specific branches
+  GoogleWalletAdapter,
 } from './adapters';
 
 // Service
