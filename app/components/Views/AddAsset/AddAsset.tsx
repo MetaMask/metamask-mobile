@@ -110,7 +110,7 @@ const AddAsset = () => {
         }}
         setOpenNetworkSelector={setOpenNetworkSelector}
         sheetRef={sheetRef}
-        displayEvmNetworksOnly={assetType !== 'token'}
+        displayEvmNetworksOnly
       />
     ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
