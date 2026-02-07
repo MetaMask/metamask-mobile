@@ -154,6 +154,7 @@ import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
 import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 import MultichainTransactionDetailsSheet from '../../UI/MultichainTransactionDetailsModal/MultichainTransactionDetailsSheet';
 import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDetailsSheet';
+import { FpsCounter, IS_FPS_COUNTER_ENABLED } from '../../UI/FpsCounter';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -1169,6 +1170,7 @@ const App: React.FC = () => {
       <Toast ref={toastRef} />
       <PerpsWebSocketHealthToast />
       <ProfilerManager />
+      {IS_FPS_COUNTER_ENABLED && <FpsCounter />}
     </WebSocketHealthToastProvider>
   );
 };
