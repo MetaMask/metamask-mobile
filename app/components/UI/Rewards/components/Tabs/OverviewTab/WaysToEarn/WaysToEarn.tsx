@@ -154,7 +154,7 @@ export const WaysToEarn = () => {
         <FlatList
           horizontal={false}
           data={seasonWaysToEarn}
-          keyExtractor={(wayToEarn) => wayToEarn.title}
+          keyExtractor={(wayToEarn) => wayToEarn.id}
           ItemSeparatorComponent={Separator}
           scrollEnabled={false}
           renderItem={({ item: wayToEarn }) => (
