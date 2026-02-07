@@ -5,6 +5,29 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import type { Provider } from '@metamask/ramps-controller';
 
+const mockGetQuotes = jest.fn().mockResolvedValue({
+  success: [],
+  sorted: [],
+  error: [],
+  customActions: [],
+});
+
+jest.mock('../../hooks/useRampsController', () => ({
+  useRampsController: () => ({
+    userRegion: null,
+    selectedToken: null,
+    paymentMethods: [],
+    selectedPaymentMethod: null,
+    getQuotes: mockGetQuotes,
+    setSelectedQuote: jest.fn(),
+  }),
+}));
+
+jest.mock('../../hooks/useRampAccountAddress', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 const mockProviders: Provider[] = [
   {
     id: '/providers/transak',
@@ -35,6 +58,7 @@ function renderWithProvider(
         selectedProvider={selectedProvider}
         onProviderSelect={jest.fn()}
         onBack={mockOnBack}
+        amount={100}
       />
     ),
     {
@@ -53,9 +77,15 @@ function renderWithProvider(
 describe('ProviderSelection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetQuotes.mockResolvedValue({
+      success: [],
+      sorted: [],
+      error: [],
+      customActions: [],
+    });
   });
 
-  it('matches snapshot', () => {
+  it('matches snapshot when no quotes loaded', () => {
     const { toJSON } = renderWithProvider();
     expect(toJSON()).toMatchSnapshot();
   });
@@ -65,4 +95,5 @@ describe('ProviderSelection', () => {
     fireEvent.press(getByTestId('button-icon'));
     expect(mockOnBack).toHaveBeenCalled();
   });
+
 });

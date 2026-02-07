@@ -124,6 +124,8 @@ function BuildQuote() {
       return;
     }
 
+
+    console.log('startQuotePolling', walletAddress, debouncedPollingAmount, selectedPaymentMethod);
     startQuotePolling({
       walletAddress,
       amount: debouncedPollingAmount,
@@ -176,7 +178,9 @@ function BuildQuote() {
                 isLoading={paymentMethodsLoading}
                 onPress={() => {
                   navigation.navigate(
-                    ...createPaymentSelectionModalNavigationDetails(),
+                    ...createPaymentSelectionModalNavigationDetails({
+                      amount: amountAsNumber,
+                    }),
                   );
                 }}
               />

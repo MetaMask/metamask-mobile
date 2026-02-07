@@ -23,6 +23,22 @@ export interface StartQuotePollingOptions {
 }
 
 /**
+ * Options for fetching quotes (matches RampsController.getQuotes).
+ */
+export interface GetQuotesOptions {
+  region?: string;
+  fiat?: string;
+  assetId: string;
+  amount: number;
+  walletAddress: string;
+  paymentMethods?: string[];
+  provider?: string;
+  redirectUrl?: string;
+  forceRefresh?: boolean;
+  ttl?: number;
+}
+
+/**
  * Result returned by the useRampsQuotes hook.
  */
 export interface UseRampsQuotesResult {
@@ -34,6 +50,14 @@ export interface UseRampsQuotesResult {
    * The currently selected quote, or null if none selected.
    */
   selectedQuote: Quote | null;
+  /**
+   * Fetches quotes and updates controller state. Returns the response.
+   */
+  getQuotes: (options: GetQuotesOptions) => Promise<QuotesResponse>;
+  /**
+   * Sets the currently selected quote.
+   */
+  setSelectedQuote: (quote: Quote | null) => void;
   /**
    * Starts automatic quote polling with a 15-second refresh interval.
    * @param options - Parameters for fetching quotes.
@@ -78,9 +102,23 @@ export function useRampsQuotes(): UseRampsQuotesResult {
     [],
   );
 
+  const getQuotes = useCallback(
+    (options: GetQuotesOptions) =>
+      Engine.context.RampsController.getQuotes(options),
+    [],
+  );
+
+  const setSelectedQuote = useCallback(
+    (quote: Quote | null) =>
+      Engine.context.RampsController.setSelectedQuote(quote),
+    [],
+  );
+
   return {
     quotes,
     selectedQuote,
+    getQuotes,
+    setSelectedQuote,
     startQuotePolling,
     stopQuotePolling,
     isLoading,

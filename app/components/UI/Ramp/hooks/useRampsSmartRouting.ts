@@ -79,30 +79,30 @@ export default function useRampsSmartRouting() {
       }
 
       try {
-        const baseUrl = getBaseUrl();
-        const url = new URL(
-          `/regions/countries/${rampGeodetectedRegion}`,
-          baseUrl,
-        ).toString();
-        const response = await fetch(url);
+        // const baseUrl = getBaseUrl();
+        // const url = new URL(
+        //   `/regions/countries/${rampGeodetectedRegion}`,
+        //   baseUrl,
+        // ).toString();
+        // const response = await fetch(url);
 
-        if (!response.ok) {
-          throw new Error(
-            `Failed to fetch region eligibility: ${response.status} ${response.statusText}`,
-          );
-        }
+        // if (!response.ok) {
+        //   throw new Error(
+        //     `Failed to fetch region eligibility: ${response.status} ${response.statusText}`,
+        //   );
+        // }
 
-        const eligibility: RampEligibilityAPIResponse = await response.json();
+        // const eligibility: RampEligibilityAPIResponse = await response.json();
 
-        if (!eligibility.global) {
-          dispatch(setRampRoutingDecision(UnifiedRampRoutingType.UNSUPPORTED));
-          return;
-        }
+        // if (!eligibility.global) {
+        //   dispatch(setRampRoutingDecision(UnifiedRampRoutingType.UNSUPPORTED));
+        //   return;
+        // }
 
-        if (!eligibility.deposit) {
-          dispatch(setRampRoutingDecision(UnifiedRampRoutingType.AGGREGATOR));
-          return;
-        }
+        // if (!eligibility.deposit) {
+        //   dispatch(setRampRoutingDecision(UnifiedRampRoutingType.AGGREGATOR));
+        //   return;
+        // }
 
         const completedOrders = orders.filter(
           (order) => order.state === FIAT_ORDER_STATES.COMPLETED,

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import type { CaipChainId } from '@metamask/utils';
 import { useWindowDimensions, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Animated, {
@@ -24,14 +25,26 @@ import { useStyles } from '../../../../hooks/useStyles';
 import { strings } from '../../../../../../locales/i18n';
 import styleSheet from './PaymentSelectionModal.styles';
 import Routes from '../../../../../constants/navigation/Routes';
-import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../util/navigation/navUtils';
 import PaymentMethodListItem from './PaymentMethodListItem';
 import ProviderSelection from './ProviderSelection';
-import type { PaymentMethod, Provider } from '@metamask/ramps-controller';
+import type {
+  PaymentMethod,
+  Provider,
+  Quote,
+} from '@metamask/ramps-controller';
 import { useRampsController } from '../../hooks/useRampsController';
+import useRampAccountAddress from '../../hooks/useRampAccountAddress';
+
+export interface PaymentSelectionModalParams {
+  amount?: number;
+}
 
 export const createPaymentSelectionModalNavigationDetails =
-  createNavigationDetails(
+  createNavigationDetails<PaymentSelectionModalParams>(
     Routes.RAMP.MODALS.ID,
     Routes.RAMP.MODALS.PAYMENT_SELECTION,
   );
@@ -41,6 +54,8 @@ enum ViewType {
   PROVIDER = 'PROVIDER',
 }
 
+const DEFAULT_QUOTE_AMOUNT = 100;
+
 function PaymentSelectionModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
@@ -48,6 +63,7 @@ function PaymentSelectionModal() {
     screenHeight,
     screenWidth,
   });
+  const { amount: routeAmount } = useParams<PaymentSelectionModalParams>();
 
   const {
     selectedProvider,
@@ -56,10 +72,103 @@ function PaymentSelectionModal() {
     paymentMethods,
     selectedPaymentMethod,
     setSelectedPaymentMethod,
+    getQuotes,
+    userRegion,
+    selectedToken,
   } = useRampsController();
 
+  const amount = routeAmount ?? DEFAULT_QUOTE_AMOUNT;
+  const walletAddress = useRampAccountAddress(
+    (selectedToken?.chainId as CaipChainId) ?? null,
+  );
+
   const [activeView, setActiveView] = useState(ViewType.PAYMENT);
+  const [paymentMethodQuotes, setPaymentMethodQuotes] = useState<Record<
+    string,
+    Quote
+  > | null>(null);
+  const [paymentMethodQuotesLoading, setPaymentMethodQuotesLoading] =
+    useState(false);
+  const [erroredPaymentMethodIds, setErroredPaymentMethodIds] = useState<
+    Set<string>
+  >(new Set());
+
+
+  console.log('paymentMethodQuotes', paymentMethodQuotes);
+  console.log('paymentMethodQuotesLoading', paymentMethodQuotesLoading);
+  console.log('erroredPaymentMethodIds', erroredPaymentMethodIds);
+
   const translateX = useSharedValue(0);
+
+  const canFetchPaymentMethodQuotes =
+    activeView === ViewType.PAYMENT &&
+    selectedProvider &&
+    userRegion?.regionCode &&
+    userRegion?.country?.currency &&
+    selectedToken?.assetId &&
+    walletAddress &&
+    paymentMethods.length > 0 &&
+    amount > 0;
+
+  useEffect(() => {
+    if (!canFetchPaymentMethodQuotes) {
+      return;
+    }
+
+    const paymentMethodIds = paymentMethods.map((pm) => pm.id);
+    let cancelled = false;
+    setPaymentMethodQuotesLoading(true);
+    setErroredPaymentMethodIds(new Set());
+
+    getQuotes({
+      region: userRegion.regionCode,
+      fiat: userRegion.country.currency,
+      assetId: selectedToken.assetId,
+      amount,
+      walletAddress,
+      paymentMethods: paymentMethodIds,
+      provider: selectedProvider.id,
+    })
+      .then((response) => {
+        console.log('getQuotes response', response);
+        if (cancelled) return;
+        const byPaymentMethod: Record<string, Quote> = {};
+        for (const quote of response.success) {
+          const pmId = quote.quote?.paymentMethod;
+          if (pmId) byPaymentMethod[pmId] = quote;
+        }
+        setPaymentMethodQuotes(byPaymentMethod);
+        const receivedIds = new Set(Object.keys(byPaymentMethod));
+        setErroredPaymentMethodIds(
+          new Set(paymentMethodIds.filter((id) => !receivedIds.has(id))),
+        );
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setPaymentMethodQuotes(null);
+          setErroredPaymentMethodIds(new Set());
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setPaymentMethodQuotesLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    canFetchPaymentMethodQuotes,
+    getQuotes,
+    amount,
+    paymentMethods,
+    selectedProvider?.id,
+    selectedToken?.assetId,
+    userRegion?.regionCode,
+    userRegion?.country?.currency,
+    walletAddress,
+  ]);
 
   useEffect(() => {
     const animationConfig = {
@@ -102,15 +211,31 @@ function PaymentSelectionModal() {
     [setSelectedPaymentMethod],
   );
 
+  const currency = userRegion?.country?.currency ?? 'USD';
+  const tokenSymbol = selectedToken?.symbol ?? '';
+
   const renderPaymentMethod = useCallback(
     ({ item: paymentMethod }: { item: PaymentMethod }) => (
       <PaymentMethodListItem
         paymentMethod={paymentMethod}
         onPress={() => handlePaymentMethodPress(paymentMethod)}
         isSelected={selectedPaymentMethod?.id === paymentMethod.id}
+        quote={paymentMethodQuotes?.[paymentMethod.id] ?? null}
+        quoteLoading={paymentMethodQuotesLoading && !paymentMethodQuotes}
+        quoteError={erroredPaymentMethodIds.has(paymentMethod.id)}
+        currency={currency}
+        tokenSymbol={tokenSymbol}
       />
     ),
-    [handlePaymentMethodPress, selectedPaymentMethod],
+    [
+      handlePaymentMethodPress,
+      selectedPaymentMethod,
+      paymentMethodQuotes,
+      paymentMethodQuotesLoading,
+      erroredPaymentMethodIds,
+      currency,
+      tokenSymbol,
+    ],
   );
 
   const renderListContent = () => (
@@ -171,6 +296,7 @@ function PaymentSelectionModal() {
               selectedProvider={selectedProvider}
               onProviderSelect={handleProviderSelect}
               onBack={handleProviderBack}
+              amount={routeAmount ?? DEFAULT_QUOTE_AMOUNT}
             />
           </View>
         </Animated.View>

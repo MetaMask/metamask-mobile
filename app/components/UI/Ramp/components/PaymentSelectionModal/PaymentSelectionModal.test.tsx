@@ -43,6 +43,7 @@ jest.mock(
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   createNavigationDetails: jest.fn(),
+  useParams: jest.fn(() => ({})),
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -130,7 +131,24 @@ jest.mock('../../hooks/useRampsController', () => ({
     paymentMethods: mockPaymentMethods,
     setSelectedProvider: mockSetSelectedProvider,
     setSelectedPaymentMethod: mockSetSelectedPaymentMethod,
+    getQuotes: jest.fn().mockResolvedValue({
+      success: [],
+      error: [],
+      sorted: [],
+      customActions: [],
+    }),
+    userRegion: { regionCode: 'us', country: { currency: 'USD' } },
+    selectedToken: {
+      assetId: 'eip155:1/slip44:60',
+      chainId: 'eip155:1',
+      symbol: 'ETH',
+    },
   }),
+}));
+
+jest.mock('../../hooks/useRampAccountAddress', () => ({
+  __esModule: true,
+  default: () => '0x123',
 }));
 
 function renderWithProvider(component: React.ComponentType) {
