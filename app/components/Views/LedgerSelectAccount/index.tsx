@@ -1,5 +1,18 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Image, Text, TouchableOpacity, View } from 'react-native';
+/* eslint-disable no-console */
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useRef,
+} from 'react';
+import {
+  Image,
+  Text,
+  TouchableOpacity,
+  View,
+  ActivityIndicator,
+} from 'react-native';
 import Engine from '../../../core/Engine';
 import AccountSelector from '../../UI/HardwareWallet/AccountSelector';
 import BlockingActionModal from '../../UI/BlockingActionModal';
@@ -11,13 +24,13 @@ import ledgerDeviceLightImage from '../../../images/ledger-device-light.png';
 import ledgerDeviceDarkImage from '../../../images/ledger-device-dark.png';
 import {
   forgetLedger,
+  getDeviceId,
   getHDPath,
   getLedgerAccounts,
   getLedgerAccountsByOperation,
   setHDPath,
   unlockLedgerWalletAccount,
 } from '../../../core/Ledger/Ledger';
-import LedgerConnect from '../LedgerConnect';
 import { setReloadAccounts } from '../../../actions/accounts';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
@@ -27,9 +40,6 @@ import createStyles from './index.styles';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PAGINATION_OPERATIONS from '../../../constants/pagination';
-import { Device as LedgerDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
-import { ledgerDeviceUUIDToModelName } from '../../../util/hardwareWallet/deviceNameUtils';
-import useLedgerBluetooth from '../../hooks/Ledger/useLedgerBluetooth';
 import {
   LEDGER_BIP44_PATH,
   LEDGER_BIP44_STRING,
@@ -43,6 +53,12 @@ import SelectOptionSheet from '../../UI/SelectOptionSheet';
 import { AccountsController } from '@metamask/accounts-controller';
 import { toFormattedAddress } from '../../../util/address';
 import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytics';
+import {
+  useHardwareWalletState,
+  useHardwareWalletActions,
+  ConnectionStatus,
+  HardwareWalletType,
+} from '../../../core/HardwareWallet';
 
 interface OptionType {
   key: string;
@@ -52,24 +68,37 @@ interface OptionType {
 
 const LedgerSelectAccount = () => {
   const navigation = useNavigation<StackNavigationProp<never>>();
-  const [selectedDevice, setSelectedDevice] = useState<LedgerDevice>(null);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const dispatch = useDispatch();
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
+
+  // Use unified hardware wallet context
+  const { connectionState, deviceSelection } = useHardwareWalletState();
+  const { ensureDeviceReady, setTargetWalletType, showHardwareWalletError } =
+    useHardwareWalletActions();
+
+  // Track if we've already started the initialization
+  const hasStartedInitRef = useRef(false);
+
+  // Get error from connection state
+  const ledgerError =
+    connectionState.status === ConnectionStatus.ErrorState
+      ? connectionState.error
+      : undefined;
+
   const ledgerThemedImage = useAssetFromTheme(
     ledgerDeviceLightImage,
     ledgerDeviceDarkImage,
   );
 
+  // Get model name from selected device in deviceSelection context
   const ledgerModelName = useMemo(() => {
-    if (selectedDevice) {
-      const [bluetoothServiceId] = selectedDevice.serviceUUIDs;
-      return ledgerDeviceUUIDToModelName(bluetoothServiceId);
+    if (deviceSelection?.selectedDevice) {
+      return deviceSelection.selectedDevice.name || 'Ledger';
     }
     return undefined;
-  }, [selectedDevice]);
+  }, [deviceSelection?.selectedDevice]);
 
   const ledgerPathOptions: OptionType[] = useMemo(
     () => [
@@ -92,13 +121,6 @@ const LedgerSelectAccount = () => {
     [],
   );
 
-  const {
-    isSendingLedgerCommands,
-    isAppLaunchConfirmationNeeded,
-    ledgerLogicToRun,
-    error: ledgerError,
-  } = useLedgerBluetooth(selectedDevice?.id);
-
   const keyringController = useMemo(() => {
     const { KeyringController: controller } = Engine.context as {
       KeyringController: KeyringController;
@@ -117,11 +139,6 @@ const LedgerSelectAccount = () => {
   const [accounts, setAccounts] = useState<
     { address: string; index: number; balance: string }[]
   >([]);
-
-  const [unlockAccounts, setUnlockAccounts] = useState({
-    trigger: false,
-    accountIndexes: [] as number[],
-  });
 
   const [forgetDevice, setForgetDevice] = useState(false);
 
@@ -144,12 +161,55 @@ const LedgerSelectAccount = () => {
   }, [ledgerError]);
 
   const showLoadingModal = () => {
-    setErrorMsg(null);
     setBlockingModalVisible(true);
   };
 
+  // Fetch accounts after successful connection
+  const fetchAccounts = useCallback(async () => {
+    try {
+      const _accounts = await getLedgerAccountsByOperation(
+        PAGINATION_OPERATIONS.GET_FIRST_PAGE,
+      );
+      setAccounts(_accounts);
+    } catch (e) {
+      showHardwareWalletError(e);
+    }
+  }, [showHardwareWalletError]);
+
+  // On mount, ensure device is ready and fetch accounts
   useEffect(() => {
-    if (selectedDevice && accounts.length > 0) {
+    if (hasStartedInitRef.current) return;
+    hasStartedInitRef.current = true;
+
+    const init = async () => {
+      console.log('[LedgerSelectAccount] Calling ensureDeviceReady...');
+      // Set target wallet type
+      // (no account exists yet, so wallet type can't be auto-derived)
+      setTargetWalletType(HardwareWalletType.Ledger);
+      const isReady = await ensureDeviceReady();
+
+      if (isReady) {
+        console.log('[LedgerSelectAccount] Device ready - fetching accounts');
+        await fetchAccounts();
+      } else {
+        console.log('[LedgerSelectAccount] User cancelled - navigating back');
+        navigation.goBack();
+      }
+    };
+
+    init();
+  }, [ensureDeviceReady, setTargetWalletType, fetchAccounts, navigation]);
+
+  // Debug: log connection state changes
+  useEffect(() => {
+    console.log(
+      '[LedgerSelectAccount] Connection state:',
+      connectionState.status,
+    );
+  }, [connectionState.status]);
+
+  useEffect(() => {
+    if (accounts.length > 0) {
       trackEvent(
         createEventBuilder(
           MetaMetricsEvents.HARDWARE_WALLET_ACCOUNT_SELECTOR_OPEN,
@@ -161,22 +221,7 @@ const LedgerSelectAccount = () => {
           .build(),
       );
     }
-  }, [
-    trackEvent,
-    createEventBuilder,
-    selectedDevice,
-    accounts,
-    ledgerModelName,
-  ]);
-
-  const onConnectHardware = useCallback(async () => {
-    setErrorMsg(null);
-
-    const _accounts = await getLedgerAccountsByOperation(
-      PAGINATION_OPERATIONS.GET_FIRST_PAGE,
-    );
-    setAccounts(_accounts);
-  }, []);
+  }, [trackEvent, createEventBuilder, accounts, ledgerModelName]);
 
   useEffect(() => {
     if (accounts.length > 0 && selectedOption) {
@@ -187,31 +232,41 @@ const LedgerSelectAccount = () => {
           setAccounts(_accounts);
         })
         .catch((e) => {
-          setErrorMsg(e.message);
+          showHardwareWalletError(e);
         })
         .finally(() => {
           setBlockingModalVisible(false);
         });
     }
-  }, [accounts.length, selectedOption]);
+  }, [accounts.length, selectedOption, showHardwareWalletError]);
 
   const nextPage = useCallback(async () => {
     showLoadingModal();
-    const _accounts = await getLedgerAccountsByOperation(
-      PAGINATION_OPERATIONS.GET_NEXT_PAGE,
-    );
-    setAccounts(_accounts);
-    setBlockingModalVisible(false);
-  }, []);
+    try {
+      const _accounts = await getLedgerAccountsByOperation(
+        PAGINATION_OPERATIONS.GET_NEXT_PAGE,
+      );
+      setAccounts(_accounts);
+    } catch (e) {
+      showHardwareWalletError(e);
+    } finally {
+      setBlockingModalVisible(false);
+    }
+  }, [showHardwareWalletError]);
 
   const prevPage = useCallback(async () => {
     showLoadingModal();
-    const _accounts = await getLedgerAccountsByOperation(
-      PAGINATION_OPERATIONS.GET_PREVIOUS_PAGE,
-    );
-    setAccounts(_accounts);
-    setBlockingModalVisible(false);
-  }, []);
+    try {
+      const _accounts = await getLedgerAccountsByOperation(
+        PAGINATION_OPERATIONS.GET_PREVIOUS_PAGE,
+      );
+      setAccounts(_accounts);
+    } catch (e) {
+      showHardwareWalletError(e);
+    } finally {
+      setBlockingModalVisible(false);
+    }
+  }, [showHardwareWalletError]);
 
   const updateNewLegacyAccountsLabel = useCallback(async () => {
     if (LEDGER_LEGACY_PATH === (await getHDPath())) {
@@ -248,6 +303,12 @@ const LedgerSelectAccount = () => {
 
   const onUnlock = useCallback(
     async (accountIndexes: number[]) => {
+      const deviceId = await getDeviceId();
+      const isReady = await ensureDeviceReady(deviceId);
+      if (!isReady) {
+        return;
+      }
+
       showLoadingModal();
 
       try {
@@ -278,10 +339,12 @@ const LedgerSelectAccount = () => {
             })
             .build(),
         );
-        setErrorMsg((err as Error).message);
-      } finally {
+        // Hide modal FIRST so error bottom sheet is visible
         setBlockingModalVisible(false);
+        showHardwareWalletError(err);
+        return;
       }
+      setBlockingModalVisible(false);
     },
     [
       updateNewLegacyAccountsLabel,
@@ -290,6 +353,8 @@ const LedgerSelectAccount = () => {
       createEventBuilder,
       selectedOption.value,
       navigation,
+      showHardwareWalletError,
+      ensureDeviceReady,
     ],
   );
 
@@ -318,19 +383,10 @@ const LedgerSelectAccount = () => {
       await onForget();
       setBlockingModalVisible(false);
       setForgetDevice(false);
-    } else if (unlockAccounts.trigger) {
-      await onUnlock(unlockAccounts.accountIndexes);
-      setBlockingModalVisible(false);
-      setUnlockAccounts({ trigger: false, accountIndexes: [] });
     }
-  }, [
-    blockingModalVisible,
-    forgetDevice,
-    onForget,
-    onUnlock,
-    unlockAccounts.accountIndexes,
-    unlockAccounts.trigger,
-  ]);
+    // Note: unlock is now called directly from AccountSelector.onUnlock,
+    // not via animation callback, so we can check device status first
+  }, [blockingModalVisible, forgetDevice, onForget]);
 
   const onSelectedPathChanged = useCallback(
     async (path: string) => {
@@ -344,17 +400,20 @@ const LedgerSelectAccount = () => {
     [ledgerPathOptions],
   );
 
-  return ledgerError || accounts.length <= 0 ? (
-    <LedgerConnect
-      onConnectLedger={onConnectHardware}
-      selectedDevice={selectedDevice}
-      setSelectedDevice={setSelectedDevice}
-      ledgerLogicToRun={ledgerLogicToRun}
-      isAppLaunchConfirmationNeeded={isAppLaunchConfirmationNeeded}
-      isSendingLedgerCommands={isSendingLedgerCommands}
-      ledgerError={ledgerError}
-    />
-  ) : (
+  // Show loading while waiting for device connection (bottom sheet is displayed via context)
+  // Once accounts are loaded, show the account selector
+  if (accounts.length <= 0) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color={colors.primary.default} />
+        <Text style={[styles.text, styles.loadingText]}>
+          {strings('ledger.looking_for_device')}
+        </Text>
+      </View>
+    );
+  }
+
+  return (
     <>
       <View style={styles.container}>
         <View style={styles.header}>
@@ -372,7 +431,6 @@ const LedgerSelectAccount = () => {
           </TouchableOpacity>
         </View>
         <View style-={styles.selectorContainer}>
-          {errorMsg && <Text style={styles.error}>{errorMsg}</Text>}
           <Text style={styles.mainTitle}>
             {strings('ledger.select_accounts')}
           </Text>
@@ -397,12 +455,9 @@ const LedgerSelectAccount = () => {
           nextPage={nextPage}
           prevPage={prevPage}
           onUnlock={(accountIndex: number[]) => {
-            setErrorMsg(null);
-            setUnlockAccounts({ trigger: true, accountIndexes: accountIndex });
-            setBlockingModalVisible(true);
+            onUnlock(accountIndex);
           }}
           onForget={() => {
-            setErrorMsg(null);
             setForgetDevice(true);
             setBlockingModalVisible(true);
           }}

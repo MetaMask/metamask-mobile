@@ -35,6 +35,23 @@ jest.mock('../../../../../core/Engine', () => ({
   },
   rejectPendingApproval: jest.fn(),
   getQrKeyringScanner: jest.fn(() => mockQrScanner),
+  context: {
+    KeyringController: {
+      state: {
+        keyrings: [],
+      },
+    },
+  },
+}));
+
+// Mock HardwareWallet hooks used by useConfirmActions
+jest.mock('../../../../../core/HardwareWallet', () => ({
+  useHardwareWalletActions: jest.fn(() => ({
+    ensureDeviceReady: jest.fn().mockResolvedValue(true),
+    showAwaitingConfirmation: jest.fn(),
+    hideAwaitingConfirmation: jest.fn(),
+    showHardwareWalletError: jest.fn(),
+  })),
 }));
 
 jest.mock('../../hooks/gas/useGasFeeToken');
