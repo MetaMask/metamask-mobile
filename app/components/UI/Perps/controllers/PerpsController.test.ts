@@ -35,10 +35,13 @@ jest.mock('./providers/HyperLiquidProvider');
 jest.mock('./providers/MYXProvider');
 
 // Mock feature flag resolver for MYX provider tests
-const mockResolvePerpsMyxProviderEnabled = jest.fn(() => false);
+const mockResolvePerpsMyxProviderEnabled = jest.fn(
+  (_remoteFeatureFlags?: Record<string, unknown>) => false,
+);
 jest.mock('../selectors/featureFlags', () => ({
-  resolvePerpsMyxProviderEnabled: (...args: unknown[]) =>
-    mockResolvePerpsMyxProviderEnabled(...args),
+  resolvePerpsMyxProviderEnabled: (
+    remoteFeatureFlags?: Record<string, unknown>,
+  ) => mockResolvePerpsMyxProviderEnabled(remoteFeatureFlags),
 }));
 
 // Mock transaction controller utility
