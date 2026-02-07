@@ -50,6 +50,7 @@ import {
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { useFeedScrollManager } from '../../hooks/useFeedScrollManager';
+import { usePredictSearch } from '../../hooks/usePredictSearch';
 import {
   PredictCategory,
   PredictMarket as PredictMarketType,
@@ -448,6 +449,8 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
 
 interface PredictSearchOverlayProps {
   isVisible: boolean;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
   onClose: () => void;
 }
 
@@ -455,12 +458,13 @@ const SEARCH_DEBOUNCE_MS = 200;
 
 const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
   isVisible,
+  searchQuery,
+  onSearchChange,
   onClose,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebouncedValue(
     searchQuery,
     SEARCH_DEBOUNCE_MS,
@@ -474,15 +478,6 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
   });
 
   const isSearchLoading = isDebouncing || isFetching;
-
-  const handleSearch = useCallback((text: string) => {
-    setSearchQuery(text);
-  }, []);
-
-  const handleCancel = useCallback(() => {
-    setSearchQuery('');
-    onClose();
-  }, [onClose]);
 
   const renderItem = useCallback(
     (info: { item: PredictMarketType; index: number }) => (
@@ -529,12 +524,12 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
             placeholder={strings('predict.search_placeholder')}
             placeholderTextColor={colors.text.muted}
             value={searchQuery}
-            onChangeText={handleSearch}
+            onChangeText={onSearchChange}
             style={tw.style('flex-1 text-base text-default')}
             autoFocus
           />
           {searchQuery.length > 0 && (
-            <Pressable testID="clear-button" onPress={() => handleSearch('')}>
+            <Pressable testID="clear-button" onPress={() => onSearchChange('')}>
               <Icon
                 name={IconName.CircleX}
                 size={IconSize.Md}
@@ -543,7 +538,7 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
             </Pressable>
           )}
         </Box>
-        <Pressable onPress={handleCancel}>
+        <Pressable onPress={onClose}>
           <Text variant={TextVariant.BodyMd} style={tw.style('font-medium')}>
             {strings('predict.search_cancel')}
           </Text>
@@ -615,7 +610,13 @@ const PredictFeed: React.FC = () => {
   // session when tabs array changes due to async feature flag loading
   const initialTabKeyRef = useRef(tabs[0].key);
 
-  const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const {
+    isSearchVisible,
+    searchQuery,
+    setSearchQuery,
+    showSearch,
+    clearSearchAndClose,
+  } = usePredictSearch();
 
   const handleBackPress = useCallback(() => {
     if (navigation.canGoBack()) {
@@ -715,7 +716,7 @@ const PredictFeed: React.FC = () => {
           endButtonIconProps={[
             {
               iconName: IconName.Search,
-              onPress: () => setIsSearchVisible(true),
+              onPress: showSearch,
               testID: 'predict-search-button',
             },
           ]}
@@ -751,7 +752,9 @@ const PredictFeed: React.FC = () => {
 
       <PredictSearchOverlay
         isVisible={isSearchVisible}
-        onClose={() => setIsSearchVisible(false)}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onClose={clearSearchAndClose}
       />
     </Box>
   );
