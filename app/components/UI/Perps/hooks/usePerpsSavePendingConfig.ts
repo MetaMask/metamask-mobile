@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
-import type { OrderFormState } from '../types/perps-types';
+import type { OrderFormState } from '@metamask/perps-controller/types/perps-types';
 
 /**
  * Hook to save pending trade configuration when user navigates away from the trade screen

@@ -5,7 +5,7 @@ import {
   type UsePerpsMarketForAssetResult,
 } from '../../Perps/hooks/usePerpsMarketForAsset';
 import Routes from '../../../../constants/navigation/Routes';
-import { PERPS_EVENT_VALUE } from '../../Perps/constants/eventNames';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants/eventNames';
 
 export interface UsePerpsActionsParams {
   /** Token symbol, or null to skip the perps market check */

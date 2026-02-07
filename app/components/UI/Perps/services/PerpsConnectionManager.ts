@@ -14,19 +14,22 @@ import {
   TraceOperation,
 } from '../../../../util/trace';
 import Logger from '../../../../util/Logger';
-import { PERPS_CONSTANTS, PERFORMANCE_CONFIG } from '../constants/perpsConfig';
+import {
+  PERPS_CONSTANTS,
+  PERFORMANCE_CONFIG,
+} from '@metamask/perps-controller/constants/perpsConfig';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import {
   selectPerpsNetwork,
   selectPerpsProvider,
 } from '../selectors/perpsController';
 import { selectHip3ConfigVersion } from '../selectors/featureFlags';
-import { PerpsMeasurementName } from '../constants/performanceMetrics';
-import type { ReconnectOptions } from '../types/perps-types';
+import { PerpsMeasurementName } from '@metamask/perps-controller/constants/performanceMetrics';
+import type { ReconnectOptions } from '@metamask/perps-controller/types/perps-types';
 import { PERPS_ERROR_CODES } from '@metamask/perps-controller/perpsErrorCodes';
 import { ensureError } from '../../../../util/errorUtils';
-import { wait } from '../utils/wait';
-import { TradingReadinessCache } from './TradingReadinessCache';
+import { wait } from '@metamask/perps-controller/utils/wait';
+import { TradingReadinessCache } from '@metamask/perps-controller/services/TradingReadinessCache';
 
 /**
  * Singleton manager for Perps connection state

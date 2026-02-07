@@ -61,7 +61,7 @@ import { TraceName } from '../../../../../util/trace';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
+} from '@metamask/perps-controller/constants/eventNames';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 import PerpsCloseAllPositionsView from '../PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';

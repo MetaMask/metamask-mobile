@@ -99,7 +99,7 @@ jest.mock('../../utils/formatUtils', () => ({
   PRICE_RANGES_MINIMAL_VIEW: {},
 }));
 
-jest.mock('../../utils/marketUtils', () => ({
+jest.mock('@metamask/perps-controller/utils/marketUtils', () => ({
   getPerpsDisplaySymbol: jest.fn((symbol) => symbol),
 }));
 

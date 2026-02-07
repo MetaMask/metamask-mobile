@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller/constants/perpsConfig';
 import type { PerpsMarketData } from '@metamask/perps-controller/types';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
 import { parseVolume } from '@metamask/perps-controller/utils/sortMarkets';

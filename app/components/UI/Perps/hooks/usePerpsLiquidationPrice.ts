@@ -1,7 +1,7 @@
 import { debounce } from 'lodash';
 import { useEffect, useMemo, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller/constants/perpsConfig';
 import { usePerpsTrading } from './usePerpsTrading';
 
 interface LiquidationPriceParams {

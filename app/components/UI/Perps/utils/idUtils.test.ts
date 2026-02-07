@@ -4,7 +4,7 @@ import {
   generateWithdrawalId,
   generateOrderId,
   generateTransactionId,
-} from './idUtils';
+} from '@metamask/perps-controller/utils/idUtils';
 
 describe('idUtils', () => {
   describe('generatePerpsId', () => {

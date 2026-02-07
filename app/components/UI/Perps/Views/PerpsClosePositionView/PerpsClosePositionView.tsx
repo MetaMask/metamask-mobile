@@ -44,7 +44,7 @@ import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
   DECIMAL_PRECISION_CONFIG,
   ORDER_SLIPPAGE_CONFIG,
-} from '../../constants/perpsConfig';
+} from '@metamask/perps-controller/constants/perpsConfig';
 import {
   useMinimumOrderAmount,
   usePerpsClosePosition,
@@ -75,7 +75,7 @@ import { createStyles } from './PerpsClosePositionView.styles';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
+} from '@metamask/perps-controller/constants/eventNames';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { TraceName } from '../../../../../util/trace';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
@@ -83,7 +83,7 @@ import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider/PerpsSlider';
 import PerpsCloseSummary from '../../components/PerpsCloseSummary';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
+import { getPerpsDisplaySymbol } from '@metamask/perps-controller/utils/marketUtils';
 
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();

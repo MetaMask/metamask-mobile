@@ -7,7 +7,8 @@ import Icon, {
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
-import { TIME_DURATIONS, TimeDuration } from '../../constants/chartConfig';
+import type { TimeDuration } from '@metamask/perps-controller/constants/chartConfig';
+import { TIME_DURATIONS } from '../../constants/chartConfig';
 import { getPerpsTimeDurationSelector } from '../../Perps.testIds';
 import { timeDurationSelectorStyleSheet } from './PerpsTimeDurationSelector.styles';
 

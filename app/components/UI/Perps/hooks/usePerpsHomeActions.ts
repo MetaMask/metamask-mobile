@@ -10,11 +10,11 @@ import { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import type { PerpsNavigationParamList } from '@metamask/perps-controller/types';
 import { ensureError } from '../../../../util/errorUtils';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller/constants/perpsConfig';
 import {
   PERPS_EVENT_VALUE,
   PERPS_EVENT_PROPERTY,
-} from '../constants/eventNames';
+} from '@metamask/perps-controller/constants/eventNames';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 

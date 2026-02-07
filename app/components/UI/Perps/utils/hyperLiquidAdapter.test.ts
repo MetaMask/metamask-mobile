@@ -23,7 +23,7 @@ import {
   calculatePositionSize,
   adaptHyperLiquidLedgerUpdateToUserHistoryItem,
   type RawHyperLiquidLedgerUpdate,
-} from './hyperLiquidAdapter';
+} from '@metamask/perps-controller/utils/hyperLiquidAdapter';
 import type { OrderParams } from '@metamask/perps-controller/types';
 import type {
   AssetPosition,
@@ -32,7 +32,7 @@ import type {
   SpotClearinghouseStateResponse,
   PerpsUniverse,
   FrontendOrder,
-} from '../types/hyperliquid-types';
+} from '@metamask/perps-controller/types/hyperliquid-types';
 
 // Mock the isHexString utility
 jest.mock('@metamask/utils', () => ({

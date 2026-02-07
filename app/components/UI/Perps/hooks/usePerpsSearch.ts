@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import type { PerpsMarketData } from '@metamask/perps-controller/types';
-import { filterMarketsByQuery } from '../utils/marketUtils';
+import { filterMarketsByQuery } from '@metamask/perps-controller/utils/marketUtils';
 
 interface UsePerpsSearchParams {
   /**

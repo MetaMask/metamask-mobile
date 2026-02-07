@@ -20,8 +20,8 @@ import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsRecentActivityList.styles';
 import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
-import { PERPS_EVENT_VALUE } from '../../constants/eventNames';
+import { getPerpsDisplaySymbol } from '@metamask/perps-controller/utils/marketUtils';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants/eventNames';
 
 interface PerpsRecentActivityListProps {
   transactions: PerpsTransaction[];

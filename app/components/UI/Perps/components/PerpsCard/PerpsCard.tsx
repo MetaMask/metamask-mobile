@@ -15,7 +15,7 @@ import {
   formatPercentage,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
+import { getPerpsDisplaySymbol } from '@metamask/perps-controller/utils/marketUtils';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import styleSheet from './PerpsCard.styles';
@@ -24,7 +24,7 @@ import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 import {
   PERPS_EVENT_VALUE,
   PERPS_EVENT_PROPERTY,
-} from '../../constants/eventNames';
+} from '@metamask/perps-controller/constants/eventNames';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 

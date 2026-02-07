@@ -14,12 +14,12 @@ import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from './formatUtils';
-import { HIP3_ASSET_MARKET_TYPES } from '../constants/hyperLiquidConfig';
+import { HIP3_ASSET_MARKET_TYPES } from '@metamask/perps-controller/constants/hyperLiquidConfig';
 import type {
   AllMidsResponse,
   PerpsAssetCtx,
   PredictedFunding,
-} from '../types/hyperliquid-types';
+} from '@metamask/perps-controller/types/hyperliquid-types';
 
 // Helper function to create mock asset context with all required properties
 const createMockAssetCtx = (overrides: Record<string, unknown> = {}) => ({

@@ -115,7 +115,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock('../../utils/marketUtils', () => ({
+jest.mock('@metamask/perps-controller/utils/marketUtils', () => ({
   getPerpsDisplaySymbol: (symbol: string) => symbol,
 }));
 

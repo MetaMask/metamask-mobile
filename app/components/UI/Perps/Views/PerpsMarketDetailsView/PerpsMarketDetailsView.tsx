@@ -77,14 +77,14 @@ import TradingViewChart, {
 } from '../../components/TradingViewChart';
 import {
   CandlePeriod,
-  PERPS_CHART_CONFIG,
   TimeDuration,
-} from '../../constants/chartConfig';
+} from '@metamask/perps-controller/constants/chartConfig';
+import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+} from '@metamask/perps-controller/constants/eventNames';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller/constants/perpsConfig';
 import {
   usePerpsConnection,
   usePerpsNavigation,

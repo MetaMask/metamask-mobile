@@ -11,10 +11,10 @@ import PerpsLoadingSkeleton from '../components/PerpsLoadingSkeleton';
 import { usePerpsConnectionLifecycle } from '../hooks/usePerpsConnectionLifecycle';
 import { isE2E } from '../../../../util/test/utils';
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
-import type { ReconnectOptions } from '../types/perps-types';
+import type { ReconnectOptions } from '@metamask/perps-controller/types/perps-types';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller/constants/perpsConfig';
 
 export interface PerpsConnectionContextValue {
   isConnected: boolean;

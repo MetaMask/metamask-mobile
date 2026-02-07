@@ -14,7 +14,7 @@ import {
   CandlePeriod,
   TimeDuration,
   CANDLE_PERIODS,
-} from '../../constants/chartConfig';
+} from '@metamask/perps-controller/constants/chartConfig';
 import { getPerpsCandlePeriodBottomSheetSelector } from '../../Perps.testIds';
 import { Box } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -24,7 +24,7 @@ import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
+} from '@metamask/perps-controller/constants/eventNames';
 
 interface PerpsCandlePeriodBottomSheetProps {
   isVisible: boolean;

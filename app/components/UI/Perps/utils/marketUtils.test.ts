@@ -1,8 +1,6 @@
 import {
   calculateFundingCountdown,
   calculate24hHighLow,
-  getAssetIconUrl,
-  getAssetIconUrls,
   escapeRegex,
   compileMarketPattern,
   matchesMarketPattern,
@@ -10,12 +8,13 @@ import {
   validateMarketPattern,
   getPerpsDisplaySymbol,
   filterMarketsByQuery,
-} from './marketUtils';
-import type { CandleData } from '../types/perps-types';
+} from '@metamask/perps-controller/utils/marketUtils';
+import { getAssetIconUrl, getAssetIconUrls } from './marketUtils';
+import type { CandleData } from '@metamask/perps-controller/types/perps-types';
 import type { PerpsMarketData } from '@metamask/perps-controller/types';
-import { CandlePeriod } from '../constants/chartConfig';
+import { CandlePeriod } from '@metamask/perps-controller/constants/chartConfig';
 
-jest.mock('../constants/hyperLiquidConfig', () => ({
+jest.mock('@metamask/perps-controller/constants/hyperLiquidConfig', () => ({
   HYPERLIQUID_ASSET_ICONS_BASE_URL: 'https://app.hyperliquid.xyz/coins/',
   METAMASK_PERPS_ICONS_BASE_URL:
     'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/',

@@ -13,9 +13,9 @@ import {
   formatPositionSize,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller/constants/perpsConfig';
 import createStyles from './PerpsAmountDisplay.styles';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
+import { getPerpsDisplaySymbol } from '@metamask/perps-controller/utils/marketUtils';
 
 interface PerpsAmountDisplayProps {
   amount: string;

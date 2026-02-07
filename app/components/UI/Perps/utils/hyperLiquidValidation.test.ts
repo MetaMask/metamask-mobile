@@ -13,7 +13,7 @@ import {
   validateOrderParams,
   validateCoinExists,
   getMaxOrderValue,
-} from './hyperLiquidValidation';
+} from '@metamask/perps-controller/utils/hyperLiquidValidation';
 import type { CaipAssetId, Hex } from '@metamask/utils';
 import type { GetSupportedPathsParams } from '@metamask/perps-controller/types';
 import { PERPS_ERROR_CODES } from '@metamask/perps-controller/perpsErrorCodes';
@@ -22,7 +22,7 @@ jest.mock('@metamask/utils', () => ({
   isValidHexAddress: (address: string) => /^0x[0-9a-fA-F]{40}$/.test(address),
 }));
 
-jest.mock('../constants/hyperLiquidConfig', () => ({
+jest.mock('@metamask/perps-controller/constants/hyperLiquidConfig', () => ({
   HYPERLIQUID_ASSET_CONFIGS: {
     USDC: {
       mainnet:
@@ -59,7 +59,7 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
-jest.mock('../constants/perpsConfig', () => ({
+jest.mock('@metamask/perps-controller/constants/perpsConfig', () => ({
   HYPERLIQUID_ORDER_LIMITS: {
     MarketOrderLimits: {
       HighLeverage: 15_000_000,

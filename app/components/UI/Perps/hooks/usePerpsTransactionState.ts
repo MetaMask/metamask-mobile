@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { strings } from '../../../../../locales/i18n';
-import { TransactionRecord } from '../types/transactionTypes';
+import { TransactionRecord } from '@metamask/perps-controller/types/transactionTypes';
 
 interface UsePerpsTransactionStateProps {
   withdrawalRequests: TransactionRecord[];

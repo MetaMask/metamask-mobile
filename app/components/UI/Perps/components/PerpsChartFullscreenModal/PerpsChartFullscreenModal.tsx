@@ -15,8 +15,9 @@ import TradingViewChart, {
   type TPSLLines,
   type OhlcData,
 } from '../TradingViewChart';
-import type { CandleData } from '../../types/perps-types';
-import { CandlePeriod, PERPS_CHART_CONFIG } from '../../constants/chartConfig';
+import type { CandleData } from '@metamask/perps-controller/types/perps-types';
+import { CandlePeriod } from '@metamask/perps-controller/constants/chartConfig';
+import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
 import PerpsCandlestickChartIntervalSelector from '../PerpsCandlestickChartIntervalSelector/PerpsCandlestickChartIntervalSelector';
 import { styleSheet } from './PerpsChartFullscreenModal.styles';
 import PerpsOHLCVBar from '../PerpsOHLCVBar';

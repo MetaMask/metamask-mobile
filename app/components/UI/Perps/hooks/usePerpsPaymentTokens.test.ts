@@ -21,7 +21,7 @@ jest.mock('../../../../../locales/i18n', () => ({
 }));
 
 // Mock constants
-jest.mock('../constants/hyperLiquidConfig', () => ({
+jest.mock('@metamask/perps-controller/constants/hyperLiquidConfig', () => ({
   HYPERLIQUID_MAINNET_CHAIN_ID: '0x3e7',
   HYPERLIQUID_TESTNET_CHAIN_ID: '0x1ee7',
   USDC_SYMBOL: 'USDC',

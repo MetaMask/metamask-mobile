@@ -19,7 +19,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller/constants/perpsConfig';
 import type { Order, Position } from '@metamask/perps-controller/types';
 import {
   formatPerpsFiat,
@@ -28,7 +28,7 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
+import { getPerpsDisplaySymbol } from '@metamask/perps-controller/utils/marketUtils';
 import styleSheet from './PerpsPositionCard.styles';
 
 /**

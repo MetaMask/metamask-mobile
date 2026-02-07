@@ -38,7 +38,7 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
+} from '@metamask/perps-controller/constants/eventNames';
 import type { ClosePositionsResult } from '@metamask/perps-controller/types';
 
 interface PerpsCloseAllPositionsViewProps {

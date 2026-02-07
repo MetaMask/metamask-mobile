@@ -28,7 +28,7 @@ import { formatAccountToCaipAccountId } from '@metamask/perps-controller/utils/r
 // Import PerpsController hooks
 import PerpsTransactionItem from '../../components/PerpsTransactionItem';
 import PerpsTransactionsSkeleton from '../../components/PerpsTransactionsSkeleton';
-import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../../constants/transactionsHistoryConfig';
+import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '@metamask/perps-controller/constants/transactionsHistoryConfig';
 import { usePerpsConnection, usePerpsTransactionHistory } from '../../hooks';
 import {
   FilterTab,

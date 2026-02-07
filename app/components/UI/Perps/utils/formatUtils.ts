@@ -5,21 +5,14 @@ import { BigNumber } from 'bignumber.js';
 import { strings } from '../../../../../locales/i18n';
 import { formatWithThreshold } from '../../../../util/assets';
 import {
-  FUNDING_RATE_CONFIG,
   PERPS_CONSTANTS,
   DECIMAL_PRECISION_CONFIG,
-} from '../constants/perpsConfig';
+} from '@metamask/perps-controller/constants/perpsConfig';
+import { FUNDING_RATE_CONFIG } from '../constants/perpsConfig';
 import {
   getIntlNumberFormatter,
   getIntlDateTimeFormatter,
 } from '../../../../util/intl';
-
-// Re-export significant figures functions from controllers for backward compatibility
-export {
-  countSignificantFigures,
-  hasExceededSignificantFigures,
-  roundToSignificantFigures,
-} from '@metamask/perps-controller/utils/significantFigures';
 
 /**
  * Price threshold constants for PRICE_RANGES_UNIVERSAL

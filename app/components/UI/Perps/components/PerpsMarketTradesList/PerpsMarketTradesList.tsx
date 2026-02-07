@@ -14,11 +14,11 @@ import PerpsFillTag from '../PerpsFillTag';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsMarketTradesList.styles';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
+import { getPerpsDisplaySymbol } from '@metamask/perps-controller/utils/marketUtils';
 import { usePerpsMarketFills } from '../../hooks/usePerpsMarketFills';
 import { transformFillsToTransactions } from '../../utils/transactionTransforms';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
-import { PERPS_EVENT_VALUE } from '../../constants/eventNames';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller/constants/perpsConfig';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants/eventNames';
 
 interface PerpsMarketTradesListProps {
   symbol: string; // Market symbol to filter trades

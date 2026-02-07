@@ -31,7 +31,7 @@ import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
+} from '@metamask/perps-controller/constants/eventNames';
 
 import { usePerpsFirstTimeUser } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';

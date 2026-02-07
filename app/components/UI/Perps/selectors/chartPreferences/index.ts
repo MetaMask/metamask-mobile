@@ -3,7 +3,7 @@ import { RootState } from '../../../../../reducers';
 import {
   CandlePeriod,
   DEFAULT_CANDLE_PERIOD,
-} from '../../constants/chartConfig';
+} from '@metamask/perps-controller/constants/chartConfig';
 
 const selectSettings = (state: RootState) => state.settings;
 

@@ -4,17 +4,17 @@ import { usePerpsMarketListView } from './usePerpsMarketListView';
 import { usePerpsMarkets } from './usePerpsMarkets';
 import { usePerpsSearch } from './usePerpsSearch';
 import { usePerpsSorting } from './usePerpsSorting';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller/constants/perpsConfig';
 import type { PerpsMarketData } from '@metamask/perps-controller/types';
 import {
   sortMarkets,
   type SortField,
   type SortDirection,
-} from '../utils/sortMarkets';
+} from '@metamask/perps-controller/utils/sortMarkets';
 import Engine from '../../../../core/Engine';
 
 // Mock sortMarkets utility
-jest.mock('../utils/sortMarkets', () => ({
+jest.mock('@metamask/perps-controller/utils/sortMarkets', () => ({
   sortMarkets: jest.fn(({ markets }) => markets),
 }));
 

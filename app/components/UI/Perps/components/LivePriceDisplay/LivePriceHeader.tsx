@@ -11,7 +11,7 @@ import {
   formatPercentage,
 } from '../../utils/formatUtils';
 import { useStyles } from '../../../../../component-library/hooks';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller/constants/perpsConfig';
 
 interface LivePriceHeaderProps {
   symbol: string;

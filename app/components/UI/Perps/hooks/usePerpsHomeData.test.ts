@@ -7,7 +7,10 @@ import type {
   Position,
 } from '@metamask/perps-controller/types';
 import type { PerpsTransaction } from '../types/transactionHistory';
-import { sortMarkets, type SortField } from '../utils/sortMarkets';
+import {
+  sortMarkets,
+  type SortField,
+} from '@metamask/perps-controller/utils/sortMarkets';
 import { FillType } from '../components/PerpsTransactionItem/PerpsTransactionItem';
 
 // Type for markets with volumeNumber (returned by usePerpsMarkets)
@@ -30,7 +33,7 @@ import {
 // Mock dependencies
 jest.mock('./stream');
 jest.mock('./usePerpsMarkets');
-jest.mock('../utils/sortMarkets');
+jest.mock('@metamask/perps-controller/utils/sortMarkets');
 jest.mock('react-redux');
 jest.mock('../selectors/perpsController');
 jest.mock('./usePerpsConnection', () => ({

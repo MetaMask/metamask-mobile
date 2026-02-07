@@ -14,7 +14,7 @@ import type {
   PerpsMarketData,
 } from '@metamask/perps-controller/types';
 import PerpsTabView from './PerpsTabView';
-import { PERPS_EVENT_VALUE } from '../../constants/eventNames';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants/eventNames';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),

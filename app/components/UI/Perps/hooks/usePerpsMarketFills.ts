@@ -4,7 +4,7 @@ import { usePerpsLiveFills } from './stream';
 import type { OrderFill } from '@metamask/perps-controller/types';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller/constants/perpsConfig';
 import { ensureError } from '../../../../util/errorUtils';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 

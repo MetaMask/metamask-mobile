@@ -11,7 +11,7 @@ import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { useStyles } from '../../../../../component-library/hooks';
 import { styleSheet } from './TradingViewChart.styles';
-import type { CandleData } from '../../types/perps-types';
+import type { CandleData } from '@metamask/perps-controller/types/perps-types';
 import { TradingViewChartSelectorsIDs } from '../../Perps.testIds';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { createTradingViewChartTemplate } from './TradingViewChartTemplate';
@@ -32,7 +32,7 @@ export interface TPSLLines {
   currentPrice?: string;
 }
 
-export type { TimeDuration } from '../../constants/chartConfig';
+export type { TimeDuration } from '@metamask/perps-controller/constants/chartConfig';
 import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
 
 export interface OhlcData {

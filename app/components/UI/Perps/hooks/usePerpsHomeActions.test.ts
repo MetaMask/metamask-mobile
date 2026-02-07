@@ -10,7 +10,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../constants/eventNames';
+} from '@metamask/perps-controller/constants/eventNames';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({

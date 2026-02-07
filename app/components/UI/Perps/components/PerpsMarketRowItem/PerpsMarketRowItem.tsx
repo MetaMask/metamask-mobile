@@ -7,16 +7,12 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import {
-  PERPS_CONSTANTS,
-  HOME_SCREEN_CONFIG,
-} from '../../constants/perpsConfig';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller/constants/perpsConfig';
+import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 import type { PerpsMarketData } from '@metamask/perps-controller/types';
 import { usePerpsLivePrices } from '../../hooks/stream';
-import {
-  getPerpsDisplaySymbol,
-  getMarketBadgeType,
-} from '../../utils/marketUtils';
+import { getPerpsDisplaySymbol } from '@metamask/perps-controller/utils/marketUtils';
+import { getMarketBadgeType } from '../../utils/marketUtils';
 import {
   formatFundingRate,
   formatPercentage,

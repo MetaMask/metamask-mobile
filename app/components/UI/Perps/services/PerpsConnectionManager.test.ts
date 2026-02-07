@@ -1,11 +1,11 @@
 // Mock wait utility to avoid delays in tests
-jest.mock('../utils/wait', () => ({
+jest.mock('@metamask/perps-controller/utils/wait', () => ({
   wait: jest.fn().mockResolvedValue(undefined),
 }));
 
 // Mock TradingReadinessCache for cache clearing tests
 // The mock must be defined inside the factory function because jest.mock is hoisted
-jest.mock('./TradingReadinessCache', () => ({
+jest.mock('@metamask/perps-controller/services/TradingReadinessCache', () => ({
   TradingReadinessCache: {
     clear: jest.fn(),
     clearAll: jest.fn(),
@@ -97,7 +97,7 @@ import Engine from '../../../../core/Engine';
 import { store } from '../../../../store';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { selectPerpsNetwork } from '../selectors/perpsController';
-import { TradingReadinessCache } from './TradingReadinessCache';
+import { TradingReadinessCache } from '@metamask/perps-controller/services/TradingReadinessCache';
 
 // Import PerpsConnectionManager after mocks are set up
 // This is imported here after mocks to ensure store.subscribe is mocked before the singleton is created

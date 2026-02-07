@@ -26,7 +26,7 @@ import Skeleton from '../../../../../component-library/components/Skeleton/Skele
 import {
   USDC_SYMBOL,
   USDC_TOKEN_ICON_URL,
-} from '../../../Perps/constants/hyperLiquidConfig';
+} from '@metamask/perps-controller/constants/hyperLiquidConfig';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import { formatPrice } from '../../utils/format';

@@ -6,7 +6,7 @@ import {
   USDC_DECIMALS,
   USDC_NAME,
   HYPERLIQUID_MAINNET_CHAIN_ID,
-} from '../constants/hyperLiquidConfig';
+} from '@metamask/perps-controller/constants/hyperLiquidConfig';
 
 // Mock react-redux
 jest.mock('react-redux', () => ({

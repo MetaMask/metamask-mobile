@@ -7,9 +7,9 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import {
   CANDLE_PERIODS,
-  PERPS_CHART_CONFIG,
   CandlePeriod,
-} from '../../constants/chartConfig';
+} from '@metamask/perps-controller/constants/chartConfig';
+import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
 import { selectorStyleSheet } from './PerpsCandlestickChartIntervalSelector.styles.ts';
 
 interface PerpsCandlestickChartIntervalSelectorProps {

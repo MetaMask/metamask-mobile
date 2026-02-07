@@ -47,15 +47,13 @@ import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
+} from '@metamask/perps-controller/constants/eventNames';
 import {
   getLeverageRiskLevel,
   LEVERAGE_COLORS,
 } from '../../constants/leverageColors';
-import {
-  LEVERAGE_SLIDER_CONFIG,
-  PERFORMANCE_CONFIG,
-} from '../../constants/perpsConfig';
+import { PERFORMANCE_CONFIG } from '@metamask/perps-controller/constants/perpsConfig';
+import { LEVERAGE_SLIDER_CONFIG } from '../../constants/perpsConfig';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsLiquidationPrice } from '../../hooks/usePerpsLiquidationPrice';
 import {

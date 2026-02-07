@@ -39,7 +39,7 @@ import {
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller/constants/perpsConfig';
 
 interface AdjustMarginRouteParams {
   position: Position;

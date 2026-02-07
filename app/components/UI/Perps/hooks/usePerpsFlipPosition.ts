@@ -5,8 +5,8 @@ import { usePerpsTrading } from './usePerpsTrading';
 import type { Position } from '@metamask/perps-controller/types';
 import { captureException } from '@sentry/react-native';
 import usePerpsToasts from './usePerpsToasts';
-import { getPerpsDisplaySymbol } from '../utils/marketUtils';
-import type { OrderDirection } from '../types/perps-types';
+import { getPerpsDisplaySymbol } from '@metamask/perps-controller/utils/marketUtils';
+import type { OrderDirection } from '@metamask/perps-controller/types/perps-types';
 
 export interface UsePerpsFlipPositionOptions {
   onSuccess?: () => void;

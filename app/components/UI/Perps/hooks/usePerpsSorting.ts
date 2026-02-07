@@ -4,11 +4,11 @@ import {
   sortMarkets,
   type SortField,
   type SortDirection,
-} from '../utils/sortMarkets';
+} from '@metamask/perps-controller/utils/sortMarkets';
 import {
   MARKET_SORTING_CONFIG,
   type SortOptionId,
-} from '../constants/perpsConfig';
+} from '@metamask/perps-controller/constants/perpsConfig';
 
 interface UsePerpsSortingParams {
   initialOptionId?: SortOptionId;

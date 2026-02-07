@@ -1,33 +1,17 @@
 /**
- * Market utilities for Perps components.
+ * Market utilities for Perps components - Mobile UI layer
  *
  * Portable functions (pattern matching, display helpers, calculations)
- * are re-exported from controllers. Mobile-only functions (badge types,
- * icon URLs) remain here.
+ * live in '@metamask/perps-controller/utils/marketUtils'.
+ *
+ * This file contains mobile-only functions (badge types, icon URLs).
  */
 import type { PerpsMarketData } from '@metamask/perps-controller/types';
 import type { BadgeType } from '../components/PerpsBadge/PerpsBadge.types';
 import {
   HYPERLIQUID_ASSET_ICONS_BASE_URL,
   METAMASK_PERPS_ICONS_BASE_URL,
-} from '../constants/hyperLiquidConfig';
-
-// Re-export portable functions from controllers for backward compatibility
-export {
-  MAX_MARKET_PATTERN_LENGTH,
-  type MarketPatternMatcher,
-  type CompiledMarketPattern,
-  escapeRegex,
-  validateMarketPattern,
-  compileMarketPattern,
-  matchesMarketPattern,
-  shouldIncludeMarket,
-  getPerpsDisplaySymbol,
-  getPerpsDexFromSymbol,
-  calculateFundingCountdown,
-  calculate24hHighLow,
-  filterMarketsByQuery,
-} from '@metamask/perps-controller/utils/marketUtils';
+} from '@metamask/perps-controller/constants/hyperLiquidConfig';
 
 /**
  * Determine badge type for a market based on its metadata

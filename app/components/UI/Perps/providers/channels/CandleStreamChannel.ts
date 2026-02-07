@@ -1,11 +1,11 @@
 import Engine from '../../../../../core/Engine';
-import type { CandleData } from '../../types/perps-types';
+import type { CandleData } from '@metamask/perps-controller/types/perps-types';
 import {
   CandlePeriod,
   TimeDuration,
   calculateCandleCount,
-} from '../../constants/chartConfig';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+} from '@metamask/perps-controller/constants/chartConfig';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller/constants/perpsConfig';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
 import { ensureError } from '../../../../../util/errorUtils';

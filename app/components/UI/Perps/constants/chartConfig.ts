@@ -1,25 +1,16 @@
 /**
  * Chart configuration constants - Mobile UI layer
  *
- * Portable exports (enums, pure calculations) live in controllers/constants/chartConfig.ts
- * and are re-exported here for backward compatibility.
+ * Controller-portable exports (enums, pure calculations) live in
+ * '@metamask/perps-controller/constants/chartConfig' and should be
+ * imported from there directly.
  *
- * UI-specific exports (Colors, Theme dependencies) live only in this file.
+ * This file contains only UI-specific exports (Colors, Theme dependencies).
  */
 import type { Theme } from '@metamask/design-tokens';
-
-// Re-export all portable constants for backward compatibility
-export {
-  CandlePeriod,
-  TimeDuration,
+import {
   ChartInterval,
-  MAX_CANDLE_COUNT,
-  DURATION_CANDLE_PERIODS,
-  CANDLE_PERIODS,
-  DEFAULT_CANDLE_PERIOD,
-  getCandlePeriodsForDuration,
-  getDefaultCandlePeriodForDuration,
-  calculateCandleCount,
+  TimeDuration,
 } from '@metamask/perps-controller/constants/chartConfig';
 
 type Colors = Theme['colors'];
@@ -59,11 +50,6 @@ export const PERPS_CHART_CONFIG = {
     HEIGHT_CHANGE_THRESHOLD: 10, // Minimum pixels change to trigger height update (debouncing)
   },
 } as const;
-
-import {
-  ChartInterval,
-  TimeDuration,
-} from '@metamask/perps-controller/constants/chartConfig';
 
 /**
  * Available time intervals for candlestick chart

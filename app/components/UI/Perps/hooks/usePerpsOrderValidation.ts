@@ -5,13 +5,13 @@ import {
   PERFORMANCE_CONFIG,
   PERPS_CONSTANTS,
   VALIDATION_THRESHOLDS,
-} from '../constants/perpsConfig';
-import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
+} from '@metamask/perps-controller/constants/perpsConfig';
+import { TRADING_DEFAULTS } from '@metamask/perps-controller/constants/hyperLiquidConfig';
 import { PERPS_ERROR_CODES } from '@metamask/perps-controller/perpsErrorCodes';
 import type { OrderParams } from '@metamask/perps-controller/types';
-import type { OrderFormState } from '../types/perps-types';
+import type { OrderFormState } from '@metamask/perps-controller/types/perps-types';
 import { formatPerpsFiat } from '../utils/formatUtils';
-import { getMaxOrderValue } from '../utils/hyperLiquidValidation';
+import { getMaxOrderValue } from '@metamask/perps-controller/utils/hyperLiquidValidation';
 import { translatePerpsError } from '../utils/translatePerpsError';
 import { usePerpsNetwork } from './usePerpsNetwork';
 import { usePerpsTrading } from './usePerpsTrading';

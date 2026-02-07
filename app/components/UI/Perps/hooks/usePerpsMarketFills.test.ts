@@ -3,7 +3,7 @@ import { usePerpsMarketFills } from './usePerpsMarketFills';
 import { usePerpsLiveFills } from './stream';
 import Engine from '../../../../core/Engine';
 import type { OrderFill } from '@metamask/perps-controller/types';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller/constants/perpsConfig';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({

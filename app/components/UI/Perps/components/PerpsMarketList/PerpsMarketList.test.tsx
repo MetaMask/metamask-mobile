@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import { View, Text as RNText } from 'react-native';
 import PerpsMarketList from './PerpsMarketList';
 import type { PerpsMarketData } from '@metamask/perps-controller/types';
-import type { SortField } from '../../utils/sortMarkets';
+import type { SortField } from '@metamask/perps-controller/utils/sortMarkets';
 
 // Mock dependencies
 jest.mock('@shopify/flash-list', () => {

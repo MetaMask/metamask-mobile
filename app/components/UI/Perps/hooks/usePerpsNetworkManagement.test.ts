@@ -9,7 +9,7 @@ import Engine from '../../../../core/Engine';
 import {
   ARBITRUM_MAINNET_CAIP_CHAIN_ID,
   ARBITRUM_TESTNET_CAIP_CHAIN_ID,
-} from '../constants/hyperLiquidConfig';
+} from '@metamask/perps-controller/constants/hyperLiquidConfig';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),

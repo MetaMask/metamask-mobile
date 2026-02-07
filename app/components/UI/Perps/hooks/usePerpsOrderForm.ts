@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
+import { TRADING_DEFAULTS } from '@metamask/perps-controller/constants/hyperLiquidConfig';
 import { OrderType } from '@metamask/perps-controller/types';
-import type { OrderFormState } from '../types/perps-types';
-import { getMaxAllowedAmount } from '../utils/orderCalculations';
+import type { OrderFormState } from '@metamask/perps-controller/types/perps-types';
+import { getMaxAllowedAmount } from '@metamask/perps-controller/utils/orderCalculations';
 import {
   usePerpsLiveAccount,
   usePerpsLivePositions,

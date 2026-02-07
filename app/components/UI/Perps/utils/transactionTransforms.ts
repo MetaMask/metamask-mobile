@@ -13,7 +13,7 @@ import {
   PerpsTransaction,
 } from '../types/transactionHistory';
 import { formatOrderLabel } from './orderUtils';
-import { getPerpsDisplaySymbol } from './marketUtils';
+import { getPerpsDisplaySymbol } from '@metamask/perps-controller/utils/marketUtils';
 
 /**
  * Determines the close direction category for aggregation purposes.

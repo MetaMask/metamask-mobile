@@ -29,7 +29,7 @@ import {
   PriceChangeOption,
 } from '../../UI/Trending/components/TrendingTokensBottomSheet';
 import type { TrendingFilterContext } from '../../UI/Trending/components/TrendingTokensList/TrendingTokensList';
-import { filterMarketsByQuery } from '../../UI/Perps/utils/marketUtils';
+import { filterMarketsByQuery } from '@metamask/perps-controller/utils/marketUtils';
 import PredictMarketRowItem from '../../UI/Predict/components/PredictMarketRowItem';
 import SectionCard from './components/Sections/SectionTypes/SectionCard';
 import SectionCarrousel from './components/Sections/SectionTypes/SectionCarrousel';

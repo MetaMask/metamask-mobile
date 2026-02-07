@@ -1,6 +1,10 @@
 import type { PerpsMarketData } from '@metamask/perps-controller/types';
-import { parseVolume } from '@metamask/perps-controller/utils/sortMarkets';
-import { sortMarkets, type SortDirection, type SortField } from './sortMarkets';
+import {
+  parseVolume,
+  sortMarkets,
+  type SortDirection,
+  type SortField,
+} from '@metamask/perps-controller/utils/sortMarkets';
 
 // Mock dependencies
 jest.mock('@metamask/perps-controller/utils/sortMarkets', () => {

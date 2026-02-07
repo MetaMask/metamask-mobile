@@ -11,7 +11,7 @@ import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
+} from '@metamask/perps-controller/constants/eventNames';
 import { PERPS_SUPPORT_ARTICLES_URLS } from '../../constants/perpsConfig';
 
 // Mock Redux selector

@@ -15,11 +15,12 @@ import type {
 import type { PerpsTransaction } from '../types/transactionHistory';
 import { transformFillsToTransactions } from '../utils/transactionTransforms';
 import Engine from '../../../../core/Engine';
+import { MARKET_SORTING_CONFIG } from '@metamask/perps-controller/constants/perpsConfig';
+import { HOME_SCREEN_CONFIG } from '../constants/perpsConfig';
 import {
-  HOME_SCREEN_CONFIG,
-  MARKET_SORTING_CONFIG,
-} from '../constants/perpsConfig';
-import { sortMarkets, type SortField } from '../utils/sortMarkets';
+  sortMarkets,
+  type SortField,
+} from '@metamask/perps-controller/utils/sortMarkets';
 import {
   selectPerpsWatchlistMarkets,
   selectPerpsMarketFilterPreferences,

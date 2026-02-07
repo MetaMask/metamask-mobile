@@ -1,7 +1,10 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { usePerpsLiveCandles } from './usePerpsLiveCandles';
-import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
-import type { CandleData } from '../../types/perps-types';
+import {
+  CandlePeriod,
+  TimeDuration,
+} from '@metamask/perps-controller/constants/chartConfig';
+import type { CandleData } from '@metamask/perps-controller/types/perps-types';
 
 // Mock the stream provider
 const mockCandleSubscribe = jest.fn();

@@ -38,7 +38,7 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsPositionTransactionView.styles';
-import { PERPS_EVENT_VALUE } from '../../constants/eventNames';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants/eventNames';
 
 const PerpsPositionTransactionView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});

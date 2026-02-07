@@ -20,10 +20,13 @@ import type {
   AccountState,
   PerpsMarketData,
 } from '@metamask/perps-controller/types';
-import { PERFORMANCE_CONFIG, PERPS_CONSTANTS } from '../constants/perpsConfig';
-import { PerpsMeasurementName } from '../constants/performanceMetrics';
+import {
+  PERFORMANCE_CONFIG,
+  PERPS_CONSTANTS,
+} from '@metamask/perps-controller/constants/perpsConfig';
+import { PerpsMeasurementName } from '@metamask/perps-controller/constants/performanceMetrics';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
-import { findEvmAccount } from '../utils/accountUtils';
+import { findEvmAccount } from '@metamask/perps-controller/utils/accountUtils';
 import { CandleStreamChannel } from './channels/CandleStreamChannel';
 
 /**

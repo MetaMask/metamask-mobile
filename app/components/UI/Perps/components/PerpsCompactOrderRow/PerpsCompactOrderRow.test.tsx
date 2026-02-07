@@ -29,7 +29,7 @@ jest.mock('../../utils/formatUtils', () => ({
   PRICE_RANGES_MINIMAL_VIEW: {},
 }));
 
-jest.mock('../../utils/marketUtils', () => ({
+jest.mock('@metamask/perps-controller/utils/marketUtils', () => ({
   getPerpsDisplaySymbol: jest.fn((symbol) => symbol),
 }));
 
@@ -169,7 +169,7 @@ describe('PerpsCompactOrderRow', () => {
 
   it('gets display symbol for the order', () => {
     const { getPerpsDisplaySymbol } = jest.requireMock(
-      '../../utils/marketUtils',
+      '@metamask/perps-controller/utils/marketUtils',
     );
     render(<PerpsCompactOrderRow order={mockLimitBuyOrder} />);
 

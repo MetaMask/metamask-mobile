@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { usePerpsPrices } from './usePerpsPrices';
-import { VALIDATION_THRESHOLDS } from '../constants/perpsConfig';
+import { VALIDATION_THRESHOLDS } from '@metamask/perps-controller/constants/perpsConfig';
 
 /**
  * Return type for useIsPriceDeviatedAboveThreshold hook

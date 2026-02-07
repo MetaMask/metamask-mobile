@@ -13,14 +13,12 @@ import { usePerpsEventTracking } from './usePerpsEventTracking';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../constants/eventNames';
+} from '@metamask/perps-controller/constants/eventNames';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
-import {
-  PERPS_CONSTANTS,
-  CONFIRMATION_HEADER_CONFIG,
-} from '../constants/perpsConfig';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller/constants/perpsConfig';
+import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 
 /**
  * Navigation handler result interface

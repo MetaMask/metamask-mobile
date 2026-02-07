@@ -2,7 +2,7 @@ import { handlePerpsUrl } from '../handlePerpsUrl';
 import NavigationService from '../../../../NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
-import { PERFORMANCE_CONFIG } from '../../../../../components/UI/Perps/constants/perpsConfig';
+import { PERFORMANCE_CONFIG } from '@metamask/perps-controller/constants/perpsConfig';
 import ReduxService from '../../../../redux';
 import { selectIsFirstTimePerpsUser } from '../../../../../components/UI/Perps/selectors/perpsController';
 

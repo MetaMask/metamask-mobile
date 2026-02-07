@@ -11,8 +11,8 @@ import {
   sortMarkets,
   type SortField,
   type SortDirection,
-} from '../utils/sortMarkets';
-import type { SortOptionId } from '../constants/perpsConfig';
+} from '@metamask/perps-controller/utils/sortMarkets';
+import type { SortOptionId } from '@metamask/perps-controller/constants/perpsConfig';
 import {
   selectPerpsWatchlistMarkets,
   selectPerpsMarketFilterPreferences,

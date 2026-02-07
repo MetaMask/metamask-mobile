@@ -48,7 +48,7 @@ import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../../core/Engine';
 import { getOrderDirection } from '../../utils/orderUtils';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
-import { OrderDirection } from '../../types/perps-types';
+import { OrderDirection } from '@metamask/perps-controller/types/perps-types';
 import Routes from '../../../../../constants/navigation/Routes';
 
 // Tab content component for Position tab

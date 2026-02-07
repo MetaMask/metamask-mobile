@@ -5,7 +5,7 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useIsPriceDeviatedAboveThreshold } from './useIsPriceDeviatedAboveThreshold';
 import { usePerpsPrices } from './usePerpsPrices';
-import { VALIDATION_THRESHOLDS } from '../constants/perpsConfig';
+import { VALIDATION_THRESHOLDS } from '@metamask/perps-controller/constants/perpsConfig';
 import type { PriceUpdate } from '@metamask/perps-controller/types';
 
 jest.mock('./usePerpsPrices');

@@ -1888,7 +1888,7 @@ describe('PerpsStreamManager', () => {
       const mockGetEvmAccount = jest.fn().mockReturnValue({
         address: '0x123',
       });
-      jest.mock('../utils/accountUtils', () => ({
+      jest.mock('@metamask/perps-controller/utils/accountUtils', () => ({
         getEvmAccountFromSelectedAccountGroup: mockGetEvmAccount,
       }));
 

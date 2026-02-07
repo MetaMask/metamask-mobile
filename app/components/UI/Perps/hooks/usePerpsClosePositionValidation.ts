@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { VALIDATION_THRESHOLDS } from '../constants/perpsConfig';
+import { VALIDATION_THRESHOLDS } from '@metamask/perps-controller/constants/perpsConfig';
 import type {
   ClosePositionParams,
   OrderType,

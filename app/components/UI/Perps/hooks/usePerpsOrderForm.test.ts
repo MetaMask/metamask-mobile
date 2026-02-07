@@ -9,7 +9,7 @@ import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
 import { usePerpsLivePrices } from './stream/usePerpsLivePrices';
 import { usePerpsLivePositions } from './stream/usePerpsLivePositions';
 import { usePerpsMarketData } from './usePerpsMarketData';
-import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
+import { TRADING_DEFAULTS } from '@metamask/perps-controller/constants/hyperLiquidConfig';
 import {
   PerpsStreamProvider,
   PerpsStreamManager,
