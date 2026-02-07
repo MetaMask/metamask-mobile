@@ -34,6 +34,8 @@ jest.mock('../../../../../component-library/components/Skeleton', () => {
 
 describe('ReferralStatsSection', () => {
   const defaultProps = {
+    referralPointsTitle: 'Earned from referrals',
+    totalReferralsTitle: 'Referrals',
     earnedPointsFromReferees: 6200,
     earnedPointsFromRefereesLoading: false,
     refereeCount: 5,
@@ -105,7 +107,14 @@ describe('ReferralStatsSection', () => {
 
   describe('component structure', () => {
     it('should render without crashing', () => {
-      expect(() => render(<ReferralStatsSection />)).not.toThrow();
+      expect(() =>
+        render(
+          <ReferralStatsSection
+            referralPointsTitle="Earned from referrals"
+            totalReferralsTitle="Referrals"
+          />,
+        ),
+      ).not.toThrow();
     });
 
     it('should display both sections side by side', () => {
@@ -212,6 +221,8 @@ describe('ReferralStatsSection', () => {
       // Arrange
       const { getByText, queryByText } = render(
         <ReferralStatsSection
+          referralPointsTitle="Earned from referrals"
+          totalReferralsTitle="Referrals"
           earnedPointsFromReferees={null}
           refereeCount={null}
           refereeCountError

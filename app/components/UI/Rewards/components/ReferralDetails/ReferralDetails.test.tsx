@@ -24,17 +24,14 @@ jest.mock('./ReferralInfoSection', () => {
     );
   };
 });
-jest.mock('./ReferralStatsSection', () => {
+jest.mock('./ReferralStatsSummary', () => {
   const mockReact = jest.requireActual('react');
   const { Text } = jest.requireActual('@metamask/design-system-react-native');
-  return function MockReferralStatsSection(props: object) {
+  return function MockReferralStatsSummary() {
     return mockReact.createElement(
       Text,
-      {
-        testID: 'referral-stats-section',
-        'data-testid': `stats-${JSON.stringify(props)}`,
-      },
-      'ReferralStatsSection',
+      { testID: 'referral-stats-summary' },
+      'ReferralStatsSummary',
     );
   };
 });
@@ -152,6 +149,17 @@ describe('ReferralDetails', () => {
   const renderComponent = (props = {}) =>
     render(<ReferralDetails {...props} />);
 
+  const mockSeasonWaysToEarn = [
+    {
+      id: 'referral-way',
+      type: 'referrals',
+      specificContent: {
+        referralPointsTitle: 'Earned from referrals',
+        totalReferralsTitle: 'Referrals',
+      },
+    },
+  ];
+
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -175,6 +183,8 @@ describe('ReferralDetails', () => {
           return false;
         case 'selectSeasonStartDate':
           return '2024-01-01';
+        case 'selectSeasonWaysToEarn':
+          return mockSeasonWaysToEarn;
         default:
           // Default fallback values
           if (selector.name === 'selectReferralCode') return 'REFER123';
@@ -185,6 +195,8 @@ describe('ReferralDetails', () => {
           if (selector.name === 'selectReferralDetailsError') return false;
           if (selector.name === 'selectSeasonStatusError') return false;
           if (selector.name === 'selectSeasonStartDate') return '2024-01-01';
+          if (selector.name === 'selectSeasonWaysToEarn')
+            return mockSeasonWaysToEarn;
           return null;
       }
     });
@@ -215,7 +227,7 @@ describe('ReferralDetails', () => {
 
       // Assert
       expect(getByTestId('referral-info-section')).toBeTruthy();
-      expect(getByTestId('referral-stats-section')).toBeTruthy();
+      expect(getByTestId('referral-stats-summary')).toBeTruthy();
       expect(getByTestId('referral-actions-section')).toBeTruthy();
     });
 
@@ -250,64 +262,12 @@ describe('ReferralDetails', () => {
   });
 
   describe('props passing to child components', () => {
-    it('passes loading state to ReferralStatsSection when referral details are loading', () => {
-      // Arrange
-      const earnedPoints = 2000;
-      const refereeCount = 8;
-      const detailsLoading = true;
-
-      mockUseSelector.mockImplementation((selector: SelectorFunction) => {
-        if (selector.name === 'selectBalanceRefereePortion')
-          return earnedPoints;
-        if (selector.name === 'selectReferralCount') return refereeCount;
-        if (selector.name === 'selectReferralDetailsLoading')
-          return detailsLoading;
-        if (selector.name === 'selectReferralCode') return 'TEST123';
-        if (selector.name === 'selectReferralDetailsError') return false;
-        if (selector.name === 'selectSeasonStatusError') return false;
-        if (selector.name === 'selectSeasonStartDate') return '2024-01-01';
-        return null;
-      });
-
-      // Act
+    it('renders ReferralStatsSummary', () => {
+      // Arrange & Act
       const { getByTestId } = renderComponent();
 
       // Assert
-      const statsElement = getByTestId('referral-stats-section');
-      const propsString = statsElement.props['data-testid'];
-      const props = JSON.parse(propsString.replace('stats-', ''));
-      expect(props.earnedPointsFromReferees).toBe(earnedPoints);
-      expect(props.refereeCount).toBe(refereeCount);
-      expect(props.earnedPointsFromRefereesLoading).toBe(true);
-      expect(props.refereeCountLoading).toBe(true);
-      expect(props.refereeCountError).toBe(false);
-    });
-
-    it('passes error state to ReferralStatsSection when referral details error occurs', () => {
-      // Arrange
-      const detailsError = true;
-      const detailsLoading = false;
-
-      mockUseSelector.mockImplementation((selector: SelectorFunction) => {
-        if (selector.name === 'selectBalanceRefereePortion') return 1500;
-        if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectReferralDetailsLoading')
-          return detailsLoading;
-        if (selector.name === 'selectReferralDetailsError') return detailsError;
-        if (selector.name === 'selectReferralCode') return 'TEST123';
-        if (selector.name === 'selectSeasonStatusError') return false;
-        if (selector.name === 'selectSeasonStartDate') return '2024-01-01';
-        return null;
-      });
-
-      // Act
-      const { getByTestId } = renderComponent();
-
-      // Assert
-      const statsElement = getByTestId('referral-stats-section');
-      const propsString = statsElement.props['data-testid'];
-      const props = JSON.parse(propsString.replace('stats-', ''));
-      expect(props.refereeCountError).toBe(true);
+      expect(getByTestId('referral-stats-summary')).toBeTruthy();
     });
 
     it('passes loading state to ReferralActionsSection when referral details are loading', () => {
@@ -496,7 +456,7 @@ describe('ReferralDetails', () => {
       const { getByTestId } = renderComponent();
 
       // Assert - Component should render despite loading state
-      expect(getByTestId('referral-stats-section')).toBeTruthy();
+      expect(getByTestId('referral-stats-summary')).toBeTruthy();
     });
 
     it('should handle referral details loading state', () => {
@@ -535,7 +495,7 @@ describe('ReferralDetails', () => {
 
       // Assert
       expect(getByTestId('referral-info-section')).toBeTruthy();
-      expect(getByTestId('referral-stats-section')).toBeTruthy();
+      expect(getByTestId('referral-stats-summary')).toBeTruthy();
       expect(getByTestId('referral-actions-section')).toBeTruthy();
     });
   });
@@ -579,7 +539,7 @@ describe('ReferralDetails', () => {
 
       // Assert - All child components should be present in column layout
       expect(getByTestId('referral-info-section')).toBeTruthy();
-      expect(getByTestId('referral-stats-section')).toBeTruthy();
+      expect(getByTestId('referral-stats-summary')).toBeTruthy();
       expect(getByTestId('referral-actions-section')).toBeTruthy();
     });
   });
@@ -608,7 +568,7 @@ describe('ReferralDetails', () => {
       expect(getByTestId('error-description')).toBeTruthy();
       // Other components should not be rendered
       expect(queryByTestId('referral-info-section')).toBeNull();
-      expect(queryByTestId('referral-stats-section')).toBeNull();
+      expect(queryByTestId('referral-stats-summary')).toBeNull();
       expect(queryByTestId('referral-actions-section')).toBeNull();
     });
 
@@ -658,7 +618,7 @@ describe('ReferralDetails', () => {
       expect(getByTestId('error-description')).toBeTruthy();
       expect(getByTestId('error-retry-button')).toBeTruthy();
       // Stats and actions sections should not be rendered
-      expect(queryByTestId('referral-stats-section')).toBeNull();
+      expect(queryByTestId('referral-stats-summary')).toBeNull();
       expect(queryByTestId('referral-actions-section')).toBeNull();
       // Info section should still be rendered
       expect(queryByTestId('referral-info-section')).toBeTruthy();
@@ -684,7 +644,7 @@ describe('ReferralDetails', () => {
       // Assert
       expect(queryByText("Referral details couldn't be loaded")).toBeNull();
       // Normal components should render
-      expect(getByTestId('referral-stats-section')).toBeTruthy();
+      expect(getByTestId('referral-stats-summary')).toBeTruthy();
       expect(getByTestId('referral-actions-section')).toBeTruthy();
     });
 
@@ -708,7 +668,7 @@ describe('ReferralDetails', () => {
       // Assert
       expect(queryByText("Referral details couldn't be loaded")).toBeNull();
       // Normal components should render
-      expect(getByTestId('referral-stats-section')).toBeTruthy();
+      expect(getByTestId('referral-stats-summary')).toBeTruthy();
       expect(getByTestId('referral-actions-section')).toBeTruthy();
     });
 
@@ -749,7 +709,7 @@ describe('ReferralDetails', () => {
 
       // Assert - All components should be findable, indicating proper accessibility
       const infoSection = getByTestId('referral-info-section');
-      const statsSection = getByTestId('referral-stats-section');
+      const statsSection = getByTestId('referral-stats-summary');
       const actionsSection = getByTestId('referral-actions-section');
 
       expect(infoSection).toBeTruthy();

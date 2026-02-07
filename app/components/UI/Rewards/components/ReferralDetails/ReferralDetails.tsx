@@ -2,15 +2,13 @@ import React from 'react';
 import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import ReferralInfoSection from './ReferralInfoSection';
-import ReferralStatsSection from './ReferralStatsSection';
+import ReferralStatsSummary from './ReferralStatsSummary';
 import ReferralActionsSection from './ReferralActionsSection';
 import Share from 'react-native-share';
 import { strings } from '../../../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import {
-  selectBalanceRefereePortion,
   selectReferralCode,
-  selectReferralCount,
   selectReferralDetailsError,
   selectReferralDetailsLoading,
   selectSeasonStatusError,
@@ -29,8 +27,6 @@ const ReferralDetails: React.FC<ReferralDetailsProps> = ({
   showInfoSection = true,
 }) => {
   const referralCode = useSelector(selectReferralCode);
-  const refereeCount = useSelector(selectReferralCount);
-  const balanceRefereePortion = useSelector(selectBalanceRefereePortion);
   const seasonStatusError = useSelector(selectSeasonStatusError);
   const seasonStartDate = useSelector(selectSeasonStartDate);
   const referralDetailsLoading = useSelector(selectReferralDetailsLoading);
@@ -108,13 +104,7 @@ const ReferralDetails: React.FC<ReferralDetailsProps> = ({
         />
       ) : (
         <>
-          <ReferralStatsSection
-            earnedPointsFromReferees={balanceRefereePortion}
-            refereeCount={refereeCount}
-            earnedPointsFromRefereesLoading={referralDetailsLoading}
-            refereeCountLoading={referralDetailsLoading}
-            refereeCountError={referralDetailsError}
-          />
+          <ReferralStatsSummary />
 
           <ReferralActionsSection
             referralCode={referralCode}
