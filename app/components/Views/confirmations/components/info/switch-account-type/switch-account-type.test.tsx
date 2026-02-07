@@ -8,6 +8,13 @@ import {
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import SwitchAccountType from './switch-account-type';
 
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: jest.fn(),
+  }),
+}));
+
 jest.mock('../../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
   AssetPollingProvider: () => null,
 }));

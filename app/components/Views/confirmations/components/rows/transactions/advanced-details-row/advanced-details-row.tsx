@@ -1,26 +1,28 @@
 import React, { useCallback } from 'react';
-import { View } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { ScrollView } from 'react-native-gesture-handler';
 
 import { ConfirmationRowComponentIDs } from '../../../../ConfirmationView.testIds';
 import { strings } from '../../../../../../../../locales/i18n';
+import { useStyles } from '../../../../../../hooks/useStyles';
 import Text from '../../../../../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../../../../../component-library/components/Texts/Text/Text.types';
-import { useEditNonce } from '../../../../../../hooks/useEditNonce';
-import { useStyles } from '../../../../../../hooks/useStyles';
-import Name from '../../../../../../UI/Name';
 import {
   IconColor,
   IconName,
   IconSize,
 } from '../../../../../../../component-library/components/Icons/Icon';
+import { useEditNonce } from '../../../../../../hooks/useEditNonce';
+import Name from '../../../../../../UI/Name';
 import { NameType } from '../../../../../../UI/Name/Name.types';
 import { selectSmartTransactionsEnabled } from '../../../../../../../selectors/smartTransactionsController';
 import { RootState } from '../../../../../../../reducers';
 import { selectSmartTransactionsOptInStatus } from '../../../../../../../selectors/preferencesController';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
+import { useFullScreenConfirmation } from '../../../../hooks/ui/useFullScreenConfirmation';
 import CustomNonceModal from '../../../../legacy/components/CustomNonceModal';
 import { use7702TransactionType } from '../../../../hooks/7702/use7702TransactionType';
 import Expandable from '../../../UI/expandable';
@@ -31,11 +33,50 @@ import InfoSection from '../../../UI/info-row/info-section';
 import NestedTransactionData from '../../../nested-transaction-data/nested-transaction-data';
 import SmartContractWithLogo from '../../../smart-contract-with-logo';
 import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
+import Routes from '../../../../../../../constants/navigation/Routes';
 import styleSheet from './advanced-details-row.styles';
 
 const MAX_DATA_LENGTH_FOR_SCROLL = 200;
 
-const AdvancedDetailsRow = () => {
+const AdvancedDetailsNavigationRow = () => {
+  const navigation = useNavigation();
+  const transactionMetadata = useTransactionMetadataRequest();
+
+  const { styles } = useStyles(styleSheet, {
+    isNonceChangeDisabled: false,
+  });
+
+  const handlePress = useCallback(() => {
+    navigation.navigate(Routes.FULL_SCREEN_CONFIRMATIONS.ADVANCED_DETAILS);
+  }, [navigation]);
+
+  if (!transactionMetadata) {
+    return null;
+  }
+
+  return (
+    <TouchableOpacity
+      onPress={handlePress}
+      testID={ConfirmationRowComponentIDs.ADVANCED_DETAILS}
+      activeOpacity={0.7}
+    >
+      <InfoSection>
+        <AlertRow
+          alertField={RowAlertKey.InteractingWith}
+          label={strings('stake.advanced_details')}
+          style={styles.infoRowOverride}
+          withIcon={{
+            color: IconColor.Muted,
+            size: IconSize.Sm,
+            name: IconName.ArrowRight,
+          }}
+        />
+      </InfoSection>
+    </TouchableOpacity>
+  );
+};
+
+const AdvancedDetailsExpandableRow = () => {
   const transactionMetadata = useTransactionMetadataRequest();
   const {
     setShowNonceModal,
@@ -53,7 +94,6 @@ const AdvancedDetailsRow = () => {
     selectSmartTransactionsOptInStatus(state),
   );
 
-  // Nonce is always editable unless smart transactions are enabled
   const isNonceChangeDisabled = isSTXEnabledForChain && isSTXOptIn;
 
   const { styles } = useStyles(styleSheet, {
@@ -170,6 +210,16 @@ const AdvancedDetailsRow = () => {
       />
     </>
   );
+};
+
+const AdvancedDetailsRow = () => {
+  const { isFullScreenConfirmation } = useFullScreenConfirmation();
+
+  if (isFullScreenConfirmation) {
+    return <AdvancedDetailsNavigationRow />;
+  }
+
+  return <AdvancedDetailsExpandableRow />;
 };
 
 export function AdvancedDetailsRowSkeleton() {

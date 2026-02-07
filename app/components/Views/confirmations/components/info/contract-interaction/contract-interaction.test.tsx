@@ -19,6 +19,13 @@ import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmat
 import * as TransactionMetadataRequestHook from '../../../hooks/transactions/useTransactionMetadataRequest';
 import ContractInteraction from './contract-interaction';
 
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: jest.fn(),
+  }),
+}));
+
 jest.mock('../../rows/account-network-info-row', () => ({
   __esModule: true,
   default: () => null,
