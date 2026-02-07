@@ -43,6 +43,10 @@ import useTokenBuyability from '../hooks/useTokenBuyability';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
 ///: END:ONLY_INCLUDE_IF
+import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButton';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
+import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
+import { BridgeToken } from '../../Bridge/types';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -85,6 +89,9 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingHorizontal: 16,
       paddingTop: 24,
     } as ViewStyle,
+    marketClosedActionButtonContainer: {
+      marginBottom: 8,
+    },
   });
 };
 
@@ -171,6 +178,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const navigation = useNavigation();
   const merklRewardsRef = useRef<View>(null);
   const merklRewardsYInHeaderRef = useRef<number | null>(null);
+  const { isTokenTradingOpen } = useRWAToken();
 
   useScrollToMerklRewards(merklRewardsYInHeaderRef);
 
@@ -251,6 +259,12 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     [handleSelectTimePeriod, timePeriod, chartNavigationButtons],
   );
 
+  const handleMarketClosedButtonPress = () => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL,
+    });
+  };
+
   return (
     <View style={styles.wrapper} testID={TokenOverviewSelectorsIDs.CONTAINER}>
       {token.hasBalanceError ? (
@@ -272,6 +286,15 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           <View style={styles.chartNavigationWrapper}>
             {renderChartNavigationButton()}
           </View>
+          {!isTokenTradingOpen(token as BridgeToken) && (
+            <View style={styles.marketClosedActionButtonContainer}>
+              <MarketClosedActionButton
+                iconName={IconName.Info}
+                label={strings('asset_overview.market_closed')}
+                onPress={handleMarketClosedButtonPress}
+              />
+            </View>
+          )}
           {isTokenDetailsV2ButtonsEnabled ? (
             <TokenDetailsActions
               hasPerpsMarket={hasPerpsMarket}

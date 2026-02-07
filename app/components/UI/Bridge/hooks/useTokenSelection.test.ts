@@ -7,6 +7,7 @@ import {
 } from '../../../../core/redux/slices/bridge';
 import { createMockToken } from '../testUtils/fixtures';
 import { TokenSelectorType } from '../types';
+import Routes from '../../../../constants/navigation/Routes';
 
 const mockDispatch = jest.fn();
 const mockHandleSwitchTokensInner = jest.fn().mockResolvedValue(undefined);
@@ -18,8 +19,18 @@ jest.mock('react-redux', () => ({
 }));
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ goBack: mockGoBack }),
+  useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
+}));
+
+const mockIsStockToken = jest.fn();
+const mockIsTokenTradingOpen = jest.fn();
+jest.mock('./useRWAToken', () => ({
+  useRWAToken: () => ({
+    isStockToken: mockIsStockToken,
+    isTokenTradingOpen: mockIsTokenTradingOpen,
+  }),
 }));
 
 jest.mock('./useSwitchTokens', () => ({
@@ -56,6 +67,9 @@ describe('useTokenSelection', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Non-stock token behavior
+    mockIsStockToken.mockReturnValue(false);
+    mockIsTokenTradingOpen.mockReturnValue(true);
     mockUseIsNetworkEnabled.mockReturnValue(true);
   });
 
@@ -273,6 +287,145 @@ describe('useTokenSelection', () => {
       expect(mockDispatch).toHaveBeenCalledTimes(1);
       expect(mockAutoUpdateDestToken).toHaveBeenCalledWith(sameChainToken);
       expect(mockHandleSwitchTokens).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('RWA token handling', () => {
+    const mockStockToken = createMockToken({
+      address: '0xstocktoken',
+      symbol: 'AAPL',
+      rwaData: {
+        instrumentType: 'stock',
+        market: {
+          nextOpen: new Date().toISOString(),
+          nextClose: new Date(Date.now() + 86400000).toISOString(),
+        },
+      },
+    });
+
+    beforeEach(() => {
+      mockUseSelector
+        .mockReturnValueOnce(mockSourceToken)
+        .mockReturnValueOnce(mockDestToken)
+        .mockReturnValueOnce(mockDestAmount);
+    });
+    afterEach(() => {
+      mockUseSelector.mockReset();
+    });
+
+    it('proceeds with selection when stock token trading is open', async () => {
+      mockIsStockToken.mockReturnValue(true);
+      mockIsTokenTradingOpen.mockResolvedValue(true);
+
+      const { result } = renderHook(() =>
+        useTokenSelection(TokenSelectorType.Source),
+      );
+
+      await act(async () => {
+        await result.current.handleTokenPress(mockStockToken);
+      });
+
+      expect(mockIsStockToken).toHaveBeenCalledWith(mockStockToken);
+      expect(mockIsTokenTradingOpen).toHaveBeenCalledWith(mockStockToken);
+      expect(mockDispatch).toHaveBeenCalledWith(setSourceToken(mockStockToken));
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('navigates to market closed modal when stock token trading is closed', async () => {
+      mockIsStockToken.mockReturnValue(true);
+      mockIsTokenTradingOpen.mockReturnValue(false);
+
+      const { result } = renderHook(() =>
+        useTokenSelection(TokenSelectorType.Source),
+      );
+
+      await act(async () => {
+        await result.current.handleTokenPress(mockStockToken);
+      });
+
+      expect(mockIsStockToken).toHaveBeenCalledWith(mockStockToken);
+      expect(mockIsTokenTradingOpen).toHaveBeenCalledWith(mockStockToken);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL,
+      });
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('skips trading check for non-stock tokens', async () => {
+      mockIsStockToken.mockReturnValue(false);
+      const regularToken = createMockToken({
+        address: '0xregular',
+        symbol: 'ETH',
+      });
+
+      const { result } = renderHook(() =>
+        useTokenSelection(TokenSelectorType.Source),
+      );
+
+      await act(async () => {
+        await result.current.handleTokenPress(regularToken);
+      });
+
+      expect(mockIsStockToken).toHaveBeenCalledWith(regularToken);
+      expect(mockIsTokenTradingOpen).not.toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledWith(setSourceToken(regularToken));
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+
+    it('navigates to market closed modal for dest token when trading is closed', async () => {
+      mockIsStockToken.mockReturnValue(true);
+      mockIsTokenTradingOpen.mockReturnValue(false);
+
+      const { result } = renderHook(() =>
+        useTokenSelection(TokenSelectorType.Dest),
+      );
+
+      await act(async () => {
+        await result.current.handleTokenPress(mockStockToken);
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL,
+      });
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('swaps tokens when selecting other token as stock token with open market', async () => {
+      const stockDestToken = createMockToken({
+        address: '0xdest',
+        symbol: 'DST',
+        chainId: '0xa',
+        rwaData: {
+          instrumentType: 'stock',
+          market: {
+            nextOpen: new Date().toISOString(),
+            nextClose: new Date(Date.now() + 86400000).toISOString(),
+          },
+        },
+      });
+      mockUseSelector
+        .mockReturnValueOnce(mockSourceToken)
+        .mockReturnValueOnce(stockDestToken)
+        .mockReturnValueOnce(mockDestAmount);
+      mockIsStockToken.mockReturnValue(true);
+      mockIsTokenTradingOpen.mockResolvedValue(true);
+
+      const { result } = renderHook(() =>
+        useTokenSelection(TokenSelectorType.Source),
+      );
+
+      await act(async () => {
+        await result.current.handleTokenPress(stockDestToken);
+      });
+
+      expect(mockIsStockToken).toHaveBeenCalledWith(stockDestToken);
+      expect(mockIsTokenTradingOpen).toHaveBeenCalledWith(stockDestToken);
+      expect(mockHandleSwitchTokens).toHaveBeenCalledWith(mockDestAmount);
+      expect(mockHandleSwitchTokensInner).toHaveBeenCalled();
+      expect(mockGoBack).toHaveBeenCalled();
     });
   });
 });

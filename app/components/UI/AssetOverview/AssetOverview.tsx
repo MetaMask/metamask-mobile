@@ -135,6 +135,9 @@ import { toAssetId } from '../Bridge/hooks/useAssetMetadata/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { parseCAIP19AssetId } from '../Ramp/Aggregator/utils/parseCaip19AssetId';
 import { toLowerCaseEquals } from '../../../util/general';
+import MarketClosedActionButton from './MarketClosedActionButton';
+import { IconName } from '../../../component-library/components/Icons/Icon';
+import { useRWAToken } from '../Bridge/hooks/useRWAToken';
 
 /**
  * Determines the source and destination tokens for swap/bridge navigation.
@@ -277,6 +280,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       : undefined,
   );
   ///: END:ONLY_INCLUDE_IF
+
+  const { isTokenTradingOpen } = useRWAToken();
 
   const currentAddress = asset.address as Hex;
   const { goToBuy } = useRampNavigation();
@@ -776,6 +781,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     return matchingToken?.tokenSupported ?? false;
   }, [allTokens, asset.isNative, asset.chainId, asset.address]);
 
+  const handleMarketClosedButtonPress = () => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL,
+    });
+  };
+
   return (
     <View style={styles.wrapper} testID={TokenOverviewSelectorsIDs.CONTAINER}>
       {asset.hasBalanceError ? (
@@ -795,9 +806,20 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           <View style={styles.chartNavigationWrapper}>
             {renderChartNavigationButton()}
           </View>
+          {!isTokenTradingOpen(asset as BridgeToken) && (
+            <View style={styles.marketClosedActionButtonContainer}>
+              <MarketClosedActionButton
+                iconName={IconName.Info}
+                label={strings('asset_overview.market_closed')}
+                onPress={handleMarketClosedButtonPress}
+              />
+            </View>
+          )}
           <AssetDetailsActions
             displayBuyButton={displayBuyButton && isAssetBuyable}
-            displaySwapsButton={displaySwapsButton}
+            displaySwapsButton={
+              displaySwapsButton && isTokenTradingOpen(asset as BridgeToken)
+            }
             goToSwaps={goToSwaps}
             onBuy={onBuy}
             onReceive={onReceive}
