@@ -172,9 +172,9 @@ jobs:
             ios/Pods
             ~/Library/Caches/CocoaPods
             ~/.cocoapods
-          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
+          key: ${{ runner.os }}-pods-${{ inputs.build_name }}-${{ hashFiles('ios/Podfile.lock') }}
           restore-keys: |
-            ${{ runner.os }}-pods-
+            ${{ runner.os }}-pods-${{ inputs.build_name }}-
 
       # iOS: Cache DerivedData to speed up Xcode builds
       - name: Cache iOS DerivedData
@@ -182,10 +182,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ios/build
-          key: ${{ runner.os }}-ios-derived-${{ hashFiles('ios/Podfile.lock') }}-${{ hashFiles('**/*.m', '**/*.mm', '**/*.swift') }}
+          key: ${{ runner.os }}-ios-derived-${{ inputs.build_name }}-${{ hashFiles('ios/Podfile.lock') }}-${{ hashFiles('ios/**/*.{h,m,mm,swift}') }}
           restore-keys: |
-            ${{ runner.os }}-ios-derived-${{ hashFiles('ios/Podfile.lock') }}-
-            ${{ runner.os }}-ios-derived-
+            ${{ runner.os }}-ios-derived-${{ inputs.build_name }}-${{ hashFiles('ios/Podfile.lock') }}-
+            ${{ runner.os }}-ios-derived-${{ inputs.build_name }}-
 
       # iOS: Cache Xcode module cache for faster compilation
       - name: Cache Xcode Module Cache
@@ -193,9 +193,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/Library/Developer/Xcode/DerivedData/ModuleCache.noindex
-          key: ${{ runner.os }}-xcode-modules-${{ hashFiles('ios/Podfile.lock') }}
+          key: ${{ runner.os }}-xcode-modules-${{ inputs.build_name }}-${{ hashFiles('ios/Podfile.lock') }}
           restore-keys: |
-            ${{ runner.os }}-xcode-modules-
+            ${{ runner.os }}-xcode-modules-${{ inputs.build_name }}-
 
       # Signing: uses role + secret from builds.yml (skip for dev builds - main-dev, flask-dev, qa-dev use debug/simulator)
       - name: Configure signing certificates
