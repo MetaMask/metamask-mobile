@@ -411,4 +411,9 @@ const PerpsScreenStack = () => {
 
 // Export the stack wrapped with provider
 export default PerpsScreenStack;
-export { PerpsClosePositionBottomSheetStack, PerpsModalStack };
+export {
+  PerpsClosePositionBottomSheetStack,
+  PerpsModalStack,
+  PerpsConnectionProvider,
+  PerpsStreamProvider,
+};
