@@ -7,7 +7,7 @@ import Text, {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -49,14 +49,13 @@ function EligibilityFailedModal() {
       isInteractable={false}
       testID="eligibility-failed-modal"
     >
-      <BottomSheetHeader
+      <HeaderCompactStandard
+        title={strings(
+          'fiat_on_ramp_aggregator.eligibility_failed_modal.title',
+        )}
         onClose={handleClose}
-        closeButtonProps={{ testID: 'bottomsheetheader-close-button' }}
-      >
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('fiat_on_ramp_aggregator.eligibility_failed_modal.title')}
-        </Text>
-      </BottomSheetHeader>
+        closeButtonProps={{ testID: 'eligibility-failed-modal-close-button' }}
+      />
 
       <View style={styles.content}>
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>

@@ -13,7 +13,7 @@ import Text, {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCompactStandard from '../../../../../../../component-library/components-temp/HeaderCompactStandard';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -46,11 +46,13 @@ function IncompatibleAccountTokenModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
-        <Text variant={TextVariant.HeadingMD} style={styles.headerTitle}>
-          {strings('deposit.incompatible_token_acount_modal.title')}
-        </Text>
-      </BottomSheetHeader>
+      <HeaderCompactStandard
+        title={strings('deposit.incompatible_token_acount_modal.title')}
+        onClose={() => sheetRef.current?.onCloseBottomSheet()}
+        closeButtonProps={{
+          testID: 'deposit-incompatible-account-token-modal-close-button',
+        }}
+      />
 
       <View style={styles.content}>
         <Text variant={TextVariant.BodyMD} color={TextColor.Default}>

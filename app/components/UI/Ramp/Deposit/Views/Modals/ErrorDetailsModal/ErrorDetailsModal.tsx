@@ -7,7 +7,7 @@ import Text, {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCompactStandard from '../../../../../../../component-library/components-temp/HeaderCompactStandard';
 import Icon, {
   IconName,
   IconSize,
@@ -43,7 +43,10 @@ function ErrorDetailsModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
+      <HeaderCompactStandard
+        onClose={() => sheetRef.current?.onCloseBottomSheet()}
+        closeButtonProps={{ testID: 'error-details-modal-close-button' }}
+      >
         <View style={styles.headerContainer}>
           <Icon
             name={IconName.Danger}
@@ -54,7 +57,7 @@ function ErrorDetailsModal() {
             {strings('deposit.errors.error_details_title')}
           </Text>
         </View>
-      </BottomSheetHeader>
+      </HeaderCompactStandard>
 
       <ScrollView style={styles.scrollView}>
         <View style={styles.contentContainer}>

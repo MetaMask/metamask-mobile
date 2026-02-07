@@ -55,7 +55,7 @@ describe('RampUnsupportedModal', () => {
 
   it('closes the modal when the close button is pressed', () => {
     const { getByTestId } = render(RampUnsupportedModal);
-    const closeButton = getByTestId('bottomsheetheader-close-button');
+    const closeButton = getByTestId('ramp-unsupported-modal-close-button');
 
     fireEvent.press(closeButton);
 

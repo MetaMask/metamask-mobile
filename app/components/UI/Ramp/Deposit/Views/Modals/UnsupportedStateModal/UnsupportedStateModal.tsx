@@ -9,7 +9,7 @@ import Text, {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCompactStandard from '../../../../../../../component-library/components-temp/HeaderCompactStandard';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -90,11 +90,11 @@ function UnsupportedStateModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack isInteractable={false}>
-      <BottomSheetHeader onClose={handleClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('deposit.unsupported_state_modal.title')}
-        </Text>
-      </BottomSheetHeader>
+      <HeaderCompactStandard
+        title={strings('deposit.unsupported_state_modal.title')}
+        onClose={handleClose}
+        closeButtonProps={{ testID: 'unsupported-state-modal-close-button' }}
+      />
 
       <View style={styles.content}>
         <Text variant={TextVariant.BodyMD} color={TextColor.Default}>

@@ -70,7 +70,7 @@ describe('EligibilityFailedModal', () => {
 
   it('closes the modal when the close button is pressed', () => {
     const { getByTestId } = render(EligibilityFailedModal);
-    const closeButton = getByTestId('bottomsheetheader-close-button');
+    const closeButton = getByTestId('eligibility-failed-modal-close-button');
 
     fireEvent.press(closeButton);
 

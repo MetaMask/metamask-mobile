@@ -438,12 +438,11 @@ exports[`Checkout displays WebView when url is present and no errors 1`] = `
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "height": 56,
+                                  "paddingLeft": 8,
+                                  "paddingRight": 8,
                                 },
                                 false,
-                                {
-                                  "paddingHorizontal": 16,
-                                  "paddingVertical": 0,
-                                },
+                                undefined,
                               ]
                             }
                             testID="header"
@@ -471,39 +470,85 @@ exports[`Checkout displays WebView when url is present and no errors 1`] = `
                               <View
                                 onLayout={[Function]}
                               >
-                                <TouchableOpacity
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
+                                <View
                                   style={
-                                    {
-                                      "alignItems": "center",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
-                                    }
-                                  }
-                                  testID="checkout-close-button"
-                                >
-                                  <SvgMock
-                                    color="#121314"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Close"
-                                    style={
+                                    [
                                       {
-                                        "height": 24,
-                                        "width": 24,
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
+                                    ]
+                                  }
+                                >
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
                                       }
                                     }
-                                    width={24}
-                                  />
-                                </TouchableOpacity>
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 2,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                    testID="checkout-close-button"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 20,
+                                            "width": 20,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -980,12 +1025,11 @@ exports[`Checkout displays and tracks error if no url or errors 1`] = `
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "height": 56,
+                                  "paddingLeft": 8,
+                                  "paddingRight": 8,
                                 },
                                 false,
-                                {
-                                  "paddingHorizontal": 16,
-                                  "paddingVertical": 0,
-                                },
+                                undefined,
                               ]
                             }
                             testID="header"
@@ -1013,39 +1057,85 @@ exports[`Checkout displays and tracks error if no url or errors 1`] = `
                               <View
                                 onLayout={[Function]}
                               >
-                                <TouchableOpacity
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
+                                <View
                                   style={
-                                    {
-                                      "alignItems": "center",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
-                                    }
-                                  }
-                                  testID="checkout-close-button"
-                                >
-                                  <SvgMock
-                                    color="#121314"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Close"
-                                    style={
+                                    [
                                       {
-                                        "height": 24,
-                                        "width": 24,
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
+                                    ]
+                                  }
+                                >
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
                                       }
                                     }
-                                    width={24}
-                                  />
-                                </TouchableOpacity>
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 2,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                    testID="checkout-close-button"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 20,
+                                            "width": 20,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -1674,12 +1764,11 @@ exports[`Checkout displays sdkError when present 1`] = `
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "height": 56,
+                                  "paddingLeft": 8,
+                                  "paddingRight": 8,
                                 },
                                 false,
-                                {
-                                  "paddingHorizontal": 16,
-                                  "paddingVertical": 0,
-                                },
+                                undefined,
                               ]
                             }
                             testID="header"
@@ -1707,39 +1796,85 @@ exports[`Checkout displays sdkError when present 1`] = `
                               <View
                                 onLayout={[Function]}
                               >
-                                <TouchableOpacity
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
+                                <View
                                   style={
-                                    {
-                                      "alignItems": "center",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
-                                    }
-                                  }
-                                  testID="checkout-close-button"
-                                >
-                                  <SvgMock
-                                    color="#121314"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Close"
-                                    style={
+                                    [
                                       {
-                                        "height": 24,
-                                        "width": 24,
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
+                                    ]
+                                  }
+                                >
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
                                       }
                                     }
-                                    width={24}
-                                  />
-                                </TouchableOpacity>
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 2,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                    testID="checkout-close-button"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 20,
+                                            "width": 20,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -2412,12 +2547,11 @@ exports[`Checkout displays sell WebView when url is present and no errors 1`] = 
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "height": 56,
+                                  "paddingLeft": 8,
+                                  "paddingRight": 8,
                                 },
                                 false,
-                                {
-                                  "paddingHorizontal": 16,
-                                  "paddingVertical": 0,
-                                },
+                                undefined,
                               ]
                             }
                             testID="header"
@@ -2445,39 +2579,85 @@ exports[`Checkout displays sell WebView when url is present and no errors 1`] = 
                               <View
                                 onLayout={[Function]}
                               >
-                                <TouchableOpacity
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
+                                <View
                                   style={
-                                    {
-                                      "alignItems": "center",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
-                                    }
-                                  }
-                                  testID="checkout-close-button"
-                                >
-                                  <SvgMock
-                                    color="#121314"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Close"
-                                    style={
+                                    [
                                       {
-                                        "height": 24,
-                                        "width": 24,
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
+                                    ]
+                                  }
+                                >
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
                                       }
                                     }
-                                    width={24}
-                                  />
-                                </TouchableOpacity>
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 2,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                    testID="checkout-close-button"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 20,
+                                            "width": 20,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -2954,12 +3134,11 @@ exports[`Checkout handles get order error gracefully 1`] = `
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "height": 56,
+                                  "paddingLeft": 8,
+                                  "paddingRight": 8,
                                 },
                                 false,
-                                {
-                                  "paddingHorizontal": 16,
-                                  "paddingVertical": 0,
-                                },
+                                undefined,
                               ]
                             }
                             testID="header"
@@ -2987,39 +3166,85 @@ exports[`Checkout handles get order error gracefully 1`] = `
                               <View
                                 onLayout={[Function]}
                               >
-                                <TouchableOpacity
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
+                                <View
                                   style={
-                                    {
-                                      "alignItems": "center",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
-                                    }
-                                  }
-                                  testID="checkout-close-button"
-                                >
-                                  <SvgMock
-                                    color="#121314"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Close"
-                                    style={
+                                    [
                                       {
-                                        "height": 24,
-                                        "width": 24,
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
+                                    ]
+                                  }
+                                >
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
                                       }
                                     }
-                                    width={24}
-                                  />
-                                </TouchableOpacity>
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 2,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                    testID="checkout-close-button"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 20,
+                                            "width": 20,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -3692,12 +3917,11 @@ exports[`Checkout handles undefined order gracefully 1`] = `
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "height": 56,
+                                  "paddingLeft": 8,
+                                  "paddingRight": 8,
                                 },
                                 false,
-                                {
-                                  "paddingHorizontal": 16,
-                                  "paddingVertical": 0,
-                                },
+                                undefined,
                               ]
                             }
                             testID="header"
@@ -3725,39 +3949,85 @@ exports[`Checkout handles undefined order gracefully 1`] = `
                               <View
                                 onLayout={[Function]}
                               >
-                                <TouchableOpacity
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
+                                <View
                                   style={
-                                    {
-                                      "alignItems": "center",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
-                                    }
-                                  }
-                                  testID="checkout-close-button"
-                                >
-                                  <SvgMock
-                                    color="#121314"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Close"
-                                    style={
+                                    [
                                       {
-                                        "height": 24,
-                                        "width": 24,
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
+                                    ]
+                                  }
+                                >
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
                                       }
                                     }
-                                    width={24}
-                                  />
-                                </TouchableOpacity>
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 2,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                    testID="checkout-close-button"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 20,
+                                            "width": 20,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -4430,12 +4700,11 @@ exports[`Checkout ignores irrelevant error on http error in WebView for callback
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "height": 56,
+                                  "paddingLeft": 8,
+                                  "paddingRight": 8,
                                 },
                                 false,
-                                {
-                                  "paddingHorizontal": 16,
-                                  "paddingVertical": 0,
-                                },
+                                undefined,
                               ]
                             }
                             testID="header"
@@ -4463,39 +4732,85 @@ exports[`Checkout ignores irrelevant error on http error in WebView for callback
                               <View
                                 onLayout={[Function]}
                               >
-                                <TouchableOpacity
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
+                                <View
                                   style={
-                                    {
-                                      "alignItems": "center",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
-                                    }
-                                  }
-                                  testID="checkout-close-button"
-                                >
-                                  <SvgMock
-                                    color="#121314"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Close"
-                                    style={
+                                    [
                                       {
-                                        "height": 24,
-                                        "width": 24,
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
+                                    ]
+                                  }
+                                >
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
                                       }
                                     }
-                                    width={24}
-                                  />
-                                </TouchableOpacity>
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 2,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                    testID="checkout-close-button"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 20,
+                                            "width": 20,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -4972,12 +5287,11 @@ exports[`Checkout sets and displays error on http error in WebView 1`] = `
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "height": 56,
+                                  "paddingLeft": 8,
+                                  "paddingRight": 8,
                                 },
                                 false,
-                                {
-                                  "paddingHorizontal": 16,
-                                  "paddingVertical": 0,
-                                },
+                                undefined,
                               ]
                             }
                             testID="header"
@@ -5005,39 +5319,85 @@ exports[`Checkout sets and displays error on http error in WebView 1`] = `
                               <View
                                 onLayout={[Function]}
                               >
-                                <TouchableOpacity
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
+                                <View
                                   style={
-                                    {
-                                      "alignItems": "center",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
-                                    }
-                                  }
-                                  testID="checkout-close-button"
-                                >
-                                  <SvgMock
-                                    color="#121314"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Close"
-                                    style={
+                                    [
                                       {
-                                        "height": 24,
-                                        "width": 24,
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
+                                    ]
+                                  }
+                                >
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
                                       }
                                     }
-                                    width={24}
-                                  />
-                                </TouchableOpacity>
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 2,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                    testID="checkout-close-button"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 20,
+                                            "width": 20,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -5710,12 +6070,11 @@ exports[`Checkout sets and displays error on http error in WebView for callback 
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "height": 56,
+                                  "paddingLeft": 8,
+                                  "paddingRight": 8,
                                 },
                                 false,
-                                {
-                                  "paddingHorizontal": 16,
-                                  "paddingVertical": 0,
-                                },
+                                undefined,
                               ]
                             }
                             testID="header"
@@ -5743,39 +6102,85 @@ exports[`Checkout sets and displays error on http error in WebView for callback 
                               <View
                                 onLayout={[Function]}
                               >
-                                <TouchableOpacity
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
+                                <View
                                   style={
-                                    {
-                                      "alignItems": "center",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
-                                    }
-                                  }
-                                  testID="checkout-close-button"
-                                >
-                                  <SvgMock
-                                    color="#121314"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Close"
-                                    style={
+                                    [
                                       {
-                                        "height": 24,
-                                        "width": 24,
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
+                                    ]
+                                  }
+                                >
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
                                       }
                                     }
-                                    width={24}
-                                  />
-                                </TouchableOpacity>
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 2,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                    testID="checkout-close-button"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 20,
+                                            "width": 20,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -6448,12 +6853,11 @@ exports[`Checkout sets error when handling url navigation state change and selec
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "height": 56,
+                                  "paddingLeft": 8,
+                                  "paddingRight": 8,
                                 },
                                 false,
-                                {
-                                  "paddingHorizontal": 16,
-                                  "paddingVertical": 0,
-                                },
+                                undefined,
                               ]
                             }
                             testID="header"
@@ -6481,39 +6885,85 @@ exports[`Checkout sets error when handling url navigation state change and selec
                               <View
                                 onLayout={[Function]}
                               >
-                                <TouchableOpacity
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
+                                <View
                                   style={
-                                    {
-                                      "alignItems": "center",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
-                                    }
-                                  }
-                                  testID="checkout-close-button"
-                                >
-                                  <SvgMock
-                                    color="#121314"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Close"
-                                    style={
+                                    [
                                       {
-                                        "height": 24,
-                                        "width": 24,
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
+                                    ]
+                                  }
+                                >
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
                                       }
                                     }
-                                    width={24}
-                                  />
-                                </TouchableOpacity>
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 2,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                    testID="checkout-close-button"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 20,
+                                            "width": 20,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
+                                </View>
                               </View>
                             </View>
                           </View>
