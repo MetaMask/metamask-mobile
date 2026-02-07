@@ -59,8 +59,7 @@ import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { EVENT_LOCATIONS as EARN_EVENT_LOCATIONS } from '../../../Earn/constants/events/earnEvents';
 import { useStablecoinLendingRedirect } from '../../../Earn/hooks/useStablecoinLendingRedirect';
-import BigNumber from 'bignumber.js';
-import { MINIMUM_BALANCE_FOR_EARN_CTA } from '../../../Earn/constants/token';
+import { useMusdCtaVisibility } from '../../../Earn/hooks/useMusdCtaVisibility';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -104,7 +103,6 @@ interface TokenListItemProps {
   assetKey: FlashListAssetKey;
   showRemoveMenu: (arg: TokenI) => void;
   setShowScamWarningModal: (arg: boolean) => void;
-  shouldShowTokenListItemCta: (asset?: TokenI) => boolean;
   privacyMode: boolean;
   showPercentageChange?: boolean;
   isFullView?: boolean;
@@ -115,7 +113,6 @@ export const TokenListItem = React.memo(
     assetKey,
     showRemoveMenu,
     setShowScamWarningModal,
-    shouldShowTokenListItemCta,
     privacyMode,
     showPercentageChange = true,
     isFullView = false,
@@ -147,6 +144,7 @@ export const TokenListItem = React.memo(
 
     const earnToken = getEarnToken(asset as TokenI);
 
+    const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
     const { initiateConversion, hasSeenConversionEducationScreen } =
       useMusdConversion();
 
@@ -300,10 +298,7 @@ export const TokenListItem = React.memo(
 
       if (
         isStablecoinLendingEnabled &&
-        earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING &&
-        new BigNumber(earnToken?.balanceFiatNumber || '0').gte(
-          MINIMUM_BALANCE_FOR_EARN_CTA,
-        )
+        earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING
       ) {
         return {
           text: `${strings('stake.earn')}`,
@@ -335,11 +330,11 @@ export const TokenListItem = React.memo(
     }, [
       hasClaimableBonus,
       shouldShowConvertToMusdCta,
-      earnToken,
       isStablecoinLendingEnabled,
-      asset,
+      earnToken?.experience?.type,
       hasPercentageChange,
       pricePercentChange1d,
+      asset,
       onItemPress,
       handleConvertToMUSD,
       handleLendingRedirect,
