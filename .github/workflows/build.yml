@@ -205,7 +205,9 @@ jobs:
         if: matrix.platform == 'ios'
         uses: actions/cache@v4
         with:
-          path: ios/build
+          path: |
+            ~/Library/Developer/Xcode/DerivedData
+            ios/build
           key: ${{ runner.os }}-ios-derived-${{ inputs.build_name }}-${{ hashFiles('ios/Podfile.lock') }}-${{ hashFiles('ios/**/*.{h,m,mm,swift}') }}
           restore-keys: |
             ${{ runner.os }}-ios-derived-${{ inputs.build_name }}-${{ hashFiles('ios/Podfile.lock') }}-
