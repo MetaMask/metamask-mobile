@@ -40,9 +40,7 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
    * Phase 2: Import a second SRP which automatically creates a third account, then manually create a fourth account on the second SRP with a custom name.
    * Phase 3: Login to a fresh app instance and verify all accounts from both SRPs persist and are visible after importing the second SRP.
    */
-  // TODO: Re-enable once account syncing timeout flakiness is resolved
-  // eslint-disable-next-line jest/no-disabled-tests
-  it.skip('adds accounts across multiple SRPs and syncs them', async () => {
+  it('adds accounts across multiple SRPs and syncs them', async () => {
     await withIdentityFixtures(
       {
         userStorageFeatures: [
@@ -76,6 +74,16 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
           prepareEventsEmittedCounter,
           waitUntilSyncedAccountsNumberEquals,
         } = arrangeTestUtils(userStorageMockttpController);
+
+        // Wait for the initial full sync to complete before adding accounts.
+        // The AccountTreeController's enqueueSingleGroupSync silently drops
+        // sync requests when isAccountTreeSyncingInProgress is true or
+        // hasAccountTreeSyncingSyncedAtLeastOnce is false, so we must ensure
+        // the first full sync has finished pushing the initial group.
+        await waitUntilSyncedAccountsNumberEquals(1);
+
+        // Set up event counter AFTER the initial sync completes so it only
+        // tracks events from subsequent account mutations.
         const { waitUntilEventsEmittedNumberEquals } =
           prepareEventsEmittedCounter(
             UserStorageMockttpControllerEvents.PUT_SINGLE,
