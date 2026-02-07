@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import {
@@ -64,6 +64,7 @@ describe('NotificationsDetails', () => {
     navigation = {
       navigate: jest.fn(),
       setOptions: jest.fn(),
+      goBack: jest.fn(),
     } as unknown as NavigationProp<ParamListBase>;
 
     jest
@@ -85,6 +86,16 @@ describe('NotificationsDetails', () => {
     const { getByTestId } = renderDetailsPage(MOCK_NOTIFICATIONS[1]);
 
     expect(getByTestId('notification-details')).toBeOnTheScreen();
+  });
+
+  it('navigates back when back button is pressed', () => {
+    const { getAllByTestId } = renderDetailsPage(MOCK_NOTIFICATIONS[1]);
+
+    const buttons = getAllByTestId('button-icon');
+    const backButton = buttons[0];
+    fireEvent.press(backButton);
+
+    expect(navigation.goBack).toHaveBeenCalled();
   });
 
   const nullTests = [

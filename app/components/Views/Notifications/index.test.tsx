@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  renderHook,
-  act,
-  render,
-  fireEvent,
-} from '@testing-library/react-native';
+import { renderHook, act, fireEvent } from '@testing-library/react-native';
 import { processNotification } from '@metamask/notification-services-controller/notification-services';
 import {
   createMockNotificationEthSent,
@@ -25,9 +20,8 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 // eslint-disable-next-line import/no-namespace
 import * as UseNotificationsModule from '../../../util/notifications/hooks/useNotifications';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
-import Routes from '../../../constants/navigation/Routes';
-import { strings } from '../../../../locales/i18n';
 import { NotificationsViewSelectorsIDs } from './NotificationsView.testIds';
+import Routes from '../../../constants/navigation/Routes';
 
 const navigationMock = {
   navigate: jest.fn(),
@@ -60,44 +54,40 @@ const mockInitialState: DeepPartial<RootState> = {
   },
 };
 
-describe('NotificationsView - header', () => {
+describe('NotificationsView - navigationOptions', () => {
+  it('has navigationOptions with headerShown set to false', () => {
+    expect(NotificationsView.navigationOptions).toEqual({ headerShown: false });
+  });
+});
+
+describe('NotificationsView - header interactions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  const arrange = () => {
-    const headerPieces = NotificationsView.navigationOptions({
-      navigation: navigationMock,
-    });
-    return headerPieces;
-  };
+  it('navigates to wallet home when back button is pressed', () => {
+    const { getAllByTestId } = renderWithProvider(
+      <NotificationsView navigation={navigationMock} />,
+      { state: mockInitialState },
+    );
 
-  it('finds header title', async () => {
-    const headerPieces = arrange();
-    const headerTitleTestUtils = render(headerPieces.headerTitle());
+    const buttons = getAllByTestId('button-icon');
+    const backButton = buttons[0];
+    fireEvent.press(backButton);
 
-    expect(
-      headerTitleTestUtils.getByText(
-        strings('app_settings.notifications_title'),
-      ),
-    ).toBeTruthy();
-  });
-
-  it('finds back button and invoke navigation when pressed', async () => {
-    const headerPieces = arrange();
-    const closeButtonTestUtils = render(headerPieces.headerLeft());
-
-    expect(closeButtonTestUtils.root).toBeTruthy();
-    await act(() => fireEvent(closeButtonTestUtils.root, 'onPress'));
     expect(navigationMock.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
   });
 
-  it('finds settings button and invoke navigation when pressed', async () => {
-    const headerPieces = arrange();
-    const cogWheelTestUtils = render(headerPieces.headerRight());
+  it('navigates to notifications settings when settings button is pressed', () => {
+    const { getAllByTestId } = renderWithProvider(
+      <NotificationsView navigation={navigationMock} />,
+      { state: mockInitialState },
+    );
 
-    expect(cogWheelTestUtils.root).toBeTruthy();
-    await act(() => fireEvent(cogWheelTestUtils.root, 'onPress'));
+    const buttons = getAllByTestId('button-icon');
+    const settingsButton = buttons[buttons.length - 1];
+    fireEvent.press(settingsButton);
+
     expect(navigationMock.navigate).toHaveBeenCalledWith(
       Routes.SETTINGS.NOTIFICATIONS,
     );

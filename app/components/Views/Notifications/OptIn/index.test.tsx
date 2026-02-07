@@ -97,6 +97,10 @@ describe('OptIn', () => {
     jest.resetAllMocks();
   });
 
+  it('has navigationOptions with headerShown set to false', () => {
+    expect(OptIn.navigationOptions).toEqual({ headerShown: false });
+  });
+
   it('should render with the expected fields', () => {
     arrangeMockOptInHooks();
     const { getByText } = renderWithProvider(<OptIn />);

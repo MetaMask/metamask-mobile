@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonVariants,
+  ButtonSize,
 } from '../../../../../component-library/components/Buttons/Button';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { getBlockExplorerByChainId } from '../../../../../util/notifications';
@@ -61,6 +62,7 @@ export default function BlockExplorerFooter(props: BlockExplorerFooterProps) {
   return (
     <Button
       variant={ButtonVariants.Primary}
+      size={ButtonSize.Lg}
       label={strings('asset_details.options.view_on_block')}
       style={styles.ctaBtn}
       endIconName={IconName.Arrow2UpRight}

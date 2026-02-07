@@ -4,6 +4,10 @@ import { Theme } from '../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
+    wrapper: {
+      flex: 1,
+      backgroundColor: params.theme.colors.background.default,
+    },
     container: {
       paddingLeft: 16,
       paddingRight: 16,
@@ -75,11 +79,5 @@ const styleSheet = (params: { theme: Theme }) =>
       marginBottom: 48,
     },
   });
-
-export const styles = StyleSheet.create({
-  headerLeft: {
-    marginHorizontal: 16,
-  },
-});
 
 export default styleSheet;
