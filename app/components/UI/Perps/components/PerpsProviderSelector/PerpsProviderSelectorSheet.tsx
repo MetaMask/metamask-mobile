@@ -61,8 +61,8 @@ const PerpsProviderSelectorSheet: React.FC<PerpsProviderSelectorSheetProps> = ({
   }, [isVisible]);
 
   const handleProviderPress = useCallback(
-    (providerId: PerpsProviderType) => {
-      onProviderSelect(providerId);
+    async (providerId: PerpsProviderType) => {
+      await onProviderSelect(providerId);
       // Just close the sheet - the BottomSheet's onClose prop handles navigation
       bottomSheetRef.current?.onCloseBottomSheet();
     },

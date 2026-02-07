@@ -65,12 +65,12 @@ export class MYXClientService {
 
   constructor(
     deps: PerpsPlatformDependencies,
-    options: { isTestnet?: boolean } = {},
+    config: Partial<MYXClientConfig> = {},
   ) {
     this.deps = deps;
 
     // Stage 1: Force testnet - mainnet credentials not available
-    this.isTestnet = options.isTestnet ?? true;
+    this.isTestnet = config.isTestnet ?? true;
     this.chainId = getMYXChainId(this.isTestnet ? 'testnet' : 'mainnet');
 
     // Initialize MyxClient
@@ -267,7 +267,10 @@ export class MYXClientService {
 
     try {
       const tickers = await this.getTickers(this.pollingSymbols);
-      this.pollingCallback(tickers);
+      // Re-check: polling may have been stopped during the await
+      if (this.pollingCallback) {
+        this.pollingCallback(tickers);
+      }
     } catch (error) {
       const err = ensureError(error);
       this.deps.debugLogger.log('[MYXClientService] Price poll failed', {

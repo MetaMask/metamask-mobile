@@ -2345,8 +2345,9 @@ export class PerpsController extends BaseController<
         timestamp: new Date().toISOString(),
       });
 
-      // Disconnect current provider
-      await this.disconnect();
+      // Provider disconnect is handled by performInitialization() during
+      // reinitialization. The disconnect() method skips provider teardown
+      // when isReinitializing is true to prevent double-disconnect.
 
       // Update state with new provider
       this.update((state) => {

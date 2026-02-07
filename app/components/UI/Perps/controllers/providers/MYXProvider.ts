@@ -246,6 +246,8 @@ export class MYXProvider implements PerpsProvider {
   // Market Data Operations (Stage 1 - Fully Implemented)
   // ============================================================================
 
+  // TODO: Align error handling - read operations should return empty defaults
+  // instead of throwing, matching HyperLiquid pattern
   async getMarkets(_params?: GetMarketsParams): Promise<MarketInfo[]> {
     try {
       // Delegate cache freshness to MYXClientService
@@ -316,12 +318,14 @@ export class MYXProvider implements PerpsProvider {
     }
 
     if (poolIds.length === 0) {
-      this.deps.debugLogger.log('[MYXProvider] No matching pools for symbols', {
-        symbols,
-      });
+      this.deps.debugLogger.log(
+        '[MYXProvider] subscribeToPrices: No pool IDs found. Ensure initialize() has been called.',
+        { symbols },
+      );
+      setTimeout(() => params.callback([]), 0);
       return () => {
         /* noop */
-      }; // No-op unsubscribe
+      };
     }
 
     // Store callback for internal use
@@ -512,6 +516,8 @@ export class MYXProvider implements PerpsProvider {
     };
   }
 
+  // TODO: Refactor to provider-agnostic ledger update type when MYX ledger support is added.
+  // Currently returns RawHyperLiquidLedgerUpdate[] to satisfy the PerpsProvider interface.
   async getUserNonFundingLedgerUpdates(_params?: {
     accountId?: string;
     startTime?: number;
@@ -633,13 +639,27 @@ export class MYXProvider implements PerpsProvider {
     };
   }
 
-  subscribeToOICaps(_params: SubscribeOICapsParams): () => void {
+  subscribeToOICaps(params: SubscribeOICapsParams): () => void {
+    // Stage 1: No OI caps - immediately call back with empty array
+    // (matches HyperLiquid pattern which calls callback with cached data)
+    setTimeout(() => params.callback([]), 0);
     return () => {
       /* noop */
     };
   }
 
-  subscribeToCandles(_params: SubscribeCandlesParams): () => void {
+  subscribeToCandles(params: SubscribeCandlesParams): () => void {
+    // Stage 1: No candle data - immediately call back with empty candles
+    // (matches HyperLiquid pattern which calls callback after initial fetch)
+    setTimeout(
+      () =>
+        params.callback({
+          symbol: params.symbol,
+          interval: params.interval,
+          candles: [],
+        }),
+      0,
+    );
     return () => {
       /* noop */
     };

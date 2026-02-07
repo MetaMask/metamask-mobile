@@ -22,12 +22,12 @@ const PerpsSelectProviderView: React.FC = () => {
 
   const handleProviderSelect = useCallback(
     async (providerId: PerpsProviderType) => {
-      try {
-        await switchProvider(providerId);
-      } catch (error) {
-        Logger.error(error as Error, {
-          message: `Failed to switch perps provider to ${providerId}`,
-        });
+      const result = await switchProvider(providerId);
+      if (!result.success) {
+        Logger.error(
+          new Error(`Failed to switch perps provider to ${providerId}`),
+          { message: result.error },
+        );
       }
       // Navigation is handled by handleClose when bottom sheet closes
     },
