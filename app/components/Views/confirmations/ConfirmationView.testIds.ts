@@ -47,6 +47,7 @@ export const ConfirmationRowComponentIDs = {
   TOTAL: 'total',
   TRANSACTION_FEE: 'transaction-fee',
   NETWORK_FEE: 'network-fee',
+  AMOUNT: 'amount',
 } as const;
 
 export const ConfirmationFooterSelectorIDs = {
