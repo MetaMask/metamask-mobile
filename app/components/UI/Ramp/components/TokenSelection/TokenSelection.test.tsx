@@ -9,6 +9,7 @@ import { MOCK_CRYPTOCURRENCIES } from '../../Deposit/testUtils';
 import { UnifiedRampRoutingType } from '../../../../../reducers/fiatOrders/types';
 import { useRampTokens } from '../../hooks/useRampTokens';
 import { useRampsController } from '../../hooks/useRampsController';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
@@ -240,7 +241,7 @@ describe('TokenSelection Component', () => {
     });
   });
 
-  it('calls goToBuy without closing modal when token is pressed (V2 flow)', () => {
+  it('navigates directly to AMOUNT_INPUT without closing modal when token is pressed (V2 flow)', () => {
     mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
     const { getByTestId } = renderWithProvider(TokenSelection);
 
@@ -248,7 +249,8 @@ describe('TokenSelection Component', () => {
     fireEvent.press(firstToken);
 
     expect(mockParentGoBack).not.toHaveBeenCalled();
-    expect(mockGoToBuy).toHaveBeenCalledWith({
+    expect(mockGoToBuy).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.AMOUNT_INPUT, {
       assetId: mockTokens[0].assetId,
     });
   });
