@@ -1,0 +1,543 @@
+---
+description: Guidelines for structuring pages and navigation in MetaMask Mobile. Covers SafeAreaView usage, header patterns, content layout, footer CTA buttons, bottom sheets vs pages, and visual navigation cues.
+globs:
+  - "app/components/Views/**"
+  - "app/components/UI/**/Views/**"
+  - "**/routes/**"
+alwaysApply: false
+---
+
+# Page and Navigation Guidelines
+
+This guide covers the standard patterns for building pages and implementing navigation in MetaMask Mobile.
+
+## Page Structure
+
+Every page should follow this consistent structure from top to bottom:
+
+```
+┌─────────────────────────────────────────┐
+│ SafeAreaView (when applicable)          │
+│ ┌─────────────────────────────────────┐ │
+│ │ Header (inline)                     │ │
+│ ├─────────────────────────────────────┤ │
+│ │                                     │ │
+│ │ Content (flex: 1)                   │ │
+│ │ └─ ScrollView (if needed)           │ │
+│ │                                     │ │
+│ ├─────────────────────────────────────┤ │
+│ │ Footer (CTA buttons)                │ │
+│ └─────────────────────────────────────┘ │
+└─────────────────────────────────────────┘
+```
+
+### 1. SafeAreaView
+
+**ALWAYS** wrap pages in `SafeAreaView` from `react-native-safe-area-context`, especially when:
+- The page is a top-level screen in the navigation stack
+- Content could extend under the device notch or home indicator
+- The page uses a custom header or no header at all
+
+```tsx
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+// Typical usage - exclude top edge when using React Navigation header
+<SafeAreaView style={{ flex: 1 }} edges={['bottom', 'left', 'right']}>
+  {/* Page content */}
+</SafeAreaView>
+
+// Full safe area when using custom header or no header
+<SafeAreaView style={{ flex: 1 }}>
+  {/* Page content with custom header */}
+</SafeAreaView>
+```
+
+### 2. Headers
+
+**Use inline headers** - this is critical for smooth navigation transitions.
+
+Available header components (in order of preference):
+1. **React Navigation header options** - Use `getHeaderCenterNavbarOptions` for standard navigation headers
+2. **`HeaderBase`** - Base header from component-library for custom implementations
+3. **`HeaderWithTitleLeftScrollable`** - For pages with collapsing/expanding header behavior
+
+```tsx
+// Using navigation options (preferred for standard pages)
+import { getHeaderCenterNavbarOptions } from '../../../component-library/components-temp/HeaderCenter';
+
+const MyScreen = () => {
+  const navigation = useNavigation();
+  
+  useLayoutEffect(() => {
+    navigation.setOptions(
+      getHeaderCenterNavbarOptions({
+        title: 'Screen Title',
+        onBack: () => navigation.goBack(),
+      }),
+    );
+  }, [navigation]);
+  
+  return <Box twClassName="flex-1">{/* Content */}</Box>;
+};
+
+// Using HeaderBase directly (for custom headers)
+import HeaderBase from '../../../component-library/components/HeaderBase';
+
+<HeaderBase
+  startButtonIconProps={{
+    iconName: IconName.ArrowLeft,
+    onPress: () => navigation.goBack(),
+  }}
+>
+  <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
+    Title
+  </Text>
+</HeaderBase>
+```
+
+### 3. Content Area
+
+The content area should:
+- **Use `flex: 1`** to fill the remaining screen space between header and footer
+- **Decide on ScrollView usage** based on content length and type
+
+```tsx
+// Non-scrollable content (fixed UI)
+<Box twClassName="flex-1 px-4">
+  {/* Fixed height content */}
+</Box>
+
+// Scrollable content
+<ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
+  {/* Long or variable content */}
+</ScrollView>
+
+// Using design system Box
+<Box twClassName="flex-1">
+  <ScrollView contentContainerStyle={{ padding: 16 }}>
+    {/* Content */}
+  </ScrollView>
+</Box>
+```
+
+### 4. Footer (CTA Buttons)
+
+For screens with Call-to-Action buttons at the bottom, follow these exact margin specifications:
+
+| Property | iOS | Android |
+|----------|-----|---------|
+| Bottom margin | 16px | 0px |
+| Horizontal margin | 16px | 16px |
+| Top margin (to content) | 24px | 24px |
+
+**Note**: Top margin excludes any help text that appears directly above the button.
+
+```tsx
+import { Platform } from 'react-native';
+import { Box } from '@metamask/design-system-react-native';
+
+// Footer with CTA button
+<Box
+  twClassName="px-4"
+  style={{
+    marginTop: 24,
+    marginBottom: Platform.OS === 'ios' ? 16 : 0,
+  }}
+>
+  {/* Optional help text - no additional margin */}
+  <Text variant={TextVariant.BodySm} twClassName="mb-2 text-center">
+    Help text here
+  </Text>
+  
+  <Button
+    variant={ButtonVariants.Primary}
+    label="Continue"
+    size={ButtonSize.Lg}
+    onPress={handlePress}
+  />
+</Box>
+
+// Using BottomSheetFooter for consistent styling
+import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter';
+
+<Box
+  style={{
+    paddingHorizontal: 16,
+    paddingTop: 24,
+    paddingBottom: Platform.OS === 'android' ? 0 : 16,
+  }}
+>
+  <BottomSheetFooter
+    buttonsAlignment={ButtonsAlignment.Horizontal}
+    buttonPropsArray={[
+      { variant: ButtonVariants.Secondary, label: 'Cancel', onPress: onCancel },
+      { variant: ButtonVariants.Primary, label: 'Confirm', onPress: onConfirm },
+    ]}
+  />
+</Box>
+```
+
+## Navigation Patterns
+
+### Pages vs Bottom Sheets - Overview
+
+| Aspect | Page | Bottom Sheet |
+|--------|------|--------------|
+| **Transition** | Slides from right | Slides from bottom |
+| **Header button** | Back arrow (←) | Close button (×) |
+| **Dismiss gesture** | Swipe right to go back | Swipe down to close |
+| **Use for** | Focused work, subflows, destinations | Quick actions, contextual choices |
+
+### Decision Tree: Page or Bottom Sheet?
+
+Use this decision tree to determine the correct navigation pattern:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ 1. Does the user need to commit focus or do sustained work?     │
+│    ├─ YES → Use PAGE                                            │
+│    └─ NO (quick/glanceable) → Continue to 2                     │
+├─────────────────────────────────────────────────────────────────┤
+│ 2. Is this action anchored to the current context?              │
+│    ├─ YES → Continue to 3                                       │
+│    └─ NO (it's a destination on its own) → Use PAGE             │
+├─────────────────────────────────────────────────────────────────┤
+│ 3. Is dismissal expected or helpful?                            │
+│    ├─ YES (dismissal is a feature) → Continue to 4              │
+│    └─ NO (dismissal would feel risky/scary) → Use PAGE          │
+│       Note: If losing progress would feel scary → PAGE          │
+├─────────────────────────────────────────────────────────────────┤
+│ 4. Is the task short and low-entropy?                           │
+│    ├─ YES → Use BOTTOM SHEET                                    │
+│    └─ NO (it grows or branches) → Use PAGE                      │
+├─────────────────────────────────────────────────────────────────┤
+│ 5. Does the user need to navigate elsewhere from here?          │
+│    ├─ YES → Use PAGE                                            │
+│    └─ NO → Continue to 6                                        │
+├─────────────────────────────────────────────────────────────────┤
+│ 6. Is this primarily a choice, confirmation, or tweak?          │
+│    ├─ YES → Use BOTTOM SHEET                                    │
+│    └─ NO (exploratory or educational) → Use PAGE                │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Quick Reference Examples
+
+**Use Bottom Sheet for:**
+- Network picker / token picker (quick selection)
+- Simple confirmations ("Are you sure?")
+- Settings tweaks (toggle, single choice)
+- Contextual actions (share, copy address)
+- Filter/sort options
+
+**Use Page for:**
+- Multi-step flows (onboarding, send transaction)
+- Forms with multiple inputs
+- Educational content or tutorials
+- Destinations with their own navigation
+- Any flow where losing progress would be frustrating
+
+### Page Requirements
+
+Pages have three key requirements:
+
+1. **Transition from right** - Animate in from the right side
+2. **Back arrow in header** - Use `IconName.ArrowLeft` for the back button
+3. **Gesture swipe back** - User can swipe right to return to previous page
+
+```tsx
+// Standard page configuration
+<Stack.Screen
+  name={Routes.MY_SCREEN}
+  component={MyScreen}
+  options={{
+    animationEnabled: true,
+    gestureEnabled: true,  // Enable swipe-back gesture
+  }}
+/>
+
+// Explicit slide-from-right for custom scenarios
+<Stack.Screen
+  name={Routes.MY_SCREEN}
+  component={MyScreen}
+  options={{
+    animationEnabled: true,
+    gestureEnabled: true,
+    cardStyleInterpolator: ({ current, layouts }) => ({
+      cardStyle: {
+        transform: [
+          {
+            translateX: current.progress.interpolate({
+              inputRange: [0, 1],
+              outputRange: [layouts.screen.width, 0],
+            }),
+          },
+        ],
+      },
+    }),
+  }}
+/>
+```
+
+**Header with back arrow:**
+```tsx
+// Using navigation options
+navigation.setOptions(
+  getHeaderCenterNavbarOptions({
+    title: 'Screen Title',
+    onBack: () => navigation.goBack(),  // Back arrow automatically added
+  }),
+);
+
+// Using HeaderBase directly
+<HeaderBase
+  startButtonIconProps={{
+    iconName: IconName.ArrowLeft,  // Back arrow
+    onPress: () => navigation.goBack(),
+  }}
+>
+  <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
+    Title
+  </Text>
+</HeaderBase>
+```
+
+> **Important**: Many existing pages were built without gesture support. Enabling gestures may require updates to ensure child components don't capture/override the page-level gesture. This should be done carefully per page.
+
+### Bottom Sheet Requirements
+
+Bottom sheets have three key requirements:
+
+1. **Transition from bottom** - Animate up from the bottom of the screen
+2. **Close button in header** - Use `IconName.Close` (×) for the close button
+3. **Gesture swipe down** - User can swipe down to dismiss
+
+```tsx
+// Bottom sheet with proper header
+import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
+
+<BottomSheet ref={bottomSheetRef}>
+  <BottomSheetHeader onClose={() => bottomSheetRef.current?.close()}>
+    <Text variant={TextVariant.HeadingMd}>Sheet Title</Text>
+  </BottomSheetHeader>
+  {/* Sheet content */}
+</BottomSheet>
+
+// Or using SheetHeader
+import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
+
+<SheetHeader onBack={() => closeSheet()} title="Sheet Title" />
+```
+
+### Visual Cue: Caret/Arrow Direction
+
+The direction of the caret/arrow icon on a trigger element should indicate the type of navigation:
+
+| Caret Direction | Opens | Example |
+|-----------------|-------|---------|
+| **Right** (`IconName.ArrowRight`) | A new page | List items that navigate to details |
+| **Down** (`IconName.ArrowDown`) | A bottom sheet | Dropdowns, pickers, contextual menus |
+
+```tsx
+// Trigger that opens a PAGE (caret points RIGHT)
+<ListItem
+  title="Manage Settings"
+  rightIcon={IconName.ArrowRight}  // Points RIGHT → opens page
+  onPress={() => navigation.navigate(Routes.SETTINGS)}
+/>
+
+// Trigger that opens a BOTTOM SHEET (caret points DOWN)
+<Pressable onPress={openNetworkPicker}>
+  <Box flexDirection={BoxFlexDirection.Row} alignItems={BoxAlignItems.Center}>
+    <Text>Select Network</Text>
+    <Icon name={IconName.ArrowDown} size={IconSize.Sm} />  // Points DOWN → opens sheet
+  </Box>
+</Pressable>
+
+// Dropdown trigger pattern
+<ButtonBase onPress={openBottomSheet}>
+  <Box flexDirection={BoxFlexDirection.Row} alignItems={BoxAlignItems.Center} gap={1}>
+    <Text>{selectedValue}</Text>
+    <Icon name={IconName.ArrowDown} size={IconSize.Sm} />
+  </Box>
+</ButtonBase>
+```
+
+## Complete Page Example
+
+```tsx
+import React, { useLayoutEffect } from 'react';
+import { ScrollView, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import {
+  Box,
+  Text,
+  TextVariant,
+  Button,
+  ButtonVariants,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
+import { getHeaderCenterNavbarOptions } from '../../../component-library/components-temp/HeaderCenter';
+
+const MyPage = () => {
+  const navigation = useNavigation();
+
+  // 1. Configure inline header with back arrow
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      ...getHeaderCenterNavbarOptions({
+        title: 'My Page',
+        onBack: () => navigation.goBack(),  // Adds back arrow automatically
+      }),
+      gestureEnabled: true,  // Enable swipe-back gesture
+    });
+  }, [navigation]);
+
+  return (
+    // 2. SafeAreaView wrapper (excluding top since header handles it)
+    <SafeAreaView style={{ flex: 1 }} edges={['bottom', 'left', 'right']}>
+      {/* 3. Content area with flex: 1 */}
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 0 }}
+      >
+        <Text variant={TextVariant.HeadingMd}>Welcome</Text>
+        <Text variant={TextVariant.BodyMd} twClassName="mt-2">
+          This is the main content area of the page.
+        </Text>
+        {/* More content... */}
+      </ScrollView>
+
+      {/* 4. Footer with CTA button */}
+      <Box
+        twClassName="px-4"
+        style={{
+          marginTop: 24,
+          marginBottom: Platform.OS === 'ios' ? 16 : 0,
+        }}
+      >
+        <Text
+          variant={TextVariant.BodySm}
+          twClassName="mb-2 text-center text-muted"
+        >
+          By continuing, you agree to the terms
+        </Text>
+        <Button
+          variant={ButtonVariants.Primary}
+          label="Continue"
+          size={ButtonSize.Lg}
+          onPress={() => navigation.navigate(Routes.NEXT_SCREEN)}
+        />
+      </Box>
+    </SafeAreaView>
+  );
+};
+
+export default MyPage;
+```
+
+## Complete Bottom Sheet Example
+
+```tsx
+import React, { useRef } from 'react';
+import {
+  Box,
+  Text,
+  TextVariant,
+  Button,
+  ButtonVariants,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
+
+interface NetworkPickerSheetProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSelect: (networkId: string) => void;
+}
+
+const NetworkPickerSheet = ({ isOpen, onClose, onSelect }: NetworkPickerSheetProps) => {
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
+
+  const handleClose = () => {
+    bottomSheetRef.current?.close();
+    onClose();
+  };
+
+  return (
+    <BottomSheet ref={bottomSheetRef} isOpen={isOpen} onClose={onClose}>
+      {/* Header with close button (×) */}
+      <BottomSheetHeader onClose={handleClose}>
+        <Text variant={TextVariant.HeadingMd}>Select Network</Text>
+      </BottomSheetHeader>
+
+      {/* Quick selection content - no subflows */}
+      <Box twClassName="px-4 pb-4">
+        {networks.map((network) => (
+          <Pressable
+            key={network.id}
+            onPress={() => {
+              onSelect(network.id);
+              handleClose();
+            }}
+          >
+            <Text>{network.name}</Text>
+          </Pressable>
+        ))}
+      </Box>
+    </BottomSheet>
+  );
+};
+
+export default NetworkPickerSheet;
+```
+
+## Quick Reference
+
+### Page Structure Checklist
+- [ ] SafeAreaView wraps the page (with appropriate edges)
+- [ ] Header is inline (using navigation options or HeaderBase)
+- [ ] Header has back arrow (`IconName.ArrowLeft`)
+- [ ] Content area uses `flex: 1`
+- [ ] ScrollView added only when content may exceed screen height
+- [ ] Footer CTA has correct margins (bottom: 16 iOS/0 Android, horizontal: 16, top: 24)
+- [ ] Gesture swipe-back is enabled (`gestureEnabled: true`)
+- [ ] Child components don't block swipe gesture
+
+### Bottom Sheet Checklist
+- [ ] Header has close button (`IconName.Close`)
+- [ ] Swipe-down gesture dismisses the sheet
+- [ ] No subflows or navigation to other screens
+- [ ] Task is quick and low-entropy
+
+### Navigation Decision Tree (Quick Version)
+1. Sustained work or focus needed? → **Page**
+2. Is it a standalone destination? → **Page**
+3. Would dismissal feel risky? → **Page**
+4. Does it grow or branch? → **Page**
+5. Navigate elsewhere from here? → **Page**
+6. Choice, confirmation, or tweak? → **Bottom Sheet**
+7. Exploratory or educational? → **Page**
+
+### Visual Cue Summary
+| Trigger Opens | Caret Direction | Icon |
+|---------------|-----------------|------|
+| Page | Right → | `IconName.ArrowRight` |
+| Bottom Sheet | Down ↓ | `IconName.ArrowDown` |
+
+## References
+
+- [React Navigation Stack](https://reactnavigation.org/docs/stack-navigator)
+- [SafeAreaView](https://github.com/th3rdwave/react-native-safe-area-context)
+- [HeaderBase Component](../../app/component-library/components/HeaderBase)
+- [BottomSheetFooter Component](../../app/component-library/components/BottomSheets/BottomSheetFooter)
+- [UI Development Guidelines](.cursor/rules/ui-development-guidelines.mdc)
+
+@app/component-library/components/HeaderBase
+@app/component-library/components/BottomSheets/BottomSheetFooter
+@app/component-library/components-temp/HeaderCenter
