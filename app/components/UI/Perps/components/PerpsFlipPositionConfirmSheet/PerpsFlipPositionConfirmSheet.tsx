@@ -36,7 +36,7 @@ import {
   formatPerpsFiat,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
-import { getPerpsDisplaySymbol } from '@metamask/perps-controller/utils/marketUtils';
+import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import PerpsFeesDisplay from '../PerpsFeesDisplay';
 import RewardsAnimations, {
   RewardAnimationState,

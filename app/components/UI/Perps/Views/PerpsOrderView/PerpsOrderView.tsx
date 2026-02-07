@@ -84,23 +84,22 @@ import PerpsSlider from '../../components/PerpsSlider';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '@metamask/perps-controller/constants/eventNames';
-import {
   DECIMAL_PRECISION_CONFIG,
   ORDER_SLIPPAGE_CONFIG,
   PERPS_CONSTANTS,
-} from '@metamask/perps-controller/constants/perpsConfig';
+  getPerpsDisplaySymbol,
+  calculateMarginRequired,
+  calculatePositionSize,
+  type InputMethod,
+  type OrderParams,
+  type OrderType,
+  type PerpsNavigationParamList,
+  type Position,
+} from '@metamask/perps-controller';
 import {
   PerpsOrderProvider,
   usePerpsOrderContext,
 } from '../../contexts/PerpsOrderContext';
-import type {
-  InputMethod,
-  OrderParams,
-  OrderType,
-  PerpsNavigationParamList,
-  Position,
-} from '@metamask/perps-controller/types';
 import {
   useHasExistingPosition,
   useMinimumOrderAmount,
@@ -136,11 +135,6 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import { getPerpsDisplaySymbol } from '@metamask/perps-controller/utils/marketUtils';
-import {
-  calculateMarginRequired,
-  calculatePositionSize,
-} from '@metamask/perps-controller/utils/orderCalculations';
 import { willFlipPosition } from '../../utils/orderUtils';
 import {
   calculateRoEForPrice,

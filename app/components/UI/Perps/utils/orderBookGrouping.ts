@@ -1,4 +1,4 @@
-import type { OrderBookLevel } from '@metamask/perps-controller/types';
+import { type OrderBookLevel } from '@metamask/perps-controller';
 
 /**
  * Maximum API levels to request from Hyperliquid L2Book API.

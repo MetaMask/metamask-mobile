@@ -1,6 +1,6 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
 import { usePerpsAssetMetadata } from './usePerpsAssetsMetadata';
-import { HYPERLIQUID_ASSET_ICONS_BASE_URL } from '@metamask/perps-controller/constants/hyperLiquidConfig';
+import { HYPERLIQUID_ASSET_ICONS_BASE_URL } from '@metamask/perps-controller';
 
 // Mock fetch
 const mockFetch = jest.fn();

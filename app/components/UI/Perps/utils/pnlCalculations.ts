@@ -2,7 +2,7 @@
  * P&L calculation utilities for Perps trading
  */
 
-import type { Position } from '@metamask/perps-controller/types';
+import { type Position } from '@metamask/perps-controller';
 
 export interface PnLCalculationParams {
   entryPrice: number;

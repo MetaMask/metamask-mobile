@@ -13,7 +13,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
-import { PERPS_CONSTANTS } from '@metamask/perps-controller/constants/perpsConfig';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { usePerpsConnection } from '../../hooks/usePerpsConnection';
 import { useSelector } from 'react-redux';
 import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';

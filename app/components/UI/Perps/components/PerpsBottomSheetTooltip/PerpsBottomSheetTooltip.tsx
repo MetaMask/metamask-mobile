@@ -25,7 +25,7 @@ import { PerpsBottomSheetTooltipSelectorsIDs } from '../../Perps.testIds';
 import {
   PERPS_EVENT_VALUE,
   PERPS_EVENT_PROPERTY,
-} from '@metamask/perps-controller/constants/eventNames';
+} from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 

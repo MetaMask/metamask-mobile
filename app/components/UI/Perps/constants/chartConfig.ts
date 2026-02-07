@@ -8,10 +8,7 @@
  * This file contains only UI-specific exports (Colors, Theme dependencies).
  */
 import type { Theme } from '@metamask/design-tokens';
-import {
-  ChartInterval,
-  TimeDuration,
-} from '@metamask/perps-controller/constants/chartConfig';
+import { ChartInterval, TimeDuration } from '@metamask/perps-controller';
 
 type Colors = Theme['colors'];
 

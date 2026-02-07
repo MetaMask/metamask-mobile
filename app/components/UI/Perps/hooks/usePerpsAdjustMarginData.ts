@@ -9,8 +9,10 @@ import {
   calculateMaxRemovableMargin,
   estimateLiquidationPrice,
 } from '../utils/marginUtils';
-import { MARGIN_ADJUSTMENT_CONFIG } from '@metamask/perps-controller/constants/perpsConfig';
-import type { Position } from '@metamask/perps-controller/types';
+import {
+  MARGIN_ADJUSTMENT_CONFIG,
+  type Position,
+} from '@metamask/perps-controller';
 
 export interface UsePerpsAdjustMarginDataParams {
   /** Symbol from route params to identify the position */

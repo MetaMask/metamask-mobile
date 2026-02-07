@@ -11,7 +11,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../../../reducers';
 import Routes from '../../../../../constants/navigation/Routes';
-import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants/eventNames';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();

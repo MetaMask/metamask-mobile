@@ -23,7 +23,7 @@ import {
   countSignificantFigures,
   hasExceededSignificantFigures,
   roundToSignificantFigures,
-} from '@metamask/perps-controller/utils/significantFigures';
+} from '@metamask/perps-controller';
 import { FUNDING_RATE_CONFIG } from '../constants/perpsConfig';
 
 // Mock the formatWithThreshold utility

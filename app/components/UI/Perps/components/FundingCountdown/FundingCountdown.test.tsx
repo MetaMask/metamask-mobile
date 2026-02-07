@@ -1,9 +1,9 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import FundingCountdown from './FundingCountdown';
-import { calculateFundingCountdown } from '@metamask/perps-controller/utils/marketUtils';
+import { calculateFundingCountdown } from '@metamask/perps-controller';
 
-jest.mock('@metamask/perps-controller/utils/marketUtils', () => ({
+jest.mock('@metamask/perps-controller', () => ({
   calculateFundingCountdown: jest.fn(),
 }));
 

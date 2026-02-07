@@ -6,7 +6,7 @@ import {
   formatAccountToCaipAccountId,
   isCaipAccountId,
   handleRewardsError,
-} from '@metamask/perps-controller/utils/rewardsUtils';
+} from '@metamask/perps-controller';
 import { toCaipAccountId, parseCaipChainId } from '@metamask/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';

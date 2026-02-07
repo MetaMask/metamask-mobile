@@ -1,9 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { TRADING_DEFAULTS } from '@metamask/perps-controller/constants/hyperLiquidConfig';
-import { OrderType } from '@metamask/perps-controller/types';
-import type { OrderFormState } from '@metamask/perps-controller/types/perps-types';
-import { getMaxAllowedAmount } from '@metamask/perps-controller/utils/orderCalculations';
+import {
+  TRADING_DEFAULTS,
+  OrderType,
+  getMaxAllowedAmount,
+  selectTradeConfiguration,
+  selectPendingTradeConfiguration,
+  type OrderFormState,
+} from '@metamask/perps-controller';
 import {
   usePerpsLiveAccount,
   usePerpsLivePositions,
@@ -11,10 +15,6 @@ import {
 } from './stream';
 import { usePerpsMarketData } from './usePerpsMarketData';
 import { usePerpsNetwork } from './usePerpsNetwork';
-import {
-  selectTradeConfiguration,
-  selectPendingTradeConfiguration,
-} from '@metamask/perps-controller/selectors';
 import { usePerpsSelector } from './usePerpsSelector';
 
 interface UsePerpsOrderFormParams {

@@ -1,4 +1,4 @@
-import type { PerpsMarketData } from '@metamask/perps-controller/types';
+import { type PerpsMarketData } from '@metamask/perps-controller';
 
 export interface PerpsOrderBookViewProps {
   testID?: string;

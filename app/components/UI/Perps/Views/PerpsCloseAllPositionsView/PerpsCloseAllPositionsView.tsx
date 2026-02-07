@@ -38,8 +38,8 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '@metamask/perps-controller/constants/eventNames';
-import type { ClosePositionsResult } from '@metamask/perps-controller/types';
+  type ClosePositionsResult,
+} from '@metamask/perps-controller';
 
 interface PerpsCloseAllPositionsViewProps {
   sheetRef?: React.RefObject<BottomSheetRef>;

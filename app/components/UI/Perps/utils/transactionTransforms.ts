@@ -5,7 +5,8 @@ import {
   Order,
   OrderFill,
   UserHistoryItem,
-} from '@metamask/perps-controller/types';
+  getPerpsDisplaySymbol,
+} from '@metamask/perps-controller';
 import {
   FillType,
   PerpsOrderTransactionStatus,
@@ -13,7 +14,6 @@ import {
   PerpsTransaction,
 } from '../types/transactionHistory';
 import { formatOrderLabel } from './orderUtils';
-import { getPerpsDisplaySymbol } from '@metamask/perps-controller/utils/marketUtils';
 
 /**
  * Determines the close direction category for aggregation purposes.

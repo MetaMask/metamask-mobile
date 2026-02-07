@@ -36,10 +36,10 @@ export type {
 } from './usePerpsLiveOrderBook';
 
 // Re-export types from controllers
-export type {
-  PriceUpdate,
-  Order,
-  Position,
-  OrderFill,
-  AccountState,
-} from '@metamask/perps-controller/types';
+export {
+  type PriceUpdate,
+  type Order,
+  type Position,
+  type OrderFill,
+  type AccountState,
+} from '@metamask/perps-controller';

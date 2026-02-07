@@ -1,4 +1,4 @@
-import { wait } from '@metamask/perps-controller/utils/wait';
+import { wait } from '@metamask/perps-controller';
 
 describe('wait', () => {
   beforeEach(() => {

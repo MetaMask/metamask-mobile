@@ -3,8 +3,9 @@ import Engine from '../../../../core/Engine';
 import {
   CandlePeriod,
   TimeDuration,
-} from '@metamask/perps-controller/constants/chartConfig';
-import type { PriceUpdate } from '@metamask/perps-controller/types';
+  calculate24hHighLow,
+  type PriceUpdate,
+} from '@metamask/perps-controller';
 import {
   formatFundingRate,
   formatLargeNumber,
@@ -12,7 +13,6 @@ import {
   LARGE_NUMBER_RANGES_DETAILED,
   PRICE_RANGES_UNIVERSAL,
 } from '../utils/formatUtils';
-import { calculate24hHighLow } from '@metamask/perps-controller/utils/marketUtils';
 import { usePerpsLiveCandles } from './stream/usePerpsLiveCandles';
 
 interface MarketStats {

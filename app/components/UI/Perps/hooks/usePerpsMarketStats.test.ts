@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { CandlePeriod } from '@metamask/perps-controller/constants/chartConfig';
+import { CandlePeriod } from '@metamask/perps-controller';
 import { usePerpsMarketStats } from './usePerpsMarketStats';
 
 // Mock Engine

@@ -3,10 +3,12 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 // formatPrice import removed - using raw values for input state
 import { strings } from '../../../../../locales/i18n';
 import { regex } from '../../../../util/regex';
-import { DECIMAL_PRECISION_CONFIG } from '@metamask/perps-controller/constants/perpsConfig';
-import type { Position } from '@metamask/perps-controller/types';
+import {
+  DECIMAL_PRECISION_CONFIG,
+  calculatePositionSize,
+  type Position,
+} from '@metamask/perps-controller';
 import { formatPerpsFiat, PRICE_RANGES_UNIVERSAL } from '../utils/formatUtils';
-import { calculatePositionSize } from '@metamask/perps-controller/utils/orderCalculations';
 import { calculateExpectedPnL } from '../utils/pnlCalculations';
 import {
   calculatePriceForRoE,

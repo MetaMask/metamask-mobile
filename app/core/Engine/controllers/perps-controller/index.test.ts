@@ -6,8 +6,8 @@ import {
   PerpsControllerMessenger,
   PerpsControllerState,
   InitializationState,
+  MARKET_SORTING_CONFIG,
 } from '@metamask/perps-controller';
-import { MARKET_SORTING_CONFIG } from '@metamask/perps-controller/constants/perpsConfig';
 import { perpsControllerInit } from '.';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 

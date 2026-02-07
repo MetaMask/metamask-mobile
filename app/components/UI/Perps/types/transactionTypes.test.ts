@@ -4,7 +4,7 @@ import {
   TransactionRecord,
   isTransactionRecord,
   isLastTransactionResult,
-} from '@metamask/perps-controller/types/transactionTypes';
+} from '@metamask/perps-controller';
 
 describe('Transaction Types', () => {
   describe('BaseTransactionResult', () => {

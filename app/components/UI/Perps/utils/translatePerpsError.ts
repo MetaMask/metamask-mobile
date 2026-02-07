@@ -2,8 +2,8 @@ import { strings } from '../../../../../locales/i18n';
 import {
   PERPS_ERROR_CODES,
   type PerpsErrorCode,
-} from '@metamask/perps-controller/perpsErrorCodes';
-import type { PerpsDebugLogger } from '@metamask/perps-controller/types';
+  type PerpsDebugLogger,
+} from '@metamask/perps-controller';
 
 /**
  * Optional debug logger for error handling functions.

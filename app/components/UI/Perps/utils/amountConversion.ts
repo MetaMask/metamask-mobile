@@ -1,8 +1,7 @@
 import { formatPerpsFiat } from '../utils/formatUtils';
 import BN from 'bnjs4';
 import { ensureError } from '../../../../util/errorUtils';
-import { PERPS_CONSTANTS } from '@metamask/perps-controller/constants/perpsConfig';
-import type { PerpsLogger } from '@metamask/perps-controller/types';
+import { PERPS_CONSTANTS, type PerpsLogger } from '@metamask/perps-controller';
 
 /**
  * Optional logger for amount conversion functions.

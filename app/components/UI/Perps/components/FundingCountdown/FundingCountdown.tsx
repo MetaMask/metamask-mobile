@@ -4,7 +4,7 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import { calculateFundingCountdown } from '@metamask/perps-controller/utils/marketUtils';
+import { calculateFundingCountdown } from '@metamask/perps-controller';
 
 interface FundingCountdownProps {
   variant?: TextVariant;

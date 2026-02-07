@@ -1,4 +1,4 @@
-import type { PerpsMarketData } from '@metamask/perps-controller/types';
+import { type PerpsMarketData } from '@metamask/perps-controller';
 
 /**
  * Generic market data interface that can be implemented by any protocol

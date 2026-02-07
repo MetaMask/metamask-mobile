@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { selectIsMetaMaskPushNotificationsEnabled } from '../../../../selectors/notifications';
-import { selectHasPlacedFirstOrder } from '@metamask/perps-controller/selectors';
+import { selectHasPlacedFirstOrder } from '@metamask/perps-controller';
 import { usePerpsSelector } from './usePerpsSelector';
 
 export interface UsePerpsNotificationTooltipResult {

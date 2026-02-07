@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react-hooks';
 import { usePerpsMarketData } from './usePerpsMarketData';
 import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts, { type PerpsToastOptionsConfig } from './usePerpsToasts';
-import type { MarketInfo } from '@metamask/perps-controller/types';
+import { type MarketInfo } from '@metamask/perps-controller';
 
 // Mock the usePerpsTrading hook
 jest.mock('./usePerpsTrading');

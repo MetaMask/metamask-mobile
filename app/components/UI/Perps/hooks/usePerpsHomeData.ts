@@ -6,21 +6,19 @@ import {
   usePerpsLiveFills,
 } from './stream';
 import { usePerpsMarkets } from './usePerpsMarkets';
-import type {
-  Position,
-  Order,
-  PerpsMarketData,
-  OrderFill,
-} from '@metamask/perps-controller/types';
+import {
+  MARKET_SORTING_CONFIG,
+  sortMarkets,
+  type Position,
+  type Order,
+  type PerpsMarketData,
+  type OrderFill,
+  type SortField,
+} from '@metamask/perps-controller';
 import type { PerpsTransaction } from '../types/transactionHistory';
 import { transformFillsToTransactions } from '../utils/transactionTransforms';
 import Engine from '../../../../core/Engine';
-import { MARKET_SORTING_CONFIG } from '@metamask/perps-controller/constants/perpsConfig';
 import { HOME_SCREEN_CONFIG } from '../constants/perpsConfig';
-import {
-  sortMarkets,
-  type SortField,
-} from '@metamask/perps-controller/utils/sortMarkets';
 import {
   selectPerpsWatchlistMarkets,
   selectPerpsMarketFilterPreferences,

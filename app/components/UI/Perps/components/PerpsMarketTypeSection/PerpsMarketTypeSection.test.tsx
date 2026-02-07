@@ -3,7 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import PerpsMarketTypeSection from './PerpsMarketTypeSection';
 import Routes from '../../../../../constants/navigation/Routes';
-import type { PerpsMarketData } from '@metamask/perps-controller/types';
+import { type PerpsMarketData } from '@metamask/perps-controller';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({

@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { VALIDATION_THRESHOLDS } from '@metamask/perps-controller/constants/perpsConfig';
-import type {
-  ClosePositionParams,
-  OrderType,
-} from '@metamask/perps-controller/types';
+import {
+  VALIDATION_THRESHOLDS,
+  type ClosePositionParams,
+  type OrderType,
+} from '@metamask/perps-controller';
 import { usePerpsTrading } from './usePerpsTrading';
 
 interface UsePerpsClosePositionValidationParams {

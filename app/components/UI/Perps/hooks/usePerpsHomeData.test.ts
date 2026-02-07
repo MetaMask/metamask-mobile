@@ -1,16 +1,14 @@
 import { act, renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
-import type {
-  Order,
-  OrderFill,
-  PerpsMarketData,
-  Position,
-} from '@metamask/perps-controller/types';
-import type { PerpsTransaction } from '../types/transactionHistory';
 import {
   sortMarkets,
+  type Order,
+  type OrderFill,
+  type PerpsMarketData,
+  type Position,
   type SortField,
-} from '@metamask/perps-controller/utils/sortMarkets';
+} from '@metamask/perps-controller';
+import type { PerpsTransaction } from '../types/transactionHistory';
 import { FillType } from '../components/PerpsTransactionItem/PerpsTransactionItem';
 
 // Type for markets with volumeNumber (returned by usePerpsMarkets)
@@ -33,7 +31,10 @@ import {
 // Mock dependencies
 jest.mock('./stream');
 jest.mock('./usePerpsMarkets');
-jest.mock('@metamask/perps-controller/utils/sortMarkets');
+jest.mock('@metamask/perps-controller', () => ({
+  ...jest.requireActual('@metamask/perps-controller'),
+  sortMarkets: jest.fn(),
+}));
 jest.mock('react-redux');
 jest.mock('../selectors/perpsController');
 jest.mock('./usePerpsConnection', () => ({

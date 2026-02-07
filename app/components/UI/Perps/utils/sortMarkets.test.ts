@@ -1,16 +1,14 @@
-import type { PerpsMarketData } from '@metamask/perps-controller/types';
 import {
   parseVolume,
   sortMarkets,
   type SortDirection,
   type SortField,
-} from '@metamask/perps-controller/utils/sortMarkets';
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 
 // Mock dependencies
-jest.mock('@metamask/perps-controller/utils/sortMarkets', () => {
-  const actual = jest.requireActual(
-    '@metamask/perps-controller/utils/sortMarkets',
-  );
+jest.mock('@metamask/perps-controller', () => {
+  const actual = jest.requireActual('@metamask/perps-controller');
   return {
     ...actual,
     parseVolume: jest.fn(),

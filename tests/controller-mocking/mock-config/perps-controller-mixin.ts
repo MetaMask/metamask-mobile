@@ -7,20 +7,20 @@
  */
 
 import { PerpsE2EMockService } from '../mock-responses/perps/perps-e2e-mocks';
-import type {
-  OrderParams,
-  OrderResult,
-  AccountState,
-  Position,
-  Order,
-  OrderFill,
-  PriceUpdate,
-  ClosePositionParams,
-  LiquidationPriceParams,
-  Funding,
-  UpdatePositionTPSLParams,
-} from '@metamask/perps-controller/types';
-import type { PerpsControllerState } from '@metamask/perps-controller/PerpsController';
+import {
+  type OrderParams,
+  type OrderResult,
+  type AccountState,
+  type Position,
+  type Order,
+  type OrderFill,
+  type PriceUpdate,
+  type ClosePositionParams,
+  type LiquidationPriceParams,
+  type Funding,
+  type UpdatePositionTPSLParams,
+  type PerpsControllerState,
+} from '@metamask/perps-controller';
 
 // Interface for controller with update method access
 interface ControllerWithUpdate {

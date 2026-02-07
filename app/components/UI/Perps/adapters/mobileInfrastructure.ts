@@ -15,16 +15,16 @@ import { setMeasurement } from '@sentry/react-native';
 import performance from 'react-native-performance';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import Engine from '../../../../core/Engine';
-import type {
-  PerpsPlatformDependencies,
-  PerpsMetrics,
-  PerpsTraceName,
-  PerpsTraceValue,
-  PerpsAnalyticsEvent,
-  PerpsAnalyticsProperties,
-  VersionGatedFeatureFlag,
-  MarketDataFormatters,
-} from '@metamask/perps-controller/types';
+import {
+  type PerpsPlatformDependencies,
+  type PerpsMetrics,
+  type PerpsTraceName,
+  type PerpsTraceValue,
+  type PerpsAnalyticsEvent,
+  type PerpsAnalyticsProperties,
+  type VersionGatedFeatureFlag,
+  type MarketDataFormatters,
+} from '@metamask/perps-controller';
 import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
 import {
   formatVolume,

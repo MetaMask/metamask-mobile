@@ -4,7 +4,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { usePerpsBalanceTokenFilter } from './usePerpsBalanceTokenFilter';
 import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { useIsPerpsBalanceSelected } from './useIsPerpsBalanceSelected';
-import { PERPS_CONSTANTS } from '@metamask/perps-controller/constants/perpsConfig';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { PERPS_BALANCE_PLACEHOLDER_ADDRESS } from '../constants/perpsConfig';
 import type { AssetType } from '../../../Views/confirmations/types/token';
 

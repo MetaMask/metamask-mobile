@@ -31,8 +31,8 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '@metamask/perps-controller/constants/eventNames';
-import type { CancelOrdersResult } from '@metamask/perps-controller/types';
+  type CancelOrdersResult,
+} from '@metamask/perps-controller';
 
 interface PerpsCancelAllOrdersViewProps {
   sheetRef?: React.RefObject<BottomSheetRef>;

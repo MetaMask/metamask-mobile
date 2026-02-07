@@ -1,11 +1,14 @@
 import { renderHook, act } from '@testing-library/react-native';
-import type { PerpsMarketData } from '@metamask/perps-controller/types';
-import { MARKET_SORTING_CONFIG } from '@metamask/perps-controller/constants/perpsConfig';
+import {
+  MARKET_SORTING_CONFIG,
+  sortMarkets,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 import { usePerpsSorting } from './usePerpsSorting';
-import { sortMarkets } from '@metamask/perps-controller/utils/sortMarkets';
 
 // Mock the sortMarkets utility
-jest.mock('@metamask/perps-controller/utils/sortMarkets', () => ({
+jest.mock('@metamask/perps-controller', () => ({
+  ...jest.requireActual('@metamask/perps-controller'),
   sortMarkets: jest.fn((params) => params.markets),
 }));
 

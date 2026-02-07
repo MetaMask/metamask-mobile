@@ -7,12 +7,10 @@ import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '@metamask/perps-controller/constants/eventNames';
-import type {
-  OrderParams,
-  OrderResult,
-  Position,
-} from '@metamask/perps-controller/types';
+  type OrderParams,
+  type OrderResult,
+  type Position,
+} from '@metamask/perps-controller';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { usePerpsMeasurement } from './usePerpsMeasurement';
 import { usePerpsTrading } from './usePerpsTrading';

@@ -111,7 +111,7 @@ import { useTheme } from '../../../util/theme';
 import { useAccountGroupName } from '../../hooks/multichainAccounts/useAccountGroupName';
 import { useAccountName } from '../../hooks/useAccountName';
 import usePrevious from '../../hooks/usePrevious';
-import { PERFORMANCE_CONFIG } from '@metamask/perps-controller/constants/perpsConfig';
+import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
 import ErrorBoundary from '../ErrorBoundary';
 
 import { Token } from '@metamask/assets-controllers';

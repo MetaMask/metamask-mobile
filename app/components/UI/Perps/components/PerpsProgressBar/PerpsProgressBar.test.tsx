@@ -16,7 +16,7 @@ import {
   PROGRESS_BAR_COMPLETION_DELAY_MS,
   WITHDRAWAL_PROGRESS_STAGES,
   ZERO_BALANCE,
-} from '@metamask/perps-controller/constants/hyperLiquidConfig';
+} from '@metamask/perps-controller';
 import { HYPERLIQUID_WITHDRAWAL_PROGRESS_INTERVAL_MS } from '../../constants/perpsUIConfig';
 
 // Mock dependencies

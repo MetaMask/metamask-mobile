@@ -8,13 +8,13 @@ import { selectPerpsEligibility } from '../selectors/perpsController';
 import { usePerpsTrading } from './usePerpsTrading';
 import { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
-import type { PerpsNavigationParamList } from '@metamask/perps-controller/types';
-import { ensureError } from '../../../../util/errorUtils';
-import { PERPS_CONSTANTS } from '@metamask/perps-controller/constants/perpsConfig';
 import {
+  PERPS_CONSTANTS,
   PERPS_EVENT_VALUE,
   PERPS_EVENT_PROPERTY,
-} from '@metamask/perps-controller/constants/eventNames';
+  type PerpsNavigationParamList,
+} from '@metamask/perps-controller';
+import { ensureError } from '../../../../util/errorUtils';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 

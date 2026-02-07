@@ -4,7 +4,7 @@
 
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useWebSocketHealthToast } from './useWebSocketHealthToast';
-import { WebSocketConnectionState } from '@metamask/perps-controller/types';
+import { WebSocketConnectionState } from '@metamask/perps-controller';
 
 // Mock usePerpsConnection
 const mockUsePerpsConnection = jest.fn();

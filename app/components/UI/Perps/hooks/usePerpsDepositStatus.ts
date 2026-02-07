@@ -11,7 +11,7 @@ import type { RootState } from '../../../../reducers';
 import {
   ARBITRUM_MAINNET_CHAIN_ID_HEX,
   USDC_ARBITRUM_MAINNET_ADDRESS,
-} from '@metamask/perps-controller/constants/hyperLiquidConfig';
+} from '@metamask/perps-controller';
 import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsTrading } from './usePerpsTrading';

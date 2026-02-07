@@ -1,7 +1,6 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
-import type { Order } from '@metamask/perps-controller/types';
-import { isTPSLOrder } from '@metamask/perps-controller/constants/orderTypes';
+import { isTPSLOrder, type Order } from '@metamask/perps-controller';
 
 // Stable empty array reference to prevent re-renders
 const EMPTY_ORDERS: Order[] = [];

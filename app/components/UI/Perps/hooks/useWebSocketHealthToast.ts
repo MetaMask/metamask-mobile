@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { usePerpsConnection } from './usePerpsConnection';
 import Engine from '../../../../core/Engine';
-import { WebSocketConnectionState } from '@metamask/perps-controller/types';
+import { WebSocketConnectionState } from '@metamask/perps-controller';
 import { useWebSocketHealthToastContext } from '../components/PerpsWebSocketHealthToast';
 
 /** Delay before automatically attempting to reconnect after disconnection */

@@ -23,7 +23,7 @@ import {
   ZERO_BALANCE,
   WITHDRAWAL_PROGRESS_STAGES,
   PROGRESS_BAR_COMPLETION_DELAY_MS,
-} from '@metamask/perps-controller/constants/hyperLiquidConfig';
+} from '@metamask/perps-controller';
 import { HYPERLIQUID_WITHDRAWAL_PROGRESS_INTERVAL_MS } from '../../constants/perpsUIConfig';
 
 interface PerpsProgressBarProps {

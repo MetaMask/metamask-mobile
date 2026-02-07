@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
-import { PERPS_EVENT_PROPERTY } from '@metamask/perps-controller/constants/eventNames';
+import { PERPS_EVENT_PROPERTY } from '@metamask/perps-controller';
 
 // Mock useMetrics hook
 const mockTrackEvent = jest.fn();

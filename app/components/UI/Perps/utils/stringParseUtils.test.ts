@@ -1,7 +1,7 @@
 import {
   parseCommaSeparatedString,
   stripQuotes,
-} from '@metamask/perps-controller/utils/stringParseUtils';
+} from '@metamask/perps-controller';
 
 describe('parseCommaSeparatedString', () => {
   it('parses comma-separated values', () => {

@@ -24,7 +24,10 @@ import {
 } from '../../utils/formatUtils';
 import { PerpsMarketBalanceActionsSelectorsIDs } from '../../Perps.testIds';
 import { BigNumber } from 'bignumber.js';
-import { INITIAL_AMOUNT_UI_PROGRESS } from '@metamask/perps-controller/constants/hyperLiquidConfig';
+import {
+  INITIAL_AMOUNT_UI_PROGRESS,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
 import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
 import { usePerpsTransactionState } from '../../hooks/usePerpsTransactionState';
 import { convertPerpsAmountToUSD } from '../../utils/amountConversion';
@@ -33,7 +36,6 @@ import PerpsEmptyBalance from '../PerpsEmptyBalance';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { PerpsProgressBar } from '../PerpsProgressBar';
 import { selectWithdrawalRequestsBySelectedAccount } from '../../../../../selectors/perps';
-import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants/eventNames';
 interface PerpsMarketBalanceActionsProps {
   showActionButtons?: boolean;
 }

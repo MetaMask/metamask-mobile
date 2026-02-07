@@ -1,11 +1,11 @@
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import {
-  PerpsMarketData,
-  MarketTypeFilter,
-} from '@metamask/perps-controller/types';
+  PERFORMANCE_CONFIG,
+  type PerpsMarketData,
+  type MarketTypeFilter,
+} from '@metamask/perps-controller';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
-import { PERFORMANCE_CONFIG } from '@metamask/perps-controller/constants/perpsConfig';
 import ReduxService from '../../../redux';
 import { selectIsFirstTimePerpsUser } from '../../../../components/UI/Perps/selectors/perpsController';
 

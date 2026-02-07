@@ -13,61 +13,62 @@ import {
   validateOrderParams,
   validateCoinExists,
   getMaxOrderValue,
-} from '@metamask/perps-controller/utils/hyperLiquidValidation';
+  PERPS_ERROR_CODES,
+  type GetSupportedPathsParams,
+} from '@metamask/perps-controller';
 import type { CaipAssetId, Hex } from '@metamask/utils';
-import type { GetSupportedPathsParams } from '@metamask/perps-controller/types';
-import { PERPS_ERROR_CODES } from '@metamask/perps-controller/perpsErrorCodes';
 
 jest.mock('@metamask/utils', () => ({
   isValidHexAddress: (address: string) => /^0x[0-9a-fA-F]{40}$/.test(address),
 }));
 
-jest.mock('@metamask/perps-controller/constants/hyperLiquidConfig', () => ({
-  HYPERLIQUID_ASSET_CONFIGS: {
-    USDC: {
-      mainnet:
-        'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default' as CaipAssetId,
-      testnet:
-        'eip155:421614/erc20:0x1234567890123456789012345678901234567890/default' as CaipAssetId,
+jest.mock('@metamask/perps-controller', () => {
+  const actual = jest.requireActual('@metamask/perps-controller');
+  return {
+    ...actual,
+    HYPERLIQUID_ASSET_CONFIGS: {
+      USDC: {
+        mainnet:
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default' as CaipAssetId,
+        testnet:
+          'eip155:421614/erc20:0x1234567890123456789012345678901234567890/default' as CaipAssetId,
+      },
+      ETH: {
+        mainnet:
+          'eip155:42161/erc20:0x82af49447d8a07e3bd95bd0d56f35241523fbab1/default' as CaipAssetId,
+        testnet:
+          'eip155:421614/erc20:0x9876543210987654321098765432109876543210/default' as CaipAssetId,
+      },
     },
-    ETH: {
-      mainnet:
-        'eip155:42161/erc20:0x82af49447d8a07e3bd95bd0d56f35241523fbab1/default' as CaipAssetId,
-      testnet:
-        'eip155:421614/erc20:0x9876543210987654321098765432109876543210/default' as CaipAssetId,
+    getSupportedAssets: (isTestnet: boolean) => [
+      isTestnet
+        ? ('eip155:421614/erc20:0x1234567890123456789012345678901234567890/default' as CaipAssetId)
+        : ('eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default' as CaipAssetId),
+      isTestnet
+        ? ('eip155:421614/erc20:0x9876543210987654321098765432109876543210/default' as CaipAssetId)
+        : ('eip155:42161/erc20:0x82af49447d8a07e3bd95bd0d56f35241523fbab1/default' as CaipAssetId),
+    ],
+    TRADING_DEFAULTS: {
+      amount: {
+        mainnet: 5,
+        testnet: 11,
+      },
     },
-  },
-  getSupportedAssets: (isTestnet: boolean) => [
-    isTestnet
-      ? ('eip155:421614/erc20:0x1234567890123456789012345678901234567890/default' as CaipAssetId)
-      : ('eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default' as CaipAssetId),
-    isTestnet
-      ? ('eip155:421614/erc20:0x9876543210987654321098765432109876543210/default' as CaipAssetId)
-      : ('eip155:42161/erc20:0x82af49447d8a07e3bd95bd0d56f35241523fbab1/default' as CaipAssetId),
-  ],
-  TRADING_DEFAULTS: {
-    amount: {
-      mainnet: 5,
-      testnet: 11,
+    HYPERLIQUID_ORDER_LIMITS: {
+      MarketOrderLimits: {
+        HighLeverage: 15_000_000,
+        MediumHighLeverage: 5_000_000,
+        MediumLeverage: 2_000_000,
+        LowLeverage: 500_000,
+      },
+      LimitOrderMultiplier: 10,
     },
-  },
-}));
+  };
+});
 
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
     log: jest.fn(),
-  },
-}));
-
-jest.mock('@metamask/perps-controller/constants/perpsConfig', () => ({
-  HYPERLIQUID_ORDER_LIMITS: {
-    MarketOrderLimits: {
-      HighLeverage: 15_000_000,
-      MediumHighLeverage: 5_000_000,
-      MediumLeverage: 2_000_000,
-      LowLeverage: 500_000,
-    },
-    LimitOrderMultiplier: 10,
   },
 }));
 

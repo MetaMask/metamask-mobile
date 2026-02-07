@@ -15,7 +15,7 @@ import {
   usePerpsLivePositions,
 } from '../../hooks';
 import { usePerpsLiveAccount } from '../../hooks/stream';
-import type { Position } from '@metamask/perps-controller/types';
+import { type Position } from '@metamask/perps-controller';
 
 // Mock component types
 interface MockRefreshControlProps {

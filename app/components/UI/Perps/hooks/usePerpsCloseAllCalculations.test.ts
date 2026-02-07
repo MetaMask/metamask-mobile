@@ -2,10 +2,10 @@ import { renderHook, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { usePerpsCloseAllCalculations } from './usePerpsCloseAllCalculations';
 import Engine from '../../../../core/Engine';
-import type {
-  Position,
-  FeeCalculationResult,
-} from '@metamask/perps-controller/types';
+import {
+  type Position,
+  type FeeCalculationResult,
+} from '@metamask/perps-controller';
 import type { EstimatedPointsDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 /**

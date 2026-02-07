@@ -1,4 +1,4 @@
-import type { Position, Order } from '@metamask/perps-controller/types';
+import { type Position, type Order } from '@metamask/perps-controller';
 
 export interface PerpsCardProps {
   position?: Position;

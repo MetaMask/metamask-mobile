@@ -6,12 +6,12 @@
  *
  * This file contains mobile-only functions (badge types, icon URLs).
  */
-import type { PerpsMarketData } from '@metamask/perps-controller/types';
-import type { BadgeType } from '../components/PerpsBadge/PerpsBadge.types';
 import {
   HYPERLIQUID_ASSET_ICONS_BASE_URL,
   METAMASK_PERPS_ICONS_BASE_URL,
-} from '@metamask/perps-controller/constants/hyperLiquidConfig';
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
+import type { BadgeType } from '../components/PerpsBadge/PerpsBadge.types';
 
 /**
  * Determine badge type for a market based on its metadata

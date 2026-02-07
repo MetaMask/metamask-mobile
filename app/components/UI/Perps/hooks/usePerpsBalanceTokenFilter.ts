@@ -9,7 +9,7 @@ import { useTransactionMetadataRequest } from '../../../Views/confirmations/hook
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
 import perpsPayTokenIcon from 'images/perps-pay-token-icon.png';
-import { PERPS_CONSTANTS } from '@metamask/perps-controller/constants/perpsConfig';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import {
   PERPS_BALANCE_CHAIN_ID,
   PERPS_BALANCE_PLACEHOLDER_ADDRESS,

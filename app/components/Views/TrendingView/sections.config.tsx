@@ -8,7 +8,10 @@ import { strings } from '../../../../locales/i18n';
 import TrendingTokenRowItem from '../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import TrendingTokensSkeleton from '../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import PerpsMarketRowItem from '../../UI/Perps/components/PerpsMarketRowItem';
-import type { PerpsMarketData } from '@metamask/perps-controller/types';
+import {
+  filterMarketsByQuery,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 import PredictMarket from '../../UI/Predict/components/PredictMarket';
 import type { PredictMarket as PredictMarketType } from '../../UI/Predict/types';
 import type { PerpsNavigationParamList } from '../../UI/Perps/types/navigation';
@@ -29,7 +32,6 @@ import {
   PriceChangeOption,
 } from '../../UI/Trending/components/TrendingTokensBottomSheet';
 import type { TrendingFilterContext } from '../../UI/Trending/components/TrendingTokensList/TrendingTokensList';
-import { filterMarketsByQuery } from '@metamask/perps-controller/utils/marketUtils';
 import PredictMarketRowItem from '../../UI/Predict/components/PredictMarketRowItem';
 import SectionCard from './components/Sections/SectionTypes/SectionCard';
 import SectionCarrousel from './components/Sections/SectionTypes/SectionCarrousel';

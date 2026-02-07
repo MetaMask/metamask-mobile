@@ -15,9 +15,9 @@ import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '@metamask/perps-controller/constants/eventNames';
+  type OrderType,
+} from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import type { OrderType } from '@metamask/perps-controller/types';
 
 interface PerpsOrderTypeBottomSheetProps {
   isVisible?: boolean;

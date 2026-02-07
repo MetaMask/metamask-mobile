@@ -43,16 +43,17 @@ import NegativePnlCharacter1 from '../../../../../images/negative_pnl_character_
 import NegativePnlCharacter2 from '../../../../../images/negative_pnl_character_2_3x.png';
 import PositivePnlCharacter2 from '../../../../../images/positive_pnl_character_2_3x.png';
 import PositivePnlCharacter3 from '../../../../../images/positive_pnl_character_3_3x.png';
-import type { Position } from '@metamask/perps-controller/types';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+  getPerpsDisplaySymbol,
+  type Position,
+} from '@metamask/perps-controller';
 import { darkTheme } from '@metamask/design-tokens';
 import styleSheet from './PerpsHeroCardView.styles';
 import Logger from '../../../../../util/Logger';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import {
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
-} from '@metamask/perps-controller/constants/eventNames';
 import { buildReferralUrl } from '../../../Rewards/utils';
 import { usePerpsToasts } from '../../hooks';
 import { ShareOpenResult } from 'react-native-share/lib/typescript/types';
@@ -62,7 +63,6 @@ import {
 } from '../../Perps.testIds';
 import { useReferralDetails } from '../../../Rewards/hooks/useReferralDetails';
 import { useSeasonStatus } from '../../../Rewards/hooks/useSeasonStatus';
-import { getPerpsDisplaySymbol } from '@metamask/perps-controller/utils/marketUtils';
 import { ensureError } from '../../../../../util/errorUtils';
 
 // To add a new card, add the image to the array.

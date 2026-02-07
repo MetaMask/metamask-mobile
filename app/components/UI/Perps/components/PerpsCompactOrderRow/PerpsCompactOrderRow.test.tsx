@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsCompactOrderRow from './PerpsCompactOrderRow';
-import type { Order } from '@metamask/perps-controller/types';
+import { type Order } from '@metamask/perps-controller';
 
 // Mock dependencies
 jest.mock('../../../../../component-library/hooks', () => ({
@@ -29,7 +29,7 @@ jest.mock('../../utils/formatUtils', () => ({
   PRICE_RANGES_MINIMAL_VIEW: {},
 }));
 
-jest.mock('@metamask/perps-controller/utils/marketUtils', () => ({
+jest.mock('@metamask/perps-controller', () => ({
   getPerpsDisplaySymbol: jest.fn((symbol) => symbol),
 }));
 

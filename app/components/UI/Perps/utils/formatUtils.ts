@@ -7,7 +7,7 @@ import { formatWithThreshold } from '../../../../util/assets';
 import {
   PERPS_CONSTANTS,
   DECIMAL_PRECISION_CONFIG,
-} from '@metamask/perps-controller/constants/perpsConfig';
+} from '@metamask/perps-controller';
 import { FUNDING_RATE_CONFIG } from '../constants/perpsConfig';
 import {
   getIntlNumberFormatter,

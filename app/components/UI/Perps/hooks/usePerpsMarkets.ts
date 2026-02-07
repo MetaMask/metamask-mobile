@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { PERPS_CONSTANTS } from '@metamask/perps-controller/constants/perpsConfig';
-import type { PerpsMarketData } from '@metamask/perps-controller/types';
+import {
+  PERPS_CONSTANTS,
+  parseVolume,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
-import { parseVolume } from '@metamask/perps-controller/utils/sortMarkets';
 
 export type PerpsMarketDataWithVolumeNumber = PerpsMarketData & {
   volumeNumber: number;
@@ -56,7 +58,7 @@ export interface UsePerpsMarketsOptions {
 }
 
 // Re-export parseVolume for backward compatibility
-export { parseVolume } from '@metamask/perps-controller/utils/sortMarkets';
+export { parseVolume } from '@metamask/perps-controller';
 
 /**
  * Custom hook to fetch and manage Perps market data from the active provider

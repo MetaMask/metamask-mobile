@@ -1,7 +1,7 @@
 /**
  * Position calculation utilities for closing positions
  */
-import { CLOSE_POSITION_CONFIG } from '@metamask/perps-controller/constants/perpsConfig';
+import { CLOSE_POSITION_CONFIG } from '@metamask/perps-controller';
 
 interface CloseAmountFromPercentageParams {
   percentage: number;

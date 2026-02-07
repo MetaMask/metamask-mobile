@@ -1,5 +1,7 @@
-import type { PerpsMarketData } from '@metamask/perps-controller/types';
-import type { SortField } from '@metamask/perps-controller/utils/sortMarkets';
+import {
+  type PerpsMarketData,
+  type SortField,
+} from '@metamask/perps-controller';
 import type { StyleProp, ViewStyle } from 'react-native';
 
 /**

@@ -13,12 +13,17 @@ import React, {
   useState,
 } from 'react';
 import { Linking, RefreshControl, ScrollView, View } from 'react-native';
-import type {
-  Position,
-  PerpsMarketData,
-  PerpsNavigationParamList,
-  TPSLTrackingData,
-} from '@metamask/perps-controller/types';
+import {
+  CandlePeriod,
+  TimeDuration,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+  PERPS_CONSTANTS,
+  type Position,
+  type PerpsMarketData,
+  type PerpsNavigationParamList,
+  type TPSLTrackingData,
+} from '@metamask/perps-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -75,16 +80,7 @@ import TradingViewChart, {
   type OhlcData,
   type TradingViewChartRef,
 } from '../../components/TradingViewChart';
-import {
-  CandlePeriod,
-  TimeDuration,
-} from '@metamask/perps-controller/constants/chartConfig';
 import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
-import {
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
-} from '@metamask/perps-controller/constants/eventNames';
-import { PERPS_CONSTANTS } from '@metamask/perps-controller/constants/perpsConfig';
 import {
   usePerpsConnection,
   usePerpsNavigation,

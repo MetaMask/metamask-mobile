@@ -9,12 +9,12 @@ import {
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
-import type {
-  PriceUpdate,
-  PerpsMarketData,
-  Order,
-  AccountState,
-} from '@metamask/perps-controller/types';
+import {
+  type PriceUpdate,
+  type PerpsMarketData,
+  type Order,
+  type AccountState,
+} from '@metamask/perps-controller';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 
 jest.mock('../../../../core/Engine');

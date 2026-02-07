@@ -11,7 +11,7 @@ import {
   useWebSocketHealthToastContext,
   WebSocketHealthToastContext,
 } from './PerpsWebSocketHealthToast.context';
-import { WebSocketConnectionState } from '@metamask/perps-controller/types';
+import { WebSocketConnectionState } from '@metamask/perps-controller';
 
 describe('PerpsWebSocketHealthToast.context', () => {
   describe('WebSocketHealthToastProvider', () => {

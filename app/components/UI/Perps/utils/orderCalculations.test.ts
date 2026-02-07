@@ -3,8 +3,8 @@ import {
   calculateMarginRequired,
   getMaxAllowedAmount,
   buildOrdersArray,
-} from '@metamask/perps-controller/utils/orderCalculations';
-import { ORDER_SLIPPAGE_CONFIG } from '@metamask/perps-controller/constants/perpsConfig';
+  ORDER_SLIPPAGE_CONFIG,
+} from '@metamask/perps-controller';
 
 describe('orderCalculations', () => {
   describe('calculatePositionSize', () => {

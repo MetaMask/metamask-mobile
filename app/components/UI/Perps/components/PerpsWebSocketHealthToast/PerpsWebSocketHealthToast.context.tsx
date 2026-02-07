@@ -5,7 +5,7 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
-import { WebSocketConnectionState } from '@metamask/perps-controller/types';
+import { WebSocketConnectionState } from '@metamask/perps-controller';
 
 /** No-op function for context defaults */
 const noop = () => undefined;

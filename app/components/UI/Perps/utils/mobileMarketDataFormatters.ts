@@ -4,17 +4,15 @@
  * Wraps the portable transformMarketData with mobile formatter injection
  * so callers don't need to pass formatters explicitly.
  */
-import type {
-  PerpsMarketData,
-  MarketType,
-  MarketDataFormatters,
-} from '@metamask/perps-controller/types';
 import {
   calculateOpenInterestUSD,
   transformMarketData as transformMarketDataPortable,
   formatChange as formatChangePortable,
   type HyperLiquidMarketData,
-} from '@metamask/perps-controller/utils/marketDataTransform';
+  type PerpsMarketData,
+  type MarketType,
+  type MarketDataFormatters,
+} from '@metamask/perps-controller';
 import {
   formatVolume,
   formatPerpsFiat,

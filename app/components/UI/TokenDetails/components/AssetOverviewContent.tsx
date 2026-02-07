@@ -26,7 +26,7 @@ import {
 } from '../../../hooks/useTokenHistoricalPrices';
 import { TokenI } from '../../Tokens/types';
 import { usePerpsActions } from '../hooks/usePerpsActions';
-import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants/eventNames';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import Price from '../../AssetOverview/Price';
 import ChartNavigationButton from '../../AssetOverview/ChartNavigationButton';
 import Balance from '../../AssetOverview/Balance';
