@@ -8,11 +8,11 @@ This document outlines the migration path from Bitrise to GitHub Actions using t
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  Phase 1: builds.yml for config                              ✅ COMPLETE   │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│  Phase 1.5: Parallel validation in Bitrise                   📍 NEXT       │
+│  Phase 1.5: Parallel validation in Bitrise                   ✅ COMPLETE   │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│  Phase 2: Remove env remapping from build.sh                 ⏳ PENDING    │
+│  Phase 2: Remove env remapping from build.sh                 ✅ COMPLETE   │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│  Phase 3: Add store deployment workflows                     ⏳ PENDING    │
+│  Phase 3: Add store deployment workflows                     📍 NEXT       │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │  Phase 4: Deprecate Bitrise                                  ⏳ PENDING    │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -217,199 +217,107 @@ Week 4: If all builds pass validation for 1 week, proceed to Phase 2
 
 ---
 
-## Phase 2: Remove Env Remapping from build.sh ⏳
+## Phase 2: Remove Env Remapping from build.sh ✅
 
-**Status:** Pending (after Phase 1.5 validation succeeds)
+**Status:** Complete
 
-**Goal:** Replace 300+ lines of `remapXxxEnvVariables()` functions in `build.sh` with a single config load from `builds.yml`.
+**Goal:** Replace 200+ lines of `remapXxxEnvVariables()` functions in `build.sh` with a single config load from `builds.yml`.
 
-### Current State (build.sh)
+### What Was Done
 
-```bash
-# ~300 lines of remapping functions
-remapMainDevEnvVariables() { ... }
-remapMainProdEnvVariables() { ... }
-remapMainBetaEnvVariables() { ... }
-remapMainReleaseCandidateEnvVariables() { ... }
-remapMainExperimentalEnvVariables() { ... }
-remapMainTestEnvVariables() { ... }
-remapMainE2EEnvVariables() { ... }
-remapFlaskProdEnvVariables() { ... }
-remapFlaskTestEnvVariables() { ... }
-remapFlaskE2EEnvVariables() { ... }
-remapEnvVariableQA() { ... }
+1. **Added `loadBuildConfig()` function** to `build.sh` that:
+   - Constructs build name from `METAMASK_BUILD_TYPE` + `METAMASK_ENVIRONMENT` (e.g., `main-prod`)
+   - Normalizes environment names (`production` → `prod`)
+   - Calls `apply-build-config.js` with `--export` flag
+   - Evaluates the exported environment variables
 
-# Complex switch/case to call the right function
-if [ "$METAMASK_BUILD_TYPE" == "main" ]; then
-  if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
-    remapMainProdEnvVariables
-  elif [ "$METAMASK_ENVIRONMENT" == "beta" ]; then
-    remapMainBetaEnvVariables
-  # ... 20+ more conditions
-```
+2. **Removed 12 remapping functions** (~200 lines):
+   - `remapEnvVariable()`
+   - `remapMainDevEnvVariables()`
+   - `remapMainProdEnvVariables()`
+   - `remapMainBetaEnvVariables()`
+   - `remapMainReleaseCandidateEnvVariables()`
+   - `remapMainExperimentalEnvVariables()`
+   - `remapMainTestEnvVariables()`
+   - `remapMainE2EEnvVariables()`
+   - `remapFlaskProdEnvVariables()`
+   - `remapFlaskTestEnvVariables()`
+   - `remapFlaskE2EEnvVariables()`
+   - `remapEnvVariableQA()`
 
-### Target State (build.sh)
+3. **Replaced switch/case logic** (~35 lines) with a single call to `loadBuildConfig()`
 
-```bash
-#!/bin/bash
-set -o pipefail
+4. **Added QA builds** to `builds.yml`:
+   - `qa-prod` - QA production build
+   - `qa-dev` - QA development build
 
-PLATFORM=$1
-BUILD_NAME=$2  # e.g., "main-prod", "flask-dev"
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Validate inputs
-# ─────────────────────────────────────────────────────────────────────────────
-if [ -z "$PLATFORM" ] || [ -z "$BUILD_NAME" ]; then
-  echo "❌ Usage: ./scripts/build.sh <platform> <build-name>"
-  echo ""
-  echo "   Platforms: android, ios, expo-update, watcher"
-  echo ""
-  echo "   Build names:"
-  echo "     main-prod    Main production build"
-  echo "     main-rc      Main release candidate"
-  echo "     main-dev     Main development"
-  echo "     main-test    Main E2E/test build"
-  echo "     flask-prod   Flask production build"
-  echo "     flask-rc     Flask release candidate"
-  echo "     flask-dev    Flask development"
-  echo "     flask-test   Flask E2E/test build"
-  echo ""
-  echo "   Examples:"
-  echo "     ./scripts/build.sh android main-prod"
-  echo "     ./scripts/build.sh ios flask-dev"
-  exit 1
-fi
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Load config from builds.yml (REQUIRED - no fallback)
-# ─────────────────────────────────────────────────────────────────────────────
-echo ""
-echo "📦 Loading configuration for '${BUILD_NAME}'..."
-echo ""
-
-CONFIG_OUTPUT=$(node scripts/apply-build-config.js "${BUILD_NAME}" --export 2>&1)
-CONFIG_EXIT_CODE=$?
-
-if [ $CONFIG_EXIT_CODE -ne 0 ]; then
-  echo "❌ Failed to load build configuration"
-  echo ""
-  echo "Error: ${CONFIG_OUTPUT}"
-  echo ""
-  echo "Run 'node scripts/validate-build-config.js' to check config validity."
-  exit 1
-fi
-
-# Apply the configuration
-eval "$CONFIG_OUTPUT"
-
-echo "✅ Configuration loaded"
-echo "   METAMASK_BUILD_TYPE: ${METAMASK_BUILD_TYPE}"
-echo "   METAMASK_ENVIRONMENT: ${METAMASK_ENVIRONMENT}"
-echo ""
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Platform-specific builds (unchanged logic)
-# ─────────────────────────────────────────────────────────────────────────────
-# ... rest of build.sh (prebuild_ios, prebuild_android, generateIosBinary, etc.)
-```
-
-### Migration Steps
-
-#### Step 2.1: Update build.sh to accept new argument format
-
-**Before:**
+### New Config Loading (build.sh)
 
 ```bash
-./scripts/build.sh android main production
-#                  ^platform ^mode ^environment (3 args)
-```
+loadBuildConfig() {
+    local build_type="$1"
+    local environment="$2"
 
-**After:**
+    # Normalize environment name (production -> prod)
+    local normalized_env="$environment"
+    case "$environment" in
+        production) normalized_env="prod" ;;
+    esac
 
-```bash
-./scripts/build.sh android main-prod
-#                  ^platform ^build-name (2 args)
-```
+    # Construct build name (e.g., main-prod, flask-dev)
+    local build_name="${build_type}-${normalized_env}"
 
-#### Step 2.2: Add config loading to build.sh
+    echo "📦 Loading configuration from builds.yml for '${build_name}'..."
 
-Add the strict config loading block at the top of `build.sh` (after parameter parsing).
+    # Load config using apply-build-config.js
+    local config_output
+    config_output=$(node "${__DIRNAME__}/apply-build-config.js" "${build_name}" --export 2>&1)
+    local exit_code=$?
 
-#### Step 2.3: Update package.json scripts
+    if [ $exit_code -ne 0 ]; then
+        echo "❌ Failed to load build configuration"
+        echo "Error: ${config_output}"
+        return 1
+    fi
 
-**Before:**
-
-```json
-{
-  "build:android:main:prod": "./scripts/build.sh android main production",
-  "build:android:main:dev": "./scripts/build.sh android main dev",
-  "build:ios:main:prod": "./scripts/build.sh ios main production",
-  "build:ios:flask:prod": "./scripts/build.sh ios flask production"
+    # Apply the configuration (exports environment variables)
+    eval "$config_output"
+    echo "✅ Configuration loaded from builds.yml"
+    return 0
 }
-```
-
-**After:**
-
-```json
-{
-  "build:android:main-prod": "./scripts/build.sh android main-prod",
-  "build:android:main-dev": "./scripts/build.sh android main-dev",
-  "build:ios:main-prod": "./scripts/build.sh ios main-prod",
-  "build:ios:flask-prod": "./scripts/build.sh ios flask-prod"
-}
-```
-
-#### Step 2.4: Delete remapping functions from build.sh
-
-Remove these functions (~300 lines):
-
-- `remapEnvVariable()`
-- `remapMainDevEnvVariables()`
-- `remapMainProdEnvVariables()`
-- `remapMainBetaEnvVariables()`
-- `remapMainReleaseCandidateEnvVariables()`
-- `remapMainExperimentalEnvVariables()`
-- `remapMainTestEnvVariables()`
-- `remapMainE2EEnvVariables()`
-- `remapFlaskProdEnvVariables()`
-- `remapFlaskTestEnvVariables()`
-- `remapFlaskE2EEnvVariables()`
-- `remapEnvVariableQA()`
-
-And the switch/case logic that calls them (lines 814-846 in current build.sh).
-
-#### Step 2.5: Test all build variants
-
-```bash
-# Test each build variant
-./scripts/build.sh android main-prod
-./scripts/build.sh android main-dev
-./scripts/build.sh android main-test
-./scripts/build.sh android flask-prod
-./scripts/build.sh ios main-prod
-./scripts/build.sh ios main-dev
-./scripts/build.sh ios flask-prod
-
-# Verify error handling
-./scripts/build.sh android invalid-build  # Should fail with clear error
-./scripts/build.sh                         # Should show usage
 ```
 
 ### Backward Compatibility
 
-During migration, support both formats temporarily:
+The old 3-argument format still works:
 
 ```bash
-# In build.sh, detect old vs new format
-if [ -n "$3" ]; then
-  # Old format: ./scripts/build.sh android main production
-  BUILD_NAME="${2}-${3}"
-  echo "⚠️  Deprecated: Use './scripts/build.sh $1 ${BUILD_NAME}' instead"
-else
-  # New format: ./scripts/build.sh android main-prod
-  BUILD_NAME="$2"
-fi
+# Old format (still supported)
+./scripts/build.sh android main production
+
+# New format (recommended)
+./scripts/build.sh android main-prod
+```
+
+### Completed Checklist
+
+- [x] Added `loadBuildConfig()` function to `build.sh`
+- [x] Removed 12 `remapXxxEnvVariables()` functions (~200 lines)
+- [x] Replaced switch/case remapping logic with single `loadBuildConfig()` call
+- [x] Added QA builds to `builds.yml` (`qa-prod`, `qa-dev`)
+- [x] Maintained backward compatibility with old 3-argument format
+
+### Testing
+
+```bash
+# Test each build variant
+./scripts/build.sh android main production  # Old format
+./scripts/build.sh android main-prod        # Also works (normalized internally)
+./scripts/build.sh ios flask dev
+./scripts/build.sh ios qa production
+
+# Verify error handling
+./scripts/build.sh android invalid-build    # Should fail with clear error
 ```
 
 ---

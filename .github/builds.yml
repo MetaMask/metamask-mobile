@@ -9,10 +9,12 @@
 # Structure:
 #   - env: sets environment variables directly (servers, build config, etc.)
 #   - secrets: maps env var names to GitHub Secret names
+#   - signing: (optional) AWS role + secret for code signing (omit for dev/simulator builds)
 #   - code_fencing: features to include via code fencing
 #   - remote_feature_flags: build-time defaults for LaunchDarkly flags (seeded into RemoteFeatureFlagController)
 #
 # GitHub Environment determines actual secret values - builds.yml just maps the names.
+# Signing: AWS Secrets Manager (Account 363762752069) - see Mobile Signer Roles & Secrets doc.
 
 # =============================================================================
 # YAML Anchors (reusable config blocks)
@@ -74,6 +76,29 @@ _secrets: &secrets
   # Card/Baanx
   MM_CARD_BAANX_API_CLIENT_KEY: "MM_CARD_BAANX_API_CLIENT_KEY"
 
+# Signing config (AWS Secrets Manager) - omit for dev/simulator builds
+# android_keystore_path: filename in android/keystores/ (build.gradle expects fixed paths)
+_signing_prod: &signing_prod
+  aws_role: "arn:aws:iam::363762752069:role/metamask-mobile-prod-signer"
+  aws_secret: "metamask-mobile-main-prod-signer"
+  android_keystore_path: "release.keystore"
+_signing_rc: &signing_rc
+  aws_role: "arn:aws:iam::363762752069:role/metamask-mobile-rc-signer"
+  aws_secret: "metamask-mobile-main-rc-signer"
+  android_keystore_path: "rc.keystore"
+_signing_uat: &signing_uat
+  aws_role: "arn:aws:iam::363762752069:role/metamask-mobile-uat-signer"
+  aws_secret: "metamask-mobile-main-uat-signer"
+  android_keystore_path: "internalRelease.keystore"
+_signing_flask_prod: &signing_flask_prod
+  aws_role: "arn:aws:iam::363762752069:role/metamask-mobile-prod-signer"
+  aws_secret: "metamask-mobile-flask-prod-signer"
+  android_keystore_path: "flaskRelease.keystore"
+_signing_flask_uat: &signing_flask_uat
+  aws_role: "arn:aws:iam::363762752069:role/metamask-mobile-uat-signer"
+  aws_secret: "metamask-mobile-flask-uat-signer"
+  android_keystore_path: "flask-uat.keystore"
+
 # Main code fencing features
 _code_fencing_main: &code_fencing_main
   - preinstalled-snaps
@@ -132,6 +157,7 @@ builds:
   # Production release (App Store)
   main-prod:
     github_environment: build-production
+    signing: *signing_prod
     env:
       METAMASK_ENVIRONMENT: "production"
       METAMASK_BUILD_TYPE: "main"
@@ -147,6 +173,7 @@ builds:
   # Release candidate
   main-rc:
     github_environment: build-rc
+    signing: *signing_rc
     env:
       METAMASK_ENVIRONMENT: "rc"
       METAMASK_BUILD_TYPE: "main"
@@ -161,6 +188,7 @@ builds:
   # Test builds (QA)
   main-test:
     github_environment: build-test
+    signing: *signing_uat
     env:
       METAMASK_ENVIRONMENT: "test"
       METAMASK_BUILD_TYPE: "main"
@@ -182,6 +210,7 @@ builds:
   # E2E test builds (no Sentry)
   main-e2e:
     github_environment: build-e2e
+    signing: *signing_uat
     env:
       METAMASK_ENVIRONMENT: "e2e"
       METAMASK_BUILD_TYPE: "main"
@@ -202,6 +231,7 @@ builds:
   # Experimental builds
   main-exp:
     github_environment: build-exp
+    signing: *signing_uat
     env:
       METAMASK_ENVIRONMENT: "exp"
       METAMASK_BUILD_TYPE: "main"
@@ -230,7 +260,7 @@ builds:
       earnMusdConversionRewardsUiEnabled: true
       earnMerklCampaignClaiming: true
 
-  # Local development (primarily for .js.env reference)
+  # Local development / Expo development build (Runway .app for simulator)
   main-dev:
     github_environment: build-dev
     env:
@@ -245,6 +275,10 @@ builds:
       RAMP_INTERNAL_BUILD: "true"
       IS_TEST: "false"
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: "true"
+      # iOS: build for simulator (Expo dev build; no signing required)
+      IS_SIM_BUILD: "true"
+      # Android: build Debug APK (for Runway/testing; script verifies APK at prod/debug/)
+      CONFIGURATION: "Debug"
     secrets: *secrets
     code_fencing: *code_fencing_main
     remote_feature_flags:
@@ -267,7 +301,8 @@ builds:
 
   # Flask production release
   flask-prod:
-    github_environment: build-production
+    github_environment: build-flask-prod
+    signing: *signing_flask_prod
     env:
       METAMASK_ENVIRONMENT: "production"
       METAMASK_BUILD_TYPE: "flask"
@@ -281,7 +316,8 @@ builds:
 
   # Flask test builds (QA)
   flask-test:
-    github_environment: build-test
+    github_environment: build-flask-uat
+    signing: *signing_flask_uat
     env:
       METAMASK_ENVIRONMENT: "test"
       METAMASK_BUILD_TYPE: "flask"
@@ -301,7 +337,8 @@ builds:
 
   # Flask E2E test builds (no Sentry)
   flask-e2e:
-    github_environment: build-e2e
+    github_environment: build-flask-e2e
+    signing: *signing_flask_uat
     env:
       METAMASK_ENVIRONMENT: "e2e"
       METAMASK_BUILD_TYPE: "flask"
@@ -319,9 +356,9 @@ builds:
     code_fencing: *code_fencing_flask
     remote_feature_flags: *remote_feature_flags
 
-  # Flask local development (primarily for .js.env reference)
+  # Flask local development / Expo development build (Runway .app for simulator)
   flask-dev:
-    github_environment: build-dev
+    github_environment: build-flask-dev
     env:
       METAMASK_ENVIRONMENT: "dev"
       METAMASK_BUILD_TYPE: "flask"
@@ -334,8 +371,92 @@ builds:
       RAMP_INTERNAL_BUILD: "true"
       IS_TEST: "false"
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: "true"
+      # iOS: build for simulator (Expo dev build; no signing required)
+      IS_SIM_BUILD: "true"
+      # Android: build Debug APK (for Runway/testing; script verifies APK at flask/debug/)
+      CONFIGURATION: "Debug"
     secrets: *secrets
     code_fencing: *code_fencing_flask
+    remote_feature_flags:
+      <<: *remote_feature_flags
+      # Override for dev testing
+      perpsPerpTradingEnabled: true
+      perpsPerpGtmOnboardingModalEnabled: true
+      perpsOrderBookEnabled: true
+      perpsFeedbackEnabled: true
+      earnMusdConversionFlowEnabled: true
+      earnMusdCtaEnabled: true
+      earnMusdConversionAssetOverviewCtaEnabled: true
+      earnMusdConversionTokenListItemCtaEnabled: true
+      earnMusdConversionRewardsUiEnabled: true
+      earnMerklCampaignClaiming: true
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # QA Builds (legacy - for internal testing)
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  # QA production build
+  qa-prod:
+    github_environment: build-qa
+    signing: *signing_uat
+    env:
+      METAMASK_ENVIRONMENT: "production"
+      METAMASK_BUILD_TYPE: "qa"
+      <<: *servers
+      BRIDGE_USE_DEV_APIS: "false"
+      RAMP_INTERNAL_BUILD: "false"
+      IS_TEST: "false"
+    secrets:
+      <<: *secrets
+      # QA uses QA Segment project
+      SEGMENT_WRITE_KEY: SEGMENT_WRITE_KEY_QA
+      SEGMENT_PROXY_URL: SEGMENT_PROXY_URL_QA
+      SEGMENT_DELETE_API_SOURCE_ID: SEGMENT_DELETE_API_SOURCE_ID_QA
+      SEGMENT_REGULATIONS_ENDPOINT: SEGMENT_REGULATIONS_ENDPOINT_QA
+      # QA uses UAT OAuth credentials
+      IOS_GOOGLE_CLIENT_ID: MAIN_IOS_GOOGLE_CLIENT_ID_UAT
+      IOS_GOOGLE_REDIRECT_URI: MAIN_IOS_GOOGLE_REDIRECT_URI_UAT
+      ANDROID_GOOGLE_CLIENT_ID: MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT
+      ANDROID_APPLE_CLIENT_ID: MAIN_ANDROID_APPLE_CLIENT_ID_UAT
+      ANDROID_GOOGLE_SERVER_CLIENT_ID: MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT
+      MM_CARD_BAANX_API_CLIENT_KEY: MM_CARD_BAANX_API_CLIENT_KEY_UAT
+    code_fencing: *code_fencing_main
+    remote_feature_flags: *remote_feature_flags
+
+  # QA dev build / Expo development build (Runway .app for simulator)
+  qa-dev:
+    github_environment: build-qa
+    env:
+      METAMASK_ENVIRONMENT: "dev"
+      METAMASK_BUILD_TYPE: "qa"
+      <<: *servers
+      PORTFOLIO_API_URL: "https://portfolio.dev-api.cx.metamask.io"
+      REWARDS_API_URL: "https://rewards.uat-api.cx.metamask.io"
+      BAANX_API_URL: "https://dev.api.baanx.com"
+      RAMPS_ENVIRONMENT: "staging"
+      BRIDGE_USE_DEV_APIS: "true"
+      RAMP_INTERNAL_BUILD: "true"
+      IS_TEST: "false"
+      MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: "true"
+      # iOS: build for simulator (Expo dev build; no signing required)
+      IS_SIM_BUILD: "true"
+      # Android: build Debug APK (for Runway/testing; script verifies APK at qa/debug/)
+      CONFIGURATION: "Debug"
+    secrets:
+      <<: *secrets
+      # QA uses QA Segment project
+      SEGMENT_WRITE_KEY: SEGMENT_WRITE_KEY_QA
+      SEGMENT_PROXY_URL: SEGMENT_PROXY_URL_QA
+      SEGMENT_DELETE_API_SOURCE_ID: SEGMENT_DELETE_API_SOURCE_ID_QA
+      SEGMENT_REGULATIONS_ENDPOINT: SEGMENT_REGULATIONS_ENDPOINT_QA
+      # QA uses UAT OAuth credentials
+      IOS_GOOGLE_CLIENT_ID: MAIN_IOS_GOOGLE_CLIENT_ID_UAT
+      IOS_GOOGLE_REDIRECT_URI: MAIN_IOS_GOOGLE_REDIRECT_URI_UAT
+      ANDROID_GOOGLE_CLIENT_ID: MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT
+      ANDROID_APPLE_CLIENT_ID: MAIN_ANDROID_APPLE_CLIENT_ID_UAT
+      ANDROID_GOOGLE_SERVER_CLIENT_ID: MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT
+      MM_CARD_BAANX_API_CLIENT_KEY: MM_CARD_BAANX_API_CLIENT_KEY_UAT
+    code_fencing: *code_fencing_main
     remote_feature_flags:
       <<: *remote_feature_flags
       # Override for dev testing
