@@ -1,10 +1,11 @@
 // Third party dependencies.
-import React, { useRef, useCallback } from 'react';
-import { Pressable, View } from 'react-native';
+import React from 'react';
+import { Pressable } from 'react-native';
 
 // External dependencies.
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
+  Box,
   Text,
   TextVariant,
   FontWeight,
@@ -19,27 +20,12 @@ const Tab: React.FC<TabProps> = ({
   isDisabled = false,
   onPress,
   testID,
-  onLayout,
   ...pressableProps
 }) => {
   const tw = useTailwind();
-  const viewRef = useRef<View>(null);
-
-  const handleOnLayout = useCallback(
-    (layoutEvent: Parameters<NonNullable<typeof onLayout>>[0]) => {
-      if (onLayout) {
-        onLayout(layoutEvent);
-      }
-    },
-    [onLayout],
-  );
 
   return (
-    <View
-      ref={viewRef}
-      onLayout={handleOnLayout}
-      style={tw.style('flex-shrink-0')}
-    >
+    <Box twClassName="flex-shrink-0">
       <Pressable
         style={tw.style(
           'px-0 py-1 flex-row items-center justify-center relative',
@@ -79,7 +65,10 @@ const Tab: React.FC<TabProps> = ({
           {label}
         </Text>
       </Pressable>
-    </View>
+
+      {/* Bottom border when active */}
+      {isActive && !isDisabled && <Box twClassName="h-0.5 bg-icon-default" />}
+    </Box>
   );
 };
 
