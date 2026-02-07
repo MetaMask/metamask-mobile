@@ -36,6 +36,32 @@ import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
  * Custom hook to track boolean state for each section
  * Returns the Set of sections with that state and callbacks to update them
  */
+function applySectionState(
+  current: Set<SectionId>,
+  sectionId: SectionId,
+  isActive: boolean,
+): Set<SectionId> {
+  const next = new Set(current);
+  if (isActive) next.add(sectionId);
+  else next.delete(sectionId);
+  return next;
+}
+
+function buildSectionCallbacks(
+  sections: { id: SectionId }[],
+  setActiveSections: React.Dispatch<React.SetStateAction<Set<SectionId>>>,
+): Record<SectionId, (isActive: boolean) => void> {
+  const result = {} as Record<SectionId, (isActive: boolean) => void>;
+  sections.forEach((section) => {
+    result[section.id] = (isActive: boolean) => {
+      setActiveSections((current) =>
+        applySectionState(current, section.id, isActive),
+      );
+    };
+  });
+  return result;
+}
+
 const useSectionStateTracker = (
   sections: { id: SectionId }[],
 ): {
@@ -45,29 +71,10 @@ const useSectionStateTracker = (
   const [activeSections, setActiveSections] = useState<Set<SectionId>>(
     new Set(),
   );
-
-  const callbacks = useMemo(() => {
-    const result = {} as Record<SectionId, (isActive: boolean) => void>;
-
-    sections.forEach((section) => {
-      result[section.id] = (isActive: boolean) => {
-        setActiveSections((currentSections) => {
-          const updatedSections = new Set(currentSections);
-
-          if (isActive) {
-            updatedSections.add(section.id);
-          } else {
-            updatedSections.delete(section.id);
-          }
-
-          return updatedSections;
-        });
-      };
-    });
-
-    return result;
-  }, [sections]);
-
+  const callbacks = useMemo(
+    () => buildSectionCallbacks(sections, setActiveSections),
+    [sections],
+  );
   return { sectionsWithState: activeSections, callbacks };
 };
 
