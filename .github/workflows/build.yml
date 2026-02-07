@@ -166,6 +166,9 @@ jobs:
       # iOS: Install Ruby using rbenv (already present on Cirrus macOS runner)
       - name: Install Ruby
         if: matrix.platform == 'ios'
+        env:
+          # Override job-level BUNDLE_GEMFILE (ios/Gemfile) since we cd into ios/
+          BUNDLE_GEMFILE: Gemfile
         run: |
           RUBY_VERSION=$(cat .ruby-version)
           echo "📦 Installing Ruby ${RUBY_VERSION}..."
@@ -178,8 +181,16 @@ jobs:
           # Set Ruby version globally for this runner
           rbenv global "${RUBY_VERSION}"
           
-          # Verify installation
-          ruby --version
+          # Initialize rbenv (required: GitHub Actions runs bash with --noprofile --norc)
+          eval "$(rbenv init -)"
+          
+          # Verify installation and version
+          ACTUAL_VERSION=$(ruby --version)
+          echo "✅ Ruby version: ${ACTUAL_VERSION}"
+          if ! echo "${ACTUAL_VERSION}" | grep -q "${RUBY_VERSION}"; then
+            echo "❌ ERROR: Expected Ruby ${RUBY_VERSION}, but got: ${ACTUAL_VERSION}"
+            exit 1
+          fi
           
           # Install bundler
           gem install bundler -v 2.5.8
