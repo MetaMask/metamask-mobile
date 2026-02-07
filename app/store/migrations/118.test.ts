@@ -410,12 +410,12 @@ describe('Migration 118: Clear deposit and withdrawal request queues from PerpsC
         },
       };
 
-      // Mock an error by making the property throw when accessed
+      // Mock an error by making the property throw when updated
       Object.defineProperty(
         state.engine.backgroundState.PerpsController,
         'withdrawalRequests',
         {
-          get() {
+          set() {
             throw new Error('Test error');
           },
           configurable: true,
