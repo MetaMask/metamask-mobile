@@ -533,8 +533,12 @@ describe('network-utils', () => {
       expect(isPrivateConnection('172.16.0.1')).toBe(true);
     });
 
-    it('returns true for for 172.31.x.x', () => {
+    it('returns true for 172.31.x.x', () => {
       expect(isPrivateConnection('172.31.255.255')).toBe(true);
+    });
+
+    it('returns true for 169.254.x.x (iOS USB tethering)', () => {
+      expect(isPrivateConnection('169.254.25.35')).toBe(true);
     });
 
     it('returns false for a public IP', () => {
