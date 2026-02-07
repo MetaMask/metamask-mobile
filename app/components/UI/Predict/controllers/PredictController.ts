@@ -27,7 +27,9 @@ import {
   TransactionControllerTransactionFailedEvent,
   TransactionControllerTransactionRejectedEvent,
   TransactionControllerTransactionSubmittedEvent,
+  TransactionControllerTransactionStatusUpdatedEvent,
   TransactionMeta,
+  TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
 import {
@@ -36,9 +38,20 @@ import {
 } from '@metamask/remote-feature-flag-controller';
 import { Hex, hexToNumber, numberToHex } from '@metamask/utils';
 import performance from 'react-native-performance';
+import { strings } from '../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../../util/analytics/analytics';
+import ToastService from '../../../../core/ToastService';
+import NavigationService from '../../../../core/NavigationService';
+import Routes from '../../../../constants/navigation/Routes';
+import {
+  ToastVariants,
+  StatusToastType,
+  ToastLinkButtonOptions,
+} from '../../../../component-library/components/Toast/Toast.types';
+import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
+import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component.types';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
 import {
@@ -85,6 +98,7 @@ import {
   PredictClaimStatus,
   PredictMarket,
   PredictPosition,
+  PredictPositionStatus,
   PredictPriceHistoryPoint,
   PredictWithdraw,
   PredictWithdrawStatus,
@@ -101,6 +115,7 @@ import {
   DEFAULT_LIVE_SPORTS_FLAG,
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
 } from '../constants/flags';
+import { calculateNetAmount, formatPrice } from '../utils/format';
 import { filterSupportedLeagues } from '../constants/sports';
 import {
   PredictFeeCollection,
@@ -260,6 +275,7 @@ type AllowedEvents =
   | TransactionControllerTransactionConfirmedEvent
   | TransactionControllerTransactionFailedEvent
   | TransactionControllerTransactionRejectedEvent
+  | TransactionControllerTransactionStatusUpdatedEvent
   | RemoteFeatureFlagControllerStateChangeEvent;
 
 /**
@@ -295,6 +311,7 @@ export class PredictController extends BaseController<
   private providers: Map<string, PredictProvider>;
   private isInitialized = false;
   private initializationPromise: Promise<void> | null = null;
+  private isRetrying = false;
 
   constructor({ messenger, state = {} }: PredictControllerOptions) {
     super({
@@ -340,6 +357,9 @@ export class PredictController extends BaseController<
         }),
       );
     });
+
+    // Setup transaction event listeners for toast notifications
+    this.setupTransactionEventListeners();
   }
 
   /**
@@ -385,6 +405,440 @@ export class PredictController extends BaseController<
     DevLogger.log('PredictController: Providers initialized successfully', {
       providerCount: this.providers.size,
       timestamp: new Date().toISOString(),
+    });
+  }
+
+  private setupTransactionEventListeners(): void {
+    this.messenger.subscribe(
+      'TransactionController:transactionStatusUpdated',
+      this.handleTransactionStatusUpdate.bind(this),
+    );
+  }
+
+  private handleTransactionStatusUpdate({
+    transactionMeta,
+  }: {
+    transactionMeta: TransactionMeta;
+  }): void {
+    const predictTransactionType =
+      this.getPredictTransactionType(transactionMeta);
+
+    if (!predictTransactionType) {
+      return;
+    }
+
+    switch (predictTransactionType) {
+      case TransactionType.predictDeposit:
+        this.handleDepositTransactionUpdate(transactionMeta);
+        break;
+      case TransactionType.predictWithdraw:
+        this.handleWithdrawTransactionUpdate(transactionMeta);
+        break;
+      case TransactionType.predictClaim:
+        this.handleClaimTransactionUpdate(transactionMeta);
+        break;
+      default:
+        break;
+    }
+  }
+
+  private getPredictTransactionType(
+    transactionMeta: TransactionMeta,
+  ): TransactionType | null {
+    const predictTypes = [
+      TransactionType.predictDeposit,
+      TransactionType.predictWithdraw,
+      TransactionType.predictClaim,
+    ];
+
+    // Check if the main transaction type is a predict type
+    if (predictTypes.includes(transactionMeta.type as TransactionType)) {
+      return transactionMeta.type as TransactionType;
+    }
+
+    // Check nested transactions for predict types (used by deposit batches)
+    const nestedType = transactionMeta?.nestedTransactions?.find((tx) =>
+      predictTypes.includes(tx.type as TransactionType),
+    )?.type as TransactionType | undefined;
+
+    return nestedType ?? null;
+  }
+
+  private handleDepositTransactionUpdate(
+    transactionMeta: TransactionMeta,
+  ): void {
+    const { status } = transactionMeta;
+
+    switch (status) {
+      case TransactionStatus.approved:
+        this.showPendingToast({
+          title: strings('predict.deposit.adding_funds'),
+          description: strings('predict.deposit.available_in_minutes', {
+            minutes: 1,
+          }),
+          transactionId: transactionMeta.id,
+        });
+        break;
+      case TransactionStatus.confirmed:
+        this.clearPendingDeposit({ providerId: 'polymarket' });
+        this.showSuccessToast({
+          title: strings('predict.deposit.ready_to_trade'),
+          description: strings('predict.deposit.account_ready_description', {
+            amount: this.getDepositAmount(transactionMeta),
+          }),
+        });
+        this.refreshBalanceAfterTransaction();
+        break;
+      case TransactionStatus.failed:
+        this.clearPendingDeposit({ providerId: 'polymarket' });
+        this.showFailureToast({
+          title: strings('predict.deposit.error_title'),
+          description: strings('predict.deposit.error_description'),
+          linkButtonOptions: {
+            label: strings('predict.deposit.try_again'),
+            onPress: () => this.retryDeposit(),
+          },
+        });
+        break;
+      case TransactionStatus.rejected:
+        this.clearPendingDeposit({ providerId: 'polymarket' });
+        break;
+      default:
+        break;
+    }
+  }
+
+  private handleWithdrawTransactionUpdate(
+    transactionMeta: TransactionMeta,
+  ): void {
+    const { status } = transactionMeta;
+
+    switch (status) {
+      case TransactionStatus.approved:
+        this.showPendingToast({
+          title: strings('predict.withdraw.withdrawing'),
+          description: strings('predict.withdraw.withdrawing_subtitle'),
+        });
+        break;
+      case TransactionStatus.confirmed: {
+        const withdrawAmount = this.getWithdrawAmount();
+        this.clearWithdrawTransaction();
+        this.showSuccessToast({
+          title: strings('predict.withdraw.withdraw_completed'),
+          description: strings('predict.withdraw.withdraw_completed_subtitle', {
+            amount: withdrawAmount,
+          }),
+        });
+        this.refreshBalanceAfterTransaction();
+        break;
+      }
+      case TransactionStatus.failed:
+        this.clearWithdrawTransaction();
+        this.showFailureToast({
+          title: strings('predict.withdraw.error_title'),
+          description: strings('predict.withdraw.error_description'),
+          linkButtonOptions: {
+            label: strings('predict.withdraw.try_again'),
+            onPress: () => this.retryWithdraw(),
+          },
+        });
+        break;
+      case TransactionStatus.rejected:
+        this.clearWithdrawTransaction();
+        break;
+      default:
+        break;
+    }
+  }
+
+  private handleClaimTransactionUpdate(transactionMeta: TransactionMeta): void {
+    const { status } = transactionMeta;
+    const claimableAmount = this.getClaimableAmount();
+
+    switch (status) {
+      case TransactionStatus.approved:
+        this.showPendingToast({
+          title: strings('predict.claim.toasts.pending.title', {
+            amount: claimableAmount,
+          }),
+          description: strings('predict.claim.toasts.pending.description', {
+            time: 5,
+          }),
+        });
+        break;
+      case TransactionStatus.confirmed:
+        this.confirmClaim({ providerId: 'polymarket' });
+        this.showSuccessToast({
+          title: strings('predict.deposit.account_ready'),
+          description: strings('predict.deposit.account_ready_description', {
+            amount: claimableAmount,
+          }),
+        });
+        this.refreshBalanceAfterTransaction();
+        this.refreshPositionsAfterTransaction();
+        break;
+      case TransactionStatus.failed:
+        this.showFailureToast({
+          title: strings('predict.claim.toasts.error.title'),
+          description: strings('predict.claim.toasts.error.description'),
+          linkButtonOptions: {
+            label: strings('predict.claim.toasts.error.try_again'),
+            onPress: () => this.retryClaim(),
+          },
+        });
+        break;
+      case TransactionStatus.rejected:
+        break;
+      default:
+        break;
+    }
+  }
+
+  private showStatusToast({
+    type,
+    title,
+    description,
+    transactionId,
+    linkButtonOptions,
+  }: {
+    type: StatusToastType;
+    title: string;
+    description: string;
+    transactionId?: string;
+    linkButtonOptions?: ToastLinkButtonOptions;
+  }): void {
+    try {
+      const closeButtonOptions =
+        transactionId && type === StatusToastType.Pending
+          ? {
+              label: strings('predict.deposit.track'),
+              onPress: () => {
+                NavigationService.navigation.navigate(Routes.TRANSACTIONS_VIEW);
+                setTimeout(() => {
+                  NavigationService.navigation.navigate(
+                    Routes.TRANSACTION_DETAILS,
+                    { transactionId },
+                  );
+                }, 100);
+              },
+              variant: ButtonVariants.Secondary,
+            }
+          : undefined;
+
+      ToastService.showToast({
+        variant: ToastVariants.Status,
+        statusType: type,
+        labelOptions: [
+          { label: title, isBold: true },
+          { label: '\n', isBold: false },
+          { label: description, isBold: false },
+        ],
+        hasNoTimeout: false,
+        closeButtonOptions,
+        linkButtonOptions,
+      });
+    } catch (error) {
+      DevLogger.log(`PredictController: Failed to show ${type} toast`, {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  private showPendingToast(options: {
+    title: string;
+    description: string;
+    transactionId?: string;
+  }): void {
+    this.showStatusToast({ type: StatusToastType.Pending, ...options });
+  }
+
+  private showSuccessToast(options: {
+    title: string;
+    description: string;
+  }): void {
+    this.showStatusToast({ type: StatusToastType.Success, ...options });
+  }
+
+  private showFailureToast(options: {
+    title: string;
+    description: string;
+    linkButtonOptions?: ToastLinkButtonOptions;
+  }): void {
+    this.showStatusToast({ type: StatusToastType.Failure, ...options });
+  }
+
+  private navigateToConfirmation(options: {
+    loader: ConfirmationLoader;
+    headerShown?: boolean;
+    stack?: string;
+  }): void {
+    const { headerShown, stack, ...params } = options;
+    const route =
+      headerShown === false
+        ? Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER
+        : Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS;
+
+    if (stack) {
+      NavigationService.navigation.navigate(stack, {
+        screen: route,
+        params,
+      });
+    } else {
+      NavigationService.navigation.navigate(route, params);
+    }
+  }
+
+  private retryDeposit(): void {
+    if (this.isRetrying) {
+      return;
+    }
+    this.isRetrying = true;
+
+    try {
+      this.navigateToConfirmation({
+        loader: ConfirmationLoader.CustomAmount,
+      });
+
+      this.depositWithConfirmation({ providerId: 'polymarket' })
+        .catch((error) => {
+          DevLogger.log('PredictController: Failed to retry deposit', {
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
+        })
+        .finally(() => {
+          this.isRetrying = false;
+        });
+    } catch (error) {
+      this.isRetrying = false;
+      Logger.error(
+        error as Error,
+        {
+          message: 'PredictController: retryDeposit navigation failed',
+        } as LoggerErrorOptions,
+      );
+    }
+  }
+
+  private retryWithdraw(): void {
+    if (this.isRetrying) {
+      return;
+    }
+    this.isRetrying = true;
+
+    try {
+      this.navigateToConfirmation({
+        loader: ConfirmationLoader.CustomAmount,
+      });
+
+      this.prepareWithdraw({ providerId: 'polymarket' })
+        .catch((error) => {
+          DevLogger.log('PredictController: Failed to retry withdraw', {
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
+        })
+        .finally(() => {
+          this.isRetrying = false;
+        });
+    } catch (error) {
+      this.isRetrying = false;
+      Logger.error(
+        error as Error,
+        {
+          message: 'PredictController: retryWithdraw navigation failed',
+        } as LoggerErrorOptions,
+      );
+    }
+  }
+
+  private retryClaim(): void {
+    if (this.isRetrying) {
+      return;
+    }
+    this.isRetrying = true;
+
+    try {
+      this.navigateToConfirmation({
+        headerShown: false,
+        loader: ConfirmationLoader.PredictClaim,
+        stack: Routes.PREDICT.ROOT,
+      });
+
+      this.claimWithConfirmation({ providerId: 'polymarket' })
+        .catch((error) => {
+          DevLogger.log('PredictController: Failed to retry claim', {
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
+        })
+        .finally(() => {
+          this.isRetrying = false;
+        });
+    } catch (error) {
+      this.isRetrying = false;
+      Logger.error(
+        error as Error,
+        {
+          message: 'PredictController: retryClaim navigation failed',
+        } as LoggerErrorOptions,
+      );
+    }
+  }
+
+  private getDepositAmount(transactionMeta: TransactionMeta): string {
+    const netAmount = calculateNetAmount({
+      totalFiat: transactionMeta.metamaskPay?.totalFiat,
+      bridgeFeeFiat: transactionMeta.metamaskPay?.bridgeFeeFiat,
+      networkFeeFiat: transactionMeta.metamaskPay?.networkFeeFiat,
+    });
+
+    return formatPrice(netAmount, { maximumDecimals: 2 });
+  }
+
+  private getWithdrawAmount(): string {
+    const withdrawTransaction = this.state.withdrawTransaction;
+    return formatPrice(withdrawTransaction?.amount?.toString() ?? '0');
+  }
+
+  private getClaimableAmount(): string {
+    const address = this.getEvmAccountAddress();
+    const claimablePositions = this.state.claimablePositions[address] ?? [];
+    const wonPositions = claimablePositions.filter(
+      (position) => position.status === PredictPositionStatus.WON,
+    );
+    const totalClaimable = wonPositions.reduce(
+      (sum, position) => sum + (position.currentValue ?? 0),
+      0,
+    );
+    return formatPrice(totalClaimable, { maximumDecimals: 2 });
+  }
+
+  private refreshBalanceAfterTransaction(): void {
+    const address = this.getEvmAccountAddress();
+    this.getBalance({
+      providerId: 'polymarket',
+      address,
+    }).catch((error) => {
+      DevLogger.log(
+        'PredictController: Failed to refresh balance after transaction',
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+      );
+    });
+  }
+
+  private refreshPositionsAfterTransaction(): void {
+    const address = this.getEvmAccountAddress();
+    this.getPositions({
+      providerId: 'polymarket',
+      address,
+      claimable: true,
+    }).catch((error) => {
+      DevLogger.log(
+        'PredictController: Failed to refresh positions after transaction',
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+      );
     });
   }
 

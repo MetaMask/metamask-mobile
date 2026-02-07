@@ -145,39 +145,31 @@ Files using `StyleSheet.create()` instead of Tailwind:
 3. `polymarket/utils.ts:662` - "remove this temporary fix for Super Bowl LX"
 4. `PredictPositions.tsx:123` - "Sort positions in controller"
 
-#### 5. Toast Event Subscription Issues (Critical)
+#### 5. Toast Event Subscription Issues ✅ RESOLVED
 
-**Problem**: Toast hooks (`usePredictDepositToasts`, `usePredictClaimToasts`, `usePredictWithdrawToasts`) are mounted only in `PredictTabView`. When the user navigates away from the Predict tab, these hooks unmount and unsubscribe from `TransactionController:transactionStatusUpdated` events.
+**Problem**: Toast hooks (`usePredictDepositToasts`, `usePredictClaimToasts`, `usePredictWithdrawToasts`) were mounted only in `PredictTabView`. When the user navigated away from the Predict tab, these hooks unmounted and unsubscribed from transaction events.
 
-**Impact**: If a transaction completes while the user is on a different tab, the toast notification is never shown.
+**Solution Implemented**: Migrated all toast notification logic from React hooks to `PredictController`. The controller now:
 
-**Current Mounting Location**:
+- Subscribes to `TransactionController:transactionStatusUpdated` events in its constructor
+- Handles deposit, withdraw, and claim transaction status updates
+- Shows appropriate toasts via `ToastService` (pending, confirmed, error)
+- Persists across navigation since the controller is always mounted
 
-```typescript
-// PredictTabView.tsx (lines 39-41)
-const PredictTabView = () => {
-  usePredictDepositToasts(); // Mounted here only
-  usePredictClaimToasts(); // Unmounts when tab switches
-  usePredictWithdrawToasts(); // Events are missed
-  // ...
-};
-```
+**Implementation Details**:
 
-**Subscription Pattern**:
+- `PredictController.setupTransactionEventListeners()` - Subscribes to transaction events
+- `PredictController.handleTransactionStatusUpdate()` - Routes to appropriate handler
+- `PredictController.handleDepositTransactionUpdate()` - Deposit toasts + state clearing
+- `PredictController.handleWithdrawTransactionUpdate()` - Withdraw toasts + state clearing
+- `PredictController.handleClaimTransactionUpdate()` - Claim toasts + position refresh
 
-```typescript
-// usePredictToasts.tsx (lines 202-255)
-useEffect(() => {
-  Engine.controllerMessenger.subscribe(
-    'TransactionController:transactionStatusUpdated',
-    handleTransactionStatusUpdate,
-  );
-  return () => {
-    // Cleanup runs when component unmounts (tab switch)
-    Engine.controllerMessenger.unsubscribe(...);
-  };
-}, [...]);
-```
+**Deleted Hooks** (no longer needed):
+
+- `usePredictToasts.tsx`
+- `usePredictDepositToasts.tsx`
+- `usePredictWithdrawToasts.ts`
+- `usePredictClaimToasts.tsx`
 
 #### 6. No Centralized Data Fetching Layer
 
@@ -316,7 +308,7 @@ app/components/UI/Predict/
 | PredictController.ts     | 2,401 lines      | <2,000 lines                              |
 | StyleSheet files         | 10               | 0                                         |
 | Duplicate chart types    | 2                | 1 (unified)                               |
-| Toast hooks              | 4 separate       | 1 unified                                 |
+| Toast hooks              | 4 separate       | ✅ Moved to PredictController             |
 | App-level providers      | 0                | 2 (PredictProvider, PredictQueryProvider) |
 | Data fetching hooks      | 12+ inconsistent | All using usePredictQuery                 |
 
@@ -529,7 +521,7 @@ selectPredictPendingWithdraw(); // Pending withdraw
 | Data Fetching       | 8     | Markets, positions, prices, history            |
 | Real-time Updates   | 3     | WebSocket-based live data                      |
 | UI State            | 8     | Bottom sheets, scroll, measurements            |
-| Toast Notifications | 5 → 1 | Transaction feedback (to be consolidated)      |
+| Toast Notifications | 0     | ✅ Moved to PredictController                  |
 | Utility             | 2     | Optimistic updates, debounce                   |
 
 ### Hook Naming Convention
@@ -651,16 +643,17 @@ views/PredictMarketDetails/
 - Cleaner component interfaces
 - Standard React pattern for cross-cutting concerns
 
-### Decision 3: Unified Toast Hook
+### Decision 3: Toast Logic in Controller ✅ IMPLEMENTED
 
-**Decision**: Consolidate 4 toast hooks into 1 configurable hook.
+**Decision**: Move all toast notification logic from React hooks to `PredictController`.
 
 **Rationale**:
 
-- DRY principle - reduce code duplication
-- Consistent toast behavior across features
-- Easier maintenance and updates
-- Backward compatible via re-exports
+- Controller persists across navigation (always mounted)
+- Eliminates missed transaction events when user switches tabs
+- Centralized event handling in the business logic layer
+- Uses `ToastService` for showing toasts from non-React code
+- Cleaner separation of concerns
 
 ### Decision 4: Controller Error Handling Extraction
 
@@ -684,60 +677,46 @@ views/PredictMarketDetails/
 - Benefits from design system tokens
 - Better dark/light mode support
 
-### Decision 6: App-Level PredictProvider for Global Event Subscriptions
+### Decision 6: Transaction Event Handling in Controller ✅ IMPLEMENTED
 
-**Decision**: Create a `PredictProvider` component mounted at the app level (in `App.tsx`) that handles all transaction event subscriptions.
+**Decision**: Handle transaction event subscriptions directly in `PredictController` instead of React components.
 
-**Problem Being Solved**: Toast hooks currently mount in `PredictTabView` and unsubscribe when the user navigates away, causing missed transaction events.
+**Problem Solved**: Toast hooks previously mounted in `PredictTabView` and unsubscribed when the user navigated away, causing missed transaction events.
 
-**Rationale**:
+**Implemented Solution**:
 
-- Event subscriptions persist across all navigation
-- No missed transaction events regardless of current screen
-- Centralized event handling logic
-- Cleaner separation between event handling and UI
-
-**Implementation Approach**:
+The controller now subscribes to `TransactionController:transactionStatusUpdated` in its constructor and handles all predict-related transaction events (deposit, withdraw, claim) regardless of which screen the user is on.
 
 ```typescript
-// context/PredictProvider/PredictProvider.tsx
-const PredictProvider = ({ children }) => {
-  // Subscribe to TransactionController events ONCE at app level
-  useEffect(() => {
-    const handleTransactionUpdate = ({ transactionMeta }) => {
-      // Check if this is a Predict transaction
-      if (isPredictTransaction(transactionMeta)) {
-        // Queue the event for consumption by any interested hooks
-        eventQueue.push(transactionMeta);
-        notifySubscribers();
-      }
-    };
+// PredictController constructor
+this.setupTransactionEventListeners();
 
-    Engine.controllerMessenger.subscribe(
-      'TransactionController:transactionStatusUpdated',
-      handleTransactionUpdate,
-    );
+// setupTransactionEventListeners()
+this.messenger.subscribe(
+  'TransactionController:transactionStatusUpdated',
+  this.handleTransactionStatusUpdate.bind(this),
+);
 
-    return () => {
-      Engine.controllerMessenger.unsubscribe(...);
-    };
-  }, []);
-
-  return (
-    <PredictContext.Provider value={{ /* event queue, subscribe method */ }}>
-      {children}
-    </PredictContext.Provider>
-  );
-};
+// handleTransactionStatusUpdate routes to appropriate handler
+switch (predictTransactionType) {
+  case TransactionType.predictDeposit:
+    this.handleDepositTransactionUpdate(transactionMeta);
+    break;
+  case TransactionType.predictWithdraw:
+    this.handleWithdrawTransactionUpdate(transactionMeta);
+    break;
+  case TransactionType.predictClaim:
+    this.handleClaimTransactionUpdate(transactionMeta);
+    break;
+}
 ```
 
-**Migration Path**:
+**Benefits Achieved**:
 
-1. Create PredictProvider with event queue
-2. Create `usePredictTransactionEvents` hook to consume events
-3. Refactor existing toast hooks to use the new hook
-4. Mount PredictProvider in App.tsx
-5. Remove direct subscriptions from toast hooks
+- Transaction events never missed regardless of current screen
+- Centralized event handling in business logic layer
+- No React component lifecycle dependencies
+- Uses `ToastService` for showing toasts from controller code
 
 ### Decision 7: PredictQueryProvider - Lightweight React Query Alternative
 

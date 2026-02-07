@@ -17,6 +17,16 @@ export enum ToastVariants {
   Network = 'Network',
   App = 'App',
   Icon = 'Icon',
+  Status = 'Status',
+}
+
+/**
+ * Status toast types for different operation states.
+ */
+export enum StatusToastType {
+  Pending = 'Pending',
+  Success = 'Success',
+  Failure = 'Failure',
 }
 
 /**
@@ -103,15 +113,18 @@ interface IconToastOption extends BaseToastVariants {
   backgroundColor?: string;
 }
 
-/**
- * Different toast options combined in a union type.
- */
+export interface StatusToastOption extends BaseToastVariants {
+  variant: ToastVariants.Status;
+  statusType: StatusToastType;
+}
+
 export type ToastOptions =
   | PlainToastOption
   | AccountToastOption
   | NetworkToastOption
   | AppToastOption
-  | IconToastOption;
+  | IconToastOption
+  | StatusToastOption;
 
 /**
  * Toast component reference.

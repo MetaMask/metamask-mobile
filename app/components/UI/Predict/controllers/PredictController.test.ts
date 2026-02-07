@@ -10,6 +10,10 @@ import {
 
 import type { NetworkState } from '@metamask/network-controller';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
+import {
+  TransactionStatus,
+  TransactionType,
+} from '@metamask/transaction-controller';
 
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
@@ -82,6 +86,29 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   __esModule: true,
   default: {
     log: jest.fn(),
+  },
+}));
+
+// Mock ToastService
+jest.mock('../../../../core/ToastService', () => ({
+  __esModule: true,
+  default: {
+    showToast: jest.fn(),
+    closeToast: jest.fn(),
+  },
+}));
+
+// Import ToastService for test assertions
+import ToastService from '../../../../core/ToastService';
+
+// Mock NavigationService
+const mockNavigate = jest.fn();
+jest.mock('../../../../core/NavigationService', () => ({
+  __esModule: true,
+  default: {
+    navigation: {
+      navigate: (...args: unknown[]) => mockNavigate(...args),
+    },
   },
 }));
 
@@ -344,6 +371,7 @@ describe('PredictController', () => {
         'TransactionController:transactionConfirmed',
         'TransactionController:transactionFailed',
         'TransactionController:transactionRejected',
+        'TransactionController:transactionStatusUpdated',
         'RemoteFeatureFlagController:stateChange',
       ],
       messenger,
@@ -5931,6 +5959,955 @@ describe('PredictController', () => {
             sportsConnected: false,
             marketConnected: false,
           });
+        });
+      });
+    });
+  });
+
+  describe('transaction event handling', () => {
+    const mockShowToast = ToastService.showToast as jest.MockedFunction<
+      typeof ToastService.showToast
+    >;
+
+    beforeEach(() => {
+      mockShowToast.mockClear();
+    });
+
+    function createTransactionMeta(
+      type: TransactionType,
+      status: TransactionStatus,
+      overrides: Record<string, unknown> = {},
+    ) {
+      return {
+        id: 'tx-123',
+        status,
+        nestedTransactions: [{ type }],
+        ...overrides,
+      };
+    }
+
+    describe('getPredictTransactionType', () => {
+      it('returns null for non-predict transactions', () => {
+        withController(({ controller }) => {
+          const transactionMeta = {
+            id: 'tx-123',
+            status: TransactionStatus.confirmed,
+            nestedTransactions: [{ type: TransactionType.swap }],
+          };
+
+          const result = (controller as any).getPredictTransactionType(
+            transactionMeta,
+          );
+
+          expect(result).toBeNull();
+        });
+      });
+
+      it('returns predictDeposit type for deposit transactions', () => {
+        withController(({ controller }) => {
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictDeposit,
+            TransactionStatus.confirmed,
+          );
+
+          const result = (controller as any).getPredictTransactionType(
+            transactionMeta,
+          );
+
+          expect(result).toBe(TransactionType.predictDeposit);
+        });
+      });
+
+      it('returns predictWithdraw type for withdraw transactions', () => {
+        withController(({ controller }) => {
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictWithdraw,
+            TransactionStatus.confirmed,
+          );
+
+          const result = (controller as any).getPredictTransactionType(
+            transactionMeta,
+          );
+
+          expect(result).toBe(TransactionType.predictWithdraw);
+        });
+      });
+
+      it('returns predictClaim type for claim transactions', () => {
+        withController(({ controller }) => {
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictClaim,
+            TransactionStatus.confirmed,
+          );
+
+          const result = (controller as any).getPredictTransactionType(
+            transactionMeta,
+          );
+
+          expect(result).toBe(TransactionType.predictClaim);
+        });
+      });
+
+      it('returns null when nestedTransactions is empty', () => {
+        withController(({ controller }) => {
+          const transactionMeta = {
+            id: 'tx-123',
+            status: TransactionStatus.confirmed,
+            nestedTransactions: [],
+          };
+
+          const result = (controller as any).getPredictTransactionType(
+            transactionMeta,
+          );
+
+          expect(result).toBeNull();
+        });
+      });
+
+      it('returns null when nestedTransactions is undefined', () => {
+        withController(({ controller }) => {
+          const transactionMeta = {
+            id: 'tx-123',
+            status: TransactionStatus.confirmed,
+          };
+
+          const result = (controller as any).getPredictTransactionType(
+            transactionMeta,
+          );
+
+          expect(result).toBeNull();
+        });
+      });
+    });
+
+    describe('handleDepositTransactionUpdate', () => {
+      it('shows pending toast when deposit is approved', () => {
+        withController(({ controller }) => {
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictDeposit,
+            TransactionStatus.approved,
+          );
+
+          (controller as any).handleDepositTransactionUpdate(transactionMeta);
+
+          expect(mockShowToast).toHaveBeenCalledTimes(1);
+          expect(mockShowToast).toHaveBeenCalledWith(
+            expect.objectContaining({
+              variant: 'Status',
+              statusType: 'Pending',
+            }),
+          );
+        });
+      });
+
+      it('shows confirmed toast and clears pending deposit when deposit is confirmed', () => {
+        withController(({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.pendingDeposits = {
+              polymarket: {
+                '0x1234567890123456789012345678901234567890': '100',
+              },
+            };
+          });
+
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictDeposit,
+            TransactionStatus.confirmed,
+            {
+              metamaskPay: {
+                totalFiat: '100.00',
+                bridgeFeeFiat: '1.00',
+                networkFeeFiat: '0.50',
+              },
+            },
+          );
+
+          (controller as any).handleDepositTransactionUpdate(transactionMeta);
+
+          expect(mockShowToast).toHaveBeenCalledTimes(1);
+          expect(mockShowToast).toHaveBeenCalledWith(
+            expect.objectContaining({
+              variant: 'Status',
+              statusType: 'Success',
+            }),
+          );
+          expect(
+            controller.state.pendingDeposits.polymarket?.[
+              '0x1234567890123456789012345678901234567890'
+            ],
+          ).toBeUndefined();
+        });
+      });
+
+      it('shows error toast and clears pending deposit when deposit fails', () => {
+        withController(({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.pendingDeposits = {
+              polymarket: {
+                '0x1234567890123456789012345678901234567890': '100',
+              },
+            };
+          });
+
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictDeposit,
+            TransactionStatus.failed,
+          );
+
+          (controller as any).handleDepositTransactionUpdate(transactionMeta);
+
+          expect(mockShowToast).toHaveBeenCalledTimes(1);
+          expect(mockShowToast).toHaveBeenCalledWith(
+            expect.objectContaining({
+              variant: 'Status',
+              statusType: 'Failure',
+              linkButtonOptions: expect.objectContaining({
+                label: expect.any(String),
+                onPress: expect.any(Function),
+              }),
+            }),
+          );
+          expect(
+            controller.state.pendingDeposits.polymarket?.[
+              '0x1234567890123456789012345678901234567890'
+            ],
+          ).toBeUndefined();
+        });
+      });
+
+      it('clears pending deposit without toast when deposit is rejected', () => {
+        withController(({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.pendingDeposits = {
+              polymarket: {
+                '0x1234567890123456789012345678901234567890': '100',
+              },
+            };
+          });
+
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictDeposit,
+            TransactionStatus.rejected,
+          );
+
+          (controller as any).handleDepositTransactionUpdate(transactionMeta);
+
+          expect(mockShowToast).not.toHaveBeenCalled();
+          expect(
+            controller.state.pendingDeposits.polymarket?.[
+              '0x1234567890123456789012345678901234567890'
+            ],
+          ).toBeUndefined();
+        });
+      });
+    });
+
+    describe('handleWithdrawTransactionUpdate', () => {
+      it('shows pending toast when withdraw is approved', () => {
+        withController(({ controller }) => {
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictWithdraw,
+            TransactionStatus.approved,
+          );
+
+          (controller as any).handleWithdrawTransactionUpdate(transactionMeta);
+
+          expect(mockShowToast).toHaveBeenCalledTimes(1);
+          expect(mockShowToast).toHaveBeenCalledWith(
+            expect.objectContaining({
+              variant: 'Status',
+              statusType: 'Pending',
+            }),
+          );
+        });
+      });
+
+      it('shows confirmed toast and clears withdraw transaction when withdraw is confirmed', () => {
+        withController(({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.withdrawTransaction = {
+              status: PredictWithdrawStatus.PENDING,
+              amount: 50.0,
+            } as any;
+          });
+
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictWithdraw,
+            TransactionStatus.confirmed,
+          );
+
+          (controller as any).handleWithdrawTransactionUpdate(transactionMeta);
+
+          expect(mockShowToast).toHaveBeenCalledTimes(1);
+          expect(mockShowToast).toHaveBeenCalledWith(
+            expect.objectContaining({
+              variant: 'Status',
+              statusType: 'Success',
+            }),
+          );
+          expect(controller.state.withdrawTransaction).toBeNull();
+        });
+      });
+
+      it('shows error toast and clears withdraw transaction when withdraw fails', () => {
+        withController(({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.withdrawTransaction = {
+              status: PredictWithdrawStatus.PENDING,
+              amount: 50.0,
+            } as any;
+          });
+
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictWithdraw,
+            TransactionStatus.failed,
+          );
+
+          (controller as any).handleWithdrawTransactionUpdate(transactionMeta);
+
+          expect(mockShowToast).toHaveBeenCalledTimes(1);
+          expect(mockShowToast).toHaveBeenCalledWith(
+            expect.objectContaining({
+              variant: 'Status',
+              statusType: 'Failure',
+              linkButtonOptions: expect.objectContaining({
+                label: expect.any(String),
+                onPress: expect.any(Function),
+              }),
+            }),
+          );
+          expect(controller.state.withdrawTransaction).toBeNull();
+        });
+      });
+
+      it('clears withdraw transaction without toast when withdraw is rejected', () => {
+        withController(({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.withdrawTransaction = {
+              status: PredictWithdrawStatus.PENDING,
+              amount: 50.0,
+            } as any;
+          });
+
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictWithdraw,
+            TransactionStatus.rejected,
+          );
+
+          (controller as any).handleWithdrawTransactionUpdate(transactionMeta);
+
+          expect(mockShowToast).not.toHaveBeenCalled();
+          expect(controller.state.withdrawTransaction).toBeNull();
+        });
+      });
+    });
+
+    describe('handleClaimTransactionUpdate', () => {
+      it('shows pending toast when claim is approved', () => {
+        withController(({ controller }) => {
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictClaim,
+            TransactionStatus.approved,
+          );
+
+          (controller as any).handleClaimTransactionUpdate(transactionMeta);
+
+          expect(mockShowToast).toHaveBeenCalledTimes(1);
+          expect(mockShowToast).toHaveBeenCalledWith(
+            expect.objectContaining({
+              variant: 'Status',
+              statusType: 'Pending',
+            }),
+          );
+        });
+      });
+
+      it('shows confirmed toast when claim is confirmed', () => {
+        withController(({ controller }) => {
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictClaim,
+            TransactionStatus.confirmed,
+          );
+
+          (controller as any).handleClaimTransactionUpdate(transactionMeta);
+
+          expect(mockShowToast).toHaveBeenCalledTimes(1);
+          expect(mockShowToast).toHaveBeenCalledWith(
+            expect.objectContaining({
+              variant: 'Status',
+              statusType: 'Success',
+            }),
+          );
+        });
+      });
+
+      it('shows error toast with retry button when claim fails', () => {
+        withController(({ controller }) => {
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictClaim,
+            TransactionStatus.failed,
+          );
+
+          (controller as any).handleClaimTransactionUpdate(transactionMeta);
+
+          expect(mockShowToast).toHaveBeenCalledTimes(1);
+          expect(mockShowToast).toHaveBeenCalledWith(
+            expect.objectContaining({
+              variant: 'Status',
+              statusType: 'Failure',
+              linkButtonOptions: expect.objectContaining({
+                label: expect.any(String),
+                onPress: expect.any(Function),
+              }),
+            }),
+          );
+        });
+      });
+
+      it('does not show toast when claim is rejected', () => {
+        withController(({ controller }) => {
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictClaim,
+            TransactionStatus.rejected,
+          );
+
+          (controller as any).handleClaimTransactionUpdate(transactionMeta);
+
+          expect(mockShowToast).not.toHaveBeenCalled();
+        });
+      });
+    });
+
+    describe('handleTransactionStatusUpdate', () => {
+      it('routes deposit transactions to handleDepositTransactionUpdate', () => {
+        withController(({ controller }) => {
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictDeposit,
+            TransactionStatus.approved,
+          );
+
+          (controller as any).handleTransactionStatusUpdate({
+            transactionMeta,
+          });
+
+          expect(mockShowToast).toHaveBeenCalledTimes(1);
+        });
+      });
+
+      it('routes withdraw transactions to handleWithdrawTransactionUpdate', () => {
+        withController(({ controller }) => {
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictWithdraw,
+            TransactionStatus.approved,
+          );
+
+          (controller as any).handleTransactionStatusUpdate({
+            transactionMeta,
+          });
+
+          expect(mockShowToast).toHaveBeenCalledTimes(1);
+        });
+      });
+
+      it('routes claim transactions to handleClaimTransactionUpdate', () => {
+        withController(({ controller }) => {
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictClaim,
+            TransactionStatus.approved,
+          );
+
+          (controller as any).handleTransactionStatusUpdate({
+            transactionMeta,
+          });
+
+          expect(mockShowToast).toHaveBeenCalledTimes(1);
+        });
+      });
+
+      it('ignores non-predict transactions', () => {
+        withController(({ controller }) => {
+          const transactionMeta = {
+            id: 'tx-123',
+            status: TransactionStatus.confirmed,
+            nestedTransactions: [{ type: TransactionType.swap }],
+          };
+
+          (controller as any).handleTransactionStatusUpdate({
+            transactionMeta,
+          });
+
+          expect(mockShowToast).not.toHaveBeenCalled();
+        });
+      });
+    });
+
+    describe('getDepositAmount', () => {
+      it('calculates net deposit amount from fiat values', () => {
+        withController(({ controller }) => {
+          const transactionMeta = {
+            metamaskPay: {
+              totalFiat: '100.00',
+              bridgeFeeFiat: '2.50',
+              networkFeeFiat: '0.50',
+            },
+          };
+
+          const result = (controller as any).getDepositAmount(transactionMeta);
+
+          expect(result).toBe('$97');
+        });
+      });
+
+      it('returns "$0" when totalFiat is missing', () => {
+        withController(({ controller }) => {
+          const transactionMeta = {
+            metamaskPay: {},
+          };
+
+          const result = (controller as any).getDepositAmount(transactionMeta);
+
+          expect(result).toBe('$0');
+        });
+      });
+
+      it('handles missing fee values', () => {
+        withController(({ controller }) => {
+          const transactionMeta = {
+            metamaskPay: {
+              totalFiat: '100.00',
+            },
+          };
+
+          const result = (controller as any).getDepositAmount(transactionMeta);
+
+          expect(result).toBe('$100');
+        });
+      });
+    });
+
+    describe('getWithdrawAmount', () => {
+      it('returns formatted withdraw amount with two decimals from state', () => {
+        withController(({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.withdrawTransaction = {
+              status: PredictWithdrawStatus.PENDING,
+              amount: 75.5,
+            } as any;
+          });
+
+          const result = (controller as any).getWithdrawAmount();
+
+          expect(result).toBe('$75.50');
+        });
+      });
+
+      it('returns "$0" when withdrawTransaction is null', () => {
+        withController(({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.withdrawTransaction = null;
+          });
+
+          const result = (controller as any).getWithdrawAmount();
+
+          expect(result).toBe('$0');
+        });
+      });
+
+      it('returns "$0" when amount is missing', () => {
+        withController(({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.withdrawTransaction = {
+              status: PredictWithdrawStatus.PENDING,
+            } as any;
+          });
+
+          const result = (controller as any).getWithdrawAmount();
+
+          expect(result).toBe('$0');
+        });
+      });
+    });
+
+    describe('getClaimableAmount', () => {
+      it('calculates total claimable amount from WON positions only', () => {
+        withController(({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.claimablePositions = {
+              '0x1234567890123456789012345678901234567890': [
+                {
+                  currentValue: 25.5,
+                  status: PredictPositionStatus.WON,
+                } as PredictPosition,
+                {
+                  currentValue: 30.25,
+                  status: PredictPositionStatus.WON,
+                } as PredictPosition,
+              ],
+            };
+          });
+
+          const result = (controller as any).getClaimableAmount();
+
+          expect(result).toBe('$55.75');
+        });
+      });
+
+      it('excludes LOST positions from claimable total', () => {
+        withController(({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.claimablePositions = {
+              '0x1234567890123456789012345678901234567890': [
+                {
+                  currentValue: 25.5,
+                  status: PredictPositionStatus.WON,
+                } as PredictPosition,
+                {
+                  currentValue: 100,
+                  status: PredictPositionStatus.LOST,
+                } as PredictPosition,
+              ],
+            };
+          });
+
+          const result = (controller as any).getClaimableAmount();
+
+          expect(result).toBe('$25.50');
+        });
+      });
+
+      it('returns "$0" when no claimable positions exist', () => {
+        withController(({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.claimablePositions = {};
+          });
+
+          const result = (controller as any).getClaimableAmount();
+
+          expect(result).toBe('$0');
+        });
+      });
+
+      it('handles WON positions with undefined currentValue', () => {
+        withController(({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.claimablePositions = {
+              '0x1234567890123456789012345678901234567890': [
+                {
+                  currentValue: 25,
+                  status: PredictPositionStatus.WON,
+                } as PredictPosition,
+                {
+                  currentValue: undefined,
+                  status: PredictPositionStatus.WON,
+                } as any,
+              ],
+            };
+          });
+
+          const result = (controller as any).getClaimableAmount();
+
+          expect(result).toBe('$25');
+        });
+      });
+    });
+
+    describe('toast error handling', () => {
+      it('logs error when showPendingToast fails', () => {
+        withController(({ controller }) => {
+          mockShowToast.mockImplementationOnce(() => {
+            throw new Error('Toast error');
+          });
+
+          expect(() => {
+            (controller as any).showPendingToast({
+              title: 'Test',
+              description: 'Test description',
+            });
+          }).not.toThrow();
+
+          expect(DevLogger.log).toHaveBeenCalledWith(
+            'PredictController: Failed to show Pending toast',
+            expect.objectContaining({ error: 'Toast error' }),
+          );
+        });
+      });
+
+      it('logs error when showSuccessToast fails', () => {
+        withController(({ controller }) => {
+          mockShowToast.mockImplementationOnce(() => {
+            throw new Error('Toast error');
+          });
+
+          expect(() => {
+            (controller as any).showSuccessToast({
+              title: 'Test',
+              description: 'Test description',
+            });
+          }).not.toThrow();
+
+          expect(DevLogger.log).toHaveBeenCalledWith(
+            'PredictController: Failed to show Success toast',
+            expect.objectContaining({ error: 'Toast error' }),
+          );
+        });
+      });
+
+      it('logs error when showFailureToast fails', () => {
+        withController(({ controller }) => {
+          mockShowToast.mockImplementationOnce(() => {
+            throw new Error('Toast error');
+          });
+
+          expect(() => {
+            (controller as any).showFailureToast({
+              title: 'Test',
+              description: 'Test description',
+            });
+          }).not.toThrow();
+
+          expect(DevLogger.log).toHaveBeenCalledWith(
+            'PredictController: Failed to show Failure toast',
+            expect.objectContaining({ error: 'Toast error' }),
+          );
+        });
+      });
+    });
+
+    describe('retry methods', () => {
+      beforeEach(() => {
+        mockNavigate.mockClear();
+      });
+
+      describe('retryDeposit', () => {
+        it('navigates to confirmation screen and calls depositWithConfirmation', () => {
+          withController(({ controller }) => {
+            const depositSpy = jest
+              .spyOn(controller, 'depositWithConfirmation')
+              .mockResolvedValue({
+                success: true,
+                response: { batchId: 'test' },
+              });
+
+            (controller as any).retryDeposit();
+
+            expect(mockNavigate).toHaveBeenCalledWith(
+              'RedesignedConfirmations',
+              { loader: 'customAmount' },
+            );
+            expect(depositSpy).toHaveBeenCalledWith({
+              providerId: 'polymarket',
+            });
+          });
+        });
+
+        it('prevents double-tap while retry promise is pending', () => {
+          withController(({ controller }) => {
+            let resolveDeposit: (value: unknown) => void = () => undefined;
+            jest
+              .spyOn(controller, 'depositWithConfirmation')
+              .mockImplementation(
+                () =>
+                  new Promise((resolve) => {
+                    resolveDeposit = resolve as (value: unknown) => void;
+                  }),
+              );
+
+            (controller as any).retryDeposit();
+
+            expect((controller as any).isRetrying).toBe(true);
+            expect(mockNavigate).toHaveBeenCalledTimes(1);
+
+            mockNavigate.mockClear();
+            (controller as any).retryDeposit();
+            expect(mockNavigate).not.toHaveBeenCalled();
+
+            resolveDeposit({ success: true, response: { batchId: 'test' } });
+          });
+        });
+
+        it('resets isRetrying after promise resolves', async () => {
+          await withController(async ({ controller }) => {
+            jest
+              .spyOn(controller, 'depositWithConfirmation')
+              .mockResolvedValue({
+                success: true,
+                response: { batchId: 'test' },
+              });
+
+            (controller as any).retryDeposit();
+
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            expect((controller as any).isRetrying).toBe(false);
+          });
+        });
+
+        it('logs error when depositWithConfirmation fails', async () => {
+          await withController(async ({ controller }) => {
+            const error = new Error('Deposit failed');
+            jest
+              .spyOn(controller, 'depositWithConfirmation')
+              .mockRejectedValue(error);
+
+            (controller as any).retryDeposit();
+
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            expect(DevLogger.log).toHaveBeenCalledWith(
+              'PredictController: Failed to retry deposit',
+              expect.objectContaining({ error: 'Deposit failed' }),
+            );
+            expect((controller as any).isRetrying).toBe(false);
+          });
+        });
+      });
+
+      describe('retryWithdraw', () => {
+        it('navigates to confirmation screen and calls prepareWithdraw', () => {
+          withController(({ controller }) => {
+            const withdrawSpy = jest
+              .spyOn(controller, 'prepareWithdraw')
+              .mockResolvedValue({ success: true, response: 'test' });
+
+            (controller as any).retryWithdraw();
+
+            expect(mockNavigate).toHaveBeenCalledWith(
+              'RedesignedConfirmations',
+              { loader: 'customAmount' },
+            );
+            expect(withdrawSpy).toHaveBeenCalledWith({
+              providerId: 'polymarket',
+            });
+          });
+        });
+
+        it('prevents double-tap while retry promise is pending', () => {
+          withController(({ controller }) => {
+            let resolveWithdraw: (value: unknown) => void = () => undefined;
+            jest.spyOn(controller, 'prepareWithdraw').mockImplementation(
+              () =>
+                new Promise((resolve) => {
+                  resolveWithdraw = resolve as (value: unknown) => void;
+                }),
+            );
+
+            (controller as any).retryWithdraw();
+
+            expect((controller as any).isRetrying).toBe(true);
+            expect(mockNavigate).toHaveBeenCalledTimes(1);
+
+            mockNavigate.mockClear();
+            (controller as any).retryWithdraw();
+            expect(mockNavigate).not.toHaveBeenCalled();
+
+            resolveWithdraw({ success: true, response: 'test' });
+          });
+        });
+      });
+
+      describe('retryClaim', () => {
+        it('navigates to confirmation screen within Predict stack and calls claimWithConfirmation', () => {
+          withController(({ controller }) => {
+            const claimSpy = jest
+              .spyOn(controller as any, 'claimWithConfirmation')
+              .mockResolvedValue({});
+
+            (controller as any).retryClaim();
+
+            expect(mockNavigate).toHaveBeenCalledWith('Predict', {
+              screen: 'NoHeaderConfirmations',
+              params: { loader: 'predictClaim' },
+            });
+            expect(claimSpy).toHaveBeenCalledWith({
+              providerId: 'polymarket',
+            });
+          });
+        });
+
+        it('prevents double-tap while retry promise is pending', () => {
+          withController(({ controller }) => {
+            let resolveClaim: (value: unknown) => void = () => undefined;
+            jest
+              .spyOn(controller as any, 'claimWithConfirmation')
+              .mockImplementation(
+                () =>
+                  new Promise((resolve) => {
+                    resolveClaim = resolve;
+                  }),
+              );
+
+            (controller as any).retryClaim();
+
+            expect((controller as any).isRetrying).toBe(true);
+            expect(mockNavigate).toHaveBeenCalledTimes(1);
+
+            mockNavigate.mockClear();
+            (controller as any).retryClaim();
+            expect(mockNavigate).not.toHaveBeenCalled();
+
+            resolveClaim({});
+          });
+        });
+      });
+
+      describe('navigateToConfirmation', () => {
+        it('navigates directly to route when no stack is provided', () => {
+          withController(({ controller }) => {
+            (controller as any).navigateToConfirmation({
+              loader: 'customAmount',
+            });
+
+            expect(mockNavigate).toHaveBeenCalledWith(
+              'RedesignedConfirmations',
+              { loader: 'customAmount' },
+            );
+          });
+        });
+
+        it('navigates within stack when stack is provided', () => {
+          withController(({ controller }) => {
+            (controller as any).navigateToConfirmation({
+              loader: 'predictClaim',
+              headerShown: false,
+              stack: 'Predict',
+            });
+
+            expect(mockNavigate).toHaveBeenCalledWith('Predict', {
+              screen: 'NoHeaderConfirmations',
+              params: { loader: 'predictClaim' },
+            });
+          });
+        });
+
+        it('uses REDESIGNED_CONFIRMATIONS when headerShown is true', () => {
+          withController(({ controller }) => {
+            (controller as any).navigateToConfirmation({
+              loader: 'customAmount',
+              headerShown: true,
+            });
+
+            expect(mockNavigate).toHaveBeenCalledWith(
+              'RedesignedConfirmations',
+              { loader: 'customAmount' },
+            );
+          });
+        });
+      });
+    });
+
+    describe('transaction event subscription', () => {
+      it('subscribes to transactionStatusUpdated event in constructor', () => {
+        withController(({ controller: _controller, messenger }) => {
+          const transactionMeta = createTransactionMeta(
+            TransactionType.predictDeposit,
+            TransactionStatus.approved,
+          );
+
+          messenger.publish('TransactionController:transactionStatusUpdated', {
+            transactionMeta: transactionMeta as any,
+          });
+
+          expect(mockShowToast).toHaveBeenCalledTimes(1);
         });
       });
     });
