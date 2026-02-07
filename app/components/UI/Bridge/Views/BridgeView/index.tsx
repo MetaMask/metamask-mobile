@@ -87,6 +87,10 @@ import { FLipQuoteButton } from '../../components/FlipQuoteButton/index.tsx';
 import { useIsGasIncludedSTXSendBundleSupported } from '../../hooks/useIsGasIncludedSTXSendBundleSupported/index.ts';
 import { useIsGasIncluded7702Supported } from '../../hooks/useIsGasIncluded7702Supported/index.ts';
 import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
+import {
+  LeaderboardCTA,
+  selectLeaderboardEnabledFlag,
+} from '../../../Leaderboard';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import { useRWAToken } from '../../hooks/useRWAToken.ts';
 
@@ -139,6 +143,7 @@ const BridgeView = () => {
   const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
+  const isLeaderboardEnabled = useSelector(selectLeaderboardEnabledFlag);
   const isDestNetworkEnabled = useIsNetworkEnabled(destToken?.chainId);
 
   // inputRef is used to programmatically blur the input field after a delay
@@ -392,6 +397,11 @@ const BridgeView = () => {
       type: 'dest',
     });
 
+  const handleLeaderboardPress = () => {
+    // Navigate to the Leaderboard screen
+    navigation.navigate(Routes.LEADERBOARD.ROOT);
+  };
+
   const getButtonLabel = () => {
     if (hasInsufficientBalance) return strings('bridge.insufficient_funds');
     if (!hasSufficientGas) return strings('bridge.insufficient_gas');
@@ -601,6 +611,15 @@ const BridgeView = () => {
           contentContainerStyle={styles.scrollViewContent}
           showsVerticalScrollIndicator={false}
         >
+          {/* Leaderboard CTA - Always show when leaderboard is enabled */}
+          {isLeaderboardEnabled && (
+            <LeaderboardCTA
+              onPress={handleLeaderboardPress}
+              maxTraders={3}
+              testID="swap-leaderboard-cta"
+            />
+          )}
+
           <Box style={styles.dynamicContent}>
             {shouldDisplayQuoteDetails ? (
               <Box style={styles.quoteContainer}>

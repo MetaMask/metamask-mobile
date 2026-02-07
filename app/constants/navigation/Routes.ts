@@ -166,6 +166,7 @@ const Routes = {
     SDK_SESSIONS_MANAGER: 'SDKSessionsManager',
     BACKUP_AND_SYNC: 'BackupAndSyncSettings',
     REGION_SELECTOR: 'SettingsRegionSelector',
+    LEADERBOARD: 'LeaderboardSettings',
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
@@ -307,6 +308,10 @@ const Routes = {
       ADD_FUNDS_SHEET: 'PredictAddFundsSheet',
       GTM_MODAL: 'PredictGTMModal',
     },
+  },
+  LEADERBOARD: {
+    ROOT: 'Leaderboard',
+    HOME: 'LeaderboardHome',
   },
   LOCK_SCREEN: 'LockScreen',
   CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',

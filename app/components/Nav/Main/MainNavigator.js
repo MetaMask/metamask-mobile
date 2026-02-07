@@ -14,6 +14,7 @@ import BackupAndSyncSettings from '../../Views/Settings/Identity/BackupAndSyncSe
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
+import LeaderboardSettings from '../../Views/Settings/LeaderboardSettings';
 import RegionSelector from '../../Views/Settings/RegionSelector/RegionSelector';
 import NotificationsView from '../../Views/Notifications';
 import NotificationsDetails from '../../Views/Notifications/Details';
@@ -104,6 +105,10 @@ import {
   PredictModalStack,
   selectPredictEnabledFlag,
 } from '../../UI/Predict';
+import {
+  LeaderboardScreenStack,
+  selectLeaderboardEnabledFlag,
+} from '../../UI/Leaderboard';
 import { selectAssetsTrendingTokensEnabled } from '../../../selectors/featureFlagController/assetsTrendingTokens';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
@@ -387,6 +392,10 @@ const SettingsFlow = () => (
     <Stack.Screen
       name={Routes.RAMP.ACTIVATION_KEY_FORM}
       component={RampActivationKeyForm}
+    />
+    <Stack.Screen
+      name={Routes.SETTINGS.LEADERBOARD}
+      component={LeaderboardSettings}
     />
     {
       /**
@@ -900,6 +909,12 @@ const MainNavigator = () => {
     () => predictEnabledFlag,
     [predictEnabledFlag],
   );
+  // Get feature flag state for conditional Leaderboard screen registration
+  const leaderboardEnabledFlag = useSelector(selectLeaderboardEnabledFlag);
+  const isLeaderboardEnabled = useMemo(
+    () => leaderboardEnabledFlag,
+    [leaderboardEnabledFlag],
+  );
   // Get feature flag state for conditional Trending Tokens screen registration
   const isAssetsTrendingTokensEnabled = useSelector(
     selectAssetsTrendingTokensEnabled,
@@ -1237,6 +1252,27 @@ const MainNavigator = () => {
             options={clearStackNavigatorOptions}
           />
         </>
+      )}
+      {isLeaderboardEnabled && (
+        <Stack.Screen
+          name={Routes.LEADERBOARD.ROOT}
+          component={LeaderboardScreenStack}
+          options={{
+            animationEnabled: true,
+            cardStyleInterpolator: ({ current, layouts }) => ({
+              cardStyle: {
+                transform: [
+                  {
+                    translateX: current.progress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [layouts.screen.width, 0],
+                    }),
+                  },
+                ],
+              },
+            }),
+          }}
+        />
       )}
       {isAssetsTrendingTokensEnabled && (
         <>
