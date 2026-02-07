@@ -26,6 +26,10 @@ const PAY_CONTROLLER_STATE_MOCK = {
                   metrics: { attempts: 3, buffer: 0.123, latency: 1234 },
                   quote: { bridgeId: 'testBridge' },
                 },
+                fees: {
+                  impact: { usd: '0.12' },
+                  impactRatio: 0.34,
+                },
                 request: {
                   targetTokenAddress: '0x123',
                 },
@@ -38,6 +42,31 @@ const PAY_CONTROLLER_STATE_MOCK = {
     },
   },
 } as unknown as RootState;
+
+const ACROSS_CONTROLLER_STATE_MOCK = merge({}, PAY_CONTROLLER_STATE_MOCK, {
+  engine: {
+    backgroundState: {
+      TransactionPayController: {
+        transactionData: {
+          'parent-1': {
+            quotes: [
+              {},
+              {
+                original: {
+                  metrics: { latency: 2222 },
+                },
+                request: {
+                  targetTokenAddress: '0x123',
+                },
+                strategy: 'across' as TransactionPayStrategy,
+              },
+            ],
+          },
+        },
+      },
+    },
+  },
+}) as unknown as RootState;
 
 describe('Metamask Pay Metrics', () => {
   const getStateMock: jest.MockedFn<
@@ -214,6 +243,37 @@ describe('Metamask Pay Metrics', () => {
         mm_pay_quotes_attempts: 3,
         mm_pay_quotes_buffer_size: 0.123,
         mm_pay_quotes_latency: 1234,
+        mm_pay_quote_impact_usd: '0.12',
+        mm_pay_quote_impact_ratio: 0.34,
+      }),
+      sensitiveProperties: {},
+    });
+  });
+
+  it('adds across quote latency for bridge', () => {
+    request.transactionMeta.type = TransactionType.bridge;
+
+    request.allTransactions = [
+      {
+        id: 'child-0',
+        type: TransactionType.bridge,
+      } as TransactionMeta,
+      {
+        id: 'parent-1',
+        type: TransactionType.perpsDeposit,
+        requiredTransactionIds: ['child-0', 'child-1'],
+      } as TransactionMeta,
+      request.transactionMeta,
+    ];
+
+    getStateMock.mockReturnValue(ACROSS_CONTROLLER_STATE_MOCK);
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: expect.objectContaining({
+        mm_pay_quotes_latency: 2222,
+        mm_pay_strategy: 'across',
       }),
       sensitiveProperties: {},
     });
@@ -249,6 +309,8 @@ describe('Metamask Pay Metrics', () => {
         mm_pay_quotes_attempts: 3,
         mm_pay_quotes_buffer_size: 0.123,
         mm_pay_quotes_latency: 1234,
+        mm_pay_quote_impact_usd: '0.12',
+        mm_pay_quote_impact_ratio: 0.34,
       }),
       sensitiveProperties: {},
     });
@@ -368,6 +430,21 @@ describe('Metamask Pay Metrics', () => {
       properties: {
         polymarket_account_created: false,
       },
+      sensitiveProperties: {},
+    });
+  });
+
+  it('adds execution latency when available', () => {
+    request.transactionMeta.metamaskPay = {
+      executionLatencyMs: 400,
+    };
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: expect.objectContaining({
+        mm_pay_execution_latency: 400,
+      }),
       sensitiveProperties: {},
     });
   });
