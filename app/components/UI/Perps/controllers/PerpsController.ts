@@ -2361,6 +2361,14 @@ export class PerpsController extends BaseController<
       this.initializationPromise = null;
       await this.init();
 
+      // Check if initialization actually succeeded — performInitialization()
+      // does not throw on failure, it sets state to Failed and resolves.
+      if (this.state.initializationState === InitializationState.Failed) {
+        throw new Error(
+          this.state.initializationError ?? 'Provider initialization failed',
+        );
+      }
+
       this.debugLog('PerpsController: Provider switch completed', {
         providerId,
         timestamp: new Date().toISOString(),
