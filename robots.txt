@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /node_modules/
+Disallow: /ios/
+Disallow: /android/
+
+Sitemap: https://github.com/MetaMask/metamask-mobile
