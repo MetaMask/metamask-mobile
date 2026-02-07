@@ -52,7 +52,6 @@ import {
   selectSwapsTransactions,
   selectTransactions,
 } from '../../../../selectors/transactionController';
-import { swapsControllerTokens } from '../../../../reducers/swaps';
 import { getGlobalEthQuery } from '../../../../util/networks/global-network';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import Avatar, {
@@ -162,7 +161,6 @@ class TransactionDetails extends PureComponent {
     conversionRate: PropTypes.number,
     currentCurrency: PropTypes.string,
     swapsTransactions: PropTypes.object,
-    swapsTokens: PropTypes.array,
     primaryCurrency: PropTypes.string,
 
     /**
@@ -234,7 +232,6 @@ class TransactionDetails extends PureComponent {
       tokens,
       primaryCurrency,
       swapsTransactions,
-      swapsTokens,
       transactions,
     } = this.props;
 
@@ -268,7 +265,6 @@ class TransactionDetails extends PureComponent {
         tokens,
         primaryCurrency,
         swapsTransactions,
-        swapsTokens,
         txChainId: transactionObject.chainId,
       });
       this.setState({ updatedTransactionDetails: decodedTx[1] });
@@ -566,7 +562,6 @@ const mapStateToProps = (state, ownProps) => ({
   currentCurrency: selectCurrentCurrency(state),
   primaryCurrency: selectPrimaryCurrency(state),
   swapsTransactions: selectSwapsTransactions(state),
-  swapsTokens: swapsControllerTokens(state),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(
     state,
     ownProps.transactionObject.chainId,
