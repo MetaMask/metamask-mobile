@@ -10,10 +10,9 @@ import { Authentication } from '../../../../../core';
 import AUTHENTICATION_TYPE from '../../../../../constants/userProperties';
 import { TURN_ON_REMEMBER_ME } from '../SecuritySettings.constants';
 import Logger from '../../../../../util/Logger';
-import AuthenticationError from '../../../../../core/Authentication/AuthenticationError';
-import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../../../constants/error';
 import StorageWrapper from '../../../../../store/storage-wrapper';
 import { PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME } from '../../../../../constants/storage';
+import { ReauthenticateErrorType } from '../../../../../core/Authentication/types';
 
 const RememberMeOptionSection = () => {
   const { navigate } = useNavigation();
@@ -35,12 +34,12 @@ const RememberMeOptionSection = () => {
           });
           // Only set Redux state after operation completes successfully
           dispatch(setAllowLoginWithRememberMe(value));
-        } catch (error) {
+        } catch (e) {
+          const error = e as Error;
           // Check if error is "password required" - navigate to password entry
-          const isPasswordRequiredError =
-            error instanceof AuthenticationError &&
-            error.customErrorMessage ===
-              AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS;
+          const isPasswordRequiredError = error.message.includes(
+            ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS,
+          );
 
           if (isPasswordRequiredError) {
             // Navigate to password entry
@@ -95,12 +94,12 @@ const RememberMeOptionSection = () => {
           );
           // Only set Redux state after operation completes successfully
           dispatch(setAllowLoginWithRememberMe(value));
-        } catch (error) {
+        } catch (e) {
+          const error = e as Error;
           // Check if error is "password required" - navigate to password entry
-          const isPasswordRequiredError =
-            error instanceof AuthenticationError &&
-            error.customErrorMessage ===
-              AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS;
+          const isPasswordRequiredError = error.message.includes(
+            ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS,
+          );
 
           if (isPasswordRequiredError) {
             // Navigate to password entry

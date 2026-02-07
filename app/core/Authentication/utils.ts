@@ -2,6 +2,12 @@ import { containsErrorMessage } from '../../util/errorHandling';
 import { UnlockWalletErrorType } from './types';
 import { MIN_PASSWORD_LENGTH, UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
 import { SeedlessOnboardingControllerError } from '../Engine/controllers/seedless-onboarding-controller/error';
+import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
+
+export const trackUnlockWalletErrorAsAnalytics = (error: Error) => {
+  const loginErrorMessage = error.message;
+  trackErrorAsAnalytics('Authentication: Error', loginErrorMessage);
+};
 
 /**
  * Handles password submission errors by throwing the appropriate error.
