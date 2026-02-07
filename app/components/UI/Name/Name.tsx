@@ -9,16 +9,38 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import Icon, {
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../component-library/hooks';
 import images from '../../../images/image-icons';
 import { renderShortAddress } from '../../../util/address';
 import useDisplayName, {
   DisplayNameVariant,
 } from '../../hooks/DisplayName/useDisplayName';
+import { TrustSignalIcon } from '../../Views/confirmations/utils/trust-signals';
 import Identicon from '../Identicon';
 import styleSheet from './Name.styles';
 import { NameProperties, NameType } from './Name.types';
 import { TooltipModal } from '../../Views/confirmations/components/UI/Tooltip';
+
+/**
+ * Component to render a trust signal icon if available.
+ */
+const TrustIcon: React.FC<{ icon: TrustSignalIcon | null }> = ({ icon }) => {
+  if (!icon) {
+    return null;
+  }
+
+  return (
+    <Icon
+      name={icon.name}
+      color={icon.color}
+      size={IconSize.Sm}
+      testID="trust-signal-icon"
+    />
+  );
+};
 
 const NameLabel: React.FC<{
   displayNameVariant: DisplayNameVariant;
@@ -42,18 +64,23 @@ const UnknownEthereumAddress: React.FC<{
   address: string;
   style?: ViewStyle;
   iconSize: AvatarSize;
-}> = ({ address, style, iconSize }) => {
+  icon?: TrustSignalIcon | null | undefined;
+}> = ({ address, style, iconSize, icon = null }) => {
   const displayNameVariant = DisplayNameVariant.Unknown;
   const { styles } = useStyles(styleSheet, { displayNameVariant });
 
   return (
     <View style={[styles.base, style]}>
-      <Identicon
-        avatarSize={iconSize}
-        address={address}
-        diameter={16}
-        customStyle={styles.image}
-      />
+      {icon ? (
+        <TrustIcon icon={icon} />
+      ) : (
+        <Identicon
+          avatarSize={iconSize}
+          address={address}
+          diameter={16}
+          customStyle={styles.image}
+        />
+      )}
       <NameLabel displayNameVariant={displayNameVariant} ellipsizeMode="middle">
         {renderShortAddress(address, 5)}
       </NameLabel>
@@ -74,7 +101,7 @@ const Name: React.FC<NameProperties> = ({
     throw new Error('Unsupported NameType: ' + type);
   }
 
-  const { image, name, variant, isFirstPartyContractName, subtitle } =
+  const { image, name, variant, isFirstPartyContractName, subtitle, icon } =
     useDisplayName({
       preferContractSymbol,
       type,
@@ -93,6 +120,7 @@ const Name: React.FC<NameProperties> = ({
         iconSize={iconSize}
         address={value}
         style={style}
+        icon={icon}
       />
     );
   }
@@ -115,7 +143,9 @@ const Name: React.FC<NameProperties> = ({
         onPress={() => setIsTooltipVisible(true)}
       >
         <View style={[styles.base, style]}>
-          {isFirstPartyContractName ? (
+          {icon ? (
+            <TrustIcon icon={icon} />
+          ) : isFirstPartyContractName ? (
             <Badge
               size={AvatarSize.Xs}
               imageSource={images.FOX_LOGO}
