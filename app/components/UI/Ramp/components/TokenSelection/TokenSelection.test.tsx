@@ -241,8 +241,13 @@ describe('TokenSelection Component', () => {
     });
   });
 
-  it('navigates directly to AMOUNT_INPUT without closing modal when token is pressed (V2 flow)', () => {
+  it('sets selected token and navigates directly to AMOUNT_INPUT without closing modal when token is pressed (V2 flow)', () => {
+    const mockSetSelectedToken = jest.fn();
     mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
+    mockUseRampsController.mockReturnValue({
+      ...mockUseRampsController(),
+      setSelectedToken: mockSetSelectedToken,
+    });
     const { getByTestId } = renderWithProvider(TokenSelection);
 
     const firstToken = getByTestId(`token-list-item-${mockTokens[0].assetId}`);
@@ -250,6 +255,7 @@ describe('TokenSelection Component', () => {
 
     expect(mockParentGoBack).not.toHaveBeenCalled();
     expect(mockGoToBuy).not.toHaveBeenCalled();
+    expect(mockSetSelectedToken).toHaveBeenCalledWith(mockTokens[0].assetId);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.AMOUNT_INPUT, {
       assetId: mockTokens[0].assetId,
     });

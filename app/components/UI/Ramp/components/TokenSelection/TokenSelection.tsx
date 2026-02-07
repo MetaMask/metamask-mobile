@@ -59,6 +59,7 @@ function TokenSelection() {
     tokens: controllerTokens,
     tokensLoading: controllerTokensLoading,
     tokensError: controllerTokensError,
+    setSelectedToken,
   } = useRampsController();
   const legacyTokens = useRampTokens();
 
@@ -145,10 +146,9 @@ function TokenSelection() {
         });
       }
       // V1 flow: close the modal before navigating to Deposit/Aggregator
-      // V2 flow: navigate within the same stack directly to AMOUNT_INPUT
+      // V2 flow: set selected token on controller and navigate within the same stack
       if (isRampsUnifiedV2Enabled) {
-        // When already on TokenSelection screen (inside MainRoutes stack),
-        // navigate directly to AMOUNT_INPUT within the same stack
+        setSelectedToken(assetId);
         navigation.navigate(Routes.RAMP.AMOUNT_INPUT, { assetId });
       } else {
         navigation.dangerouslyGetParent()?.goBack();
@@ -164,6 +164,7 @@ function TokenSelection() {
       isRampsUnifiedV2Enabled,
       navigation,
       goToBuy,
+      setSelectedToken,
     ],
   );
 
