@@ -1,5 +1,6 @@
 import React from 'react';
 import { Image, TouchableOpacity, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../component-library/hooks';
 import { PredictPosition as PredictPositionType } from '../../types';
 import { formatPercentage, formatPrice } from '../../utils/format';
@@ -13,7 +14,10 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import SensitiveText from '../../../../../component-library/components/Texts/SensitiveText';
+import { TextVariant as ComponentTextVariant } from '../../../../../component-library/components/Texts/Text';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 
 interface PredictPositionProps {
   position: PredictPositionType;
@@ -26,6 +30,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
 }: PredictPositionProps) => {
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
+  const privacyMode = useSelector(selectPrivacyMode);
 
   const currentPosition = usePredictOptimisticPositionRefresh({
     position,
@@ -59,10 +64,11 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
         >
           {title}
         </Text>
-        <Text
-          variant={TextVariant.BodySm}
+        <SensitiveText
+          variant={ComponentTextVariant.BodySM}
           color={TextColor.TextAlternative}
           style={tw.style('font-medium')}
+          isHidden={privacyMode}
         >
           {strings('predict.position_info', {
             initialValue: formatPrice(initialValue, {
@@ -73,7 +79,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
               maximumDecimals: 2,
             }),
           })}
-        </Text>
+        </SensitiveText>
       </View>
       <View style={styles.positionPnl}>
         {optimistic ? (
@@ -83,24 +89,26 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
           </>
         ) : (
           <>
-            <Text
-              variant={TextVariant.BodyMd}
+            <SensitiveText
+              variant={ComponentTextVariant.BodyMD}
               color={TextColor.TextDefault}
               style={tw.style('font-medium')}
+              isHidden={privacyMode}
             >
               {formatPrice(currentValue, { maximumDecimals: 2 })}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
+            </SensitiveText>
+            <SensitiveText
+              variant={ComponentTextVariant.BodySM}
               style={tw.style('font-medium')}
               color={
                 percentPnl > 0
                   ? TextColor.SuccessDefault
                   : TextColor.ErrorDefault
               }
+              isHidden={privacyMode}
             >
               {formatPercentage(percentPnl)}
-            </Text>
+            </SensitiveText>
           </>
         )}
       </View>

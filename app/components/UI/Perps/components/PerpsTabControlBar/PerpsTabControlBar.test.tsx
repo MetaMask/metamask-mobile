@@ -12,6 +12,17 @@ import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import * as PerpsHooks from '../../hooks';
 import PerpsTabControlBar from './PerpsTabControlBar';
 
+// Mock privacy mode selector
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  selectPrivacyMode: jest.fn(() => false),
+}));
+
+// Mock react-redux
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('../../providers/PerpsStreamManager', () => ({
   usePerpsStream: jest.fn(() => ({
     account: {

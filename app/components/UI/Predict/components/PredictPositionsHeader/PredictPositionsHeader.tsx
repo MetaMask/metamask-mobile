@@ -18,6 +18,9 @@ import React, {
 } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
+import SensitiveText from '../../../../../component-library/components/Texts/SensitiveText';
+import { TextVariant as ComponentTextVariant } from '../../../../../component-library/components/Texts/Text';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { strings } from '../../../../../../locales/i18n';
 import { PredictPositionsHeaderSelectorsIDs } from '../../Predict.testIds';
 import Icon, {
@@ -61,6 +64,7 @@ const PredictPositionsHeader = forwardRef<
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const tw = useTailwind();
+  const privacyMode = useSelector(selectPrivacyMode);
   const { executeGuardedAction } = usePredictActionGuard({
     providerId: POLYMARKET_PROVIDER_ID,
     navigation,
@@ -176,11 +180,15 @@ const PredictPositionsHeader = forwardRef<
           onPress={handleClaim}
           style={tw.style('w-full')}
         >
-          <Text variant={TextVariant.BodyMd} color={TextColor.PrimaryInverse}>
+          <SensitiveText
+            variant={ComponentTextVariant.BodyMD}
+            color={TextColor.PrimaryInverse}
+            isHidden={privacyMode}
+          >
             {strings('predict.claim_amount_text', {
               amount: totalClaimableAmount.toFixed(2),
             })}
-          </Text>
+          </SensitiveText>
         </ButtonHero>
       )}
 
@@ -234,13 +242,14 @@ const PredictPositionsHeader = forwardRef<
                     />
                   ) : (
                     <>
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        twClassName="text-primary mr-1"
+                      <SensitiveText
+                        variant={ComponentTextVariant.BodyMD}
+                        style={tw.style('text-primary mr-1')}
                         testID="claimable-amount"
+                        isHidden={privacyMode}
                       >
                         {formatPrice(balance, { maximumDecimals: 2 })}
-                      </Text>
+                      </SensitiveText>
                       <Icon
                         name={IconName.ArrowRight}
                         size={IconSize.Sm}
@@ -274,19 +283,20 @@ const PredictPositionsHeader = forwardRef<
                     style={tw.style('rounded-md')}
                   />
                 ) : (
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    twClassName={
+                  <SensitiveText
+                    variant={ComponentTextVariant.BodyMD}
+                    style={tw.style(
                       unrealizedAmount >= 0
                         ? 'text-success-default'
-                        : 'text-error-default'
-                    }
+                        : 'text-error-default',
+                    )}
+                    isHidden={privacyMode}
                   >
                     {strings('predict.unrealized_pnl_value', {
                       amount: formatAmount(unrealizedAmount),
                       percent: formatPercent(unrealizedPercent),
                     })}
-                  </Text>
+                  </SensitiveText>
                 )}
               </Box>
             </>
