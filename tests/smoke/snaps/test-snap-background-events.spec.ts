@@ -119,11 +119,18 @@ describe(FlaskBuildTests('Background Events Snap Tests'), () => {
 
         await TestSnaps.fillMessage('backgroundEventDateInput', pastDate);
         await TestSnaps.tapButton('scheduleBackgroundEventWithDateButton');
-        await TestSnaps.checkResultSpanIncludes(
-          'scheduleBackgroundEventResultSpan',
-          'Cannot schedule an event in the past.',
-          { timeout: 30000 },
-        );
+        // Race native dialog (iOS) vs web-view result span (Android).
+        await Promise.any([
+          Assertions.expectTextDisplayed(
+            'Cannot schedule an event in the past.',
+            { timeout: 30000 },
+          ),
+          TestSnaps.checkResultSpanIncludes(
+            'scheduleBackgroundEventResultSpan',
+            'Cannot schedule an event in the past.',
+            { timeout: 30000 },
+          ),
+        ]);
       },
     );
   });

@@ -3,6 +3,7 @@ import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TestSnaps from '../../../e2e/pages/Browser/TestSnaps';
+import Assertions from '../../framework/Assertions';
 
 jest.setTimeout(150_000);
 
@@ -84,11 +85,18 @@ describe(FlaskBuildTests('Get Entropy Snap Tests'), () => {
         await TestSnaps.fillMessage('entropyMessageInput', 'foo bar');
         await TestSnaps.tapButton('signEntropyMessageButton');
         await TestSnaps.approveSignRequest();
-        await TestSnaps.checkResultSpanIncludes(
-          'entropySignResultSpan',
-          'Entropy source with ID "invalid" not found.',
-          { timeout: 30000 },
-        );
+        // Race native dialog (iOS) vs web-view result span (Android).
+        await Promise.any([
+          Assertions.expectTextDisplayed(
+            'Entropy source with ID "invalid" not found.',
+            { timeout: 30000 },
+          ),
+          TestSnaps.checkResultSpanIncludes(
+            'entropySignResultSpan',
+            'Entropy source with ID',
+            { timeout: 30000 },
+          ),
+        ]);
       },
     );
   });
