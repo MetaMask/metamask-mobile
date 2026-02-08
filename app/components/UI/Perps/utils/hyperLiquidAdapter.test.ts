@@ -35,6 +35,7 @@ import { calculatePositionSize } from '@metamask/perps-controller/utils/hyperLiq
 
 // Mock the isHexString utility
 jest.mock('@metamask/utils', () => ({
+  ...jest.requireActual('@metamask/utils'),
   isHexString: (value: string) => value.startsWith('0x'),
 }));
 

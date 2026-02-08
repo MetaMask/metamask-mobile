@@ -27,6 +27,10 @@ jest.mock('@metamask/perps-controller', () => {
   const actualPerpsController = jest.requireActual(
     '@metamask/perps-controller/PerpsController',
   );
+  const actualUtils = jest.requireActual('@metamask/perps-controller/utils');
+  const actualConstants = jest.requireActual(
+    '@metamask/perps-controller/constants',
+  );
 
   return {
     controllerName: actualPerpsController.controllerName,
@@ -34,6 +38,8 @@ jest.mock('@metamask/perps-controller', () => {
       actualPerpsController.getDefaultPerpsControllerState,
     InitializationState: actualPerpsController.InitializationState,
     PerpsController: jest.fn(),
+    parseCommaSeparatedString: actualUtils.parseCommaSeparatedString,
+    MARKET_SORTING_CONFIG: actualConstants.MARKET_SORTING_CONFIG,
   };
 });
 
