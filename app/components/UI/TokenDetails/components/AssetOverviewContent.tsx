@@ -11,11 +11,10 @@ import { useNavigation } from '@react-navigation/native';
 import type { Theme } from '@metamask/design-tokens';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
-import DSText, {
-  getFontFamily,
+import Text, {
+  TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import Text from '../../../Base/Text';
 import AppConstants from '../../../../core/AppConstants';
 import Routes from '../../../../constants/navigation/Routes';
 import { createWebviewNavDetails } from '../../../Views/SimpleWebview';
@@ -26,7 +25,9 @@ import {
 } from '../../../hooks/useTokenHistoricalPrices';
 import { TokenI } from '../../Tokens/types';
 import { usePerpsActions } from '../hooks/usePerpsActions';
+import { usePerpsPositionForAsset } from '../../Perps/hooks/usePerpsPositionForAsset';
 import { PERPS_EVENT_VALUE } from '../../Perps/constants/eventNames';
+import PerpsPositionCard from '../../Perps/components/PerpsPositionCard';
 import Price from '../../AssetOverview/Price';
 import ChartNavigationButton from '../../AssetOverview/ChartNavigationButton';
 import Balance from '../../AssetOverview/Balance';
@@ -46,7 +47,7 @@ import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDe
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
-  const { colors, typography } = theme;
+  const { colors } = theme;
   return StyleSheet.create({
     wrapper: {
       paddingTop: 20,
@@ -56,19 +57,12 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 20,
     } as ViewStyle,
     warning: {
-      ...typography.sBodyMD,
-      fontFamily: getFontFamily(TextVariant.BodyMD),
       borderRadius: 8,
       borderWidth: 1,
       borderColor: colors.warning.default,
       backgroundColor: colors.warning.muted,
       padding: 20,
-    } as TextStyle,
-    warningLinks: {
-      ...typography.sBodyMD,
-      fontFamily: getFontFamily(TextVariant.BodyMD),
-      color: colors.primary.default,
-    } as TextStyle,
+    } as ViewStyle,
     chartNavigationWrapper: {
       display: 'flex',
       flexDirection: 'row',
@@ -81,10 +75,13 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 20,
       paddingHorizontal: 16,
     } as ViewStyle,
-    perpsPositionHeader: {
+    perpsPositionCardContainer: {
       paddingHorizontal: 16,
       paddingTop: 24,
     } as ViewStyle,
+    perpsPositionTitle: {
+      marginBottom: 8,
+    } as TextStyle,
   });
 };
 
@@ -187,6 +184,12 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
   const isButtonsLoading = isBuyableLoading || isPerpsLoading;
 
+  // Check if user has a position for this asset (only if perps is enabled and market exists)
+  const { position: perpsPosition, isLoading: isPerpsPositionLoading } =
+    usePerpsPositionForAsset(
+      isPerpsEnabled && hasPerpsMarket ? token.symbol : null,
+    );
+
   const isTokenTrustworthy = isTokenTrustworthyForPerps(token);
 
   const isTokenDetailsV2ButtonsEnabled = useSelector(
@@ -224,14 +227,16 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       <TouchableOpacity
         onPress={() => goToBrowserUrl(AppConstants.URLS.TOKEN_BALANCE)}
       >
-        <Text style={styles.warning}>
-          {strings('asset_overview.were_unable')} {token.symbol}{' '}
-          {strings('asset_overview.balance')}{' '}
-          <Text style={styles.warningLinks}>
-            {strings('asset_overview.troubleshooting_missing')}
-          </Text>{' '}
-          {strings('asset_overview.for_help')}
-        </Text>
+        <View style={styles.warning}>
+          <Text variant={TextVariant.BodyMD}>
+            {strings('asset_overview.were_unable')} {token.symbol}{' '}
+            {strings('asset_overview.balance')}{' '}
+            <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
+              {strings('asset_overview.troubleshooting_missing')}
+            </Text>{' '}
+            {strings('asset_overview.for_help')}
+          </Text>
+        </View>
       </TouchableOpacity>
     </View>
   );
@@ -280,8 +285,12 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               isNativeCurrency={token.isETH || token.isNative || false}
               token={token}
               onBuy={onBuy}
-              onLong={handlePerpsAction}
-              onShort={handlePerpsAction}
+              onLong={
+                handlePerpsAction ? () => handlePerpsAction('long') : undefined
+              }
+              onShort={
+                handlePerpsAction ? () => handlePerpsAction('short') : undefined
+              }
               onSend={onSend}
               onReceive={onReceive}
               isLoading={isButtonsLoading}
@@ -343,19 +352,39 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           {isPerpsEnabled &&
             hasPerpsMarket &&
             marketData &&
-            isTokenTrustworthy && (
+            isTokenTrustworthy &&
+            !isPerpsPositionLoading && (
               <>
-                <View style={styles.perpsPositionHeader}>
-                  <DSText variant={TextVariant.HeadingMD}>
-                    {strings('asset_overview.perps_position')}
-                  </DSText>
-                </View>
-                <PerpsDiscoveryBanner
-                  symbol={marketData.symbol}
-                  maxLeverage={marketData.maxLeverage}
-                  onPress={handlePerpsDiscoveryPress}
-                  testID="perps-discovery-banner"
-                />
+                {perpsPosition ? (
+                  <View style={styles.perpsPositionCardContainer}>
+                    <Text
+                      variant={TextVariant.HeadingMD}
+                      style={styles.perpsPositionTitle}
+                    >
+                      {strings('asset_overview.perps_position')}
+                    </Text>
+                    <PerpsPositionCard
+                      position={perpsPosition}
+                      compact
+                      onPress={handlePerpsDiscoveryPress}
+                      testID={TokenOverviewSelectorsIDs.PERPS_POSITION_CARD}
+                    />
+                  </View>
+                ) : (
+                  <>
+                    <View style={styles.perpsPositionCardContainer}>
+                      <Text variant={TextVariant.HeadingMD}>
+                        {strings('asset_overview.perps_position')}
+                      </Text>
+                    </View>
+                    <PerpsDiscoveryBanner
+                      symbol={marketData.symbol}
+                      maxLeverage={marketData.maxLeverage}
+                      onPress={handlePerpsDiscoveryPress}
+                      testID={TokenOverviewSelectorsIDs.PERPS_DISCOVERY_BANNER}
+                    />
+                  </>
+                )}
               </>
             )}
           <View style={styles.tokenDetailsWrapper}>

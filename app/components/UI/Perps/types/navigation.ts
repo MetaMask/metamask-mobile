@@ -215,6 +215,12 @@ export interface PerpsNavigationParamList extends ParamListBase {
   RedesignedConfirmations: {
     showPerpsHeader?: boolean;
   };
+
+  /** Params for PerpsOrderRedirect - handles one-click trade from token details */
+  PerpsOrderRedirect: {
+    direction: 'long' | 'short';
+    asset: string;
+  };
 }
 
 /**

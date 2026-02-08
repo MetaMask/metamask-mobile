@@ -220,6 +220,9 @@ export class AccountService {
           });
         });
 
+        // Invalidate readOnly caches so external hooks (e.g., usePerpsPositionForAsset) refresh
+        this.deps.cacheInvalidator.invalidate({ cacheType: 'accountState' });
+
         traceData = {
           success: true,
           txHash: result.txHash || '',

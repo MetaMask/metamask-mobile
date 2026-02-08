@@ -25,6 +25,7 @@ import type {
 import { HyperLiquidProvider } from './HyperLiquidProvider';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import { TradingReadinessCache } from '../../services/TradingReadinessCache';
+import { createStandaloneInfoClient } from '../../utils/standaloneInfoClient';
 
 jest.mock('../../services/HyperLiquidClientService');
 jest.mock('../../services/HyperLiquidWalletService');
@@ -35,6 +36,13 @@ let mockStreamManagerInstance: any;
 const mockGetStreamManagerInstance = jest.fn(() => mockStreamManagerInstance);
 jest.mock('../../providers/PerpsStreamManager', () => ({
   getStreamManagerInstance: mockGetStreamManagerInstance,
+}));
+
+// Mock standalone info client for readOnly mode tests
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let mockStandaloneInfoClient: any;
+jest.mock('../../utils/standaloneInfoClient', () => ({
+  createStandaloneInfoClient: jest.fn(() => mockStandaloneInfoClient),
 }));
 
 jest.mock('../../utils/hyperLiquidValidation', () => ({
@@ -7656,6 +7664,228 @@ describe('HyperLiquidProvider', () => {
       expect(result).toEqual([]);
       // Should NOT call REST API since cache is initialized
       expect(mockClientService.getInfoClient).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('readOnly mode', () => {
+    const mockUserAddress = '0xabcdef1234567890abcdef1234567890abcdef12';
+    const mockCreateStandaloneInfoClient =
+      createStandaloneInfoClient as jest.MockedFunction<
+        typeof createStandaloneInfoClient
+      >;
+
+    beforeEach(() => {
+      // Reset standalone client mock
+      mockStandaloneInfoClient = {
+        clearinghouseState: jest.fn(),
+      };
+    });
+
+    describe('getPositions with readOnly mode', () => {
+      it('returns positions via standalone client when readOnly mode enabled', async () => {
+        // Arrange
+        mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
+          assetPositions: [
+            {
+              position: {
+                coin: 'BTC',
+                szi: '0.5',
+                entryPx: '45000',
+                positionValue: '22500',
+                unrealizedPnl: '500',
+                marginUsed: '2250',
+                leverage: { type: 'cross', value: 10 },
+                liquidationPx: '40000',
+                maxLeverage: 50,
+                returnOnEquity: '22.22',
+                cumFunding: { allTime: '10', sinceOpen: '5', sinceChange: '2' },
+              },
+              type: 'oneWay',
+            },
+          ],
+          marginSummary: {
+            totalMarginUsed: '2250',
+            accountValue: '25000',
+          },
+        });
+
+        // Act
+        const positions = await provider.getPositions({
+          readOnly: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert
+        expect(mockCreateStandaloneInfoClient).toHaveBeenCalledWith({
+          isTestnet: false,
+        });
+        expect(
+          mockStandaloneInfoClient.clearinghouseState,
+        ).toHaveBeenCalledWith({ user: mockUserAddress });
+        expect(positions).toHaveLength(1);
+        expect(positions[0].symbol).toBe('BTC');
+        expect(positions[0].size).toBe('0.5');
+      });
+
+      it('filters zero-size positions in readOnly mode', async () => {
+        // Arrange - include positions with zero size
+        mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
+          assetPositions: [
+            {
+              position: {
+                coin: 'BTC',
+                szi: '0.5',
+                entryPx: '45000',
+                positionValue: '22500',
+                unrealizedPnl: '500',
+                marginUsed: '2250',
+                leverage: { type: 'cross', value: 10 },
+                liquidationPx: '40000',
+                maxLeverage: 50,
+                returnOnEquity: '22.22',
+                cumFunding: { allTime: '10', sinceOpen: '5', sinceChange: '2' },
+              },
+              type: 'oneWay',
+            },
+            {
+              position: {
+                coin: 'ETH',
+                szi: '0', // Zero size - should be filtered out
+                entryPx: '3000',
+                positionValue: '0',
+                unrealizedPnl: '0',
+                marginUsed: '0',
+                leverage: { type: 'cross', value: 10 },
+                liquidationPx: '0',
+                maxLeverage: 50,
+                returnOnEquity: '0',
+                cumFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+              },
+              type: 'oneWay',
+            },
+          ],
+          marginSummary: {
+            totalMarginUsed: '2250',
+            accountValue: '25000',
+          },
+        });
+
+        // Act
+        const positions = await provider.getPositions({
+          readOnly: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert - ETH position with zero size should be filtered out
+        expect(positions).toHaveLength(1);
+        expect(positions[0].symbol).toBe('BTC');
+      });
+
+      it('uses testnet endpoint when provider is in testnet mode', async () => {
+        // Arrange - override isTestnetMode to return true for this test
+        mockClientService.isTestnetMode.mockReturnValue(true);
+        mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
+          assetPositions: [],
+          marginSummary: { totalMarginUsed: '0', accountValue: '0' },
+        });
+
+        // Act
+        await provider.getPositions({
+          readOnly: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert
+        expect(mockCreateStandaloneInfoClient).toHaveBeenCalledWith({
+          isTestnet: true,
+        });
+      });
+
+      it('returns empty array when standalone client fails', async () => {
+        // Arrange - getPositions catches errors and returns empty array
+        mockStandaloneInfoClient.clearinghouseState.mockRejectedValue(
+          new Error('Network error'),
+        );
+
+        // Act
+        const positions = await provider.getPositions({
+          readOnly: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert - returns empty array instead of throwing (matches implementation)
+        expect(positions).toEqual([]);
+      });
+    });
+
+    describe('getAccountState with readOnly mode', () => {
+      it('returns account state via standalone client when readOnly mode enabled', async () => {
+        // Arrange
+        mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
+          assetPositions: [],
+          marginSummary: {
+            totalMarginUsed: '1000',
+            accountValue: '50000',
+          },
+          withdrawable: '45000',
+          crossMarginSummary: {
+            accountValue: '50000',
+            totalMarginUsed: '1000',
+          },
+        });
+
+        // Act
+        const accountState = await provider.getAccountState({
+          readOnly: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert
+        expect(mockCreateStandaloneInfoClient).toHaveBeenCalledWith({
+          isTestnet: false,
+        });
+        expect(
+          mockStandaloneInfoClient.clearinghouseState,
+        ).toHaveBeenCalledWith({ user: mockUserAddress });
+        expect(accountState.totalBalance).toBeDefined();
+      });
+
+      it('uses testnet endpoint when provider is in testnet mode', async () => {
+        // Arrange - override isTestnetMode to return true for this test
+        mockClientService.isTestnetMode.mockReturnValue(true);
+        mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
+          assetPositions: [],
+          marginSummary: { totalMarginUsed: '0', accountValue: '0' },
+          withdrawable: '0',
+          crossMarginSummary: { accountValue: '0', totalMarginUsed: '0' },
+        });
+
+        // Act
+        await provider.getAccountState({
+          readOnly: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert
+        expect(mockCreateStandaloneInfoClient).toHaveBeenCalledWith({
+          isTestnet: true,
+        });
+      });
+
+      it('throws error when standalone client fails', async () => {
+        // Arrange
+        mockStandaloneInfoClient.clearinghouseState.mockRejectedValue(
+          new Error('API unavailable'),
+        );
+
+        // Act & Assert
+        await expect(
+          provider.getAccountState({
+            readOnly: true,
+            userAddress: mockUserAddress,
+          }),
+        ).rejects.toThrow('API unavailable');
+      });
     });
   });
 });
