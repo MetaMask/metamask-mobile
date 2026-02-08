@@ -7,7 +7,7 @@ import { useCallback, useContext } from 'react';
 import Engine from '../../../../core/Engine';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { strings } from '../../../../../locales/i18n';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import usePerpsToasts from './usePerpsToasts';
 
 /**

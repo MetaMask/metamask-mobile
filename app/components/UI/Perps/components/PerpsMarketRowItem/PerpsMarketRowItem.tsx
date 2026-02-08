@@ -9,14 +9,12 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import {
   PERPS_CONSTANTS,
-  HOME_SCREEN_CONFIG,
-} from '../../constants/perpsConfig';
-import type { PerpsMarketData } from '../../controllers/types';
-import { usePerpsLivePrices } from '../../hooks/stream';
-import {
   getPerpsDisplaySymbol,
-  getMarketBadgeType,
-} from '../../utils/marketUtils';
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
+import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
+import { usePerpsLivePrices } from '../../hooks/stream';
+import { getMarketBadgeType } from '../../utils/marketUtils';
 import {
   formatFundingRate,
   formatPercentage,

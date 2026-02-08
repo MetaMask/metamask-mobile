@@ -12,8 +12,8 @@ import {
   USDC_ARBITRUM_MAINNET_ADDRESS,
   USDC_DECIMALS,
   USDC_SYMBOL,
-} from '../constants/hyperLiquidConfig';
-import type { PerpsToken } from '../types/perps-types';
+  type PerpsToken,
+} from '@metamask/perps-controller';
 import { enhanceTokenWithIcon } from '../utils/tokenIconUtils';
 import { usePerpsNetwork } from './index';
 import { usePerpsLiveAccount } from './stream';

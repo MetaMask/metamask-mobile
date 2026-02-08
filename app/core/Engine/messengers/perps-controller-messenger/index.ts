@@ -1,4 +1,4 @@
-import { PerpsControllerMessenger } from '../../../../components/UI/Perps/controllers/PerpsController';
+import { PerpsControllerMessenger } from '@metamask/perps-controller';
 import { RootExtendedMessenger, RootMessenger } from '../../types';
 import {
   Messenger,

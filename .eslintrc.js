@@ -178,6 +178,24 @@ module.exports = {
         ],
       },
     },
+    {
+      files: ['app/**/*.{ts,tsx}'],
+      excludedFiles: ['app/controllers/perps/**/*.{ts,tsx}'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            patterns: [
+              {
+                group: ['**/controllers/perps', '**/controllers/perps/**'],
+                message:
+                  'Use @metamask/perps-controller instead of relative imports into app/controllers/perps/.',
+              },
+            ],
+          },
+        ],
+      },
+    },
   ],
 
   globals: {

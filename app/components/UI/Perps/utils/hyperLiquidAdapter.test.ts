@@ -20,19 +20,18 @@ import {
   buildAssetMapping,
   formatHyperLiquidPrice,
   formatHyperLiquidSize,
-  calculatePositionSize,
   adaptHyperLiquidLedgerUpdateToUserHistoryItem,
   type RawHyperLiquidLedgerUpdate,
-} from './hyperLiquidAdapter';
-import type { OrderParams } from '../controllers/types';
-import type {
-  AssetPosition,
-  SpotBalance,
-  ClearinghouseStateResponse,
-  SpotClearinghouseStateResponse,
-  PerpsUniverse,
-  FrontendOrder,
-} from '../types/hyperliquid-types';
+  type OrderParams,
+  type AssetPosition,
+  type SpotBalance,
+  type ClearinghouseStateResponse,
+  type SpotClearinghouseStateResponse,
+  type PerpsUniverse,
+  type FrontendOrder,
+} from '@metamask/perps-controller';
+// Import adapter-specific calculatePositionSize (different signature from orderCalculations)
+import { calculatePositionSize } from '@metamask/perps-controller/utils/hyperLiquidAdapter';
 
 // Mock the isHexString utility
 jest.mock('@metamask/utils', () => ({

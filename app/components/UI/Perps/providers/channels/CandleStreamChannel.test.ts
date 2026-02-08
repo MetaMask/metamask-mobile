@@ -1,6 +1,9 @@
 import { CandleStreamChannel } from './CandleStreamChannel';
-import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
-import type { CandleData } from '../../types/perps-types';
+import {
+  CandlePeriod,
+  TimeDuration,
+  type CandleData,
+} from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
 
 jest.mock('../../../../../core/Engine');

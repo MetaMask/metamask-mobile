@@ -2,21 +2,21 @@ import { useCallback } from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import type { PerpsNavigationParamList } from '../types/navigation';
-import type { PerpsMarketData, Position, Order } from '../controllers/types';
+import {
+  PERPS_CONSTANTS,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+  type PerpsMarketData,
+  type Position,
+  type Order,
+} from '@metamask/perps-controller';
 import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
-import {
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
-} from '../constants/eventNames';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
-import {
-  PERPS_CONSTANTS,
-  CONFIRMATION_HEADER_CONFIG,
-} from '../constants/perpsConfig';
+import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 
 /**
  * Navigation handler result interface
