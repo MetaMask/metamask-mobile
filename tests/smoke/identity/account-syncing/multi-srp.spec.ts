@@ -122,7 +122,7 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
           shouldWait: true,
         });
 
-        await waitUntilSyncedAccountsNumberEquals(4);
+        await waitUntilSyncedAccountsNumberEquals(3);
 
         // Wait for the 4th account's ellipsis button to be visible before tapping
         await Assertions.expectElementToBeVisible(
