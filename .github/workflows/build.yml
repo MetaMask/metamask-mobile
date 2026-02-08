@@ -280,23 +280,38 @@ jobs:
             SCRIPT_NAME="build:${{ matrix.platform }}:${BUILD_NAME//-/:}"
             yarn run "$SCRIPT_NAME"
 
+      # Debug: List build outputs to verify paths
+      - name: List build outputs (debug)
+        if: always()
+        run: |
+          echo "📂 Checking build outputs..."
+          if [ "${{ matrix.platform }}" = "ios" ]; then
+            echo "iOS build directory contents:"
+            ls -lah ios/build/ 2>/dev/null || echo "ios/build/ not found"
+            find ios/build -type f -name "*.ipa" -o -name "*.app" 2>/dev/null || echo "No .ipa or .app files found"
+          else
+            echo "Android build directory contents:"
+            ls -lah android/app/build/outputs/ 2>/dev/null || echo "android/app/build/outputs/ not found"
+            find android/app/build/outputs -type f -name "*.apk" -o -name "*.aab" 2>/dev/null || echo "No .apk or .aab files found"
+          fi
+
       # Upload build artifacts
       - name: Upload iOS artifacts
-        if: matrix.platform == 'ios'
+        if: matrix.platform == 'ios' && always()
         uses: actions/upload-artifact@v4
         with:
           name: ios-${{ inputs.build_name }}
           path: |
-            ios/build/output/*.ipa
-            ios/build/Build/Products/Debug-iphonesimulator/
+            ios/build/output/
+            ios/build/Build/Products/
           if-no-files-found: warn
 
       - name: Upload Android artifacts
-        if: matrix.platform == 'android'
+        if: matrix.platform == 'android' && always()
         uses: actions/upload-artifact@v4
         with:
           name: android-${{ inputs.build_name }}
           path: |
-            android/app/build/outputs/apk/**/*.apk
-            android/app/build/outputs/bundle/**/*.aab
+            android/app/build/outputs/apk/
+            android/app/build/outputs/bundle/
           if-no-files-found: warn
