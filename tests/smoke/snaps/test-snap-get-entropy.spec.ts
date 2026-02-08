@@ -85,18 +85,20 @@ describe(FlaskBuildTests('Get Entropy Snap Tests'), () => {
         await TestSnaps.fillMessage('entropyMessageInput', 'foo bar');
         await TestSnaps.tapButton('signEntropyMessageButton');
         await TestSnaps.approveSignRequest();
-        // Race native dialog (iOS) vs web-view result span (Android).
-        await Promise.any([
-          Assertions.expectTextDisplayed(
+        // iOS shows the error as a native alert; Android renders it in the
+        // web-view result span as JSON with escaped quotes.
+        if (device.getPlatform() === 'ios') {
+          await Assertions.expectTextDisplayed(
             'Entropy source with ID "invalid" not found.',
             { timeout: 30000 },
-          ),
-          TestSnaps.checkResultSpanIncludes(
+          );
+        } else {
+          await TestSnaps.checkResultSpanIncludes(
             'entropySignResultSpan',
             'Entropy source with ID',
             { timeout: 30000 },
-          ),
-        ]);
+          );
+        }
       },
     );
   });
