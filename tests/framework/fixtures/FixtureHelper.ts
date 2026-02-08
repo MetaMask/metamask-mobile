@@ -103,6 +103,17 @@ async function handleDapps(
           }),
         );
         break;
+      case DappVariants.BROWSER_PLAYGROUND:
+        dappServer.push(
+          new DappServer({
+            dappCounter: i,
+            rootDirectory:
+              dapp.dappPath ||
+              TestDapps[DappVariants.BROWSER_PLAYGROUND].dappPath,
+            dappVariant: DappVariants.BROWSER_PLAYGROUND,
+          }),
+        );
+        break;
       default:
         throw new Error(
           `Unsupported dapp variant: '${dapp.dappVariant}'. Cannot start the server.`,

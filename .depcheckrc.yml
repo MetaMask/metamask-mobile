@@ -1,6 +1,7 @@
 # List things here that *are - 'used, that depcheck is wrong about'
 
 ignores:
+  - '@metamask/browser-playground'
   - '@metamask/oss-attribution-generator'
   - '@metamask/test-dapp-multichain'
   - 'webpack-cli'
