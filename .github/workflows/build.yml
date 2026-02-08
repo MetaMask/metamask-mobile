@@ -37,7 +37,7 @@ permissions:
   id-token: write
 
 jobs:
-  # Load config 
+  # Load config
   prepare:
     runs-on: ubuntu-latest
     outputs:
@@ -73,6 +73,7 @@ jobs:
   # Build
   build:
     needs: [prepare]
+    timeout-minutes: 120
     strategy:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
@@ -162,6 +163,77 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      # iOS: Install Ruby using rbenv (already present on Cirrus macOS runner)
+      - name: Install Ruby
+        if: matrix.platform == 'ios'
+        env:
+          # Override job-level BUNDLE_GEMFILE (ios/Gemfile) since we cd into ios/
+          BUNDLE_GEMFILE: Gemfile
+        run: |
+          RUBY_VERSION=$(cat .ruby-version)
+          echo "📦 Installing Ruby ${RUBY_VERSION}..."
+          
+          # Install Ruby version if not already installed
+          if ! rbenv versions | grep -q "${RUBY_VERSION}"; then
+            rbenv install "${RUBY_VERSION}"
+          fi
+          
+          # Set Ruby version globally for this runner
+          rbenv global "${RUBY_VERSION}"
+          
+          # Initialize rbenv (required: GitHub Actions runs bash with --noprofile --norc)
+          eval "$(rbenv init -)"
+          
+          # Verify installation and version
+          ACTUAL_VERSION=$(ruby --version)
+          echo "✅ Ruby version: ${ACTUAL_VERSION}"
+          if ! echo "${ACTUAL_VERSION}" | grep -q "${RUBY_VERSION}"; then
+            echo "❌ ERROR: Expected Ruby ${RUBY_VERSION}, but got: ${ACTUAL_VERSION}"
+            exit 1
+          fi
+          
+          # Install bundler
+          gem install bundler -v 2.5.8
+          
+          # Install gems from ios/Gemfile
+          cd ios && bundle install
+
+      # iOS: Cache CocoaPods
+      - name: Cache CocoaPods
+        if: matrix.platform == 'ios'
+        uses: actions/cache@v4
+        with:
+          path: |
+            ios/Pods
+            ~/Library/Caches/CocoaPods
+            ~/.cocoapods
+          key: ${{ runner.os }}-pods-${{ inputs.build_name }}-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-${{ inputs.build_name }}-
+
+      # iOS: Cache DerivedData to speed up Xcode builds
+      - name: Cache iOS DerivedData
+        if: matrix.platform == 'ios'
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Developer/Xcode/DerivedData
+            ios/build
+          key: ${{ runner.os }}-ios-derived-${{ inputs.build_name }}-${{ hashFiles('ios/Podfile.lock') }}-${{ hashFiles('ios/**/*.{h,m,mm,swift}') }}
+          restore-keys: |
+            ${{ runner.os }}-ios-derived-${{ inputs.build_name }}-${{ hashFiles('ios/Podfile.lock') }}-
+            ${{ runner.os }}-ios-derived-${{ inputs.build_name }}-
+
+      # iOS: Cache Xcode module cache for faster compilation
+      - name: Cache Xcode Module Cache
+        if: matrix.platform == 'ios'
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData/ModuleCache.noindex
+          key: ${{ runner.os }}-xcode-modules-${{ inputs.build_name }}-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-xcode-modules-${{ inputs.build_name }}-
+
       # Signing: uses role + secret from builds.yml (skip for dev builds - main-dev, flask-dev, qa-dev use debug/simulator)
       - name: Configure signing certificates
         if: needs.prepare.outputs.signing_aws_role != ''
@@ -192,6 +264,8 @@ jobs:
         if: matrix.platform == 'android'
         run: cp android/gradle.properties.github android/gradle.properties
 
+      # Build with retry logic. Timeouts: 55min per attempt, 115min total for step, 120min job
+      # First iOS build (cold cache): ~45-60min. Subsequent builds (warm cache): ~10-20min
       - name: Build ${{ matrix.platform }}
         timeout-minutes: 115
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
@@ -206,10 +280,38 @@ jobs:
             SCRIPT_NAME="build:${{ matrix.platform }}:${BUILD_NAME//-/:}"
             yarn run "$SCRIPT_NAME"
 
-      # Expo development builds: upload iOS .app for simulator (Runway-style artifact)
-      - name: Upload iOS Expo development build
-        if: matrix.platform == 'ios' && (inputs.build_name == 'main-dev' || inputs.build_name == 'flask-dev' || inputs.build_name == 'qa-dev')
+      # Debug: List build outputs to verify paths
+      - name: List build outputs (debug)
+        if: always()
+        run: |
+          echo "📂 Checking build outputs..."
+          if [ "${{ matrix.platform }}" = "ios" ]; then
+            echo "iOS build directory contents:"
+            ls -lah ios/build/ 2>/dev/null || echo "ios/build/ not found"
+            find ios/build -type f -name "*.ipa" -o -name "*.app" 2>/dev/null || echo "No .ipa or .app files found"
+          else
+            echo "Android build directory contents:"
+            ls -lah android/app/build/outputs/ 2>/dev/null || echo "android/app/build/outputs/ not found"
+            find android/app/build/outputs -type f -name "*.apk" -o -name "*.aab" 2>/dev/null || echo "No .apk or .aab files found"
+          fi
+
+      # Upload build artifacts
+      - name: Upload iOS artifacts
+        if: matrix.platform == 'ios' && always()
         uses: actions/upload-artifact@v4
         with:
-          name: expo-dev-ios-${{ inputs.build_name }}
-          path: ios/build/Build/Products/Debug-iphonesimulator/
+          name: ios-${{ inputs.build_name }}
+          path: |
+            ios/build/output/
+            ios/build/Build/Products/
+          if-no-files-found: warn
+
+      - name: Upload Android artifacts
+        if: matrix.platform == 'android' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ inputs.build_name }}
+          path: |
+            android/app/build/outputs/apk/
+            android/app/build/outputs/bundle/
+          if-no-files-found: warn
