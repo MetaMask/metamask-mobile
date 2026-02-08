@@ -83,13 +83,6 @@ class ActivitiesView {
     return title;
   }
 
-  generateApprovedTokenActivityLabel(sourceToken: string): string {
-    let title = ActivitiesViewSelectorsText.APPROVE;
-    title = title.replace('{{sourceToken}}', sourceToken);
-    title = title.replace('{{upTo}}', '.*');
-    return `^${title}`;
-  }
-
   swapActivityTitle(
     sourceToken: string,
     destinationToken: string,
@@ -99,10 +92,8 @@ class ActivitiesView {
     );
   }
 
-  swapApprovalActivityTitle(sourceToken: string): DetoxElement {
-    return Matchers.getElementByText(
-      this.generateApprovedTokenActivityLabel(sourceToken),
-    );
+  swapApprovalActivityTitle(): DetoxElement {
+    return Matchers.getElementByText(ActivitiesViewSelectorsText.APPROVE);
   }
 
   bridgeActivityTitle(destNetwork: string): DetoxElement {
