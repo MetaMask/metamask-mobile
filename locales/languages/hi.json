@@ -115,6 +115,10 @@
       "message": "आप अपनी एसेट्स एक बर्न एड्रेस पर भेज रहे हैं। यदि आप जारी रखते हैं, तो आप अपनी एसेट्स खो देंगे।",
       "title": "एसेट्स को बर्न एड्रेस पर भेजना"
     },
+    "gas_sponsorship_reserve_balance": {
+      "message": "Gas sponsorship isn't available for this transaction. You'll need to keep at least %{minBalance} %{nativeTokenSymbol} in your account.",
+      "title": "Gas sponsorship unavailable"
+    },
     "token_trust_signal": {
       "malicious": {
         "message": "इस टोकन को बुरी नीयत वाला पाया गया है। इस टोकन के साथ इंटरैक्ट करने पर आपको पैसे गंवाने पड़ सकते हैं।",
@@ -623,6 +627,7 @@
     "invalid_value": "मूल्य ग़लत है",
     "insufficient_funds": "अपर्याप्त फंड",
     "insufficient_balance_to_cover_fee": "Insufficient balance to cover fees",
+    "transaction_error": "Transaction error",
     "continue": "जारी रखें",
     "unit": "यूनिट",
     "units": "यूनिट्स",
@@ -1087,7 +1092,11 @@
       "error_toast": "ट्रांसेक्शन नहीं हो पाया",
       "error_generic": "फंड्स आपको वापस कर दिए गए हैं",
       "in_progress": "पर्प्स में फंड्स जोड़े जा रहे हैं",
-      "depositing_your_funds": "आपके फंड्स डिपॉज़िट किए जा रहे हैं",
+      "depositing_your_funds": "Setting up your trade",
+      "deposit_taking_longer": "Deposit taking longer than usual",
+      "cancel_trade": "Cancel trade",
+      "trade_canceled": "Trade canceled",
+      "funds_returned_to_account": "Funds returned to your account",
       "your_funds_have_arrived": "आपके फंड आ गए हैं",
       "estimated_processing_time": "अनुमानित {{time}}",
       "funds_available_momentarily": "फंड्स थोड़ी ही देर में उपलब्ध होंगे",
@@ -1174,6 +1183,7 @@
         "amount_required": "ऑर्डर राशि 0 से अधिक होनी चाहिए",
         "minimum_amount": "न्यूनतम ऑर्डर आकार ${{amount}} है",
         "insufficient_funds": "अपर्याप्त फंड",
+        "insufficient_funds_to_cover_trade": "Insufficient funds to cover the trade",
         "insufficient_balance": "अपर्याप्त बैलेंस। आवश्यक: ${{required}}, उपलब्ध: ${{available}}",
         "invalid_leverage": "लेवरेज {{min}}x और {{max}}x के बीच होना चाहिए",
         "leverage_below_position": "लीवरेज कम से कम {{required}}x होना चाहिए ताकि आपकी मौजूदा पोज़िशन से मेल खा सके (वर्तमान: {{provided}}x)",
@@ -1656,6 +1666,7 @@
         "content": "जब आप किसी पोज़िशन को खोलते या बंद करते हैं तो ट्रेडिंग फीस लिया जाता है।",
         "metamask_fee": "MetaMask फीस",
         "provider_fee": "प्रदाता फीस",
+        "bridge_fee": "Bridge fee",
         "total": "कुल फीस",
         "discount_message": "आप MetaMask रिवार्ड्स के साथ {{percentage}}% सेव कर रहे हैं।"
       },
@@ -1737,6 +1748,10 @@
       "spread": {
         "title": "स्प्रेड",
         "content": "स्प्रेड वह अंतर है जो बेस्ट बिड (खरीदने के लिए लगाई गई सबसे ज़्यादा कीमत) और बेस्ट आस्क (बेचने के लिए माँगी गई सबसे कम कीमत) के बीच का अंतर है। कम स्प्रेड ज़्यादा लिक्विडिटी का सूचक है।"
+      },
+      "pay_with": {
+        "title": "Pay with",
+        "content": "Choose which token or balance to use to pay for this trade. You can pay with your Perps balance or select another token from your wallet."
       }
     },
     "connection": {
@@ -3324,6 +3339,10 @@
   "asset_overview": {
     "send_button": "भेजें",
     "buy_button": "खरीदें",
+    "cash_buy_button": "Cash Buy",
+    "long_button": "Long",
+    "short_button": "Short",
+    "more_button": "More",
     "token_marketplace": "टोकन मार्केटप्लेस",
     "sell_button": "बेचें",
     "receive_button": "प्राप्त करें",
@@ -3345,7 +3364,11 @@
       "terms_apply": "नियम लागू।",
       "ok": "ठीक है",
       "claim": "क्लेम करें",
-      "processing_claim": "क्लेम प्रोसेस हो रहा है..."
+      "processing_claim": "क्लेम प्रोसेस हो रहा है...",
+      "claim_on_linea_title": "Claim bonuses on Linea",
+      "claim_on_linea_description": "Your bonus will be issued on Linea, separate from your Ethereum mUSD balance.",
+      "continue": "Continue",
+      "unexpected_error": "Unexpected error. Please try again."
     },
     "tron": {
       "daily_resource_new_energy": "नई दैनिक ऊर्जा",
@@ -3789,6 +3812,7 @@
     "tx_review_predict_claim": "क्लेम किया गया जीत का ईनाम",
     "tx_review_predict_withdraw": "प्रेडिक्शन विदड्रॉ",
     "tx_review_musd_conversion": "mUSD कन्वर्शन",
+    "claim": "Claim",
     "sent_ether": "Sent ETH",
     "self_sent_ether": "Sent yourself ETH",
     "received_ether": "Received ETH",
@@ -4697,6 +4721,11 @@
     "buy": "{{ticker}} खरीदें",
     "on_network": "{{networkName}} पर",
     "debit_card": "डेबिट कार्ड",
+    "select_payment_method": "Select payment method",
+    "pay_with": "Pay with",
+    "buying_via": "Buying via {{providerName}}.",
+    "change_provider": "Change provider.",
+    "providers": "Providers",
     "continue": "जारी रखें",
     "powered_by_provider": "{{provider}} द्वारा संचालित",
     "purchased_currency": "{{currency}} खरीदा गया",
@@ -4848,6 +4877,7 @@
       "lowest_sell_limit": "सबसे कम विक्रय सीमा",
       "medium_sell_limit": "मध्यम विक्रय सीमा",
       "highest_sell_limit": "उच्चतम विक्रय सीमा",
+      "change": "Change",
       "continue_to_amount": "राशि जारी रखें",
       "no_payment_methods_title": "{{regionName}} में कोई पेमेंट का तरीका नहीं है",
       "no_cash_destinations_title": "{{regionName}} में कोई कैश डेस्टिनेशन नहीं है",
@@ -6330,6 +6360,7 @@
     "select_recipient": "प्राप्तकर्ता चुनें",
     "external_account": "बाहरी अकाउंट",
     "error_banner_description": "यह ट्रेड रूट अभी उपलब्ध नहीं है। राशि, नेटवर्क या टोकन बदलने का प्रयास करें और हम सबसे अच्छा विकल्प ढूँढ लेंगे।",
+    "stock_token_error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.\n\nPlease note if you are attempting to trade Ondo Tokenised Stocks you may be geo-restricted e.g. via US, EU, UK and BR.",
     "insufficient_funds": "अपर्याप्त फंड",
     "insufficient_gas": "अपर्याप्त गैस",
     "select_amount": "राशि चुनें",
@@ -6725,7 +6756,7 @@
     "card_onboarding": {
       "title": "खर्च करें\nऔर\nकमाएँ",
       "description": "MetaMask कार्ड आपके क्रिप्टो को खर्च करने \nऔर 3% तक कैशबैक पाने का तेज़ और \nआसान तरीका है।",
-      "apply_now_button": "Setup now",
+      "apply_now_button": "Set up now",
       "login_button": "लॉग इन करें",
       "not_now_button": "अभी नहीं",
       "sign_up": {
@@ -6748,8 +6779,8 @@
         "resend_cooldown": "{{seconds}} सेकंड में फिर से भेज पाएंगे"
       },
       "set_phone_number": {
-        "title": "अपना फ़ोन नंबर कन्फर्म करें",
-        "description": "अपना फ़ोन नंबर डालें। हम आपको वहाँ एक कन्फर्मेशन कोड भेजेंगे।",
+        "title": "Enter your phone number",
+        "description": "We'll send you a confirmation code there.",
         "phone_number_label": "फ़ोन नंबर दर्ज करें",
         "country_area_code_label": "देश का क्षेत्र कोड",
         "invalid_phone_number": "फ़ोन नंबर ग़लत है",
@@ -6829,6 +6860,7 @@
         "date_of_birth_label": "जन्मतिथि",
         "nationality_label": "राष्ट्रीयता",
         "ssn_label": "सोशल सिक्योरिटी नंबर",
+        "ssn_description": "Required by the card issuer. No credit check will be run.",
         "invalid_ssn": "SSN ग़लत है",
         "invalid_date_of_birth": "जन्मतिथि ग़लत है। आपकी आयु कम से कम 18 वर्ष होनी चाहिए"
       },
@@ -6889,6 +6921,7 @@
     },
     "card_home": {
       "title": "कार्ड",
+      "authentication_error": "Your session has expired. Please log in again.",
       "available_balance": "उपलब्ध बैलेंस",
       "error_title": "डेटा प्राप्त नहीं किया जा सकता",
       "error_description": "ऐसा लगता है कि कोई समस्या आपको इस पेज की सामग्री देखने से रोक रही है। कृपया अपना कनेक्शन जांचें या पेज को रीफ्रेश करके देखें।",
@@ -7064,6 +7097,35 @@
       "didnt_receive_code": "कोड प्राप्त नहीं हुआ? ",
       "resend_verification": "इसे फिर से भेजें",
       "resend_cooldown": "{{seconds}} सेकंड में फिर से भेज पाएंगे"
+    },
+    "push_provisioning": {
+      "add_to_wallet": "Add to {{walletName}}",
+      "adding_to_wallet": "Adding to {{walletName}}...",
+      "continue_setup": "Continue {{walletName}} Setup",
+      "wallet_not_available": "{{walletName}} not available",
+      "already_in_wallet": "Already in {{walletName}}",
+      "success_title": "Card added!",
+      "success_message": "Your MetaMask Card has been added to {{walletName}}.",
+      "error_title": "Unable to add card",
+      "error_wallet_not_available": "{{walletName}} is not available on this device. Please ensure you have {{walletName}} set up.",
+      "error_wallet_not_initialized": "{{walletName}} is not initialized. Please set up your wallet and try again.",
+      "error_card_already_in_wallet": "This card is already added to {{walletName}}.",
+      "error_card_pending": "Your card is being set up in {{walletName}}. Please check back in a few minutes.",
+      "error_card_suspended": "Your card in {{walletName}} has been suspended. Please contact support for assistance.",
+      "error_card_not_eligible": "This card is not eligible for mobile wallet provisioning.",
+      "error_encryption_failed": "Failed to encrypt card data. Please try again.",
+      "error_invalid_card_data": "Invalid card data. Please verify your card details and try again.",
+      "error_card_not_found": "Card not found. Please try again.",
+      "error_card_provider_not_found": "Card provider is not available for your region.",
+      "error_card_id_mismatch": "Card verification failed. Please try again.",
+      "error_card_not_active": "Your card is not active. Please activate your card first.",
+      "error_network": "Network error occurred. Please check your connection and try again.",
+      "error_timeout": "The request timed out. Please try again.",
+      "error_server": "Server error occurred. Please try again later.",
+      "error_unknown": "An unexpected error occurred. Please try again or contact support.",
+      "error_platform_not_supported": "This platform does not support mobile wallet provisioning.",
+      "try_again": "Try again",
+      "cancel": "Cancel"
     }
   },
   "onboarding_error_fallback": {
@@ -7484,7 +7546,7 @@
       "redeem_failure_title": "रिडीम नहीं हो पाया",
       "redeem_failure_description": "कृपया बाद में फिर से प्रयास करें।",
       "reward_details": "पुरस्कार विवरण",
-      "select_account_description": "उस अकाउंट का चयन करें जिसमें आप यह पुरस्कार प्राप्त करना चाहते हैं।"
+      "select_account_description": "Select the account where you'd like this reward sent."
     },
     "animation": {
       "could_not_load": "लोड नहीं हो सका"
@@ -7524,6 +7586,7 @@
   "transaction_details": {
     "title": {
       "musd_conversion": "Converted to mUSD",
+      "musd_claim": "Claimed mUSD",
       "perps_deposit": "फंडेड पर्प्स अकाउंट",
       "predict_claim": "क्लेम किया गया जीत का ईनाम",
       "predict_deposit": "फ़ंड किया गया प्रेडिक्ट अकाउंट",
@@ -7548,6 +7611,7 @@
       "bridge_receive_loading": "Bridge receive",
       "default": "ट्रांसेक्शन",
       "musd_convert_send": "Sent {{sourceSymbol}} from {{sourceChain}}",
+      "musd_claim": "Claim mUSD",
       "perps_deposit": "फंड जोड़ें",
       "predict_deposit": "फंड जोड़ें",
       "swap": "टोकन स्वैप करें",

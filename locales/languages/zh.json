@@ -115,6 +115,10 @@
       "message": "您正在将资产发送至销毁地址。若继续操作，您将损失该笔资产。",
       "title": "正在向销毁地址发送资产"
     },
+    "gas_sponsorship_reserve_balance": {
+      "message": "Gas sponsorship isn't available for this transaction. You'll need to keep at least %{minBalance} %{nativeTokenSymbol} in your account.",
+      "title": "Gas sponsorship unavailable"
+    },
     "token_trust_signal": {
       "malicious": {
         "message": "该代币已被识别为恶意代币。与此代币交互可能导致资金损失。",
@@ -623,6 +627,7 @@
     "invalid_value": "无效值",
     "insufficient_funds": "资金不足",
     "insufficient_balance_to_cover_fee": "Insufficient balance to cover fees",
+    "transaction_error": "Transaction error",
     "continue": "继续",
     "unit": "单位",
     "units": "单位",
@@ -1087,7 +1092,11 @@
       "error_toast": "交易失败",
       "error_generic": "资金已退回给您",
       "in_progress": "正在为永续合约充值",
-      "depositing_your_funds": "存入资金",
+      "depositing_your_funds": "Setting up your trade",
+      "deposit_taking_longer": "Deposit taking longer than usual",
+      "cancel_trade": "Cancel trade",
+      "trade_canceled": "Trade canceled",
+      "funds_returned_to_account": "Funds returned to your account",
       "your_funds_have_arrived": "您的资金已到账",
       "estimated_processing_time": "预计时间 {{time}}",
       "funds_available_momentarily": "资金将即刻到账",
@@ -1174,6 +1183,7 @@
         "amount_required": "订单金额必须大于 0",
         "minimum_amount": "最小订单金额为 ${{amount}}",
         "insufficient_funds": "资金不足",
+        "insufficient_funds_to_cover_trade": "Insufficient funds to cover the trade",
         "insufficient_balance": "余额不足。需要：${{required}}，可用：${{available}}",
         "invalid_leverage": "杠杆必须介于 {{min}} 倍和 {{max}} 倍之间",
         "leverage_below_position": "杠杆需要至少 {{required}} 倍才能匹配您的现有仓位（当前：{{provided}} 倍）",
@@ -1656,6 +1666,7 @@
         "content": "开仓或平仓时会收取交易费用。",
         "metamask_fee": "MetaMask 费用",
         "provider_fee": "服务商费用",
+        "bridge_fee": "Bridge fee",
         "total": "总费用",
         "discount_message": "您通过 MetaMask Rewards 节省了 {{percentage}}% 的费用。"
       },
@@ -1737,6 +1748,10 @@
       "spread": {
         "title": "买卖差价",
         "content": "买卖差价即最高买价与最低卖价之间的差额。买卖差价越小，表明市场流动性越高。"
+      },
+      "pay_with": {
+        "title": "Pay with",
+        "content": "Choose which token or balance to use to pay for this trade. You can pay with your Perps balance or select another token from your wallet."
       }
     },
     "connection": {
@@ -3324,6 +3339,10 @@
   "asset_overview": {
     "send_button": "发送",
     "buy_button": "买入",
+    "cash_buy_button": "Cash Buy",
+    "long_button": "Long",
+    "short_button": "Short",
+    "more_button": "More",
     "token_marketplace": "代币市场",
     "sell_button": "卖出",
     "receive_button": "接收",
@@ -3345,7 +3364,11 @@
       "terms_apply": "具体条款适用。",
       "ok": "确定",
       "claim": "领取",
-      "processing_claim": "正在处理领取……"
+      "processing_claim": "正在处理领取……",
+      "claim_on_linea_title": "Claim bonuses on Linea",
+      "claim_on_linea_description": "Your bonus will be issued on Linea, separate from your Ethereum mUSD balance.",
+      "continue": "Continue",
+      "unexpected_error": "Unexpected error. Please try again."
     },
     "tron": {
       "daily_resource_new_energy": "每日新能量",
@@ -3789,6 +3812,7 @@
     "tx_review_predict_claim": "已领取的获胜投注",
     "tx_review_predict_withdraw": "预测提现",
     "tx_review_musd_conversion": "mUSD 兑换",
+    "claim": "Claim",
     "sent_ether": "Sent ETH",
     "self_sent_ether": "Sent yourself ETH",
     "received_ether": "Received ETH",
@@ -4697,6 +4721,11 @@
     "buy": "购买 {{ticker}}",
     "on_network": "在 {{networkName}} 上",
     "debit_card": "借记卡",
+    "select_payment_method": "Select payment method",
+    "pay_with": "Pay with",
+    "buying_via": "Buying via {{providerName}}.",
+    "change_provider": "Change provider.",
+    "providers": "Providers",
     "continue": "继续",
     "powered_by_provider": "由 {{provider}} 提供技术支持",
     "purchased_currency": "已购买 {{currency}}",
@@ -4848,6 +4877,7 @@
       "lowest_sell_limit": "最低卖出限制",
       "medium_sell_limit": "中等卖出限制",
       "highest_sell_limit": "最高卖出限制",
+      "change": "Change",
       "continue_to_amount": "继续前往金额",
       "no_payment_methods_title": "{{regionName}} 暂无可用支付方式",
       "no_cash_destinations_title": "{{regionName}} 暂无现金目的地",
@@ -6330,6 +6360,7 @@
     "select_recipient": "选择接收方",
     "external_account": "外部账户",
     "error_banner_description": "目前该交易路线不可用。请调整交易金额、切换网络或更换代币类型，我们将为您自动匹配最优通道。",
+    "stock_token_error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.\n\nPlease note if you are attempting to trade Ondo Tokenised Stocks you may be geo-restricted e.g. via US, EU, UK and BR.",
     "insufficient_funds": "资金不足",
     "insufficient_gas": "燃料不足",
     "select_amount": "选择金额",
@@ -6725,7 +6756,7 @@
     "card_onboarding": {
       "title": "消费并赚取",
       "description": "MetaMask 卡是一款快捷的支付工具，让您能轻松消费加密货币，并享受高达 3% 返现。",
-      "apply_now_button": "Setup now",
+      "apply_now_button": "Set up now",
       "login_button": "登录",
       "not_now_button": "暂时不",
       "sign_up": {
@@ -6748,8 +6779,8 @@
         "resend_cooldown": "{{seconds}} 秒后可重新发送"
       },
       "set_phone_number": {
-        "title": "确认您的电话号码",
-        "description": "请输入您的电话号码。我们将向该号码发送验证码。",
+        "title": "Enter your phone number",
+        "description": "We'll send you a confirmation code there.",
         "phone_number_label": "输入电话号码",
         "country_area_code_label": "国家/地区代码",
         "invalid_phone_number": "电话号码无效",
@@ -6829,6 +6860,7 @@
         "date_of_birth_label": "出生日期",
         "nationality_label": "国籍",
         "ssn_label": "社会安全号码",
+        "ssn_description": "Required by the card issuer. No credit check will be run.",
         "invalid_ssn": "社会安全号码无效",
         "invalid_date_of_birth": "出生日期无效。您必须年满 18 周岁"
       },
@@ -6889,6 +6921,7 @@
     },
     "card_home": {
       "title": "卡",
+      "authentication_error": "Your session has expired. Please log in again.",
       "available_balance": "可用余额",
       "error_title": "无法获取数据",
       "error_description": "似乎存在一个问题，导致您无法查看此页面上的内容。请检查网络连接或尝试刷新页面。",
@@ -7064,6 +7097,35 @@
       "didnt_receive_code": "未收到验证码？ ",
       "resend_verification": "重新发送",
       "resend_cooldown": "{{seconds}} 秒后可重新发送"
+    },
+    "push_provisioning": {
+      "add_to_wallet": "Add to {{walletName}}",
+      "adding_to_wallet": "Adding to {{walletName}}...",
+      "continue_setup": "Continue {{walletName}} Setup",
+      "wallet_not_available": "{{walletName}} not available",
+      "already_in_wallet": "Already in {{walletName}}",
+      "success_title": "Card added!",
+      "success_message": "Your MetaMask Card has been added to {{walletName}}.",
+      "error_title": "Unable to add card",
+      "error_wallet_not_available": "{{walletName}} is not available on this device. Please ensure you have {{walletName}} set up.",
+      "error_wallet_not_initialized": "{{walletName}} is not initialized. Please set up your wallet and try again.",
+      "error_card_already_in_wallet": "This card is already added to {{walletName}}.",
+      "error_card_pending": "Your card is being set up in {{walletName}}. Please check back in a few minutes.",
+      "error_card_suspended": "Your card in {{walletName}} has been suspended. Please contact support for assistance.",
+      "error_card_not_eligible": "This card is not eligible for mobile wallet provisioning.",
+      "error_encryption_failed": "Failed to encrypt card data. Please try again.",
+      "error_invalid_card_data": "Invalid card data. Please verify your card details and try again.",
+      "error_card_not_found": "Card not found. Please try again.",
+      "error_card_provider_not_found": "Card provider is not available for your region.",
+      "error_card_id_mismatch": "Card verification failed. Please try again.",
+      "error_card_not_active": "Your card is not active. Please activate your card first.",
+      "error_network": "Network error occurred. Please check your connection and try again.",
+      "error_timeout": "The request timed out. Please try again.",
+      "error_server": "Server error occurred. Please try again later.",
+      "error_unknown": "An unexpected error occurred. Please try again or contact support.",
+      "error_platform_not_supported": "This platform does not support mobile wallet provisioning.",
+      "try_again": "Try again",
+      "cancel": "Cancel"
     }
   },
   "onboarding_error_fallback": {
@@ -7484,7 +7546,7 @@
       "redeem_failure_title": "兑换失败",
       "redeem_failure_description": "请稍后再试。",
       "reward_details": "奖励详情",
-      "select_account_description": "选择您希望接收此奖励的账户。"
+      "select_account_description": "Select the account where you'd like this reward sent."
     },
     "animation": {
       "could_not_load": "无法加载"
@@ -7524,6 +7586,7 @@
   "transaction_details": {
     "title": {
       "musd_conversion": "Converted to mUSD",
+      "musd_claim": "Claimed mUSD",
       "perps_deposit": "已注资的永续合约账户",
       "predict_claim": "已领取收益",
       "predict_deposit": "预测账户已存入资金",
@@ -7548,6 +7611,7 @@
       "bridge_receive_loading": "Bridge receive",
       "default": "交易",
       "musd_convert_send": "Sent {{sourceSymbol}} from {{sourceChain}}",
+      "musd_claim": "Claim mUSD",
       "perps_deposit": "充值",
       "predict_deposit": "充值",
       "swap": "兑换代币",

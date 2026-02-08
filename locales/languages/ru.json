@@ -115,6 +115,10 @@
       "message": "Вы отправляете свои активы на адрес для сжигания. Если вы продолжите, вы потеряете их.",
       "title": "Активы отправляются на адрес для сжигания"
     },
+    "gas_sponsorship_reserve_balance": {
+      "message": "Gas sponsorship isn't available for this transaction. You'll need to keep at least %{minBalance} %{nativeTokenSymbol} in your account.",
+      "title": "Gas sponsorship unavailable"
+    },
     "token_trust_signal": {
       "malicious": {
         "message": "Данный токен идентифицирован как вредоносный. Взаимодействие с этим токеном может привести к потере средств.",
@@ -623,6 +627,7 @@
     "invalid_value": "Неверная сумма",
     "insufficient_funds": "Недостаточно средств",
     "insufficient_balance_to_cover_fee": "Insufficient balance to cover fees",
+    "transaction_error": "Transaction error",
     "continue": "Продолжить",
     "unit": "единица",
     "units": "единицы",
@@ -1087,7 +1092,11 @@
       "error_toast": "Не удалось выполнить транзакцию",
       "error_generic": "Средства возвращены вам",
       "in_progress": "Добавление средств в Перпы",
-      "depositing_your_funds": "Внесение ваших средств",
+      "depositing_your_funds": "Setting up your trade",
+      "deposit_taking_longer": "Deposit taking longer than usual",
+      "cancel_trade": "Cancel trade",
+      "trade_canceled": "Trade canceled",
+      "funds_returned_to_account": "Funds returned to your account",
       "your_funds_have_arrived": "Ваши средства поступили",
       "estimated_processing_time": "Прим. {{time}}",
       "funds_available_momentarily": "Средства станут доступны мгновенно",
@@ -1174,6 +1183,7 @@
         "amount_required": "Сумма ордера должна быть больше 0",
         "minimum_amount": "Минимальный размер ордера составляет {{amount}} $",
         "insufficient_funds": "Недостаточно средств",
+        "insufficient_funds_to_cover_trade": "Insufficient funds to cover the trade",
         "insufficient_balance": "Недостаточно средств. Требуется: {{required}} $, доступно: {{available}} $",
         "invalid_leverage": "Кредитное плечо должно быть между {{min}}x и {{max}}x",
         "leverage_below_position": "Кредитное плечо должно быть не менее {{required}}x, чтобы соответствовать вашей текущей позиции (текущая: {{provided}}x)",
@@ -1656,6 +1666,7 @@
         "content": "Торговые комиссии взимаются при открытии или закрытии позиции.",
         "metamask_fee": "Комиссия MetaMask",
         "provider_fee": "Комиссия поставщика",
+        "bridge_fee": "Bridge fee",
         "total": "Итого комиссий",
         "discount_message": "Вы экономите {{percentage}}% с Вознаграждениями MetaMask."
       },
@@ -1737,6 +1748,10 @@
       "spread": {
         "title": "Спред",
         "content": "Спред — это разница между лучшей ценой покупки (максимальной ценой приобретения) и лучшей ценой продажи (минимальной ценой продажи). Меньший спред указывает на более высокую ликвидность."
+      },
+      "pay_with": {
+        "title": "Pay with",
+        "content": "Choose which token or balance to use to pay for this trade. You can pay with your Perps balance or select another token from your wallet."
       }
     },
     "connection": {
@@ -3324,6 +3339,10 @@
   "asset_overview": {
     "send_button": "Отправить",
     "buy_button": "Купить",
+    "cash_buy_button": "Cash Buy",
+    "long_button": "Long",
+    "short_button": "Short",
+    "more_button": "More",
     "token_marketplace": "Торговая площадка токенов",
     "sell_button": "Продать",
     "receive_button": "Получить",
@@ -3345,7 +3364,11 @@
       "terms_apply": "Применяются условия.",
       "ok": "ОК",
       "claim": "Получить",
-      "processing_claim": "Обработка запроса..."
+      "processing_claim": "Обработка запроса...",
+      "claim_on_linea_title": "Claim bonuses on Linea",
+      "claim_on_linea_description": "Your bonus will be issued on Linea, separate from your Ethereum mUSD balance.",
+      "continue": "Continue",
+      "unexpected_error": "Unexpected error. Please try again."
     },
     "tron": {
       "daily_resource_new_energy": "Новая дневная энергия",
@@ -3789,6 +3812,7 @@
     "tx_review_predict_claim": "Востребованные доходы",
     "tx_review_predict_withdraw": "Отмена прогнозов",
     "tx_review_musd_conversion": "Конвертация mUSD",
+    "claim": "Claim",
     "sent_ether": "Sent ETH",
     "self_sent_ether": "Sent yourself ETH",
     "received_ether": "Received ETH",
@@ -4697,6 +4721,11 @@
     "buy": "Купить {{ticker}}",
     "on_network": "на {{networkName}}",
     "debit_card": "Дебетовая карта",
+    "select_payment_method": "Select payment method",
+    "pay_with": "Pay with",
+    "buying_via": "Buying via {{providerName}}.",
+    "change_provider": "Change provider.",
+    "providers": "Providers",
     "continue": "Продолжить",
     "powered_by_provider": "Работает на платформе {{provider}}",
     "purchased_currency": "Куплено {{currency}}",
@@ -4848,6 +4877,7 @@
       "lowest_sell_limit": "самый низкий лимит продажи",
       "medium_sell_limit": "средний лимит продажи",
       "highest_sell_limit": "самый высокий лимит продажи",
+      "change": "Change",
       "continue_to_amount": "Перейти к сумме",
       "no_payment_methods_title": "В регионе {{regionName}} нет способов оплаты",
       "no_cash_destinations_title": "В регионе {{regionName}} нет пунктов приема наличных",
@@ -6330,6 +6360,7 @@
     "select_recipient": "Выберите получателя",
     "external_account": "Внешний счет",
     "error_banner_description": "Этот торговый маршрут сейчас недоступен. Попробуйте изменить сумму, сеть или токен, и мы найдем лучший вариант.",
+    "stock_token_error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.\n\nPlease note if you are attempting to trade Ondo Tokenised Stocks you may be geo-restricted e.g. via US, EU, UK and BR.",
     "insufficient_funds": "Недостаточно средств",
     "insufficient_gas": "Недостаточно газа",
     "select_amount": "Выбрать сумму",
@@ -6725,7 +6756,7 @@
     "card_onboarding": {
       "title": "Тратьте\nи зарабатывайте",
       "description": "Карта MetaMask — это быстрый и\nпростой способ тратить криптовалюту и\nзарабатывать кэшбек до 3%.",
-      "apply_now_button": "Setup now",
+      "apply_now_button": "Set up now",
       "login_button": "Войти",
       "not_now_button": "Не сейчас",
       "sign_up": {
@@ -6748,8 +6779,8 @@
         "resend_cooldown": "Повторная отправка станет доступна через {{seconds}} секунд(-ы)"
       },
       "set_phone_number": {
-        "title": "Подтвердите свой номер телефона",
-        "description": "Введите свой номер телефона. Мы вышлем вам код подтверждения на этот номер.",
+        "title": "Enter your phone number",
+        "description": "We'll send you a confirmation code there.",
         "phone_number_label": "Укажите номер телефона",
         "country_area_code_label": "Телефонный код страны",
         "invalid_phone_number": "Неверный номер телефона",
@@ -6829,6 +6860,7 @@
         "date_of_birth_label": "Дата рождения",
         "nationality_label": "Гражданство",
         "ssn_label": "Номер социального страхования",
+        "ssn_description": "Required by the card issuer. No credit check will be run.",
         "invalid_ssn": "Недопустимый SSN",
         "invalid_date_of_birth": "Неверная дата рождения. Ваш возраст должен быть не менее 18 лет"
       },
@@ -6889,6 +6921,7 @@
     },
     "card_home": {
       "title": "Карта",
+      "authentication_error": "Your session has expired. Please log in again.",
       "available_balance": "Доступный баланс",
       "error_title": "Невозможно получить данные",
       "error_description": "Похоже, возникла проблема, препятствующая просмотру содержимого этой страницы. Проверьте подключение к Интернету или попробуйте обновить страницу.",
@@ -7064,6 +7097,35 @@
       "didnt_receive_code": "Не получили код? ",
       "resend_verification": "Отправить повторно",
       "resend_cooldown": "Повторная отправка станет доступна через {{seconds}} секунд(-ы)"
+    },
+    "push_provisioning": {
+      "add_to_wallet": "Add to {{walletName}}",
+      "adding_to_wallet": "Adding to {{walletName}}...",
+      "continue_setup": "Continue {{walletName}} Setup",
+      "wallet_not_available": "{{walletName}} not available",
+      "already_in_wallet": "Already in {{walletName}}",
+      "success_title": "Card added!",
+      "success_message": "Your MetaMask Card has been added to {{walletName}}.",
+      "error_title": "Unable to add card",
+      "error_wallet_not_available": "{{walletName}} is not available on this device. Please ensure you have {{walletName}} set up.",
+      "error_wallet_not_initialized": "{{walletName}} is not initialized. Please set up your wallet and try again.",
+      "error_card_already_in_wallet": "This card is already added to {{walletName}}.",
+      "error_card_pending": "Your card is being set up in {{walletName}}. Please check back in a few minutes.",
+      "error_card_suspended": "Your card in {{walletName}} has been suspended. Please contact support for assistance.",
+      "error_card_not_eligible": "This card is not eligible for mobile wallet provisioning.",
+      "error_encryption_failed": "Failed to encrypt card data. Please try again.",
+      "error_invalid_card_data": "Invalid card data. Please verify your card details and try again.",
+      "error_card_not_found": "Card not found. Please try again.",
+      "error_card_provider_not_found": "Card provider is not available for your region.",
+      "error_card_id_mismatch": "Card verification failed. Please try again.",
+      "error_card_not_active": "Your card is not active. Please activate your card first.",
+      "error_network": "Network error occurred. Please check your connection and try again.",
+      "error_timeout": "The request timed out. Please try again.",
+      "error_server": "Server error occurred. Please try again later.",
+      "error_unknown": "An unexpected error occurred. Please try again or contact support.",
+      "error_platform_not_supported": "This platform does not support mobile wallet provisioning.",
+      "try_again": "Try again",
+      "cancel": "Cancel"
     }
   },
   "onboarding_error_fallback": {
@@ -7484,7 +7546,7 @@
       "redeem_failure_title": "Не удалось использовать",
       "redeem_failure_description": "Повторите попытку позже.",
       "reward_details": "Сведения о бонусе",
-      "select_account_description": "Выберите счет, на который вы хотите получить этот бонус."
+      "select_account_description": "Select the account where you'd like this reward sent."
     },
     "animation": {
       "could_not_load": "Ошибка загрузки"
@@ -7524,6 +7586,7 @@
   "transaction_details": {
     "title": {
       "musd_conversion": "Converted to mUSD",
+      "musd_claim": "Claimed mUSD",
       "perps_deposit": "Счет перпов пополнен",
       "predict_claim": "Востребованные выигрыши",
       "predict_deposit": "Счет «Прогнозирование» пополнен",
@@ -7548,6 +7611,7 @@
       "bridge_receive_loading": "Bridge receive",
       "default": "Транзакция",
       "musd_convert_send": "Sent {{sourceSymbol}} from {{sourceChain}}",
+      "musd_claim": "Claim mUSD",
       "perps_deposit": "Внести средства",
       "predict_deposit": "Внести средства",
       "swap": "Обменять токены",

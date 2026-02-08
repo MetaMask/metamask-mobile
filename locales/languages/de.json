@@ -115,6 +115,10 @@
       "message": "Sie senden Ihre Vermögenswerte an eine Burn-Adresse. Wenn Sie fortfahren, verlieren Sie Ihre Vermögenswerte.",
       "title": "Senden von Assets an die Burn-Adresse"
     },
+    "gas_sponsorship_reserve_balance": {
+      "message": "Gas sponsorship isn't available for this transaction. You'll need to keep at least %{minBalance} %{nativeTokenSymbol} in your account.",
+      "title": "Gas sponsorship unavailable"
+    },
     "token_trust_signal": {
       "malicious": {
         "message": "Dieses Token wurde als schädlich identifiziert. Die Interaktion mit diesem Token kann zu einem Verlust von Geldern führen.",
@@ -623,6 +627,7 @@
     "invalid_value": "Ungültiger Wert",
     "insufficient_funds": "Unzureichende Gelder",
     "insufficient_balance_to_cover_fee": "Insufficient balance to cover fees",
+    "transaction_error": "Transaction error",
     "continue": "Fortfahren",
     "unit": "Einheit",
     "units": "Einheiten",
@@ -1087,7 +1092,11 @@
       "error_toast": "Transaktion fehlgeschlagen",
       "error_generic": "Die Gelder wurden Ihnen zurückerstattet",
       "in_progress": "Gelder werden Perps hinzugefügt",
-      "depositing_your_funds": "Einzahlung deiner Gelder",
+      "depositing_your_funds": "Setting up your trade",
+      "deposit_taking_longer": "Deposit taking longer than usual",
+      "cancel_trade": "Cancel trade",
+      "trade_canceled": "Trade canceled",
+      "funds_returned_to_account": "Funds returned to your account",
       "your_funds_have_arrived": "Deine Gelder sind angekommen",
       "estimated_processing_time": "Geschätzt: {{time}}",
       "funds_available_momentarily": "Die Gelder werden in Kürze verfügbar sein",
@@ -1174,6 +1183,7 @@
         "amount_required": "Orderbetrag muss größer als 0 sein",
         "minimum_amount": "Mindestordergröße beträgt {{amount}} $",
         "insufficient_funds": "Unzureichende Gelder",
+        "insufficient_funds_to_cover_trade": "Insufficient funds to cover the trade",
         "insufficient_balance": "Unzureichender Kontostand. Erforderlich: {{required}} $. Verfügbar: {{available}} $",
         "invalid_leverage": "Hebel muss zwischen {{min}}x und {{max}}x liegen",
         "leverage_below_position": "Der Hebel muss mindestens {{required}}x betragen, um Ihrer aktuellen Position (aktuell: {{provided}}x) zu entsprechen.",
@@ -1299,8 +1309,8 @@
       "your_funds_have_been_returned_to_you": "Ihre Gelder wurden Ihnen zurückerstattet",
       "order_cancelled_success": "{{detailedOrderType}}-Order storniert",
       "pay_with_token_required": "Token-Auswahl erforderlich",
-      "select_token_to_pay_with": "Bitte wählen Sie vor Ihrer Bestellung ein Token zur Zahlung aus",
-      "initializing": "Bestellung wird initialisiert ..."
+      "select_token_to_pay_with": "Bitte wählen Sie vor Ihrer Order ein Token zur Zahlung aus",
+      "initializing": "Order wird initialisiert ..."
     },
     "price_deviation_warning": {
       "message": "Der Preis weicht zu stark vom Spotpreis ab. Neue Positionen können derzeit nicht eröffnet werden."
@@ -1656,6 +1666,7 @@
         "content": "Trading-Gebühren werden bei der Eröffnung oder Schließung einer Position erhoben.",
         "metamask_fee": "MetaMask-Gebühr",
         "provider_fee": "Anbietergebühr",
+        "bridge_fee": "Bridge fee",
         "total": "Gesamtgebühren",
         "discount_message": "Mit MetaMask-Belohnungen sparen Sie {{percentage}} %."
       },
@@ -1737,6 +1748,10 @@
       "spread": {
         "title": "Spread",
         "content": "Der Spread ist die Differenz zwischen dem besten Geldkurs (höchster Kaufpreis) und dem besten Briefkurs (niedrigster Verkaufspreis). Ein kleinerer Spread deutet auf höhere Liquidität hin."
+      },
+      "pay_with": {
+        "title": "Pay with",
+        "content": "Choose which token or balance to use to pay for this trade. You can pay with your Perps balance or select another token from your wallet."
       }
     },
     "connection": {
@@ -3324,6 +3339,10 @@
   "asset_overview": {
     "send_button": "Senden",
     "buy_button": "Kaufen",
+    "cash_buy_button": "Cash Buy",
+    "long_button": "Long",
+    "short_button": "Short",
+    "more_button": "More",
     "token_marketplace": "Token-Marktplatz",
     "sell_button": "Verkaufen",
     "receive_button": "Abheben",
@@ -3345,7 +3364,11 @@
       "terms_apply": "Es gelten die Nutzungsbedingungen.",
       "ok": "OK",
       "claim": "Einfordern",
-      "processing_claim": "Einforderung in Bearbeitung ..."
+      "processing_claim": "Einforderung in Bearbeitung ...",
+      "claim_on_linea_title": "Claim bonuses on Linea",
+      "claim_on_linea_description": "Your bonus will be issued on Linea, separate from your Ethereum mUSD balance.",
+      "continue": "Continue",
+      "unexpected_error": "Unexpected error. Please try again."
     },
     "tron": {
       "daily_resource_new_energy": "Neue tägliche Energie",
@@ -3789,6 +3812,7 @@
     "tx_review_predict_claim": "Eingeforderte Gewinne",
     "tx_review_predict_withdraw": "Prognosenwiderruf",
     "tx_review_musd_conversion": "mUSD-Konvertierung",
+    "claim": "Claim",
     "sent_ether": "Sent ETH",
     "self_sent_ether": "Sent yourself ETH",
     "received_ether": "Received ETH",
@@ -4697,6 +4721,11 @@
     "buy": "{{ticker}} kaufen",
     "on_network": "auf {{networkName}}",
     "debit_card": "Debitkarte",
+    "select_payment_method": "Select payment method",
+    "pay_with": "Pay with",
+    "buying_via": "Buying via {{providerName}}.",
+    "change_provider": "Change provider.",
+    "providers": "Providers",
     "continue": "Fortfahren",
     "powered_by_provider": "Unterstützt von {{provider}}",
     "purchased_currency": "{{currency}} gekauft",
@@ -4848,6 +4877,7 @@
       "lowest_sell_limit": "niedrigstes Verkaufslimit",
       "medium_sell_limit": "mittleres Verkaufslimit",
       "highest_sell_limit": "höchstes Verkaufslimit",
+      "change": "Change",
       "continue_to_amount": "Weiter zum Betrag",
       "no_payment_methods_title": "Keine Zahlungsmethoden in {{regionName}}",
       "no_cash_destinations_title": "Keine Bargeldziele in {{regionName}}",
@@ -6330,6 +6360,7 @@
     "select_recipient": "Empfänger auswählen",
     "external_account": "Externes Konto",
     "error_banner_description": "Diese Handelsroute ist derzeit nicht verfügbar. Versuchen Sie, den Betrag, das Netzwerk oder das Token zu ändern, und wir finden die beste Option.",
+    "stock_token_error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.\n\nPlease note if you are attempting to trade Ondo Tokenised Stocks you may be geo-restricted e.g. via US, EU, UK and BR.",
     "insufficient_funds": "Unzureichende Gelder",
     "insufficient_gas": "Unzureichendes Gas",
     "select_amount": "Betrag auswählen",
@@ -6590,7 +6621,7 @@
       "title": "{{networkName}}-Adresse",
       "copy_address": "Adresse kopieren",
       "description": "Verwenden Sie diese Adresse für den Empfang von Tokens und Sammlerstücken auf",
-      "description_prefix": "Nutzen Sie dies, um Assets zu erhalten zu"
+      "description_prefix": "Nutzen Sie dies, um Assets zu erhalten in"
     },
     "export_credentials": {
       "export_private_key": "Privater Schlüssel",
@@ -6696,7 +6727,7 @@
       "metal_card_total": "199 $ pro Jahr",
       "fees": "Gebühren",
       "fees_free": "Kostenlos",
-      "renews": "Erneuerungen",
+      "renews": "Erneuert",
       "renews_annually": "Jährlich",
       "total": "Insgesamt",
       "pay": "Bezahlen",
@@ -6725,7 +6756,7 @@
     "card_onboarding": {
       "title": "Ausgeben\nund verdienen",
       "description": "Die MetaMask-Karte ist der schnelle und\neinfache Weg, Ihre Kryptowährung auszugeben und\nbis zu 3 % Cashback zu erhalten.",
-      "apply_now_button": "Setup now",
+      "apply_now_button": "Set up now",
       "login_button": "Anmelden",
       "not_now_button": "Nicht jetzt",
       "sign_up": {
@@ -6748,8 +6779,8 @@
         "resend_cooldown": "Erneutes Senden in {{seconds}} Sekunden verfügbar"
       },
       "set_phone_number": {
-        "title": "Bestätigen Sie Ihre Telefonnummer",
-        "description": "Geben Sie Ihre Telefonnummer ein. Wir senden Ihnen dorthin einen Bestätigungscode.",
+        "title": "Enter your phone number",
+        "description": "We'll send you a confirmation code there.",
         "phone_number_label": "Telefonnummer eingeben",
         "country_area_code_label": "Ländervorwahl",
         "invalid_phone_number": "Ungültige Telefonnummer",
@@ -6829,6 +6860,7 @@
         "date_of_birth_label": "Geburtsdatum",
         "nationality_label": "Nationalität",
         "ssn_label": "Sozialversicherungsnummer",
+        "ssn_description": "Required by the card issuer. No credit check will be run.",
         "invalid_ssn": "Ungültige SSN",
         "invalid_date_of_birth": "Ungültiges Geburtsdatum. Sie müssen mindestens 18 Jahre alt sein."
       },
@@ -6889,6 +6921,7 @@
     },
     "card_home": {
       "title": "Karte",
+      "authentication_error": "Your session has expired. Please log in again.",
       "available_balance": "Verfügbares Guthaben",
       "error_title": "Daten können nicht abgerufen werden",
       "error_description": "Es scheint ein Problem zu geben, das Sie an der Anzeige des Inhalts dieser Seite hindert. Bitte überprüfen Sie Ihre Verbindung oder aktualisieren Sie die Seite.",
@@ -7064,6 +7097,35 @@
       "didnt_receive_code": "Sie haben den Code nicht erhalten? ",
       "resend_verification": "Erneut senden",
       "resend_cooldown": "Erneutes Senden in {{seconds}} Sekunden verfügbar"
+    },
+    "push_provisioning": {
+      "add_to_wallet": "Add to {{walletName}}",
+      "adding_to_wallet": "Adding to {{walletName}}...",
+      "continue_setup": "Continue {{walletName}} Setup",
+      "wallet_not_available": "{{walletName}} not available",
+      "already_in_wallet": "Already in {{walletName}}",
+      "success_title": "Card added!",
+      "success_message": "Your MetaMask Card has been added to {{walletName}}.",
+      "error_title": "Unable to add card",
+      "error_wallet_not_available": "{{walletName}} is not available on this device. Please ensure you have {{walletName}} set up.",
+      "error_wallet_not_initialized": "{{walletName}} is not initialized. Please set up your wallet and try again.",
+      "error_card_already_in_wallet": "This card is already added to {{walletName}}.",
+      "error_card_pending": "Your card is being set up in {{walletName}}. Please check back in a few minutes.",
+      "error_card_suspended": "Your card in {{walletName}} has been suspended. Please contact support for assistance.",
+      "error_card_not_eligible": "This card is not eligible for mobile wallet provisioning.",
+      "error_encryption_failed": "Failed to encrypt card data. Please try again.",
+      "error_invalid_card_data": "Invalid card data. Please verify your card details and try again.",
+      "error_card_not_found": "Card not found. Please try again.",
+      "error_card_provider_not_found": "Card provider is not available for your region.",
+      "error_card_id_mismatch": "Card verification failed. Please try again.",
+      "error_card_not_active": "Your card is not active. Please activate your card first.",
+      "error_network": "Network error occurred. Please check your connection and try again.",
+      "error_timeout": "The request timed out. Please try again.",
+      "error_server": "Server error occurred. Please try again later.",
+      "error_unknown": "An unexpected error occurred. Please try again or contact support.",
+      "error_platform_not_supported": "This platform does not support mobile wallet provisioning.",
+      "try_again": "Try again",
+      "cancel": "Cancel"
     }
   },
   "onboarding_error_fallback": {
@@ -7484,7 +7546,7 @@
       "redeem_failure_title": "Einlösung fehlgeschlagen",
       "redeem_failure_description": "Bitte versuchen Sie es später erneut.",
       "reward_details": "Belohnungsdetails",
-      "select_account_description": "Wählen Sie das Konto, auf das diese Belohnung überwiesen werden soll, aus."
+      "select_account_description": "Select the account where you'd like this reward sent."
     },
     "animation": {
       "could_not_load": "Laden fehlgeschlagen"
@@ -7524,6 +7586,7 @@
   "transaction_details": {
     "title": {
       "musd_conversion": "Converted to mUSD",
+      "musd_claim": "Claimed mUSD",
       "perps_deposit": "Finanziertes Perps-Konto",
       "predict_claim": "Gewinne eingefordert",
       "predict_deposit": "Finanziertes Prognosekonto",
@@ -7548,6 +7611,7 @@
       "bridge_receive_loading": "Bridge receive",
       "default": "Transaktion",
       "musd_convert_send": "Sent {{sourceSymbol}} from {{sourceChain}}",
+      "musd_claim": "Claim mUSD",
       "perps_deposit": "Gelder hinzufügen",
       "predict_deposit": "Gelder hinzufügen",
       "swap": "Tokens tauschen",

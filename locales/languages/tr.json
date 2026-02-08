@@ -115,6 +115,10 @@
       "message": "Varlıklarınızı bir yakım adresine gönderiyorsunuz. Devam ederseniz varlıklarınızı kaybedeceksiniz.",
       "title": "Varlıklar yakım adresine gönderiliyor"
     },
+    "gas_sponsorship_reserve_balance": {
+      "message": "Gas sponsorship isn't available for this transaction. You'll need to keep at least %{minBalance} %{nativeTokenSymbol} in your account.",
+      "title": "Gas sponsorship unavailable"
+    },
     "token_trust_signal": {
       "malicious": {
         "message": "Bu token kötü amaçlı olarak tanımlandı. Bu token ile etkileşimde bulunmak fon kaybına neden olabilir.",
@@ -623,6 +627,7 @@
     "invalid_value": "Geçersiz değer",
     "insufficient_funds": "Yetersiz bakiye",
     "insufficient_balance_to_cover_fee": "Insufficient balance to cover fees",
+    "transaction_error": "Transaction error",
     "continue": "Devam Et",
     "unit": "birim",
     "units": "birim",
@@ -1087,7 +1092,11 @@
       "error_toast": "İşlem başarısız oldu",
       "error_generic": "Fonlar size iade edildi",
       "in_progress": "Sürekli Vadeli İşlem Sözleşmelerine fon ekleniyor",
-      "depositing_your_funds": "Fonlarınızı yatırma",
+      "depositing_your_funds": "Setting up your trade",
+      "deposit_taking_longer": "Deposit taking longer than usual",
+      "cancel_trade": "Cancel trade",
+      "trade_canceled": "Trade canceled",
+      "funds_returned_to_account": "Funds returned to your account",
       "your_funds_have_arrived": "Fonlarınız ulaştı",
       "estimated_processing_time": "Tah. {{time}}",
       "funds_available_momentarily": "Fonlar birazdan kullanılabilir olacak",
@@ -1174,6 +1183,7 @@
         "amount_required": "Emir tutarı 0'dan büyük olmalıdır",
         "minimum_amount": "Minimum emir büyüklüğü {{amount}}$",
         "insufficient_funds": "Yetersiz bakiye",
+        "insufficient_funds_to_cover_trade": "Insufficient funds to cover the trade",
         "insufficient_balance": "Bakiye yetersiz. Gereken: {{required}}$, Kullanılabilir: {{available}}$",
         "invalid_leverage": "Kaldıraç {{min}} katı ile {{max}} katı arasında olmalıdır",
         "leverage_below_position": "Mevcut pozisyonunuzla (güncel: {{provided}} katı) uyumlu olması için kaldıraç en az {{required}} katı olmalıdır",
@@ -1656,6 +1666,7 @@
         "content": "Bir pozisyon açtığınızda veya kapattığınızda işlem ücretleri tahsil edilir.",
         "metamask_fee": "MetaMask ücreti",
         "provider_fee": "Sağlayıcı ücreti",
+        "bridge_fee": "Bridge fee",
         "total": "Toplam ücretler",
         "discount_message": "MetaMask Ödülleri ile %{{percentage}} tasarruf ediyorsunuz."
       },
@@ -1737,6 +1748,10 @@
       "spread": {
         "title": "Spread",
         "content": "Spread, en iyi alış (en yüksek al fiyatı) ile en iyi satış (en düşük sat fiyatı) arasındaki farktır. Daha küçük spread daha yüksek likidite gösterir."
+      },
+      "pay_with": {
+        "title": "Pay with",
+        "content": "Choose which token or balance to use to pay for this trade. You can pay with your Perps balance or select another token from your wallet."
       }
     },
     "connection": {
@@ -3324,6 +3339,10 @@
   "asset_overview": {
     "send_button": "Gönder",
     "buy_button": "Satın Al",
+    "cash_buy_button": "Cash Buy",
+    "long_button": "Long",
+    "short_button": "Short",
+    "more_button": "More",
     "token_marketplace": "Token pazar yeri",
     "sell_button": "Sat",
     "receive_button": "Al",
@@ -3345,7 +3364,11 @@
       "terms_apply": "Şartlar uygulanır.",
       "ok": "Tamam",
       "claim": "Al",
-      "processing_claim": "Talep işleme alınıyor..."
+      "processing_claim": "Talep işleme alınıyor...",
+      "claim_on_linea_title": "Claim bonuses on Linea",
+      "claim_on_linea_description": "Your bonus will be issued on Linea, separate from your Ethereum mUSD balance.",
+      "continue": "Continue",
+      "unexpected_error": "Unexpected error. Please try again."
     },
     "tron": {
       "daily_resource_new_energy": "Yeni günlük enerji",
@@ -3789,6 +3812,7 @@
     "tx_review_predict_claim": "Alınan kazançlar",
     "tx_review_predict_withdraw": "Tahmin bakiyesini çek",
     "tx_review_musd_conversion": "mUSD dönüştürme",
+    "claim": "Claim",
     "sent_ether": "Sent ETH",
     "self_sent_ether": "Sent yourself ETH",
     "received_ether": "Received ETH",
@@ -4697,6 +4721,11 @@
     "buy": "{{ticker}} Satın Al",
     "on_network": "{{networkName}} üzerinde",
     "debit_card": "Banka kartı",
+    "select_payment_method": "Select payment method",
+    "pay_with": "Pay with",
+    "buying_via": "Buying via {{providerName}}.",
+    "change_provider": "Change provider.",
+    "providers": "Providers",
     "continue": "Devam et",
     "powered_by_provider": "Destekleyen {{provider}}",
     "purchased_currency": "{{currency}} Satın Alındı",
@@ -4848,6 +4877,7 @@
       "lowest_sell_limit": "en düşük sat limiti",
       "medium_sell_limit": "orta sat limiti",
       "highest_sell_limit": "en yüksek sat limiti",
+      "change": "Change",
       "continue_to_amount": "Tutara devam et",
       "no_payment_methods_title": "{{regionName}} bölgesinde ödeme yöntemi yok",
       "no_cash_destinations_title": "{{regionName}} bölgesinde nakit varış yeri yok",
@@ -6330,6 +6360,7 @@
     "select_recipient": "Alıcı seç",
     "external_account": "Harici hesap",
     "error_banner_description": "Bu işlem rotası şu anda kullanılamıyor. Tutarı, ağı veya token'ı değiştirmeyi deneyin ve sizin için en iyi seçeneği bulalım.",
+    "stock_token_error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.\n\nPlease note if you are attempting to trade Ondo Tokenised Stocks you may be geo-restricted e.g. via US, EU, UK and BR.",
     "insufficient_funds": "Para yetersiz",
     "insufficient_gas": "Yetersiz gaz",
     "select_amount": "Tutar seçin",
@@ -6725,7 +6756,7 @@
     "card_onboarding": {
       "title": "Harca\nve Kazan",
       "description": "MetaMask Kart, kriptonuzu harcamanın\nve %3'e varan para iadesi kazanmanın\nhızlı ve kolay yoludur.",
-      "apply_now_button": "Setup now",
+      "apply_now_button": "Set up now",
       "login_button": "Giriş yap",
       "not_now_button": "Şimdi değil",
       "sign_up": {
@@ -6748,8 +6779,8 @@
         "resend_cooldown": "{{seconds}} saniye sonra tekrar gönderilebilir"
       },
       "set_phone_number": {
-        "title": "Telefon numaranızı onaylayın",
-        "description": "Telefon numaranızı girin. Size oradan bir onay kodu göndereceğiz.",
+        "title": "Enter your phone number",
+        "description": "We'll send you a confirmation code there.",
         "phone_number_label": "Telefon numarası girin",
         "country_area_code_label": "Ülke alan kodu",
         "invalid_phone_number": "Geçersiz telefon numarası",
@@ -6829,6 +6860,7 @@
         "date_of_birth_label": "Doğum tarihi",
         "nationality_label": "Milliyet",
         "ssn_label": "Sosyal Güvenlik Numarası",
+        "ssn_description": "Required by the card issuer. No credit check will be run.",
         "invalid_ssn": "Geçersiz Sosyal Güvenlik Numarası (SSN)",
         "invalid_date_of_birth": "Doğum tarihi geçersiz. En az 18 yaşında olmalısınız"
       },
@@ -6889,6 +6921,7 @@
     },
     "card_home": {
       "title": "Kart",
+      "authentication_error": "Your session has expired. Please log in again.",
       "available_balance": "Kullanılabilir bakiye",
       "error_title": "Veriler alınamıyor",
       "error_description": "Bu sayfadaki içeriği görüntülemenizi önleyen bir sorun var gibi görünüyor. Lütfen bağlantınızı kontrol edin veya sayfayı yenilemeyi deneyin.",
@@ -7064,6 +7097,35 @@
       "didnt_receive_code": "Kodu almadınız mı? ",
       "resend_verification": "Tekrar gönder",
       "resend_cooldown": "{{seconds}} saniye sonra tekrar gönderilebilir"
+    },
+    "push_provisioning": {
+      "add_to_wallet": "Add to {{walletName}}",
+      "adding_to_wallet": "Adding to {{walletName}}...",
+      "continue_setup": "Continue {{walletName}} Setup",
+      "wallet_not_available": "{{walletName}} not available",
+      "already_in_wallet": "Already in {{walletName}}",
+      "success_title": "Card added!",
+      "success_message": "Your MetaMask Card has been added to {{walletName}}.",
+      "error_title": "Unable to add card",
+      "error_wallet_not_available": "{{walletName}} is not available on this device. Please ensure you have {{walletName}} set up.",
+      "error_wallet_not_initialized": "{{walletName}} is not initialized. Please set up your wallet and try again.",
+      "error_card_already_in_wallet": "This card is already added to {{walletName}}.",
+      "error_card_pending": "Your card is being set up in {{walletName}}. Please check back in a few minutes.",
+      "error_card_suspended": "Your card in {{walletName}} has been suspended. Please contact support for assistance.",
+      "error_card_not_eligible": "This card is not eligible for mobile wallet provisioning.",
+      "error_encryption_failed": "Failed to encrypt card data. Please try again.",
+      "error_invalid_card_data": "Invalid card data. Please verify your card details and try again.",
+      "error_card_not_found": "Card not found. Please try again.",
+      "error_card_provider_not_found": "Card provider is not available for your region.",
+      "error_card_id_mismatch": "Card verification failed. Please try again.",
+      "error_card_not_active": "Your card is not active. Please activate your card first.",
+      "error_network": "Network error occurred. Please check your connection and try again.",
+      "error_timeout": "The request timed out. Please try again.",
+      "error_server": "Server error occurred. Please try again later.",
+      "error_unknown": "An unexpected error occurred. Please try again or contact support.",
+      "error_platform_not_supported": "This platform does not support mobile wallet provisioning.",
+      "try_again": "Try again",
+      "cancel": "Cancel"
     }
   },
   "onboarding_error_fallback": {
@@ -7484,7 +7546,7 @@
       "redeem_failure_title": "Kullanılamadı",
       "redeem_failure_description": "Lütfen daha sonra tekrar deneyin.",
       "reward_details": "Ödül Bilgileri",
-      "select_account_description": "Bu ödülün gönderilmesini istediğiniz hesabı seçin."
+      "select_account_description": "Select the account where you'd like this reward sent."
     },
     "animation": {
       "could_not_load": "Yüklenemedi"
@@ -7524,6 +7586,7 @@
   "transaction_details": {
     "title": {
       "musd_conversion": "Converted to mUSD",
+      "musd_claim": "Claimed mUSD",
       "perps_deposit": "Fonlanmış sürekli vadeli işlem sözleşmeleri hesabı",
       "predict_claim": "Kazançlar alındı",
       "predict_deposit": "Fonlanmış Predict hesabı",
@@ -7548,6 +7611,7 @@
       "bridge_receive_loading": "Bridge receive",
       "default": "İşlem",
       "musd_convert_send": "Sent {{sourceSymbol}} from {{sourceChain}}",
+      "musd_claim": "Claim mUSD",
       "perps_deposit": "Fon ekle",
       "predict_deposit": "Fon ekle",
       "swap": "Token swap işlemi yapın",

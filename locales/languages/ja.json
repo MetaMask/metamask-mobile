@@ -115,6 +115,10 @@
       "message": "資産をバーンアドレスに送金しようとしています。続行すると、資産が失われます。",
       "title": "バーンアドレスに資産を送ろうとしています"
     },
+    "gas_sponsorship_reserve_balance": {
+      "message": "Gas sponsorship isn't available for this transaction. You'll need to keep at least %{minBalance} %{nativeTokenSymbol} in your account.",
+      "title": "Gas sponsorship unavailable"
+    },
     "token_trust_signal": {
       "malicious": {
         "message": "このトークンは悪質であると判断されました。このトークンとやり取りすると、資金が失われる可能性があります。",
@@ -623,6 +627,7 @@
     "invalid_value": "無効な値",
     "insufficient_funds": "資金不足",
     "insufficient_balance_to_cover_fee": "Insufficient balance to cover fees",
+    "transaction_error": "Transaction error",
     "continue": "続行",
     "unit": "単位",
     "units": "単位",
@@ -1087,7 +1092,11 @@
       "error_toast": "トランザクション失敗",
       "error_generic": "資金が返金されました",
       "in_progress": "パーペチュアルに入金中",
-      "depositing_your_funds": "資金を入金しています",
+      "depositing_your_funds": "Setting up your trade",
+      "deposit_taking_longer": "Deposit taking longer than usual",
+      "cancel_trade": "Cancel trade",
+      "trade_canceled": "Trade canceled",
+      "funds_returned_to_account": "Funds returned to your account",
       "your_funds_have_arrived": "資金が入金されました",
       "estimated_processing_time": "推定所要時間: {{time}}",
       "funds_available_momentarily": "資金はすぐに利用可能になります",
@@ -1174,6 +1183,7 @@
         "amount_required": "注文金額は0より大きい数字にしてください",
         "minimum_amount": "最低注文サイズは${{amount}}です",
         "insufficient_funds": "資金不足",
+        "insufficient_funds_to_cover_trade": "Insufficient funds to cover the trade",
         "insufficient_balance": "残高が不足しています。必要額: ${{required}}、利用可能額: ${{available}}",
         "invalid_leverage": "レバレッジは{{min}}倍から{{max}}倍までの間にしてください",
         "leverage_below_position": "レバレッジは、既存のポジション (現在: {{provided}}倍) に合わせて{{required}}倍以上でなければなりません",
@@ -1656,6 +1666,7 @@
         "content": "取引手数料は、ポジションのオープンまたはクローズ時に請求されます。",
         "metamask_fee": "MetaMaskの手数料",
         "provider_fee": "プロバイダーの手数料",
+        "bridge_fee": "Bridge fee",
         "total": "合計手数料",
         "discount_message": "MetaMaskリワードで{{percentage}}%の節約になります。"
       },
@@ -1737,6 +1748,10 @@
       "spread": {
         "title": "スプレッド",
         "content": "スプレッドは、最も有利なbid (最も高い購入価格) と最も有利なask (最も低い売却価格) の差です。スプレッドが小さいほど流動性が高いことを意味します。"
+      },
+      "pay_with": {
+        "title": "Pay with",
+        "content": "Choose which token or balance to use to pay for this trade. You can pay with your Perps balance or select another token from your wallet."
       }
     },
     "connection": {
@@ -3324,6 +3339,10 @@
   "asset_overview": {
     "send_button": "送信",
     "buy_button": "購入",
+    "cash_buy_button": "Cash Buy",
+    "long_button": "Long",
+    "short_button": "Short",
+    "more_button": "More",
     "token_marketplace": "トークンマーケットプレイス",
     "sell_button": "売却",
     "receive_button": "受取",
@@ -3345,7 +3364,11 @@
       "terms_apply": "諸条件が適用されます。",
       "ok": "OK",
       "claim": "請求",
-      "processing_claim": "請求を処理しています..."
+      "processing_claim": "請求を処理しています...",
+      "claim_on_linea_title": "Claim bonuses on Linea",
+      "claim_on_linea_description": "Your bonus will be issued on Linea, separate from your Ethereum mUSD balance.",
+      "continue": "Continue",
+      "unexpected_error": "Unexpected error. Please try again."
     },
     "tron": {
       "daily_resource_new_energy": "1日の新規エネルギー量",
@@ -3789,6 +3812,7 @@
     "tx_review_predict_claim": "請求済みの報酬",
     "tx_review_predict_withdraw": "予測の出金",
     "tx_review_musd_conversion": "mUSDへの変換",
+    "claim": "Claim",
     "sent_ether": "Sent ETH",
     "self_sent_ether": "Sent yourself ETH",
     "received_ether": "Received ETH",
@@ -4697,6 +4721,11 @@
     "buy": "{{ticker}}を購入",
     "on_network": "{{networkName}}を利用",
     "debit_card": "デビットカード",
+    "select_payment_method": "Select payment method",
+    "pay_with": "Pay with",
+    "buying_via": "Buying via {{providerName}}.",
+    "change_provider": "Change provider.",
+    "providers": "Providers",
     "continue": "続行",
     "powered_by_provider": "Powered by {{provider}}",
     "purchased_currency": "{{currency}}を購入しました",
@@ -4848,6 +4877,7 @@
       "lowest_sell_limit": "最も低い売却限度額",
       "medium_sell_limit": "中くらいの売却限度額",
       "highest_sell_limit": "最も高い売却限度額",
+      "change": "Change",
       "continue_to_amount": "金額に進む",
       "no_payment_methods_title": "{{regionName}}で使用できる支払方法がありません",
       "no_cash_destinations_title": "{{regionName}}に現金の送金先がありません",
@@ -6330,6 +6360,7 @@
     "select_recipient": "受取人を選択してください",
     "external_account": "外部アカウント",
     "error_banner_description": "この取引ルートは現在使用できません。金額、ネットワーク、またはトークンを変更してみてください。最善のオプションを探します。",
+    "stock_token_error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.\n\nPlease note if you are attempting to trade Ondo Tokenised Stocks you may be geo-restricted e.g. via US, EU, UK and BR.",
     "insufficient_funds": "資金不足",
     "insufficient_gas": "ガス不足",
     "select_amount": "アカウントを選択",
@@ -6725,7 +6756,7 @@
     "card_onboarding": {
       "title": "使えば\n貯まる",
       "description": "MetaMaskカードなら\n仮想通貨決済を素早く簡単に行え\n3%のキャッシュバックも獲得できます。",
-      "apply_now_button": "Setup now",
+      "apply_now_button": "Set up now",
       "login_button": "ログイン",
       "not_now_button": "後で",
       "sign_up": {
@@ -6748,8 +6779,8 @@
         "resend_cooldown": "{{seconds}}秒後に再送できます"
       },
       "set_phone_number": {
-        "title": "電話番号の確認",
-        "description": "電話番号を入力してください。その番号に確認コードをお送りします。",
+        "title": "Enter your phone number",
+        "description": "We'll send you a confirmation code there.",
         "phone_number_label": "電話番号を入力してください",
         "country_area_code_label": "国番号",
         "invalid_phone_number": "無効な電話番号です",
@@ -6829,6 +6860,7 @@
         "date_of_birth_label": "生年月日",
         "nationality_label": "国籍",
         "ssn_label": "社会保障番号",
+        "ssn_description": "Required by the card issuer. No credit check will be run.",
         "invalid_ssn": "無効な社会保障番号です",
         "invalid_date_of_birth": "生年月日が無効です。18歳以上である必要があります。"
       },
@@ -6889,6 +6921,7 @@
     },
     "card_home": {
       "title": "カード",
+      "authentication_error": "Your session has expired. Please log in again.",
       "available_balance": "利用可能残高",
       "error_title": "データを取得できません",
       "error_description": "問題が発生し、このページのコンテンツを表示できないようです。接続を確認するか、ページを更新してみてください。",
@@ -7064,6 +7097,35 @@
       "didnt_receive_code": "コードが届きませんか？ ",
       "resend_verification": "コードを再送信",
       "resend_cooldown": "{{seconds}}秒後に再送できます"
+    },
+    "push_provisioning": {
+      "add_to_wallet": "Add to {{walletName}}",
+      "adding_to_wallet": "Adding to {{walletName}}...",
+      "continue_setup": "Continue {{walletName}} Setup",
+      "wallet_not_available": "{{walletName}} not available",
+      "already_in_wallet": "Already in {{walletName}}",
+      "success_title": "Card added!",
+      "success_message": "Your MetaMask Card has been added to {{walletName}}.",
+      "error_title": "Unable to add card",
+      "error_wallet_not_available": "{{walletName}} is not available on this device. Please ensure you have {{walletName}} set up.",
+      "error_wallet_not_initialized": "{{walletName}} is not initialized. Please set up your wallet and try again.",
+      "error_card_already_in_wallet": "This card is already added to {{walletName}}.",
+      "error_card_pending": "Your card is being set up in {{walletName}}. Please check back in a few minutes.",
+      "error_card_suspended": "Your card in {{walletName}} has been suspended. Please contact support for assistance.",
+      "error_card_not_eligible": "This card is not eligible for mobile wallet provisioning.",
+      "error_encryption_failed": "Failed to encrypt card data. Please try again.",
+      "error_invalid_card_data": "Invalid card data. Please verify your card details and try again.",
+      "error_card_not_found": "Card not found. Please try again.",
+      "error_card_provider_not_found": "Card provider is not available for your region.",
+      "error_card_id_mismatch": "Card verification failed. Please try again.",
+      "error_card_not_active": "Your card is not active. Please activate your card first.",
+      "error_network": "Network error occurred. Please check your connection and try again.",
+      "error_timeout": "The request timed out. Please try again.",
+      "error_server": "Server error occurred. Please try again later.",
+      "error_unknown": "An unexpected error occurred. Please try again or contact support.",
+      "error_platform_not_supported": "This platform does not support mobile wallet provisioning.",
+      "try_again": "Try again",
+      "cancel": "Cancel"
     }
   },
   "onboarding_error_fallback": {
@@ -7484,7 +7546,7 @@
       "redeem_failure_title": "引き換えに失敗しました",
       "redeem_failure_description": "後ほどもう一度お試しください。",
       "reward_details": "報酬の詳細",
-      "select_account_description": "この報酬の送付先となるアカウントを選択してください。"
+      "select_account_description": "Select the account where you'd like this reward sent."
     },
     "animation": {
       "could_not_load": "読み込ませんでした"
@@ -7524,6 +7586,7 @@
   "transaction_details": {
     "title": {
       "musd_conversion": "Converted to mUSD",
+      "musd_claim": "Claimed mUSD",
       "perps_deposit": "パーペチュアルアカウントに入金しました",
       "predict_claim": "報酬を請求しました",
       "predict_deposit": "Predictアカウントに入金しました",
@@ -7548,6 +7611,7 @@
       "bridge_receive_loading": "Bridge receive",
       "default": "トランザクション",
       "musd_convert_send": "Sent {{sourceSymbol}} from {{sourceChain}}",
+      "musd_claim": "Claim mUSD",
       "perps_deposit": "資金を追加",
       "predict_deposit": "資金を追加",
       "swap": "トークンをスワップ",

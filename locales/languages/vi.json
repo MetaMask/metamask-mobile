@@ -115,6 +115,10 @@
       "message": "Bạn đang gửi tài sản của mình đến địa chỉ đốt. Nếu tiếp tục, bạn sẽ mất tài sản.",
       "title": "Gửi tài sản đến địa chỉ đốt"
     },
+    "gas_sponsorship_reserve_balance": {
+      "message": "Gas sponsorship isn't available for this transaction. You'll need to keep at least %{minBalance} %{nativeTokenSymbol} in your account.",
+      "title": "Gas sponsorship unavailable"
+    },
     "token_trust_signal": {
       "malicious": {
         "message": "Token này đã được xác định là độc hại. Tương tác với token này có thể dẫn đến mất tiền.",
@@ -623,6 +627,7 @@
     "invalid_value": "Giá trị không hợp lệ",
     "insufficient_funds": "Không đủ tiền",
     "insufficient_balance_to_cover_fee": "Insufficient balance to cover fees",
+    "transaction_error": "Transaction error",
     "continue": "Tiếp tục",
     "unit": "đơn vị",
     "units": "đơn vị",
@@ -1087,7 +1092,11 @@
       "error_toast": "Giao dịch thất bại",
       "error_generic": "Tiền đã được hoàn trả cho bạn",
       "in_progress": "Đang nạp tiền vào Hợp đồng vĩnh cửu",
-      "depositing_your_funds": "Đang gửi tiền của bạn",
+      "depositing_your_funds": "Setting up your trade",
+      "deposit_taking_longer": "Deposit taking longer than usual",
+      "cancel_trade": "Cancel trade",
+      "trade_canceled": "Trade canceled",
+      "funds_returned_to_account": "Funds returned to your account",
       "your_funds_have_arrived": "Tiền của bạn đã được chuyển đến",
       "estimated_processing_time": "Ước tính {{time}}",
       "funds_available_momentarily": "Tiền sẽ sớm khả dụng",
@@ -1174,6 +1183,7 @@
         "amount_required": "Số tiền đặt lệnh phải lớn hơn 0",
         "minimum_amount": "Kích thước lệnh tối thiểu là ${{amount}}",
         "insufficient_funds": "Không đủ tiền",
+        "insufficient_funds_to_cover_trade": "Insufficient funds to cover the trade",
         "insufficient_balance": "Số dư không đủ. Yêu cầu: ${{required}}, Khả dụng: ${{available}}",
         "invalid_leverage": "Đòn bẩy phải nằm trong khoảng từ x{{min}} đến x{{max}}",
         "leverage_below_position": "Đòn bẩy phải ít nhất {{required}}x để khớp với vị thế hiện tại của bạn (hiện tại: {{provided}}x)",
@@ -1656,6 +1666,7 @@
         "content": "Phí giao dịch được tính khi bạn mở hoặc đóng một vị thế.",
         "metamask_fee": "Phí MetaMask",
         "provider_fee": "Phí nhà cung cấp",
+        "bridge_fee": "Bridge fee",
         "total": "Tổng phí",
         "discount_message": "Bạn đang tiết kiệm {{percentage}}% với Phần thưởng MetaMask."
       },
@@ -1737,6 +1748,10 @@
       "spread": {
         "title": "Chênh lệch giá",
         "content": "Chênh lệch giá mua và giá bán là khoảng cách giữa giá mua cao nhất và giá bán thấp nhất. Chênh lệch càng nhỏ thì thanh khoản càng cao."
+      },
+      "pay_with": {
+        "title": "Pay with",
+        "content": "Choose which token or balance to use to pay for this trade. You can pay with your Perps balance or select another token from your wallet."
       }
     },
     "connection": {
@@ -3324,6 +3339,10 @@
   "asset_overview": {
     "send_button": "Gửi",
     "buy_button": "Mua",
+    "cash_buy_button": "Cash Buy",
+    "long_button": "Long",
+    "short_button": "Short",
+    "more_button": "More",
     "token_marketplace": "Thị trường token",
     "sell_button": "Bán",
     "receive_button": "Nhận",
@@ -3345,7 +3364,11 @@
       "terms_apply": "Áp dụng điều khoản.",
       "ok": "OK",
       "claim": "Nhận",
-      "processing_claim": "Đang xử lý nhận thưởng..."
+      "processing_claim": "Đang xử lý nhận thưởng...",
+      "claim_on_linea_title": "Claim bonuses on Linea",
+      "claim_on_linea_description": "Your bonus will be issued on Linea, separate from your Ethereum mUSD balance.",
+      "continue": "Continue",
+      "unexpected_error": "Unexpected error. Please try again."
     },
     "tron": {
       "daily_resource_new_energy": "Năng lượng hằng ngày mới",
@@ -3789,6 +3812,7 @@
     "tx_review_predict_claim": "Tiền thắng đã nhận",
     "tx_review_predict_withdraw": "Rút tiền dự đoán",
     "tx_review_musd_conversion": "Chuyển đổi mUSD",
+    "claim": "Claim",
     "sent_ether": "Sent ETH",
     "self_sent_ether": "Sent yourself ETH",
     "received_ether": "Received ETH",
@@ -4697,6 +4721,11 @@
     "buy": "Mua {{ticker}}",
     "on_network": "trên {{networkName}}",
     "debit_card": "Thẻ ghi nợ",
+    "select_payment_method": "Select payment method",
+    "pay_with": "Pay with",
+    "buying_via": "Buying via {{providerName}}.",
+    "change_provider": "Change provider.",
+    "providers": "Providers",
     "continue": "Tiếp tục",
     "powered_by_provider": "Cung cấp bởi {{provider}}",
     "purchased_currency": "Đã mua {{currency}}",
@@ -4848,6 +4877,7 @@
       "lowest_sell_limit": "giới hạn bán thấp nhất",
       "medium_sell_limit": "giới hạn bán trung bình",
       "highest_sell_limit": "giới hạn bán cao nhất",
+      "change": "Change",
       "continue_to_amount": "Tiếp tục đến số lượng",
       "no_payment_methods_title": "Không có phương thức thanh toán tại {{regionName}}",
       "no_cash_destinations_title": "Không có điểm nhận tiền tại {{regionName}}",
@@ -6330,6 +6360,7 @@
     "select_recipient": "Chọn người nhận",
     "external_account": "Tài khoản bên ngoài",
     "error_banner_description": "Lộ trình giao dịch này hiện không khả dụng. Hãy thử thay đổi số lượng, mạng hoặc token và chúng tôi sẽ tìm phương án tốt nhất.",
+    "stock_token_error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.\n\nPlease note if you are attempting to trade Ondo Tokenised Stocks you may be geo-restricted e.g. via US, EU, UK and BR.",
     "insufficient_funds": "Không đủ tiền",
     "insufficient_gas": "Không đủ gas",
     "select_amount": "Chọn số lượng",
@@ -6725,7 +6756,7 @@
     "card_onboarding": {
       "title": "Chi tiêu\nvà Nhận thưởng",
       "description": "Thẻ MetaMask là cách nhanh chóng và\ndễ dàng để chi tiêu tiền mã hóa và\nnhận hoàn tiền tới 3%.",
-      "apply_now_button": "Setup now",
+      "apply_now_button": "Set up now",
       "login_button": "Đăng nhập",
       "not_now_button": "Không phải bây giờ",
       "sign_up": {
@@ -6748,8 +6779,8 @@
         "resend_cooldown": "Có thể gửi lại sau {{seconds}} giây"
       },
       "set_phone_number": {
-        "title": "Xác nhận số điện thoại",
-        "description": "Nhập số điện thoại của bạn. Chúng tôi sẽ gửi mã xác nhận đến đó.",
+        "title": "Enter your phone number",
+        "description": "We'll send you a confirmation code there.",
         "phone_number_label": "Nhập số điện thoại",
         "country_area_code_label": "Mã vùng quốc gia",
         "invalid_phone_number": "Số điện thoại không hợp lệ",
@@ -6829,6 +6860,7 @@
         "date_of_birth_label": "Ngày tháng năm sinh",
         "nationality_label": "Quốc tịch",
         "ssn_label": "Số An sinh Xã hội",
+        "ssn_description": "Required by the card issuer. No credit check will be run.",
         "invalid_ssn": "Số An Sinh Xã Hội không hợp lệ",
         "invalid_date_of_birth": "Ngày sinh không hợp lệ. Bạn phải ít nhất 18 tuổi"
       },
@@ -6889,6 +6921,7 @@
     },
     "card_home": {
       "title": "Thẻ",
+      "authentication_error": "Your session has expired. Please log in again.",
       "available_balance": "Số dư khả dụng",
       "error_title": "Không thể tìm nạp dữ liệu",
       "error_description": "Dường như đang có sự cố khiến bạn không thể xem nội dung trên trang này. Vui lòng kiểm tra kết nối hoặc thử làm mới trang.",
@@ -7064,6 +7097,35 @@
       "didnt_receive_code": "Không nhận được mã? ",
       "resend_verification": "Gửi lại",
       "resend_cooldown": "Có thể gửi lại sau {{seconds}} giây"
+    },
+    "push_provisioning": {
+      "add_to_wallet": "Add to {{walletName}}",
+      "adding_to_wallet": "Adding to {{walletName}}...",
+      "continue_setup": "Continue {{walletName}} Setup",
+      "wallet_not_available": "{{walletName}} not available",
+      "already_in_wallet": "Already in {{walletName}}",
+      "success_title": "Card added!",
+      "success_message": "Your MetaMask Card has been added to {{walletName}}.",
+      "error_title": "Unable to add card",
+      "error_wallet_not_available": "{{walletName}} is not available on this device. Please ensure you have {{walletName}} set up.",
+      "error_wallet_not_initialized": "{{walletName}} is not initialized. Please set up your wallet and try again.",
+      "error_card_already_in_wallet": "This card is already added to {{walletName}}.",
+      "error_card_pending": "Your card is being set up in {{walletName}}. Please check back in a few minutes.",
+      "error_card_suspended": "Your card in {{walletName}} has been suspended. Please contact support for assistance.",
+      "error_card_not_eligible": "This card is not eligible for mobile wallet provisioning.",
+      "error_encryption_failed": "Failed to encrypt card data. Please try again.",
+      "error_invalid_card_data": "Invalid card data. Please verify your card details and try again.",
+      "error_card_not_found": "Card not found. Please try again.",
+      "error_card_provider_not_found": "Card provider is not available for your region.",
+      "error_card_id_mismatch": "Card verification failed. Please try again.",
+      "error_card_not_active": "Your card is not active. Please activate your card first.",
+      "error_network": "Network error occurred. Please check your connection and try again.",
+      "error_timeout": "The request timed out. Please try again.",
+      "error_server": "Server error occurred. Please try again later.",
+      "error_unknown": "An unexpected error occurred. Please try again or contact support.",
+      "error_platform_not_supported": "This platform does not support mobile wallet provisioning.",
+      "try_again": "Try again",
+      "cancel": "Cancel"
     }
   },
   "onboarding_error_fallback": {
@@ -7484,7 +7546,7 @@
       "redeem_failure_title": "Đổi không thành công",
       "redeem_failure_description": "Vui lòng thử lại sau.",
       "reward_details": "Chi tiết phần thưởng",
-      "select_account_description": "Chọn tài khoản mà bạn muốn nhận phần thưởng này."
+      "select_account_description": "Select the account where you'd like this reward sent."
     },
     "animation": {
       "could_not_load": "Không thể tải"
@@ -7524,6 +7586,7 @@
   "transaction_details": {
     "title": {
       "musd_conversion": "Converted to mUSD",
+      "musd_claim": "Claimed mUSD",
       "perps_deposit": "Đã nạp tiền tài khoản vĩnh cửu",
       "predict_claim": "Đã nhận tiền thắng",
       "predict_deposit": "Tài khoản Dự đoán đã được nạp tiền",
@@ -7548,6 +7611,7 @@
       "bridge_receive_loading": "Bridge receive",
       "default": "Giao dịch",
       "musd_convert_send": "Sent {{sourceSymbol}} from {{sourceChain}}",
+      "musd_claim": "Claim mUSD",
       "perps_deposit": "Nạp tiền",
       "predict_deposit": "Nạp tiền",
       "swap": "Hoán đổi token",

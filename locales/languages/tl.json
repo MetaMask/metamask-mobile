@@ -115,6 +115,10 @@
       "message": "Ipapadala mo ang mga asset mo sa burn address. Kapag nagpatuloy ka, mawawala sa iyo ang mga asset mo.",
       "title": "Ipapadala ang mga asset sa burn address"
     },
+    "gas_sponsorship_reserve_balance": {
+      "message": "Gas sponsorship isn't available for this transaction. You'll need to keep at least %{minBalance} %{nativeTokenSymbol} in your account.",
+      "title": "Gas sponsorship unavailable"
+    },
     "token_trust_signal": {
       "malicious": {
         "message": "Natukoy ang token na ito bilang mapanganib. Ang pakikipag-ugnayan sa token na ito ay maaaring magresulta sa pagkalugi ng mga pondo.",
@@ -623,6 +627,7 @@
     "invalid_value": "Di-wastong value",
     "insufficient_funds": "Hindi sapat ang pondo",
     "insufficient_balance_to_cover_fee": "Insufficient balance to cover fees",
+    "transaction_error": "Transaction error",
     "continue": "Magpatuloy",
     "unit": "unit",
     "units": "(na) unit",
@@ -1087,7 +1092,11 @@
       "error_toast": "Nabigo ang transaksyon",
       "error_generic": "Naibalik na ang mga pondo sa iyo",
       "in_progress": "Nagdadagdag ng mga pondo sa Perps",
-      "depositing_your_funds": "Pagdedeposito ng mga pondo mo",
+      "depositing_your_funds": "Setting up your trade",
+      "deposit_taking_longer": "Deposit taking longer than usual",
+      "cancel_trade": "Cancel trade",
+      "trade_canceled": "Trade canceled",
+      "funds_returned_to_account": "Funds returned to your account",
       "your_funds_have_arrived": "Dumating na ang mga pondo mo",
       "estimated_processing_time": "Tinatayang {{time}}",
       "funds_available_momentarily": "Magiging available ang mga pondo sa isang sandali",
@@ -1174,6 +1183,7 @@
         "amount_required": "Dapat na mas mataas sa 0 ang halaga ng order",
         "minimum_amount": "Ang pinakamababang laki ng order ay ${{amount}}",
         "insufficient_funds": "Hindi sapat ang mga pondo",
+        "insufficient_funds_to_cover_trade": "Insufficient funds to cover the trade",
         "insufficient_balance": "Hindi sapat ang balanse. Kinakailangan: ${{required}}, Available: ${{available}}",
         "invalid_leverage": "Ang leverage ay dapat nasa pagitan ng {{min}}x at {{max}}x",
         "leverage_below_position": "Hindi dapat bababa ang leverage sa {{required}}x upang itugma ang iyong umiiral na posisyon (current: {{provided}}x)",
@@ -1656,6 +1666,7 @@
         "content": "May sinisingil na mga bayarin sa pag-trade kapag nagbubukas o nagsasara ka ng posisyon.",
         "metamask_fee": "Bayad sa MetaMask",
         "provider_fee": "Bayad sa provider",
+        "bridge_fee": "Bridge fee",
         "total": "Kabuuang bayarin",
         "discount_message": "Nakaka-save ka ng {{percentage}}% gamit ang mga Reward sa MetaMask."
       },
@@ -1737,6 +1748,10 @@
       "spread": {
         "title": "Spread",
         "content": "Ang spread ay ang pagkakaiba sa pagitan ng pinakamainam na bid (pinakamataas na presyo ng pagbili) at ang pinakamainam na hinihingi (pinakamababang presyo ng pagbebenta). Ang mas maliit na spread ay nagpapahiwatig ng mas mataas na liquidity."
+      },
+      "pay_with": {
+        "title": "Pay with",
+        "content": "Choose which token or balance to use to pay for this trade. You can pay with your Perps balance or select another token from your wallet."
       }
     },
     "connection": {
@@ -3324,6 +3339,10 @@
   "asset_overview": {
     "send_button": "Ipadala",
     "buy_button": "Bumili",
+    "cash_buy_button": "Cash Buy",
+    "long_button": "Long",
+    "short_button": "Short",
+    "more_button": "More",
     "token_marketplace": "Token marketplace",
     "sell_button": "Magbenta",
     "receive_button": "Tumanggap",
@@ -3345,7 +3364,11 @@
       "terms_apply": "Nalalapat ang mga tuntunin.",
       "ok": "OK",
       "claim": "I-claim",
-      "processing_claim": "Pinoproseso ang claim..."
+      "processing_claim": "Pinoproseso ang claim...",
+      "claim_on_linea_title": "Claim bonuses on Linea",
+      "claim_on_linea_description": "Your bonus will be issued on Linea, separate from your Ethereum mUSD balance.",
+      "continue": "Continue",
+      "unexpected_error": "Unexpected error. Please try again."
     },
     "tron": {
       "daily_resource_new_energy": "Bagong enerhiya araw-araw",
@@ -3789,6 +3812,7 @@
     "tx_review_predict_claim": "Mga na-claim na panalo",
     "tx_review_predict_withdraw": "Pagbawi ng mga prediksyon",
     "tx_review_musd_conversion": "Palitan ng mUSD",
+    "claim": "Claim",
     "sent_ether": "Sent ETH",
     "self_sent_ether": "Sent yourself ETH",
     "received_ether": "Received ETH",
@@ -4697,6 +4721,11 @@
     "buy": "Bumili ng {{ticker}}",
     "on_network": "sa {{networkName}}",
     "debit_card": "Debit card",
+    "select_payment_method": "Select payment method",
+    "pay_with": "Pay with",
+    "buying_via": "Buying via {{providerName}}.",
+    "change_provider": "Change provider.",
+    "providers": "Providers",
     "continue": "Magpatuloy",
     "powered_by_provider": "Pinapagana ng {{provider}}",
     "purchased_currency": "Bumili ng {{currency}}",
@@ -4848,6 +4877,7 @@
       "lowest_sell_limit": "pinakamababang limit sa pagbenta",
       "medium_sell_limit": "katamtamang limit sa pagbenta",
       "highest_sell_limit": "pinakamataas na limit sa pagbenta",
+      "change": "Change",
       "continue_to_amount": "Magpatuloy sa halaga",
       "no_payment_methods_title": "Walang paraan ng pagbabayad sa {{regionName}}",
       "no_cash_destinations_title": "Walang destinasyon ng pera sa {{regionName}}",
@@ -6330,6 +6360,7 @@
     "select_recipient": "Pumili ng tatanggap",
     "external_account": "External account",
     "error_banner_description": "Hindi available ang ruta ng trade na ito sa ngayon. Subukang baguhin ang halaga, network, o token at hahanapin namin ang pinakamainam na solusyon.",
+    "stock_token_error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.\n\nPlease note if you are attempting to trade Ondo Tokenised Stocks you may be geo-restricted e.g. via US, EU, UK and BR.",
     "insufficient_funds": "Hindi sapat ang pondo",
     "insufficient_gas": "Hindi sapat ang gas",
     "select_amount": "Pumili ng halaga",
@@ -6725,7 +6756,7 @@
     "card_onboarding": {
       "title": "Gumastos \nat Kumita",
       "description": "Ang MetaMask Card ang mabilis at\nmadaling paraan para gastusin ang crypto mo at\nkumita ng 3% na cashback.",
-      "apply_now_button": "Setup now",
+      "apply_now_button": "Set up now",
       "login_button": "Mag-log in",
       "not_now_button": "Hindi sa ngayon",
       "sign_up": {
@@ -6748,8 +6779,8 @@
         "resend_cooldown": "Ipadala muli ang available sa {{seconds}} segundo"
       },
       "set_phone_number": {
-        "title": "Kumpirmahin ang numero ng telepono mo",
-        "description": "Ilagay ang numero ng telepono mo. Magpapadala kami sa iyo ng code ng kumpirmasyon doon.",
+        "title": "Enter your phone number",
+        "description": "We'll send you a confirmation code there.",
         "phone_number_label": "Ilagay ang numero ng telepono",
         "country_area_code_label": "Area code ng bansa",
         "invalid_phone_number": "Di-wastong numero ng telepono",
@@ -6829,6 +6860,7 @@
         "date_of_birth_label": "Petsa ng kapanganakan",
         "nationality_label": "Nasyonalidad",
         "ssn_label": "Social Security Number",
+        "ssn_description": "Required by the card issuer. No credit check will be run.",
         "invalid_ssn": "Di-wastong SSN",
         "invalid_date_of_birth": "Maling petsa ng kapanganakan. Dapat na hindi bababa sa 18 taong gulang ang edad mo"
       },
@@ -6889,6 +6921,7 @@
     },
     "card_home": {
       "title": "Card",
+      "authentication_error": "Your session has expired. Please log in again.",
       "available_balance": "Available na balanse",
       "error_title": "Hindi makuha ang data",
       "error_description": "Mukhang may isyu na humahadlang sa iyong tingnan ang nilalaman ng page na ito. Suriin ang iyong koneksyon o subukang i-refresh ang page.",
@@ -7064,6 +7097,35 @@
       "didnt_receive_code": "Hindi natanggap ang code? ",
       "resend_verification": "Ipadala itong muli",
       "resend_cooldown": "Ipadala muli ang available sa pagkalipas ng {{seconds}} segundo"
+    },
+    "push_provisioning": {
+      "add_to_wallet": "Add to {{walletName}}",
+      "adding_to_wallet": "Adding to {{walletName}}...",
+      "continue_setup": "Continue {{walletName}} Setup",
+      "wallet_not_available": "{{walletName}} not available",
+      "already_in_wallet": "Already in {{walletName}}",
+      "success_title": "Card added!",
+      "success_message": "Your MetaMask Card has been added to {{walletName}}.",
+      "error_title": "Unable to add card",
+      "error_wallet_not_available": "{{walletName}} is not available on this device. Please ensure you have {{walletName}} set up.",
+      "error_wallet_not_initialized": "{{walletName}} is not initialized. Please set up your wallet and try again.",
+      "error_card_already_in_wallet": "This card is already added to {{walletName}}.",
+      "error_card_pending": "Your card is being set up in {{walletName}}. Please check back in a few minutes.",
+      "error_card_suspended": "Your card in {{walletName}} has been suspended. Please contact support for assistance.",
+      "error_card_not_eligible": "This card is not eligible for mobile wallet provisioning.",
+      "error_encryption_failed": "Failed to encrypt card data. Please try again.",
+      "error_invalid_card_data": "Invalid card data. Please verify your card details and try again.",
+      "error_card_not_found": "Card not found. Please try again.",
+      "error_card_provider_not_found": "Card provider is not available for your region.",
+      "error_card_id_mismatch": "Card verification failed. Please try again.",
+      "error_card_not_active": "Your card is not active. Please activate your card first.",
+      "error_network": "Network error occurred. Please check your connection and try again.",
+      "error_timeout": "The request timed out. Please try again.",
+      "error_server": "Server error occurred. Please try again later.",
+      "error_unknown": "An unexpected error occurred. Please try again or contact support.",
+      "error_platform_not_supported": "This platform does not support mobile wallet provisioning.",
+      "try_again": "Try again",
+      "cancel": "Cancel"
     }
   },
   "onboarding_error_fallback": {
@@ -7484,7 +7546,7 @@
       "redeem_failure_title": "Nabigong ma-redeem",
       "redeem_failure_description": "Pakisubukan uli mamaya.",
       "reward_details": "Mga Detalye ng  Reward",
-      "select_account_description": "Piliin ang account kung saan mo nais ipadala ang reward na ito."
+      "select_account_description": "Select the account where you'd like this reward sent."
     },
     "animation": {
       "could_not_load": "Hindi mai-load"
@@ -7524,6 +7586,7 @@
   "transaction_details": {
     "title": {
       "musd_conversion": "Converted to mUSD",
+      "musd_claim": "Claimed mUSD",
       "perps_deposit": "Pinondohang perps account",
       "predict_claim": "Na-claim na mga panalo",
       "predict_deposit": "Pinondohang Hinulaang account",
@@ -7548,6 +7611,7 @@
       "bridge_receive_loading": "Bridge receive",
       "default": "Transaksyon",
       "musd_convert_send": "Sent {{sourceSymbol}} from {{sourceChain}}",
+      "musd_claim": "Claim mUSD",
       "perps_deposit": "Magdagdag ng pondo",
       "predict_deposit": "Magdagdag ng pondo",
       "swap": "Ipagpalit ang mga token",
