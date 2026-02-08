@@ -115,6 +115,10 @@
       "message": "지금 자산을 소각 주소로 전송하고 있습니다. 계속 진행하면 자산을 잃게 됩니다.",
       "title": "소각 주소로 자산 전송"
     },
+    "gas_sponsorship_reserve_balance": {
+      "message": "Gas sponsorship isn't available for this transaction. You'll need to keep at least %{minBalance} %{nativeTokenSymbol} in your account.",
+      "title": "Gas sponsorship unavailable"
+    },
     "token_trust_signal": {
       "malicious": {
         "message": "이 토큰은 악성으로 확인되었습니다. 이 토큰과 상호작용할 경우 자금 손실이 발생할 수 있습니다.",
@@ -623,6 +627,7 @@
     "invalid_value": "잘못된 값",
     "insufficient_funds": "자금 부족",
     "insufficient_balance_to_cover_fee": "Insufficient balance to cover fees",
+    "transaction_error": "Transaction error",
     "continue": "계속",
     "unit": "단위",
     "units": "단위",
@@ -1087,7 +1092,11 @@
       "error_toast": "트랜잭션 실패",
       "error_generic": "자금이 반환되었습니다",
       "in_progress": "무기한 선물에 자금 추가 중",
-      "depositing_your_funds": "자금 예치 중",
+      "depositing_your_funds": "Setting up your trade",
+      "deposit_taking_longer": "Deposit taking longer than usual",
+      "cancel_trade": "Cancel trade",
+      "trade_canceled": "Trade canceled",
+      "funds_returned_to_account": "Funds returned to your account",
       "your_funds_have_arrived": "자금이 입금되었습니다",
       "estimated_processing_time": "예상 시간: {{time}}",
       "funds_available_momentarily": "자금을 곧 사용할 수 있습니다",
@@ -1174,6 +1183,7 @@
         "amount_required": "주문 금액은 0보다 커야 합니다",
         "minimum_amount": "최소 주문 금액은 ${{amount}}입니다",
         "insufficient_funds": "자금 부족",
+        "insufficient_funds_to_cover_trade": "Insufficient funds to cover the trade",
         "insufficient_balance": "잔액이 부족합니다. 필요: ${{required}}, 사용 가능: ${{available}}",
         "invalid_leverage": "레버리지는 {{min}}x~{{max}}x 사이여야 합니다",
         "leverage_below_position": "기존 포지션(현재: {{provided}}배)과 일치시키려면 레버리지가 최소 {{required}}배 이상이어야 합니다",
@@ -1656,6 +1666,7 @@
         "content": "거래 수수료는 포지션을 시작하거나 종료할 때 부과됩니다.",
         "metamask_fee": "MetaMask 수수료",
         "provider_fee": "공급자 수수료",
+        "bridge_fee": "Bridge fee",
         "total": "총 수수료",
         "discount_message": "MetaMask 보상으로 {{percentage}}%를 절약하고 있습니다."
       },
@@ -1737,6 +1748,10 @@
       "spread": {
         "title": "스프레드",
         "content": "스프레드는 최우선 매수호가(가장 높은 매수가)와 최우선 매도호가(가장 낮은 매도가) 사이의 차이입니다. 스프레드가 작을수록 유동성이 높아집니다."
+      },
+      "pay_with": {
+        "title": "Pay with",
+        "content": "Choose which token or balance to use to pay for this trade. You can pay with your Perps balance or select another token from your wallet."
       }
     },
     "connection": {
@@ -3324,6 +3339,10 @@
   "asset_overview": {
     "send_button": "보내기",
     "buy_button": "구매",
+    "cash_buy_button": "Cash Buy",
+    "long_button": "Long",
+    "short_button": "Short",
+    "more_button": "More",
     "token_marketplace": "토큰 마켓플레이스",
     "sell_button": "매도",
     "receive_button": "받기",
@@ -3345,7 +3364,11 @@
       "terms_apply": "약관이 적용됩니다.",
       "ok": "확인",
       "claim": "청구",
-      "processing_claim": "청구 진행 중..."
+      "processing_claim": "청구 진행 중...",
+      "claim_on_linea_title": "Claim bonuses on Linea",
+      "claim_on_linea_description": "Your bonus will be issued on Linea, separate from your Ethereum mUSD balance.",
+      "continue": "Continue",
+      "unexpected_error": "Unexpected error. Please try again."
     },
     "tron": {
       "daily_resource_new_energy": "신규 일일 에너지",
@@ -3789,6 +3812,7 @@
     "tx_review_predict_claim": "수익금 수령 완료",
     "tx_review_predict_withdraw": "예측 자금 출금",
     "tx_review_musd_conversion": "mUSD 전환",
+    "claim": "Claim",
     "sent_ether": "Sent ETH",
     "self_sent_ether": "Sent yourself ETH",
     "received_ether": "Received ETH",
@@ -4697,6 +4721,11 @@
     "buy": "{{ticker}} 구매",
     "on_network": "{{networkName}} 네트워크",
     "debit_card": "직불 카드",
+    "select_payment_method": "Select payment method",
+    "pay_with": "Pay with",
+    "buying_via": "Buying via {{providerName}}.",
+    "change_provider": "Change provider.",
+    "providers": "Providers",
     "continue": "계속",
     "powered_by_provider": "제공자: {{provider}}",
     "purchased_currency": "구매한 {{currency}}",
@@ -4848,6 +4877,7 @@
       "lowest_sell_limit": "최저 매도 한도",
       "medium_sell_limit": "중간 매도 한도",
       "highest_sell_limit": "최고 매도 한도",
+      "change": "Change",
       "continue_to_amount": "다음 금액으로 계속:",
       "no_payment_methods_title": "{{regionName}} 지역 결제 방법 없음",
       "no_cash_destinations_title": "{{regionName}} 지역 현금 송금처 없음",
@@ -6330,6 +6360,7 @@
     "select_recipient": "수신자 선택",
     "external_account": "외부 계정",
     "error_banner_description": "현재 이 거래 경로를 이용할 수 없습니다. 금액이나 네트워크, 토큰을 변경해 보세요. 최적의 옵션을 찾아드리겠습니다.",
+    "stock_token_error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.\n\nPlease note if you are attempting to trade Ondo Tokenised Stocks you may be geo-restricted e.g. via US, EU, UK and BR.",
     "insufficient_funds": "자금 부족",
     "insufficient_gas": "가스 부족",
     "select_amount": "금액 선택",
@@ -6725,7 +6756,7 @@
     "card_onboarding": {
       "title": "결제와 동시에\n수익 창출",
       "description": "MetaMask 카드를 이용하면\n암호화폐를 쉽고 빠르게 결제하며\n최대 3%의 캐시백을 받을 수 있습니다.",
-      "apply_now_button": "Setup now",
+      "apply_now_button": "Set up now",
       "login_button": "로그인",
       "not_now_button": "나중에",
       "sign_up": {
@@ -6748,8 +6779,8 @@
         "resend_cooldown": "{{seconds}}초 후에 다시 보낼 수 있습니다"
       },
       "set_phone_number": {
-        "title": "휴대폰 번호 확인",
-        "description": "전화번호를 입력하세요. 해당 번호로 확인 코드를 전송하겠습니다.",
+        "title": "Enter your phone number",
+        "description": "We'll send you a confirmation code there.",
         "phone_number_label": "전화번호 입력",
         "country_area_code_label": "국가 지역 코드",
         "invalid_phone_number": "잘못된 휴대폰 번호입니다",
@@ -6829,6 +6860,7 @@
         "date_of_birth_label": "생년월일",
         "nationality_label": "국적",
         "ssn_label": "사회보장번호",
+        "ssn_description": "Required by the card issuer. No credit check will be run.",
         "invalid_ssn": "잘못된 SSN입니다",
         "invalid_date_of_birth": "유효하지 않은 생년월일입니다. 18세 이상이어야 합니다"
       },
@@ -6889,6 +6921,7 @@
     },
     "card_home": {
       "title": "카드",
+      "authentication_error": "Your session has expired. Please log in again.",
       "available_balance": "사용 가능한 잔액",
       "error_title": "데이터를 가져올 수 없습니다",
       "error_description": "이 페이지의 콘텐츠를 표시하는 데 문제가 발생했습니다. 연결 상태를 확인하거나 페이지를 새로 고침해 보세요.",
@@ -7064,6 +7097,35 @@
       "didnt_receive_code": "코드를 받지 못하셨나요? ",
       "resend_verification": "재전송",
       "resend_cooldown": "{{seconds}}초 후에 다시 보낼 수 있습니다"
+    },
+    "push_provisioning": {
+      "add_to_wallet": "Add to {{walletName}}",
+      "adding_to_wallet": "Adding to {{walletName}}...",
+      "continue_setup": "Continue {{walletName}} Setup",
+      "wallet_not_available": "{{walletName}} not available",
+      "already_in_wallet": "Already in {{walletName}}",
+      "success_title": "Card added!",
+      "success_message": "Your MetaMask Card has been added to {{walletName}}.",
+      "error_title": "Unable to add card",
+      "error_wallet_not_available": "{{walletName}} is not available on this device. Please ensure you have {{walletName}} set up.",
+      "error_wallet_not_initialized": "{{walletName}} is not initialized. Please set up your wallet and try again.",
+      "error_card_already_in_wallet": "This card is already added to {{walletName}}.",
+      "error_card_pending": "Your card is being set up in {{walletName}}. Please check back in a few minutes.",
+      "error_card_suspended": "Your card in {{walletName}} has been suspended. Please contact support for assistance.",
+      "error_card_not_eligible": "This card is not eligible for mobile wallet provisioning.",
+      "error_encryption_failed": "Failed to encrypt card data. Please try again.",
+      "error_invalid_card_data": "Invalid card data. Please verify your card details and try again.",
+      "error_card_not_found": "Card not found. Please try again.",
+      "error_card_provider_not_found": "Card provider is not available for your region.",
+      "error_card_id_mismatch": "Card verification failed. Please try again.",
+      "error_card_not_active": "Your card is not active. Please activate your card first.",
+      "error_network": "Network error occurred. Please check your connection and try again.",
+      "error_timeout": "The request timed out. Please try again.",
+      "error_server": "Server error occurred. Please try again later.",
+      "error_unknown": "An unexpected error occurred. Please try again or contact support.",
+      "error_platform_not_supported": "This platform does not support mobile wallet provisioning.",
+      "try_again": "Try again",
+      "cancel": "Cancel"
     }
   },
   "onboarding_error_fallback": {
@@ -7484,7 +7546,7 @@
       "redeem_failure_title": "수령 실패",
       "redeem_failure_description": "나중에 다시 시도해 주세요.",
       "reward_details": "보상 상세 정보",
-      "select_account_description": "이 보상을 받을 계정을 선택하세요."
+      "select_account_description": "Select the account where you'd like this reward sent."
     },
     "animation": {
       "could_not_load": "불러올 수 없음"
@@ -7524,6 +7586,7 @@
   "transaction_details": {
     "title": {
       "musd_conversion": "Converted to mUSD",
+      "musd_claim": "Claimed mUSD",
       "perps_deposit": "입금 완료된 무기한 선물 계정",
       "predict_claim": "수익금 수령함",
       "predict_deposit": "예측 계정에 입금함",
@@ -7548,6 +7611,7 @@
       "bridge_receive_loading": "Bridge receive",
       "default": "트랜잭션",
       "musd_convert_send": "Sent {{sourceSymbol}} from {{sourceChain}}",
+      "musd_claim": "Claim mUSD",
       "perps_deposit": "자금 추가",
       "predict_deposit": "자금 추가",
       "swap": "토큰 스왑",

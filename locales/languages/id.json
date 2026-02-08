@@ -115,6 +115,10 @@
       "message": "Anda mengirimkan aset ke alamat burn. Jika dilanjutkan, aset Anda akan hilang.",
       "title": "Mengirim aset ke alamat burn"
     },
+    "gas_sponsorship_reserve_balance": {
+      "message": "Gas sponsorship isn't available for this transaction. You'll need to keep at least %{minBalance} %{nativeTokenSymbol} in your account.",
+      "title": "Gas sponsorship unavailable"
+    },
     "token_trust_signal": {
       "malicious": {
         "message": "Token ini telah diidentifikasi sebagai token berbahaya. Berinteraksi dengan token ini dapat mengakibatkan hilangnya dana.",
@@ -623,6 +627,7 @@
     "invalid_value": "Nilai tidak valid",
     "insufficient_funds": "Dana tidak cukup",
     "insufficient_balance_to_cover_fee": "Insufficient balance to cover fees",
+    "transaction_error": "Transaction error",
     "continue": "Lanjutkan",
     "unit": "unit",
     "units": "unit",
@@ -1087,7 +1092,11 @@
       "error_toast": "Transaksi gagal",
       "error_generic": "Dana telah dikembalikan kepada Anda",
       "in_progress": "Menambahkan dana ke Perp",
-      "depositing_your_funds": "Mendeposit dana Anda",
+      "depositing_your_funds": "Setting up your trade",
+      "deposit_taking_longer": "Deposit taking longer than usual",
+      "cancel_trade": "Cancel trade",
+      "trade_canceled": "Trade canceled",
+      "funds_returned_to_account": "Funds returned to your account",
       "your_funds_have_arrived": "Dana Anda telah tiba",
       "estimated_processing_time": "Estimasi {{time}}",
       "funds_available_momentarily": "Dana akan segera tersedia",
@@ -1174,6 +1183,7 @@
         "amount_required": "Jumlah order harus lebih besar dari 0",
         "minimum_amount": "Ukuran order minimum adalah ${{amount}}",
         "insufficient_funds": "Dana tidak cukup",
+        "insufficient_funds_to_cover_trade": "Insufficient funds to cover the trade",
         "insufficient_balance": "Saldo tidak mencukupi. Diperlukan: ${{required}}, Tersedia: ${{available}}",
         "invalid_leverage": "Leverage harus berada di antara {{min}}x dan {{max}}x",
         "leverage_below_position": "Leverage minimal harus {{required}}x agar sesuai dengan posisi Anda saat ini (saat ini: {{provided}}x)",
@@ -1656,6 +1666,7 @@
         "content": "Biaya perdagangan dibebankan saat Anda membuka atau menutup posisi.",
         "metamask_fee": "Biaya MetaMask",
         "provider_fee": "Biaya penyedia",
+        "bridge_fee": "Bridge fee",
         "total": "Total biaya",
         "discount_message": "Anda menghemat {{percentage}}% dengan MetaMask Rewards."
       },
@@ -1737,6 +1748,10 @@
       "spread": {
         "title": "Spread",
         "content": "Spread merupakan selisih antara penawaran terbaik (harga beli tertinggi) dan permintaan terbaik (harga jual terendah). Spread yang lebih kecil menunjukkan likuiditas yang lebih tinggi."
+      },
+      "pay_with": {
+        "title": "Pay with",
+        "content": "Choose which token or balance to use to pay for this trade. You can pay with your Perps balance or select another token from your wallet."
       }
     },
     "connection": {
@@ -3324,6 +3339,10 @@
   "asset_overview": {
     "send_button": "Kirim",
     "buy_button": "Beli",
+    "cash_buy_button": "Cash Buy",
+    "long_button": "Long",
+    "short_button": "Short",
+    "more_button": "More",
     "token_marketplace": "Token marketplace",
     "sell_button": "Jual",
     "receive_button": "Terima",
@@ -3345,7 +3364,11 @@
       "terms_apply": "Syarat berlaku.",
       "ok": "Oke",
       "claim": "Klaim",
-      "processing_claim": "Memproses klaim..."
+      "processing_claim": "Memproses klaim...",
+      "claim_on_linea_title": "Claim bonuses on Linea",
+      "claim_on_linea_description": "Your bonus will be issued on Linea, separate from your Ethereum mUSD balance.",
+      "continue": "Continue",
+      "unexpected_error": "Unexpected error. Please try again."
     },
     "tron": {
       "daily_resource_new_energy": "Energi harian baru",
@@ -3789,6 +3812,7 @@
     "tx_review_predict_claim": "Klaim kemenangan",
     "tx_review_predict_withdraw": "Prediksi penarikan",
     "tx_review_musd_conversion": "Konversi mUSD",
+    "claim": "Claim",
     "sent_ether": "Sent ETH",
     "self_sent_ether": "Sent yourself ETH",
     "received_ether": "Received ETH",
@@ -4697,6 +4721,11 @@
     "buy": "Beli {{ticker}}",
     "on_network": "pada {{networkName}}",
     "debit_card": "Kartu debit",
+    "select_payment_method": "Select payment method",
+    "pay_with": "Pay with",
+    "buying_via": "Buying via {{providerName}}.",
+    "change_provider": "Change provider.",
+    "providers": "Providers",
     "continue": "Lanjutkan",
     "powered_by_provider": "Didukung oleh {{provider}}",
     "purchased_currency": "Membeli {{currency}}",
@@ -4848,6 +4877,7 @@
       "lowest_sell_limit": "batas penjualan terendah",
       "medium_sell_limit": "batas penjualan medium",
       "highest_sell_limit": "batas penjualan tertinggi",
+      "change": "Change",
       "continue_to_amount": "Lanjutkan ke jumlah",
       "no_payment_methods_title": "Tidak ada metode pembayaran di {{regionName}}",
       "no_cash_destinations_title": "Tidak ada destinasi tunai di {{regionName}}",
@@ -6330,6 +6360,7 @@
     "select_recipient": "Pilih penerima",
     "external_account": "Akun eksternal",
     "error_banner_description": "Rute perdagangan ini tidak tersedia untuk saat ini. Coba ubah jumlah, jaringan, atau token, dan kami akan mencari opsi terbaik.",
+    "stock_token_error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.\n\nPlease note if you are attempting to trade Ondo Tokenised Stocks you may be geo-restricted e.g. via US, EU, UK and BR.",
     "insufficient_funds": "Dana tidak cukup",
     "insufficient_gas": "Gas tidak cukup",
     "select_amount": "Pilih jumlah",
@@ -6725,7 +6756,7 @@
     "card_onboarding": {
       "title": "Gunakan\ndan Dapatkan",
       "description": "Kartu MetaMask merupakan cara cepat dan mudah untuk menggunakan kripto dan mendapatkan cashback hingga 3%.",
-      "apply_now_button": "Setup now",
+      "apply_now_button": "Set up now",
       "login_button": "Masuk",
       "not_now_button": "Tidak sekarang",
       "sign_up": {
@@ -6748,8 +6779,8 @@
         "resend_cooldown": "Kirim ulang tersedia dalam {{seconds}} detik"
       },
       "set_phone_number": {
-        "title": "Konfirmasikan nomor telepon",
-        "description": "Masukkan nomor telepon Anda. Kami akan mengirimkan kode konfirmasi ke sana.",
+        "title": "Enter your phone number",
+        "description": "We'll send you a confirmation code there.",
         "phone_number_label": "Masukkan nomor telepon",
         "country_area_code_label": "Kode area negara",
         "invalid_phone_number": "Nomor telepon tidak valid",
@@ -6829,6 +6860,7 @@
         "date_of_birth_label": "Tanggal lahir",
         "nationality_label": "Kebangsaan",
         "ssn_label": "Nomor Jaminan Sosial",
+        "ssn_description": "Required by the card issuer. No credit check will be run.",
         "invalid_ssn": "NJS tidak valid",
         "invalid_date_of_birth": "Tanggal lahir tidak valid. Anda harus berusia minimal 18 tahun"
       },
@@ -6889,6 +6921,7 @@
     },
     "card_home": {
       "title": "Kartu",
+      "authentication_error": "Your session has expired. Please log in again.",
       "available_balance": "Saldo tersedia",
       "error_title": "Tidak dapat mengambil data",
       "error_description": "Tampaknya ada masalah yang mencegah Anda melihat konten di halaman ini. Periksa koneksi Anda atau coba segarkan halaman.",
@@ -7064,6 +7097,35 @@
       "didnt_receive_code": "Belum menerima kode? ",
       "resend_verification": "Kirim ulang",
       "resend_cooldown": "Kirim ulang tersedia dalam {{seconds}} detik"
+    },
+    "push_provisioning": {
+      "add_to_wallet": "Add to {{walletName}}",
+      "adding_to_wallet": "Adding to {{walletName}}...",
+      "continue_setup": "Continue {{walletName}} Setup",
+      "wallet_not_available": "{{walletName}} not available",
+      "already_in_wallet": "Already in {{walletName}}",
+      "success_title": "Card added!",
+      "success_message": "Your MetaMask Card has been added to {{walletName}}.",
+      "error_title": "Unable to add card",
+      "error_wallet_not_available": "{{walletName}} is not available on this device. Please ensure you have {{walletName}} set up.",
+      "error_wallet_not_initialized": "{{walletName}} is not initialized. Please set up your wallet and try again.",
+      "error_card_already_in_wallet": "This card is already added to {{walletName}}.",
+      "error_card_pending": "Your card is being set up in {{walletName}}. Please check back in a few minutes.",
+      "error_card_suspended": "Your card in {{walletName}} has been suspended. Please contact support for assistance.",
+      "error_card_not_eligible": "This card is not eligible for mobile wallet provisioning.",
+      "error_encryption_failed": "Failed to encrypt card data. Please try again.",
+      "error_invalid_card_data": "Invalid card data. Please verify your card details and try again.",
+      "error_card_not_found": "Card not found. Please try again.",
+      "error_card_provider_not_found": "Card provider is not available for your region.",
+      "error_card_id_mismatch": "Card verification failed. Please try again.",
+      "error_card_not_active": "Your card is not active. Please activate your card first.",
+      "error_network": "Network error occurred. Please check your connection and try again.",
+      "error_timeout": "The request timed out. Please try again.",
+      "error_server": "Server error occurred. Please try again later.",
+      "error_unknown": "An unexpected error occurred. Please try again or contact support.",
+      "error_platform_not_supported": "This platform does not support mobile wallet provisioning.",
+      "try_again": "Try again",
+      "cancel": "Cancel"
     }
   },
   "onboarding_error_fallback": {
@@ -7484,7 +7546,7 @@
       "redeem_failure_title": "Penukaran gagal",
       "redeem_failure_description": "Coba lagi nanti.",
       "reward_details": "Detail Reward",
-      "select_account_description": "Pilih akun tempat Anda ingin reward ini dikirimkan."
+      "select_account_description": "Select the account where you'd like this reward sent."
     },
     "animation": {
       "could_not_load": "Tidak dapat memuat"
@@ -7524,6 +7586,7 @@
   "transaction_details": {
     "title": {
       "musd_conversion": "Converted to mUSD",
+      "musd_claim": "Claimed mUSD",
       "perps_deposit": "Akun perp yang didanai",
       "predict_claim": "Klaim kemenangan",
       "predict_deposit": "Akun Predict yang didanai",
@@ -7548,6 +7611,7 @@
       "bridge_receive_loading": "Bridge receive",
       "default": "Transaksi",
       "musd_convert_send": "Sent {{sourceSymbol}} from {{sourceChain}}",
+      "musd_claim": "Claim mUSD",
       "perps_deposit": "Tambahkan dana",
       "predict_deposit": "Tambahkan dana",
       "swap": "Tukar token",

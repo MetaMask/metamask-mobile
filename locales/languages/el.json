@@ -115,6 +115,10 @@
       "message": "Στέλνετε τα περιουσιακά σας στοιχεία σε διεύθυνση καύσης. Αν συνεχίσετε, θα τα χάσετε.",
       "title": "Αποστολή περιουσιακών στοιχείων σε διεύθυνση καύσης"
     },
+    "gas_sponsorship_reserve_balance": {
+      "message": "Gas sponsorship isn't available for this transaction. You'll need to keep at least %{minBalance} %{nativeTokenSymbol} in your account.",
+      "title": "Gas sponsorship unavailable"
+    },
     "token_trust_signal": {
       "malicious": {
         "message": "Αυτό το token έχει χαρακτηριστεί ως κακόβουλο. Η αλληλεπίδραση με αυτό το token μπορεί να οδηγήσει σε απώλεια κεφαλαίων.",
@@ -623,6 +627,7 @@
     "invalid_value": "Μη έγκυρη τιμή",
     "insufficient_funds": "Ανεπαρκή κεφάλαια",
     "insufficient_balance_to_cover_fee": "Insufficient balance to cover fees",
+    "transaction_error": "Transaction error",
     "continue": "Συνέχεια",
     "unit": "μονάδα",
     "units": "μονάδες",
@@ -1087,7 +1092,11 @@
       "error_toast": "Η συναλλαγή απέτυχε",
       "error_generic": "Τα κεφάλαιά σας έχουν επιστραφεί",
       "in_progress": "Προσθήκη κεφαλαίων για συμβόλαια αορίστου διάρκειας (perps)",
-      "depositing_your_funds": "Κατάθεση των χρημάτων σας",
+      "depositing_your_funds": "Setting up your trade",
+      "deposit_taking_longer": "Deposit taking longer than usual",
+      "cancel_trade": "Cancel trade",
+      "trade_canceled": "Trade canceled",
+      "funds_returned_to_account": "Funds returned to your account",
       "your_funds_have_arrived": "Τα χρήματά σας έχουν κατατεθεί",
       "estimated_processing_time": "Εκτ. χρόνος: {{time}}",
       "funds_available_momentarily": "Τα κεφάλαια θα είναι σύντομα διαθέσιμα",
@@ -1174,6 +1183,7 @@
         "amount_required": "Το ποσό της εντολής πρέπει να είναι μεγαλύτερο από 0",
         "minimum_amount": "Το ελάχιστο μέγεθος εντολής είναι ${{amount}}",
         "insufficient_funds": "Ανεπαρκή κεφάλαια",
+        "insufficient_funds_to_cover_trade": "Insufficient funds to cover the trade",
         "insufficient_balance": "Ανεπαρκές υπόλοιπο. Απαιτείται: ${{required}}, Διαθέσιμο: ${{available}}",
         "invalid_leverage": "Η μόχλευση πρέπει να είναι μεταξύ {{min}}x και {{max}}x",
         "leverage_below_position": "Η μόχλευση πρέπει να είναι τουλάχιστον {{required}}x για να αντιστοιχεί στη θέση σας (τρέχουσα: {{provided}}x)",
@@ -1656,6 +1666,7 @@
         "content": "Τα τέλη συναλλαγών επιβάλλονται όταν ανοίγετε ή κλείνετε μια θέση.",
         "metamask_fee": "Χρεώσεις στο MetaMask",
         "provider_fee": "Τέλη παρόχου",
+        "bridge_fee": "Bridge fee",
         "total": "Συνολικά τέλη",
         "discount_message": "Εξοικονομείτε {{percentage}}% με το MetaMask Rewards."
       },
@@ -1737,6 +1748,10 @@
       "spread": {
         "title": "Σπρεντ",
         "content": "Τα σπρεντ είναι η διαφορά μεταξύ της καλύτερης τιμής αγοράς (υψηλότερη τιμή αγοράς) και της καλύτερης τιμής πώλησης (χαμηλότερη τιμή πώλησης). Ένα μικρότερο σπρεντ υποδηλώνει υψηλότερη ρευστότητα."
+      },
+      "pay_with": {
+        "title": "Pay with",
+        "content": "Choose which token or balance to use to pay for this trade. You can pay with your Perps balance or select another token from your wallet."
       }
     },
     "connection": {
@@ -3324,6 +3339,10 @@
   "asset_overview": {
     "send_button": "Αποστολή",
     "buy_button": "Αγορά",
+    "cash_buy_button": "Cash Buy",
+    "long_button": "Long",
+    "short_button": "Short",
+    "more_button": "More",
     "token_marketplace": "Χώρος αγοράς των tokens",
     "sell_button": "Πώληση",
     "receive_button": "Λήψη",
@@ -3345,7 +3364,11 @@
       "terms_apply": "Ισχύουν όροι.",
       "ok": "Εντάξει",
       "claim": "Εξαργύρωση",
-      "processing_claim": "Επεξεργασία αιτήματος…"
+      "processing_claim": "Επεξεργασία αιτήματος…",
+      "claim_on_linea_title": "Claim bonuses on Linea",
+      "claim_on_linea_description": "Your bonus will be issued on Linea, separate from your Ethereum mUSD balance.",
+      "continue": "Continue",
+      "unexpected_error": "Unexpected error. Please try again."
     },
     "tron": {
       "daily_resource_new_energy": "Νέα ημερήσια ενέργεια",
@@ -3789,6 +3812,7 @@
     "tx_review_predict_claim": "Κατοχυρωμένες νίκες",
     "tx_review_predict_withdraw": "Ανάληψη προβλέψεων",
     "tx_review_musd_conversion": "Μετατροπή σε mUSD",
+    "claim": "Claim",
     "sent_ether": "Sent ETH",
     "self_sent_ether": "Sent yourself ETH",
     "received_ether": "Received ETH",
@@ -4697,6 +4721,11 @@
     "buy": "Αγορά {{ticker}}",
     "on_network": "στο {{networkName}}",
     "debit_card": "Χρεωστική κάρτα",
+    "select_payment_method": "Select payment method",
+    "pay_with": "Pay with",
+    "buying_via": "Buying via {{providerName}}.",
+    "change_provider": "Change provider.",
+    "providers": "Providers",
     "continue": "Συνεχίστε",
     "powered_by_provider": "Με την υποστήριξη του {{provider}}",
     "purchased_currency": "Αγοράστηκαν {{currency}}",
@@ -4848,6 +4877,7 @@
       "lowest_sell_limit": "κατώτατο όριο πώλησης",
       "medium_sell_limit": "μέτριο όριο πώλησης",
       "highest_sell_limit": "ανώτατο όριο πώλησης",
+      "change": "Change",
       "continue_to_amount": "Συνέχεια στο ποσό",
       "no_payment_methods_title": "Δεν υπάρχουν διαθέσιμες μέθοδοι πληρωμής στην {{regionName}}",
       "no_cash_destinations_title": "Δεν υπάρχουν προορισμοί μετρητών στην {{regionName}}",
@@ -6330,6 +6360,7 @@
     "select_recipient": "Επιλέξτε παραλήπτη",
     "external_account": "Εξωτερικός λογαριασμός",
     "error_banner_description": "Αυτή η διαδρομή συναλλαγών δεν είναι διαθέσιμη προς το παρόν. Δοκιμάστε να αλλάξετε το ποσό, το δίκτυο ή το token και θα βρούμε την καλύτερη επιλογή.",
+    "stock_token_error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.\n\nPlease note if you are attempting to trade Ondo Tokenised Stocks you may be geo-restricted e.g. via US, EU, UK and BR.",
     "insufficient_funds": "Ανεπαρκές ποσό",
     "insufficient_gas": "Δεν έχετε αρκετά χρήματα για τα τέλη συναλλαγών",
     "select_amount": "Επιλέξτε ποσό",
@@ -6725,7 +6756,7 @@
     "card_onboarding": {
       "title": "Ξοδέψτε \nκαι Κερδίστε",
       "description": "Η MetaMask Card είναι ο πιο γρήγορος και \nεύκολος τρόπος για να ξοδέψετε τα κρυπτονομίσματά σας και \nνα κερδίσετε έως και 3% σε ανταμοιβές.",
-      "apply_now_button": "Setup now",
+      "apply_now_button": "Set up now",
       "login_button": "Σύνδεση",
       "not_now_button": "Όχι τώρα",
       "sign_up": {
@@ -6748,8 +6779,8 @@
         "resend_cooldown": "Η επαναποστολή θα είναι διαθέσιμη σε {{seconds}} δευτερόλεπτα"
       },
       "set_phone_number": {
-        "title": "Επιβεβαιώστε τον αριθμό τηλεφώνου σας",
-        "description": "Πληκτρολογήστε τον αριθμό τηλεφώνου σας. Θα σας στείλουμε εκεί τον κωδικό επιβεβαίωσης.",
+        "title": "Enter your phone number",
+        "description": "We'll send you a confirmation code there.",
         "phone_number_label": "Εισάγετε τον αριθμό τηλεφώνου",
         "country_area_code_label": "Διεθνής κωδικός χώρας",
         "invalid_phone_number": "Μη έγκυρος αριθμός τηλεφώνου",
@@ -6829,6 +6860,7 @@
         "date_of_birth_label": "Ημερομηνία γέννησης",
         "nationality_label": "Εθνικότητα",
         "ssn_label": "Αριθμός Μητρώου Κοινωνικής Ασφάλισης (ΑΜΚΑ)",
+        "ssn_description": "Required by the card issuer. No credit check will be run.",
         "invalid_ssn": "Μη έγκυρος αριθμός κοινωνικής ασφάλισης (ΑΜΚΑ)",
         "invalid_date_of_birth": "Μη έγκυρη ημερομηνία γέννησης. Πρέπει να είστε τουλάχιστον 18 ετών"
       },
@@ -6889,6 +6921,7 @@
     },
     "card_home": {
       "title": "Κάρτα",
+      "authentication_error": "Your session has expired. Please log in again.",
       "available_balance": "Διαθέσιμο υπόλοιπο",
       "error_title": "Δεν είναι δυνατή η ανάκτηση δεδομένων",
       "error_description": "Φαίνεται πως υπάρχει κάποιο πρόβλημα που εμποδίζει την προβολή του περιεχομένου αυτής της σελίδας. Ελέγξτε τη σύνδεσή σας ή δοκιμάστε να ανανεώσετε τη σελίδα.",
@@ -7064,6 +7097,35 @@
       "didnt_receive_code": "Δεν λάβατε τον κωδικό; ",
       "resend_verification": "Επαναποστολή",
       "resend_cooldown": "Η επαναποστολή θα είναι διαθέσιμη σε {{seconds}} δευτερόλεπτα"
+    },
+    "push_provisioning": {
+      "add_to_wallet": "Add to {{walletName}}",
+      "adding_to_wallet": "Adding to {{walletName}}...",
+      "continue_setup": "Continue {{walletName}} Setup",
+      "wallet_not_available": "{{walletName}} not available",
+      "already_in_wallet": "Already in {{walletName}}",
+      "success_title": "Card added!",
+      "success_message": "Your MetaMask Card has been added to {{walletName}}.",
+      "error_title": "Unable to add card",
+      "error_wallet_not_available": "{{walletName}} is not available on this device. Please ensure you have {{walletName}} set up.",
+      "error_wallet_not_initialized": "{{walletName}} is not initialized. Please set up your wallet and try again.",
+      "error_card_already_in_wallet": "This card is already added to {{walletName}}.",
+      "error_card_pending": "Your card is being set up in {{walletName}}. Please check back in a few minutes.",
+      "error_card_suspended": "Your card in {{walletName}} has been suspended. Please contact support for assistance.",
+      "error_card_not_eligible": "This card is not eligible for mobile wallet provisioning.",
+      "error_encryption_failed": "Failed to encrypt card data. Please try again.",
+      "error_invalid_card_data": "Invalid card data. Please verify your card details and try again.",
+      "error_card_not_found": "Card not found. Please try again.",
+      "error_card_provider_not_found": "Card provider is not available for your region.",
+      "error_card_id_mismatch": "Card verification failed. Please try again.",
+      "error_card_not_active": "Your card is not active. Please activate your card first.",
+      "error_network": "Network error occurred. Please check your connection and try again.",
+      "error_timeout": "The request timed out. Please try again.",
+      "error_server": "Server error occurred. Please try again later.",
+      "error_unknown": "An unexpected error occurred. Please try again or contact support.",
+      "error_platform_not_supported": "This platform does not support mobile wallet provisioning.",
+      "try_again": "Try again",
+      "cancel": "Cancel"
     }
   },
   "onboarding_error_fallback": {
@@ -7484,7 +7546,7 @@
       "redeem_failure_title": "Η εξαργύρωση απέτυχε",
       "redeem_failure_description": "Παρακαλούμε δοκιμάστε ξανά αργότερα.",
       "reward_details": "Λεπτομέρειες Ανταμοιβών",
-      "select_account_description": "Επιλέξτε τον λογαριασμό στον οποίο θέλετε να σταλεί αυτή η ανταμοιβή."
+      "select_account_description": "Select the account where you'd like this reward sent."
     },
     "animation": {
       "could_not_load": "Δεν ήταν δυνατή η φόρτωση"
@@ -7524,6 +7586,7 @@
   "transaction_details": {
     "title": {
       "musd_conversion": "Converted to mUSD",
+      "musd_claim": "Claimed mUSD",
       "perps_deposit": "Χρηματοδότηση για perps",
       "predict_claim": "Κέρδη που καταβλήθηκαν",
       "predict_deposit": "Λογαριασμός Προβλέψεων με διαθέσιμα κεφάλαια",
@@ -7548,6 +7611,7 @@
       "bridge_receive_loading": "Bridge receive",
       "default": "Συναλλαγή",
       "musd_convert_send": "Sent {{sourceSymbol}} from {{sourceChain}}",
+      "musd_claim": "Claim mUSD",
       "perps_deposit": "Προσθήκη κεφαλαίων",
       "predict_deposit": "Προσθήκη κεφαλαίων",
       "swap": "Ανταλλαγή tokens",
