@@ -19,52 +19,13 @@ import {
 import type { CaipAssetId, Hex } from '@metamask/utils';
 
 jest.mock('@metamask/utils', () => ({
+  ...jest.requireActual('@metamask/utils'),
   isValidHexAddress: (address: string) => /^0x[0-9a-fA-F]{40}$/.test(address),
 }));
 
-jest.mock('@metamask/perps-controller', () => {
-  const actual = jest.requireActual('@metamask/perps-controller');
-  return {
-    ...actual,
-    HYPERLIQUID_ASSET_CONFIGS: {
-      USDC: {
-        mainnet:
-          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default' as CaipAssetId,
-        testnet:
-          'eip155:421614/erc20:0x1234567890123456789012345678901234567890/default' as CaipAssetId,
-      },
-      ETH: {
-        mainnet:
-          'eip155:42161/erc20:0x82af49447d8a07e3bd95bd0d56f35241523fbab1/default' as CaipAssetId,
-        testnet:
-          'eip155:421614/erc20:0x9876543210987654321098765432109876543210/default' as CaipAssetId,
-      },
-    },
-    getSupportedAssets: (isTestnet: boolean) => [
-      isTestnet
-        ? ('eip155:421614/erc20:0x1234567890123456789012345678901234567890/default' as CaipAssetId)
-        : ('eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default' as CaipAssetId),
-      isTestnet
-        ? ('eip155:421614/erc20:0x9876543210987654321098765432109876543210/default' as CaipAssetId)
-        : ('eip155:42161/erc20:0x82af49447d8a07e3bd95bd0d56f35241523fbab1/default' as CaipAssetId),
-    ],
-    TRADING_DEFAULTS: {
-      amount: {
-        mainnet: 5,
-        testnet: 11,
-      },
-    },
-    HYPERLIQUID_ORDER_LIMITS: {
-      MarketOrderLimits: {
-        HighLeverage: 15_000_000,
-        MediumHighLeverage: 5_000_000,
-        MediumLeverage: 2_000_000,
-        LowLeverage: 500_000,
-      },
-      LimitOrderMultiplier: 10,
-    },
-  };
-});
+jest.mock('@metamask/perps-controller', () =>
+  jest.requireActual('@metamask/perps-controller'),
+);
 
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
@@ -219,7 +180,7 @@ describe('hyperLiquidValidation', () => {
     it('should validate correct parameters on mainnet', () => {
       const params = {
         assetId:
-          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default' as CaipAssetId,
+          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default' as CaipAssetId,
         amount: '10',
         isTestnet: false,
       };
@@ -232,7 +193,7 @@ describe('hyperLiquidValidation', () => {
     it('should validate correct parameters on testnet', () => {
       const params = {
         assetId:
-          'eip155:421614/erc20:0x1234567890123456789012345678901234567890/default' as CaipAssetId,
+          'eip155:421614/erc20:0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d/default' as CaipAssetId,
         amount: '15',
         isTestnet: true,
       };
@@ -306,8 +267,8 @@ describe('hyperLiquidValidation', () => {
     it('should reject amount below minimum on mainnet', () => {
       const params = {
         assetId:
-          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default' as CaipAssetId,
-        amount: '4.99',
+          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default' as CaipAssetId,
+        amount: '9.99',
         isTestnet: false,
       };
 
@@ -322,8 +283,8 @@ describe('hyperLiquidValidation', () => {
     it('should reject amount below minimum on testnet', () => {
       const params = {
         assetId:
-          'eip155:421614/erc20:0x1234567890123456789012345678901234567890/default' as CaipAssetId,
-        amount: '10.99',
+          'eip155:421614/erc20:0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d/default' as CaipAssetId,
+        amount: '9.99',
         isTestnet: true,
       };
 
@@ -338,8 +299,8 @@ describe('hyperLiquidValidation', () => {
     it('should accept amount exactly at minimum on mainnet', () => {
       const params = {
         assetId:
-          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default' as CaipAssetId,
-        amount: '5',
+          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default' as CaipAssetId,
+        amount: '10',
         isTestnet: false,
       };
 
@@ -351,8 +312,8 @@ describe('hyperLiquidValidation', () => {
     it('should accept amount exactly at minimum on testnet', () => {
       const params = {
         assetId:
-          'eip155:421614/erc20:0x1234567890123456789012345678901234567890/default' as CaipAssetId,
-        amount: '11',
+          'eip155:421614/erc20:0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d/default' as CaipAssetId,
+        amount: '10',
         isTestnet: true,
       };
 
@@ -364,8 +325,8 @@ describe('hyperLiquidValidation', () => {
     it('should default to mainnet when isTestnet is not provided', () => {
       const params = {
         assetId:
-          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default' as CaipAssetId,
-        amount: '4',
+          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default' as CaipAssetId,
+        amount: '9',
       };
 
       const result = validateDepositParams(params);
@@ -461,7 +422,7 @@ describe('hyperLiquidValidation', () => {
       const supportedRoutes = [
         {
           assetId:
-            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default' as CaipAssetId,
+            'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default' as CaipAssetId,
         },
       ];
 
@@ -506,7 +467,7 @@ describe('hyperLiquidValidation', () => {
 
   describe('applyPathFilters', () => {
     const mockAssets = [
-      'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default' as CaipAssetId,
+      'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default' as CaipAssetId,
       'eip155:42161/erc20:0x82af49447d8a07e3bd95bd0d56f35241523fbab1/default' as CaipAssetId,
       'eip155:1/erc20:0x1234567890123456789012345678901234567890/default' as CaipAssetId,
     ];
@@ -527,7 +488,7 @@ describe('hyperLiquidValidation', () => {
       // The filter will keep assets that start with the chainId prefix
       expect(result.length).toBe(2);
       expect(result).toContain(
-        'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default',
+        'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       );
       expect(result).toContain(
         'eip155:42161/erc20:0x82af49447d8a07e3bd95bd0d56f35241523fbab1/default',
@@ -539,27 +500,27 @@ describe('hyperLiquidValidation', () => {
 
     it('should filter by symbol (mainnet)', () => {
       const params: GetSupportedPathsParams = {
-        symbol: 'USDC',
+        symbol: 'usdc',
         isTestnet: false,
       };
 
       const result = applyPathFilters(mockAssets, params);
 
       expect(result).toEqual([
-        'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default',
+        'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       ]);
     });
 
     it('should filter by symbol (testnet)', () => {
       const params: GetSupportedPathsParams = {
-        symbol: 'USDC',
+        symbol: 'usdc',
         isTestnet: true,
       };
 
       const result = applyPathFilters(mockAssets, params);
 
       expect(result).toEqual([
-        'eip155:421614/erc20:0x1234567890123456789012345678901234567890/default',
+        'eip155:421614/erc20:0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d/default',
       ]);
     });
 
@@ -572,21 +533,21 @@ describe('hyperLiquidValidation', () => {
       const result = applyPathFilters(mockAssets, params);
 
       expect(result).toEqual([
-        'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default',
+        'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       ]);
     });
 
-    it('should combine multiple filters', () => {
+    it('should combine chainId and symbol filters', () => {
       const params: GetSupportedPathsParams = {
         chainId: 'eip155:42161',
-        symbol: 'ETH',
+        symbol: 'usdc',
         isTestnet: false,
       };
 
       const result = applyPathFilters(mockAssets, params);
 
       expect(result).toEqual([
-        'eip155:42161/erc20:0x82af49447d8a07e3bd95bd0d56f35241523fbab1/default',
+        'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       ]);
     });
 
@@ -606,8 +567,7 @@ describe('hyperLiquidValidation', () => {
       const result = getSupportedPaths();
 
       expect(result).toEqual([
-        'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default',
-        'eip155:42161/erc20:0x82af49447d8a07e3bd95bd0d56f35241523fbab1/default',
+        'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       ]);
     });
 
@@ -619,21 +579,20 @@ describe('hyperLiquidValidation', () => {
       const result = getSupportedPaths(params);
 
       expect(result).toEqual([
-        'eip155:421614/erc20:0x1234567890123456789012345678901234567890/default',
-        'eip155:421614/erc20:0x9876543210987654321098765432109876543210/default',
+        'eip155:421614/erc20:0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d/default',
       ]);
     });
 
     it('should apply filters to assets', () => {
       const params: GetSupportedPathsParams = {
-        symbol: 'USDC',
+        symbol: 'usdc',
         isTestnet: false,
       };
 
       const result = getSupportedPaths(params);
 
       expect(result).toEqual([
-        'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default',
+        'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       ]);
     });
   });
