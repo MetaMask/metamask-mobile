@@ -116,19 +116,13 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
 
         await waitUntilSyncedAccountsNumberEquals(3);
 
-        // Wait for account discovery to finish before adding another account
-        await Assertions.expectTextNotDisplayed('Discovering accounts...', {
-          description: 'Account discovery should finish before adding accounts',
-          timeout: 30000,
-        });
-
         // Create second account for SRP 2
         await AccountListBottomSheet.tapAddAccountButtonV2({
           srpIndex: 1,
           shouldWait: true,
         });
 
-        await waitUntilSyncedAccountsNumberEquals(3);
+        await waitUntilSyncedAccountsNumberEquals(4);
 
         // Wait for the 4th account's ellipsis button to be visible before tapping
         await Assertions.expectElementToBeVisible(

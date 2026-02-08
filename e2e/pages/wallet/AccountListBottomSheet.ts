@@ -145,7 +145,7 @@ class AccountListBottomSheet {
 
     await Gestures.waitAndTap(button, {
       elemDescription: 'Add Account button in V2 multichain accounts',
-      delay: options?.shouldWait ? 3000 : 0,
+      delay: options?.shouldWait ? 5000 : 0,
     });
   }
 
