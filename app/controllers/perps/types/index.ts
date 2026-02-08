@@ -1500,10 +1500,3 @@ export type {
   PredictedFundingsResponse,
   SpotMetaResponse,
 } from './hyperliquid-types';
-
-// ============================================================================
-// Navigation types (Mobile-only, type-only re-export for backward compatibility)
-// These are type-only exports so they don't create runtime dependencies
-// in the standalone package build.
-// ============================================================================
-export type { PerpsNavigationParamList } from '../../../components/UI/Perps/types/navigation';

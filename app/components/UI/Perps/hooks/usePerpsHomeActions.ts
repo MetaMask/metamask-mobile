@@ -12,8 +12,8 @@ import {
   PERPS_CONSTANTS,
   PERPS_EVENT_VALUE,
   PERPS_EVENT_PROPERTY,
-  type PerpsNavigationParamList,
 } from '@metamask/perps-controller';
+import type { PerpsNavigationParamList } from '../types/navigation';
 import { ensureError } from '../../../../util/errorUtils';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';

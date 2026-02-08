@@ -12,8 +12,8 @@ import {
   getPerpsDisplaySymbol,
   PERPS_EVENT_VALUE,
   PERPS_EVENT_PROPERTY,
-  type PerpsNavigationParamList,
 } from '@metamask/perps-controller';
+import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
   formatPerpsFiat,
   formatPnl,

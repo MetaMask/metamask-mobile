@@ -21,9 +21,9 @@ import {
   PERPS_CONSTANTS,
   type Position,
   type PerpsMarketData,
-  type PerpsNavigationParamList,
   type TPSLTrackingData,
 } from '@metamask/perps-controller';
+import type { PerpsNavigationParamList } from '../../types/navigation';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';

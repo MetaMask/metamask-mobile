@@ -6,7 +6,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../../constants/navigation/Routes';
-import { type PerpsNavigationParamList } from '@metamask/perps-controller';
+import type { PerpsNavigationParamList } from '../../types/navigation';
 
 export const PerpsHIP3DebugButton = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();

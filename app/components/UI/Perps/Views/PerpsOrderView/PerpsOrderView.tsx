@@ -93,9 +93,9 @@ import {
   type InputMethod,
   type OrderParams,
   type OrderType,
-  type PerpsNavigationParamList,
   type Position,
 } from '@metamask/perps-controller';
+import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
   PerpsOrderProvider,
   usePerpsOrderContext,

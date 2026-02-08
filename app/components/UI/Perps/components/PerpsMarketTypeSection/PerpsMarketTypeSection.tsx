@@ -13,10 +13,10 @@ import Icon, {
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   type PerpsMarketData,
-  type PerpsNavigationParamList,
   type MarketTypeFilter,
   type SortField,
 } from '@metamask/perps-controller';
+import type { PerpsNavigationParamList } from '../../types/navigation';
 import { useStyles } from '../../../../../component-library/hooks';
 import PerpsMarketList from '../PerpsMarketList';
 import styleSheet from './PerpsMarketTypeSection.styles';

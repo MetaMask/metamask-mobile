@@ -15,8 +15,8 @@ import Routes from '../../../../../constants/navigation/Routes';
 import {
   getPerpsDisplaySymbol,
   PERPS_EVENT_VALUE,
-  type PerpsNavigationParamList,
 } from '@metamask/perps-controller';
+import type { PerpsNavigationParamList } from '../../types/navigation';
 import type { PerpsTransaction } from '../../types/transactionHistory';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import PerpsFillTag from '../PerpsFillTag';

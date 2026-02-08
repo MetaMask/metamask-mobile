@@ -255,6 +255,17 @@ jest.mock('@metamask/perps-controller', () => ({
       CONTACT_SUPPORT: 'contact_support',
     },
   },
+  DECIMAL_PRECISION_CONFIG: {
+    MaxPriceDecimals: 6,
+    MaxSignificantFigures: 5,
+    FallbackSizeDecimals: 6,
+  },
+  PERPS_CONSTANTS: {
+    FeatureFlagKey: 'perpsEnabled',
+    FeatureName: 'perps',
+    PerpsBalanceTokenDescription: 'perps-balance',
+    PerpsBalanceTokenSymbol: 'USD',
+  },
 }));
 
 // Mock child components

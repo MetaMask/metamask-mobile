@@ -30,8 +30,8 @@ import {
   OrderDirection,
   type Position,
   type Order,
-  type PerpsNavigationParamList,
 } from '@metamask/perps-controller';
+import type { PerpsNavigationParamList } from '../../types/navigation';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import {
   usePerpsLivePositions,

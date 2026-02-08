@@ -9,10 +9,10 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   type PerpsMarketData,
-  type PerpsNavigationParamList,
   type Position,
   type Order,
 } from '@metamask/perps-controller';
+import type { PerpsNavigationParamList } from '../../types/navigation';
 import PerpsMarketRowItem from '../PerpsMarketRowItem';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsWatchlistMarkets.styles';
