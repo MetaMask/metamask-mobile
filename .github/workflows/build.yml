@@ -280,10 +280,23 @@ jobs:
             SCRIPT_NAME="build:${{ matrix.platform }}:${BUILD_NAME//-/:}"
             yarn run "$SCRIPT_NAME"
 
-      # Expo development builds: upload iOS .app for simulator (Runway-style artifact)
-      - name: Upload iOS Expo development build
-        if: matrix.platform == 'ios' && (inputs.build_name == 'main-dev' || inputs.build_name == 'flask-dev' || inputs.build_name == 'qa-dev')
+      # Upload build artifacts
+      - name: Upload iOS artifacts
+        if: matrix.platform == 'ios'
         uses: actions/upload-artifact@v4
         with:
-          name: expo-dev-ios-${{ inputs.build_name }}
-          path: ios/build/Build/Products/Debug-iphonesimulator/
+          name: ios-${{ inputs.build_name }}
+          path: |
+            ios/build/output/*.ipa
+            ios/build/Build/Products/Debug-iphonesimulator/
+          if-no-files-found: warn
+
+      - name: Upload Android artifacts
+        if: matrix.platform == 'android'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ inputs.build_name }}
+          path: |
+            android/app/build/outputs/apk/**/*.apk
+            android/app/build/outputs/bundle/**/*.aab
+          if-no-files-found: warn
