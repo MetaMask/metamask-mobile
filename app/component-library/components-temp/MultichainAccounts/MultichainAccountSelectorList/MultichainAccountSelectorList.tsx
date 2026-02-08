@@ -381,7 +381,6 @@ const MultichainAccountSelectorList = ({
           onChangeText={setSearchText}
           onPressClearButton={() => setSearchText('')}
           placeholder={strings('accounts.search_your_accounts')}
-          placeholderTextColor={styles.searchPlaceholderText.color}
           testID={MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID}
           autoFocus={false}
         />

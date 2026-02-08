@@ -27,9 +27,6 @@ const createStyles = (params: {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    searchPlaceholderText: {
-      color: theme.colors.text.muted,
-    },
     listContainer: {
       flexGrow: 1,
       flexShrink: 1,
