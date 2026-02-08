@@ -22,7 +22,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  IconName,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { TextColor } from '../../../../../component-library/components/Texts/Text';
@@ -53,7 +52,7 @@ import PerpsMarketTypeSection from '../../components/PerpsMarketTypeSection';
 import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/PerpsRecentActivityList';
 import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import PerpsHomeHeader from '../../components/PerpsHomeHeader';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import styleSheet from './PerpsHomeView.styles';
@@ -414,17 +413,9 @@ const PerpsHomeView = () => {
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
-      <HeaderCompactStandard
-        title={strings('perps.title')}
+      <PerpsHomeHeader
         onBack={handleBackPress}
-        backButtonProps={{ testID: 'back-button' }}
-        endButtonIconProps={[
-          {
-            iconName: IconName.Search,
-            onPress: handleSearchToggle,
-            testID: 'perps-home-search-toggle',
-          },
-        ]}
+        onSearchToggle={handleSearchToggle}
         testID="perps-home"
       />
 

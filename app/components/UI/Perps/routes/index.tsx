@@ -36,6 +36,7 @@ import ActivityView from '../../../Views/ActivityView';
 import PerpsStreamBridge from '../components/PerpsStreamBridge';
 import { HIP3DebugView } from '../Debug';
 import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWarningBottomSheet';
+import PerpsSelectProviderView from '../Views/PerpsSelectProviderView';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 
@@ -134,6 +135,14 @@ const PerpsModalStack = () => {
             component={PerpsCrossMarginWarningBottomSheet}
             options={{
               title: strings('perps.crossMargin.title'),
+            }}
+          />
+          <ModalStack.Screen
+            name={Routes.PERPS.MODALS.SELECT_PROVIDER}
+            component={PerpsSelectProviderView}
+            options={{
+              title: strings('perps.provider_selector.title'),
+              cardStyle: { backgroundColor: 'transparent' },
             }}
           />
           {/* Action Selection Modals */}
@@ -393,6 +402,8 @@ const PerpsScreenStack = () => {
                 backgroundColor: 'transparent',
               },
               animationEnabled: false,
+              // Keep previous screen rendered for transparent overlay
+              detachPreviousScreen: false,
             }}
           />
 

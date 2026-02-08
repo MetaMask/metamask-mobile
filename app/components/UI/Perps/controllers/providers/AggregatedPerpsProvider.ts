@@ -74,8 +74,8 @@ import type {
   UserHistoryItem,
   WithdrawParams,
   WithdrawResult,
+  RawLedgerUpdate,
 } from '../types';
-import type { RawHyperLiquidLedgerUpdate } from '../../utils/hyperLiquidAdapter';
 import { ProviderRouter } from '../routing/ProviderRouter';
 import { SubscriptionMultiplexer } from '../aggregation/SubscriptionMultiplexer';
 
@@ -359,7 +359,7 @@ export class AggregatedPerpsProvider implements PerpsProvider {
     accountId?: string;
     startTime?: number;
     endTime?: number;
-  }): Promise<RawHyperLiquidLedgerUpdate[]> {
+  }): Promise<RawLedgerUpdate[]> {
     // Delegate to default provider (protocol-specific)
     return this.getDefaultProvider().getUserNonFundingLedgerUpdates(params);
   }

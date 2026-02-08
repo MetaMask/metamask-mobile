@@ -68,6 +68,7 @@ const config = {
     '^@metamask/native-utils$':
       '<rootDir>/app/__mocks__/@metamask/native-utils.js',
     '^@nktkas/hyperliquid(/.*)?$': '<rootDir>/app/__mocks__/hyperliquidMock.js',
+    '^@myx-trade/sdk(/.*)?$': '<rootDir>/app/__mocks__/@myx-trade/sdk.js',
     '^expo-auth-session(/.*)?$': '<rootDir>/app/__mocks__/expo-auth-session.js',
     '^expo-apple-authentication(/.*)?$':
       '<rootDir>/app/__mocks__/expo-apple-authentication.js',

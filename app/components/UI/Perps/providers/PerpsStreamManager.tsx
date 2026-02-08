@@ -20,7 +20,11 @@ import type {
   AccountState,
   PerpsMarketData,
 } from '../controllers/types';
-import { PERFORMANCE_CONFIG, PERPS_CONSTANTS } from '../constants/perpsConfig';
+import {
+  PERFORMANCE_CONFIG,
+  PERPS_CONSTANTS,
+  PROVIDER_CONFIG,
+} from '../constants/perpsConfig';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
 import { findEvmAccount } from '../utils/accountUtils';
@@ -1210,6 +1214,7 @@ class TopOfBookStreamChannel extends StreamChannel<
 class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   private lastFetchTime = 0;
   private fetchPromise: Promise<void> | null = null;
+  private cachedProviderId: string | null = null;
   private readonly CACHE_DURATION =
     PERFORMANCE_CONFIG.MarketDataCacheDurationMs;
 
@@ -1218,6 +1223,24 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
     if (PerpsConnectionManager.isCurrentlyConnecting()) {
       setTimeout(() => this.connect(), 200);
       return;
+    }
+
+    // Get current provider ID
+    const controller = Engine.context.PerpsController;
+    const currentProviderId =
+      controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider;
+
+    // Invalidate cache if provider changed
+    if (this.cachedProviderId && this.cachedProviderId !== currentProviderId) {
+      DevLogger.log(
+        'PerpsStreamManager: Provider changed, invalidating cache',
+        {
+          from: this.cachedProviderId,
+          to: currentProviderId,
+        },
+      );
+      this.cache.delete('markets');
+      this.lastFetchTime = 0;
     }
 
     // Fetch if cache is stale or empty
@@ -1230,6 +1253,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         cacheAgeMs: cached ? cacheAge : null,
         cacheExpired: cacheAge > this.CACHE_DURATION,
         cacheDurationMs: this.CACHE_DURATION,
+        providerId: currentProviderId,
       });
       // Don't await - just trigger the fetch and handle errors
       this.fetchMarketData().catch((error) => {
@@ -1244,6 +1268,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         cacheAgeSeconds: Math.round(cacheAge / 1000),
         marketCount: cached.length,
         cacheValidForMs: this.CACHE_DURATION - cacheAge,
+        providerId: currentProviderId,
       });
       // Notify subscribers with cached data immediately
       this.notifySubscribers(cached);
@@ -1275,9 +1300,11 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         const data = await provider.getMarketDataWithPrices();
         const fetchTime = Date.now() - fetchStartTime;
 
-        // Update cache
+        // Update cache and track which provider this data came from
         this.cache.set('markets', data);
         this.lastFetchTime = Date.now();
+        this.cachedProviderId =
+          controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider;
 
         // Notify all subscribers
         this.notifySubscribers(data);
@@ -1285,6 +1312,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         DevLogger.log('PerpsStreamManager: Market data fetched and cached', {
           marketCount: data.length,
           fetchTimeMs: fetchTime,
+          providerId: this.cachedProviderId,
           cacheValidUntil: new Date(
             Date.now() + this.CACHE_DURATION,
           ).toISOString(),
@@ -1356,6 +1384,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
     this.cache.clear();
     this.lastFetchTime = 0;
     this.fetchPromise = null;
+    this.cachedProviderId = null;
 
     // Notify subscribers with empty array (no market data) instead of null (loading)
     this.subscribers.forEach((subscriber) => {

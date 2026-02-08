@@ -579,3 +579,18 @@ export const STOP_LOSS_PROMPT_CONFIG = {
   // When suggesting a stop loss, calculate price at this ROE from entry
   SuggestedStopLossRoe: -50,
 } as const;
+
+/**
+ * Provider configuration
+ * Controls which perpetual DEX providers are available
+ *
+ * Note: MYX provider enablement is now controlled via LaunchDarkly feature flag
+ * (perpsMyxProviderEnabled) and MM_PERPS_MYX_PROVIDER_ENABLED environment variable.
+ * See selectPerpsMYXProviderEnabledFlag selector for details.
+ */
+export const PROVIDER_CONFIG = {
+  /** Default perpetual DEX provider when no explicit selection exists */
+  DefaultProvider: 'hyperliquid' as const,
+  /** Force MYX to testnet only (mainnet credentials not yet available) */
+  MYX_TESTNET_ONLY: true,
+} as const;

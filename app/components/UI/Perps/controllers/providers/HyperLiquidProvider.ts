@@ -48,7 +48,6 @@ import {
   formatHyperLiquidPrice,
   formatHyperLiquidSize,
   parseAssetName,
-  type RawHyperLiquidLedgerUpdate,
 } from '../../utils/hyperLiquidAdapter';
 import {
   buildOrdersArray,
@@ -137,6 +136,7 @@ import type {
   UserHistoryItem,
   WithdrawParams,
   WithdrawResult,
+  RawLedgerUpdate,
 } from '../types';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import type {
@@ -4818,7 +4818,7 @@ export class HyperLiquidProvider implements PerpsProvider {
     accountId?: string;
     startTime?: number;
     endTime?: number;
-  }): Promise<RawHyperLiquidLedgerUpdate[]> {
+  }): Promise<RawLedgerUpdate[]> {
     try {
       // Read-only operation: only need client initialization
       await this.ensureClientsInitialized();
