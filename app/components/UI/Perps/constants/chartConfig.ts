@@ -38,8 +38,6 @@ export const PERPS_CHART_CONFIG = {
     MAX: 250, // Maximum candles to display (zoomed out)
     TOTAL: 500, // Total candles to load in memory (reduced for better performance)
   },
-  // Default candle period settings
-  DEFAULT_CANDLE_PERIOD: 'FifteenMinutes' as const,
   // Chart layout constants
   LAYOUT: {
     DETAIL_VIEW_HEIGHT: 350, // Height for chart in market detail view
