@@ -157,14 +157,15 @@ describe('useTokenBuyability', () => {
       expect(result.current.isBuyable).toBe(false);
     });
 
-    it('returns isBuyable: true when token is in controller token list', () => {
+    it('returns isBuyable: true when token is in controller token list (checksummed)', () => {
+      // V2 uses parseRampIntent which checksums the address
       mockUseRampsTokens.mockReturnValue({
         tokens: {
           topTokens: [],
           allTokens: [
             {
               assetId:
-                'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
+                'eip155:1/erc20:0x6B175474E89094C44Da98b954EedeAC495271d0F',
               chainId: 'eip155:1',
               tokenSupported: true,
             },
