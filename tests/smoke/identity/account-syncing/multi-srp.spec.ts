@@ -3,11 +3,9 @@ import TestHelpers from '../../../../e2e/helpers';
 import WalletView from '../../../../e2e/pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../../e2e/pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../framework/Assertions';
-import Matchers from '../../../framework/Matchers';
 import { SmokeIdentity } from '../../../../e2e/tags';
 import { withIdentityFixtures } from '../utils/withIdentityFixtures';
 import { arrangeTestUtils } from '../utils/helpers';
-import { AccountListBottomSheetSelectorsIDs } from '../../../../app/components/Views/AccountSelector/AccountListBottomSheet.testIds';
 import {
   UserStorageMockttpControllerEvents,
   UserStorageMockttpController,
@@ -119,17 +117,10 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
         await waitUntilSyncedAccountsNumberEquals(3);
 
         // Wait for account discovery to finish before adding another account
-        await Assertions.expectElementToBeVisible(
-          Matchers.getElementByID(
-            AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT,
-            1,
-          ),
-          {
-            description:
-              'Add account button for Wallet 2 should be visible after discovery',
-            timeout: 15000,
-          },
-        );
+        await Assertions.expectTextNotDisplayed('Discovering accounts...', {
+          description: 'Account discovery should finish before adding accounts',
+          timeout: 30000,
+        });
 
         // Create second account for SRP 2
         await AccountListBottomSheet.tapAddAccountButtonV2({
