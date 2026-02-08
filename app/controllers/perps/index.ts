@@ -63,12 +63,5 @@ export * from './selectors';
 export { TradingReadinessCache } from './services/TradingReadinessCache';
 export type { ServiceContext } from './services/ServiceContext';
 
-// React hooks for UI integration
-export {
-  usePerpsTrading,
-  usePerpsNetworkConfig,
-  usePerpsNetwork,
-} from '../../components/UI/Perps/hooks';
-
 // Removed with Live Market Prices component:
 // - usePerpsPrices

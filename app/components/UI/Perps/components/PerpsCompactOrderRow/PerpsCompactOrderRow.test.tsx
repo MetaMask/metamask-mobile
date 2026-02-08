@@ -169,7 +169,7 @@ describe('PerpsCompactOrderRow', () => {
 
   it('gets display symbol for the order', () => {
     const { getPerpsDisplaySymbol } = jest.requireMock(
-      '@metamask/perps-controller/utils/marketUtils',
+      '@metamask/perps-controller',
     );
     render(<PerpsCompactOrderRow order={mockLimitBuyOrder} />);
 

@@ -117,6 +117,14 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 jest.mock('@metamask/perps-controller', () => ({
   getPerpsDisplaySymbol: (symbol: string) => symbol,
+  PERPS_CONSTANTS: {
+    RecentActivityLimit: 3,
+  },
+  PERPS_EVENT_VALUE: {
+    SCREEN_NAME: {
+      PERPS_MARKET_DETAILS: 'perps_market_details',
+    },
+  },
 }));
 
 describe('PerpsMarketTradesList', () => {
