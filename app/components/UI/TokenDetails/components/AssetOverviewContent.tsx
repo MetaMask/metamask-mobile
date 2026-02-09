@@ -1,7 +1,8 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   TouchableOpacity,
   View,
+  Modal,
   StyleSheet,
   TextStyle,
   ViewStyle,
@@ -26,7 +27,14 @@ import {
 import { TokenI } from '../../Tokens/types';
 import { usePerpsActions } from '../hooks/usePerpsActions';
 import { usePerpsPositionForAsset } from '../../Perps/hooks/usePerpsPositionForAsset';
-import { PERPS_EVENT_VALUE } from '../../Perps/constants/eventNames';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '../../Perps/constants/eventNames';
+import { selectPerpsEligibility } from '../../Perps/selectors/perpsController';
+import PerpsBottomSheetTooltip from '../../Perps/components/PerpsBottomSheetTooltip';
+import { usePerpsEventTracking } from '../../Perps/hooks/usePerpsEventTracking';
+import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import PerpsPositionCard from '../../Perps/components/PerpsPositionCard';
 import Price from '../../AssetOverview/Price';
 import ChartNavigationButton from '../../AssetOverview/ChartNavigationButton';
@@ -168,6 +176,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const navigation = useNavigation();
   const merklRewardsRef = useRef<View>(null);
   const merklRewardsYInHeaderRef = useRef<number | null>(null);
+  const resetNavigationLockRef = useRef<(() => void) | null>(null);
 
   useScrollToMerklRewards(merklRewardsYInHeaderRef);
 
@@ -179,6 +188,44 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   } = usePerpsActions({
     symbol: isPerpsEnabled ? token.symbol : null,
   });
+
+  const isEligible = useSelector(selectPerpsEligibility);
+  const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
+    useState(false);
+  const { track } = usePerpsEventTracking();
+
+  const closeEligibilityModal = useCallback(() => {
+    setIsEligibilityModalVisible(false);
+    resetNavigationLockRef.current?.();
+  }, []);
+
+  const handleLongPress = useCallback(() => {
+    if (!isEligible) {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
+      });
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+    handlePerpsAction?.('long');
+  }, [isEligible, track, handlePerpsAction]);
+
+  const handleShortPress = useCallback(() => {
+    if (!isEligible) {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
+      });
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+    handlePerpsAction?.('short');
+  }, [isEligible, track, handlePerpsAction]);
 
   const { isBuyable, isLoading: isBuyableLoading } = useTokenBuyability(token);
 
@@ -285,15 +332,12 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               isNativeCurrency={token.isETH || token.isNative || false}
               token={token}
               onBuy={onBuy}
-              onLong={
-                handlePerpsAction ? () => handlePerpsAction('long') : undefined
-              }
-              onShort={
-                handlePerpsAction ? () => handlePerpsAction('short') : undefined
-              }
+              onLong={handlePerpsAction ? handleLongPress : undefined}
+              onShort={handlePerpsAction ? handleShortPress : undefined}
               onSend={onSend}
               onReceive={onReceive}
               isLoading={isButtonsLoading}
+              resetNavigationLockRef={resetNavigationLockRef}
             />
           ) : (
             <AssetDetailsActions
@@ -390,6 +434,23 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={token} />
           </View>
+          {isEligibilityModalVisible && (
+            <View>
+              <Modal
+                visible
+                transparent
+                animationType="none"
+                statusBarTranslucent
+              >
+                <PerpsBottomSheetTooltip
+                  isVisible
+                  onClose={closeEligibilityModal}
+                  contentKey="geo_block"
+                  testID="token-details-geo-block-tooltip"
+                />
+              </Modal>
+            </View>
+          )}
         </View>
       )}
     </View>
