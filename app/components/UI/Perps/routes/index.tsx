@@ -15,6 +15,7 @@ import PerpsHomeView from '../Views/PerpsHomeView/PerpsHomeView';
 import PerpsMarketDetailsView from '../Views/PerpsMarketDetailsView';
 import PerpsMarketListView from '../Views/PerpsMarketListView';
 import PerpsRedirect from '../Views/PerpsRedirect';
+import PerpsOrderRedirect from '../Views/PerpsOrderRedirect';
 import PerpsPositionsView from '../Views/PerpsPositionsView';
 import PerpsWithdrawView from '../Views/PerpsWithdrawView';
 import PerpsClosePositionView from '../Views/PerpsClosePositionView';
@@ -404,6 +405,15 @@ const PerpsScreenStack = () => {
               animationEnabled: false,
               // Keep previous screen rendered for transparent overlay
               detachPreviousScreen: false,
+            }}
+          />
+
+          {/* Order redirect screen - handles one-click trade from token details */}
+          <Stack.Screen
+            name={Routes.PERPS.ORDER_REDIRECT}
+            component={PerpsOrderRedirect}
+            options={{
+              headerShown: false,
             }}
           />
 
