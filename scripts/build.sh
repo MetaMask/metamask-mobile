@@ -369,13 +369,59 @@ generateIosBinary() {
 	if [ "$IS_SIM_BUILD" = "true" ]; then
     	echo "Binary build type: Simulator"
 		xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration -sdk iphonesimulator -derivedDataPath build
+		local build_exit_code=$?
+		if [ $build_exit_code -ne 0 ]; then
+			echo "❌ xcodebuild failed with exit code $build_exit_code"
+			cd ..
+			return 1
+		fi
+		
+		# Verify .app was created
+		echo ""
+		echo "📦 Verifying iOS build outputs..."
+		local app_path="build/Build/Products/${configuration}-iphonesimulator/${scheme}.app"
+		if [ -d "$app_path" ]; then
+			echo "✅ App found: $app_path"
+		else
+			echo "❌ App NOT found at: $app_path"
+			cd ..
+			return 1
+		fi
+		echo ""
 	else
 		echo "Binary build type: Device"
 		xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration archive -archivePath build/$scheme.xcarchive -destination generic/platform=ios
+		local archive_exit_code=$?
+		if [ $archive_exit_code -ne 0 ]; then
+			echo "❌ xcodebuild archive failed with exit code $archive_exit_code"
+			cd ..
+			return 1
+		fi
+		
 		echo "Generating ipa for $scheme"
 		xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
+		local export_exit_code=$?
+		if [ $export_exit_code -ne 0 ]; then
+			echo "❌ xcodebuild export failed with exit code $export_exit_code"
+			cd ..
+			return 1
+		fi
+		
+		# Verify IPA was created
+		echo ""
+		echo "📦 Verifying iOS build outputs..."
+		local ipa_path="build/output/${scheme}.ipa"
+		if [ -f "$ipa_path" ]; then
+			echo "✅ IPA found: $ipa_path ($(du -h "$ipa_path" | cut -f1))"
+		else
+			echo "❌ IPA NOT found at: $ipa_path"
+			cd ..
+			return 1
+		fi
+		echo ""
 	fi
 
+	cd ..
 }
 
 # Generates the Android binary for the given scheme and configuration
@@ -681,6 +727,12 @@ buildAndroid() {
 			cd android
 			# Generate Android binary
 			generateAndroidBinary "Prod"
+			# Check if build succeeded
+			local exit_code=$?
+			if [ $exit_code -ne 0 ]; then
+				echo "❌ Android build failed with exit code $exit_code"
+				exit $exit_code
+			fi
 		fi
 	elif [ "$METAMASK_BUILD_TYPE" == "flask" ] ; then
 		if [ "$IS_LOCAL" = true ] ; then
@@ -692,6 +744,12 @@ buildAndroid() {
 			cd android
 			# Generate Android binary
 			generateAndroidBinary "Flask"
+			# Check if build succeeded
+			local exit_code=$?
+			if [ $exit_code -ne 0 ]; then
+				echo "❌ Android build failed with exit code $exit_code"
+				exit $exit_code
+			fi
 		fi
 	elif [ "$METAMASK_BUILD_TYPE" == "QA" ] || [ "$METAMASK_BUILD_TYPE" == "qa" ] ; then
 		if [ "$IS_LOCAL" = true ] ; then
@@ -703,6 +761,12 @@ buildAndroid() {
 			cd android
 			# Generate Android binary
 			generateAndroidBinary "Qa"
+			# Check if build succeeded
+			local exit_code=$?
+			if [ $exit_code -ne 0 ]; then
+				echo "❌ Android build failed with exit code $exit_code"
+				exit $exit_code
+			fi
 		fi
 	else
 		printError "METAMASK_BUILD_TYPE '${METAMASK_BUILD_TYPE}' is not recognized."
@@ -722,6 +786,12 @@ buildIos() {
 			cd ios
 			# Generate iOS binary
 			generateIosBinary "MetaMask"
+			# Check if build succeeded
+			local exit_code=$?
+			if [ $exit_code -ne 0 ]; then
+				echo "❌ iOS build failed with exit code $exit_code"
+				exit $exit_code
+			fi
 		fi
 	elif [ "$METAMASK_BUILD_TYPE" == "flask" ] ; then
 		if [ "$IS_LOCAL" = true ] ; then
@@ -733,6 +803,12 @@ buildIos() {
 			cd ios
 			# Generate iOS binary
 			generateIosBinary "MetaMask-Flask"
+			# Check if build succeeded
+			local exit_code=$?
+			if [ $exit_code -ne 0 ]; then
+				echo "❌ iOS build failed with exit code $exit_code"
+				exit $exit_code
+			fi
 		fi
 	elif [ "$METAMASK_BUILD_TYPE" == "QA" ] || [ "$METAMASK_BUILD_TYPE" == "qa" ] ; then
 		if [ "$IS_LOCAL" = true ] ; then
@@ -744,6 +820,12 @@ buildIos() {
 			cd ios
 			# Generate iOS binary
 			generateIosBinary "MetaMask-QA"
+			# Check if build succeeded
+			local exit_code=$?
+			if [ $exit_code -ne 0 ]; then
+				echo "❌ iOS build failed with exit code $exit_code"
+				exit $exit_code
+			fi
 		fi
 	else
 		printError "METAMASK_BUILD_TYPE '${METAMASK_BUILD_TYPE}' is not recognized"

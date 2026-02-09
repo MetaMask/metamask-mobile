@@ -281,11 +281,23 @@ jobs:
           if [ "${{ matrix.platform }}" = "ios" ]; then
             echo "iOS build directory contents:"
             ls -lah ios/build/ 2>/dev/null || echo "ios/build/ not found"
-            find ios/build -type f -name "*.ipa" -o -name "*.app" 2>/dev/null || echo "No .ipa or .app files found"
+            find ios/build -type f \( -name "*.ipa" -o -name "*.app" \) 2>/dev/null || echo "No .ipa or .app files found"
           else
             echo "Android build directory contents:"
-            ls -lah android/app/build/outputs/ 2>/dev/null || echo "android/app/build/outputs/ not found"
-            find android/app/build/outputs -type f -name "*.apk" -o -name "*.aab" 2>/dev/null || echo "No .apk or .aab files found"
+            if [ -d "android/app/build/outputs" ]; then
+              echo "📁 Directory structure:"
+              ls -lah android/app/build/outputs/
+              echo ""
+              echo "📱 APK files:"
+              find android/app/build/outputs -type f -name "*.apk" -exec ls -lh {} \; 2>/dev/null || echo "No .apk files found"
+              echo ""
+              echo "📦 AAB files:"
+              find android/app/build/outputs -type f -name "*.aab" -exec ls -lh {} \; 2>/dev/null || echo "No .aab files found"
+            else
+              echo "❌ android/app/build/outputs/ not found"
+              echo "Checking if build directory exists:"
+              ls -lah android/app/build/ 2>/dev/null || echo "android/app/build/ not found either"
+            fi
           fi
 
       # Upload build artifacts
@@ -305,6 +317,7 @@ jobs:
         with:
           name: android-${{ inputs.build_name }}
           path: |
-            android/app/build/outputs/apk/
-            android/app/build/outputs/bundle/
+            android/app/build/outputs/apk/**/*.apk
+            android/app/build/outputs/bundle/**/*.aab
+            android/app/build/outputs/apk/**/*-androidTest.apk
           if-no-files-found: warn
