@@ -1,6 +1,10 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import { StackActions, useNavigation } from '@react-navigation/native';
+import {
+  StackActions,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import Complete from './Complete';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -14,6 +18,7 @@ const mockStackReplace = jest.fn((routeName: string) => ({
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
+  useRoute: jest.fn(),
   StackActions: {
     replace: jest.fn((routeName: string) => ({
       type: 'REPLACE',
@@ -215,6 +220,11 @@ describe('Complete Component', () => {
 
     (useNavigation as jest.Mock).mockReturnValue({
       dispatch: mockNavigationDispatch,
+    });
+
+    // Default: no route params
+    (useRoute as jest.Mock).mockReturnValue({
+      params: {},
     });
 
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
@@ -514,6 +524,122 @@ describe('Complete Component', () => {
         expect(mockNavigationDispatch).toHaveBeenCalledWith(
           expect.objectContaining({ routeName: Routes.CARD.HOME }),
         );
+      });
+    });
+  });
+
+  describe('Deep Link Navigation (nextDestination param)', () => {
+    it('navigates to PersonalDetails when nextDestination is personal_details', async () => {
+      (useRoute as jest.Mock).mockReturnValue({
+        params: { nextDestination: 'personal_details' },
+      });
+
+      const { getByTestId } = render(<Complete />);
+      const button = getByTestId('complete-confirm-button');
+      fireEvent.press(button);
+
+      await waitFor(() => {
+        expect(mockStackReplace).toHaveBeenCalledWith(
+          Routes.CARD.ONBOARDING.PERSONAL_DETAILS,
+        );
+        expect(mockNavigationDispatch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            routeName: Routes.CARD.ONBOARDING.PERSONAL_DETAILS,
+          }),
+        );
+      });
+    });
+
+    it('does not reset onboarding state when navigating to PersonalDetails', async () => {
+      (useRoute as jest.Mock).mockReturnValue({
+        params: { nextDestination: 'personal_details' },
+      });
+
+      const { resetOnboardingState } = jest.requireMock(
+        '../../../../../core/redux/slices/card',
+      );
+
+      const { getByTestId } = render(<Complete />);
+      fireEvent.press(getByTestId('complete-confirm-button'));
+
+      await waitFor(() => {
+        expect(resetOnboardingState).not.toHaveBeenCalled();
+      });
+    });
+
+    it('navigates to SpendingLimit when nextDestination is card_home', async () => {
+      (useRoute as jest.Mock).mockReturnValue({
+        params: { nextDestination: 'card_home' },
+      });
+
+      const { getByTestId } = render(<Complete />);
+      const button = getByTestId('complete-confirm-button');
+      fireEvent.press(button);
+
+      await waitFor(() => {
+        expect(mockStackReplace).toHaveBeenCalledWith(
+          Routes.CARD.SPENDING_LIMIT,
+          { flow: 'onboarding' },
+        );
+        expect(mockNavigationDispatch).toHaveBeenCalledWith(
+          expect.objectContaining({ routeName: Routes.CARD.SPENDING_LIMIT }),
+        );
+      });
+    });
+
+    it('resets onboarding state when nextDestination is card_home', async () => {
+      (useRoute as jest.Mock).mockReturnValue({
+        params: { nextDestination: 'card_home' },
+      });
+
+      const { resetOnboardingState } = jest.requireMock(
+        '../../../../../core/redux/slices/card',
+      );
+
+      const { getByTestId } = render(<Complete />);
+      fireEvent.press(getByTestId('complete-confirm-button'));
+
+      await waitFor(() => {
+        expect(mockDispatch).toHaveBeenCalledWith(resetOnboardingState());
+      });
+    });
+
+    it('does not check token when nextDestination is provided', async () => {
+      (useRoute as jest.Mock).mockReturnValue({
+        params: { nextDestination: 'card_home' },
+      });
+
+      const { getCardBaanxToken } = jest.requireMock(
+        '../../util/cardTokenVault',
+      );
+
+      const { getByTestId } = render(<Complete />);
+      fireEvent.press(getByTestId('complete-confirm-button'));
+
+      await waitFor(() => {
+        expect(getCardBaanxToken).not.toHaveBeenCalled();
+      });
+    });
+
+    it('falls back to default behavior when nextDestination is undefined', async () => {
+      (useRoute as jest.Mock).mockReturnValue({
+        params: {},
+      });
+
+      const { getCardBaanxToken } = jest.requireMock(
+        '../../util/cardTokenVault',
+      );
+      getCardBaanxToken.mockResolvedValue({
+        success: true,
+        tokenData: { accessToken: 'mock-token' },
+      });
+
+      const { getByTestId } = render(<Complete />);
+      fireEvent.press(getByTestId('complete-confirm-button'));
+
+      await waitFor(() => {
+        expect(getCardBaanxToken).toHaveBeenCalled();
+        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME);
       });
     });
   });

@@ -53,7 +53,7 @@ import PerpsMarketTypeSection from '../../components/PerpsMarketTypeSection';
 import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/PerpsRecentActivityList';
 import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
-import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import styleSheet from './PerpsHomeView.styles';
@@ -414,7 +414,7 @@ const PerpsHomeView = () => {
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
-      <HeaderCenter
+      <HeaderCompactStandard
         title={strings('perps.title')}
         onBack={handleBackPress}
         backButtonProps={{ testID: 'back-button' }}

@@ -15,6 +15,7 @@ import PerpsHomeView from '../Views/PerpsHomeView/PerpsHomeView';
 import PerpsMarketDetailsView from '../Views/PerpsMarketDetailsView';
 import PerpsMarketListView from '../Views/PerpsMarketListView';
 import PerpsRedirect from '../Views/PerpsRedirect';
+import PerpsOrderRedirect from '../Views/PerpsOrderRedirect';
 import PerpsPositionsView from '../Views/PerpsPositionsView';
 import PerpsWithdrawView from '../Views/PerpsWithdrawView';
 import PerpsClosePositionView from '../Views/PerpsClosePositionView';
@@ -36,7 +37,6 @@ import ActivityView from '../../../Views/ActivityView';
 import PerpsStreamBridge from '../components/PerpsStreamBridge';
 import { HIP3DebugView } from '../Debug';
 import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWarningBottomSheet';
-import { useTheme } from '../../../../util/theme';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 
@@ -66,22 +66,13 @@ const PerpsConfirmScreen = (
     route: RouteProp<PerpsNavigationParamList, 'RedesignedConfirmations'>;
   },
 ) => {
-  const theme = useTheme();
   const params =
     useRoute<RouteProp<PerpsNavigationParamList, 'RedesignedConfirmations'>>();
   const showPerpsHeader =
     params?.params?.showPerpsHeader ??
     CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader;
 
-  return (
-    <Confirm
-      {...props}
-      disableSafeArea={!showPerpsHeader}
-      fullscreenStyle={{
-        backgroundColor: theme.colors.background.default,
-      }}
-    />
-  );
+  return <Confirm {...props} disableSafeArea={!showPerpsHeader} />;
 };
 
 const PerpsModalStack = () => {
@@ -403,6 +394,15 @@ const PerpsScreenStack = () => {
                 backgroundColor: 'transparent',
               },
               animationEnabled: false,
+            }}
+          />
+
+          {/* Order redirect screen - handles one-click trade from token details */}
+          <Stack.Screen
+            name={Routes.PERPS.ORDER_REDIRECT}
+            component={PerpsOrderRedirect}
+            options={{
+              headerShown: false,
             }}
           />
 

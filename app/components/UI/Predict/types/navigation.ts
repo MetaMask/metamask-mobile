@@ -5,6 +5,7 @@
 import { ParamListBase } from '@react-navigation/native';
 import {
   PredictActivityItem,
+  PredictCategory,
   PredictMarket,
   PredictOutcome,
   PredictOutcomeToken,
