@@ -5,6 +5,11 @@ import {
   RouteProp,
   StackActions,
 } from '@react-navigation/native';
+import {
+  Box,
+  BoxAlignItems,
+  BoxJustifyContent,
+} from '@metamask/design-system-react-native';
 import Routes from '../../../../constants/navigation/Routes';
 import { usePerpsConnection } from '../hooks/usePerpsConnection';
 import { usePerpsTrading } from '../hooks/usePerpsTrading';
@@ -43,7 +48,6 @@ const PerpsOrderRedirect: React.FC = () => {
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const hasStartedRef = useRef(false);
-
   useEffect(() => {
     // Wait for WebSocket to be ready
     if (!isConnected || !isInitialized) return;
@@ -97,7 +101,16 @@ const PerpsOrderRedirect: React.FC = () => {
     PerpsToastOptions,
   ]);
 
-  return <PerpsLoader message="Preparing order..." fullScreen />;
+  // Match PerpsLoadingSkeleton layout ("Connecting to Perps") so both loaders look the same: top-aligned, centered, pt-20
+  return (
+    <Box
+      twClassName="flex-1 bg-default pt-20"
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Start}
+    >
+      <PerpsLoader message="Preparing order..." fullScreen={false} />
+    </Box>
+  );
 };
 
 export default PerpsOrderRedirect;

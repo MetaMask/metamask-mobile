@@ -108,7 +108,7 @@ describe('PerpsOrderRedirect', () => {
     expect(MockPerpsLoader).toHaveBeenCalledWith(
       expect.objectContaining({
         message: 'Preparing order...',
-        fullScreen: true,
+        fullScreen: false,
       }),
     );
   });
