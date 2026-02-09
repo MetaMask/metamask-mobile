@@ -52,6 +52,7 @@ describe(`Migration ${migrationVersion}`, () => {
 
   describe('ensureValidState validation', () => {
     it('returns original state if state version is >= migration version', () => {
+      mockedEnsureValidState.mockReturnValue(false);
       const oldState = {
         meta: { version: migrationVersion },
         engine: {
