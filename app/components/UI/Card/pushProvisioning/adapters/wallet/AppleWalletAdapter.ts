@@ -14,6 +14,7 @@ import {
   ProvisioningResult,
   CardActivationEvent,
   ProvisioningErrorCode,
+  ApplePayEncryptedPayload,
 } from '../../types';
 import { IWalletProviderAdapter } from './IWalletProviderAdapter';
 import { BaseWalletAdapter } from './BaseWalletAdapter';
@@ -30,12 +31,6 @@ interface IOSCardData {
   cardHolderName: string;
   lastDigits: string;
   cardDescription: string;
-}
-
-interface IOSEncryptPayload {
-  encryptedPassData: string;
-  activationData: string;
-  ephemeralPublicKey: string;
 }
 
 /**
@@ -161,7 +156,7 @@ export class AppleWalletAdapter
           nonce: string,
           nonceSignature: string,
           certificates: string[],
-        ): Promise<IOSEncryptPayload> => {
+        ): Promise<ApplePayEncryptedPayload> => {
           // Call the issuer encrypt callback to get encrypted data from card provider
           const encryptedPayload = await issuerEncryptCallback(
             nonce,
