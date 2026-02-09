@@ -395,7 +395,7 @@ builds:
 
   # QA production build
   qa-prod:
-    github_environment: build-qa
+    github_environment: build-uat
     signing: *signing_uat
     env:
       METAMASK_ENVIRONMENT: 'production'
@@ -423,7 +423,7 @@ builds:
 
   # QA dev build / Expo development build (Runway .app for simulator)
   qa-dev:
-    github_environment: build-qa
+    github_environment: build-uat
     env:
       METAMASK_ENVIRONMENT: 'dev'
       METAMASK_BUILD_TYPE: 'qa'
