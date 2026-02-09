@@ -112,6 +112,12 @@ const mockUseRampsControllerInitialValues: ReturnType<
   setSelectedPaymentMethod: jest.fn(),
   paymentMethodsLoading: false,
   paymentMethodsError: null,
+  quotes: null,
+  selectedQuote: null,
+  startQuotePolling: jest.fn(),
+  stopQuotePolling: jest.fn(),
+  quotesLoading: false,
+  quotesError: null,
 };
 
 let mockUseRampsControllerValues = mockUseRampsControllerInitialValues;

@@ -242,9 +242,10 @@ describe('PredictFeed', () => {
       headerHeight: 100,
       tabBarHeight: 48,
       layoutReady: true,
-      activeIndex: 0,
-      setActiveIndex: jest.fn(),
+      onTabSwitch: jest.fn(),
       scrollHandler: jest.fn(),
+      onHeaderLayout: jest.fn(),
+      onTabBarLayout: jest.fn(),
     });
     mockUsePredictMarketData.mockReturnValue({
       marketData: [
@@ -480,16 +481,17 @@ describe('PredictFeed', () => {
 
   describe('pager view interactions', () => {
     it('updates active index and tracks analytics when page changes via swipe', () => {
-      const mockSetActiveIndex = jest.fn();
+      const mockOnTabSwitch = jest.fn();
       mockUseFeedScrollManager.mockReturnValue({
         headerTranslateY: { value: 0 },
         headerHidden: false,
         headerHeight: 100,
         tabBarHeight: 48,
         layoutReady: true,
-        activeIndex: 0,
-        setActiveIndex: mockSetActiveIndex,
+        onTabSwitch: mockOnTabSwitch,
         scrollHandler: jest.fn(),
+        onHeaderLayout: jest.fn(),
+        onTabBarLayout: jest.fn(),
       });
 
       const { getByTestId } = render(<PredictFeed />);
@@ -497,7 +499,7 @@ describe('PredictFeed', () => {
 
       fireEvent(page1, 'onTouchEnd');
 
-      expect(mockSetActiveIndex).toHaveBeenCalledWith(1);
+      expect(mockOnTabSwitch).toHaveBeenCalledWith(1);
       expect(mockSessionManager.trackTabChange).toHaveBeenCalledWith('new');
     });
   });
@@ -510,9 +512,10 @@ describe('PredictFeed', () => {
         headerHeight: 100,
         tabBarHeight: 48,
         layoutReady: false,
-        activeIndex: 0,
-        setActiveIndex: jest.fn(),
+        onTabSwitch: jest.fn(),
         scrollHandler: jest.fn(),
+        onHeaderLayout: jest.fn(),
+        onTabBarLayout: jest.fn(),
       });
 
       const { queryByTestId } = render(<PredictFeed />);
@@ -766,16 +769,17 @@ describe('PredictFeed', () => {
         queryParams: 'tag_id=149',
       });
 
-      const mockSetActiveIndex = jest.fn();
+      const mockOnTabSwitch = jest.fn();
       mockUseFeedScrollManager.mockReturnValue({
         headerTranslateY: { value: 0 },
         headerHidden: false,
         headerHeight: 100,
         tabBarHeight: 48,
         layoutReady: true,
-        activeIndex: 1,
-        setActiveIndex: mockSetActiveIndex,
+        onTabSwitch: mockOnTabSwitch,
         scrollHandler: jest.fn(),
+        onHeaderLayout: jest.fn(),
+        onTabBarLayout: jest.fn(),
       });
 
       const { getByTestId } = render(<PredictFeed />);
@@ -783,14 +787,20 @@ describe('PredictFeed', () => {
 
       fireEvent(hotTabPage, 'onTouchEnd');
 
-      expect(mockSetActiveIndex).toHaveBeenCalledWith(0);
+      expect(mockOnTabSwitch).toHaveBeenCalledWith(0);
       expect(mockSessionManager.trackTabChange).toHaveBeenCalledWith('hot');
     });
 
-    it('starts session with hot as initial tab when flag is enabled', () => {
+    it('starts session with hot as initial tab when requested via deeplink', () => {
       mockUseSelector.mockReturnValue({
         enabled: true,
         queryParams: 'tag_id=149',
+      });
+      mockUseRoute.mockReturnValue({
+        params: {
+          entryPoint: 'homepage_new_prediction',
+          tab: 'hot',
+        },
       });
 
       render(<PredictFeed />);
