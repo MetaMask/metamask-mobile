@@ -400,7 +400,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ios-${{ inputs.build_name }}
-          path: ios/build/
+          path: |
+            ios/build/Build/Products/
+            ios/build/output/
+            ios/build/*.xcarchive
           if-no-files-found: error
 
       - name: Upload Android artifacts
