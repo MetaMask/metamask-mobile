@@ -29,6 +29,9 @@ import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentSelectionModal';
+import { createCheckoutNavDetails } from '../Checkout';
+import { getQuoteWidgetUrl, isNativeProvider } from '../../types';
+import Logger from '../../../../../util/Logger';
 
 interface BuildQuoteParams {
   assetId?: string;
@@ -38,6 +41,19 @@ export const createBuildQuoteNavDetails =
   createNavigationDetails<BuildQuoteParams>(Routes.RAMP.AMOUNT_INPUT);
 
 const DEFAULT_AMOUNT = 100;
+
+// Callback URL for aggregator providers to redirect back to the app
+const getCallbackUrl = (): string => {
+  const metamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
+  const isProduction =
+    metamaskEnvironment === 'production' ||
+    metamaskEnvironment === 'beta' ||
+    metamaskEnvironment === 'rc';
+
+  return isProduction
+    ? 'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback'
+    : 'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback';
+};
 
 function BuildQuote() {
   const navigation = useNavigation();
@@ -127,6 +143,7 @@ function BuildQuote() {
     startQuotePolling({
       walletAddress,
       amount: debouncedPollingAmount,
+      redirectUrl: getCallbackUrl(),
     });
 
     return () => {
@@ -141,8 +158,36 @@ function BuildQuote() {
   ]);
 
   const handleContinuePress = useCallback(() => {
-    // TODO: Navigate to next screen with amount
-  }, []);
+    if (!selectedQuote) return;
+
+    // Native/whitelabel provider (e.g. Transak Native) -> deposit flow
+    if (isNativeProvider(selectedQuote)) {
+      navigation.navigate(Routes.DEPOSIT.ROOT);
+      return;
+    }
+
+    // Aggregator provider -> needs a widget URL
+    // Note: CustomActions (e.g., PayPal) are handled through the same flow.
+    // If the API returns a quote with a URL, it will be opened in the checkout webview.
+    // If customActions appear without a URL, they will error here (needs backend fix).
+    const widgetUrl = getQuoteWidgetUrl(selectedQuote);
+
+    if (widgetUrl) {
+      navigation.navigate(
+        ...createCheckoutNavDetails({
+          url: widgetUrl,
+          providerName: selectedProvider?.name ?? '',
+        }),
+      );
+    } else {
+      // Aggregator but no URL -> error
+      Logger.error(
+        new Error('No widget URL available for aggregator provider'),
+        { provider: selectedQuote.provider },
+      );
+      // TODO: Show user-facing error (alert or inline)
+    }
+  }, [selectedQuote, selectedProvider, navigation]);
 
   const hasAmount = amountAsNumber > 0;
 

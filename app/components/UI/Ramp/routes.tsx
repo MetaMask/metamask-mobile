@@ -3,6 +3,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import Routes from '../../../constants/navigation/Routes';
 import TokenSelection from './Views/TokenSelection';
 import BuildQuote from './Views/BuildQuote';
+import Checkout from './Views/Checkout';
 import UnsupportedTokenModal from './Views/Modals/UnsupportedTokenModal';
 import SettingsModal from './Views/Modals/SettingsModal';
 import PaymentSelectionModal from './Views/Modals/PaymentSelectionModal';
@@ -29,6 +30,7 @@ const MainRoutes = () => (
       component={TokenSelection}
     />
     <Stack.Screen name={Routes.RAMP.AMOUNT_INPUT} component={BuildQuote} />
+    <Stack.Screen name={Routes.RAMP.CHECKOUT} component={Checkout} />
   </Stack.Navigator>
 );
 
