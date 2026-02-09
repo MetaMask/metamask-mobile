@@ -8,7 +8,7 @@ import CardHome from '../Views/CardHome/CardHome';
 import CardWelcome from '../Views/CardWelcome/CardWelcome';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { StyleSheet, View } from 'react-native';
-import CardAuthentication from '../Views/CardAuthentication/CardAuthentication';
+import CardOAuth2Authentication from '../Views/CardAuthentication/CardOAuth2Authentication';
 import SpendingLimit from '../Views/SpendingLimit/SpendingLimit';
 import ChooseYourCard from '../Views/ChooseYourCard/ChooseYourCard';
 import ReviewOrder from '../Views/ReviewOrder/ReviewOrder';
@@ -175,7 +175,7 @@ const MainRoutes = () => {
       />
       <Stack.Screen
         name={Routes.CARD.AUTHENTICATION}
-        component={CardAuthentication}
+        component={CardOAuth2Authentication}
         options={cardDefaultNavigationOptions}
       />
       <Stack.Screen

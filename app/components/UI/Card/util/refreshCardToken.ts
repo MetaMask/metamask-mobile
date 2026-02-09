@@ -5,6 +5,12 @@ import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from './mapBaanxApiUrl';
 // Constants
 const DEFAULT_REQUEST_TIMEOUT_MS = 30000;
 
+/**
+ * Default refresh token expiration in seconds when not provided by the OAuth2 response.
+ * Baanx DEV uses 20 minutes, production may differ.
+ */
+const DEFAULT_REFRESH_TOKEN_EXPIRES_IN_SECONDS = 20 * 60;
+
 interface CardExchangeTokenResponse {
   accessToken: string;
   expiresIn: number;
@@ -14,7 +20,11 @@ interface CardExchangeTokenResponse {
 }
 
 /**
- * Refreshes the card token using a refresh token
+ * Refreshes the card token using a refresh token via the OAuth2 endpoint.
+ *
+ * Uses POST /v1/auth/oauth2/token with x-client-key header.
+ * Handles missing refresh_token_expires_in with a default value.
+ *
  * @param refreshToken The refresh token to use for getting a new access token
  * @param location The location (us or international) for the API call
  * @returns A promise that resolves to the new token response
@@ -39,7 +49,6 @@ export const refreshCardToken = async (
     'Content-Type': 'application/json',
     'x-us-env': String(location === 'us'),
     'x-client-key': apiKey,
-    'x-secret-key': apiKey,
   };
 
   const requestBody = {
@@ -47,7 +56,7 @@ export const refreshCardToken = async (
     refresh_token: refreshToken,
   };
 
-  const url = `${baseUrl}/v1/auth/oauth/token`;
+  const url = `${baseUrl}/v1/auth/oauth2/token`;
 
   // Create AbortController for timeout handling
   const controller = new AbortController();
@@ -95,11 +104,15 @@ export const refreshCardToken = async (
 
     const data = await response.json();
 
+    // OAuth2 may not include refresh_token_expires_in in the response
+    const refreshTokenExpiresIn =
+      data.refresh_token_expires_in ?? DEFAULT_REFRESH_TOKEN_EXPIRES_IN_SECONDS;
+
     return {
       accessToken: data.access_token,
       expiresIn: data.expires_in,
       refreshToken: data.refresh_token,
-      refreshTokenExpiresIn: data.refresh_token_expires_in,
+      refreshTokenExpiresIn,
       location,
     } as CardExchangeTokenResponse;
   } catch (error) {

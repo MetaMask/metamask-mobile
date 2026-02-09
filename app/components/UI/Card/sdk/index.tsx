@@ -28,6 +28,8 @@ import {
 import { UserResponse } from '../types';
 import { getErrorMessage } from '../util/getErrorMessage';
 import { mapCountryToLocation } from '../util/mapCountryToLocation';
+import { getCardBaanxToken } from '../util/cardTokenVault';
+import { revokeAllCardOAuth2Tokens } from '../util/revokeCardOAuth2Token';
 
 // Types
 export interface ICardSDK {
@@ -133,15 +135,16 @@ export const CardSDKProvider = ({
   }, [sdk]);
 
   const logoutFromProvider = useCallback(async () => {
-    if (!sdk) {
-      throw new Error('SDK not available for logout');
-    }
-
     try {
-      await sdk.logout();
+      const tokenResult = await getCardBaanxToken();
+      if (tokenResult?.success && tokenResult?.tokenData) {
+        const { accessToken, refreshToken, location } = tokenResult.tokenData;
+        await revokeAllCardOAuth2Tokens(accessToken, refreshToken, location);
+      }
     } catch (error) {
       Logger.error(error as Error, {
-        message: '[CardSDK] Logout failed, clearing local state anyway',
+        message:
+          '[CardSDK] OAuth2 token revocation failed, clearing local state anyway',
       });
     }
 
@@ -149,7 +152,7 @@ export const CardSDKProvider = ({
     dispatch(clearAllCache());
     dispatch(resetOnboardingState());
     setUser(null);
-  }, [sdk, dispatch]);
+  }, [dispatch]);
 
   // Memoized context value to prevent unnecessary re-renders
   const contextValue = useMemo(
