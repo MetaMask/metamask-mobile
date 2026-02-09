@@ -375,7 +375,7 @@ generateIosBinary() {
 		echo "Generating ipa for $scheme"
 		xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
 	fi
-
+	
 }
 
 # Generates the Android binary for the given scheme and configuration
