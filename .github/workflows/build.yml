@@ -73,7 +73,7 @@ jobs:
   # Build
   build:
     needs: [prepare]
-    timeout-minutes: 30
+    timeout-minutes: 60
     strategy:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
