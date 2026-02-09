@@ -1280,8 +1280,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               <View
                 style={[
                   styles.detailItem,
-                  // If TP/SL is hidden, this is the last item so round bottom corners
-                  hideTPSL && styles.detailItemLast,
+                  // Only round bottom corners when this is the last item (no TP/SL and no Pay row below)
+                  hideTPSL && !isPayRowVisible && styles.detailItemLast,
                 ]}
               >
                 <TouchableOpacity onPress={() => setIsLimitPriceVisible(true)}>
