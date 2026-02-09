@@ -10,6 +10,10 @@ import {
 
 import type { NetworkState } from '@metamask/network-controller';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
+import {
+  TransactionStatus,
+  TransactionType,
+} from '@metamask/transaction-controller';
 
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
@@ -344,6 +348,7 @@ describe('PredictController', () => {
         'TransactionController:transactionConfirmed',
         'TransactionController:transactionFailed',
         'TransactionController:transactionRejected',
+        'TransactionController:transactionStatusUpdated',
         'RemoteFeatureFlagController:stateChange',
       ],
       messenger,
@@ -4000,6 +4005,201 @@ describe('PredictController', () => {
         expect(controller.state.pendingDeposits[providerId][address]).toBe(
           newBatchId,
         );
+      });
+    });
+  });
+
+  describe('transactionStatusChanged event', () => {
+    const accountAddress = '0x1234567890123456789012345678901234567890';
+
+    const createPredictTransactionMeta = ({
+      nestedType,
+      status,
+      batchId,
+      from,
+    }: {
+      nestedType: TransactionType;
+      status: TransactionStatus;
+      batchId?: string;
+      from?: string;
+    }) =>
+      ({
+        id: 'tx-1',
+        status,
+        batchId,
+        txParams: {
+          from: from ?? accountAddress,
+          to: '0x0000000000000000000000000000000000000001',
+          value: '0x0',
+          data: '0x',
+        },
+        nestedTransactions: [
+          {
+            type: nestedType,
+          },
+        ],
+      }) as any;
+
+    it('publishes event for predict deposit transaction with approved status', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictDeposit,
+          status: TransactionStatus.approved,
+          batchId: 'batch-1',
+          from: accountAddress.toUpperCase(),
+        });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        controller.updateStateForTesting((state) => {
+          state.pendingDeposits = {
+            polymarket: {
+              [accountAddress]: 'batch-1',
+            },
+          };
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as any);
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith({
+          type: 'deposit',
+          status: 'approved',
+          transactionMeta,
+        });
+      });
+    });
+
+    it('publishes event for predict claim transaction with confirmed status', () => {
+      withController(({ messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictClaim,
+          status: TransactionStatus.confirmed,
+        });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as any);
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith({
+          type: 'claim',
+          status: 'confirmed',
+          transactionMeta,
+        });
+      });
+    });
+
+    it('publishes event for predict withdraw transaction with failed status', () => {
+      withController(({ messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictWithdraw,
+          status: TransactionStatus.failed,
+        });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as any);
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith({
+          type: 'withdraw',
+          status: 'failed',
+          transactionMeta,
+        });
+      });
+    });
+
+    it('does not publish event for non-predict transactions', () => {
+      withController(({ messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.simpleSend,
+          status: TransactionStatus.confirmed,
+        });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as any);
+
+        expect(transactionStatusChangedHandler).not.toHaveBeenCalled();
+      });
+    });
+
+    it('does not publish event for deposit with wrong batchId', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictDeposit,
+          status: TransactionStatus.confirmed,
+          batchId: 'batch-not-pending',
+        });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        controller.updateStateForTesting((state) => {
+          state.pendingDeposits = {
+            polymarket: {
+              [accountAddress]: 'batch-expected',
+            },
+          };
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as any);
+
+        expect(transactionStatusChangedHandler).not.toHaveBeenCalled();
+      });
+    });
+
+    it('maps transaction statuses to predict transaction event statuses', () => {
+      withController(({ controller }) => {
+        const mapStatus = (
+          controller as any
+        ).mapTransactionStatusToPredictTransactionEventStatus.bind(controller);
+
+        expect(mapStatus(TransactionStatus.approved)).toBe('approved');
+        expect(mapStatus(TransactionStatus.submitted)).toBeNull();
+        expect(mapStatus(TransactionStatus.confirmed)).toBe('confirmed');
+        expect(mapStatus(TransactionStatus.failed)).toBe('failed');
+        expect(mapStatus(TransactionStatus.rejected)).toBe('rejected');
+      });
+    });
+
+    it('maps transaction types to predict transaction event types', () => {
+      withController(({ controller }) => {
+        const mapType = (
+          controller as any
+        ).mapTransactionTypeToPredictTransactionEventType.bind(controller);
+
+        expect(mapType(TransactionType.predictDeposit)).toBe('deposit');
+        expect(mapType(TransactionType.predictClaim)).toBe('claim');
+        expect(mapType(TransactionType.predictWithdraw)).toBe('withdraw');
+        expect(mapType(TransactionType.swap)).toBeNull();
       });
     });
   });
