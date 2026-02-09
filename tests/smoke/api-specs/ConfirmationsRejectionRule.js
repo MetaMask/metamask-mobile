@@ -1,21 +1,21 @@
-/// <reference path="../../../e2e/types/detox.d.ts" />
+/// <reference path="../../../tests/types/detox.d.ts" />
 import { device } from 'detox';
 import { addToQueue } from './helpers';
 import paramsToObj from '@open-rpc/test-coverage/build/utils/params-to-obj';
-import TestHelpers from '../../../e2e/helpers';
+import TestHelpers from '../../helpers';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import ConnectBottomSheet from '../../../e2e/pages/Browser/ConnectBottomSheet';
-import AssetWatchBottomSheet from '../../../e2e/pages/Transactions/AssetWatchBottomSheet';
-import SpamFilterModal from '../../../e2e/pages/Browser/SpamFilterModal';
-import BrowserView from '../../../e2e/pages/Browser/BrowserView';
-import ConnectedAccountsModal from '../../../e2e/pages/Browser/ConnectedAccountsModal';
+import ConnectBottomSheet from '../../page-objects/Browser/ConnectBottomSheet';
+import AssetWatchBottomSheet from '../../page-objects/Transactions/AssetWatchBottomSheet';
+import SpamFilterModal from '../../page-objects/Browser/SpamFilterModal';
+import BrowserView from '../../page-objects/Browser/BrowserView';
+import ConnectedAccountsModal from '../../page-objects/Browser/ConnectedAccountsModal';
 
 // eslint-disable-next-line import/no-nodejs-modules
 import fs from 'fs';
 
 import Assertions from '../../framework/Assertions';
-import PermissionSummaryBottomSheet from '../../../e2e/pages/Browser/PermissionSummaryBottomSheet';
+import PermissionSummaryBottomSheet from '../../page-objects/Browser/PermissionSummaryBottomSheet';
 
 const getBase64FromPath = async (path) => {
   const data = await fs.promises.readFile(path);
