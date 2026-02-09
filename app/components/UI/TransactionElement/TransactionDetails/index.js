@@ -18,7 +18,6 @@ import Logger from '../../../../util/Logger';
 import EthereumAddress from '../../EthereumAddress';
 import TransactionSummary from '../../../Views/TransactionSummary';
 import { toDateFormat } from '../../../../util/date';
-import StyledButton from '../../StyledButton';
 import StatusText from '../../../Base/StatusText';
 import Text, {
   TextColor,
@@ -339,39 +338,6 @@ class TransactionDetails extends PureComponent {
     }
   };
 
-  renderSpeedUpButton = () => {
-    const styles = this.getStyles();
-
-    return (
-      <StyledButton
-        type={'normal'}
-        containerStyle={[
-          styles.actionContainerStyle,
-          styles.speedupActionContainerStyle,
-        ]}
-        style={styles.actionStyle}
-        onPress={this.showSpeedUpModal}
-      >
-        {strings('transaction.speedup')}
-      </StyledButton>
-    );
-  };
-
-  renderCancelButton = () => {
-    const styles = this.getStyles();
-
-    return (
-      <StyledButton
-        type={'cancel'}
-        containerStyle={styles.actionContainerStyle}
-        style={styles.actionStyle}
-        onPress={this.showCancelModal}
-      >
-        {strings('transaction.cancel')}
-      </StyledButton>
-    );
-  };
-
   render = () => {
     const {
       transactionObject,
@@ -412,13 +378,6 @@ class TransactionDetails extends PureComponent {
               {strings('transactions.status')}
             </DetailsModal.SectionTitle>
             <StatusText status={status} />
-            {!!renderTxActions &&
-              updatedTransactionDetails?.txChainId === chainId && (
-                <View style={styles.transactionActionsContainer}>
-                  {this.renderSpeedUpButton()}
-                  {this.renderCancelButton()}
-                </View>
-              )}
           </DetailsModal.Column>
           <DetailsModal.Column end>
             <DetailsModal.SectionTitle>
