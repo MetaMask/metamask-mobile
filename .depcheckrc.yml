@@ -40,6 +40,8 @@ ignores:
   - 'esbuild-register'
   # xml2js is used in .github/scripts/ for E2E test report processing
   - 'xml2js'
+  # jest-junit is used as a Jest reporter in tests/jest.e2e.detox.config.js
+  - 'jest-junit'
 
   # Used in scripts/repack for CI optimization
   - '@expo/repack-app'

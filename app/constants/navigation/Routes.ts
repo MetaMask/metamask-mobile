@@ -145,6 +145,7 @@ const Routes = {
     OPTIN_METRICS: 'OptinMetrics',
     SOCIAL_LOGIN_SUCCESS_EXISTING_USER: 'SocialLoginSuccessExistingUser',
     REHYDRATE: 'Rehydrate',
+    WALLET_CREATION_ERROR: 'WalletCreationError',
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',
@@ -206,6 +207,7 @@ const Routes = {
     UNSUPPORTED_REGION_MODAL: 'UnsupportedRegionModal',
     MULTICHAIN_TRANSACTION_DETAILS: 'MultichainTransactionDetails',
     TRANSACTION_DETAILS: 'TransactionDetailsSheet',
+    IMPORT_WALLET_TIP: 'ImportWalletTipSheet',
     MULTICHAIN_ACCOUNT_DETAILS: {
       ACCOUNT_ACTIONS: 'MultichainAccountActions',
       EDIT_ACCOUNT_NAME: 'EditMultichainAccountName',
