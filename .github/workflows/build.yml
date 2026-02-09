@@ -214,7 +214,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pods-${{ inputs.build_name }}-
 
-      # iOS: Cache DerivedData to speed up Xcode builds
+      # iOS: Cache DerivedData (includes ModuleCache.noindex) to speed up Xcode builds
       - name: Cache iOS DerivedData
         if: matrix.platform == 'ios'
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
@@ -226,16 +226,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-ios-derived-${{ inputs.build_name }}-${{ hashFiles('ios/Podfile.lock') }}-
             ${{ runner.os }}-ios-derived-${{ inputs.build_name }}-
-
-      # iOS: Cache Xcode module cache for faster compilation
-      - name: Cache Xcode Module Cache
-        if: matrix.platform == 'ios'
-        uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
-        with:
-          path: ~/Library/Developer/Xcode/DerivedData/ModuleCache.noindex
-          key: ${{ runner.os }}-xcode-modules-${{ inputs.build_name }}-${{ hashFiles('ios/Podfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-xcode-modules-${{ inputs.build_name }}-
 
       # Signing: uses role + secret from builds.yml (skip for dev builds - main-dev, flask-dev, qa-dev use debug/simulator)
       - name: Configure signing certificates
