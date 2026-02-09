@@ -2179,7 +2179,11 @@ export class PredictController extends BaseController<
       return;
     }
 
-    this.handleTransactionSideEffects(type, status);
+    const address =
+      (transactionMeta.txParams.from as string | undefined)?.toLowerCase() ??
+      this.getEvmAccountAddress();
+
+    this.handleTransactionSideEffects(type, status, address);
 
     this.messenger.publish('PredictController:transactionStatusChanged', {
       type,
@@ -2191,14 +2195,13 @@ export class PredictController extends BaseController<
   private handleTransactionSideEffects(
     type: PredictTransactionEventType,
     status: PredictTransactionEventStatus,
+    address: string,
   ): void {
-    const address = this.getEvmAccountAddress();
     const providerId = 'polymarket';
+    const isTerminal =
+      status === 'confirmed' || status === 'failed' || status === 'rejected';
 
-    if (
-      type === 'deposit' &&
-      (status === 'confirmed' || status === 'rejected')
-    ) {
+    if (type === 'deposit' && isTerminal) {
       this.clearPendingDeposit({ providerId });
     }
 
@@ -2209,10 +2212,7 @@ export class PredictController extends BaseController<
       );
     }
 
-    if (
-      type === 'withdraw' &&
-      (status === 'confirmed' || status === 'rejected')
-    ) {
+    if (type === 'withdraw' && isTerminal) {
       this.clearWithdrawTransaction();
     }
 
