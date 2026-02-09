@@ -187,18 +187,7 @@
     "@metamask/transaction-controller@npm:^62.9.2": "^62.14.0",
     "@metamask/assets-controllers@npm:^99.2.0": "patch:@metamask/assets-controllers@npm%3A99.2.0#~/.yarn/patches/@metamask-assets-controllers-npm-99.2.0-bf6ecbcde9.patch",
     "@metamask/assets-controllers@npm:^97.0.0": "patch:@metamask/assets-controllers@npm%3A99.2.0#~/.yarn/patches/@metamask-assets-controllers-npm-99.2.0-bf6ecbcde9.patch",
-    "axios@npm:^1.8.3": "patch:axios@npm%3A1.13.5#~/.yarn/patches/axios-npm-1.13.5-ed8865f696.patch",
-    "axios@npm:^1.11.0": "patch:axios@npm%3A1.13.5#~/.yarn/patches/axios-npm-1.13.5-ed8865f696.patch",
-    "axios@npm:^1.6.7": "patch:axios@npm%3A1.13.5#~/.yarn/patches/axios-npm-1.13.5-ed8865f696.patch",
-    "axios@npm:^1.8.4": "patch:axios@npm%3A1.13.5#~/.yarn/patches/axios-npm-1.13.5-ed8865f696.patch",
-    "axios@npm:^1.6.5": "patch:axios@npm%3A1.13.5#~/.yarn/patches/axios-npm-1.13.5-ed8865f696.patch",
-    "axios@npm:1.7.7": "patch:axios@npm%3A1.13.5#~/.yarn/patches/axios-npm-1.13.5-ed8865f696.patch",
-    "axios@npm:1.9.0": "patch:axios@npm%3A1.13.5#~/.yarn/patches/axios-npm-1.13.5-ed8865f696.patch",
-    "axios@npm:^1.x": "patch:axios@npm%3A1.13.5#~/.yarn/patches/axios-npm-1.13.5-ed8865f696.patch",
-    "axios@npm:^1.4.0": "patch:axios@npm%3A1.13.5#~/.yarn/patches/axios-npm-1.13.5-ed8865f696.patch",
-    "axios@npm:1.12.2": "patch:axios@npm%3A1.13.5#~/.yarn/patches/axios-npm-1.13.5-ed8865f696.patch",
-    "axios@npm:1.4.0": "patch:axios@npm%3A1.13.5#~/.yarn/patches/axios-npm-1.13.5-ed8865f696.patch",
-    "axios@npm:^1.13.5": "patch:axios@npm%3A1.13.5#~/.yarn/patches/axios-npm-1.13.5-ed8865f696.patch"
+    "axios@npm:*": "patch:axios@npm%3A1.13.5#~/.yarn/patches/axios-npm-1.13.5-ed8865f696.patch"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
