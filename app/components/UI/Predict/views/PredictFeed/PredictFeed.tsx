@@ -5,7 +5,6 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
-import { useSelector } from 'react-redux';
 import {
   View,
   Pressable,
@@ -50,6 +49,7 @@ import {
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { useFeedScrollManager } from '../../hooks/useFeedScrollManager';
+import { usePredictTabs, type FeedTab } from '../../hooks/usePredictTabs';
 import {
   PredictCategory,
   PredictMarket as PredictMarketType,
@@ -74,12 +74,6 @@ import {
   TabsBar,
 } from '../../../../../component-library/components-temp/Tabs';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
-import { selectPredictHotTabFlag } from '../../selectors/featureFlags';
-
-interface FeedTab {
-  key: PredictCategory;
-  label: string;
-}
 
 type PredictFlashListRef = FlashListRef<PredictMarketType>;
 type PredictFlashListProps = FlashListProps<PredictMarketType> & {
@@ -388,6 +382,7 @@ interface PredictFeedTabsProps {
   tabBarHeight: number;
   headerHidden: boolean;
   hotTabQueryParams?: string;
+  initialPage: number;
 }
 
 const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
@@ -399,6 +394,7 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
   tabBarHeight,
   headerHidden,
   hotTabQueryParams,
+  initialPage,
 }) => {
   const tw = useTailwind();
   const pagerRef = useRef<PagerView>(null);
@@ -418,7 +414,7 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
     <PagerView
       ref={pagerRef}
       style={tw.style('flex-1')}
-      initialPage={0}
+      initialPage={initialPage}
       onPageSelected={handlePageSelected}
       testID="predict-feed-pager"
     >
@@ -583,23 +579,13 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
 };
 
 const PredictFeed: React.FC = () => {
-  const hotTabFlag = useSelector(selectPredictHotTabFlag);
-
-  const tabs: FeedTab[] = useMemo(() => {
-    const baseTabs: FeedTab[] = [
-      { key: 'trending', label: strings('predict.category.trending') },
-      { key: 'new', label: strings('predict.category.new') },
-      { key: 'sports', label: strings('predict.category.sports') },
-      { key: 'crypto', label: strings('predict.category.crypto') },
-      { key: 'politics', label: strings('predict.category.politics') },
-    ];
-
-    if (hotTabFlag.enabled) {
-      baseTabs.unshift({ key: 'hot', label: strings('predict.category.hot') });
-    }
-
-    return baseTabs;
-  }, [hotTabFlag.enabled]);
+  const {
+    tabs,
+    activeIndex,
+    setActiveIndex,
+    initialTabKey,
+    hotTabQueryParams,
+  } = usePredictTabs();
 
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -610,10 +596,6 @@ const PredictFeed: React.FC = () => {
 
   const headerRef = useRef<View>(null);
   const tabBarRef = useRef<View>(null);
-
-  // Capture the initial tab key at mount to avoid re-triggering the analytics
-  // session when tabs array changes due to async feature flag loading
-  const initialTabKeyRef = useRef(tabs[0].key);
 
   const [isSearchVisible, setIsSearchVisible] = useState(false);
 
@@ -638,16 +620,13 @@ const PredictFeed: React.FC = () => {
 
   useEffect(() => {
     sessionManager.enableAppStateListener();
-    sessionManager.startSession(
-      route.params?.entryPoint,
-      initialTabKeyRef.current,
-    );
+    sessionManager.startSession(route.params?.entryPoint, initialTabKey);
 
     return () => {
       sessionManager.endSession();
       sessionManager.disableAppStateListener();
     };
-  }, [route.params?.entryPoint, sessionManager]);
+  }, [route.params?.entryPoint, sessionManager, initialTabKey]);
 
   useFocusEffect(
     useCallback(() => {
@@ -661,29 +640,32 @@ const PredictFeed: React.FC = () => {
     headerHeight,
     tabBarHeight,
     layoutReady,
-    activeIndex,
-    setActiveIndex,
+    onTabSwitch,
     scrollHandler,
     onHeaderLayout,
     onTabBarLayout,
-  } = useFeedScrollManager({ headerRef, tabBarRef });
+  } = useFeedScrollManager({
+    headerRef,
+    tabBarRef,
+    setActiveIndex,
+  });
 
   const handleTabPress = useCallback(
     (index: number) => {
-      setActiveIndex(index);
+      onTabSwitch(index);
     },
-    [setActiveIndex],
+    [onTabSwitch],
   );
 
   const handlePageChange = useCallback(
     (index: number) => {
-      setActiveIndex(index);
+      onTabSwitch(index);
       const category = tabs[index]?.key;
       if (category) {
         sessionManager.trackTabChange(category);
       }
     },
-    [setActiveIndex, sessionManager, tabs],
+    [onTabSwitch, sessionManager, tabs],
   );
 
   return (
@@ -736,7 +718,8 @@ const PredictFeed: React.FC = () => {
             headerHeight={headerHeight}
             tabBarHeight={tabBarHeight + 6}
             headerHidden={headerHidden}
-            hotTabQueryParams={hotTabFlag.queryParams}
+            hotTabQueryParams={hotTabQueryParams}
+            initialPage={activeIndex}
           />
         )}
       </Box>

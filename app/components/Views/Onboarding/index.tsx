@@ -119,6 +119,7 @@ interface OnboardingRouteParams {
   [PREVIOUS_SCREEN]: string;
   delete_wallet_toast_visible?: boolean;
   delete?: string;
+  showErrorReportSentToast?: boolean;
 }
 
 const Onboarding = () => {
@@ -832,7 +833,21 @@ const Onboarding = () => {
 
   const handleSimpleNotification =
     useCallback((): React.ReactElement | null => {
-      if (!route?.params?.delete) return null;
+      if (!route?.params?.delete && !route?.params?.showErrorReportSentToast)
+        return null;
+
+      const notificationData = route?.params?.showErrorReportSentToast
+        ? {
+            title: strings('wallet_creation_error.error_report_sent_title'),
+            description: strings(
+              'wallet_creation_error.error_report_sent_description',
+            ),
+          }
+        : {
+            title: strings('onboarding.success'),
+            description: strings('onboarding.your_wallet'),
+          };
+
       return (
         <Animated.View
           style={[
@@ -841,17 +856,16 @@ const Onboarding = () => {
           ]}
         >
           <ElevatedView style={styles.modalTypeView} elevation={100}>
-            <BaseNotification
-              status="success"
-              data={{
-                title: strings('onboarding.success'),
-                description: strings('onboarding.your_wallet'),
-              }}
-            />
+            <BaseNotification status="success" data={notificationData} />
           </ElevatedView>
         </Animated.View>
       );
-    }, [route?.params?.delete, styles, notificationAnimated]);
+    }, [
+      route?.params?.delete,
+      route?.params?.showErrorReportSentToast,
+      styles,
+      notificationAnimated,
+    ]);
 
   useEffect(() => {
     onboardingTraceCtx.current = trace({
@@ -869,7 +883,7 @@ const Onboarding = () => {
     InteractionManager.runAfterInteractions(() => {
       checkForMigrationFailureAndVaultBackup();
       PreventScreenshot.forbid();
-      if (route?.params?.delete) {
+      if (route?.params?.delete || route?.params?.showErrorReportSentToast) {
         showNotification();
       }
       setState((prevState) => ({

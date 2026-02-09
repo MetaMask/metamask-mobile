@@ -86,6 +86,7 @@ import SDKSessionModal from '../../Views/SDK/SDKSessionModal/SDKSessionModal';
 import ExperienceEnhancerModal from '../../../../app/components/Views/ExperienceEnhancerModal';
 import LedgerSelectAccount from '../../Views/LedgerSelectAccount';
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
+import WalletCreationError from '../../Views/WalletCreationError';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
 import OnboardingGeneralSettings from '../../Views/OnboardingSuccess/OnboardingGeneralSettings';
 import OnboardingAssetsSettings from '../../Views/OnboardingSuccess/OnboardingAssetsSettings';
@@ -154,6 +155,7 @@ import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
 import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 import MultichainTransactionDetailsSheet from '../../UI/MultichainTransactionDetailsModal/MultichainTransactionDetailsSheet';
 import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDetailsSheet';
+import ImportWalletTipBottomSheet from '../../UI/TransactionElement/ImportWalletTipBottomSheet';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -276,6 +278,11 @@ const OnboardingNav = () => (
     <Stack.Screen
       name="Rehydrate"
       component={OAuthRehydration}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.ONBOARDING.WALLET_CREATION_ERROR}
+      component={WalletCreationError}
       options={{ headerShown: false }}
     />
   </Stack.Navigator>
@@ -606,6 +613,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.SHEET.TRANSACTION_DETAILS}
       component={TransactionDetailsSheet}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.IMPORT_WALLET_TIP}
+      component={ImportWalletTipBottomSheet}
     />
   </Stack.Navigator>
 );

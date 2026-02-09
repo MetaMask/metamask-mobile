@@ -19,9 +19,22 @@ import BottomSheetHeader from '../../../../../../component-library/components/Bo
 import AppConstants from '../../../../../../core/AppConstants';
 import Logger from '../../../../../../util/Logger';
 import musdIcon from '../../../../../../images/musd-icon-no-background-2x.png';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { EVENT_NAME } from '../../../../../../core/Analytics/MetaMetrics.events';
+import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events/musdEvents';
+
+/** Optional analytics context for bottom sheet events (network/asset). */
+export interface ClaimOnLineaAnalyticsContext {
+  network_chain_id?: string;
+  network_name?: string;
+  asset_symbol?: string;
+  experience?: string;
+}
 
 export interface ClaimOnLineaBottomSheetParams {
   onContinue: () => Promise<void>;
+  /** Optional context for MUSD Claim Bonus Button Clicked events from the sheet. */
+  analyticsContext?: ClaimOnLineaAnalyticsContext;
 }
 
 type ClaimOnLineaRouteProp = RouteProp<
@@ -32,12 +45,42 @@ type ClaimOnLineaRouteProp = RouteProp<
 const ClaimOnLineaBottomSheet: React.FC = () => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const route = useRoute<ClaimOnLineaRouteProp>();
-  const { onContinue } = route.params;
+  const { onContinue, analyticsContext } = route.params;
   const tw = useTailwind();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+
+  const trackClaimBonusButtonClicked = useCallback(
+    (action_type: 'claim_bonus' | 'dismiss', button_text: string) => {
+      trackEvent(
+        createEventBuilder(EVENT_NAME.MUSD_CLAIM_BONUS_BUTTON_CLICKED)
+          .addProperties({
+            location:
+              MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.CLAIM_BONUS_BOTTOM_SHEET,
+            action_type,
+            button_text,
+            ...(analyticsContext?.network_chain_id && {
+              network_chain_id: analyticsContext.network_chain_id,
+            }),
+            ...(analyticsContext?.network_name && {
+              network_name: analyticsContext.network_name,
+            }),
+            ...(analyticsContext?.asset_symbol && {
+              asset_symbol: analyticsContext.asset_symbol,
+            }),
+            ...(analyticsContext?.experience && {
+              experience: analyticsContext.experience,
+            }),
+          })
+          .build(),
+      );
+    },
+    [trackEvent, createEventBuilder, analyticsContext],
+  );
 
   const handleClose = useCallback(() => {
+    trackClaimBonusButtonClicked('dismiss', strings('navigation.close'));
     bottomSheetRef.current?.onCloseBottomSheet();
-  }, []);
+  }, [trackClaimBonusButtonClicked]);
 
   const handleTermsPress = useCallback(() => {
     Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE).catch(
@@ -48,11 +91,15 @@ const ClaimOnLineaBottomSheet: React.FC = () => {
   }, []);
 
   const handleContinue = useCallback(() => {
+    trackClaimBonusButtonClicked(
+      'claim_bonus',
+      strings('asset_overview.merkl_rewards.continue'),
+    );
     // Fire-and-forget: start claim in background and close sheet immediately
     // The Claim button shows loading state while transaction processes
     onContinue();
     bottomSheetRef.current?.onCloseBottomSheet();
-  }, [onContinue]);
+  }, [onContinue, trackClaimBonusButtonClicked]);
 
   return (
     <BottomSheet ref={bottomSheetRef}>

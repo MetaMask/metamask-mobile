@@ -13,7 +13,7 @@ import { join } from 'path';
 import xml2js from 'xml2js';
 
 const env = {
-  REPORTS_DIR: process.env.E2E_REPORTS_DIR || './e2e/reports',
+  REPORTS_DIR: process.env.E2E_REPORTS_DIR || './tests/reports',
   OUTPUT_FILE: process.env.E2E_OUTPUT_FILE || 'junit.xml',
 };
 
