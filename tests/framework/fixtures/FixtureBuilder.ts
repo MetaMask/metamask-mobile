@@ -5,6 +5,7 @@ import {
   getDappUrl,
   getDappUrlForFixture,
 } from './FixtureUtils.ts';
+
 import { merge } from 'lodash';
 import { encryptVault } from './helpers.ts';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -82,6 +83,20 @@ export interface MusdFixtureOptions {
 }
 
 /**
+ * The migration version that the default E2E fixture state represents.
+ * Migrations from `E2E_FIXTURE_FROM_MIGRATION_VERSION + 1` through the current
+ * app migration version will run on the fixture state during E2E app startup.
+ *
+ * - Set to the current app migration version (e.g. 117) to skip all migrations.
+ * - Lower it to validate that migrations correctly transform the fixture state.
+ * - When lowering, ensure the fixture state shape matches what migrations expect
+ * at the given version — migrations are NOT idempotent.
+ * @type {number}
+ * NOTE: 70 is just an example. It should be set to the current app migration version.
+ */
+export const E2E_FIXTURE_FROM_MIGRATION_VERSION = 70;
+
+/**
  * FixtureBuilder class provides a fluent interface for building fixture data.
  */
 class FixtureBuilder {
@@ -95,10 +110,14 @@ class FixtureBuilder {
    * @param {boolean} options.onboarding - Flag indicating if onboarding fixture should be used.
    */
   constructor({ onboarding = false } = {}) {
-    // Initialize the fixture based on the onboarding flag
-    onboarding === true
-      ? this.withOnboardingFixture()
-      : this.withDefaultFixture();
+    if (onboarding) {
+      this.withOnboardingFixture();
+    } else {
+      this.withDefaultFixture();
+      // Always run migrations on the fixture state during E2E app startup.
+      // Bump E2E_FIXTURE_FROM_MIGRATION_VERSION to control which migrations run.
+      this.withMigrateFrom(E2E_FIXTURE_FROM_MIGRATION_VERSION);
+    }
   }
 
   /**
@@ -2507,6 +2526,32 @@ class FixtureBuilder {
         );
     }
 
+    return this;
+  }
+
+  /**
+   * Marks the fixture state at a specific migration version so that migrations
+   * run from `version + 1` through the current version during E2E app startup.
+   *
+   * IMPORTANT: The fixture state shape must match what migrations expect at the
+   * given version. Migrations are NOT idempotent — running migration 0 on
+   * already-migrated state will corrupt it.
+   *
+   * @param version - The migration version the fixture state represents.
+   * Migrations `version + 1` through `currentVersion` will execute.
+   * Use -1 to run ALL migrations (fixture must be in version-0 format).
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   *
+   * @example
+   * // Run migrations 101–current on this fixture
+   * new FixtureBuilder().withMigrateFrom(100).build()
+   *
+   * @example
+   * // Run ALL migrations (fixture must be in pre-migration format)
+   * new FixtureBuilder().withMigrateFrom(-1).build()
+   */
+  withMigrateFrom(version: number) {
+    this.fixture.state._persist = { version, rehydrated: false };
     return this;
   }
 
