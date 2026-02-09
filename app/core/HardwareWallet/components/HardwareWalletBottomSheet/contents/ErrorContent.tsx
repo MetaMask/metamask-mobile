@@ -1,16 +1,9 @@
-/**
- * Error Content Component
- *
- * Displays error information with action based on the error's recovery action:
- * - RETRY: Shows "Continue" button that retries the operation
- * - ACKNOWLEDGE: Shows "Continue" button that just dismisses the sheet
- *
- * The user can also swipe down to dismiss (returns false from ensureDeviceReady).
- */
-
 import React, { useMemo, useCallback, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { HardwareWalletError , HardwareWalletType } from '@metamask/hw-wallet-sdk';
+import {
+  HardwareWalletError,
+  HardwareWalletType,
+} from '@metamask/hw-wallet-sdk';
 
 import Text, {
   TextVariant,
