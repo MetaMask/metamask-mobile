@@ -57,7 +57,7 @@ const createStoreAndPersistor = async () => {
         const changed = stateBefore !== stateAfter;
         // eslint-disable-next-line no-console
         console.log(
-          `[E2E Migration - store/index.ts] Migration ${i} ${changed ? '✅ CHANGED state' : '⏭️  no-op (state unchanged)'}`,
+          `[E2E Migration - store/index.ts] Migration ${i} ${changed ? ' changed state' : ' no-op (state unchanged)'}`,
         );
       }
     }
