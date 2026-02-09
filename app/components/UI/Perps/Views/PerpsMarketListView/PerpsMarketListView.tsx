@@ -250,6 +250,9 @@ const PerpsMarketListView = ({
   });
 
   const renderMarketList = () => {
+    // Figma market list rows use compact dimensions.
+    const isCompactMarketRows = true;
+
     // Skeleton List - show immediately while loading
     if (isLoadingMarkets) {
       return (
@@ -352,6 +355,10 @@ const PerpsMarketListView = ({
           onMarketPress={handleMarketPress}
           sortBy={sortBy}
           showBadge={false}
+          iconSize={isCompactMarketRows ? 32 : undefined}
+          rowVerticalPadding={isCompactMarketRows ? 0 : undefined}
+          rowHeight={isCompactMarketRows ? 54 : undefined}
+          rowIsCompact={isCompactMarketRows}
           filterKey={`${marketTypeFilter}-${isSearchVisible ? 'search' : 'list'}`}
           testID={PerpsMarketListViewSelectorsIDs.MARKET_LIST}
         />
