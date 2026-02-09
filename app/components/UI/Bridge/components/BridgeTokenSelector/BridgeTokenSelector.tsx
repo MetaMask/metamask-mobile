@@ -55,6 +55,7 @@ import { useTokenSelection } from '../../hooks/useTokenSelection';
 import { createStyles } from './BridgeTokenSelector.styles';
 import Engine from '../../../../../core/Engine';
 import { tokenToIncludeAsset, tokenMatchesQuery } from '../../utils/tokenUtils';
+import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 
 export interface BridgeTokenSelectorRouteParams {
   type: TokenSelectorType;
@@ -346,7 +347,10 @@ export const BridgeTokenSelector: React.FC = () => {
       );
       const networkName = chainData?.name ?? '';
 
-      navigation.navigate('Asset', { ...item });
+      navigation.navigate('Asset', {
+        ...item,
+        source: TokenDetailsSource.Swap,
+      });
 
       Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
         UnifiedSwapBridgeEventName.AssetDetailTooltipClicked,

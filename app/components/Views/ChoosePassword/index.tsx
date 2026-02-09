@@ -6,7 +6,6 @@ import React, {
   useContext,
 } from 'react';
 import {
-  Alert,
   View,
   TouchableOpacity,
   Platform,
@@ -27,12 +26,10 @@ import {
   passwordSet as passwordSetAction,
   passwordUnset as passwordUnsetAction,
   seedphraseNotBackedUp,
-  setExistingUser,
 } from '../../../actions/user';
 import { setLockTime as setLockTimeAction } from '../../../actions/settings';
 import Engine from '../../../core/Engine';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
-import Device from '../../../util/device';
 import { passcodeType } from '../../../util/authentication';
 import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
@@ -76,7 +73,6 @@ import Label from '../../../component-library/components/Form/Label';
 import Routes from '../../../constants/navigation/Routes';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import FoxRiveLoaderAnimation from './FoxRiveLoaderAnimation/FoxRiveLoaderAnimation';
-import ErrorBoundary from '../ErrorBoundary';
 import {
   TraceName,
   endTrace,
@@ -99,12 +95,6 @@ import {
 } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 
-const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
-
-interface ErrorWithMessage {
-  message?: string;
-}
-
 interface KeyringState {
   type: string;
   accounts: string[];
@@ -125,18 +115,6 @@ interface ExtendedKeyringController {
   ) => Promise<string>;
 }
 
-// Component that throws error if needed (to be caught by ErrorBoundary)
-const ThrowErrorIfNeeded = ({
-  errorToThrow,
-}: {
-  errorToThrow: Error | null;
-}) => {
-  if (errorToThrow) {
-    throw errorToThrow;
-  }
-  return null;
-};
-
 const ChoosePassword = () => {
   const { colors, themeAppearance } = useContext(ThemeContext);
   const styles = createStyles(colors);
@@ -152,7 +130,6 @@ const ChoosePassword = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [errorToThrow, setErrorToThrow] = useState<Error | null>(null);
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
   const [biometryType, setBiometryType] = useState<string | null>(null);
   const [isPasswordFieldFocused, setIsPasswordFieldFocused] = useState(false);
@@ -180,41 +157,6 @@ const ChoosePassword = () => {
       );
     },
     [dispatch],
-  );
-
-  const isOAuthPasswordCreationError = useCallback(
-    (err: unknown, authType: AuthData): boolean => {
-      const errorWithMessage = err as ErrorWithMessage;
-      return Boolean(
-        authType.oauth2Login &&
-          errorWithMessage.message?.includes('SeedlessOnboardingController'),
-      );
-    },
-    [],
-  );
-
-  const handleOAuthPasswordCreationError = useCallback(
-    (err: Error, authType: AuthData) => {
-      // If user has already consented to analytics, report error using regular Sentry
-      if (metrics.isEnabled()) {
-        authType.oauth2Login &&
-          captureException(err, {
-            tags: {
-              view: 'ChoosePassword',
-              context:
-                'OAuth password creation failed - user consented to analytics',
-            },
-          });
-      } else {
-        // User hasn't consented to analytics yet, use ErrorBoundary onboarding flow
-        authType.oauth2Login &&
-          setErrorToThrow(
-            new Error(`OAuth password creation failed: ${err.message}`),
-          );
-        setLoading(false);
-      }
-    },
-    [metrics],
   );
 
   const setSelection = useCallback(() => {
@@ -297,30 +239,6 @@ const ChoosePassword = () => {
     [password],
   );
 
-  const handleRejectedOsBiometricPrompt = useCallback(async () => {
-    const newAuthData = await Authentication.componentAuthenticationType(
-      false,
-      false,
-    );
-    const oauth2LoginSuccess = getOauth2LoginSuccess();
-    newAuthData.oauth2Login = oauth2LoginSuccess;
-    try {
-      await Authentication.newWalletAndKeychain(password, newAuthData);
-    } catch (err) {
-      if (isOAuthPasswordCreationError(err, newAuthData)) {
-        handleOAuthPasswordCreationError(err as Error, newAuthData);
-        return;
-      }
-      throw Error(strings('choose_password.disable_biometric_error'));
-    }
-    setBiometryType(newAuthData.availableBiometryType || null);
-  }, [
-    password,
-    getOauth2LoginSuccess,
-    isOAuthPasswordCreationError,
-    handleOAuthPasswordCreationError,
-  ]);
-
   const validatePasswordSubmission = useCallback(() => {
     const passwordsMatch = password !== '' && password === confirmPassword;
     const canSubmit = getOauth2LoginSuccess()
@@ -365,31 +283,15 @@ const ChoosePassword = () => {
   const handleWalletCreation = useCallback(
     async (authType: AuthData, previous_screen: string | undefined) => {
       if (previous_screen?.toLowerCase() === ONBOARDING.toLowerCase()) {
-        try {
-          await Authentication.newWalletAndKeychain(password, authType);
-        } catch (err) {
-          if (isOAuthPasswordCreationError(err, authType)) {
-            handleOAuthPasswordCreationError(err as Error, authType);
-            throw err;
-          }
-          if (Device.isIos()) {
-            await handleRejectedOsBiometricPrompt();
-          }
-        }
+        await Authentication.newWalletAndKeychain(password, authType);
+
         keyringControllerPasswordSet.current = true;
         dispatch(seedphraseNotBackedUp());
       } else {
         await recreateVault(password, authType);
       }
     },
-    [
-      password,
-      isOAuthPasswordCreationError,
-      handleOAuthPasswordCreationError,
-      handleRejectedOsBiometricPrompt,
-      recreateVault,
-      dispatch,
-    ],
+    [password, recreateVault, dispatch],
   );
 
   const handlePostWalletCreation = useCallback(
@@ -434,24 +336,17 @@ const ChoosePassword = () => {
   );
 
   const handleWalletCreationError = useCallback(
-    async (caughtError: Error) => {
+    async (caughtError: Error, metricsEnabled: boolean) => {
       try {
         await recreateVault('');
       } catch (e) {
         Logger.error(e as Error);
       }
 
-      dispatch(setExistingUser(true));
+      // Reset state - don't set existing user since wallet creation failed
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       dispatch(passwordUnsetAction());
       dispatch(setLockTimeAction(-1));
-
-      if (caughtError.toString() === PASSCODE_NOT_SET_ERROR) {
-        Alert.alert(
-          strings('choose_password.security_alert_title'),
-          strings('choose_password.security_alert_message'),
-        );
-      }
       setLoading(false);
 
       track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
@@ -469,8 +364,30 @@ const ChoosePassword = () => {
         });
         endTrace({ name: TraceName.OnboardingPasswordSetupError });
       }
+
+      if (metricsEnabled) {
+        captureException(caughtError, {
+          tags: {
+            view: 'ChoosePassword',
+            context: 'Wallet creation failed - auto reported',
+          },
+        });
+      }
+
+      // Navigate to error screen
+      navigation.reset({
+        routes: [
+          {
+            name: Routes.ONBOARDING.WALLET_CREATION_ERROR,
+            params: {
+              metricsEnabled,
+              error: caughtError,
+            },
+          },
+        ],
+      });
     },
-    [recreateVault, dispatch, track, route.params],
+    [recreateVault, dispatch, track, route.params, navigation],
   );
 
   const onPressCreate = useCallback(async () => {
@@ -479,6 +396,7 @@ const ChoosePassword = () => {
 
     const provider = route.params?.provider;
     const accountType = provider ? `metamask_${provider}` : 'metamask';
+    const isSocialLogin = getOauth2LoginSuccess();
 
     track(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED, {
       account_type: accountType,
@@ -492,7 +410,7 @@ const ChoosePassword = () => {
         true,
         false,
       );
-      authType.oauth2Login = getOauth2LoginSuccess();
+      authType.oauth2Login = isSocialLogin;
 
       const onboardingTraceCtx = route.params?.onboardingTraceCtx;
       if (onboardingTraceCtx) {
@@ -510,14 +428,7 @@ const ChoosePassword = () => {
 
       Logger.log('previous_screen', previous_screen);
 
-      try {
-        await handleWalletCreation(authType, previous_screen);
-      } catch (err) {
-        if (isOAuthPasswordCreationError(err, authType)) {
-          return;
-        }
-        throw err;
-      }
+      await handleWalletCreation(authType, previous_screen);
 
       await handlePostWalletCreation(authType);
 
@@ -532,7 +443,8 @@ const ChoosePassword = () => {
       });
       endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
     } catch (err) {
-      await handleWalletCreationError(err as Error);
+      const metricsEnabled = metrics.isEnabled();
+      await handleWalletCreationError(err as Error, metricsEnabled);
     }
   }, [
     validatePasswordSubmission,
@@ -543,7 +455,7 @@ const ChoosePassword = () => {
     handleWalletCreation,
     handlePostWalletCreation,
     handleWalletCreationError,
-    isOAuthPasswordCreationError,
+    metrics,
   ]);
 
   const onPasswordChange = useCallback(
@@ -916,17 +828,7 @@ const ChoosePassword = () => {
     );
   };
 
-  return (
-    <ErrorBoundary
-      navigation={navigation}
-      view="ChoosePassword"
-      metrics={metrics}
-      useOnboardingErrorHandling={!!errorToThrow && !metrics.isEnabled()}
-    >
-      <ThrowErrorIfNeeded errorToThrow={errorToThrow} />
-      {renderContent()}
-    </ErrorBoundary>
-  );
+  return renderContent();
 };
 
 export default ChoosePassword;

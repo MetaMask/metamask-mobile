@@ -6,12 +6,12 @@ import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTa
 import {
   MultichainTestDappViewSelectorsIDs,
   MULTICHAIN_TEST_TIMEOUTS,
-} from '../../selectors/Browser/MultichainTestDapp.selectors';
+} from '../../../tests/selectors/Browser/MultichainTestDapp.selectors';
 import Browser from './BrowserView';
 import Gestures from '../../../tests/framework/Gestures';
 import { waitFor } from 'detox';
 import ConnectBottomSheet from './ConnectBottomSheet';
-import MultichainUtilities from '../../utils/MultichainUtilities';
+import MultichainUtilities from '../../../tests/helpers/multichain/MultichainUtilities';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../wallet/TabBarComponent';
 import Assertions from '../../../tests/framework/Assertions';
