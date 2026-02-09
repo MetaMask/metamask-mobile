@@ -1,12 +1,18 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNavigation, useNavigationState } from '@react-navigation/native';
 
-import getHeaderCompactStandardNavbarOptions from '../../../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useSendActions } from './useSendActions';
+import type { HeaderCompactStandardProps } from '../../../../../component-library/components-temp/HeaderCompactStandard/HeaderCompactStandard.types';
 
-export function useSendNavbar() {
+const headerShownFalse = { headerShown: false } as const;
+
+export type SendHeaderScreen = 'Amount' | 'Asset' | 'Recipient';
+
+export function useSendHeaderProps(
+  screen: SendHeaderScreen,
+): HeaderCompactStandardProps {
   const { handleCancelPress } = useSendActions();
   const navigation = useNavigation();
   const sendStackState = useNavigationState((state) => state);
@@ -15,7 +21,6 @@ export function useSendNavbar() {
     const sendRoute = sendStackState.routes.find(
       (route) => route.name === 'Send',
     );
-    // Handle nested Send route navigation
     const sendRouteState = sendRoute?.state;
     if (sendRouteState && sendRouteState.routes.length > 1) {
       const currentIndex = sendRouteState.index;
@@ -28,7 +33,6 @@ export function useSendNavbar() {
       return;
     }
 
-    // Handle main stack navigation
     const sendRouteIndex = sendStackState.routes.findIndex(
       (route) => route.name === 'Send',
     );
@@ -40,7 +44,6 @@ export function useSendNavbar() {
 
     const previousMainRoute = sendStackState.routes[sendRouteIndex - 1];
 
-    // Navigate to previous route with special handling for specific routes
     if (previousMainRoute.name === 'Home') {
       navigation.navigate(Routes.WALLET_VIEW);
     } else {
@@ -48,28 +51,36 @@ export function useSendNavbar() {
     }
   }, [navigation, sendStackState]);
 
+  return useMemo(() => {
+    const common = {
+      title: strings('send.title'),
+      backButtonProps: { testID: 'send-navbar-back-button' },
+      includesTopInset: true,
+    };
+    switch (screen) {
+      case 'Amount':
+      case 'Recipient':
+        return {
+          ...common,
+          onBack: handleBackPress,
+          onClose: handleCancelPress,
+          closeButtonProps: { testID: 'send-navbar-close-button' },
+        };
+      case 'Asset':
+        return {
+          ...common,
+          onBack: handleCancelPress,
+        };
+      default:
+        return common;
+    }
+  }, [screen, handleBackPress, handleCancelPress]);
+}
+
+export function useSendNavbar() {
   return {
-    Amount: getHeaderCompactStandardNavbarOptions({
-      title: strings('send.title'),
-      onBack: handleBackPress,
-      onClose: handleCancelPress,
-      backButtonProps: { testID: 'send-navbar-back-button' },
-      closeButtonProps: { testID: 'send-navbar-close-button' },
-      includesTopInset: true,
-    }),
-    Asset: getHeaderCompactStandardNavbarOptions({
-      onBack: handleCancelPress,
-      backButtonProps: { testID: 'send-navbar-back-button' },
-      title: strings('send.title'),
-      includesTopInset: true,
-    }),
-    Recipient: getHeaderCompactStandardNavbarOptions({
-      title: strings('send.title'),
-      onBack: handleBackPress,
-      onClose: handleCancelPress,
-      backButtonProps: { testID: 'send-navbar-back-button' },
-      closeButtonProps: { testID: 'send-navbar-close-button' },
-      includesTopInset: true,
-    }),
+    Amount: headerShownFalse,
+    Asset: headerShownFalse,
+    Recipient: headerShownFalse,
   };
 }

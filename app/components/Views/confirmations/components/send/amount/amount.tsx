@@ -5,6 +5,8 @@ import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
+import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
+import { useSendHeaderProps } from '../../../hooks/send/useSendNavbar';
 import { strings } from '../../../../../../../locales/i18n';
 import Icon, {
   IconColor,
@@ -37,6 +39,7 @@ import { InitSendLocation } from '../../../constants/send';
 
 export const Amount = () => {
   const navigation = useNavigation();
+  const headerProps = useSendHeaderProps('Amount');
   const { location } = useParams<{ location?: string }>();
   const primaryCurrency = useSelector(selectPrimaryCurrency);
   const { asset, value } = useSendContext();
@@ -128,70 +131,75 @@ export const Amount = () => {
   }
 
   return (
-    <SafeAreaView
-      edges={isIos ? ['left', 'right'] : ['left', 'right', 'bottom']}
-      style={styles.container}
-    >
-      <View style={styles.topSection}>
-        {isNFT && (
-          <View style={styles.nftImageWrapper}>
-            <CollectibleMedia
-              style={styles.nftImage}
-              collectible={asset as Nft}
-              isTokenImage
-            />
-            <Text variant={TextVariant.BodyMDBold}>{asset?.name}</Text>
-            <Text
-              color={TextColor.Alternative}
-              variant={TextVariant.BodyMDBold}
-            >
-              {asset?.tokenId}
-            </Text>
-          </View>
-        )}
-        <View style={styles.inputSection}>
-          <View style={styles.inputWrapper}>
-            <Text
-              color={textColor}
-              style={styles.inputText}
-              numberOfLines={1}
-              variant={TextVariant.DisplayMD}
-              adjustsFontSizeToFit
-              testID="send_amount"
-            >
-              {amount?.length ? amount : defaultValue}
-            </Text>
-            <AnimatedCursor />
-            <Text
-              style={styles.inputText}
-              color={amountError ? TextColor.Error : TextColor.Muted}
-              numberOfLines={1}
-              variant={TextVariant.DisplayLG}
-            >
-              {fiatMode ? fiatCurrencySymbol : assetDisplaySymbol}
-            </Text>
-          </View>
-        </View>
-        {conversionSupportedForAsset && (
-          <TouchableOpacity onPress={toggleFiatMode} testID="fiat_toggle">
-            <TagBase shape={TagShape.Pill} style={styles.currencyTag}>
-              <Text color={TextColor.Alternative}>{alternateDisplayValue}</Text>
-              <Icon
-                color={IconColor.Alternative}
-                name={IconName.SwapVertical}
+    <>
+      <HeaderCompactStandard {...headerProps} />
+      <SafeAreaView
+        edges={isIos ? ['left', 'right'] : ['left', 'right', 'bottom']}
+        style={styles.container}
+      >
+        <View style={styles.topSection}>
+          {isNFT && (
+            <View style={styles.nftImageWrapper}>
+              <CollectibleMedia
+                style={styles.nftImage}
+                collectible={asset as Nft}
+                isTokenImage
               />
-            </TagBase>
-          </TouchableOpacity>
-        )}
-        <Text style={styles.balanceText} color={TextColor.Alternative}>
-          {balanceDisplayValue}
-        </Text>
-      </View>
-      <AmountKeyboard
-        amount={amount}
-        fiatMode={fiatMode}
-        updateAmount={setAmount}
-      />
-    </SafeAreaView>
+              <Text variant={TextVariant.BodyMDBold}>{asset?.name}</Text>
+              <Text
+                color={TextColor.Alternative}
+                variant={TextVariant.BodyMDBold}
+              >
+                {asset?.tokenId}
+              </Text>
+            </View>
+          )}
+          <View style={styles.inputSection}>
+            <View style={styles.inputWrapper}>
+              <Text
+                color={textColor}
+                style={styles.inputText}
+                numberOfLines={1}
+                variant={TextVariant.DisplayMD}
+                adjustsFontSizeToFit
+                testID="send_amount"
+              >
+                {amount?.length ? amount : defaultValue}
+              </Text>
+              <AnimatedCursor />
+              <Text
+                style={styles.inputText}
+                color={amountError ? TextColor.Error : TextColor.Muted}
+                numberOfLines={1}
+                variant={TextVariant.DisplayLG}
+              >
+                {fiatMode ? fiatCurrencySymbol : assetDisplaySymbol}
+              </Text>
+            </View>
+          </View>
+          {conversionSupportedForAsset && (
+            <TouchableOpacity onPress={toggleFiatMode} testID="fiat_toggle">
+              <TagBase shape={TagShape.Pill} style={styles.currencyTag}>
+                <Text color={TextColor.Alternative}>
+                  {alternateDisplayValue}
+                </Text>
+                <Icon
+                  color={IconColor.Alternative}
+                  name={IconName.SwapVertical}
+                />
+              </TagBase>
+            </TouchableOpacity>
+          )}
+          <Text style={styles.balanceText} color={TextColor.Alternative}>
+            {balanceDisplayValue}
+          </Text>
+        </View>
+        <AmountKeyboard
+          amount={amount}
+          fiatMode={fiatMode}
+          updateAmount={setAmount}
+        />
+      </SafeAreaView>
+    </>
   );
 };

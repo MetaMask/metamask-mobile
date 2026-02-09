@@ -8,6 +8,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
+import { useSendHeaderProps } from '../../../hooks/send/useSendNavbar';
 import { strings } from '../../../../../../../locales/i18n';
 import Banner, {
   BannerAlertSeverity,
@@ -28,6 +30,7 @@ import { RecipientType } from '../../UI/recipient';
 import { styleSheet } from './recipient.styles';
 
 export const Recipient = () => {
+  const headerProps = useSendHeaderProps('Recipient');
   const [isRecipientSelectedFromList, setIsRecipientSelectedFromList] =
     useState(false);
   const [pastedRecipient, setPastedRecipient] = useState<string>();
@@ -152,75 +155,83 @@ export const Recipient = () => {
   useRecipientPageReset(resetStateOnInput);
 
   return (
-    <SafeAreaView edges={['left', 'right', 'bottom']} style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <>
+      <HeaderCompactStandard {...headerProps} />
+      <SafeAreaView
+        edges={['left', 'right', 'bottom']}
         style={styles.container}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
       >
-        <Box twClassName="flex-1">
-          <RecipientInput
-            isRecipientSelectedFromList={isRecipientSelectedFromList}
-            resetStateOnInput={resetStateOnInput}
-            setPastedRecipient={setPastedRecipient}
-          />
-          <ScrollView>
-            <RecipientList
-              data={accounts}
-              onRecipientSelected={onRecipientSelected(
-                RecipientInputMethod.SelectAccount,
-              )}
-              disabled={isSubmittingTransaction}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.container}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+        >
+          <Box twClassName="flex-1">
+            <RecipientInput
+              isRecipientSelectedFromList={isRecipientSelectedFromList}
+              resetStateOnInput={resetStateOnInput}
+              setPastedRecipient={setPastedRecipient}
             />
-            {contacts.length > 0 && (
+            <ScrollView>
               <RecipientList
-                isContactList
-                data={contacts}
+                data={accounts}
                 onRecipientSelected={onRecipientSelected(
-                  RecipientInputMethod.SelectContact,
+                  RecipientInputMethod.SelectAccount,
                 )}
-                emptyMessage={strings('send.no_contacts_found')}
                 disabled={isSubmittingTransaction}
               />
-            )}
-          </ScrollView>
-          {(to || '').length > 0 && !isRecipientSelectedFromList && (
-            <Box twClassName="px-4 py-4">
-              {toAddressWarning && (
-                <Banner
-                  testID="to-address-warning-banner"
-                  variant={BannerVariant.Alert}
-                  severity={
-                    // Confusable character validation is send both error and warning for invisible characters
-                    // hence we are showing error for invisible characters
-                    toAddressError && toAddressWarning
-                      ? BannerAlertSeverity.Error
-                      : BannerAlertSeverity.Warning
-                  }
-                  style={styles.banner}
-                  title={toAddressWarning}
+              {contacts.length > 0 && (
+                <RecipientList
+                  isContactList
+                  data={contacts}
+                  onRecipientSelected={onRecipientSelected(
+                    RecipientInputMethod.SelectContact,
+                  )}
+                  emptyMessage={strings('send.no_contacts_found')}
+                  disabled={isSubmittingTransaction}
                 />
               )}
-              <Button
-                testID="review-button"
-                variant={ButtonVariant.Primary}
-                size={ButtonBaseSize.Lg}
-                onPress={handleSubmitPressLocal}
-                twClassName="w-full"
-                isDanger={!loading && Boolean(toAddressError)}
-                disabled={
-                  Boolean(toAddressError) || isSubmittingTransaction || loading
-                }
-                isLoading={isSubmittingTransaction || loading}
-              >
-                {isReviewButtonDisabled
-                  ? toAddressError
-                  : strings('send.review')}
-              </Button>
-            </Box>
-          )}
-        </Box>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+            </ScrollView>
+            {(to || '').length > 0 && !isRecipientSelectedFromList && (
+              <Box twClassName="px-4 py-4">
+                {toAddressWarning && (
+                  <Banner
+                    testID="to-address-warning-banner"
+                    variant={BannerVariant.Alert}
+                    severity={
+                      // Confusable character validation is send both error and warning for invisible characters
+                      // hence we are showing error for invisible characters
+                      toAddressError && toAddressWarning
+                        ? BannerAlertSeverity.Error
+                        : BannerAlertSeverity.Warning
+                    }
+                    style={styles.banner}
+                    title={toAddressWarning}
+                  />
+                )}
+                <Button
+                  testID="review-button"
+                  variant={ButtonVariant.Primary}
+                  size={ButtonBaseSize.Lg}
+                  onPress={handleSubmitPressLocal}
+                  twClassName="w-full"
+                  isDanger={!loading && Boolean(toAddressError)}
+                  disabled={
+                    Boolean(toAddressError) ||
+                    isSubmittingTransaction ||
+                    loading
+                  }
+                  isLoading={isSubmittingTransaction || loading}
+                >
+                  {isReviewButtonDisabled
+                    ? toAddressError
+                    : strings('send.review')}
+                </Button>
+              </Box>
+            )}
+          </Box>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </>
   );
 };

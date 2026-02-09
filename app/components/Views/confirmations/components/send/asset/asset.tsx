@@ -9,6 +9,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 
+import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
+import { useSendHeaderProps } from '../../../hooks/send/useSendNavbar';
 import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
 import TextFieldSearch from '../../../../../../component-library/components/Form/TextFieldSearch';
@@ -41,6 +43,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
     hideNetworkFilter = false,
   } = props;
 
+  const headerProps = useSendHeaderProps('Asset');
   const originalTokens = useSendTokens({ includeNoBalance });
 
   const tokens = useMemo(
@@ -122,6 +125,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
 
   return (
     <Box twClassName="flex-1">
+      <HeaderCompactStandard {...headerProps} />
       <Box twClassName="w-full px-4 py-2">
         <TextFieldSearch
           value={searchQuery}

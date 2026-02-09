@@ -1,10 +1,9 @@
 import React from 'react';
 import { useNavigation, useNavigationState } from '@react-navigation/native';
-import { render, fireEvent } from '@testing-library/react-native';
 
 import Routes from '../../../../../constants/navigation/Routes';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { useSendNavbar } from './useSendNavbar';
+import { useSendNavbar, useSendHeaderProps } from './useSendNavbar';
 
 const mockHandleCancelPress = jest.fn();
 const mockNavigate = jest.fn();
@@ -87,270 +86,211 @@ describe('useSendNavbar', () => {
     );
   });
 
-  it('returns navigation options for Amount, Asset, and Recipient routes', () => {
+  it('returns headerShown false for Amount, Asset, and Recipient routes', () => {
     const { result } = renderHookWithProvider(() => useSendNavbar());
 
     expect(result.current).toHaveProperty('Amount');
     expect(result.current).toHaveProperty('Asset');
     expect(result.current).toHaveProperty('Recipient');
+    expect(result.current.Amount).toEqual({ headerShown: false });
+    expect(result.current.Asset).toEqual({ headerShown: false });
+    expect(result.current.Recipient).toEqual({ headerShown: false });
+  });
+});
+
+describe('useSendHeaderProps', () => {
+  const mockNavigation = {
+    navigate: mockNavigate,
+  };
+
+  const createMockNavigationState = (
+    routes: {
+      name: string;
+      params?: Record<string, unknown>;
+      state?: unknown;
+    }[],
+  ) => ({
+    index: 0,
+    routes,
   });
 
-  describe('Amount route', () => {
-    it('provides header configuration with a header function', () => {
-      const { result } = renderHookWithProvider(() => useSendNavbar());
-      const { Amount } = result.current;
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
+    (useNavigationState as jest.Mock).mockReturnValue(
+      createMockNavigationState([{ name: 'Send' }]),
+    );
+  });
 
-      expect(Amount.header).toBeDefined();
-      expect(typeof Amount.header).toBe('function');
+  it('returns props with title and includesTopInset for Amount', () => {
+    const { result } = renderHookWithProvider(() =>
+      useSendHeaderProps('Amount'),
+    );
+
+    expect(result.current.title).toBe('send.title');
+    expect(result.current.includesTopInset).toBe(true);
+    expect(result.current.onBack).toBeDefined();
+    expect(result.current.onClose).toBeDefined();
+    expect(result.current.backButtonProps?.testID).toBe(
+      'send-navbar-back-button',
+    );
+    expect(result.current.closeButtonProps?.testID).toBe(
+      'send-navbar-close-button',
+    );
+  });
+
+  it('returns props for Asset without onClose', () => {
+    const { result } = renderHookWithProvider(() =>
+      useSendHeaderProps('Asset'),
+    );
+
+    expect(result.current.title).toBe('send.title');
+    expect(result.current.onBack).toBeDefined();
+    expect(result.current.onClose).toBeUndefined();
+  });
+
+  it('returns props for Recipient with onBack and onClose', () => {
+    const { result } = renderHookWithProvider(() =>
+      useSendHeaderProps('Recipient'),
+    );
+
+    expect(result.current.title).toBe('send.title');
+    expect(result.current.onBack).toBeDefined();
+    expect(result.current.onClose).toBeDefined();
+  });
+
+  it('Amount onBack navigates to wallet view when no previous routes', () => {
+    (useNavigationState as jest.Mock).mockReturnValue(
+      createMockNavigationState([{ name: 'Send' }]),
+    );
+
+    const { result } = renderHookWithProvider(() =>
+      useSendHeaderProps('Amount'),
+    );
+    result.current.onBack?.();
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+  });
+
+  it('Amount onBack navigates to previous main route when back button is pressed', () => {
+    (useNavigationState as jest.Mock).mockReturnValue(
+      createMockNavigationState([
+        { name: 'SomeOtherRoute', params: { test: 'data' } },
+        { name: 'Send' },
+      ]),
+    );
+
+    const { result } = renderHookWithProvider(() =>
+      useSendHeaderProps('Amount'),
+    );
+    result.current.onBack?.();
+
+    expect(mockNavigate).toHaveBeenCalledWith('SomeOtherRoute', {
+      test: 'data',
     });
+  });
 
-    it('renders back and close buttons in header', () => {
-      const { result } = renderHookWithProvider(() => useSendNavbar());
-      const { Amount } = result.current;
+  it('Amount onBack navigates to wallet view when previous route is Home', () => {
+    (useNavigationState as jest.Mock).mockReturnValue(
+      createMockNavigationState([{ name: 'Home' }, { name: 'Send' }]),
+    );
 
-      const Header = Amount.header;
-      const { getByTestId } = render(<Header />);
+    const { result } = renderHookWithProvider(() =>
+      useSendHeaderProps('Amount'),
+    );
+    result.current.onBack?.();
 
-      expect(getByTestId('send-navbar-back-button')).toBeOnTheScreen();
-      expect(getByTestId('send-navbar-close-button')).toBeOnTheScreen();
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+  });
 
-    it('renders title in header', () => {
-      const { result } = renderHookWithProvider(() => useSendNavbar());
-      const { Amount } = result.current;
-
-      const Header = Amount.header;
-      const { getByText } = render(<Header />);
-
-      expect(getByText('send.title')).toBeOnTheScreen();
-    });
-
-    it('navigates to wallet view when back button is pressed with no previous routes', () => {
-      (useNavigationState as jest.Mock).mockReturnValue(
-        createMockNavigationState([{ name: 'Send' }]),
-      );
-
-      const { result } = renderHookWithProvider(() => useSendNavbar());
-      const { Amount } = result.current;
-
-      const Header = Amount.header;
-      const { getByTestId } = render(<Header />);
-      const backButton = getByTestId('send-navbar-back-button');
-
-      fireEvent.press(backButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
-    });
-
-    it('navigates to previous main route when back button is pressed', () => {
-      (useNavigationState as jest.Mock).mockReturnValue(
-        createMockNavigationState([
-          { name: 'SomeOtherRoute', params: { test: 'data' } },
-          { name: 'Send' },
-        ]),
-      );
-
-      const { result } = renderHookWithProvider(() => useSendNavbar());
-      const { Amount } = result.current;
-
-      const Header = Amount.header;
-      const { getByTestId } = render(<Header />);
-      const backButton = getByTestId('send-navbar-back-button');
-
-      fireEvent.press(backButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith('SomeOtherRoute', {
-        test: 'data',
-      });
-    });
-
-    it('navigates to wallet view when previous route is Home', () => {
-      (useNavigationState as jest.Mock).mockReturnValue(
-        createMockNavigationState([{ name: 'Home' }, { name: 'Send' }]),
-      );
-
-      const { result } = renderHookWithProvider(() => useSendNavbar());
-      const { Amount } = result.current;
-
-      const Header = Amount.header;
-      const { getByTestId } = render(<Header />);
-      const backButton = getByTestId('send-navbar-back-button');
-
-      fireEvent.press(backButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
-    });
-
-    it('navigates within Send sub-routes when nested routes exist', () => {
-      (useNavigationState as jest.Mock).mockReturnValue(
-        createMockNavigationState([
-          {
-            name: 'Send',
-            state: {
-              index: 1,
-              routes: [
-                { name: Routes.SEND.ASSET },
-                { name: Routes.SEND.AMOUNT },
-              ],
-            },
+  it('Amount onBack navigates within Send sub-routes when nested routes exist', () => {
+    (useNavigationState as jest.Mock).mockReturnValue(
+      createMockNavigationState([
+        {
+          name: 'Send',
+          state: {
+            index: 1,
+            routes: [{ name: Routes.SEND.ASSET }, { name: Routes.SEND.AMOUNT }],
           },
-        ]),
-      );
+        },
+      ]),
+    );
 
-      const { result } = renderHookWithProvider(() => useSendNavbar());
-      const { Amount } = result.current;
+    const { result } = renderHookWithProvider(() =>
+      useSendHeaderProps('Amount'),
+    );
+    result.current.onBack?.();
 
-      const Header = Amount.header;
-      const { getByTestId } = render(<Header />);
-      const backButton = getByTestId('send-navbar-back-button');
-
-      fireEvent.press(backButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.SEND.DEFAULT, {
-        screen: Routes.SEND.ASSET,
-      });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SEND.DEFAULT, {
+      screen: Routes.SEND.ASSET,
     });
+  });
 
-    it('navigates to Asset screen when at first route in nested Send stack', () => {
-      (useNavigationState as jest.Mock).mockReturnValue(
-        createMockNavigationState([
-          {
-            name: 'Send',
-            state: {
-              index: 0,
-              routes: [
-                { name: Routes.SEND.ASSET },
-                { name: Routes.SEND.AMOUNT },
-              ],
-            },
+  it('Amount onBack navigates to Asset screen when at first route in nested Send stack', () => {
+    (useNavigationState as jest.Mock).mockReturnValue(
+      createMockNavigationState([
+        {
+          name: 'Send',
+          state: {
+            index: 0,
+            routes: [{ name: Routes.SEND.ASSET }, { name: Routes.SEND.AMOUNT }],
           },
-        ]),
-      );
+        },
+      ]),
+    );
 
-      const { result } = renderHookWithProvider(() => useSendNavbar());
-      const { Amount } = result.current;
+    const { result } = renderHookWithProvider(() =>
+      useSendHeaderProps('Amount'),
+    );
+    result.current.onBack?.();
 
-      const Header = Amount.header;
-      const { getByTestId } = render(<Header />);
-      const backButton = getByTestId('send-navbar-back-button');
-
-      fireEvent.press(backButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.SEND.DEFAULT, {
-        screen: Routes.SEND.ASSET,
-      });
-    });
-
-    it('calls handleCancelPress when close button is pressed', () => {
-      const { result } = renderHookWithProvider(() => useSendNavbar());
-      const { Amount } = result.current;
-
-      const Header = Amount.header;
-      const { getByTestId } = render(<Header />);
-      const closeButton = getByTestId('send-navbar-close-button');
-
-      fireEvent.press(closeButton);
-
-      expect(mockHandleCancelPress).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SEND.DEFAULT, {
+      screen: Routes.SEND.ASSET,
     });
   });
 
-  describe('Asset route', () => {
-    it('provides header configuration with a header function', () => {
-      const { result } = renderHookWithProvider(() => useSendNavbar());
-      const { Asset } = result.current;
+  it('Amount onClose calls handleCancelPress', () => {
+    const { result } = renderHookWithProvider(() =>
+      useSendHeaderProps('Amount'),
+    );
+    result.current.onClose?.();
 
-      expect(Asset.header).toBeDefined();
-      expect(typeof Asset.header).toBe('function');
-    });
+    expect(mockHandleCancelPress).toHaveBeenCalled();
+  });
 
-    it('renders back button that calls handleCancelPress', () => {
-      const { result } = renderHookWithProvider(() => useSendNavbar());
-      const { Asset } = result.current;
+  it('Asset onBack calls handleCancelPress', () => {
+    const { result } = renderHookWithProvider(() =>
+      useSendHeaderProps('Asset'),
+    );
+    result.current.onBack?.();
 
-      const Header = Asset.header;
-      const { getByTestId } = render(<Header />);
-      const backButton = getByTestId('send-navbar-back-button');
+    expect(mockHandleCancelPress).toHaveBeenCalled();
+  });
 
-      fireEvent.press(backButton);
+  it('Recipient onBack uses same navigation logic as Amount', () => {
+    (useNavigationState as jest.Mock).mockReturnValue(
+      createMockNavigationState([
+        { name: 'SomeOtherRoute', params: { test: 'data' } },
+        { name: 'Send' },
+      ]),
+    );
 
-      expect(mockHandleCancelPress).toHaveBeenCalled();
-    });
+    const { result } = renderHookWithProvider(() =>
+      useSendHeaderProps('Recipient'),
+    );
+    result.current.onBack?.();
 
-    it('renders title in header', () => {
-      const { result } = renderHookWithProvider(() => useSendNavbar());
-      const { Asset } = result.current;
-
-      const Header = Asset.header;
-      const { getByText } = render(<Header />);
-
-      expect(getByText('send.title')).toBeOnTheScreen();
+    expect(mockNavigate).toHaveBeenCalledWith('SomeOtherRoute', {
+      test: 'data',
     });
   });
 
-  describe('Recipient route', () => {
-    it('provides header configuration with a header function', () => {
-      const { result } = renderHookWithProvider(() => useSendNavbar());
-      const { Recipient } = result.current;
+  it('Recipient onClose calls handleCancelPress', () => {
+    const { result } = renderHookWithProvider(() =>
+      useSendHeaderProps('Recipient'),
+    );
+    result.current.onClose?.();
 
-      expect(Recipient.header).toBeDefined();
-      expect(typeof Recipient.header).toBe('function');
-    });
-
-    it('renders back and close buttons in header', () => {
-      const { result } = renderHookWithProvider(() => useSendNavbar());
-      const { Recipient } = result.current;
-
-      const Header = Recipient.header;
-      const { getByTestId } = render(<Header />);
-
-      expect(getByTestId('send-navbar-back-button')).toBeOnTheScreen();
-      expect(getByTestId('send-navbar-close-button')).toBeOnTheScreen();
-    });
-
-    it('uses same back navigation logic as Amount route', () => {
-      (useNavigationState as jest.Mock).mockReturnValue(
-        createMockNavigationState([
-          { name: 'SomeOtherRoute', params: { test: 'data' } },
-          { name: 'Send' },
-        ]),
-      );
-
-      const { result } = renderHookWithProvider(() => useSendNavbar());
-      const { Recipient } = result.current;
-
-      const Header = Recipient.header;
-      const { getByTestId } = render(<Header />);
-      const backButton = getByTestId('send-navbar-back-button');
-
-      fireEvent.press(backButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith('SomeOtherRoute', {
-        test: 'data',
-      });
-    });
-
-    it('calls handleCancelPress when close button is pressed', () => {
-      const { result } = renderHookWithProvider(() => useSendNavbar());
-      const { Recipient } = result.current;
-
-      const Header = Recipient.header;
-      const { getByTestId } = render(<Header />);
-      const closeButton = getByTestId('send-navbar-close-button');
-
-      fireEvent.press(closeButton);
-
-      expect(mockHandleCancelPress).toHaveBeenCalled();
-    });
-
-    it('renders title in header', () => {
-      const { result } = renderHookWithProvider(() => useSendNavbar());
-      const { Recipient } = result.current;
-
-      const Header = Recipient.header;
-      const { getByText } = render(<Header />);
-
-      expect(getByText('send.title')).toBeOnTheScreen();
-    });
+    expect(mockHandleCancelPress).toHaveBeenCalled();
   });
 });
