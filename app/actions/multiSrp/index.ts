@@ -19,6 +19,7 @@ import Logger from '../../util/Logger';
 import { discoverAccounts } from '../../multichain-accounts/discovery';
 import { captureException } from '@sentry/core';
 import { convertMnemonicToWordlistIndices } from '../../util/mnemonic';
+import { toMultichainAccountGroupId } from '@metamask/account-api';
 
 export interface ImportNewSecretRecoveryPhraseOptions {
   shouldSelectAccount: boolean;
@@ -38,17 +39,18 @@ export async function importNewSecretRecoveryPhrase(
     options: ImportNewSecretRecoveryPhraseReturnType & { error?: Error },
   ) => Promise<void>,
 ): Promise<ImportNewSecretRecoveryPhraseReturnType> {
-  const { KeyringController, MultichainAccountService } = Engine.context;
+  const { MultichainAccountService } = Engine.context;
   const { shouldSelectAccount } = options;
 
   // Convert input mnemonic to codepoints
-  const mnemonicWords = mnemonic.toLowerCase().split(' ');
+  const mnemonicLower = mnemonic.toLowerCase();
+  const mnemonicWords = mnemonicLower.split(' ');
   const inputCodePoints = new Uint16Array(
     mnemonicWords.map((word) => wordlist.indexOf(word)),
   );
 
   // Convert input mnemonic to proper buffer
-  const seedPhraseAsBuffer = Buffer.from(mnemonic, 'utf8');
+  const seedPhraseAsBuffer = Buffer.from(mnemonicLower, 'utf8');
   const seedPhraseAsUint8Array = convertMnemonicToWordlistIndices(
     seedPhraseAsBuffer,
     wordlist,
@@ -58,14 +60,24 @@ export async function importNewSecretRecoveryPhrase(
     type: 'import',
     mnemonic: seedPhraseAsUint8Array,
   });
-  const entropySource = wallet.entropySource;
-
-  const [newAccountAddress] = await KeyringController.withKeyring(
-    {
-      id: entropySource,
-    },
-    async ({ keyring }) => keyring.getAccounts(),
+  // NOTE: This should never fail because a wallet can only be created if it has
+  // at least one account and thus, one group too.
+  const group = wallet.getAccountGroup(
+    toMultichainAccountGroupId(wallet.id, 0),
   );
+  if (!group) {
+    throw new Error(
+      'Failed to get default multichain account group after wallet creation',
+    );
+  }
+  const [account] = group.getAccounts();
+  if (!account) {
+    throw new Error(
+      'Failed to get default account from multichain account group after wallet creation',
+    );
+  }
+  const entropySource = wallet.entropySource;
+  const newAccountAddress = account.address;
 
   const { SeedlessOnboardingController } = Engine.context;
 
@@ -89,16 +101,10 @@ export async function importNewSecretRecoveryPhrase(
       );
       addSeedPhraseSuccess = true;
     } catch (error) {
-      if (isMultichainAccountsState2Enabled()) {
-        await MultichainAccountService.removeMultichainAccountWallet(
-          entropySource,
-          newAccountAddress,
-        );
-      } else {
-        // handle seedless controller import error by reverting keyring controller mnemonic import
-        // KeyringController.removeAccount will remove keyring when it's emptied, currently there are no other method in keyring controller to remove keyring
-        await KeyringController.removeAccount(newAccountAddress);
-      }
+      await MultichainAccountService.removeMultichainAccountWallet(
+        entropySource,
+        newAccountAddress,
+      );
 
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
