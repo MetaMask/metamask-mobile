@@ -91,7 +91,8 @@ app/
 ├── hooks/                # Custom React hooks
 └── styles/               # Global styles
 
-e2e/                      # Detox E2E tests
+tests/smoke               # Detox Smoke E2E tests
+tests/regression          # Detox Regression E2E tests
 docs/                     # Documentation
 scripts/                  # Build and automation scripts
 ```
