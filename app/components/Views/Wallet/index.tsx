@@ -118,7 +118,10 @@ import { Token } from '@metamask/assets-controllers';
 import { Hex, KnownCaipNamespace } from '@metamask/utils';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
-import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
+import {
+  selectHomepageRedesignV1Enabled,
+  selectHomepageSectionsV1Enabled,
+} from '../../../selectors/featureFlagController/homepage';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
@@ -184,6 +187,7 @@ import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvi
 import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
+import Homepage from '../Homepage';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -611,6 +615,7 @@ const Wallet = ({
   const { navigate } = useNavigation();
   const walletRef = useRef(null);
   const walletTokensTabViewRef = useRef<WalletTokensTabViewHandle>(null);
+  const homepageRef = useRef<{ refresh: () => Promise<void> }>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const isMountedRef = useRef(true);
   const refreshInProgressRef = useRef(false);
@@ -1198,6 +1203,13 @@ const Wallet = ({
   const isHomepageRedesignV1Enabled = useSelector(
     selectHomepageRedesignV1Enabled,
   );
+  const isHomepageSectionsV1Enabled = useSelector(
+    selectHomepageSectionsV1Enabled,
+  );
+
+  // Enable parent scroll when homepage redesign or sections feature flags are enabled
+  const shouldEnableParentScroll =
+    isHomepageRedesignV1Enabled || isHomepageSectionsV1Enabled;
 
   useEffect(() => {
     if (!selectedInternalAccount) return;
@@ -1368,9 +1380,9 @@ const Wallet = ({
   const scrollViewContentStyle = useMemo(
     () => [
       styles.wrapper,
-      isHomepageRedesignV1Enabled && { flex: undefined, flexGrow: 0 },
+      shouldEnableParentScroll && { flex: undefined, flexGrow: 0 },
     ],
-    [styles.wrapper, isHomepageRedesignV1Enabled],
+    [styles.wrapper, shouldEnableParentScroll],
   );
 
   const handleRefresh = useCallback(async () => {
@@ -1383,7 +1395,15 @@ const Wallet = ({
     setRefreshing(true);
 
     try {
-      await walletTokensTabViewRef.current?.refresh(refreshBalance);
+      if (isHomepageSectionsV1Enabled) {
+        // Refresh balance and all homepage sections in parallel
+        await Promise.allSettled([
+          refreshBalance(),
+          homepageRef.current?.refresh(),
+        ]);
+      } else {
+        await walletTokensTabViewRef.current?.refresh(refreshBalance);
+      }
     } catch (error) {
       Logger.error(error as Error, 'Error refreshing wallet');
     } finally {
@@ -1394,7 +1414,7 @@ const Wallet = ({
         setRefreshing(false);
       }
     }
-  }, [refreshBalance]);
+  }, [refreshBalance, isHomepageSectionsV1Enabled]);
 
   const content = (
     <>
@@ -1433,13 +1453,17 @@ const Wallet = ({
 
         {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
 
-        <WalletTokensTabView
-          ref={walletTokensTabViewRef}
-          navigation={navigation}
-          onChangeTab={onChangeTab}
-          defiEnabled={defiEnabled}
-          collectiblesEnabled={collectiblesEnabled}
-        />
+        {isHomepageSectionsV1Enabled ? (
+          <Homepage ref={homepageRef} />
+        ) : (
+          <WalletTokensTabView
+            ref={walletTokensTabViewRef}
+            navigation={navigation}
+            onChangeTab={onChangeTab}
+            defiEnabled={defiEnabled}
+            collectiblesEnabled={collectiblesEnabled}
+          />
+        )}
       </>
     </>
   );
@@ -1462,11 +1486,11 @@ const Wallet = ({
           >
             <ConditionalScrollView
               ref={scrollViewRef}
-              isScrollEnabled={isHomepageRedesignV1Enabled}
+              isScrollEnabled={shouldEnableParentScroll}
               scrollViewProps={{
                 contentContainerStyle: scrollViewContentStyle,
                 showsVerticalScrollIndicator: false,
-                refreshControl: isHomepageRedesignV1Enabled ? (
+                refreshControl: shouldEnableParentScroll ? (
                   <RefreshControl
                     colors={[colors.primary.default]}
                     tintColor={colors.icon.default}
