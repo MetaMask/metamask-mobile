@@ -47,14 +47,18 @@ export const useTokenBuyability = (token: TokenI): UseTokenBuyabilityResult => {
   const { tokens: controllerTokens, isLoading: controllerLoading } =
     useRampsTokens();
 
-  const isLoading = isV2Enabled ? controllerLoading : legacyLoading;
+  // V2 controller tokens are preferred when available; fall back to legacy
+  const v2Tokens = controllerTokens?.allTokens;
+  const hasV2Tokens = isV2Enabled && v2Tokens && v2Tokens.length > 0;
+  const isLoading = hasV2Tokens
+    ? controllerLoading
+    : isV2Enabled && controllerLoading
+      ? true
+      : legacyLoading;
 
   const isBuyable = useMemo(() => {
-    if (isV2Enabled) {
+    if (hasV2Tokens) {
       // V2: exact match against controller tokens, same as setSelectedToken
-      const v2Tokens = controllerTokens?.allTokens;
-      if (!v2Tokens) return false;
-
       const assetId = buildRampAssetId(token);
       if (!assetId) return false;
 
@@ -62,7 +66,7 @@ export const useTokenBuyability = (token: TokenI): UseTokenBuyabilityResult => {
       return (matchingToken as RampsToken | undefined)?.tokenSupported ?? false;
     }
 
-    // V1 legacy: case-insensitive with native token handling
+    // Fall back to legacy tokens (V1 or V2 tokens not loaded yet)
     if (!legacyAllTokens) return false;
 
     const chainIdInCaip = isCaipChainId(token.chainId)
@@ -86,7 +90,7 @@ export const useTokenBuyability = (token: TokenI): UseTokenBuyabilityResult => {
       return assetId && toLowerCaseEquals(rampsToken.assetId, assetId);
     });
     return matchingToken?.tokenSupported ?? false;
-  }, [isV2Enabled, controllerTokens, legacyAllTokens, token]);
+  }, [hasV2Tokens, v2Tokens, legacyAllTokens, token]);
 
   return { isBuyable, isLoading };
 };

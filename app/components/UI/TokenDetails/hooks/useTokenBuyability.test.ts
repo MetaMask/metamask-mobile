@@ -220,7 +220,7 @@ describe('useTokenBuyability', () => {
       expect(result.current.isLoading).toBe(true);
     });
 
-    it('uses controller tokens instead of legacy tokens', () => {
+    it('falls back to legacy tokens when V2 controller tokens are empty', () => {
       mockUseRampTokens.mockReturnValue({
         allTokens: [
           {
@@ -246,7 +246,44 @@ describe('useTokenBuyability', () => {
 
       const { result } = renderHook(() => useTokenBuyability(getMockToken()));
 
-      // V2 enabled: should use controller tokens (empty) not legacy tokens
+      // V2 controller tokens empty: falls back to legacy tokens
+      expect(result.current.isBuyable).toBe(true);
+    });
+
+    it('prefers V2 controller tokens over legacy when both available', () => {
+      // Legacy says buyable, but V2 controller says NOT buyable
+      mockUseRampTokens.mockReturnValue({
+        allTokens: [
+          {
+            assetId:
+              'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
+            chainId: 'eip155:1',
+            tokenSupported: true,
+          },
+        ],
+        isLoading: false,
+      } as UseRampTokensResult);
+
+      mockUseRampsTokens.mockReturnValue({
+        tokens: {
+          topTokens: [],
+          allTokens: [
+            {
+              assetId: 'eip155:1/erc20:0xSomeOtherToken',
+              chainId: 'eip155:1',
+              tokenSupported: true,
+            },
+          ],
+        },
+        selectedToken: null,
+        setSelectedToken: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+
+      const { result } = renderHook(() => useTokenBuyability(getMockToken()));
+
+      // V2 controller has tokens but NOT this one: not buyable
       expect(result.current.isBuyable).toBe(false);
     });
   });

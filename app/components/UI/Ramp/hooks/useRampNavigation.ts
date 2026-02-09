@@ -76,7 +76,12 @@ export const useRampNavigation = () => {
         intent?.assetId &&
         !overrideUnifiedRouting
       ) {
-        setSelectedToken(intent.assetId);
+        try {
+          setSelectedToken(intent.assetId);
+        } catch {
+          // Token may not be in controller's list yet (still loading).
+          // Navigate anyway — BuildQuote will handle the missing token.
+        }
         navigation.navigate(
           ...createBuildQuoteNavDetails({ assetId: intent.assetId }),
         );
