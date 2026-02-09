@@ -1,0 +1,16 @@
+name: metamask-mobile
+id: ari:cloud:compass:2eefe999-d61b-469c-92ef-31fc5e9b3f13:component/ace244a1-3ae8-43fb-8c96-347d12170341/b8b04d2a-58f3-4a81-8e51-1381f2b2fab9
+description: Mobile web browser providing access to websites that use the Ethereum blockchain
+configVersion: 1
+typeId: SERVICE
+fields:
+  tier: 4
+links:
+  - name: null
+    type: REPOSITORY
+    url: https://github.com/Boomtoknlab/metamask-mobile
+relationships:
+  DEPENDS_ON: []
+labels:
+  - source:github
+customFields: null
