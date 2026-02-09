@@ -23,9 +23,8 @@ readonly REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 readonly RUNWAY_DIR="$REPO_ROOT/build"
 RUNWAY_ANDROID_API_URL="https://app.runway.team/api/bucket/hykQxdZCEGgoyyZ9sBtkhli8wupv9PiTA6uRJf3Lh65FTECF1oy8vzkeXdmuJKhm7xGLeV35GzIT1Un7J5XkBADm5OhknlBXzA0CzqB767V36gi1F3yg3Uss/builds"
 
-# Artifact name we expect from Android builds
+# Artifact name we expect from Android builds (hardcoded to avoid using API-derived paths)
 ARTIFACT_NAME="outputs.zip"
-APK_RELATIVE_PATH="apk/prod/debug/app-prod-debug.apk"
 
 if [[ "$(pwd)" != "$REPO_ROOT" ]]; then
   echo -e "${RED}❌ This script must be run from the repository root${NC}"
@@ -138,6 +137,11 @@ download_latest_app() {
     echo -e "${RED}❌ Invalid build ID${NC}"
     exit 1
   fi
+  # Ensure we only use our hardcoded artifact name in paths/URLs (never API-derived)
+  if [[ -z "$FOUND_ARTIFACT" || "$FOUND_ARTIFACT" != "$ARTIFACT_NAME" ]]; then
+    echo -e "${RED}❌ Unexpected artifact from API: $FOUND_ARTIFACT${NC}"
+    exit 1
+  fi
 
   echo -e "${GREEN}✓ Found Build #$BUILD_IDENTIFIER, artifact: $FOUND_ARTIFACT${NC}"
 
@@ -157,23 +161,18 @@ download_latest_app() {
   echo -e "${GREEN}✓ Downloaded: $ZIP_PATH${NC}"
 
   # --- Step 3: Extract zip and locate APK ---
+  # Use -j to junk paths (extract all files into EXTRACT_DIR) to prevent zip-slip attacks
   echo -e "${BLUE}━━━ Step 3: Extracting and locating APK ━━━${NC}"
   EXTRACT_DIR="$RUNWAY_DIR/extract_$$"
   mkdir -p "$EXTRACT_DIR"
-  unzip -q -o "$ZIP_PATH" -d "$EXTRACT_DIR"
+  unzip -j -q -o "$ZIP_PATH" -d "$EXTRACT_DIR"
 
-  APK_PATH="$EXTRACT_DIR/$APK_RELATIVE_PATH"
+  APK_PATH="$EXTRACT_DIR/app-prod-debug.apk"
   if [[ ! -f "$APK_PATH" ]]; then
-    FOUND_APK=$(find "$EXTRACT_DIR" -name "app-prod-debug.apk" -type f | head -1 || true)
-    if [[ -n "$FOUND_APK" && -f "$FOUND_APK" ]]; then
-      APK_PATH="$FOUND_APK"
-      echo -e "${YELLOW}  (APK found at alternate path: $APK_PATH)${NC}"
-    else
-      echo -e "${RED}❌ APK not found at $EXTRACT_DIR/$APK_RELATIVE_PATH${NC}"
-      echo -e "${YELLOW}Contents of $EXTRACT_DIR:${NC}"
-      find "$EXTRACT_DIR" -type f | head -20
-      exit 1
-    fi
+    echo -e "${RED}❌ APK not found at $APK_PATH${NC}"
+    echo -e "${YELLOW}Contents of $EXTRACT_DIR:${NC}"
+    find "$EXTRACT_DIR" -type f | head -20
+    exit 1
   fi
 
   echo -e "${GREEN}✓ APK found: $APK_PATH${NC}"
