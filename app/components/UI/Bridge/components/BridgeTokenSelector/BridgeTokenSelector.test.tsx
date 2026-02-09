@@ -163,9 +163,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 jest.mock(
-  '../../../../../component-library/components-temp/HeaderCenter',
+  '../../../../../component-library/components-temp/HeaderCompactStandard',
   () => ({
-    getHeaderCenterNavbarOptions: jest.fn(() => ({})),
+    getHeaderCompactStandardNavbarOptions: jest.fn(() => ({})),
   }),
 );
 

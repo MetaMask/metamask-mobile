@@ -57,6 +57,12 @@ export const createMockInfrastructure =
       rewards: {
         getFeeDiscount: jest.fn().mockResolvedValue(0),
       },
+
+      // === Cache Invalidation ===
+      cacheInvalidator: {
+        invalidate: jest.fn(),
+        invalidateAll: jest.fn(),
+      },
     }) as unknown as jest.Mocked<PerpsPlatformDependencies>;
 
 /**
@@ -108,6 +114,7 @@ export const createMockPerpsControllerState = (
   lastError: null,
   lastUpdateTimestamp: Date.now(),
   hip3ConfigVersion: 0,
+  selectedPaymentToken: null,
   ...overrides,
 });
 

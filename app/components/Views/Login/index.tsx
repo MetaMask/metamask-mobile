@@ -52,9 +52,7 @@ import {
   TraceOperation,
   endTrace,
 } from '../../../util/trace';
-import TextField, {
-  TextFieldSize,
-} from '../../../component-library/components/Form/TextField';
+import TextField from '../../../component-library/components/Form/TextField';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
@@ -131,13 +129,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
 
-  const {
-    unlockWallet,
-    lockApp,
-    getAuthType,
-    componentAuthenticationType,
-    checkIsSeedlessPasswordOutdated,
-  } = useAuthentication();
+  const { unlockWallet, lockApp, getAuthType } = useAuthentication();
 
   const track = (
     event: IMetaMetricsEvent,
@@ -368,20 +360,13 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     endTrace({ name: TraceName.LoginUserInteraction });
 
     try {
-      // do not update AuthPreference unless seedless password is outdated
-      const isGlobalPasswordOutdated =
-        await checkIsSeedlessPasswordOutdated(false);
-      const authPreference = isGlobalPasswordOutdated
-        ? await componentAuthenticationType(true, false)
-        : undefined;
-
       await trace(
         {
           name: TraceName.AuthenticateUser,
           op: TraceOperation.Login,
         },
         async () => {
-          await unlockWallet({ password, authPreference });
+          await unlockWallet({ password });
         },
       );
     } catch (loginErr) {
@@ -399,9 +384,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     password,
     loading,
     handleLoginError,
-    componentAuthenticationType,
     unlockWallet,
-    checkIsSeedlessPasswordOutdated,
     handleBiometricCancellation,
   ]);
 
@@ -479,7 +462,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
             <View style={styles.field}>
               <TextField
-                size={TextFieldSize.Lg}
                 placeholder={strings('login.password_placeholder')}
                 placeholderTextColor={colors.text.alternative}
                 testID={LoginViewSelectors.PASSWORD_INPUT}
