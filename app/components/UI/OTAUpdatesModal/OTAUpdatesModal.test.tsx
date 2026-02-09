@@ -29,16 +29,33 @@ jest.mock(
   '../../../component-library/components-temp/HeaderCompactStandard',
   () => {
     const ReactActual = jest.requireActual('react');
-    const { View: ReactNativeView } = jest.requireActual('react-native');
+    const {
+      View: ReactNativeView,
+      Pressable: ReactNativePressable,
+      Text: ReactNativeText,
+    } = jest.requireActual('react-native');
 
-    return (props: { children: React.ReactNode }) =>
+    return (props: { children: React.ReactNode; onClose?: () => void }) =>
       ReactActual.createElement(
         ReactNativeView,
         { testID: 'header' },
         props.children,
+        props.onClose &&
+          ReactActual.createElement(
+            ReactNativePressable,
+            { testID: 'close-button', onPress: props.onClose },
+            ReactActual.createElement(ReactNativeText, {}, 'Close'),
+          ),
       );
   },
 );
+
+// Mock for BottomSheet onCloseBottomSheet
+const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => {
+  if (callback) callback();
+});
+
+const getMockOnCloseBottomSheet = () => mockOnCloseBottomSheet;
 
 jest.mock(
   '../../../component-library/components/BottomSheets/BottomSheet',
@@ -50,9 +67,10 @@ jest.mock(
       (props: { children: React.ReactNode }, ref: React.Ref<unknown>) => {
         useImperativeHandle(ref, () => ({
           onOpenBottomSheet: jest.fn(),
-          onCloseBottomSheet: jest.fn((callback?: () => void) => {
-            if (callback) callback();
-          }),
+          onCloseBottomSheet: (callback?: () => void) => {
+            const mockFn = getMockOnCloseBottomSheet();
+            mockFn(callback);
+          },
         }));
 
         return (
@@ -122,6 +140,9 @@ describe('OTAUpdatesModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (Platform as unknown as { OS: string }).OS = 'ios';
+    mockOnCloseBottomSheet.mockImplementation((callback?: () => void) => {
+      if (callback) callback();
+    });
   });
 
   it('tracks view event on mount', () => {
@@ -185,5 +206,14 @@ describe('OTAUpdatesModal', () => {
         'OTA Updates: Error reloading app after modal reload pressed',
       );
     });
+  });
+
+  it('closes modal when close button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<OTAUpdatesModal />);
+
+    const closeButton = getByTestId('close-button');
+    fireEvent.press(closeButton);
+
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
   });
 });
