@@ -22,12 +22,14 @@ import {
   NetworkControllerGetNetworkClientByIdAction,
 } from '@metamask/network-controller';
 import {
+  TransactionControllerTransactionStatusUpdatedEvent,
   TransactionControllerEstimateGasAction,
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerTransactionFailedEvent,
   TransactionControllerTransactionRejectedEvent,
   TransactionControllerTransactionSubmittedEvent,
   TransactionMeta,
+  TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
 import {
@@ -219,10 +221,28 @@ const metadata: StateMetadata<PredictControllerState> = {
 /**
  * PredictController events
  */
-export type PredictControllerEvents = ControllerStateChangeEvent<
-  'PredictController',
-  PredictControllerState
->;
+export type PredictTransactionEventType = 'deposit' | 'claim' | 'withdraw';
+
+export type PredictTransactionEventStatus =
+  | 'approved'
+  | 'confirmed'
+  | 'failed'
+  | 'rejected';
+
+export interface PredictControllerTransactionStatusChangedEvent {
+  type: 'PredictController:transactionStatusChanged';
+  payload: [
+    {
+      type: PredictTransactionEventType;
+      status: PredictTransactionEventStatus;
+      transactionMeta: TransactionMeta;
+    },
+  ];
+}
+
+export type PredictControllerEvents =
+  | ControllerStateChangeEvent<'PredictController', PredictControllerState>
+  | PredictControllerTransactionStatusChangedEvent;
 
 /**
  * PredictController actions
@@ -260,6 +280,7 @@ type AllowedEvents =
   | TransactionControllerTransactionConfirmedEvent
   | TransactionControllerTransactionFailedEvent
   | TransactionControllerTransactionRejectedEvent
+  | TransactionControllerTransactionStatusUpdatedEvent
   | RemoteFeatureFlagControllerStateChangeEvent;
 
 /**
@@ -305,6 +326,11 @@ export class PredictController extends BaseController<
     });
 
     this.providers = new Map();
+
+    this.messenger.subscribe(
+      'TransactionController:transactionStatusUpdated',
+      this.handleTransactionStatusUpdate.bind(this),
+    );
 
     this.initializeProviders().catch((error) => {
       DevLogger.log('PredictController: Error initializing providers', {
@@ -2114,6 +2140,98 @@ export class PredictController extends BaseController<
         delete state.pendingDeposits[providerId][selectedAddress];
       }
     });
+  }
+
+  private handleTransactionStatusUpdate({
+    transactionMeta,
+  }: {
+    transactionMeta: TransactionMeta;
+  }): void {
+    const nestedTransactionType = transactionMeta?.nestedTransactions?.find(
+      ({ type }) =>
+        type === TransactionType.predictDeposit ||
+        type === TransactionType.predictClaim ||
+        type === TransactionType.predictWithdraw,
+    )?.type;
+
+    if (!nestedTransactionType) {
+      return;
+    }
+
+    if (
+      nestedTransactionType === TransactionType.predictDeposit &&
+      !this.isPendingDepositTransaction(transactionMeta)
+    ) {
+      return;
+    }
+
+    const type = this.mapTransactionTypeToPredictTransactionEventType(
+      nestedTransactionType,
+    );
+    const status = this.mapTransactionStatusToPredictTransactionEventStatus(
+      transactionMeta.status,
+    );
+
+    if (!type || !status) {
+      return;
+    }
+
+    this.messenger.publish('PredictController:transactionStatusChanged', {
+      type,
+      status,
+      transactionMeta,
+    });
+  }
+
+  private isPendingDepositTransaction(
+    transactionMeta: TransactionMeta,
+  ): boolean {
+    const { batchId, txParams } = transactionMeta;
+    if (!batchId) {
+      return false;
+    }
+
+    const normalizedFrom = txParams.from?.toLowerCase();
+    return Object.values(this.state.pendingDeposits).some((providerDeposits) =>
+      Object.entries(providerDeposits).some(
+        ([address, pendingBatchId]) =>
+          pendingBatchId === batchId &&
+          (!normalizedFrom || address.toLowerCase() === normalizedFrom),
+      ),
+    );
+  }
+
+  private mapTransactionTypeToPredictTransactionEventType(
+    transactionType: TransactionType,
+  ): PredictTransactionEventType | null {
+    if (transactionType === TransactionType.predictDeposit) {
+      return 'deposit';
+    }
+    if (transactionType === TransactionType.predictClaim) {
+      return 'claim';
+    }
+    if (transactionType === TransactionType.predictWithdraw) {
+      return 'withdraw';
+    }
+    return null;
+  }
+
+  private mapTransactionStatusToPredictTransactionEventStatus(
+    transactionStatus: TransactionStatus,
+  ): PredictTransactionEventStatus | null {
+    if (transactionStatus === TransactionStatus.approved) {
+      return 'approved';
+    }
+    if (transactionStatus === TransactionStatus.confirmed) {
+      return 'confirmed';
+    }
+    if (transactionStatus === TransactionStatus.failed) {
+      return 'failed';
+    }
+    if (transactionStatus === TransactionStatus.rejected) {
+      return 'rejected';
+    }
+    return null;
   }
 
   public async getAccountState(
