@@ -1,6 +1,6 @@
 // @ts-expect-error - humanize-duration is not typed
 import humanizeDuration from 'humanize-duration';
-import { isFastNetwork } from '../components/gas/gas-speed/gas-speed';
+import { isFastNetwork } from './network';
 import { Hex } from '@metamask/utils';
 
 const shortEnglishHumanizer = humanizeDuration.humanizer({

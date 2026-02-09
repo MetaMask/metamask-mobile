@@ -12,16 +12,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useGasFeeEstimates } from '../../../hooks/gas/useGasFeeEstimates';
 import { toHumanSeconds } from '../../../utils/time';
-import { NETWORKS_CHAIN_ID } from '../../../../../../constants/network';
-
-const FAST_NETWORKS: Hex[] = [
-  NETWORKS_CHAIN_ID.MEGAETH_MAINNET,
-  NETWORKS_CHAIN_ID.MEGAETH_TESTNET_V2,
-  NETWORKS_CHAIN_ID.MEGAETH_TESTNET,
-];
-
-export const isFastNetwork = (chainId?: Hex): boolean =>
-  !!chainId && FAST_NETWORKS.includes(chainId);
+import { isFastNetwork } from '../../../utils/network';
 
 const getText = (userFeeLevel: UserFeeLevel | GasFeeEstimateLevel) => {
   switch (userFeeLevel) {

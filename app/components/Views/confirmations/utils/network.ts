@@ -10,6 +10,16 @@ import {
   PopularList,
   getNonEvmNetworkImageSourceByChainId,
 } from '../../../../util/networks/customNetworks';
+import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
+
+const FAST_NETWORKS: Hex[] = [
+  NETWORKS_CHAIN_ID.MEGAETH_MAINNET,
+  NETWORKS_CHAIN_ID.MEGAETH_TESTNET_V2,
+  NETWORKS_CHAIN_ID.MEGAETH_TESTNET,
+];
+
+export const isFastNetwork = (chainId?: Hex): boolean =>
+  !!chainId && FAST_NETWORKS.includes(chainId);
 
 export function getNetworkBadgeSource(chainId: Hex) {
   if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
