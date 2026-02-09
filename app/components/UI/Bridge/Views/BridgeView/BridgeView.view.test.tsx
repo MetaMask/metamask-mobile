@@ -1,7 +1,7 @@
 import '../../../../../util/test/component-view/mocks';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { renderBridgeView } from '../../../../../util/test/component-view/renderers/bridge';
-import { fireEvent, waitFor, within } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import React from 'react';
 import { Text } from 'react-native';
@@ -46,23 +46,28 @@ describeForPlatforms('BridgeView', () => {
   });
 
   it('types 9.5 with keypad and displays $19,000.00 fiat value', async () => {
-    const { getByTestId, queryByTestId, findByText, findByDisplayValue } =
-      renderBridgeView({
-        deterministicFiat: true,
-        overrides: {
-          bridge: {
-            sourceAmount: '0',
-            sourceToken: {
-              address: '0x0000000000000000000000000000000000000000',
-              chainId: '0x1',
-              decimals: 18,
-              symbol: 'ETH',
-              name: 'Ether',
-            },
-            destToken: undefined,
+    const {
+      getByTestId,
+      getByText,
+      queryByTestId,
+      findByText,
+      findByDisplayValue,
+    } = renderBridgeView({
+      deterministicFiat: true,
+      overrides: {
+        bridge: {
+          sourceAmount: '0',
+          sourceToken: {
+            address: '0x0000000000000000000000000000000000000000',
+            chainId: '0x1',
+            decimals: 18,
+            symbol: 'ETH',
+            name: 'Ether',
           },
-        } as unknown as Record<string, unknown>,
-      });
+          destToken: undefined,
+        },
+      } as unknown as Record<string, unknown>,
+    });
 
     // Close possible banner to reveal keypad
     const closeBanner = queryByTestId(
@@ -79,11 +84,10 @@ describeForPlatforms('BridgeView', () => {
       ).toBeOnTheScreen();
     });
 
-    // Type 9.5 using keypad buttons inside the bridge scroll container
-    const scroll = getByTestId(BridgeViewSelectorsIDs.BRIDGE_VIEW_SCROLL);
-    fireEvent.press(within(scroll).getByText('9'));
-    fireEvent.press(within(scroll).getByText('.'));
-    fireEvent.press(within(scroll).getByText('5'));
+    // Type 9.5 using keypad buttons (keypad is now rendered via SwapsKeypad BottomSheet outside ScrollView)
+    fireEvent.press(getByText('9'));
+    fireEvent.press(getByText('.'));
+    fireEvent.press(getByText('5'));
 
     // Assert amount and exact fiat conversion (9.5 * $2000 = $19,000.00)
     expect(await findByDisplayValue('9.5')).toBeOnTheScreen();
@@ -214,11 +218,11 @@ describeForPlatforms('BridgeView', () => {
     expect(await findByText(expected)).toBeOnTheScreen();
   });
 
-  it('hides keypad when refreshing quote with input unfocused', () => {
+  it('shows confirm button when refreshing quote with previous active quote', () => {
     const now = Date.now();
     const previousQuote = { ...mockQuoteWithMetadata };
 
-    const { queryByTestId } = renderBridgeView({
+    const { getByTestId } = renderBridgeView({
       deterministicFiat: true,
       overrides: {
         bridge: {
@@ -255,9 +259,11 @@ describeForPlatforms('BridgeView', () => {
       } as unknown as Record<string, unknown>,
     });
 
-    // Keypad should NOT be visible when refreshing quote with valid inputs and unfocused input
-    // This simulates the scenario after user changes slippage - quote is loading but input is not focused
-    expect(queryByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON)).toBeNull();
+    // Confirm button should be visible when there is an active quote during refresh
+    // The keypad is now always managed by SwapsKeypad BottomSheet independently
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('navigates to dest token selector on press', async () => {

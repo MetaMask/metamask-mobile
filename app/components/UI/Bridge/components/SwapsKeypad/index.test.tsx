@@ -1,10 +1,54 @@
-import React from 'react';
+import React, { createRef } from 'react';
 import { act, fireEvent, render } from '@testing-library/react-native';
 import { SwapsKeypad } from './index';
 import { Keys } from '../../../../Base/Keypad';
 import { BridgeToken } from '../../types';
+import { SwapsKeypadRef } from './types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { BigNumber } from 'ethers';
+
+// Flag to force QuickPickButtons to always render regardless of `show` prop.
+// Prefixed with `mock` so Jest allows it inside jest.mock() factory.
+let mockForceShowQuickPickButtons = false;
+jest.mock('./QuickPickButtons', () => {
+  const actual = jest.requireActual('./QuickPickButtons');
+  return {
+    ...actual,
+    QuickPickButtons: (
+      props: React.ComponentProps<typeof actual.QuickPickButtons>,
+    ) =>
+      actual.QuickPickButtons({
+        ...props,
+        ...(mockForceShowQuickPickButtons && { show: true }),
+      }),
+  };
+});
+
+// Mock BottomSheetDialog to render children directly without animations.
+// Exposes onCloseDialog via ref so close() can be tested.
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheet/foundation/BottomSheetDialog/BottomSheetDialog',
+  () => {
+    const MockReact = jest.requireActual('react');
+    return {
+      __esModule: true,
+      default: MockReact.forwardRef(
+        (
+          {
+            children,
+            onClose,
+          }: { children: React.ReactNode; onClose?: () => void },
+          dialogRef: React.Ref<{ onCloseDialog: () => void }>,
+        ) => {
+          MockReact.useImperativeHandle(dialogRef, () => ({
+            onCloseDialog: () => onClose?.(),
+          }));
+          return children;
+        },
+      ),
+    };
+  },
+);
 
 // Mock dependencies
 jest.mock('../../hooks/useShouldRenderMaxOption', () => ({
@@ -16,6 +60,24 @@ const mockUseShouldRenderMaxOption =
   useShouldRenderMaxOption as jest.MockedFunction<
     typeof useShouldRenderMaxOption
   >;
+
+/**
+ * Helper to render SwapsKeypad and open it via the ref.
+ * The component returns null until open() is called.
+ */
+function renderAndOpen(
+  props: Omit<React.ComponentProps<typeof SwapsKeypad>, 'ref'>,
+) {
+  const ref = createRef<SwapsKeypadRef>();
+
+  const result = render(<SwapsKeypad ref={ref} {...props} />);
+
+  act(() => {
+    ref.current?.open();
+  });
+
+  return { ...result, ref };
+}
 
 describe('SwapsKeypad', () => {
   const mockOnChange = jest.fn();
@@ -44,17 +106,15 @@ describe('SwapsKeypad', () => {
 
   describe('rendering', () => {
     it('renders keypad with correct initial props', () => {
-      const { getByText } = render(
-        <SwapsKeypad
-          value="0"
-          currency="native"
-          decimals={18}
-          onChange={mockOnChange}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
-      );
+      const { getByText } = renderAndOpen({
+        value: '0',
+        currency: 'native',
+        decimals: 18,
+        onChange: mockOnChange,
+        token: mockToken,
+        tokenBalance: mockTokenBalance,
+        onMaxPress: mockOnMaxPress,
+      });
 
       expect(getByText('1')).toBeTruthy();
       expect(getByText('2')).toBeTruthy();
@@ -63,17 +123,15 @@ describe('SwapsKeypad', () => {
     });
 
     it('renders QuickPickButtons when tokenBalance is provided', () => {
-      const { getByText } = render(
-        <SwapsKeypad
-          value="0"
-          currency="native"
-          decimals={18}
-          onChange={mockOnChange}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
-      );
+      const { getByText } = renderAndOpen({
+        value: '0',
+        currency: 'native',
+        decimals: 18,
+        onChange: mockOnChange,
+        token: mockToken,
+        tokenBalance: mockTokenBalance,
+        onMaxPress: mockOnMaxPress,
+      });
 
       expect(getByText('25%')).toBeTruthy();
       expect(getByText('50%')).toBeTruthy();
@@ -82,17 +140,15 @@ describe('SwapsKeypad', () => {
     });
 
     it('hides QuickPickButtons when tokenBalance is not provided', () => {
-      const { queryByText } = render(
-        <SwapsKeypad
-          value="0"
-          currency="native"
-          decimals={18}
-          onChange={mockOnChange}
-          token={mockToken}
-          tokenBalance={undefined}
-          onMaxPress={mockOnMaxPress}
-        />,
-      );
+      const { queryByText } = renderAndOpen({
+        value: '0',
+        currency: 'native',
+        decimals: 18,
+        onChange: mockOnChange,
+        token: undefined,
+        tokenBalance: undefined,
+        onMaxPress: mockOnMaxPress,
+      });
 
       expect(queryByText('25%')).toBeNull();
       expect(queryByText('50%')).toBeNull();
@@ -103,17 +159,15 @@ describe('SwapsKeypad', () => {
     it('renders Max button when useShouldRenderMaxOption returns true', () => {
       mockUseShouldRenderMaxOption.mockReturnValue(true);
 
-      const { getByText, queryByText } = render(
-        <SwapsKeypad
-          value="0"
-          currency="native"
-          decimals={18}
-          onChange={mockOnChange}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
-      );
+      const { getByText, queryByText } = renderAndOpen({
+        value: '0',
+        currency: 'native',
+        decimals: 18,
+        onChange: mockOnChange,
+        token: mockToken,
+        tokenBalance: mockTokenBalance,
+        onMaxPress: mockOnMaxPress,
+      });
 
       expect(getByText('Max')).toBeTruthy();
       expect(queryByText('90%')).toBeNull();
@@ -127,17 +181,15 @@ describe('SwapsKeypad', () => {
     it('renders 90% button when useShouldRenderMaxOption returns false', () => {
       mockUseShouldRenderMaxOption.mockReturnValue(false);
 
-      const { getByText, queryByText } = render(
-        <SwapsKeypad
-          value="0"
-          currency="native"
-          decimals={18}
-          onChange={mockOnChange}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
-      );
+      const { getByText, queryByText } = renderAndOpen({
+        value: '0',
+        currency: 'native',
+        decimals: 18,
+        onChange: mockOnChange,
+        token: mockToken,
+        tokenBalance: mockTokenBalance,
+        onMaxPress: mockOnMaxPress,
+      });
 
       expect(getByText('90%')).toBeTruthy();
       expect(queryByText('Max')).toBeNull();
@@ -151,18 +203,16 @@ describe('SwapsKeypad', () => {
     it('passes isQuoteSponsored to useShouldRenderMaxOption', () => {
       mockUseShouldRenderMaxOption.mockReturnValue(true);
 
-      const { getByText } = render(
-        <SwapsKeypad
-          value="0"
-          currency="native"
-          decimals={18}
-          onChange={mockOnChange}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-          isQuoteSponsored
-        />,
-      );
+      const { getByText } = renderAndOpen({
+        value: '0',
+        currency: 'native',
+        decimals: 18,
+        onChange: mockOnChange,
+        token: mockToken,
+        tokenBalance: mockTokenBalance,
+        onMaxPress: mockOnMaxPress,
+        isQuoteSponsored: true,
+      });
 
       expect(getByText('Max')).toBeTruthy();
       expect(mockUseShouldRenderMaxOption).toHaveBeenCalledWith(
@@ -175,17 +225,15 @@ describe('SwapsKeypad', () => {
 
   describe('keypad interaction', () => {
     it('calls onChange when digit key is pressed', () => {
-      const { getByText } = render(
-        <SwapsKeypad
-          value="0"
-          currency="native"
-          decimals={18}
-          onChange={mockOnChange}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
-      );
+      const { getByText } = renderAndOpen({
+        value: '0',
+        currency: 'native',
+        decimals: 18,
+        onChange: mockOnChange,
+        token: mockToken,
+        tokenBalance: mockTokenBalance,
+        onMaxPress: mockOnMaxPress,
+      });
 
       const button5 = getByText('5');
 
@@ -201,17 +249,15 @@ describe('SwapsKeypad', () => {
     });
 
     it('calls onChange when decimal separator is pressed', () => {
-      const { getByText } = render(
-        <SwapsKeypad
-          value="5"
-          currency="native"
-          decimals={18}
-          onChange={mockOnChange}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
-      );
+      const { getByText } = renderAndOpen({
+        value: '5',
+        currency: 'native',
+        decimals: 18,
+        onChange: mockOnChange,
+        token: mockToken,
+        tokenBalance: mockTokenBalance,
+        onMaxPress: mockOnMaxPress,
+      });
 
       const periodButton = getByText('.');
 
@@ -227,8 +273,11 @@ describe('SwapsKeypad', () => {
     });
 
     it('handles multiple digit inputs correctly', () => {
+      const ref = createRef<SwapsKeypadRef>();
+
       const { getByText, rerender } = render(
         <SwapsKeypad
+          ref={ref}
           value="0"
           currency="native"
           decimals={18}
@@ -238,6 +287,10 @@ describe('SwapsKeypad', () => {
           onMaxPress={mockOnMaxPress}
         />,
       );
+
+      act(() => {
+        ref.current?.open();
+      });
 
       act(() => {
         fireEvent.press(getByText('1'));
@@ -251,6 +304,7 @@ describe('SwapsKeypad', () => {
 
       rerender(
         <SwapsKeypad
+          ref={ref}
           value="1"
           currency="native"
           decimals={18}
@@ -277,17 +331,15 @@ describe('SwapsKeypad', () => {
     it('calls onMaxPress when Max button is clicked', () => {
       mockUseShouldRenderMaxOption.mockReturnValue(true);
 
-      const { getByText } = render(
-        <SwapsKeypad
-          value="0"
-          currency="native"
-          decimals={18}
-          onChange={mockOnChange}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
-      );
+      const { getByText } = renderAndOpen({
+        value: '0',
+        currency: 'native',
+        decimals: 18,
+        onChange: mockOnChange,
+        token: mockToken,
+        tokenBalance: mockTokenBalance,
+        onMaxPress: mockOnMaxPress,
+      });
 
       const maxButton = getByText('Max');
 
@@ -301,34 +353,30 @@ describe('SwapsKeypad', () => {
 
   describe('edge cases', () => {
     it('handles undefined token gracefully', () => {
-      const { getByText } = render(
-        <SwapsKeypad
-          value="0"
-          currency="native"
-          decimals={18}
-          onChange={mockOnChange}
-          token={undefined}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
-      );
+      const { getByText } = renderAndOpen({
+        value: '0',
+        currency: 'native',
+        decimals: 18,
+        onChange: mockOnChange,
+        token: undefined,
+        tokenBalance: mockTokenBalance,
+        onMaxPress: mockOnMaxPress,
+      });
 
       expect(getByText('1')).toBeTruthy();
       expect(getByText('25%')).toBeTruthy();
     });
 
     it('handles empty value correctly', () => {
-      const { getByText } = render(
-        <SwapsKeypad
-          value=""
-          currency="native"
-          decimals={18}
-          onChange={mockOnChange}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
-      );
+      const { getByText } = renderAndOpen({
+        value: '',
+        currency: 'native',
+        decimals: 18,
+        onChange: mockOnChange,
+        token: mockToken,
+        tokenBalance: mockTokenBalance,
+        onMaxPress: mockOnMaxPress,
+      });
 
       act(() => {
         fireEvent.press(getByText('1'));
@@ -342,17 +390,15 @@ describe('SwapsKeypad', () => {
     });
 
     it('handles different currencies correctly', () => {
-      const { getByText } = render(
-        <SwapsKeypad
-          value="0"
-          currency="USD"
-          decimals={2}
-          onChange={mockOnChange}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
-      );
+      const { getByText } = renderAndOpen({
+        value: '0',
+        currency: 'USD',
+        decimals: 2,
+        onChange: mockOnChange,
+        token: mockToken,
+        tokenBalance: mockTokenBalance,
+        onMaxPress: mockOnMaxPress,
+      });
 
       act(() => {
         fireEvent.press(getByText('5'));
@@ -362,17 +408,15 @@ describe('SwapsKeypad', () => {
     });
 
     it('handles different decimal values correctly', () => {
-      const { getByText } = render(
-        <SwapsKeypad
-          value="0"
-          currency="native"
-          decimals={6}
-          onChange={mockOnChange}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
-      );
+      const { getByText } = renderAndOpen({
+        value: '0',
+        currency: 'native',
+        decimals: 6,
+        onChange: mockOnChange,
+        token: mockToken,
+        tokenBalance: mockTokenBalance,
+        onMaxPress: mockOnMaxPress,
+      });
 
       act(() => {
         fireEvent.press(getByText('3'));
@@ -391,17 +435,15 @@ describe('SwapsKeypad', () => {
         atomicBalance: BigNumber.from('0'),
       };
 
-      const { queryByText } = render(
-        <SwapsKeypad
-          value="0"
-          currency="native"
-          decimals={18}
-          onChange={mockOnChange}
-          token={mockToken}
-          tokenBalance={zeroBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
-      );
+      const { queryByText } = renderAndOpen({
+        value: '0',
+        currency: 'native',
+        decimals: 18,
+        onChange: mockOnChange,
+        token: mockToken,
+        tokenBalance: zeroBalance,
+        onMaxPress: mockOnMaxPress,
+      });
 
       expect(queryByText('25%')).toBeNull();
       expect(queryByText('50%')).toBeNull();
@@ -415,17 +457,15 @@ describe('SwapsKeypad', () => {
         atomicBalance: BigNumber.from('1500000000000000000'),
       };
 
-      const { getByText } = render(
-        <SwapsKeypad
-          value="0"
-          currency="native"
-          decimals={18}
-          onChange={mockOnChange}
-          token={mockToken}
-          tokenBalance={nonZeroBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
-      );
+      const { getByText } = renderAndOpen({
+        value: '0',
+        currency: 'native',
+        decimals: 18,
+        onChange: mockOnChange,
+        token: mockToken,
+        tokenBalance: nonZeroBalance,
+        onMaxPress: mockOnMaxPress,
+      });
 
       expect(getByText('25%')).toBeTruthy();
       expect(getByText('50%')).toBeTruthy();
@@ -438,17 +478,15 @@ describe('SwapsKeypad', () => {
     it('shows Max button when useShouldRenderMaxOption returns true', () => {
       mockUseShouldRenderMaxOption.mockReturnValue(true);
 
-      const { getByText, queryByText } = render(
-        <SwapsKeypad
-          value="0"
-          currency="native"
-          decimals={18}
-          onChange={mockOnChange}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
-      );
+      const { getByText, queryByText } = renderAndOpen({
+        value: '0',
+        currency: 'native',
+        decimals: 18,
+        onChange: mockOnChange,
+        token: mockToken,
+        tokenBalance: mockTokenBalance,
+        onMaxPress: mockOnMaxPress,
+      });
 
       expect(getByText('Max')).toBeTruthy();
       expect(queryByText('90%')).toBeNull();
@@ -462,17 +500,15 @@ describe('SwapsKeypad', () => {
     it('shows 90% button when useShouldRenderMaxOption returns false', () => {
       mockUseShouldRenderMaxOption.mockReturnValue(false);
 
-      const { getByText, queryByText } = render(
-        <SwapsKeypad
-          value="0"
-          currency="native"
-          decimals={18}
-          onChange={mockOnChange}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
-      );
+      const { getByText, queryByText } = renderAndOpen({
+        value: '0',
+        currency: 'native',
+        decimals: 18,
+        onChange: mockOnChange,
+        token: mockToken,
+        tokenBalance: mockTokenBalance,
+        onMaxPress: mockOnMaxPress,
+      });
 
       expect(getByText('90%')).toBeTruthy();
       expect(queryByText('Max')).toBeNull();
@@ -486,18 +522,16 @@ describe('SwapsKeypad', () => {
     it('passes isQuoteSponsored to useShouldRenderMaxOption', () => {
       mockUseShouldRenderMaxOption.mockReturnValue(true);
 
-      const { getByText } = render(
-        <SwapsKeypad
-          value="0"
-          currency="native"
-          decimals={18}
-          onChange={mockOnChange}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-          isQuoteSponsored
-        />,
-      );
+      const { getByText } = renderAndOpen({
+        value: '0',
+        currency: 'native',
+        decimals: 18,
+        onChange: mockOnChange,
+        token: mockToken,
+        tokenBalance: mockTokenBalance,
+        onMaxPress: mockOnMaxPress,
+        isQuoteSponsored: true,
+      });
 
       expect(getByText('Max')).toBeTruthy();
       expect(mockUseShouldRenderMaxOption).toHaveBeenCalledWith(
@@ -514,17 +548,15 @@ describe('SwapsKeypad', () => {
       };
       mockUseShouldRenderMaxOption.mockReturnValue(false);
 
-      const { queryByText } = render(
-        <SwapsKeypad
-          value="0"
-          currency="native"
-          decimals={18}
-          onChange={mockOnChange}
-          token={mockToken}
-          tokenBalance={zeroBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
-      );
+      const { queryByText } = renderAndOpen({
+        value: '0',
+        currency: 'native',
+        decimals: 18,
+        onChange: mockOnChange,
+        token: mockToken,
+        tokenBalance: zeroBalance,
+        onMaxPress: mockOnMaxPress,
+      });
 
       expect(queryByText('25%')).toBeNull();
       expect(queryByText('50%')).toBeNull();
@@ -541,17 +573,15 @@ describe('SwapsKeypad', () => {
     it('quick pick buttons calculate correct percentages with Max button', () => {
       mockUseShouldRenderMaxOption.mockReturnValue(true);
 
-      const { getByText } = render(
-        <SwapsKeypad
-          value="0"
-          currency="native"
-          decimals={18}
-          onChange={mockOnChange}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
-      );
+      const { getByText } = renderAndOpen({
+        value: '0',
+        currency: 'native',
+        decimals: 18,
+        onChange: mockOnChange,
+        token: mockToken,
+        tokenBalance: mockTokenBalance,
+        onMaxPress: mockOnMaxPress,
+      });
 
       // Test 25% button
       act(() => {
@@ -603,17 +633,15 @@ describe('SwapsKeypad', () => {
     it('quick pick buttons calculate correct percentages with 90% button', () => {
       mockUseShouldRenderMaxOption.mockReturnValue(false);
 
-      const { getByText } = render(
-        <SwapsKeypad
-          value="0"
-          currency="native"
-          decimals={18}
-          onChange={mockOnChange}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
-      );
+      const { getByText } = renderAndOpen({
+        value: '0',
+        currency: 'native',
+        decimals: 18,
+        onChange: mockOnChange,
+        token: mockToken,
+        tokenBalance: mockTokenBalance,
+        onMaxPress: mockOnMaxPress,
+      });
 
       // Test 90% button
       act(() => {
@@ -627,6 +655,237 @@ describe('SwapsKeypad', () => {
           pressedKey: Keys.Initial,
         }),
       );
+    });
+  });
+
+  describe('onQuickOptionPress defensive guard', () => {
+    it('does not call onChange when tokenBalance has no displayBalance', () => {
+      // The early return guard in onQuickOptionPress is normally unreachable
+      // because QuickPickButtons hides itself when balance is falsy.
+      // Force buttons to always render to reach this branch.
+      mockForceShowQuickPickButtons = true;
+
+      const ref = createRef<SwapsKeypadRef>();
+
+      const { getByText } = render(
+        <SwapsKeypad
+          ref={ref}
+          value="0"
+          currency="native"
+          decimals={18}
+          onChange={mockOnChange}
+          token={mockToken}
+          tokenBalance={undefined}
+          onMaxPress={mockOnMaxPress}
+        />,
+      );
+
+      act(() => {
+        ref.current?.open();
+      });
+
+      // Press a quick pick button - should trigger the early return
+      act(() => {
+        fireEvent.press(getByText('25%'));
+      });
+
+      // onChange should NOT have been called due to early return
+      expect(mockOnChange).not.toHaveBeenCalled();
+
+      mockForceShowQuickPickButtons = false;
+    });
+  });
+
+  describe('imperative handle and lifecycle', () => {
+    it('returns null before open is called', () => {
+      const ref = createRef<SwapsKeypadRef>();
+
+      const { queryByText } = render(
+        <SwapsKeypad
+          ref={ref}
+          value="0"
+          currency="native"
+          decimals={18}
+          onChange={mockOnChange}
+          token={mockToken}
+          tokenBalance={mockTokenBalance}
+          onMaxPress={mockOnMaxPress}
+        />,
+      );
+
+      // Nothing should be rendered before open()
+      expect(queryByText('1')).toBeNull();
+      expect(queryByText('25%')).toBeNull();
+    });
+
+    it('isOpen returns false before open is called', () => {
+      const ref = createRef<SwapsKeypadRef>();
+
+      render(
+        <SwapsKeypad
+          ref={ref}
+          value="0"
+          currency="native"
+          decimals={18}
+          onChange={mockOnChange}
+          token={mockToken}
+          tokenBalance={mockTokenBalance}
+          onMaxPress={mockOnMaxPress}
+        />,
+      );
+
+      expect(ref.current?.isOpen()).toBe(false);
+    });
+
+    it('isOpen returns true after open is called', () => {
+      const ref = createRef<SwapsKeypadRef>();
+
+      render(
+        <SwapsKeypad
+          ref={ref}
+          value="0"
+          currency="native"
+          decimals={18}
+          onChange={mockOnChange}
+          token={mockToken}
+          tokenBalance={mockTokenBalance}
+          onMaxPress={mockOnMaxPress}
+        />,
+      );
+
+      act(() => {
+        ref.current?.open();
+      });
+
+      expect(ref.current?.isOpen()).toBe(true);
+    });
+
+    it('does not re-open when open is called while already open', () => {
+      const ref = createRef<SwapsKeypadRef>();
+
+      const { getByText } = render(
+        <SwapsKeypad
+          ref={ref}
+          value="0"
+          currency="native"
+          decimals={18}
+          onChange={mockOnChange}
+          token={mockToken}
+          tokenBalance={mockTokenBalance}
+          onMaxPress={mockOnMaxPress}
+        />,
+      );
+
+      act(() => {
+        ref.current?.open();
+      });
+
+      expect(getByText('1')).toBeTruthy();
+
+      // Calling open again should be a no-op
+      act(() => {
+        ref.current?.open();
+      });
+
+      expect(ref.current?.isOpen()).toBe(true);
+      expect(getByText('1')).toBeTruthy();
+    });
+
+    it('close triggers bottom sheet onCloseDialog and resets state', () => {
+      const ref = createRef<SwapsKeypadRef>();
+
+      const { queryByText, getByText } = render(
+        <SwapsKeypad
+          ref={ref}
+          value="0"
+          currency="native"
+          decimals={18}
+          onChange={mockOnChange}
+          token={mockToken}
+          tokenBalance={mockTokenBalance}
+          onMaxPress={mockOnMaxPress}
+        />,
+      );
+
+      // Open the keypad
+      act(() => {
+        ref.current?.open();
+      });
+
+      expect(getByText('1')).toBeTruthy();
+      expect(ref.current?.isOpen()).toBe(true);
+
+      // Close the keypad
+      act(() => {
+        ref.current?.close();
+      });
+
+      // handleClose should have been called via the mock,
+      // resetting isRendered and isOpenRef
+      expect(ref.current?.isOpen()).toBe(false);
+      expect(queryByText('1')).toBeNull();
+    });
+
+    it('close is a no-op when keypad is not open', () => {
+      const ref = createRef<SwapsKeypadRef>();
+
+      render(
+        <SwapsKeypad
+          ref={ref}
+          value="0"
+          currency="native"
+          decimals={18}
+          onChange={mockOnChange}
+          token={mockToken}
+          tokenBalance={mockTokenBalance}
+          onMaxPress={mockOnMaxPress}
+        />,
+      );
+
+      expect(ref.current?.isOpen()).toBe(false);
+
+      // Calling close when not open should not throw
+      act(() => {
+        ref.current?.close();
+      });
+
+      expect(ref.current?.isOpen()).toBe(false);
+    });
+
+    it('can reopen after being closed', () => {
+      const ref = createRef<SwapsKeypadRef>();
+
+      const { queryByText, getByText } = render(
+        <SwapsKeypad
+          ref={ref}
+          value="0"
+          currency="native"
+          decimals={18}
+          onChange={mockOnChange}
+          token={mockToken}
+          tokenBalance={mockTokenBalance}
+          onMaxPress={mockOnMaxPress}
+        />,
+      );
+
+      // Open
+      act(() => {
+        ref.current?.open();
+      });
+      expect(getByText('1')).toBeTruthy();
+
+      // Close
+      act(() => {
+        ref.current?.close();
+      });
+      expect(queryByText('1')).toBeNull();
+
+      // Reopen
+      act(() => {
+        ref.current?.open();
+      });
+      expect(getByText('1')).toBeTruthy();
+      expect(ref.current?.isOpen()).toBe(true);
     });
   });
 });

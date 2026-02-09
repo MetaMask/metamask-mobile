@@ -700,7 +700,7 @@ describe('BridgeView', () => {
       jest.clearAllMocks();
     });
 
-    it('displays "Select amount" when no amount is entered', () => {
+    it('displays keypad when no amount is entered', () => {
       const { getByText } = renderScreen(
         BridgeView,
         {
@@ -709,10 +709,12 @@ describe('BridgeView', () => {
         { state: mockState },
       );
 
-      expect(getByText('Select amount')).toBeTruthy();
+      // Keypad is visible instead of "Select amount" text
+      expect(getByText('1')).toBeTruthy();
+      expect(getByText('5')).toBeTruthy();
     });
 
-    it('displays "Select amount" when amount is zero', () => {
+    it('displays keypad when amount is zero', () => {
       const stateWithZeroAmount = {
         ...mockState,
         bridge: {
@@ -729,7 +731,9 @@ describe('BridgeView', () => {
         { state: stateWithZeroAmount },
       );
 
-      expect(getByText('Select amount')).toBeTruthy();
+      // Keypad is visible instead of "Select amount" text
+      expect(getByText('1')).toBeTruthy();
+      expect(getByText('5')).toBeTruthy();
     });
 
     it('displays "Insufficient funds" when amount exceeds balance', () => {

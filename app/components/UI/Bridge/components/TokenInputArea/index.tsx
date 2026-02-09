@@ -131,6 +131,8 @@ export const getDisplayAmount = (
 
 export interface TokenInputAreaRef {
   blur: () => void;
+  focus: () => void;
+  isFocused: () => boolean;
 }
 
 interface TokenInputAreaProps {
@@ -202,6 +204,13 @@ export const TokenInputArea = forwardRef<
           onBlur?.();
         }
       },
+      focus: () => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+          onFocus?.();
+        }
+      },
+      isFocused: () => !!inputRef.current?.isFocused(),
     }));
 
     const navigation = useNavigation();
@@ -303,6 +312,9 @@ export const TokenInputArea = forwardRef<
                   autoFocus
                   placeholder="0"
                   testID={`${testID}-input`}
+                  onPressIn={() => {
+                    onInputPress?.();
+                  }}
                   onFocus={() => {
                     onFocus?.();
                     onInputPress?.();

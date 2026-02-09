@@ -1,9 +1,16 @@
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useMemo,
+  useCallback,
+} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import ScreenView from '../../../../Base/ScreenView';
 import {
   MAX_INPUT_LENGTH,
   TokenInputArea,
+  TokenInputAreaRef,
   TokenInputAreaType,
 } from '../../components/TokenInputArea';
 import Button, {
@@ -44,6 +51,7 @@ import {
   selectIsSelectingToken,
 } from '../../../../../core/redux/slices/bridge';
 import {
+  useFocusEffect,
   useNavigation,
   useRoute,
   type RouteProp,
@@ -89,6 +97,7 @@ import { useIsGasIncluded7702Supported } from '../../hooks/useIsGasIncluded7702S
 import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import { useRWAToken } from '../../hooks/useRWAToken.ts';
+import { SwapsKeypadRef } from '../../components/SwapsKeypad/types.ts';
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -99,19 +108,19 @@ export interface BridgeRouteParams {
 }
 
 const BridgeView = () => {
-  const [isInputFocused, setIsInputFocused] = useState(false);
   const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(true);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const isSelectingRecipient = useSelector(selectIsSelectingRecipient);
   const isSelectingToken = useSelector(selectIsSelectingToken);
 
-  const { styles } = useStyles(createStyles, {});
+  const { styles } = useStyles(createStyles);
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
   const { colors } = useTheme();
   const { submitBridgeTx } = useSubmitBridgeTx();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const keypadRef = useRef<SwapsKeypadRef>(null);
 
   // Needed to get gas fee estimates
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
@@ -144,7 +153,7 @@ const BridgeView = () => {
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
   // The ref is typed to only expose the blur method we need
-  const inputRef = useRef<{ blur: () => void }>(null);
+  const inputRef = useRef<TokenInputAreaRef>(null);
 
   const updateQuoteParams = useBridgeQuoteRequest();
 
@@ -166,6 +175,17 @@ const BridgeView = () => {
   // Initialize recipient account
   const hasInitializedRecipient = useRef(false);
   useRecipientInitialization(hasInitializedRecipient);
+
+  useFocusEffect(
+    useCallback(() => {
+      inputRef.current?.focus();
+      keypadRef.current?.open();
+      return () => {
+        inputRef.current?.blur();
+        keypadRef.current?.close();
+      };
+    }, []),
+  );
 
   useEffect(() => {
     if (route.params?.bridgeViewMode && bridgeViewMode === undefined) {
@@ -262,11 +282,11 @@ const BridgeView = () => {
   // Also hide the keypad when a new quote is loading and input field is not focused like after
   // user changing the slippage value.
   const shouldDisplayKeypad =
-    isInputFocused ||
+    inputRef.current?.isFocused() ||
     !hasValidBridgeInputs ||
     (!activeQuote && !isError && !isLoading);
-  // Hide quote whenever the keypad is displayed
-  const shouldDisplayQuoteDetails = activeQuote && !shouldDisplayKeypad;
+  // Always show quote details when there's an active quote
+  const shouldDisplayQuoteDetails = !!activeQuote;
 
   // Update quote parameters when relevant state changes
   useEffect(() => {
@@ -281,7 +301,6 @@ const BridgeView = () => {
   // Blur input when quotes have loaded
   useEffect(() => {
     if (!isLoading || activeQuote?.quote?.requestId) {
-      setIsInputFocused(false);
       if (inputRef.current) {
         inputRef.current.blur();
       }
@@ -325,13 +344,6 @@ const BridgeView = () => {
     }
   }, [sourceToken, destToken, trackEvent, createEventBuilder, bridgeViewMode]);
 
-  // Update isErrorBannerVisible when input focus changes
-  useEffect(() => {
-    if (isInputFocused) {
-      setIsErrorBannerVisible(false);
-    }
-  }, [isInputFocused]);
-
   // Reset isErrorBannerVisible when error state changes
   useEffect(() => {
     if (isError) {
@@ -351,6 +363,12 @@ const BridgeView = () => {
       return;
     }
     dispatch(setSourceAmount(value || undefined));
+  };
+
+  const onFlipButtonPress = async () => {
+    await handleSwitchTokens(destTokenAmount)();
+    inputRef.current?.focus();
+    keypadRef.current?.open();
   };
 
   const handleContinue = async () => {
@@ -408,7 +426,7 @@ const BridgeView = () => {
       !isSelectingToken &&
       !isSubmittingTx
     ) {
-      setIsInputFocused(false);
+      inputRef.current?.blur();
       // open the quote tooltip modal
       navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
@@ -433,14 +451,9 @@ const BridgeView = () => {
     : strings('bridge.error_banner_description');
 
   const renderBottomContent = (submitDisabled: boolean) => {
-    if (shouldDisplayKeypad && !isLoading) {
-      return (
-        <Box style={styles.buttonContainer}>
-          <Text color={TextColor.Alternative}>
-            {strings('bridge.select_amount')}
-          </Text>
-        </Box>
-      );
+    // When keypad is visible, it handles everything (button or quick pick + keypad)
+    if (shouldDisplayKeypad) {
+      return null;
     }
 
     if (isLoading && !activeQuote) {
@@ -461,7 +474,7 @@ const BridgeView = () => {
             description={genericErrorMessage}
             onClose={() => {
               setIsErrorBannerVisible(false);
-              setIsInputFocused(true);
+              inputRef.current?.focus();
             }}
           />
         </Box>
@@ -542,7 +555,14 @@ const BridgeView = () => {
     // Need this to be full height of screen
     // @ts-expect-error The type is incorrect, this will work
     <ScreenView contentContainerStyle={styles.screen}>
-      <Box style={styles.content}>
+      <Box
+        style={styles.content}
+        onStartShouldSetResponder={() => true}
+        onResponderRelease={() => {
+          inputRef.current?.blur();
+          keypadRef.current?.close();
+        }}
+      >
         <Box style={styles.inputsContainer}>
           <TokenInputArea
             ref={inputRef}
@@ -559,17 +579,18 @@ const BridgeView = () => {
             }
             testID={BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA}
             tokenType={TokenInputAreaType.Source}
+            onFocus={() => {
+              setIsErrorBannerVisible(false);
+            }}
+            onInputPress={() => keypadRef.current?.open()}
             onTokenPress={handleSourceTokenPress}
-            onFocus={() => setIsInputFocused(true)}
-            onBlur={() => setIsInputFocused(false)}
-            onInputPress={() => setIsInputFocused(true)}
             onMaxPress={handleSourceMaxPress}
             latestAtomicBalance={latestSourceBalance?.atomicBalance}
             isSourceToken
             isQuoteSponsored={isQuoteSponsored}
           />
           <FLipQuoteButton
-            onPress={handleSwitchTokens(destTokenAmount)}
+            onPress={onFlipButtonPress}
             disabled={
               !destChainId ||
               !destToken ||
@@ -602,25 +623,27 @@ const BridgeView = () => {
           showsVerticalScrollIndicator={false}
         >
           <Box style={styles.dynamicContent}>
-            {shouldDisplayQuoteDetails ? (
+            {shouldDisplayQuoteDetails && (
               <Box style={styles.quoteContainer}>
                 <QuoteDetailsCard />
               </Box>
-            ) : shouldDisplayKeypad ? (
-              <SwapsKeypad
-                value={sourceAmount || '0'}
-                onChange={handleKeypadChange}
-                currency={sourceToken?.symbol || 'ETH'}
-                decimals={sourceToken?.decimals || 18}
-                token={sourceToken}
-                tokenBalance={latestSourceBalance}
-                onMaxPress={handleSourceMaxPress}
-                isQuoteSponsored={isQuoteSponsored}
-              />
-            ) : null}
+            )}
           </Box>
         </ScrollView>
+
         {renderBottomContent(isSubmitDisabled)}
+
+        <SwapsKeypad
+          ref={keypadRef}
+          value={sourceAmount || '0'}
+          onChange={handleKeypadChange}
+          currency={sourceToken?.symbol || 'ETH'}
+          decimals={sourceToken?.decimals || 18}
+          token={sourceToken}
+          tokenBalance={latestSourceBalance}
+          onMaxPress={handleSourceMaxPress}
+          isQuoteSponsored={isQuoteSponsored}
+        />
       </Box>
     </ScreenView>
   );
