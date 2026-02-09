@@ -40,11 +40,6 @@ export const useSwitchTokens = () => {
   );
 
   const handleSwitchTokens = (destTokenAmount?: string) => async () => {
-    // Reset BridgeController state to prevent stale quotes
-    if (Engine.context.BridgeController?.resetState) {
-      Engine.context.BridgeController.resetState();
-    }
-
     // Switch tokens
     if (sourceToken && destToken) {
       dispatch(setSourceToken(destToken));
