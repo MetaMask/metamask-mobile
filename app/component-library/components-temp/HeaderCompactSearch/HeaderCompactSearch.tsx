@@ -14,8 +14,11 @@ import { strings } from '../../../../locales/i18n';
 
 // Internal dependencies.
 import TextFieldSearch from '../../components/Form/TextFieldSearch';
+import { TextFieldSearchProps } from '../../components/Form/TextFieldSearch/TextFieldSearch.types';
 import {
+  HeaderCompactSearchInlineProps,
   HeaderCompactSearchProps,
+  HeaderCompactSearchScreenProps,
   HeaderCompactSearchVariant,
 } from './HeaderCompactSearch.types';
 
@@ -55,13 +58,24 @@ const HeaderCompactSearch: React.FC<HeaderCompactSearchProps> = (props) => {
   const baseTwClassName = 'h-14 flex-row items-center';
 
   if (variant === HeaderCompactSearchVariant.Screen) {
-    const { onPressBackButton, backButtonProps } = props;
+    const { onPressBackButton, backButtonProps } =
+      props as HeaderCompactSearchScreenProps;
+    const screenBoxProps = boxProps as Omit<
+      HeaderCompactSearchScreenProps,
+      | 'variant'
+      | 'textFieldSearchProps'
+      | 'twClassName'
+      | 'onPressBackButton'
+      | 'backButtonProps'
+      | 'onPressCancelButton'
+      | 'cancelButtonProps'
+    >;
     const screenTwClassName = twClassName
       ? `${baseTwClassName} ml-1 mr-4 gap-2 ${twClassName}`
       : `${baseTwClassName} ml-1 mr-4 gap-2`;
 
     return (
-      <Box twClassName={screenTwClassName} {...boxProps}>
+      <Box twClassName={screenTwClassName} {...screenBoxProps}>
         <ButtonIcon
           iconName={IconName.ArrowLeft}
           size={ButtonIconSize.Md}
@@ -69,22 +83,35 @@ const HeaderCompactSearch: React.FC<HeaderCompactSearchProps> = (props) => {
           {...backButtonProps}
         />
         <Box twClassName="flex-1">
-          <TextFieldSearch {...textFieldSearchProps} />
+          <TextFieldSearch
+            {...(textFieldSearchProps as TextFieldSearchProps)}
+          />
         </Box>
       </Box>
     );
   }
 
   // Inline variant
-  const { onPressCancelButton, cancelButtonProps } = props;
+  const { onPressCancelButton, cancelButtonProps } =
+    props as HeaderCompactSearchInlineProps;
+  const inlineBoxProps = boxProps as Omit<
+    HeaderCompactSearchInlineProps,
+    | 'variant'
+    | 'textFieldSearchProps'
+    | 'twClassName'
+    | 'onPressCancelButton'
+    | 'cancelButtonProps'
+    | 'onPressBackButton'
+    | 'backButtonProps'
+  >;
   const inlineTwClassName = twClassName
     ? `${baseTwClassName} ml-4 ${twClassName}`
     : `${baseTwClassName} ml-4`;
 
   return (
-    <Box twClassName={inlineTwClassName} {...boxProps}>
+    <Box twClassName={inlineTwClassName} {...inlineBoxProps}>
       <Box twClassName="flex-1">
-        <TextFieldSearch {...textFieldSearchProps} />
+        <TextFieldSearch {...(textFieldSearchProps as TextFieldSearchProps)} />
       </Box>
       <Button
         variant={ButtonVariant.Tertiary}

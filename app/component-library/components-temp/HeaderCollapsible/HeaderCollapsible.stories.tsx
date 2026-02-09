@@ -108,28 +108,6 @@ export const Default = {
   ),
 };
 
-export const OnBack = {
-  render: () => (
-    <ScrollableStoryContainer>
-      {({ scrollYValue, setExpandedHeight }) => (
-        <HeaderCollapsible
-          title="Send"
-          onBack={() => console.log('Back pressed')}
-          expandedContent={
-            <TitleStandard
-              topLabel="Send"
-              title="$4.42"
-              twClassName="px-4 pt-1 pb-3 "
-            />
-          }
-          scrollY={scrollYValue}
-          onExpandedHeightChange={setExpandedHeight}
-        />
-      )}
-    </ScrollableStoryContainer>
-  ),
-};
-
 export const WithBottomLabel = {
   render: () => (
     <ScrollableStoryContainer>
