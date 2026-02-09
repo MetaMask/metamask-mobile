@@ -11,6 +11,7 @@ import {
   buildPoolSymbolMap,
 } from '../../utils/myxAdapter';
 import { WebSocketConnectionState } from '../../services/HyperLiquidClientService';
+import { CandlePeriod } from '../../constants/chartConfig';
 
 // ============================================================================
 // Mocks
@@ -797,14 +798,14 @@ describe('MYXProvider', () => {
 
       const unsub = provider.subscribeToCandles({
         symbol: 'RHEA',
-        interval: '1h',
+        interval: CandlePeriod.OneHour,
         callback,
       });
       jest.advanceTimersByTime(1);
 
       expect(callback).toHaveBeenCalledWith({
         symbol: 'RHEA',
-        interval: '1h',
+        interval: CandlePeriod.OneHour,
         candles: [],
       });
       expect(typeof unsub).toBe('function');

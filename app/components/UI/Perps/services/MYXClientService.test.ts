@@ -1,4 +1,3 @@
-import { MyxClient } from '@myx-trade/sdk';
 import { MYXClientService } from './MYXClientService';
 import type { PerpsPlatformDependencies } from '../controllers/types';
 import type { MYXPoolSymbol, MYXTicker } from '../types/myx-types';
@@ -6,10 +5,23 @@ import { createMockInfrastructure } from '../__mocks__/serviceMocks';
 import { MYX_PRICE_POLLING_INTERVAL_MS } from '../constants/myxConfig';
 
 // ============================================================================
-// Mock @myx-trade/sdk — auto-mock, then configure in beforeEach
+// Mock @myx-trade/sdk
+// Uses the same pattern as HyperLiquidClientService.test.ts:
+// 'mock'-prefixed variables at module level are hoisted by Jest's babel plugin
+// and can be referenced inside jest.mock() factories.
 // ============================================================================
 
-jest.mock('@myx-trade/sdk');
+const mockGetPoolSymbolAll = jest.fn().mockResolvedValue([]);
+const mockGetTickerList = jest.fn().mockResolvedValue([]);
+
+jest.mock('@myx-trade/sdk', () => ({
+  MyxClient: jest.fn(() => ({
+    markets: {
+      getPoolSymbolAll: mockGetPoolSymbolAll,
+      getTickerList: mockGetTickerList,
+    },
+  })),
+}));
 
 // ============================================================================
 // Test Fixtures
@@ -51,24 +63,13 @@ function makeTicker(overrides: Partial<MYXTicker> = {}): MYXTicker {
 describe('MYXClientService', () => {
   let service: MYXClientService;
   let mockDeps: jest.Mocked<PerpsPlatformDependencies>;
-  let mockGetPoolSymbolAll: jest.Mock;
-  let mockGetTickerList: jest.Mock;
 
   beforeEach(() => {
     jest.useFakeTimers();
+    // clearAllMocks resets call counts/results but preserves implementations.
+    // Do NOT use resetAllMocks — it strips mockImplementation from MyxClient,
+    // causing all subsequent `new MyxClient()` calls to return empty objects.
     jest.clearAllMocks();
-
-    // Create fresh mock functions each test
-    mockGetPoolSymbolAll = jest.fn();
-    mockGetTickerList = jest.fn();
-
-    // Configure the MyxClient constructor to return our mock instance
-    (MyxClient as jest.Mock).mockImplementation(() => ({
-      markets: {
-        getPoolSymbolAll: mockGetPoolSymbolAll,
-        getTickerList: mockGetTickerList,
-      },
-    }));
 
     mockDeps = createMockInfrastructure();
     service = new MYXClientService(mockDeps, { isTestnet: true });
@@ -77,7 +78,6 @@ describe('MYXClientService', () => {
   afterEach(() => {
     service.disconnect();
     jest.useRealTimers();
-    jest.resetAllMocks();
   });
 
   // ==========================================================================
