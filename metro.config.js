@@ -72,6 +72,19 @@ module.exports = function (baseConfig) {
         resolverMainFields: ['sbmodern', 'react-native', 'browser', 'main'],
         extraNodeModules: {
           ...defaultConfig.resolver.extraNodeModules,
+          // Preview package aliases for enum migration testing
+          '@metamask-previews/design-tokens': path.resolve(
+            __dirname,
+            'node_modules/@metamask/design-tokens',
+          ),
+          '@metamask-previews/design-system-twrnc-preset': path.resolve(
+            __dirname,
+            'node_modules/@metamask/design-system-twrnc-preset',
+          ),
+          '@metamask-previews/design-system-react-native': path.resolve(
+            __dirname,
+            'node_modules/@metamask/design-system-react-native',
+          ),
           'node:crypto': require.resolve('react-native-crypto'),
           crypto: require.resolve('react-native-crypto'),
           stream: require.resolve('stream-browserify'),
