@@ -26,6 +26,8 @@ import { formatCurrency } from '../../utils/formatCurrency';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import { useRampsController } from '../../hooks/useRampsController';
 import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
+import useRampAccountAddress from '../../hooks/useRampAccountAddress';
+import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { createPaymentSelectionModalNavigationDetails } from '../PaymentSelectionModal';
 
 interface BuildQuoteParams {
@@ -35,16 +37,24 @@ interface BuildQuoteParams {
 export const createBuildQuoteNavDetails =
   createNavigationDetails<BuildQuoteParams>(Routes.RAMP.AMOUNT_INPUT);
 
+const DEFAULT_AMOUNT = 100;
+
 function BuildQuote() {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
-  const [amount, setAmount] = useState<string>('0');
-  const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
+
+  const [amount, setAmount] = useState<string>(() => String(DEFAULT_AMOUNT));
+  const [amountAsNumber, setAmountAsNumber] = useState<number>(DEFAULT_AMOUNT);
+  const [userHasEnteredAmount, setUserHasEnteredAmount] = useState(false);
 
   const {
     userRegion,
     selectedProvider,
     selectedToken,
+    selectedQuote,
+    quotesLoading,
+    startQuotePolling,
+    stopQuotePolling,
     paymentMethodsLoading,
     selectedPaymentMethod,
   } = useRampsController();
@@ -52,15 +62,28 @@ function BuildQuote() {
   const currency = userRegion?.country?.currency || 'USD';
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
 
+  useEffect(() => {
+    if (!userHasEnteredAmount && userRegion?.country?.defaultAmount != null) {
+      const regionDefault = userRegion.country.defaultAmount;
+      setAmount(String(regionDefault));
+      setAmountAsNumber(regionDefault);
+      setUserHasEnteredAmount(true);
+    }
+  }, [userRegion?.country?.defaultAmount, userHasEnteredAmount]);
+
   const getTokenNetworkInfo = useTokenNetworkInfo();
 
-  // Get network info for the selected token
+  const walletAddress = useRampAccountAddress(
+    selectedToken?.chainId as CaipChainId,
+  );
+
+  const debouncedPollingAmount = useDebouncedValue(amountAsNumber, 500);
+
   const networkInfo = useMemo(() => {
     if (!selectedToken) return null;
     return getTokenNetworkInfo(selectedToken.chainId as CaipChainId);
   }, [selectedToken, getTokenNetworkInfo]);
 
-  // Update navigation options - shows skeleton when data is loading
   useEffect(() => {
     navigation.setOptions(
       getRampsBuildQuoteNavbarOptions(navigation, {
@@ -80,6 +103,7 @@ function BuildQuote() {
     ({ value, valueAsNumber }: KeypadChangeData) => {
       setAmount(value || '0');
       setAmountAsNumber(valueAsNumber || 0);
+      setUserHasEnteredAmount(true);
     },
     [],
   );
@@ -87,13 +111,46 @@ function BuildQuote() {
   const handleQuickAmountPress = useCallback((quickAmount: number) => {
     setAmount(String(quickAmount));
     setAmountAsNumber(quickAmount);
+    setUserHasEnteredAmount(true);
   }, []);
+
+  useEffect(() => {
+    if (
+      !walletAddress ||
+      !selectedPaymentMethod ||
+      debouncedPollingAmount <= 0
+    ) {
+      stopQuotePolling();
+      return;
+    }
+
+    startQuotePolling({
+      walletAddress,
+      amount: debouncedPollingAmount,
+    });
+
+    return () => {
+      stopQuotePolling();
+    };
+  }, [
+    walletAddress,
+    selectedPaymentMethod,
+    debouncedPollingAmount,
+    startQuotePolling,
+    stopQuotePolling,
+  ]);
 
   const handleContinuePress = useCallback(() => {
     // TODO: Navigate to next screen with amount
   }, []);
 
   const hasAmount = amountAsNumber > 0;
+
+  const quoteMatchesAmount =
+    debouncedPollingAmount === amountAsNumber && debouncedPollingAmount > 0;
+
+  const canContinue =
+    hasAmount && !quotesLoading && selectedQuote !== null && quoteMatchesAmount;
 
   return (
     <ScreenLayout>
@@ -140,6 +197,8 @@ function BuildQuote() {
                 size={ButtonSize.Lg}
                 onPress={handleContinuePress}
                 isFullWidth
+                isDisabled={!canContinue}
+                isLoading={quotesLoading}
                 testID="build-quote-continue-button"
               >
                 {strings('fiat_on_ramp.continue')}
