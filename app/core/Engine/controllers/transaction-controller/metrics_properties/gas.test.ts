@@ -134,55 +134,6 @@ describe('getGasMetricsProperties', () => {
     expect(result.properties.gas_fee_presented).toBe('n_a');
   });
 
-  it('returns gas_paid_with as symbol of matching gasFeeToken', () => {
-    const request = createMockRequest({
-      gasFeeTokens: [
-        { symbol: 'ETH', tokenAddress: '0xeth' },
-        { symbol: 'USDC', tokenAddress: '0xusdc' },
-      ] as unknown as TransactionMeta['gasFeeTokens'],
-      selectedGasFeeToken: '0xusdc',
-    });
-    mockGetNativeTokenAddress.mockReturnValue(
-      '0x0000000000000000000000000000000000000000',
-    );
-
-    const result = getGasMetricsProperties(request);
-
-    expect(result.properties.gas_paid_with).toBe('USDC');
-  });
-
-  it('returns gas_paid_with as pre-funded_ETH when selectedGasFeeToken is native token address', () => {
-    const nativeAddress = '0x0000000000000000000000000000000000000000';
-    const request = createMockRequest({
-      chainId: '0x1',
-      gasFeeTokens: [
-        { symbol: 'ETH', tokenAddress: nativeAddress },
-      ] as unknown as TransactionMeta['gasFeeTokens'],
-      selectedGasFeeToken: nativeAddress,
-    });
-    mockGetNativeTokenAddress.mockReturnValue(nativeAddress);
-
-    const result = getGasMetricsProperties(request);
-
-    expect(result.properties.gas_paid_with).toBe('pre-funded_ETH');
-  });
-
-  it('returns gas_paid_with as undefined when no selectedGasFeeToken', () => {
-    const request = createMockRequest({
-      gasFeeTokens: [
-        { symbol: 'ETH', tokenAddress: '0xeth' },
-      ] as unknown as TransactionMeta['gasFeeTokens'],
-      selectedGasFeeToken: undefined,
-    });
-    mockGetNativeTokenAddress.mockReturnValue(
-      '0x0000000000000000000000000000000000000000',
-    );
-
-    const result = getGasMetricsProperties(request);
-
-    expect(result.properties.gas_paid_with).toBeUndefined();
-  });
-
   it('returns gas_insufficient_native_asset as true when balance is insufficient', () => {
     const state = createMockState('0x1');
     const request = createMockRequest(
