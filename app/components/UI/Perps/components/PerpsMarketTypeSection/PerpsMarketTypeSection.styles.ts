@@ -13,6 +13,9 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 4,
       backgroundColor: theme.colors.background.muted,
     },
+    marketListContentContainer: {
+      paddingBottom: 0,
+    },
   });
 };
 
