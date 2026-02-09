@@ -592,10 +592,6 @@ const PredictFeed: React.FC = () => {
   const headerRef = useRef<View>(null);
   const tabBarRef = useRef<View>(null);
 
-  // Capture the initial tab key at mount to avoid re-triggering the analytics
-  // session when tabs array changes due to async feature flag loading
-  const initialTabKeyRef = useRef(tabs[0].key);
-
   const {
     isSearchVisible,
     searchQuery,
