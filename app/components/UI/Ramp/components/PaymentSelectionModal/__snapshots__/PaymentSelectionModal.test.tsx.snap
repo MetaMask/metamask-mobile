@@ -2215,7 +2215,7 @@ exports[`PaymentSelectionModal matches snapshot when no payment methods are avai
                                           {
                                             "alignItems": "center",
                                             "backgroundColor": "transparent",
-                                            "borderRadius": 2,
+                                            "borderRadius": 8,
                                             "height": 32,
                                             "justifyContent": "center",
                                             "opacity": 1,
@@ -2233,8 +2233,8 @@ exports[`PaymentSelectionModal matches snapshot when no payment methods are avai
                                           [
                                             {
                                               "color": "#121314",
-                                              "height": 20,
-                                              "width": 20,
+                                              "height": 24,
+                                              "width": 24,
                                             },
                                             undefined,
                                           ]
@@ -4777,7 +4777,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           {
                                             "alignItems": "center",
                                             "backgroundColor": "transparent",
-                                            "borderRadius": 2,
+                                            "borderRadius": 8,
                                             "height": 32,
                                             "justifyContent": "center",
                                             "opacity": 1,
@@ -4795,8 +4795,8 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           [
                                             {
                                               "color": "#121314",
-                                              "height": 20,
-                                              "width": 20,
+                                              "height": 24,
+                                              "width": 24,
                                             },
                                             undefined,
                                           ]
@@ -5546,7 +5546,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods fail to loa
                                           {
                                             "alignItems": "center",
                                             "backgroundColor": "transparent",
-                                            "borderRadius": 2,
+                                            "borderRadius": 8,
                                             "height": 32,
                                             "justifyContent": "center",
                                             "opacity": 1,
@@ -5564,8 +5564,8 @@ exports[`PaymentSelectionModal matches snapshot when payment methods fail to loa
                                           [
                                             {
                                               "color": "#121314",
-                                              "height": 20,
-                                              "width": 20,
+                                              "height": 24,
+                                              "width": 24,
                                             },
                                             undefined,
                                           ]
