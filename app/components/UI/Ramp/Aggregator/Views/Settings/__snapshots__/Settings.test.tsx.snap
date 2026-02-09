@@ -168,7 +168,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 40,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -188,8 +188,8 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 32,
+                          "width": 32,
                         },
                         undefined,
                       ]
@@ -1385,7 +1385,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 40,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -1405,8 +1405,8 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 32,
+                          "width": 32,
                         },
                         undefined,
                       ]
@@ -2160,7 +2160,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 40,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -2180,8 +2180,8 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 32,
+                          "width": 32,
                         },
                         undefined,
                       ]
@@ -2766,7 +2766,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 40,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -2786,8 +2786,8 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 32,
+                          "width": 32,
                         },
                         undefined,
                       ]
@@ -3410,7 +3410,7 @@ exports[`Settings Region V2 enabled renders correctly when region has state 1`] 
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 40,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -3430,8 +3430,8 @@ exports[`Settings Region V2 enabled renders correctly when region has state 1`] 
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 32,
+                          "width": 32,
                         },
                         undefined,
                       ]
@@ -4052,7 +4052,7 @@ exports[`Settings Region V2 enabled renders correctly when region is country onl
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 40,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -4072,8 +4072,8 @@ exports[`Settings Region V2 enabled renders correctly when region is country onl
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 32,
+                          "width": 32,
                         },
                         undefined,
                       ]
@@ -4694,7 +4694,7 @@ exports[`Settings Region V2 enabled renders correctly when region is not set 1`]
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 40,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -4714,8 +4714,8 @@ exports[`Settings Region V2 enabled renders correctly when region is not set 1`]
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 32,
+                          "width": 32,
                         },
                         undefined,
                       ]
@@ -5336,7 +5336,7 @@ exports[`Settings Region V2 enabled renders correctly when region is set 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 40,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -5356,8 +5356,8 @@ exports[`Settings Region V2 enabled renders correctly when region is set 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 32,
+                          "width": 32,
                         },
                         undefined,
                       ]
@@ -5978,7 +5978,7 @@ exports[`Settings renders correctly 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 40,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -5998,8 +5998,8 @@ exports[`Settings renders correctly 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 32,
+                          "width": 32,
                         },
                         undefined,
                       ]
@@ -6620,7 +6620,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 40,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -6640,8 +6640,8 @@ exports[`Settings renders correctly for internal builds 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 32,
+                          "width": 32,
                         },
                         undefined,
                       ]

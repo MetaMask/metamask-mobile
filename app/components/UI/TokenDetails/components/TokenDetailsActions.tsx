@@ -44,6 +44,8 @@ export interface TokenDetailsActionsProps {
   onSend: () => void;
   onReceive: () => void;
   isLoading?: boolean;
+  /** Optional ref to receive a callback that resets the navigation lock. Used when Long/Short show a modal instead of navigating (e.g. geo block). */
+  resetNavigationLockRef?: React.MutableRefObject<(() => void) | null>;
 }
 
 /**
@@ -81,6 +83,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
   onSend,
   onReceive,
   isLoading = false,
+  resetNavigationLockRef,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const canSignTransactions = useSelector(selectCanSignTransactions);
@@ -89,6 +92,19 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
 
   // Prevent rapid navigation clicks - locks all buttons during navigation
   const navigationLockRef = useRef(false);
+
+  // Expose reset so parent can unlock when a non-navigating action ends (e.g. geo block modal dismissed)
+  const resetLock = useCallback(() => {
+    navigationLockRef.current = false;
+  }, []);
+  useEffect(() => {
+    if (resetNavigationLockRef) {
+      resetNavigationLockRef.current = resetLock;
+      return () => {
+        resetNavigationLockRef.current = null;
+      };
+    }
+  }, [resetNavigationLockRef, resetLock]);
 
   // Reset lock when screen comes into focus (handles return from navigation)
   useFocusEffect(
