@@ -532,25 +532,28 @@ describe('bridge slice', () => {
     });
 
     it('returns false when bridge is not enabled as source for the chain', () => {
-      const mockState = cloneDeep(mockRootState) as unknown as RootState;
-      // @ts-expect-error - Mock state has correct structure at runtime
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2!.chains[
-        'eip155:1'
-      ].isActiveSrc = false;
+      const mockState = cloneDeep(mockRootState);
+      // Remove chain from chainRanking to disable it (chainRanking presence = enabled)
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking =
+        mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking.filter(
+          (chain) => chain.chainId !== 'eip155:1',
+        );
 
-      const result = selectIsBridgeEnabledSource(mockState, '0x1');
+      const result = selectIsBridgeEnabledSource(
+        mockState as unknown as RootState,
+        '0x1',
+      );
 
       expect(result).toBe(false);
     });
 
-    it('returns undefined when chain is not in bridge config', () => {
+    it('returns false when chain is not in bridge config', () => {
       const result = selectIsBridgeEnabledSource(
         mockRootState as unknown as RootState,
         '0x999' as Hex,
       );
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(false);
     });
   });
 
@@ -802,19 +805,25 @@ describe('bridge slice', () => {
     });
 
     it('returns false when bridge is disabled for both source and destination', () => {
-      const mockState = cloneDeep(mockRootState) as unknown as RootState;
+      const mockState = cloneDeep(mockRootState);
+      // Remove chain from chainRanking to disable source (chainRanking presence = enabled)
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking =
+        mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking.filter(
+          (chain) => chain.chainId !== 'eip155:1',
+        );
+      // Disable destination via chains config
       // @ts-expect-error - Mock state has correct structure at runtime
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2!.chains[
-        'eip155:1'
-      ].isActiveSrc = false;
-      // @ts-expect-error - Mock state has correct structure at runtime
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2!.chains[
+      (
+        mockState as any
+      ).engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2!.chains[
         'eip155:1'
       ].isActiveDest = false;
 
-      const result = selectIsSwapsLive(mockState, '0x1');
+      const result = selectIsSwapsLive(
+        mockState as unknown as RootState,
+        '0x1',
+      );
 
       expect(result).toBe(false);
     });
@@ -828,13 +837,25 @@ describe('bridge slice', () => {
       expect(result).toBeUndefined();
     });
 
-    it('returns false when support flag is disabled', () => {
-      const mockState = cloneDeep(mockRootState) as unknown as RootState;
+    it('returns false when support flag is disabled and source is not in chainRanking', () => {
+      const mockState = cloneDeep(mockRootState);
+      // Remove chain from chainRanking to disable source
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking =
+        mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking.filter(
+          (chain) => chain.chainId !== 'eip155:1',
+        );
+      // Disable destination via support flag
       // @ts-expect-error - Mock state has correct structure at runtime
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2!.support = false;
+      (
+        mockState as any
+      ).engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2!.support =
+        false;
 
-      const result = selectIsSwapsLive(mockState, '0x1');
+      const result = selectIsSwapsLive(
+        mockState as unknown as RootState,
+        '0x1',
+      );
 
       expect(result).toBe(false);
     });
