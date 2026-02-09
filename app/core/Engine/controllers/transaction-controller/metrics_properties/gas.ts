@@ -28,10 +28,12 @@ export function getGasMetricsProperties({
 
   const { from } = txParams ?? {};
 
-  let presentedGasFeeOption: string = GasFeeEstimateLevel.Medium;
+  let presentedGasFeeOption: string = 'n_a';
 
   if (dappSuggestedGasFees) {
     presentedGasFeeOption = 'dapp_proposed';
+  } else if (gasFeeEstimatesLoaded) {
+    presentedGasFeeOption = GasFeeEstimateLevel.Medium;
   }
 
   const gas_payment_tokens_available = gasFeeTokens?.map(

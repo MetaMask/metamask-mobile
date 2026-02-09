@@ -1,12 +1,18 @@
-import {
-  TransactionMeta,
-  GasFeeEstimateType,
-} from '@metamask/transaction-controller';
+import { TransactionMeta } from '@metamask/transaction-controller';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 
 import { getGasMetricsProperties } from './gas';
 import { TransactionMetricsBuilderRequest } from '../types';
 import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
 import { RootState } from '../../../../../reducers';
+
+jest.mock('@metamask/assets-controllers', () => ({
+  getNativeTokenAddress: jest.fn(),
+}));
+
+const mockGetNativeTokenAddress = getNativeTokenAddress as jest.MockedFunction<
+  typeof getNativeTokenAddress
+>;
 
 const createMockState = (
   balance: string = '0x100000000000000000',
@@ -47,6 +53,13 @@ const createMockRequest = (
 });
 
 describe('getGasMetricsProperties', () => {
+  beforeEach(() => {
+    jest.resetAllMocks();
+    mockGetNativeTokenAddress.mockReturnValue(
+      '0x0000000000000000000000000000000000000000',
+    );
+  });
+
   it('returns gas_estimation_failed as true when gasFeeEstimatesLoaded is false', () => {
     const request = createMockRequest({ gasFeeEstimatesLoaded: false });
 
@@ -63,35 +76,17 @@ describe('getGasMetricsProperties', () => {
     expect(result.properties.gas_estimation_failed).toBe(false);
   });
 
-  it('includes low/medium/high options for FeeMarket estimate type', () => {
+  it('returns medium as gas_fee_presented when gasFeeEstimatesLoaded is true and no dapp suggested fees', () => {
     const request = createMockRequest({
       gasFeeEstimatesLoaded: true,
-      gasFeeEstimates: {
-        type: GasFeeEstimateType.FeeMarket,
-      } as TransactionMeta['gasFeeEstimates'],
     });
 
     const result = getGasMetricsProperties(request);
 
-    expect(result.properties.gas_fee_presented).toContain('low');
-    expect(result.properties.gas_fee_presented).toContain('medium');
-    expect(result.properties.gas_fee_presented).toContain('high');
+    expect(result.properties.gas_fee_presented).toBe('medium');
   });
 
-  it('includes network_proposed for GasPrice estimate type', () => {
-    const request = createMockRequest({
-      gasFeeEstimatesLoaded: true,
-      gasFeeEstimates: {
-        type: GasFeeEstimateType.GasPrice,
-      } as TransactionMeta['gasFeeEstimates'],
-    });
-
-    const result = getGasMetricsProperties(request);
-
-    expect(result.properties.gas_fee_presented).toContain('network_proposed');
-  });
-
-  it('includes dapp_proposed when dappSuggestedGasFees exists', () => {
+  it('returns dapp_proposed as gas_fee_presented when dappSuggestedGasFees exists', () => {
     const request = createMockRequest({
       gasFeeEstimatesLoaded: true,
       dappSuggestedGasFees: {
@@ -101,7 +96,7 @@ describe('getGasMetricsProperties', () => {
 
     const result = getGasMetricsProperties(request);
 
-    expect(result.properties.gas_fee_presented).toContain('dapp_proposed');
+    expect(result.properties.gas_fee_presented).toBe('dapp_proposed');
   });
 
   it('returns gas_fee_selected from userFeeLevel', () => {
@@ -126,6 +121,66 @@ describe('getGasMetricsProperties', () => {
       'ETH',
       'USDC',
     ]);
+  });
+
+  it('returns n_a as gas_fee_presented when no dapp suggested fees and estimates not loaded', () => {
+    const request = createMockRequest({
+      gasFeeEstimatesLoaded: false,
+      dappSuggestedGasFees: undefined,
+    });
+
+    const result = getGasMetricsProperties(request);
+
+    expect(result.properties.gas_fee_presented).toBe('n_a');
+  });
+
+  it('returns gas_paid_with as symbol of matching gasFeeToken', () => {
+    const request = createMockRequest({
+      gasFeeTokens: [
+        { symbol: 'ETH', tokenAddress: '0xeth' },
+        { symbol: 'USDC', tokenAddress: '0xusdc' },
+      ] as unknown as TransactionMeta['gasFeeTokens'],
+      selectedGasFeeToken: '0xusdc',
+    });
+    mockGetNativeTokenAddress.mockReturnValue(
+      '0x0000000000000000000000000000000000000000',
+    );
+
+    const result = getGasMetricsProperties(request);
+
+    expect(result.properties.gas_paid_with).toBe('USDC');
+  });
+
+  it('returns gas_paid_with as pre-funded_ETH when selectedGasFeeToken is native token address', () => {
+    const nativeAddress = '0x0000000000000000000000000000000000000000';
+    const request = createMockRequest({
+      chainId: '0x1',
+      gasFeeTokens: [
+        { symbol: 'ETH', tokenAddress: nativeAddress },
+      ] as unknown as TransactionMeta['gasFeeTokens'],
+      selectedGasFeeToken: nativeAddress,
+    });
+    mockGetNativeTokenAddress.mockReturnValue(nativeAddress);
+
+    const result = getGasMetricsProperties(request);
+
+    expect(result.properties.gas_paid_with).toBe('pre-funded_ETH');
+  });
+
+  it('returns gas_paid_with as undefined when no selectedGasFeeToken', () => {
+    const request = createMockRequest({
+      gasFeeTokens: [
+        { symbol: 'ETH', tokenAddress: '0xeth' },
+      ] as unknown as TransactionMeta['gasFeeTokens'],
+      selectedGasFeeToken: undefined,
+    });
+    mockGetNativeTokenAddress.mockReturnValue(
+      '0x0000000000000000000000000000000000000000',
+    );
+
+    const result = getGasMetricsProperties(request);
+
+    expect(result.properties.gas_paid_with).toBeUndefined();
   });
 
   it('returns gas_insufficient_native_asset as true when balance is insufficient', () => {
