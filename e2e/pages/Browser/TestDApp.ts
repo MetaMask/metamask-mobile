@@ -4,7 +4,7 @@ import Gestures from '../../../tests/framework/Gestures';
 import Matchers from '../../../tests/framework/Matchers';
 import { getTestDappLocalUrl } from '../../../tests/framework/fixtures/FixtureUtils';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
-import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors';
+import { TestDappSelectorsWebIDs } from '../../../tests/selectors/Browser/TestDapp.selectors';
 import Browser from '../Browser/BrowserView';
 import { Assertions, TapOptions, Utilities } from '../../../tests/framework';
 

@@ -654,6 +654,11 @@ class AuthenticationService {
           } else if (await this.checkIsSeedlessPasswordOutdated(false)) {
             // If seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
             await this.syncPasswordAndUnlockWallet(passwordToUse);
+            // try to enable biometric/passcode as default
+            authPreference = await this.componentAuthenticationType(
+              true,
+              false,
+            );
           }
 
           // Unlock keyrings.
