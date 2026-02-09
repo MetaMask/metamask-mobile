@@ -6,7 +6,6 @@ import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sd
 import { withIdentityFixtures } from '../utils/withIdentityFixtures';
 import { arrangeTestUtils } from '../utils/helpers';
 import { UserStorageMockttpController } from '../utils/user-storage/userStorageMockttpController';
-import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
 import SettingsView from '../../../../e2e/pages/Settings/SettingsView';
 import BackupAndSyncView from '../../../../e2e/pages/Settings/BackupAndSyncView';
 import { createUserStorageController } from '../utils/mocks';
@@ -44,9 +43,11 @@ describe(SmokeIdentity('Contacts syncing - Settings'), () => {
 
         // First fixture: Create a contact with sync enabled
         await WalletView.tapHamburgerMenu();
-        await Assertions.expectElementToBeVisible(AccountMenu.settingsButton);
-        await SettingsView.tapContacts();
+        await Assertions.expectElementToBeVisible(AccountMenu.contactsButton);
+
+        await AccountMenu.tapContacts();
         await Assertions.expectElementToBeVisible(ContactsView.container);
+
         await ContactsView.tapAddContactButton();
         await Assertions.expectElementToBeVisible(AddContactView.container);
 
@@ -81,18 +82,27 @@ describe(SmokeIdentity('Contacts syncing - Settings'), () => {
         await loginToApp();
 
         // Second fixture: Verify first contact exists and disable sync
-        await TabBarComponent.tapSettings();
-        await Assertions.expectElementToBeVisible(
-          SettingsView.contactsSettingsButton,
-        );
-        await SettingsView.tapContacts();
+        // await TabBarComponent.tapSettings();
+        await WalletView.tapHamburgerMenu();
+        await Assertions.expectElementToBeVisible(AccountMenu.contactsButton);
+
+        await AccountMenu.tapContacts();
         await Assertions.expectElementToBeVisible(ContactsView.container);
+
         await ContactsView.expectContactIsVisible(TEST_CONTACT_NAME);
+
         await CommonView.tapBackButton();
-        await SettingsView.tapBackButton();
+        await Assertions.expectElementToBeVisible(AccountMenu.backButton);
+        await Assertions.expectElementToBeVisible(AccountMenu.container);
+
+        await AccountMenu.tapBack();
 
         // Disable contact syncing
-        await TabBarComponent.tapSettings();
+        await WalletView.tapHamburgerMenu();
+        await Assertions.expectElementToBeVisible(AccountMenu.settingsButton);
+
+        await AccountMenu.tapSettings();
+
         await Assertions.expectElementToBeVisible(
           SettingsView.backupAndSyncSectionButton,
         );
@@ -111,13 +121,14 @@ describe(SmokeIdentity('Contacts syncing - Settings'), () => {
 
         await CommonView.tapBackButton();
         await SettingsView.tapBackButton();
+        await AccountMenu.tapBack();
 
+        // TODO: You're here
         // Add second contact while sync is disabled
-        await TabBarComponent.tapSettings();
-        await Assertions.expectElementToBeVisible(
-          SettingsView.contactsSettingsButton,
-        );
-        await SettingsView.tapContacts();
+        await WalletView.tapHamburgerMenu();
+        await Assertions.expectElementToBeVisible(AccountMenu.contactsButton);
+        await AccountMenu.tapContacts();
+
         await Assertions.expectElementToBeVisible(ContactsView.container);
         await ContactsView.tapAddContactButton();
         await Assertions.expectElementToBeVisible(AddContactView.container);
@@ -141,11 +152,9 @@ describe(SmokeIdentity('Contacts syncing - Settings'), () => {
         await loginToApp();
 
         // Third fixture: Verify only synced contact persists after fresh login
-        await TabBarComponent.tapSettings();
-        await Assertions.expectElementToBeVisible(
-          SettingsView.contactsSettingsButton,
-        );
-        await SettingsView.tapContacts();
+        await WalletView.tapHamburgerMenu();
+        await Assertions.expectElementToBeVisible(AccountMenu.contactsButton);
+        await AccountMenu.tapContacts();
         await Assertions.expectElementToBeVisible(ContactsView.container);
         // Contact added with sync enabled should be visible
         await ContactsView.expectContactIsVisible(TEST_CONTACT_NAME);
