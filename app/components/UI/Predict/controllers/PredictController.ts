@@ -240,6 +240,9 @@ export interface PredictControllerTransactionStatusChangedEvent {
   ];
 }
 
+export type PredictTransactionStatusChangedPayload =
+  PredictControllerTransactionStatusChangedEvent['payload'][0];
+
 export type PredictControllerEvents =
   | ControllerStateChangeEvent<'PredictController', PredictControllerState>
   | PredictControllerTransactionStatusChangedEvent;
