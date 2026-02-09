@@ -11,7 +11,10 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import Asset from '../../../Views/Asset';
-import { TokenI } from '../../Tokens/types';
+import {
+  TokenDetailsSource,
+  type TokenDetailsRouteParams,
+} from '../constants/constants';
 import { Theme } from '@metamask/design-tokens';
 import { useStyles } from '../../../hooks/useStyles';
 import { RootState } from '../../../../reducers';
@@ -48,29 +51,10 @@ import {
 } from '../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../locales/i18n';
 
-/**
- * Source of navigation to Token Details page
- */
-export enum TokenDetailsSource {
-  /** Token list on main wallet screen (compact view) */
-  MobileTokenList = 'mobile-token-list',
-  /** Token list in full page view */
-  MobileTokenListPage = 'mobile-token-list-page',
-  /** Trending tokens section */
-  Trending = 'trending',
-  /** Swap/Bridge token selector */
-  Swap = 'swap',
-  /** Fallback when source cannot be determined */
-  Unknown = 'unknown',
-}
-
-/**
- * Extended route params for Token Details page
- * Includes source tracking for analytics
- */
-export interface TokenDetailsRouteParams extends TokenI {
-  source?: TokenDetailsSource;
-}
+export {
+  TokenDetailsSource,
+  type TokenDetailsRouteParams,
+} from '../constants/constants';
 
 interface TokenDetailsProps {
   route: {

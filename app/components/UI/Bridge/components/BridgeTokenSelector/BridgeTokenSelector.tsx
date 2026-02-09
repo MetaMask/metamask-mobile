@@ -55,7 +55,7 @@ import { useTokenSelection } from '../../hooks/useTokenSelection';
 import { createStyles } from './BridgeTokenSelector.styles';
 import Engine from '../../../../../core/Engine';
 import { tokenToIncludeAsset, tokenMatchesQuery } from '../../utils/tokenUtils';
-import { TokenDetailsSource } from '../../../TokenDetails/Views/TokenDetails';
+import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 
 export interface BridgeTokenSelectorRouteParams {
   type: TokenSelectorType;

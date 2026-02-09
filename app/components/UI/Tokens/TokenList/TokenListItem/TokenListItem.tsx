@@ -43,7 +43,7 @@ import { Colors } from '../../../../../util/theme/models';
 import { strings } from '../../../../../../locales/i18n';
 import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../../Bridge/types';
-import { TokenDetailsSource } from '../../../TokenDetails/Views/TokenDetails';
+import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import Routes from '../../../../../constants/navigation/Routes';
 import StockBadge from '../../../shared/StockBadge';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
