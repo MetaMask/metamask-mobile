@@ -22,9 +22,9 @@ import { selectTransactionsByIds } from '../../../../selectors/transactionContro
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { toHex } from '@metamask/controller-utils';
 
-export enum MusdConversionIntent {
-  Max = 'max',
-  Custom = 'custom',
+export enum MusdConversionVariant {
+  QUICK_CONVERT = 'quickConvert',
+  CUSTOM_CONVERT = 'customConvert',
 }
 
 /**
@@ -215,7 +215,7 @@ export const useMusdConversion = () => {
         navigation.navigate(Routes.EARN.MODALS.ROOT, {
           screen: Routes.EARN.MODALS.MUSD_MAX_CONVERSION,
           params: {
-            conversionIntent: MusdConversionIntent.Max,
+            variant: MusdConversionVariant.QUICK_CONVERT,
             token,
           },
         });
@@ -265,7 +265,7 @@ export const useMusdConversion = () => {
         params: {
           loader: ConfirmationLoader.CustomAmount,
           preferredPaymentToken,
-          conversionIntent: MusdConversionIntent.Custom,
+          variant: MusdConversionVariant.CUSTOM_CONVERT,
         },
       });
     },
@@ -289,6 +289,7 @@ export const useMusdConversion = () => {
         screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
         params: {
           preferredPaymentToken,
+          variant: MusdConversionVariant.CUSTOM_CONVERT,
         },
       });
 
