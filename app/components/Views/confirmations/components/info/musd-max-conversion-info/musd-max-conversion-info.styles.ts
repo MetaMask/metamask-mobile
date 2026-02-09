@@ -19,19 +19,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 16,
       alignItems: 'center',
     },
-    assetHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingVertical: 16,
-      gap: 12,
-    },
-    assetInfo: {
-      flex: 1,
-    },
-    assetAmount: {
-      fontSize: 20,
-      fontWeight: '500',
-    },
     detailsSection: {
       backgroundColor: colors.background.default,
       borderRadius: 12,

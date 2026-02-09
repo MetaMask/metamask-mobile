@@ -1,28 +1,18 @@
 import React from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useTheme } from '../../../../../../util/theme';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../../locales/i18n';
 import Text, {
-  TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../../component-library/components/Badges/BadgeWrapper';
-import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
 import { selectNetworkName } from '../../../../../../selectors/networkInfos';
-import { getNetworkImageSource } from '../../../../../../util/networks';
 import { MUSD_TOKEN } from '../../../../../UI/Earn/constants/musd';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { getTokenTransferData } from '../../../utils/transaction-pay';
@@ -38,11 +28,13 @@ import InfoRow, { InfoRowVariant } from '../../UI/info-row/info-row';
 import { TotalRow } from '../../rows/total-row';
 import { BridgeFeeRow } from '../../rows/bridge-fee-row';
 import { AssetType } from '../../../types/token';
-import styleSheet from './musd-max-conversion-info.styles';
+import musdMaxConversionInfoStyleSheet from './musd-max-conversion-info.styles';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
-import BigNumber from 'bignumber.js';
-import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { PercentageRow } from '../../rows/percentage-row';
+import {
+  MusdMaxConversionAssetHeader,
+  MusdMaxConversionAssetHeaderSkeleton,
+} from './musd-max-conversion-asset-header';
 
 /**
  * Navigation params for MusdMaxConversionInfo
@@ -76,8 +68,7 @@ export const MusdMaxConversionInfoTestIds = {
  * 3. Uses standard confirmation components and hooks
  */
 export const MusdMaxConversionInfo = () => {
-  const { styles } = useStyles(styleSheet, {});
-  const { colors } = useTheme();
+  const { styles } = useStyles(musdMaxConversionInfoStyleSheet, {});
   const networkName = useSelector(selectNetworkName);
 
   // TODO: Check if there's a confirmations hook that can be used to get the token instead of using navigation params.
@@ -113,69 +104,29 @@ export const MusdMaxConversionInfo = () => {
   // Confirm button disabled state
   const isConfirmDisabled = isLoading || hasBlockingAlerts;
 
-  // Render loading state
-  if (isLoading) {
-    return (
-      <View
-        style={styles.loadingContainer}
-        testID={MusdMaxConversionInfoTestIds.LOADING}
-      >
-        <ActivityIndicator size="large" color={colors.primary.default} />
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-          {strings('earn.musd_conversion.fetching_quote')}
-        </Text>
-      </View>
-    );
-  }
-
-  const renderAssetHeader = () => (
-    <View
-      style={styles.assetHeader}
-      testID={MusdMaxConversionInfoTestIds.ASSET_HEADER}
-    >
-      <BadgeWrapper
-        badgePosition={BadgePosition.BottomRight}
-        badgeElement={
-          <Badge
-            variant={BadgeVariant.Network}
-            name={networkName}
-            imageSource={getNetworkImageSource({
-              chainId: token?.chainId ?? '',
-            })}
-          />
-        }
-      >
-        <AvatarToken
-          name={token.symbol}
-          imageSource={{ uri: token.image }}
-          size={AvatarSize.Lg}
-          testID={`earn-token-avatar-${token.symbol}`}
-        />
-      </BadgeWrapper>
-      <View style={styles.assetInfo}>
-        <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
-          {token?.symbol}
-        </Text>
-        <Text style={styles.assetAmount}>
-          {token?.fiat?.balance
-            ? formatFiat(new BigNumber(token.fiat.balance))
-            : ''}
-        </Text>
-      </View>
-    </View>
-  );
-
   return (
     <View
       style={styles.container}
       testID={MusdMaxConversionInfoTestIds.CONTAINER}
     >
       {/* Asset Header */}
-      {renderAssetHeader()}
+      {isLoading ? (
+        <MusdMaxConversionAssetHeaderSkeleton
+          testID={MusdMaxConversionInfoTestIds.ASSET_HEADER}
+        />
+      ) : (
+        <MusdMaxConversionAssetHeader
+          token={token}
+          networkName={networkName}
+          formatFiat={formatFiat}
+          testID={MusdMaxConversionInfoTestIds.ASSET_HEADER}
+        />
+      )}
 
       {/* Details Section */}
       <View style={styles.detailsSection}>
         {/* You Receive Row */}
+        {/* TODO: Breakout into separate component */}
         <InfoRow
           label={strings('earn.musd_conversion.you_receive')}
           rowVariant={InfoRowVariant.Small}

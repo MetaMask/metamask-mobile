@@ -21,6 +21,7 @@ import { RootState } from '../../../../reducers';
 import { selectTransactionsByIds } from '../../../../selectors/transactionController';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { toHex } from '@metamask/controller-utils';
+import EngineService from '../../../../core/EngineService';
 
 export enum MusdConversionVariant {
   QUICK_CONVERT = 'quickConvert',
@@ -119,7 +120,6 @@ export interface MusdConversionConfig {
  * });
  */
 export const useMusdConversion = () => {
-  const [isMaxConversionLoading, setIsMaxConversionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigation = useNavigation();
 
@@ -154,7 +154,6 @@ export const useMusdConversion = () => {
       const tokenChainId = token.chainId as Hex;
 
       try {
-        setIsMaxConversionLoading(true);
         setError(null);
 
         if (!tokenAddress || !tokenChainId) {
@@ -188,7 +187,7 @@ export const useMusdConversion = () => {
           networkClientId,
         });
 
-        const { TransactionPayController } = Engine.context;
+        const { TransactionPayController, GasFeeController } = Engine.context;
         Logger.log('[mUSD Max Conversion] Setting payment token:', {
           transactionId,
           tokenAddress,
@@ -198,12 +197,18 @@ export const useMusdConversion = () => {
         // Must be called BEFORE updatePaymentToken.
         TransactionPayController.setIsMaxAmount(transactionId, true);
 
+        await GasFeeController.fetchGasFeeEstimates({ networkClientId }).catch(
+          () => undefined,
+        );
+
         // Set payment token - this triggers automatic Relay quote fetching
         TransactionPayController.updatePaymentToken({
           transactionId,
           tokenAddress,
           chainId: tokenChainId,
         });
+
+        EngineService.flushState();
 
         Logger.log(
           `[mUSD Max Conversion] Created transaction ${transactionId} for ${token.symbol ?? tokenAddress}`,
@@ -235,8 +240,6 @@ export const useMusdConversion = () => {
 
         setError(errorMessage);
         throw err;
-      } finally {
-        setIsMaxConversionLoading(false);
       }
     },
     [navigation, selectedAddress],
@@ -432,7 +435,6 @@ export const useMusdConversion = () => {
     initiateMaxConversion,
     initiateCustomConversion,
     clearError,
-    isMaxConversionLoading,
     error,
     hasSeenConversionEducationScreen,
   };
