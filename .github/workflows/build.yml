@@ -184,6 +184,9 @@ jobs:
           # Initialize rbenv (required: GitHub Actions runs bash with --noprofile --norc)
           eval "$(rbenv init -)"
           
+          # Add rbenv shims to PATH for subsequent steps
+          echo "$HOME/.rbenv/shims" >> $GITHUB_PATH
+          
           # Verify installation and version
           ACTUAL_VERSION=$(ruby --version)
           echo "✅ Ruby version: ${ACTUAL_VERSION}"
@@ -201,7 +204,7 @@ jobs:
       # iOS: Cache CocoaPods
       - name: Cache CocoaPods
         if: matrix.platform == 'ios'
-        uses: actions/cache@v4
+        uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
           path: |
             ios/Pods
@@ -214,7 +217,7 @@ jobs:
       # iOS: Cache DerivedData to speed up Xcode builds
       - name: Cache iOS DerivedData
         if: matrix.platform == 'ios'
-        uses: actions/cache@v4
+        uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
           path: |
             ~/Library/Developer/Xcode/DerivedData
@@ -227,7 +230,7 @@ jobs:
       # iOS: Cache Xcode module cache for faster compilation
       - name: Cache Xcode Module Cache
         if: matrix.platform == 'ios'
-        uses: actions/cache@v4
+        uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
           path: ~/Library/Developer/Xcode/DerivedData/ModuleCache.noindex
           key: ${{ runner.os }}-xcode-modules-${{ inputs.build_name }}-${{ hashFiles('ios/Podfile.lock') }}
