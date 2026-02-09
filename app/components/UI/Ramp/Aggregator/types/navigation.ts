@@ -28,5 +28,8 @@ export type { BuildQuoteParams as DepositBuildQuoteParams } from '../Views/Build
  */
 export type { BuildQuoteParams as SimpleRampBuildQuoteParams } from '../Views/BuildQuote/BuildQuote';
 
-/** Webview modal parameters */
-export type { WebviewParams as WebviewModalParams } from 'app/components/Views/Webview/Webview.types.ts';
+/** Webview modal parameters - from the actual Deposit WebviewModal component */
+export type { WebviewModalParams } from '../../Deposit/Views/Modals/WebviewModal';
+
+/** KYC Webview modal parameters - extends WebviewModalParams with KYC-specific fields */
+export type { KycWebviewModalParams } from '../../Deposit/Views/Modals/WebviewModal';

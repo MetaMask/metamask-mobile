@@ -56,6 +56,7 @@ import type {
   DepositBuildQuoteParams,
   SimpleRampBuildQuoteParams,
   WebviewModalParams,
+  KycWebviewModalParams,
 } from '../../components/UI/Ramp/Aggregator/types/navigation';
 import type { DepositNavigationParams } from '../../components/UI/Ramp/Deposit/types/navigationParams';
 
@@ -268,7 +269,7 @@ export interface RootStackParamList extends ParamListBase {
   DepositUnsupportedStateModal: undefined;
   DepositStateSelectorModal: undefined;
   DepositWebviewModal: WebviewModalParams | undefined;
-  DepositKycWebviewModal: WebviewModalParams | undefined;
+  DepositKycWebviewModal: KycWebviewModalParams | undefined;
   IncompatibleAccountTokenModal: undefined;
   SsnInfoModal: undefined;
   DepositConfigurationModal: undefined;
