@@ -2804,7 +2804,7 @@ export class HyperLiquidSubscriptionService {
     // This prevents race conditions where subscriptions are attempted while
     // the WebSocket is still in CONNECTING state
     try {
-      await this.clientService.ensureTransportReady(5000);
+      await this.clientService.ensureTransportReady({ timeoutMs: 5000 });
     } catch (error) {
       this.deps.debugLogger.log(
         'Transport not ready during subscription restore, will retry on next reconnect',

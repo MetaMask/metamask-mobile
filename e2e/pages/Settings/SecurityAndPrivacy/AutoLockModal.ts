@@ -1,6 +1,6 @@
 import Matchers from '../../../../tests/framework/Matchers';
 import Gestures from '../../../../tests/framework/Gestures';
-import { AutoLockModalSelectorsText } from '../../../selectors/Settings/SecurityAndPrivacy/AutoLockModal.selectors';
+import { AutoLockModalSelectorsText } from '../../../../tests/selectors/Settings/SecurityAndPrivacy/AutoLockModal.selectors';
 
 class AutoLockModal {
   get autoLockImmediate(): DetoxElement {
