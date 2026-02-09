@@ -1,0 +1,18 @@
+diff --git a/package.json b/package.json
+index 8dc8bb9efc517b1605608e3c56401da75ddbc9f6..4e2af77cb57b7e558532798f7abe461fa71643c2 100644
+--- a/package.json
++++ b/package.json
+@@ -149,11 +149,13 @@
+     "typescript": "^4.9.5"
+   },
+   "browser": {
++    "./dist/node/axios.cjs": "./dist/browser/axios.cjs",
+     "./lib/adapters/http.js": "./lib/helpers/null.js",
+     "./lib/platform/node/index.js": "./lib/platform/browser/index.js",
+     "./lib/platform/node/classes/FormData.js": "./lib/helpers/null.js"
+   },
+   "react-native": {
++    "./dist/node/axios.cjs": "./dist/browser/axios.cjs",
+     "./lib/adapters/http.js": "./lib/helpers/null.js",
+     "./lib/platform/node/index.js": "./lib/platform/browser/index.js",
+     "./lib/platform/node/classes/FormData.js": "./lib/helpers/null.js"
