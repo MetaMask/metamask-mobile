@@ -2179,11 +2179,53 @@ export class PredictController extends BaseController<
       return;
     }
 
+    this.handleTransactionSideEffects(type, status);
+
     this.messenger.publish('PredictController:transactionStatusChanged', {
       type,
       status,
       transactionMeta,
     });
+  }
+
+  private handleTransactionSideEffects(
+    type: PredictTransactionEventType,
+    status: PredictTransactionEventStatus,
+  ): void {
+    const address = this.getEvmAccountAddress();
+    const providerId = 'polymarket';
+
+    if (type === 'deposit') {
+      if (status === 'confirmed' || status === 'rejected') {
+        this.clearPendingDeposit({ providerId });
+      }
+      if (status === 'confirmed') {
+        this.getBalance({ address, providerId }).catch(() => undefined);
+      }
+      return;
+    }
+
+    if (type === 'claim') {
+      if (status === 'confirmed') {
+        this.confirmClaim({ providerId });
+        this.getPositions({
+          address,
+          providerId,
+          claimable: true,
+        }).catch(() => undefined);
+        this.getBalance({ address, providerId }).catch(() => undefined);
+      }
+      return;
+    }
+
+    if (type === 'withdraw') {
+      if (status === 'confirmed' || status === 'rejected') {
+        this.clearWithdrawTransaction();
+      }
+      if (status === 'confirmed') {
+        this.getBalance({ address, providerId }).catch(() => undefined);
+      }
+    }
   }
 
   private isPendingDepositTransaction(

@@ -12,20 +12,16 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import type { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
-import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
 import type { ToastRegistration } from '../../../Nav/App/ControllerEventToastBridge';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import type { PredictTransactionStatusChangedPayload } from '../controllers/PredictController';
-import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 import { selectPredictWonPositions } from '../selectors/predictController';
 import type { PredictPosition } from '../types';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { calculateNetAmount, formatPrice } from '../utils/format';
-import { usePredictBalance } from './usePredictBalance';
 import { usePredictClaim } from './usePredictClaim';
 import { usePredictDeposit } from './usePredictDeposit';
-import { usePredictPositions } from './usePredictPositions';
 import { usePredictWithdraw } from './usePredictWithdraw';
 
 const showPendingToast = ({
@@ -130,12 +126,6 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
   const { deposit } = usePredictDeposit();
   const { claim } = usePredictClaim();
   const { withdraw, withdrawTransaction } = usePredictWithdraw();
-  const { loadBalance } = usePredictBalance({ loadOnMount: false });
-  const { loadPositions } = usePredictPositions({
-    claimable: true,
-    loadOnMount: false,
-    refreshOnFocus: false,
-  });
   const navigation = useNavigation();
   const theme = useAppThemeFromContext();
 
@@ -201,11 +191,6 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
             }),
             iconColor: theme.colors.success.default,
           });
-
-          loadBalance({ isRefresh: true }).catch(() => undefined);
-          Engine.context.PredictController.clearPendingDeposit({
-            providerId: POLYMARKET_PROVIDER_ID,
-          });
           return;
         }
 
@@ -222,12 +207,6 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
             iconColor: theme.colors.error.default,
           });
           return;
-        }
-
-        if (status === 'rejected') {
-          Engine.context.PredictController.clearPendingDeposit({
-            providerId: POLYMARKET_PROVIDER_ID,
-          });
         }
 
         return;
@@ -258,12 +237,6 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
             }),
             iconColor: theme.colors.success.default,
           });
-
-          Engine.context.PredictController.confirmClaim({
-            providerId: POLYMARKET_PROVIDER_ID,
-          });
-          loadPositions({ isRefresh: true }).catch(() => undefined);
-          loadBalance({ isRefresh: true }).catch(() => undefined);
           return;
         }
 
@@ -310,9 +283,6 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
             ),
             iconColor: theme.colors.success.default,
           });
-
-          Engine.context.PredictController.clearWithdrawTransaction();
-          loadBalance({ isRefresh: true }).catch(() => undefined);
           return;
         }
 
@@ -330,18 +300,12 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
           });
           return;
         }
-
-        if (status === 'rejected') {
-          Engine.context.PredictController.clearWithdrawTransaction();
-        }
       }
     },
     [
       claim,
       deposit,
       formattedClaimAmount,
-      loadBalance,
-      loadPositions,
       navigation,
       theme.colors.accent04.normal,
       theme.colors.error.default,

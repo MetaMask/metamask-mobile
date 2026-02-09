@@ -1,6 +1,5 @@
 import { act, renderHook } from '@testing-library/react-hooks';
 
-import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
 
 import { usePredictToastRegistrations } from './usePredictToastRegistrations';
@@ -8,24 +7,12 @@ import { usePredictToastRegistrations } from './usePredictToastRegistrations';
 const mockDeposit = jest.fn();
 const mockClaim = jest.fn();
 const mockWithdraw = jest.fn();
-const mockLoadBalance = jest.fn();
-const mockLoadPositions = jest.fn();
 const mockNavigate = jest.fn();
 const mockUseSelector = jest.fn();
 
 let mockWonPositions = [{ currentValue: 100 }, { currentValue: 50 }];
 
 let mockWithdrawTransaction = { amount: 123.45 };
-
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    PredictController: {
-      clearPendingDeposit: jest.fn(),
-      confirmClaim: jest.fn(),
-      clearWithdrawTransaction: jest.fn(),
-    },
-  },
-}));
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, unknown>) =>
@@ -68,18 +55,6 @@ jest.mock('./usePredictWithdraw', () => ({
   }),
 }));
 
-jest.mock('./usePredictBalance', () => ({
-  usePredictBalance: () => ({
-    loadBalance: mockLoadBalance,
-  }),
-}));
-
-jest.mock('./usePredictPositions', () => ({
-  usePredictPositions: () => ({
-    loadPositions: mockLoadPositions,
-  }),
-}));
-
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: (...args: unknown[]) => mockUseSelector(...args),
@@ -117,8 +92,6 @@ describe('usePredictToastRegistrations', () => {
     mockDeposit.mockResolvedValue(undefined);
     mockClaim.mockResolvedValue(undefined);
     mockWithdraw.mockResolvedValue(undefined);
-    mockLoadBalance.mockResolvedValue(undefined);
-    mockLoadPositions.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -167,7 +140,7 @@ describe('usePredictToastRegistrations', () => {
       });
     });
 
-    it('shows success toast and refreshes balance on confirmed status', () => {
+    it('shows success toast on confirmed status', () => {
       const handler = getHandler();
 
       handler(
@@ -190,10 +163,6 @@ describe('usePredictToastRegistrations', () => {
           iconName: 'Confirmation',
         }),
       );
-      expect(mockLoadBalance).toHaveBeenCalledWith({ isRefresh: true });
-      expect(
-        Engine.context.PredictController.clearPendingDeposit,
-      ).toHaveBeenCalledWith({ providerId: 'polymarket' });
     });
 
     it('shows error toast with retry on failed status', async () => {
@@ -225,7 +194,7 @@ describe('usePredictToastRegistrations', () => {
       expect(mockDeposit).toHaveBeenCalledTimes(1);
     });
 
-    it('clears pending deposit on rejected status without showing toast', () => {
+    it('does not show toast on rejected status', () => {
       const handler = getHandler();
 
       handler(
@@ -238,9 +207,6 @@ describe('usePredictToastRegistrations', () => {
       );
 
       expect(showToast).not.toHaveBeenCalled();
-      expect(
-        Engine.context.PredictController.clearPendingDeposit,
-      ).toHaveBeenCalledWith({ providerId: 'polymarket' });
     });
   });
 
@@ -265,7 +231,7 @@ describe('usePredictToastRegistrations', () => {
       );
     });
 
-    it('shows success toast and refreshes state on confirmed status', () => {
+    it('shows success toast on confirmed status', () => {
       const handler = getHandler();
 
       handler(
@@ -282,11 +248,6 @@ describe('usePredictToastRegistrations', () => {
           iconName: 'Confirmation',
         }),
       );
-      expect(
-        Engine.context.PredictController.confirmClaim,
-      ).toHaveBeenCalledWith({ providerId: 'polymarket' });
-      expect(mockLoadPositions).toHaveBeenCalledWith({ isRefresh: true });
-      expect(mockLoadBalance).toHaveBeenCalledWith({ isRefresh: true });
     });
 
     it('shows error toast with retry on failed status', async () => {
@@ -340,7 +301,7 @@ describe('usePredictToastRegistrations', () => {
       );
     });
 
-    it('shows success toast and clears state on confirmed status', () => {
+    it('shows success toast on confirmed status', () => {
       const handler = getHandler();
 
       handler(
@@ -357,10 +318,6 @@ describe('usePredictToastRegistrations', () => {
           iconName: 'Confirmation',
         }),
       );
-      expect(
-        Engine.context.PredictController.clearWithdrawTransaction,
-      ).toHaveBeenCalledTimes(1);
-      expect(mockLoadBalance).toHaveBeenCalledWith({ isRefresh: true });
     });
 
     it('shows error toast with retry on failed status', async () => {
@@ -392,7 +349,7 @@ describe('usePredictToastRegistrations', () => {
       expect(mockWithdraw).toHaveBeenCalledTimes(1);
     });
 
-    it('clears withdraw transaction on rejected status without showing toast', () => {
+    it('does not show toast on rejected status', () => {
       const handler = getHandler();
 
       handler(
@@ -405,9 +362,6 @@ describe('usePredictToastRegistrations', () => {
       );
 
       expect(showToast).not.toHaveBeenCalled();
-      expect(
-        Engine.context.PredictController.clearWithdrawTransaction,
-      ).toHaveBeenCalledTimes(1);
     });
   });
 });
