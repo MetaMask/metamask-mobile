@@ -179,7 +179,7 @@ const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
       testID={WalletViewSelectorsIDs.STAKE_BUTTON}
       style={styles.stakeButton}
     >
-      <Text color={TextColor.Primary} variant={TextVariant.BodyXSMedium}>
+      <Text color={TextColor.Alternative} variant={TextVariant.BodyXSMedium}>
         {renderEarnButtonText()}
       </Text>
     </TouchableOpacity>

@@ -4,6 +4,8 @@ import { Hex } from '@metamask/utils';
 import { handleFetch } from '@metamask/controller-utils';
 import {
   calcTokenFiatValue,
+  calcUsdAmountFromFiat,
+  convertFiatToUsd,
   getDisplayCurrencyValue,
   fetchTokenExchangeRates,
 } from './exchange-rates';
@@ -15,6 +17,156 @@ jest.mock('@metamask/controller-utils');
 jest.mock('@metamask/assets-controllers');
 
 describe('exchange-rates', () => {
+  describe('convertFiatToUsd', () => {
+    it('converts fiat value to USD using the rate ratio', () => {
+      // 100 EUR * (2500 USD/ETH / 2000 EUR/ETH) = 125 USD
+      expect(convertFiatToUsd(100, 2000, 2500)).toBe(125);
+    });
+
+    it('returns undefined when conversionRate is null', () => {
+      expect(convertFiatToUsd(100, null, 2500)).toBeUndefined();
+    });
+
+    it('returns undefined when usdConversionRate is null', () => {
+      expect(convertFiatToUsd(100, 2000, null)).toBeUndefined();
+    });
+
+    it('returns undefined when conversionRate is undefined', () => {
+      expect(convertFiatToUsd(100, undefined, 2500)).toBeUndefined();
+    });
+
+    it('returns undefined when usdConversionRate is undefined', () => {
+      expect(convertFiatToUsd(100, 2000, undefined)).toBeUndefined();
+    });
+
+    it('returns undefined when both rates are zero', () => {
+      expect(convertFiatToUsd(100, 0, 0)).toBeUndefined();
+    });
+
+    it('returns 0 when fiatValue is 0', () => {
+      expect(convertFiatToUsd(0, 2000, 2500)).toBe(0);
+    });
+
+    it('returns the same value when rates are equal (1:1 ratio)', () => {
+      expect(convertFiatToUsd(100, 2000, 2000)).toBe(100);
+    });
+  });
+
+  describe('calcUsdAmountFromFiat', () => {
+    const mockNetworkConfigurations = {
+      '0x1': { nativeCurrency: 'ETH' },
+      '0x89': { nativeCurrency: 'POL' },
+    };
+
+    const mockEvmMultiChainCurrencyRates = {
+      ETH: { conversionRate: 2000, usdConversionRate: 2500 },
+      POL: { conversionRate: 0.5, usdConversionRate: 1.0 },
+    };
+
+    it('converts fiat to USD using the correct chain native currency rates', () => {
+      const result = calcUsdAmountFromFiat({
+        tokenFiatValue: 100,
+        chainId: '0x1',
+        networkConfigurationsByChainId: mockNetworkConfigurations,
+        evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
+      });
+
+      // 100 * (2500 / 2000) = 125
+      expect(result).toBe(125);
+    });
+
+    it('uses the correct rates for a different chain', () => {
+      const result = calcUsdAmountFromFiat({
+        tokenFiatValue: 50,
+        chainId: '0x89',
+        networkConfigurationsByChainId: mockNetworkConfigurations,
+        evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
+      });
+
+      // 50 * (1.0 / 0.5) = 100
+      expect(result).toBe(100);
+    });
+
+    it('falls back to any available entry for non-EVM chains', () => {
+      const solanaChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+      const networkConfigsWithSolana = {
+        ...mockNetworkConfigurations,
+        [solanaChainId]: {
+          nativeCurrency: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+        },
+      };
+
+      const result = calcUsdAmountFromFiat({
+        tokenFiatValue: 100,
+        chainId: solanaChainId,
+        networkConfigurationsByChainId: networkConfigsWithSolana,
+        evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
+      });
+
+      // Falls back to ETH entry: 100 * (2500 / 2000) = 125
+      expect(result).toBe(125);
+    });
+
+    it('falls back to any entry when chainId is undefined', () => {
+      const result = calcUsdAmountFromFiat({
+        tokenFiatValue: 100,
+        chainId: undefined,
+        networkConfigurationsByChainId: mockNetworkConfigurations,
+        evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
+      });
+
+      // Falls back to any entry with both rates: ETH → 100 * (2500 / 2000) = 125
+      expect(result).toBe(125);
+    });
+
+    it('returns undefined when evmMultiChainCurrencyRates is undefined', () => {
+      const result = calcUsdAmountFromFiat({
+        tokenFiatValue: 100,
+        chainId: '0x1',
+        networkConfigurationsByChainId: mockNetworkConfigurations,
+        evmMultiChainCurrencyRates: undefined,
+      });
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when no entry has both rates', () => {
+      const result = calcUsdAmountFromFiat({
+        tokenFiatValue: 100,
+        chainId: '0x1',
+        networkConfigurationsByChainId: mockNetworkConfigurations,
+        evmMultiChainCurrencyRates: {
+          ETH: { conversionRate: null, usdConversionRate: null },
+        },
+      });
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns 0 when tokenFiatValue is 0', () => {
+      const result = calcUsdAmountFromFiat({
+        tokenFiatValue: 0,
+        chainId: '0x1',
+        networkConfigurationsByChainId: mockNetworkConfigurations,
+        evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
+      });
+
+      expect(result).toBe(0);
+    });
+
+    it('falls back when chainId has no matching network config', () => {
+      const result = calcUsdAmountFromFiat({
+        tokenFiatValue: 100,
+        chainId: '0xdeadbeef',
+        networkConfigurationsByChainId: mockNetworkConfigurations,
+        evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
+      });
+
+      // No native currency found, falls back to first entry with both rates
+      expect(result).toBe(125);
+    });
+  });
+
   describe('calcTokenFiatValue', () => {
     const mockChainId = '0x1' as Hex;
     const mockTokenAddress =
