@@ -366,6 +366,10 @@ export class TradingService {
           reportOrderToDataLake,
         });
         traceData = { success: true, orderId: result.orderId || '' };
+
+        // Invalidate readOnly caches so external hooks (e.g., usePerpsPositionForAsset) refresh
+        this.deps.cacheInvalidator.invalidate({ cacheType: 'positions' });
+        this.deps.cacheInvalidator.invalidate({ cacheType: 'accountState' });
       } else {
         traceData = { success: false, error: result.error || 'Unknown error' };
       }
@@ -1234,6 +1238,10 @@ export class TradingService {
         );
 
         traceData = { success: true, filledSize: result.filledSize || '' };
+
+        // Invalidate readOnly caches so external hooks (e.g., usePerpsPositionForAsset) refresh
+        this.deps.cacheInvalidator.invalidate({ cacheType: 'positions' });
+        this.deps.cacheInvalidator.invalidate({ cacheType: 'accountState' });
       } else {
         traceData = { success: false, error: result.error || 'Unknown error' };
       }
@@ -1445,6 +1453,12 @@ export class TradingService {
         batchCloseProps,
       );
 
+      // Invalidate readOnly caches on successful batch close
+      if (operationResult?.success && operationResult.successCount > 0) {
+        this.deps.cacheInvalidator.invalidate({ cacheType: 'positions' });
+        this.deps.cacheInvalidator.invalidate({ cacheType: 'accountState' });
+      }
+
       this.deps.tracer.endTrace({
         name: PerpsTraceNames.ClosePosition,
         id: traceId,
@@ -1641,6 +1655,10 @@ export class TradingService {
           [PERPS_EVENT_PROPERTY.MARGIN_USED]: Math.abs(parseFloat(amount)),
           [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: completionDuration,
         });
+
+        // Invalidate readOnly caches so external hooks refresh
+        this.deps.cacheInvalidator.invalidate({ cacheType: 'positions' });
+        this.deps.cacheInvalidator.invalidate({ cacheType: 'accountState' });
       }
 
       this.deps.tracer.endTrace({
@@ -1771,6 +1789,10 @@ export class TradingService {
             [PERPS_EVENT_PROPERTY.ACTION]: 'flip_position',
           },
         );
+
+        // Invalidate readOnly caches so external hooks refresh
+        this.deps.cacheInvalidator.invalidate({ cacheType: 'positions' });
+        this.deps.cacheInvalidator.invalidate({ cacheType: 'accountState' });
       }
 
       this.deps.tracer.endTrace({
