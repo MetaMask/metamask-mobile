@@ -293,10 +293,10 @@ describe('EarnBalance', () => {
 
       mockUseMusdConversionTokens.mockReturnValue({
         isConversionToken: jest.fn().mockReturnValue(true),
+        hasConvertibleTokensByChainId: jest.fn().mockReturnValue(true),
         filterAllowedTokens: jest.fn(),
         tokens: [],
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
-        getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
       });
 
       mockUseMusdConversionEligibility.mockReturnValue({
@@ -323,10 +323,10 @@ describe('EarnBalance', () => {
 
       mockUseMusdConversionTokens.mockReturnValue({
         isConversionToken: jest.fn().mockReturnValue(true),
+        hasConvertibleTokensByChainId: jest.fn().mockReturnValue(true),
         filterAllowedTokens: jest.fn(),
         tokens: [],
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
-        getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
       });
 
       mockUseMusdConversionEligibility.mockReturnValue({

@@ -6,8 +6,10 @@ import type { ServiceContext } from './ServiceContext';
 import {
   PerpsTraceNames,
   PerpsTraceOperations,
-  type IPerpsPlatformDependencies,
+  type PerpsPlatformDependencies,
 } from '../types';
+import type { PerpsControllerMessenger } from '../PerpsController';
+import { getSelectedEvmAccount } from '../../utils/accountUtils';
 
 /**
  * DataLakeService
@@ -16,31 +18,31 @@ import {
  * Implements exponential backoff retry logic and performance tracing.
  * Stateless service that operates purely on external API calls.
  *
- * Instance-based service with constructor injection of platform dependencies.
+ * Instance-based service with constructor injection of platform dependencies
+ * and messenger for inter-controller communication.
  */
 export class DataLakeService {
-  private readonly deps: IPerpsPlatformDependencies;
+  private readonly deps: PerpsPlatformDependencies;
+  private readonly messenger: PerpsControllerMessenger;
 
   /**
    * Create a new DataLakeService instance
    * @param deps - Platform dependencies for logging, metrics, etc.
+   * @param messenger - Messenger for inter-controller communication
    */
-  constructor(deps: IPerpsPlatformDependencies) {
+  constructor(
+    deps: PerpsPlatformDependencies,
+    messenger: PerpsControllerMessenger,
+  ) {
     this.deps = deps;
+    this.messenger = messenger;
   }
 
   /**
-   * Error context helper for consistent logging
+   * Get bearer token via messenger
    */
-  private getErrorContext(
-    method: string,
-    additionalContext?: Record<string, unknown>,
-  ): Record<string, unknown> {
-    return {
-      controller: 'DataLakeService',
-      method,
-      ...additionalContext,
-    };
+  private async getBearerToken(): Promise<string> {
+    return this.messenger.call('AuthenticationController:getBearerToken');
   }
 
   /**
@@ -98,8 +100,8 @@ export class DataLakeService {
     // Start trace only on first attempt
     if (retryCount === 0) {
       this.deps.tracer.trace({
-        name: PerpsTraceNames.DATA_LAKE_REPORT,
-        op: PerpsTraceOperations.OPERATION,
+        name: PerpsTraceNames.DataLakeReport,
+        op: PerpsTraceOperations.Operation,
         id: traceId,
         tags: {
           action,
@@ -124,15 +126,8 @@ export class DataLakeService {
     const apiCallStartTime = this.deps.performance.now();
 
     try {
-      // Ensure messenger is available
-      if (!context.messenger) {
-        throw new Error('Messenger not available in ServiceContext');
-      }
-
-      const token = await context.messenger.call(
-        'AuthenticationController:getBearerToken',
-      );
-      const evmAccount = this.deps.controllers.accounts.getSelectedEvmAccount();
+      const token = await this.getBearerToken();
+      const evmAccount = getSelectedEvmAccount(this.messenger);
 
       if (!evmAccount || !token) {
         this.deps.debugLogger.log('DataLake API: Missing requirements', {
@@ -144,7 +139,7 @@ export class DataLakeService {
         return { success: false, error: 'No account or token available' };
       }
 
-      const response = await fetch(DATA_LAKE_API_CONFIG.ORDERS_ENDPOINT, {
+      const response = await fetch(DATA_LAKE_API_CONFIG.OrdersEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -169,7 +164,7 @@ export class DataLakeService {
 
       // Record measurement
       this.deps.tracer.setMeasurement(
-        PerpsMeasurementName.PERPS_DATA_LAKE_API_CALL,
+        PerpsMeasurementName.PerpsDataLakeApiCall,
         apiCallDuration,
         'millisecond',
       );
@@ -186,7 +181,7 @@ export class DataLakeService {
 
       // End trace on success
       this.deps.tracer.endTrace({
-        name: PerpsTraceNames.DATA_LAKE_REPORT,
+        name: PerpsTraceNames.DataLakeReport,
         id: traceId,
         data: {
           success: true,
@@ -250,7 +245,7 @@ export class DataLakeService {
       }
 
       this.deps.tracer.endTrace({
-        name: PerpsTraceNames.DATA_LAKE_REPORT,
+        name: PerpsTraceNames.DataLakeReport,
         id: traceId,
         data: {
           success: false,

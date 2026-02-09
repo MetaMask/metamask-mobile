@@ -64,6 +64,7 @@ function TokenSelection() {
 
   const trackEvent = useAnalytics();
   const getNetworkName = useDepositCryptoCurrencyNetworkName();
+
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
   const detectedGeolocation = useSelector(getDetectedGeolocation);
   const networksByCaipChainId = useSelector(
@@ -119,6 +120,7 @@ function TokenSelection() {
   });
 
   const { goToBuy } = useRampNavigation();
+  const isRampsUnifiedV2Enabled = useRampsUnifiedV2Enabled();
 
   const handleSelectAssetIdCallback = useCallback(
     (assetId: string) => {
@@ -142,7 +144,11 @@ function TokenSelection() {
           ramp_routing: rampRoutingDecision ?? undefined,
         });
       }
-      navigation.dangerouslyGetParent()?.goBack();
+      // V1 flow: close the modal before navigating to Deposit/Aggregator
+      // V2 flow: navigate within the same stack, no need to close modal
+      if (!isRampsUnifiedV2Enabled) {
+        navigation.dangerouslyGetParent()?.goBack();
+      }
       goToBuy({ assetId });
     },
     [
@@ -151,8 +157,9 @@ function TokenSelection() {
       getNetworkName,
       detectedGeolocation,
       rampRoutingDecision,
-      goToBuy,
+      isRampsUnifiedV2Enabled,
       navigation,
+      goToBuy,
     ],
   );
 

@@ -449,7 +449,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
     style={
       {
         "flexDirection": "row",
-        "paddingHorizontal": 8,
+        "paddingHorizontal": 16,
         "paddingVertical": 4,
       }
     }
@@ -952,7 +952,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
     style={
       {
         "flexDirection": "row",
-        "paddingHorizontal": 8,
+        "paddingHorizontal": 16,
         "paddingVertical": 4,
       }
     }

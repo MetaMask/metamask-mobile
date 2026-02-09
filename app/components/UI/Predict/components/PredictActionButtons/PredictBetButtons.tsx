@@ -1,5 +1,9 @@
 import React from 'react';
-import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
+import {
+  Box,
+  BoxFlexDirection,
+  ButtonBaseSize,
+} from '@metamask/design-system-react-native';
 import PredictBetButton from './PredictBetButton';
 import { PredictBetButtonsProps } from './PredictActionButtons.types';
 
@@ -14,6 +18,7 @@ const PredictBetButtons: React.FC<PredictBetButtonsProps> = ({
   noTeamColor,
   disabled = false,
   testID = 'predict-bet-buttons',
+  isCarousel,
 }) => (
   <Box flexDirection={BoxFlexDirection.Row} twClassName="w-full gap-3">
     <Box twClassName="flex-1">
@@ -25,6 +30,7 @@ const PredictBetButtons: React.FC<PredictBetButtonsProps> = ({
         teamColor={yesTeamColor}
         disabled={disabled}
         testID={`${testID}-yes`}
+        size={isCarousel ? ButtonBaseSize.Md : undefined}
       />
     </Box>
     <Box twClassName="flex-1">
@@ -36,6 +42,7 @@ const PredictBetButtons: React.FC<PredictBetButtonsProps> = ({
         teamColor={noTeamColor}
         disabled={disabled}
         testID={`${testID}-no`}
+        size={isCarousel ? ButtonBaseSize.Md : undefined}
       />
     </Box>
   </Box>

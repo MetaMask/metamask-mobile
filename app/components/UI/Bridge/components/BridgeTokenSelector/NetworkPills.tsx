@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import { StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
@@ -13,6 +14,16 @@ import { ButtonSize } from '../../../../../component-library/components/Buttons/
 import { TokenSelectorType } from '../../types';
 
 const PILL_WIDTH = 90; // Average pill width including gap
+
+const styles = StyleSheet.create({
+  pill: {
+    borderRadius: 12,
+    paddingTop: 8,
+    paddingBottom: 8,
+    paddingLeft: 12,
+    paddingRight: 12,
+  },
+});
 
 interface NetworkPillsProps {
   selectedChainId?: CaipChainId;
@@ -71,7 +82,8 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
           label={chain.name}
           isActive={isSelected}
           onPress={() => handleChainPress(chain.chainId)}
-          size={ButtonSize.Sm}
+          size={ButtonSize.Md}
+          style={styles.pill}
         />
       );
     });
@@ -90,7 +102,8 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
         label={strings('bridge.all')}
         isActive={!selectedChainId}
         onPress={handleAllPress}
-        size={ButtonSize.Sm}
+        style={styles.pill}
+        size={ButtonSize.Md}
       />
       {renderChainPills()}
     </ScrollView>

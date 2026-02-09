@@ -1,4 +1,5 @@
 import { KeyringAccountType } from '@metamask/keyring-api';
+import { TokenRwaData } from '@metamask/assets-controllers';
 
 export interface BrowserTab {
   id: string;
@@ -7,7 +8,7 @@ export interface BrowserTab {
 
 export interface TokenI {
   address: string;
-  aggregators: string[];
+  aggregators?: string[];
   decimals: number;
   image: string;
   name: string;
@@ -24,4 +25,5 @@ export interface TokenI {
   ticker?: string;
   accountType?: KeyringAccountType;
   pricePercentChange1d?: number;
+  rwaData?: TokenRwaData;
 }

@@ -21,7 +21,7 @@ import styleSheet from './PerpsRecentActivityList.styles';
 import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
 import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
-import { PerpsEventValues } from '../../constants/eventNames';
+import { PERPS_EVENT_VALUE } from '../../constants/eventNames';
 
 interface PerpsRecentActivityListProps {
   transactions: PerpsTransaction[];
@@ -32,7 +32,7 @@ interface PerpsRecentActivityListProps {
 const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
   transactions,
   isLoading,
-  iconSize = HOME_SCREEN_CONFIG.DEFAULT_ICON_SIZE,
+  iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
@@ -105,7 +105,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
                 </Text>
                 <PerpsFillTag
                   transaction={item}
-                  screenName={PerpsEventValues.SCREEN_NAME.PERPS_HOME}
+                  screenName={PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_HOME}
                 />
               </View>
               {!!item.subtitle && (

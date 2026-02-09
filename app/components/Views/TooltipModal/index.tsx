@@ -6,7 +6,7 @@ import BottomSheet, {
 import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
-import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import Text, {
   TextVariant,
   TextColor,
@@ -17,12 +17,14 @@ import {
 } from '../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../locales/i18n';
 
-import { TooltipModalProps } from './ToolTipModal.types';
+import { TooltipModalRouteParams } from './ToolTipModal.types';
 import { useStyles } from '../../../component-library/hooks';
 import styleSheet from './ToolTipModal.styles';
+import { useParams } from '../../../util/navigation/navUtils';
 
-const TooltipModal = ({ route }: TooltipModalProps) => {
-  const { tooltip, title, bottomPadding } = route.params;
+const TooltipModal = () => {
+  const { tooltip, title, footerText, buttonText, bottomPadding } =
+    useParams<TooltipModalRouteParams>();
 
   const { styles } = useStyles(styleSheet, { bottomPadding });
 
@@ -36,16 +38,16 @@ const TooltipModal = ({ route }: TooltipModalProps) => {
 
   const footerButtons = [
     {
-      label: strings('browser.got_it'),
+      label: buttonText ?? strings('browser.got_it'),
       onPress: handleGotItPress,
-      variant: ButtonVariants.Secondary,
+      variant: ButtonVariants.Primary,
       size: ButtonSize.Lg,
     },
   ];
 
   return (
     <BottomSheet ref={bottomSheetRef}>
-      <HeaderCenter title={title} onClose={onCloseModal} />
+      <HeaderCompactStandard title={title} onClose={onCloseModal} />
       <View style={styles.content}>
         {isValidElement(tooltip) ? (
           tooltip
@@ -60,6 +62,13 @@ const TooltipModal = ({ route }: TooltipModalProps) => {
         buttonPropsArray={footerButtons}
         style={styles.footerContainer}
       />
+      {footerText && (
+        <View style={styles.footerTextContainer}>
+          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            {footerText}
+          </Text>
+        </View>
+      )}
     </BottomSheet>
   );
 };

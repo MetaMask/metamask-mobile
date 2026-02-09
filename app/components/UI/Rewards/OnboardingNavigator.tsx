@@ -11,7 +11,6 @@ import OnboardingStep3 from './components/Onboarding/OnboardingStep3';
 import OnboardingStep4 from './components/Onboarding/OnboardingStep4';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
 import { strings } from '../../../../locales/i18n';
-import RewardsIntroModal from './components/Onboarding/RewardsIntroModal';
 
 const Stack = createStackNavigator();
 
@@ -21,7 +20,6 @@ const OnboardingNavigator: React.FC = () => {
   const getInitialRoute = useCallback(() => {
     switch (activeStep) {
       case OnboardingStep.INTRO_MODAL:
-        return Routes.MODAL.REWARDS_INTRO_MODAL;
       case OnboardingStep.INTRO:
         return Routes.REWARDS_ONBOARDING_INTRO;
       case OnboardingStep.STEP_1:
@@ -40,11 +38,6 @@ const OnboardingNavigator: React.FC = () => {
   return (
     <UnmountOnBlur>
       <Stack.Navigator initialRouteName={getInitialRoute()}>
-        <Stack.Screen
-          name={Routes.MODAL.REWARDS_INTRO_MODAL}
-          component={RewardsIntroModal}
-          options={{ headerShown: false }}
-        />
         <Stack.Screen
           name={Routes.REWARDS_ONBOARDING_INTRO}
           options={{ headerShown: false }}

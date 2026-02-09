@@ -18,6 +18,7 @@ export { usePerpsNavigation } from './usePerpsNavigation';
 // Connection management hooks
 export { usePerpsConnectionLifecycle } from './usePerpsConnectionLifecycle';
 export { usePerpsConnection } from './usePerpsConnection';
+export { useWebSocketHealthToast } from './useWebSocketHealthToast';
 
 // State hooks (Redux selectors)
 // Portfolio balance hook (for wallet integration)
@@ -42,6 +43,12 @@ export { useWithdrawValidation } from './useWithdrawValidation';
 
 // Payment tokens hook
 export { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
+export { usePerpsPaymentToken } from './usePerpsPaymentToken';
+export {
+  PERPS_BALANCE_CHAIN_ID,
+  PERPS_BALANCE_PLACEHOLDER_ADDRESS,
+} from '../constants/perpsConfig';
+export { useIsPerpsBalanceSelected } from './useIsPerpsBalanceSelected';
 
 // Margin adjustment hook
 export { usePerpsAdjustMarginData } from './usePerpsAdjustMarginData';
@@ -66,6 +73,7 @@ export { usePerpsOrderForm } from './usePerpsOrderForm';
 export { usePerpsOrderValidation } from './usePerpsOrderValidation';
 export { usePerpsClosePositionValidation } from './usePerpsClosePositionValidation';
 export { usePerpsOrderExecution } from './usePerpsOrderExecution';
+export { usePerpsOrderDepositTracking } from './usePerpsOrderDepositTracking';
 export { useIsPriceDeviatedAboveThreshold } from './useIsPriceDeviatedAboveThreshold';
 export { usePerpsFirstTimeUser } from './usePerpsFirstTimeUser';
 export { usePerpsTPSLForm } from './usePerpsTPSLForm';
@@ -93,6 +101,13 @@ export { usePerpsBlockExplorerUrl } from './usePerpsBlockExplorerUrl';
 
 // Utility hooks
 export { useStableArray } from './useStableArray';
+
+// Discovery hooks (for use outside perps screens)
+export { usePerpsMarketForAsset } from './usePerpsMarketForAsset';
+export { usePerpsPositionForAsset } from './usePerpsPositionForAsset';
+
+// Tab view hooks
+export { usePerpsTabExploreData } from './usePerpsTabExploreData';
 
 // Stream hooks (WebSocket subscriptions)
 export * from './stream';

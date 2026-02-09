@@ -6,7 +6,7 @@ import ActivitiesView from '../Transactions/ActivitiesView';
 import SettingsView from '../Settings/SettingsView';
 import BrowserView from '../Browser/BrowserView';
 import WalletView from './WalletView';
-import TrendingView from '../Trending/TrendingView';
+import TrendingView from '../../../tests/page-objects/Trending/TrendingView';
 class TabBarComponent {
   get tabBarExploreButton(): DetoxElement {
     return Matchers.getElementByID(TabBarSelectorIDs.EXPLORE);

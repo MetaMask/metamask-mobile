@@ -177,6 +177,8 @@ const SecureKeychain = {
     const metrics = MetaMetrics.getInstance();
     if (type === this.TYPES.BIOMETRICS) {
       authOptions.accessControl = Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET;
+      // Android requires this storage type so that the access control is enforced.
+      authOptions.storage = Keychain.STORAGE_TYPE.AES_GCM;
 
       await metrics.addTraitsToUser({
         [UserProfileProperty.AUTHENTICATION_TYPE]:
@@ -184,6 +186,9 @@ const SecureKeychain = {
       });
     } else if (type === this.TYPES.PASSCODE) {
       authOptions.accessControl = Keychain.ACCESS_CONTROL.DEVICE_PASSCODE;
+      // Android requires this storage type so that the access control is enforced.
+      authOptions.storage = Keychain.STORAGE_TYPE.AES_GCM;
+
       await metrics.addTraitsToUser({
         [UserProfileProperty.AUTHENTICATION_TYPE]: AUTHENTICATION_TYPE.PASSCODE,
       });
@@ -192,7 +197,6 @@ const SecureKeychain = {
         [UserProfileProperty.AUTHENTICATION_TYPE]:
           AUTHENTICATION_TYPE.REMEMBER_ME,
       });
-      //Don't need to add any parameter
     } else {
       // Setting a password without a type does not save it
       return await this.resetGenericPassword();

@@ -17,6 +17,13 @@ jest.mock('../PriceChart/PriceChart', () => ({
   default: jest.fn().mockImplementation(() => null),
 }));
 
+jest.mock('../../Bridge/hooks/useRWAToken', () => ({
+  useRWAToken: () => ({
+    isStockToken: jest.fn().mockReturnValue(false),
+    isTokenTradingOpen: jest.fn().mockResolvedValue(true),
+  }),
+}));
+
 const mockAsset: TokenI = {
   name: 'Ethereum',
   ticker: 'ETH',
@@ -70,6 +77,8 @@ describe('Price Component', () => {
 
       const { getByText } = render(<Price {...props} />);
 
+      // Name and symbol are rendered together when ticker is not provided
+      // Format: "name (symbol)"
       expect(
         getByText(`${mockProps.asset.name} (${mockProps.asset.symbol})`),
       ).toBeTruthy();
@@ -93,6 +102,8 @@ describe('Price Component', () => {
     it('renders header correctly when name and ticker are provided', () => {
       const { getByText } = render(<Price {...mockProps} />);
 
+      // Name and ticker are rendered together
+      // Format: "name (ticker)"
       expect(
         getByText(`${mockProps.asset.name} (${mockProps.asset.ticker})`),
       ).toBeTruthy();

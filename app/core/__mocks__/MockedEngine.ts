@@ -24,9 +24,6 @@ export const mockedEngine = {
       }
     }),
   },
-  datamodel: {
-    state: { PreferencesController: { selectedAddress: '' } },
-  },
   context: {
     AccountsController: {
       listAccounts: jest.fn(),

@@ -1,4 +1,8 @@
-import { CommonActions } from '@react-navigation/native';
+import {
+  CommonActions,
+  NavigationProp,
+  ParamListBase,
+} from '@react-navigation/native';
 import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
 import trackOnboarding from '../metrics/TrackOnboarding/trackOnboarding';
 import Routes from '../../constants/navigation/Routes';
@@ -21,12 +25,7 @@ type TrackFunction = (
 /**
  * Type for navigation object
  */
-interface NavigationObject {
-  navigate: (screen: string, params?: Record<string, unknown>) => void;
-  dispatch: (action: ReturnType<typeof CommonActions.reset>) => void;
-  setOptions: (options: Record<string, unknown>) => void;
-  goBack: () => void;
-}
+type NavigationObject = NavigationProp<ParamListBase>;
 
 /**
  * Type for route params

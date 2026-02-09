@@ -45,6 +45,10 @@ import { subscribeToContentPreviewToken } from '../../../actions/notification/he
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import { isInternalDeepLink } from '../../../core/DeeplinkManager/util/deeplinks';
 import AppConstants from '../../../core/AppConstants';
+import { PredictMarketSportCardWrapper } from '../Predict/components/PredictMarketSportCard';
+import { PredictEventValues } from '../Predict/constants/eventNames';
+import { PREDICT_SUPERBOWL_VARIABLE_NAME } from '../Predict/constants/carousel';
+import { PredictCarouselMetadata } from '../Predict/types';
 
 const MAX_CAROUSEL_SLIDES = 8;
 
@@ -272,6 +276,24 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     dismissedBanners,
   ]);
 
+  const predictSuperbowlSlide = useMemo(
+    () =>
+      slidesConfig.find(
+        (slide) =>
+          slide.variableName === PREDICT_SUPERBOWL_VARIABLE_NAME &&
+          !dismissedBanners.includes(slide.id),
+      ),
+    [slidesConfig, dismissedBanners],
+  );
+
+  const predictSuperbowlMarketId = useMemo(() => {
+    if (!predictSuperbowlSlide) return null;
+    const metadata = predictSuperbowlSlide.metadata as
+      | PredictCarouselMetadata
+      | undefined;
+    return metadata?.marketId ?? null;
+  }, [predictSuperbowlSlide]);
+
   const visibleSlides = useMemo(() => {
     const filtered = slidesConfig.filter((slide: CarouselSlide) => {
       const active = isActive(slide);
@@ -285,6 +307,11 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
         return false;
       }
       ///: END:ONLY_INCLUDE_IF
+
+      // We dont want to show the predict superbowl slide in the carousel
+      if (slide.variableName === PREDICT_SUPERBOWL_VARIABLE_NAME) {
+        return false;
+      }
 
       return !dismissedBanners.includes(slide.id);
     });
@@ -537,6 +564,11 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     }
   }, [transitionToEmpty, onEmptyState]);
 
+  const handleSportCardDismiss = useCallback(() => {
+    if (!predictSuperbowlSlide) return;
+    dispatch(dismissBanner(predictSuperbowlSlide.id));
+  }, [predictSuperbowlSlide, dispatch]);
+
   const renderCard = useCallback(
     (slide: CarouselSlide, isCurrentCard: boolean) => {
       const isEmptyCard = slide.variableName === 'empty';
@@ -584,8 +616,8 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
       nextCardTranslateY,
       nextCardBgOpacity,
       handleSlideClick,
-      handleTransitionToNextCard,
       handleTransitionToEmpty,
+      handleTransitionToNextCard,
     ],
   );
 
@@ -616,6 +648,32 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
       );
     }
   }, [currentSlide, trackEvent, createEventBuilder]);
+
+  const handlePredictSuperbowlLoad = useCallback(() => {
+    if (predictSuperbowlSlide) {
+      trackEvent(
+        createEventBuilder({
+          category: 'Banner Display',
+          properties: {
+            name:
+              predictSuperbowlSlide.variableName ?? predictSuperbowlSlide.id,
+          },
+        }).build(),
+      );
+    }
+  }, [predictSuperbowlSlide, trackEvent, createEventBuilder]);
+
+  if (predictSuperbowlMarketId) {
+    return (
+      <PredictMarketSportCardWrapper
+        marketId={predictSuperbowlMarketId}
+        testID={predictSuperbowlSlide?.testID}
+        entryPoint={PredictEventValues.ENTRY_POINT.CAROUSEL}
+        onDismiss={handleSportCardDismiss}
+        onLoad={handlePredictSuperbowlLoad}
+      />
+    );
+  }
 
   if (
     !isCarouselVisible ||

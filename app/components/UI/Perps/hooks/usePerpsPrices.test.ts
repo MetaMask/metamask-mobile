@@ -64,7 +64,7 @@ describe('usePerpsPrices', () => {
           markPrice: '3001.00',
         },
       ]);
-      // Run the debounce timer (1000ms - from PERFORMANCE_CONFIG.PRICE_UPDATE_DEBOUNCE_MS)
+      // Run the debounce timer (1000ms - from PERFORMANCE_CONFIG.PriceUpdateDebounceMs)
       jest.advanceTimersByTime(1000);
     });
 

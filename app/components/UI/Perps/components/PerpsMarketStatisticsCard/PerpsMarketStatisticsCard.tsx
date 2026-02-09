@@ -62,17 +62,17 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
       displayText = formatFundingRate(liveFunding);
     } else if (
       marketStats.fundingRate &&
-      marketStats.fundingRate !== FUNDING_RATE_CONFIG.ZERO_DISPLAY
+      marketStats.fundingRate !== FUNDING_RATE_CONFIG.ZeroDisplay
     ) {
       // Fall back to marketStats if no live data
       fundingValue =
         parseFloat(marketStats.fundingRate.replace('%', '')) /
-        FUNDING_RATE_CONFIG.PERCENTAGE_MULTIPLIER;
+        FUNDING_RATE_CONFIG.PercentageMultiplier;
       displayText = marketStats.fundingRate;
     } else {
       // Default to zero
       fundingValue = 0;
-      displayText = FUNDING_RATE_CONFIG.ZERO_DISPLAY;
+      displayText = FUNDING_RATE_CONFIG.ZeroDisplay;
     }
 
     // Determine color based on value

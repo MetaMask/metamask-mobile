@@ -6,6 +6,7 @@ import {
   PREVIOUS_SCREEN,
   PROTECT,
 } from '../../../constants/navigation';
+import Routes from '../../../constants/navigation/Routes';
 import { Provider } from 'react-redux';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
@@ -17,7 +18,7 @@ import StorageWrapper from '../../../store/storage-wrapper';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { Authentication } from '../../../core';
-import { InteractionManager, Alert, Platform } from 'react-native';
+import { InteractionManager, Platform } from 'react-native';
 import { EVENT_NAME } from '../../../core/Analytics';
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
@@ -52,9 +53,14 @@ import {
 } from '../../../util/trace';
 import type { Span } from '@sentry/core';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
+import { captureException } from '@sentry/react-native';
 
 const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
   typeof trackOnboarding
+>;
+
+const mockCaptureException = captureException as jest.MockedFunction<
+  typeof captureException
 >;
 
 OAuthLoginService.updateMarketingOptInStatus = jest
@@ -217,18 +223,10 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../hooks/useMetrics', () => ({
-  useMetrics: () => mockMetrics,
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => mockMetrics,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  withMetricsAwareness: (Component: any) => Component,
-  MetaMetricsEvents: {
-    ERROR_SCREEN_VIEWED: 'Error Screen Viewed',
-    WALLET_SETUP_FAILURE: 'Wallet Setup Failure',
-    WALLET_CREATION_ATTEMPTED: 'Wallet Creation Attempted',
-    WALLET_CREATED: 'Wallet Created',
-    WALLET_SETUP_COMPLETED: 'Wallet Setup Completed',
-    EXTERNAL_LINK_CLICKED: 'External Link Clicked',
-  },
+  withAnalyticsAwareness: (Component: any) => Component,
 }));
 
 const renderWithProviders = (ui: React.ReactElement) =>
@@ -502,6 +500,107 @@ describe('ChoosePassword', () => {
       strings('choose_password.password_error'),
     );
     expect(errorMessage).toBeOnTheScreen();
+  });
+
+  it('helper text remains visible after password meets minimum length requirement', async () => {
+    const component = renderWithProviders(<ChoosePassword />);
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    const passwordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+
+    // Verify helper text is visible initially (empty password)
+    expect(
+      component.getByText(
+        strings('choose_password.must_be_at_least', { number: 8 }),
+      ),
+    ).toBeOnTheScreen();
+
+    // Enter a valid password that meets minimum length
+    await act(async () => {
+      fireEvent.changeText(passwordInput, 'ValidPassword123');
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    // Helper text should persist even after password meets requirement
+    expect(
+      component.getByText(
+        strings('choose_password.must_be_at_least', { number: 8 }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows error state only after password field loses focus with invalid password', async () => {
+    const component = renderWithProviders(<ChoosePassword />);
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    const passwordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+
+    // Enter a short password
+    await act(async () => {
+      fireEvent.changeText(passwordInput, 'short');
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    // Helper text should NOT be in error state yet (field not blurred)
+    const helperText = component.getByText(
+      strings('choose_password.must_be_at_least', { number: 8 }),
+    );
+    expect(helperText).toBeOnTheScreen();
+
+    // Blur the password field
+    await act(async () => {
+      fireEvent(passwordInput, 'blur');
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    // Helper text should still be visible after blur
+    expect(
+      component.getByText(
+        strings('choose_password.must_be_at_least', { number: 8 }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides error state when user focuses back on password field', async () => {
+    const component = renderWithProviders(<ChoosePassword />);
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    const passwordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+
+    // Enter a short password and blur to trigger error state
+    await act(async () => {
+      fireEvent.changeText(passwordInput, 'short');
+      fireEvent(passwordInput, 'blur');
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    // Focus back on the password field
+    await act(async () => {
+      fireEvent(passwordInput, 'focus');
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    // Helper text should still be visible but error state should be reset
+    expect(
+      component.getByText(
+        strings('choose_password.must_be_at_least', { number: 8 }),
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('render header left button on press, navigates to previous screen', async () => {
@@ -846,70 +945,14 @@ describe('ChoosePassword', () => {
     });
   });
 
-  it('should handle rejected OS biometric prompt', async () => {
-    jest.spyOn(Device, 'isIos').mockReturnValue(true);
-
-    // Mock newWalletAndKeychain to throw error first, then succeed
-    const mockNewWalletAndKeychain = jest.spyOn(
-      Authentication,
-      'newWalletAndKeychain',
-    );
-    mockNewWalletAndKeychain
-      .mockRejectedValueOnce(new Error('User rejected biometric prompt'))
-      .mockResolvedValueOnce(undefined);
-
-    mockRoute.params = {
-      ...mockRoute.params,
-      [PREVIOUS_SCREEN]: ONBOARDING,
-    };
-    const component = renderWithProviders(<ChoosePassword />);
-
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    });
-
-    const passwordInput = component.getByTestId(
-      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-    );
-    const confirmPasswordInput = component.getByTestId(
-      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-    );
-    const checkbox = component.getByTestId(
-      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
-    );
-
-    const submitButton = component.getByTestId(
-      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-    );
-    await act(async () => {
-      fireEvent.press(checkbox);
-      fireEvent.changeText(passwordInput, 'StrongPassword123!');
-    });
-
-    await act(async () => {
-      fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!');
-    });
-
-    await act(async () => {
-      fireEvent(submitButton, 'press');
-    });
-
-    // Should handle the rejection and create wallet with fallback method
-    expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(2);
-
-    jest.spyOn(Device, 'isIos').mockRestore();
-    mockNewWalletAndKeychain.mockRestore();
-  });
-
-  it('should show alert when passcode not set error occurs', async () => {
+  it('navigates to error screen when passcode not set error occurs', async () => {
     jest.spyOn(Device, 'isIos').mockReturnValue(false);
+    const passcodeError = new Error('Passcode not set.');
     const mockComponentAuthenticationType = jest.spyOn(
       Authentication,
       'componentAuthenticationType',
     );
-    mockComponentAuthenticationType.mockRejectedValueOnce(
-      new Error('Passcode not set.'),
-    );
+    mockComponentAuthenticationType.mockRejectedValueOnce(passcodeError);
 
     const component = renderWithProviders(<ChoosePassword />);
 
@@ -948,10 +991,17 @@ describe('ChoosePassword', () => {
       await new Promise((resolve) => setTimeout(resolve, 200));
     });
 
-    expect(Alert.alert).toHaveBeenCalledWith(
-      strings('choose_password.security_alert_title'),
-      strings('choose_password.security_alert_message'),
-    );
+    expect(mockNavigation.reset).toHaveBeenCalledWith({
+      routes: [
+        {
+          name: Routes.ONBOARDING.WALLET_CREATION_ERROR,
+          params: expect.objectContaining({
+            metricsEnabled: true,
+            error: passcodeError,
+          }),
+        },
+      ],
+    });
 
     jest.spyOn(Device, 'isIos').mockRestore();
     mockComponentAuthenticationType.mockClear();
@@ -1118,7 +1168,9 @@ describe('ChoosePassword', () => {
 
   describe('ErrorBoundary Tests', () => {
     it('should not trigger ErrorBoundary for OAuth password creation failures when analytics enabled', async () => {
-      mockMetricsIsEnabled.mockReturnValueOnce(true);
+      mockMetricsIsEnabled.mockReturnValue(true);
+      mockCaptureException.mockClear();
+
       const mockNewWalletAndKeychain = jest.spyOn(
         Authentication,
         'newWalletAndKeychain',
@@ -1169,6 +1221,7 @@ describe('ChoosePassword', () => {
       });
 
       expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
+      expect(mockCaptureException).toHaveBeenCalled();
       expect(mockTrackEvent).not.toHaveBeenLastCalledWith(
         expect.objectContaining({
           name: 'Error Screen Viewed',
@@ -1176,6 +1229,160 @@ describe('ChoosePassword', () => {
       );
 
       mockNewWalletAndKeychain.mockRestore();
+    });
+
+    it('should auto-report error to Sentry and navigate to error screen for social login failure', async () => {
+      mockMetricsIsEnabled.mockReturnValue(true);
+      mockCaptureException.mockClear();
+
+      const mockComponentAuthenticationType = jest.spyOn(
+        Authentication,
+        'componentAuthenticationType',
+      );
+      const walletError = new Error('Social login wallet creation failed');
+      mockComponentAuthenticationType.mockRejectedValueOnce(walletError);
+
+      mockRoute.params = {
+        ...mockRoute.params,
+        [PREVIOUS_SCREEN]: ONBOARDING,
+        oauthLoginSuccess: true,
+      };
+      const component = renderWithProviders(<ChoosePassword />);
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      const passwordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+      const checkbox = component.getByTestId(
+        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+      );
+      const submitButton = component.getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+
+      await act(async () => {
+        fireEvent.press(checkbox);
+        fireEvent.changeText(passwordInput, 'StrongPassword123!');
+      });
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!');
+      });
+      await act(async () => {
+        fireEvent(submitButton, 'press');
+      });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      });
+
+      expect(mockCaptureException).toHaveBeenCalledWith(walletError, {
+        tags: {
+          view: 'ChoosePassword',
+          context: 'Wallet creation failed - auto reported',
+        },
+      });
+
+      // metricsEnabled param reflects user's consent status
+      expect(mockNavigation.reset).toHaveBeenCalledWith({
+        routes: [
+          {
+            name: Routes.ONBOARDING.WALLET_CREATION_ERROR,
+            params: expect.objectContaining({
+              metricsEnabled: true,
+              error: walletError,
+            }),
+          },
+        ],
+      });
+
+      mockComponentAuthenticationType.mockReset();
+      mockComponentAuthenticationType.mockResolvedValue({
+        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+        availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+      });
+    });
+
+    it('should auto-report error to Sentry for SRP users with metrics enabled', async () => {
+      mockMetricsIsEnabled.mockReturnValue(true);
+      mockCaptureException.mockClear();
+
+      const mockComponentAuthenticationType = jest.spyOn(
+        Authentication,
+        'componentAuthenticationType',
+      );
+      const walletError = new Error('SRP wallet creation failed');
+      mockComponentAuthenticationType.mockRejectedValueOnce(walletError);
+
+      mockRoute.params = {
+        ...mockRoute.params,
+        [PREVIOUS_SCREEN]: ONBOARDING,
+        oauthLoginSuccess: false, // SRP flow, not social login
+      };
+      const component = renderWithProviders(<ChoosePassword />);
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      const passwordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+      const checkbox = component.getByTestId(
+        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+      );
+      const submitButton = component.getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+
+      await act(async () => {
+        fireEvent.press(checkbox);
+        fireEvent.changeText(passwordInput, 'StrongPassword123!');
+      });
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!');
+      });
+      await act(async () => {
+        fireEvent(submitButton, 'press');
+      });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      });
+
+      // Should auto-report to Sentry for SRP users with metrics enabled
+      expect(mockCaptureException).toHaveBeenCalledWith(walletError, {
+        tags: {
+          view: 'ChoosePassword',
+          context: 'Wallet creation failed - auto reported',
+        },
+      });
+
+      expect(mockNavigation.reset).toHaveBeenCalledWith({
+        routes: [
+          {
+            name: Routes.ONBOARDING.WALLET_CREATION_ERROR,
+            params: expect.objectContaining({
+              metricsEnabled: true,
+              error: walletError,
+            }),
+          },
+        ],
+      });
+
+      mockComponentAuthenticationType.mockReset();
+      mockComponentAuthenticationType.mockResolvedValue({
+        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+        availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+      });
     });
   });
   describe('Marketing API Integration', () => {

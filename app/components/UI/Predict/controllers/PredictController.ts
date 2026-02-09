@@ -1,4 +1,6 @@
 import { AccountsControllerGetSelectedAccountAction } from '@metamask/accounts-controller';
+import { AccountTreeControllerGetAccountsFromSelectedAccountGroupAction } from '@metamask/account-tree-controller';
+import { isEvmAccountType } from '@metamask/keyring-api';
 import {
   BaseController,
   ControllerGetStateAction,
@@ -11,8 +13,14 @@ import {
   PersonalMessageParams,
   SignTypedDataVersion,
   TypedMessageParams,
+  KeyringControllerSignTypedMessageAction,
+  KeyringControllerSignPersonalMessageAction,
 } from '@metamask/keyring-controller';
-import { NetworkControllerGetStateAction } from '@metamask/network-controller';
+import {
+  NetworkControllerGetStateAction,
+  NetworkControllerFindNetworkClientIdByChainIdAction,
+  NetworkControllerGetNetworkClientByIdAction,
+} from '@metamask/network-controller';
 import {
   TransactionControllerEstimateGasAction,
   TransactionControllerTransactionConfirmedEvent,
@@ -22,11 +30,15 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
+import {
+  RemoteFeatureFlagControllerGetStateAction,
+  RemoteFeatureFlagControllerStateChangeEvent,
+} from '@metamask/remote-feature-flag-controller';
 import { Hex, hexToNumber, numberToHex } from '@metamask/utils';
 import performance from 'react-native-performance';
-import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
-import Engine from '../../../../core/Engine';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { analytics } from '../../../../util/analytics/analytics';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
 import {
@@ -38,6 +50,7 @@ import {
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import {
   PredictEventProperties,
+  PredictShareStatusValue,
   PredictTradeStatus,
   PredictTradeStatusValue,
 } from '../constants/eventNames';
@@ -81,7 +94,6 @@ import {
 } from '../types';
 import { ensureError } from '../utils/predictErrorHandler';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
-import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
 import { MATIC_CONTRACTS } from '../providers/polymarket/constants';
 import {
@@ -95,6 +107,10 @@ import {
   PredictLiveSportsFlag,
   PredictMarketHighlightsFlag,
 } from '../types/flags';
+import {
+  VersionGatedFeatureFlag,
+  validatedVersionGatedFeatureFlag,
+} from '../../../../util/remoteFeatureFlag';
 
 /**
  * State shape for PredictController
@@ -227,8 +243,14 @@ export type PredictControllerActions =
  */
 type AllowedActions =
   | AccountsControllerGetSelectedAccountAction
+  | AccountTreeControllerGetAccountsFromSelectedAccountGroupAction
   | NetworkControllerGetStateAction
-  | TransactionControllerEstimateGasAction;
+  | NetworkControllerFindNetworkClientIdByChainIdAction
+  | NetworkControllerGetNetworkClientByIdAction
+  | TransactionControllerEstimateGasAction
+  | KeyringControllerSignTypedMessageAction
+  | KeyringControllerSignPersonalMessageAction
+  | RemoteFeatureFlagControllerGetStateAction;
 
 /**
  * External events the PredictController can subscribe to
@@ -237,7 +259,8 @@ type AllowedEvents =
   | TransactionControllerTransactionSubmittedEvent
   | TransactionControllerTransactionConfirmedEvent
   | TransactionControllerTransactionFailedEvent
-  | TransactionControllerTransactionRejectedEvent;
+  | TransactionControllerTransactionRejectedEvent
+  | RemoteFeatureFlagControllerStateChangeEvent;
 
 /**
  * PredictController messenger constraints
@@ -406,27 +429,42 @@ export class PredictController extends BaseController<
    * @private
    */
   private getSigner(address?: string): Signer {
-    const { KeyringController } = Engine.context;
-    const selectedAddress =
-      address ?? getEvmAccountFromSelectedAccountGroup()?.address ?? '0x0';
+    const selectedAddress = address ?? this.getEvmAccountAddress();
     return {
       address: selectedAddress,
       signTypedMessage: (
         _params: TypedMessageParams,
         _version: SignTypedDataVersion,
-      ) => KeyringController.signTypedMessage(_params, _version),
+      ) =>
+        this.messenger.call(
+          'KeyringController:signTypedMessage',
+          _params,
+          _version,
+        ),
       signPersonalMessage: (_params: PersonalMessageParams) =>
-        KeyringController.signPersonalMessage(_params),
+        this.messenger.call('KeyringController:signPersonalMessage', _params),
     };
   }
 
+  private getEvmAccountAddress(): string {
+    const accounts = this.messenger.call(
+      'AccountTreeController:getAccountsFromSelectedAccountGroup',
+    );
+    const evmAccount = accounts.find(
+      (account) => account && isEvmAccountType(account.type),
+    );
+    return evmAccount?.address ?? '0x0';
+  }
+
   private async invalidateQueryCache(chainId: number) {
-    const { NetworkController } = Engine.context;
-    const networkClientId = NetworkController.findNetworkClientIdByChainId(
+    const networkClientId = this.messenger.call(
+      'NetworkController:findNetworkClientIdByChainId',
       numberToHex(chainId),
     );
-    const networkClient =
-      NetworkController.getNetworkClientById(networkClientId);
+    const networkClient = this.messenger.call(
+      'NetworkController:getNetworkClientById',
+      networkClientId,
+    );
     try {
       await networkClient.blockTracker.checkForLatestBlock();
     } catch (error) {
@@ -473,20 +511,30 @@ export class PredictController extends BaseController<
         throw new Error('Provider not available');
       }
 
-      const { RemoteFeatureFlagController } = Engine.context;
+      const remoteFeatureFlagState = this.messenger.call(
+        'RemoteFeatureFlagController:getState',
+      );
       const liveSportsFlag =
-        (RemoteFeatureFlagController.state.remoteFeatureFlags
+        (remoteFeatureFlagState.remoteFeatureFlags
           .predictLiveSports as unknown as PredictLiveSportsFlag | undefined) ??
         DEFAULT_LIVE_SPORTS_FLAG;
       const liveSportsLeagues = liveSportsFlag.enabled
         ? filterSupportedLeagues(liveSportsFlag.leagues ?? [])
         : [];
 
-      const marketHighlightsFlag =
-        (RemoteFeatureFlagController.state.remoteFeatureFlags
-          .predictMarketHighlights as unknown as
-          | PredictMarketHighlightsFlag
-          | undefined) ?? DEFAULT_MARKET_HIGHLIGHTS_FLAG;
+      const rawMarketHighlightsFlag = remoteFeatureFlagState.remoteFeatureFlags
+        .predictMarketHighlights as unknown as
+        | PredictMarketHighlightsFlag
+        | undefined;
+
+      const isHighlightsFlagValid = validatedVersionGatedFeatureFlag(
+        rawMarketHighlightsFlag as unknown as VersionGatedFeatureFlag,
+      );
+
+      const marketHighlightsFlag: PredictMarketHighlightsFlag =
+        isHighlightsFlagValid && rawMarketHighlightsFlag
+          ? rawMarketHighlightsFlag
+          : DEFAULT_MARKET_HIGHLIGHTS_FLAG;
 
       const paramsWithLiveSports = { ...params, liveSportsLeagues };
 
@@ -502,10 +550,7 @@ export class PredictController extends BaseController<
 
       const isFirstPage = !params.offset || params.offset === 0;
       const shouldFetchHighlights =
-        marketHighlightsFlag.enabled &&
-        isFirstPage &&
-        params.category &&
-        !params.q;
+        isHighlightsFlagValid && isFirstPage && params.category && !params.q;
 
       if (shouldFetchHighlights) {
         const highlightedMarketIds =
@@ -518,11 +563,15 @@ export class PredictController extends BaseController<
             params.providerId ?? 'polymarket',
           );
 
-          const highlightedMarkets =
+          const fetchedHighlightedMarkets =
             (await provider?.getMarketsByIds?.(
               highlightedMarketIds,
               liveSportsLeagues,
             )) ?? [];
+
+          const highlightedMarkets = fetchedHighlightedMarkets.filter(
+            (market) => market.status === 'open',
+          );
 
           const highlightedIdSet = new Set(highlightedMarkets.map((m) => m.id));
           markets = markets.filter(
@@ -618,9 +667,11 @@ export class PredictController extends BaseController<
         throw new Error('Provider not available');
       }
 
-      const { RemoteFeatureFlagController } = Engine.context;
+      const remoteFeatureFlagState = this.messenger.call(
+        'RemoteFeatureFlagController:getState',
+      );
       const liveSportsFlag =
-        (RemoteFeatureFlagController.state.remoteFeatureFlags
+        (remoteFeatureFlagState.remoteFeatureFlags
           .predictLiveSports as unknown as PredictLiveSportsFlag | undefined) ??
         DEFAULT_LIVE_SPORTS_FLAG;
       const liveSportsLeagues = liveSportsFlag.enabled
@@ -1120,20 +1171,39 @@ export class PredictController extends BaseController<
       [PredictEventProperties.LIQUIDITY]: analyticsProperties.liquidity,
       [PredictEventProperties.VOLUME]: analyticsProperties.volume,
       [PredictEventProperties.SHARE_PRICE]: sharePrice,
-      // Add market type and outcome
       ...(analyticsProperties.marketType && {
         [PredictEventProperties.MARKET_TYPE]: analyticsProperties.marketType,
       }),
       ...(analyticsProperties.outcome && {
         [PredictEventProperties.OUTCOME]: analyticsProperties.outcome,
       }),
-      // Add completion duration for succeeded and failed status
       ...(completionDuration !== undefined && {
         [PredictEventProperties.COMPLETION_DURATION]: completionDuration,
       }),
-      // Add failure reason for failed status
       ...(failureReason && {
         [PredictEventProperties.FAILURE_REASON]: failureReason,
+      }),
+      ...(analyticsProperties.marketSlug && {
+        [PredictEventProperties.MARKET_SLUG]: analyticsProperties.marketSlug,
+      }),
+      ...(analyticsProperties.gameId && {
+        [PredictEventProperties.GAME_ID]: analyticsProperties.gameId,
+      }),
+      ...(analyticsProperties.gameStartTime && {
+        [PredictEventProperties.GAME_START_TIME]:
+          analyticsProperties.gameStartTime,
+      }),
+      ...(analyticsProperties.gameLeague && {
+        [PredictEventProperties.GAME_LEAGUE]: analyticsProperties.gameLeague,
+      }),
+      ...(analyticsProperties.gameStatus && {
+        [PredictEventProperties.GAME_STATUS]: analyticsProperties.gameStatus,
+      }),
+      ...(analyticsProperties.gamePeriod && {
+        [PredictEventProperties.GAME_PERIOD]: analyticsProperties.gamePeriod,
+      }),
+      ...(analyticsProperties.gameClock && {
+        [PredictEventProperties.GAME_CLOCK]: analyticsProperties.gameClock,
       }),
     };
 
@@ -1154,8 +1224,8 @@ export class PredictController extends BaseController<
       sensitiveProperties,
     });
 
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.PREDICT_TRADE_TRANSACTION,
       )
         .addProperties(regularProperties)
@@ -1175,6 +1245,13 @@ export class PredictController extends BaseController<
     marketTags,
     entryPoint,
     marketDetailsViewed,
+    marketSlug,
+    gameId,
+    gameStartTime,
+    gameLeague,
+    gameStatus,
+    gamePeriod,
+    gameClock,
   }: {
     marketId: string;
     marketTitle: string;
@@ -1182,6 +1259,13 @@ export class PredictController extends BaseController<
     marketTags?: string[];
     entryPoint: string;
     marketDetailsViewed: string;
+    marketSlug?: string;
+    gameId?: string;
+    gameStartTime?: string;
+    gameLeague?: string;
+    gameStatus?: string;
+    gamePeriod?: string | null;
+    gameClock?: string | null;
   }): void {
     const analyticsProperties = {
       [PredictEventProperties.MARKET_ID]: marketId,
@@ -1190,14 +1274,35 @@ export class PredictController extends BaseController<
       [PredictEventProperties.MARKET_TAGS]: marketTags,
       [PredictEventProperties.ENTRY_POINT]: entryPoint,
       [PredictEventProperties.MARKET_DETAILS_VIEWED]: marketDetailsViewed,
+      ...(marketSlug && {
+        [PredictEventProperties.MARKET_SLUG]: marketSlug,
+      }),
+      ...(gameId && {
+        [PredictEventProperties.GAME_ID]: gameId,
+      }),
+      ...(gameStartTime && {
+        [PredictEventProperties.GAME_START_TIME]: gameStartTime,
+      }),
+      ...(gameLeague && {
+        [PredictEventProperties.GAME_LEAGUE]: gameLeague,
+      }),
+      ...(gameStatus && {
+        [PredictEventProperties.GAME_STATUS]: gameStatus,
+      }),
+      ...(gamePeriod && {
+        [PredictEventProperties.GAME_PERIOD]: gamePeriod,
+      }),
+      ...(gameClock && {
+        [PredictEventProperties.GAME_CLOCK]: gameClock,
+      }),
     };
 
     DevLogger.log('📊 [Analytics] PREDICT_MARKET_DETAILS_OPENED', {
       analyticsProperties,
     });
 
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.PREDICT_MARKET_DETAILS_OPENED,
       )
         .addProperties(analyticsProperties)
@@ -1222,8 +1327,8 @@ export class PredictController extends BaseController<
       analyticsProperties,
     });
 
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.PREDICT_POSITION_VIEWED,
       )
         .addProperties(analyticsProperties)
@@ -1244,8 +1349,8 @@ export class PredictController extends BaseController<
       analyticsProperties,
     });
 
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.PREDICT_ACTIVITY_VIEWED,
       )
         .addProperties(analyticsProperties)
@@ -1273,8 +1378,8 @@ export class PredictController extends BaseController<
       analyticsProperties,
     });
 
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.PREDICT_GEO_BLOCKED_TRIGGERED,
       )
         .addProperties(analyticsProperties)
@@ -1322,10 +1427,44 @@ export class PredictController extends BaseController<
       isSessionEnd,
     });
 
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.PREDICT_FEED_VIEWED,
       )
+        .addProperties(analyticsProperties)
+        .build(),
+    );
+  }
+
+  /**
+   * Track Share Action analytics event for Predict markets
+   * @public
+   */
+  public trackShareAction({
+    status,
+    marketId,
+    marketSlug,
+  }: {
+    status: PredictShareStatusValue;
+    marketId?: string;
+    marketSlug?: string;
+  }): void {
+    const analyticsProperties = {
+      [PredictEventProperties.STATUS]: status,
+      ...(marketId && {
+        [PredictEventProperties.MARKET_ID]: marketId,
+      }),
+      ...(marketSlug && {
+        [PredictEventProperties.MARKET_SLUG]: marketSlug,
+      }),
+    };
+
+    DevLogger.log('📊 [Analytics] SHARE_ACTION', {
+      analyticsProperties,
+    });
+
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.SHARE_ACTION)
         .addProperties(analyticsProperties)
         .build(),
     );
@@ -1338,9 +1477,11 @@ export class PredictController extends BaseController<
         throw new Error('Provider not available');
       }
 
-      const { RemoteFeatureFlagController } = Engine.context;
+      const remoteFeatureFlagState = this.messenger.call(
+        'RemoteFeatureFlagController:getState',
+      );
       const feeCollection =
-        (RemoteFeatureFlagController.state.remoteFeatureFlags
+        (remoteFeatureFlagState.remoteFeatureFlags
           .predictFeeCollection as unknown as
           | PredictFeeCollection
           | undefined) ?? DEFAULT_FEE_COLLECTION_FLAG;
@@ -1594,8 +1735,8 @@ export class PredictController extends BaseController<
       }
 
       // Find network client - can fail if chain is not supported
-      const { NetworkController } = Engine.context;
-      const networkClientId = NetworkController.findNetworkClientIdByChainId(
+      const networkClientId = this.messenger.call(
+        'NetworkController:findNetworkClientIdByChainId',
         numberToHex(chainId),
       );
 
@@ -1864,7 +2005,7 @@ export class PredictController extends BaseController<
         throw new Error('Deposit preparation returned undefined');
       }
 
-      const { transactions, chainId, gasFeeToken } = depositPreparation;
+      const { transactions, chainId } = depositPreparation;
 
       if (!transactions || transactions.length === 0) {
         throw new Error('No transactions returned from deposit preparation');
@@ -1888,9 +2029,10 @@ export class PredictController extends BaseController<
         providerId: params.providerId,
       });
 
-      const { NetworkController } = Engine.context;
-      const networkClientId =
-        NetworkController.findNetworkClientIdByChainId(chainId);
+      const networkClientId = this.messenger.call(
+        'NetworkController:findNetworkClientIdByChainId',
+        chainId,
+      );
 
       if (!networkClientId) {
         throw new Error(`Network client not found for chain ID: ${chainId}`);
@@ -1908,10 +2050,8 @@ export class PredictController extends BaseController<
         networkClientId,
         disableHook: true,
         disableSequential: true,
-        disableUpgrade: true,
         skipInitialGasEstimate: true,
         transactions,
-        gasFeeToken,
       });
 
       if (!batchResult?.batchId) {
@@ -2134,13 +2274,13 @@ export class PredictController extends BaseController<
         };
       });
 
-      const { NetworkController } = Engine.context;
-
       const { batchId } = await addTransactionBatch({
         from: signer.address as Hex,
         origin: ORIGIN_METAMASK,
-        networkClientId:
-          NetworkController.findNetworkClientIdByChainId(chainId),
+        networkClientId: this.messenger.call(
+          'NetworkController:findNetworkClientIdByChainId',
+          chainId,
+        ),
         disableHook: true,
         disableSequential: true,
         requireApproval: true,
@@ -2236,8 +2376,8 @@ export class PredictController extends BaseController<
 
     const chainId = this.state.withdrawTransaction.chainId;
 
-    const { NetworkController } = Engine.context;
-    const networkClientId = NetworkController.findNetworkClientIdByChainId(
+    const networkClientId = this.messenger.call(
+      'NetworkController:findNetworkClientIdByChainId',
       numberToHex(chainId),
     );
 

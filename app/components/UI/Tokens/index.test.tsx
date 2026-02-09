@@ -230,7 +230,7 @@ describe('Tokens', () => {
     expect(getByTestId('asset-0xToken3')).toBeOnTheScreen();
   });
 
-  it('performs token refresh', () => {
+  it('performs token refresh', async () => {
     const mockRefreshTokens = jest
       .spyOn(RefreshTokensModule, 'refreshTokens')
       .mockResolvedValue();
@@ -238,7 +238,10 @@ describe('Tokens', () => {
 
     fireEvent.press(getByTestId('MOCK_TEST_REFRESH_BUTTON'));
 
-    expect(mockRefreshTokens).toHaveBeenCalled();
+    // Wait for async refresh to complete
+    await waitFor(() => {
+      expect(mockRefreshTokens).toHaveBeenCalled();
+    });
   });
 
   it('performs token addition navigation', async () => {

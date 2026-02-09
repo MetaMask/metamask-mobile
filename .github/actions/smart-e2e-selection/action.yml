@@ -41,6 +41,9 @@ outputs:
   ai_confidence:
     description: 'AI confidence score (0-100)'
     value: ${{ steps.final-outputs.outputs.ai_confidence }}
+  ai_performance_test_tags:
+    description: 'Performance test tags to run (JSON array format, empty [] means no performance tests)'
+    value: ${{ steps.final-outputs.outputs.ai_performance_test_tags }}
 
 runs:
   using: 'composite'
@@ -119,6 +122,7 @@ runs:
       run: |
         echo "ai_e2e_test_tags=[\"ALL\"]" >> "$GITHUB_OUTPUT"
         echo "ai_confidence=0" >> "$GITHUB_OUTPUT"
+        echo "ai_performance_test_tags=[]" >> "$GITHUB_OUTPUT"
         SHOULD_SKIP=false
         SKIP_REASON=""
 
@@ -157,6 +161,13 @@ runs:
           echo 'ai_e2e_test_tags=["ALL"]' >> "$GITHUB_OUTPUT"
         fi
         echo "ai_confidence=${{ steps.ai-analysis.outputs.ai_confidence }}" >> "$GITHUB_OUTPUT"
+        # Performance test tags (empty array means no performance tests)
+        PERF_TAGS='${{ steps.ai-analysis.outputs.ai_performance_test_tags }}'
+        if [[ -n "$PERF_TAGS" ]]; then
+          printf 'ai_performance_test_tags=%s\n' "$PERF_TAGS" >> "$GITHUB_OUTPUT"
+        else
+          echo 'ai_performance_test_tags=[]' >> "$GITHUB_OUTPUT"
+        fi
 
     - name: Display AI Analysis Outputs
       if: always()
@@ -166,6 +177,7 @@ runs:
         echo "================================"
         echo "ai_e2e_test_tags: ${{ steps.final-outputs.outputs.ai_e2e_test_tags }}"
         echo "ai_confidence: ${{ steps.final-outputs.outputs.ai_confidence }}"
+        echo "ai_performance_test_tags: ${{ steps.final-outputs.outputs.ai_performance_test_tags }}"
         echo "================================"
 
     - name: Delete previous comments

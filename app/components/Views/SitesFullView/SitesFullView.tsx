@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useMemo } from 'react';
-import { StyleSheet, View, RefreshControl } from 'react-native';
+import { Platform, StyleSheet, View, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 // eslint-disable-next-line no-duplicate-imports
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
@@ -21,7 +21,6 @@ const createStyles = (theme: Theme) =>
     safeArea: {
       flex: 1,
       backgroundColor: theme.colors.background.default,
-      paddingBottom: 16,
     },
     headerContainer: {
       backgroundColor: theme.colors.background.default,
@@ -90,7 +89,12 @@ const SitesFullView: React.FC = () => {
   }, [isSearchActive, searchQuery]);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
+    <SafeAreaView
+      style={styles.safeArea}
+      edges={
+        Platform.OS === 'ios' ? ['left', 'right'] : ['left', 'right', 'bottom']
+      }
+    >
       <View
         style={[
           styles.headerContainer,

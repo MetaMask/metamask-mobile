@@ -10,7 +10,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { SECTIONS_ARRAY, SectionId } from '../../sections.config';
+import { useSectionsArray, SectionId } from '../../sections.config';
 import { TrendingViewSelectorsIDs } from '../../TrendingView.testIds';
 
 interface QuickActionsProps {
@@ -26,10 +26,9 @@ interface QuickActionsProps {
 const QuickActions: React.FC<QuickActionsProps> = ({ emptySections }) => {
   const navigation = useNavigation();
   const tw = useTailwind();
+  const sectionsArray = useSectionsArray();
 
-  const visibleSections = SECTIONS_ARRAY.filter(
-    (s) => !emptySections.has(s.id),
-  );
+  const visibleSections = sectionsArray.filter((s) => !emptySections.has(s.id));
 
   return (
     <Box twClassName="mt-1 mb-4">
@@ -45,7 +44,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({ emptySections }) => {
               onPress={() => section.viewAllAction(navigation)}
               testID={`quick-action-${section.id}`}
               style={tw.style(
-                'flex-row items-center justify-center gap-1 rounded-2xl bg-background-section px-3 py-2',
+                'flex-row items-center justify-center gap-1 rounded-xl bg-background-section px-3 py-2',
               )}
             >
               <Icon

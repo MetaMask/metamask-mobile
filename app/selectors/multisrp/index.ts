@@ -1,3 +1,4 @@
+import { toMultichainAccountWalletId } from '@metamask/account-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { RootState } from '../../reducers';
 import { selectInternalAccounts } from '../accountsController';
@@ -66,6 +67,8 @@ export const selectAccountGroupsByKeyringId = createDeepEqualSelector(
     keyringId: string,
   ) =>
     accountGroups.filter((group) =>
-      group.id.startsWith(`entropy:${keyringId}/`),
+      // NOTE: We could also use `parseMultichainAccountWalletGroup` helper, but this should be
+      // good enough for our use-case (for multichain account groups).
+      group.id.startsWith(toMultichainAccountWalletId(keyringId) + '/'),
     ),
 );

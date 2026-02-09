@@ -9,7 +9,7 @@ import {
   TestSnapBottomSheetSelectorWebIDS,
   EntropyDropDownSelectorWebIDS,
   NativeDropdownSelectorWebIDS,
-} from '../../selectors/Browser/TestSnaps.selectors';
+} from '../../../tests/selectors/Browser/TestSnaps.selectors';
 import Gestures from '../../../tests/framework/Gestures';
 import { SNAP_INSTALL_CONNECT } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapConnectionRequest/InstallSnapConnectionRequest.constants';
 import { SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapPermissionsRequest/InstallSnapPermissionsRequest.constants';
@@ -24,7 +24,7 @@ import { RetryOptions } from '../../../tests/framework';
 import { Json } from '@metamask/utils';
 
 export const TEST_SNAPS_URL =
-  'https://metamask.github.io/snaps/test-snaps/3.1.0/';
+  'https://metamask.github.io/snaps/test-snaps/3.4.0/';
 
 class TestSnaps {
   get getConnectSnapButton(): DetoxElement {
@@ -48,6 +48,12 @@ class TestSnaps {
   get confirmSignatureButton(): DetoxElement {
     return Matchers.getElementByID(
       ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
+    );
+  }
+
+  get solanaConfirmButton(): DetoxElement {
+    return Matchers.getElementByID(
+      'confirm-sign-message-confirm-snap-footer-button',
     );
   }
 
@@ -239,7 +245,9 @@ class TestSnaps {
       TestSnapViewSelectorWebIDS[buttonLocator],
     );
     await Gestures.scrollToWebViewPort(webElement);
-    await Gestures.tapWebElement(webElement);
+    await Gestures.tap(webElement, {
+      elemDescription: `tapButton:: ${buttonLocator}`,
+    });
   }
 
   async tapOkButton() {
@@ -415,6 +423,10 @@ class TestSnaps {
 
   async approveNativeConfirmation() {
     await Gestures.tap(this.confirmSignatureButton);
+  }
+
+  async approveSolanaConfirmation() {
+    await Gestures.tap(this.solanaConfirmButton);
   }
 
   async waitForWebSocketUpdate(state: {

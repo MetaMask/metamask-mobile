@@ -24,7 +24,11 @@ import NotificationManager from '../NotificationManager';
 import { msBetweenDates, msToHours } from '../../util/date';
 import { addTransaction } from '../../util/transaction-controller';
 import URL from 'url-parse';
-import { parseWalletConnectUri } from './wc-utils';
+import {
+  parseWalletConnectUri,
+  normalizeDappUrl,
+  isValidUrl,
+} from './wc-utils';
 import { store } from '../../store';
 import { selectEvmChainId } from '../../selectors/networkController';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
@@ -51,13 +55,31 @@ const METHODS_TO_REDIRECT = {
 const persistSessions = async () => {
   const sessions = connectors
     .filter((connector) => connector?.walletConnector?.connected)
-    .map((connector) => ({
-      ...connector.walletConnector.session,
-      autosign: connector.autosign,
-      redirectUrl: connector.redirectUrl,
-      requestOriginatedFrom: connector.requestOriginatedFrom,
-      lastTimeConnected: new Date(),
-    }));
+    .map((connector) => {
+      const session = connector.walletConnector.session;
+      const rawUrl = session.peerMeta?.url;
+      const normalizedUrl = normalizeDappUrl(rawUrl);
+
+      if (!normalizedUrl) {
+        Logger.log(
+          `WC: Skipping session with invalid dApp URL during persist: ${rawUrl}`,
+        );
+        return null;
+      }
+
+      return {
+        ...session,
+        peerMeta: {
+          ...session.peerMeta,
+          url: normalizedUrl,
+        },
+        autosign: connector.autosign,
+        redirectUrl: connector.redirectUrl,
+        requestOriginatedFrom: connector.requestOriginatedFrom,
+        lastTimeConnected: new Date(),
+      };
+    })
+    .filter(Boolean);
 
   await StorageWrapper.setItem(
     WALLETCONNECT_SESSIONS,
@@ -159,9 +181,7 @@ class WalletConnect {
       }
 
       if (payload.method) {
-        const payloadUrl = this.walletConnector.session.peerMeta.url;
-        const payloadHostname = new URL(payloadUrl).hostname;
-        if (payloadHostname === this.backgroundBridge.hostname) {
+        if (this.hostname === this.backgroundBridge.hostname) {
           if (METHODS_TO_REDIRECT[payload.method]) {
             this.requestsToRedirect[payload.id] = true;
           }
@@ -184,7 +204,7 @@ class WalletConnect {
                 chainId,
                 isWalletConnect: true,
                 activeAccounts: [selectedAddress],
-                hostname: payloadHostname,
+                hostname: this.hostname,
               });
 
               const { NetworkController } = Engine.context;
@@ -316,6 +336,33 @@ class WalletConnect {
   };
 
   startSession = async (sessionData, existing) => {
+    const rawUrl = sessionData.peerMeta?.url;
+
+    let normalizedUrl;
+    if (existing) {
+      // For existing sessions from storage, normalize URL as a safety measure for legacy data.
+      normalizedUrl = normalizeDappUrl(rawUrl);
+      if (!normalizedUrl) {
+        Logger.log(
+          'WC: Rejecting persisted session with invalid dApp URL:',
+          rawUrl,
+        );
+        this.killSession();
+        throw new Error(`Invalid dApp URL in session metadata: ${rawUrl}`);
+      }
+    } else {
+      if (!isValidUrl(rawUrl)) {
+        Logger.log('WC: Rejecting new session with invalid dApp URL:', rawUrl);
+        throw new Error(`Invalid dApp URL in session metadata: ${rawUrl}`);
+      }
+      // Trim whitespace to ensure consistency with normalizeDappUrl behavior
+      // and prevent malformed origin strings in concatenations
+      normalizedUrl = rawUrl.trim();
+    }
+
+    // Get hostname from the normalized/validated URL
+    const hostname = new URL(normalizedUrl).hostname;
+
     const chainId = selectEvmChainId(store.getState());
     const selectedAddress = toFormattedAddress(
       Engine.context.AccountsController.getSelectedAccount().address,
@@ -331,12 +378,12 @@ class WalletConnect {
       persistSessions();
     }
 
-    this.url.current = sessionData.peerMeta.url;
+    this.url.current = normalizedUrl;
     this.title.current = sessionData.peerMeta?.name;
     this.icon.current = sessionData.peerMeta?.icons?.[0];
     this.dappScheme.current = sessionData.peerMeta?.dappScheme;
 
-    this.hostname = new URL(this.url.current).hostname;
+    this.hostname = hostname;
 
     this.backgroundBridge = new BackgroundBridge({
       webview: null,
@@ -379,10 +426,19 @@ class WalletConnect {
   sessionRequest = async (peerInfo) => {
     const { ApprovalController } = Engine.context;
     try {
-      const { host } = new URL(peerInfo.peerMeta.url);
+      const rawUrl = peerInfo.peerMeta?.url;
+
+      if (!isValidUrl(rawUrl)) {
+        Logger.log('WC: Rejecting new session with invalid dApp URL:', rawUrl);
+        throw new Error(`Invalid dApp URL: ${rawUrl}`);
+      }
+
+      // Trim whitespace to ensure consistency with validation and prevent URL parsing errors
+      const trimmedUrl = rawUrl.trim();
+
       return await ApprovalController.add({
         id: random(),
-        origin: host,
+        origin: new URL(trimmedUrl).host,
         requestData: peerInfo,
         type: ApprovalTypes.WALLET_CONNECT,
       });
@@ -399,19 +455,28 @@ const instance = {
       const sessions = JSON.parse(sessionData);
 
       sessions.forEach((session) => {
-        if (session.lastTimeConnected) {
-          const sessionDate = new Date(session.lastTimeConnected);
-          const diffBetweenDatesInMs = msBetweenDates(sessionDate);
-          const diffInHours = msToHours(diffBetweenDatesInMs);
+        try {
+          if (session.lastTimeConnected) {
+            const sessionDate = new Date(session.lastTimeConnected);
+            const diffBetweenDatesInMs = msBetweenDates(sessionDate);
+            const diffInHours = msToHours(diffBetweenDatesInMs);
 
-          if (diffInHours <= AppConstants.WALLET_CONNECT.SESSION_LIFETIME) {
-            connectors.push(new WalletConnect({ session }, true));
+            if (diffInHours <= AppConstants.WALLET_CONNECT.SESSION_LIFETIME) {
+              connectors.push(new WalletConnect({ session }, true));
+            } else {
+              const connector = new WalletConnect({ session }, true);
+              connector.killSession();
+            }
           } else {
-            const connector = new WalletConnect({ session }, true);
-            connector.killSession();
+            connectors.push(new WalletConnect({ session }, true));
           }
-        } else {
-          connectors.push(new WalletConnect({ session }, true));
+        } catch (error) {
+          // If a session fails to initialize (e.g., invalid URL), log the error
+          // and continue processing remaining sessions instead of stopping the loop
+          Logger.log(
+            `WC: Failed to initialize session during init: ${error.message}`,
+            session,
+          );
         }
       });
     }

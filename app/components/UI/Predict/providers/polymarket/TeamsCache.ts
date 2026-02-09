@@ -1,8 +1,14 @@
+/* eslint-disable @metamask/design-tokens/color-no-hex */
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
 import { PredictSportsLeague } from '../../types';
 import { PolymarketApiTeam } from './types';
 import { getPolymarketEndpoints } from './utils';
+
+const TEAM_COLOR_OVERRIDES: Record<string, string> = {
+  ne: '#1D4E9B',
+  sea: '#5BA423',
+};
 
 export class TeamsCache {
   private static instance: TeamsCache | null = null;
@@ -113,6 +119,7 @@ export class TeamsCache {
 
       for (const team of teams) {
         if (team.abbreviation) {
+          team.color = TEAM_COLOR_OVERRIDES[team.abbreviation] ?? team.color;
           leagueCache.set(team.abbreviation.toLowerCase(), team);
         }
       }

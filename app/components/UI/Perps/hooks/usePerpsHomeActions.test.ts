@@ -8,8 +8,8 @@ import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConf
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
 } from '../constants/eventNames';
 
 // Mock dependencies
@@ -210,9 +210,10 @@ describe('usePerpsHomeActions', () => {
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.PERPS_SCREEN_VIEWED,
         {
-          [PerpsEventProperties.SCREEN_TYPE]:
-            PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-          [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.DEPOSIT_BUTTON,
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+          [PERPS_EVENT_PROPERTY.SOURCE]:
+            PERPS_EVENT_VALUE.SOURCE.DEPOSIT_BUTTON,
         },
       );
     });
@@ -265,8 +266,8 @@ describe('usePerpsHomeActions', () => {
     });
   });
 
-  describe('handleWithdraw - ineligible user', () => {
-    it('opens eligibility modal without navigating', async () => {
+  describe('handleWithdraw - ineligible user (TAT-2337: withdrawals not geo-blocked)', () => {
+    it('allows withdrawal navigation even for ineligible users', async () => {
       (useSelector as jest.Mock).mockReturnValue(false);
 
       const { result } = renderHook(() => usePerpsHomeActions());
@@ -275,12 +276,15 @@ describe('usePerpsHomeActions', () => {
         await result.current.handleWithdraw();
       });
 
-      expect(result.current.isEligibilityModalVisible).toBe(true);
-      expect(mockEnsureArbitrumNetworkExists).not.toHaveBeenCalled();
-      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+      // Withdrawal should proceed regardless of eligibility
+      expect(result.current.isEligibilityModalVisible).toBe(false);
+      expect(mockEnsureArbitrumNetworkExists).toHaveBeenCalledTimes(1);
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.WITHDRAW,
+      });
     });
 
-    it('tracks geo-block screen viewed event for withdraw action', async () => {
+    it('does not show geo-block notification for withdraw action', async () => {
       (useSelector as jest.Mock).mockReturnValue(false);
 
       const { result } = renderHook(() => usePerpsHomeActions());
@@ -289,14 +293,55 @@ describe('usePerpsHomeActions', () => {
         await result.current.handleWithdraw();
       });
 
-      expect(mockTrack).toHaveBeenCalledWith(
+      // Should NOT track geo-block screen for withdrawals
+      expect(mockTrack).not.toHaveBeenCalledWith(
         MetaMetricsEvents.PERPS_SCREEN_VIEWED,
-        {
-          [PerpsEventProperties.SCREEN_TYPE]:
-            PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-          [PerpsEventProperties.SOURCE]:
-            PerpsEventValues.SOURCE.WITHDRAW_BUTTON,
-        },
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        }),
+      );
+    });
+
+    it('tracks geo-blocked withdrawal with IS_GEO_BLOCKED property for monitoring', async () => {
+      (useSelector as jest.Mock).mockReturnValue(false);
+
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+
+      // Should track withdrawal with IS_GEO_BLOCKED: true for monitoring
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.WITHDRAW,
+          [PERPS_EVENT_PROPERTY.IS_GEO_BLOCKED]: true,
+        }),
+      );
+    });
+  });
+
+  describe('handleWithdraw - eligible user geo-block tracking', () => {
+    it('tracks eligible withdrawal with IS_GEO_BLOCKED: false', async () => {
+      (useSelector as jest.Mock).mockReturnValue(true);
+
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+
+      // Should track withdrawal with IS_GEO_BLOCKED: false
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.WITHDRAW,
+          [PERPS_EVENT_PROPERTY.IS_GEO_BLOCKED]: false,
+        }),
       );
     });
   });

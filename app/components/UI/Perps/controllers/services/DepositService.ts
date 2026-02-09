@@ -1,9 +1,13 @@
 import { toHex } from '@metamask/controller-utils';
 import { parseCaipAssetId, type Hex } from '@metamask/utils';
 import type { TransactionParams } from '@metamask/transaction-controller';
+// Use generateTransferData from existing mobile utils which already handles
+// ethereumjs-abi types and ABI encoding
 import { generateTransferData } from '../../../../../util/transactions';
 import { generateDepositId } from '../../utils/idUtils';
-import type { IPerpsProvider, IPerpsPlatformDependencies } from '../types';
+import type { PerpsProvider, PerpsPlatformDependencies } from '../types';
+import type { PerpsControllerMessenger } from '../PerpsController';
+import { getSelectedEvmAccount } from '../../utils/accountUtils';
 
 // Temporary to avoid estimation failures due to insufficient balance
 const DEPOSIT_GAS_LIMIT = toHex(100000);
@@ -15,17 +19,24 @@ const DEPOSIT_GAS_LIMIT = toHex(100000);
  * Stateless service that prepares transaction data for TransactionController.
  * Controller handles TransactionController integration and promise lifecycle.
  *
- * Instance-based service with constructor injection of platform dependencies.
+ * Instance-based service with constructor injection of platform dependencies
+ * and messenger for inter-controller communication.
  */
 export class DepositService {
-  private readonly deps: IPerpsPlatformDependencies;
+  private readonly deps: PerpsPlatformDependencies;
+  private readonly messenger: PerpsControllerMessenger;
 
   /**
    * Create a new DepositService instance
    * @param deps - Platform dependencies for logging, metrics, etc.
+   * @param messenger - Messenger for inter-controller communication
    */
-  constructor(deps: IPerpsPlatformDependencies) {
+  constructor(
+    deps: PerpsPlatformDependencies,
+    messenger: PerpsControllerMessenger,
+  ) {
     this.deps = deps;
+    this.messenger = messenger;
   }
 
   /**
@@ -36,7 +47,7 @@ export class DepositService {
    * @param options.provider - Active provider instance
    * @returns Transaction data ready for TransactionController.addTransaction
    */
-  async prepareTransaction(options: { provider: IPerpsProvider }): Promise<{
+  async prepareTransaction(options: { provider: PerpsProvider }): Promise<{
     transaction: TransactionParams;
     assetChainId: Hex;
     currentDepositId: string;
@@ -59,8 +70,8 @@ export class DepositService {
       amount: '0x0',
     });
 
-    // Get EVM account from selected account group via dependency injection
-    const evmAccount = this.deps.controllers.accounts.getSelectedEvmAccount();
+    // Get EVM account from selected account group via messenger
+    const evmAccount = getSelectedEvmAccount(this.messenger);
     if (!evmAccount) {
       throw new Error(
         'No EVM-compatible account found in selected account group',

@@ -393,47 +393,4 @@ describe('PredictGameDetailsFooter', () => {
       expect(screen.getByText('$0 Vol')).toBeOnTheScreen();
     });
   });
-
-  describe('gradient integration', () => {
-    it('renders gradient when team colors are provided', () => {
-      const props = createDefaultProps({
-        awayColor: '#002244',
-        homeColor: '#FB4F14',
-      });
-
-      renderWithProvider(<PredictGameDetailsFooter {...props} />);
-
-      expect(
-        screen.getByTestId('game-details-footer-gradient'),
-      ).toBeOnTheScreen();
-    });
-
-    it('does not render gradient when colors are not provided', () => {
-      const props = createDefaultProps();
-
-      renderWithProvider(<PredictGameDetailsFooter {...props} />);
-
-      expect(screen.queryByTestId('game-details-footer-gradient')).toBeNull();
-    });
-
-    it('does not render gradient when only awayColor is provided', () => {
-      const props = createDefaultProps({
-        awayColor: '#002244',
-      });
-
-      renderWithProvider(<PredictGameDetailsFooter {...props} />);
-
-      expect(screen.queryByTestId('game-details-footer-gradient')).toBeNull();
-    });
-
-    it('does not render gradient when only homeColor is provided', () => {
-      const props = createDefaultProps({
-        homeColor: '#FB4F14',
-      });
-
-      renderWithProvider(<PredictGameDetailsFooter {...props} />);
-
-      expect(screen.queryByTestId('game-details-footer-gradient')).toBeNull();
-    });
-  });
 });

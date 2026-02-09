@@ -262,11 +262,11 @@ describe('usePerpsAdjustMarginData', () => {
         }),
       );
 
-      // newMargin = 5000 + 1000 = 6000
-      // positionSize = 0.5
-      // marginPerUnit = 6000 / 0.5 = 12000
-      // For long: liquidationPrice = entryPrice - marginPerUnit = 100000 - 12000 = 88000
-      expect(result.current.newLiquidationPrice).toBe(88000);
+      // Uses anchored + delta approach with maintenance margin factor:
+      // marginDelta = 1000, positionSize = 0.5, currentLiqPrice = 80000
+      // maintenanceMarginRate = 1/(2*50) = 0.01, denominator = 1 - 0.01 = 0.99
+      // For long (direction=-1): newLiqPrice = 80000 + (-1 * 1000 / 0.5) / 0.99 ≈ 77979.80
+      expect(result.current.newLiquidationPrice).toBeCloseTo(77979.8, 1);
     });
 
     it('calculates new liquidation price when removing margin', () => {
@@ -288,10 +288,11 @@ describe('usePerpsAdjustMarginData', () => {
         }),
       );
 
-      // newMargin = 8000 - 1000 = 7000
-      // marginPerUnit = 7000 / 0.5 = 14000
-      // For long: liquidationPrice = 100000 - 14000 = 86000
-      expect(result.current.newLiquidationPrice).toBe(86000);
+      // Uses anchored + delta approach with maintenance margin factor:
+      // marginDelta = -1000 (removing), positionSize = 0.5, currentLiqPrice = 80000
+      // maintenanceMarginRate = 1/(2*50) = 0.01, denominator = 0.99
+      // For long (direction=-1): newLiqPrice = 80000 + (-1 * -1000 / 0.5) / 0.99 ≈ 82020.20
+      expect(result.current.newLiquidationPrice).toBeCloseTo(82020.2, 1);
     });
   });
 

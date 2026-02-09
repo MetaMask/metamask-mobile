@@ -121,17 +121,17 @@ describe('PerpsCandlePeriodBottomSheet', () => {
   const defaultProps = {
     isVisible: true,
     onClose: mockOnClose,
-    selectedPeriod: CandlePeriod.ONE_HOUR,
-    selectedDuration: TimeDuration.ONE_DAY,
+    selectedPeriod: CandlePeriod.OneHour,
+    selectedDuration: TimeDuration.OneDay,
     onPeriodChange: mockOnPeriodChange,
     testID: 'candle-period-bottom-sheet',
   };
 
   const mockPeriods = [
-    { label: '15min', value: CandlePeriod.FIFTEEN_MINUTES },
-    { label: '1h', value: CandlePeriod.ONE_HOUR },
-    { label: '2h', value: CandlePeriod.TWO_HOURS },
-    { label: '4h', value: CandlePeriod.FOUR_HOURS },
+    { label: '15min', value: CandlePeriod.FifteenMinutes },
+    { label: '1h', value: CandlePeriod.OneHour },
+    { label: '2h', value: CandlePeriod.TwoHours },
+    { label: '4h', value: CandlePeriod.FourHours },
   ] as const;
 
   beforeEach(() => {
@@ -228,7 +228,7 @@ describe('PerpsCandlePeriodBottomSheet', () => {
         <TestWrapper>
           <PerpsCandlePeriodBottomSheet
             {...defaultProps}
-            selectedPeriod={CandlePeriod.TWO_HOURS}
+            selectedPeriod={CandlePeriod.TwoHours}
           />
         </TestWrapper>,
       );
@@ -245,20 +245,20 @@ describe('PerpsCandlePeriodBottomSheet', () => {
         <TestWrapper>
           <PerpsCandlePeriodBottomSheet
             {...defaultProps}
-            selectedDuration={TimeDuration.ONE_WEEK}
+            selectedDuration={TimeDuration.OneWeek}
           />
         </TestWrapper>,
       );
 
       expect(mockGetCandlePeriodsForDuration).toHaveBeenCalledWith(
-        TimeDuration.ONE_WEEK,
+        TimeDuration.OneWeek,
       );
 
       // Mock different periods for new duration
       const newMockPeriods = [
-        { label: '1h', value: CandlePeriod.ONE_HOUR },
-        { label: '4h', value: CandlePeriod.FOUR_HOURS },
-        { label: '1D', value: CandlePeriod.ONE_DAY },
+        { label: '1h', value: CandlePeriod.OneHour },
+        { label: '4h', value: CandlePeriod.FourHours },
+        { label: '1D', value: CandlePeriod.OneDay },
       ];
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockGetCandlePeriodsForDuration.mockReturnValue(newMockPeriods as any);
@@ -267,13 +267,13 @@ describe('PerpsCandlePeriodBottomSheet', () => {
         <TestWrapper>
           <PerpsCandlePeriodBottomSheet
             {...defaultProps}
-            selectedDuration={TimeDuration.ONE_DAY}
+            selectedDuration={TimeDuration.OneDay}
           />
         </TestWrapper>,
       );
 
       expect(mockGetCandlePeriodsForDuration).toHaveBeenCalledWith(
-        TimeDuration.ONE_DAY,
+        TimeDuration.OneDay,
       );
     });
   });
@@ -421,27 +421,27 @@ describe('PerpsCandlePeriodBottomSheet', () => {
   describe('Different Duration Scenarios', () => {
     const durationTestCases = [
       {
-        duration: TimeDuration.ONE_HOUR,
+        duration: TimeDuration.OneHour,
         expectedPeriods: [
-          { label: '3min', value: CandlePeriod.THREE_MINUTES },
-          { label: '5min', value: CandlePeriod.FIVE_MINUTES },
-          { label: '15min', value: CandlePeriod.FIFTEEN_MINUTES },
+          { label: '3min', value: CandlePeriod.ThreeMinutes },
+          { label: '5min', value: CandlePeriod.FiveMinutes },
+          { label: '15min', value: CandlePeriod.FifteenMinutes },
         ] as const,
       },
       {
-        duration: TimeDuration.ONE_WEEK,
+        duration: TimeDuration.OneWeek,
         expectedPeriods: [
-          { label: '1h', value: CandlePeriod.ONE_HOUR },
-          { label: '4h', value: CandlePeriod.FOUR_HOURS },
-          { label: '1D', value: CandlePeriod.ONE_DAY },
+          { label: '1h', value: CandlePeriod.OneHour },
+          { label: '4h', value: CandlePeriod.FourHours },
+          { label: '1D', value: CandlePeriod.OneDay },
         ] as const,
       },
       {
-        duration: TimeDuration.ONE_DAY,
+        duration: TimeDuration.OneDay,
         expectedPeriods: [
-          { label: '8h', value: CandlePeriod.EIGHT_HOURS },
-          { label: '1D', value: CandlePeriod.ONE_DAY },
-          { label: '1W', value: CandlePeriod.ONE_WEEK },
+          { label: '8h', value: CandlePeriod.EightHours },
+          { label: '1D', value: CandlePeriod.OneDay },
+          { label: '1W', value: CandlePeriod.OneWeek },
         ] as const,
       },
     ] as const;

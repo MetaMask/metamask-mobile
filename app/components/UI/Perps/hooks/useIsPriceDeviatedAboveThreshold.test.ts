@@ -311,7 +311,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
   });
 
   it('uses correct threshold from VALIDATION_THRESHOLDS', () => {
-    const threshold = VALIDATION_THRESHOLDS.PRICE_DEVIATION;
+    const threshold = VALIDATION_THRESHOLDS.PriceDeviation;
 
     // Test with price exactly at threshold + epsilon
     const spotPrice = 100;

@@ -74,9 +74,7 @@ export function calculateCloseAmountFromPercentage(
 
   return {
     tokenAmount: Number(tokenAmount.toFixed(szDecimals)),
-    usdValue: Number(
-      usdValue.toFixed(CLOSE_POSITION_CONFIG.USD_DECIMAL_PLACES),
-    ),
+    usdValue: Number(usdValue.toFixed(CLOSE_POSITION_CONFIG.UsdDecimalPlaces)),
   };
 }
 
@@ -119,8 +117,8 @@ export function formatCloseAmountDisplay(
   const decimalPlaces =
     decimals ??
     (displayMode === 'usd'
-      ? CLOSE_POSITION_CONFIG.USD_DECIMAL_PLACES
-      : CLOSE_POSITION_CONFIG.AMOUNT_CALCULATION_PRECISION);
+      ? CLOSE_POSITION_CONFIG.UsdDecimalPlaces
+      : CLOSE_POSITION_CONFIG.AmountCalculationPrecision);
 
   // For USD mode, limit input to specified decimal places
   if (displayMode === 'usd' && value.includes('.')) {
@@ -128,7 +126,7 @@ export function formatCloseAmountDisplay(
     const integerPart = parts[0] || '0';
     const decimalPart = (parts[1] || '').slice(
       0,
-      CLOSE_POSITION_CONFIG.USD_DECIMAL_PLACES,
+      CLOSE_POSITION_CONFIG.UsdDecimalPlaces,
     );
     return `${integerPart}${decimalPart ? '.' + decimalPart : ''}`;
   }
@@ -149,7 +147,7 @@ export function calculateCloseValue(params: CloseValueParams): number {
   }
 
   const value = amount * price;
-  return Number(value.toFixed(CLOSE_POSITION_CONFIG.USD_DECIMAL_PLACES));
+  return Number(value.toFixed(CLOSE_POSITION_CONFIG.UsdDecimalPlaces));
 }
 
 /**
@@ -162,7 +160,7 @@ export function formatCloseAmountUSD(value: number): string {
   if (isNaN(value) || value < 0) {
     return '0';
   }
-  return value.toFixed(CLOSE_POSITION_CONFIG.USD_DECIMAL_PLACES);
+  return value.toFixed(CLOSE_POSITION_CONFIG.UsdDecimalPlaces);
 }
 
 /**

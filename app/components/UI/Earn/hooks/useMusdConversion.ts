@@ -1,27 +1,80 @@
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { isEqual } from 'lodash';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
-import { generateTransferData } from '../../../../util/transactions';
-import { MMM_ORIGIN } from '../../../Views/confirmations/constants/confirmations';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { EVM_SCOPE } from '../constants/networks';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { TransactionType } from '@metamask/transaction-controller';
-import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
 import { selectMusdConversionEducationSeen } from '../../../../reducers/user';
+import { trace, TraceName, TraceOperation } from '../../../../util/trace';
+import { createMusdConversionTransaction } from '../utils/musdConversionTransaction';
+import { selectPendingApprovals } from '../../../../selectors/approvalController';
+import { RootState } from '../../../../reducers';
+import { selectTransactionsByIds } from '../../../../selectors/transactionController';
+
+/**
+ * Why do we have BOTH `existingPendingMusdConversion` AND `inFlightInitiationPromises`?
+ *
+ * These protect against two *different* duplication mechanisms:
+ *
+ * 1) `existingPendingMusdConversion` (post-approval creation / observable state):
+ * Once a `musdConversion` transaction is added, it becomes a pending approval in Redux.
+ * Subsequent CTA presses should **re-enter that existing flow** rather than creating a new tx.
+ *
+ * 2) `inFlightInitiationPromises` (pre-approval creation race window):
+ * There is a short window after the CTA press where we have started the async initiation
+ * but the pending approval is not yet observable in Redux. Rapid spam during that window
+ * can otherwise create multiple transactions before (1) can detect an existing pending tx.
+ */
+const inFlightInitiationPromises = new Map<string, Promise<string | void>>();
+
+function getInitiationKey(params: { selectedAddress: string; chainId: Hex }) {
+  const { selectedAddress, chainId } = params;
+  return `${selectedAddress.toLowerCase()}_${chainId.toLowerCase()}`;
+}
+
+function findExistingPendingMusdConversion(params: {
+  pendingTransactionMetas: TransactionMeta[];
+  selectedAddress: string;
+  preferredPaymentTokenChainId: Hex;
+}) {
+  const {
+    pendingTransactionMetas,
+    selectedAddress,
+    preferredPaymentTokenChainId,
+  } = params;
+
+  return pendingTransactionMetas.find((transactionMeta) => {
+    if (transactionMeta?.type !== TransactionType.musdConversion) {
+      return false;
+    }
+
+    if (
+      transactionMeta?.chainId.toLowerCase() !==
+      preferredPaymentTokenChainId.toLowerCase()
+    ) {
+      return false;
+    }
+
+    return (
+      transactionMeta?.txParams?.from?.toLowerCase() ===
+      selectedAddress.toLowerCase()
+    );
+  });
+}
 
 /**
  * Configuration for mUSD conversion
  */
 export interface MusdConversionConfig {
-  /**
-   * The chain ID of the mUSD token to convert to.
-   */
-  outputChainId: Hex;
   /**
    * The payment token to prefill in the confirmation screen
    */
@@ -52,7 +105,6 @@ export interface MusdConversionConfig {
  * const { initiateConversion } = useMusdConversion();
  *
  * await initiateConversion({
- *   outputChainId: CHAIN_IDS.MAINNET,
  *   preferredPaymentToken: {
  *     address: USDC_ADDRESS_MAINNET,
  *     chainId: CHAIN_IDS.MAINNET,
@@ -63,6 +115,17 @@ export interface MusdConversionConfig {
 export const useMusdConversion = () => {
   const [error, setError] = useState<string | null>(null);
   const navigation = useNavigation();
+
+  const pendingApprovals = useSelector(selectPendingApprovals, isEqual);
+
+  const pendingApprovalIds = useMemo(
+    () => Object.keys(pendingApprovals ?? {}),
+    [pendingApprovals],
+  );
+
+  const pendingTransactionMetas = useSelector((state: RootState) =>
+    selectTransactionsByIds(state, pendingApprovalIds),
+  );
 
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
     EVM_SCOPE,
@@ -76,16 +139,23 @@ export const useMusdConversion = () => {
 
   const navigateToConversionScreen = useCallback(
     ({
-      outputChainId,
       preferredPaymentToken,
       navigationStack = Routes.EARN.ROOT,
     }: MusdConversionConfig) => {
+      // Start trace for navigation to conversion screen
+      trace({
+        name: TraceName.MusdConversionNavigation,
+        op: TraceOperation.MusdConversionOperation,
+        tags: {
+          paymentTokenChainId: preferredPaymentToken.chainId,
+        },
+      });
+
       navigation.navigate(navigationStack, {
         screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
         params: {
           loader: ConfirmationLoader.CustomAmount,
           preferredPaymentToken,
-          outputChainId,
         },
       });
     },
@@ -102,17 +172,13 @@ export const useMusdConversion = () => {
         return false;
       }
 
-      const {
-        outputChainId,
-        preferredPaymentToken,
-        navigationStack = Routes.EARN.ROOT,
-      } = config;
+      const { preferredPaymentToken, navigationStack = Routes.EARN.ROOT } =
+        config;
 
       navigation.navigate(navigationStack, {
         screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
         params: {
           preferredPaymentToken,
-          outputChainId,
         },
       });
 
@@ -133,86 +199,93 @@ export const useMusdConversion = () => {
         return;
       }
 
-      const { outputChainId, preferredPaymentToken } = config;
+      const { preferredPaymentToken } = config;
 
       try {
         setError(null);
 
-        if (!outputChainId || !preferredPaymentToken) {
-          throw new Error(
-            'Output chain ID and preferred payment token are required',
-          );
+        if (!preferredPaymentToken) {
+          throw new Error('Preferred payment token is required');
         }
 
         if (!selectedAddress) {
           throw new Error('No account selected');
         }
 
-        const { NetworkController } = Engine.context;
-        const networkClientId =
-          NetworkController.findNetworkClientIdByChainId(outputChainId);
-
-        if (!networkClientId) {
-          throw new Error(
-            `Network client not found for chain ID: ${outputChainId}`,
-          );
-        }
+        const existingPendingMusdConversion = findExistingPendingMusdConversion(
+          {
+            pendingTransactionMetas,
+            selectedAddress,
+            preferredPaymentTokenChainId: preferredPaymentToken.chainId,
+          },
+        );
 
         /**
-         * Navigate to the confirmation screen immediately for better UX,
-         * since there can be a delay between the user's button press and
-         * transaction creation in the background.
+         * Prevents the user from creating multiple transactions.
+         * Typically caused by the user quickly clicking the CTA multiple times in quick succession.
          */
-        navigateToConversionScreen(config);
+        if (existingPendingMusdConversion?.id) {
+          navigateToConversionScreen(config);
+          return existingPendingMusdConversion.id;
+        }
 
-        try {
-          const ZERO_HEX_VALUE = '0x0';
+        const initiationKey = getInitiationKey({
+          selectedAddress,
+          chainId: preferredPaymentToken.chainId,
+        });
 
-          /**
-           * Create minimal transfer data with amount = 0
-           * The actual amount will be set by the user on the confirmation screen
-           */
-          const transferData = generateTransferData('transfer', {
-            toAddress: selectedAddress,
-            amount: ZERO_HEX_VALUE,
-          });
+        const inFlightInitiation =
+          inFlightInitiationPromises.get(initiationKey);
 
-          const { TransactionController } = Engine.context;
+        if (inFlightInitiation) {
+          return await inFlightInitiation;
+        }
 
-          const mUSDTokenAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[outputChainId];
+        const initiationPromise = (async () => {
+          const { NetworkController } = Engine.context;
+          const networkClientId =
+            NetworkController.findNetworkClientIdByChainId(
+              preferredPaymentToken.chainId,
+            );
 
-          if (!mUSDTokenAddress) {
+          if (!networkClientId) {
             throw new Error(
-              `mUSD token address not found for chain ID: ${outputChainId}`,
+              `Network client not found for chain ID: ${preferredPaymentToken.chainId}`,
             );
           }
 
-          const { transactionMeta } =
-            await TransactionController.addTransaction(
-              {
-                to: mUSDTokenAddress,
-                from: selectedAddress,
-                data: transferData,
-                value: ZERO_HEX_VALUE,
-                chainId: outputChainId,
-              },
-              {
-                /**
-                 * Calculate gas estimate asynchronously.
-                 * Enabling this reduces our first paint time on the mUSD conversion screen by ~500ms.
-                 */
-                skipInitialGasEstimate: true,
-                networkClientId,
-                origin: MMM_ORIGIN,
-                type: TransactionType.musdConversion,
-              },
-            );
+          /**
+           * Navigate to the confirmation screen immediately for better UX,
+           * since there can be a delay between the user's button press and
+           * transaction creation in the background.
+           */
+          navigateToConversionScreen(config);
 
-          return transactionMeta.id;
-        } catch (err) {
-          // Prevent the user from being stuck on the confirmation screen without a transaction.
-          navigation.goBack();
-          throw err;
+          try {
+            const ZERO_HEX_VALUE = '0x0';
+            const selectedAddressHex = selectedAddress as Hex;
+
+            const { transactionId } = await createMusdConversionTransaction({
+              chainId: preferredPaymentToken.chainId,
+              fromAddress: selectedAddressHex,
+              recipientAddress: selectedAddressHex,
+              amountHex: ZERO_HEX_VALUE,
+              networkClientId,
+            });
+
+            return transactionId;
+          } catch (err) {
+            // Prevent the user from being stuck on the confirmation screen without a transaction.
+            navigation.goBack();
+            throw err;
+          }
+        })();
+
+        inFlightInitiationPromises.set(initiationKey, initiationPromise);
+        try {
+          return await initiationPromise;
+        } finally {
+          inFlightInitiationPromises.delete(initiationKey);
         }
       } catch (err) {
         const errorMessage =
@@ -234,6 +307,7 @@ export const useMusdConversion = () => {
       handleEducationRedirectIfNeeded,
       navigateToConversionScreen,
       navigation,
+      pendingTransactionMetas,
       selectedAddress,
     ],
   );

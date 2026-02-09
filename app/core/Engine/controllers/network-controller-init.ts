@@ -16,9 +16,8 @@ import {
   onRpcEndpointUnavailable,
 } from './network-controller/messenger-action-handlers';
 import { Hex, Json } from '@metamask/utils';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import Logger from '../../../util/Logger';
-import { AnalyticsEventProperties } from '@metamask/analytics-controller';
+import { buildAndTrackEvent } from '../utils/analytics';
 import { CONNECTIVITY_STATUSES } from '@metamask/connectivity-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
@@ -209,20 +208,7 @@ export const networkControllerInit: ControllerInitFunction<
         infuraProjectId,
         error,
         trackEvent: ({ event, properties }) => {
-          try {
-            const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(
-              event,
-            )
-              .addProperties((properties as AnalyticsEventProperties) || {})
-              .build();
-
-            initMessenger.call(
-              'AnalyticsController:trackEvent',
-              analyticsEvent,
-            );
-          } catch (trackingError) {
-            Logger.log('Error tracking analytics event', trackingError);
-          }
+          buildAndTrackEvent(initMessenger, event, properties);
         },
         metaMetricsId: analyticsId ?? '',
       });
@@ -246,21 +232,7 @@ export const networkControllerInit: ControllerInitFunction<
         error,
         infuraProjectId,
         trackEvent: ({ event, properties }) => {
-          try {
-            const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(
-              event,
-            )
-              .addProperties((properties as AnalyticsEventProperties) || {})
-              .build();
-
-            initMessenger.call(
-              'AnalyticsController:trackEvent',
-              analyticsEvent,
-            );
-          } catch (trackingError) {
-            // Analytics tracking failures should not break network functionality
-            // Error is logged but not thrown
-          }
+          buildAndTrackEvent(initMessenger, event, properties);
         },
         metaMetricsId: analyticsId ?? '',
       });

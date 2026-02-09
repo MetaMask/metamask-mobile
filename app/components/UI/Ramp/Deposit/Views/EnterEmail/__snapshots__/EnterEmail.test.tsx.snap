@@ -110,7 +110,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -119,7 +119,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                       undefined,
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -128,8 +128,8 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -187,87 +187,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
           <View>
             <View
               onLayout={[Function]}
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 20,
-                          "width": 20,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
+            />
           </View>
         </View>
       </View>
@@ -664,9 +584,9 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#b7bbc8",
-                                    "borderRadius": 8,
+                                    "backgroundColor": "#3c4d9d0f",
+                                    "borderColor": "#b7bbc866",
+                                    "borderRadius": 12,
                                     "borderWidth": 1,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -690,6 +610,8 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                     editable={true}
                                     keyboardAppearance="light"
                                     keyboardType="email-address"
+                                    multiline={false}
+                                    numberOfLines={1}
                                     onBlur={[Function]}
                                     onChangeText={[Function]}
                                     onFocus={[Function]}
@@ -909,7 +831,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -918,7 +840,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                       undefined,
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -927,8 +849,8 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -986,87 +908,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
           <View>
             <View
               onLayout={[Function]}
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 20,
-                          "width": 20,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
+            />
           </View>
         </View>
       </View>
@@ -1463,9 +1305,9 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#b7bbc8",
-                                    "borderRadius": 8,
+                                    "backgroundColor": "#3c4d9d0f",
+                                    "borderColor": "#b7bbc866",
+                                    "borderRadius": 12,
                                     "borderWidth": 1,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -1489,6 +1331,8 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                     editable={true}
                                     keyboardAppearance="light"
                                     keyboardType="email-address"
+                                    multiline={false}
+                                    numberOfLines={1}
                                     onBlur={[Function]}
                                     onChangeText={[Function]}
                                     onFocus={[Function]}
@@ -1722,7 +1566,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -1731,7 +1575,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                       undefined,
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -1740,8 +1584,8 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -1799,87 +1643,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
           <View>
             <View
               onLayout={[Function]}
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 20,
-                          "width": 20,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
+            />
           </View>
         </View>
       </View>
@@ -2276,9 +2040,9 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#b7bbc8",
-                                    "borderRadius": 8,
+                                    "backgroundColor": "#3c4d9d0f",
+                                    "borderColor": "#b7bbc866",
+                                    "borderRadius": 12,
                                     "borderWidth": 1,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -2302,6 +2066,8 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                     editable={true}
                                     keyboardAppearance="light"
                                     keyboardType="email-address"
+                                    multiline={false}
+                                    numberOfLines={1}
                                     onBlur={[Function]}
                                     onChangeText={[Function]}
                                     onFocus={[Function]}
@@ -2521,7 +2287,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -2530,7 +2296,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                       undefined,
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -2539,8 +2305,8 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -2598,87 +2364,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
           <View>
             <View
               onLayout={[Function]}
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 20,
-                          "width": 20,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
+            />
           </View>
         </View>
       </View>
@@ -3075,9 +2761,9 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#b7bbc8",
-                                    "borderRadius": 8,
+                                    "backgroundColor": "#3c4d9d0f",
+                                    "borderColor": "#b7bbc866",
+                                    "borderRadius": 12,
                                     "borderWidth": 1,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -3101,6 +2787,8 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                     editable={true}
                                     keyboardAppearance="light"
                                     keyboardType="email-address"
+                                    multiline={false}
+                                    numberOfLines={1}
                                     onBlur={[Function]}
                                     onChangeText={[Function]}
                                     onFocus={[Function]}

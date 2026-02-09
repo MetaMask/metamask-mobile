@@ -437,9 +437,9 @@ describe('EarnLendingBalance', () => {
       >
     ).mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(false),
+      hasConvertibleTokensByChainId: jest.fn().mockReturnValue(false),
       filterAllowedTokens: jest.fn().mockReturnValue([]),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(false),
-      getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
       tokens: [],
     });
 
@@ -595,9 +595,9 @@ describe('EarnLendingBalance', () => {
       >
     ).mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(true),
+      hasConvertibleTokensByChainId: jest.fn().mockReturnValue(false),
       filterAllowedTokens: jest.fn().mockReturnValue([]),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
-      getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
       tokens: [],
     });
 
@@ -624,9 +624,9 @@ describe('EarnLendingBalance', () => {
       >
     ).mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(false),
+      hasConvertibleTokensByChainId: jest.fn().mockReturnValue(false),
       filterAllowedTokens: jest.fn().mockReturnValue([]),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
-      getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
       tokens: [],
     });
 
@@ -659,9 +659,9 @@ describe('EarnLendingBalance', () => {
       >
     ).mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(true),
+      hasConvertibleTokensByChainId: jest.fn().mockReturnValue(false),
       filterAllowedTokens: jest.fn().mockReturnValue([]),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
-      getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
       tokens: [],
     });
 
@@ -697,9 +697,9 @@ describe('EarnLendingBalance', () => {
       >
     ).mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(true),
+      hasConvertibleTokensByChainId: jest.fn().mockReturnValue(false),
       filterAllowedTokens: jest.fn().mockReturnValue([]),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
-      getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
       tokens: [],
     });
 
@@ -756,9 +756,9 @@ describe('EarnLendingBalance', () => {
       >
     ).mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(true),
+      hasConvertibleTokensByChainId: jest.fn().mockReturnValue(false),
       filterAllowedTokens: jest.fn().mockReturnValue([]),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
-      getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
       tokens: [],
     });
 

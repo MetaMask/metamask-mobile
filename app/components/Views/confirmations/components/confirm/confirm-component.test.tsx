@@ -14,13 +14,12 @@ import {
   upgradeAccountConfirmation,
 } from '../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-// eslint-disable-next-line import/no-namespace
-import * as ConfirmationRedesignEnabled from '../../hooks/useConfirmationRedesignEnabled';
 import { Confirm, ConfirmationLoader } from './confirm-component';
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import useConfirmationAlerts from '../../hooks/alerts/useConfirmationAlerts';
+import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
 
 jest.mock('../../hooks/useConfirmActions');
 
@@ -41,23 +40,10 @@ jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
   AssetPollingProvider: () => null,
 }));
 
-jest.mock(
-  '../../../../../selectors/featureFlagController/confirmations',
-  () => ({
-    ...jest.requireActual(
-      '../../../../../selectors/featureFlagController/confirmations',
-    ),
-    selectConfirmationRedesignFlags: () => ({
-      signatures: true,
-      staking_confirmations: true,
-      contract_interaction: true,
-    }),
-  }),
-);
-
 jest.mock('../../hooks/gas/useGasFeeToken');
 jest.mock('../../hooks/tokens/useTokenWithBalance');
 jest.mock('../../hooks/alerts/useConfirmationAlerts');
+jest.mock('../../hooks/ui/useFullScreenConfirmation');
 jest.mock('../../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
   useRefreshSmartTransactionsLiveness: jest.fn(),
 }));
@@ -186,11 +172,10 @@ describe('Confirm', () => {
       onConfirm: jest.fn(),
     });
 
-    jest
-      .spyOn(ConfirmationRedesignEnabled, 'useConfirmationRedesignEnabled')
-      .mockReturnValue({ isRedesignedEnabled: true });
-
     jest.mocked(useConfirmationAlerts).mockReturnValue([]);
+    jest.mocked(useFullScreenConfirmation).mockReturnValue({
+      isFullScreenConfirmation: false,
+    });
   });
 
   afterEach(() => {
@@ -208,6 +193,10 @@ describe('Confirm', () => {
   });
 
   it('renders a flat confirmation for specified type(s): staking deposit', () => {
+    jest.mocked(useFullScreenConfirmation).mockReturnValue({
+      isFullScreenConfirmation: true,
+    });
+
     const { getByTestId } = renderWithProvider(<Confirm />, {
       state: stakingDepositConfirmationState,
     });
@@ -215,6 +204,10 @@ describe('Confirm', () => {
   });
 
   it('renders a flat confirmation for specified type(s): staking withdrawal', () => {
+    jest.mocked(useFullScreenConfirmation).mockReturnValue({
+      isFullScreenConfirmation: true,
+    });
+
     const { getByTestId } = renderWithProvider(<Confirm />, {
       state: stakingWithdrawalConfirmationState,
     });
@@ -296,10 +289,6 @@ describe('Confirm', () => {
   });
 
   it('renders information for contract interaction', async () => {
-    jest
-      .spyOn(ConfirmationRedesignEnabled, 'useConfirmationRedesignEnabled')
-      .mockReturnValue({ isRedesignedEnabled: true });
-
     const { getByText } = renderWithProvider(<Confirm />, {
       state: generateContractInteractionState,
     });
@@ -313,10 +302,6 @@ describe('Confirm', () => {
   });
 
   it('renders splash page if present', async () => {
-    jest
-      .spyOn(ConfirmationRedesignEnabled, 'useConfirmationRedesignEnabled')
-      .mockReturnValue({ isRedesignedEnabled: true });
-
     const { getByText } = renderWithProvider(<Confirm />, {
       state: getAppStateForConfirmation(upgradeAccountConfirmation, {
         PreferencesController: { smartAccountOptIn: false },
@@ -525,24 +510,32 @@ describe('Confirm', () => {
     expect(getByTestId('confirm-loader-default')).toBeDefined();
   });
 
-  it('sets navigation options with header hidden for modal confirmations', () => {
-    renderWithProvider(<Confirm />, {
-      state: typedSignV1ConfirmationState,
-    });
-
-    expect(mockSetOptions).toHaveBeenCalledWith({
-      headerShown: false,
-      gestureEnabled: true,
-    });
-  });
-
   it('sets navigation options with header shown for full screen confirmations', () => {
+    jest.mocked(useFullScreenConfirmation).mockReturnValue({
+      isFullScreenConfirmation: true,
+    });
+
     renderWithProvider(<Confirm />, {
       state: stakingDepositConfirmationState,
     });
 
     expect(mockSetOptions).toHaveBeenCalledWith({
       headerShown: true,
+      gestureEnabled: true,
+    });
+  });
+
+  it('sets navigation options with header hidden for non-full screen confirmations', () => {
+    jest.mocked(useFullScreenConfirmation).mockReturnValue({
+      isFullScreenConfirmation: false,
+    });
+
+    renderWithProvider(<Confirm />, {
+      state: typedSignV1ConfirmationState,
+    });
+
+    expect(mockSetOptions).toHaveBeenCalledWith({
+      headerShown: false,
       gestureEnabled: true,
     });
   });

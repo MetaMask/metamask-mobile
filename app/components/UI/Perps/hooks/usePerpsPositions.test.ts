@@ -94,6 +94,7 @@ describe('usePerpsPositions', () => {
       subscribeToPositions: jest.fn(),
       subscribeToOrderFills: jest.fn(),
       depositWithConfirmation: jest.fn(),
+      depositWithOrder: jest.fn(),
       clearDepositResult: jest.fn(),
       withdraw: jest.fn(),
       calculateLiquidationPrice: jest.fn(),

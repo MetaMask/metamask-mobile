@@ -58,12 +58,14 @@ import { Colors } from '../../../util/theme/models';
 import { Hex } from '@metamask/utils';
 import { selectLastSelectedEvmAccount } from '../../../selectors/accountsController';
 import { TokenI } from '../../UI/Tokens/types';
+import { isMusdToken } from '../../UI/Earn/constants/musd';
 import { areAddressesEqual } from '../../../util/address';
 // Perps Discovery Banner imports
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { usePerpsMarketForAsset } from '../../UI/Perps/hooks/usePerpsMarketForAsset';
 import PerpsDiscoveryBanner from '../../UI/Perps/components/PerpsDiscoveryBanner';
-import { PerpsEventValues } from '../../UI/Perps/constants/eventNames';
+import { PERPS_EVENT_VALUE } from '../../UI/Perps/constants/eventNames';
+import { isTokenTrustworthyForPerps } from '../../UI/Perps/constants/perpsConfig';
 import type { PerpsNavigationParamList } from '../../UI/Perps/types/navigation';
 
 // Inline header styles
@@ -195,6 +197,9 @@ const AssetDetails = (props: InnerProps) => {
     isPerpsEnabled ? symbol : null,
   );
 
+  // Check if token is trustworthy for showing Perps banner
+  const isTokenTrustworthy = isTokenTrustworthyForPerps(token);
+
   // Handler for perps discovery banner press
   // Analytics (PERPS_SCREEN_VIEWED) tracked by PerpsMarketDetailsView on mount
   const handlePerpsDiscoveryPress = useCallback(() => {
@@ -203,7 +208,7 @@ const AssetDetails = (props: InnerProps) => {
         screen: Routes.PERPS.MARKET_DETAILS,
         params: {
           market: marketData,
-          source: PerpsEventValues.SOURCE.ASSET_DETAIL_SCREEN,
+          source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
         },
       });
     }
@@ -434,18 +439,21 @@ const AssetDetails = (props: InnerProps) => {
         {renderTokenSymbol()}
         {renderSectionTitle(strings('asset_details.amount'))}
         {renderTokenBalance()}
-        {/* Perps Discovery Banner - show when perps market exists for this asset */}
-        {isPerpsEnabled && hasPerpsMarket && marketData && (
-          <>
-            {renderSectionTitle(strings('asset_details.perps_trading'))}
-            <PerpsDiscoveryBanner
-              symbol={marketData.symbol}
-              maxLeverage={marketData.maxLeverage}
-              onPress={handlePerpsDiscoveryPress}
-              testID="perps-discovery-banner"
-            />
-          </>
-        )}
+        {/* Perps Discovery Banner - show when perps market exists and token is trustworthy */}
+        {isPerpsEnabled &&
+          hasPerpsMarket &&
+          marketData &&
+          isTokenTrustworthy && (
+            <>
+              {renderSectionTitle(strings('asset_details.perps_trading'))}
+              <PerpsDiscoveryBanner
+                symbol={marketData.symbol}
+                maxLeverage={marketData.maxLeverage}
+                onPress={handlePerpsDiscoveryPress}
+                testID="perps-discovery-banner"
+              />
+            </>
+          )}
         {renderSectionTitle(strings('asset_details.address'))}
         {renderTokenAddressLink()}
         {renderSectionTitle(strings('asset_details.decimal'))}
@@ -458,7 +466,7 @@ const AssetDetails = (props: InnerProps) => {
             {renderSectionDescription(aggregators.join(', '))}
           </>
         )}
-        {renderHideButton()}
+        {!isMusdToken(address) && renderHideButton()}
       </ScrollView>
     </View>
   );
@@ -501,6 +509,8 @@ const AssetDetailsContainer = (props: Props) => {
         aggregators: asset.aggregators || [],
         name: asset.name,
         image: asset.image,
+        isNative: asset.isNative,
+        isETH: asset.isETH,
         // Add other required fields with defaults
         isERC721: false,
       } as TokenType;

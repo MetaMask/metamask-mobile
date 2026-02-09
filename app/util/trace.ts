@@ -201,6 +201,10 @@ export enum TraceName {
   PredictGetPriceHistory = 'Predict Get Price History',
   PredictGetPrices = 'Predict Get Prices',
   PredictGetUnrealizedPnL = 'Predict Get Unrealized PnL',
+  // mUSD Conversion
+  MusdConversionNavigation = 'mUSD Conversion Navigation',
+  MusdConversionQuote = 'mUSD Conversion Quote',
+  MusdConversionConfirm = 'mUSD Conversion Confirm',
 }
 
 export enum TraceOperation {
@@ -246,6 +250,9 @@ export enum TraceOperation {
   PredictOperation = 'predict.operation',
   PredictOrderSubmission = 'predict.order_submission',
   PredictDataFetch = 'predict.data_fetch',
+  // mUSD Conversion
+  MusdConversionOperation = 'musd.conversion.operation',
+  MusdConversionDataFetch = 'musd.conversion.data_fetch',
 }
 
 const ID_DEFAULT = 'default';

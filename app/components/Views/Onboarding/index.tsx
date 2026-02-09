@@ -87,7 +87,7 @@ import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
 import FastOnboarding from './FastOnboarding';
@@ -119,6 +119,7 @@ interface OnboardingRouteParams {
   [PREVIOUS_SCREEN]: string;
   delete_wallet_toast_visible?: boolean;
   delete?: string;
+  showErrorReportSentToast?: boolean;
 }
 
 const Onboarding = () => {
@@ -126,7 +127,7 @@ const Onboarding = () => {
   const route =
     useRoute<RouteProp<{ params: OnboardingRouteParams }, 'params'>>();
   const dispatch = useDispatch();
-  const metrics = useMetrics();
+  const metrics = useAnalytics();
 
   const passwordSet = useSelector((state: RootState) => state.user.passwordSet);
   const existingUserProp = useSelector(selectExistingUser);
@@ -517,16 +518,25 @@ const Onboarding = () => {
           error.code === OAuthErrorType.UserCancelled ||
           error.code === OAuthErrorType.UserDismissed ||
           error.code === OAuthErrorType.GoogleLoginError ||
-          error.code === OAuthErrorType.AppleLoginError ||
-          error.code === OAuthErrorType.GoogleLoginUserDisabledOneTapFeature
+          error.code === OAuthErrorType.AppleLoginError
         ) {
           // QA: do not show error sheet if user cancelled
           return;
         } else if (
           error.code === OAuthErrorType.GoogleLoginNoCredential ||
-          error.code === OAuthErrorType.GoogleLoginNoMatchingCredential
+          error.code === OAuthErrorType.GoogleLoginNoMatchingCredential ||
+          // GoogleLoginUserDisabledOneTapFeature: User has disabled One Tap in their Google
+          // account settings. While this is a user preference, we still offer browser-based
+          // login as an alternative since the user's intent is to sign in - they just prefer
+          // not to use the One Tap UI. Browser OAuth provides a familiar login experience.
+          error.code === OAuthErrorType.GoogleLoginUserDisabledOneTapFeature ||
+          error.code === OAuthErrorType.GoogleLoginOneTapFailure
         ) {
-          // For Android Google, try browser fallback instead of showing error
+          // For Android Google, try browser fallback instead of showing error.
+          // Note: We intentionally call handleOAuthLoginError (not handleLoginError) in the
+          // fallback catch block to prevent nested fallback attempts. The browser-based
+          // fallback handler won't throw ACM-specific errors, but this pattern ensures
+          // we don't accidentally create infinite fallback loops if the code is refactored.
           if (Platform.OS === 'android' && socialConnectionType === 'google') {
             try {
               setLoading();
@@ -559,9 +569,20 @@ const Onboarding = () => {
               ) {
                 return;
               }
+              // Handle both OAuthError and unexpected errors from browser fallback
               if (fallbackError instanceof OAuthError) {
                 handleOAuthLoginError(fallbackError);
+              } else {
+                // Wrap unexpected errors as OAuthError to ensure they're properly handled
+                const wrappedError = new OAuthError(
+                  fallbackError instanceof Error
+                    ? fallbackError.message
+                    : 'Browser fallback failed with unknown error',
+                  OAuthErrorType.UnknownError,
+                );
+                handleOAuthLoginError(wrappedError);
               }
+              return;
             }
           }
           return;
@@ -821,7 +842,21 @@ const Onboarding = () => {
 
   const handleSimpleNotification =
     useCallback((): React.ReactElement | null => {
-      if (!route?.params?.delete) return null;
+      if (!route?.params?.delete && !route?.params?.showErrorReportSentToast)
+        return null;
+
+      const notificationData = route?.params?.showErrorReportSentToast
+        ? {
+            title: strings('wallet_creation_error.error_report_sent_title'),
+            description: strings(
+              'wallet_creation_error.error_report_sent_description',
+            ),
+          }
+        : {
+            title: strings('onboarding.success'),
+            description: strings('onboarding.your_wallet'),
+          };
+
       return (
         <Animated.View
           style={[
@@ -830,17 +865,16 @@ const Onboarding = () => {
           ]}
         >
           <ElevatedView style={styles.modalTypeView} elevation={100}>
-            <BaseNotification
-              status="success"
-              data={{
-                title: strings('onboarding.success'),
-                description: strings('onboarding.your_wallet'),
-              }}
-            />
+            <BaseNotification status="success" data={notificationData} />
           </ElevatedView>
         </Animated.View>
       );
-    }, [route?.params?.delete, styles, notificationAnimated]);
+    }, [
+      route?.params?.delete,
+      route?.params?.showErrorReportSentToast,
+      styles,
+      notificationAnimated,
+    ]);
 
   useEffect(() => {
     onboardingTraceCtx.current = trace({
@@ -858,7 +892,7 @@ const Onboarding = () => {
     InteractionManager.runAfterInteractions(() => {
       checkForMigrationFailureAndVaultBackup();
       PreventScreenshot.forbid();
-      if (route?.params?.delete) {
+      if (route?.params?.delete || route?.params?.showErrorReportSentToast) {
         showNotification();
       }
       setState((prevState) => ({

@@ -13,6 +13,7 @@ import type {
   GetOrderFillsParams,
   GetOrdersParams,
   GetFundingParams,
+  GetPositionsParams,
   OrderFill,
   Order,
   Funding,
@@ -69,10 +70,13 @@ export function usePerpsTrading() {
     [],
   );
 
-  const getPositions = useCallback(async (): Promise<Position[]> => {
-    const controller = Engine.context.PerpsController;
-    return controller.getPositions();
-  }, []);
+  const getPositions = useCallback(
+    async (params?: GetPositionsParams): Promise<Position[]> => {
+      const controller = Engine.context.PerpsController;
+      return controller.getPositions(params);
+    },
+    [],
+  );
 
   const getAccountState = useCallback(
     async (params?: GetAccountStateParams): Promise<AccountState> => {
@@ -106,11 +110,23 @@ export function usePerpsTrading() {
     [],
   );
 
-  const depositWithConfirmation = useCallback(async (): Promise<{
+  const depositWithConfirmation = useCallback(
+    async (
+      amount?: string,
+    ): Promise<{
+      result: Promise<string>;
+    }> => {
+      const controller = Engine.context.PerpsController;
+      return controller.depositWithConfirmation({ amount, placeOrder: false });
+    },
+    [],
+  );
+
+  const depositWithOrder = useCallback(async (): Promise<{
     result: Promise<string>;
   }> => {
     const controller = Engine.context.PerpsController;
-    return controller.depositWithConfirmation();
+    return controller.depositWithOrder();
   }, []);
 
   const clearDepositResult = useCallback((): void => {
@@ -244,6 +260,7 @@ export function usePerpsTrading() {
     subscribeToPositions,
     subscribeToOrderFills,
     depositWithConfirmation,
+    depositWithOrder,
     clearDepositResult,
     withdraw,
     calculateLiquidationPrice,

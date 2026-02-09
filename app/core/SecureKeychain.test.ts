@@ -71,6 +71,7 @@ describe('SecureKeychain - setGenericPassword', () => {
       expect.any(String),
       expect.objectContaining({
         accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET,
+        storage: Keychain.STORAGE_TYPE.AES_GCM,
       }),
     );
 
@@ -93,6 +94,7 @@ describe('SecureKeychain - setGenericPassword', () => {
       expect.any(String),
       expect.objectContaining({
         accessControl: Keychain.ACCESS_CONTROL.DEVICE_PASSCODE,
+        storage: Keychain.STORAGE_TYPE.AES_GCM,
       }),
     );
   });

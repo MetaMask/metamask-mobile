@@ -4,16 +4,18 @@ import {
   PerpsAnalyticsEvent,
   PerpsTraceNames,
   PerpsTraceOperations,
-  type IPerpsProvider,
+  type PerpsProvider,
   type WithdrawParams,
   type WithdrawResult,
-  type IPerpsPlatformDependencies,
+  type PerpsPlatformDependencies,
 } from '../types';
+import type { PerpsControllerMessenger } from '../PerpsController';
 import type { TransactionStatus } from '../../types/transactionTypes';
+import { getSelectedEvmAccount } from '../../utils/accountUtils';
 import { v4 as uuidv4 } from 'uuid';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
 } from '../../constants/eventNames';
 import { USDC_SYMBOL } from '../../constants/hyperLiquidConfig';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
@@ -25,17 +27,24 @@ import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
  * Stateless service that delegates to provider.
  * Controller handles state updates and analytics.
  *
- * Instance-based service with constructor injection of platform dependencies.
+ * Instance-based service with constructor injection of platform dependencies
+ * and messenger for inter-controller communication.
  */
 export class AccountService {
-  private readonly deps: IPerpsPlatformDependencies;
+  private readonly deps: PerpsPlatformDependencies;
+  private readonly messenger: PerpsControllerMessenger;
 
   /**
    * Create a new AccountService instance
    * @param deps - Platform dependencies for logging, metrics, etc.
+   * @param messenger - Messenger for inter-controller communication
    */
-  constructor(deps: IPerpsPlatformDependencies) {
+  constructor(
+    deps: PerpsPlatformDependencies,
+    messenger: PerpsControllerMessenger,
+  ) {
     this.deps = deps;
+    this.messenger = messenger;
   }
 
   /**
@@ -43,7 +52,7 @@ export class AccountService {
    * Handles tracing, state management, analytics, and account refresh
    */
   async withdraw(options: {
-    provider: IPerpsProvider;
+    provider: PerpsProvider;
     params: WithdrawParams;
     context: ServiceContext;
     refreshAccountState: () => Promise<void>;
@@ -68,9 +77,9 @@ export class AccountService {
 
     try {
       this.deps.tracer.trace({
-        name: PerpsTraceNames.WITHDRAW,
+        name: PerpsTraceNames.Withdraw,
         id: traceId,
-        op: PerpsTraceOperations.OPERATION,
+        op: PerpsTraceOperations.Operation,
         tags: {
           assetId: params.assetId || '',
           provider: context.tracingContext.provider,
@@ -98,9 +107,8 @@ export class AccountService {
           const feeAmount = 1.0; // HyperLiquid withdrawal fee is $1 USDC
           const netAmount = Math.max(0, grossAmount - feeAmount);
 
-          // Get current account address via controllers.accounts
-          const evmAccount =
-            this.deps.controllers.accounts.getSelectedEvmAccount();
+          // Get current account address via messenger
+          const evmAccount = getSelectedEvmAccount(this.messenger);
           const accountAddress = evmAccount?.address || 'unknown';
 
           this.deps.debugLogger.log(
@@ -196,9 +204,9 @@ export class AccountService {
         this.deps.metrics.trackPerpsEvent(
           PerpsAnalyticsEvent.WithdrawalTransaction,
           {
-            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
-            [PerpsEventProperties.WITHDRAWAL_AMOUNT]: parseFloat(params.amount),
-            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+            [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.EXECUTED,
+            [PERPS_EVENT_PROPERTY.WITHDRAWAL_AMOUNT]: parseFloat(params.amount),
+            [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: completionDuration,
           },
         );
 
@@ -211,6 +219,9 @@ export class AccountService {
             },
           });
         });
+
+        // Invalidate readOnly caches so external hooks (e.g., usePerpsPositionForAsset) refresh
+        this.deps.cacheInvalidator.invalidate({ cacheType: 'accountState' });
 
         traceData = {
           success: true,
@@ -259,10 +270,10 @@ export class AccountService {
       this.deps.metrics.trackPerpsEvent(
         PerpsAnalyticsEvent.WithdrawalTransaction,
         {
-          [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-          [PerpsEventProperties.WITHDRAWAL_AMOUNT]: parseFloat(params.amount),
-          [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-          [PerpsEventProperties.ERROR_MESSAGE]: result.error || 'Unknown error',
+          [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
+          [PERPS_EVENT_PROPERTY.WITHDRAWAL_AMOUNT]: parseFloat(params.amount),
+          [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: completionDuration,
+          [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: result.error || 'Unknown error',
         },
       );
 
@@ -317,10 +328,10 @@ export class AccountService {
       this.deps.metrics.trackPerpsEvent(
         PerpsAnalyticsEvent.WithdrawalTransaction,
         {
-          [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-          [PerpsEventProperties.WITHDRAWAL_AMOUNT]: params.amount,
-          [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-          [PerpsEventProperties.ERROR_MESSAGE]: errorMessage,
+          [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
+          [PERPS_EVENT_PROPERTY.WITHDRAWAL_AMOUNT]: params.amount,
+          [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: completionDuration,
+          [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
         },
       );
 
@@ -332,7 +343,7 @@ export class AccountService {
       return { success: false, error: errorMessage };
     } finally {
       this.deps.tracer.endTrace({
-        name: PerpsTraceNames.WITHDRAW,
+        name: PerpsTraceNames.Withdraw,
         id: traceId,
         data: traceData,
       });
@@ -343,7 +354,7 @@ export class AccountService {
    * Validate withdrawal parameters
    */
   async validateWithdrawal(options: {
-    provider: IPerpsProvider;
+    provider: PerpsProvider;
     params: WithdrawParams;
   }): Promise<{ isValid: boolean; error?: string }> {
     const { provider, params } = options;

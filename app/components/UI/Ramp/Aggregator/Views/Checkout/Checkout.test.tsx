@@ -1,5 +1,6 @@
 import { CryptoCurrency, Order, Provider } from '@consensys/on-ramp-sdk';
 import { fireEvent, act } from '@testing-library/react-native';
+import { Linking } from 'react-native';
 import {
   DeepPartial,
   renderScreen,
@@ -8,6 +9,7 @@ import { RampSDK, SDK } from '../../sdk';
 import Checkout from '.';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { aggregatorOrderToFiatOrder } from '../../orderProcessor/aggregator';
+import Logger from '../../../../../../util/Logger';
 
 const mockDispatch = jest.fn();
 jest.mock('react-redux', () => ({
@@ -87,6 +89,14 @@ const mockUseParams = jest.fn(() => ({
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../../util/navigation/navUtils'),
   useParams: () => mockUseParams(),
+}));
+
+jest.mock('react-native', () => ({
+  ...jest.requireActual('react-native'),
+  Linking: {
+    canOpenURL: jest.fn(),
+    openURL: jest.fn(),
+  },
 }));
 
 function render() {
@@ -396,5 +406,219 @@ describe('Checkout', () => {
     });
 
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  describe('onShouldStartLoadWithRequest', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      (Linking.canOpenURL as jest.Mock).mockResolvedValue(true);
+      (Linking.openURL as jest.Mock).mockResolvedValue(true);
+    });
+
+    it('opens UPI payment URL via Linking and blocks webview navigation', async () => {
+      const { getByTestId } = render();
+      const webView = getByTestId('checkout-webview');
+      const onShouldStartLoadWithRequest =
+        webView.props.onShouldStartLoadWithRequest;
+
+      const result = onShouldStartLoadWithRequest({
+        url: 'upi://pay?pa=company@ypbiz&cu=INR&am=1100.00',
+      });
+
+      expect(result).toBe(false);
+
+      await act(async () => {
+        await new Promise(process.nextTick);
+      });
+
+      expect(Linking.canOpenURL).toHaveBeenCalledWith(
+        'upi://pay?pa=company@ypbiz&cu=INR&am=1100.00',
+      );
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'upi://pay?pa=company@ypbiz&cu=INR&am=1100.00',
+      );
+    });
+
+    it('opens Paytm payment URL via Linking and blocks webview navigation', async () => {
+      const { getByTestId } = render();
+      const webView = getByTestId('checkout-webview');
+      const onShouldStartLoadWithRequest =
+        webView.props.onShouldStartLoadWithRequest;
+
+      const result = onShouldStartLoadWithRequest({
+        url: 'paytmmp://pay?pa=company@ypbiz&cu=INR&am=1100.00',
+      });
+
+      expect(result).toBe(false);
+
+      await act(async () => {
+        await new Promise(process.nextTick);
+      });
+
+      expect(Linking.canOpenURL).toHaveBeenCalledWith(
+        'paytmmp://pay?pa=company@ypbiz&cu=INR&am=1100.00',
+      );
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'paytmmp://pay?pa=company@ypbiz&cu=INR&am=1100.00',
+      );
+    });
+
+    it('opens PhonePe payment URL via Linking and blocks webview navigation', async () => {
+      const { getByTestId } = render();
+      const webView = getByTestId('checkout-webview');
+      const onShouldStartLoadWithRequest =
+        webView.props.onShouldStartLoadWithRequest;
+
+      const result = onShouldStartLoadWithRequest({
+        url: 'phonepe://pay?pa=company@ypbiz&cu=INR&am=1100.00',
+      });
+
+      expect(result).toBe(false);
+
+      await act(async () => {
+        await new Promise(process.nextTick);
+      });
+
+      expect(Linking.canOpenURL).toHaveBeenCalledWith(
+        'phonepe://pay?pa=company@ypbiz&cu=INR&am=1100.00',
+      );
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'phonepe://pay?pa=company@ypbiz&cu=INR&am=1100.00',
+      );
+    });
+
+    it('opens Google Pay payment URL via Linking and blocks webview navigation', async () => {
+      const { getByTestId } = render();
+      const webView = getByTestId('checkout-webview');
+      const onShouldStartLoadWithRequest =
+        webView.props.onShouldStartLoadWithRequest;
+
+      const result = onShouldStartLoadWithRequest({
+        url: 'gpay://upi/pay?pa=company@ypbiz&cu=INR&am=1100.00',
+      });
+
+      expect(result).toBe(false);
+
+      await act(async () => {
+        await new Promise(process.nextTick);
+      });
+
+      expect(Linking.canOpenURL).toHaveBeenCalledWith(
+        'gpay://upi/pay?pa=company@ypbiz&cu=INR&am=1100.00',
+      );
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'gpay://upi/pay?pa=company@ypbiz&cu=INR&am=1100.00',
+      );
+    });
+
+    it('allows HTTPS URLs to load in webview', () => {
+      const { getByTestId } = render();
+      const webView = getByTestId('checkout-webview');
+      const onShouldStartLoadWithRequest =
+        webView.props.onShouldStartLoadWithRequest;
+
+      const result = onShouldStartLoadWithRequest({
+        url: 'https://example.com/payment',
+      });
+
+      expect(Linking.canOpenURL).not.toHaveBeenCalled();
+      expect(Linking.openURL).not.toHaveBeenCalled();
+      expect(result).toBe(true);
+    });
+
+    it('allows HTTP URLs to load in webview', () => {
+      const { getByTestId } = render();
+      const webView = getByTestId('checkout-webview');
+      const onShouldStartLoadWithRequest =
+        webView.props.onShouldStartLoadWithRequest;
+
+      const result = onShouldStartLoadWithRequest({
+        url: 'http://example.com/payment',
+      });
+
+      expect(Linking.canOpenURL).not.toHaveBeenCalled();
+      expect(Linking.openURL).not.toHaveBeenCalled();
+      expect(result).toBe(true);
+    });
+
+    it('logs message when payment app is not installed', async () => {
+      (Linking.canOpenURL as jest.Mock).mockResolvedValueOnce(false);
+      const mockLoggerLog = jest.spyOn(Logger, 'log');
+
+      const { getByTestId } = render();
+      const webView = getByTestId('checkout-webview');
+      const onShouldStartLoadWithRequest =
+        webView.props.onShouldStartLoadWithRequest;
+
+      const result = onShouldStartLoadWithRequest({
+        url: 'upi://pay?pa=company@ypbiz',
+      });
+
+      expect(result).toBe(false);
+
+      await act(async () => {
+        await new Promise(process.nextTick);
+      });
+
+      expect(Linking.canOpenURL).toHaveBeenCalledWith(
+        'upi://pay?pa=company@ypbiz',
+      );
+      expect(Linking.openURL).not.toHaveBeenCalled();
+      expect(mockLoggerLog).toHaveBeenCalledWith(
+        'Cannot open URL: upi://pay?pa=company@ypbiz - payment app not installed',
+      );
+    });
+
+    it('logs error when Linking.canOpenURL fails', async () => {
+      const mockError = new Error('Failed to check URL');
+      (Linking.canOpenURL as jest.Mock).mockRejectedValueOnce(mockError);
+      const mockLoggerError = jest.spyOn(Logger, 'error');
+
+      const { getByTestId } = render();
+      const webView = getByTestId('checkout-webview');
+      const onShouldStartLoadWithRequest =
+        webView.props.onShouldStartLoadWithRequest;
+
+      const result = onShouldStartLoadWithRequest({
+        url: 'upi://pay?pa=company@ypbiz',
+      });
+
+      expect(result).toBe(false);
+
+      await act(async () => {
+        await new Promise(process.nextTick);
+      });
+
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        mockError,
+        'Failed to open payment URL: upi://pay?pa=company@ypbiz',
+      );
+    });
+
+    it('logs error when Linking.openURL fails', async () => {
+      const mockError = new Error('Failed to open URL');
+      (Linking.openURL as jest.Mock).mockRejectedValueOnce(mockError);
+      const mockLoggerError = jest.spyOn(Logger, 'error');
+
+      const { getByTestId } = render();
+      const webView = getByTestId('checkout-webview');
+      const onShouldStartLoadWithRequest =
+        webView.props.onShouldStartLoadWithRequest;
+
+      const result = onShouldStartLoadWithRequest({
+        url: 'upi://pay?pa=company@ypbiz',
+      });
+
+      expect(result).toBe(false);
+
+      await act(async () => {
+        await new Promise(process.nextTick);
+      });
+
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        mockError,
+        'Failed to open payment URL: upi://pay?pa=company@ypbiz',
+      );
+    });
   });
 });

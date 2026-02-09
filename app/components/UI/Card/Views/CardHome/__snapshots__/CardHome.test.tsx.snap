@@ -360,6 +360,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                               {
                                 "paddingLeft": 16,
                                 "paddingRight": 16,
+                                "paddingTop": 16,
                               },
                             ]
                           }
@@ -955,10 +956,8 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#3c4d9d0f",
-                                    "borderColor": "transparent",
+                                    "backgroundColor": "#121314",
                                     "borderRadius": 12,
-                                    "borderWidth": 1,
                                     "flexDirection": "row",
                                     "height": 48,
                                     "justifyContent": "center",
@@ -973,7 +972,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#ffffff",
                                       "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -995,10 +994,8 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#3c4d9d0f",
-                                    "borderColor": "transparent",
+                                    "backgroundColor": "#121314",
                                     "borderRadius": 12,
-                                    "borderWidth": 1,
                                     "flexDirection": "row",
                                     "height": 48,
                                     "justifyContent": "center",
@@ -1013,7 +1010,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#ffffff",
                                       "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -1329,6 +1326,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                             </View>
                           </View>
                         </TouchableOpacity>
+                        <View />
                       </View>
                     </RCTScrollView>
                   </View>
@@ -1703,6 +1701,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                               {
                                 "paddingLeft": 16,
                                 "paddingRight": 16,
+                                "paddingTop": 16,
                               },
                             ]
                           }
@@ -2298,10 +2297,8 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#3c4d9d0f",
-                                    "borderColor": "transparent",
+                                    "backgroundColor": "#121314",
                                     "borderRadius": 12,
-                                    "borderWidth": 1,
                                     "flexDirection": "row",
                                     "height": 48,
                                     "justifyContent": "center",
@@ -2316,7 +2313,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#ffffff",
                                       "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -2338,10 +2335,8 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#3c4d9d0f",
-                                    "borderColor": "transparent",
+                                    "backgroundColor": "#121314",
                                     "borderRadius": 12,
-                                    "borderWidth": 1,
                                     "flexDirection": "row",
                                     "height": 48,
                                     "justifyContent": "center",
@@ -2356,7 +2351,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#ffffff",
                                       "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -2672,6 +2667,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                             </View>
                           </View>
                         </TouchableOpacity>
+                        <View />
                       </View>
                     </RCTScrollView>
                   </View>

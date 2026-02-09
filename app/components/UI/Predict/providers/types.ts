@@ -43,6 +43,9 @@ export interface GetMarketsParams {
 
   // Live sports configuration
   liveSportsLeagues?: string[];
+
+  // Custom query params for Hot tab
+  customQueryParams?: string;
 }
 
 export interface Signer {
@@ -66,6 +69,13 @@ export interface PlaceOrderParams {
     volume?: number;
     marketType?: string;
     outcome?: string;
+    marketSlug?: string;
+    gameId?: string;
+    gameStartTime?: string;
+    gameLeague?: string;
+    gameStatus?: string;
+    gamePeriod?: string | null;
+    gameClock?: string | null;
   };
 }
 
@@ -180,7 +190,6 @@ export interface PrepareDepositResponse {
     };
     type?: TransactionType;
   }[];
-  gasFeeToken?: Hex;
 }
 
 export interface GetPredictWalletParams {

@@ -30,6 +30,8 @@ ignores:
   # Appwright will be used in a follow up PR. We will remove once PR is ready
   - 'appwright'
   # Appium drivers are used by Appwright for mobile automation
+  - 'appium-adb'
+  - 'appium-chromium-driver'
   - 'appium-uiautomator2-driver'
   - 'appium-xcuitest-driver'
   # ESBuild is used for AI E2E script compilation
@@ -37,6 +39,8 @@ ignores:
   - 'esbuild-register'
   # xml2js is used in .github/scripts/ for E2E test report processing
   - 'xml2js'
+  # jest-junit is used as a Jest reporter in tests/jest.e2e.detox.config.js
+  - 'jest-junit'
 
   # Used in scripts/repack for CI optimization
   - '@expo/repack-app'
@@ -121,3 +125,6 @@ ignores:
   - '@types/react-test-renderer'
   # runtime for dependecies using Nitro Modules (@metamask/native-utils)
   - 'react-native-nitro-modules'
+
+  # Used in Yarn plugin for preview builds
+  - '@yarnpkg/core'

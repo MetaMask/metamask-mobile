@@ -1,6 +1,7 @@
 import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
 import { useSelector } from 'react-redux';
+import type { PerpsNavigationParamList } from '../types/navigation';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native';
 import { IconName } from '@metamask/design-system-react-native';
@@ -14,9 +15,9 @@ import PerpsHomeView from '../Views/PerpsHomeView/PerpsHomeView';
 import PerpsMarketDetailsView from '../Views/PerpsMarketDetailsView';
 import PerpsMarketListView from '../Views/PerpsMarketListView';
 import PerpsRedirect from '../Views/PerpsRedirect';
+import PerpsOrderRedirect from '../Views/PerpsOrderRedirect';
 import PerpsPositionsView from '../Views/PerpsPositionsView';
 import PerpsWithdrawView from '../Views/PerpsWithdrawView';
-import PerpsOrderView from '../Views/PerpsOrderView';
 import PerpsClosePositionView from '../Views/PerpsClosePositionView';
 import PerpsCloseAllPositionsView from '../Views/PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
 import PerpsCancelAllOrdersView from '../Views/PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
@@ -36,8 +37,10 @@ import ActivityView from '../../../Views/ActivityView';
 import PerpsStreamBridge from '../components/PerpsStreamBridge';
 import { HIP3DebugView } from '../Debug';
 import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWarningBottomSheet';
+import { RouteProp, useRoute } from '@react-navigation/native';
+import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 
-const Stack = createStackNavigator();
+const Stack = createStackNavigator<PerpsNavigationParamList>();
 const ModalStack = createStackNavigator();
 
 const styles = StyleSheet.create({
@@ -45,6 +48,32 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
+
+function getRedesignedConfirmationsHeaderOptions({
+  showPerpsHeader = CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader,
+}: PerpsNavigationParamList['RedesignedConfirmations'] = {}) {
+  return showPerpsHeader
+    ? {
+        headerLeft: () => null,
+        headerShown: true,
+        title: '',
+      }
+    : { header: () => null };
+}
+
+const PerpsConfirmScreen = (
+  props: React.ComponentProps<typeof Confirm> & {
+    route: RouteProp<PerpsNavigationParamList, 'RedesignedConfirmations'>;
+  },
+) => {
+  const params =
+    useRoute<RouteProp<PerpsNavigationParamList, 'RedesignedConfirmations'>>();
+  const showPerpsHeader =
+    params?.params?.showPerpsHeader ??
+    CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader;
+
+  return <Confirm {...props} disableSafeArea={!showPerpsHeader} />;
+};
 
 const PerpsModalStack = () => {
   const isBasicFunctionalityEnabled = useSelector(
@@ -263,15 +292,6 @@ const PerpsScreenStack = () => {
           />
 
           <Stack.Screen
-            name={Routes.PERPS.ORDER}
-            component={PerpsOrderView}
-            options={{
-              title: strings('perps.order.title'),
-              headerShown: false,
-            }}
-          />
-
-          <Stack.Screen
             name={Routes.PERPS.CLOSE_POSITION}
             component={PerpsClosePositionView}
             options={{
@@ -377,14 +397,21 @@ const PerpsScreenStack = () => {
             }}
           />
 
+          {/* Order redirect screen - handles one-click trade from token details */}
+          <Stack.Screen
+            name={Routes.PERPS.ORDER_REDIRECT}
+            component={PerpsOrderRedirect}
+            options={{
+              headerShown: false,
+            }}
+          />
+
           <Stack.Screen
             name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
-            component={Confirm}
-            options={{
-              headerLeft: () => null,
-              headerShown: true,
-              title: '',
-            }}
+            component={PerpsConfirmScreen}
+            options={({ route }) =>
+              getRedesignedConfirmationsHeaderOptions(route.params)
+            }
           />
         </Stack.Navigator>
       </PerpsStreamProvider>
@@ -394,4 +421,4 @@ const PerpsScreenStack = () => {
 
 // Export the stack wrapped with provider
 export default PerpsScreenStack;
-export { PerpsModalStack, PerpsClosePositionBottomSheetStack };
+export { PerpsClosePositionBottomSheetStack, PerpsModalStack };
