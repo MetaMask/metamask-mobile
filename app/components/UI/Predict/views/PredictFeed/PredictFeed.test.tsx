@@ -818,59 +818,38 @@ describe('PredictFeed', () => {
   });
 
   describe('query deeplink parameter', () => {
-    it('opens search overlay when query param is provided in route params', () => {
-      mockUseRoute.mockReturnValue({
-        params: {
-          entryPoint: 'deeplink',
-          query: 'bitcoin',
-        },
-      });
+    it.each([['bitcoin'], ['ethereum'], ['solana']])(
+      'opens search overlay when query param "%s" is provided in route params',
+      (query) => {
+        mockUseRoute.mockReturnValue({
+          params: {
+            entryPoint: 'deeplink',
+            query,
+          },
+        });
 
-      const { getByTestId } = render(<PredictFeed />);
+        const { getByTestId } = render(<PredictFeed />);
 
-      expect(getByTestId('search-icon')).toBeOnTheScreen();
-    });
+        expect(getByTestId('search-icon')).toBeOnTheScreen();
+      },
+    );
 
-    it('pre-fills search input with query from route params', () => {
-      mockUseRoute.mockReturnValue({
-        params: {
-          entryPoint: 'deeplink',
-          query: 'ethereum',
-        },
-      });
+    it.each([['bitcoin'], ['ethereum']])(
+      'pre-fills search input with query "%s" from route params',
+      (query) => {
+        mockUseRoute.mockReturnValue({
+          params: {
+            entryPoint: 'deeplink',
+            query,
+          },
+        });
 
-      const { getByPlaceholderText } = render(<PredictFeed />);
+        const { getByPlaceholderText } = render(<PredictFeed />);
 
-      const searchInput = getByPlaceholderText('Search prediction markets');
-      expect(searchInput.props.value).toBe('ethereum');
-    });
-
-    it('opens search overlay when query param is provided', () => {
-      mockUseRoute.mockReturnValue({
-        params: {
-          entryPoint: 'deeplink',
-          query: 'solana',
-        },
-      });
-
-      const { getByTestId } = render(<PredictFeed />);
-
-      expect(getByTestId('search-icon')).toBeOnTheScreen();
-    });
-
-    it('pre-fills search input with query from route params', () => {
-      mockUseRoute.mockReturnValue({
-        params: {
-          entryPoint: 'deeplink',
-          query: 'bitcoin',
-        },
-      });
-
-      const { getByPlaceholderText } = render(<PredictFeed />);
-
-      const searchInput = getByPlaceholderText('Search prediction markets');
-      expect(searchInput.props.value).toBe('bitcoin');
-    });
+        const searchInput = getByPlaceholderText('Search prediction markets');
+        expect(searchInput.props.value).toBe(query);
+      },
+    );
 
     it('closes search overlay when cancel is pressed', () => {
       mockUseRoute.mockReturnValue({
