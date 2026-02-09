@@ -1,6 +1,7 @@
 import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
 import { useSelector } from 'react-redux';
+import type { PerpsNavigationParamList } from '../types/navigation';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native';
 import { IconName } from '@metamask/design-system-react-native';
@@ -14,6 +15,7 @@ import PerpsHomeView from '../Views/PerpsHomeView/PerpsHomeView';
 import PerpsMarketDetailsView from '../Views/PerpsMarketDetailsView';
 import PerpsMarketListView from '../Views/PerpsMarketListView';
 import PerpsRedirect from '../Views/PerpsRedirect';
+import PerpsOrderRedirect from '../Views/PerpsOrderRedirect';
 import PerpsPositionsView from '../Views/PerpsPositionsView';
 import PerpsWithdrawView from '../Views/PerpsWithdrawView';
 import PerpsClosePositionView from '../Views/PerpsClosePositionView';
@@ -35,9 +37,10 @@ import ActivityView from '../../../Views/ActivityView';
 import PerpsStreamBridge from '../components/PerpsStreamBridge';
 import { HIP3DebugView } from '../Debug';
 import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWarningBottomSheet';
-import { useTheme } from '../../../../util/theme';
+import { RouteProp, useRoute } from '@react-navigation/native';
+import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 
-const Stack = createStackNavigator();
+const Stack = createStackNavigator<PerpsNavigationParamList>();
 const ModalStack = createStackNavigator();
 
 const styles = StyleSheet.create({
@@ -46,17 +49,30 @@ const styles = StyleSheet.create({
   },
 });
 
-const PerpsConfirmScreen = (props: React.ComponentProps<typeof Confirm>) => {
-  const theme = useTheme();
-  return (
-    <Confirm
-      {...props}
-      disableSafeArea
-      fullscreenStyle={{
-        backgroundColor: theme.colors.background.default,
-      }}
-    />
-  );
+function getRedesignedConfirmationsHeaderOptions({
+  showPerpsHeader = CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader,
+}: PerpsNavigationParamList['RedesignedConfirmations'] = {}) {
+  return showPerpsHeader
+    ? {
+        headerLeft: () => null,
+        headerShown: true,
+        title: '',
+      }
+    : { header: () => null };
+}
+
+const PerpsConfirmScreen = (
+  props: React.ComponentProps<typeof Confirm> & {
+    route: RouteProp<PerpsNavigationParamList, 'RedesignedConfirmations'>;
+  },
+) => {
+  const params =
+    useRoute<RouteProp<PerpsNavigationParamList, 'RedesignedConfirmations'>>();
+  const showPerpsHeader =
+    params?.params?.showPerpsHeader ??
+    CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader;
+
+  return <Confirm {...props} disableSafeArea={!showPerpsHeader} />;
 };
 
 const PerpsModalStack = () => {
@@ -381,12 +397,21 @@ const PerpsScreenStack = () => {
             }}
           />
 
+          {/* Order redirect screen - handles one-click trade from token details */}
+          <Stack.Screen
+            name={Routes.PERPS.ORDER_REDIRECT}
+            component={PerpsOrderRedirect}
+            options={{
+              headerShown: false,
+            }}
+          />
+
           <Stack.Screen
             name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
             component={PerpsConfirmScreen}
-            options={{
-              header: () => null,
-            }}
+            options={({ route }) =>
+              getRedesignedConfirmationsHeaderOptions(route.params)
+            }
           />
         </Stack.Navigator>
       </PerpsStreamProvider>

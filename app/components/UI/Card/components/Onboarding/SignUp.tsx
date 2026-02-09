@@ -14,9 +14,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import TextField, {
-  TextFieldSize,
-} from '../../../../../component-library/components/Form/TextField';
+import TextField from '../../../../../component-library/components/Form/TextField';
 import Label from '../../../../../component-library/components/Form/Label';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -241,7 +239,6 @@ const SignUp = () => {
           autoComplete="one-time-code"
           onChangeText={handleEmailChange}
           numberOfLines={1}
-          size={TextFieldSize.Lg}
           value={email}
           keyboardType="email-address"
           maxLength={255}
@@ -276,7 +273,6 @@ const SignUp = () => {
           autoCapitalize={'none'}
           onChangeText={handlePasswordChange}
           numberOfLines={1}
-          size={TextFieldSize.Lg}
           value={password}
           maxLength={255}
           secureTextEntry={!isPasswordVisible}

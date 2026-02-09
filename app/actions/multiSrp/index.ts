@@ -1,14 +1,8 @@
-import { HdKeyring } from '@metamask/eth-hd-keyring';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
 import { KeyringSelector } from '@metamask/keyring-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import {
-  MultichainWalletSnapFactory,
-  WALLET_SNAP_MAP,
-  WalletClientType,
-} from '../../core/SnapKeyring/MultichainWalletSnapClient';
 import {
   endPerformanceTrace,
   startPerformanceTrace,
@@ -23,9 +17,7 @@ import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboa
 import { SecretType } from '@metamask/seedless-onboarding-controller';
 import Logger from '../../util/Logger';
 import { discoverAccounts } from '../../multichain-accounts/discovery';
-import { isMultichainAccountsState2Enabled } from '../../multichain-accounts/remote-feature-flag';
 import { captureException } from '@sentry/core';
-import { EntropySourceId } from '@metamask/keyring-api';
 import { convertMnemonicToWordlistIndices } from '../../util/mnemonic';
 
 export interface ImportNewSecretRecoveryPhraseOptions {
@@ -62,49 +54,11 @@ export async function importNewSecretRecoveryPhrase(
     wordlist,
   );
 
-  let entropySource: EntropySourceId;
-  if (isMultichainAccountsState2Enabled()) {
-    const wallet = await MultichainAccountService.createMultichainAccountWallet(
-      {
-        type: 'import',
-        mnemonic: seedPhraseAsUint8Array,
-      },
-    );
-    entropySource = wallet.entropySource;
-  } else {
-    const hdKeyrings = (await KeyringController.getKeyringsByType(
-      ExtendedKeyringTypes.hd,
-    )) as HdKeyring[];
-
-    // TODO: This is temporary and will be removed once https://github.com/MetaMask/core/issues/5411 is resolved.
-    const alreadyImportedSRP = hdKeyrings.some((keyring) => {
-      // Compare directly with stored codepoints
-      const storedCodePoints = new Uint16Array(
-        // The mnemonic will not be undefined because there will be a keyring.
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        Buffer.from(keyring.mnemonic!).buffer,
-      );
-
-      if (inputCodePoints.length !== storedCodePoints.length) return false;
-
-      return inputCodePoints.every(
-        (code, index) => code === storedCodePoints[index],
-      );
-    });
-
-    if (alreadyImportedSRP) {
-      throw new Error('This mnemonic has already been imported.');
-    }
-
-    const newKeyring = await KeyringController.addNewKeyring(
-      ExtendedKeyringTypes.hd,
-      {
-        mnemonic,
-        numberOfAccounts: 1,
-      },
-    );
-    entropySource = newKeyring.id;
-  }
+  const wallet = await MultichainAccountService.createMultichainAccountWallet({
+    type: 'import',
+    mnemonic: seedPhraseAsUint8Array,
+  });
+  const entropySource = wallet.entropySource;
 
   const [newAccountAddress] = await KeyringController.withKeyring(
     {
@@ -169,51 +123,35 @@ export async function importNewSecretRecoveryPhrase(
     }
   }
 
-  // If state 2 is enabled, this function will return 0 discovered account
-  // immediately, so we have to use the `callback` instead to get this
-  // information.
+  // This function will return 0 discovered account immediately, so we have to use
+  // the `callback` instead to get this information.
   let discoveredAccountsCount: number = 0;
-  if (isMultichainAccountsState2Enabled()) {
-    // We use an IIFE to be able to use async/await but not block the main thread.
-    (async () => {
-      let capturedError;
-      try {
-        // HACK: Force Snap keyring instantiation.
-        await Engine.getSnapKeyring();
-        // We need to dispatch a full sync here since this is a new SRP
-        await Engine.context.AccountTreeController.syncWithUserStorage();
-        // Then we discover accounts
-        discoveredAccountsCount = await discoverAccounts(entropySource);
-      } catch (error) {
-        capturedError = new Error(
-          `Unable to sync, discover and create accounts: ${error}`,
-        );
-        discoveredAccountsCount = 0;
+  // We use an IIFE to be able to use async/await but not block the main thread.
+  (async () => {
+    let capturedError;
+    try {
+      // HACK: Force Snap keyring instantiation.
+      await Engine.getSnapKeyring();
+      // We need to dispatch a full sync here since this is a new SRP
+      await Engine.context.AccountTreeController.syncWithUserStorage();
+      // Then we discover accounts
+      discoveredAccountsCount = await discoverAccounts(entropySource);
+    } catch (error) {
+      capturedError = new Error(
+        `Unable to sync, discover and create accounts: ${error}`,
+      );
+      discoveredAccountsCount = 0;
 
-        captureException(capturedError);
-      } finally {
-        // We trigger the callback with the results, even in case of error (0 discovered accounts)
-        await callback?.({
-          address: newAccountAddress,
-          discoveredAccountsCount,
-          error: capturedError,
-        });
-      }
-    })();
-  } else {
-    discoveredAccountsCount = (
-      await Promise.all(
-        Object.values(WalletClientType).map(async (clientType) => {
-          const snapClient =
-            MultichainWalletSnapFactory.createClient(clientType);
-          return await snapClient.addDiscoveredAccounts(
-            entropySource,
-            WALLET_SNAP_MAP[clientType].discoveryScope,
-          );
-        }),
-      )
-    ).reduce((acc, count) => acc + count || 0, 0);
-  }
+      captureException(capturedError);
+    } finally {
+      // We trigger the callback with the results, even in case of error (0 discovered accounts)
+      await callback?.({
+        address: newAccountAddress,
+        discoveredAccountsCount,
+        error: capturedError,
+      });
+    }
+  })();
 
   if (shouldSelectAccount) {
     Engine.setSelectedAddress(newAccountAddress);

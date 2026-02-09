@@ -5,6 +5,7 @@ import TokenSelection from './components/TokenSelection';
 import BuildQuote from './components/BuildQuote';
 import UnsupportedTokenModal from './components/UnsupportedTokenModal';
 import SettingsModal from './components/Modals/SettingsModal';
+import PaymentSelectionModal from './components/PaymentSelectionModal';
 
 const RootStack = createStackNavigator();
 const Stack = createStackNavigator();
@@ -43,6 +44,10 @@ const TokenListModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.BUILD_QUOTE_SETTINGS}
       component={SettingsModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.PAYMENT_SELECTION}
+      component={PaymentSelectionModal}
     />
   </ModalsStack.Navigator>
 );

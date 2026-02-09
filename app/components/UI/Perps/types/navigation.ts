@@ -25,6 +25,8 @@ export interface PerpsNavigationParamList extends ParamListBase {
     orderType?: OrderType;
     existingPosition?: Position; // Pass existing position for leverage consistency when adding to position
     hideTPSL?: boolean; // Hide TP/SL row when modifying existing position
+    /** When false, confirmation screen uses header: () => null; when true/undefined uses headerLeft/title options */
+    showPerpsHeader?: boolean;
   };
 
   PerpsOrderSuccess: {
@@ -208,6 +210,17 @@ export interface PerpsNavigationParamList extends ParamListBase {
 
   // Root perps view
   Perps: undefined;
+
+  /** Params for RedesignedConfirmations when shown in Perps stack (header options) */
+  RedesignedConfirmations: {
+    showPerpsHeader?: boolean;
+  };
+
+  /** Params for PerpsOrderRedirect - handles one-click trade from token details */
+  PerpsOrderRedirect: {
+    direction: 'long' | 'short';
+    asset: string;
+  };
 }
 
 /**
