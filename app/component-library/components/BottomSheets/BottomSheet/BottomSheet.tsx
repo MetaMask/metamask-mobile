@@ -82,8 +82,6 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
         didRunPostCallbackRef.current = true;
         postCallback.current?.();
         postCallback.current = undefined;
-      } else if (postCallback.current) {
-        Logger.log('[BottomSheet] postCallback skipped (duplicate close)');
       }
     }, [navigation, onClose, shouldNavigateBack]);
 
