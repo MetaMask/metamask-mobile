@@ -1722,7 +1722,7 @@ exports[`AccountsMenu Snapshots match snapshot when MetaMask Card is visible 1`]
             "paddingTop": 12,
           }
         }
-        testID="manage-wallet"
+        testID="manage-card"
       >
         <View
           style={

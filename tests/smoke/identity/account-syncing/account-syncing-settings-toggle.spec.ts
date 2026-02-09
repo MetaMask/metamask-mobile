@@ -125,6 +125,9 @@ describe(SmokeIdentity('Account syncing - Setting'), () => {
           SettingsView.backupAndSyncSectionButton,
         );
 
+        // needs settings back button
+        await SettingsView.tapBackButton();
+
         await Assertions.expectElementToBeVisible(AccountMenu.backButton);
         await Assertions.expectElementToBeVisible(AccountMenu.container);
 

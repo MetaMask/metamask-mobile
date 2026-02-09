@@ -13,6 +13,8 @@ import { createUserStorageController } from '../utils/mocks';
 import ContactsView from '../../../../e2e/pages/Settings/Contacts/ContactsView';
 import AddContactView from '../../../../e2e/pages/Settings/Contacts/AddContactView';
 import CommonView from '../../../../e2e/pages/CommonView';
+import WalletView from '../../../../e2e/pages/wallet/WalletView';
+import AccountMenu from '../../../../e2e/pages/wallet/AccountMenu';
 
 describe(SmokeIdentity('Contacts syncing - Settings'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
@@ -41,10 +43,8 @@ describe(SmokeIdentity('Contacts syncing - Settings'), () => {
         await loginToApp();
 
         // First fixture: Create a contact with sync enabled
-        await TabBarComponent.tapSettings();
-        await Assertions.expectElementToBeVisible(
-          SettingsView.contactsSettingsButton,
-        );
+        await WalletView.tapHamburgerMenu();
+        await Assertions.expectElementToBeVisible(AccountMenu.settingsButton);
         await SettingsView.tapContacts();
         await Assertions.expectElementToBeVisible(ContactsView.container);
         await ContactsView.tapAddContactButton();
