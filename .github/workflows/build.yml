@@ -73,7 +73,7 @@ jobs:
   # Build
   build:
     needs: [prepare]
-    timeout-minutes: 120
+    timeout-minutes: 30
     strategy:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
@@ -172,21 +172,21 @@ jobs:
         run: |
           RUBY_VERSION=$(cat .ruby-version)
           echo "📦 Installing Ruby ${RUBY_VERSION}..."
-          
+
           # Install Ruby version if not already installed
           if ! rbenv versions | grep -q "${RUBY_VERSION}"; then
             rbenv install "${RUBY_VERSION}"
           fi
-          
+
           # Set Ruby version globally for this runner
           rbenv global "${RUBY_VERSION}"
-          
+
           # Initialize rbenv (required: GitHub Actions runs bash with --noprofile --norc)
           eval "$(rbenv init -)"
-          
+
           # Add rbenv shims to PATH for subsequent steps
           echo "$HOME/.rbenv/shims" >> $GITHUB_PATH
-          
+
           # Verify installation and version
           ACTUAL_VERSION=$(ruby --version)
           echo "✅ Ruby version: ${ACTUAL_VERSION}"
@@ -194,10 +194,10 @@ jobs:
             echo "❌ ERROR: Expected Ruby ${RUBY_VERSION}, but got: ${ACTUAL_VERSION}"
             exit 1
           fi
-          
+
           # Install bundler
           gem install bundler -v 2.5.8
-          
+
           # Install gems from ios/Gemfile
           cd ios && bundle install
 
@@ -211,8 +211,6 @@ jobs:
             ~/Library/Caches/CocoaPods
             ~/.cocoapods
           key: ${{ runner.os }}-pods-${{ inputs.build_name }}-${{ hashFiles('ios/Podfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pods-${{ inputs.build_name }}-
 
       # iOS: Cache DerivedData (includes ModuleCache.noindex) to speed up Xcode builds
       - name: Cache iOS DerivedData
@@ -223,9 +221,6 @@ jobs:
             ~/Library/Developer/Xcode/DerivedData
             ios/build
           key: ${{ runner.os }}-ios-derived-${{ inputs.build_name }}-${{ hashFiles('ios/Podfile.lock') }}-${{ hashFiles('ios/**/*.{h,m,mm,swift}') }}
-          restore-keys: |
-            ${{ runner.os }}-ios-derived-${{ inputs.build_name }}-${{ hashFiles('ios/Podfile.lock') }}-
-            ${{ runner.os }}-ios-derived-${{ inputs.build_name }}-
 
       # Signing: uses role + secret from builds.yml (skip for dev builds - main-dev, flask-dev, qa-dev use debug/simulator)
       - name: Configure signing certificates
@@ -252,11 +247,6 @@ jobs:
               yarn setup:github-ci --no-build-ios
             fi
 
-      # Android: use CI Gradle settings (8GB heap, OOM handling) to avoid daemon OOM
-      - name: Use CI Gradle properties (Android)
-        if: matrix.platform == 'android'
-        run: cp android/gradle.properties.github android/gradle.properties
-
       # Build with retry logic. Timeouts: 55min per attempt, 115min total for step, 120min job
       # First iOS build (cold cache): ~45-60min. Subsequent builds (warm cache): ~10-20min
       - name: Build ${{ matrix.platform }}
@@ -278,10 +268,10 @@ jobs:
         if: matrix.platform == 'android' && success()
         run: |
           set -e
-          
+
           # Get version from package.json
           APP_VERSION=$(node -p "require('./package.json').version")
-          
+
           # Determine flavor based on build type
           case "$METAMASK_BUILD_TYPE" in
             main) APP_FLAVOR="prod" ;;
@@ -289,23 +279,23 @@ jobs:
             qa) APP_FLAVOR="qa" ;;
             *) echo "Unknown build type: $METAMASK_BUILD_TYPE"; exit 1 ;;
           esac
-          
+
           # Determine if Debug or Release
           if [ "$CONFIGURATION" = "Debug" ]; then
             BUILD_CONFIG="debug"
           else
             BUILD_CONFIG="release"
           fi
-          
+
           # Set paths
           APK_DIR="android/app/build/outputs/apk/$APP_FLAVOR/$BUILD_CONFIG"
           BUNDLE_DIR="android/app/build/outputs/bundle/${APP_FLAVOR}Release"
-          
+
           # Create new base name: metamask-{environment}-{buildType}-{version}-{buildNumber}
           NEW_BASE_NAME="metamask-$METAMASK_ENVIRONMENT-$METAMASK_BUILD_TYPE-$APP_VERSION-$GITHUB_RUN_NUMBER"
-          
+
           echo "📝 Renaming artifacts to: $NEW_BASE_NAME"
-          
+
           # Rename APK
           OLD_APK="$APK_DIR/app-$APP_FLAVOR-$BUILD_CONFIG.apk"
           if [ -f "$OLD_APK" ]; then
@@ -315,7 +305,7 @@ jobs:
           else
             echo "⚠️  APK not found: $OLD_APK"
           fi
-          
+
           # Rename AAB (only for Release builds)
           if [ "$BUILD_CONFIG" = "release" ]; then
             OLD_AAB="$BUNDLE_DIR/app-$APP_FLAVOR-release.aab"
@@ -327,7 +317,7 @@ jobs:
               echo "⚠️  AAB not found: $OLD_AAB"
             fi
           fi
-          
+
           echo "📦 Final artifacts:"
           find android/app/build/outputs -type f \( -name "*.apk" -o -name "*.aab" \) -exec ls -lh {} \;
 
@@ -336,10 +326,10 @@ jobs:
         if: matrix.platform == 'ios' && success()
         run: |
           set -e
-          
+
           # Get version from package.json
           APP_VERSION=$(node -p "require('./package.json').version")
-          
+
           # Determine app name based on build type
           case "$METAMASK_BUILD_TYPE" in
             main) APP_NAME="MetaMask" ;;
@@ -347,7 +337,7 @@ jobs:
             qa) APP_NAME="MetaMask-QA" ;;
             *) echo "Unknown build type: $METAMASK_BUILD_TYPE"; exit 1 ;;
           esac
-          
+
           # Determine build paths based on simulator vs device
           if [ "$IS_SIM_BUILD" = "true" ]; then
             BUILD_DIR="ios/build/Build/Products/${CONFIGURATION:-Release}-iphonesimulator"
@@ -358,12 +348,12 @@ jobs:
             DEVICE_TYPE="device"
             BINARY_EXTENSION=".ipa"
           fi
-          
+
           # Create new base name: metamask-{deviceType}-{environment}-{buildType}-{version}-{buildNumber}
           NEW_BASE_NAME="metamask-${DEVICE_TYPE}-$METAMASK_ENVIRONMENT-$METAMASK_BUILD_TYPE-$APP_VERSION-$GITHUB_RUN_NUMBER"
-          
+
           echo "📝 Renaming artifacts to: $NEW_BASE_NAME"
-          
+
           # Rename binary (.app or .ipa)
           OLD_BINARY="$BUILD_DIR/$APP_NAME$BINARY_EXTENSION"
           if [ -e "$OLD_BINARY" ]; then
@@ -373,7 +363,7 @@ jobs:
           else
             echo "⚠️  Binary not found: $OLD_BINARY"
           fi
-          
+
           # Rename xcarchive (only for device builds)
           if [ "$IS_SIM_BUILD" != "true" ]; then
             OLD_ARCHIVE="ios/build/$APP_NAME.xcarchive"
@@ -385,7 +375,7 @@ jobs:
               echo "⚠️  Archive not found: $OLD_ARCHIVE"
             fi
           fi
-          
+
           echo "📦 Final artifacts:"
           if [ "$IS_SIM_BUILD" = "true" ]; then
             find ios/build/Build/Products -name "*.app" -type d -exec ls -ldh {} \;
