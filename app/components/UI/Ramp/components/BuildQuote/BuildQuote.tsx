@@ -30,7 +30,7 @@ import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { createPaymentSelectionModalNavigationDetails } from '../PaymentSelectionModal';
 
-interface BuildQuoteParams {
+export interface BuildQuoteParams {
   assetId?: string;
 }
 
