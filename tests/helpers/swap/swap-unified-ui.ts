@@ -66,7 +66,7 @@ export async function checkSwapActivity(
   // Check the token approval completed
   if (sourceTokenSymbol !== 'ETH') {
     await Assertions.expectElementToBeVisible(
-      ActivitiesView.swapApprovalActivityTitle(sourceTokenSymbol),
+      ActivitiesView.swapApprovalActivityTitle(),
     );
     await Assertions.expectElementToHaveText(
       ActivitiesView.transactionStatus(SECOND_ROW),

@@ -32,7 +32,7 @@ ComponentName/
 
 **Core**: `/docs/readme/` (architecture, testing, debugging, performance, environment, expo-environment, storybook, troubleshooting, expo-e2e-testing, reassure, release-build-profiler)
 
-**Features**: `/docs/` (deeplinks, animations, tailwind, confirmations, confirmation-refactoring) • `app/component-library/README.md` • `e2e/MOCKING.md` • `CHANGELOG.md` • `app/core/{Analytics,Engine}/README.md`
+**Features**: `/docs/` (deeplinks, animations, tailwind, confirmations, confirmation-refactoring) • `app/component-library/README.md` • `tests/MOCKING.md` • `CHANGELOG.md` • `app/core/{Analytics,Engine}/README.md`
 
 **External**: [MetaMask Contributor Docs](https://github.com/MetaMask/contributor-docs) • [TypeScript Guidelines](https://github.com/MetaMask/contributor-docs/blob/main/docs/typescript.md) • [Unit Testing](https://github.com/MetaMask/contributor-docs/blob/main/docs/testing/unit-testing.md)
 
