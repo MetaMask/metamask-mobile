@@ -5,6 +5,24 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   const { colors } = theme;
 
+  const headerSpacingTopNoBalance = {
+    paddingTop: 16,
+    paddingBottom: 4,
+    marginBottom: 0,
+  };
+
+  const headerSpacingTopWithBalance = {
+    paddingTop: 24,
+    paddingBottom: 4,
+    marginBottom: 0,
+  };
+
+  const headerSpacingBelowSection = {
+    paddingTop: 20,
+    paddingBottom: 8,
+    marginBottom: 0,
+  };
+
   return StyleSheet.create({
     tradeInfoContainer: {
       paddingBottom: 30,
@@ -98,14 +116,10 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 0,
     },
     watchlistHeaderStyleNoBalance: {
-      paddingTop: 16,
-      paddingBottom: 4,
-      marginBottom: 0,
+      ...headerSpacingTopNoBalance,
     },
     watchlistHeaderStyleWithBalance: {
-      paddingTop: 24,
-      paddingBottom: 4,
-      marginBottom: 0,
+      ...headerSpacingTopWithBalance,
     },
     // Custom explore section styles - isolated from shared components
     exploreSection: {
@@ -113,21 +127,27 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     // Explore header: at top, no balance - 16px/4px
     exploreSectionHeaderNoBalance: {
-      paddingTop: 16,
-      paddingBottom: 4,
-      marginBottom: 0,
+      ...headerSpacingTopNoBalance,
     },
     // Explore header: at top, with balance - 24px/4px
     exploreSectionHeaderWithBalance: {
-      paddingTop: 24,
-      paddingBottom: 4,
-      marginBottom: 0,
+      ...headerSpacingTopWithBalance,
     },
     // Explore header: below watchlist - 20px/8px
     exploreSectionHeaderBelowWatchlist: {
-      paddingTop: 20,
-      paddingBottom: 8,
-      marginBottom: 0,
+      ...headerSpacingBelowSection,
+    },
+    // Positions header - always at top: 24px/4px
+    positionsHeader: {
+      ...headerSpacingTopWithBalance,
+    },
+    // Orders header: at top (no positions) - 24px/4px
+    ordersHeaderAtTop: {
+      ...headerSpacingTopWithBalance,
+    },
+    // Orders header: below positions - 20px/8px
+    ordersHeaderBelowPositions: {
+      ...headerSpacingBelowSection,
     },
     exploreMarketRow: {
       flexDirection: 'row',

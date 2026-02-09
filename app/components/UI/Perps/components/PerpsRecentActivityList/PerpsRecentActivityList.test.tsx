@@ -45,6 +45,7 @@ jest.mock('../../../../../component-library/components/Texts/Text', () => {
     default: MockText,
     TextVariant: {
       HeadingSM: 'HeadingSM',
+      BodyLGMedium: 'BodyLGMedium',
       BodyMD: 'BodyMD',
       BodyMDMedium: 'BodyMDMedium',
       BodySM: 'BodySM',
