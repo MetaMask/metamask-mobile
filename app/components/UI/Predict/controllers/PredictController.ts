@@ -2190,17 +2190,26 @@ export class PredictController extends BaseController<
     transactionMeta: TransactionMeta,
   ): boolean {
     const { batchId, txParams } = transactionMeta;
-    if (!batchId) {
-      return false;
-    }
-
     const normalizedFrom = txParams.from?.toLowerCase();
+
     return Object.values(this.state.pendingDeposits).some((providerDeposits) =>
-      Object.entries(providerDeposits).some(
-        ([address, pendingBatchId]) =>
-          pendingBatchId === batchId &&
-          (!normalizedFrom || address.toLowerCase() === normalizedFrom),
-      ),
+      Object.entries(providerDeposits).some(([address, pendingValue]) => {
+        const addressMatch =
+          !normalizedFrom || address.toLowerCase() === normalizedFrom;
+        if (!addressMatch) {
+          return false;
+        }
+
+        // Before addTransactionBatch resolves, pendingDeposits stores 'pending'
+        // as a placeholder. At that point the transactionMeta may not yet have a
+        // batchId, so we match any pending deposit for the same sender.
+        if (pendingValue === 'pending') {
+          return true;
+        }
+
+        // Once the real batchId is stored, require an exact match.
+        return Boolean(batchId) && pendingValue === batchId;
+      }),
     );
   }
 

@@ -4075,6 +4075,40 @@ describe('PredictController', () => {
       });
     });
 
+    it('publishes event for deposit when pendingDeposits has placeholder before batchId is assigned', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictDeposit,
+          status: TransactionStatus.approved,
+          from: accountAddress,
+        });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        controller.updateStateForTesting((state) => {
+          state.pendingDeposits = {
+            polymarket: {
+              [accountAddress]: 'pending',
+            },
+          };
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as any);
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith({
+          type: 'deposit',
+          status: 'approved',
+          transactionMeta,
+        });
+      });
+    });
+
     it('publishes event for predict claim transaction with confirmed status', () => {
       withController(({ messenger }) => {
         const transactionStatusChangedHandler = jest.fn();
