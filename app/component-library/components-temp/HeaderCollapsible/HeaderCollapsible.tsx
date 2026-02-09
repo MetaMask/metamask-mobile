@@ -247,9 +247,7 @@ const HeaderCollapsible: React.FC<HeaderCollapsibleProps> = ({
           startButtonIconProps={resolvedStartButtonIconProps}
           endButtonIconProps={resolvedEndButtonIconProps}
           {...headerBaseProps}
-          twClassName={
-            twClassName ? `${twClassName} bg-default px-2` : 'bg-default px-2'
-          }
+          twClassName={`${twClassName} bg-default px-2`.trim()}
         >
           {/* Compact title - fades in when collapsed */}
           <Animated.View style={compactTitleAnimatedStyle}>
