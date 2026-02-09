@@ -98,6 +98,7 @@ import Authentication, {
 import { containsErrorMessage } from '../../../util/errorHandling';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+import { passcodeType } from '../../../util/authentication';
 
 const EmptyRecordConstant = {};
 
@@ -648,6 +649,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
   const shouldRenderBiometricSwitch = useMemo(() => {
     if (renderBiometricSwitch && biometryType) {
+      if (biometryType === AUTHENTICATION_TYPE.PASSCODE) {
+        return passcodeType(biometryType);
+      }
       return biometryType.toString();
     }
     return null;
