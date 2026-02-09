@@ -121,15 +121,17 @@ describe('HeaderCollapsibleSubpage', () => {
       expect(queryByText('Props Title')).toBeNull();
     });
 
-    it('passes titleSectionTestID to TitleSubpage when titleSubpageProps provided', () => {
+    it('passes testID from titleSubpageProps to TitleSubpage', () => {
       const { getByTestId } = render(
         <TestWrapper>
           {(scrollYValue) => (
             <HeaderCollapsibleSubpage
               title="Test"
               scrollY={scrollYValue}
-              titleSubpageProps={{ title: 'Token Name' }}
-              titleSectionTestID={TEST_IDS.TITLE_SECTION}
+              titleSubpageProps={{
+                title: 'Token Name',
+                testID: TEST_IDS.TITLE_SECTION,
+              }}
             />
           )}
         </TestWrapper>,

@@ -20,8 +20,4 @@ export interface HeaderCollapsibleStandardProps
    * Only used if titleStandard is not provided.
    */
   titleStandardProps?: TitleStandardProps;
-  /**
-   * Test ID for the title section wrapper.
-   */
-  titleSectionTestID?: string;
 }

@@ -40,7 +40,6 @@ import { HeaderCollapsibleStandardProps } from './HeaderCollapsibleStandard.type
 const HeaderCollapsibleStandard: React.FC<HeaderCollapsibleStandardProps> = ({
   titleStandard,
   titleStandardProps,
-  titleSectionTestID,
   ...props
 }) => {
   // Render title section content
@@ -52,7 +51,6 @@ const HeaderCollapsibleStandard: React.FC<HeaderCollapsibleStandardProps> = ({
       return (
         <TitleStandard
           {...titleStandardProps}
-          testID={titleSectionTestID}
           twClassName={`px-4 pt-1 pb-3 ${titleStandardProps?.twClassName ?? ''}`.trim()}
         />
       );

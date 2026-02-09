@@ -20,8 +20,4 @@ export interface HeaderCollapsibleSubpageProps
    * Only used if titleSubpage is not provided.
    */
   titleSubpageProps?: TitleSubpageProps;
-  /**
-   * Test ID for the title section wrapper.
-   */
-  titleSectionTestID?: string;
 }

@@ -121,15 +121,17 @@ describe('HeaderCollapsibleStandard', () => {
       expect(queryByText('Props Title')).toBeNull();
     });
 
-    it('passes titleSectionTestID to TitleStandard when titleStandardProps provided', () => {
+    it('passes testID from titleStandardProps to TitleStandard', () => {
       const { getByTestId } = render(
         <TestWrapper>
           {(scrollYValue) => (
             <HeaderCollapsibleStandard
               title="Test"
               scrollY={scrollYValue}
-              titleStandardProps={{ title: '$4.42' }}
-              titleSectionTestID={TEST_IDS.TITLE_SECTION}
+              titleStandardProps={{
+                title: '$4.42',
+                testID: TEST_IDS.TITLE_SECTION,
+              }}
             />
           )}
         </TestWrapper>,

@@ -41,7 +41,6 @@ import { HeaderCollapsibleSubpageProps } from './HeaderCollapsibleSubpage.types'
 const HeaderCollapsibleSubpage: React.FC<HeaderCollapsibleSubpageProps> = ({
   titleSubpage,
   titleSubpageProps,
-  titleSectionTestID,
   ...props
 }) => {
   // Render title section content
@@ -53,7 +52,6 @@ const HeaderCollapsibleSubpage: React.FC<HeaderCollapsibleSubpageProps> = ({
       return (
         <TitleSubpage
           {...titleSubpageProps}
-          testID={titleSectionTestID}
           twClassName={`px-4 pt-1 pb-3 ${titleSubpageProps?.twClassName ?? ''}`.trim()}
         />
       );
