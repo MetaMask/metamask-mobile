@@ -13,7 +13,6 @@ import {
   BranchParams,
 } from '../../types/deepLinkAnalytics.types';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
-import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
 import { MetaMetricsEvents } from '../../../Analytics/MetaMetrics.events';
 import { SupportedAction } from '../../types/deepLink.types';
 import { ACTIONS } from '../../../../constants/deeplinks';
@@ -720,9 +719,11 @@ export const createDeepLinkUsedEventBuilder = async (
   // Determine interstitial state
   const interstitial = determineInterstitialState(context);
 
-  // Build the event properties, filtering out undefined values
-  const eventProperties = Object.fromEntries(
-    Object.entries({
+  // Create the AnalyticsEventBuilder with all deep link properties
+  const eventBuilder = AnalyticsEventBuilder.createEventBuilder(
+    MetaMetricsEvents.DEEP_LINK_USED,
+  )
+    .addProperties({
       route: route.toString(),
       was_app_installed: wasAppInstalled,
       signature: signatureStatus,
@@ -734,14 +735,7 @@ export const createDeepLinkUsedEventBuilder = async (
       utm_term: context.urlParams.utm_term,
       utm_content: context.urlParams.utm_content,
       target: route === DeepLinkRoute.INVALID ? url : undefined,
-    }).filter(([_, value]) => value !== undefined),
-  ) as AnalyticsEventProperties;
-
-  // Create the AnalyticsEventBuilder with all deep link properties
-  const eventBuilder = AnalyticsEventBuilder.createEventBuilder(
-    MetaMetricsEvents.DEEP_LINK_USED,
-  )
-    .addProperties(eventProperties)
+    })
     .addSensitiveProperties(sensitiveProperties);
 
   return eventBuilder;

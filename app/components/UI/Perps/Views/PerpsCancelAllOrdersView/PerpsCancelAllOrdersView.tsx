@@ -29,8 +29,8 @@ import { useTheme } from '../../../../../util/theme';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
 } from '../../constants/eventNames';
 import type { CancelOrdersResult } from '../../controllers/types';
 
@@ -61,9 +61,9 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     conditions: [true], // Always track when component mounts (WebSocket data loads instantly)
     properties: {
-      [PerpsEventProperties.SCREEN_TYPE]:
-        PerpsEventValues.SCREEN_TYPE.CANCEL_ALL_ORDERS,
-      [PerpsEventProperties.OPEN_POSITION]: orders?.length || 0,
+      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+        PERPS_EVENT_VALUE.SCREEN_TYPE.CANCEL_ALL_ORDERS,
+      [PERPS_EVENT_PROPERTY.OPEN_POSITION]: orders?.length || 0,
     },
   });
 

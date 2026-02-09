@@ -12,7 +12,7 @@ import {
 import {
   IDENTITY_TEAM_PASSWORD,
   IDENTITY_TEAM_SEED_PHRASE,
-} from '../../../../e2e/specs/identity/utils/constants';
+} from '../../identity/utils/constants';
 import SoftAssert from '../../../framework/SoftAssert';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
