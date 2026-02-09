@@ -15,13 +15,10 @@ import { toDateFormat } from '../../../util/date';
 import { safeToChecksumAddress } from '../../../util/address';
 import { connect, useSelector } from 'react-redux';
 import StyledButton from '../StyledButton';
-import Modal from 'react-native-modal';
 import decodeTransaction from './utils';
 import { TRANSACTION_TYPES } from '../../../util/transactions';
 import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
-import DetailsModal from '../../Base/DetailsModal';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import { isTestNet } from '../../../util/networks';
 import { weiHexToGweiDec } from '@metamask/controller-utils';
 import {
@@ -94,15 +91,6 @@ const createStyles = (colors, typography) =>
     icon: {
       width: 32,
       height: 32,
-    },
-    summaryWrapper: {
-      padding: 15,
-    },
-    fromDeviceText: {
-      color: colors.text.alternative,
-      fontSize: 14,
-      marginBottom: 10,
-      ...fontStyles.normal,
     },
     importText: {
       color: colors.text.alternative,
@@ -256,7 +244,6 @@ class TransactionElement extends PureComponent {
     actionKey: undefined,
     cancelIsOpen: false,
     speedUpIsOpen: false,
-    importModalVisible: false,
     transactionGas: {
       gasBN: undefined,
       gasPriceBN: undefined,
@@ -335,11 +322,9 @@ class TransactionElement extends PureComponent {
   };
 
   onPressImportWalletTip = () => {
-    this.setState({ importModalVisible: true });
-  };
-
-  onCloseImportWalletModal = () => {
-    this.setState({ importModalVisible: false });
+    this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.IMPORT_WALLET_TIP,
+    });
   };
 
   renderTxTime = () => {
@@ -749,8 +734,7 @@ class TransactionElement extends PureComponent {
 
   render() {
     const { tx, selectedInternalAccount } = this.props;
-    const { importModalVisible, transactionElement, transactionDetails } =
-      this.state;
+    const { transactionElement, transactionDetails } = this.state;
 
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
@@ -774,29 +758,6 @@ class TransactionElement extends PureComponent {
           {this.renderTxElement(transactionElement)}
         </TouchableHighlight>
         {accountImportTime <= time && this.renderImportTime()}
-        <Modal
-          isVisible={importModalVisible}
-          onBackdropPress={this.onCloseImportWalletModal}
-          onBackButtonPress={this.onCloseImportWalletModal}
-          onSwipeComplete={this.onCloseImportWalletModal}
-          swipeDirection={'down'}
-          backdropColor={colors.overlay.default}
-          backdropOpacity={1}
-        >
-          <DetailsModal>
-            <HeaderCompactStandard
-              title={strings('transactions.import_wallet_label')}
-              onClose={this.onCloseImportWalletModal}
-              titleProps={{ testID: 'details-modal-title' }}
-              closeButtonProps={{ testID: 'details-modal-close-icon' }}
-            />
-            <View style={styles.summaryWrapper}>
-              <Text style={styles.fromDeviceText}>
-                {strings('transactions.import_wallet_tip')}
-              </Text>
-            </View>
-          </DetailsModal>
-        </Modal>
       </>
     );
   }
