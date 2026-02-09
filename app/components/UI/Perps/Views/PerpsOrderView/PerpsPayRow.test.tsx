@@ -7,8 +7,14 @@ import { useTransactionMetadataRequest } from '../../../../Views/confirmations/h
 import { useIsPerpsBalanceSelected } from '../../hooks/useIsPerpsBalanceSelected';
 import { useTokenWithBalance } from '../../../../Views/confirmations/hooks/tokens/useTokenWithBalance';
 import { useConfirmationMetricEvents } from '../../../../Views/confirmations/hooks/metrics/useConfirmationMetricEvents';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { isHardwareAccount } from '../../../../../util/address';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '../../constants/eventNames';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
   ConfirmationRowComponentIDs,
@@ -33,6 +39,7 @@ jest.mock('../../../../Views/confirmations/hooks/tokens/useTokenWithBalance');
 jest.mock(
   '../../../../Views/confirmations/hooks/metrics/useConfirmationMetricEvents',
 );
+jest.mock('../../hooks/usePerpsEventTracking');
 jest.mock('../../../../../util/address');
 jest.mock('../../../../Base/TokenIcon', () => jest.fn(() => null));
 jest.mock('../../../../../util/networks', () => ({
@@ -59,6 +66,9 @@ const mockUseConfirmationMetricEvents =
   useConfirmationMetricEvents as jest.MockedFunction<
     typeof useConfirmationMetricEvents
   >;
+const mockUsePerpsEventTracking = usePerpsEventTracking as jest.MockedFunction<
+  typeof usePerpsEventTracking
+>;
 const mockIsHardwareAccount = isHardwareAccount as jest.MockedFunction<
   typeof isHardwareAccount
 >;
@@ -66,6 +76,7 @@ const mockIsHardwareAccount = isHardwareAccount as jest.MockedFunction<
 describe('PerpsPayRow', () => {
   const navigateMock = jest.fn();
   const setConfirmationMetricMock = jest.fn();
+  const trackMock = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -92,6 +103,9 @@ describe('PerpsPayRow', () => {
     mockUseConfirmationMetricEvents.mockReturnValue({
       setConfirmationMetric: setConfirmationMetricMock,
     } as unknown as ReturnType<typeof useConfirmationMetricEvents>);
+    mockUsePerpsEventTracking.mockReturnValue({
+      track: trackMock,
+    } as unknown as ReturnType<typeof usePerpsEventTracking>);
     mockIsHardwareAccount.mockReturnValue(false);
   });
 
@@ -136,6 +150,13 @@ describe('PerpsPayRow', () => {
     expect(setConfirmationMetricMock).toHaveBeenCalledWith({
       properties: { mm_pay_token_list_opened: true },
     });
+    expect(trackMock).toHaveBeenCalledWith(
+      MetaMetricsEvents.PERPS_UI_INTERACTION,
+      {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.PAYMENT_TOKEN_SELECTOR,
+      },
+    );
   });
 
   it('does not navigate when hardware account', () => {

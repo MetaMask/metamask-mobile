@@ -1014,6 +1014,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             tradeAction: currentMarketPosition
               ? 'increase_exposure'
               : 'create_position',
+            // Pay with any token: track when user paid with a custom token (not Perps balance)
+            tradeWithToken: hasCustomTokenSelected,
+            ...(hasCustomTokenSelected &&
+              payToken && {
+                mmPayTokenSelected: payToken.symbol ?? '',
+                mmPayNetworkSelected: String(payToken.chainId ?? ''),
+              }),
           },
         };
 
@@ -1091,6 +1098,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       depositAmount,
       activeTransactionMeta,
       hasCustomTokenSelected,
+      payToken,
       onDepositConfirm,
       handleDepositConfirm,
     ],

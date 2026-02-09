@@ -128,12 +128,13 @@ import type { AssetType } from '../../../Views/confirmations/types/token';
 
 /**
  * Minimal payment token stored in PerpsController state.
- * Only required fields for identification and Perps balance detection.
+ * Only required fields for identification, Perps balance detection, and analytics.
  */
 export interface SelectedPaymentTokenSnapshot {
   description?: string;
   address: string;
   chainId: string;
+  symbol?: string;
 }
 
 // Re-export error codes from separate file to avoid circular dependencies
@@ -3031,7 +3032,7 @@ export class PerpsController extends BaseController<
   /**
    * Set the selected payment token for the Perps order/deposit flow.
    * Pass null or a token with description PERPS_CONSTANTS.PerpsBalanceTokenDescription to select Perps balance.
-   * Only required fields (description, address, chainId) are stored in state.
+   * Only required fields (description, address, chainId, symbol) are stored in state.
    */
   setSelectedPaymentToken(token: AssetType | null): void {
     let normalized: AssetType | null = null;
@@ -3042,12 +3043,35 @@ export class PerpsController extends BaseController<
       normalized = token;
     }
 
+    const current = this.state.selectedPaymentToken as
+      | SelectedPaymentTokenSnapshot
+      | null
+      | undefined;
+    const initialPaymentMethod =
+      current == null ||
+      current?.description === PERPS_CONSTANTS.PerpsBalanceTokenDescription
+        ? 'perps_balance'
+        : (current?.symbol ?? 'unknown');
+    const newPaymentMethod =
+      token == null ||
+      token.description === PERPS_CONSTANTS.PerpsBalanceTokenDescription
+        ? 'perps_balance'
+        : (token.symbol ?? 'unknown');
+
+    this.getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.UiInteraction, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.PAYMENT_METHOD_CHANGED,
+      [PERPS_EVENT_PROPERTY.INITIAL_PAYMENT_METHOD]: initialPaymentMethod,
+      [PERPS_EVENT_PROPERTY.NEW_PAYMENT_METHOD]: newPaymentMethod,
+    });
+
     let snapshot: Json | null = null;
     if (normalized !== null) {
       snapshot = {
         description: normalized.description,
         address: normalized.address,
         chainId: normalized.chainId,
+        symbol: normalized.symbol,
       } as unknown as Json;
     }
 
