@@ -1,12 +1,11 @@
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
+import type { SimpleWebviewParams } from '../Webview/Webview.types';
 
-export interface WebviewParams {
-  url?: string;
-  title?: string;
-}
+// Re-export for backwards compatibility
+export type { SimpleWebviewParams };
 
-const createWebviewNavDetails = createNavigationDetails<WebviewParams>(
+const createWebviewNavDetails = createNavigationDetails<SimpleWebviewParams>(
   Routes.WEBVIEW.MAIN,
   Routes.WEBVIEW.SIMPLE,
 );
