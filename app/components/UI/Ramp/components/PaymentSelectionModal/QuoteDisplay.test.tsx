@@ -51,6 +51,17 @@ describe('QuoteDisplay', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
+  it('matches snapshot with crypto only', () => {
+    const { toJSON } = renderWithTheme(
+      <QuoteDisplay
+        cryptoAmount="1.5 USDC"
+        fiatAmount={null}
+        isLoading={false}
+      />,
+    );
+    expect(toJSON()).toMatchSnapshot();
+  });
+
   it('matches snapshot with warning icon', () => {
     const { toJSON } = renderWithTheme(
       <QuoteDisplay cryptoAmount="" fiatAmount={null} showWarningIcon />,

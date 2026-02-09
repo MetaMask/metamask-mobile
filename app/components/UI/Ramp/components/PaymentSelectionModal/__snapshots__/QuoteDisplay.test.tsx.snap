@@ -83,6 +83,35 @@ exports[`QuoteDisplay matches snapshot with crypto and fiat 1`] = `
 </View>
 `;
 
+exports[`QuoteDisplay matches snapshot with crypto only 1`] = `
+<View
+  style={
+    [
+      {
+        "alignItems": "flex-end",
+        "display": "flex",
+      },
+      undefined,
+    ]
+  }
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "Geist-Medium",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
+      }
+    }
+  >
+    1.5 USDC
+  </Text>
+</View>
+`;
+
 exports[`QuoteDisplay matches snapshot with warning icon 1`] = `
 <View
   style={

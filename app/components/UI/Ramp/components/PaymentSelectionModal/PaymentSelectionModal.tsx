@@ -218,7 +218,7 @@ function PaymentSelectionModal() {
         onPress={() => handlePaymentMethodPress(paymentMethod)}
         isSelected={selectedPaymentMethod?.id === paymentMethod.id}
         quote={paymentMethodQuotes?.[paymentMethod.id] ?? null}
-        quoteLoading={paymentMethodQuotesLoading && !paymentMethodQuotes}
+        quoteLoading={paymentMethodQuotesLoading}
         quoteError={erroredPaymentMethodIds.has(paymentMethod.id)}
         currency={currency}
         tokenSymbol={tokenSymbol}
