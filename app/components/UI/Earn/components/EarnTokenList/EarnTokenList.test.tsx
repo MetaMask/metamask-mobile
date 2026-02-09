@@ -949,7 +949,7 @@ describe('EarnTokenList', () => {
     });
   });
 
-  describe('HeaderCenter close button', () => {
+  describe('HeaderCompactStandard close button', () => {
     it('invokes handleClose when close button is pressed', async () => {
       const { getByTestId } = renderWithProvider(
         <SafeAreaProvider initialMetrics={initialMetrics}>

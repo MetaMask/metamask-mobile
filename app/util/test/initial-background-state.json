@@ -507,7 +507,8 @@
       "direction": "desc"
     },
     "hip3ConfigVersion": 0,
-    "perpsBalances": {}
+    "perpsBalances": {},
+    "selectedPaymentToken": null
   },
   "RemoteFeatureFlagController": {
     "cacheTimestamp": 0,

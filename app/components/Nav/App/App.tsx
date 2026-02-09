@@ -68,6 +68,8 @@ import AccountActions from '../../../components/Views/AccountActions';
 import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedSettings/FiatOnTestnetsFriction';
 import WalletActions from '../../Views/WalletActions';
 import FundActionMenu from '../../UI/FundActionMenu';
+import ClaimOnLineaBottomSheet from '../../UI/Earn/components/MerklRewards/ClaimOnLineaBottomSheet';
+import MoreTokenActionsMenu from '../../UI/TokenDetails/components/MoreTokenActionsMenu';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppNotification from '../../Views/ReturnToAppNotification';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
@@ -84,6 +86,7 @@ import SDKSessionModal from '../../Views/SDK/SDKSessionModal/SDKSessionModal';
 import ExperienceEnhancerModal from '../../../../app/components/Views/ExperienceEnhancerModal';
 import LedgerSelectAccount from '../../Views/LedgerSelectAccount';
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
+import WalletCreationError from '../../Views/WalletCreationError';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
 import OnboardingGeneralSettings from '../../Views/OnboardingSuccess/OnboardingGeneralSettings';
 import OnboardingAssetsSettings from '../../Views/OnboardingSuccess/OnboardingAssetsSettings';
@@ -276,6 +279,11 @@ const OnboardingNav = () => (
       component={OAuthRehydration}
       options={{ headerShown: false }}
     />
+    <Stack.Screen
+      name={Routes.ONBOARDING.WALLET_CREATION_ERROR}
+      component={WalletCreationError}
+      options={{ headerShown: false }}
+    />
   </Stack.Navigator>
 );
 
@@ -367,6 +375,14 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.MODAL.FUND_ACTION_MENU}
       component={FundActionMenu}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.CLAIM_ON_LINEA}
+      component={ClaimOnLineaBottomSheet}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.MORE_TOKEN_ACTIONS_MENU}
+      component={MoreTokenActionsMenu}
     />
     <Stack.Screen
       name={Routes.MODAL.DELETE_WALLET}

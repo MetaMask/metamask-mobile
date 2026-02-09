@@ -873,12 +873,12 @@ describe('CandleStreamChannel', () => {
         TimeDuration.OneDay,
       );
 
-      expect(mockFetchHistoricalCandles).toHaveBeenCalledWith(
-        'BTC',
-        CandlePeriod.OneHour,
-        50,
-        expect.any(Number),
-      );
+      expect(mockFetchHistoricalCandles).toHaveBeenCalledWith({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        limit: 50,
+        endTime: expect.any(Number),
+      });
 
       expect(subscriber).toHaveBeenCalledWith(
         expect.objectContaining({
