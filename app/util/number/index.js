@@ -12,6 +12,7 @@ import BigNumber from 'bignumber.js';
 import currencySymbols from '../currency-symbols.json';
 import { isZero } from '../lodash';
 import { regex } from '../regex';
+import { formatSubscriptNotation } from './subscriptNotation';
 
 const MAX_DECIMALS_FOR_TOKENS = 36;
 BigNumber.config({ DECIMAL_PLACES: MAX_DECIMALS_FOR_TOKENS });
@@ -567,37 +568,19 @@ export function addCurrencySymbol(
   const num = parseFloat(amount);
   const absNum = Math.abs(num);
 
-  // Helper to convert number to subscript notation
-  const toSubscript = (n) => {
-    const subscriptDigits = ['₀', '₁', '₂', '₃', '₄', '₅', '₆', '₇', '₈', '₉'];
-    return String(n)
-      .split('')
-      .map((digit) => subscriptDigits[parseInt(digit, 10)])
-      .join('');
-  };
-
   // Apply subscript notation for very small numbers
-  if (useSubscriptNotation && absNum > 0 && absNum < 0.0001) {
-    const priceStr = absNum.toFixed(20);
-    const match = priceStr.match(/^0\.0*([1-9]\d*)/);
+  if (useSubscriptNotation) {
+    const formatted = formatSubscriptNotation(absNum);
 
-    if (match) {
-      const leadingZeros = priceStr.indexOf(match[1]) - 2;
+    if (formatted) {
+      const symbol =
+        currencySymbols[currencyCode] ||
+        currencySymbols[currencyCode?.toLowerCase()] ||
+        '';
 
-      if (leadingZeros >= 4) {
-        const significantDigits =
-          match[1].slice(0, 4).replace(/0+$/, '') || match[1].slice(0, 2);
-        const formattedAmount = `0.0${toSubscript(leadingZeros)}${significantDigits}`;
-
-        const symbol =
-          currencySymbols[currencyCode] ||
-          currencySymbols[currencyCode?.toLowerCase()] ||
-          '';
-
-        return symbol
-          ? `${prefix}${symbol}${formattedAmount}`
-          : `${prefix}${formattedAmount} ${currencyCode}`;
-      }
+      return symbol
+        ? `${prefix}${symbol}${formatted}`
+        : `${prefix}${formatted} ${currencyCode}`;
     }
   }
 
