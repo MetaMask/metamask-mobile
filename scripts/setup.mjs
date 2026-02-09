@@ -91,6 +91,14 @@ const copyAndSourceEnvVarsTask = {
           },
         },
         {
+          title: 'Generate env defaults from builds.yml',
+          task: async () => {
+            const { stdout } =
+              await $`node scripts/apply-build-config.js main-dev --export`;
+            fs.writeFileSync('.js.env.defaults', stdout, 'utf8');
+          },
+        },
+        {
           title: 'Source env vars',
           task: async () => {
             const envFiles = [

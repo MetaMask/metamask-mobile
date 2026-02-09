@@ -85,6 +85,9 @@ buck-out/
 .env
 .*.env
 
+# Generated from builds.yml by setup
+.js.env.defaults
+
 # Sentry
 /sentry.debug.properties*
 /sentry.release.properties*
