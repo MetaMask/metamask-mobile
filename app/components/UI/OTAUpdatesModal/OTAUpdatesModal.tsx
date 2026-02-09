@@ -1,32 +1,32 @@
 import React, { useCallback, useRef, useEffect } from 'react';
 import { Image, Platform } from 'react-native';
 import { reloadAsync } from 'expo-updates';
-import { strings } from '../../../../locales/i18n';
-import Text, {
+import {
+  Box,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+  Text,
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { strings } from '../../../../locales/i18n';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import Logger from '../../../util/Logger';
-import Button, {
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
-import HeaderBase from '../../../component-library/components/HeaderBase';
+import { useAssetFromTheme } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-
-import { ScrollView } from 'react-native-gesture-handler';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { useMetrics } from '../../hooks/useMetrics';
-import { Box } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const foxLogo = require('../../../images/branding/fox.png');
-const metamaskName = require('../../../images/branding/metamask-name.png');
+const metamaskNameDarkMode = require('../../../images/branding/metamask-name.png');
+const metamaskNameLightMode = require('../../../images/branding/metamask-name-white.png');
 
 export const createOTAUpdatesModalNavDetails = createNavigationDetails(
   Routes.MODAL.ROOT_MODAL_FLOW,
@@ -37,6 +37,10 @@ const OTAUpdatesModal = () => {
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useMetrics();
   const bottomSheetRef = useRef<BottomSheetRef | null>(null);
+  const metamaskName = useAssetFromTheme(
+    metamaskNameDarkMode,
+    metamaskNameLightMode,
+  );
 
   useEffect(() => {
     trackEvent(
@@ -90,46 +94,48 @@ const OTAUpdatesModal = () => {
     <BottomSheet
       ref={bottomSheetRef}
       shouldNavigateBack
-      style={tw.style(
-        'flex-1 px-6 py-4 justify-between items-center bg-default',
-      )}
+      style={tw.style('bg-default')}
     >
-      <HeaderBase includesTopInset twClassName="h-auto items-center">
+      <HeaderCompactStandard
+        twClassName="px-4"
+        onClose={() => dismissBottomSheet()}
+      >
         <Image
-          style={tw.style('w-[67px] h-8')}
+          style={tw.style('h-8')}
           source={metamaskName}
           resizeMode="contain"
         />
-      </HeaderBase>
-      <ScrollView
-        contentContainerStyle={tw.style('flex-grow justify-center px-4')}
-      >
-        <Box twClassName="items-center mb-10">
-          <Image
-            source={foxLogo}
-            style={tw.style('w-[140px] h-[140px]')}
-            resizeMethod="auto"
-            resizeMode="contain"
-          />
+      </HeaderCompactStandard>
+      <Box twClassName="px-6 pt-2 items-center">
+        <Box twClassName="items-center py-6">
+          <Box twClassName="items-center mb-6">
+            <Image
+              source={foxLogo}
+              style={tw.style('w-[100px] h-[100px]')}
+              resizeMethod="auto"
+              resizeMode="contain"
+            />
+          </Box>
+          <Text
+            variant={TextVariant.HeadingLg}
+            style={tw.style('text-center pb-3')}
+          >
+            {strings('ota_update_modal.title')}
+          </Text>
+          <Text variant={TextVariant.BodyMd} style={tw.style('text-center')}>
+            {description}
+          </Text>
         </Box>
-        <Text
-          variant={TextVariant.HeadingLG}
-          style={tw.style('text-center pb-4')}
-        >
-          {strings('ota_update_modal.title')}
-        </Text>
-        <Text variant={TextVariant.BodyMD} style={tw.style('text-center')}>
-          {description}
-        </Text>
-      </ScrollView>
-      <Box twClassName="w-full p-4">
-        <Button
-          variant={ButtonVariants.Primary}
-          width={ButtonWidthTypes.Full}
-          label={primaryActionLabel}
-          onPress={onPress}
-          style={tw.style('my-2 py-2')}
-        />
+        <Box twClassName="w-full pb-4">
+          <Button
+            twClassName="w-full"
+            size={ButtonSize.Lg}
+            variant={ButtonVariant.Primary}
+            onPress={onPress}
+          >
+            {primaryActionLabel}
+          </Button>
+        </Box>
       </Box>
     </BottomSheet>
   );

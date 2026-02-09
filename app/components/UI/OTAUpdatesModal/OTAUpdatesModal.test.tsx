@@ -1,10 +1,44 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import { Platform } from 'react-native';
 import { reloadAsync } from 'expo-updates';
-import OTAUpdatesModal from './OTAUpdatesModal';
 import Logger from '../../../util/Logger';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import renderWithProvider from '../../../util/test/renderWithProvider';
+
+// Mock theme utility
+jest.mock('../../../util/theme', () => ({
+  useAssetFromTheme: jest.fn(() => ({ uri: 'mock-logo' })),
+}));
+
+// Create a mock tailwind function that can be called and has a style method
+const mockTw = Object.assign(
+  jest.fn(() => ({})),
+  {
+    style: jest.fn(() => ({})),
+  },
+);
+
+// Mock tailwind
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => mockTw,
+}));
+
+// Mock HeaderCompactStandard
+jest.mock(
+  '../../../component-library/components-temp/HeaderCompactStandard',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View: ReactNativeView } = jest.requireActual('react-native');
+
+    return (props: { children: React.ReactNode }) =>
+      ReactActual.createElement(
+        ReactNativeView,
+        { testID: 'header' },
+        props.children,
+      );
+  },
+);
 
 jest.mock(
   '../../../component-library/components/BottomSheets/BottomSheet',
@@ -50,15 +84,6 @@ jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-jest.mock(
-  '../../../component-library/components/HeaderBase',
-  () =>
-    function HeaderBaseMock({ children }: { children: React.ReactNode }) {
-      // eslint-disable-next-line react/jsx-no-useless-fragment
-      return <>{children}</>;
-    },
-);
-
 const mockReloadAsync = reloadAsync as jest.MockedFunction<typeof reloadAsync>;
 const mockLoggerError = Logger.error as jest.MockedFunction<
   typeof Logger.error
@@ -90,6 +115,9 @@ jest.mock('../../hooks/useMetrics', () => ({
   }),
 }));
 
+// Import component AFTER all mocks are defined
+import OTAUpdatesModal from './OTAUpdatesModal';
+
 describe('OTAUpdatesModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -97,7 +125,7 @@ describe('OTAUpdatesModal', () => {
   });
 
   it('tracks view event on mount', () => {
-    render(<OTAUpdatesModal />);
+    renderWithProvider(<OTAUpdatesModal />);
 
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -107,7 +135,7 @@ describe('OTAUpdatesModal', () => {
   });
 
   it('tracks primary action when primary button is pressed', async () => {
-    const { getByText } = render(<OTAUpdatesModal />);
+    const { getByText } = renderWithProvider(<OTAUpdatesModal />);
 
     fireEvent.press(getByText('Reload'));
 
@@ -121,7 +149,7 @@ describe('OTAUpdatesModal', () => {
   });
 
   it('reloads app when reload button is pressed on iOS', async () => {
-    const { getByText } = render(<OTAUpdatesModal />);
+    const { getByText } = renderWithProvider(<OTAUpdatesModal />);
 
     fireEvent.press(getByText('Reload'));
 
@@ -133,7 +161,7 @@ describe('OTAUpdatesModal', () => {
   it('does not reload app when reload button is pressed on Android', async () => {
     (Platform as unknown as { OS: string }).OS = 'android';
 
-    const { getByText } = render(<OTAUpdatesModal />);
+    const { getByText } = renderWithProvider(<OTAUpdatesModal />);
 
     fireEvent.press(getByText('Got it'));
 
@@ -147,7 +175,7 @@ describe('OTAUpdatesModal', () => {
 
     mockReloadAsync.mockRejectedValueOnce(reloadError);
 
-    const { getByText } = render(<OTAUpdatesModal />);
+    const { getByText } = renderWithProvider(<OTAUpdatesModal />);
 
     fireEvent.press(getByText('Reload'));
 
