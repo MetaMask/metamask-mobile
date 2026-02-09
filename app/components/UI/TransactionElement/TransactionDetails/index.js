@@ -151,8 +151,6 @@ class TransactionDetails extends PureComponent {
     /**
      * A string representing the network name
      */
-    showSpeedUpModal: PropTypes.func,
-    showCancelModal: PropTypes.func,
     selectedAddress: PropTypes.string,
     transactions: PropTypes.array,
     ticker: PropTypes.string,
@@ -163,11 +161,6 @@ class TransactionDetails extends PureComponent {
     swapsTransactions: PropTypes.object,
     swapsTokens: PropTypes.array,
     primaryCurrency: PropTypes.string,
-
-    /**
-     * Boolean that indicates if smart transaction should be used
-     */
-    shouldUseSmartTransaction: PropTypes.bool,
     /**
      * Avatar style to render for account icons
      */
@@ -176,7 +169,6 @@ class TransactionDetails extends PureComponent {
 
   state = {
     rpcBlockExplorer: undefined,
-    renderTxActions: true,
     updatedTransactionDetails: undefined,
   };
 
@@ -322,27 +314,10 @@ class TransactionDetails extends PureComponent {
     return createStyles(colors);
   };
 
-  showSpeedUpModal = () => {
-    const { showSpeedUpModal, close } = this.props;
-    if (close) {
-      close();
-      showSpeedUpModal();
-    }
-  };
-
-  showCancelModal = () => {
-    const { showCancelModal, close } = this.props;
-    if (close) {
-      close();
-      showCancelModal();
-    }
-  };
-
   render = () => {
     const {
       transactionObject,
       transactionObject: { status, time, txParams, chainId: txChainId },
-      shouldUseSmartTransaction,
     } = this.props;
     const chainId = txChainId;
     const hasNestedTransactions = Boolean(
@@ -351,9 +326,6 @@ class TransactionDetails extends PureComponent {
     const { updatedTransactionDetails } = this.state;
     const styles = this.getStyles();
 
-    const renderTxActions =
-      (status === 'submitted' || status === 'approved') &&
-      !shouldUseSmartTransaction;
     const { rpcBlockExplorer } = this.state;
 
     return updatedTransactionDetails ? (

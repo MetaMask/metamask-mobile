@@ -496,7 +496,7 @@ class TransactionElement extends PureComponent {
       isQRHardwareAccount,
       isLedgerAccount,
       i,
-      tx: { status, isSmartTransaction, chainId, type },
+      tx: { status, chainId, type },
       tx,
       bridgeTxHistoryData: { bridgeTxHistoryItem, isBridgeComplete },
     } = this.props;
@@ -511,14 +511,6 @@ class TransactionElement extends PureComponent {
             bridgeTxHistoryItem.status.status,
           )
         : status;
-
-    const renderNormalActions =
-      (transactionStatus === 'submitted' ||
-        (transactionStatus === 'approved' &&
-          !isQRHardwareAccount &&
-          !isLedgerAccount)) &&
-      !isSmartTransaction &&
-      !isBridgeTransaction;
     const renderUnsignedQRActions =
       transactionStatus === 'approved' && isQRHardwareAccount;
     const renderLedgerActions =
