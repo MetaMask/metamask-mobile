@@ -250,13 +250,19 @@ export function usePerpsOrderForm(
 
   // When user changes payment token (or effective balance drops), reset amount to MAX if current amount exceeds new max
   useEffect(() => {
-    const current = Number.parseFloat(orderForm.amount || '0');
-    if (maxPossibleAmount >= 0 && current > maxPossibleAmount) {
-      setOrderForm((prev) => ({
-        ...prev,
-        amount: String(Math.floor(maxPossibleAmount)),
-      }));
-    }
+    const currentAmount = Number.parseFloat(orderForm.amount);
+    if (
+      currentAmount === 0 ||
+      maxPossibleAmount === 0 ||
+      currentAmount < maxPossibleAmount
+    )
+      return;
+    const newValue = String(Math.floor(maxPossibleAmount));
+
+    setOrderForm((prev) => ({
+      ...prev,
+      amount: newValue,
+    }));
   }, [balanceForMax, maxPossibleAmount, orderForm.amount]);
 
   // Update entire form
