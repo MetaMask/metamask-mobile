@@ -678,35 +678,3 @@ export class BaanxOAuth2Error extends Error {
     this.originalError = originalError;
   }
 }
-
-/**
- * Hook return type for useBaanxOAuth2Demo
- */
-export interface UseBaanxOAuth2DemoReturn {
-  /** The AuthRequest instance from useAuthRequest (null until loaded) */
-  request: import('expo-auth-session').AuthRequest | null;
-  /** The auth session result from useAuthRequest (null until promptAsync completes) */
-  response: import('expo-auth-session').AuthSessionResult | null;
-  /** Initiates the OAuth2 authorization flow in the browser */
-  authorize: () => Promise<BaanxOAuth2AuthResult>;
-  /** Exchanges authorization code for tokens */
-  exchangeToken: (
-    code: string,
-    codeVerifier: string,
-  ) => Promise<BaanxOAuth2TokenResponse>;
-  /** Refreshes the access token using a refresh token */
-  refreshToken: (refreshToken: string) => Promise<BaanxOAuth2TokenResponse>;
-  /** Revokes a token (access or refresh) */
-  revokeToken: (
-    token: string,
-    tokenHint: BaanxOAuth2TokenHint,
-  ) => Promise<BaanxOAuth2RevokeResponse>;
-  /** Validates the access token by fetching user info */
-  validateToken: (accessToken: string) => Promise<UserResponse>;
-  /** Whether an OAuth operation is in progress */
-  loading: boolean;
-  /** Current error, if any */
-  error: BaanxOAuth2Error | null;
-  /** Clear the current error */
-  clearError: () => void;
-}
