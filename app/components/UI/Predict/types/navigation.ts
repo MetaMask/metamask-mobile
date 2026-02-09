@@ -31,6 +31,7 @@ export type PredictEntryPoint =
 /** Predict market list parameters */
 export interface PredictMarketListParams {
   entryPoint?: PredictEntryPoint;
+  tab?: PredictCategory;
 }
 
 /** Predict market details parameters */
