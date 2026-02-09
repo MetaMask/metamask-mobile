@@ -190,3 +190,6 @@ If the user asks to implement a ticket directly from Jira:
 | Storybook                 | `/docs/readme/storybook.md`                  |
 | Troubleshooting           | `/docs/readme/troubleshooting.md`            |
 | MetaMask Contributor Docs | https://github.com/MetaMask/contributor-docs |
+
+## Test Guidelines
+When working on tests, read tests/AGENTS.md for testing conventions.
