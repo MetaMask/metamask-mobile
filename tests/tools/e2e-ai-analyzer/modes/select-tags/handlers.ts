@@ -215,7 +215,10 @@ export function checkHardRules(
       console.log('   Running all tests.');
 
       const result = createConservativeResult();
-      result.reasoning = `Hard rule (${rule.name}): ${reason}. Running all tests.`;
+      const hardRuleReason = `Hard rule (${rule.name}): ${reason}. Running all tests.`;
+      result.reasoning = hardRuleReason;
+      result.confidence = 100;
+      result.performanceTests.reasoning = hardRuleReason;
       return result;
     }
   }
