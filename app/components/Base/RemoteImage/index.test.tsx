@@ -307,6 +307,22 @@ describe('RemoteImage', () => {
   });
 
   describe('IPFS URL Resolution', () => {
+    it('returns null while resolving IPFS URL', () => {
+      const ipfsUri = 'ipfs://QmeE94srcYV9WwJb1p42eM4zncdLUai2N9zmMxxukoEQ23';
+      // Mock as a promise that doesn't resolve immediately
+      mockGetFormattedIpfsUrl.mockImplementation(
+        () =>
+          new Promise(() => {
+            // Intentionally never resolves to test loading state
+          }),
+      );
+
+      const { toJSON } = render(<RemoteImage source={{ uri: ipfsUri }} />);
+
+      // Component should return null while IPFS URL is being resolved
+      expect(toJSON()).toBeNull();
+    });
+
     it('resolves IPFS URL successfully', async () => {
       const ipfsUri = 'ipfs://QmeE94srcYV9WwJb1p42eM4zncdLUai2N9zmMxxukoEQ23';
       const resolvedUrl =

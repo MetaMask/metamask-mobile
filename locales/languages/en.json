@@ -503,6 +503,19 @@
     "marketing_opt_in_description": "Get product updates, tips, and news including by email. We may use your interactions to improve what we share.",
     "loose_password_description": "If I lose this password, MetaMask can’t reset it."
   },
+  "wallet_creation_error": {
+    "title": "Something went wrong",
+    "social_login_description_part1": "An error occurred while creating your wallet. Try again and if the issue persists, contact",
+    "srp_description_part1": "Send us an anonymous error report to help fix the problem and improve MetaMask. If the issue persists, contact",
+    "metamask_support": "MetaMask Support",
+    "error_report": "Error report",
+    "copy": "Copy",
+    "copied": "Copied",
+    "send_error_report": "Send error report",
+    "try_again": "Try again",
+    "error_report_sent_title": "Error report sent",
+    "error_report_sent_description": "We're investigating this problem. Try creating your wallet again."
+  },
   "reset_password": {
     "title": "Change password",
     "subtitle": "This password will unlock your MetaMask wallet only on this device.",
@@ -627,6 +640,7 @@
     "invalid_value": "Invalid value",
     "insufficient_funds": "Insufficient funds",
     "insufficient_balance_to_cover_fee": "Insufficient balance to cover fees",
+    "transaction_error": "Transaction error",
     "continue": "Continue",
     "unit": "unit",
     "units": "units",
@@ -3811,6 +3825,7 @@
     "tx_review_predict_claim": "Claimed wins",
     "tx_review_predict_withdraw": "Predictions withdraw",
     "tx_review_musd_conversion": "mUSD conversion",
+    "claim": "Claim",
     "sent_ether": "Sent ETH",
     "self_sent_ether": "Sent yourself ETH",
     "received_ether": "Received ETH",
@@ -4719,6 +4734,11 @@
     "buy": "Buy {{ticker}}",
     "on_network": "on {{networkName}}",
     "debit_card": "Debit card",
+    "select_payment_method": "Select payment method",
+    "pay_with": "Pay with",
+    "buying_via": "Buying via {{providerName}}.",
+    "change_provider": "Change provider.",
+    "providers": "Providers",
     "continue": "Continue",
     "powered_by_provider": "Powered by {{provider}}",
     "purchased_currency": "Purchased {{currency}}",
@@ -7579,6 +7599,7 @@
   "transaction_details": {
     "title": {
       "musd_conversion": "Converted to mUSD",
+      "musd_claim": "Claimed mUSD",
       "perps_deposit": "Funded perps account",
       "predict_claim": "Claimed winnings",
       "predict_deposit": "Funded Predict account",
@@ -7603,6 +7624,7 @@
       "bridge_receive_loading": "Bridge receive",
       "default": "Transaction",
       "musd_convert_send": "Sent {{sourceSymbol}} from {{sourceChain}}",
+      "musd_claim": "Claim mUSD",
       "perps_deposit": "Add funds",
       "predict_deposit": "Add funds",
       "swap": "Swap tokens",

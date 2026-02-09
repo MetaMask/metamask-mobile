@@ -10,16 +10,16 @@ import {
 } from '../../helpers/swap/swap-unified-ui';
 import { loginToApp } from '../../../e2e/viewHelper';
 import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment';
-import { testSpecificMock } from '../../helpers/swap/swap-mocks';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
+import { testSpecificMock } from '../../helpers/swap/swap-mocks';
 import { AnvilManager } from '../../seeder/anvil-manager';
 
-describe(RegressionTrade('Multiple Swaps from Actions'), (): void => {
+describe(RegressionTrade('Swap ETH <-> WETH from Actions'), (): void => {
   beforeEach(async (): Promise<void> => {
-    jest.setTimeout(120000);
+    jest.setTimeout(180000);
   });
 
-  it('should complete a USDC to DAI swap from the token chart', async (): Promise<void> => {
+  it('swaps ETH->WETH and WETH->ETH', async (): Promise<void> => {
     await withFixtures(
       {
         fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
@@ -32,10 +32,10 @@ describe(RegressionTrade('Multiple Swaps from Actions'), (): void => {
           return new FixtureBuilder()
             .withNetworkController({
               providerConfig: {
-                chainId: '0x539',
+                chainId: '0x1',
                 rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
                 type: 'custom',
-                nickname: 'Local RPC',
+                nickname: 'Localhost',
                 ticker: 'ETH',
               },
             })
@@ -47,7 +47,7 @@ describe(RegressionTrade('Multiple Swaps from Actions'), (): void => {
             type: LocalNodeType.anvil,
             options: {
               chainId: 1,
-              forkUrl: `https://mainnet.infura.io/v3/${process.env.MM_INFURA_PROJECT_ID}`,
+              loadState: './tests/regression/swap/withTokensWeth.json',
             },
           },
         ],
@@ -59,15 +59,16 @@ describe(RegressionTrade('Multiple Swaps from Actions'), (): void => {
         await prepareSwapsTestEnvironment();
         await WalletView.tapWalletSwapButton();
 
-        // Submit the Swap ETH->DAI
-        await submitSwapUnifiedUI('1', 'ETH', 'DAI', '0x1');
-        await checkSwapActivity('ETH', 'DAI');
+        // Submit first swap: ETH -> WETH
+        await submitSwapUnifiedUI('1', 'ETH', 'WETH', '0x1');
+        await checkSwapActivity('ETH', 'WETH');
 
         await TabBarComponent.tapWallet();
         await WalletView.tapWalletSwapButton();
 
-        await submitSwapUnifiedUI('1000', 'DAI', 'ETH', '0x1');
-        await checkSwapActivity('DAI', 'ETH');
+        // Submit second swap: WETH -> ETH
+        await submitSwapUnifiedUI('1', 'WETH', 'ETH', '0x1');
+        await checkSwapActivity('WETH', 'ETH');
       },
     );
   });

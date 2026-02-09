@@ -44,6 +44,8 @@ export interface TokenDetailsActionsProps {
   onSend: () => void;
   onReceive: () => void;
   isLoading?: boolean;
+  /** Optional ref to receive a callback that resets the navigation lock. Used when Long/Short show a modal instead of navigating (e.g. geo block). */
+  resetNavigationLockRef?: React.MutableRefObject<(() => void) | null>;
 }
 
 /**
@@ -81,6 +83,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
   onSend,
   onReceive,
   isLoading = false,
+  resetNavigationLockRef,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const canSignTransactions = useSelector(selectCanSignTransactions);
@@ -89,6 +92,19 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
 
   // Prevent rapid navigation clicks - locks all buttons during navigation
   const navigationLockRef = useRef(false);
+
+  // Expose reset so parent can unlock when a non-navigating action ends (e.g. geo block modal dismissed)
+  const resetLock = useCallback(() => {
+    navigationLockRef.current = false;
+  }, []);
+  useEffect(() => {
+    if (resetNavigationLockRef) {
+      resetNavigationLockRef.current = resetLock;
+      return () => {
+        resetNavigationLockRef.current = null;
+      };
+    }
+  }, [resetNavigationLockRef, resetLock]);
 
   // Reset lock when screen comes into focus (handles return from navigation)
   useFocusEffect(
@@ -165,17 +181,60 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
 
   // Determine which buttons to display based on perps market and balance
   // IF no perps market:
-  //   IF buyable: ["Cash Buy", "Send", "Receive", "More"]
-  //   IF not buyable: ["Send", "Receive", "More"]
-  // IF has perps market:
+  //   IF buyable:
+  //     IF has balance: ["Cash Buy", "Send", "Receive", "More"]
+  //     IF no balance: ["Cash Buy", "Receive", "More"]
+  //   IF not buyable:
+  //     IF has balance: ["Send", "Receive", "More"]
+  //     IF no balance: ["Receive", "More"]
+  // IF has perps market and geolocation is in a region that supports perps:
   //   IF has balance: ["Long", "Short", "Send", "More"]
   //   IF no balance: ["Long", "Short", "Receive", "More"]
   const buttons = useMemo(() => {
-    if (!hasPerpsMarket) {
-      const noPerpsButtons = [];
+    const actionButtons = [];
 
+    if (hasPerpsMarket) {
+      actionButtons.push(
+        {
+          key: 'long',
+          iconName: IconName.TrendUp,
+          label: strings('asset_overview.long_button'),
+          onPress: handleLongPress,
+          isDisabled: !onLong,
+          testID: TokenOverviewSelectorsIDs.LONG_BUTTON,
+        },
+        {
+          key: 'short',
+          iconName: IconName.TrendDown,
+          label: strings('asset_overview.short_button'),
+          onPress: handleShortPress,
+          isDisabled: !onShort,
+          testID: TokenOverviewSelectorsIDs.SHORT_BUTTON,
+        },
+      );
+
+      if (hasBalance) {
+        actionButtons.push({
+          key: 'send',
+          iconName: IconName.Send,
+          label: strings('asset_overview.send_button'),
+          onPress: handleSendPress,
+          isDisabled: !canSignTransactions,
+          testID: TokenOverviewSelectorsIDs.SEND_BUTTON,
+        });
+      } else {
+        actionButtons.push({
+          key: 'receive',
+          iconName: IconName.QrCode,
+          label: strings('asset_overview.receive_button'),
+          onPress: handleReceivePress,
+          isDisabled: false,
+          testID: TokenOverviewSelectorsIDs.RECEIVE_BUTTON,
+        });
+      }
+    } else {
       if (isBuyable) {
-        noPerpsButtons.push({
+        actionButtons.push({
           key: 'buy',
           iconName: IconName.AttachMoney,
           label: strings('asset_overview.cash_buy_button'),
@@ -185,99 +244,37 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
         });
       }
 
-      noPerpsButtons.push(
-        {
+      if (hasBalance) {
+        actionButtons.push({
           key: 'send',
           iconName: IconName.Send,
           label: strings('asset_overview.send_button'),
           onPress: handleSendPress,
           isDisabled: !canSignTransactions,
           testID: TokenOverviewSelectorsIDs.SEND_BUTTON,
-        },
-        {
-          key: 'receive',
-          iconName: IconName.QrCode,
-          label: strings('asset_overview.receive_button'),
-          onPress: handleReceivePress,
-          isDisabled: false,
-          testID: TokenOverviewSelectorsIDs.RECEIVE_BUTTON,
-        },
-        {
-          key: 'more',
-          iconName: IconName.MoreHorizontal,
-          label: strings('asset_overview.more_button'),
-          onPress: handleMorePress,
-          isDisabled: false,
-          testID: TokenOverviewSelectorsIDs.MORE_BUTTON,
-        },
-      );
+        });
+      }
 
-      return noPerpsButtons;
-    }
-
-    // Has perps market
-    const baseButtons = [
-      {
-        key: 'long',
-        iconName: IconName.TrendUp,
-        label: strings('asset_overview.long_button'),
-        onPress: handleLongPress,
-        isDisabled: !onLong,
-        testID: TokenOverviewSelectorsIDs.LONG_BUTTON,
-      },
-      {
-        key: 'short',
-        iconName: IconName.TrendDown,
-        label: strings('asset_overview.short_button'),
-        onPress: handleShortPress,
-        isDisabled: !onShort,
-        testID: TokenOverviewSelectorsIDs.SHORT_BUTTON,
-      },
-    ];
-
-    if (hasBalance) {
-      // ["Long", "Short", "Send", "More"]
-      return [
-        ...baseButtons,
-        {
-          key: 'send',
-          iconName: IconName.Send,
-          label: strings('asset_overview.send_button'),
-          onPress: handleSendPress,
-          isDisabled: !canSignTransactions,
-          testID: TokenOverviewSelectorsIDs.SEND_BUTTON,
-        },
-        {
-          key: 'more',
-          iconName: IconName.MoreHorizontal,
-          label: strings('asset_overview.more_button'),
-          onPress: handleMorePress,
-          isDisabled: false,
-          testID: TokenOverviewSelectorsIDs.MORE_BUTTON,
-        },
-      ];
-    }
-
-    // No balance: ["Long", "Short", "Receive", "More"]
-    return [
-      ...baseButtons,
-      {
+      actionButtons.push({
         key: 'receive',
         iconName: IconName.QrCode,
         label: strings('asset_overview.receive_button'),
         onPress: handleReceivePress,
         isDisabled: false,
         testID: TokenOverviewSelectorsIDs.RECEIVE_BUTTON,
-      },
-      {
-        key: 'more',
-        iconName: IconName.MoreHorizontal,
-        label: strings('asset_overview.more_button'),
-        onPress: handleMorePress,
-        isDisabled: false,
-        testID: TokenOverviewSelectorsIDs.MORE_BUTTON,
-      },
-    ];
+      });
+    }
+
+    actionButtons.push({
+      key: 'more',
+      iconName: IconName.MoreHorizontal,
+      label: strings('asset_overview.more_button'),
+      onPress: handleMorePress,
+      isDisabled: false,
+      testID: TokenOverviewSelectorsIDs.MORE_BUTTON,
+    });
+
+    return actionButtons;
   }, [
     hasPerpsMarket,
     hasBalance,
