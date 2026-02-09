@@ -531,7 +531,6 @@ export const TokenListItemV2 = React.memo(
               <Text
                 variant={TextVariant.BodySMMedium}
                 style={styles.balanceFiat}
-                color={secondaryBalanceDisplay.color}
               >
                 {tokenPriceInFiat
                   ? addCurrencySymbol(
