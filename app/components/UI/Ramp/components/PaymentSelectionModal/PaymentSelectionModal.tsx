@@ -16,6 +16,7 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
+import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import {
   Box,
   BoxAlignItems,
@@ -31,6 +32,7 @@ import {
 } from '../../../../../util/navigation/navUtils';
 import PaymentMethodListItem from './PaymentMethodListItem';
 import PaymentMethodListSkeleton from './PaymentMethodListSkeleton';
+import PaymentSelectionAlert from './PaymentSelectionAlert';
 import ProviderSelection from './ProviderSelection';
 import type {
   PaymentMethod,
@@ -71,13 +73,13 @@ function PaymentSelectionModal() {
     setSelectedProvider,
     paymentMethods,
     paymentMethodsLoading,
+    paymentMethodsError,
     selectedPaymentMethod,
     setSelectedPaymentMethod,
     getQuotes,
     userRegion,
     selectedToken,
   } = useRampsController();
-
   const amount = routeAmount ?? DEFAULT_QUOTE_AMOUNT;
   const walletAddress = useRampAccountAddress(
     (selectedToken?.chainId as CaipChainId) ?? null,
@@ -241,6 +243,33 @@ function PaymentSelectionModal() {
         </ScrollView>
       );
     }
+    if (paymentMethodsError) {
+      return (
+        <ScrollView
+          style={styles.list}
+          contentContainerStyle={styles.alertContainer}
+        >
+          <PaymentSelectionAlert
+            message={
+              paymentMethodsError || strings('fiat_on_ramp.payment_error')
+            }
+          />
+        </ScrollView>
+      );
+    }
+    if (paymentMethods.length === 0) {
+      return (
+        <ScrollView
+          style={styles.list}
+          contentContainerStyle={styles.alertContainer}
+        >
+          <PaymentSelectionAlert
+            message={strings('fiat_on_ramp.no_payment_methods_available')}
+            severity={BannerAlertSeverity.Warning}
+          />
+        </ScrollView>
+      );
+    }
     return (
       <FlatList
         style={styles.list}
@@ -285,8 +314,16 @@ function PaymentSelectionModal() {
                   })}{' '}
                   <Text
                     variant={TextVariant.BodySM}
-                    color={TextColor.Primary}
-                    onPress={handleChangeProviderPress}
+                    color={
+                      paymentMethodsLoading || paymentMethodsError
+                        ? TextColor.Alternative
+                        : TextColor.Primary
+                    }
+                    onPress={
+                      paymentMethodsLoading || paymentMethodsError
+                        ? undefined
+                        : handleChangeProviderPress
+                    }
                   >
                     {strings('fiat_on_ramp.change_provider')}
                   </Text>

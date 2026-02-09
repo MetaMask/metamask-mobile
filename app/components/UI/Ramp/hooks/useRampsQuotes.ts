@@ -28,9 +28,9 @@ export interface StartQuotePollingOptions {
 export interface GetQuotesOptions {
   region?: string;
   fiat?: string;
-  assetId: string;
+  assetId?: string;
   amount: number;
-  walletAddress: string;
+  walletAddress?: string;
   paymentMethods?: string[];
   provider?: string;
   redirectUrl?: string;

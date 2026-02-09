@@ -178,7 +178,7 @@ describe('ProviderSelection', () => {
     jest.mocked(useRampAccountAddress).mockReturnValue(null);
   });
 
-  it('matches snapshot when no quotes loaded', () => {
+  it('matches snapshot when no quotes are available', () => {
     const { toJSON } = renderWithProvider();
     expect(toJSON()).toMatchSnapshot();
   });
@@ -194,6 +194,29 @@ describe('ProviderSelection', () => {
       paymentMethods: [mockPaymentMethod],
       selectedPaymentMethod: mockPaymentMethod,
       getQuotes: mockGetQuotes,
+    });
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('matches snapshot when quotes fail to load', async () => {
+    mockGetQuotes.mockRejectedValue(new Error('Failed to load quotes'));
+    jest
+      .mocked(useRampAccountAddress)
+      .mockReturnValue('0x1234567890abcdef1234567890abcdef12345678');
+    const { toJSON, getByText } = renderWithProvider(
+      mockProviders,
+      mockProviders[0],
+      {
+        userRegion: mockUserRegion,
+        selectedToken: mockSelectedToken,
+        paymentMethods: [mockPaymentMethod],
+        selectedPaymentMethod: mockPaymentMethod,
+        getQuotes: mockGetQuotes,
+      },
+    );
+
+    await waitFor(() => {
+      expect(getByText('Failed to load quotes')).toBeOnTheScreen();
     });
     expect(toJSON()).toMatchSnapshot();
   });

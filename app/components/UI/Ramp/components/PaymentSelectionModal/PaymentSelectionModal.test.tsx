@@ -124,11 +124,12 @@ const mockProviders = [
 const mockSetSelectedProvider = jest.fn();
 const mockSetSelectedPaymentMethod = jest.fn();
 
-const mockUseRampsController = jest.fn(() => ({
+const defaultControllerReturn = {
   selectedProvider: mockSelectedProvider,
   providers: mockProviders,
   paymentMethods: mockPaymentMethods,
   paymentMethodsLoading: false,
+  paymentMethodsError: null,
   selectedPaymentMethod: mockPaymentMethods[0],
   setSelectedProvider: mockSetSelectedProvider,
   setSelectedPaymentMethod: mockSetSelectedPaymentMethod,
@@ -144,7 +145,9 @@ const mockUseRampsController = jest.fn(() => ({
     chainId: 'eip155:1',
     symbol: 'ETH',
   },
-}));
+};
+
+const mockUseRampsController = jest.fn(() => defaultControllerReturn);
 
 jest.mock('../../hooks/useRampsController', () => ({
   useRampsController: () => mockUseRampsController(),
@@ -174,6 +177,7 @@ function renderWithProvider(component: React.ComponentType) {
 describe('PaymentSelectionModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseRampsController.mockImplementation(() => defaultControllerReturn);
   });
 
   it('matches snapshot', () => {
@@ -215,7 +219,7 @@ describe('PaymentSelectionModal', () => {
     fireEvent.press(changeProviderLink);
 
     await waitFor(() => {
-      expect(getByText('fiat_on_ramp_aggregator.providers')).toBeOnTheScreen();
+      expect(getByText('fiat_on_ramp.providers')).toBeOnTheScreen();
     });
   });
 
@@ -226,7 +230,7 @@ describe('PaymentSelectionModal', () => {
     fireEvent.press(changeProviderLink);
 
     await waitFor(() => {
-      expect(getByText('fiat_on_ramp_aggregator.providers')).toBeOnTheScreen();
+      expect(getByText('fiat_on_ramp.providers')).toBeOnTheScreen();
     });
   });
 
@@ -239,7 +243,7 @@ describe('PaymentSelectionModal', () => {
     fireEvent.press(changeProviderLink);
 
     await waitFor(() => {
-      expect(getByText('fiat_on_ramp_aggregator.providers')).toBeOnTheScreen();
+      expect(getByText('fiat_on_ramp.providers')).toBeOnTheScreen();
     });
 
     const backButton = getByTestId('button-icon');
@@ -250,19 +254,78 @@ describe('PaymentSelectionModal', () => {
     });
   });
 
-  it('matches snapshot when payment methods are loading', () => {
-    mockUseRampsController.mockReturnValueOnce({
-      selectedProvider: null,
-      providers: mockProviders,
+  it('does not navigate to provider selection when change provider is pressed and payment methods are loading', async () => {
+    const loadingState = {
+      ...defaultControllerReturn,
+      selectedProvider: mockSelectedProvider,
       paymentMethods: [],
       paymentMethodsLoading: true,
       selectedPaymentMethod: null,
-      setSelectedProvider: mockSetSelectedProvider,
-      setSelectedPaymentMethod: mockSetSelectedPaymentMethod,
-      getQuotes: jest.fn(),
+    };
+    mockUseRampsController.mockImplementation(() => loadingState);
+    const { getByText } = renderWithProvider(PaymentSelectionModal);
+
+    const changeProviderLink = getByText('fiat_on_ramp.change_provider');
+    fireEvent.press(changeProviderLink);
+
+    await waitFor(() => {
+      expect(getByText('fiat_on_ramp.pay_with')).toBeOnTheScreen();
+    });
+  });
+
+  it('does not navigate to provider selection when change provider is pressed and there is a payment method error', async () => {
+    const errorState = {
+      ...defaultControllerReturn,
+      selectedProvider: mockSelectedProvider,
+      paymentMethods: [],
+      paymentMethodsError: 'Failed to fetch payment methods',
+      selectedPaymentMethod: null,
+    };
+    mockUseRampsController.mockImplementation(() => errorState);
+    const { getByText } = renderWithProvider(PaymentSelectionModal);
+
+    const changeProviderLink = getByText('fiat_on_ramp.change_provider');
+    fireEvent.press(changeProviderLink);
+
+    await waitFor(() => {
+      expect(getByText('Failed to fetch payment methods')).toBeOnTheScreen();
+    });
+  });
+
+  it('matches snapshot when payment methods are loading', () => {
+    const loadingState = {
+      ...defaultControllerReturn,
+      selectedProvider: null,
+      paymentMethods: [],
+      paymentMethodsLoading: true,
+      selectedPaymentMethod: null,
       userRegion: null,
       selectedToken: null,
-    });
+    };
+    mockUseRampsController.mockImplementation(() => loadingState);
+    const { toJSON } = renderWithProvider(PaymentSelectionModal);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('matches snapshot when payment methods fail to load', () => {
+    const errorState = {
+      ...defaultControllerReturn,
+      paymentMethods: [],
+      paymentMethodsError: 'Failed to fetch payment methods',
+      selectedPaymentMethod: null,
+    };
+    mockUseRampsController.mockImplementation(() => errorState);
+    const { toJSON } = renderWithProvider(PaymentSelectionModal);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('matches snapshot when no payment methods are available', () => {
+    const emptyState = {
+      ...defaultControllerReturn,
+      paymentMethods: [],
+      selectedPaymentMethod: null,
+    };
+    mockUseRampsController.mockImplementation(() => emptyState);
     const { toJSON } = renderWithProvider(PaymentSelectionModal);
     expect(toJSON()).toMatchSnapshot();
   });

@@ -17,6 +17,8 @@ import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { formatCurrency, formatTokenAmount } from '../../utils/formatCurrency';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import QuoteDisplay from './QuoteDisplay';
+import PaymentSelectionAlert from './PaymentSelectionAlert';
+import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 
 const SKELETON_ROW_COUNT = 3;
 const SKELETON_NAME_WIDTH = 120;
@@ -60,6 +62,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
 
   const [successQuotes, setSuccessQuotes] = useState<Quote[] | null>(null);
   const [quotesLoading, setQuotesLoading] = useState(false);
+  const [quotesError, setQuotesError] = useState<string | null>(null);
 
   const paymentMethodIds = useMemo(() => {
     const id = selectedPaymentMethod?.id ?? paymentMethods?.[0]?.id ?? null;
@@ -80,6 +83,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
     }
 
     let cancelled = false;
+    setQuotesError(null);
     setQuotesLoading(true);
 
     getQuotes({
@@ -94,9 +98,10 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
         if (cancelled) return;
         setSuccessQuotes(response.success ?? []);
       })
-      .catch(() => {
+      .catch((error) => {
         if (!cancelled) {
           setSuccessQuotes([]);
+          setQuotesError(error.message);
         }
       })
       .finally(() => {
@@ -171,6 +176,40 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
               </ListItemColumn>
             </ListItemSelect>
           ))}
+        </ScrollView>
+      </Box>
+    );
+  }
+
+  if (quotesError) {
+    return (
+      <Box twClassName="flex-1 min-h-0">
+        <HeaderCompactStandard
+          title={strings('fiat_on_ramp.providers')}
+          onBack={onBack}
+        />
+        <ScrollView style={styles.scrollView}>
+          <PaymentSelectionAlert
+            message={quotesError}
+            severity={BannerAlertSeverity.Error}
+          />
+        </ScrollView>
+      </Box>
+    );
+  }
+
+  if (quotes.length === 0) {
+    return (
+      <Box twClassName="flex-1 min-h-0">
+        <HeaderCompactStandard
+          title={strings('fiat_on_ramp.providers')}
+          onBack={onBack}
+        />
+        <ScrollView style={styles.scrollView}>
+          <PaymentSelectionAlert
+            message={strings('fiat_on_ramp.no_quotes_available')}
+            severity={BannerAlertSeverity.Error}
+          />
         </ScrollView>
       </Box>
     );

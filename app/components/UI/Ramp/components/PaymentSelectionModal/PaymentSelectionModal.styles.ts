@@ -31,6 +31,10 @@ const styleSheet = (params: { vars: PaymentSelectionModalStyleSheetVars }) => {
       flex: 1,
       minHeight: 0,
     },
+    alertContainer: {
+      padding: 16,
+      flexGrow: 1,
+    },
     footer: {
       paddingHorizontal: 16,
       paddingVertical: 16,
