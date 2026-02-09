@@ -1930,8 +1930,30 @@ export class PerpsController extends BaseController<
   /**
    * Get current positions
    * Thin delegation to MarketDataService
+   *
+   * For readOnly mode, bypasses getActiveProvider() to allow position queries
+   * without full perps initialization (e.g., for showing positions on token details page)
    */
   async getPositions(params?: GetPositionsParams): Promise<Position[]> {
+    // For readOnly mode, access provider directly without initialization check
+    // This allows discovery use cases (checking if user has positions) without full perps setup
+    if (params?.readOnly && params.userAddress) {
+      // Use activeProviderInstance if available (respects provider abstraction)
+      // Fallback to creating HyperLiquidProvider for pre-initialization discovery
+      // TODO: When adding new providers (MYX), consider a provider factory pattern
+      const provider =
+        this.activeProviderInstance ??
+        new HyperLiquidProvider({
+          isTestnet: this.state.isTestnet,
+          hip3Enabled: this.hip3Enabled,
+          allowlistMarkets: this.hip3AllowlistMarkets,
+          blocklistMarkets: this.hip3BlocklistMarkets,
+          platformDependencies: this.options.infrastructure,
+          messenger: this.messenger,
+        });
+      return provider.getPositions(params);
+    }
+
     const provider = this.getActiveProvider();
     return this.marketDataService.getPositions({
       provider,
@@ -1995,8 +2017,29 @@ export class PerpsController extends BaseController<
   /**
    * Get account state (balances, etc.)
    * Thin delegation to MarketDataService
+   *
+   * For readOnly mode, bypasses getActiveProvider() to allow account state queries
+   * without full perps initialization (e.g., for checking if user has perps funds)
    */
   async getAccountState(params?: GetAccountStateParams): Promise<AccountState> {
+    // For readOnly mode, access provider directly without initialization check
+    // This allows discovery use cases (checking if user has perps funds) without full perps setup
+    if (params?.readOnly && params.userAddress) {
+      // Use activeProviderInstance if available (respects provider abstraction)
+      // Fallback to creating HyperLiquidProvider for pre-initialization discovery
+      const provider =
+        this.activeProviderInstance ??
+        new HyperLiquidProvider({
+          isTestnet: this.state.isTestnet,
+          hip3Enabled: this.hip3Enabled,
+          allowlistMarkets: this.hip3AllowlistMarkets,
+          blocklistMarkets: this.hip3BlocklistMarkets,
+          platformDependencies: this.options.infrastructure,
+          messenger: this.messenger,
+        });
+      return provider.getAccountState(params);
+    }
+
     const provider = this.getActiveProvider();
     return this.marketDataService.getAccountState({
       provider,
@@ -2031,23 +2074,18 @@ export class PerpsController extends BaseController<
     // For readOnly mode, access provider directly without initialization check
     // This allows discovery use cases (checking if market exists) without full perps setup
     if (params?.readOnly) {
-      // Try to get existing provider, or create a temporary one for readOnly queries
-      // Note: 'aggregated' mode uses activeProviderInstance directly, not the providers map
-      const { activeProvider } = this.state;
-      let provider =
-        activeProvider === 'aggregated'
-          ? undefined
-          : this.providers.get(activeProvider);
-      // Create a temporary provider instance for readOnly queries
-      // The readOnly path in provider creates a standalone InfoClient without full init
-      provider ??= new HyperLiquidProvider({
-        isTestnet: this.state.isTestnet,
-        hip3Enabled: this.hip3Enabled,
-        allowlistMarkets: this.hip3AllowlistMarkets,
-        blocklistMarkets: this.hip3BlocklistMarkets,
-        platformDependencies: this.options.infrastructure,
-        messenger: this.messenger,
-      });
+      // Use activeProviderInstance if available (respects provider abstraction)
+      // Fallback to creating HyperLiquidProvider for pre-initialization discovery
+      const provider =
+        this.activeProviderInstance ??
+        new HyperLiquidProvider({
+          isTestnet: this.state.isTestnet,
+          hip3Enabled: this.hip3Enabled,
+          allowlistMarkets: this.hip3AllowlistMarkets,
+          blocklistMarkets: this.hip3BlocklistMarkets,
+          platformDependencies: this.options.infrastructure,
+          messenger: this.messenger,
+        });
       return provider.getMarkets(params);
     }
 
@@ -2078,12 +2116,13 @@ export class PerpsController extends BaseController<
    * Fetch historical candle data
    * Thin delegation to MarketDataService
    */
-  async fetchHistoricalCandles(
-    symbol: string,
-    interval: CandlePeriod,
-    limit: number = 100,
-    endTime?: number,
-  ): Promise<CandleData> {
+  async fetchHistoricalCandles(options: {
+    symbol: string;
+    interval: CandlePeriod;
+    limit?: number;
+    endTime?: number;
+  }): Promise<CandleData> {
+    const { symbol, interval, limit = 100, endTime } = options;
     const provider = this.getActiveProvider();
     return this.marketDataService.fetchHistoricalCandles({
       provider,
@@ -2625,9 +2664,9 @@ export class PerpsController extends BaseController<
 
     try {
       // TODO: It would be good to have this location before we call this async function to avoid the race condition
-      const isEligible = await this.eligibilityService.checkEligibility(
-        this.blockedRegionList.list,
-      );
+      const isEligible = await this.eligibilityService.checkEligibility({
+        blockedRegions: this.blockedRegionList.list,
+      });
 
       // Only update state if the blocked region list hasn't changed while we were awaiting.
       // This prevents stale fallback-based eligibility checks from overwriting
