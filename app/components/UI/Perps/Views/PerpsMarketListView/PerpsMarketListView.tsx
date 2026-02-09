@@ -13,6 +13,7 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch/TextFieldSearch';
+import { HeaderBaseVariant } from '../../../../../component-library/components/HeaderBase';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextVariant,
@@ -318,7 +319,9 @@ const PerpsMarketListView = ({
   return (
     <SafeAreaView style={styles.container}>
       <HeaderCompactStandard
+        variant={HeaderBaseVariant.Display}
         title={title || strings('perps.home.markets')}
+        titleProps={{ style: styles.marketListHeaderTitle }}
         onBack={handleBackPressed}
         backButtonProps={{
           testID: `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-back-button`,

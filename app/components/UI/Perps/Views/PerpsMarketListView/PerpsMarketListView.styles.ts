@@ -36,6 +36,10 @@ const styleSheet = (params: { theme: Theme }) => {
     headerTitle: {
       textAlign: 'left',
     },
+    marketListHeaderTitle: {
+      fontSize: 24,
+      lineHeight: 34,
+    },
     headerActions: {
       flexDirection: 'row',
       alignItems: 'center',

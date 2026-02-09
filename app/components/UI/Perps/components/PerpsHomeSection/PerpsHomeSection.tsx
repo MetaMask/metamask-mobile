@@ -124,13 +124,16 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
   }
 
   const showAction = onActionPress && !isLoading && !isEmpty;
-
   return (
     <View style={styles.section} testID={testID}>
       {/* Section Header */}
       <View style={styles.headerContainer}>
         <SectionHeader
-          title={title}
+          title={
+            <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
+              {title}
+            </Text>
+          }
           justifyContent={showAction ? BoxJustifyContent.Between : undefined}
           endAccessory={
             showAction ? (

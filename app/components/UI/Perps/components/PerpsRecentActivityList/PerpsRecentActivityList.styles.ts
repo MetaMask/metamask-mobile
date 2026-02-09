@@ -14,7 +14,7 @@ const styleSheet = (params: { theme: Theme }) => {
     header: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginBottom: 8,
+      marginBottom: 12,
       paddingHorizontal: 16,
     },
     titleRow: {
