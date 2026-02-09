@@ -7552,7 +7552,7 @@
       "claim_label": "Claim",
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
-      "time_left": "left",
+      "time_left": "{{time}} left",
       "expired": "Expired"
     },
     "end_of_season_rewards": {
