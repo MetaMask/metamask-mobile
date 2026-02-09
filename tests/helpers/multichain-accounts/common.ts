@@ -27,8 +27,25 @@ export const SIMPLE_KEYPAIR_ACCOUNT: Account = {
   address: DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
 };
 
+/**
+ * Go to account details.
+ * This method is used for multichain accounts V1.
+ *
+ * @deprecated Use goToAccountDetailsV2 instead.
+ * @param account - The account to go to details
+ */
 export const goToAccountDetails = async (account: Account) => {
   await AccountListBottomSheet.tapEditAccountActionsAtIndex(account.index);
+};
+
+/**
+ * Go to account details.
+ * This method is used for multichain accounts V2.
+ *
+ * @param account - The account to go to details
+ */
+export const goToAccountDetailsV2 = async (account: Account) => {
+  await AccountListBottomSheet.tapAccountEllipsisButtonV2(account.index);
 };
 
 export const withMultichainAccountDetailsEnabledFixtures = async (

@@ -110,7 +110,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -128,8 +128,8 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -830,7 +830,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -848,8 +848,8 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -1564,7 +1564,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -1582,8 +1582,8 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -2284,7 +2284,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -2302,8 +2302,8 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
