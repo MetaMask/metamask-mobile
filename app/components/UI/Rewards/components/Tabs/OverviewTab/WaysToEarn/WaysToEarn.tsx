@@ -66,7 +66,7 @@ const getBottomSheetData = (wayToEarn: SeasonWayToEarnDto) => ({
     />
   ),
   description: (
-    <Box twClassName="flex flex-col gap-8">
+    <Box twClassName="flex flex-col gap-4">
       <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
         {wayToEarn.description}
       </Text>
