@@ -255,7 +255,7 @@ jobs:
         shell: bash
         run: |
           mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-component-view.json
-          npx nyc report --temp-dir ./tests/coverage --report-dir ./tests/coverage-component-view-lcov --reporter html
+          yarn nyc report --temp-dir ./tests/coverage --report-dir ./tests/coverage-component-view-lcov --reporter html
       - uses: actions/upload-artifact@v4
         with:
           name: coverage-view
