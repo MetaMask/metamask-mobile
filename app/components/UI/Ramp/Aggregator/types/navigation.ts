@@ -2,45 +2,31 @@
  * Ramp navigation parameters
  */
 
-import type { RampIntent } from '../../types';
-
 /** Ramp buy/sell parameters */
 export interface RampBuySellParams {
   showBack?: boolean;
 }
 
 /** Ramp order details parameters */
-export interface RampOrderDetailsParams {
-  orderId?: string;
-  redirectToOrders?: boolean;
-}
+export type { OrderDetailsParams as RampOrderDetailsParams } from '../Views/OrderDetails/OrderDetails';
 
 /**
  * Ramp Aggregator build quote parameters
  * Used by app/components/UI/Ramp/Aggregator/Views/BuildQuote/BuildQuote.tsx
  */
-export interface RampAggregatorBuildQuoteParams extends RampIntent {
-  showBack?: boolean;
-}
+export type { BuildQuoteParams as RampAggregatorBuildQuoteParams } from '../Views/BuildQuote/BuildQuote';
 
 /**
  * Deposit build quote parameters
  * Used by app/components/UI/Ramp/Deposit/Views/BuildQuote/BuildQuote.tsx
  */
-export interface DepositBuildQuoteParams {
-  shouldRouteImmediately?: boolean;
-}
+export type { BuildQuoteParams as DepositBuildQuoteParams } from '../Views/BuildQuote/BuildQuote';
 
 /**
  * Simple Ramp build quote parameters
  * Used by app/components/UI/Ramp/components/BuildQuote/BuildQuote.tsx
  */
-export interface SimpleRampBuildQuoteParams {
-  assetId?: string;
-}
+export type { BuildQuoteParams as SimpleRampBuildQuoteParams } from '../Views/BuildQuote/BuildQuote';
 
 /** Webview modal parameters */
-export interface WebviewModalParams {
-  url?: string;
-  title?: string;
-}
+export type { WebviewParams as WebviewModalParams } from 'app/components/Views/Webview/Webview.types.ts';

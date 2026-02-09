@@ -1,7 +1,7 @@
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 
-interface WebviewParams {
+export interface WebviewParams {
   url?: string;
   title?: string;
 }
