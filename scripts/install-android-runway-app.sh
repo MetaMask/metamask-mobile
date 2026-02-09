@@ -49,13 +49,6 @@ safe_rm() {
   fi
 }
 
-safe_rm_dir() {
-  local dir="$1"
-  if [[ -n "$dir" && -d "$dir" && "$dir" == "$RUNWAY_DIR"/* ]]; then
-    rm -rf "$dir"
-  fi
-}
-
 cleanup() {
   safe_rm "$ZIP_PATH"
   if [[ -n "$EXTRACT_DIR" && -d "$EXTRACT_DIR" && "$EXTRACT_DIR" == "$RUNWAY_DIR"/* ]]; then
