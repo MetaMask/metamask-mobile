@@ -147,8 +147,8 @@ export const handlePredictUrl = async ({
         screen: Routes.PREDICT.MARKET_LIST,
         params: {
           entryPoint,
-          ...(navParams.tab && { tab: navParams.tab }),
-          ...(navParams.query && { query: navParams.query }),
+          tab: navParams.tab,
+          query: navParams.query,
         },
       });
     }

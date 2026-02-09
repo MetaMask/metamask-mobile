@@ -131,5 +131,24 @@ describe('usePredictSearch', () => {
 
       expect(result.current.isSearchVisible).toBe(false);
     });
+
+    it('clears search state when navigating without query after previous query navigation', () => {
+      mockRouteParams.query = 'bitcoin';
+
+      const { result, rerender } = renderHook(() => usePredictSearch());
+
+      expect(result.current.isSearchVisible).toBe(true);
+      expect(result.current.searchQuery).toBe('bitcoin');
+
+      mockRouteParams.query = undefined;
+      rerender({});
+
+      act(() => {
+        simulateFocus();
+      });
+
+      expect(result.current.isSearchVisible).toBe(false);
+      expect(result.current.searchQuery).toBe('');
+    });
   });
 });

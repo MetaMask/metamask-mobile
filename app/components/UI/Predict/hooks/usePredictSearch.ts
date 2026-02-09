@@ -26,6 +26,12 @@ export const usePredictSearch = (): UsePredictSearchResult => {
     if (requestedQuery) {
       setIsSearchVisible(true);
       setSearchQuery(requestedQuery);
+    } else {
+      // Clear search state when navigating without a query parameter
+      // This handles the case where user opens a deeplink with query,
+      // then later opens a deeplink with just tab (no query)
+      setSearchQuery('');
+      setIsSearchVisible(false);
     }
   }, [requestedQuery]);
 
