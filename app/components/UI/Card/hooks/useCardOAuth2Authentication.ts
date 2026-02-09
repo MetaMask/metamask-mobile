@@ -204,14 +204,11 @@ const useCardOAuth2Authentication = (): UseCardOAuth2AuthenticationReturn => {
 
     try {
       // Step 1: Open browser for authorization
-      Logger.log('[CardOAuth2] Starting authorization...');
       const result = await promptAsync({
         // iOS: Use ephemeral session to avoid cookie issues
         // with Baanx cross-subdomain session handling
         preferEphemeralSession: true,
       } as AuthRequestPromptOptions & { preferEphemeralSession?: boolean });
-
-      Logger.log('[CardOAuth2] Authorization result type:', result.type);
 
       if (result.type === 'cancel') {
         const cancelError = new BaanxOAuth2Error(
@@ -251,7 +248,6 @@ const useCardOAuth2Authentication = (): UseCardOAuth2AuthenticationReturn => {
       }
 
       // Step 2: Exchange authorization code for tokens
-      Logger.log('[CardOAuth2] Exchanging code for tokens...');
       const tokenResponse = await exchangeCodeAsync(
         {
           clientId,
@@ -263,8 +259,6 @@ const useCardOAuth2Authentication = (): UseCardOAuth2AuthenticationReturn => {
         },
         discovery,
       );
-
-      Logger.log('[CardOAuth2] Token exchange successful');
 
       if (!tokenResponse.accessToken) {
         setError(getErrorMessage(BaanxOAuth2ErrorType.TOKEN_EXCHANGE_FAILED));
@@ -284,8 +278,6 @@ const useCardOAuth2Authentication = (): UseCardOAuth2AuthenticationReturn => {
         refreshTokenExpiresAt: refreshTokenExpiresIn as number,
         location,
       });
-
-      Logger.log('[CardOAuth2] Tokens stored successfully');
 
       // Step 4: Update Redux auth state
       dispatch(setIsAuthenticatedAction(true));

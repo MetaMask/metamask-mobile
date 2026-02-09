@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   createStackNavigator,
   StackNavigationOptions,
@@ -33,6 +33,7 @@ import {
   ButtonIconSize,
   IconName,
 } from '@metamask/design-system-react-native';
+import LockManagerService from '../../../../core/LockManagerService';
 
 const Stack = createStackNavigator();
 const ModalsStack = createStackNavigator();
@@ -139,6 +140,13 @@ export const cardChooseYourCardNavigationOptions = ({
 const MainRoutes = () => {
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
   const isCardholder = useSelector(selectIsCardholder);
+
+  useEffect(() => {
+    LockManagerService.stopListening();
+    return () => {
+      LockManagerService.startListening();
+    };
+  }, []);
 
   const initialRouteName = useMemo(
     () =>
