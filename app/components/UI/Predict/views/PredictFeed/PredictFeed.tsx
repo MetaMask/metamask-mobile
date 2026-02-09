@@ -62,6 +62,7 @@ import { PredictEventValues } from '../../constants/eventNames';
 import PredictMarket from '../../components/PredictMarket';
 import PredictMarketSkeleton from '../../components/PredictMarketSkeleton';
 import { PredictBalance } from '../../components/PredictBalance';
+import { PredictUnifiedBalance } from '../../components/PredictUnifiedBalance';
 import PredictOffline from '../../components/PredictOffline';
 import PredictFeedSessionManager from '../../services/PredictFeedSessionManager';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
@@ -84,11 +85,16 @@ const AnimatedFlashList = Animated.createAnimatedComponent(
   FlashList as unknown as React.ComponentType<PredictFlashListProps>,
 ) as unknown as React.ComponentType<PredictFlashListProps>;
 
-const PredictFeedHeader: React.FC = () => (
-  <Box twClassName="py-4">
-    <PredictBalance />
-  </Box>
-);
+const PredictFeedHeader: React.FC = () => {
+  const isHip4Enabled =
+    process.env.MM_PERPS_HIP4_ENABLED?.toLowerCase() === 'true';
+
+  return (
+    <Box twClassName="py-4">
+      {isHip4Enabled ? <PredictUnifiedBalance /> : <PredictBalance />}
+    </Box>
+  );
+};
 
 interface PredictFeedTabBarProps {
   tabs: FeedTab[];

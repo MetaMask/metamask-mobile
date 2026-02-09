@@ -178,6 +178,7 @@ describe('PredictMarketSportCard', () => {
       screen: Routes.PREDICT.MARKET_DETAILS,
       params: {
         marketId: mockMarket.id,
+        providerId: mockMarket.providerId,
         entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
         title: mockMarket.title,
         image: mockMarket.image,
@@ -308,6 +309,7 @@ describe('PredictMarketSportCard', () => {
         screen: Routes.PREDICT.MARKET_DETAILS,
         params: {
           marketId: 'custom-market-id',
+          providerId: 'test-provider',
           entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
           title: 'Custom Super Bowl',
           image: 'https://example.com/custom.png',

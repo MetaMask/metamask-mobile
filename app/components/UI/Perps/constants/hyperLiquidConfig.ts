@@ -451,6 +451,84 @@ export const USDH_CONFIG = {
   SwapSlippageBps: 10,
 } as const;
 
+/**
+ * HIP-4 Event Futures / Prediction Markets configuration
+ *
+ * HIP-4 introduces binary prediction markets traded on Hyperliquid's spot order book.
+ * Markets are exposed via the `spotMeta` API as outcome tokens (YES/NO sides)
+ * with prices in [0, 1] representing the probability of the event occurring.
+ *
+ * Key differences from HIP-3:
+ * - No funding rates, no continuous oracle
+ * - Fully collateralized (1x only, no leverage)
+ * - Binary payoff: resolves to 0 or 1
+ * - Traded as spot tokens, not perps
+ *
+ * @see https://www.bedlamresear.ch/posts/hip-4-event-futures/
+ */
+export const HIP4_CONFIG = {
+  /**
+   * Provider ID used to identify Hyperliquid HIP-4 in the Predict tab
+   */
+  ProviderId: 'hyperliquid',
+
+  /**
+   * Display name for the provider in UI badges
+   */
+  ProviderName: 'Hyperliquid',
+
+  /**
+   * Price bands for HIP-4 outcome tokens
+   * Prices represent probability of YES outcome
+   */
+  MinPrice: 0.001,
+  MaxPrice: 0.999,
+
+  /**
+   * Maximum leverage for HIP-4 markets (always 1x, fully collateralized)
+   */
+  MaxLeverage: 1,
+
+  /**
+   * Cache TTL for spotMeta outcome/question data (2 minutes)
+   * Outcome markets change less frequently than price data
+   */
+  SpotMetaCacheTtlMs: 2 * 60 * 1000,
+
+  /**
+   * Cache TTL for outcome token price data (10 seconds)
+   */
+  PriceCacheTtlMs: 10 * 1000,
+} as const;
+
+/**
+ * Testnet-specific HIP-4 configuration
+ *
+ * HIP-4 launched on testnet Feb 2, 2026. This limits which markets
+ * are discovered on testnet to avoid subscription overload.
+ */
+export const TESTNET_HIP4_CONFIG = {
+  /**
+   * Whether to enable HIP-4 market discovery on testnet
+   * Set to true since HIP-4 is testnet-only initially
+   */
+  Enabled: true,
+} as const;
+
+/**
+ * Mainnet HIP-4 configuration
+ *
+ * HIP-4 is not yet on mainnet. This will be enabled via feature flag
+ * once the protocol launches prediction markets on mainnet.
+ */
+export const MAINNET_HIP4_CONFIG = {
+  /**
+   * Whether to enable HIP-4 market discovery on mainnet
+   * Disabled until mainnet launch
+   */
+  Enabled: false,
+} as const;
+
 // Progress bar constants
 export const INITIAL_AMOUNT_UI_PROGRESS = 10;
 export const WITHDRAWAL_PROGRESS_STAGES = [

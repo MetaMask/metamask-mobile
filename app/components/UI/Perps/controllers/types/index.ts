@@ -65,7 +65,12 @@ export interface TradeConfiguration {
 export type OrderType = 'market' | 'limit';
 
 // Market asset type classification (reusable across components)
-export type MarketType = 'crypto' | 'equity' | 'commodity' | 'forex';
+export type MarketType =
+  | 'crypto'
+  | 'equity'
+  | 'commodity'
+  | 'forex'
+  | 'prediction';
 
 // Market type filter for UI category badges
 // Note: 'stocks' maps to 'equity' and 'commodities' maps to 'commodity' in the data model
@@ -75,7 +80,8 @@ export type MarketTypeFilter =
   | 'stocks'
   | 'commodities'
   | 'forex'
-  | 'new';
+  | 'new'
+  | 'predictions';
 
 // Input method for amount entry tracking
 export type InputMethod =
@@ -574,6 +580,14 @@ export interface PerpsControllerConfig {
    * The fallback is set by default if defined and replaced with remote feature flag once available.
    */
   fallbackHip3BlocklistMarkets?: string[];
+  /**
+   * Fallback HIP-4 prediction markets master switch to use when RemoteFeatureFlagController fails to fetch.
+   * Controls whether HIP-4 (event futures / prediction markets) are enabled.
+   * When enabled, HIP-4 outcome markets are fetched from the spotMeta API
+   * and surfaced in both the Perps and Predict tabs.
+   * Testnet-only initially.
+   */
+  fallbackHip4Enabled?: boolean;
 }
 
 export interface PriceUpdate {

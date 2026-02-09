@@ -213,6 +213,11 @@ export const usePerpsMarketListView = ({
       return searchedMarkets.filter((m) => m.marketType === 'forex');
     }
 
+    // HIP-4 prediction markets
+    if (marketTypeFilter === 'predictions') {
+      return searchedMarkets.filter((m) => m.marketType === 'prediction');
+    }
+
     // Fallback: return all markets for unknown filter values
     return searchedMarkets;
   }, [searchedMarkets, searchQuery, marketTypeFilter]);
@@ -261,14 +266,24 @@ export const usePerpsMarketListView = ({
 
   // Calculate market counts by type (for hiding empty tabs)
   const marketCounts = useMemo(() => {
-    const counts = { crypto: 0, equity: 0, commodity: 0, forex: 0, new: 0 };
+    const counts = {
+      crypto: 0,
+      equity: 0,
+      commodity: 0,
+      forex: 0,
+      prediction: 0,
+      new: 0,
+    };
     allMarkets.forEach((market) => {
       // Count new markets (uncategorized HIP-3)
       if (market.isNewMarket) {
         counts.new++;
       }
-      // Crypto = non-HIP3 markets (no DEX prefix)
-      if (!market.isHip3) {
+      // HIP-4 prediction markets
+      if (market.marketType === 'prediction') {
+        counts.prediction++;
+      } else if (!market.isHip3) {
+        // Crypto = non-HIP3 markets (no DEX prefix)
         counts.crypto++;
       } else if (market.marketType === 'equity') {
         // HIP-3 markets with explicit equity type

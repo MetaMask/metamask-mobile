@@ -58,6 +58,8 @@ import PredictKeypad, {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
+import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
+import { HYPERLIQUID_PROVIDER_ID } from '../../providers/hyperliquid/constants';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
@@ -117,6 +119,21 @@ const PredictBuyPreview = () => {
     providerId: outcome.providerId,
     loadOnMount: true,
     refreshOnFocus: true,
+  });
+
+  // Cross-provider balance for insufficient funds hint
+  const isHip4Enabled =
+    process.env.MM_PERPS_HIP4_ENABLED?.toLowerCase() === 'true';
+  const crossProviderId =
+    outcome.providerId === POLYMARKET_PROVIDER_ID
+      ? HYPERLIQUID_PROVIDER_ID
+      : POLYMARKET_PROVIDER_ID;
+  const crossProviderName =
+    crossProviderId === POLYMARKET_PROVIDER_ID ? 'Polymarket' : 'Hyperliquid';
+  const { balance: crossBalance } = usePredictBalance({
+    providerId: crossProviderId,
+    loadOnMount: isHip4Enabled,
+    refreshOnFocus: isHip4Enabled,
   });
 
   const { deposit } = usePredictDeposit({
@@ -371,6 +388,20 @@ const PredictBuyPreview = () => {
             </Text>
           )}
         </Box>
+        {/* Cross-provider balance hint */}
+        {isHip4Enabled &&
+          !isBalanceLoading &&
+          currentValue > balance &&
+          crossBalance > 0 && (
+            <Box twClassName="text-center mt-1 px-4">
+              <Text variant={TextVariant.BodyXs} color={TextColor.InfoDefault}>
+                {strings('predict.order.cross_provider_balance_hint', {
+                  amount: formatPrice(crossBalance, { maximumDecimals: 2 }),
+                  provider: crossProviderName,
+                })}
+              </Text>
+            </Box>
+          )}
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}

@@ -1235,7 +1235,9 @@
       "short_label": "Short",
       "button": {
         "long": "Long {{asset}}",
-        "short": "Short {{asset}}"
+        "short": "Short {{asset}}",
+        "buy_yes": "Buy Yes {{asset}}",
+        "buy_no": "Buy No {{asset}}"
       },
       "tpsl_modal": {
         "title": "Take profit & stop loss",
@@ -1646,7 +1648,8 @@
         "equity": "STOCK",
         "commodity": "COMMODITY",
         "crypto": "CRYPTO",
-        "forex": "FOREX"
+        "forex": "FOREX",
+        "prediction": "PREDICTION"
       }
     },
     "buttons": {
@@ -1823,6 +1826,7 @@
         "stocks": "Stocks",
         "commodities": "Commodities",
         "forex": "Forex",
+        "predictions": "Predictions",
         "new": "New"
       },
       "filter_by": "Filter by",
@@ -2133,6 +2137,11 @@
     "markets_won": "Markets won",
     "won_markets_text": "Won {{count}} market{{s}}",
     "available_balance": "Available balance",
+    "trading_balances": "Your Trading Balances",
+    "polygon_network": "Polygon",
+    "arbitrum_network": "Arbitrum",
+    "polymarket_provider": "Polymarket",
+    "hyperliquid_provider": "Hyperliquid",
     "claim_amount_text": "Claim ${{amount}}",
     "claim_winnings_text": "Claim winnings",
     "unrealized_pnl_label": "Unrealized P&L",
@@ -2229,6 +2238,7 @@
       "payments_made_in_usdc": "All payments are made in USDC",
       "prediction_insufficient_funds": "Not enough funds. You can use up to {{amount}}.",
       "no_funds_enough": "Not enough funds.",
+      "cross_provider_balance_hint": "You have {{amount}} in {{provider}}",
       "prediction_minimum_bet": "Minimum amount is {{amount}}",
       "to_win": "To win",
       "order_failed_generic": "Transaction failed. Please try again."

@@ -418,6 +418,7 @@ export const PERPS_EVENT_VALUE = {
     STOCKS: 'stocks',
     COMMODITIES: 'commodities',
     FOREX: 'forex',
+    PREDICTIONS: 'predictions',
     NEW: 'new',
     GIVE_FEEDBACK: 'give_feedback',
   },

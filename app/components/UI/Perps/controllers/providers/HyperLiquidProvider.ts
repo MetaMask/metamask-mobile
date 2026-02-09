@@ -80,6 +80,8 @@ import {
   validateWithdrawalParams,
 } from '../../utils/hyperLiquidValidation';
 import { transformMarketData } from '../../utils/marketDataTransform';
+import { HyperliquidHIP4Service } from '../../services/HyperliquidHIP4Service';
+import type { HIP4Market } from '../../types/hip4-types';
 import type {
   AccountState,
   AssetRoute,
@@ -292,6 +294,7 @@ export class HyperLiquidProvider implements PerpsProvider {
 
   // Feature flag configuration for HIP-3 market filtering
   private hip3Enabled: boolean;
+  private hip4Enabled: boolean;
   private allowlistMarkets: string[];
   private blocklistMarkets: string[];
   private useDexAbstraction: boolean;
@@ -323,6 +326,7 @@ export class HyperLiquidProvider implements PerpsProvider {
   constructor(options: {
     isTestnet?: boolean;
     hip3Enabled?: boolean;
+    hip4Enabled?: boolean;
     allowlistMarkets?: string[];
     blocklistMarkets?: string[];
     useDexAbstraction?: boolean;
@@ -334,6 +338,7 @@ export class HyperLiquidProvider implements PerpsProvider {
 
     // Dev-friendly defaults: Enable all markets by default for easier testing (discovery mode)
     this.hip3Enabled = options.hip3Enabled ?? __DEV__;
+    this.hip4Enabled = options.hip4Enabled ?? false;
     this.allowlistMarkets = options.allowlistMarkets ?? [];
     this.blocklistMarkets = options.blocklistMarkets ?? [];
 
@@ -5578,7 +5583,7 @@ export class HyperLiquidProvider implements PerpsProvider {
     });
 
     // Transform to UI-friendly format using standalone utility
-    return transformMarketData(
+    const perpsMarkets = transformMarketData(
       {
         universe: combinedUniverse,
         assetCtxs: combinedAssetCtxs,
@@ -5586,6 +5591,95 @@ export class HyperLiquidProvider implements PerpsProvider {
       },
       HIP3_ASSET_MARKET_TYPES,
     );
+
+    // Append HIP-4 prediction markets if enabled
+    if (this.hip4Enabled) {
+      try {
+        const hip4Markets = await this.fetchHIP4Markets(infoClient);
+        if (hip4Markets.length > 0) {
+          this.deps.debugLogger.log(
+            `HyperLiquidProvider: Appending ${hip4Markets.length} HIP-4 prediction markets`,
+          );
+          return [...perpsMarkets, ...hip4Markets];
+        }
+      } catch (error) {
+        this.deps.debugLogger.log(
+          'HyperLiquidProvider: Failed to fetch HIP-4 markets, returning perps only',
+          { error: String(error) },
+        );
+      }
+    }
+
+    return perpsMarkets;
+  }
+
+  /**
+   * Fetch HIP-4 prediction markets and convert to PerpsMarketData format.
+   * Uses the shared HyperliquidHIP4Service for API access and mapping.
+   */
+  private async fetchHIP4Markets(
+    infoClient: ReturnType<HyperLiquidClientService['getInfoClient']>,
+  ): Promise<PerpsMarketData[]> {
+    const hip4Service = new HyperliquidHIP4Service({
+      log: (message: string, ...args: unknown[]) => {
+        this.deps.debugLogger.log(`[HIP4] ${message}`, ...args);
+      },
+    });
+
+    // Reuse the SDK info client's underlying spotMeta/allMids endpoints
+    const spotMetaClient = {
+      spotMeta: () => infoClient.spotMeta(),
+      allMids: () => infoClient.allMids(),
+    };
+
+    const outcomeData = await hip4Service.fetchOutcomeMarkets(spotMetaClient);
+    const prices = await hip4Service.fetchPrices(spotMetaClient);
+    const hip4Markets: HIP4Market[] = hip4Service.mapToHIP4Markets(
+      outcomeData,
+      prices,
+    );
+
+    // Convert HIP4Market[] to PerpsMarketData[]
+    return hip4Markets.map((market) => {
+      // Use the YES side price from the first outcome as the market "price" (probability)
+      const firstOutcome = market.outcomes[0];
+      const yesSide = firstOutcome?.sides?.find(
+        (s) => s.name.toUpperCase() === 'YES',
+      );
+      const price = yesSide?.price ?? 0;
+
+      // Format price as probability percentage for display
+      const priceFormatted = `$${price.toFixed(4)}`;
+      // Display probability percentage as the change indicator
+      const probabilityPercent = `${(price * 100).toFixed(1)}%`;
+      const volume = market.volume24h;
+
+      return {
+        symbol: `hip4:${market.questionId}`,
+        name: market.title,
+        maxLeverage: '1x',
+        price: priceFormatted,
+        change24h: probabilityPercent,
+        change24hPercent: probabilityPercent,
+        volume: this.formatVolume(volume),
+        marketType: 'prediction' as const,
+        isHip3: false,
+        isNewMarket: false,
+        marketSource: 'hip4',
+      } satisfies PerpsMarketData;
+    });
+  }
+
+  /**
+   * Format volume number to display string (e.g., 1234567 -> "$1.2M")
+   */
+  private formatVolume(volume: number): string {
+    if (isNaN(volume) || volume === 0) return '$0';
+    if (volume >= 1_000_000_000)
+      return `$${(volume / 1_000_000_000).toFixed(1)}B`;
+    if (volume >= 1_000_000) return `$${(volume / 1_000_000).toFixed(1)}M`;
+    if (volume >= 1_000) return `$${(volume / 1_000).toFixed(1)}K`;
+    return `$${volume.toFixed(0)}`;
   }
 
   /**

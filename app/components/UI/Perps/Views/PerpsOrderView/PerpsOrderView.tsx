@@ -320,6 +320,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     showErrorToast: true,
   });
 
+  // Determine if this is an HIP-4 prediction market
+  // Prediction markets have: no leverage (1x only), YES/NO instead of Long/Short, price in [0,1]
+  const isPredictionMarket = marketData?.marketType === 'prediction';
+
   // Check if user has an existing position for this market
   const { existingPosition: currentMarketPosition } = useHasExistingPosition({
     asset: orderForm.asset || '',
@@ -1151,8 +1155,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const isAmountDisabled = amountTimesLeverage < minimumOrderAmount;
 
   // Button label: show Insufficient funds when user's max notional is below minimum
-  const orderButtonKey =
-    orderForm.direction === 'long'
+  // For prediction markets: show "Buy Yes" / "Buy No" instead of "Long" / "Short"
+  const orderButtonKey = isPredictionMarket
+    ? orderForm.direction === 'long'
+      ? 'perps.order.button.buy_yes'
+      : 'perps.order.button.buy_no'
+    : orderForm.direction === 'long'
       ? 'perps.order.button.long'
       : 'perps.order.button.short';
   const isInsufficientFunds =
@@ -1189,6 +1197,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         orderType={orderForm.type}
         direction={orderForm.direction}
         onOrderTypePress={() => setIsOrderTypeVisible(true)}
+        isPredictionMarket={isPredictionMarket}
       />
       <ScrollView
         style={styles.scrollView}
@@ -1229,7 +1238,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         {/* Order Details */}
         {!isInputFocused && (
           <View style={styles.detailsWrapper}>
-            {/* Leverage */}
+            {/* Leverage - disabled for prediction markets (always 1x, fully collateralized) */}
             <View
               style={[
                 styles.detailItem,
@@ -1240,7 +1249,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   : styles.detailItemOnly,
               ]}
             >
-              <TouchableOpacity onPress={() => setIsLeverageVisible(true)}>
+              <TouchableOpacity
+                onPress={() =>
+                  !isPredictionMarket && setIsLeverageVisible(true)
+                }
+                disabled={isPredictionMarket}
+              >
                 <ListItem style={styles.detailItemWrapper}>
                   <ListItemColumn widthType={WidthType.Fill}>
                     <View style={styles.detailLeft}>
@@ -1266,9 +1280,17 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   <ListItemColumn widthType={WidthType.Auto}>
                     <Text
                       variant={TextVariant.BodyMD}
-                      color={TextColor.Default}
+                      color={
+                        isPredictionMarket
+                          ? TextColor.Alternative
+                          : TextColor.Default
+                      }
                     >
-                      {isLoadingMarketData ? '...' : `${orderForm.leverage}x`}
+                      {isPredictionMarket
+                        ? '1x (fixed)'
+                        : isLoadingMarketData
+                          ? '...'
+                          : `${orderForm.leverage}x`}
                     </Text>
                   </ListItemColumn>
                 </ListItem>
@@ -1651,8 +1673,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         </View>
       )}
       {/* Leverage Selector */}
+      {/* Leverage selector - hidden for prediction markets (always 1x) */}
       <PerpsLeverageBottomSheet
-        isVisible={isLeverageVisible}
+        isVisible={isLeverageVisible && !isPredictionMarket}
         onClose={() => setIsLeverageVisible(false)}
         onConfirm={(leverage, inputMethod) => {
           setLeverage(leverage);

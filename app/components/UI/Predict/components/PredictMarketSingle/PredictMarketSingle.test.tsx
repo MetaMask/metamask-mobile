@@ -330,6 +330,7 @@ describe('PredictMarketSingle', () => {
       screen: Routes.PREDICT.MARKET_DETAILS,
       params: {
         marketId: mockMarket.id,
+        providerId: mockMarket.providerId,
         entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
         title: mockMarket.title,
         image: mockMarket.image,

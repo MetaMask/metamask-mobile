@@ -13,6 +13,8 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   Text,
   TextColor,
   TextVariant,
@@ -63,6 +65,7 @@ const PredictMarketRowItem = ({
       screen: Routes.PREDICT.MARKET_DETAILS,
       params: {
         marketId: market.id,
+        providerId: market.providerId,
         entryPoint,
         title: market.title,
         image: market.image,
@@ -105,14 +108,27 @@ const PredictMarketRowItem = ({
             {market.title}
           </Text>
         </View>
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.TextAlternative}
-          numberOfLines={1}
-          ellipsizeMode="tail"
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-1"
         >
-          {topOutcome.probability} chance on {topOutcome.outcomeTitle}
-        </Text>
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {topOutcome.probability} chance on {topOutcome.outcomeTitle}
+          </Text>
+          {market.providerId !== 'polymarket' && (
+            <Box twClassName="rounded-full bg-info-muted px-1.5 py-0.5">
+              <Text variant={TextVariant.BodyXs} color={TextColor.InfoDefault}>
+                {market.providerId === 'hyperliquid' ? 'HL' : market.providerId}
+              </Text>
+            </Box>
+          )}
+        </Box>
       </View>
     </TouchableOpacity>
   );

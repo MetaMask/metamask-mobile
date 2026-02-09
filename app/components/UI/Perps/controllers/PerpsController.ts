@@ -752,6 +752,9 @@ export class PerpsController extends BaseController<
   private hip3BlocklistMarkets: string[];
   private hip3ConfigSource: 'remote' | 'fallback' = 'fallback';
 
+  // HIP-4 prediction markets master switch
+  private hip4Enabled: boolean;
+
   /**
    * Active provider instance for routing operations.
    * When activeProvider is 'hyperliquid' or 'myx': points to specific provider directly
@@ -817,6 +820,9 @@ export class PerpsController extends BaseController<
     this.hip3BlocklistMarkets = [
       ...(clientConfig.fallbackHip3BlocklistMarkets ?? []),
     ];
+
+    // HIP-4 prediction markets switch from config
+    this.hip4Enabled = clientConfig.fallbackHip4Enabled ?? false;
 
     // Immediately set the fallback region list since RemoteFeatureFlagController is empty by default and takes a moment to populate.
     this.setBlockedRegionList(
@@ -1178,6 +1184,7 @@ export class PerpsController extends BaseController<
         const hyperLiquidProvider = new HyperLiquidProvider({
           isTestnet: this.state.isTestnet,
           hip3Enabled: this.hip3Enabled,
+          hip4Enabled: this.hip4Enabled,
           allowlistMarkets: this.hip3AllowlistMarkets,
           blocklistMarkets: this.hip3BlocklistMarkets,
           platformDependencies: this.options.infrastructure,
@@ -1946,6 +1953,7 @@ export class PerpsController extends BaseController<
         new HyperLiquidProvider({
           isTestnet: this.state.isTestnet,
           hip3Enabled: this.hip3Enabled,
+          hip4Enabled: this.hip4Enabled,
           allowlistMarkets: this.hip3AllowlistMarkets,
           blocklistMarkets: this.hip3BlocklistMarkets,
           platformDependencies: this.options.infrastructure,
@@ -2032,6 +2040,7 @@ export class PerpsController extends BaseController<
         new HyperLiquidProvider({
           isTestnet: this.state.isTestnet,
           hip3Enabled: this.hip3Enabled,
+          hip4Enabled: this.hip4Enabled,
           allowlistMarkets: this.hip3AllowlistMarkets,
           blocklistMarkets: this.hip3BlocklistMarkets,
           platformDependencies: this.options.infrastructure,
@@ -2081,6 +2090,7 @@ export class PerpsController extends BaseController<
         new HyperLiquidProvider({
           isTestnet: this.state.isTestnet,
           hip3Enabled: this.hip3Enabled,
+          hip4Enabled: this.hip4Enabled,
           allowlistMarkets: this.hip3AllowlistMarkets,
           blocklistMarkets: this.hip3BlocklistMarkets,
           platformDependencies: this.options.infrastructure,

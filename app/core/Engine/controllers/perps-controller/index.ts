@@ -41,6 +41,8 @@ export const perpsControllerInit: ControllerInitFunction<
       fallbackHip3BlocklistMarkets: parseCommaSeparatedString(
         process.env.MM_PERPS_HIP3_BLOCKLIST_MARKETS ?? '',
       ),
+      fallbackHip4Enabled:
+        process.env.MM_PERPS_HIP4_ENABLED?.toLowerCase() === 'true',
     },
   });
 

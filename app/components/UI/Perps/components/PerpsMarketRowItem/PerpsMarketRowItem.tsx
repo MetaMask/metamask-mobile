@@ -189,8 +189,14 @@ const PerpsMarketRowItem = ({
 
         <View style={styles.tokenInfo}>
           <View style={styles.tokenHeader}>
-            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-              {getPerpsDisplaySymbol(displayMarket.symbol)}
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Default}
+              numberOfLines={1}
+            >
+              {displayMarket.marketType === 'prediction'
+                ? displayMarket.name
+                : getPerpsDisplaySymbol(displayMarket.symbol)}
             </Text>
             <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
           </View>

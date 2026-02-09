@@ -36,6 +36,8 @@ interface PerpsOrderHeaderProps {
   title?: string;
   onOrderTypePress?: () => void;
   isLoading?: boolean;
+  /** Whether this is an HIP-4 prediction market (changes Long/Short to Yes/No) */
+  isPredictionMarket?: boolean;
 }
 
 const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
@@ -48,6 +50,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   onOrderTypePress,
   title,
   isLoading,
+  isPredictionMarket = false,
 }) => {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -110,9 +113,13 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
         >
           {title ||
             `${
-              direction === 'long'
-                ? strings('perps.market.long')
-                : strings('perps.market.short')
+              isPredictionMarket
+                ? direction === 'long'
+                  ? 'Buy Yes'
+                  : 'Buy No'
+                : direction === 'long'
+                  ? strings('perps.market.long')
+                  : strings('perps.market.short')
             } ${getPerpsDisplaySymbol(asset)}`}
         </Text>
         <View style={styles.priceRow}>

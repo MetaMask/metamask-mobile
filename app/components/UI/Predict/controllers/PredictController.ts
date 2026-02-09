@@ -34,6 +34,7 @@ import {
   RemoteFeatureFlagControllerGetStateAction,
   RemoteFeatureFlagControllerStateChangeEvent,
 } from '@metamask/remote-feature-flag-controller';
+import type { PerpsControllerState } from '../../Perps/controllers/PerpsController';
 import { Hex, hexToNumber, numberToHex } from '@metamask/utils';
 import performance from 'react-native-performance';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -56,6 +57,7 @@ import {
 } from '../constants/eventNames';
 import { validateDepositTransactions } from '../utils/validateTransactions';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
+import { HyperliquidPredictProvider } from '../providers/hyperliquid/HyperliquidPredictProvider';
 import {
   AccountState,
   ConnectionStatus,
@@ -250,7 +252,8 @@ type AllowedActions =
   | TransactionControllerEstimateGasAction
   | KeyringControllerSignTypedMessageAction
   | KeyringControllerSignPersonalMessageAction
-  | RemoteFeatureFlagControllerGetStateAction;
+  | RemoteFeatureFlagControllerGetStateAction
+  | ControllerGetStateAction<'PerpsController', PerpsControllerState>;
 
 /**
  * External events the PredictController can subscribe to
@@ -381,9 +384,40 @@ export class PredictController extends BaseController<
     this.providers.clear();
     this.providers.set('polymarket', new PolymarketProvider());
 
+    // Register HIP-4 Hyperliquid prediction market provider if enabled
+    const hip4Enabled =
+      process.env.MM_PERPS_HIP4_ENABLED?.toLowerCase() === 'true';
+    if (hip4Enabled) {
+      // Read testnet state from PerpsController (tracks the runtime Developer Settings toggle)
+      // rather than env vars which are only set at compile time.
+      let isTestnet = false;
+      try {
+        const perpsState = this.messenger.call('PerpsController:getState');
+        isTestnet = perpsState?.isTestnet ?? false;
+      } catch (e) {
+        // PerpsController may not be initialized yet; fall back to env vars
+        isTestnet =
+          process.env.MM_PERPS_TESTNET === 'true' ||
+          process.env.METAMASK_ENVIRONMENT === 'dev';
+        DevLogger.log(
+          'PredictController: Could not read PerpsController state, using env fallback',
+          { isTestnet, error: String(e) },
+        );
+      }
+      this.providers.set(
+        'hyperliquid',
+        new HyperliquidPredictProvider({ isTestnet }),
+      );
+      DevLogger.log(
+        'PredictController: HIP-4 Hyperliquid provider registered',
+        { isTestnet, timestamp: new Date().toISOString() },
+      );
+    }
+
     this.isInitialized = true;
     DevLogger.log('PredictController: Providers initialized successfully', {
       providerCount: this.providers.size,
+      providers: Array.from(this.providers.keys()),
       timestamp: new Date().toISOString(),
     });
   }

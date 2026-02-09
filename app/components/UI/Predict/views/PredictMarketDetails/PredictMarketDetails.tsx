@@ -66,9 +66,15 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [isResolvedExpanded, setIsResolvedExpanded] = useState<boolean>(false);
 
-  const { marketId, entryPoint, title, image } = route.params || {};
+  const {
+    marketId,
+    providerId: routeProviderId,
+    entryPoint,
+    title,
+    image,
+  } = route.params || {};
   const resolvedMarketId = marketId;
-  const providerId = 'polymarket';
+  const providerId = routeProviderId || 'polymarket';
 
   const { executeGuardedAction } = usePredictActionGuard({
     providerId,

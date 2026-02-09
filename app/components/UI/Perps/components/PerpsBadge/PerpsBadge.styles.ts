@@ -44,6 +44,10 @@ export const styleSheet = (params: {
       background: theme.colors.error.muted,
       text: theme.colors.error.default,
     },
+    prediction: {
+      background: theme.colors.warning.muted,
+      text: theme.colors.warning.default,
+    },
   };
 
   const style = badgeStyles[type] || {

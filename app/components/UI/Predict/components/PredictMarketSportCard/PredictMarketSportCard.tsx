@@ -65,6 +65,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
           screen: Routes.PREDICT.MARKET_DETAILS,
           params: {
             marketId: market.id,
+            providerId: market.providerId,
             entryPoint: resolvedEntryPoint,
             title: market.title,
             image: market.image,

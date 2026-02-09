@@ -137,6 +137,7 @@ const PerpsMarketListView = ({
     if (marketCounts.equity > 0) categories.push('stocks');
     if (marketCounts.commodity > 0) categories.push('commodities');
     if (marketCounts.forex > 0) categories.push('forex');
+    if (marketCounts.prediction > 0) categories.push('predictions');
     if (marketCounts.new > 0) categories.push('new');
     return categories;
   }, [marketCounts]);
@@ -152,6 +153,7 @@ const PerpsMarketListView = ({
         stocks: PERPS_EVENT_VALUE.BUTTON_CLICKED.STOCKS,
         commodities: PERPS_EVENT_VALUE.BUTTON_CLICKED.COMMODITIES,
         forex: PERPS_EVENT_VALUE.BUTTON_CLICKED.FOREX,
+        predictions: PERPS_EVENT_VALUE.BUTTON_CLICKED.PREDICTIONS,
         new: PERPS_EVENT_VALUE.BUTTON_CLICKED.NEW,
         all: null,
       };

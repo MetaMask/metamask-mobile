@@ -211,6 +211,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
           screen: Routes.PREDICT.MARKET_DETAILS,
           params: {
             marketId: market.id,
+            providerId: market.providerId,
             entryPoint: resolvedEntryPoint,
             title: market.title,
             image: getImageUrl(),
@@ -284,9 +285,30 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
           />
         </View>
         <View style={styles.marketFooter}>
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            ${getVolumeDisplay()} {strings('predict.volume_abbreviated')}
-          </Text>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-2 flex-1"
+          >
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              ${getVolumeDisplay()} {strings('predict.volume_abbreviated')}
+            </Text>
+            {market.providerId !== 'polymarket' && (
+              <Box twClassName="rounded-full bg-info-muted px-2 py-0.5">
+                <Text
+                  variant={TextVariant.BodyXs}
+                  color={TextColor.InfoDefault}
+                >
+                  {market.providerId === 'hyperliquid'
+                    ? 'Hyperliquid'
+                    : market.providerId}
+                </Text>
+              </Box>
+            )}
+          </Box>
         </View>
       </View>
     </TouchableOpacity>

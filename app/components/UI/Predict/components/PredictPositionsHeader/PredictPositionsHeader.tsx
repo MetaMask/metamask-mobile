@@ -12,6 +12,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, {
   forwardRef,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useMemo,
@@ -32,6 +33,7 @@ import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
+import { HYPERLIQUID_PROVIDER_ID } from '../../providers/hyperliquid/constants';
 import { selectPredictWonPositions } from '../../selectors/predictController';
 import { PredictPosition } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
@@ -61,19 +63,55 @@ const PredictPositionsHeader = forwardRef<
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const tw = useTailwind();
+  const isHip4Enabled =
+    process.env.MM_PERPS_HIP4_ENABLED?.toLowerCase() === 'true';
+
   const { executeGuardedAction } = usePredictActionGuard({
     providerId: POLYMARKET_PROVIDER_ID,
     navigation,
   });
+
+  // Polymarket balance (always loaded)
   const {
-    balance,
-    loadBalance,
-    isLoading: isBalanceLoading,
-    error: balanceError,
+    balance: polyBalance,
+    loadBalance: loadPolyBalance,
+    isLoading: isPolyBalanceLoading,
+    error: polyBalanceError,
   } = usePredictBalance({
+    providerId: POLYMARKET_PROVIDER_ID,
     loadOnMount: true,
     refreshOnFocus: true,
   });
+
+  // Hyperliquid balance (loaded when HIP-4 is enabled)
+  const {
+    balance: hlBalance,
+    loadBalance: loadHlBalance,
+    isLoading: isHlBalanceLoading,
+    error: hlBalanceError,
+  } = usePredictBalance({
+    providerId: HYPERLIQUID_PROVIDER_ID,
+    loadOnMount: isHip4Enabled,
+    refreshOnFocus: isHip4Enabled,
+  });
+
+  // Aggregate balance and loading state
+  const balance = isHip4Enabled ? polyBalance + hlBalance : polyBalance;
+  const isBalanceLoading = isHip4Enabled
+    ? isPolyBalanceLoading || isHlBalanceLoading
+    : isPolyBalanceLoading;
+  const balanceError =
+    polyBalanceError || (isHip4Enabled ? hlBalanceError : null);
+  const loadBalance = useCallback(
+    async (options?: { isRefresh?: boolean }) => {
+      await loadPolyBalance(options);
+      if (isHip4Enabled) {
+        await loadHlBalance(options);
+      }
+    },
+    [loadPolyBalance, loadHlBalance, isHip4Enabled],
+  );
+
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
   const selectedAddress = evmAccount?.address ?? '0x0';
   const { isDepositPending } = usePredictDeposit();
