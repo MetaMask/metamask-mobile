@@ -60,7 +60,7 @@ jobs:
           node -e "
           const yaml = require('js-yaml');
           const fs = require('fs');
-          const config = yaml.load(fs.readFileSync('.github/builds.yml', 'utf8'));
+          const config = yaml.load(fs.readFileSync('builds.yml', 'utf8'));
           const build = config.builds['${{ inputs.build_name }}'];
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'github_environment=' + build.github_environment + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'secrets_json=' + JSON.stringify(build.secrets || {}) + '\n');

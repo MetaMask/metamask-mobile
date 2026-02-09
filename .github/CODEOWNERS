@@ -52,7 +52,7 @@ ios/fastlane/                                               @MetaMask/mobile-adm
 scripts/setup-app-store-connect-api-key.sh                  @MetaMask/mobile-admins
 scripts/upload-to-testflight.sh                             @MetaMask/mobile-admins
 scripts/set-secrets-from-config.js                          @MetaMask/mobile-admins
-.github/builds.yml                                          @MetaMask/mobile-admins
+builds.yml                                                  @MetaMask/mobile-admins
 
 
 # Platform & Snaps Code Fencing File
@@ -251,7 +251,7 @@ tests/framework/                               @MetaMask/qa
 e2e/pages/                                   @MetaMask/qa
 e2e/utils/                                   @MetaMask/qa
 e2e/viewHelper.ts                            @MetaMask/qa
-# Note: Test builds (main-test, flask-test) in build/builds.yml are owned by QA team
+# Note: Test builds (main-test, flask-test) in builds.yml are owned by QA team
 # but the file itself is protected by mobile-platform for consistency
 
 # Co-owned by Swaps and Ramps teams

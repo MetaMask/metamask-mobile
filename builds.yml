@@ -3,6 +3,7 @@
 #
 # Usage:
 #   - CI reads this file to configure builds
+#   - Local dev: run `yarn setup:expo` to generate .js.env.defaults from main-dev
 #   - Local dev can override via .js.env (takes precedence)
 #   - LaunchDarkly overrides remote_feature_flags at runtime
 #
