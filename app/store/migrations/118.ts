@@ -2,7 +2,6 @@ import { hasProperty, isObject } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
 import { ensureValidState } from './util';
 import { NETWORK_CHAIN_ID } from '../../util/networks/customNetworks';
-import { NetworkConfiguration } from '@metamask/network-controller';
 
 export const migrationVersion = 118;
 
@@ -49,9 +48,11 @@ export default function migrate(state: unknown): unknown {
       return state;
     }
 
-    const networkConfig = networkConfigsByChainId[
-      megaEthChainId
-    ] as NetworkConfiguration;
+    const networkConfig = networkConfigsByChainId[megaEthChainId];
+
+    if (!isObject(networkConfig)) {
+      return state;
+    }
 
     // Update the network name if it matches the old name
     if (
@@ -68,7 +69,7 @@ export default function migrate(state: unknown): unknown {
       Array.isArray(networkConfig.rpcEndpoints)
     ) {
       networkConfig.rpcEndpoints.forEach((endpoint) => {
-        if (endpoint.name === 'MegaEth') {
+        if (isObject(endpoint) && endpoint.name === 'MegaEth') {
           endpoint.name = 'MegaETH';
         }
       });
