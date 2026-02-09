@@ -26,25 +26,37 @@ describe('toHumanEstimatedTimeRange', () => {
     expect(toHumanEstimatedTimeRange(5000, 30000)).toBe('5 - 30 sec');
   });
 
-  it('returns "< 1 sec" when min is less than 1 second on MegaETH chains', () => {
+  it('formats sub-second values on MegaETH chains using decimal seconds', () => {
     // MegaETH Mainnet
     expect(toHumanEstimatedTimeRange(100, 5000, MEGAETH_MAINNET_CHAIN_ID)).toBe(
-      '< 1 sec',
+      '0.1 - 5 sec',
+    );
+    expect(toHumanEstimatedTimeRange(250, 1000, MEGAETH_MAINNET_CHAIN_ID)).toBe(
+      '0.2 - 1 sec',
     );
     expect(
       toHumanEstimatedTimeRange(500, 10000, MEGAETH_MAINNET_CHAIN_ID),
-    ).toBe('< 1 sec');
+    ).toBe('0.5 - 10 sec');
     expect(
       toHumanEstimatedTimeRange(999, 30000, MEGAETH_MAINNET_CHAIN_ID),
-    ).toBe('< 1 sec');
+    ).toBe('0.9 - 30 sec');
 
     // MegaETH Testnet
     expect(toHumanEstimatedTimeRange(100, 5000, MEGAETH_TESTNET_CHAIN_ID)).toBe(
-      '< 1 sec',
+      '0.1 - 5 sec',
     );
     expect(
       toHumanEstimatedTimeRange(500, 10000, MEGAETH_TESTNET_CHAIN_ID),
-    ).toBe('< 1 sec');
+    ).toBe('0.5 - 10 sec');
+  });
+
+  it('always uses seconds on MegaETH chains even when max exceeds 60 seconds', () => {
+    expect(
+      toHumanEstimatedTimeRange(500, 90000, MEGAETH_MAINNET_CHAIN_ID),
+    ).toBe('0.5 - 90 sec');
+    expect(
+      toHumanEstimatedTimeRange(5000, 120000, MEGAETH_TESTNET_CHAIN_ID),
+    ).toBe('5 - 120 sec');
   });
 
   it('formats normally when min is less than 1 second on non-MegaETH chains', () => {

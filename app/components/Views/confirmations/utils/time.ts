@@ -32,14 +32,11 @@ export const toHumanEstimatedTimeRange = (
     return undefined;
   }
 
-  if (isFastNetwork(chainId as Hex) && min < 1000) {
-    return '< 1 sec';
-  }
-
   // Determine if we should show in minutes or seconds
   const minInSeconds = min / 1000;
   const maxInSeconds = max / 1000;
-  const useMinutes = maxInSeconds >= 60;
+  const isFast = isFastNetwork(chainId as Hex);
+  const useMinutes = !isFast && maxInSeconds >= 60;
 
   const options = {
     units: useMinutes ? ['m'] : ['s'],
