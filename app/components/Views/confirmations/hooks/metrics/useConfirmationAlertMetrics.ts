@@ -114,6 +114,7 @@ const ALERTS_NAME_METRICS: AlertNameMetrics = {
   [AlertKeys.DomainMismatch]: 'domain_mismatch',
   [AlertKeys.FirstTimeInteraction]: 'first_time_interaction',
   [AlertKeys.GasEstimateFailed]: 'gas_estimate_failed',
+  [AlertKeys.GasSponsorshipReserveBalance]: 'gas_sponsorship_reserve_balance',
   [AlertKeys.InsufficientBalance]: 'insufficient_balance',
   [AlertKeys.InsufficientPayTokenBalance]: 'insufficient_funds',
   [AlertKeys.InsufficientPayTokenFees]: 'insufficient_funds_for_fees',

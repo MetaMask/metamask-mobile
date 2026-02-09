@@ -44,6 +44,9 @@ describe(SmokeWalletPlatform('Trending Feature Browser Test'), () => {
         // Navigate to Browser View (automatically adapts to Explore/Trending or direct Browser tab)
         await navigateToBrowserView();
 
+        // click on the first default Tab
+        await Browser.tapFirstTabButton();
+
         // Navigate to Test Dapp
         await Browser.navigateToTestDApp();
 

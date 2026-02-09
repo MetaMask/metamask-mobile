@@ -641,7 +641,7 @@ class AuthenticationService {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      this.lockApp({ reset: false });
+      await this.lockApp({ reset: false, navigateToLogin: false });
       throw new AuthenticationError(
         (e as Error).message,
         AUTHENTICATION_FAILED_WALLET_CREATION,
@@ -675,7 +675,7 @@ class AuthenticationService {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      this.lockApp({ reset: false });
+      await this.lockApp({ reset: false, navigateToLogin: false });
       throw new AuthenticationError(
         (e as Error).message,
         AUTHENTICATION_FAILED_WALLET_CREATION,
@@ -734,6 +734,11 @@ class AuthenticationService {
           } else if (await this.checkIsSeedlessPasswordOutdated(false)) {
             // If seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
             await this.syncPasswordAndUnlockWallet(passwordToUse);
+            // try to enable biometric/passcode as default
+            authPreference = await this.componentAuthenticationType(
+              true,
+              false,
+            );
           }
 
           // Unlock keyrings.
@@ -751,6 +756,9 @@ class AuthenticationService {
           await this.dispatchLogin();
           this.dispatchPasswordSet();
           void this.postLoginAsyncOperations();
+
+          // Mark user as existing after successful unlock
+          ReduxService.store.dispatch(setExistingUser(true));
 
           // TODO: Refactor this orchestration to sagas.
           // Navigate to optin metrics or home screen based on metrics consent and UI seen.
@@ -1246,8 +1254,8 @@ class AuthenticationService {
         }
 
         this.dispatchOauthReset();
-
         ReduxService.store.dispatch(setExistingUser(true));
+
         await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       } else {
         throw new Error('No account data found');
@@ -1350,7 +1358,7 @@ class AuthenticationService {
       });
     } catch (err) {
       // lock app again on error after submitPassword succeeded
-      await this.lockApp({ locked: true });
+      await this.lockApp({ locked: true, reset: false });
       throw err;
     }
 

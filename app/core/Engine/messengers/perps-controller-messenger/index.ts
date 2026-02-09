@@ -29,6 +29,11 @@ export function getPerpsControllerMessenger(
       'NetworkController:getState',
       'AuthenticationController:getBearerToken',
       'RemoteFeatureFlagController:getState',
+      'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      'KeyringController:signTypedMessage',
+      'NetworkController:getNetworkClientById',
+      'NetworkController:findNetworkClientIdByChainId',
+      'TransactionController:addTransaction',
     ],
     events: [
       'TransactionController:transactionSubmitted',
