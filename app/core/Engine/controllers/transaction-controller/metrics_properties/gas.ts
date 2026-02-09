@@ -28,7 +28,7 @@ export function getGasMetricsProperties({
 
   const { from } = txParams ?? {};
 
-  let presentedGasFeeOption: string = 'n_a';
+  let presentedGasFeeOption: string = 'not_loaded';
 
   if (dappSuggestedGasFees) {
     presentedGasFeeOption = 'dapp_proposed';

@@ -123,7 +123,7 @@ describe('getGasMetricsProperties', () => {
     ]);
   });
 
-  it('returns n_a as gas_fee_presented when no dapp suggested fees and estimates not loaded', () => {
+  it('returns not_loaded as gas_fee_presented when no dapp suggested fees and estimates not loaded', () => {
     const request = createMockRequest({
       gasFeeEstimatesLoaded: false,
       dappSuggestedGasFees: undefined,
@@ -131,7 +131,7 @@ describe('getGasMetricsProperties', () => {
 
     const result = getGasMetricsProperties(request);
 
-    expect(result.properties.gas_fee_presented).toBe('n_a');
+    expect(result.properties.gas_fee_presented).toBe('not_loaded');
   });
 
   it('returns gas_insufficient_native_asset as true when balance is insufficient', () => {
