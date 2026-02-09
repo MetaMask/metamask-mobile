@@ -122,7 +122,7 @@ describe('getAuthToggleLabel', () => {
       jest.replaceProperty(Platform, 'OS', 'ios');
     });
 
-    it('returns "Remember Me" when allowLoginWithRememberMe is true (iOS)', () => {
+    it('returns "Remember Me" when allowLoginWithRememberMe is true', () => {
       const result = getAuthToggleLabel({
         isBiometricsAvailable: true,
         supportedOSAuthenticationTypes: [AuthenticationType.FACIAL_RECOGNITION],
@@ -204,13 +204,15 @@ describe('getAuthToggleLabel', () => {
       jest.replaceProperty(Platform, 'OS', 'android');
     });
 
-    const result = getAuthToggleLabel({
-      isBiometricsAvailable: true,
-      supportedOSAuthenticationTypes: [AuthenticationType.FINGERPRINT],
-      passcodeAvailable: true,
-      allowLoginWithRememberMe: true,
+    it('returns "Remember Me" when allowLoginWithRememberMe is true', () => {
+      const result = getAuthToggleLabel({
+        isBiometricsAvailable: true,
+        supportedOSAuthenticationTypes: [AuthenticationType.FINGERPRINT],
+        passcodeAvailable: true,
+        allowLoginWithRememberMe: true,
+      });
+      expect(result).toBe('Remember Me');
     });
-    expect(result).toBe('Remember Me');
 
     it('returns "Biometrics" when fingerprint is available', () => {
       const result = getAuthToggleLabel({
