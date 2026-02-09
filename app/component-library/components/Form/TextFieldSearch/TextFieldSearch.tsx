@@ -20,12 +20,6 @@ const TextFieldSearch: React.FC<TextFieldSearchProps> = ({
   style,
   ...props
 }) => {
-  if (__DEV__ && Boolean(value) && !onPressClearButton) {
-    console.warn(
-      'TextFieldSearch: onPressClearButton should be provided when using controlled value',
-    );
-  }
-
   const searchIcon = (
     <Icon
       name={IconName.Search}
