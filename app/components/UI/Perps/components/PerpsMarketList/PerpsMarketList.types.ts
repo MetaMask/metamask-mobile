@@ -49,6 +49,21 @@ export interface PerpsMarketListProps {
    */
   contentContainerStyle?: StyleProp<ViewStyle>;
   /**
+   * Optional vertical padding for each market row item.
+   * Used for compact displays (e.g., search results).
+   */
+  rowVerticalPadding?: number;
+  /**
+   * Optional fixed height for each market row item.
+   * Used for compact displays (e.g., search results).
+   */
+  rowHeight?: number;
+  /**
+   * Compact mode for market row items.
+   * Used for compact displays (e.g., search results).
+   */
+  rowIsCompact?: boolean;
+  /**
    * Optional key to force FlashList re-mount when filters change.
    * This fixes rendering issues when data changes rapidly.
    */

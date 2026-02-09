@@ -49,7 +49,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
     },
     iconContainer: {
-      marginRight: 12,
+      marginRight: 16,
     },
     activityInfo: {
       flex: 1,
