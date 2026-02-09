@@ -119,9 +119,20 @@ describe(FlaskBuildTests('Background Events Snap Tests'), () => {
 
         await TestSnaps.fillMessage('backgroundEventDateInput', pastDate);
         await TestSnaps.tapButton('scheduleBackgroundEventWithDateButton');
-        await Assertions.expectTextDisplayed(
-          'Cannot schedule an event in the past.',
-        );
+        // iOS shows the error as a native alert; Android renders it in the
+        // web-view result span as JSON with escaped quotes.
+        if (device.getPlatform() === 'ios') {
+          await Assertions.expectTextDisplayed(
+            'Cannot schedule an event in the past.',
+            { timeout: 30000 },
+          );
+        } else {
+          await TestSnaps.checkResultSpanIncludes(
+            'scheduleBackgroundEventResultSpan',
+            'Cannot schedule an event in the past.',
+            { timeout: 30000 },
+          );
+        }
       },
     );
   });
