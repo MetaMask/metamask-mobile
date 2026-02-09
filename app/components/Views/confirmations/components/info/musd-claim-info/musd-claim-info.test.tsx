@@ -143,7 +143,7 @@ describe('MusdClaimInfo', () => {
     });
   });
 
-  it('should render correctly', () => {
+  it('renders claim bonus UI with expected elements', () => {
     const { getByText, getByTestId } = renderWithProvider(<MusdClaimInfo />, {
       state: musdClaimConfirmationState,
     });

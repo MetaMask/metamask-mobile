@@ -174,7 +174,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const merklRewardsRef = useRef<View>(null);
-  const merklRewardsYInHeaderRef = useRef<number | null>(null);
   const resetNavigationLockRef = useRef<(() => void) | null>(null);
 
   const {
@@ -377,16 +376,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             ///: END:ONLY_INCLUDE_IF
           }
           {isMerklCampaignClaimingEnabled && (
-            <View
-              ref={merklRewardsRef}
-              testID="merkl-rewards-section"
-              onLayout={(event) => {
-                // Store Y position relative to header (which is the scroll offset)
-                // This is more reliable than measureInWindow for FlatList scrolling
-                const { y } = event.nativeEvent.layout;
-                merklRewardsYInHeaderRef.current = y;
-              }}
-            >
+            <View ref={merklRewardsRef} testID="merkl-rewards-section">
               <MerklRewards asset={token} />
             </View>
           )}

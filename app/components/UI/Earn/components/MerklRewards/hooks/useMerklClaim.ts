@@ -24,7 +24,7 @@ import {
  * After successful submission, user is navigated to home page.
  * Toast notifications and balance refresh are handled globally by useMerklClaimStatus.
  */
-export const useMerklClaim = (asset: TokenI) => {
+export const useMerklClaim = (asset: TokenI | undefined) => {
   const [isClaiming, setIsClaiming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -43,7 +43,8 @@ export const useMerklClaim = (asset: TokenI) => {
 
   // Get the chain ID where claims should be executed
   // For mUSD, claims always go to Linea regardless of which chain the user is viewing
-  const claimChainId = getClaimChainId(asset);
+  // asset may be undefined during state transitions; getClaimChainId requires a valid asset
+  const claimChainId = asset ? getClaimChainId(asset) : ('' as Hex);
 
   const endpoint = useSelector((state: RootState) =>
     selectDefaultEndpointByChainId(state, claimChainId),
@@ -51,6 +52,12 @@ export const useMerklClaim = (asset: TokenI) => {
   const networkClientId = endpoint?.networkClientId;
 
   const claimRewards = useCallback(async () => {
+    if (!asset) {
+      const errorMessage = 'No asset available for claiming';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    }
+
     if (!selectedAddress || !networkClientId) {
       const errorMessage = 'No account or network selected';
       setError(errorMessage);

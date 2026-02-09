@@ -186,7 +186,7 @@ export const TokenListItem = React.memo(
         !hasPendingClaim,
     );
 
-    const { claimRewards, isClaiming } = useMerklClaim(asset as TokenI);
+    const { claimRewards, isClaiming } = useMerklClaim(asset);
 
     const handleClaimBonus = useCallback(async () => {
       try {

@@ -170,6 +170,13 @@ jest.mock('../../../Stake/hooks/useStakingChain', () => ({
   useStakingChainByChainId: () => ({ isStakingSupportedChain: false }),
 }));
 
+jest.mock(
+  '../../../Earn/components/MerklRewards/hooks/usePendingMerklClaim',
+  () => ({
+    usePendingMerklClaim: jest.fn(() => ({ hasPendingClaim: false })),
+  }),
+);
+
 jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectPooledStakingEnabledFlag: jest.fn(() => true),
   selectStablecoinLendingEnabledFlag: jest.fn(() => false),
