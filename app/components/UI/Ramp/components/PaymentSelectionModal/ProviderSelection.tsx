@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { StyleSheet } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
 import type { CaipChainId } from '@metamask/utils';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
@@ -13,16 +14,19 @@ import type { Provider, Quote } from '@metamask/ramps-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { useRampsController } from '../../hooks/useRampsController';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
-import {
-  formatCurrency,
-  formatTokenAmount,
-} from '../../utils/formatCurrency';
+import { formatCurrency, formatTokenAmount } from '../../utils/formatCurrency';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import QuoteDisplay from './QuoteDisplay';
 
 const SKELETON_ROW_COUNT = 3;
 const SKELETON_NAME_WIDTH = 120;
 const SKELETON_NAME_HEIGHT = 20;
+
+const styles = StyleSheet.create({
+  skeleton: {
+    borderRadius: 4,
+  },
+});
 
 interface ProviderSelectionProps {
   onBack: () => void;
@@ -39,7 +43,6 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
   onProviderSelect,
   amount,
 }) => {
-  console.log('providers', providers);
   const {
     userRegion,
     selectedToken,
@@ -57,8 +60,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
   const [quotesLoading, setQuotesLoading] = useState(false);
 
   const paymentMethodIds = useMemo(() => {
-    const id =
-      selectedPaymentMethod?.id ?? paymentMethods?.[0]?.id ?? null;
+    const id = selectedPaymentMethod?.id ?? paymentMethods?.[0]?.id ?? null;
     return id ? [id] : [];
   }, [selectedPaymentMethod?.id, paymentMethods]);
 
@@ -126,6 +128,16 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
     [providers, setSelectedQuote, onProviderSelect],
   );
 
+  const providerIds = useMemo(
+    () => new Set(providers.map((p) => p.id)),
+    [providers],
+  );
+
+  const quotes = useMemo(() => {
+    const raw = successQuotes ?? [];
+    return raw.filter((quote) => providerIds.has(quote.provider));
+  }, [successQuotes, providerIds]);
+
   const currency = userRegion?.country?.currency ?? 'USD';
   const symbol = selectedToken?.symbol ?? '';
 
@@ -140,7 +152,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
           <ListItemSelect
             key={`skeleton-${index}`}
             isSelected={false}
-            onPress={() => {}}
+            onPress={undefined}
             accessibilityRole="button"
             accessible
           >
@@ -148,23 +160,17 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
               <Skeleton
                 width={SKELETON_NAME_WIDTH}
                 height={SKELETON_NAME_HEIGHT}
-                style={{ borderRadius: 4 }}
+                style={styles.skeleton}
               />
             </ListItemColumn>
             <ListItemColumn widthType={WidthType.Auto}>
-              <QuoteDisplay
-                cryptoAmount=""
-                fiatAmount={null}
-                isLoading
-              />
+              <QuoteDisplay cryptoAmount="" fiatAmount={null} isLoading />
             </ListItemColumn>
           </ListItemSelect>
         ))}
       </Box>
     );
   }
-
-  const quotes = successQuotes ?? [];
 
   return (
     <Box twClassName="flex-1">
@@ -173,7 +179,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
         onBack={onBack}
       />
       {quotes.map((quote) => {
-        const providerName = quote.providerInfo?.name ?? ""
+        const provider = providers.find((p) => p.id === quote.provider);
         const amountOut = quote.quote?.amountOut;
         const cryptoAmount =
           amountOut != null && symbol
@@ -194,7 +200,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
             accessible
           >
             <ListItemColumn widthType={WidthType.Fill}>
-              <Text variant={TextVariant.BodyLGMedium}>{providerName}</Text>
+              <Text variant={TextVariant.BodyLGMedium}>{provider?.name}</Text>
             </ListItemColumn>
             <ListItemColumn widthType={WidthType.Auto}>
               <QuoteDisplay
