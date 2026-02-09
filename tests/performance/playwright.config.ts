@@ -1,6 +1,10 @@
-import { Platform } from '../tests/framework/types';
-import { defineConfig } from '../tests/framework/config';
+import { Platform } from '../framework/types';
+import { defineConfig } from '../framework/config';
 
+/**
+ * THIS IS CURRENTLY NOT IN USE. IT'LL BE USED ONCE WE MIGRATE TO THE NEW
+ * FRAMEWORK.
+ */
 export default defineConfig({
   testDir: './tests',
   fullyParallel: false,
