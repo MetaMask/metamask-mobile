@@ -812,7 +812,6 @@ describe('bridge slice', () => {
           (chain) => chain.chainId !== 'eip155:1',
         );
       // Disable destination via chains config
-      // @ts-expect-error - Mock state has correct structure at runtime
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       (
         mockState as any
@@ -845,7 +844,6 @@ describe('bridge slice', () => {
           (chain) => chain.chainId !== 'eip155:1',
         );
       // Disable destination via support flag
-      // @ts-expect-error - Mock state has correct structure at runtime
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       (
         mockState as any
