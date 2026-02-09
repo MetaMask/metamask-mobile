@@ -227,13 +227,11 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         }
 
         if (status === 'confirmed') {
-          const amount = formattedClaimAmount;
-
           showSuccessToast({
             showToast,
             title: strings('predict.deposit.account_ready'),
             description: strings('predict.deposit.account_ready_description', {
-              amount,
+              amount: formattedClaimAmount,
             }),
             iconColor: theme.colors.success.default,
           });

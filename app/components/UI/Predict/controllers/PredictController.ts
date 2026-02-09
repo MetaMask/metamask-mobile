@@ -2195,36 +2195,29 @@ export class PredictController extends BaseController<
     const address = this.getEvmAccountAddress();
     const providerId = 'polymarket';
 
-    if (type === 'deposit') {
-      if (status === 'confirmed' || status === 'rejected') {
-        this.clearPendingDeposit({ providerId });
-      }
-      if (status === 'confirmed') {
-        this.getBalance({ address, providerId }).catch(() => undefined);
-      }
-      return;
+    if (
+      type === 'deposit' &&
+      (status === 'confirmed' || status === 'rejected')
+    ) {
+      this.clearPendingDeposit({ providerId });
     }
 
-    if (type === 'claim') {
-      if (status === 'confirmed') {
-        this.confirmClaim({ providerId });
-        this.getPositions({
-          address,
-          providerId,
-          claimable: true,
-        }).catch(() => undefined);
-        this.getBalance({ address, providerId }).catch(() => undefined);
-      }
-      return;
+    if (type === 'claim' && status === 'confirmed') {
+      this.confirmClaim({ providerId });
+      this.getPositions({ address, providerId, claimable: true }).catch(
+        () => undefined,
+      );
     }
 
-    if (type === 'withdraw') {
-      if (status === 'confirmed' || status === 'rejected') {
-        this.clearWithdrawTransaction();
-      }
-      if (status === 'confirmed') {
-        this.getBalance({ address, providerId }).catch(() => undefined);
-      }
+    if (
+      type === 'withdraw' &&
+      (status === 'confirmed' || status === 'rejected')
+    ) {
+      this.clearWithdrawTransaction();
+    }
+
+    if (status === 'confirmed') {
+      this.getBalance({ address, providerId }).catch(() => undefined);
     }
   }
 
@@ -2255,37 +2248,33 @@ export class PredictController extends BaseController<
     );
   }
 
+  private static readonly transactionTypeMap: Partial<
+    Record<TransactionType, PredictTransactionEventType>
+  > = {
+    [TransactionType.predictDeposit]: 'deposit',
+    [TransactionType.predictClaim]: 'claim',
+    [TransactionType.predictWithdraw]: 'withdraw',
+  };
+
+  private static readonly transactionStatusMap: Partial<
+    Record<TransactionStatus, PredictTransactionEventStatus>
+  > = {
+    [TransactionStatus.approved]: 'approved',
+    [TransactionStatus.confirmed]: 'confirmed',
+    [TransactionStatus.failed]: 'failed',
+    [TransactionStatus.rejected]: 'rejected',
+  };
+
   private mapTransactionTypeToPredictTransactionEventType(
     transactionType: TransactionType,
   ): PredictTransactionEventType | null {
-    if (transactionType === TransactionType.predictDeposit) {
-      return 'deposit';
-    }
-    if (transactionType === TransactionType.predictClaim) {
-      return 'claim';
-    }
-    if (transactionType === TransactionType.predictWithdraw) {
-      return 'withdraw';
-    }
-    return null;
+    return PredictController.transactionTypeMap[transactionType] ?? null;
   }
 
   private mapTransactionStatusToPredictTransactionEventStatus(
     transactionStatus: TransactionStatus,
   ): PredictTransactionEventStatus | null {
-    if (transactionStatus === TransactionStatus.approved) {
-      return 'approved';
-    }
-    if (transactionStatus === TransactionStatus.confirmed) {
-      return 'confirmed';
-    }
-    if (transactionStatus === TransactionStatus.failed) {
-      return 'failed';
-    }
-    if (transactionStatus === TransactionStatus.rejected) {
-      return 'rejected';
-    }
-    return null;
+    return PredictController.transactionStatusMap[transactionStatus] ?? null;
   }
 
   public async getAccountState(

@@ -25,7 +25,12 @@ const ControllerEventToastBridge = ({
     Engine.controllerMessenger as unknown as ControllerMessengerLike;
 
   useEffect(() => {
-    unsubscribeHandlersRef.current.forEach((unsubscribe) => unsubscribe());
+    const cleanupPrevious = () => {
+      unsubscribeHandlersRef.current.forEach((fn) => fn());
+      unsubscribeHandlersRef.current = [];
+    };
+
+    cleanupPrevious();
 
     unsubscribeHandlersRef.current = registrations.map(
       ({ eventName, handler }: ToastRegistration) => {
@@ -35,16 +40,12 @@ const ControllerEventToastBridge = ({
 
         controllerMessenger.subscribe(eventName, subscriptionHandler);
 
-        return () => {
+        return () =>
           controllerMessenger.unsubscribe(eventName, subscriptionHandler);
-        };
       },
     );
 
-    return () => {
-      unsubscribeHandlersRef.current.forEach((unsubscribe) => unsubscribe());
-      unsubscribeHandlersRef.current = [];
-    };
+    return cleanupPrevious;
   }, [controllerMessenger, registrations, toastRef]);
 
   return null;
