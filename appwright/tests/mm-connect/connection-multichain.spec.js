@@ -11,12 +11,22 @@ import AndroidScreenHelpers from '../../../wdio/screen-objects/Native/Android.js
 import DappConnectionModal from '../../../wdio/screen-objects/Modals/DappConnectionModal.js';
 import AppwrightGestures from '../../../tests/framework/AppwrightGestures.js';
 
-const MULTI_CHAIN_TEST_DAPP_URL = 'http://10.0.2.2:3000/test-dapp-multichain';
+const MULTI_CHAIN_TEST_DAPP_LOCAL_URL =
+  'http://10.0.2.2:3000/test-dapp-multichain';
+const MULTI_CHAIN_TEST_DAPP_PUBLIC_URL =
+  'https://metamask.github.io/test-dapp-multichain/latest/';
 const MULTI_CHAIN_TEST_DAPP_NAME = 'Multichain Test Dapp';
 
 test('@metamask/connect-multichain - Connect to the Multichain Test Dapp', async ({
   device,
-}) => {
+}, testInfo) => {
+  // Determine URL based on device provider from config
+  const isBrowserStack =
+    testInfo.project.use.device.provider === 'browserstack';
+  const MULTI_CHAIN_TEST_DAPP_URL = isBrowserStack
+    ? MULTI_CHAIN_TEST_DAPP_PUBLIC_URL
+    : MULTI_CHAIN_TEST_DAPP_LOCAL_URL;
+
   WalletMainScreen.device = device;
   MultiChainTestDapp.device = device;
   AndroidScreenHelpers.device = device;
