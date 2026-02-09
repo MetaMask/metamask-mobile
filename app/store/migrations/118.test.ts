@@ -1,6 +1,9 @@
 import migrate, { migrationVersion } from './118';
 import { NETWORK_CHAIN_ID } from '../../util/networks/customNetworks';
-import { NetworkConfiguration } from '@metamask/network-controller';
+import {
+  NetworkConfiguration,
+  RpcEndpointType,
+} from '@metamask/network-controller';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -15,6 +18,16 @@ const mockedEnsureValidState = jest.mocked(
     './util',
   ).ensureValidState,
 );
+
+interface MigrationState {
+  engine: {
+    backgroundState: {
+      NetworkController: {
+        networkConfigurationsByChainId: Record<string, NetworkConfiguration>;
+      };
+    };
+  };
+}
 
 describe(`Migration ${migrationVersion}`, () => {
   const megaEthChainId = NETWORK_CHAIN_ID.MEGAETH_MAINNET;
@@ -81,7 +94,7 @@ describe(`Migration ${migrationVersion}`, () => {
           {
             networkClientId: 'test-id',
             url: 'https://mainnet.megaeth.com/rpc',
-            type: 'custom' as const,
+            type: RpcEndpointType.Custom,
             name: 'MegaEth',
           },
         ],
@@ -92,10 +105,10 @@ describe(`Migration ${migrationVersion}`, () => {
 
       const result = migrate(oldState);
 
-      const migratedConfig = (result as typeof oldState).engine.backgroundState
-        .NetworkController.networkConfigurationsByChainId[
-        megaEthChainId
-      ] as NetworkConfiguration;
+      const resultState = result as MigrationState;
+      const migratedConfig =
+        resultState.engine.backgroundState.NetworkController
+          .networkConfigurationsByChainId[megaEthChainId];
 
       expect(migratedConfig.name).toBe('MegaETH');
       expect(migratedConfig.rpcEndpoints[0].name).toBe('MegaETH');
@@ -109,7 +122,7 @@ describe(`Migration ${migrationVersion}`, () => {
           {
             networkClientId: 'test-id',
             url: 'https://mainnet.megaeth.com/rpc',
-            type: 'custom' as const,
+            type: RpcEndpointType.Custom,
             name: 'MegaEth',
           },
         ],
@@ -120,10 +133,10 @@ describe(`Migration ${migrationVersion}`, () => {
 
       const result = migrate(oldState);
 
-      const migratedConfig = (result as typeof oldState).engine.backgroundState
-        .NetworkController.networkConfigurationsByChainId[
-        megaEthChainId
-      ] as NetworkConfiguration;
+      const resultState = result as MigrationState;
+      const migratedConfig =
+        resultState.engine.backgroundState.NetworkController
+          .networkConfigurationsByChainId[megaEthChainId];
 
       expect(migratedConfig.name).toBe('MegaETH');
       expect(migratedConfig.rpcEndpoints[0].name).toBe('MegaETH');
@@ -137,7 +150,7 @@ describe(`Migration ${migrationVersion}`, () => {
           {
             networkClientId: 'test-id',
             url: 'https://mainnet.megaeth.com/rpc',
-            type: 'custom' as const,
+            type: RpcEndpointType.Custom,
             name: 'MegaETH Mainnet',
           },
         ],
@@ -148,10 +161,10 @@ describe(`Migration ${migrationVersion}`, () => {
 
       const result = migrate(oldState);
 
-      const migratedConfig = (result as typeof oldState).engine.backgroundState
-        .NetworkController.networkConfigurationsByChainId[
-        megaEthChainId
-      ] as NetworkConfiguration;
+      const resultState = result as MigrationState;
+      const migratedConfig =
+        resultState.engine.backgroundState.NetworkController
+          .networkConfigurationsByChainId[megaEthChainId];
 
       expect(migratedConfig.name).toBe('MegaETH Mainnet');
       expect(migratedConfig.rpcEndpoints[0].name).toBe('MegaETH Mainnet');
@@ -171,13 +184,13 @@ describe(`Migration ${migrationVersion}`, () => {
           {
             networkClientId: 'test-id-1',
             url: 'https://mainnet.megaeth.com/rpc',
-            type: 'custom' as const,
+            type: RpcEndpointType.Custom,
             name: 'MegaEth',
           },
           {
             networkClientId: 'test-id-2',
             url: 'https://mainnet.megaeth.com/rpc2',
-            type: 'custom' as const,
+            type: RpcEndpointType.Custom,
             name: 'MegaEth',
           },
         ],
@@ -188,10 +201,10 @@ describe(`Migration ${migrationVersion}`, () => {
 
       const result = migrate(oldState);
 
-      const migratedConfig = (result as typeof oldState).engine.backgroundState
-        .NetworkController.networkConfigurationsByChainId[
-        megaEthChainId
-      ] as NetworkConfiguration;
+      const resultState = result as MigrationState;
+      const migratedConfig =
+        resultState.engine.backgroundState.NetworkController
+          .networkConfigurationsByChainId[megaEthChainId];
 
       expect(migratedConfig.name).toBe('MegaETH');
       expect(migratedConfig.rpcEndpoints[0].name).toBe('MegaETH');
