@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   selectTokenDetailsV2Enabled,
-  isTokenDetailsRevampedEnabled,
+  selectTokenDetailsV2ButtonsEnabled,
 } from '../../../../selectors/featureFlagController/tokenDetailsV2';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import Asset from '../../../Views/Asset';
@@ -21,7 +21,6 @@ import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader
 import AssetOverviewContent from '../components/AssetOverviewContent';
 import { useTokenPrice } from '../hooks/useTokenPrice';
 import { useTokenBalance } from '../hooks/useTokenBalance';
-import { useTokenBuyability } from '../hooks/useTokenBuyability';
 import { useTokenActions } from '../hooks/useTokenActions';
 import { useTokenTransactions } from '../hooks/useTokenTransactions';
 import { selectPerpsEnabledFlag } from '../../Perps';
@@ -32,12 +31,6 @@ import {
   isNetworkRampSupported,
 } from '../../Ramp/Aggregator/utils';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
-import {
-  selectDepositActiveFlag,
-  selectDepositMinimumVersionFlag,
-} from '../../../../selectors/featureFlagController/deposit';
-import { getVersion } from 'react-native-device-info';
-import compareVersions from 'compare-versions';
 import AppConstants from '../../../../core/AppConstants';
 import { getIsSwapsAssetAllowed } from '../../../Views/Asset/utils';
 import ActivityHeader from '../../../Views/Asset/ActivityHeader';
@@ -88,6 +81,10 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+
+  const isTokenDetailsV2ButtonsEnabled = useSelector(
+    selectTokenDetailsV2ButtonsEnabled,
+  );
 
   useEffect(() => {
     endTrace({ name: TraceName.AssetDetails });
@@ -146,8 +143,6 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
     ///: END:ONLY_INCLUDE_IF
   } = useTokenBalance(token);
 
-  const isTokenBuyable = useTokenBuyability(token);
-
   const {
     onBuy,
     onSend,
@@ -184,26 +179,11 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
   const displaySwapsButton = isSwapsAssetAllowed && AppConstants.SWAPS.ACTIVE;
 
   const rampNetworks = useSelector(getRampNetworks);
-  const depositMinimumVersionFlag = useSelector(
-    selectDepositMinimumVersionFlag,
-  );
-  const depositActiveFlag = useSelector(selectDepositActiveFlag);
-
-  const isDepositEnabled = (() => {
-    if (!depositMinimumVersionFlag) return false;
-    const currentVersion = getVersion();
-    return (
-      depositActiveFlag &&
-      compareVersions.compare(currentVersion, depositMinimumVersionFlag, '>=')
-    );
-  })();
 
   const chainIdForRamp = token.chainId ?? '';
   const isRampAvailable = isNativeToken
     ? isNetworkRampNativeTokenSupported(chainIdForRamp, rampNetworks)
     : isNetworkRampSupported(chainIdForRamp, rampNetworks);
-
-  const displayBuyButton = isDepositEnabled || isRampAvailable;
 
   const renderHeader = () => (
     <>
@@ -222,9 +202,8 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
         chartNavigationButtons={chartNavigationButtons}
         isPerpsEnabled={isPerpsEnabled}
         isMerklCampaignClaimingEnabled={isMerklCampaignClaimingEnabled}
-        displayBuyButton={displayBuyButton}
+        displayBuyButton={isRampAvailable}
         displaySwapsButton={displaySwapsButton}
-        isTokenBuyable={isTokenBuyable}
         currentCurrency={currentCurrency}
         onBuy={onBuy}
         onSend={onSend}
@@ -256,7 +235,9 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
         networkName={networkName ?? ''}
         onBackPress={() => navigation.goBack()}
         onOptionsPress={
-          shouldShowMoreOptionsInNavBar ? openAssetOptions : undefined
+          shouldShowMoreOptionsInNavBar && !isTokenDetailsV2ButtonsEnabled
+            ? openAssetOptions
+            : undefined
         }
       />
       {txLoading ? (
@@ -290,7 +271,7 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
         />
       )}
       {networkModal}
-      {isTokenDetailsRevampedEnabled() && !txLoading && displaySwapsButton && (
+      {isTokenDetailsV2ButtonsEnabled && !txLoading && displaySwapsButton && (
         <BottomSheetFooter
           style={{
             ...styles.bottomSheetFooter,

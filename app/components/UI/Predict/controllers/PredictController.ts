@@ -36,8 +36,9 @@ import {
 } from '@metamask/remote-feature-flag-controller';
 import { Hex, hexToNumber, numberToHex } from '@metamask/utils';
 import performance from 'react-native-performance';
-import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { analytics } from '../../../../util/analytics/analytics';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
 import {
@@ -106,6 +107,10 @@ import {
   PredictLiveSportsFlag,
   PredictMarketHighlightsFlag,
 } from '../types/flags';
+import {
+  VersionGatedFeatureFlag,
+  validatedVersionGatedFeatureFlag,
+} from '../../../../util/remoteFeatureFlag';
 
 /**
  * State shape for PredictController
@@ -517,11 +522,19 @@ export class PredictController extends BaseController<
         ? filterSupportedLeagues(liveSportsFlag.leagues ?? [])
         : [];
 
-      const marketHighlightsFlag =
-        (remoteFeatureFlagState.remoteFeatureFlags
-          .predictMarketHighlights as unknown as
-          | PredictMarketHighlightsFlag
-          | undefined) ?? DEFAULT_MARKET_HIGHLIGHTS_FLAG;
+      const rawMarketHighlightsFlag = remoteFeatureFlagState.remoteFeatureFlags
+        .predictMarketHighlights as unknown as
+        | PredictMarketHighlightsFlag
+        | undefined;
+
+      const isHighlightsFlagValid = validatedVersionGatedFeatureFlag(
+        rawMarketHighlightsFlag as unknown as VersionGatedFeatureFlag,
+      );
+
+      const marketHighlightsFlag: PredictMarketHighlightsFlag =
+        isHighlightsFlagValid && rawMarketHighlightsFlag
+          ? rawMarketHighlightsFlag
+          : DEFAULT_MARKET_HIGHLIGHTS_FLAG;
 
       const paramsWithLiveSports = { ...params, liveSportsLeagues };
 
@@ -537,10 +550,7 @@ export class PredictController extends BaseController<
 
       const isFirstPage = !params.offset || params.offset === 0;
       const shouldFetchHighlights =
-        marketHighlightsFlag.enabled &&
-        isFirstPage &&
-        params.category &&
-        !params.q;
+        isHighlightsFlagValid && isFirstPage && params.category && !params.q;
 
       if (shouldFetchHighlights) {
         const highlightedMarketIds =
@@ -553,11 +563,15 @@ export class PredictController extends BaseController<
             params.providerId ?? 'polymarket',
           );
 
-          const highlightedMarkets =
+          const fetchedHighlightedMarkets =
             (await provider?.getMarketsByIds?.(
               highlightedMarketIds,
               liveSportsLeagues,
             )) ?? [];
+
+          const highlightedMarkets = fetchedHighlightedMarkets.filter(
+            (market) => market.status === 'open',
+          );
 
           const highlightedIdSet = new Set(highlightedMarkets.map((m) => m.id));
           markets = markets.filter(
@@ -1210,8 +1224,8 @@ export class PredictController extends BaseController<
       sensitiveProperties,
     });
 
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.PREDICT_TRADE_TRANSACTION,
       )
         .addProperties(regularProperties)
@@ -1287,8 +1301,8 @@ export class PredictController extends BaseController<
       analyticsProperties,
     });
 
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.PREDICT_MARKET_DETAILS_OPENED,
       )
         .addProperties(analyticsProperties)
@@ -1313,8 +1327,8 @@ export class PredictController extends BaseController<
       analyticsProperties,
     });
 
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.PREDICT_POSITION_VIEWED,
       )
         .addProperties(analyticsProperties)
@@ -1335,8 +1349,8 @@ export class PredictController extends BaseController<
       analyticsProperties,
     });
 
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.PREDICT_ACTIVITY_VIEWED,
       )
         .addProperties(analyticsProperties)
@@ -1364,8 +1378,8 @@ export class PredictController extends BaseController<
       analyticsProperties,
     });
 
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.PREDICT_GEO_BLOCKED_TRIGGERED,
       )
         .addProperties(analyticsProperties)
@@ -1413,8 +1427,8 @@ export class PredictController extends BaseController<
       isSessionEnd,
     });
 
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.PREDICT_FEED_VIEWED,
       )
         .addProperties(analyticsProperties)
@@ -1449,8 +1463,8 @@ export class PredictController extends BaseController<
       analyticsProperties,
     });
 
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.SHARE_ACTION)
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.SHARE_ACTION)
         .addProperties(analyticsProperties)
         .build(),
     );
@@ -2036,7 +2050,6 @@ export class PredictController extends BaseController<
         networkClientId,
         disableHook: true,
         disableSequential: true,
-        disableUpgrade: true,
         skipInitialGasEstimate: true,
         transactions,
       });

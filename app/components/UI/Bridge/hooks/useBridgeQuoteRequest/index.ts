@@ -44,10 +44,15 @@ export const useBridgeQuoteRequest = () => {
     chainId: sourceToken?.chainId,
   });
 
+  // Use simple balance check (ignoring gas fees) for quote requests to avoid circular dependencies.
+  // The full balance check with gas fees is used separately within the BridgeView to block user from executing
+  // the swap in insufficient balance.
+  // This prevents the infinite loop: quote request → gas data changes → insufficientBal changes → new quote request
   const insufficientBal = useIsInsufficientBalance({
     amount: sourceAmount,
     token: sourceToken,
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
+    ignoreGasFees: true,
   });
 
   const { gasIncluded, gasIncluded7702 } = useSelector(

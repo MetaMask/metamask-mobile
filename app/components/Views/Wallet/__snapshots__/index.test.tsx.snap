@@ -143,6 +143,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                   style={
                     {
                       "flexDirection": "row",
+                      "gap": 8,
                     }
                   }
                 >
@@ -217,11 +218,11 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                               {
                                 "alignItems": "center",
                                 "backgroundColor": "transparent",
-                                "borderRadius": 2,
-                                "height": 40,
+                                "borderRadius": 8,
+                                "height": 32,
                                 "justifyContent": "center",
                                 "opacity": 1,
-                                "width": 40,
+                                "width": 32,
                               },
                               undefined,
                             ]
@@ -306,11 +307,11 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                           {
                             "alignItems": "center",
                             "backgroundColor": "transparent",
-                            "borderRadius": 2,
-                            "height": 40,
+                            "borderRadius": 8,
+                            "height": 32,
                             "justifyContent": "center",
                             "opacity": 1,
-                            "width": 40,
+                            "width": 32,
                           },
                           undefined,
                         ]
@@ -407,11 +408,11 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                               {
                                 "alignItems": "center",
                                 "backgroundColor": "transparent",
-                                "borderRadius": 2,
-                                "height": 40,
+                                "borderRadius": 8,
+                                "height": 32,
                                 "justifyContent": "center",
                                 "opacity": 1,
-                                "width": 40,
+                                "width": 32,
                               },
                               undefined,
                             ]
@@ -510,11 +511,11 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                           {
                             "alignItems": "center",
                             "backgroundColor": "transparent",
-                            "borderRadius": 2,
-                            "height": 40,
+                            "borderRadius": 8,
+                            "height": 32,
                             "justifyContent": "center",
                             "opacity": 1,
-                            "width": 40,
+                            "width": 32,
                           },
                           undefined,
                         ]
@@ -1321,6 +1322,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                   style={
                     {
                       "flexDirection": "row",
+                      "gap": 8,
                     }
                   }
                 >
@@ -1395,11 +1397,11 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                               {
                                 "alignItems": "center",
                                 "backgroundColor": "transparent",
-                                "borderRadius": 2,
-                                "height": 40,
+                                "borderRadius": 8,
+                                "height": 32,
                                 "justifyContent": "center",
                                 "opacity": 1,
-                                "width": 40,
+                                "width": 32,
                               },
                               undefined,
                             ]
@@ -1484,11 +1486,11 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                           {
                             "alignItems": "center",
                             "backgroundColor": "transparent",
-                            "borderRadius": 2,
-                            "height": 40,
+                            "borderRadius": 8,
+                            "height": 32,
                             "justifyContent": "center",
                             "opacity": 1,
-                            "width": 40,
+                            "width": 32,
                           },
                           undefined,
                         ]
@@ -1585,11 +1587,11 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                               {
                                 "alignItems": "center",
                                 "backgroundColor": "transparent",
-                                "borderRadius": 2,
-                                "height": 40,
+                                "borderRadius": 8,
+                                "height": 32,
                                 "justifyContent": "center",
                                 "opacity": 1,
-                                "width": 40,
+                                "width": 32,
                               },
                               undefined,
                             ]
@@ -1688,11 +1690,11 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                           {
                             "alignItems": "center",
                             "backgroundColor": "transparent",
-                            "borderRadius": 2,
-                            "height": 40,
+                            "borderRadius": 8,
+                            "height": 32,
                             "justifyContent": "center",
                             "opacity": 1,
-                            "width": 40,
+                            "width": 32,
                           },
                           undefined,
                         ]
@@ -2499,6 +2501,7 @@ exports[`Wallet should render correctly 1`] = `
                   style={
                     {
                       "flexDirection": "row",
+                      "gap": 8,
                     }
                   }
                 >
@@ -2573,11 +2576,11 @@ exports[`Wallet should render correctly 1`] = `
                               {
                                 "alignItems": "center",
                                 "backgroundColor": "transparent",
-                                "borderRadius": 2,
-                                "height": 40,
+                                "borderRadius": 8,
+                                "height": 32,
                                 "justifyContent": "center",
                                 "opacity": 1,
-                                "width": 40,
+                                "width": 32,
                               },
                               undefined,
                             ]
@@ -2662,11 +2665,11 @@ exports[`Wallet should render correctly 1`] = `
                           {
                             "alignItems": "center",
                             "backgroundColor": "transparent",
-                            "borderRadius": 2,
-                            "height": 40,
+                            "borderRadius": 8,
+                            "height": 32,
                             "justifyContent": "center",
                             "opacity": 1,
-                            "width": 40,
+                            "width": 32,
                           },
                           undefined,
                         ]
@@ -2763,11 +2766,11 @@ exports[`Wallet should render correctly 1`] = `
                               {
                                 "alignItems": "center",
                                 "backgroundColor": "transparent",
-                                "borderRadius": 2,
-                                "height": 40,
+                                "borderRadius": 8,
+                                "height": 32,
                                 "justifyContent": "center",
                                 "opacity": 1,
-                                "width": 40,
+                                "width": 32,
                               },
                               undefined,
                             ]
@@ -2866,11 +2869,11 @@ exports[`Wallet should render correctly 1`] = `
                           {
                             "alignItems": "center",
                             "backgroundColor": "transparent",
-                            "borderRadius": 2,
-                            "height": 40,
+                            "borderRadius": 8,
+                            "height": 32,
                             "justifyContent": "center",
                             "opacity": 1,
-                            "width": 40,
+                            "width": 32,
                           },
                           undefined,
                         ]
@@ -3677,6 +3680,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                   style={
                     {
                       "flexDirection": "row",
+                      "gap": 8,
                     }
                   }
                 >
@@ -3751,11 +3755,11 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                               {
                                 "alignItems": "center",
                                 "backgroundColor": "transparent",
-                                "borderRadius": 2,
-                                "height": 40,
+                                "borderRadius": 8,
+                                "height": 32,
                                 "justifyContent": "center",
                                 "opacity": 1,
-                                "width": 40,
+                                "width": 32,
                               },
                               undefined,
                             ]
@@ -3840,11 +3844,11 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                           {
                             "alignItems": "center",
                             "backgroundColor": "transparent",
-                            "borderRadius": 2,
-                            "height": 40,
+                            "borderRadius": 8,
+                            "height": 32,
                             "justifyContent": "center",
                             "opacity": 1,
-                            "width": 40,
+                            "width": 32,
                           },
                           undefined,
                         ]
@@ -3941,11 +3945,11 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                               {
                                 "alignItems": "center",
                                 "backgroundColor": "transparent",
-                                "borderRadius": 2,
-                                "height": 40,
+                                "borderRadius": 8,
+                                "height": 32,
                                 "justifyContent": "center",
                                 "opacity": 1,
-                                "width": 40,
+                                "width": 32,
                               },
                               undefined,
                             ]
@@ -4044,11 +4048,11 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                           {
                             "alignItems": "center",
                             "backgroundColor": "transparent",
-                            "borderRadius": 2,
-                            "height": 40,
+                            "borderRadius": 8,
+                            "height": 32,
                             "justifyContent": "center",
                             "opacity": 1,
-                            "width": 40,
+                            "width": 32,
                           },
                           undefined,
                         ]
@@ -4855,6 +4859,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                   style={
                     {
                       "flexDirection": "row",
+                      "gap": 8,
                     }
                   }
                 >
@@ -4929,11 +4934,11 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                               {
                                 "alignItems": "center",
                                 "backgroundColor": "transparent",
-                                "borderRadius": 2,
-                                "height": 40,
+                                "borderRadius": 8,
+                                "height": 32,
                                 "justifyContent": "center",
                                 "opacity": 1,
-                                "width": 40,
+                                "width": 32,
                               },
                               undefined,
                             ]
@@ -5018,11 +5023,11 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                           {
                             "alignItems": "center",
                             "backgroundColor": "transparent",
-                            "borderRadius": 2,
-                            "height": 40,
+                            "borderRadius": 8,
+                            "height": 32,
                             "justifyContent": "center",
                             "opacity": 1,
-                            "width": 40,
+                            "width": 32,
                           },
                           undefined,
                         ]
@@ -5119,11 +5124,11 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                               {
                                 "alignItems": "center",
                                 "backgroundColor": "transparent",
-                                "borderRadius": 2,
-                                "height": 40,
+                                "borderRadius": 8,
+                                "height": 32,
                                 "justifyContent": "center",
                                 "opacity": 1,
-                                "width": 40,
+                                "width": 32,
                               },
                               undefined,
                             ]
@@ -5222,11 +5227,11 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                           {
                             "alignItems": "center",
                             "backgroundColor": "transparent",
-                            "borderRadius": 2,
-                            "height": 40,
+                            "borderRadius": 8,
+                            "height": 32,
                             "justifyContent": "center",
                             "opacity": 1,
-                            "width": 40,
+                            "width": 32,
                           },
                           undefined,
                         ]
