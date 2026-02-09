@@ -469,14 +469,14 @@ describe('usePerpsOrderForm', () => {
 
   describe('useMemo and useEffect behavior', () => {
     it('should not overwrite user input when dependencies change', async () => {
-      // Arrange - Start with sufficient balance
+      // Arrange - Start with balance high enough that max >= 999 (e.g. 334 * 3x = 1002)
       const mockAccount = {
         account: {
-          availableBalance: '10', // $10 balance = $30 max with 3x leverage
+          availableBalance: '334',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
-          totalBalance: '10',
+          totalBalance: '334',
         },
         isInitialLoading: false,
       };
@@ -491,19 +491,22 @@ describe('usePerpsOrderForm', () => {
         TRADING_DEFAULTS.amount.mainnet.toString(),
       );
 
-      // Act - User changes the amount
+      // Act - User changes the amount (within current max)
       act(() => {
         result.current.setAmount('999');
       });
       expect(result.current.orderForm.amount).toBe('999');
 
-      // Act - Change the available balance to trigger useMemo recalculation
-      mockAccount.account.availableBalance = '1'; // This would normally trigger a different initialAmountValue
+      // Act - Change the available balance so the new max is below user's amount
+      mockAccount.account.availableBalance = '1'; // $1 balance → max order size drops below 999
       mockUsePerpsLiveAccount.mockReturnValue(mockAccount);
       rerender({});
 
-      // Assert - Amount should not be overwritten due to hasSetInitialAmount ref
-      expect(result.current.orderForm.amount).toBe('999');
+      // Assert - Amount should be clamped to the new max when effective balance drops (payment token change or balance update)
+      expect(Number(result.current.orderForm.amount)).toBeLessThanOrEqual(
+        result.current.maxPossibleAmount,
+      );
+      expect(result.current.orderForm.amount).not.toBe('999');
     });
 
     it('should use useMemo for initialAmountValue calculation', () => {

@@ -13,9 +13,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import TextField, {
-  TextFieldSize,
-} from '../../../../../component-library/components/Form/TextField';
+import TextField from '../../../../../component-library/components/Form/TextField';
 import Label from '../../../../../component-library/components/Form/Label';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -318,7 +316,6 @@ const PersonalDetails = () => {
           autoCapitalize={'none'}
           onChangeText={setFirstName}
           numberOfLines={1}
-          size={TextFieldSize.Lg}
           autoComplete="one-time-code"
           value={firstName}
           keyboardType="default"
@@ -339,7 +336,6 @@ const PersonalDetails = () => {
           autoCapitalize={'none'}
           onChangeText={setLastName}
           numberOfLines={1}
-          size={TextFieldSize.Lg}
           autoComplete="one-time-code"
           value={lastName}
           keyboardType="default"
@@ -390,7 +386,6 @@ const PersonalDetails = () => {
             onChangeText={handleSSNChange}
             onBlur={handleSSNBlur}
             numberOfLines={1}
-            size={TextFieldSize.Lg}
             value={SSN}
             keyboardType="number-pad"
             autoComplete="one-time-code"

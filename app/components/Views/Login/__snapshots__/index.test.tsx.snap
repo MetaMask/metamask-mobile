@@ -83,9 +83,9 @@ exports[`Login renders matching snapshot 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#ffffff",
-            "borderColor": "#b7bbc8",
-            "borderRadius": 8,
+            "backgroundColor": "#3c4d9d0f",
+            "borderColor": "#b7bbc866",
+            "borderRadius": 12,
             "borderWidth": 1,
             "flexDirection": "row",
             "height": 48,
@@ -107,6 +107,8 @@ exports[`Login renders matching snapshot 1`] = `
             autoFocus={false}
             editable={true}
             keyboardAppearance="light"
+            multiline={false}
+            numberOfLines={1}
             onBlur={[Function]}
             onChangeText={[Function]}
             onFocus={[Function]}
@@ -138,7 +140,7 @@ exports[`Login renders matching snapshot 1`] = `
         <View
           style={
             {
-              "marginLeft": 8,
+              "marginLeft": 12,
             }
           }
           testID="textfield-endacccessory"
@@ -384,9 +386,9 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#ffffff",
-            "borderColor": "#b7bbc8",
-            "borderRadius": 8,
+            "backgroundColor": "#3c4d9d0f",
+            "borderColor": "#b7bbc866",
+            "borderRadius": 12,
             "borderWidth": 1,
             "flexDirection": "row",
             "height": 48,
@@ -408,6 +410,8 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
             autoFocus={false}
             editable={true}
             keyboardAppearance="light"
+            multiline={false}
+            numberOfLines={1}
             onBlur={[Function]}
             onChangeText={[Function]}
             onFocus={[Function]}
@@ -439,7 +443,7 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
         <View
           style={
             {
-              "marginLeft": 8,
+              "marginLeft": 12,
             }
           }
           testID="textfield-endacccessory"
