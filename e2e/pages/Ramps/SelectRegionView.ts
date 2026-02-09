@@ -1,6 +1,6 @@
 import Matchers from '../../../tests/framework/Matchers';
 import Gestures from '../../../tests/framework/Gestures';
-import { SelectRegionSelectors } from '../../selectors/Ramps/SelectRegion.selectors';
+import { SelectRegionSelectors } from '../../../tests/selectors/Ramps/SelectRegion.selectors';
 
 class SelectRegionView {
   get continueButton(): DetoxElement {

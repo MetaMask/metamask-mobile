@@ -253,7 +253,7 @@ exports[`PerpsBottomSheetTooltip renders correctly when visible 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -271,8 +271,8 @@ exports[`PerpsBottomSheetTooltip renders correctly when visible 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
