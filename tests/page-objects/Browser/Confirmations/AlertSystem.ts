@@ -1,4 +1,4 @@
-import Matchers from '../../../framework/Matchers.ts';
+import Matchers from '../../../framework/Matchers';
 import {
   AlertModalSelectorsIDs,
   AlertModalSelectorsText,
@@ -6,8 +6,8 @@ import {
   ConfirmationTopSheetSelectorsIDs,
   ConfirmationTopSheetSelectorsText,
   AlertTypeIDs,
-} from '../../../../app/components/Views/confirmations/ConfirmationView.testIds.ts';
-import Gestures from '../../../framework/Gestures.ts';
+} from '../../../../app/components/Views/confirmations/ConfirmationView.testIds';
+import Gestures from '../../../framework/Gestures';
 
 class AlertSystem {
   get securityAlertBanner(): DetoxElement {

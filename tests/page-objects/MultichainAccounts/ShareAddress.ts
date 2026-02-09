@@ -1,6 +1,6 @@
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
-import { ShareAddressIds } from '../../../app/components/Views/MultichainAccounts/sheets/ShareAddress/ShareAddress.testIds.ts';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
+import { ShareAddressIds } from '../../../app/components/Views/MultichainAccounts/sheets/ShareAddress/ShareAddress.testIds';
 
 class ShareAddress {
   get container(): DetoxElement {

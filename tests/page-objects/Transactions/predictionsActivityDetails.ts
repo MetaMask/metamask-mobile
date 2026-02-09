@@ -1,6 +1,6 @@
-import { PredictActivityDetailsSelectorsIDs } from '../../../app/components/UI/Predict/Predict.testIds.ts';
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
+import { PredictActivityDetailsSelectorsIDs } from '../../../app/components/UI/Predict/Predict.testIds';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 
 class PredictActivityDetails {
   get container(): DetoxElement {

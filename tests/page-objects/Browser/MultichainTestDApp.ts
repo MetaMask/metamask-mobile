@@ -1,22 +1,22 @@
 /* eslint-disable no-restricted-syntax */
 import TestHelpers from '../../helpers';
-import { getDappUrl } from '../../framework/fixtures/FixtureUtils.ts';
-import Matchers from '../../framework/Matchers.ts';
-import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds.ts';
+import { getDappUrl } from '../../framework/fixtures/FixtureUtils';
+import Matchers from '../../framework/Matchers';
+import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import {
   MultichainTestDappViewSelectorsIDs,
   MULTICHAIN_TEST_TIMEOUTS,
-} from '../../selectors/Browser/MultichainTestDapp.selectors.ts';
-import Browser from './BrowserView.ts';
-import Gestures from '../../framework/Gestures.ts';
+} from '../../selectors/Browser/MultichainTestDapp.selectors';
+import Browser from './BrowserView';
+import Gestures from '../../framework/Gestures';
 import { waitFor } from 'detox';
-import ConnectBottomSheet from './ConnectBottomSheet.ts';
-import MultichainUtilities from '../../helpers/multichain/MultichainUtilities.ts';
-import { loginToApp } from '../../flows/wallet.flow.ts';
-import TabBarComponent from '../wallet/TabBarComponent.ts';
-import Assertions from '../../framework/Assertions.ts';
+import ConnectBottomSheet from './ConnectBottomSheet';
+import MultichainUtilities from '../../helpers/multichain/MultichainUtilities';
+import { loginToApp } from '../../flows/wallet.flow';
+import TabBarComponent from '../wallet/TabBarComponent';
+import Assertions from '../../framework/Assertions';
 import { isCaipChainId } from '@metamask/utils';
-import { createLogger } from '../../framework/logger.ts';
+import { createLogger } from '../../framework/logger';
 
 const logger = createLogger({
   name: 'MultichainTestDApp',

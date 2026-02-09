@@ -1,10 +1,10 @@
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
-import Assertions from '../../framework/Assertions.ts';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
+import Assertions from '../../framework/Assertions';
 import {
   SlippageModalSelectorIDs,
   SlippageModalSelectorText,
-} from '../../selectors/Bridge/SlippageModal.selectors.ts';
+} from '../../selectors/Bridge/SlippageModal.selectors';
 
 class SlippageModal {
   get editSlippageButton(): DetoxElement {

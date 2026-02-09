@@ -1,6 +1,6 @@
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
-import { SendLinkViewSelectorsIDs } from '../../../app/components/UI/ReceiveRequest/SendLinkView.testIds.ts';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
+import { SendLinkViewSelectorsIDs } from '../../../app/components/UI/ReceiveRequest/SendLinkView.testIds';
 
 class PaymentRequestQrBottomSheet {
   get container(): DetoxElement {

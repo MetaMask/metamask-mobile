@@ -1,12 +1,12 @@
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
-import { TabBarSelectorIDs } from '../../../app/components/Nav/Main/TabBar.testIds.ts';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
+import { TabBarSelectorIDs } from '../../../app/components/Nav/Main/TabBar.testIds';
 import { Assertions, Utilities } from '../../framework';
-import ActivitiesView from '../Transactions/ActivitiesView.ts';
-import SettingsView from '../Settings/SettingsView.ts';
-import BrowserView from '../Browser/BrowserView.ts';
-import WalletView from './WalletView.ts';
-import TrendingView from '../Trending/TrendingView.ts';
+import ActivitiesView from '../Transactions/ActivitiesView';
+import SettingsView from '../Settings/SettingsView';
+import BrowserView from '../Browser/BrowserView';
+import WalletView from './WalletView';
+import TrendingView from '../Trending/TrendingView';
 class TabBarComponent {
   get tabBarExploreButton(): DetoxElement {
     return Matchers.getElementByID(TabBarSelectorIDs.EXPLORE);

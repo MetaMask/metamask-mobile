@@ -1,6 +1,6 @@
-import { AddAddressModalSelectorsIDs } from '../../../app/components/UI/AddToAddressBookWrapper/AddAddressModal.testIds.ts';
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
+import { AddAddressModalSelectorsIDs } from '../../../app/components/UI/AddToAddressBookWrapper/AddAddressModal.testIds';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 
 class AddAddressModal {
   get container(): DetoxElement {

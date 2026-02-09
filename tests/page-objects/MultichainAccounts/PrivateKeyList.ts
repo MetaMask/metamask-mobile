@@ -1,9 +1,9 @@
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 import {
   PrivateKeyListIds,
   PrivateKeyListSelectorsText,
-} from '../../../app/components/Views/MultichainAccounts/PrivateKeyList/PrivateKeyList.testIds.ts';
+} from '../../../app/components/Views/MultichainAccounts/PrivateKeyList/PrivateKeyList.testIds';
 
 class PrivateKeyList {
   get passwordInput(): DetoxElement {

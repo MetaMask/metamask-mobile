@@ -1,10 +1,10 @@
-import { SECURITY_PRIVACY_DELETE_WALLET_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds.ts';
+import { SECURITY_PRIVACY_DELETE_WALLET_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
 import {
   SecurityPrivacyViewSelectorsIDs,
   SecurityPrivacyViewSelectorsText,
-} from '../../../../app/components/Views/Settings/SecuritySettings/SecurityPrivacyView.testIds.ts';
-import Matchers from '../../../framework/Matchers.ts';
-import Gestures from '../../../framework/Gestures.ts';
+} from '../../../../app/components/Views/Settings/SecuritySettings/SecurityPrivacyView.testIds';
+import Matchers from '../../../framework/Matchers';
+import Gestures from '../../../framework/Gestures';
 
 class SecurityAndPrivacy {
   get changePasswordButton(): DetoxElement {

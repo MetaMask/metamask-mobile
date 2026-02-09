@@ -1,6 +1,6 @@
 import { Assertions, Gestures, Matchers } from '../../framework';
 
-import { GasFeeTokenModalSelectorsText } from '../../../app/components/Views/confirmations/ConfirmationView.testIds.ts';
+import { GasFeeTokenModalSelectorsText } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 
 class GasFeeTokenModal {
   getTokenItem(symbol: string): DetoxElement {

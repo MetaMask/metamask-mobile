@@ -1,8 +1,8 @@
 import {
   ConfirmationRowComponentIDs,
   GasFeeTokenSelectorIDs,
-} from '../../../../app/components/Views/confirmations/ConfirmationView.testIds.ts';
-import Matchers from '../../../framework/Matchers.ts';
+} from '../../../../app/components/Views/confirmations/ConfirmationView.testIds';
+import Matchers from '../../../framework/Matchers';
 
 class RowComponents {
   get AccountNetwork(): DetoxElement {

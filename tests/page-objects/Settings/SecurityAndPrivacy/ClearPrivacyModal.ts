@@ -1,9 +1,9 @@
 import {
   ClearPrivacyModalSelectorsIDs,
   ClearPrivacyModalSelectorsText,
-} from '../../../../app/components/Views/Settings/SecuritySettings/Sections/ClearPrivacy/ClearPrivacyModal.testIds.ts';
-import Matchers from '../../../framework/Matchers.ts';
-import Gestures from '../../../framework/Gestures.ts';
+} from '../../../../app/components/Views/Settings/SecuritySettings/Sections/ClearPrivacy/ClearPrivacyModal.testIds';
+import Matchers from '../../../framework/Matchers';
+import Gestures from '../../../framework/Gestures';
 
 class ClearPrivacyModal {
   get container(): DetoxElement {

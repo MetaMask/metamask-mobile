@@ -1,6 +1,6 @@
-import { WalletActionsBottomSheetSelectorsIDs } from '../../../app/components/Views/WalletActions/WalletActionsBottomSheet.testIds.ts';
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
+import { WalletActionsBottomSheetSelectorsIDs } from '../../../app/components/Views/WalletActions/WalletActionsBottomSheet.testIds';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 
 class FundActionMenu {
   get depositButton(): DetoxElement {

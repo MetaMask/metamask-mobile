@@ -1,12 +1,12 @@
-import Gestures from '../../framework/Gestures.ts';
-import Matchers from '../../framework/Matchers.ts';
-import Assertions from '../../framework/Assertions.ts';
-import Utilities from '../../framework/Utilities.ts';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
+import Assertions from '../../framework/Assertions';
+import Utilities from '../../framework/Utilities';
 import {
   PerpsOrderHeaderSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
   PerpsAmountDisplaySelectorsIDs,
-} from '../../../app/components/UI/Perps/Perps.testIds.ts';
+} from '../../../app/components/UI/Perps/Perps.testIds';
 import { element as detoxElement, by as detoxBy } from 'detox';
 
 class PerpsOrderView {

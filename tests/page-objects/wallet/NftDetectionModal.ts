@@ -1,6 +1,6 @@
-import { NftDetectionModalSelectorsIDs } from '../../../app/components/Views/NFTAutoDetectionModal/NftDetectionModal.testIds.ts';
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
+import { NftDetectionModalSelectorsIDs } from '../../../app/components/Views/NFTAutoDetectionModal/NftDetectionModal.testIds';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 
 class NftDetectionModal {
   get container(): DetoxElement {

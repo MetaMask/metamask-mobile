@@ -1,6 +1,6 @@
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
-import { SmartAccountIds } from '../../../app/components/Views/MultichainAccounts/SmartAccount.testIds.ts';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
+import { SmartAccountIds } from '../../../app/components/Views/MultichainAccounts/SmartAccount.testIds';
 
 class SmartAccount {
   get container(): DetoxElement {

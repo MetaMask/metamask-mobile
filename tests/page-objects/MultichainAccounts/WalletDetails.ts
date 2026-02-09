@@ -1,6 +1,6 @@
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
-import { WalletDetailsIds } from '../../../app/components/Views/MultichainAccounts/WalletDetails/WalletDetails.testIds.ts';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
+import { WalletDetailsIds } from '../../../app/components/Views/MultichainAccounts/WalletDetails/WalletDetails.testIds';
 
 class WalletDetails {
   get container(): DetoxElement {

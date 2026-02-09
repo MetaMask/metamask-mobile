@@ -1,4 +1,4 @@
-import Matchers from '../../framework/Matchers.ts';
+import Matchers from '../../framework/Matchers';
 import TestHelpers from '../../helpers';
 import { waitFor } from 'detox';
 

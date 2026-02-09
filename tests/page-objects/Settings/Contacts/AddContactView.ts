@@ -1,9 +1,9 @@
-import Matchers from '../../../framework/Matchers.ts';
+import Matchers from '../../../framework/Matchers';
 import {
   AddContactViewSelectorsIDs,
   AddContactViewSelectorsText,
-} from '../../../../app/components/Views/Settings/Contacts/AddContactView.testIds.ts';
-import Gestures from '../../../framework/Gestures.ts';
+} from '../../../../app/components/Views/Settings/Contacts/AddContactView.testIds';
+import Gestures from '../../../framework/Gestures';
 
 class AddContactView {
   get container(): DetoxElement {

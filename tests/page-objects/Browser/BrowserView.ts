@@ -3,15 +3,15 @@ import {
   BrowserViewSelectorsIDs,
   BrowserViewSelectorsText,
   BrowserViewSelectorsXPaths,
-} from '../../../app/components/Views/BrowserTab/BrowserView.testIds.ts';
-import { AccountOverviewSelectorsIDs } from '../../../app/components/UI/AccountRightButton/AccountOverview.testIds.ts';
-import { BrowserURLBarSelectorsIDs } from '../../../app/components/UI/BrowserUrlBar/BrowserURLBar.testIds.ts';
-import { AddBookmarkViewSelectorsIDs } from '../../../app/components/Views/AddBookmark/AddBookmarkView.testIds.ts';
+} from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
+import { AccountOverviewSelectorsIDs } from '../../../app/components/UI/AccountRightButton/AccountOverview.testIds';
+import { BrowserURLBarSelectorsIDs } from '../../../app/components/UI/BrowserUrlBar/BrowserURLBar.testIds';
+import { AddBookmarkViewSelectorsIDs } from '../../../app/components/Views/AddBookmark/AddBookmarkView.testIds';
 import {
   getTestDappLocalUrl,
   getDappUrl,
-} from '../../framework/fixtures/FixtureUtils.ts';
-import { DEFAULT_TAB_ID } from '../../framework/Constants.ts';
+} from '../../framework/fixtures/FixtureUtils';
+import { DEFAULT_TAB_ID } from '../../framework/Constants';
 import { Gestures, Matchers } from '../../framework';
 
 interface TransactionParams {

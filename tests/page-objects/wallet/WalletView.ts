@@ -1,18 +1,18 @@
 import {
   WalletViewSelectorsIDs,
   WalletViewSelectorsText,
-} from '../../../app/components/Views/Wallet/WalletView.testIds.ts';
-import { EARN_TEST_IDS } from '../../../app/components/UI/Earn/constants/testIds.ts';
-import { SECONDARY_BALANCE_BUTTON_TEST_ID } from '../../../app/components/UI/AssetElement/index.constants.ts';
+} from '../../../app/components/Views/Wallet/WalletView.testIds';
+import { EARN_TEST_IDS } from '../../../app/components/UI/Earn/constants/testIds';
+import { SECONDARY_BALANCE_BUTTON_TEST_ID } from '../../../app/components/UI/AssetElement/index.constants';
 import {
   PredictTabViewSelectorsIDs,
   PredictPositionsHeaderSelectorsIDs,
   PredictPositionSelectorsIDs,
-} from '../../../app/components/UI/Predict/Predict.testIds.ts';
-import Gestures from '../../framework/Gestures.ts';
-import Matchers from '../../framework/Matchers.ts';
+} from '../../../app/components/UI/Predict/Predict.testIds';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
 import TestHelpers from '../../helpers.js';
-import Assertions from '../../framework/Assertions.ts';
+import Assertions from '../../framework/Assertions';
 
 class WalletView {
   static readonly MAX_SCROLL_ITERATIONS = 8;

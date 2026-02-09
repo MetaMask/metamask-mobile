@@ -1,5 +1,5 @@
-import { BrowserViewSelectorsIDs } from '../../../../app/components/Views/BrowserTab/BrowserView.testIds.ts';
-import Matchers from '../../../framework/Matchers.ts';
+import { BrowserViewSelectorsIDs } from '../../../../app/components/Views/BrowserTab/BrowserView.testIds';
+import Matchers from '../../../framework/Matchers';
 
 class DownloadFileWebsite {
   async tapDownloadFileButton(): Promise<void> {

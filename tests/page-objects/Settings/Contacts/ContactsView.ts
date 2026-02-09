@@ -1,7 +1,7 @@
-import { ContactsViewSelectorIDs } from '../../../../app/components/Views/Settings/Contacts/ContactsView.testIds.ts';
-import Matchers from '../../../framework/Matchers.ts';
-import Gestures from '../../../framework/Gestures.ts';
-import Assertions from '../../../framework/Assertions.ts';
+import { ContactsViewSelectorIDs } from '../../../../app/components/Views/Settings/Contacts/ContactsView.testIds';
+import Matchers from '../../../framework/Matchers';
+import Gestures from '../../../framework/Gestures';
+import Assertions from '../../../framework/Assertions';
 
 class ContactsView {
   get container(): DetoxElement {

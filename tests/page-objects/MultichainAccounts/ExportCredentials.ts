@@ -1,7 +1,7 @@
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
-import { ExportCredentialsIds } from '../../../app/components/Views/MultichainAccounts/AccountDetails/ExportCredentials.testIds.ts';
-import { RevealSeedViewSelectorsIDs } from '../../../app/components/Views/RevealPrivateCredential/RevealSeedView.testIds.ts';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
+import { ExportCredentialsIds } from '../../../app/components/Views/MultichainAccounts/AccountDetails/ExportCredentials.testIds';
+import { RevealSeedViewSelectorsIDs } from '../../../app/components/Views/RevealPrivateCredential/RevealSeedView.testIds';
 
 class ExportCredentials {
   get srpInfoContainer(): DetoxElement {

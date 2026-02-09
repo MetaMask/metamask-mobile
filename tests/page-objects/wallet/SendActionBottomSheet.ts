@@ -1,6 +1,6 @@
-import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionView.selectors.ts';
-import Gestures from '../../framework/Gestures.ts';
-import Matchers from '../../framework/Matchers.ts';
+import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionView.selectors';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
 
 class SendActionBottomSheet {
   get solanaAddressInputField(): DetoxElement {

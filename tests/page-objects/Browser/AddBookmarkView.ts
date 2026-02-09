@@ -1,6 +1,6 @@
-import { AddBookmarkViewSelectorsIDs } from '../../../app/components/Views/AddBookmark/AddBookmarkView.testIds.ts';
-import Gestures from '../../framework/Gestures.ts';
-import Matchers from '../../framework/Matchers.ts';
+import { AddBookmarkViewSelectorsIDs } from '../../../app/components/Views/AddBookmark/AddBookmarkView.testIds';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
 
 class AddFavoritesView {
   get container(): DetoxElement {

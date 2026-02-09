@@ -1,6 +1,6 @@
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
-import Assertions from '../../framework/Assertions.ts';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
+import Assertions from '../../framework/Assertions';
 
 class PerpsDepositView {
   // Custom deposit keypad container

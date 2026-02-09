@@ -1,12 +1,12 @@
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 import {
   TokenOverviewSelectorsIDs,
   TokenOverviewSelectorsText,
-} from '../../../app/components/UI/AssetOverview/TokenOverview.testIds.ts';
-import { WalletActionsBottomSheetSelectorsIDs } from '../../../app/components/Views/WalletActions/WalletActionsBottomSheet.testIds.ts';
-import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds.ts';
-import { CommonSelectorsIDs } from '../../../app/util/Common.testIds.ts';
+} from '../../../app/components/UI/AssetOverview/TokenOverview.testIds';
+import { WalletActionsBottomSheetSelectorsIDs } from '../../../app/components/Views/WalletActions/WalletActionsBottomSheet.testIds';
+import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
+import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
 
 class TokenOverview {
   get container(): DetoxElement {

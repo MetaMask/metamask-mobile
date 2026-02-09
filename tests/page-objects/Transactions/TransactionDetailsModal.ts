@@ -2,9 +2,9 @@ import {
   TransactionDetailsModalSelectorsText,
   TransactionDetailsModalSelectorsIDs,
   TransactionDetailsSelectorIDs,
-} from '../../../app/components/Views/confirmations/components/activity/TransactionDetailsModal.testIds.ts';
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
+} from '../../../app/components/Views/confirmations/components/activity/TransactionDetailsModal.testIds';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 import { Assertions, logger } from '../../framework';
 
 class TransactionDetailsModal {

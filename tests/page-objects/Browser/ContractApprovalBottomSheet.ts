@@ -7,8 +7,8 @@
 //   ContractApprovalBottomSheetSelectorsIDs,
 //   ContractApprovalBottomSheetSelectorsText,
 // } from '../../../app/components/Views/confirmations/legacy/components/ContractApprovalBottomSheet.testIds';
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 
 // Temporary placeholders to prevent TypeScript errors
 const ContractApprovalBottomSheetSelectorsIDs = {

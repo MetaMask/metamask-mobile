@@ -1,10 +1,10 @@
 import {
   NetworksViewSelectorsIDs,
   NetworkViewSelectorsText,
-} from '../../../app/components/Views/Settings/NetworksSettings/NetworksView.testIds.ts';
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
-import { NetworkListModalSelectorsIDs } from '../../../app/components/Views/NetworkSelector/NetworkListModal.testIds.ts';
+} from '../../../app/components/Views/Settings/NetworksSettings/NetworksView.testIds';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
+import { NetworkListModalSelectorsIDs } from '../../../app/components/Views/NetworkSelector/NetworkListModal.testIds';
 
 class NetworkView {
   get networkContainer(): DetoxElement {

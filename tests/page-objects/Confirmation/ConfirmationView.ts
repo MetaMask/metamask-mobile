@@ -1,5 +1,5 @@
-import { ConfirmationTopSheetSelectorsIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds.ts';
-import Matchers from '../../framework/Matchers.ts';
+import { ConfirmationTopSheetSelectorsIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
+import Matchers from '../../framework/Matchers';
 
 class ConfirmationView {
   get securityAlertBanner(): DetoxElement {

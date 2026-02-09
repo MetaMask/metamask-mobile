@@ -1,6 +1,6 @@
-import { SRPListItemSelectorsIDs } from '../../../../../app/components/UI/SRPListItem/SRPListItem.testIds.ts';
-import Matchers from '../../../../framework/Matchers.ts';
-import Gestures from '../../../../framework/Gestures.ts';
+import { SRPListItemSelectorsIDs } from '../../../../../app/components/UI/SRPListItem/SRPListItem.testIds';
+import Matchers from '../../../../framework/Matchers';
+import Gestures from '../../../../framework/Gestures';
 
 class SRPListItemComponent {
   get listItem() {

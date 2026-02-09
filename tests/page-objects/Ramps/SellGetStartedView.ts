@@ -1,5 +1,5 @@
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 import { GetStartedSelectors } from '../../selectors/Ramps/GetStarted.selectors';
 
 class SellGetStartedView {

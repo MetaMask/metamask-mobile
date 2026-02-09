@@ -1,5 +1,5 @@
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 import { OnBoardingSelectors } from '../../selectors/swaps/OnBoarding.selectors';
 
 class Onboarding {

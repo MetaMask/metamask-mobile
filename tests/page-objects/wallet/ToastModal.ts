@@ -1,9 +1,9 @@
 import {
   ToastSelectorsIDs,
   ToastSelectorsText,
-} from '../../../app/component-library/components/Toast/ToastModal.testIds.ts';
-import Gestures from '../../framework/Gestures.ts';
-import Matchers from '../../framework/Matchers.ts';
+} from '../../../app/component-library/components/Toast/ToastModal.testIds';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
 
 class ToastModal {
   get container(): DetoxElement {

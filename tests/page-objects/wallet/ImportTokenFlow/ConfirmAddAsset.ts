@@ -1,9 +1,9 @@
 import {
   ImportTokenViewSelectorsIDs,
   ImportTokenViewSelectorsText,
-} from '../../../../app/components/Views/AddAsset/ImportTokenView.testIds.ts';
-import Matchers from '../../../framework/Matchers.ts';
-import Gestures from '../../../framework/Gestures.ts';
+} from '../../../../app/components/Views/AddAsset/ImportTokenView.testIds';
+import Matchers from '../../../framework/Matchers';
+import Gestures from '../../../framework/Gestures';
 
 class ConfirmAddAssetView {
   get container(): DetoxElement {

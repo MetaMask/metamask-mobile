@@ -1,8 +1,8 @@
 import {
   ConfirmationRowComponentIDs,
   TransactionPayComponentIDs,
-} from '../../../app/components/Views/confirmations/ConfirmationView.testIds.ts';
-import Matchers from '../../framework/Matchers.ts';
+} from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
+import Matchers from '../../framework/Matchers';
 import { Assertions, Gestures } from '../../framework';
 
 class TransactionPayConfirmation {

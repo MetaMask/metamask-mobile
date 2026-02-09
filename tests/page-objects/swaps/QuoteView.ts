@@ -1,11 +1,11 @@
 import { waitFor } from 'detox';
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
-import Assertions from '../../framework/Assertions.ts';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
+import Assertions from '../../framework/Assertions';
 import {
   QuoteViewSelectorIDs,
   QuoteViewSelectorText,
-} from '../../selectors/Bridge/QuoteView.selectors.ts';
+} from '../../selectors/Bridge/QuoteView.selectors';
 
 const TOKEN_LIST_MATCHER = by.id(QuoteViewSelectorIDs.TOKEN_LIST);
 

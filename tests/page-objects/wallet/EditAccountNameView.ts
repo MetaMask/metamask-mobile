@@ -1,6 +1,6 @@
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
-import { EditAccountNameSelectorIDs } from '../../../app/components/Views/EditAccountName/EditAccountName.testIds.ts';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
+import { EditAccountNameSelectorIDs } from '../../../app/components/Views/EditAccountName/EditAccountName.testIds';
 
 class EditAccountNameView {
   get saveButton(): DetoxElement {

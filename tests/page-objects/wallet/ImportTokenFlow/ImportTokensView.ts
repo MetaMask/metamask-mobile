@@ -1,10 +1,10 @@
-import Matchers from '../../../framework/Matchers.ts';
-import Gestures from '../../../framework/Gestures.ts';
+import Matchers from '../../../framework/Matchers';
+import Gestures from '../../../framework/Gestures';
 import {
   ImportTokenViewSelectorsIDs,
   ImportTokenViewSelectorsText,
-} from '../../../../app/components/Views/AddAsset/ImportTokenView.testIds.ts';
-import { CellComponentSelectorsIDs } from '../../../../app/component-library/components/Cells/Cell/CellComponent.testIds.ts';
+} from '../../../../app/components/Views/AddAsset/ImportTokenView.testIds';
+import { CellComponentSelectorsIDs } from '../../../../app/component-library/components/Cells/Cell/CellComponent.testIds';
 import { logger } from '../../../framework';
 
 class ImportTokensView {

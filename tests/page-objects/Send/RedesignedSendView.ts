@@ -1,9 +1,9 @@
-import Gestures from '../../framework/Gestures.ts';
-import Matchers from '../../framework/Matchers.ts';
-import { RedesignedSendViewSelectorsIDs } from '../../../app/components/Views/confirmations/components/send/RedesignedSendView.testIds.ts';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
+import { RedesignedSendViewSelectorsIDs } from '../../../app/components/Views/confirmations/components/send/RedesignedSendView.testIds';
 import { Utilities, Assertions } from '../../framework';
-import { CommonSelectorsIDs } from '../../../app/util/Common.testIds.ts';
-import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionView.selectors.ts';
+import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
+import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionView.selectors';
 
 class SendView {
   get ethereumTokenButton(): DetoxElement {

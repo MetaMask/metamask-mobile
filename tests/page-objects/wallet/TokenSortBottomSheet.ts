@@ -1,6 +1,6 @@
-import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds.ts';
-import Gestures from '../../framework/Gestures.ts';
-import Matchers from '../../framework/Matchers.ts';
+import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
 
 class SortModal {
   get sortAlphabetically(): DetoxElement {

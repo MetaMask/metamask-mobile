@@ -1,7 +1,7 @@
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
-import { SuccessImportAccountIDs } from '../../../app/components/Views/ImportPrivateKeySuccess/SuccessImportAccount.testIds.ts';
-import WalletView from '../wallet/WalletView.ts';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
+import { SuccessImportAccountIDs } from '../../../app/components/Views/ImportPrivateKeySuccess/SuccessImportAccount.testIds';
+import WalletView from '../wallet/WalletView';
 import { Utilities } from '../../framework';
 
 class SuccessImportAccountView {

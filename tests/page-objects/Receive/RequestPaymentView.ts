@@ -1,6 +1,6 @@
-import { RequestPaymentViewSelectors } from '../../../app/components/UI/ReceiveRequest/RequestPaymentView.testIds.ts';
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
+import { RequestPaymentViewSelectors } from '../../../app/components/UI/ReceiveRequest/RequestPaymentView.testIds';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 
 class RequestPaymentView {
   get backButton(): DetoxElement {

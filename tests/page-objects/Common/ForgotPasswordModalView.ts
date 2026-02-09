@@ -1,10 +1,10 @@
 import {
   ForgotPasswordModalSelectorsIDs,
   ForgotPasswordModalSelectorsText,
-} from '../../../app/util/ForgotPasswordModal.testIds.ts';
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
-import { OnboardingSelectorText } from '../../../app/components/Views/Onboarding/Onboarding.testIds.ts';
+} from '../../../app/util/ForgotPasswordModal.testIds';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
+import { OnboardingSelectorText } from '../../../app/components/Views/Onboarding/Onboarding.testIds';
 
 class ForgotPasswordModalView {
   get container(): DetoxElement {

@@ -5,9 +5,9 @@ import {
   aesCryptoFormScrollIdentifier,
   accountAddress,
   responseText,
-} from '../../../app/components/Views/AesCryptoTestForm/AesCrypto.testIds.ts';
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
+} from '../../../app/components/Views/AesCryptoTestForm/AesCrypto.testIds';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 
 class AesCryptoTestForm {
   get scrollViewIdentifier(): Promise<Detox.NativeMatcher> {

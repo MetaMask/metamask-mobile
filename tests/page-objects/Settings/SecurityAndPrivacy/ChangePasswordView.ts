@@ -1,8 +1,8 @@
-import { RESET_PASSWORD_CONFIRM_INPUT_BOX_ID } from '../../../../wdio/screen-objects/testIDs/Screens/ChangePasswordScreensIDs.testIds.ts';
-import { ChoosePasswordSelectorsIDs } from '../../../../app/components/Views/ChoosePassword/ChoosePassword.testIds.ts';
-import { ChangePasswordViewSelectorsText } from '../../../selectors/Settings/SecurityAndPrivacy/ChangePasswordView.selectors.ts';
-import Matchers from '../../../framework/Matchers.ts';
-import Gestures from '../../../framework/Gestures.ts';
+import { RESET_PASSWORD_CONFIRM_INPUT_BOX_ID } from '../../../../wdio/screen-objects/testIDs/Screens/ChangePasswordScreensIDs.testIds';
+import { ChoosePasswordSelectorsIDs } from '../../../../app/components/Views/ChoosePassword/ChoosePassword.testIds';
+import { ChangePasswordViewSelectorsText } from '../../../selectors/Settings/SecurityAndPrivacy/ChangePasswordView.selectors';
+import Matchers from '../../../framework/Matchers';
+import Gestures from '../../../framework/Gestures';
 
 class ChangePasswordView {
   get title(): DetoxElement {

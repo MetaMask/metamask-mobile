@@ -1,10 +1,10 @@
-import Gestures from '../../framework/Gestures.ts';
-import Matchers from '../../framework/Matchers.ts';
-import Utilities from '../../framework/Utilities.ts';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
+import Utilities from '../../framework/Utilities';
 import {
   PerpsMarketBalanceActionsSelectorsIDs,
   PerpsTabViewSelectorsIDs,
-} from '../../../app/components/UI/Perps/Perps.testIds.ts';
+} from '../../../app/components/UI/Perps/Perps.testIds';
 
 class PerpsTabView {
   get balanceButton(): DetoxElement {

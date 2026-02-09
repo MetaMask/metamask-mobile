@@ -1,10 +1,10 @@
-import { AccountActionsBottomSheetSelectorsIDs } from '../../../app/components/Views/AccountActions/AccountActionsBottomSheet.testIds.ts';
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
-import Utilities from '../../framework/Utilities.ts';
-import EditAccountNameView from './EditAccountNameView.ts';
-import MultichainAccountDetails from '../MultichainAccounts/AccountDetails.ts';
-import MultichainEditAccountName from '../MultichainAccounts/EditAccountName.ts';
+import { AccountActionsBottomSheetSelectorsIDs } from '../../../app/components/Views/AccountActions/AccountActionsBottomSheet.testIds';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
+import Utilities from '../../framework/Utilities';
+import EditAccountNameView from './EditAccountNameView';
+import MultichainAccountDetails from '../MultichainAccounts/AccountDetails';
+import MultichainEditAccountName from '../MultichainAccounts/EditAccountName';
 class AccountActionsBottomSheet {
   get editAccount(): DetoxElement {
     return Matchers.getElementByID(

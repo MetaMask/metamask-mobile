@@ -1,6 +1,6 @@
-import Gestures from '../../framework/Gestures.ts';
-import Matchers from '../../framework/Matchers.ts';
-import { PerpsTutorialSelectorsIDs } from '../../../app/components/UI/Perps/Perps.testIds.ts';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
+import { PerpsTutorialSelectorsIDs } from '../../../app/components/UI/Perps/Perps.testIds';
 
 class PerpsOnboarding {
   get continueButton(): DetoxElement {

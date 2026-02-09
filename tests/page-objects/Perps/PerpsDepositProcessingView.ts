@@ -1,7 +1,7 @@
-import { PerpsDepositProcessingViewSelectorsIDs } from '../../../app/components/UI/Perps/Perps.testIds.ts';
-import Matchers from '../../framework/Matchers.ts';
-import Assertions from '../../framework/Assertions.ts';
-import Gestures from '../../framework/Gestures.ts';
+import { PerpsDepositProcessingViewSelectorsIDs } from '../../../app/components/UI/Perps/Perps.testIds';
+import Matchers from '../../framework/Matchers';
+import Assertions from '../../framework/Assertions';
+import Gestures from '../../framework/Gestures';
 
 class PerpsDepositProcessingView {
   get headerTitle(): DetoxElement {

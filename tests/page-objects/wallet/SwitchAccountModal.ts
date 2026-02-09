@@ -1,6 +1,6 @@
-import Gestures from '../../framework/Gestures.ts';
-import Matchers from '../../framework/Matchers.ts';
-import { SwitchAccountModalSelectorIDs } from '../../../app/components/Views/confirmations/components/modals/switch-account-type-modal/SwitchAccountModal.testIds.ts';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
+import { SwitchAccountModalSelectorIDs } from '../../../app/components/Views/confirmations/components/modals/switch-account-type-modal/SwitchAccountModal.testIds';
 class SwitchAccountModal {
   get smartAccountLink() {
     return Matchers.getElementByText('Smart account');

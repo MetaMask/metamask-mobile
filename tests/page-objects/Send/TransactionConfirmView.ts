@@ -3,18 +3,18 @@
 // This e2e page object needs to be updated to use redesigned confirmation testIds
 // or deleted if the functionality is no longer tested.
 
-import Gestures from '../../framework/Gestures.ts';
-import Matchers from '../../framework/Matchers.ts';
-import { ConfirmationTopSheetSelectorsIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds.ts';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
+import { ConfirmationTopSheetSelectorsIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import {
   EditGasViewSelectorsText,
   EditGasViewSelectorsIDs,
-} from '../../../app/components/Views/confirmations/legacy/components/EditGasView.testIds.ts';
+} from '../../../app/components/Views/confirmations/legacy/components/EditGasView.testIds';
 // import {
 //   TransactionConfirmViewSelectorsIDs,
 //   TransactionConfirmViewSelectorsText,
 // } from '../../../app/components/Views/confirmations/legacy/components/Confirm/TransactionConfirmView.testIds';
-import RowComponents from '../Browser/Confirmations/RowComponents.ts';
+import RowComponents from '../Browser/Confirmations/RowComponents';
 
 // Temporary placeholders to prevent TypeScript errors
 const TransactionConfirmViewSelectorsIDs = {

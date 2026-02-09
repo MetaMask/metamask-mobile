@@ -1,10 +1,10 @@
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 import {
   SettingsViewSelectorsIDs,
   SettingsViewSelectorsText,
-} from '../../../app/components/Views/Settings/SettingsView.testIds.ts';
-import { CommonSelectorsText } from '../../../app/util/Common.testIds.ts';
+} from '../../../app/components/Views/Settings/SettingsView.testIds';
+import { CommonSelectorsText } from '../../../app/util/Common.testIds';
 
 class SettingsView {
   get title(): DetoxElement {

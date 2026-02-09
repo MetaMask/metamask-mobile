@@ -1,7 +1,7 @@
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
-import { BuildQuoteSelectors } from '../../../app/components/UI/Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds.ts';
-import { AddressSelectorSelectors } from '../../../app/components/Views/AddressSelector/AddressSelector.testIds.ts';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
+import { BuildQuoteSelectors } from '../../../app/components/UI/Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
+import { AddressSelectorSelectors } from '../../../app/components/Views/AddressSelector/AddressSelector.testIds';
 
 class BuildQuoteView {
   get amountToBuyLabel(): DetoxElement {

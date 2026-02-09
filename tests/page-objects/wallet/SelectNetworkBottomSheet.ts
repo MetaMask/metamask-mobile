@@ -1,6 +1,6 @@
-import { PermissionSummaryBottomSheetSelectorsText } from '../../../app/components/Views/AccountConnect/PermissionSummaryBottomSheet.testIds.ts';
-import Gestures from '../../framework/Gestures.ts';
-import Matchers from '../../framework/Matchers.ts';
+import { PermissionSummaryBottomSheetSelectorsText } from '../../../app/components/Views/AccountConnect/PermissionSummaryBottomSheet.testIds';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
 
 class SelectNetworksBottomSheet {
   get connectedAccountsText(): DetoxElement {

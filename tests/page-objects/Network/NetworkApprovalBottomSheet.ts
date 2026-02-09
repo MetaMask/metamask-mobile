@@ -1,6 +1,6 @@
-import { NetworkApprovalBottomSheetSelectorsIDs } from '../../../app/components/UI/NetworkModal/NetworkApprovalBottomSheet.testIds.ts';
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
+import { NetworkApprovalBottomSheetSelectorsIDs } from '../../../app/components/UI/NetworkModal/NetworkApprovalBottomSheet.testIds';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 
 class NetworkApprovalBottomSheet {
   get container(): DetoxElement {

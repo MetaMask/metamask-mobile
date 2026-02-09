@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import Browser from './BrowserView.ts';
-import Matchers from '../../framework/Matchers.ts';
-import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds.ts';
+import Browser from './BrowserView';
+import Matchers from '../../framework/Matchers';
+import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import {
   TestSnapViewSelectorWebIDS,
   TestSnapInputSelectorWebIDS,
@@ -9,17 +9,17 @@ import {
   TestSnapBottomSheetSelectorWebIDS,
   EntropyDropDownSelectorWebIDS,
   NativeDropdownSelectorWebIDS,
-} from '../../selectors/Browser/TestSnaps.selectors.ts';
-import Gestures from '../../framework/Gestures.ts';
-import { SNAP_INSTALL_CONNECT } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapConnectionRequest/InstallSnapConnectionRequest.constants.ts';
-import { SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapPermissionsRequest/InstallSnapPermissionsRequest.constants.ts';
-import { SNAP_INSTALL_OK } from '../../../app/components/Approvals/InstallSnapApproval/InstallSnapApproval.constants.ts';
+} from '../../selectors/Browser/TestSnaps.selectors';
+import Gestures from '../../framework/Gestures';
+import { SNAP_INSTALL_CONNECT } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapConnectionRequest/InstallSnapConnectionRequest.constants';
+import { SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapPermissionsRequest/InstallSnapPermissionsRequest.constants';
+import { SNAP_INSTALL_OK } from '../../../app/components/Approvals/InstallSnapApproval/InstallSnapApproval.constants';
 import TestHelpers from '../../helpers';
-import Assertions from '../../framework/Assertions.ts';
+import Assertions from '../../framework/Assertions';
 import { IndexableWebElement } from 'detox/detox';
-import Utilities from '../../framework/Utilities.ts';
-import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds.ts';
-import { waitForTestSnapsToLoad } from '../../flows/browser.flow.ts';
+import Utilities from '../../framework/Utilities';
+import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
+import { waitForTestSnapsToLoad } from '../../flows/browser.flow';
 import { RetryOptions } from '../../framework';
 import { Json } from '@metamask/utils';
 

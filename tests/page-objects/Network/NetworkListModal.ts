@@ -1,11 +1,11 @@
 import {
   NetworkListModalSelectorsIDs,
   NetworkListModalSelectorsText,
-} from '../../../app/components/Views/NetworkSelector/NetworkListModal.testIds.ts';
-import { NetworksViewSelectorsIDs } from '../../../app/components/Views/Settings/NetworksSettings/NetworksView.testIds.ts';
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
-import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants.ts';
+} from '../../../app/components/Views/NetworkSelector/NetworkListModal.testIds';
+import { NetworksViewSelectorsIDs } from '../../../app/components/Views/Settings/NetworksSettings/NetworksView.testIds';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
+import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
 
 class NetworkListModal {
   get networkScroll(): DetoxElement {

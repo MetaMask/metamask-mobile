@@ -1,13 +1,13 @@
-import { CellComponentSelectorsIDs } from '../../../app/component-library/components/Cells/Cell/CellComponent.testIds.ts';
+import { CellComponentSelectorsIDs } from '../../../app/component-library/components/Cells/Cell/CellComponent.testIds';
 import {
   AccountListBottomSheetSelectorsIDs,
   AccountListBottomSheetSelectorsText,
-} from '../../../app/components/Views/AccountSelector/AccountListBottomSheet.testIds.ts';
-import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds.ts';
-import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/AccountConnect/ConnectAccountBottomSheet.testIds.ts';
-import { AccountCellIds } from '../../../app/component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.testIds.ts';
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
+} from '../../../app/components/Views/AccountSelector/AccountListBottomSheet.testIds';
+import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/AccountConnect/ConnectAccountBottomSheet.testIds';
+import { AccountCellIds } from '../../../app/component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.testIds';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 
 class AccountListBottomSheet {
   get accountList(): DetoxElement {

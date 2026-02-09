@@ -1,11 +1,11 @@
 import enContent from '../../../locales/languages/en.json';
 
-import Gestures from '../../framework/Gestures.ts';
-import Matchers from '../../framework/Matchers.ts';
-import { getTestDappLocalUrl } from '../../framework/fixtures/FixtureUtils.ts';
-import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds.ts';
-import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors.ts';
-import Browser from './BrowserView.ts';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
+import { getTestDappLocalUrl } from '../../framework/fixtures/FixtureUtils';
+import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
+import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors';
+import Browser from './BrowserView';
 import { Assertions, TapOptions, Utilities } from '../../framework';
 
 const CONFIRM_BUTTON_TEXT = enContent.confirmation_modal.confirm_cta;

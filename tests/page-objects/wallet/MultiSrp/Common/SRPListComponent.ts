@@ -1,5 +1,5 @@
-import { SRPListSelectorsIDs } from '../../../../../app/components/UI/SRPList/SRPList.testIds.ts';
-import Matchers from '../../../../framework/Matchers.ts';
+import { SRPListSelectorsIDs } from '../../../../../app/components/UI/SRPList/SRPList.testIds';
+import Matchers from '../../../../framework/Matchers';
 
 class SRPListComponent {
   get srpList(): DetoxElement {

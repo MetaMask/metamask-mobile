@@ -1,6 +1,6 @@
-import { EnableNotificationModalSelectorsIDs } from '../../../app/components/Views/Notifications/OptIn/EnableNotificationModal.testIds.ts';
-import Gestures from '../../framework/Gestures.ts';
-import Matchers from '../../framework/Matchers.ts';
+import { EnableNotificationModalSelectorsIDs } from '../../../app/components/Views/Notifications/OptIn/EnableNotificationModal.testIds';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
 
 class EnableNotificationsModal {
   get title() {

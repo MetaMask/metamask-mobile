@@ -1,5 +1,5 @@
-import { ConfirmationRequestTypeIDs } from '../../../../app/components/Views/confirmations/ConfirmationView.testIds.ts';
-import Matchers from '../../../framework/Matchers.ts';
+import { ConfirmationRequestTypeIDs } from '../../../../app/components/Views/confirmations/ConfirmationView.testIds';
+import Matchers from '../../../framework/Matchers';
 
 class RequestTypes {
   get PersonalSignRequest(): DetoxElement {
