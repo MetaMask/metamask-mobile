@@ -15,6 +15,7 @@ import { useFeeCalculations } from './useFeeCalculations';
 import { updateTransactionGasFees } from '../../../../../util/transaction-controller';
 import { type GasOption } from '../../types/gas';
 import { EMPTY_VALUE_STRING } from '../../constants/gas';
+import { isFastNetwork } from '../../components/gas/gas-speed/gas-speed';
 
 const HEX_ZERO = '0x0';
 
@@ -30,8 +31,7 @@ export const useGasFeeEstimateLevelOptions = ({
   ) as {
     gasFeeEstimates: GasFeeEstimates;
   };
-
-  const { gasFeeEstimates, id, userFeeLevel } = transactionMeta;
+  const { chainId, gasFeeEstimates, id, userFeeLevel } = transactionMeta;
 
   const transactionGasFeeEstimates =
     gasFeeEstimates as TransactionGasFeeEstimates;
@@ -78,10 +78,16 @@ export const useGasFeeEstimateLevelOptions = ({
         }
       }
 
-      const estimatedTime = toHumanEstimatedTimeRange(
-        networkGasFeeEstimates[level].minWaitTimeEstimate,
-        networkGasFeeEstimates[level].maxWaitTimeEstimate,
-      );
+      const estimatedTime = isFastNetwork(chainId)
+        ? toHumanEstimatedTimeRange(
+            networkGasFeeEstimates[level].minWaitTimeEstimate,
+            networkGasFeeEstimates[level].maxWaitTimeEstimate,
+            chainId,
+          )
+        : toHumanEstimatedTimeRange(
+            networkGasFeeEstimates[level].minWaitTimeEstimate,
+            networkGasFeeEstimates[level].maxWaitTimeEstimate,
+          );
 
       let feePerGas = HEX_ZERO;
       let gasPrice = HEX_ZERO;
