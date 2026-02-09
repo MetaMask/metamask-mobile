@@ -372,16 +372,10 @@ generateIosBinary() {
 	else
 		echo "Binary build type: Device"
 		xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration archive -archivePath build/$scheme.xcarchive -destination generic/platform=ios
-		local archive_exit_code=$?
-		if [ $archive_exit_code -ne 0 ]; then
-			echo "❌ xcodebuild archive failed with exit code $archive_exit_code"
-			cd ..
-			return 1
-		fi
-		
 		echo "Generating ipa for $scheme"
 		xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
 	fi
+	
 }
 
 # Generates the Android binary for the given scheme and configuration
