@@ -1,4 +1,12 @@
+import type { Hex } from '@metamask/utils';
 import { TokenI } from '../../Tokens/types';
+
+/** Address used to represent "Perps balance" as the payment token (synthetic option). */
+export const PERPS_BALANCE_PLACEHOLDER_ADDRESS =
+  '0x0000000000000000000000000000000000000000' as Hex;
+
+/** Chain id used for the "Perps balance" payment option. */
+export { ARBITRUM_CHAIN_ID as PERPS_BALANCE_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 
 /**
  * Perps feature constants
@@ -6,6 +14,10 @@ import { TokenI } from '../../Tokens/types';
 export const PERPS_CONSTANTS = {
   FeatureFlagKey: 'perpsEnabled',
   FeatureName: 'perps', // Constant for Sentry error filtering - enables "feature:perps" dashboard queries
+  /** Token description used to identify the synthetic "Perps balance" option in pay-with token lists */
+  PerpsBalanceTokenDescription: 'perps-balance',
+  /** Symbol displayed for the synthetic "Perps balance" token in pay-with token lists */
+  PerpsBalanceTokenSymbol: 'USD',
   WebsocketTimeout: 5000, // 5 seconds
   WebsocketCleanupDelay: 1000, // 1 second
   BackgroundDisconnectDelay: 20_000, // 20 seconds delay before disconnecting when app is backgrounded or when user exits perps UX
@@ -24,6 +36,9 @@ export const PERPS_CONSTANTS = {
   // Connection manager timing constants
   BalanceUpdateThrottleMs: 15000, // Update at most every 15 seconds to reduce state updates in PerpsConnectionManager
   InitialDataDelayMs: 100, // Delay to allow initial data to load after connection establishment
+
+  // Deposit toast timing
+  DepositTakingLongerToastDelayMs: 15_000, // Delay before showing "Deposit taking longer than usual" toast
 
   DefaultAssetPreviewLimit: 5,
   DefaultMaxLeverage: 3 as number, // Default fallback max leverage when market data is unavailable - conservative default
@@ -558,7 +573,7 @@ export const STOP_LOSS_PROMPT_CONFIG = {
 
   // Minimum position age before showing any banner (milliseconds)
   // Prevents banner from appearing immediately after opening a position
-  PositionMinAgeMs: 60_000, // 60 seconds
+  PositionMinAgeMs: 120_000, // 2 minutes
 
   // Suggested stop loss ROE percentage
   // When suggesting a stop loss, calculate price at this ROE from entry

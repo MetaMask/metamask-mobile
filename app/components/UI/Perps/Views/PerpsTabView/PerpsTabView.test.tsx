@@ -11,7 +11,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import type { Position, PerpsMarketData } from '../../controllers/types';
 import PerpsTabView from './PerpsTabView';
-import { PerpsEventValues } from '../../constants/eventNames';
+import { PERPS_EVENT_VALUE } from '../../constants/eventNames';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -485,7 +485,7 @@ describe('PerpsTabView', () => {
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
-        params: { source: PerpsEventValues.SOURCE.POSITION_TAB },
+        params: { source: PERPS_EVENT_VALUE.SOURCE.POSITION_TAB },
       });
     });
 
@@ -633,7 +633,7 @@ describe('PerpsTabView', () => {
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
-        params: { source: PerpsEventValues.SOURCE.HOMESCREEN_TAB },
+        params: { source: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB },
       });
     });
   });

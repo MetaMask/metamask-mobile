@@ -65,8 +65,10 @@ jest.mock('../../../../util/Logger', () => ({
 }));
 
 // Mock cardTokenVault
+const mockRemoveCardBaanxToken = jest.fn();
 jest.mock('../util/cardTokenVault', () => ({
   getCardBaanxToken: jest.fn(),
+  removeCardBaanxToken: () => mockRemoveCardBaanxToken(),
 }));
 
 // Mock network utilities
@@ -4460,6 +4462,577 @@ describe('CardSDK', () => {
           }),
         }),
       );
+    });
+  });
+
+  describe('logout', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      (getCardBaanxToken as jest.Mock).mockResolvedValue({
+        accessToken: 'mock-access-token',
+        refreshToken: 'mock-refresh-token',
+      });
+      mockRemoveCardBaanxToken.mockResolvedValue(undefined);
+    });
+
+    it('successfully logs out and removes token', async () => {
+      // Given: logout API returns success
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({}),
+      });
+
+      // When: logout is called
+      await cardSDK.logout();
+
+      // Then: should call logout API and remove token
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/auth/logout'),
+        expect.objectContaining({
+          method: 'POST',
+        }),
+      );
+      expect(mockRemoveCardBaanxToken).toHaveBeenCalledTimes(1);
+    });
+
+    it('still removes token when logout API fails', async () => {
+      // Given: logout API returns error
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        json: jest.fn().mockResolvedValue({ error: 'Server error' }),
+      });
+
+      // When/Then: logout should throw error but still remove token
+      await expect(cardSDK.logout()).rejects.toThrow();
+
+      // Token should still be removed even on failure (local cleanup always happens)
+      expect(mockRemoveCardBaanxToken).toHaveBeenCalledTimes(1);
+    });
+
+    it('throws CardError with SERVER_ERROR type after cleanup on failure', async () => {
+      // Given: logout API returns error
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        json: jest.fn().mockResolvedValue({ error: 'Unauthorized' }),
+      });
+
+      // When/Then: should throw CardError after local cleanup
+      try {
+        await cardSDK.logout();
+        fail('Expected error to be thrown');
+      } catch (error) {
+        expect(error).toBeInstanceOf(CardError);
+        expect((error as CardError).type).toBe(CardErrorType.SERVER_ERROR);
+        expect((error as CardError).message).toContain('Failed to logout');
+      }
+
+      // Token should still be removed (cleanup happens before re-throwing)
+      expect(mockRemoveCardBaanxToken).toHaveBeenCalledTimes(1);
+    });
+
+    it('removes token even when network request fails', async () => {
+      // Given: network error occurs
+      (global.fetch as jest.Mock).mockRejectedValueOnce(
+        new Error('Network error'),
+      );
+
+      // When/Then: logout should throw but still remove token
+      await expect(cardSDK.logout()).rejects.toThrow('Network error');
+
+      // Token should still be removed even on network failure
+      expect(mockRemoveCardBaanxToken).toHaveBeenCalledTimes(1);
+    });
+
+    it('sends authenticated POST request to logout endpoint', async () => {
+      // Given: logout API returns success
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({}),
+      });
+
+      // When: logout is called
+      await cardSDK.logout();
+
+      // Then: should send POST request with auth header
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/auth/logout'),
+        expect.objectContaining({
+          method: 'POST',
+        }),
+      );
+    });
+  });
+
+  describe('createGoogleWalletProvisioningRequest', () => {
+    const mockGoogleProvisioningResponse = {
+      success: true,
+      data: {
+        cardNetwork: 'MASTERCARD',
+        lastFourDigits: '1234',
+        cardholderName: 'John Doe',
+        cardDescription: 'MetaMask Card',
+        opaquePaymentCard: 'encrypted-opc-data',
+      },
+    };
+
+    beforeEach(() => {
+      (getCardBaanxToken as jest.Mock).mockResolvedValue({
+        success: true,
+        tokenData: { accessToken: 'mock-access-token' },
+      });
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('creates Google Wallet provisioning request successfully', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockGoogleProvisioningResponse),
+      });
+
+      const result = await cardSDK.createGoogleWalletProvisioningRequest();
+
+      expect(result).toEqual({
+        cardNetwork: 'MASTERCARD',
+        lastFourDigits: '1234',
+        cardholderName: 'John Doe',
+        cardDescription: 'MetaMask Card',
+        opaquePaymentCard: 'encrypted-opc-data',
+      });
+    });
+
+    it('calls the correct endpoint with POST method', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockGoogleProvisioningResponse),
+      });
+
+      await cardSDK.createGoogleWalletProvisioningRequest();
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/card/wallet/provision/google'),
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({}),
+        }),
+      );
+    });
+
+    it('sends authenticated request with bearer token', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockGoogleProvisioningResponse),
+      });
+
+      await cardSDK.createGoogleWalletProvisioningRequest();
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: 'Bearer mock-access-token',
+          }),
+        }),
+      );
+    });
+
+    it('handles response with panLast4 fallback', async () => {
+      const responseWithPanLast4 = {
+        success: true,
+        data: {
+          cardNetwork: 'MASTERCARD',
+          panLast4: '5678',
+          holderName: 'Jane Doe',
+          opaquePaymentCard: 'encrypted-opc-data',
+        },
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(responseWithPanLast4),
+      });
+
+      const result = await cardSDK.createGoogleWalletProvisioningRequest();
+
+      expect(result).toEqual({
+        cardNetwork: 'MASTERCARD',
+        lastFourDigits: '5678',
+        cardholderName: 'Jane Doe',
+        cardDescription: undefined,
+        opaquePaymentCard: 'encrypted-opc-data',
+      });
+    });
+
+    it('uses default cardNetwork when not provided', async () => {
+      const responseWithoutNetwork = {
+        success: true,
+        data: {
+          opaquePaymentCard: 'encrypted-opc-data',
+        },
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(responseWithoutNetwork),
+      });
+
+      const result = await cardSDK.createGoogleWalletProvisioningRequest();
+
+      expect(result.cardNetwork).toBe('MASTERCARD');
+    });
+
+    it('throws INVALID_CREDENTIALS error on 401 response', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        json: jest.fn().mockResolvedValue({ error: 'Unauthorized' }),
+      });
+
+      await expect(
+        cardSDK.createGoogleWalletProvisioningRequest(),
+      ).rejects.toMatchObject({
+        type: CardErrorType.INVALID_CREDENTIALS,
+      });
+    });
+
+    it('throws INVALID_CREDENTIALS error on 403 response', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 403,
+        json: jest.fn().mockResolvedValue({ error: 'Forbidden' }),
+      });
+
+      await expect(
+        cardSDK.createGoogleWalletProvisioningRequest(),
+      ).rejects.toMatchObject({
+        type: CardErrorType.INVALID_CREDENTIALS,
+      });
+    });
+
+    it('throws NO_CARD error on 404 response', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+        json: jest.fn().mockResolvedValue({ error: 'Card not found' }),
+      });
+
+      await expect(
+        cardSDK.createGoogleWalletProvisioningRequest(),
+      ).rejects.toMatchObject({
+        type: CardErrorType.NO_CARD,
+      });
+    });
+
+    it('throws SERVER_ERROR on 500 response', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        json: jest.fn().mockResolvedValue({ error: 'Internal server error' }),
+      });
+
+      await expect(
+        cardSDK.createGoogleWalletProvisioningRequest(),
+      ).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+      });
+    });
+
+    it('throws error when opaquePaymentCard is missing', async () => {
+      const responseWithoutOPC = {
+        success: true,
+        data: {
+          cardNetwork: 'MASTERCARD',
+          lastFourDigits: '1234',
+        },
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(responseWithoutOPC),
+      });
+
+      await expect(
+        cardSDK.createGoogleWalletProvisioningRequest(),
+      ).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+        message:
+          'Google Wallet provisioning response missing opaquePaymentCard',
+      });
+    });
+
+    it('throws error when success is false', async () => {
+      const unsuccessfulResponse = {
+        success: false,
+        data: {
+          opaquePaymentCard: 'encrypted-opc-data',
+        },
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(unsuccessfulResponse),
+      });
+
+      await expect(
+        cardSDK.createGoogleWalletProvisioningRequest(),
+      ).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+      });
+    });
+
+    it('handles network errors', async () => {
+      const networkError = new Error('Network failure');
+      (global.fetch as jest.Mock).mockRejectedValue(networkError);
+
+      await expect(
+        cardSDK.createGoogleWalletProvisioningRequest(),
+      ).rejects.toMatchObject({
+        type: CardErrorType.NETWORK_ERROR,
+      });
+    });
+  });
+
+  describe('createApplePayProvisioningRequest', () => {
+    const mockApplePayParams = {
+      leafCertificate: 'mock-leaf-cert-hex',
+      intermediateCertificate: 'mock-intermediate-cert-hex',
+      nonce: 'mock-nonce-data',
+      nonceSignature: 'mock-nonce-signature',
+    };
+
+    const mockApplePayResponse = {
+      success: true,
+      data: {
+        encryptedPassData: 'encrypted-pass-data',
+        activationData: 'activation-data',
+        ephemeralPublicKey: 'ephemeral-public-key',
+      },
+    };
+
+    beforeEach(() => {
+      (getCardBaanxToken as jest.Mock).mockResolvedValue({
+        success: true,
+        tokenData: { accessToken: 'mock-access-token' },
+      });
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('creates Apple Pay provisioning request successfully', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockApplePayResponse),
+      });
+
+      const result =
+        await cardSDK.createApplePayProvisioningRequest(mockApplePayParams);
+
+      expect(result).toEqual({
+        encryptedPassData: 'encrypted-pass-data',
+        activationData: 'activation-data',
+        ephemeralPublicKey: 'ephemeral-public-key',
+      });
+    });
+
+    it('calls the correct endpoint with POST method and parameters', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockApplePayResponse),
+      });
+
+      await cardSDK.createApplePayProvisioningRequest(mockApplePayParams);
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/card/wallet/provision/apple'),
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({
+            leafCertificate: 'mock-leaf-cert-hex',
+            intermediateCertificate: 'mock-intermediate-cert-hex',
+            nonce: 'mock-nonce-data',
+            nonceSignature: 'mock-nonce-signature',
+          }),
+        }),
+      );
+    });
+
+    it('sends authenticated request with bearer token', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockApplePayResponse),
+      });
+
+      await cardSDK.createApplePayProvisioningRequest(mockApplePayParams);
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: 'Bearer mock-access-token',
+          }),
+        }),
+      );
+    });
+
+    it('handles flat response format (without data wrapper)', async () => {
+      const flatResponse = {
+        encryptedPassData: 'encrypted-pass-data',
+        activationData: 'activation-data',
+        ephemeralPublicKey: 'ephemeral-public-key',
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(flatResponse),
+      });
+
+      const result =
+        await cardSDK.createApplePayProvisioningRequest(mockApplePayParams);
+
+      expect(result).toEqual({
+        encryptedPassData: 'encrypted-pass-data',
+        activationData: 'activation-data',
+        ephemeralPublicKey: 'ephemeral-public-key',
+      });
+    });
+
+    it('throws INVALID_CREDENTIALS error on 401 response', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        json: jest.fn().mockResolvedValue({ error: 'Unauthorized' }),
+      });
+
+      await expect(
+        cardSDK.createApplePayProvisioningRequest(mockApplePayParams),
+      ).rejects.toMatchObject({
+        type: CardErrorType.INVALID_CREDENTIALS,
+      });
+    });
+
+    it('throws INVALID_CREDENTIALS error on 403 response', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 403,
+        json: jest.fn().mockResolvedValue({ error: 'Forbidden' }),
+      });
+
+      await expect(
+        cardSDK.createApplePayProvisioningRequest(mockApplePayParams),
+      ).rejects.toMatchObject({
+        type: CardErrorType.INVALID_CREDENTIALS,
+      });
+    });
+
+    it('throws NO_CARD error on 404 response', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+        json: jest.fn().mockResolvedValue({ error: 'Card not found' }),
+      });
+
+      await expect(
+        cardSDK.createApplePayProvisioningRequest(mockApplePayParams),
+      ).rejects.toMatchObject({
+        type: CardErrorType.NO_CARD,
+      });
+    });
+
+    it('throws SERVER_ERROR on 500 response', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        json: jest.fn().mockResolvedValue({ error: 'Internal server error' }),
+      });
+
+      await expect(
+        cardSDK.createApplePayProvisioningRequest(mockApplePayParams),
+      ).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+      });
+    });
+
+    it('throws error when encryptedPassData is missing', async () => {
+      const incompleteResponse = {
+        success: true,
+        data: {
+          activationData: 'activation-data',
+          ephemeralPublicKey: 'ephemeral-public-key',
+        },
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(incompleteResponse),
+      });
+
+      await expect(
+        cardSDK.createApplePayProvisioningRequest(mockApplePayParams),
+      ).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+        message: 'Apple Pay provisioning response missing required fields',
+      });
+    });
+
+    it('throws error when activationData is missing', async () => {
+      const incompleteResponse = {
+        success: true,
+        data: {
+          encryptedPassData: 'encrypted-pass-data',
+          ephemeralPublicKey: 'ephemeral-public-key',
+        },
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(incompleteResponse),
+      });
+
+      await expect(
+        cardSDK.createApplePayProvisioningRequest(mockApplePayParams),
+      ).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+        message: 'Apple Pay provisioning response missing required fields',
+      });
+    });
+
+    it('throws error when ephemeralPublicKey is missing', async () => {
+      const incompleteResponse = {
+        success: true,
+        data: {
+          encryptedPassData: 'encrypted-pass-data',
+          activationData: 'activation-data',
+        },
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(incompleteResponse),
+      });
+
+      await expect(
+        cardSDK.createApplePayProvisioningRequest(mockApplePayParams),
+      ).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+        message: 'Apple Pay provisioning response missing required fields',
+      });
+    });
+
+    it('handles network errors', async () => {
+      const networkError = new Error('Network failure');
+      (global.fetch as jest.Mock).mockRejectedValue(networkError);
+
+      await expect(
+        cardSDK.createApplePayProvisioningRequest(mockApplePayParams),
+      ).rejects.toMatchObject({
+        type: CardErrorType.NETWORK_ERROR,
+      });
     });
   });
 });
