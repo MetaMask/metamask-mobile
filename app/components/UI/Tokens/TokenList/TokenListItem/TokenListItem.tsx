@@ -1,7 +1,7 @@
 import { Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import Badge, {
   BadgeVariant,
@@ -56,6 +56,8 @@ import {
   useMerklRewards,
   isEligibleForMerklRewards,
 } from '../../../Earn/components/MerklRewards/hooks/useMerklRewards';
+import { useMerklClaim } from '../../../Earn/components/MerklRewards/hooks/useMerklClaim';
+import { usePendingMerklClaim } from '../../../Earn/components/MerklRewards/hooks/usePendingMerklClaim';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { EVENT_LOCATIONS as EARN_EVENT_LOCATIONS } from '../../../Earn/constants/events/earnEvents';
@@ -175,9 +177,24 @@ export const TokenListItem = React.memo(
       [asset?.chainId, asset?.address],
     );
 
+    const { hasPendingClaim } = usePendingMerklClaim();
+
     const hasClaimableBonus = Boolean(
-      isMerklCampaignClaimingEnabled && claimableReward && isEligibleForMerkl,
+      isMerklCampaignClaimingEnabled &&
+        claimableReward &&
+        isEligibleForMerkl &&
+        !hasPendingClaim,
     );
+
+    const { claimRewards, isClaiming } = useMerklClaim(asset as TokenI);
+
+    const handleClaimBonus = useCallback(async () => {
+      try {
+        await claimRewards();
+      } catch {
+        // Error is handled by useMerklClaim hook
+      }
+    }, [claimRewards]);
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
 
@@ -253,11 +270,10 @@ export const TokenListItem = React.memo(
       Number.isFinite(pricePercentChange1d);
 
     const onItemPress = useCallback(
-      (token: TokenI, scrollToMerklRewards?: boolean) => {
+      (token: TokenI) => {
         trace({ name: TraceName.AssetDetails });
         navigation.navigate('Asset', {
           ...token,
-          scrollToMerklRewards,
           source: isFullView
             ? TokenDetailsSource.MobileTokenListPage
             : TokenDetailsSource.MobileTokenList,
@@ -274,9 +290,9 @@ export const TokenListItem = React.memo(
     const secondaryBalanceDisplay = useMemo(() => {
       if (hasClaimableBonus) {
         return {
-          text: strings('earn.claim_bonus'),
+          text: isClaiming ? undefined : strings('earn.claim_bonus'),
           color: TextColor.Primary,
-          onPress: asset ? () => onItemPress(asset as TokenI, true) : undefined,
+          onPress: isClaiming ? undefined : handleClaimBonus,
         };
       }
 
@@ -326,13 +342,13 @@ export const TokenListItem = React.memo(
       return { text, color, onPress: undefined };
     }, [
       hasClaimableBonus,
+      isClaiming,
       shouldShowConvertToMusdCta,
       earnToken,
       isStablecoinLendingEnabled,
-      asset,
       hasPercentageChange,
       pricePercentChange1d,
-      onItemPress,
+      handleClaimBonus,
       handleConvertToMUSD,
       handleLendingRedirect,
     ]);
@@ -381,6 +397,11 @@ export const TokenListItem = React.memo(
         privacyMode={privacyMode}
         hideSecondaryBalanceInPrivacyMode={false}
         onSecondaryBalancePress={secondaryBalanceDisplay.onPress}
+        secondaryBalanceElement={
+          isClaiming ? (
+            <ActivityIndicator size="small" color={colors.primary.default} />
+          ) : undefined
+        }
       >
         <BadgeWrapper
           style={styles.badge}

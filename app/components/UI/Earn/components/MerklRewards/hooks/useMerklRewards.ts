@@ -26,7 +26,7 @@ const MUSD_ADDRESS_MAINNET = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET];
 export const eligibleTokens: Record<Hex, Hex[]> = {
   [CHAIN_IDS.MAINNET]: [AGLAMERKL_ADDRESS_MAINNET, MUSD_ADDRESS_MAINNET], // mUSD and test token
   [CHAIN_IDS.LINEA_MAINNET]: [AGLAMERKL_ADDRESS_LINEA, MUSD_ADDRESS], // mUSD and test token
-  ['0xe709' as Hex]: [AGLAMERKL_ADDRESS_LINEA], // Linea fork
+  ['0xe709' as Hex]: [AGLAMERKL_ADDRESS_LINEA, MUSD_ADDRESS], // Linea fork
 };
 
 /**

@@ -114,17 +114,16 @@ export const useMerklClaim = (asset: TokenI) => {
         type: TransactionType.musdClaim,
       });
 
+      // Transaction request is now visible — stop showing the loader
+      setIsClaiming(false);
+
       // transactionMeta can be undefined if user cancels before tx is created
       if (!transactionMeta) {
-        setIsClaiming(false);
         return undefined;
       }
 
       // Wait for transaction hash (indicates tx is submitted to network)
       const txHash = await result;
-
-      // Don't reset isClaiming here - component will unmount after navigation
-      // and useMerklClaimStatus will handle the rest globally
 
       return { txHash, transactionMeta };
     } catch (e) {

@@ -59,7 +59,6 @@ import Routes from '../../../constants/navigation/Routes';
 import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { useScrollToMerklRewards } from './hooks/useScrollToMerklRewards';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
@@ -230,10 +229,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   );
   const { navigateToSendPage } = useSendNavigation();
   const merklRewardsRef = useRef<View>(null);
-  const merklRewardsYInHeaderRef = useRef<number | null>(null);
-
-  // Scroll to MerklRewards section when navigating from "Claim bonus" CTA
-  useScrollToMerklRewards(merklRewardsYInHeaderRef);
 
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
@@ -834,16 +829,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             ///: END:ONLY_INCLUDE_IF
           }
           {isMerklCampaignClaimingEnabled && (
-            <View
-              ref={merklRewardsRef}
-              testID="merkl-rewards-section"
-              onLayout={(event) => {
-                // Store Y position relative to header (which is the scroll offset)
-                // This is more reliable than measureInWindow for FlatList scrolling
-                const { y } = event.nativeEvent.layout;
-                merklRewardsYInHeaderRef.current = y;
-              }}
-            >
+            <View ref={merklRewardsRef} testID="merkl-rewards-section">
               <MerklRewards asset={asset} />
             </View>
           )}

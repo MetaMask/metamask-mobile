@@ -46,7 +46,6 @@ import { TokenDetailsActions } from './TokenDetailsActions';
 import MerklRewards from '../../Earn/components/MerklRewards';
 import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
-import { useScrollToMerklRewards } from '../../AssetOverview/hooks/useScrollToMerklRewards';
 import { selectTokenDetailsV2ButtonsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsV2';
 import useTokenBuyability from '../hooks/useTokenBuyability';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
@@ -177,8 +176,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const merklRewardsRef = useRef<View>(null);
   const merklRewardsYInHeaderRef = useRef<number | null>(null);
   const resetNavigationLockRef = useRef<(() => void) | null>(null);
-
-  useScrollToMerklRewards(merklRewardsYInHeaderRef);
 
   const {
     hasPerpsMarket,

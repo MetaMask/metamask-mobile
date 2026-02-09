@@ -21,6 +21,7 @@ import {
   TRANSFER_TRANSACTION_TYPES,
 } from '../../constants/confirmations';
 import { ApproveMethod } from '../../types/approve';
+import { hasTransactionType } from '../../utils/transaction';
 import { use7702TransactionType } from '../../hooks/7702/use7702TransactionType';
 import { useSignatureRequest } from '../../hooks/signatures/useSignatureRequest';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
@@ -206,6 +207,14 @@ const Title = () => {
   const approveTransactionData = useApproveTransactionData();
 
   if (isFullScreenConfirmation) {
+    return null;
+  }
+
+  // musdClaim renders its own title + subtitle in MusdClaimInfo
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [TransactionType.musdClaim])
+  ) {
     return null;
   }
 
