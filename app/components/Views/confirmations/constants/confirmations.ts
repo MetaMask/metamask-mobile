@@ -1,5 +1,6 @@
 import { ApprovalType } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
+import { MusdConversionVariant } from '../../../UI/Earn/hooks/useMusdConversion';
 
 export const MMM_ORIGIN = 'metamask';
 export const MM_MOBILE_ORIGIN = 'Metamask Mobile';
@@ -86,3 +87,18 @@ export const POST_QUOTE_TRANSACTION_TYPES = [
  * mUSD is a stablecoin pegged to USD, so we convert to user's local currency.
  */
 export const USER_CURRENCY_TYPES = [TransactionType.musdClaim] as const;
+
+export type ConfirmationPresentation = 'fullScreen' | 'bottomSheet';
+
+/**
+ * Presentation overrides for confirmations that share a TransactionType but
+ * require different UI depending on a generic confirmation "variant".
+ */
+export const CONFIRMATION_PRESENTATION_BY_VARIANT: Partial<
+  Record<TransactionType, Partial<Record<string, ConfirmationPresentation>>>
+> = {
+  [TransactionType.musdConversion]: {
+    [MusdConversionVariant.QUICK_CONVERT]: 'bottomSheet',
+    [MusdConversionVariant.CUSTOM_CONVERT]: 'fullScreen',
+  },
+};
