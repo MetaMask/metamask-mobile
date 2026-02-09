@@ -810,6 +810,8 @@ describe('TrendingTokenRowItem', () => {
         isNative: false,
         isETH: false,
         isFromTrending: true,
+        rwaData: undefined,
+        source: 'trending',
       });
     });
 
@@ -868,6 +870,8 @@ describe('TrendingTokenRowItem', () => {
         isNative: true,
         isETH: true,
         isFromTrending: true,
+        rwaData: undefined,
+        source: 'trending',
       });
     });
 
@@ -926,6 +930,8 @@ describe('TrendingTokenRowItem', () => {
         isNative: true,
         isETH: false,
         isFromTrending: true,
+        rwaData: undefined,
+        source: 'trending',
       });
     });
 
@@ -1134,6 +1140,8 @@ describe('TrendingTokenRowItem', () => {
         isNative: true,
         isETH: false,
         isFromTrending: true,
+        rwaData: undefined,
+        source: 'trending',
       });
     });
 
@@ -1198,6 +1206,8 @@ describe('TrendingTokenRowItem', () => {
         isNative: false,
         isETH: false,
         isFromTrending: true,
+        rwaData: undefined,
+        source: 'trending',
       });
     });
   });
