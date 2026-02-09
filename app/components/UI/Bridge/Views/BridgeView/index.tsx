@@ -48,8 +48,7 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
-import { getBridgeNavbar } from '../../../Navbar';
-import { useTheme } from '../../../../../util/theme';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { strings } from '../../../../../../locales/i18n';
 import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeTx';
 import Engine from '../../../../../core/Engine';
@@ -109,7 +108,6 @@ const BridgeView = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
-  const { colors } = useTheme();
   const { submitBridgeTx } = useSubmitBridgeTx();
   const { trackEvent, createEventBuilder } = useMetrics();
 
@@ -140,7 +138,7 @@ const BridgeView = () => {
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
   const isDestNetworkEnabled = useIsNetworkEnabled(destToken?.chainId);
-
+  //
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
   // The ref is typed to only expose the blur method we need
@@ -299,10 +297,6 @@ const BridgeView = () => {
     },
     [dispatch],
   );
-
-  useEffect(() => {
-    navigation.setOptions(getBridgeNavbar(navigation, bridgeViewMode, colors));
-  }, [navigation, bridgeViewMode, colors]);
 
   const hasTrackedPageView = useRef(false);
   useEffect(() => {
@@ -542,6 +536,11 @@ const BridgeView = () => {
     // Need this to be full height of screen
     // @ts-expect-error The type is incorrect, this will work
     <ScreenView contentContainerStyle={styles.screen}>
+      <HeaderCompactStandard
+        title={strings('swaps.title')}
+        onClose={() => navigation.goBack()}
+        includesTopInset
+      />
       <Box style={styles.content}>
         <Box style={styles.inputsContainer}>
           <TokenInputArea

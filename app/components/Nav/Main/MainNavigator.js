@@ -257,6 +257,7 @@ const TransactionsHome = () => (
     <Stack.Screen
       name={Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS}
       component={BridgeTransactionDetails}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );

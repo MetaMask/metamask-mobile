@@ -29,12 +29,12 @@ export const BridgeScreenStack = () => (
     <Stack.Screen
       name={Routes.BRIDGE.BRIDGE_VIEW}
       component={BridgeView}
-      options={{ title: '' }}
+      options={{ headerShown: false }}
     />
     <Stack.Screen
       name={Routes.BRIDGE.TOKEN_SELECTOR}
       component={BridgeTokenSelector}
-      options={{ title: '' }}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );

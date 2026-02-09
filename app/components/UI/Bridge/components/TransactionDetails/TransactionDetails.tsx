@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextColor,
@@ -7,7 +7,7 @@ import Text, {
 import ScreenView from '../../../../Base/ScreenView';
 import { Box } from '../../../Box/Box';
 import { FlexDirection, AlignItems } from '../../../Box/box.types';
-import { getBridgeTransactionDetailsNavbar } from '../../../Navbar';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useBridgeTxHistoryData } from '../../../../../util/bridge/hooks/useBridgeTxHistoryData';
 import {
   TransactionMeta,
@@ -176,10 +176,6 @@ export const BridgeTransactionDetails = (
 
   const [isStepListExpanded, setIsStepListExpanded] = useState(false);
 
-  useEffect(() => {
-    navigation.setOptions(getBridgeTransactionDetailsNavbar(navigation));
-  }, [navigation]);
-
   if (!bridgeTxHistoryItem) {
     // TODO: display error page
     return null;
@@ -275,6 +271,11 @@ export const BridgeTransactionDetails = (
 
   return (
     <ScreenView>
+      <HeaderCompactStandard
+        title={strings('bridge_transaction_details.transaction_details')}
+        onBack={() => navigation.goBack()}
+        includesTopInset
+      />
       <Box style={styles.transactionContainer}>
         <Box style={styles.transactionAssetsContainer}>
           <TransactionAsset

@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import { getHeaderCompactStandardNavbarOptions } from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { FlatList } from 'react-native-gesture-handler';
 import { NetworkPills } from './NetworkPills';
 import { CaipChainId } from '@metamask/utils';
@@ -102,17 +102,6 @@ export const BridgeTokenSelector: React.FC = () => {
     route.params?.type === TokenSelectorType.Source
       ? sourceChainRanking
       : destChainRanking;
-
-  // Set navigation options for header
-  useEffect(() => {
-    navigation.setOptions(
-      getHeaderCompactStandardNavbarOptions({
-        title: strings('bridge.select_token'),
-        onBack: () => navigation.goBack(),
-        includesTopInset: true,
-      }),
-    );
-  }, [navigation]);
 
   // Use custom hook for token selection
   const { handleTokenPress, selectedToken } = useTokenSelection(
@@ -495,6 +484,11 @@ export const BridgeTokenSelector: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
+      <HeaderCompactStandard
+        title={strings('bridge.select_token')}
+        onBack={() => navigation.goBack()}
+        includesTopInset
+      />
       <Box style={styles.buttonContainer}>
         <NetworkPills
           selectedChainId={selectedChainId}
