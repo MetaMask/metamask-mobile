@@ -260,7 +260,7 @@ builds:
 
   # Local development / Expo development build (Runway .app for simulator)
   main-dev:
-    github_environment: build-dev
+    github_environment: build-uat
     env:
       METAMASK_ENVIRONMENT: 'dev'
       METAMASK_BUILD_TYPE: 'main'
