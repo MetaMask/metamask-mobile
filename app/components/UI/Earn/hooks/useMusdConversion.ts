@@ -24,7 +24,6 @@ import { toHex } from '@metamask/controller-utils';
 
 export enum MusdConversionVariant {
   QUICK_CONVERT = 'quickConvert',
-  CUSTOM_CONVERT = 'customConvert',
 }
 
 /**
@@ -265,7 +264,6 @@ export const useMusdConversion = () => {
         params: {
           loader: ConfirmationLoader.CustomAmount,
           preferredPaymentToken,
-          variant: MusdConversionVariant.CUSTOM_CONVERT,
         },
       });
     },
@@ -289,7 +287,6 @@ export const useMusdConversion = () => {
         screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
         params: {
           preferredPaymentToken,
-          variant: MusdConversionVariant.CUSTOM_CONVERT,
         },
       });
 

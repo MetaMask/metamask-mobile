@@ -1,11 +1,8 @@
 import { ApprovalRequest } from '@metamask/approval-controller';
 import { ApprovalType } from '@metamask/controller-utils';
+import { TransactionMeta } from '@metamask/transaction-controller';
 import {
-  TransactionMeta,
-  TransactionType,
-} from '@metamask/transaction-controller';
-import {
-  CONFIRMATION_PRESENTATION_BY_VARIANT,
+  FORCE_BOTTOM_SHEET_BY_VARIANT,
   FULL_SCREEN_CONFIRMATIONS,
 } from '../../constants/confirmations';
 import { useIsInternalConfirmation } from '../transactions/useIsInternalConfirmation';
@@ -19,7 +16,7 @@ const getIsFullScreenConfirmation = (
   approvalRequest: ApprovalRequest<TransactionMeta> | undefined,
   transactionMetadata: TransactionMeta | undefined,
   isWalletInitiated: boolean,
-  variant: string,
+  variant?: string,
 ): boolean => {
   if (!isWalletInitiated) {
     return false;
@@ -31,24 +28,16 @@ const getIsFullScreenConfirmation = (
 
   if (
     approvalRequest?.type !== ApprovalType.Transaction ||
-    !transactionMetadata
+    !transactionMetadata?.type
   ) {
     return false;
   }
 
-  const transactionType = transactionMetadata.type as TransactionType;
-
-  const presentationOverride = getPresentationOverride({
-    transactionType,
-    variant,
-  });
-
-  if (presentationOverride === 'bottomSheet') {
+  if (
+    variant &&
+    FORCE_BOTTOM_SHEET_BY_VARIANT[transactionMetadata.type]?.[variant] === true
+  ) {
     return false;
-  }
-
-  if (presentationOverride === 'fullScreen') {
-    return true;
   }
 
   return hasTransactionType(transactionMetadata, FULL_SCREEN_CONFIRMATIONS);
