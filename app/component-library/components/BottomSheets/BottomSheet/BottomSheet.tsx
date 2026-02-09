@@ -114,6 +114,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
       },
       onOpenBottomSheet: (callback) => {
         // Opening resets close state; allow new close request afterwards.
+        didNavigateBackRef.current = false;
         closeRequestedRef.current = false;
         didRunPostCallbackRef.current = false;
         postCallback.current = callback;
