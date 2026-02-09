@@ -164,15 +164,12 @@ describe('SDKSessionModal', () => {
 
       fireEvent.press(getByText('sdk.disconnect_all_accounts'));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.SDK_DISCONNECT,
-        params: {
-          channelId: 'channel1',
-          account: undefined,
-          accountsLength: 1,
-          dapp: 'Test DApp',
-          isV2: true,
-        },
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.SHEET.SDK_DISCONNECT, {
+        channelId: 'channel1',
+        account: undefined,
+        accountsLength: 1,
+        dapp: 'Test DApp',
+        isV2: true,
       });
     });
 
@@ -193,16 +190,13 @@ describe('SDKSessionModal', () => {
       const disconnectButtons = getAllByText('sdk.disconnect');
       fireEvent.press(disconnectButtons[0]);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.SDK_DISCONNECT,
-        params: {
-          channelId: 'channel1',
-          accountsLength: 2,
-          account: '0x1234',
-          accountName: 'Account 1',
-          dapp: 'Test DApp',
-          isV2: undefined,
-        },
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.SHEET.SDK_DISCONNECT, {
+        channelId: 'channel1',
+        accountsLength: 2,
+        account: '0x1234',
+        accountName: 'Account 1',
+        dapp: 'Test DApp',
+        isV2: undefined,
       });
     });
   });

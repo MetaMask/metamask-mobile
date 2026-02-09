@@ -82,8 +82,7 @@ describe('SelectSRP', () => {
     fireEvent.press(
       getByText(`${strings('accounts.secret_recovery_phrase')} 1`),
     );
-    expect(mockedNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.SRP_REVEAL_QUIZ,
+    expect(mockedNavigate).toHaveBeenCalledWith(Routes.MODAL.SRP_REVEAL_QUIZ, {
       keyringId: mockKeyring1.metadata.id,
     });
   });

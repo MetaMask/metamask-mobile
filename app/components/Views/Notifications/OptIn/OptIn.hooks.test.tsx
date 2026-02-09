@@ -140,12 +140,12 @@ describe('useHandleOptInClick', () => {
 
     await hook.result.current();
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.BASIC_FUNCTIONALITY,
-      params: {
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SHEET.BASIC_FUNCTIONALITY,
+      {
         caller: Routes.NOTIFICATIONS.OPT_IN,
       },
-    });
+    );
   });
 
   it('enables notifications and tracks event if Basic Functionality is enabled', async () => {

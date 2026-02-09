@@ -402,10 +402,7 @@ describe('App', () => {
         index: 0,
         routes: [
           {
-            name: Routes.MODAL.ROOT_MODAL_FLOW,
-            params: {
-              screen: Routes.SHEET.ELIGIBILITY_FAILED_MODAL,
-            },
+            name: Routes.SHEET.ELIGIBILITY_FAILED_MODAL,
           },
         ],
       };
@@ -422,10 +419,7 @@ describe('App', () => {
         index: 0,
         routes: [
           {
-            name: Routes.MODAL.ROOT_MODAL_FLOW,
-            params: {
-              screen: Routes.SHEET.UNSUPPORTED_REGION_MODAL,
-            },
+            name: Routes.SHEET.UNSUPPORTED_REGION_MODAL,
           },
         ],
       };

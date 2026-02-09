@@ -223,12 +223,12 @@ describe('BackupAndSyncToggle', () => {
 
     fireEvent(switchElement, 'onValueChange', true);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.CONFIRM_TURN_ON_BACKUP_AND_SYNC,
-      params: {
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SHEET.CONFIRM_TURN_ON_BACKUP_AND_SYNC,
+      {
         enableBackupAndSync: expect.any(Function),
         trackEnableBackupAndSyncEvent: expect.any(Function),
       },
-    });
+    );
   });
 });

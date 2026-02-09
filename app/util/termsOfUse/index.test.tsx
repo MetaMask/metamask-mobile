@@ -35,24 +35,21 @@ describe('Terms of Use', () => {
 
       await navigateTermsOfUse(mockNavigate, mockOnAccept);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.MODAL_MANDATORY,
-        params: {
-          containerTestId: TermsOfUseModalSelectorsIDs.CONTAINER,
-          buttonTestId: TermsOfUseModalSelectorsIDs.ACCEPT_BUTTON,
-          buttonText: 'terms_of_use_modal.agree_cta',
-          checkboxText: 'terms_of_use_modal.terms_of_use_check_description',
-          headerTitle: 'terms_of_use_modal.title',
-          onAccept: expect.any(Function),
-          footerHelpText: 'terms_of_use_modal.accept_helper_description',
-          body: {
-            source: 'WebView',
-            html: termsOfUse,
-          },
-          onRender: expect.any(Function),
-          isScrollToEndNeeded: true,
-          scrollEndBottomMargin: 50,
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.MODAL_MANDATORY, {
+        containerTestId: TermsOfUseModalSelectorsIDs.CONTAINER,
+        buttonTestId: TermsOfUseModalSelectorsIDs.ACCEPT_BUTTON,
+        buttonText: 'terms_of_use_modal.agree_cta',
+        checkboxText: 'terms_of_use_modal.terms_of_use_check_description',
+        headerTitle: 'terms_of_use_modal.title',
+        onAccept: expect.any(Function),
+        footerHelpText: 'terms_of_use_modal.accept_helper_description',
+        body: {
+          source: 'WebView',
+          html: termsOfUse,
         },
+        onRender: expect.any(Function),
+        isScrollToEndNeeded: true,
+        scrollEndBottomMargin: 50,
       });
     });
 
@@ -70,7 +67,7 @@ describe('Terms of Use', () => {
       mockGetItem.mockResolvedValue(null);
       await navigateTermsOfUse(mockNavigate, mockOnAccept);
 
-      const { onAccept } = mockNavigate.mock.calls[0][1].params;
+      const { onAccept } = mockNavigate.mock.calls[0][1];
       await onAccept();
 
       expect(mockSetItem).toHaveBeenCalledWith(USE_TERMS, TRUE);
@@ -86,7 +83,7 @@ describe('Terms of Use', () => {
       mockGetItem.mockResolvedValue(null);
       await navigateTermsOfUse(mockNavigate);
 
-      const { onAccept } = mockNavigate.mock.calls[0][1].params;
+      const { onAccept } = mockNavigate.mock.calls[0][1];
       await onAccept();
 
       expect(mockSetItem).toHaveBeenCalledWith(USE_TERMS, TRUE);
@@ -103,7 +100,7 @@ describe('Terms of Use', () => {
       mockGetItem.mockResolvedValue(null);
       await navigateTermsOfUse(mockNavigate);
 
-      const { onRender } = mockNavigate.mock.calls[0][1].params;
+      const { onRender } = mockNavigate.mock.calls[0][1];
       onRender();
 
       expect(mockTrackEvent).toHaveBeenCalledWith(

@@ -462,12 +462,9 @@ describe('Onboarding', () => {
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
+        Routes.SHEET.ONBOARDING_SHEET,
         expect.objectContaining({
-          screen: Routes.SHEET.ONBOARDING_SHEET,
-          params: expect.objectContaining({
-            createWallet: true,
-          }),
+          createWallet: true,
         }),
       );
     });
@@ -536,37 +533,31 @@ describe('Onboarding', () => {
       });
 
       const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+        (call) => call[0] === Routes.SHEET.ONBOARDING_SHEET,
       );
 
       expect(navCall).toBeDefined();
 
-      const googleOAuthFunction =
-        navCall?.[1]?.params?.onPressContinueWithGoogle;
+      const googleOAuthFunction = navCall?.[1]?.onPressContinueWithGoogle;
 
       await act(async () => {
         await googleOAuthFunction(true);
       });
 
       expect(mockReplace).toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
+        Routes.SHEET.SUCCESS_ERROR_SHEET,
         expect.objectContaining({
-          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          params: expect.objectContaining({
-            title: strings('error_sheet.no_internet_connection_title'),
-            description: strings(
-              'error_sheet.no_internet_connection_description',
-            ),
-            descriptionAlign: 'left',
-            buttonLabel: strings('error_sheet.no_internet_connection_button'),
-            primaryButtonLabel: strings(
-              'error_sheet.no_internet_connection_button',
-            ),
-            closeOnPrimaryButtonPress: true,
-            type: 'error',
-          }),
+          title: strings('error_sheet.no_internet_connection_title'),
+          description: strings(
+            'error_sheet.no_internet_connection_description',
+          ),
+          descriptionAlign: 'left',
+          buttonLabel: strings('error_sheet.no_internet_connection_button'),
+          primaryButtonLabel: strings(
+            'error_sheet.no_internet_connection_button',
+          ),
+          closeOnPrimaryButtonPress: true,
+          type: 'error',
         }),
       );
     });
@@ -601,12 +592,9 @@ describe('Onboarding', () => {
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
+        Routes.SHEET.ONBOARDING_SHEET,
         expect.objectContaining({
-          screen: Routes.SHEET.ONBOARDING_SHEET,
-          params: expect.objectContaining({
-            createWallet: false,
-          }),
+          createWallet: false,
         }),
       );
     });
@@ -809,9 +797,7 @@ describe('Onboarding', () => {
       });
 
       const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+        (call) => call[0] === Routes.SHEET.ONBOARDING_SHEET,
       );
 
       const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
@@ -860,9 +846,7 @@ describe('Onboarding', () => {
       });
 
       const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+        (call) => call[0] === Routes.SHEET.ONBOARDING_SHEET,
       );
 
       const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
@@ -914,9 +898,7 @@ describe('Onboarding', () => {
       });
 
       const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+        (call) => call[0] === Routes.SHEET.ONBOARDING_SHEET,
       );
 
       const appleOAuthFunction = navCall[1].params.onPressContinueWithApple;
@@ -965,9 +947,7 @@ describe('Onboarding', () => {
       });
 
       const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+        (call) => call[0] === Routes.SHEET.ONBOARDING_SHEET,
       );
 
       const appleOAuthFunction = navCall[1].params.onPressContinueWithApple;
@@ -1012,9 +992,7 @@ describe('Onboarding', () => {
       });
 
       const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+        (call) => call[0] === Routes.SHEET.ONBOARDING_SHEET,
       );
 
       const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
@@ -1024,16 +1002,13 @@ describe('Onboarding', () => {
       });
 
       expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
+        Routes.SHEET.SUCCESS_ERROR_SHEET,
         expect.objectContaining({
-          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          params: expect.objectContaining({
-            title: strings('error_sheet.user_cancelled_title'),
-            description: strings('error_sheet.user_cancelled_description'),
-            descriptionAlign: 'center',
-            buttonLabel: strings('error_sheet.user_cancelled_button'),
-            type: 'error',
-          }),
+          title: strings('error_sheet.user_cancelled_title'),
+          description: strings('error_sheet.user_cancelled_description'),
+          descriptionAlign: 'center',
+          buttonLabel: strings('error_sheet.user_cancelled_button'),
+          type: 'error',
         }),
       );
     });
@@ -1059,9 +1034,7 @@ describe('Onboarding', () => {
       });
 
       const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+        (call) => call[0] === Routes.SHEET.ONBOARDING_SHEET,
       );
 
       const appleOAuthFunction = navCall[1].params.onPressContinueWithApple;
@@ -1071,16 +1044,13 @@ describe('Onboarding', () => {
       });
 
       expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
+        Routes.SHEET.SUCCESS_ERROR_SHEET,
         expect.objectContaining({
-          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          params: expect.objectContaining({
-            title: strings('error_sheet.oauth_error_title'),
-            description: strings('error_sheet.oauth_error_description'),
-            descriptionAlign: 'center',
-            buttonLabel: strings('error_sheet.oauth_error_button'),
-            type: 'error',
-          }),
+          title: strings('error_sheet.oauth_error_title'),
+          description: strings('error_sheet.oauth_error_description'),
+          descriptionAlign: 'center',
+          buttonLabel: strings('error_sheet.oauth_error_button'),
+          type: 'error',
         }),
       );
     });
@@ -1109,9 +1079,7 @@ describe('Onboarding', () => {
       });
 
       const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+        (call) => call[0] === Routes.SHEET.ONBOARDING_SHEET,
       );
 
       const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
@@ -1154,9 +1122,7 @@ describe('Onboarding', () => {
       });
 
       const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+        (call) => call[0] === Routes.SHEET.ONBOARDING_SHEET,
       );
 
       const appleOAuthFunction = navCall[1].params.onPressContinueWithApple;
@@ -1207,9 +1173,7 @@ describe('Onboarding', () => {
       });
 
       const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+        (call) => call[0] === Routes.SHEET.ONBOARDING_SHEET,
       );
 
       const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
@@ -1230,10 +1194,8 @@ describe('Onboarding', () => {
 
       // Verify no error sheet is shown (handled silently)
       expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
-        expect.objectContaining({
-          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-        }),
+        Routes.SHEET.SUCCESS_ERROR_SHEET,
+        expect.objectContaining({}),
       );
 
       Platform.OS = 'ios';
@@ -1271,9 +1233,7 @@ describe('Onboarding', () => {
       });
 
       const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+        (call) => call[0] === Routes.SHEET.ONBOARDING_SHEET,
       );
 
       const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
@@ -1294,10 +1254,8 @@ describe('Onboarding', () => {
 
       // Verify no error sheet is shown (handled silently)
       expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
-        expect.objectContaining({
-          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-        }),
+        Routes.SHEET.SUCCESS_ERROR_SHEET,
+        expect.objectContaining({}),
       );
 
       Platform.OS = 'ios';
@@ -1338,9 +1296,7 @@ describe('Onboarding', () => {
       });
 
       const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+        (call) => call[0] === Routes.SHEET.ONBOARDING_SHEET,
       );
 
       const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
@@ -1404,9 +1360,7 @@ describe('Onboarding', () => {
       });
 
       const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+        (call) => call[0] === Routes.SHEET.ONBOARDING_SHEET,
       );
 
       const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
@@ -1460,9 +1414,7 @@ describe('Onboarding', () => {
       });
 
       const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+        (call) => call[0] === Routes.SHEET.ONBOARDING_SHEET,
       );
 
       const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
@@ -1524,9 +1476,7 @@ describe('Onboarding', () => {
       });
 
       const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+        (call) => call[0] === Routes.SHEET.ONBOARDING_SHEET,
       );
 
       const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
@@ -1577,9 +1527,7 @@ describe('Onboarding', () => {
       });
 
       const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+        (call) => call[0] === Routes.SHEET.ONBOARDING_SHEET,
       );
 
       const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
@@ -2040,9 +1988,7 @@ describe('Onboarding', () => {
       });
 
       const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+        (call) => call[0] === Routes.SHEET.ONBOARDING_SHEET,
       );
 
       const appleOAuthFunction = navCall[1].params.onPressContinueWithApple;
@@ -2084,9 +2030,7 @@ describe('Onboarding', () => {
       });
 
       const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+        (call) => call[0] === Routes.SHEET.ONBOARDING_SHEET,
       );
 
       const appleOAuthFunction = navCall[1].params.onPressContinueWithApple;

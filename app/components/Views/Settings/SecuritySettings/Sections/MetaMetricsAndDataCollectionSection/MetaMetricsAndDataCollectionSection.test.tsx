@@ -751,10 +751,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
             }),
           );
           expect(mockNavigate).toHaveBeenCalledWith(
-            Routes.MODAL.ROOT_MODAL_FLOW,
-            {
-              screen: Routes.SHEET.DATA_COLLECTION,
-            },
+            Routes.SHEET.DATA_COLLECTION,
           );
         });
       });

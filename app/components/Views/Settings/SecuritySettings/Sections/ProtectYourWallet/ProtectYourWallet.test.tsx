@@ -200,10 +200,7 @@ describe('ProtectYourWallet', () => {
         getByText(strings('reveal_credential.seed_phrase_title')),
       );
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
-        {
-          screen: Routes.MODAL.SRP_REVEAL_QUIZ,
-        },
+        Routes.MODAL.SRP_REVEAL_QUIZ,
       );
     });
     it('opens opens SrpList if there are multiple HD keyrings', async () => {
@@ -248,10 +245,7 @@ describe('ProtectYourWallet', () => {
         getByText(strings('reveal_credential.seed_phrase_title')),
       );
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
-        {
-          screen: Routes.SHEET.SELECT_SRP,
-        },
+        Routes.SHEET.SELECT_SRP,
       );
     });
   });

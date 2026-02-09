@@ -114,12 +114,12 @@ describe('useMainNotificationToggle', () => {
 
     result.current.onToggle();
 
-    expect(mocks.navigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.BASIC_FUNCTIONALITY,
-      params: {
+    expect(mocks.navigate).toHaveBeenCalledWith(
+      Routes.SHEET.BASIC_FUNCTIONALITY,
+      {
         caller: Routes.SETTINGS.NOTIFICATIONS,
       },
-    });
+    );
     expect(mocks.switchNotifications).not.toHaveBeenCalled();
     expect(mocks.trackEvent).not.toHaveBeenCalled();
   });

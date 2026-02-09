@@ -134,12 +134,9 @@ describe('AssetDetailsActions', () => {
     );
 
     fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON));
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.FUND_ACTION_MENU,
-      params: {
-        onBuy: mockOnBuy,
-        asset: mockAsset,
-      },
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.FUND_ACTION_MENU, {
+      onBuy: mockOnBuy,
+      asset: mockAsset,
     });
   });
 
@@ -150,12 +147,9 @@ describe('AssetDetailsActions', () => {
     );
 
     fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON));
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.FUND_ACTION_MENU,
-      params: {
-        onBuy: undefined,
-        asset: undefined,
-      },
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.FUND_ACTION_MENU, {
+      onBuy: undefined,
+      asset: undefined,
     });
   });
 

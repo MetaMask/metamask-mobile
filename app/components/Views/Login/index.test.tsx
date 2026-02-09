@@ -376,9 +376,7 @@ describe('Login', () => {
       fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
 
       // Assert
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.DELETE_WALLET,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.DELETE_WALLET);
     });
   });
 

@@ -281,12 +281,14 @@ describe('handleSendMessage', () => {
         connection: mockConnection,
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
-        method: 'test-method',
-        origin: 'https://example.com',
-        hideReturnToApp: true,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
+        {
+          method: 'test-method',
+          origin: 'https://example.com',
+          hideReturnToApp: true,
+        },
+      );
     });
 
     it('should navigate with hideReturnToApp set to false when connection has hideReturnToApp false', async () => {
@@ -301,12 +303,14 @@ describe('handleSendMessage', () => {
         connection: mockConnection,
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
-        method: 'test-method',
-        origin: 'https://example.com',
-        hideReturnToApp: false,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
+        {
+          method: 'test-method',
+          origin: 'https://example.com',
+          hideReturnToApp: false,
+        },
+      );
     });
 
     it('should navigate with hideReturnToApp set to undefined when connection does not have hideReturnToApp', async () => {
@@ -321,12 +325,14 @@ describe('handleSendMessage', () => {
         connection: mockConnection,
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
-        method: 'test-method',
-        origin: 'https://example.com',
-        hideReturnToApp: undefined,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
+        {
+          method: 'test-method',
+          origin: 'https://example.com',
+          hideReturnToApp: undefined,
+        },
+      );
     });
 
     it('should set connection trigger to resume before navigation', async () => {

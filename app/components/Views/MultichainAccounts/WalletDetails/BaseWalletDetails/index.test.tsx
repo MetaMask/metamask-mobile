@@ -567,9 +567,8 @@ describe('BaseWalletDetails', () => {
 
         expect(mockNavigate).toHaveBeenCalledTimes(1);
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.MODAL.ROOT_MODAL_FLOW,
+          Routes.MODAL.SRP_REVEAL_QUIZ,
           {
-            screen: Routes.MODAL.SRP_REVEAL_QUIZ,
             keyringId: 'keyring:1',
           },
         );
@@ -615,9 +614,8 @@ describe('BaseWalletDetails', () => {
 
         expect(mockNavigate).toHaveBeenCalledTimes(1);
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.MODAL.ROOT_MODAL_FLOW,
+          Routes.MODAL.SRP_REVEAL_QUIZ,
           {
-            screen: Routes.MODAL.SRP_REVEAL_QUIZ,
             keyringId: 'keyring:1',
           },
         );
@@ -663,9 +661,8 @@ describe('BaseWalletDetails', () => {
 
         expect(mockNavigate).toHaveBeenCalledTimes(1);
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.MODAL.ROOT_MODAL_FLOW,
+          Routes.MODAL.SRP_REVEAL_QUIZ,
           {
-            screen: Routes.MODAL.SRP_REVEAL_QUIZ,
             keyringId: 'keyring:2',
           },
         );

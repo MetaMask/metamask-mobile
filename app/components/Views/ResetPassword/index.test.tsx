@@ -381,34 +381,31 @@ describe('ResetPassword', () => {
 
     await waitFor(() => {
       expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
+        Routes.SHEET.SUCCESS_ERROR_SHEET,
         expect.objectContaining({
-          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          params: expect.objectContaining({
-            title: strings('reset_password.warning_password_change_title'),
-            description: (
-              <Text color={TextColor.Default} variant={TextVariant.BodyMD}>
-                {strings('reset_password.warning_password_change_description')}{' '}
-                <Text
-                  color={TextColor.Primary}
-                  onPress={expect.any(Function)}
-                  variant={TextVariant.BodyMD}
-                >
-                  {`${strings('reset_password.learn_more')}`}
-                </Text>
+          title: strings('reset_password.warning_password_change_title'),
+          description: (
+            <Text color={TextColor.Default} variant={TextVariant.BodyMD}>
+              {strings('reset_password.warning_password_change_description')}{' '}
+              <Text
+                color={TextColor.Primary}
+                onPress={expect.any(Function)}
+                variant={TextVariant.BodyMD}
+              >
+                {`${strings('reset_password.learn_more')}`}
               </Text>
-            ),
-            type: 'error',
-            icon: 'Danger',
-            secondaryButtonLabel: strings(
-              'reset_password.warning_password_cancel_button',
-            ),
-            primaryButtonLabel: strings(
-              'reset_password.warning_password_change_button',
-            ),
-            closeOnPrimaryButtonPress: true,
-            onPrimaryButtonPress: expect.any(Function),
-          }),
+            </Text>
+          ),
+          type: 'error',
+          icon: 'Danger',
+          secondaryButtonLabel: strings(
+            'reset_password.warning_password_cancel_button',
+          ),
+          primaryButtonLabel: strings(
+            'reset_password.warning_password_change_button',
+          ),
+          closeOnPrimaryButtonPress: true,
+          onPrimaryButtonPress: expect.any(Function),
         }),
       );
     });
@@ -416,7 +413,7 @@ describe('ResetPassword', () => {
     // Get the onPrimaryButtonPress function from the navigation call
     const navigationCall = (NavigationService.navigation.navigate as jest.Mock)
       .mock.calls[0];
-    const onPrimaryButtonPress = navigationCall[1].params.onPrimaryButtonPress;
+    const onPrimaryButtonPress = navigationCall[1].onPrimaryButtonPress;
 
     // Call the onPrimaryButtonPress function
     await act(async () => {
@@ -858,11 +855,11 @@ describe('ResetPassword', () => {
       });
 
       const confirmButton =
-        mockNavigation.navigate.mock.calls[0][1].params.onPrimaryButtonPress;
+        mockNavigation.navigate.mock.calls[0][1].onPrimaryButtonPress;
       await confirmButton();
 
       expect(mockRecreateVaultsWithNewPassword).toHaveBeenCalled();
-      expect(mockNavigation.navigate.mock.calls[1][1].params.title).toBe(
+      expect(mockNavigation.navigate.mock.calls[1][1].title).toBe(
         strings('login.seedless_password_outdated_modal_title'),
       );
     });
@@ -908,12 +905,12 @@ describe('ResetPassword', () => {
       });
 
       const confirmButton =
-        mockNavigation.navigate.mock.calls[0][1].params.onPrimaryButtonPress;
+        mockNavigation.navigate.mock.calls[0][1].onPrimaryButtonPress;
       await confirmButton();
 
       expect(mockRecreateVaultsWithNewPassword).toHaveBeenCalled();
 
-      expect(mockNavigation.navigate.mock.calls[1][1].params.title).toBe(
+      expect(mockNavigation.navigate.mock.calls[1][1].title).toBe(
         strings('reset_password.seedless_change_password_error_modal_title'),
       );
     });
@@ -968,19 +965,16 @@ describe('ResetPassword', () => {
 
       // First expect the warning modal to be shown
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
+        Routes.SHEET.SUCCESS_ERROR_SHEET,
         expect.objectContaining({
-          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          params: expect.objectContaining({
-            title: strings('reset_password.warning_password_change_title'),
-            onPrimaryButtonPress: expect.any(Function),
-          }),
+          title: strings('reset_password.warning_password_change_title'),
+          onPrimaryButtonPress: expect.any(Function),
         }),
       );
 
       // Get the onPrimaryButtonPress function from the warning modal and call it
       const warningCall = mockNavigation.navigate.mock.calls[0];
-      const onPrimaryButtonPress = warningCall[1].params.onPrimaryButtonPress;
+      const onPrimaryButtonPress = warningCall[1].onPrimaryButtonPress;
 
       await act(async () => {
         await onPrimaryButtonPress();
@@ -988,21 +982,18 @@ describe('ResetPassword', () => {
 
       // Now expect the error modal for outdated password to be shown
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
+        Routes.SHEET.SUCCESS_ERROR_SHEET,
         expect.objectContaining({
-          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          params: expect.objectContaining({
-            title: strings('login.seedless_password_outdated_modal_title'),
-            description: strings(
-              'login.seedless_password_outdated_modal_content',
-            ),
-          }),
+          title: strings('login.seedless_password_outdated_modal_title'),
+          description: strings(
+            'login.seedless_password_outdated_modal_content',
+          ),
         }),
       );
 
       const ErrorSheetCall = mockNavigation.navigate.mock.calls[1];
       const onErrorSheetPrimaryButtonPress =
-        ErrorSheetCall[1].params.onPrimaryButtonPress;
+        ErrorSheetCall[1].onPrimaryButtonPress;
       await act(async () => {
         await onErrorSheetPrimaryButtonPress();
       });
@@ -1054,19 +1045,16 @@ describe('ResetPassword', () => {
 
       // First expect the warning modal to be shown
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
+        Routes.SHEET.SUCCESS_ERROR_SHEET,
         expect.objectContaining({
-          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          params: expect.objectContaining({
-            title: strings('reset_password.warning_password_change_title'),
-            onPrimaryButtonPress: expect.any(Function),
-          }),
+          title: strings('reset_password.warning_password_change_title'),
+          onPrimaryButtonPress: expect.any(Function),
         }),
       );
 
       // Get the onPrimaryButtonPress function from the warning modal and call it
       const warningCall = mockNavigation.navigate.mock.calls[0];
-      const onPrimaryButtonPress = warningCall[1].params.onPrimaryButtonPress;
+      const onPrimaryButtonPress = warningCall[1].onPrimaryButtonPress;
 
       await act(async () => {
         await onPrimaryButtonPress();
@@ -1074,23 +1062,20 @@ describe('ResetPassword', () => {
 
       // Now expect the error modal for invalid token to be shown
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
+        Routes.SHEET.SUCCESS_ERROR_SHEET,
         expect.objectContaining({
-          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          params: expect.objectContaining({
-            title: strings(
-              'reset_password.seedless_change_password_error_modal_title',
-            ),
-            description: strings(
-              'reset_password.seedless_change_password_error_modal_content',
-            ),
-          }),
+          title: strings(
+            'reset_password.seedless_change_password_error_modal_title',
+          ),
+          description: strings(
+            'reset_password.seedless_change_password_error_modal_content',
+          ),
         }),
       );
 
       const ErrorSheetCall = mockNavigation.navigate.mock.calls[1];
       const onErrorSheetPrimaryButtonPress =
-        ErrorSheetCall[1].params.onPrimaryButtonPress;
+        ErrorSheetCall[1].onPrimaryButtonPress;
       await act(async () => {
         await onErrorSheetPrimaryButtonPress();
       });
@@ -1132,18 +1117,15 @@ describe('ResetPassword', () => {
 
       await waitFor(() => {
         expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
-          Routes.MODAL.ROOT_MODAL_FLOW,
-          expect.objectContaining({
-            screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          }),
+          Routes.SHEET.SUCCESS_ERROR_SHEET,
+          expect.objectContaining({}),
         );
       });
 
       const navigationCall = (
         NavigationService.navigation.navigate as jest.Mock
       ).mock.calls[0];
-      const onPrimaryButtonPress =
-        navigationCall[1].params.onPrimaryButtonPress;
+      const onPrimaryButtonPress = navigationCall[1].onPrimaryButtonPress;
 
       await act(async () => {
         await onPrimaryButtonPress();
@@ -1191,18 +1173,15 @@ describe('ResetPassword', () => {
 
       await waitFor(() => {
         expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
-          Routes.MODAL.ROOT_MODAL_FLOW,
-          expect.objectContaining({
-            screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          }),
+          Routes.SHEET.SUCCESS_ERROR_SHEET,
+          expect.objectContaining({}),
         );
       });
 
       const navigationCall = (
         NavigationService.navigation.navigate as jest.Mock
       ).mock.calls[0];
-      const onPrimaryButtonPress =
-        navigationCall[1].params.onPrimaryButtonPress;
+      const onPrimaryButtonPress = navigationCall[1].onPrimaryButtonPress;
 
       await act(async () => {
         await onPrimaryButtonPress();

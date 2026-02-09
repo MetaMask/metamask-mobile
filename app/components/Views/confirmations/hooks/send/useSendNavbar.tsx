@@ -24,7 +24,7 @@ export function useSendNavbar() {
         : null;
 
       const screenName = previousRoute?.name || Routes.SEND.ASSET;
-      navigation.navigate(Routes.SEND.DEFAULT, { screen: screenName });
+      navigation.navigate(screenName);
       return;
     }
 

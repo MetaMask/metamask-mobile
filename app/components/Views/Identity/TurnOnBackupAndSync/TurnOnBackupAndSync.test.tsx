@@ -151,13 +151,13 @@ describe('TurnOnBackupAndSync', () => {
     const switchElement = getByTestId(turnOnBackupAndSyncTestIds.enableButton);
     fireEvent.press(switchElement);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.CONFIRM_TURN_ON_BACKUP_AND_SYNC,
-      params: {
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SHEET.CONFIRM_TURN_ON_BACKUP_AND_SYNC,
+      {
         enableBackupAndSync: expect.any(Function),
         trackEnableBackupAndSyncEvent: expect.any(Function),
       },
-    });
+    );
   });
 
   it('sends a MetaMetrics event when enabling backup and sync', async () => {
