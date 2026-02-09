@@ -88,17 +88,10 @@ export const POST_QUOTE_TRANSACTION_TYPES = [
  */
 export const USER_CURRENCY_TYPES = [TransactionType.musdClaim] as const;
 
-export type ConfirmationPresentation = 'fullScreen' | 'bottomSheet';
-
-/**
- * Presentation overrides for confirmations that share a TransactionType but
- * require different UI depending on a generic confirmation "variant".
- */
-export const CONFIRMATION_PRESENTATION_BY_VARIANT: Partial<
-  Record<TransactionType, Partial<Record<string, ConfirmationPresentation>>>
+export const FORCE_BOTTOM_SHEET_BY_VARIANT: Partial<
+  Record<TransactionType, Partial<Record<string, boolean>>>
 > = {
   [TransactionType.musdConversion]: {
-    [MusdConversionVariant.QUICK_CONVERT]: 'bottomSheet',
-    [MusdConversionVariant.CUSTOM_CONVERT]: 'fullScreen',
+    [MusdConversionVariant.QUICK_CONVERT]: true,
   },
 };

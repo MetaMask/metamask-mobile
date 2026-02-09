@@ -1,40 +1,21 @@
 import { ApprovalRequest } from '@metamask/approval-controller';
 import { ApprovalType } from '@metamask/controller-utils';
+import { TransactionMeta } from '@metamask/transaction-controller';
 import {
-  TransactionMeta,
-  TransactionType,
-} from '@metamask/transaction-controller';
-import {
-  CONFIRMATION_PRESENTATION_BY_VARIANT,
+  FORCE_BOTTOM_SHEET_BY_VARIANT,
   FULL_SCREEN_CONFIRMATIONS,
 } from '../../constants/confirmations';
 import { useIsInternalConfirmation } from '../transactions/useIsInternalConfirmation';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import useApprovalRequest from '../useApprovalRequest';
 import { hasTransactionType } from '../../utils/transaction';
-import {
-  DEFAULT_CONFIRMATION_VARIANT,
-  useConfirmationVariant,
-} from '../useConfirmationVariant';
-
-function getPresentationOverride(params: {
-  transactionType: TransactionType;
-  variant: string;
-}) {
-  const { transactionType, variant } = params;
-  return (
-    CONFIRMATION_PRESENTATION_BY_VARIANT[transactionType]?.[variant] ??
-    CONFIRMATION_PRESENTATION_BY_VARIANT[transactionType]?.[
-      DEFAULT_CONFIRMATION_VARIANT
-    ]
-  );
-}
+import { useParams } from '../../../../../util/navigation/navUtils';
 
 const getIsFullScreenConfirmation = (
   approvalRequest: ApprovalRequest<TransactionMeta> | undefined,
   transactionMetadata: TransactionMeta | undefined,
   isWalletInitiated: boolean,
-  variant: string,
+  variant?: string,
 ): boolean => {
   if (!isWalletInitiated) {
     return false;
@@ -46,24 +27,16 @@ const getIsFullScreenConfirmation = (
 
   if (
     approvalRequest?.type !== ApprovalType.Transaction ||
-    !transactionMetadata
+    !transactionMetadata?.type
   ) {
     return false;
   }
 
-  const transactionType = transactionMetadata.type as TransactionType;
-
-  const presentationOverride = getPresentationOverride({
-    transactionType,
-    variant,
-  });
-
-  if (presentationOverride === 'bottomSheet') {
+  if (
+    variant &&
+    FORCE_BOTTOM_SHEET_BY_VARIANT[transactionMetadata.type]?.[variant] === true
+  ) {
     return false;
-  }
-
-  if (presentationOverride === 'fullScreen') {
-    return true;
   }
 
   return hasTransactionType(transactionMetadata, FULL_SCREEN_CONFIRMATIONS);
@@ -73,7 +46,7 @@ export const useFullScreenConfirmation = () => {
   const { approvalRequest } = useApprovalRequest();
   const transactionMetadata = useTransactionMetadataRequest();
   const isInternalConfirmation = useIsInternalConfirmation();
-  const variant = useConfirmationVariant();
+  const { variant } = useParams<{ variant?: string }>();
 
   const isFullScreenConfirmation = getIsFullScreenConfirmation(
     approvalRequest,
