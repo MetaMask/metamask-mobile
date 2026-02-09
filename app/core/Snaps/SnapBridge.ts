@@ -191,6 +191,8 @@ export default class SnapBridge {
     );
 
     // Forward to metamask primary provider
+    // TODO: Investigate type difference here.
+    // @ts-expect-error: Type mismatch.
     engine.push(providerAsMiddleware(proxy.provider));
 
     return engine;
