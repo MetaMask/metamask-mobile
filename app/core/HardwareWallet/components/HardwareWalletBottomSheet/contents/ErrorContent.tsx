@@ -10,7 +10,7 @@
 
 import React, { useMemo, useCallback, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { HardwareWalletError } from '@metamask/hw-wallet-sdk';
+import { HardwareWalletError , HardwareWalletType } from '@metamask/hw-wallet-sdk';
 
 import Text, {
   TextVariant,
@@ -36,7 +36,6 @@ import {
   getRecoveryActionForErrorCode,
   RecoveryAction,
 } from '../../../errors';
-import { HardwareWalletType } from '../../../helpers';
 
 // Test IDs
 export const ERROR_CONTENT_TEST_ID = 'error-content';

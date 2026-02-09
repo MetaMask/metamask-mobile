@@ -5,7 +5,7 @@ import {
   HardwareWalletConfigProvider,
   useHardwareWalletConfig,
 } from './HardwareWalletConfigContext';
-import { HardwareWalletType } from '../helpers';
+import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { BluetoothPermissionState, LocationPermissionState } from '../types';
 
 // Test component that uses the hook

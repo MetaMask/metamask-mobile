@@ -1,8 +1,8 @@
 import {
-  HardwareWalletType,
   getHardwareWalletTypeName,
   getHardwareWalletTypeForAddress,
 } from './helpers';
+import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 
 jest.mock('../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -39,7 +39,7 @@ describe('HardwareWallet helpers', () => {
     });
 
     it('has QR type', () => {
-      expect(HardwareWalletType.QR).toBe('qr');
+      expect(HardwareWalletType.Qr).toBe('qr');
     });
   });
 
@@ -50,7 +50,7 @@ describe('HardwareWallet helpers', () => {
     });
 
     it('returns "QR Hardware Wallet" for QR type', () => {
-      const name = getHardwareWalletTypeName(HardwareWalletType.QR);
+      const name = getHardwareWalletTypeName(HardwareWalletType.Qr);
       expect(name).toBe('QR Hardware Wallet');
     });
 
@@ -89,7 +89,7 @@ describe('HardwareWallet helpers', () => {
         .mockReturnValueOnce(true); // isHardwareAccount(address, [qr])
 
       const result = getHardwareWalletTypeForAddress(testAddress);
-      expect(result).toBe(HardwareWalletType.QR);
+      expect(result).toBe(HardwareWalletType.Qr);
     });
 
     it('returns undefined for non-hardware account', () => {

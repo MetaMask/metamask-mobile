@@ -14,8 +14,8 @@ import {
   ErrorCode,
   HardwareWalletError,
   HardwareWalletErrorOptions,
+  HardwareWalletType,
 } from '@metamask/hw-wallet-sdk';
-import { HardwareWalletType } from '../helpers';
 import { RecoveryAction } from './types';
 import { MOBILE_ERROR_EXTENSIONS } from './mappings';
 

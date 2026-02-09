@@ -3,16 +3,15 @@ import {
   HardwareWalletError,
   Severity,
   Category,
+  HardwareWalletType,
 } from '@metamask/hw-wallet-sdk';
 import {
-  isHardwareWalletError,
   isUserCancellation,
   getIconForErrorCode,
   getIconColorForErrorCode,
   getTitleForErrorCode,
   getRecoveryActionForErrorCode,
 } from './helpers';
-import { HardwareWalletType } from '../helpers';
 import {
   IconName,
   IconColor,
@@ -24,48 +23,6 @@ jest.mock('../../../../locales/i18n', () => ({
 }));
 
 describe('error helpers', () => {
-  describe('isHardwareWalletError', () => {
-    it('returns true for HardwareWalletError instance', () => {
-      const error = new HardwareWalletError('Test', {
-        code: ErrorCode.DeviceDisconnected,
-        severity: Severity.Err,
-        category: Category.Connection,
-        userMessage: 'Test',
-      });
-
-      expect(isHardwareWalletError(error)).toBe(true);
-    });
-
-    it('returns false for regular Error', () => {
-      const error = new Error('Regular error');
-
-      expect(isHardwareWalletError(error)).toBe(false);
-    });
-
-    it('returns false for string', () => {
-      expect(isHardwareWalletError('error string')).toBe(false);
-    });
-
-    it('returns false for null', () => {
-      expect(isHardwareWalletError(null)).toBe(false);
-    });
-
-    it('returns false for undefined', () => {
-      expect(isHardwareWalletError(undefined)).toBe(false);
-    });
-
-    it('returns false for object with similar shape', () => {
-      const fakeError = {
-        code: ErrorCode.DeviceDisconnected,
-        severity: Severity.Err,
-        category: Category.Connection,
-        userMessage: 'Test',
-      };
-
-      expect(isHardwareWalletError(fakeError)).toBe(false);
-    });
-  });
-
   describe('isUserCancellation', () => {
     it('returns true for UserRejected error', () => {
       const error = new HardwareWalletError('User rejected', {
@@ -252,7 +209,7 @@ describe('error helpers', () => {
     it('works with QR wallet type', () => {
       const title = getTitleForErrorCode(
         ErrorCode.DeviceDisconnected,
-        HardwareWalletType.QR,
+        HardwareWalletType.Qr,
       );
 
       expect(title).toContain('hardware_wallet');

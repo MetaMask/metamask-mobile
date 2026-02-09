@@ -1,28 +1,15 @@
-/**
- * Error Parser
- *
- * Parses raw errors from Ledger and other hardware wallets into
- * structured HardwareWalletError instances.
- *
- * Uses LEDGER_ERROR_MAPPINGS from @metamask/hw-wallet-sdk for status code
- * parsing, with Mobile-specific extensions for localization.
- */
-
 import {
   ErrorCode,
   HardwareWalletError,
   LEDGER_ERROR_MAPPINGS,
+  HardwareWalletType,
 } from '@metamask/hw-wallet-sdk';
 import {
   LedgerCommunicationErrors,
   BluetoothPermissionErrors,
 } from '../../Ledger/ledgerErrors';
-import { HardwareWalletType } from '../helpers';
 import { createHardwareWalletError } from './factory';
-import {
-  ERROR_NAME_MAPPINGS,
-  ADDITIONAL_STATUS_CODE_MAPPINGS,
-} from './mappings';
+import { ERROR_NAME_MAPPINGS } from './mappings';
 
 /**
  * Convert a numeric status code to hex string format used by SDK mappings
@@ -187,16 +174,6 @@ function parseLedgerStatusCode(
       cause: originalError,
       metadata: { statusCode, hexCode },
     });
-  }
-
-  // Check additional status codes not in SDK (Mobile-specific or legacy)
-  if (ADDITIONAL_STATUS_CODE_MAPPINGS[statusCode]) {
-    return createHardwareWalletError(
-      ADDITIONAL_STATUS_CODE_MAPPINGS[statusCode],
-      walletType,
-      undefined,
-      { cause: originalError, metadata: { statusCode, hexCode } },
-    );
   }
 
   // Unknown status code

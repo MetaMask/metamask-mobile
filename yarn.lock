@@ -8365,10 +8365,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/hw-wallet-sdk@npm:0.2.0":
-  version: 0.2.0
-  resolution: "@metamask/hw-wallet-sdk@npm:0.2.0"
-  checksum: 10/1af4c98ef477ac5ec8ca06ca02cdc21db5fa52a13eda184426caab1841c6142874f3d78838620660c3d9583d51c377dc395e4f10f0627697a7495244af663eda
+"@metamask/hw-wallet-sdk@npm:^0.4.0":
+  version: 0.4.0
+  resolution: "@metamask/hw-wallet-sdk@npm:0.4.0"
+  checksum: 10/ef32e257f63674d8920a234e43933062c418ac893e1be06dee69c56a3966311646a0a20fa4a3063da02d37d6058a5efe2beecd5bac0f76cbfedbf752e3ca9f0e
   languageName: node
   linkType: hard
 
@@ -34713,7 +34713,7 @@ __metadata:
     "@metamask/foundryup": "npm:1.0.0"
     "@metamask/gas-fee-controller": "npm:^25.0.0"
     "@metamask/gator-permissions-controller": "npm:^0.3.0"
-    "@metamask/hw-wallet-sdk": "npm:0.2.0"
+    "@metamask/hw-wallet-sdk": "npm:^0.4.0"
     "@metamask/json-rpc-engine": "npm:^10.2.1"
     "@metamask/json-rpc-middleware-stream": "npm:^8.0.7"
     "@metamask/key-tree": "patch:@metamask/key-tree@npm%3A10.1.1#~/.yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch"

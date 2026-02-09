@@ -34,7 +34,7 @@ import {
   requiresBluetooth,
   getSupportedWalletTypes,
 } from './factory';
-import { HardwareWalletType } from '../helpers';
+import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { HardwareWalletAdapterOptions } from '../types';
 import { LedgerBluetoothAdapter } from './LedgerBluetoothAdapter';
 import { NonHardwareAdapter } from './NonHardwareAdapter';

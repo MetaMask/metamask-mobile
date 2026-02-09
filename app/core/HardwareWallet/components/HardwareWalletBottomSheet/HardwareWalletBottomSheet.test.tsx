@@ -106,13 +106,13 @@ import {
   ErrorCode,
   Severity,
   Category,
+  ConnectionStatus,
 } from '@metamask/hw-wallet-sdk';
 
 import {
   HardwareWalletBottomSheet,
   HARDWARE_WALLET_BOTTOM_SHEET_TEST_ID,
 } from './HardwareWalletBottomSheet';
-import { ConnectionStatus } from '../../connectionState';
 
 describe('HardwareWalletBottomSheet', () => {
   beforeEach(() => {
@@ -202,7 +202,7 @@ describe('HardwareWalletBottomSheet', () => {
 
     it('should render when in success state', () => {
       Object.assign(mockConnectionState, {
-        status: ConnectionStatus.Success,
+        status: ConnectionStatus.Ready,
         deviceId: 'device-123',
       });
       const { getByTestId } = render(<HardwareWalletBottomSheet />);
@@ -233,7 +233,7 @@ describe('HardwareWalletBottomSheet', () => {
     it('should call onConnectionSuccess callback when provided', () => {
       const onConnectionSuccess = jest.fn();
       Object.assign(mockConnectionState, {
-        status: ConnectionStatus.Success,
+        status: ConnectionStatus.Ready,
         deviceId: 'device-123',
       });
       render(
@@ -264,7 +264,7 @@ describe('HardwareWalletBottomSheet', () => {
   describe('props', () => {
     it('should accept custom successAutoDismissMs', () => {
       Object.assign(mockConnectionState, {
-        status: ConnectionStatus.Success,
+        status: ConnectionStatus.Ready,
         deviceId: 'device-123',
       });
       const { getByTestId } = render(
@@ -276,7 +276,7 @@ describe('HardwareWalletBottomSheet', () => {
 
     it('should use default successAutoDismissMs when not provided', () => {
       Object.assign(mockConnectionState, {
-        status: ConnectionStatus.Success,
+        status: ConnectionStatus.Ready,
         deviceId: 'device-123',
       });
       const { getByTestId } = render(<HardwareWalletBottomSheet />);
@@ -380,7 +380,7 @@ describe('HardwareWalletBottomSheet', () => {
     it('should only call onClose when sheet closes during success state', () => {
       const onClose = jest.fn();
       Object.assign(mockConnectionState, {
-        status: ConnectionStatus.Success,
+        status: ConnectionStatus.Ready,
         deviceId: 'device-123',
       });
       render(<HardwareWalletBottomSheet onClose={onClose} />);
@@ -513,7 +513,7 @@ describe('HardwareWalletBottomSheet', () => {
     it('should call onConnectionSuccess when success dismiss is triggered', () => {
       const onConnectionSuccess = jest.fn();
       Object.assign(mockConnectionState, {
-        status: ConnectionStatus.Success,
+        status: ConnectionStatus.Ready,
         deviceId: 'device-123',
       });
       render(

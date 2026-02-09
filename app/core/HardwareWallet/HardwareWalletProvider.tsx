@@ -1,20 +1,4 @@
 /* eslint-disable no-console */
-/**
- * Hardware Wallet Unified Provider
- *
- * This is the main provider that composes all hardware wallet contexts
- * and provides a unified API for hardware wallet operations.
- *
- * The provider integrates:
- * - Config Context: Wallet type, permissions, device info
- * - State Context: Connection state, error state
- * - Actions Context: Connect, disconnect, ensureDeviceReady, etc.
- *
- * It also includes:
- * - Automatic adapter creation based on wallet type
- * - Device event handling
- * - Error bottom sheet display
- */
 
 import React, {
   ReactNode,
@@ -25,8 +9,7 @@ import React, {
   useRef,
 } from 'react';
 
-import { HardwareWalletType } from './helpers';
-import { ConnectionState, ConnectionStatus } from './connectionState';
+import { ConnectionState } from './connectionState';
 import {
   BluetoothPermissionState,
   LocationPermissionState,
@@ -44,7 +27,11 @@ import { useHardwareWalletStateManager } from './HardwareWalletStateManager';
 import { useDeviceEventHandlers } from './HardwareWalletEventHandlers';
 import { createAdapter, requiresBluetooth } from './adapters';
 import { parseErrorByType, createHardwareWalletError } from './errors';
-import { ErrorCode } from '@metamask/hw-wallet-sdk';
+import {
+  ErrorCode,
+  HardwareWalletType,
+  ConnectionStatus,
+} from '@metamask/hw-wallet-sdk';
 
 /**
  * Props for the HardwareWalletProvider

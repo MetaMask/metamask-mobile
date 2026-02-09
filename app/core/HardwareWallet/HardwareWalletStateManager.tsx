@@ -1,11 +1,12 @@
 import { useRef, useState, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccount } from '../../selectors/accountsController';
-import { HardwareWalletType, getHardwareWalletTypeForAddress } from './helpers';
+import { getHardwareWalletTypeForAddress } from './helpers';
 import {
-  ConnectionState,
+  HardwareWalletType,
   HardwareWalletConnectionState,
-} from './connectionState';
+} from '@metamask/hw-wallet-sdk';
+import { ConnectionState } from './connectionState';
 import {
   BluetoothPermissionState,
   LocationPermissionState,

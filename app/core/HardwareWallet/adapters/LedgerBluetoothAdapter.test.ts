@@ -58,8 +58,8 @@ import {
   isLedgerBluetoothAdapter,
   createLedgerBluetoothAdapter,
 } from './LedgerBluetoothAdapter';
-import { HardwareWalletType } from '../helpers';
-import { HardwareWalletAdapterOptions, DeviceEvent } from '../types';
+import { HardwareWalletType, DeviceEvent } from '@metamask/hw-wallet-sdk';
+import { HardwareWalletAdapterOptions } from '../types';
 import TransportBLE from '@ledgerhq/react-native-hw-transport-ble';
 import { connectLedgerHardware } from '../../Ledger/Ledger';
 
@@ -232,7 +232,7 @@ describe('LedgerBluetoothAdapter', () => {
       expect(onDeviceEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           event: DeviceEvent.AppOpened,
-          appName: 'Ethereum',
+          currentAppName: 'Ethereum',
         }),
       );
     });
@@ -246,8 +246,8 @@ describe('LedgerBluetoothAdapter', () => {
       // AppClosed event always uses 'Ethereum' as the required app (what we want opened)
       expect(onDeviceEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          event: DeviceEvent.AppClosed,
-          appName: 'Ethereum',
+          event: DeviceEvent.AppNotOpen,
+          currentAppName: 'Ethereum',
         }),
       );
     });
@@ -261,8 +261,8 @@ describe('LedgerBluetoothAdapter', () => {
       // AppClosed event always uses 'Ethereum' as the required app
       expect(onDeviceEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          event: DeviceEvent.AppClosed,
-          appName: 'Ethereum',
+          event: DeviceEvent.AppNotOpen,
+          currentAppName: 'Ethereum',
         }),
       );
     });

@@ -4,11 +4,13 @@ import {
   ErrorCode,
   Severity,
   Category,
+  HardwareWalletType,
+  ConnectionStatus,
+  DeviceEvent,
 } from '@metamask/hw-wallet-sdk';
 import { useDeviceEventHandlers } from './HardwareWalletEventHandlers';
-import { ConnectionStatus, ConnectionState } from './connectionState';
-import { DeviceEvent, HardwareWalletAdapter } from './types';
-import { HardwareWalletType } from './helpers';
+import { ConnectionState } from './connectionState';
+import { HardwareWalletAdapter } from './types';
 import {
   HardwareWalletRefs,
   HardwareWalletStateSetters,
@@ -321,15 +323,15 @@ describe('useDeviceEventHandlers', () => {
 
         act(() => {
           result.current.handleDeviceEvent({
-            event: DeviceEvent.AppClosed,
-            appName: 'Bitcoin',
+            event: DeviceEvent.AppNotOpen,
+            currentAppName: 'Bitcoin',
           });
         });
 
         expect(lastConnectionState.status).toBe(ConnectionStatus.AwaitingApp);
         if (lastConnectionState.status === 'awaiting_app') {
           // Always uses 'Ethereum' as the required app, regardless of what's currently open
-          expect(lastConnectionState.requiredApp).toBe('Ethereum');
+          expect(lastConnectionState.appName).toBe('Ethereum');
         }
       });
     });

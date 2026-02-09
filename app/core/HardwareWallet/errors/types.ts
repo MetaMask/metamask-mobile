@@ -2,7 +2,7 @@ import {
   IconName,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
-import { HardwareWalletType } from '../helpers';
+import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 
 /**
  * Specifies what action the UI should present to the user to recover from an error.

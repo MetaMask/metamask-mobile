@@ -5,7 +5,7 @@ import {
   HardwareWalletActionsProvider,
   useHardwareWalletActions,
 } from './HardwareWalletActionsContext';
-import { HardwareWalletType } from '../helpers';
+import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 
 // Test component that uses the hook
 const TestConsumer: React.FC<{ onActionCalled: (action: string) => void }> = ({

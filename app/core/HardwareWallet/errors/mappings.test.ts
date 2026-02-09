@@ -1,11 +1,6 @@
-import { ErrorCode } from '@metamask/hw-wallet-sdk';
-import {
-  MOBILE_ERROR_EXTENSIONS,
-  ERROR_NAME_MAPPINGS,
-  ADDITIONAL_STATUS_CODE_MAPPINGS,
-} from './mappings';
+import { ErrorCode, HardwareWalletType } from '@metamask/hw-wallet-sdk';
+import { MOBILE_ERROR_EXTENSIONS, ERROR_NAME_MAPPINGS } from './mappings';
 import { RecoveryAction } from './types';
-import { HardwareWalletType } from '../helpers';
 import {
   IconName,
   IconColor,
@@ -481,26 +476,6 @@ describe('ERROR_NAME_MAPPINGS', () => {
   it('maps DeviceSocketNoBulkStatus to BluetoothConnectionFailed', () => {
     expect(ERROR_NAME_MAPPINGS.DeviceSocketNoBulkStatus).toBe(
       ErrorCode.BluetoothConnectionFailed,
-    );
-  });
-});
-
-describe('ADDITIONAL_STATUS_CODE_MAPPINGS', () => {
-  it('maps 0x6b0c (LOCKED) to AuthenticationDeviceLocked', () => {
-    expect(ADDITIONAL_STATUS_CODE_MAPPINGS[0x6b0c]).toBe(
-      ErrorCode.AuthenticationDeviceLocked,
-    );
-  });
-
-  it('maps 0x6a15 (WRONG_APP) to DeviceStateEthAppClosed', () => {
-    expect(ADDITIONAL_STATUS_CODE_MAPPINGS[0x6a15]).toBe(
-      ErrorCode.DeviceStateEthAppClosed,
-    );
-  });
-
-  it('maps 0x6511 (APP_NOT_OPEN) to DeviceStateEthAppClosed', () => {
-    expect(ADDITIONAL_STATUS_CODE_MAPPINGS[0x6511]).toBe(
-      ErrorCode.DeviceStateEthAppClosed,
     );
   });
 });

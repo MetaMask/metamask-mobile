@@ -1,49 +1,8 @@
-import { HardwareWalletType } from './helpers';
-
-/**
- * Device events emitted during hardware wallet operations.
- * Used by adapters to communicate state changes.
- */
-export enum DeviceEvent {
-  /** Device successfully connected */
-  Connected = 'connected',
-  /** Device disconnected (intentional or lost connection) */
-  Disconnected = 'disconnected',
-  /** Connection attempt failed */
-  ConnectionFailed = 'connection_failed',
-  /** Device is locked */
-  DeviceLocked = 'device_locked',
-  /** Correct app opened on device */
-  AppOpened = 'app_opened',
-  /** Wrong app is open, need to switch */
-  AppClosed = 'app_closed',
-  /** User needs to confirm action on device */
-  ConfirmationRequired = 'confirmation_required',
-  /** User confirmed action on device */
-  ConfirmationReceived = 'confirmation_received',
-  /** User rejected action on device */
-  ConfirmationRejected = 'confirmation_rejected',
-  /** Operation timed out */
-  OperationTimeout = 'operation_timeout',
-  /** Bluetooth permissions changed */
-  PermissionChanged = 'permission_changed',
-}
-
-/**
- * Payload for device events with optional metadata
- */
-export interface DeviceEventPayload {
-  /** The type of event that occurred */
-  event: DeviceEvent;
-  /** Device ID if available */
-  deviceId?: string;
-  /** App name if relevant (e.g., 'Ethereum', 'Bitcoin') */
-  appName?: string;
-  /** Additional error information if applicable */
-  error?: Error;
-  /** Any additional metadata */
-  metadata?: Record<string, unknown>;
-}
+import {
+  HardwareWalletType,
+  DeviceEventPayload,
+  DeviceEvent,
+} from '@metamask/hw-wallet-sdk';
 
 /**
  * Options for creating a hardware wallet adapter

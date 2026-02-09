@@ -1,8 +1,8 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { useHardwareWalletStateManager } from './HardwareWalletStateManager';
-import { HardwareWalletType, getHardwareWalletTypeForAddress } from './helpers';
-import { ConnectionStatus } from './connectionState';
+import { getHardwareWalletTypeForAddress } from './helpers';
+import { HardwareWalletType, ConnectionStatus } from '@metamask/hw-wallet-sdk';
 import { BluetoothPermissionState, LocationPermissionState } from './types';
 
 // Mock react-redux
@@ -84,11 +84,11 @@ describe('useHardwareWalletStateManager', () => {
         address: '0xqrwalletaddress',
       };
       mockUseSelector.mockReturnValue(mockAccount);
-      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.QR);
+      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Qr);
 
       const { result } = renderHook(() => useHardwareWalletStateManager());
 
-      expect(result.current.state.walletType).toBe(HardwareWalletType.QR);
+      expect(result.current.state.walletType).toBe(HardwareWalletType.Qr);
     });
 
     it('should return null for non-hardware accounts', () => {

@@ -1,17 +1,19 @@
 /* eslint-disable no-console */
 import { useCallback } from 'react';
-import { HardwareWalletError, ErrorCode } from '@metamask/hw-wallet-sdk';
 import {
-  ConnectionState,
+  HardwareWalletError,
+  ErrorCode,
+  HardwareWalletType,
   HardwareWalletConnectionState,
-} from './connectionState';
-import { DeviceEvent, DeviceEventPayload } from './types';
+  DeviceEvent,
+  DeviceEventPayload,
+} from '@metamask/hw-wallet-sdk';
+import { ConnectionState } from './connectionState';
 import {
   HardwareWalletStateSetters,
   HardwareWalletRefs,
 } from './HardwareWalletStateManager';
 import { parseErrorByType, createHardwareWalletError } from './errors';
-import { HardwareWalletType } from './helpers';
 
 /**
  * Options for the device event handlers hook
@@ -155,7 +157,7 @@ export const useDeviceEventHandlers = ({
           );
           break;
 
-        case DeviceEvent.AppClosed:
+        case DeviceEvent.AppNotOpen:
           // Get required app from adapter (e.g., 'Ethereum' for Ledger)
           // payload.appName contains what's currently open (e.g., 'BOLOS', 'Bitcoin')
           updateConnectionState(

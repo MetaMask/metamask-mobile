@@ -3,9 +3,9 @@ import {
   ErrorCode,
   Severity,
   Category,
+  ConnectionStatus,
 } from '@metamask/hw-wallet-sdk';
 import {
-  ConnectionStatus,
   ConnectionState,
   isErrorState,
   hasDeviceId,
@@ -66,16 +66,16 @@ describe('ConnectionState factory', () => {
       expect(state).toEqual({
         status: ConnectionStatus.AwaitingApp,
         deviceId: 'device-789',
-        requiredApp: undefined,
+        appName: undefined,
       });
     });
 
-    it('should create an awaiting app state with requiredApp', () => {
+    it('should create an awaiting app state with appName', () => {
       const state = ConnectionState.awaitingApp('device-789', 'Ethereum');
       expect(state).toEqual({
         status: ConnectionStatus.AwaitingApp,
         deviceId: 'device-789',
-        requiredApp: 'Ethereum',
+        appName: 'Ethereum',
       });
     });
   });
@@ -120,11 +120,11 @@ describe('ConnectionState factory', () => {
     });
   });
 
-  describe('success', () => {
+  describe('ready', () => {
     it('should create a success state without deviceId', () => {
       const state = ConnectionState.success();
       expect(state).toEqual({
-        status: ConnectionStatus.Success,
+        status: ConnectionStatus.Ready,
         deviceId: undefined,
       });
     });
@@ -132,7 +132,7 @@ describe('ConnectionState factory', () => {
     it('should create a success state with deviceId', () => {
       const state = ConnectionState.success('device-xyz');
       expect(state).toEqual({
-        status: ConnectionStatus.Success,
+        status: ConnectionStatus.Ready,
         deviceId: 'device-xyz',
       });
     });

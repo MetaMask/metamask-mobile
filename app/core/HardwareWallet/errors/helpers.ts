@@ -5,29 +5,23 @@
  */
 
 import { strings } from '../../../../locales/i18n';
-import { ErrorCode, HardwareWalletError } from '@metamask/hw-wallet-sdk';
+import {
+  ErrorCode,
+  HardwareWalletError,
+  HardwareWalletType,
+} from '@metamask/hw-wallet-sdk';
 import {
   IconName,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
-import { HardwareWalletType } from '../helpers';
 import { MOBILE_ERROR_EXTENSIONS } from './mappings';
 import { RecoveryAction } from './types';
-
-/**
- * Check if an error is a HardwareWalletError
- */
-export function isHardwareWalletError(
-  error: unknown,
-): error is HardwareWalletError {
-  return error instanceof HardwareWalletError;
-}
 
 /**
  * Check if an error represents a user cancellation
  */
 export function isUserCancellation(error: unknown): boolean {
-  if (isHardwareWalletError(error)) {
+  if (HardwareWalletError.isHardwareWalletError(error)) {
     return (
       error.code === ErrorCode.UserRejected ||
       error.code === ErrorCode.UserCancelled

@@ -260,13 +260,3 @@ export const ERROR_NAME_MAPPINGS: Record<string, ErrorCode> = {
   EthAppPleaseEnableContractData: ErrorCode.DeviceStateBlindSignNotSupported,
   BleError: ErrorCode.BluetoothConnectionFailed,
 };
-
-/**
- * Additional Ledger status codes not covered by SDK mappings.
- * These are Mobile-specific or legacy codes.
- */
-export const ADDITIONAL_STATUS_CODE_MAPPINGS: Record<number, ErrorCode> = {
-  0x6b0c: ErrorCode.AuthenticationDeviceLocked, // LOCKED (not in SDK)
-  0x6a15: ErrorCode.DeviceStateEthAppClosed, // WRONG_APP (not in SDK)
-  0x6511: ErrorCode.DeviceStateEthAppClosed, // APP_NOT_OPEN (not in SDK)
-};

@@ -1,49 +1,8 @@
-import { HardwareWalletError } from '@metamask/hw-wallet-sdk';
-
-/**
- * Connection status enum for hardware wallet state machine.
- * Matches Extension PR #39038 architecture.
- */
-export enum ConnectionStatus {
-  /** No device connected */
-  Disconnected = 'disconnected',
-  /** Scanning for Bluetooth devices (bottom sheet open with device selection) */
-  Scanning = 'scanning',
-  /** Attempting to establish BLE connection */
-  Connecting = 'connecting',
-  /** BLE connected, transport established */
-  Connected = 'connected',
-  /** Waiting for user to open the correct app on device */
-  AwaitingApp = 'awaiting_app',
-  /** Waiting for user to confirm action on device */
-  AwaitingConfirmation = 'awaiting_confirmation',
-  /** An error occurred */
-  ErrorState = 'error',
-  /** Operation completed successfully */
-  Success = 'success',
-}
-
-/**
- * Discriminated union type for hardware wallet connection state.
- * Each status has its own shape with relevant data.
- */
-export type HardwareWalletConnectionState =
-  | { status: ConnectionStatus.Disconnected }
-  | { status: ConnectionStatus.Scanning }
-  | { status: ConnectionStatus.Connecting; deviceId?: string }
-  | { status: ConnectionStatus.Connected; deviceId: string }
-  | {
-      status: ConnectionStatus.AwaitingApp;
-      deviceId: string;
-      requiredApp?: string;
-    }
-  | {
-      status: ConnectionStatus.AwaitingConfirmation;
-      deviceId: string;
-      operationType?: string;
-    }
-  | { status: ConnectionStatus.ErrorState; error: HardwareWalletError }
-  | { status: ConnectionStatus.Success; deviceId?: string };
+import {
+  HardwareWalletError,
+  ConnectionStatus,
+  HardwareWalletConnectionState,
+} from '@metamask/hw-wallet-sdk';
 
 /**
  * Factory functions for creating connection states.
@@ -85,15 +44,15 @@ export const ConnectionState = {
   /**
    * Create an awaiting app state
    * @param deviceId - The connected device's ID
-   * @param requiredApp - The app that needs to be opened (e.g., 'Ethereum')
+   * @param appName - The app that needs to be opened (e.g., 'Ethereum')
    */
   awaitingApp: (
     deviceId: string,
-    requiredApp?: string,
+    appName?: string,
   ): HardwareWalletConnectionState => ({
     status: ConnectionStatus.AwaitingApp,
     deviceId,
-    requiredApp,
+    appName,
   }),
 
   /**
@@ -124,7 +83,7 @@ export const ConnectionState = {
    * @param deviceId - Optional device ID that was successfully connected
    */
   success: (deviceId?: string): HardwareWalletConnectionState => ({
-    status: ConnectionStatus.Success,
+    status: ConnectionStatus.Ready,
     deviceId,
   }),
 };

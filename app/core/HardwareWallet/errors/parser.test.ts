@@ -3,9 +3,9 @@ import {
   HardwareWalletError,
   Severity,
   Category,
+  HardwareWalletType,
 } from '@metamask/hw-wallet-sdk';
 import { parseErrorByType } from './parser';
-import { HardwareWalletType } from '../helpers';
 import {
   LedgerCommunicationErrors,
   BluetoothPermissionErrors,
@@ -330,7 +330,6 @@ describe('parseErrorByType', () => {
 
       const result = parseErrorByType(error, walletType);
 
-      // 0x6b0c is LOCKED in our ADDITIONAL_STATUS_CODE_MAPPINGS
       expect(result.code).toBe(ErrorCode.AuthenticationDeviceLocked);
     });
   });
@@ -520,10 +519,10 @@ describe('parseErrorByType', () => {
     it('includes QR wallet type in metadata', () => {
       const result = parseErrorByType(
         LedgerCommunicationErrors.LedgerDisconnected,
-        HardwareWalletType.QR,
+        HardwareWalletType.Qr,
       );
 
-      expect(result.metadata?.walletType).toBe(HardwareWalletType.QR);
+      expect(result.metadata?.walletType).toBe(HardwareWalletType.Qr);
     });
   });
 

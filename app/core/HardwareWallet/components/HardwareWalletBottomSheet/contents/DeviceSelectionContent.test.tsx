@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { AppThemeKey } from '../../../../../util/theme/models';
-import { HardwareWalletType } from '../../../helpers';
+import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { DiscoveredDevice } from '../../../types';
 import {
   DeviceSelectionContent,

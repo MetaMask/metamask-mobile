@@ -6,7 +6,7 @@ import {
   SUCCESS_CONTENT_TEST_ID,
   SUCCESS_CONTENT_ICON_TEST_ID,
 } from './SuccessContent';
-import { HardwareWalletType } from '../../../helpers';
+import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 
 // Mock dependencies
 jest.mock('../../../../../util/theme', () => ({

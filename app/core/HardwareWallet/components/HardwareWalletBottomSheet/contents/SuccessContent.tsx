@@ -21,7 +21,7 @@ import Icon, {
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import { Colors } from '../../../../../util/theme/models';
-import { HardwareWalletType } from '../../../helpers';
+import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 
 // Test IDs
 export const SUCCESS_CONTENT_TEST_ID = 'success-content';

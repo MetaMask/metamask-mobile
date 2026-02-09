@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useMemo, ReactNode } from 'react';
-import {
-  HardwareWalletConnectionState,
-  ConnectionStatus,
-  ConnectionState,
-} from '../connectionState';
+import { ConnectionState } from '../connectionState';
 import { DiscoveredDevice } from '../types';
+import {
+  ConnectionStatus,
+  HardwareWalletConnectionState,
+} from '@metamask/hw-wallet-sdk';
 
 /**
  * Device selection state for device discovery (BLE, camera, etc.)

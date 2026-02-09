@@ -5,7 +5,7 @@ import React, {
   useCallback,
   ReactNode,
 } from 'react';
-import { HardwareWalletType } from '../helpers';
+import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { HardwareWalletActions, DiscoveredDevice } from '../types';
 
 /**

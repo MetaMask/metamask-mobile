@@ -1,19 +1,18 @@
 import {
-  DeviceEvent,
   BluetoothPermissionState,
   LocationPermissionState,
   isDeviceEventPayload,
   canAttemptConnection,
-  type DeviceEventPayload,
   type HardwareWalletPermissions,
 } from './types';
+import { DeviceEvent, DeviceEventPayload } from '@metamask/hw-wallet-sdk';
 
 describe('DeviceEvent enum', () => {
   it('should have all expected event values', () => {
     expect(DeviceEvent.Connected).toBe('connected');
     expect(DeviceEvent.Disconnected).toBe('disconnected');
     expect(DeviceEvent.AppOpened).toBe('app_opened');
-    expect(DeviceEvent.AppClosed).toBe('app_closed');
+    expect(DeviceEvent.AppNotOpen).toBe('app_not_open');
     expect(DeviceEvent.ConfirmationRequired).toBe('confirmation_required');
     expect(DeviceEvent.ConfirmationReceived).toBe('confirmation_received');
     expect(DeviceEvent.ConfirmationRejected).toBe('confirmation_rejected');
@@ -60,7 +59,7 @@ describe('isDeviceEventPayload', () => {
     const payload: DeviceEventPayload = {
       event: DeviceEvent.AppOpened,
       deviceId: 'device-123',
-      appName: 'Ethereum',
+      currentAppName: 'Ethereum',
       error: new Error('test'),
       metadata: { foo: 'bar' },
     };

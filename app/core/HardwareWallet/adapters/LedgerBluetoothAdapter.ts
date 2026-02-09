@@ -5,10 +5,12 @@ import TransportBLE, {
 import { State as BleState } from 'react-native-ble-plx';
 import { Observable, Subscription } from 'rxjs';
 import Eth from '@ledgerhq/hw-app-eth';
-import { HardwareWalletType } from '../helpers';
 import {
+  HardwareWalletType,
   DeviceEvent,
   DeviceEventPayload,
+} from '@metamask/hw-wallet-sdk';
+import {
   DiscoveredDevice,
   HardwareWalletAdapter,
   HardwareWalletAdapterOptions,
@@ -475,7 +477,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
           // Emit success event
           this.emitEvent({
             event: DeviceEvent.AppOpened,
-            appName: 'Ethereum',
+            currentAppName: 'Ethereum',
           });
 
           return true;
@@ -508,7 +510,10 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
 
       // Emit AppClosed event FIRST so UI updates immediately
       // Always use 'Ethereum' as the required app (what we want opened)
-      this.emitEvent({ event: DeviceEvent.AppClosed, appName: 'Ethereum' });
+      this.emitEvent({
+        event: DeviceEvent.AppNotOpen,
+        currentAppName: 'Ethereum',
+      });
 
       // Then send commands to the device
       if (appName === 'BOLOS') {

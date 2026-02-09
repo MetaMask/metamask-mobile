@@ -3,7 +3,7 @@ import { waitFor } from '@testing-library/react-native';
 import LedgerSelectAccount from './index';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
-import { ConnectionStatus } from '../../../core/HardwareWallet';
+import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
 
 const mockedNavigate = jest.fn();
 const mockedPop = jest.fn();

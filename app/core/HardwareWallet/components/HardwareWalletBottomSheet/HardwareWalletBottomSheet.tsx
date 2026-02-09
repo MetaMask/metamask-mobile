@@ -13,8 +13,7 @@ import {
   useHardwareWalletConfig,
   useHardwareWalletActions,
 } from '../../contexts';
-import { ConnectionStatus } from '../../connectionState';
-import { HardwareWalletType } from '../../helpers';
+import { HardwareWalletType, ConnectionStatus } from '@metamask/hw-wallet-sdk';
 
 import {
   ConnectingContent,
@@ -93,7 +92,7 @@ export const HardwareWalletBottomSheet: React.FC<
       case ConnectionStatus.AwaitingApp:
       case ConnectionStatus.AwaitingConfirmation:
       case ConnectionStatus.ErrorState:
-      case ConnectionStatus.Success:
+      case ConnectionStatus.Ready:
         return true;
       default:
         return false;
@@ -190,7 +189,7 @@ export const HardwareWalletBottomSheet: React.FC<
   // Render content based on state
   const renderContent = () => {
     switch (connectionState.status) {
-      case ConnectionStatus.Success:
+      case ConnectionStatus.Ready:
         return (
           <SuccessContent
             onDismiss={handleSuccessDismiss}
@@ -224,7 +223,7 @@ export const HardwareWalletBottomSheet: React.FC<
             deviceType={deviceType}
             requiredApp={
               connectionState.status === 'awaiting_app'
-                ? connectionState.requiredApp
+                ? connectionState.appName
                 : undefined
             }
             onContinue={handleErrorContinue}

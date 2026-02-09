@@ -1,6 +1,10 @@
-import { ErrorCode, Severity, Category } from '@metamask/hw-wallet-sdk';
+import {
+  ErrorCode,
+  Severity,
+  Category,
+  HardwareWalletType,
+} from '@metamask/hw-wallet-sdk';
 import { createHardwareWalletError } from './factory';
-import { HardwareWalletType } from '../helpers';
 import { RecoveryAction } from './types';
 
 jest.mock('../../../../locales/i18n', () => ({
@@ -189,10 +193,10 @@ describe('createHardwareWalletError', () => {
     it('works with QR hardware wallet type', () => {
       const error = createHardwareWalletError(
         ErrorCode.DeviceDisconnected,
-        HardwareWalletType.QR,
+        HardwareWalletType.Qr,
       );
 
-      expect(error.metadata?.walletType).toBe(HardwareWalletType.QR);
+      expect(error.metadata?.walletType).toBe(HardwareWalletType.Qr);
     });
   });
 

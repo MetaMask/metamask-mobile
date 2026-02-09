@@ -56,9 +56,8 @@ import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytic
 import {
   useHardwareWalletState,
   useHardwareWalletActions,
-  ConnectionStatus,
-  HardwareWalletType,
 } from '../../../core/HardwareWallet';
+import { ConnectionStatus, HardwareWalletType } from '@metamask/hw-wallet-sdk';
 
 interface OptionType {
   key: string;

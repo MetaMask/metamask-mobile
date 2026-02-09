@@ -9,10 +9,10 @@ import {
   useHardwareWalletState,
   useHardwareWalletActions,
 } from './contexts';
-import { ConnectionStatus } from './connectionState';
-import { HardwareWalletType, getHardwareWalletTypeForAddress } from './helpers';
+import { getHardwareWalletTypeForAddress } from './helpers';
 import { BluetoothPermissionState, LocationPermissionState } from './types';
 import { createAdapter } from './adapters';
+import { HardwareWalletType, ConnectionStatus } from '@metamask/hw-wallet-sdk';
 
 // Mock react-redux
 jest.mock('react-redux', () => ({

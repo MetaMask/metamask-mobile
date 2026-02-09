@@ -1,14 +1,7 @@
 import { strings } from '../../../locales/i18n';
 import { isHardwareAccount } from '../../util/address';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
-
-/**
- * Supported hardware wallet types
- */
-export enum HardwareWalletType {
-  Ledger = 'ledger',
-  QR = 'qr',
-}
+import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 
 /**
  * Helper to get wallet type display name
@@ -19,7 +12,7 @@ export const getHardwareWalletTypeName = (
   switch (walletType) {
     case HardwareWalletType.Ledger:
       return strings('hardware_wallet.device_names.ledger');
-    case HardwareWalletType.QR:
+    case HardwareWalletType.Qr:
       return strings('hardware_wallet.device_names.qr');
     default:
       return strings('hardware_wallet.device_names.hardware_wallet');
@@ -39,7 +32,7 @@ export function getHardwareWalletTypeForAddress(
     return HardwareWalletType.Ledger;
   }
   if (isHardwareAccount(address, [ExtendedKeyringTypes.qr])) {
-    return HardwareWalletType.QR;
+    return HardwareWalletType.Qr;
   }
   return undefined;
 }

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useMemo, ReactNode } from 'react';
-import { HardwareWalletType } from '../helpers';
+import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import {
   HardwareWalletPermissions,
   BluetoothPermissionState,
