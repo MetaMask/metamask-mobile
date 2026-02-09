@@ -13,6 +13,7 @@ import type {
   GetOrderFillsParams,
   GetOrdersParams,
   GetFundingParams,
+  GetPositionsParams,
   OrderFill,
   Order,
   Funding,
@@ -69,10 +70,13 @@ export function usePerpsTrading() {
     [],
   );
 
-  const getPositions = useCallback(async (): Promise<Position[]> => {
-    const controller = Engine.context.PerpsController;
-    return controller.getPositions();
-  }, []);
+  const getPositions = useCallback(
+    async (params?: GetPositionsParams): Promise<Position[]> => {
+      const controller = Engine.context.PerpsController;
+      return controller.getPositions(params);
+    },
+    [],
+  );
 
   const getAccountState = useCallback(
     async (params?: GetAccountStateParams): Promise<AccountState> => {

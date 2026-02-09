@@ -4,11 +4,35 @@ import { Linking } from 'react-native';
 import PendingMerklRewards from './PendingMerklRewards';
 
 const mockOpenTooltipModal = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn();
+
 jest.mock('../../../../hooks/useTooltipModal', () => ({
   __esModule: true,
   default: () => ({
     openTooltipModal: mockOpenTooltipModal,
   }),
+}));
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
+jest.mock('../../../../../core/Analytics/MetaMetrics.events', () => ({
+  EVENT_NAME: {
+    TOOLTIP_OPENED: 'Tooltip Opened',
+  },
+}));
+
+jest.mock('../../constants/events/musdEvents', () => ({
+  MUSD_EVENTS_CONSTANTS: {
+    EVENT_LOCATIONS: {
+      ASSET_OVERVIEW: 'asset_overview',
+    },
+  },
 }));
 
 jest.mock('../../../../../core/AppConstants', () => ({
@@ -125,6 +149,12 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 describe('PendingMerklRewards', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    const builder = {
+      addProperties: jest.fn(),
+      build: jest.fn().mockReturnValue({ event: 'mock-event' }),
+    };
+    builder.addProperties.mockReturnValue(builder);
+    mockCreateEventBuilder.mockReturnValue(builder);
   });
 
   it('returns null when claimableReward is null', () => {
@@ -179,6 +209,24 @@ describe('PendingMerklRewards', () => {
       undefined,
       'OK',
     );
+  });
+
+  it('tracks Tooltip Opened event when info button is pressed', () => {
+    const { getByTestId } = render(
+      <PendingMerklRewards claimableReward="10.01" />,
+    );
+
+    fireEvent.press(getByTestId('claimable-bonus-info-button'));
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith('Tooltip Opened');
+    const builder = mockCreateEventBuilder.mock.results[0].value;
+    expect(builder.addProperties).toHaveBeenCalledWith({
+      text: 'Claimable bonus',
+      location: 'asset_overview',
+      tooltip_name: 'Claim Bonus Info',
+      experience: 'MUSD_BONUS',
+    });
+    expect(mockTrackEvent).toHaveBeenCalled();
   });
 
   it('opens terms URL when terms link is pressed in tooltip', () => {
