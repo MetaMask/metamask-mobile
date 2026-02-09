@@ -37,7 +37,7 @@ const HeaderStackedStandard: React.FC<HeaderStackedStandardProps> = ({
   titleStandardProps,
   startButtonIconProps,
   endButtonIconProps,
-  twClassName,
+  twClassName = '',
   testID,
   titleSectionTestID,
   ...headerBaseProps
@@ -99,16 +99,14 @@ const HeaderStackedStandard: React.FC<HeaderStackedStandardProps> = ({
 
   const hasTitleSection = titleStandard || titleStandardProps;
 
-  const resolvedTwClassName = twClassName ? `px-2 ${twClassName}` : 'px-2';
-
   return (
     <Box testID={testID}>
       {/* HeaderBase section */}
       <HeaderBase
         startButtonIconProps={resolvedStartButtonIconProps}
         endButtonIconProps={resolvedEndButtonIconProps}
-        twClassName={resolvedTwClassName}
         {...headerBaseProps}
+        twClassName={`px-2 ${twClassName}`.trim()}
       />
 
       {/* TitleStandard section */}

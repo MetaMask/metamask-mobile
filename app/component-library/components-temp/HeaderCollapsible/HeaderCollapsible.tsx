@@ -79,7 +79,7 @@ const HeaderCollapsible: React.FC<HeaderCollapsibleProps> = ({
   scrollY,
   startButtonIconProps,
   endButtonIconProps,
-  twClassName,
+  twClassName = '',
   onExpandedHeightChange,
   testID,
   isInsideSafeAreaView = false,
@@ -220,7 +220,7 @@ const HeaderCollapsible: React.FC<HeaderCollapsibleProps> = ({
             color={TextColor.TextAlternative}
             numberOfLines={1}
             {...subtitleProps}
-            twClassName={`-mt-0.5 ${subtitleProps?.twClassName ?? ''}`.trim()}
+            twClassName={`-mt-0.5 ${subtitleProps?.twClassName}`.trim()}
           >
             {subtitle}
           </Text>
@@ -246,10 +246,10 @@ const HeaderCollapsible: React.FC<HeaderCollapsibleProps> = ({
         <HeaderBase
           startButtonIconProps={resolvedStartButtonIconProps}
           endButtonIconProps={resolvedEndButtonIconProps}
+          {...headerBaseProps}
           twClassName={
             twClassName ? `${twClassName} bg-default px-2` : 'bg-default px-2'
           }
-          {...headerBaseProps}
         >
           {/* Compact title - fades in when collapsed */}
           <Animated.View style={compactTitleAnimatedStyle}>
