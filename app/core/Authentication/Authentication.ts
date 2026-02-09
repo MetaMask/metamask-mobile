@@ -50,6 +50,7 @@ import {
 } from '../../util/mnemonic';
 import Logger from '../../util/Logger';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
+import { cancelBulkLink } from '../../store/sagas/rewardsBulkLinkAccountGroups';
 import OAuthService from '../OAuthService/OAuthService';
 import {
   AccountImportStrategy,
@@ -733,6 +734,11 @@ class AuthenticationService {
           } else if (await this.checkIsSeedlessPasswordOutdated(false)) {
             // If seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
             await this.syncPasswordAndUnlockWallet(passwordToUse);
+            // try to enable biometric/passcode as default
+            authPreference = await this.componentAuthenticationType(
+              true,
+              false,
+            );
           }
 
           // Unlock keyrings.
@@ -1477,6 +1483,9 @@ class AuthenticationService {
         Engine.context.SeedlessOnboardingController.clearState();
 
         await depositResetProviderToken();
+
+        // Cancel any running bulk link saga before resetting rewards state
+        ReduxService.store.dispatch(cancelBulkLink());
 
         await Engine.controllerMessenger.call('RewardsController:resetAll');
 

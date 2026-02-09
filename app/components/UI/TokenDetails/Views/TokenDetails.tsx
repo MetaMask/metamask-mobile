@@ -1,7 +1,11 @@
 import React, { useEffect } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
-import { selectTokenDetailsV2Enabled } from '../../../../selectors/featureFlagController/tokenDetailsV2';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  selectTokenDetailsV2Enabled,
+  selectTokenDetailsV2ButtonsEnabled,
+} from '../../../../selectors/featureFlagController/tokenDetailsV2';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import Asset from '../../../Views/Asset';
 import { TokenI } from '../../Tokens/types';
@@ -17,7 +21,6 @@ import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader
 import AssetOverviewContent from '../components/AssetOverviewContent';
 import { useTokenPrice } from '../hooks/useTokenPrice';
 import { useTokenBalance } from '../hooks/useTokenBalance';
-import { useTokenBuyability } from '../hooks/useTokenBuyability';
 import { useTokenActions } from '../hooks/useTokenActions';
 import { useTokenTransactions } from '../hooks/useTokenTransactions';
 import { selectPerpsEnabledFlag } from '../../Perps';
@@ -28,17 +31,19 @@ import {
   isNetworkRampSupported,
 } from '../../Ramp/Aggregator/utils';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
-import {
-  selectDepositActiveFlag,
-  selectDepositMinimumVersionFlag,
-} from '../../../../selectors/featureFlagController/deposit';
-import { getVersion } from 'react-native-device-info';
-import compareVersions from 'compare-versions';
 import AppConstants from '../../../../core/AppConstants';
 import { getIsSwapsAssetAllowed } from '../../../Views/Asset/utils';
 import ActivityHeader from '../../../Views/Asset/ActivityHeader';
 import Transactions from '../../Transactions';
 import MultichainTransactionsView from '../../../Views/MultichainTransactionsView/MultichainTransactionsView';
+import BottomSheetFooter, {
+  ButtonsAlignment,
+} from '../../../../component-library/components/BottomSheets/BottomSheetFooter';
+import {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../../component-library/components/Buttons/Button';
+import { strings } from '../../../../../locales/i18n';
 
 interface TokenDetailsProps {
   route: {
@@ -60,6 +65,11 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       justifyContent: 'center',
     },
+    bottomSheetFooter: {
+      backgroundColor: colors.background.default,
+      paddingHorizontal: 16,
+      paddingTop: 16,
+    },
   });
 };
 
@@ -70,6 +80,11 @@ const styleSheet = (params: { theme: Theme }) => {
 const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
+
+  const isTokenDetailsV2ButtonsEnabled = useSelector(
+    selectTokenDetailsV2ButtonsEnabled,
+  );
 
   useEffect(() => {
     endTrace({ name: TraceName.AssetDetails });
@@ -128,14 +143,18 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
     ///: END:ONLY_INCLUDE_IF
   } = useTokenBalance(token);
 
-  const isTokenBuyable = useTokenBuyability(token);
-
-  const { onBuy, onSend, onReceive, goToSwaps, networkModal } = useTokenActions(
-    {
-      token,
-      networkName,
-    },
-  );
+  const {
+    onBuy,
+    onSend,
+    onReceive,
+    goToSwaps,
+    handleBuyPress,
+    handleSellPress,
+    networkModal,
+  } = useTokenActions({
+    token,
+    networkName,
+  });
 
   const {
     transactions,
@@ -160,26 +179,11 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
   const displaySwapsButton = isSwapsAssetAllowed && AppConstants.SWAPS.ACTIVE;
 
   const rampNetworks = useSelector(getRampNetworks);
-  const depositMinimumVersionFlag = useSelector(
-    selectDepositMinimumVersionFlag,
-  );
-  const depositActiveFlag = useSelector(selectDepositActiveFlag);
-
-  const isDepositEnabled = (() => {
-    if (!depositMinimumVersionFlag) return false;
-    const currentVersion = getVersion();
-    return (
-      depositActiveFlag &&
-      compareVersions.compare(currentVersion, depositMinimumVersionFlag, '>=')
-    );
-  })();
 
   const chainIdForRamp = token.chainId ?? '';
   const isRampAvailable = isNativeToken
     ? isNetworkRampNativeTokenSupported(chainIdForRamp, rampNetworks)
     : isNetworkRampSupported(chainIdForRamp, rampNetworks);
-
-  const displayBuyButton = isDepositEnabled || isRampAvailable;
 
   const renderHeader = () => (
     <>
@@ -198,9 +202,8 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
         chartNavigationButtons={chartNavigationButtons}
         isPerpsEnabled={isPerpsEnabled}
         isMerklCampaignClaimingEnabled={isMerklCampaignClaimingEnabled}
-        displayBuyButton={displayBuyButton}
+        displayBuyButton={isRampAvailable}
         displaySwapsButton={displaySwapsButton}
-        isTokenBuyable={isTokenBuyable}
         currentCurrency={currentCurrency}
         onBuy={onBuy}
         onSend={onSend}
@@ -225,7 +228,6 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
       <ActivityIndicator style={styles.loader} size="small" />
     </View>
   );
-
   return (
     <View style={styles.wrapper}>
       <TokenDetailsInlineHeader
@@ -233,7 +235,9 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
         networkName={networkName ?? ''}
         onBackPress={() => navigation.goBack()}
         onOptionsPress={
-          shouldShowMoreOptionsInNavBar ? openAssetOptions : undefined
+          shouldShowMoreOptionsInNavBar && !isTokenDetailsV2ButtonsEnabled
+            ? openAssetOptions
+            : undefined
         }
       />
       {txLoading ? (
@@ -267,6 +271,34 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
         />
       )}
       {networkModal}
+      {isTokenDetailsV2ButtonsEnabled && !txLoading && displaySwapsButton && (
+        <BottomSheetFooter
+          style={{
+            ...styles.bottomSheetFooter,
+            paddingBottom: insets.bottom + 6,
+          }}
+          buttonPropsArray={[
+            {
+              variant: ButtonVariants.Primary,
+              label: strings('asset_overview.buy_button'),
+              size: ButtonSize.Lg,
+              onPress: handleBuyPress,
+            },
+            // Only show Sell button if user has balance of this token
+            ...(balance && parseFloat(String(balance)) > 0
+              ? [
+                  {
+                    variant: ButtonVariants.Primary,
+                    label: strings('asset_overview.sell_button'),
+                    size: ButtonSize.Lg,
+                    onPress: handleSellPress,
+                  },
+                ]
+              : []),
+          ]}
+          buttonsAlignment={ButtonsAlignment.Horizontal}
+        />
+      )}
     </View>
   );
 };

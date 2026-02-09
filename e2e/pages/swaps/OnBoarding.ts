@@ -1,6 +1,6 @@
 import Matchers from '../../../tests/framework/Matchers';
 import Gestures from '../../../tests/framework/Gestures';
-import { OnBoardingSelectors } from '../../selectors/swaps/OnBoarding.selectors';
+import { OnBoardingSelectors } from '../../../tests/selectors/swaps/OnBoarding.selectors';
 
 class Onboarding {
   get startSwappingButton(): DetoxElement {

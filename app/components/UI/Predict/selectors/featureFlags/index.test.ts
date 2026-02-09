@@ -1,4 +1,4 @@
-import { selectPredictEnabledFlag } from '.';
+import { selectPredictEnabledFlag, selectPredictHotTabFlag } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import {
   mockedState,
@@ -182,6 +182,339 @@ describe('Predict Feature Flag Selectors', () => {
         const result = selectPredictEnabledFlag(stateWithUndefinedController);
 
         expect(result).toBe(true);
+      });
+    });
+  });
+
+  describe('selectPredictHotTabFlag', () => {
+    it('returns hot tab flag when present in remote feature flags', () => {
+      const stateWithHotTabFlag = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictHotTab: {
+                  enabled: true,
+                  queryParams: 'tag_id=149&order=volume24hr',
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictHotTabFlag(stateWithHotTabFlag);
+
+      expect(result).toEqual({
+        enabled: true,
+        queryParams: 'tag_id=149&order=volume24hr',
+        minimumVersion: '1.0.0',
+      });
+    });
+
+    it('returns default flag when remote flag is missing', () => {
+      const result = selectPredictHotTabFlag(mockedEmptyFlagsState);
+
+      expect(result).toEqual({
+        enabled: false,
+        queryParams:
+          'active=true&archived=false&closed=false&liquidity_min=10000&volume_min=10000&tag_id=1',
+        minimumVersion: '7.64.0',
+      });
+    });
+
+    it('returns default flag when remote flag is null', () => {
+      const stateWithNullFlag = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictHotTab: null,
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictHotTabFlag(stateWithNullFlag);
+
+      expect(result).toEqual({
+        enabled: false,
+        queryParams:
+          'active=true&archived=false&closed=false&liquidity_min=10000&volume_min=10000&tag_id=1',
+        minimumVersion: '7.64.0',
+      });
+    });
+
+    it('returns default flag when controller is undefined', () => {
+      const stateWithUndefinedController = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: undefined,
+          },
+        },
+      };
+
+      const result = selectPredictHotTabFlag(stateWithUndefinedController);
+
+      expect(result).toEqual({
+        enabled: false,
+        queryParams:
+          'active=true&archived=false&closed=false&liquidity_min=10000&volume_min=10000&tag_id=1',
+        minimumVersion: '7.64.0',
+      });
+    });
+
+    it('returns default flag when remote flag is disabled', () => {
+      const stateWithDisabledFlag = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictHotTab: {
+                  enabled: false,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictHotTabFlag(stateWithDisabledFlag);
+
+      expect(result).toEqual({
+        enabled: false,
+        queryParams:
+          'active=true&archived=false&closed=false&liquidity_min=10000&volume_min=10000&tag_id=1',
+        minimumVersion: '7.64.0',
+      });
+    });
+
+    it('returns flag with empty queryParams when not provided', () => {
+      const stateWithFlagNoQueryParams = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictHotTab: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictHotTabFlag(stateWithFlagNoQueryParams);
+
+      expect(result).toEqual({
+        enabled: true,
+        minimumVersion: '1.0.0',
+      });
+      expect(result.queryParams).toBeUndefined();
+    });
+
+    it('returns default flag when enabled is string "false" instead of boolean', () => {
+      const stateWithStringEnabled = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictHotTab: {
+                  enabled: 'false',
+                  queryParams: 'tag_id=149',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictHotTabFlag(stateWithStringEnabled);
+
+      expect(result).toEqual({
+        enabled: false,
+        queryParams:
+          'active=true&archived=false&closed=false&liquidity_min=10000&volume_min=10000&tag_id=1',
+        minimumVersion: '7.64.0',
+      });
+    });
+
+    it('returns default flag when enabled is string "true" instead of boolean', () => {
+      const stateWithStringEnabled = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictHotTab: {
+                  enabled: 'true',
+                  queryParams: 'tag_id=149',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictHotTabFlag(stateWithStringEnabled);
+
+      expect(result).toEqual({
+        enabled: false,
+        queryParams:
+          'active=true&archived=false&closed=false&liquidity_min=10000&volume_min=10000&tag_id=1',
+        minimumVersion: '7.64.0',
+      });
+    });
+
+    it('returns default flag when queryParams is not a string', () => {
+      const stateWithInvalidQueryParams = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictHotTab: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                  queryParams: 12345,
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictHotTabFlag(stateWithInvalidQueryParams);
+
+      expect(result).toEqual({
+        enabled: false,
+        queryParams:
+          'active=true&archived=false&closed=false&liquidity_min=10000&volume_min=10000&tag_id=1',
+        minimumVersion: '7.64.0',
+      });
+    });
+
+    describe('minimumVersion gating', () => {
+      it('returns flag when minimumVersion is met', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(true);
+        const stateWithMinVersion = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  predictHotTab: {
+                    enabled: true,
+                    queryParams: 'tag_id=149',
+                    minimumVersion: '1.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPredictHotTabFlag(stateWithMinVersion);
+
+        expect(result).toEqual({
+          enabled: true,
+          queryParams: 'tag_id=149',
+          minimumVersion: '1.0.0',
+        });
+      });
+
+      it('returns default flag when minimumVersion is not met', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(false);
+        const stateWithHighMinVersion = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  predictHotTab: {
+                    enabled: true,
+                    queryParams: 'tag_id=149',
+                    minimumVersion: '99.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPredictHotTabFlag(stateWithHighMinVersion);
+
+        expect(result).toEqual({
+          enabled: false,
+          queryParams:
+            'active=true&archived=false&closed=false&liquidity_min=10000&volume_min=10000&tag_id=1',
+          minimumVersion: '7.64.0',
+        });
+      });
+
+      it('returns default flag when minimumVersion is not provided', () => {
+        const stateWithoutMinVersion = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  predictHotTab: {
+                    enabled: true,
+                    queryParams: 'tag_id=149',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPredictHotTabFlag(stateWithoutMinVersion);
+
+        expect(result).toEqual({
+          enabled: false,
+          queryParams:
+            'active=true&archived=false&closed=false&liquidity_min=10000&volume_min=10000&tag_id=1',
+          minimumVersion: '7.64.0',
+        });
+        expect(mockHasMinimumRequiredVersion).not.toHaveBeenCalled();
+      });
+
+      it('returns default flag when minimumVersion is not a string', () => {
+        const stateWithInvalidMinVersion = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  predictHotTab: {
+                    enabled: true,
+                    queryParams: 'tag_id=149',
+                    minimumVersion: 123,
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPredictHotTabFlag(stateWithInvalidMinVersion);
+
+        expect(result).toEqual({
+          enabled: false,
+          queryParams:
+            'active=true&archived=false&closed=false&liquidity_min=10000&volume_min=10000&tag_id=1',
+          minimumVersion: '7.64.0',
+        });
       });
     });
   });

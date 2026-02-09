@@ -5,8 +5,8 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { TraceName, TraceOperation } from '../../../../util/trace';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
 } from '../constants/eventNames';
 import type { OrderParams, OrderResult, Position } from '../controllers/types';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
@@ -80,17 +80,17 @@ export function usePerpsOrderExecution(
           if (isPartiallyFilled) {
             // Track partially filled event
             track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION, {
-              [PerpsEventProperties.STATUS]:
-                PerpsEventValues.STATUS.PARTIALLY_FILLED,
-              [PerpsEventProperties.ASSET]: orderParams.symbol,
-              [PerpsEventProperties.DIRECTION]: orderParams.isBuy
-                ? PerpsEventValues.DIRECTION.LONG
-                : PerpsEventValues.DIRECTION.SHORT,
-              [PerpsEventProperties.LEVERAGE]: orderParams.leverage || 1,
-              [PerpsEventProperties.ORDER_SIZE]: orderSize,
-              [PerpsEventProperties.ORDER_TYPE]: orderParams.orderType,
-              [PerpsEventProperties.AMOUNT_FILLED]: filledSize,
-              [PerpsEventProperties.REMAINING_AMOUNT]: orderSize - filledSize,
+              [PERPS_EVENT_PROPERTY.STATUS]:
+                PERPS_EVENT_VALUE.STATUS.PARTIALLY_FILLED,
+              [PERPS_EVENT_PROPERTY.ASSET]: orderParams.symbol,
+              [PERPS_EVENT_PROPERTY.DIRECTION]: orderParams.isBuy
+                ? PERPS_EVENT_VALUE.DIRECTION.LONG
+                : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+              [PERPS_EVENT_PROPERTY.LEVERAGE]: orderParams.leverage || 1,
+              [PERPS_EVENT_PROPERTY.ORDER_SIZE]: orderSize,
+              [PERPS_EVENT_PROPERTY.ORDER_TYPE]: orderParams.orderType,
+              [PERPS_EVENT_PROPERTY.AMOUNT_FILLED]: filledSize,
+              [PERPS_EVENT_PROPERTY.REMAINING_AMOUNT]: orderSize - filledSize,
             });
           }
 
@@ -133,14 +133,14 @@ export function usePerpsOrderExecution(
 
           // Track order failure with specific event
           track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION, {
-            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-            [PerpsEventProperties.ASSET]: orderParams.symbol,
-            [PerpsEventProperties.DIRECTION]: orderParams.isBuy
-              ? PerpsEventValues.DIRECTION.LONG
-              : PerpsEventValues.DIRECTION.SHORT,
-            [PerpsEventProperties.ORDER_TYPE]: orderParams.orderType,
-            [PerpsEventProperties.ORDER_SIZE]: orderParams.size,
-            [PerpsEventProperties.ERROR_MESSAGE]: errorMessage,
+            [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
+            [PERPS_EVENT_PROPERTY.ASSET]: orderParams.symbol,
+            [PERPS_EVENT_PROPERTY.DIRECTION]: orderParams.isBuy
+              ? PERPS_EVENT_VALUE.DIRECTION.LONG
+              : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+            [PERPS_EVENT_PROPERTY.ORDER_TYPE]: orderParams.orderType,
+            [PERPS_EVENT_PROPERTY.ORDER_SIZE]: orderParams.size,
+            [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
           });
 
           onError?.(errorMessage);
@@ -176,14 +176,14 @@ export function usePerpsOrderExecution(
 
         // Track exception with specific event
         track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION, {
-          [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-          [PerpsEventProperties.ASSET]: orderParams.symbol,
-          [PerpsEventProperties.DIRECTION]: orderParams.isBuy
-            ? PerpsEventValues.DIRECTION.LONG
-            : PerpsEventValues.DIRECTION.SHORT,
-          [PerpsEventProperties.ORDER_TYPE]: orderParams.orderType,
-          [PerpsEventProperties.ORDER_SIZE]: orderParams.size,
-          [PerpsEventProperties.ERROR_MESSAGE]: errorMessage,
+          [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
+          [PERPS_EVENT_PROPERTY.ASSET]: orderParams.symbol,
+          [PERPS_EVENT_PROPERTY.DIRECTION]: orderParams.isBuy
+            ? PERPS_EVENT_VALUE.DIRECTION.LONG
+            : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+          [PERPS_EVENT_PROPERTY.ORDER_TYPE]: orderParams.orderType,
+          [PERPS_EVENT_PROPERTY.ORDER_SIZE]: orderParams.size,
+          [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
         });
 
         onError?.(errorMessage);

@@ -11,7 +11,8 @@
 
 ## E2E Framework Structure
 
-- **Testing Scenarios (`e2e/specs/`)** - Test files organized by feature
+- **Regression Testing Scenarios (`e2e/regression/`)** - Regression Test files organized by feature
+- **Snoke Testing Scenarios (`e2e/smoke/`)** - Smoke Test files organized by feature
 - **TypeScript Framework (`tests/framework/`)**: Modern testing framework with type safety
 - **Legacy JavaScript (`e2e/utils/`)**: Deprecated utilities being migrated
 - **Page Objects (`e2e/pages/`)**: Page Object Model implementation
@@ -30,7 +31,8 @@
 **Key E2E Directories:**
 
 - `tests/framework/` - TypeScript framework foundation (USE THIS)
-- `e2e/specs/` - Test files organized by feature
+- `tests/smoke/` - Smoke Test files organized by feature
+- `tests/regression/` - Regression Test files organized by feature
 - `e2e/pages/` - Page Object classes following POM pattern
 - `e2e/selectors/` - Element selectors (avoid direct use in tests)
 - `tests/api-mocking/` - API mocking utilities and responses

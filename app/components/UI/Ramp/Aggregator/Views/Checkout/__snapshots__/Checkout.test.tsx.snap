@@ -513,6 +513,7 @@ exports[`Checkout displays WebView when url is present and no errors 1`] = `
                             mediaPlaybackRequiresUserAction={false}
                             onHttpError={[Function]}
                             onNavigationStateChange={[Function]}
+                            onShouldStartLoadWithRequest={[Function]}
                             paymentRequestEnabled={true}
                             source={
                               {
@@ -2486,6 +2487,7 @@ exports[`Checkout displays sell WebView when url is present and no errors 1`] = 
                             mediaPlaybackRequiresUserAction={false}
                             onHttpError={[Function]}
                             onNavigationStateChange={[Function]}
+                            onShouldStartLoadWithRequest={[Function]}
                             paymentRequestEnabled={true}
                             source={
                               {
@@ -4503,6 +4505,7 @@ exports[`Checkout ignores irrelevant error on http error in WebView for callback
                             mediaPlaybackRequiresUserAction={false}
                             onHttpError={[Function]}
                             onNavigationStateChange={[Function]}
+                            onShouldStartLoadWithRequest={[Function]}
                             paymentRequestEnabled={true}
                             source={
                               {
