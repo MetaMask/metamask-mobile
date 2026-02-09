@@ -394,7 +394,6 @@ describe('handlePredictUrl', () => {
 
       expect(DevLogger.log).toHaveBeenCalledWith(
         '[handlePredictUrl] Parsed navigation parameters:',
-        { market: '23246', utmSource: undefined, tab: undefined },
         {
           market: '23246',
           utmSource: undefined,
