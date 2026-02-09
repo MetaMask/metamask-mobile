@@ -116,6 +116,8 @@ describe(`migration #${migrationVersion}`, () => {
           SnapController: {
             snaps: {
               'mock-snap-id': { sourceCode: 'sourceCode', id: 'mock-snap-id' },
+              'foo-snap-id': { id: 'foo-snap-id', sourceCode: 'sourceCode2' },
+              'bar-snap-id': { id: 'bar-snap-id', sourceCode: 'sourceCode3 ' },
             },
           },
         },
@@ -128,9 +130,24 @@ describe(`migration #${migrationVersion}`, () => {
 
     const migratedState = await migrate(oldState);
 
-    expect(FilesystemStorage.setItem).toHaveBeenCalledWith(
+    expect(FilesystemStorage.setItem).toHaveBeenNthCalledWith(
+      1,
       `${STORAGE_KEY_PREFIX}SnapController:mock-snap-id`,
       '{"sourceCode":"sourceCode"}',
+      true,
+    );
+
+    expect(FilesystemStorage.setItem).toHaveBeenNthCalledWith(
+      2,
+      `${STORAGE_KEY_PREFIX}SnapController:foo-snap-id`,
+      '{"sourceCode":"sourceCode2"}',
+      true,
+    );
+
+    expect(FilesystemStorage.setItem).toHaveBeenNthCalledWith(
+      3,
+      `${STORAGE_KEY_PREFIX}SnapController:bar-snap-id`,
+      '{"sourceCode":"sourceCode3 "}',
       true,
     );
 
@@ -140,6 +157,8 @@ describe(`migration #${migrationVersion}`, () => {
           SnapController: {
             snaps: {
               'mock-snap-id': { id: 'mock-snap-id' },
+              'foo-snap-id': { id: 'foo-snap-id' },
+              'bar-snap-id': { id: 'bar-snap-id' },
             },
           },
         },
