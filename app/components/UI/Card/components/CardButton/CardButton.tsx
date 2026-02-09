@@ -33,7 +33,7 @@ const CardButton: React.FC<CardButtonProps> = ({ onPress, touchAreaSlop }) => {
       iconProps={{ color: MMDSIconColor.IconDefault }}
       onPress={onPress}
       iconName={IconName.Card}
-      size={ButtonIconSize.Lg}
+      size={ButtonIconSize.Md}
       testID={WalletViewSelectorsIDs.CARD_BUTTON}
       hitSlop={touchAreaSlop}
     />
