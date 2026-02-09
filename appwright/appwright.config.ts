@@ -167,9 +167,10 @@ export default defineConfig({
           name: 'Medium_Phone_API_36.0', // this can be changed to your emulator name
           osVersion: '16', // this can be changed to your emulator version
         },
-        buildPath:
-          '/Users/aphex/repos/metamask/metamask-mobile-alpha/metamask-main-rc-3092.apk',
+        buildPath: process.env.APK_PATH || 'metamask-main-rc-3092.apk',
         expectTimeout: 30 * 1000,
+        // Note: fullReset is NOT set (defaults to false) so existing wallet is preserved
+        // The emulator must have MetaMask installed with a wallet already set up
       },
     },
     {

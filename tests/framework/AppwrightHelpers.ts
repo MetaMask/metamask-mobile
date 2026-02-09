@@ -162,9 +162,17 @@ export default class AppwrightHelpers {
       if (urlMatch) {
         return urlMatch;
       }
+
+      // Priority 2: If dappUrl provided, allow Chrome webview (external browser)
+      const chromeWebview = webviews.find(
+        (ctx) => /chrome/i.test(ctx.id) && !/devtools/i.test(ctx.id),
+      );
+      if (chromeWebview) {
+        return chromeWebview;
+      }
     }
 
-    // Priority 2: Filter out devtools/chrome, prefer app package
+    // Priority 3: Filter out devtools/chrome, prefer app package
     const filtered = webviews.filter((ctx) => {
       const shouldAvoid =
         /chrome|devtools/i.test(ctx.id) ||
