@@ -100,7 +100,27 @@ describe('usePredictSearch', () => {
   });
 
   describe('focus effect', () => {
-    it('opens search overlay when screen gains focus with query', () => {
+    it('does not overwrite user-modified search on refocus with same query param', () => {
+      mockRouteParams.query = 'bitcoin';
+
+      const { result } = renderHook(() => usePredictSearch());
+
+      expect(result.current.searchQuery).toBe('bitcoin');
+
+      act(() => {
+        result.current.setSearchQuery('bitcoin ETF');
+      });
+      expect(result.current.searchQuery).toBe('bitcoin ETF');
+
+      act(() => {
+        simulateFocus();
+      });
+
+      expect(result.current.searchQuery).toBe('bitcoin ETF');
+      expect(result.current.isSearchVisible).toBe(true);
+    });
+
+    it('does not reopen search on refocus when user closed it', () => {
       mockRouteParams.query = 'bitcoin';
 
       const { result } = renderHook(() => usePredictSearch());
@@ -114,8 +134,7 @@ describe('usePredictSearch', () => {
         simulateFocus();
       });
 
-      expect(result.current.isSearchVisible).toBe(true);
-      expect(result.current.searchQuery).toBe('bitcoin');
+      expect(result.current.isSearchVisible).toBe(false);
     });
 
     it('does not open search when no query on focus', () => {
@@ -132,7 +151,7 @@ describe('usePredictSearch', () => {
       expect(result.current.isSearchVisible).toBe(false);
     });
 
-    it('clears search state when navigating without query after previous query navigation', () => {
+    it('clears search state when navigating with query=undefined after previous query', () => {
       mockRouteParams.query = 'bitcoin';
 
       const { result, rerender } = renderHook(() => usePredictSearch());
@@ -149,6 +168,29 @@ describe('usePredictSearch', () => {
 
       expect(result.current.isSearchVisible).toBe(false);
       expect(result.current.searchQuery).toBe('');
+    });
+
+    it('applies new query when deeplink query param changes', () => {
+      mockRouteParams.query = 'bitcoin';
+
+      const { result, rerender } = renderHook(() => usePredictSearch());
+
+      expect(result.current.searchQuery).toBe('bitcoin');
+
+      act(() => {
+        result.current.setSearchQuery('bitcoin ETF');
+      });
+      expect(result.current.searchQuery).toBe('bitcoin ETF');
+
+      mockRouteParams.query = 'ethereum';
+      rerender({});
+
+      act(() => {
+        simulateFocus();
+      });
+
+      expect(result.current.searchQuery).toBe('ethereum');
+      expect(result.current.isSearchVisible).toBe(true);
     });
   });
 });

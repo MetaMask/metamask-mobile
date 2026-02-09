@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
 import type { PredictNavigationParamList } from '../types/navigation';
 
@@ -16,6 +16,7 @@ export const usePredictSearch = (): UsePredictSearchResult => {
     useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketList'>>();
 
   const requestedQuery = route.params?.query;
+  const lastProcessedQueryRef = useRef<string | undefined>(requestedQuery);
 
   const [isSearchVisible, setIsSearchVisible] = useState(
     Boolean(requestedQuery),
@@ -23,13 +24,19 @@ export const usePredictSearch = (): UsePredictSearchResult => {
   const [searchQuery, setSearchQuery] = useState(requestedQuery ?? '');
 
   const onQueryChange = useCallback(() => {
+    const isNewDeeplinkNavigation =
+      requestedQuery !== lastProcessedQueryRef.current;
+
+    if (!isNewDeeplinkNavigation) {
+      return;
+    }
+
+    lastProcessedQueryRef.current = requestedQuery;
+
     if (requestedQuery) {
       setIsSearchVisible(true);
       setSearchQuery(requestedQuery);
     } else {
-      // Clear search state when navigating without a query parameter
-      // This handles the case where user opens a deeplink with query,
-      // then later opens a deeplink with just tab (no query)
       setSearchQuery('');
       setIsSearchVisible(false);
     }
