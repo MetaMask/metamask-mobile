@@ -21,8 +21,6 @@ const styleSheet = (params: { theme: Theme }) => {
     contentContainer: {
       marginHorizontal: 16,
       borderRadius: 16,
-      paddingTop: 8,
-      paddingBottom: 8,
       backgroundColor: theme.colors.background.section,
     },
     listContent: {
