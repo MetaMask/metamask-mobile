@@ -220,7 +220,7 @@ const HeaderCollapsible: React.FC<HeaderCollapsibleProps> = ({
             color={TextColor.TextAlternative}
             numberOfLines={1}
             {...subtitleProps}
-            twClassName={`-mt-0.5 ${subtitleProps?.twClassName}`.trim()}
+            twClassName={`-mt-0.5 ${subtitleProps?.twClassName || ''}`.trim()}
           >
             {subtitle}
           </Text>
