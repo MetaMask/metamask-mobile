@@ -66,6 +66,7 @@ import type {
   PerpsAssetCtx,
   FrontendOrder,
   SpotMetaResponse,
+  ClearinghouseStateResponse,
 } from '../../types/hyperliquid-types';
 import {
   createErrorResult,
@@ -132,6 +133,7 @@ import type {
   ToggleTestnetResult,
   TransferBetweenDexsParams,
   TransferBetweenDexsResult,
+  UpdateMarginParams,
   UpdatePositionTPSLParams,
   UserHistoryItem,
   WithdrawParams,
@@ -4249,6 +4251,7 @@ export class HyperLiquidProvider implements PerpsProvider {
    * @param params - Margin adjustment parameters
    * @param params.symbol - Asset symbol (e.g., 'BTC', 'ETH')
    * @param params.amount - Amount to adjust as string (positive = add, negative = remove)
+   * @param params.providerId - Optional provider identifier (ignored, always uses HyperLiquid)
    * @returns Promise resolving to margin adjustment result
    *
    * Note: HyperLiquid uses micro-units (multiply by 1e6) for the ntli parameter.
@@ -4257,10 +4260,7 @@ export class HyperLiquidProvider implements PerpsProvider {
    * - isBuy: Position direction (true for long, false for short)
    * - ntli: Amount in micro-units (amount * 1e6)
    */
-  async updateMargin(params: {
-    symbol: string;
-    amount: string;
-  }): Promise<MarginResult> {
+  async updateMargin(params: UpdateMarginParams): Promise<MarginResult> {
     try {
       this.deps.debugLogger.log('Updating position margin:', params);
 
@@ -4332,6 +4332,19 @@ export class HyperLiquidProvider implements PerpsProvider {
   }
 
   /**
+   * Get clearinghouse state for a user in readOnly mode.
+   * Creates a standalone InfoClient without requiring full initialization.
+   */
+  private async getReadOnlyClearinghouseState(
+    userAddress: string,
+  ): Promise<ClearinghouseStateResponse> {
+    const standaloneInfoClient = createStandaloneInfoClient({
+      isTestnet: this.clientService.isTestnetMode(),
+    });
+    return standaloneInfoClient.clearinghouseState({ user: userAddress });
+  }
+
+  /**
    * Get current positions with TP/SL prices
    *
    * Note on TP/SL orders:
@@ -4344,6 +4357,33 @@ export class HyperLiquidProvider implements PerpsProvider {
    */
   async getPositions(params?: GetPositionsParams): Promise<Position[]> {
     try {
+      // Path 0: Read-only mode for lightweight position queries
+      // Creates a standalone InfoClient without requiring full initialization
+      // No wallet, WebSocket, or account setup needed - just HTTP API call
+      // Use for discovery use cases like showing positions on token details page
+      if (params?.readOnly && params.userAddress) {
+        this.deps.debugLogger.log(
+          'HyperLiquidProvider: Getting positions in readOnly mode (standalone client)',
+          { userAddress: params.userAddress },
+        );
+
+        const state = await this.getReadOnlyClearinghouseState(
+          params.userAddress,
+        );
+
+        // Transform positions - skip TP/SL lookup (would require additional API call)
+        const positions = state.assetPositions
+          .filter((assetPos) => assetPos.position.szi !== '0')
+          .map((assetPos) => adaptPositionFromSDK(assetPos));
+
+        this.deps.debugLogger.log(
+          'HyperLiquidProvider: readOnly positions fetched',
+          { count: positions.length },
+        );
+
+        return positions;
+      }
+
       // Try WebSocket cache first (unless explicitly bypassed)
       if (
         !params?.skipCache &&
@@ -4960,6 +5000,31 @@ export class HyperLiquidProvider implements PerpsProvider {
    */
   async getAccountState(params?: GetAccountStateParams): Promise<AccountState> {
     try {
+      // Path 0: Read-only mode for lightweight account state queries
+      // Creates a standalone InfoClient without requiring full initialization
+      // No wallet, WebSocket, or account setup needed - just HTTP API call
+      // Use for discovery use cases like checking if user has perps funds
+      if (params?.readOnly && params.userAddress) {
+        this.deps.debugLogger.log(
+          'HyperLiquidProvider: Getting account state in readOnly mode (standalone client)',
+          { userAddress: params.userAddress },
+        );
+
+        const perpsState = await this.getReadOnlyClearinghouseState(
+          params.userAddress,
+        );
+
+        // Transform to AccountState - simpler version without spot balance aggregation
+        const accountState = adaptAccountStateFromSDK(perpsState);
+
+        this.deps.debugLogger.log(
+          'HyperLiquidProvider: readOnly account state fetched',
+          { totalBalance: accountState.totalBalance },
+        );
+
+        return accountState;
+      }
+
       this.deps.debugLogger.log('Getting account state via HyperLiquid SDK');
 
       // Read-only operation: only need client initialization
