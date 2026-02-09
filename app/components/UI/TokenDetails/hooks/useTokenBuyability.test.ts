@@ -220,7 +220,7 @@ describe('useTokenBuyability', () => {
       expect(result.current.isLoading).toBe(true);
     });
 
-    it('falls back to legacy tokens when V2 controller tokens are empty', () => {
+    it('returns isBuyable: false when V2 controller tokens are empty (no fallback)', () => {
       mockUseRampTokens.mockReturnValue({
         allTokens: [
           {
@@ -246,11 +246,11 @@ describe('useTokenBuyability', () => {
 
       const { result } = renderHook(() => useTokenBuyability(getMockToken()));
 
-      // V2 controller tokens empty: falls back to legacy tokens
-      expect(result.current.isBuyable).toBe(true);
+      // V2 enabled: uses only V2 controller tokens, no legacy fallback
+      expect(result.current.isBuyable).toBe(false);
     });
 
-    it('prefers V2 controller tokens over legacy when both available', () => {
+    it('ignores legacy tokens when V2 is enabled', () => {
       // Legacy says buyable, but V2 controller says NOT buyable
       mockUseRampTokens.mockReturnValue({
         allTokens: [
@@ -283,7 +283,7 @@ describe('useTokenBuyability', () => {
 
       const { result } = renderHook(() => useTokenBuyability(getMockToken()));
 
-      // V2 controller has tokens but NOT this one: not buyable
+      // V2 controller has tokens but NOT this one: not buyable (ignores legacy)
       expect(result.current.isBuyable).toBe(false);
     });
   });
