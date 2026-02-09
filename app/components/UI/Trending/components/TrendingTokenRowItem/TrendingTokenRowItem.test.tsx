@@ -171,11 +171,16 @@ jest.mock('../../../../../util/networks/customNetworks', () => {
     },
   ];
 
+  const { NETWORK_CHAIN_ID } = jest.requireActual(
+    '../../../../../util/networks/customNetworks',
+  );
+
   return {
     CustomNetworkImgMapping: mockCustomNetworkImgMapping,
     PopularList: mockPopularList,
     UnpopularNetworkList: mockUnpopularNetworkList,
     getNonEvmNetworkImageSourceByChainId: jest.fn(),
+    NETWORK_CHAIN_ID,
   };
 });
 
