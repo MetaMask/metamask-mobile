@@ -82,6 +82,11 @@ export interface MusdFixtureOptions {
   musdBalance?: number;
 }
 
+export interface FixtureBuilderOptions {
+  onboarding?: boolean;
+  migrateFrom?: number;
+}
+
 /**
  * The migration version that the default E2E fixture state represents.
  * Migrations from `E2E_FIXTURE_FROM_MIGRATION_VERSION + 1` through the current
@@ -109,14 +114,16 @@ class FixtureBuilder {
    * @param {Object} options - Options for the fixture builder.
    * @param {boolean} options.onboarding - Flag indicating if onboarding fixture should be used.
    */
-  constructor({ onboarding = false } = {}) {
-    if (onboarding) {
+  constructor(options: FixtureBuilderOptions) {
+    if (options.onboarding) {
       this.withOnboardingFixture();
     } else {
       this.withDefaultFixture();
       // Always run migrations on the fixture state during E2E app startup.
       // Bump E2E_FIXTURE_FROM_MIGRATION_VERSION to control which migrations run.
-      this.withMigrateFrom(E2E_FIXTURE_FROM_MIGRATION_VERSION);
+      this.withMigrateFrom(
+        options.migrateFrom ?? E2E_FIXTURE_FROM_MIGRATION_VERSION,
+      );
     }
   }
 
