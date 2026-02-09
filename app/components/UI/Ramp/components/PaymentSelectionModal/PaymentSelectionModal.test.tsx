@@ -124,26 +124,30 @@ const mockProviders = [
 const mockSetSelectedProvider = jest.fn();
 const mockSetSelectedPaymentMethod = jest.fn();
 
-jest.mock('../../hooks/useRampsController', () => ({
-  useRampsController: () => ({
-    selectedProvider: mockSelectedProvider,
-    providers: mockProviders,
-    paymentMethods: mockPaymentMethods,
-    setSelectedProvider: mockSetSelectedProvider,
-    setSelectedPaymentMethod: mockSetSelectedPaymentMethod,
-    getQuotes: jest.fn().mockResolvedValue({
-      success: [],
-      error: [],
-      sorted: [],
-      customActions: [],
-    }),
-    userRegion: { regionCode: 'us', country: { currency: 'USD' } },
-    selectedToken: {
-      assetId: 'eip155:1/slip44:60',
-      chainId: 'eip155:1',
-      symbol: 'ETH',
-    },
+const mockUseRampsController = jest.fn(() => ({
+  selectedProvider: mockSelectedProvider,
+  providers: mockProviders,
+  paymentMethods: mockPaymentMethods,
+  paymentMethodsLoading: false,
+  selectedPaymentMethod: mockPaymentMethods[0],
+  setSelectedProvider: mockSetSelectedProvider,
+  setSelectedPaymentMethod: mockSetSelectedPaymentMethod,
+  getQuotes: jest.fn().mockResolvedValue({
+    success: [],
+    error: [],
+    sorted: [],
+    customActions: [],
   }),
+  userRegion: { regionCode: 'us', country: { currency: 'USD' } },
+  selectedToken: {
+    assetId: 'eip155:1/slip44:60',
+    chainId: 'eip155:1',
+    symbol: 'ETH',
+  },
+}));
+
+jest.mock('../../hooks/useRampsController', () => ({
+  useRampsController: () => mockUseRampsController(),
 }));
 
 jest.mock('../../hooks/useRampAccountAddress', () => ({
@@ -244,5 +248,22 @@ describe('PaymentSelectionModal', () => {
     await waitFor(() => {
       expect(getByText('fiat_on_ramp.pay_with')).toBeOnTheScreen();
     });
+  });
+
+  it('matches snapshot when payment methods are loading', () => {
+    mockUseRampsController.mockReturnValueOnce({
+      selectedProvider: null,
+      providers: mockProviders,
+      paymentMethods: [],
+      paymentMethodsLoading: true,
+      selectedPaymentMethod: null,
+      setSelectedProvider: mockSetSelectedProvider,
+      setSelectedPaymentMethod: mockSetSelectedPaymentMethod,
+      getQuotes: jest.fn(),
+      userRegion: null,
+      selectedToken: null,
+    });
+    const { toJSON } = renderWithProvider(PaymentSelectionModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

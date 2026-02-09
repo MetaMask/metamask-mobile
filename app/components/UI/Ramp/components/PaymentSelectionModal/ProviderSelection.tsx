@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, ScrollView } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
 import type { CaipChainId } from '@metamask/utils';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
@@ -26,20 +26,20 @@ const styles = StyleSheet.create({
   skeleton: {
     borderRadius: 4,
   },
+  scrollView: {
+    flex: 1,
+    minHeight: 0,
+  },
 });
 
 interface ProviderSelectionProps {
   onBack: () => void;
-  providers: Provider[];
-  selectedProvider: Provider | null;
   onProviderSelect: (provider: Provider) => void;
   amount: number;
 }
 
 const ProviderSelection: React.FC<ProviderSelectionProps> = ({
   onBack,
-  providers,
-  selectedProvider,
   onProviderSelect,
   amount,
 }) => {
@@ -50,6 +50,8 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
     selectedPaymentMethod,
     getQuotes,
     setSelectedQuote,
+    selectedProvider,
+    providers,
   } = useRampsController();
 
   const walletAddress = useRampAccountAddress(
@@ -143,74 +145,78 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
 
   if (quotesLoading) {
     return (
-      <Box twClassName="flex-1">
+      <Box twClassName="flex-1 min-h-0">
         <HeaderCompactStandard
           title={strings('fiat_on_ramp.providers')}
           onBack={onBack}
         />
-        {Array.from({ length: SKELETON_ROW_COUNT }).map((_, index) => (
-          <ListItemSelect
-            key={`skeleton-${index}`}
-            isSelected={false}
-            onPress={undefined}
-            accessibilityRole="button"
-            accessible
-          >
-            <ListItemColumn widthType={WidthType.Fill}>
-              <Skeleton
-                width={SKELETON_NAME_WIDTH}
-                height={SKELETON_NAME_HEIGHT}
-                style={styles.skeleton}
-              />
-            </ListItemColumn>
-            <ListItemColumn widthType={WidthType.Auto}>
-              <QuoteDisplay cryptoAmount="" fiatAmount={null} isLoading />
-            </ListItemColumn>
-          </ListItemSelect>
-        ))}
+        <ScrollView style={styles.scrollView}>
+          {Array.from({ length: SKELETON_ROW_COUNT }).map((_, index) => (
+            <ListItemSelect
+              key={`skeleton-${index}`}
+              isSelected={false}
+              onPress={undefined}
+              accessibilityRole="button"
+              accessible
+            >
+              <ListItemColumn widthType={WidthType.Fill}>
+                <Skeleton
+                  width={SKELETON_NAME_WIDTH}
+                  height={SKELETON_NAME_HEIGHT}
+                  style={styles.skeleton}
+                />
+              </ListItemColumn>
+              <ListItemColumn widthType={WidthType.Auto}>
+                <QuoteDisplay cryptoAmount="" fiatAmount={null} isLoading />
+              </ListItemColumn>
+            </ListItemSelect>
+          ))}
+        </ScrollView>
       </Box>
     );
   }
 
   return (
-    <Box twClassName="flex-1">
+    <Box twClassName="flex-1 min-h-0">
       <HeaderCompactStandard
         title={strings('fiat_on_ramp.providers')}
         onBack={onBack}
       />
-      {quotes.map((quote) => {
-        const provider = providers.find((p) => p.id === quote.provider);
-        const amountOut = quote.quote?.amountOut;
-        const cryptoAmount =
-          amountOut != null && symbol
-            ? formatTokenAmount(amountOut, symbol)
-            : '';
-        const fiatAmount =
-          quote.quote?.amountOutInFiat != null
-            ? formatCurrency(quote.quote.amountOutInFiat, currency)
-            : null;
-        const isSelected = selectedProvider?.id === quote.provider;
+      <ScrollView style={styles.scrollView}>
+        {quotes.map((quote) => {
+          const provider = providers.find((p) => p.id === quote.provider);
+          const amountOut = quote.quote?.amountOut;
+          const cryptoAmount =
+            amountOut != null && symbol
+              ? formatTokenAmount(amountOut, symbol)
+              : '';
+          const fiatAmount =
+            quote.quote?.amountOutInFiat != null
+              ? formatCurrency(quote.quote.amountOutInFiat, currency)
+              : null;
+          const isSelected = selectedProvider?.id === quote.provider;
 
-        return (
-          <ListItemSelect
-            key={quote.provider}
-            isSelected={isSelected}
-            onPress={() => handleQuotePress(quote)}
-            accessibilityRole="button"
-            accessible
-          >
-            <ListItemColumn widthType={WidthType.Fill}>
-              <Text variant={TextVariant.BodyLGMedium}>{provider?.name}</Text>
-            </ListItemColumn>
-            <ListItemColumn widthType={WidthType.Auto}>
-              <QuoteDisplay
-                cryptoAmount={cryptoAmount}
-                fiatAmount={fiatAmount}
-              />
-            </ListItemColumn>
-          </ListItemSelect>
-        );
-      })}
+          return (
+            <ListItemSelect
+              key={quote.provider}
+              isSelected={isSelected}
+              onPress={() => handleQuotePress(quote)}
+              accessibilityRole="button"
+              accessible
+            >
+              <ListItemColumn widthType={WidthType.Fill}>
+                <Text variant={TextVariant.BodyLGMedium}>{provider?.name}</Text>
+              </ListItemColumn>
+              <ListItemColumn widthType={WidthType.Auto}>
+                <QuoteDisplay
+                  cryptoAmount={cryptoAmount}
+                  fiatAmount={fiatAmount}
+                />
+              </ListItemColumn>
+            </ListItemSelect>
+          );
+        })}
+      </ScrollView>
     </Box>
   );
 };

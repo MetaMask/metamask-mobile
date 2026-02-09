@@ -262,6 +262,7 @@ function TokenSelection() {
               <Text variant={TextVariant.BodyMD}>
                 {strings('deposit.token_modal.error_loading_tokens')}
               </Text>
+              <Text variant={TextVariant.BodyMD}>{error.toString()}</Text>
             </Box>
           </Box>
         </ScreenLayout.Body>

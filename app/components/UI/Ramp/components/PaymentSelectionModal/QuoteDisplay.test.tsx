@@ -16,6 +16,9 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
+    IconName: { Warning: 'Warning' },
+    IconSize: { Sm: '16' },
+    IconColor: { Warning: 'Warning' },
     default: ({ testID }: { testID?: string }) => (
       <View testID={testID ?? 'icon'} />
     ),
@@ -50,11 +53,7 @@ describe('QuoteDisplay', () => {
 
   it('matches snapshot with warning icon', () => {
     const { toJSON } = renderWithTheme(
-      <QuoteDisplay
-        cryptoAmount=""
-        fiatAmount={null}
-        showWarningIcon
-      />,
+      <QuoteDisplay cryptoAmount="" fiatAmount={null} showWarningIcon />,
     );
     expect(toJSON()).toMatchSnapshot();
   });

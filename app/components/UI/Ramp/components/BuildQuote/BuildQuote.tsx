@@ -124,8 +124,6 @@ function BuildQuote() {
       return;
     }
 
-
-    console.log('startQuotePolling', walletAddress, debouncedPollingAmount, selectedPaymentMethod);
     startQuotePolling({
       walletAddress,
       amount: debouncedPollingAmount,

@@ -132,12 +132,18 @@ const mockOnBack = jest.fn();
 function renderWithProvider(
   providers: Provider[] = mockProviders,
   selectedProvider: Provider | null = mockProviders[0],
+  controllerOverrides?: Partial<UseRampsControllerResult>,
 ) {
+  jest.mocked(useRampsController).mockReturnValue({
+    ...defaultMockController,
+    ...controllerOverrides,
+    providers,
+    selectedProvider,
+    getQuotes: mockGetQuotes,
+  });
   return renderScreen(
     () => (
       <ProviderSelection
-        providers={providers}
-        selectedProvider={selectedProvider}
         onProviderSelect={jest.fn()}
         onBack={mockOnBack}
         amount={100}
@@ -179,18 +185,16 @@ describe('ProviderSelection', () => {
 
   it('matches snapshot when quotes are loading', () => {
     mockGetQuotes.mockImplementation(() => new Promise<void>(() => undefined));
-    jest.mocked(useRampsController).mockReturnValue({
-      ...defaultMockController,
+    jest
+      .mocked(useRampAccountAddress)
+      .mockReturnValue('0x1234567890abcdef1234567890abcdef12345678');
+    const { toJSON } = renderWithProvider(mockProviders, mockProviders[0], {
       userRegion: mockUserRegion,
       selectedToken: mockSelectedToken,
       paymentMethods: [mockPaymentMethod],
       selectedPaymentMethod: mockPaymentMethod,
       getQuotes: mockGetQuotes,
     });
-    jest
-      .mocked(useRampAccountAddress)
-      .mockReturnValue('0x1234567890abcdef1234567890abcdef12345678');
-    const { toJSON } = renderWithProvider();
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -209,14 +213,6 @@ describe('ProviderSelection', () => {
       error: [],
       customActions: [],
     });
-    jest.mocked(useRampsController).mockReturnValue({
-      ...defaultMockController,
-      userRegion: mockUserRegion,
-      selectedToken: mockSelectedToken,
-      paymentMethods: [mockPaymentMethod],
-      selectedPaymentMethod: mockPaymentMethod,
-      getQuotes: mockGetQuotes,
-    });
     jest
       .mocked(useRampAccountAddress)
       .mockReturnValue('0x1234567890abcdef1234567890abcdef12345678');
@@ -224,6 +220,13 @@ describe('ProviderSelection', () => {
     const { getByText, queryByText } = renderWithProvider(
       [transakProvider],
       null,
+      {
+        userRegion: mockUserRegion,
+        selectedToken: mockSelectedToken,
+        paymentMethods: [mockPaymentMethod],
+        selectedPaymentMethod: mockPaymentMethod,
+        getQuotes: mockGetQuotes,
+      },
     );
 
     await waitFor(() => {

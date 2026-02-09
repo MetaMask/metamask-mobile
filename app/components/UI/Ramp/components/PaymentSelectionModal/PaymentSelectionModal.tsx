@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type { CaipChainId } from '@metamask/utils';
-import { useWindowDimensions, View } from 'react-native';
+import { useWindowDimensions, View, ScrollView } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Animated, {
   useAnimatedStyle,
@@ -30,6 +30,7 @@ import {
   useParams,
 } from '../../../../../util/navigation/navUtils';
 import PaymentMethodListItem from './PaymentMethodListItem';
+import PaymentMethodListSkeleton from './PaymentMethodListSkeleton';
 import ProviderSelection from './ProviderSelection';
 import type {
   PaymentMethod,
@@ -68,8 +69,8 @@ function PaymentSelectionModal() {
   const {
     selectedProvider,
     setSelectedProvider,
-    providers,
     paymentMethods,
+    paymentMethodsLoading,
     selectedPaymentMethod,
     setSelectedPaymentMethod,
     getQuotes,
@@ -92,11 +93,6 @@ function PaymentSelectionModal() {
   const [erroredPaymentMethodIds, setErroredPaymentMethodIds] = useState<
     Set<string>
   >(new Set());
-
-
-  console.log('paymentMethodQuotes', paymentMethodQuotes);
-  console.log('paymentMethodQuotesLoading', paymentMethodQuotesLoading);
-  console.log('erroredPaymentMethodIds', erroredPaymentMethodIds);
 
   const translateX = useSharedValue(0);
 
@@ -130,7 +126,6 @@ function PaymentSelectionModal() {
       provider: selectedProvider.id,
     })
       .then((response) => {
-        console.log('getQuotes response', response);
         if (cancelled) return;
         const byPaymentMethod: Record<string, Quote> = {};
         for (const quote of response.success) {
@@ -238,16 +233,25 @@ function PaymentSelectionModal() {
     ],
   );
 
-  const renderListContent = () => (
-    <FlatList
-      style={styles.list}
-      data={paymentMethods}
-      renderItem={renderPaymentMethod}
-      keyExtractor={(item) => item.id}
-      keyboardDismissMode="none"
-      keyboardShouldPersistTaps="always"
-    />
-  );
+  const renderListContent = () => {
+    if (paymentMethodsLoading) {
+      return (
+        <ScrollView style={styles.list}>
+          <PaymentMethodListSkeleton />
+        </ScrollView>
+      );
+    }
+    return (
+      <FlatList
+        style={styles.list}
+        data={paymentMethods}
+        renderItem={renderPaymentMethod}
+        keyExtractor={(item) => item.id}
+        keyboardDismissMode="none"
+        keyboardShouldPersistTaps="always"
+      />
+    );
+  };
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
@@ -292,8 +296,6 @@ function PaymentSelectionModal() {
           </View>
           <View style={styles.panel}>
             <ProviderSelection
-              providers={providers}
-              selectedProvider={selectedProvider}
               onProviderSelect={handleProviderSelect}
               onBack={handleProviderBack}
               amount={routeAmount ?? DEFAULT_QUOTE_AMOUNT}

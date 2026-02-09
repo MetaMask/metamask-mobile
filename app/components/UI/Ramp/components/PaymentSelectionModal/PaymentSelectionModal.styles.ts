@@ -12,9 +12,10 @@ const styleSheet = (params: { vars: PaymentSelectionModalStyleSheetVars }) => {
   return StyleSheet.create({
     list: {
       flex: 1,
+      minHeight: 0,
     },
     containerOuter: {
-      height: screenHeight * 0.6,
+      height: screenHeight * 0.4,
       overflow: 'hidden',
     },
     containerInner: {
@@ -28,6 +29,7 @@ const styleSheet = (params: { vars: PaymentSelectionModalStyleSheetVars }) => {
     },
     paymentPanelContent: {
       flex: 1,
+      minHeight: 0,
     },
     footer: {
       paddingHorizontal: 16,

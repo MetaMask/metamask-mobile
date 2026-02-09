@@ -31,6 +31,16 @@ const styleSheet = (params: { theme: Theme }) => {
       textAlign: 'center',
       color: theme.colors.text.alternative,
     },
+    quoteDebug: {
+      marginVertical: 16,
+      padding: 12,
+      backgroundColor: theme.colors.background.alternative,
+      borderRadius: 8,
+      gap: 4,
+    },
+    quoteDebugLine: {
+      color: theme.colors.text.default,
+    },
   });
 };
 
