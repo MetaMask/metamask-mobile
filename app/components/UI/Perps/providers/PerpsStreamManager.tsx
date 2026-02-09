@@ -1297,14 +1297,34 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
           );
           return;
         }
+
+        // Snapshot provider ID BEFORE the async call to avoid race conditions.
+        // If the user switches providers while getMarketDataWithPrices() is
+        // in-flight, we must not tag the returned data with the new provider's ID.
+        const preFetchProviderId =
+          controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider;
+
         const data = await provider.getMarketDataWithPrices();
         const fetchTime = Date.now() - fetchStartTime;
+
+        // If provider changed during fetch, discard stale data
+        const currentProviderId =
+          controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider;
+        if (preFetchProviderId !== currentProviderId) {
+          DevLogger.log(
+            'PerpsStreamManager: Provider changed during fetch, discarding data',
+            {
+              fetchedFor: preFetchProviderId,
+              currentProvider: currentProviderId,
+            },
+          );
+          return;
+        }
 
         // Update cache and track which provider this data came from
         this.cache.set('markets', data);
         this.lastFetchTime = Date.now();
-        this.cachedProviderId =
-          controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider;
+        this.cachedProviderId = preFetchProviderId;
 
         // Notify all subscribers
         this.notifySubscribers(data);
