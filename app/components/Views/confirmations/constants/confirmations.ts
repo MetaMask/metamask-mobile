@@ -1,5 +1,6 @@
 import { ApprovalType } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
+import { MusdConversionVariant } from '../../../UI/Earn/hooks/useMusdConversion';
 
 export const MMM_ORIGIN = 'metamask';
 export const MM_MOBILE_ORIGIN = 'Metamask Mobile';

@@ -4,7 +4,10 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { FULL_SCREEN_CONFIRMATIONS } from '../../constants/confirmations';
+import {
+  CONFIRMATION_PRESENTATION_BY_VARIANT,
+  FULL_SCREEN_CONFIRMATIONS,
+} from '../../constants/confirmations';
 import { useIsInternalConfirmation } from '../transactions/useIsInternalConfirmation';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import useApprovalRequest from '../useApprovalRequest';
@@ -16,32 +19,39 @@ const getIsFullScreenConfirmation = (
   approvalRequest: ApprovalRequest<TransactionMeta> | undefined,
   transactionMetadata: TransactionMeta | undefined,
   isWalletInitiated: boolean,
-  conversionIntent: MusdConversionIntent,
+  variant: string,
 ): boolean => {
   if (!isWalletInitiated) {
     return false;
-  }
-
-  // Max mode mUSD conversion should render as bottom sheet
-  if (
-    conversionIntent === MusdConversionIntent.Max &&
-    transactionMetadata?.type === TransactionType.musdConversion
-  ) {
-    return false;
-  }
-
-  if (
-    approvalRequest?.type === ApprovalType.Transaction &&
-    transactionMetadata
-  ) {
-    return hasTransactionType(transactionMetadata, FULL_SCREEN_CONFIRMATIONS);
   }
 
   if (approvalRequest?.type === ApprovalType.TransactionBatch) {
     return true;
   }
 
-  return false;
+  if (
+    approvalRequest?.type !== ApprovalType.Transaction ||
+    !transactionMetadata
+  ) {
+    return false;
+  }
+
+  const transactionType = transactionMetadata.type as TransactionType;
+
+  const presentationOverride = getPresentationOverride({
+    transactionType,
+    variant,
+  });
+
+  if (presentationOverride === 'bottomSheet') {
+    return false;
+  }
+
+  if (presentationOverride === 'fullScreen') {
+    return true;
+  }
+
+  return hasTransactionType(transactionMetadata, FULL_SCREEN_CONFIRMATIONS);
 };
 
 export const useFullScreenConfirmation = () => {

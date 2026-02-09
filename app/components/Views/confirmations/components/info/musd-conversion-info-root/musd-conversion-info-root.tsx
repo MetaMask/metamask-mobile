@@ -1,23 +1,13 @@
 import React from 'react';
 import { MusdConversionInfo } from '../musd-conversion-info';
 import { MusdMaxConversionInfo } from '../musd-max-conversion-info';
-import { useParams } from '../../../../../../util/navigation/navUtils';
-import { AssetType } from '../../../types/token';
-import { MusdConversionIntent } from '../../../../../UI/Earn/hooks/useMusdConversion';
-
-export interface MusdConversionInfoRootRouteParams {
-  conversionIntent: 'max' | 'custom';
-  token: AssetType;
-}
+import { useConfirmationVariant } from '../../../hooks/useConfirmationVariant';
+import { MusdConversionVariant } from '../../../../../UI/Earn/hooks/useMusdConversion';
 
 export const MusdConversionInfoRoot = () => {
-  const { conversionIntent } = useParams<MusdConversionInfoRootRouteParams>();
+  const variant = useConfirmationVariant();
 
-  if (!conversionIntent) {
-    throw new Error('Conversion intent is required in MusdConversionInfoRoot');
-  }
-
-  return conversionIntent === MusdConversionIntent.Max ? (
+  return variant === MusdConversionVariant.QUICK_CONVERT ? (
     <MusdMaxConversionInfo />
   ) : (
     <MusdConversionInfo />
