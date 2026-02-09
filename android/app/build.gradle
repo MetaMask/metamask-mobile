@@ -6,6 +6,22 @@ apply plugin: 'com.google.gms.google-services'
 def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
 
 /**
+ * Escape a string value for safe use in Java/Kotlin BuildConfig
+ * Handles quotes, backslashes, newlines, and other special characters
+ */
+def escapeStringForJava(String value) {
+    if (value == null) {
+        return ""
+    }
+    return value
+        .replace('\\', '\\\\')  // Backslash must be first
+        .replace('"', '\\"')    // Escape quotes
+        .replace('\n', '\\n')   // Escape newlines
+        .replace('\r', '\\r')   // Escape carriage returns
+        .replace('\t', '\\t')   // Escape tabs
+}
+
+/**
  * This is the configuration block to customize your React Native Android app.
  * By default you don't need to apply any configuration, just uncomment the lines you need.
  */
@@ -355,11 +371,11 @@ android {
     }
 
 	  buildTypes.each {
-		  it.buildConfigField 'String', 'foxCode', "\"$System.env.MM_FOX_CODE\""
+		  it.buildConfigField 'String', 'foxCode', "\"${escapeStringForJava(System.env.MM_FOX_CODE)}\""
       // Used to point to staging environment API for ramp
-      it.buildConfigField 'String', 'IS_RAMP_UAT', "\"$System.env.RAMP_INTERNAL_BUILD\""
+      it.buildConfigField 'String', 'IS_RAMP_UAT', "\"${escapeStringForJava(System.env.RAMP_INTERNAL_BUILD)}\""
       // Used to point to dev environment API for ramp
-      it.buildConfigField 'String', 'IS_RAMP_DEV', "\"$System.env.RAMP_DEV_BUILD\""
+      it.buildConfigField 'String', 'IS_RAMP_DEV', "\"${escapeStringForJava(System.env.RAMP_DEV_BUILD)}\""
     }
 
     buildFeatures {
