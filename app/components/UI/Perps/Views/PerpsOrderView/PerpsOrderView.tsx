@@ -457,9 +457,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   );
 
   const feesToDisplay = hasCustomTokenSelected ? combinedFees : estimatedFees;
-  const isFeesLoading =
-    feeResults.isLoadingMetamaskFee ||
-    (hasCustomTokenSelected && isPayTotalsLoading);
+  const isFeesLoading = hasCustomTokenSelected && isPayTotalsLoading;
 
   // Simple boolean calculation - no need for expensive memoization
   const hasValidAmount = parseFloat(orderForm.amount) > 0;
