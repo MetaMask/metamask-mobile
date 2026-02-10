@@ -95,6 +95,7 @@ export const useRampNavigation = () => {
       }
 
       // V2: If assetId is provided and V2 is enabled, route to BuildQuote
+      // TODO: Check for provider support for the token and pass params to BuildQuote to show an error modal
       if (
         isRampsUnifiedV2Enabled &&
         intent?.assetId &&
