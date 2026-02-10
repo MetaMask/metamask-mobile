@@ -89,8 +89,8 @@ exports[`InputStepper complete component snapshot renders complete component cor
             [
               {
                 "color": "#121314",
-                "height": 32,
-                "width": 32,
+                "height": 24,
+                "width": 24,
               },
               undefined,
             ]
@@ -237,8 +237,8 @@ exports[`InputStepper complete component snapshot renders complete component cor
             [
               {
                 "color": "#121314",
-                "height": 32,
-                "width": 32,
+                "height": 24,
+                "width": 24,
               },
               undefined,
             ]
@@ -339,8 +339,8 @@ exports[`InputStepper complete component snapshot renders with description 1`] =
             [
               {
                 "color": "#121314",
-                "height": 32,
-                "width": 32,
+                "height": 24,
+                "width": 24,
               },
               undefined,
             ]
@@ -460,8 +460,8 @@ exports[`InputStepper complete component snapshot renders with description 1`] =
             [
               {
                 "color": "#121314",
-                "height": 32,
-                "width": 32,
+                "height": 24,
+                "width": 24,
               },
               undefined,
             ]
@@ -562,8 +562,8 @@ exports[`InputStepper description row should render InputStepperDescriptionRow 1
             [
               {
                 "color": "#121314",
-                "height": 32,
-                "width": 32,
+                "height": 24,
+                "width": 24,
               },
               undefined,
             ]
@@ -683,8 +683,8 @@ exports[`InputStepper description row should render InputStepperDescriptionRow 1
             [
               {
                 "color": "#121314",
-                "height": 32,
-                "width": 32,
+                "height": 24,
+                "width": 24,
               },
               undefined,
             ]
@@ -785,8 +785,8 @@ exports[`InputStepper input renders correct style when value character length is
             [
               {
                 "color": "#121314",
-                "height": 32,
-                "width": 32,
+                "height": 24,
+                "width": 24,
               },
               undefined,
             ]
@@ -906,8 +906,8 @@ exports[`InputStepper input renders correct style when value character length is
             [
               {
                 "color": "#121314",
-                "height": 32,
-                "width": 32,
+                "height": 24,
+                "width": 24,
               },
               undefined,
             ]
@@ -1008,8 +1008,8 @@ exports[`InputStepper input renders correct style when value character length is
             [
               {
                 "color": "#121314",
-                "height": 32,
-                "width": 32,
+                "height": 24,
+                "width": 24,
               },
               undefined,
             ]
@@ -1129,8 +1129,8 @@ exports[`InputStepper input renders correct style when value character length is
             [
               {
                 "color": "#121314",
-                "height": 32,
-                "width": 32,
+                "height": 24,
+                "width": 24,
               },
               undefined,
             ]
@@ -1231,8 +1231,8 @@ exports[`InputStepper input renders correct style when value character length is
             [
               {
                 "color": "#121314",
-                "height": 32,
-                "width": 32,
+                "height": 24,
+                "width": 24,
               },
               undefined,
             ]
@@ -1352,8 +1352,8 @@ exports[`InputStepper input renders correct style when value character length is
             [
               {
                 "color": "#121314",
-                "height": 32,
-                "width": 32,
+                "height": 24,
+                "width": 24,
               },
               undefined,
             ]
@@ -1454,8 +1454,8 @@ exports[`InputStepper input renders correct style when value character length is
             [
               {
                 "color": "#121314",
-                "height": 32,
-                "width": 32,
+                "height": 24,
+                "width": 24,
               },
               undefined,
             ]
@@ -1575,8 +1575,8 @@ exports[`InputStepper input renders correct style when value character length is
             [
               {
                 "color": "#121314",
-                "height": 32,
-                "width": 32,
+                "height": 24,
+                "width": 24,
               },
               undefined,
             ]
@@ -1677,8 +1677,8 @@ exports[`InputStepper input renders correct style when value character length is
             [
               {
                 "color": "#121314",
-                "height": 32,
-                "width": 32,
+                "height": 24,
+                "width": 24,
               },
               undefined,
             ]
@@ -1798,8 +1798,8 @@ exports[`InputStepper input renders correct style when value character length is
             [
               {
                 "color": "#121314",
-                "height": 32,
-                "width": 32,
+                "height": 24,
+                "width": 24,
               },
               undefined,
             ]
@@ -1900,8 +1900,8 @@ exports[`InputStepper minus button renders correct style of minus button when di
             [
               {
                 "color": "#121314",
-                "height": 32,
-                "width": 32,
+                "height": 24,
+                "width": 24,
               },
               undefined,
             ]
@@ -2021,8 +2021,8 @@ exports[`InputStepper minus button renders correct style of minus button when di
             [
               {
                 "color": "#121314",
-                "height": 32,
-                "width": 32,
+                "height": 24,
+                "width": 24,
               },
               undefined,
             ]
@@ -2123,8 +2123,8 @@ exports[`InputStepper minus button renders correct style of minus button when en
             [
               {
                 "color": "#121314",
-                "height": 32,
-                "width": 32,
+                "height": 24,
+                "width": 24,
               },
               undefined,
             ]
@@ -2244,8 +2244,8 @@ exports[`InputStepper minus button renders correct style of minus button when en
             [
               {
                 "color": "#121314",
-                "height": 32,
-                "width": 32,
+                "height": 24,
+                "width": 24,
               },
               undefined,
             ]
@@ -2346,8 +2346,8 @@ exports[`InputStepper plus button renders correct style of plus button when disa
             [
               {
                 "color": "#121314",
-                "height": 32,
-                "width": 32,
+                "height": 24,
+                "width": 24,
               },
               undefined,
             ]
@@ -2467,8 +2467,8 @@ exports[`InputStepper plus button renders correct style of plus button when disa
             [
               {
                 "color": "#121314",
-                "height": 32,
-                "width": 32,
+                "height": 24,
+                "width": 24,
               },
               undefined,
             ]
@@ -2569,8 +2569,8 @@ exports[`InputStepper plus button renders correct style of plus button when enab
             [
               {
                 "color": "#121314",
-                "height": 32,
-                "width": 32,
+                "height": 24,
+                "width": 24,
               },
               undefined,
             ]
@@ -2690,8 +2690,8 @@ exports[`InputStepper plus button renders correct style of plus button when enab
             [
               {
                 "color": "#121314",
-                "height": 32,
-                "width": 32,
+                "height": 24,
+                "width": 24,
               },
               undefined,
             ]
