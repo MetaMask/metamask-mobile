@@ -31,16 +31,10 @@ import {
 import StorageWrapper from '../../store/storage-wrapper';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
-import { isMultichainAccountsState2Enabled } from '../../multichain-accounts/remote-feature-flag';
 import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
 import { discoverAccounts } from '../../multichain-accounts/discovery';
 import ReduxService from '../redux';
 import { retryWithExponentialDelay } from '../../util/exponential-retry';
-import {
-  WALLET_SNAP_MAP,
-  MultichainWalletSnapFactory,
-  WalletClientType,
-} from '../SnapKeyring/MultichainWalletSnapClient';
 
 import { selectExistingUser } from '../../reducers/user/selectors';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
@@ -183,26 +177,6 @@ class AuthenticationService {
       parsedSeedUint8Array,
     );
 
-    if (!isMultichainAccountsState2Enabled()) {
-      Promise.all(
-        Object.values(WalletClientType).map(async (clientType) => {
-          const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
-
-          try {
-            await this.attemptAccountDiscovery(clientType);
-          } catch (error) {
-            console.warn(
-              'Account discovery failed during wallet creation:',
-              clientType,
-              error,
-            );
-            // Store flag to retry on next unlock
-            await StorageWrapper.setItem(discoveryStorageId, TRUE);
-          }
-        }),
-      ).catch(console.error);
-    }
-
     password = this.wipeSensitiveData();
     parsedSeed = this.wipeSensitiveData();
   };
@@ -220,23 +194,6 @@ class AuthenticationService {
     }
   };
 
-  private attemptAccountDiscovery = async (
-    clientType: WalletClientType,
-  ): Promise<void> => {
-    await this.retryAccountDiscovery(async (): Promise<void> => {
-      const primaryHdKeyringId =
-        Engine.context.KeyringController.state.keyrings[0].metadata.id;
-      const client = MultichainWalletSnapFactory.createClient(clientType, {
-        setSelectedAccount: false,
-      });
-      const { discoveryScope, discoveryStorageId } =
-        WALLET_SNAP_MAP[clientType];
-
-      await client.addDiscoveredAccounts(primaryHdKeyringId, discoveryScope);
-      await StorageWrapper.removeItem(discoveryStorageId);
-    });
-  };
-
   private attemptMultichainAccountWalletDiscovery = async (
     entropySource?: EntropySourceId,
   ): Promise<void> => {
@@ -246,48 +203,30 @@ class AuthenticationService {
   };
 
   private postLoginAsyncOperations = async (): Promise<void> => {
-    if (isMultichainAccountsState2Enabled()) {
-      // READ THIS CAREFULLY:
-      // There is is/was a bug with Snap accounts that can be desynchronized (Solana). To
-      // automatically "fix" this corrupted state, we run this method which will re-sync
-      // MetaMask accounts and Snap accounts upon login.
-      try {
-        const { MultichainAccountService } = Engine.context;
-        await MultichainAccountService.resyncAccounts();
-      } catch (error) {
-        console.warn('Failed to resync accounts:', error);
-      }
-
-      // We just re-run the same discovery here.
-      // 1. Each wallets know their highest group index and restart the discovery from
-      // there, thus acting naturally as a "retry".
-      // 2. Running the discovery every time allow to auto-discover accounts that could
-      // have been added on external wallets.
-      // 3. We run the alignment at the end of the discovery, thus, automatically
-      // creating accounts for new account providers.
-      await Promise.allSettled(
-        this.getEntropySourceIds().map(
-          async (entropySource) =>
-            await this.attemptMultichainAccountWalletDiscovery(entropySource),
-        ),
-      );
-    } else {
-      // Try to complete any pending account discovery
-      await Promise.all(
-        Object.values(WalletClientType).map(async (clientType) => {
-          const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
-
-          try {
-            const isPending = await StorageWrapper.getItem(discoveryStorageId);
-            if (isPending === TRUE) {
-              await this.attemptAccountDiscovery(clientType);
-            }
-          } catch (error) {
-            console.warn('Failed to check/retry discovery:', clientType, error);
-          }
-        }),
-      );
+    // READ THIS CAREFULLY:
+    // There is is/was a bug with Snap accounts that can be desynchronized (Solana). To
+    // automatically "fix" this corrupted state, we run this method which will re-sync
+    // MetaMask accounts and Snap accounts upon login.
+    try {
+      const { MultichainAccountService } = Engine.context;
+      await MultichainAccountService.resyncAccounts();
+    } catch (error) {
+      console.warn('Failed to resync accounts:', error);
     }
+
+    // We just re-run the same discovery here.
+    // 1. Each wallets know their highest group index and restart the discovery from
+    // there, thus acting naturally as a "retry".
+    // 2. Running the discovery every time allow to auto-discover accounts that could
+    // have been added on external wallets.
+    // 3. We run the alignment at the end of the discovery, thus, automatically
+    // creating accounts for new account providers.
+    await Promise.allSettled(
+      this.getEntropySourceIds().map(
+        async (entropySource) =>
+          await this.attemptMultichainAccountWalletDiscovery(entropySource),
+      ),
+    );
   };
 
   /**
@@ -302,25 +241,6 @@ class AuthenticationService {
     const { KeyringController }: any = Engine.context;
     await Engine.resetState();
     await KeyringController.createNewVaultAndKeychain(password);
-
-    if (!isMultichainAccountsState2Enabled()) {
-      Promise.all(
-        Object.values(WalletClientType).map(async (clientType) => {
-          const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
-
-          try {
-            await this.attemptAccountDiscovery(clientType);
-          } catch (error) {
-            console.warn(
-              'Account discovery failed during wallet creation:',
-              error,
-            );
-            // Store flag to retry on next unlock
-            await StorageWrapper.setItem(discoveryStorageId, TRUE);
-          }
-        }),
-      ).catch(console.error);
-    }
 
     password = this.wipeSensitiveData();
   };
@@ -641,7 +561,7 @@ class AuthenticationService {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      this.lockApp({ reset: false });
+      await this.lockApp({ reset: false, navigateToLogin: false });
       throw new AuthenticationError(
         (e as Error).message,
         AUTHENTICATION_FAILED_WALLET_CREATION,
@@ -675,7 +595,7 @@ class AuthenticationService {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      this.lockApp({ reset: false });
+      await this.lockApp({ reset: false, navigateToLogin: false });
       throw new AuthenticationError(
         (e as Error).message,
         AUTHENTICATION_FAILED_WALLET_CREATION,
@@ -756,6 +676,9 @@ class AuthenticationService {
           await this.dispatchLogin();
           this.dispatchPasswordSet();
           void this.postLoginAsyncOperations();
+
+          // Mark user as existing after successful unlock
+          ReduxService.store.dispatch(setExistingUser(true));
 
           // TODO: Refactor this orchestration to sagas.
           // Navigate to optin metrics or home screen based on metrics consent and UI seen.
@@ -987,12 +910,8 @@ class AuthenticationService {
               await this.importSeedlessMnemonicToVault(mnemonicToRestore);
 
             // discover multichain accounts from imported srp
-            if (isMultichainAccountsState2Enabled()) {
-              // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
-              this.attemptMultichainAccountWalletDiscovery(keyringMetadata.id);
-            } else {
-              this.addMultichainAccounts([keyringMetadata]);
-            }
+            // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
+            this.attemptMultichainAccountWalletDiscovery(keyringMetadata.id);
           } else {
             Logger.error(
               new Error('SeedlessOnboardingController: Unknown secret type'),
@@ -1140,27 +1059,6 @@ class AuthenticationService {
     return true;
   };
 
-  /**
-   * Temporary function until the attempt discovery support multi srp acccount discovery
-   * Add multichain accounts to the keyring
-   *
-   * @param keyringMetadataList - List of keyring metadata
-   */
-  addMultichainAccounts = async (
-    keyringMetadataList: KeyringMetadata[],
-  ): Promise<void> => {
-    for (const keyringMetadata of keyringMetadataList) {
-      for (const clientType of Object.values(WalletClientType)) {
-        const id = keyringMetadata.id;
-        const { discoveryScope } = WALLET_SNAP_MAP[clientType];
-        const multichainClient =
-          MultichainWalletSnapFactory.createClient(clientType);
-
-        await multichainClient.addDiscoveredAccounts(id, discoveryScope);
-      }
-    }
-  };
-
   rehydrateSeedPhrase = async (password: string): Promise<void> => {
     try {
       const { SeedlessOnboardingController } = Engine.context;
@@ -1241,18 +1139,13 @@ class AuthenticationService {
         }
         await this.syncKeyringEncryptionKey();
 
-        if (isMultichainAccountsState2Enabled()) {
-          for (const { id } of keyringMetadataList) {
-            // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
-            this.attemptMultichainAccountWalletDiscovery(id);
-          }
-        } else {
-          this.addMultichainAccounts(keyringMetadataList);
+        for (const { id } of keyringMetadataList) {
+          // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
+          this.attemptMultichainAccountWalletDiscovery(id);
         }
-
         this.dispatchOauthReset();
-
         ReduxService.store.dispatch(setExistingUser(true));
+
         await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       } else {
         throw new Error('No account data found');
@@ -1355,7 +1248,7 @@ class AuthenticationService {
       });
     } catch (err) {
       // lock app again on error after submitPassword succeeded
-      await this.lockApp({ locked: true });
+      await this.lockApp({ locked: true, reset: false });
       throw err;
     }
 
