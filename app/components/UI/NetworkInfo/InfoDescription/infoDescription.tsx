@@ -63,12 +63,9 @@ const Description = (props: DescriptionProps) => {
 
   const handleNavigation = useCallback(() => {
     onClose?.();
-    navigation.navigate('SettingsView', {
-      screen: 'AdvancedSettings',
-      params: {
-        scrollToBottom: true,
-        isFullScreenModal: true,
-      },
+    navigation.navigate('AdvancedSettings', {
+      scrollToBottom: true,
+      isFullScreenModal: true,
     });
   }, [navigation, onClose]);
 
