@@ -9,7 +9,10 @@ import {
 } from '../framework';
 import Assertions from '../framework/Assertions';
 import NetworkEducationModal from '../page-objects/Network/NetworkEducationModal';
-import { getAnvilPortForFixture , getGanachePortForFixture } from '../framework/fixtures/FixtureUtils';
+import {
+  getAnvilPortForFixture,
+  getGanachePortForFixture,
+} from '../framework/fixtures/FixtureUtils';
 import TermsOfUseModal from '../page-objects/Onboarding/TermsOfUseModal';
 import CreatePasswordView from '../page-objects/Onboarding/CreatePasswordView';
 import OnboardingSuccessView from '../page-objects/Onboarding/OnboardingSuccessView';
