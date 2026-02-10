@@ -320,9 +320,12 @@ const PhysicalAddress = () => {
 
   const coinmeTermsUrl = 'https://coinme.com/legal/';
 
-  const crbTermsUrl = 'https://baanx-public.s3-eu-west-1.amazonaws.com/Ledger/public-files/BaanxUS_CLCard_TOS.undefined-fddb292f91ce3.pdf';
-  const crbAccountOpeningUrl = 'https://secure.baanx.co.uk/BAANX_US_ACCOUNT_OPENING_AGREEMENTS_AND_DISCLOSURES_08152025.pdf';
-  const crbPrivacyNoticeUrl = 'https://secure.baanx.co.uk/Baanx_(CL)_U.S._Privacy_Notice_06.2025.pdf';
+  const crbTermsUrl =
+    'https://baanx-public.s3-eu-west-1.amazonaws.com/Ledger/public-files/BaanxUS_CLCard_TOS.undefined-fddb292f91ce3.pdf';
+  const crbAccountOpeningUrl =
+    'https://secure.baanx.co.uk/BAANX_US_ACCOUNT_OPENING_AGREEMENTS_AND_DISCLOSURES_08152025.pdf';
+  const crbPrivacyNoticeUrl =
+    'https://secure.baanx.co.uk/Baanx_(CL)_U.S._Privacy_Notice_06.2025.pdf';
   const crbPrivacyPolicyUrl = 'https://www.crossriver.com/legal/privacy-notice';
 
   const {
@@ -753,6 +756,9 @@ const PhysicalAddress = () => {
                     'card.card_onboarding.physical_address.coinme_terms_consent_2',
                   )}
                 </Text>
+                {strings(
+                  'card.card_onboarding.physical_address.coinme_terms_consent_3',
+                )}
               </Text>
             </Box>
           }
@@ -771,9 +777,7 @@ const PhysicalAddress = () => {
                 variant={TextVariant.BodySm}
                 twClassName="text-text-alternative"
               >
-                {strings(
-                  'card.card_onboarding.physical_address.crb_consent_1',
-                )}
+                {strings('card.card_onboarding.physical_address.crb_consent_1')}
                 <Text
                   variant={TextVariant.BodySm}
                   twClassName="text-primary-default underline"
@@ -783,9 +787,7 @@ const PhysicalAddress = () => {
                     'card.card_onboarding.physical_address.crb_consent_2',
                   )}
                 </Text>
-                {strings(
-                  'card.card_onboarding.physical_address.crb_consent_3',
-                )}
+                {strings('card.card_onboarding.physical_address.crb_consent_3')}
                 <Text
                   variant={TextVariant.BodySm}
                   twClassName="text-primary-default underline"
@@ -795,9 +797,7 @@ const PhysicalAddress = () => {
                     'card.card_onboarding.physical_address.crb_consent_4',
                   )}
                 </Text>
-                {strings(
-                  'card.card_onboarding.physical_address.crb_consent_5',
-                )}
+                {strings('card.card_onboarding.physical_address.crb_consent_5')}
                 <Text
                   variant={TextVariant.BodySm}
                   twClassName="text-primary-default underline"
@@ -807,9 +807,7 @@ const PhysicalAddress = () => {
                     'card.card_onboarding.physical_address.crb_consent_6',
                   )}
                 </Text>
-                {strings(
-                  'card.card_onboarding.physical_address.crb_consent_7',
-                )}
+                {strings('card.card_onboarding.physical_address.crb_consent_7')}
                 <Text
                   variant={TextVariant.BodySm}
                   twClassName="text-primary-default underline"
@@ -819,9 +817,7 @@ const PhysicalAddress = () => {
                     'card.card_onboarding.physical_address.crb_consent_8',
                   )}
                 </Text>
-                {strings(
-                  'card.card_onboarding.physical_address.crb_consent_9',
-                )}
+                {strings('card.card_onboarding.physical_address.crb_consent_9')}
               </Text>
             </Box>
           }
