@@ -1,11 +1,11 @@
-import { loginToApp } from '../../../../e2e/viewHelper';
-import { SmokePerformance } from '../../../../e2e/tags';
-import WalletView from '../../../../e2e/pages/wallet/WalletView';
+import { loginToApp } from '../../../flows/wallet.flow';
+import { SmokePerformance } from '../../../tags';
+import WalletView from '../../../page-objects/wallet/WalletView';
 import Assertions from '../../../framework/Assertions';
-import TestHelpers from '../../../../e2e/helpers';
+import TestHelpers from '../../../helpers';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import NetworkManager from '../../../../e2e/pages/wallet/NetworkManager';
+import NetworkManager from '../../../page-objects/wallet/NetworkManager';
 import { toChecksumAddress } from 'ethereumjs-util';
 import {
   CORE_USER_STATE,

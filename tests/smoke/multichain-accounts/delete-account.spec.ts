@@ -1,18 +1,18 @@
-import { SmokeWalletPlatform } from '../../../e2e/tags';
+import { SmokeWalletPlatform } from '../../tags';
 import {
   SIMPLE_KEYPAIR_ACCOUNT,
   goToAccountDetailsV2,
 } from '../../helpers/multichain-accounts/common';
-import AccountDetails from '../../../e2e/pages/MultichainAccounts/AccountDetails';
-import DeleteAccount from '../../../e2e/pages/MultichainAccounts/DeleteAccount';
+import AccountDetails from '../../page-objects/MultichainAccounts/AccountDetails';
+import DeleteAccount from '../../page-objects/MultichainAccounts/DeleteAccount';
 import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import TestHelpers from '../../../e2e/helpers';
-import AccountListBottomSheet from '../../../e2e/pages/wallet/AccountListBottomSheet';
+import WalletView from '../../page-objects/wallet/WalletView';
+import TestHelpers from '../../helpers';
+import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { loginToApp } from '../../../e2e/viewHelper';
+import { loginToApp } from '../../flows/wallet.flow';
 
 const deleteAccount = async () => {
   await AccountDetails.tapDeleteAccountLink();
