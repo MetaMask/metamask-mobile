@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { View, TouchableOpacity, TextInput, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../component-library/hooks';
 import {
   Box,
@@ -21,6 +22,8 @@ import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import type { PerpsHomeHeaderProps } from './PerpsHomeHeader.types';
 import styleSheet from './PerpsHomeHeader.styles';
+import { selectPerpsMYXProviderEnabledFlag } from '../../selectors/featureFlags';
+import { PerpsProviderSelectorBadge } from '../PerpsProviderSelector';
 
 /**
  * PerpsHomeHeader Component
@@ -65,6 +68,7 @@ const PerpsHomeHeader: React.FC<PerpsHomeHeaderProps> = ({
   const tw = useTailwind();
   const { colors } = useTheme();
   const navigation = useNavigation();
+  const isMYXProviderEnabled = useSelector(selectPerpsMYXProviderEnabledFlag);
 
   // Default back handler
   const defaultHandleBack = useCallback(() => {
@@ -137,15 +141,25 @@ const PerpsHomeHeader: React.FC<PerpsHomeHeaderProps> = ({
             <Icon name={IconName.ArrowLeft} size={IconSize.Md} />
           </TouchableOpacity>
 
-          {/* Title */}
+          {/* Title with optional provider badge */}
           <View style={styles.headerTitleContainer}>
-            <Text
-              variant={TextVariant.HeadingLG}
-              color={TextColor.Default}
-              style={styles.headerTitle}
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
             >
-              {title || strings('perps.title')}
-            </Text>
+              <Text
+                variant={TextVariant.HeadingLG}
+                color={TextColor.Default}
+                style={styles.headerTitle}
+              >
+                {title || strings('perps.title')}
+              </Text>
+              {isMYXProviderEnabled && (
+                <PerpsProviderSelectorBadge
+                  testID={testID ? `${testID}-provider-badge` : undefined}
+                />
+              )}
+            </Box>
           </View>
 
           {/* Search Toggle Button */}
