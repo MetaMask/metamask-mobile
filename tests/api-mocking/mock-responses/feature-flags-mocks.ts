@@ -124,7 +124,7 @@ export const remoteFeatureFlagPredictEnabled = (enabled = true) => ({
 export const remoteFeatureFlagRampsUnifiedV1Enabled = (active = true) => ({
   rampsUnifiedBuyV1: {
     active,
-    minimumVersion: '7.63.0',
+    minimumVersion: '7.61.0',
   },
 });
 
