@@ -70,22 +70,28 @@ describe('PerpsMarketCategoryBadges', () => {
   });
 
   describe('Selected state (category selected)', () => {
-    it('shows only selected badge with dismiss icon when category is selected', () => {
-      const { getByText, queryByText, getByTestId } = render(
+    it('shows all badges when a category is selected, with dismiss icon on selected one', () => {
+      const { getByText, getByTestId, queryByTestId } = render(
         <PerpsMarketCategoryBadges
           {...defaultProps}
           selectedCategory="crypto"
         />,
       );
 
+      // All badges should remain visible
       expect(getByText('Crypto')).toBeTruthy();
+      expect(getByText('Stocks')).toBeTruthy();
+      expect(getByText('Commodities')).toBeTruthy();
+      expect(getByText('Forex')).toBeTruthy();
+
+      // Selected badge should show dismiss icon, others should not
       expect(getByTestId('category-badges-crypto-dismiss')).toBeTruthy();
-      expect(queryByText('Stocks')).toBeNull();
-      expect(queryByText('Commodities')).toBeNull();
-      expect(queryByText('Forex')).toBeNull();
+      expect(queryByTestId('category-badges-stocks-dismiss')).toBeNull();
+      expect(queryByTestId('category-badges-commodities-dismiss')).toBeNull();
+      expect(queryByTestId('category-badges-forex-dismiss')).toBeNull();
     });
 
-    it('calls onCategorySelect with "all" when dismiss is pressed', () => {
+    it('calls onCategorySelect with "all" when selected badge is tapped again (toggle off)', () => {
       const onCategorySelect = jest.fn();
       const { getByTestId } = render(
         <PerpsMarketCategoryBadges
@@ -95,16 +101,31 @@ describe('PerpsMarketCategoryBadges', () => {
         />,
       );
 
-      // Press the badge (which triggers dismiss when showDismiss is true)
+      // Tapping the already-selected badge should deselect (back to 'all')
       fireEvent.press(getByTestId('category-badges-crypto'));
       expect(onCategorySelect).toHaveBeenCalledWith('all');
     });
 
-    it('renders selected badge for each category type', () => {
-      const categories = ['crypto', 'stocks', 'commodities', 'forex'] as const;
-      const labels = ['Crypto', 'Stocks', 'Commodities', 'Forex'];
+    it('calls onCategorySelect with new category when unselected badge is tapped', () => {
+      const onCategorySelect = jest.fn();
+      const { getByText } = render(
+        <PerpsMarketCategoryBadges
+          {...defaultProps}
+          selectedCategory="crypto"
+          onCategorySelect={onCategorySelect}
+        />,
+      );
 
-      categories.forEach((category, index) => {
+      // Tapping a different badge should select that category
+      fireEvent.press(getByText('Stocks'));
+      expect(onCategorySelect).toHaveBeenCalledWith('stocks');
+    });
+
+    it('renders all badges for each selected category type', () => {
+      const categories = ['crypto', 'stocks', 'commodities', 'forex'] as const;
+      const allLabels = ['Crypto', 'Stocks', 'Commodities', 'Forex'];
+
+      categories.forEach((category) => {
         const { getByText } = render(
           <PerpsMarketCategoryBadges
             {...defaultProps}
@@ -112,7 +133,10 @@ describe('PerpsMarketCategoryBadges', () => {
           />,
         );
 
-        expect(getByText(labels[index])).toBeTruthy();
+        // All badges should be visible regardless of which is selected
+        allLabels.forEach((label) => {
+          expect(getByText(label)).toBeTruthy();
+        });
       });
     });
   });
