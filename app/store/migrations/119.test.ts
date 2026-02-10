@@ -1,4 +1,4 @@
-import migrate, { migrationVersion } from './118';
+import migrate, { migrationVersion } from './119';
 import { NETWORK_CHAIN_ID } from '../../util/networks/customNetworks';
 import {
   NetworkConfiguration,

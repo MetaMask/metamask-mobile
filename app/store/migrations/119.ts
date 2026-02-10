@@ -3,7 +3,7 @@ import { captureException } from '@sentry/react-native';
 import { ensureValidState } from './util';
 import { NETWORK_CHAIN_ID } from '../../util/networks/customNetworks';
 
-export const migrationVersion = 118;
+export const migrationVersion = 119;
 
 /**
  * Migration 118: Update MegaETH Mainnet name from 'MegaEth' to 'MegaETH'
