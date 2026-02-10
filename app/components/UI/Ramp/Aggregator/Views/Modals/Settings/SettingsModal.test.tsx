@@ -114,10 +114,7 @@ describe('SettingsModal', () => {
     fireEvent.press(viewOrderHistoryButton);
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW, {
-      screen: Routes.TRANSACTIONS_VIEW,
-      params: {
-        redirectToOrders: true,
-      },
+      redirectToOrders: true,
     });
   });
 
