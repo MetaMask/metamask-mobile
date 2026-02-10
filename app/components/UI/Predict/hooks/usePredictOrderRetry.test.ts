@@ -13,7 +13,7 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 jest.mock('../providers/polymarket/constants', () => ({
-  SLIPPAGE_BEST_AVAILABLE: 0.5,
+  SLIPPAGE_BEST_AVAILABLE: 0.99,
 }));
 
 jest.mock('../components/PredictOrderRetrySheet', () => ({}));
@@ -118,7 +118,7 @@ describe('usePredictOrderRetry', () => {
       expect(mockPlaceOrder).toHaveBeenCalledWith(
         expect.objectContaining({
           providerId: 'polymarket',
-          preview: expect.objectContaining({ slippage: 0.5 }),
+          preview: expect.objectContaining({ slippage: 0.99 }),
         }),
       );
     });
@@ -247,7 +247,7 @@ describe('usePredictOrderRetry', () => {
       expect(calledPreview.sharePrice).toBe(0.75);
       expect(calledPreview.maxAmountSpent).toBe(20);
       expect(calledPreview.minAmountReceived).toBe(26.67);
-      expect(calledPreview.slippage).toBe(0.5);
+      expect(calledPreview.slippage).toBe(0.99);
     });
   });
 
