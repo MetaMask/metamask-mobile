@@ -14,30 +14,6 @@ export interface UseTokenBuyabilityResult {
 }
 
 /**
- * Finds a matching ramp token from a list.
- * Native tokens: matches by chainId + slip44 namespace.
- * ERC20 tokens: matches by case-insensitive assetId.
- */
-function findMatchingRampToken(
-  tokens: { assetId?: string; chainId?: string; tokenSupported?: boolean }[],
-  chainId: string,
-  assetId: string | undefined,
-  isNative: boolean,
-): { tokenSupported?: boolean } | undefined {
-  return tokens.find((tok) => {
-    if (!tok.assetId) return false;
-
-    if (isNative) {
-      return tok.chainId === chainId && tok.assetId.includes('/slip44:');
-    }
-
-    return assetId
-      ? tok.assetId.toLowerCase() === assetId.toLowerCase()
-      : false;
-  });
-}
-
-/**
  * Builds the CAIP-19 assetId for a token, matching the format used by
  * useTokenActions.onBuy when navigating to the ramp flow.
  */
@@ -71,17 +47,24 @@ export const useTokenBuyability = (token: TokenI): UseTokenBuyabilityResult => {
 
   const isBuyable = useMemo(() => {
     const tokens = isV2Enabled ? controllerTokens?.allTokens : legacyAllTokens;
-
     if (!tokens) return false;
 
     const chainId = isCaipChainId(token.chainId)
       ? token.chainId
       : toEvmCaipChainId(token.chainId as Hex);
-
     const assetId = buildRampAssetId(token);
     const isNative = token.isNative ?? false;
 
-    const match = findMatchingRampToken(tokens, chainId, assetId, isNative);
+    const match = tokens.find((tok) => {
+      if (!tok.assetId) return false;
+      if (isNative) {
+        return tok.chainId === chainId && tok.assetId.includes('/slip44:');
+      }
+      return assetId
+        ? tok.assetId.toLowerCase() === assetId.toLowerCase()
+        : false;
+    });
+
     return match?.tokenSupported ?? false;
   }, [isV2Enabled, controllerTokens, legacyAllTokens, token]);
 
