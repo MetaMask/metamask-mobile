@@ -9387,14 +9387,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^7.0.0":
-  version: 7.0.0
-  resolution: "@metamask/ramps-controller@npm:7.0.0"
+"@metamask/ramps-controller@npm:^7.1.0":
+  version: 7.1.0
+  resolution: "@metamask/ramps-controller@npm:7.1.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/controller-utils": "npm:^11.18.0"
     "@metamask/messenger": "npm:^0.3.0"
-  checksum: 10/12f16f32c7d12686c9af23c7c3a6d120f91f415993c91ba58f1ca656a000908da787d1a02fb2238ce166b0ee5fb450f8d35d5a8d9ee7e1b685dacb4adc902a24
+  checksum: 10/e5bb19d6e8497156c96351f24130ab8552821f53e13b8e17040d2c9d6fc7604886e1f8d94ed5a4883ae2236bb9e580450b71d2673cbc50fd3ae8e27f7d5b7e45
   languageName: node
   linkType: hard
 
@@ -35210,7 +35210,7 @@ __metadata:
     "@metamask/profile-metrics-controller": "npm:^2.0.0"
     "@metamask/profile-sync-controller": "npm:^27.1.0"
     "@metamask/providers": "npm:^18.3.1"
-    "@metamask/ramps-controller": "npm:^7.0.0"
+    "@metamask/ramps-controller": "npm:^7.1.0"
     "@metamask/react-native-acm": "npm:^1.0.1"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
     "@metamask/react-native-button": "npm:^3.0.0"
