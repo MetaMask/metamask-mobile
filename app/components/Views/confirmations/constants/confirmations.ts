@@ -13,6 +13,7 @@ export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.batch,
   TransactionType.contractInteraction,
   TransactionType.deployContract,
+  TransactionType.musdClaim,
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
@@ -45,6 +46,7 @@ export const TRANSFER_TRANSACTION_TYPES = [
 ];
 
 export const FULL_SCREEN_CONFIRMATIONS = [
+  TransactionType.musdClaim,
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
@@ -79,3 +81,9 @@ export const POST_QUOTE_TRANSACTION_TYPES = [
   TransactionType.predictWithdraw,
   // TransactionType.perpsWithdraw, // Add when implementing for Perps
 ] as const;
+
+/**
+ * Transaction types that use user's currency instead of USD for display.
+ * mUSD is a stablecoin pegged to USD, so we convert to user's local currency.
+ */
+export const USER_CURRENCY_TYPES = [TransactionType.musdClaim] as const;
