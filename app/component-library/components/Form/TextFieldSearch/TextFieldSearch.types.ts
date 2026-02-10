@@ -6,7 +6,7 @@ interface BaseTextFieldSearchProps extends TextFieldProps {
   /**
    * Optional prop to pass any additional props to the clear button.
    */
-  clearButtonProps?: ButtonIconProps;
+  clearButtonProps?: Partial<ButtonIconProps>;
 }
 
 interface HideClearButtonTextFieldSearchProps extends BaseTextFieldSearchProps {
