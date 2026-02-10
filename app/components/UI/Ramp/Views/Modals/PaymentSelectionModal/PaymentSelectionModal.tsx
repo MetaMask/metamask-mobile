@@ -9,26 +9,26 @@ import Animated, {
 } from 'react-native-reanimated';
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import { AnimationDuration } from '../../../../../component-library/constants/animation.constants';
+} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
+import { AnimationDuration } from '../../../../../../component-library/constants/animation.constants';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+} from '../../../../../../component-library/components/Texts/Text';
 import {
   Box,
   BoxAlignItems,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
-import { useStyles } from '../../../../hooks/useStyles';
-import { strings } from '../../../../../../locales/i18n';
+import { useStyles } from '../../../../../hooks/useStyles';
+import { strings } from '../../../../../../../locales/i18n';
 import styleSheet from './PaymentSelectionModal.styles';
-import Routes from '../../../../../constants/navigation/Routes';
-import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
+import Routes from '../../../../../../constants/navigation/Routes';
+import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
 import PaymentMethodListItem from './PaymentMethodListItem';
 import ProviderSelection from './ProviderSelection';
 import type { PaymentMethod, Provider } from '@metamask/ramps-controller';
-import { useRampsController } from '../../hooks/useRampsController';
+import { useRampsController } from '../../../hooks/useRampsController';
 
 export const createPaymentSelectionModalNavigationDetails =
   createNavigationDetails(
