@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 dotenv.config({ path: '.e2e.env' });
 import { defineConfig, Platform } from 'appwright';
 export default defineConfig({
+  testDir: './',
   timeout: 7 * 60 * 1000, //7 minutes until we introduce fixtures
   expect: {
     timeout: 30 * 1000, //30 seconds
