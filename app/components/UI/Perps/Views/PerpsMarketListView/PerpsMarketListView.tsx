@@ -385,6 +385,7 @@ const PerpsMarketListView = ({
           variant={HeaderBaseVariant.Display}
           title={title || strings('perps.home.markets')}
           titleProps={{ style: styles.marketListHeaderTitle }}
+          twClassName="gap-1.5"
           onBack={handleBackPressed}
           backButtonProps={{
             testID: `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-back-button`,
