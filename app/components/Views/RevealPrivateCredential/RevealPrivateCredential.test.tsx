@@ -527,6 +527,137 @@ describe('RevealPrivateCredential', () => {
 
       expect(getByTestId(ExportCredentialsIds.LEARN_MORE_BUTTON)).toBeTruthy();
     });
+
+    it('shows question 2 specific test IDs when correct answer is selected', async () => {
+      const { getByTestId, getByText } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      // Navigate to quiz
+      fireEvent.press(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON));
+
+      // Complete question 1 correctly
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
+        ).toBeTruthy();
+      });
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
+        ).toBeTruthy();
+      });
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
+      );
+
+      // Now on question 2 - verify question 2 specific test IDs
+      await waitFor(() => {
+        expect(getByText('Question 2 of 2')).toBeTruthy();
+        expect(
+          getByTestId(SrpSecurityQuestionTwoSelectorsIDs.RIGHT_ANSWER),
+        ).toBeTruthy();
+        expect(
+          getByTestId(SrpSecurityQuestionTwoSelectorsIDs.WRONG_ANSWER),
+        ).toBeTruthy();
+      });
+
+      // Select correct answer for question 2
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionTwoSelectorsIDs.RIGHT_ANSWER),
+      );
+
+      // Should show correct feedback with question 2 continue button
+      await waitFor(() => {
+        expect(getByText('Correct!')).toBeTruthy();
+        expect(
+          getByTestId(SrpSecurityQuestionTwoSelectorsIDs.RIGHT_CONTINUE),
+        ).toBeTruthy();
+      });
+    });
+
+    it('shows question 2 try again button when wrong answer is selected', async () => {
+      const { getByTestId, getByText } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      // Navigate to quiz
+      fireEvent.press(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON));
+
+      // Complete question 1 correctly
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
+        ).toBeTruthy();
+      });
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
+        ).toBeTruthy();
+      });
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
+      );
+
+      // Now on question 2 - select wrong answer
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionTwoSelectorsIDs.WRONG_ANSWER),
+        ).toBeTruthy();
+      });
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionTwoSelectorsIDs.WRONG_ANSWER),
+      );
+
+      // Should show incorrect feedback with question 2 try again button
+      await waitFor(() => {
+        expect(getByText('Incorrect!')).toBeTruthy();
+        expect(
+          getByTestId(
+            SrpSecurityQuestionTwoSelectorsIDs.WRONG_ANSWER_TRY_AGAIN_BUTTON,
+          ),
+        ).toBeTruthy();
+      });
+    });
+
+    it('verifies all question 1 answer button test IDs are present', async () => {
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      // Navigate to quiz
+      fireEvent.press(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON));
+
+      // Verify both answer buttons for question 1 have correct test IDs
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
+        ).toBeTruthy();
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.WRONG_ANSWER),
+        ).toBeTruthy();
+      });
+    });
   });
 
   describe('password entry', () => {
