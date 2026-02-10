@@ -20,6 +20,10 @@ import {
   SrpSecurityQuestionOneSelectorsIDs,
   SrpSecurityQuestionTwoSelectorsIDs,
 } from '../Quiz/SRPQuiz/SrpQuizModal.testIds';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../component-library/components/Toast';
 
 const MOCK_PASSWORD = 'word1 word2 word3 word4';
 
@@ -911,11 +915,27 @@ describe('RevealPrivateCredential', () => {
   });
 
   describe('clipboard functionality', () => {
+    const mockShowToast = jest.fn();
+    const mockToastRef = {
+      current: { showToast: mockShowToast, closeToast: jest.fn() },
+    };
+
+    const renderWithClipboardProviders = (ui: React.ReactElement) =>
+      render(
+        <Provider store={store}>
+          <ThemeContext.Provider value={mockTheme}>
+            <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+              {ui}
+            </ToastContext.Provider>
+          </ThemeContext.Provider>
+        </Provider>,
+      );
+
     it('copies SRP to clipboard when copy button is pressed', async () => {
       mockReauthenticate.mockResolvedValue({ password: 'test-password' });
       mockRevealSRP.mockResolvedValue(MOCK_PASSWORD);
 
-      const { queryByTestId } = renderWithProviders(
+      const { getByTestId } = renderWithClipboardProviders(
         <RevealPrivateCredential
           route={createDefaultRoute()}
           navigation={null}
@@ -923,31 +943,32 @@ describe('RevealPrivateCredential', () => {
         />,
       );
 
-      // Wait for auto-reveal via biometrics
       await waitFor(() => {
         expect(mockRevealSRP).toHaveBeenCalled();
       });
 
-      // Check if copy button exists (only visible when unlocked)
-      await waitFor(
-        () => {
-          const copyButton = queryByTestId(
-            RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON,
-          );
-          if (copyButton) {
-            fireEvent.press(copyButton);
-            expect(ClipboardManager.setStringExpire).toHaveBeenCalled();
-          }
-        },
-        { timeout: 2000 },
+      await completeSecurityQuiz(getByTestId);
+
+      const blurButton = getByTestId(
+        RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID,
+      );
+      fireEvent.press(blurButton);
+
+      const copyButton = getByTestId(
+        RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON,
+      );
+      fireEvent.press(copyButton);
+
+      expect(ClipboardManager.setStringExpire).toHaveBeenCalledWith(
+        MOCK_PASSWORD,
       );
     });
 
-    it('dispatches showAlert after copying to clipboard', async () => {
+    it('shows toast after copying to clipboard', async () => {
       mockReauthenticate.mockResolvedValue({ password: 'test-password' });
       mockRevealSRP.mockResolvedValue(MOCK_PASSWORD);
 
-      const { queryByTestId } = renderWithProviders(
+      const { getByTestId } = renderWithClipboardProviders(
         <RevealPrivateCredential
           route={createDefaultRoute()}
           navigation={null}
@@ -959,20 +980,30 @@ describe('RevealPrivateCredential', () => {
         expect(mockRevealSRP).toHaveBeenCalled();
       });
 
-      await waitFor(
-        () => {
-          const copyButton = queryByTestId(
-            RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON,
-          );
-          if (copyButton) {
-            fireEvent.press(copyButton);
-            expect(mockDispatch).toHaveBeenCalledWith(
-              expect.objectContaining({ type: 'SHOW_ALERT' }),
-            );
-          }
-        },
-        { timeout: 2000 },
+      await completeSecurityQuiz(getByTestId);
+
+      const blurButton = getByTestId(
+        RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID,
       );
+      fireEvent.press(blurButton);
+
+      const copyButton = getByTestId(
+        RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON,
+      );
+      fireEvent.press(copyButton);
+
+      await waitFor(() => {
+        expect(mockShowToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            variant: ToastVariants.Plain,
+            labelOptions: expect.arrayContaining([
+              expect.objectContaining({
+                label: expect.any(String),
+              }),
+            ]),
+          }),
+        );
+      });
     });
   });
 
