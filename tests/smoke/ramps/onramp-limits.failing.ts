@@ -10,7 +10,7 @@ import BuyGetStartedView from '../../page-objects/Ramps/BuyGetStartedView';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup';
 import { Mockttp } from 'mockttp';
-import { remoteFeatureFlagRampsUnifiedV2Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { remoteFeatureFlagRampsUnifiedEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 /**
@@ -30,7 +30,7 @@ describe(SmokeTrade('On-Ramp Limits'), () => {
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
           await setupRemoteFeatureFlagsMock(mockServer, {
-            ...remoteFeatureFlagRampsUnifiedV2Enabled(true),
+            ...remoteFeatureFlagRampsUnifiedEnabled(true),
           });
           await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
         },
