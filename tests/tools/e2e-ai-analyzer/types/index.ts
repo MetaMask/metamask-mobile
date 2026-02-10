@@ -31,6 +31,50 @@ export interface ModeAnalysisTypes {
   'select-tags': SelectTagsAnalysis;
 }
 
+/**
+ * Configuration interface for an analysis mode.
+ *
+ * To add a new mode:
+ * 1. Define its result type and add it to ModeAnalysisTypes
+ * 2. Implement all required fields below
+ * 3. Register it in the MODES object in analyzer.ts
+ */
+export interface ModeConfig<T = unknown> {
+  description: string;
+  finalizeToolName: string;
+  systemPromptBuilder: (availableSkills: SkillMetadata[]) => string;
+  taskPromptBuilder: (allFiles: string[], criticalFiles: string[]) => string;
+  processAnalysis: (aiResponse: string, baseDir: string) => Promise<T | null>;
+  createConservativeResult: () => T;
+  createEmptyResult: () => T;
+  outputAnalysis: (analysis: T) => void;
+  /** Optional deterministic rules that bypass AI and force a result. */
+  checkHardRules?: (
+    changedFiles: string[],
+    context: AnalysisContext,
+  ) => T | null;
+}
+
+/**
+ * Analysis context containing all parameters needed for the analysis
+ */
+export interface AnalysisContext {
+  baseDir: string;
+  baseBranch: string;
+  prNumber?: number;
+  githubRepo?: string;
+}
+
+/**
+ * A hard rule that overrides AI analysis and forces all tests to run.
+ * If `check` returns a non-null string, it becomes the reason for running all tests.
+ */
+export interface HardRule {
+  name: string;
+  description: string;
+  check: (changedFiles: string[], context: AnalysisContext) => string | null;
+}
+
 export interface ParsedArgs {
   baseBranch: string;
   changedFiles?: string;
