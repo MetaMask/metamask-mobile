@@ -1,11 +1,12 @@
-import { FlaskBuildTests } from '../../../e2e/tags';
-import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
+import { FlaskBuildTests } from '../../tags';
+import { loginToApp } from '../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import Assertions from '../../framework/Assertions';
-import TestSnaps from '../../../e2e/pages/Browser/TestSnaps';
-import ConnectBottomSheet from '../../../e2e/pages/Browser/ConnectBottomSheet';
-import RequestTypes from '../../../e2e/pages/Browser/Confirmations/RequestTypes';
+import TestSnaps from '../../page-objects/Browser/TestSnaps';
+import ConnectBottomSheet from '../../page-objects/Browser/ConnectBottomSheet';
+import RequestTypes from '../../page-objects/Browser/Confirmations/RequestTypes';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
