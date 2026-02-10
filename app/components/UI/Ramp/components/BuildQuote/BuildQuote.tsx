@@ -29,6 +29,7 @@ import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { createPaymentSelectionModalNavigationDetails } from '../PaymentSelectionModal';
+import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
 
 interface BuildQuoteParams {
   assetId?: string;
@@ -159,6 +160,7 @@ function BuildQuote() {
           <View style={styles.centerGroup}>
             <View style={styles.amountContainer}>
               <Text
+                testID={BuildQuoteSelectors.AMOUNT_INPUT}
                 variant={TextVariant.HeadingLG}
                 style={styles.mainAmount}
                 numberOfLines={1}
@@ -199,7 +201,7 @@ function BuildQuote() {
                 isFullWidth
                 isDisabled={!canContinue}
                 isLoading={quotesLoading}
-                testID="build-quote-continue-button"
+                testID={BuildQuoteSelectors.CONTINUE_BUTTON}
               >
                 {strings('fiat_on_ramp.continue')}
               </Button>

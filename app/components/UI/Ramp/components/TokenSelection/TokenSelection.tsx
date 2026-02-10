@@ -40,6 +40,7 @@ import {
   getDetectedGeolocation,
 } from '../../../../../reducers/fiatOrders';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
+import { selectTokenSelectors } from '../../Aggregator/components/TokenSelectModal/SelectToken.testIds';
 
 export const createTokenSelectionNavDetails = createNavigationDetails(
   Routes.RAMP.TOKEN_SELECTION,
@@ -281,6 +282,7 @@ function TokenSelection() {
         </Box>
         <Box twClassName="px-4 py-3">
           <TextFieldSearch
+            testID={selectTokenSelectors.TOKEN_SELECT_MODAL_SEARCH_INPUT}
             value={searchString}
             showClearButton={searchString.length > 0}
             onPressClearButton={clearSearchText}

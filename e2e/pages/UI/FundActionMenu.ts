@@ -15,6 +15,12 @@ class FundActionMenu {
     );
   }
 
+  get unifiedBuyButton(): DetoxElement {
+    return Matchers.getElementByID(
+      WalletActionsBottomSheetSelectorsIDs.BUY_UNIFIED_BUTTON,
+    );
+  }
+
   get sellButton(): DetoxElement {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
@@ -27,6 +33,9 @@ class FundActionMenu {
 
   async tapBuyButton(): Promise<void> {
     await Gestures.waitAndTap(this.buyButton);
+  }
+  async tapUnifiedBuyButton(): Promise<void> {
+    await Gestures.waitAndTap(this.unifiedBuyButton);
   }
 
   async tapSellButton(): Promise<void> {
