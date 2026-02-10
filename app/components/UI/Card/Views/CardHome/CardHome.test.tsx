@@ -37,6 +37,34 @@ jest.mock('../../hooks/isBaanxLoginEnabled', () => ({
   default: jest.fn(() => true),
 }));
 
+// Mock push provisioning hook
+const mockInitiateProvisioning = jest.fn();
+const mockResetProvisioningStatus = jest.fn();
+const mockUsePushProvisioning = jest.fn(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  (_options: unknown) => ({
+    initiateProvisioning: mockInitiateProvisioning,
+    resetStatus: mockResetProvisioningStatus,
+    status: 'idle' as const,
+    error: null,
+    isProvisioning: false,
+    isSuccess: false,
+    isError: false,
+    isLoading: false,
+    canAddToWallet: false,
+  }),
+);
+
+jest.mock('../../pushProvisioning', () => ({
+  usePushProvisioning: (options: unknown) => mockUsePushProvisioning(options),
+  getWalletName: jest.fn(() => 'Apple Wallet'),
+}));
+
+// Mock @expensify/react-native-wallet
+jest.mock('@expensify/react-native-wallet', () => ({
+  AddToWalletButton: () => null,
+}));
+
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { Alert } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -221,6 +249,14 @@ jest.mock('../../hooks/useCardDetailsToken', () => ({
     clearImageUrl: mockClearCardDetailsImageUrl,
   })),
 }));
+
+// Mock useAuthentication for biometric verification
+const mockReauthenticate = jest.fn();
+jest.mock('../../../../../core/Authentication/hooks/useAuthentication', () =>
+  jest.fn(() => ({
+    reauthenticate: mockReauthenticate,
+  })),
+);
 
 jest.mock('../../../../hooks/useMetrics', () => ({
   useMetrics: jest.fn(),
@@ -2521,6 +2557,43 @@ describe('CardHome Component', () => {
         ]);
       });
     });
+
+    it('completes full auth error cleanup flow including toast display', async () => {
+      // Given: authenticated user with authentication error
+      setupMockSelectors({ isAuthenticated: true });
+      mockIsAuthenticationError.mockReturnValue(true);
+      mockRemoveCardBaanxToken.mockResolvedValue(undefined);
+      setupLoadCardDataMock({
+        error: 'Token expired',
+        isAuthenticated: true,
+      });
+
+      // When: component renders with authentication error
+      render();
+
+      // Then: should complete full cleanup flow:
+      // 1. Remove token
+      await waitFor(() => {
+        expect(mockRemoveCardBaanxToken).toHaveBeenCalled();
+      });
+
+      // 2. Dispatch Redux actions
+      await waitFor(() => {
+        expect(mockDispatch).toHaveBeenCalledWith(
+          expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
+        );
+        expect(mockDispatch).toHaveBeenCalledWith(
+          expect.objectContaining({ type: 'card/clearAllCache' }),
+        );
+      });
+
+      // 3. Navigate to authentication screen (this happens after toast is shown)
+      await waitFor(() => {
+        expect(StackActions.replace).toHaveBeenCalledWith(
+          Routes.CARD.AUTHENTICATION,
+        );
+      });
+    });
   });
 
   describe('KYC Status Verification', () => {
@@ -3202,6 +3275,9 @@ describe('CardHome Component', () => {
       beforeEach(() => {
         mockFetchCardDetailsToken.mockClear();
         mockClearCardDetailsImageUrl.mockClear();
+        mockReauthenticate.mockClear();
+        // Default: biometric authentication succeeds
+        mockReauthenticate.mockResolvedValue(undefined);
       });
 
       it('does not show card details button when user is not authenticated', () => {
@@ -3283,8 +3359,8 @@ describe('CardHome Component', () => {
         ).toBeTruthy();
       });
 
-      it('calls fetchCardDetailsToken when button is pressed', async () => {
-        // Given: Authenticated user with card
+      it('calls fetchCardDetailsToken when button is pressed after biometric authentication', async () => {
+        // Given: Authenticated user with card and biometric auth succeeds
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
@@ -3294,6 +3370,7 @@ describe('CardHome Component', () => {
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
         });
 
+        mockReauthenticate.mockResolvedValueOnce(undefined);
         mockFetchCardDetailsToken.mockResolvedValueOnce({
           token: 'test-token',
           imageUrl: 'https://example.com/image',
@@ -3306,7 +3383,10 @@ describe('CardHome Component', () => {
         );
         fireEvent.press(button);
 
-        // Then: fetchCardDetailsToken is called with card type
+        // Then: reauthenticate is called first, then fetchCardDetailsToken
+        await waitFor(() => {
+          expect(mockReauthenticate).toHaveBeenCalled();
+        });
         await waitFor(() => {
           expect(mockFetchCardDetailsToken).toHaveBeenCalledWith(
             CardType.VIRTUAL,
@@ -3314,8 +3394,8 @@ describe('CardHome Component', () => {
         });
       });
 
-      it('calls fetchCardDetailsToken with METAL type for metal card', async () => {
-        // Given: Authenticated user with metal card
+      it('calls fetchCardDetailsToken with METAL type for metal card after biometric authentication', async () => {
+        // Given: Authenticated user with metal card and biometric auth succeeds
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
@@ -3325,6 +3405,7 @@ describe('CardHome Component', () => {
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
         });
 
+        mockReauthenticate.mockResolvedValueOnce(undefined);
         mockFetchCardDetailsToken.mockResolvedValueOnce({
           token: 'test-token',
           imageUrl: 'https://example.com/image',
@@ -3337,7 +3418,10 @@ describe('CardHome Component', () => {
         );
         fireEvent.press(button);
 
-        // Then: fetchCardDetailsToken is called with METAL type
+        // Then: reauthenticate is called first, then fetchCardDetailsToken with METAL type
+        await waitFor(() => {
+          expect(mockReauthenticate).toHaveBeenCalled();
+        });
         await waitFor(() => {
           expect(mockFetchCardDetailsToken).toHaveBeenCalledWith(
             CardType.METAL,
@@ -3411,6 +3495,114 @@ describe('CardHome Component', () => {
         // Then: clearImageUrl is called to reset the state
         await waitFor(() => {
           expect(mockClearCardDetailsImageUrl).toHaveBeenCalled();
+        });
+      });
+
+      describe('Biometric Authentication', () => {
+        it('does not fetch card details when biometric authentication fails', async () => {
+          // Given: Authenticated user with card but biometric auth fails
+          setupMockSelectors({ isAuthenticated: true });
+          setupLoadCardDataMock({
+            isAuthenticated: true,
+            isBaanxLoginEnabled: true,
+            cardDetails: { type: CardType.VIRTUAL },
+            isLoading: false,
+            kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          });
+
+          mockReauthenticate.mockRejectedValueOnce(
+            new Error('BIOMETRIC_ERROR: User cancelled'),
+          );
+
+          // When: component renders and button is pressed
+          render();
+          const button = screen.getByTestId(
+            CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON,
+          );
+          fireEvent.press(button);
+
+          // Then: reauthenticate is called but fetchCardDetailsToken is NOT called
+          await waitFor(() => {
+            expect(mockReauthenticate).toHaveBeenCalled();
+          });
+          expect(mockFetchCardDetailsToken).not.toHaveBeenCalled();
+        });
+
+        it('navigates to password bottom sheet when biometrics is not configured', async () => {
+          // Given: Authenticated user with card but biometrics not configured
+          setupMockSelectors({ isAuthenticated: true });
+          setupLoadCardDataMock({
+            isAuthenticated: true,
+            isBaanxLoginEnabled: true,
+            cardDetails: { type: CardType.VIRTUAL },
+            isLoading: false,
+            kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          });
+
+          mockReauthenticate.mockRejectedValueOnce(
+            new Error(
+              'PASSWORD_NOT_SET_WITH_BIOMETRICS: Biometrics not configured',
+            ),
+          );
+
+          // When: component renders and button is pressed
+          render();
+          const button = screen.getByTestId(
+            CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON,
+          );
+          fireEvent.press(button);
+
+          // Then: navigation to password bottom sheet is triggered
+          await waitFor(() => {
+            expect(mockReauthenticate).toHaveBeenCalled();
+          });
+          await waitFor(() => {
+            expect(mockNavigate).toHaveBeenCalledWith(
+              Routes.CARD.MODALS.ID,
+              expect.objectContaining({
+                screen: Routes.CARD.MODALS.PASSWORD,
+                params: expect.objectContaining({
+                  onSuccess: expect.any(Function),
+                }),
+              }),
+            );
+          });
+        });
+
+        it('does not require biometric auth when hiding card details', async () => {
+          // Given: Authenticated user with card details already showing
+          setupMockSelectors({ isAuthenticated: true });
+          setupLoadCardDataMock({
+            isAuthenticated: true,
+            isBaanxLoginEnabled: true,
+            cardDetails: { type: CardType.VIRTUAL },
+            isLoading: false,
+            kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          });
+
+          // Mock hook to return imageUrl (indicating details are showing)
+          (useCardDetailsToken as jest.Mock).mockReturnValueOnce({
+            fetchCardDetailsToken: mockFetchCardDetailsToken,
+            isLoading: false,
+            isImageLoading: false,
+            onImageLoad: mockOnCardDetailsImageLoad,
+            error: null,
+            imageUrl: 'https://example.com/image',
+            clearImageUrl: mockClearCardDetailsImageUrl,
+          });
+
+          // When: component renders and button is pressed to hide details
+          render();
+          const button = screen.getByTestId(
+            CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON,
+          );
+          fireEvent.press(button);
+
+          // Then: clearImageUrl is called without requiring reauthentication
+          await waitFor(() => {
+            expect(mockClearCardDetailsImageUrl).toHaveBeenCalled();
+          });
+          expect(mockReauthenticate).not.toHaveBeenCalled();
         });
       });
     });
@@ -3882,6 +4074,236 @@ describe('CardHome Component', () => {
           },
         );
       });
+    });
+  });
+
+  describe('Push Provisioning Integration', () => {
+    const mockCardDetailsWithHolder = {
+      type: CardType.VIRTUAL,
+      id: 'card-123',
+      holderName: 'John Doe',
+      panLast4: '1234',
+      status: 'ACTIVE',
+      expiryDate: '12/25',
+    };
+
+    const mockUserDetailsForProvisioning = {
+      id: 'user-123',
+      addressLine1: '123 Main St',
+      addressLine2: 'Apt 4B',
+      city: 'New York',
+      zip: '10001',
+      usState: 'NY',
+      mailingAddressLine1: null,
+      mailingAddressLine2: null,
+      mailingCity: null,
+      mailingZip: null,
+      mailingUsState: null,
+    };
+
+    // Helper to get the last call options from the mock
+    const getLastCallOptions = () => {
+      const calls = mockUsePushProvisioning.mock.calls;
+      expect(calls.length).toBeGreaterThan(0);
+      const lastCall = calls[calls.length - 1];
+      return lastCall[0] as Record<string, unknown>;
+    };
+
+    beforeEach(() => {
+      mockUsePushProvisioning.mockClear();
+      mockInitiateProvisioning.mockClear();
+      mockResetProvisioningStatus.mockClear();
+    });
+
+    it('calls usePushProvisioning with cardDetails from card status', async () => {
+      // Given: authenticated user with card details
+      setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        isBaanxLoginEnabled: true,
+        cardDetails: mockCardDetailsWithHolder,
+        isLoading: false,
+        kycStatus: {
+          verificationState: 'VERIFIED',
+          userId: 'user-123',
+          userDetails: mockUserDetailsForProvisioning,
+        },
+      });
+
+      // When: component renders
+      render();
+
+      // Then: usePushProvisioning should be called with memoized cardDetails
+      await waitFor(() => {
+        expect(mockUsePushProvisioning).toHaveBeenCalled();
+      });
+
+      const options = getLastCallOptions();
+
+      // Verify cardDetails is passed correctly
+      expect(options.cardDetails).toEqual({
+        id: 'card-123',
+        holderName: 'John Doe',
+        panLast4: '1234',
+        status: 'ACTIVE',
+        expiryDate: '12/25',
+      });
+    });
+
+    it('passes userAddress derived from physical address', async () => {
+      // Given: US user with physical address
+      setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        isBaanxLoginEnabled: true,
+        cardDetails: mockCardDetailsWithHolder,
+        isLoading: false,
+        kycStatus: {
+          verificationState: 'VERIFIED',
+          userId: 'user-123',
+          userDetails: mockUserDetailsForProvisioning,
+        },
+      });
+
+      // When: component renders
+      render();
+
+      // Then: usePushProvisioning should receive userAddress from physical address
+      await waitFor(() => {
+        expect(mockUsePushProvisioning).toHaveBeenCalled();
+      });
+
+      const options = getLastCallOptions();
+
+      // Verify userAddress uses physical address fields in provisioning format
+      expect(options.userAddress).toEqual({
+        name: 'Card Holder', // Uses default since userDetails doesn't have firstName/lastName
+        addressOne: '123 Main St',
+        addressTwo: 'Apt 4B',
+        locality: 'New York',
+        administrativeArea: 'NY',
+        postalCode: '10001',
+        countryCode: 'US',
+        phoneNumber: '',
+      });
+    });
+
+    it('passes null cardDetails when no card exists', async () => {
+      // Given: authenticated user without card
+      setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        isBaanxLoginEnabled: true,
+        cardDetails: null,
+        isLoading: false,
+        kycStatus: {
+          verificationState: 'VERIFIED',
+          userId: 'user-123',
+          userDetails: mockUserDetailsForProvisioning,
+        },
+      });
+
+      // When: component renders
+      render();
+
+      // Then: cardDetails should be null
+      await waitFor(() => {
+        expect(mockUsePushProvisioning).toHaveBeenCalled();
+      });
+
+      const options = getLastCallOptions();
+
+      expect(options.cardDetails).toBeNull();
+    });
+
+    it('provides onSuccess callback that shows success toast', async () => {
+      // Given: authenticated user with card
+      setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        isBaanxLoginEnabled: true,
+        cardDetails: mockCardDetailsWithHolder,
+        isLoading: false,
+        kycStatus: {
+          verificationState: 'VERIFIED',
+          userId: 'user-123',
+          userDetails: mockUserDetailsForProvisioning,
+        },
+      });
+
+      // When: component renders
+      render();
+
+      await waitFor(() => {
+        expect(mockUsePushProvisioning).toHaveBeenCalled();
+      });
+
+      // Then: onSuccess callback should be provided
+      const options = getLastCallOptions();
+
+      expect(typeof options.onSuccess).toBe('function');
+    });
+
+    it('provides onError callback that shows error toast', async () => {
+      // Given: authenticated user with card
+      setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        isBaanxLoginEnabled: true,
+        cardDetails: mockCardDetailsWithHolder,
+        isLoading: false,
+        kycStatus: {
+          verificationState: 'VERIFIED',
+          userId: 'user-123',
+          userDetails: mockUserDetailsForProvisioning,
+        },
+      });
+
+      // When: component renders
+      render();
+
+      await waitFor(() => {
+        expect(mockUsePushProvisioning).toHaveBeenCalled();
+      });
+
+      // Then: onError callback should be provided
+      const options = getLastCallOptions();
+
+      expect(typeof options.onError).toBe('function');
+    });
+
+    it('uses holderName from cardDetails for provisioning', async () => {
+      // Given: card with holder name from card status API
+      const cardWithHolderName = {
+        ...mockCardDetailsWithHolder,
+        holderName: 'Jane Smith',
+      };
+
+      setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        isBaanxLoginEnabled: true,
+        cardDetails: cardWithHolderName,
+        isLoading: false,
+        kycStatus: {
+          verificationState: 'VERIFIED',
+          userId: 'user-123',
+          userDetails: mockUserDetailsForProvisioning,
+        },
+      });
+
+      // When: component renders
+      render();
+
+      await waitFor(() => {
+        expect(mockUsePushProvisioning).toHaveBeenCalled();
+      });
+
+      // Then: holderName should come from cardDetails
+      const options = getLastCallOptions();
+      const cardDetails = options.cardDetails as { holderName: string };
+
+      expect(cardDetails.holderName).toBe('Jane Smith');
     });
   });
 });

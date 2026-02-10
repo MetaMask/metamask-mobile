@@ -1,12 +1,10 @@
 import type { ControllerMessenger } from '../types';
-import type {
-  AnalyticsTrackingEvent,
-  AnalyticsEventProperties,
-} from '@metamask/analytics-controller';
+import type { AnalyticsTrackingEvent } from '@metamask/analytics-controller';
 import type {
   IMetaMetricsEvent,
   ITrackingEvent,
 } from '../../../core/Analytics/MetaMetrics.types';
+import type { AnalyticsUnfilteredProperties } from '../../../util/analytics/analytics.types';
 import Logger from '../../../util/Logger';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 
@@ -50,16 +48,16 @@ export const trackEvent = (
  *
  * @param initMessenger - The controller init messenger instance
  * @param event - The event name or event object to track
- * @param properties - Optional properties to add to the event (null is treated as empty object)
+ * @param properties - Optional properties to add to the event (undefined values will be filtered out, null is treated as empty object)
  */
 export const buildAndTrackEvent = (
   initMessenger: ControllerMessenger,
   event: string | IMetaMetricsEvent | ITrackingEvent,
-  properties?: AnalyticsEventProperties | null,
+  properties?: AnalyticsUnfilteredProperties,
 ): void => {
   try {
     const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(event)
-      .addProperties((properties || {}) as AnalyticsEventProperties)
+      .addProperties(properties)
       .build();
     trackEvent(initMessenger, analyticsEvent);
   } catch (error) {

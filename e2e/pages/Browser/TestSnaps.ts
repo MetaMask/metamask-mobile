@@ -9,7 +9,7 @@ import {
   TestSnapBottomSheetSelectorWebIDS,
   EntropyDropDownSelectorWebIDS,
   NativeDropdownSelectorWebIDS,
-} from '../../selectors/Browser/TestSnaps.selectors';
+} from '../../../tests/selectors/Browser/TestSnaps.selectors';
 import Gestures from '../../../tests/framework/Gestures';
 import { SNAP_INSTALL_CONNECT } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapConnectionRequest/InstallSnapConnectionRequest.constants';
 import { SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapPermissionsRequest/InstallSnapPermissionsRequest.constants';
@@ -245,7 +245,9 @@ class TestSnaps {
       TestSnapViewSelectorWebIDS[buttonLocator],
     );
     await Gestures.scrollToWebViewPort(webElement);
-    await Gestures.tapWebElement(webElement);
+    await Gestures.tap(webElement, {
+      elemDescription: `tapButton:: ${buttonLocator}`,
+    });
   }
 
   async tapOkButton() {

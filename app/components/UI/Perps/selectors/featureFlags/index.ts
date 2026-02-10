@@ -163,6 +163,25 @@ export const selectPerpsFeedbackEnabledFlag = createSelector(
 );
 
 /**
+ * Selector for Perps Trade With Any Token feature flag
+ * Controls visibility of the deposit flow in PerpsOrderView
+ * When enabled, allows users to trade with any token by depositing first
+ *
+ * @returns boolean - true if trade with any token is enabled, false otherwise
+ */
+export const selectPerpsTradeWithAnyTokenEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag =
+      process.env.MM_PERPS_TRADE_WITH_ANY_TOKEN_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.perpsTradeWithAnyTokenIsEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
  * Selector for Rewards Referral Code feature flag
  * Controls visibility of referral code in PnL hero card
  * Supports both boolean and version-gated JSON flag formats
@@ -187,4 +206,31 @@ export const selectPerpsRewardsReferralCodeEnabledFlag = createSelector(
     const versionGatedFlag = remoteFlag as unknown as VersionGatedFeatureFlag;
     return validatedVersionGatedFeatureFlag(versionGatedFlag) ?? false;
   },
+);
+
+/**
+ * Resolve whether the MYX provider is enabled.
+ * Pure utility so that both the Redux selector and the controller
+ * (which reads RemoteFeatureFlagController state directly) share
+ * the same logic.
+ */
+export function resolvePerpsMyxProviderEnabled(
+  remoteFeatureFlags: Record<string, unknown> | undefined,
+): boolean {
+  const localFlag = process.env.MM_PERPS_MYX_PROVIDER_ENABLED === 'true';
+  const remoteFlag =
+    remoteFeatureFlags?.perpsMyxProviderEnabled as VersionGatedFeatureFlag;
+
+  return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+}
+
+/**
+ * Selector for MYX Provider enabled flag
+ * Controls whether MYX is available as a provider option
+ *
+ * @returns boolean - true if MYX provider should be available, false otherwise
+ */
+export const selectPerpsMYXProviderEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => resolvePerpsMyxProviderEnabled(remoteFeatureFlags),
 );

@@ -13,8 +13,10 @@ export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.batch,
   TransactionType.contractInteraction,
   TransactionType.deployContract,
+  TransactionType.musdClaim,
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
+  TransactionType.perpsDepositAndOrder,
   TransactionType.revokeDelegation,
   TransactionType.simpleSend,
   TransactionType.stakingClaim,
@@ -44,8 +46,10 @@ export const TRANSFER_TRANSACTION_TYPES = [
 ];
 
 export const FULL_SCREEN_CONFIRMATIONS = [
+  TransactionType.musdClaim,
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
+  TransactionType.perpsDepositAndOrder,
   TransactionType.predictDeposit,
   TransactionType.predictClaim,
   TransactionType.predictWithdraw,
@@ -62,3 +66,15 @@ export const EARN_CONTRACT_INTERACTION_TYPES = [
   TransactionType.lendingDeposit,
   TransactionType.lendingWithdraw,
 ];
+
+/**
+ * Transaction types for which the Pay With modal hides the network filter.
+ * Used when pay token selection is constrained to a single network (e.g. Perps).
+ */
+export const HIDE_NETWORK_FILTER_TYPES = [TransactionType.perpsDepositAndOrder];
+
+/**
+ * Transaction types that use user's currency instead of USD for display.
+ * mUSD is a stablecoin pegged to USD, so we convert to user's local currency.
+ */
+export const USER_CURRENCY_TYPES = [TransactionType.musdClaim];

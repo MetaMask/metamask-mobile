@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import { getHeaderCenterNavbarOptions } from '../../../../../component-library/components-temp/HeaderCenter';
+import { getHeaderCompactStandardNavbarOptions } from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { FlatList } from 'react-native-gesture-handler';
 import { NetworkPills } from './NetworkPills';
 import { CaipChainId } from '@metamask/utils';
@@ -54,7 +54,8 @@ import { useTokensWithBalances } from '../../hooks/useTokensWithBalances';
 import { useTokenSelection } from '../../hooks/useTokenSelection';
 import { createStyles } from './BridgeTokenSelector.styles';
 import Engine from '../../../../../core/Engine';
-import { tokenToIncludeAsset } from '../../utils/tokenUtils';
+import { tokenToIncludeAsset, tokenMatchesQuery } from '../../utils/tokenUtils';
+import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 
 export interface BridgeTokenSelectorRouteParams {
   type: TokenSelectorType;
@@ -106,7 +107,7 @@ export const BridgeTokenSelector: React.FC = () => {
   // Set navigation options for header
   useEffect(() => {
     navigation.setOptions(
-      getHeaderCenterNavbarOptions({
+      getHeaderCompactStandardNavbarOptions({
         title: strings('bridge.select_token'),
         onBack: () => navigation.goBack(),
         includesTopInset: true,
@@ -161,35 +162,30 @@ export const BridgeTokenSelector: React.FC = () => {
   const { tokensWithBalance, balancesByAssetId } = useBalancesByAssetId({
     chainIds: chainIdsToFetch,
   });
-  const filteredTokensWithBalance = useMemo(() => {
-    const filteredTokens = tokensWithBalance.filter(
-      (token) => token.balance && parseFloat(token.balance) > 0,
-    );
+  const searchQuery = searchString.trim();
 
-    if (!searchString.trim()) {
-      return filteredTokens;
-    }
-
-    const searchLower = searchString.toLowerCase();
-    return filteredTokens.filter(
-      (token) =>
-        token.name?.toLowerCase().includes(searchLower) ||
-        token.symbol.toLowerCase().includes(searchLower) ||
-        token.address.toLowerCase().includes(searchLower),
-    );
-  }, [tokensWithBalance, searchString]);
+  const filteredTokensWithBalance = useMemo(
+    () =>
+      tokensWithBalance.filter(
+        (token) =>
+          token.balance &&
+          parseFloat(token.balance) > 0 &&
+          tokenMatchesQuery(token, searchQuery),
+      ),
+    [tokensWithBalance, searchQuery],
+  );
 
   // Create includeAssets array from tokens with balance to be sent to API
   // Selected token is prepended to pin it to the top of the list
   // Stringified to avoid triggering the useEffect when only balances change
   const includeAssets = useMemo(() => {
-    // Only include selected token if its network matches the current filter
-    const isSelectedTokenOnFilteredNetwork =
+    // Only include selected token if it matches current network and search filters
+    const shouldPinSelectedToken =
       selectedToken &&
-      chainIdsToFetch.includes(formatChainIdToCaip(selectedToken.chainId));
+      chainIdsToFetch.includes(formatChainIdToCaip(selectedToken.chainId)) &&
+      tokenMatchesQuery(selectedToken, searchQuery);
 
-    // Convert selected token first (will be pinned to top of list)
-    const selectedAsset = isSelectedTokenOnFilteredNetwork
+    const selectedAsset = shouldPinSelectedToken
       ? tokenToIncludeAsset(selectedToken)
       : null;
 
@@ -201,12 +197,10 @@ export const BridgeTokenSelector: React.FC = () => {
           asset !== null && asset.assetId !== selectedAsset?.assetId,
       );
 
-    const assets = selectedAsset
-      ? [selectedAsset, ...balanceAssets]
-      : balanceAssets;
-
-    return JSON.stringify(assets);
-  }, [filteredTokensWithBalance, selectedToken, chainIdsToFetch]);
+    return JSON.stringify(
+      selectedAsset ? [selectedAsset, ...balanceAssets] : balanceAssets,
+    );
+  }, [filteredTokensWithBalance, selectedToken, chainIdsToFetch, searchQuery]);
 
   // Fetch popular tokens
   const { popularTokens, isLoading: isPopularTokensLoading } = usePopularTokens(
@@ -353,7 +347,10 @@ export const BridgeTokenSelector: React.FC = () => {
       );
       const networkName = chainData?.name ?? '';
 
-      navigation.navigate('Asset', { ...item });
+      navigation.navigate('Asset', {
+        ...item,
+        source: TokenDetailsSource.Swap,
+      });
 
       Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
         UnifiedSwapBridgeEventName.AssetDetailTooltipClicked,

@@ -11,6 +11,7 @@ import ConfirmPhoneNumber from '../components/Onboarding/ConfirmPhoneNumber';
 import VerifyIdentity from '../components/Onboarding/VerifyIdentity';
 import VerifyingVeriffKYC from '../components/Onboarding/VerifyingVeriffKYC';
 import KYCFailed from '../components/Onboarding/KYCFailed';
+import KYCPending from '../components/Onboarding/KYCPending';
 import PersonalDetails from '../components/Onboarding/PersonalDetails';
 import PhysicalAddress from '../components/Onboarding/PhysicalAddress';
 import { cardDefaultNavigationOptions, headerStyle } from '.';
@@ -26,6 +27,8 @@ import {
   NavigationProp,
   ParamListBase,
   useNavigation,
+  useRoute,
+  RouteProp,
 } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
 import { View, ActivityIndicator, Alert } from 'react-native';
@@ -33,6 +36,7 @@ import { Box } from '@metamask/design-system-react-native';
 import { useParams } from '../../../../util/navigation/navUtils';
 import { CardUserPhase } from '../types';
 import Complete from '../components/Onboarding/Complete';
+import LockManagerService from '../../../../core/LockManagerService';
 
 const Stack = createStackNavigator();
 
@@ -96,6 +100,13 @@ export const KYCStatusNavigationOptions = ({
   gestureEnabled: false,
 });
 
+// Navigation options for screens that manage their own header (KYC_FAILED, KYC_PENDING)
+// These screens have custom back buttons and don't need the stack navigator header
+export const HeaderlessNavigationOptions: StackNavigationOptions = {
+  headerShown: false,
+  gestureEnabled: false,
+};
+
 const OnboardingNavigator: React.FC = () => {
   const { cardUserPhase } = useParams<{
     cardUserPhase?: CardUserPhase;
@@ -104,7 +115,19 @@ const OnboardingNavigator: React.FC = () => {
   const { user, isLoading, fetchUserData, isReturningSession } = useCardSDK();
   const [isMounted, setIsMounted] = useState(false);
   const navigation = useNavigation();
+  const route =
+    useRoute<
+      RouteProp<
+        { OnboardingNavigator: { screen?: string } },
+        'OnboardingNavigator'
+      >
+    >();
   const hasShownKeepGoingModal = useRef(false);
+
+  // Check if deeplink is navigating directly to Complete screen
+  const isDeeplinkToComplete =
+    route.params?.screen === Routes.CARD.ONBOARDING.COMPLETE;
+
   // Fetch fresh user data on mount if user data is missing
   // This ensures we always have the most up-to-date onboarding information
   // when the navigator is accessed
@@ -117,6 +140,16 @@ const OnboardingNavigator: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run only once on mount
 
+  // Disable auto-lock during Card onboarding flow
+  // This allows users to minimize the app to check personal details
+  // without being locked out and redirected to wallet home
+  useEffect(() => {
+    LockManagerService.stopListening();
+    return () => {
+      LockManagerService.startListening();
+    };
+  }, []);
+
   const initialRouteName = useMemo(() => {
     // Priority 1: Use cardUserPhase if provided (from login response)
     if (cardUserPhase) {
@@ -127,9 +160,26 @@ const OnboardingNavigator: React.FC = () => {
         return Routes.CARD.ONBOARDING.SET_PHONE_NUMBER;
       }
       if (cardUserPhase === 'PERSONAL_INFORMATION') {
-        return Routes.CARD.ONBOARDING.PERSONAL_DETAILS;
+        if (user?.verificationState === 'VERIFIED') {
+          return Routes.CARD.ONBOARDING.PERSONAL_DETAILS;
+        }
+
+        if (user?.verificationState === 'REJECTED') {
+          return Routes.CARD.ONBOARDING.KYC_FAILED;
+        }
+
+        return Routes.CARD.ONBOARDING.VERIFY_IDENTITY;
       }
       if (cardUserPhase === 'PHYSICAL_ADDRESS') {
+        if (user?.verificationState !== 'VERIFIED') {
+          if (user?.verificationState === 'REJECTED') {
+            return Routes.CARD.ONBOARDING.KYC_FAILED;
+          }
+          return Routes.CARD.ONBOARDING.VERIFY_IDENTITY;
+        }
+        if (!user?.countryOfNationality) {
+          return Routes.CARD.ONBOARDING.PERSONAL_DETAILS;
+        }
         return Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS;
       }
     }
@@ -176,12 +226,15 @@ const OnboardingNavigator: React.FC = () => {
   // Show "keep going" modal only when a returning user resumes an incomplete flow
   // isReturningSession is determined at CardSDKProvider mount (when card flow starts),
   // not when this navigator mounts, so it correctly identifies returning users
+  // Skip when deeplink navigates directly to Complete screen (e.g., KYC notification)
   useEffect(() => {
     if (
       isReturningSession &&
       initialRouteName !== Routes.CARD.ONBOARDING.SIGN_UP &&
+      initialRouteName !== Routes.CARD.ONBOARDING.COMPLETE &&
       !hasShownKeepGoingModal.current &&
-      user?.verificationState !== 'REJECTED'
+      user?.verificationState !== 'REJECTED' &&
+      !isDeeplinkToComplete
     ) {
       hasShownKeepGoingModal.current = true;
       navigation.navigate(Routes.CARD.MODALS.ID, {
@@ -204,6 +257,7 @@ const OnboardingNavigator: React.FC = () => {
     initialRouteName,
     navigation,
     user?.verificationState,
+    isDeeplinkToComplete,
   ]);
 
   if (isLoading && !user) {
@@ -269,7 +323,12 @@ const OnboardingNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.KYC_FAILED}
         component={KYCFailed}
-        options={KYCStatusNavigationOptions}
+        options={HeaderlessNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.ONBOARDING.KYC_PENDING}
+        component={KYCPending}
+        options={HeaderlessNavigationOptions}
       />
     </Stack.Navigator>
   );

@@ -42,9 +42,9 @@ class AlertSystem {
     return Matchers.getElementByID(AlertModalSelectorsIDs.ALERT_MODAL_CHECKBOX);
   }
 
-  get gotItAlertModalButton(): DetoxElement {
+  get acknowledgeAlertModalButton(): DetoxElement {
     return Matchers.getElementByID(
-      AlertModalSelectorsIDs.ALERT_MODAL_GOT_IT_BUTTON,
+      AlertModalSelectorsIDs.ALERT_MODAL_ACKNOWLEDGE_BUTTON,
     );
   }
 
@@ -84,9 +84,9 @@ class AlertSystem {
     });
   }
 
-  async tapGotItAlertModalButton(): Promise<void> {
-    await Gestures.waitAndTap(this.gotItAlertModalButton, {
-      elemDescription: 'Got it alert modal button',
+  async tapAcknowledgeAlertModalButton(): Promise<void> {
+    await Gestures.waitAndTap(this.acknowledgeAlertModalButton, {
+      elemDescription: 'Acknowledge alert modal button',
     });
   }
 

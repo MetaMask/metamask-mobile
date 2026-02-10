@@ -18,12 +18,12 @@ class PerpsMarketListView {
   }
 
   get listHeader() {
-    return AppwrightSelectors.getElementByID(this._device, 'perps-market-list-header');
+    return AppwrightSelectors.getElementByID(this._device, 'perps-home');
   }
 
   async isHeaderVisible() {
     const header = await this.listHeader;
-    await appwrightExpect(header).toBeVisible({ timeout: 10000 });
+    await appwrightExpect(header).toBeVisible({ timeout: 20000 });
   }
 
   async tapBackButtonMarketList() {

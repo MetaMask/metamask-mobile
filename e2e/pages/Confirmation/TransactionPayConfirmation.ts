@@ -66,6 +66,11 @@ class TransactionPayConfirmation {
     }
   }
 
+  async enterAmountAndContinue(amount: string): Promise<void> {
+    await this.tapKeyboardAmount(amount);
+    await this.tapKeyboardContinueButton();
+  }
+
   async verifyBridgeTime(time: string): Promise<void> {
     await Assertions.expectElementToHaveText(this.bridgeTime, time, {
       description: 'Bridge time should be correct',

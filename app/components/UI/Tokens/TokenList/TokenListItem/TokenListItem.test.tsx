@@ -19,8 +19,12 @@ import { strings } from '../../../../../../locales/i18n';
 
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 import { useMusdConversionEligibility } from '../../../Earn/hooks/useMusdConversionEligibility';
-import { selectIsMusdConversionFlowEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import {
+  selectIsMusdConversionFlowEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../../Earn/selectors/featureFlags';
 import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
+import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 
 jest.mock('../../../Stake/components/StakeButton', () => ({
   __esModule: true,
@@ -83,9 +87,25 @@ jest.mock('../../hooks/useTokenPricePercentageChange', () => ({
   useTokenPricePercentageChange: jest.fn(),
 }));
 
+interface MockEarnToken {
+  balanceFiatNumber?: number;
+  experience?: {
+    type?: EARN_EXPERIENCES;
+  };
+}
+
+const mockGetEarnToken: jest.MockedFunction<
+  (token: TokenI) => MockEarnToken | undefined
+> = jest.fn();
+
 jest.mock('../../../Earn/hooks/useEarnTokens', () => ({
   __esModule: true,
-  default: () => ({ getEarnToken: jest.fn() }),
+  default: () => ({ getEarnToken: mockGetEarnToken }),
+}));
+
+const mockHandleStablecoinLendingRedirect = jest.fn();
+jest.mock('../../../Earn/hooks/useStablecoinLendingRedirect', () => ({
+  useStablecoinLendingRedirect: () => mockHandleStablecoinLendingRedirect,
 }));
 
 const mockInitiateConversion = jest.fn();
@@ -160,6 +180,11 @@ jest.mock('../../../Earn/selectors/featureFlags', () => ({
 const mockSelectIsMusdConversionFlowEnabledFlag =
   selectIsMusdConversionFlowEnabledFlag as jest.MockedFunction<
     typeof selectIsMusdConversionFlowEnabledFlag
+  >;
+
+const mockSelectStablecoinLendingEnabledFlag =
+  selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+    typeof selectStablecoinLendingEnabledFlag
   >;
 
 jest.mock('../../util/deriveBalanceFromAssetMarketDetails', () => ({
@@ -286,6 +311,8 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     isTokenWithCta?: boolean;
     isGeoEligible?: boolean;
     isStockToken?: boolean;
+    isStablecoinLendingEnabled?: boolean;
+    earnToken?: MockEarnToken;
   }
 
   function prepareMocks({
@@ -295,8 +322,15 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     isTokenWithCta = false,
     isGeoEligible = true,
     isStockToken = false,
+    isStablecoinLendingEnabled = false,
+    earnToken,
   }: PrepareMocksOptions = {}) {
     jest.clearAllMocks();
+
+    mockGetEarnToken.mockReturnValue(earnToken);
+    mockSelectStablecoinLendingEnabledFlag.mockReturnValue(
+      isStablecoinLendingEnabled,
+    );
 
     // Stock token mocks
     mockIsStockToken.mockReturnValue(isStockToken);
@@ -318,6 +352,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     );
     mockUseMusdConversionTokens.mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(false),
+      hasConvertibleTokensByChainId: jest.fn().mockReturnValue(false),
       filterAllowedTokens: jest.fn(),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       tokens: [],
@@ -338,6 +373,10 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
         if (selector === selectIsMusdConversionFlowEnabledFlag) {
           return isMusdConversionEnabled;
+        }
+
+        if (selector === selectStablecoinLendingEnabledFlag) {
+          return isStablecoinLendingEnabled;
         }
 
         const selectorString = selector.toString();
@@ -400,6 +439,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -428,6 +468,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -455,6 +496,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -479,6 +521,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -503,6 +546,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -528,6 +572,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -571,6 +616,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -591,6 +637,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -618,6 +665,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           assetKey={defaultAssetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -640,6 +688,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -660,6 +709,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -699,6 +749,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           assetKey={convertAssetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -759,6 +810,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           assetKey={convertAssetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -828,6 +880,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -847,6 +900,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -866,6 +920,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -889,6 +944,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -907,6 +963,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -928,6 +985,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -953,11 +1011,148 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
 
       expect(queryByTestId('stock-badge')).toBeNull();
+    });
+  });
+
+  describe('Stablecoin lending Earn CTA threshold', () => {
+    const assetKey: FlashListAssetKey = {
+      address: '0x456',
+      chainId: '0x1',
+      isStaked: false,
+    };
+
+    it('renders percentage change when stablecoin lending Earn CTA balance is below minimum', () => {
+      // Arrange
+      prepareMocks({
+        asset: { ...defaultAsset, balance: '0.009' },
+        pricePercentChange1d: 1.23,
+        isStablecoinLendingEnabled: true,
+        earnToken: {
+          balanceFiatNumber: 0.009,
+          experience: { type: EARN_EXPERIENCES.STABLECOIN_LENDING },
+        },
+      });
+
+      // Act
+      const { getByText, queryByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
+          privacyMode={false}
+        />,
+      );
+
+      // Assert
+      expect(getByText('+1.23%')).toBeOnTheScreen();
+      expect(queryByText(strings('stake.earn'))).toBeNull();
+    });
+
+    it('renders Earn CTA when stablecoin lending is enabled and balance meets minimum', () => {
+      // Arrange
+      prepareMocks({
+        asset: { ...defaultAsset, balance: '0.01' },
+        pricePercentChange1d: 1.23,
+        isStablecoinLendingEnabled: true,
+        earnToken: {
+          balanceFiatNumber: 0.01,
+          experience: { type: EARN_EXPERIENCES.STABLECOIN_LENDING },
+        },
+      });
+
+      // Act
+      const { getByText, queryByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
+          privacyMode={false}
+        />,
+      );
+
+      // Assert
+      expect(getByText(strings('stake.earn'))).toBeOnTheScreen();
+      expect(queryByText('+1.23%')).toBeNull();
+    });
+  });
+
+  describe('mUSD Token Long Press', () => {
+    const musdAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+    const musdAsset = {
+      ...defaultAsset,
+      address: musdAddress,
+      symbol: 'mUSD',
+      name: 'MetaMask USD',
+      isNative: false,
+    };
+
+    const musdAssetKey: FlashListAssetKey = {
+      address: musdAddress,
+      chainId: '0x1',
+      isStaked: false,
+    };
+
+    it('does not call showRemoveMenu on long press for mUSD token', () => {
+      prepareMocks({
+        asset: musdAsset,
+      });
+
+      const mockShowRemoveMenu = jest.fn();
+      const { getByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={musdAssetKey}
+          showRemoveMenu={mockShowRemoveMenu}
+          setShowScamWarningModal={jest.fn()}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
+          privacyMode={false}
+        />,
+      );
+
+      const tokenElement = getByText('MetaMask USD');
+      fireEvent(tokenElement, 'longPress');
+
+      expect(mockShowRemoveMenu).not.toHaveBeenCalled();
+    });
+
+    it('calls showRemoveMenu on long press for non-mUSD token', () => {
+      prepareMocks({
+        asset: defaultAsset,
+      });
+
+      const mockShowRemoveMenu = jest.fn();
+      const assetKey: FlashListAssetKey = {
+        address: '0x456',
+        chainId: '0x1',
+        isStaked: false,
+      };
+
+      const { getByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={mockShowRemoveMenu}
+          setShowScamWarningModal={jest.fn()}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
+          privacyMode={false}
+        />,
+      );
+
+      const tokenElement = getByText('Test Token');
+      fireEvent(tokenElement, 'longPress');
+
+      expect(mockShowRemoveMenu).toHaveBeenCalledWith(
+        expect.objectContaining({
+          address: '0x456',
+          symbol: 'TEST',
+        }),
+      );
     });
   });
 });

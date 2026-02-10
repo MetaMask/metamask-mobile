@@ -45,7 +45,7 @@ import { SettingsViewSelectorsIDs } from '../../Views/Settings/SettingsView.test
 import HeaderBase, {
   HeaderBaseVariant,
 } from '../../../component-library/components/HeaderBase';
-import getHeaderCenterNavbarOptions from '../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
+import getHeaderCompactStandardNavbarOptions from '../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
@@ -866,6 +866,7 @@ export function getWalletNavbarOptions(
     },
     actionButtonsContainer: {
       flexDirection: 'row',
+      gap: 8,
     },
     // Minimum 44px touch area for accessibility
     touchAreaSlop: {
@@ -995,10 +996,7 @@ export function getWalletNavbarOptions(
                 <View
                   testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
                 >
-                  <AddressCopy
-                    account={selectedInternalAccount}
-                    hitSlop={innerStyles.touchAreaSlop}
-                  />
+                  <AddressCopy hitSlop={innerStyles.touchAreaSlop} />
                 </View>
                 {shouldDisplayCardButton && (
                   <CardButton
@@ -1010,7 +1008,7 @@ export function getWalletNavbarOptions(
                   iconProps={{ color: MMDSIconColor.Default }}
                   onPress={openQRScanner}
                   iconName={IconName.QrCode}
-                  size={ButtonIconSize.Lg}
+                  size={ButtonIconSize.Md}
                   testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
                   hitSlop={innerStyles.touchAreaSlop}
                 />
@@ -1030,7 +1028,7 @@ export function getWalletNavbarOptions(
                       iconProps={{ color: MMDSIconColor.Default }}
                       onPress={handleNotificationOnPress}
                       iconName={IconName.Notification}
-                      size={ButtonIconSize.Lg}
+                      size={ButtonIconSize.Md}
                       testID={
                         WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON
                       }
@@ -1042,7 +1040,7 @@ export function getWalletNavbarOptions(
                   iconProps={{ color: MMDSIconColor.Default }}
                   onPress={handleHamburgerPress}
                   iconName={IconName.Menu}
-                  size={ButtonIconSize.Lg}
+                  size={ButtonIconSize.Md}
                   testID="navbar-hamburger-menu-button"
                   hitSlop={innerStyles.touchAreaSlop}
                 />
@@ -1581,7 +1579,7 @@ export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
     title = strings('swaps.title');
   }
 
-  return getHeaderCenterNavbarOptions({
+  return getHeaderCompactStandardNavbarOptions({
     title,
     onClose: () => navigation.dangerouslyGetParent()?.pop(),
     includesTopInset: true,
@@ -1589,26 +1587,6 @@ export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
 }
 
 export function getBridgeTransactionDetailsNavbar(navigation) {
-  const leftAction = () => navigation.pop();
-
-  return {
-    headerTitle: () => (
-      <NavbarTitle
-        title={strings('bridge_transaction_details.transaction_details')}
-        disableNetwork
-        showSelectedNetwork={false}
-        translate={false}
-      />
-    ),
-    headerLeft: () => (
-      <TouchableOpacity onPress={leftAction} style={styles.backButton}>
-        <Icon name={IconName.ArrowLeft} />
-      </TouchableOpacity>
-    ),
-  };
-}
-
-export function getMusdConversionTransactionDetailsNavbar(navigation) {
   const leftAction = () => navigation.pop();
 
   return {
@@ -1738,7 +1716,7 @@ export function getDepositNavbarOptions(
     };
   }
 
-  return getHeaderCenterNavbarOptions({
+  return getHeaderCompactStandardNavbarOptions({
     title,
     startButtonIconProps,
     closeButtonProps,

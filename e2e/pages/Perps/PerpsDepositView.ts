@@ -13,9 +13,11 @@ class PerpsDepositView {
     return Matchers.getElementByText('Continue');
   }
 
-  // Add funds button on review screen
-  get addFundsByText(): DetoxElement {
-    return Matchers.getElementByText('Add funds', 1);
+  // Add funds (confirm) button on review screen. Uses testID for reliability:
+  // the confirmation screen shows at most one "Add funds" (ConfirmButton);
+  // index 1 was failing when no second "Add funds" existed in the hierarchy.
+  get confirmButton(): DetoxElement {
+    return Matchers.getElementByID('confirm-button');
   }
 
   // Pay with row (open selector)
@@ -76,8 +78,8 @@ class PerpsDepositView {
   }
 
   async tapAddFunds(): Promise<void> {
-    await Gestures.waitAndTap(this.addFundsByText, {
-      elemDescription: 'Add funds',
+    await Gestures.waitAndTap(this.confirmButton, {
+      elemDescription: 'Add funds (confirm)',
     });
   }
 }

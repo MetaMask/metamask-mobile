@@ -63,6 +63,23 @@ export const getDefaultDestToken = (
 };
 
 /**
+ * Checks if a token matches a search query by name, symbol, or address.
+ * Returns true if no query is provided.
+ */
+export const tokenMatchesQuery = (
+  token: BridgeToken,
+  query: string,
+): boolean => {
+  if (!query) return true;
+  const lowerQuery = query.toLowerCase();
+  return (
+    token.name?.toLowerCase().includes(lowerQuery) ||
+    token.symbol.toLowerCase().includes(lowerQuery) ||
+    token.address.toLowerCase().includes(lowerQuery)
+  );
+};
+
+/**
  * Converts a BridgeToken to IncludeAsset format for the API.
  * Returns null if the token cannot be converted (invalid assetId).
  */

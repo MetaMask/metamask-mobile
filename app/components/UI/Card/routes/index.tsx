@@ -21,6 +21,7 @@ import { useSelector } from 'react-redux';
 import { withCardSDK } from '../sdk';
 import AddFundsBottomSheet from '../components/AddFundsBottomSheet/AddFundsBottomSheet';
 import AssetSelectionBottomSheet from '../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
+import PasswordBottomSheet from '../components/PasswordBottomSheet';
 import { colors } from '../../../../styles/common';
 import RegionSelectorModal from '../components/Onboarding/RegionSelectorModal';
 import ConfirmModal from '../components/Onboarding/ConfirmModal';
@@ -94,7 +95,12 @@ export const cardSpendingLimitNavigationOptions = ({
           style={headerStyle.icon}
           size={ButtonIconSize.Md}
           iconName={IconName.Close}
-          onPress={() => navigation.navigate(Routes.CARD.HOME)}
+          onPress={() =>
+            navigation.reset({
+              index: 0,
+              routes: [{ name: Routes.CARD.HOME }],
+            })
+          }
         />
       ) : (
         <View />
@@ -206,6 +212,10 @@ const CardModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.CONFIRM_MODAL}
       component={ConfirmModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.PASSWORD}
+      component={PasswordBottomSheet}
     />
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.RECURRING_FEE}

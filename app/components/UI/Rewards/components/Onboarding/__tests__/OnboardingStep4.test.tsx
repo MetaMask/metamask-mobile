@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react-native';
+import { screen, fireEvent } from '@testing-library/react-native';
 import { renderWithProviders } from '../testUtils';
 import OnboardingStep4 from '../OnboardingStep4';
 
@@ -230,20 +230,60 @@ jest.mock('../../../../../../reducers/rewards/selectors', () => ({
   selectOnboardingReferralCode: jest.fn(() => null),
 }));
 
+// Mock Checkbox component
+jest.mock('../../../../../../component-library/components/Checkbox', () => {
+  const ReactActual = jest.requireActual('react');
+  const { TouchableOpacity, View } = jest.requireActual('react-native');
+
+  return {
+    __esModule: true,
+    default: ({
+      isChecked,
+      onPress,
+      isDisabled,
+      label,
+      testID,
+    }: {
+      isChecked?: boolean;
+      onPress?: () => void;
+      isDisabled?: boolean;
+      label?: React.ReactNode;
+      testID?: string;
+    }) =>
+      ReactActual.createElement(
+        TouchableOpacity,
+        {
+          testID: testID || 'checkbox',
+          onPress,
+          disabled: isDisabled,
+          accessibilityState: { checked: isChecked },
+        },
+        ReactActual.createElement(
+          View,
+          { testID: `${testID || 'checkbox'}-indicator` },
+          isChecked ? '✓' : '',
+        ),
+        label,
+      ),
+  };
+});
+
 // Mock OnboardingStepComponent
 jest.mock('../OnboardingStep', () => {
   const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
+  const { View, TouchableOpacity } = jest.requireActual('react-native');
 
   return {
     __esModule: true,
     default: ({
       renderStepInfo,
       nextButtonAlternative,
+      onNext,
       ...props
     }: {
       renderStepInfo: () => React.ReactElement;
       nextButtonAlternative: () => React.ReactElement;
+      onNext?: () => void;
       [key: string]: unknown;
     }) =>
       ReactActual.createElement(
@@ -251,6 +291,15 @@ jest.mock('../OnboardingStep', () => {
         { testID: 'onboarding-step-container', ...props },
         renderStepInfo?.(),
         nextButtonAlternative?.(),
+        onNext &&
+          ReactActual.createElement(
+            TouchableOpacity,
+            {
+              testID: 'mock-next-button',
+              onPress: onNext,
+            },
+            ReactActual.createElement(View, {}, 'Next'),
+          ),
       ),
   };
 });
@@ -337,6 +386,14 @@ describe('OnboardingStep4', () => {
 
       // Verify that navigation buttons are rendered in the component
       expect(screen.getByTestId('onboarding-step-container')).toBeDefined();
+    });
+
+    it('renders bulk link checkbox', () => {
+      renderWithProviders(<OnboardingStep4 />);
+
+      expect(
+        screen.getByText('mocked_rewards.onboarding.step4_bulk_link_checkbox'),
+      ).toBeDefined();
     });
   });
 
@@ -846,6 +903,203 @@ describe('OnboardingStep4', () => {
       expect(container).toBeDefined();
       // The optin function is ready to be called with isPrefilled: false
       expect(mockOptin).toBeDefined();
+    });
+  });
+
+  describe('bulk link checkbox', () => {
+    it('renders checkbox with unchecked state by default', () => {
+      renderWithProviders(<OnboardingStep4 />);
+
+      const checkbox = screen.getByTestId('checkbox');
+      expect(checkbox).toBeDefined();
+      expect(checkbox.props.accessibilityState.checked).toBe(false);
+    });
+
+    it('toggles checkbox when pressed', () => {
+      renderWithProviders(<OnboardingStep4 />);
+
+      const checkbox = screen.getByTestId('checkbox');
+      expect(checkbox.props.accessibilityState.checked).toBe(false);
+
+      fireEvent.press(checkbox);
+
+      // After toggle, checkbox should be checked
+      const updatedCheckbox = screen.getByTestId('checkbox');
+      expect(updatedCheckbox.props.accessibilityState.checked).toBe(true);
+    });
+
+    it('disables checkbox when optin is loading', () => {
+      mockUseOptin.mockReturnValue({
+        optin: jest.fn(),
+        optinError: null,
+        optinLoading: true,
+        clearOptinError: jest.fn(),
+      });
+
+      renderWithProviders(<OnboardingStep4 />);
+
+      const checkbox = screen.getByTestId('checkbox');
+      expect(checkbox.props.disabled).toBe(true);
+    });
+
+    it('enables checkbox when optin is not loading', () => {
+      mockUseOptin.mockReturnValue({
+        optin: jest.fn(),
+        optinError: null,
+        optinLoading: false,
+        clearOptinError: jest.fn(),
+      });
+
+      renderWithProviders(<OnboardingStep4 />);
+
+      const checkbox = screen.getByTestId('checkbox');
+      expect(checkbox.props.disabled).toBe(false);
+    });
+
+    it('calls optin with bulkLink true when checkbox is checked and next is pressed', () => {
+      const mockOptin = jest.fn();
+
+      mockUseOptin.mockReturnValue({
+        optin: mockOptin,
+        optinError: null,
+        optinLoading: false,
+        clearOptinError: jest.fn(),
+      });
+
+      mockUseValidateReferralCode.mockReturnValue({
+        referralCode: '',
+        setReferralCode: jest.fn(),
+        isValidating: false,
+        isValid: true,
+        isUnknownError: false,
+        validateCode: jest.fn(),
+      });
+
+      renderWithProviders(<OnboardingStep4 />);
+
+      // Check the checkbox
+      const checkbox = screen.getByTestId('checkbox');
+      fireEvent.press(checkbox);
+
+      // Press next button
+      const nextButton = screen.getByTestId('mock-next-button');
+      fireEvent.press(nextButton);
+
+      // Verify optin was called with bulkLink: true
+      expect(mockOptin).toHaveBeenCalledWith({
+        referralCode: '',
+        isPrefilled: false,
+        bulkLink: true,
+      });
+    });
+
+    it('calls optin with bulkLink false when checkbox is unchecked and next is pressed', () => {
+      const mockOptin = jest.fn();
+
+      mockUseOptin.mockReturnValue({
+        optin: mockOptin,
+        optinError: null,
+        optinLoading: false,
+        clearOptinError: jest.fn(),
+      });
+
+      mockUseValidateReferralCode.mockReturnValue({
+        referralCode: '',
+        setReferralCode: jest.fn(),
+        isValidating: false,
+        isValid: true,
+        isUnknownError: false,
+        validateCode: jest.fn(),
+      });
+
+      renderWithProviders(<OnboardingStep4 />);
+
+      // Press next button without checking checkbox
+      const nextButton = screen.getByTestId('mock-next-button');
+      fireEvent.press(nextButton);
+
+      // Verify optin was called with bulkLink: false
+      expect(mockOptin).toHaveBeenCalledWith({
+        referralCode: '',
+        isPrefilled: false,
+        bulkLink: false,
+      });
+    });
+
+    it('calls optin with bulkLink true and referral code when both are provided', () => {
+      const mockOptin = jest.fn();
+
+      mockUseOptin.mockReturnValue({
+        optin: mockOptin,
+        optinError: null,
+        optinLoading: false,
+        clearOptinError: jest.fn(),
+      });
+
+      mockUseValidateReferralCode.mockReturnValue({
+        referralCode: 'VALID123',
+        setReferralCode: jest.fn(),
+        isValidating: false,
+        isValid: true,
+        isUnknownError: false,
+        validateCode: jest.fn(),
+      });
+
+      renderWithProviders(<OnboardingStep4 />);
+
+      // Check the checkbox
+      const checkbox = screen.getByTestId('checkbox');
+      fireEvent.press(checkbox);
+
+      // Press next button
+      const nextButton = screen.getByTestId('mock-next-button');
+      fireEvent.press(nextButton);
+
+      // Verify optin was called with both referral code and bulkLink
+      expect(mockOptin).toHaveBeenCalledWith({
+        referralCode: 'VALID123',
+        isPrefilled: false,
+        bulkLink: true,
+      });
+    });
+
+    it('calls optin with bulkLink true and isPrefilled true when referral code is prefilled', () => {
+      const mockOptin = jest.fn();
+
+      mockSelectOnboardingReferralCode.mockReturnValue('PREFILLED');
+
+      mockUseOptin.mockReturnValue({
+        optin: mockOptin,
+        optinError: null,
+        optinLoading: false,
+        clearOptinError: jest.fn(),
+      });
+
+      mockUseValidateReferralCode.mockReturnValue({
+        referralCode: 'PREFILLED',
+        setReferralCode: jest.fn(),
+        isValidating: false,
+        isValid: true,
+        isUnknownError: false,
+        validateCode: jest.fn(),
+      });
+
+      renderWithProviders(<OnboardingStep4 />);
+
+      // Check the checkbox
+      const checkbox = screen.getByTestId('checkbox');
+      fireEvent.press(checkbox);
+
+      // Press next button
+      const nextButton = screen.getByTestId('mock-next-button');
+      fireEvent.press(nextButton);
+
+      // Verify optin was called with isPrefilled: true and bulkLink: true
+      expect(mockOptin).toHaveBeenCalledWith({
+        referralCode: 'PREFILLED',
+        isPrefilled: true,
+        bulkLink: true,
+      });
     });
   });
 
