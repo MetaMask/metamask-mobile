@@ -122,6 +122,10 @@ export interface RampsRegion {
   emoji: string;
   id: string;
   name: string;
+  countryName: string;
+  countryIsoCode: string;
+  stateName?: string;
+  stateIsoCode?: string;
   support: { buy: boolean; sell: boolean; recurringBuy: boolean };
   unsupported: boolean;
   recommended: boolean;
