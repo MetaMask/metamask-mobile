@@ -693,10 +693,12 @@ describe('PhysicalAddress Component', () => {
       fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
       fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
       fireEvent.changeText(getByTestId('zip-code-input'), '12345');
-      // Check the electronic consent checkbox
+      // Check all consent checkboxes (required for US users)
       fireEvent.press(
         getByTestId('physical-address-electronic-consent-checkbox'),
       );
+      fireEvent.press(getByTestId('physical-address-coinme-terms-checkbox'));
+      fireEvent.press(getByTestId('physical-address-crb-consent-checkbox'));
 
       // Wait for state updates
       await new Promise((resolve) => setTimeout(resolve, 50));
@@ -808,6 +810,8 @@ describe('PhysicalAddress Component', () => {
       fireEvent.press(
         getByTestId('physical-address-electronic-consent-checkbox'),
       );
+      fireEvent.press(getByTestId('physical-address-coinme-terms-checkbox'));
+      fireEvent.press(getByTestId('physical-address-crb-consent-checkbox'));
 
       await waitFor(() => {
         const button = getByTestId('physical-address-continue-button');
@@ -930,6 +934,8 @@ describe('PhysicalAddress Component', () => {
       fireEvent.press(
         getByTestId('physical-address-electronic-consent-checkbox'),
       );
+      fireEvent.press(getByTestId('physical-address-coinme-terms-checkbox'));
+      fireEvent.press(getByTestId('physical-address-crb-consent-checkbox'));
 
       await waitFor(() => {
         const button = getByTestId('physical-address-continue-button');
@@ -1037,6 +1043,8 @@ describe('PhysicalAddress Component', () => {
       fireEvent.press(
         getByTestId('physical-address-electronic-consent-checkbox'),
       );
+      fireEvent.press(getByTestId('physical-address-coinme-terms-checkbox'));
+      fireEvent.press(getByTestId('physical-address-crb-consent-checkbox'));
 
       await waitFor(() => {
         const button = getByTestId('physical-address-continue-button');
@@ -1126,6 +1134,8 @@ describe('PhysicalAddress Component', () => {
       fireEvent.press(
         getByTestId('physical-address-electronic-consent-checkbox'),
       );
+      fireEvent.press(getByTestId('physical-address-coinme-terms-checkbox'));
+      fireEvent.press(getByTestId('physical-address-crb-consent-checkbox'));
 
       await waitFor(() => {
         const button = getByTestId('physical-address-continue-button');
@@ -1227,6 +1237,8 @@ describe('PhysicalAddress Component', () => {
       fireEvent.press(
         getByTestId('physical-address-electronic-consent-checkbox'),
       );
+      fireEvent.press(getByTestId('physical-address-coinme-terms-checkbox'));
+      fireEvent.press(getByTestId('physical-address-crb-consent-checkbox'));
 
       await waitFor(() => {
         const button = getByTestId('physical-address-continue-button');
@@ -1591,14 +1603,16 @@ describe('PhysicalAddress Component', () => {
       fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
       fireEvent.changeText(getByTestId('zip-code-input'), '12345');
 
-      // Button should be disabled without checkbox
+      // Button should be disabled without checkboxes
       const buttonBefore = getByTestId('physical-address-continue-button');
       expect(buttonBefore.props.disabled).toBe(true);
 
-      // Check the checkbox
+      // Check all consent checkboxes (required for US users)
       fireEvent.press(
         getByTestId('physical-address-electronic-consent-checkbox'),
       );
+      fireEvent.press(getByTestId('physical-address-coinme-terms-checkbox'));
+      fireEvent.press(getByTestId('physical-address-crb-consent-checkbox'));
 
       await waitFor(() => {
         const buttonAfter = getByTestId('physical-address-continue-button');
