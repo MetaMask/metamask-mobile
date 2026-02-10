@@ -1,19 +1,19 @@
-import { loginToApp } from '../../../../e2e/viewHelper';
-import TestHelpers from '../../../../e2e/helpers.js';
+import { loginToApp } from '../../../flows/wallet.flow';
+import TestHelpers from '../../../helpers.js';
 import Assertions from '../../../framework/Assertions';
-import { SmokeIdentity } from '../../../../e2e/tags.js';
+import { SmokeIdentity } from '../../../tags.js';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { withIdentityFixtures } from '../utils/withIdentityFixtures';
 import { arrangeTestUtils } from '../utils/helpers';
 import { UserStorageMockttpController } from '../utils/user-storage/userStorageMockttpController';
-import SettingsView from '../../../../e2e/pages/Settings/SettingsView';
-import BackupAndSyncView from '../../../../e2e/pages/Settings/BackupAndSyncView';
+import SettingsView from '../../../page-objects/Settings/SettingsView';
+import BackupAndSyncView from '../../../page-objects/Settings/BackupAndSyncView';
 import { createUserStorageController } from '../utils/mocks';
-import ContactsView from '../../../../e2e/pages/Settings/Contacts/ContactsView';
-import AddContactView from '../../../../e2e/pages/Settings/Contacts/AddContactView';
-import CommonView from '../../../../e2e/pages/CommonView';
-import WalletView from '../../../../e2e/pages/wallet/WalletView';
-import AccountMenu from '../../../../e2e/pages/wallet/AccountMenu';
+import ContactsView from '../../../page-objects/Settings/Contacts/ContactsView';
+import AddContactView from '../../../page-objects/Settings/Contacts/AddContactView';
+import CommonView from '../../../page-objects/CommonView';
+import WalletView from '../../../page-objects/wallet/WalletView';
+import AccountMenu from '../../../page-objects/AccountMenu/AccountMenu';
 
 describe(SmokeIdentity('Contacts syncing - Settings'), () => {
   let sharedUserStorageController: UserStorageMockttpController;

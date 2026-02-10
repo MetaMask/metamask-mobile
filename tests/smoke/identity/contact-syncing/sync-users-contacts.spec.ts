@@ -1,18 +1,18 @@
 // We are using a wrapped `withFixtures` - `withIdentityFixtures`
 // eslint-disable-next-line no-restricted-syntax
-import { loginToApp } from '../../../../e2e/viewHelper';
-import TestHelpers from '../../../../e2e/helpers';
-import { SmokeIdentity } from '../../../../e2e/tags';
-import ContactsView from '../../../../e2e/pages/Settings/Contacts/ContactsView';
-import AddContactView from '../../../../e2e/pages/Settings/Contacts/AddContactView';
+import { loginToApp } from '../../../flows/wallet.flow';
+import TestHelpers from '../../../helpers';
+import { SmokeIdentity } from '../../../tags';
+import ContactsView from '../../../page-objects/Settings/Contacts/ContactsView';
+import AddContactView from '../../../page-objects/Settings/Contacts/AddContactView';
 import Assertions from '../../../framework/Assertions';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { arrangeTestUtils } from '../utils/helpers';
 import { withIdentityFixtures } from '../utils/withIdentityFixtures';
 import { UserStorageMockttpController } from '../utils/user-storage/userStorageMockttpController';
 import { createUserStorageController } from '../utils/mocks';
-import WalletView from '../../../../e2e/pages/wallet/WalletView';
-import AccountMenu from '../../../../e2e/pages/wallet/AccountMenu';
+import WalletView from '../../../page-objects/wallet/WalletView';
+import AccountMenu from '../../../page-objects/AccountMenu/AccountMenu';
 
 describe(SmokeIdentity('Contact syncing - syncs new contacts'), () => {
   const NEW_CONTACT_NAME = 'New Test Contact';

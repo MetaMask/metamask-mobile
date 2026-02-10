@@ -1,14 +1,14 @@
-import { loginToApp } from '../../../e2e/viewHelper';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import FundActionMenu from '../../../e2e/pages/UI/FundActionMenu';
+import { loginToApp } from '../../flows/wallet.flow';
+import WalletView from '../../page-objects/wallet/WalletView';
+import FundActionMenu from '../../page-objects/UI/FundActionMenu';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { CustomNetworks } from '../../resources/networks.e2e';
-import { SmokeTrade } from '../../../e2e/tags';
+import { SmokeTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
-import BuildQuoteView from '../../../e2e/pages/Ramps/BuildQuoteView';
-import BuyGetStartedView from '../../../e2e/pages/Ramps/BuyGetStartedView';
-import QuotesView from '../../../e2e/pages/Ramps/QuotesView';
+import BuildQuoteView from '../../page-objects/Ramps/BuildQuoteView';
+import BuyGetStartedView from '../../page-objects/Ramps/BuyGetStartedView';
+import QuotesView from '../../page-objects/Ramps/QuotesView';
 import SoftAssert from '../../framework/SoftAssert';
 import {
   EventPayload,
