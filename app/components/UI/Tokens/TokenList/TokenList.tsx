@@ -28,7 +28,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
-import { useMusdCtaVisibility } from '../../Earn/hooks/useMusdCtaVisibility';
 import { SCROLL_TO_TOKEN_EVENT } from '../constants';
 
 export interface FlashListAssetKey {
