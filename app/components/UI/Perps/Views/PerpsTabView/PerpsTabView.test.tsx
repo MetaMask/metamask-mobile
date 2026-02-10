@@ -229,11 +229,6 @@ jest.mock('../../components/PerpsMarketTypeSection', () => ({
   },
 }));
 
-/**
- * Component tests for PerpsTabView.
- * These tests assert the component's existing behavior only; they do not require
- * any changes to the component itself (PerpsTabView.tsx).
- */
 describe('PerpsTabView', () => {
   const mockNavigation = {
     navigate: jest.fn(),
