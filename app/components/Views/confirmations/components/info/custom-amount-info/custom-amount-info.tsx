@@ -95,9 +95,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const transactionMeta = useTransactionMetadataRequest();
     const isWithdraw = isTransactionPayWithdraw(transactionMeta);
 
-    // For withdrawals, disable auto-selection - we show POLYGON_USDCE by default in UI
     useAutomaticTransactionPayToken({
-      disable: disablePay || isWithdraw,
+      disable: disablePay,
       preferredToken,
     });
     useTransactionPayMetrics();
