@@ -13,23 +13,17 @@ export interface UseTokenBuyabilityResult {
   isLoading: boolean;
 }
 
-interface RampTokenLike {
-  assetId?: string;
-  chainId?: string;
-  tokenSupported?: boolean;
-}
-
 /**
  * Finds a matching ramp token from a list.
  * Native tokens: matches by chainId + slip44 namespace.
  * ERC20 tokens: matches by case-insensitive assetId.
  */
 function findMatchingRampToken(
-  tokens: RampTokenLike[],
+  tokens: { assetId?: string; chainId?: string; tokenSupported?: boolean }[],
   chainId: string,
   assetId: string | undefined,
   isNative: boolean,
-): RampTokenLike | undefined {
+): { tokenSupported?: boolean } | undefined {
   return tokens.find((tok) => {
     if (!tok.assetId) return false;
 
