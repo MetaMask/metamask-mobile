@@ -12,7 +12,7 @@ const SUBSCRIPT_DIGITS = ['₀', '₁', '₂', '₃', '₄', '₅', '₆', '₇'
  * @example toSubscript(6) => "₆"
  * @example toSubscript(12) => "₁₂"
  */
-export const toSubscript = (num: number): string =>
+const toSubscript = (num: number): string =>
   String(num)
     .split('')
     .map((digit) => SUBSCRIPT_DIGITS[parseInt(digit, 10)])

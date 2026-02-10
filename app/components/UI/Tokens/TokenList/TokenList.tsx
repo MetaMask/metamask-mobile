@@ -217,7 +217,6 @@ const TokenListComponent = ({
             const staked = item.isStaked ? 'staked' : 'unstaked';
             return `${item.address}-${item.chainId}-${staked}-${idx}`;
           }}
-          decelerationRate="fast"
           refreshControl={
             <RefreshControl
               colors={[colors.primary.default]}
