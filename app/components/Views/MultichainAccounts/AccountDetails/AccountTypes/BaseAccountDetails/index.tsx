@@ -63,19 +63,21 @@ export const BaseAccountDetails = ({
       // Navigate to account group details with nested screen
       const accountGroup = accountToGroupMap[account.id];
       if (accountGroup) {
-        navigation.navigate(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS, {
-          accountGroup,
-          screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
-          params: { accountGroup },
-        });
+        navigation.navigate(
+          Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
+          {
+            accountGroup,
+          },
+        );
       }
     } else {
       // Use legacy edit account name for individual accounts
-      navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
-        screen:
-          Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.LEGACY_EDIT_ACCOUNT_NAME,
-        params: { account },
-      });
+      navigation.navigate(
+        Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.LEGACY_EDIT_ACCOUNT_NAME,
+        {
+          account,
+        },
+      );
     }
   }, [
     navigation,
@@ -85,11 +87,8 @@ export const BaseAccountDetails = ({
   ]);
 
   const handleShareAddress = useCallback(() => {
-    navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
-      screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS,
-      params: {
-        account,
-      },
+    navigation.navigate(Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS, {
+      account,
     });
   }, [navigation, account]);
 

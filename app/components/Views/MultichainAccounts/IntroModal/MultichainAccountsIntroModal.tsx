@@ -113,12 +113,9 @@ const MultichainAccountsIntroModal = () => {
   }, [navigation, dispatch, isAligning, alignWalletsPromise]);
 
   const handleLearnMore = useCallback(() => {
-    navigation.navigate(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: AppConstants.URLS.MULTICHAIN_ACCOUNTS,
-        timestamp: Date.now(),
-      },
+    navigation.navigate(Routes.BROWSER.VIEW, {
+      newTabUrl: AppConstants.URLS.MULTICHAIN_ACCOUNTS,
+      timestamp: Date.now(),
     });
   }, [navigation]);
 

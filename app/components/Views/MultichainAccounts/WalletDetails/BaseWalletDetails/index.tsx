@@ -79,17 +79,15 @@ export const BaseWalletDetails = ({
 
   const handleRevealSRP = useCallback(() => {
     if (keyringId) {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.SRP_REVEAL_QUIZ,
+      navigation.navigate(Routes.MODAL.SRP_REVEAL_QUIZ, {
         keyringId,
       });
     }
   }, [navigation, keyringId]);
 
   const handleBackupPressed = useCallback(() => {
-    navigation.navigate(Routes.SET_PASSWORD_FLOW.ROOT, {
-      screen: Routes.SET_PASSWORD_FLOW.MANUAL_BACKUP_STEP_1,
-      params: { backupFlow: true },
+    navigation.navigate(Routes.SET_PASSWORD_FLOW.MANUAL_BACKUP_STEP_1, {
+      backupFlow: true,
     });
   }, [navigation]);
 
