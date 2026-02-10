@@ -254,9 +254,7 @@ const PerpsTutorialCarousel: React.FC = () => {
   );
 
   const navigateToMarketsList = useCallback(() => {
-    NavigationService.navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.PERPS_HOME,
-    });
+    NavigationService.navigation.navigate(Routes.PERPS.PERPS_HOME);
   }, []);
 
   const handleContinue = useCallback(async () => {
@@ -358,14 +356,11 @@ const PerpsTutorialCarousel: React.FC = () => {
   ]);
 
   const handleLearnMore = useCallback(() => {
-    NavigationService.navigation.navigate(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: 'https://support.metamask.io/manage-crypto/trade/perps',
-        linkType: EXTERNAL_LINK_TYPE,
-        timestamp: Date.now(),
-        fromPerps: true,
-      },
+    NavigationService.navigation.navigate(Routes.BROWSER.VIEW, {
+      newTabUrl: 'https://support.metamask.io/manage-crypto/trade/perps',
+      linkType: EXTERNAL_LINK_TYPE,
+      timestamp: Date.now(),
+      fromPerps: true,
     });
   }, []);
 

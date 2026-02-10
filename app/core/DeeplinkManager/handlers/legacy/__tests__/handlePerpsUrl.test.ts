@@ -113,9 +113,8 @@ describe('handlePerpsUrl', () => {
       await handlePerpsUrl({ perpsPath: 'perps' });
 
       expect(mockNavigate).toHaveBeenCalledTimes(2);
-      expect(mockNavigate).toHaveBeenLastCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.PERPS_HOME,
-        params: { source: 'deeplink' },
+      expect(mockNavigate).toHaveBeenLastCalledWith(Routes.PERPS.PERPS_HOME, {
+        source: 'deeplink',
       });
     });
   });
@@ -180,18 +179,16 @@ describe('handlePerpsUrl', () => {
     it('navigates to markets list when no symbol provided', async () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=asset' });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.PERPS_HOME,
-        params: { source: 'deeplink' },
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.PERPS_HOME, {
+        source: 'deeplink',
       });
     });
 
     it('navigates to markets list with empty symbol', async () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=' });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.PERPS_HOME,
-        params: { source: 'deeplink' },
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.PERPS_HOME, {
+        source: 'deeplink',
       });
     });
 
@@ -204,9 +201,8 @@ describe('handlePerpsUrl', () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=BTC' });
 
       expect(mockNavigate).toHaveBeenCalledTimes(2);
-      expect(mockNavigate).toHaveBeenLastCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.PERPS_HOME,
-        params: { source: 'deeplink' },
+      expect(mockNavigate).toHaveBeenLastCalledWith(Routes.PERPS.PERPS_HOME, {
+        source: 'deeplink',
       });
     });
 
@@ -215,9 +211,8 @@ describe('handlePerpsUrl', () => {
         perpsPath: 'perps?screen=asset&invalid&params&here',
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.PERPS_HOME,
-        params: { source: 'deeplink' },
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.PERPS_HOME, {
+        source: 'deeplink',
       });
     });
 
@@ -243,9 +238,8 @@ describe('handlePerpsUrl', () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=markets' });
 
       // Returning users with screen=markets parameter go directly to markets
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.PERPS_HOME,
-        params: { source: 'deeplink' },
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.PERPS_HOME, {
+        source: 'deeplink',
       });
       expect(selectIsFirstTimePerpsUser).toHaveBeenCalled();
       // Should not call setParams for direct navigation
@@ -280,9 +274,8 @@ describe('handlePerpsUrl', () => {
       });
 
       // Should navigate to markets for screen=markets parameter
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.PERPS_HOME,
-        params: { source: 'deeplink' },
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.PERPS_HOME, {
+        source: 'deeplink',
       });
       expect(selectIsFirstTimePerpsUser).toHaveBeenCalled();
     });
@@ -331,9 +324,8 @@ describe('handlePerpsUrl', () => {
     it('navigates directly to PerpsHomeView with screen=home', async () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=home' });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.PERPS_HOME,
-        params: { source: 'deeplink' },
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.PERPS_HOME, {
+        source: 'deeplink',
       });
     });
 
@@ -434,18 +426,16 @@ describe('handlePerpsUrl', () => {
     it('screen=markets navigates to PerpsHomeView (backwards compat)', async () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=markets' });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.PERPS_HOME,
-        params: { source: 'deeplink' },
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.PERPS_HOME, {
+        source: 'deeplink',
       });
     });
 
     it('screen=markets ignores tab parameter for backwards compat', async () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=markets&tab=crypto' });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.PERPS_HOME,
-        params: { source: 'deeplink' },
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.PERPS_HOME, {
+        source: 'deeplink',
       });
     });
   });
