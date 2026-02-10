@@ -16,10 +16,12 @@ import {
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
   formatPerpsFiat,
+  formatPositionSize,
   formatPnl,
   formatPercentage,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
+import { formatOrderLabel } from '../../utils/orderUtils';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import styleSheet from './PerpsCard.styles';
@@ -76,13 +78,27 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
     labelText = `${formatPnl(pnlValue)} (${formatPercentage(roeValue, 1)})`;
   } else if (order) {
     const displaySymbol = getPerpsDisplaySymbol(order.symbol);
-    primaryText = `${displaySymbol} ${order.side === 'buy' ? 'long' : 'short'}`;
-    secondaryText = `${order.originalSize} ${displaySymbol}`;
-    const orderValue = parseFloat(order.originalSize) * parseFloat(order.price);
-    valueText = formatPerpsFiat(orderValue, {
-      ranges: PRICE_RANGES_MINIMAL_VIEW,
-    });
-    labelText = strings('perps.order.limit');
+    const isTriggerOrder = Boolean(order.isTrigger || order.triggerPrice);
+    const isLimitOrder = order.orderType === 'limit';
+    const triggerOrLimitPrice = order.triggerPrice || order.price;
+    const parsedOrderPrice = parseFloat(triggerOrLimitPrice || '0');
+
+    primaryText = formatOrderLabel(order);
+    secondaryText = `${formatPositionSize(order.originalSize)} ${displaySymbol}`;
+
+    valueText =
+      parsedOrderPrice > 0
+        ? formatPerpsFiat(parsedOrderPrice, {
+            ranges: PRICE_RANGES_MINIMAL_VIEW,
+          })
+        : strings('perps.order.market');
+
+    labelText = isTriggerOrder
+      ? strings('perps.order.trigger_price')
+      : isLimitOrder
+        ? strings('perps.order.limit_price')
+        : strings('perps.order.market_price');
+    valueColor = TextColor.Alternative;
   }
 
   // Memoize market lookup to avoid array search on every press

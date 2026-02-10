@@ -880,6 +880,7 @@ export type Order = {
   detailedOrderType?: string; // Full order type from exchange (e.g., 'Take Profit Limit', 'Stop Market')
   isTrigger?: boolean; // Whether this is a trigger order (TP/SL)
   reduceOnly?: boolean; // Whether this is a reduce-only order
+  isPositionTpsl?: boolean; // Whether this TP/SL is associated with the full position
   triggerPrice?: string; // Trigger condition price for trigger orders (e.g., TP/SL trigger level)
   providerId?: PerpsProviderType; // Multi-provider: which provider this order is on (injected by aggregator)
 };

@@ -1,4 +1,6 @@
 import {
+  isOrderAssociatedWithFullPosition,
+  shouldDisplayOrderInMarketDetailsOrders,
   formatOrderLabel,
   getOrderLabelDirection,
   getOrderDirection,
@@ -301,6 +303,116 @@ describe('orderUtils', () => {
     it('should return short for negative position', () => {
       const result = getOrderDirection('buy', '-1.5');
       expect(result).toBe('short');
+    });
+  });
+
+  describe('order display association helpers', () => {
+    const mockLongPosition: Position = {
+      symbol: 'BTC',
+      size: '1.0',
+      entryPrice: '45000',
+      positionValue: '45000',
+      unrealizedPnl: '0',
+      marginUsed: '2000',
+      leverage: { type: 'isolated', value: 5 },
+      liquidationPrice: '40000',
+      maxLeverage: 20,
+      returnOnEquity: '0',
+      cumulativeFunding: {
+        allTime: '0',
+        sinceOpen: '0',
+        sinceChange: '0',
+      },
+      takeProfitCount: 0,
+      stopLossCount: 0,
+    };
+
+    const mockReduceOnlyOrder: Order = {
+      orderId: 'tp-order',
+      symbol: 'BTC',
+      side: 'sell',
+      orderType: 'limit',
+      size: '1.0',
+      originalSize: '1.0',
+      price: '50000',
+      filledSize: '0',
+      remainingSize: '1.0',
+      status: 'open',
+      timestamp: Date.now(),
+      reduceOnly: true,
+      isTrigger: true,
+    };
+
+    it('associates full-position TP/SL via native flag', () => {
+      const result = isOrderAssociatedWithFullPosition(
+        { ...mockReduceOnlyOrder, isPositionTpsl: true },
+        mockLongPosition,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('associates full-position TP/SL via size fallback when flag is missing', () => {
+      const result = isOrderAssociatedWithFullPosition(
+        mockReduceOnlyOrder,
+        mockLongPosition,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('does not use size fallback when provider explicitly sets isPositionTpsl to false', () => {
+      const result = isOrderAssociatedWithFullPosition(
+        { ...mockReduceOnlyOrder, isPositionTpsl: false },
+        mockLongPosition,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('does not associate when reduce-only order size does not match full position', () => {
+      const result = isOrderAssociatedWithFullPosition(
+        { ...mockReduceOnlyOrder, size: '0.25', originalSize: '0.25' },
+        mockLongPosition,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('does not associate when side does not close the existing position', () => {
+      const result = isOrderAssociatedWithFullPosition(
+        { ...mockReduceOnlyOrder, side: 'buy' },
+        mockLongPosition,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('shows non-reduce-only orders in Market Details orders section', () => {
+      const result = shouldDisplayOrderInMarketDetailsOrders(
+        { ...mockReduceOnlyOrder, reduceOnly: false },
+        mockLongPosition,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('hides full-position reduce-only TP/SL orders from Market Details orders section', () => {
+      const result = shouldDisplayOrderInMarketDetailsOrders(
+        { ...mockReduceOnlyOrder, isPositionTpsl: true },
+        mockLongPosition,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('shows standalone reduce-only TP/SL orders in Market Details orders section', () => {
+      const result = shouldDisplayOrderInMarketDetailsOrders(
+        { ...mockReduceOnlyOrder, size: '0.25', originalSize: '0.25' },
+        mockLongPosition,
+      );
+
+      expect(result).toBe(true);
     });
   });
 

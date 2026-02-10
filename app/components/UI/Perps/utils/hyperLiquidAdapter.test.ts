@@ -176,6 +176,7 @@ describe('hyperLiquidAdapter', () => {
         detailedOrderType: 'Limit',
         isTrigger: false,
         reduceOnly: false,
+        isPositionTpsl: false,
       });
     });
 
@@ -216,6 +217,7 @@ describe('hyperLiquidAdapter', () => {
         detailedOrderType: 'Limit',
         isTrigger: false,
         reduceOnly: true,
+        isPositionTpsl: false,
       });
     });
 
@@ -256,6 +258,7 @@ describe('hyperLiquidAdapter', () => {
         detailedOrderType: 'Market',
         isTrigger: false,
         reduceOnly: false,
+        isPositionTpsl: false,
       });
     });
 
@@ -296,6 +299,7 @@ describe('hyperLiquidAdapter', () => {
         detailedOrderType: 'Stop Market',
         isTrigger: true,
         reduceOnly: true,
+        isPositionTpsl: false,
         triggerPrice: '25.50',
       });
     });
@@ -374,6 +378,7 @@ describe('hyperLiquidAdapter', () => {
         detailedOrderType: 'Limit',
         isTrigger: false,
         reduceOnly: false,
+        isPositionTpsl: false,
         takeProfitPrice: '12',
         takeProfitOrderId: '22223',
         stopLossPrice: '8',
@@ -418,6 +423,7 @@ describe('hyperLiquidAdapter', () => {
         detailedOrderType: 'Limit',
         isTrigger: false,
         reduceOnly: false,
+        isPositionTpsl: false,
       });
     });
 
@@ -458,6 +464,7 @@ describe('hyperLiquidAdapter', () => {
         detailedOrderType: 'Limit',
         isTrigger: false,
         reduceOnly: false,
+        isPositionTpsl: false,
       });
     });
 

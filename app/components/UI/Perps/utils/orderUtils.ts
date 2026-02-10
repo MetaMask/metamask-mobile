@@ -4,6 +4,7 @@ import {
   type Order,
   type PerpsDebugLogger,
 } from '@metamask/perps-controller';
+import BigNumber from 'bignumber.js';
 import { Position } from '../hooks';
 
 /**
@@ -11,6 +12,102 @@ import { Position } from '../hooks';
  * When provided, enables detailed logging for debugging.
  */
 export type OrderUtilsDebugLogger = PerpsDebugLogger | undefined;
+
+const FULL_POSITION_SIZE_TOLERANCE = new BigNumber('0.00000001');
+
+const getAbsoluteOrderSize = (order: Order): BigNumber | null => {
+  const size = order.originalSize || order.size;
+  const parsedSize = new BigNumber(size || '0');
+  if (!parsedSize.isFinite() || parsedSize.lte(0)) {
+    return null;
+  }
+  return parsedSize.abs();
+};
+
+const getAbsolutePositionSize = (position?: Position): BigNumber | null => {
+  if (!position?.size) {
+    return null;
+  }
+
+  const parsedSize = new BigNumber(position.size);
+  if (!parsedSize.isFinite() || parsedSize.lte(0)) {
+    return null;
+  }
+
+  return parsedSize.abs();
+};
+
+const isClosingSideForPosition = (
+  order: Order,
+  position: Position,
+): boolean => {
+  const positionSize = new BigNumber(position.size || '0');
+  if (!positionSize.isFinite() || positionSize.isZero()) {
+    return false;
+  }
+
+  // For long positions, sell closes. For short positions, buy closes.
+  return positionSize.gt(0) ? order.side === 'sell' : order.side === 'buy';
+};
+
+/**
+ * Determines whether an order is associated with the full active position.
+ *
+ * Position association logic:
+ * 1. Order must be reduce-only.
+ * 2. Order and position must match symbol and closing side semantics.
+ * 3. Prefer native isPositionTpsl flag when available.
+ * 4. Fallback to full-size matching with decimal tolerance.
+ */
+export const isOrderAssociatedWithFullPosition = (
+  order: Order,
+  position?: Position,
+): boolean => {
+  if (!order.reduceOnly || !position) {
+    return false;
+  }
+
+  if (
+    order.symbol !== position.symbol ||
+    !isClosingSideForPosition(order, position)
+  ) {
+    return false;
+  }
+
+  if (order.isPositionTpsl === true) {
+    return true;
+  }
+
+  // Only fall back to size matching when the provider did not send the flag.
+  if (order.isPositionTpsl === false) {
+    return false;
+  }
+
+  const orderSize = getAbsoluteOrderSize(order);
+  const positionSize = getAbsolutePositionSize(position);
+  if (!orderSize || !positionSize) {
+    return false;
+  }
+
+  return orderSize.minus(positionSize).abs().lte(FULL_POSITION_SIZE_TOLERANCE);
+};
+
+/**
+ * Determines whether an order should be shown in Market Details > Orders.
+ *
+ * - All non-reduce-only orders are shown.
+ * - Reduce-only orders are shown only when they are NOT full-position TP/SL.
+ */
+export const shouldDisplayOrderInMarketDetailsOrders = (
+  order: Order,
+  position?: Position,
+): boolean => {
+  if (!order.reduceOnly) {
+    return true;
+  }
+
+  return !isOrderAssociatedWithFullPosition(order, position);
+};
 
 /**
  * Get the order direction based on the side and position size
