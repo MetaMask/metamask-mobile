@@ -38,10 +38,7 @@ import { retryWithExponentialDelay } from '../../util/exponential-retry';
 
 import { selectExistingUser } from '../../reducers/user/selectors';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
-import {
-  convertMnemonicToWordlistIndices,
-  uint8ArrayToMnemonic,
-} from '../../util/mnemonic';
+import { uint8ArrayToMnemonic } from '../../util/mnemonic';
 import Logger from '../../util/Logger';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import { cancelBulkLink } from '../../store/sagas/rewardsBulkLinkAccountGroups';
@@ -54,7 +51,6 @@ import {
   SecretType,
   SeedlessOnboardingControllerErrorMessage,
 } from '@metamask/seedless-onboarding-controller';
-import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 import {
   SeedlessOnboardingControllerError,
@@ -74,6 +70,8 @@ import { strings } from '../../../locales/i18n';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { IconName } from '../../component-library/components/Icons/Icon';
 import { ReauthenticateErrorType } from './types';
+import { toMultichainAccountGroupId } from '@metamask/account-api';
+import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -159,12 +157,12 @@ class AuthenticationService {
   /**
    * This method creates a new vault and restores with seed phrase and existing user data
    * @param password - password provided by user, biometric, pincode
-   * @param parsedSeed - provided seed
+   * @param seed - provided seed
    * @param clearEngine - clear the engine state before restoring vault
    */
   private newWalletVaultAndRestore = async (
     password: string,
-    parsedSeed: string,
+    seed: string,
     clearEngine: boolean,
   ): Promise<void> => {
     // Restore vault with user entered password
@@ -172,7 +170,8 @@ class AuthenticationService {
 
     const { MultichainAccountService } = Engine.context;
 
-    const mnemonic = mnemonicPhraseToBytes(parsedSeed);
+    const mnemonic = mnemonicPhraseToBytes(seed);
+
     await MultichainAccountService.createMultichainAccountWallet({
       type: 'restore',
       password,
@@ -180,7 +179,7 @@ class AuthenticationService {
     });
 
     password = this.wipeSensitiveData();
-    parsedSeed = this.wipeSensitiveData();
+    seed = this.wipeSensitiveData();
   };
 
   private retryAccountDiscovery = async (discovery: () => Promise<void>) => {
@@ -936,7 +935,7 @@ class AuthenticationService {
   };
 
   importSeedlessMnemonicToVault = async (
-    mnemonic: string,
+    seed: string,
   ): Promise<EntropySourceId> => {
     const isSeedlessOnboardingFlow =
       Engine.context.SeedlessOnboardingController.state.vault != null;
@@ -944,36 +943,41 @@ class AuthenticationService {
     if (!isSeedlessOnboardingFlow) {
       throw new Error('Not in seedless onboarding flow');
     }
-    const {
-      KeyringController,
-      SeedlessOnboardingController,
-      MultichainAccountService,
-    } = Engine.context;
+    const { SeedlessOnboardingController, MultichainAccountService } =
+      Engine.context;
 
-    const seedPhraseAsBuffer = Buffer.from(mnemonic, 'utf8');
-    const seedPhraseAsUint8Array = convertMnemonicToWordlistIndices(
-      seedPhraseAsBuffer,
-      wordlist,
-    );
+    const mnemonic = mnemonicPhraseToBytes(seed);
 
     const wallet = await MultichainAccountService.createMultichainAccountWallet(
       {
         type: 'import',
-        mnemonic: seedPhraseAsUint8Array,
+        mnemonic,
       },
     );
-    const entropySource = wallet.entropySource;
-
-    const [newAccountAddress] = await KeyringController.withKeyring(
-      { id: wallet.entropySource },
-      async ({ keyring }) => keyring.getAccounts(),
+    // NOTE: This should never fail because a wallet can only be created if it has
+    // at least one account and thus, one group too.
+    const group = wallet.getAccountGroup(
+      toMultichainAccountGroupId(wallet.id, 0),
     );
+    if (!group) {
+      throw new Error(
+        'Failed to get default multichain account group after wallet creation',
+      );
+    }
+    const [account] = group.getAccounts();
+    if (!account) {
+      throw new Error(
+        'Failed to get default account from multichain account group after wallet creation',
+      );
+    }
+    const entropySource = wallet.entropySource;
+    const newAccountAddress = account.address;
 
     // if social backup is requested, add the seed phrase backup
     try {
       SeedlessOnboardingController.updateBackupMetadataState({
         keyringId: entropySource,
-        data: seedPhraseAsUint8Array,
+        data: mnemonic,
         type: SecretType.Mnemonic,
       });
     } catch (error) {
