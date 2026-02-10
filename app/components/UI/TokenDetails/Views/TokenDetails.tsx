@@ -338,8 +338,6 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
         ab_test_token_details_layout: variantName,
       }),
     };
-    // TODO: Remove before merging - local testing
-    console.log('[AB-Test] TOKEN_DETAILS_OPENED', eventProperties);
 
     const event = createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
       .addProperties(eventProperties)

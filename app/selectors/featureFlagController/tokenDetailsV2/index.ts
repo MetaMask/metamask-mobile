@@ -19,7 +19,7 @@ const VALID_LAYOUT_VARIANTS = ['control', 'treatment'] as const;
 export const selectTokenDetailsLayoutTestVariant = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): string | null => {
-    return 'treatment';
+    // return 'treatment';
     const remoteFlag = remoteFeatureFlags?.tokenDetailsLayoutAbTest;
 
     if (!remoteFlag) {

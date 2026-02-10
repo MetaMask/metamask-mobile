@@ -201,8 +201,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   routeAbTestTokenDetailsLayout,
 }) => {
   // Use route source if provided (e.g. from Token Details), otherwise auto-detect from trending session
-  const source = routeSource
-    ?? (TrendingFeedSessionManager.getInstance().isFromTrending
+  const source =
+    routeSource ??
+    (TrendingFeedSessionManager.getInstance().isFromTrending
       ? 'trending'
       : undefined);
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
@@ -397,17 +398,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         ? PERPS_EVENT_VALUE.DIRECTION.LONG
         : PERPS_EVENT_VALUE.DIRECTION.SHORT,
     ...(source && { [PERPS_EVENT_PROPERTY.SOURCE]: source }),
-    ...(routeAbTestTokenDetailsLayout && { ab_test_token_details_layout: routeAbTestTokenDetailsLayout }),
+    ...(routeAbTestTokenDetailsLayout && {
+      ab_test_token_details_layout: routeAbTestTokenDetailsLayout,
+    }),
     ...(isButtonColorTestEnabled && {
       [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
     }),
   };
-
-  // TODO: Remove before merging - local testing (useEffect ensures single log)
-  useEffect(() => {
-    console.log('[AB-Test] PERPS_SCREEN_VIEWED', perpsScreenViewedProps);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
@@ -1846,7 +1843,11 @@ const PerpsOrderView: React.FC = () => {
       existingPosition={existingPosition}
       effectiveAvailableBalance={effectiveAvailableBalance}
     >
-      <PerpsOrderViewContent hideTPSL={hideTPSL} routeSource={routeSource} routeAbTestTokenDetailsLayout={routeAbTestTokenDetailsLayout} />
+      <PerpsOrderViewContent
+        hideTPSL={hideTPSL}
+        routeSource={routeSource}
+        routeAbTestTokenDetailsLayout={routeAbTestTokenDetailsLayout}
+      />
     </PerpsOrderProvider>
   );
 };

@@ -223,9 +223,6 @@ export const useTokenActions = ({
       }),
     };
 
-    // TODO: Remove before merging - local testing
-    console.log('[AB-Test] ACTION_BUTTON_CLICKED (Send)', sendEventProps);
-
     trackEvent(
       createEventBuilder(MetaMetricsEvents.ACTION_BUTTON_CLICKED)
         .addProperties(sendEventProps)

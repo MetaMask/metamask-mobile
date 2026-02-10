@@ -319,12 +319,14 @@ const BridgeView = () => {
         token_symbol_destination: destToken?.symbol,
         token_address_source: sourceToken.address,
         token_address_destination: destToken?.address,
-        ...(abTestContext?.entry_point && { entry_point: abTestContext.entry_point }),
-        ...(abTestContext?.ab_test_token_details_layout && { ab_test_token_details_layout: abTestContext.ab_test_token_details_layout }),
+        ...(abTestContext?.entry_point && {
+          entry_point: abTestContext.entry_point,
+        }),
+        ...(abTestContext?.ab_test_token_details_layout && {
+          ab_test_token_details_layout:
+            abTestContext.ab_test_token_details_layout,
+        }),
       };
-
-      // TODO: Remove before merging - local testing
-      console.log('[AB-Test] SWAP_PAGE_VIEWED', pageViewedProperties);
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SWAP_PAGE_VIEWED)
@@ -332,7 +334,14 @@ const BridgeView = () => {
           .build(),
       );
     }
-  }, [sourceToken, destToken, trackEvent, createEventBuilder, bridgeViewMode, abTestContext]);
+  }, [
+    sourceToken,
+    destToken,
+    trackEvent,
+    createEventBuilder,
+    bridgeViewMode,
+    abTestContext,
+  ]);
 
   // Update isErrorBannerVisible when input focus changes
   useEffect(() => {
