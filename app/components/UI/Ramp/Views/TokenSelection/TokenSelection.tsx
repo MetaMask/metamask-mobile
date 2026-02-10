@@ -12,9 +12,9 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
-import TokenNetworkFilterBar from '../TokenNetworkFilterBar';
-import TokenListItem from '../TokenListItem';
-import { createUnsupportedTokenModalNavigationDetails } from '../UnsupportedTokenModal/UnsupportedTokenModal';
+import TokenNetworkFilterBar from '../../components/TokenNetworkFilterBar';
+import TokenListItem from '../../components/TokenListItem';
+import { createUnsupportedTokenModalNavigationDetails } from '../Modals/UnsupportedTokenModal/UnsupportedTokenModal';
 
 import { Box } from '@metamask/design-system-react-native';
 import Text, {

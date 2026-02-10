@@ -22,28 +22,28 @@ import Fuse from 'fuse.js';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import ListItemSelect from '../../../../component-library/components/List/ListItemSelect';
+} from '../../../../../../component-library/components/Texts/Text';
+import ListItemSelect from '../../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
   WidthType,
-} from '../../../../component-library/components/List/ListItemColumn';
-import TextFieldSearch from '../../../../component-library/components/Form/TextFieldSearch';
+} from '../../../../../../component-library/components/List/ListItemColumn';
+import TextFieldSearch from '../../../../../../component-library/components/Form/TextFieldSearch';
 import Icon, {
   IconName,
-} from '../../../../component-library/components/Icons/Icon';
+} from '../../../../../../component-library/components/Icons/Icon';
 import ButtonIcon, {
   ButtonIconSizes,
-} from '../../../../component-library/components/Buttons/ButtonIcon';
+} from '../../../../../../component-library/components/Buttons/ButtonIcon';
 
 import styleSheet, {
   styles as navigationOptionsStyles,
 } from './RegionSelector.styles';
-import { useStyles } from '../../../hooks/useStyles';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
-import { strings } from '../../../../../locales/i18n';
-import { useAppTheme } from '../../../../util/theme';
+import { useStyles } from '../../../../../hooks/useStyles';
+import { getNavigationOptionsTitle } from '../../../../Navbar';
+import { strings } from '../../../../../../../locales/i18n';
+import { useAppTheme } from '../../../../../../util/theme';
 import { Country, State } from '@metamask/ramps-controller';
-import useRampsController from '../../../../components/UI/Ramp/hooks/useRampsController';
+import useRampsController from '../../../hooks/useRampsController';
 
 const MAX_REGION_RESULTS = 20;
 
