@@ -468,7 +468,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     TouchableOpacity,
     Text: RNText,
   } = jest.requireActual('react-native');
-  const React = jest.requireActual('react');
+  const ReactActual = jest.requireActual('react');
   return {
     ...jest.requireActual('@metamask/design-system-react-native'),
     Box: ({
@@ -477,21 +477,21 @@ jest.mock('@metamask/design-system-react-native', () => {
     }: {
       children: React.ReactNode;
       testID?: string;
-    }) => React.createElement(View, { testID }, children),
+    }) => ReactActual.createElement(View, { testID }, children),
     ButtonIcon: ({
       testID,
       onPress,
     }: {
       testID?: string;
       onPress?: () => void;
-    }) => React.createElement(TouchableOpacity, { testID, onPress }),
+    }) => ReactActual.createElement(TouchableOpacity, { testID, onPress }),
     Text: ({
       children,
       testID,
     }: {
       children?: React.ReactNode;
       testID?: string;
-    }) => React.createElement(RNText, { testID }, children),
+    }) => ReactActual.createElement(RNText, { testID }, children),
   };
 });
 
@@ -799,6 +799,38 @@ describe('PerpsMarketListView', () => {
       volume: '$800M',
     },
   ];
+
+  // Market mocks for bug regression: market list must include all categories (crypto, stocks, forex, commodities)
+  const mockMarketStocks: PerpsMarketData = {
+    symbol: 'XYZ100',
+    name: 'XYZ 100 Index',
+    maxLeverage: '20x',
+    price: '$1,234.00',
+    change24h: '+$10.00',
+    change24hPercent: '+0.8%',
+    volume: '$100M',
+    marketType: 'equity',
+  };
+  const mockMarketForex: PerpsMarketData = {
+    symbol: 'EURUSD',
+    name: 'Euro / US Dollar',
+    maxLeverage: '50x',
+    price: '$1.08',
+    change24h: '-$0.01',
+    change24hPercent: '-0.1%',
+    volume: '$500M',
+    marketType: 'forex',
+  };
+  const mockMarketCommodity: PerpsMarketData = {
+    symbol: 'GOLD',
+    name: 'Gold',
+    maxLeverage: '25x',
+    price: '$2,000.00',
+    change24h: '+$25.00',
+    change24hPercent: '+1.3%',
+    volume: '$200M',
+    marketType: 'commodity',
+  };
 
   // Mock Redux state with perpsController
   const mockState = {
@@ -1297,6 +1329,111 @@ describe('PerpsMarketListView', () => {
         expect(btcRows.length).toBeGreaterThan(0);
         expect(ethRows.length).toBeGreaterThan(0);
         expect(solRows.length).toBeGreaterThan(0);
+      });
+    });
+    it('market list includes all categories (crypto, stocks, forex, commodities) and does not filter any out', async () => {
+      const { usePerpsMarketListView } = jest.requireMock('../../hooks');
+
+      const marketsAllTypes = [
+        mockMarketData[0],
+        mockMarketStocks,
+        mockMarketForex,
+        mockMarketCommodity,
+      ];
+
+      usePerpsMarketListView.mockReturnValue({
+        markets: marketsAllTypes,
+        searchState: {
+          searchQuery: '',
+          setSearchQuery: mockSetSearchQuery,
+          isSearchVisible: false,
+          setIsSearchVisible: mockSetIsSearchVisible,
+          toggleSearchVisibility: mockToggleSearchVisibility,
+          clearSearch: mockClearSearch,
+        },
+        sortState: {
+          selectedOptionId: 'volume',
+          sortBy: 'volume',
+          direction: 'desc',
+          handleOptionChange: jest.fn(),
+        },
+        favoritesState: {
+          showFavoritesOnly: false,
+          setShowFavoritesOnly: jest.fn(),
+        },
+        marketTypeFilterState: {
+          marketTypeFilter: 'all',
+          setMarketTypeFilter: jest.fn(),
+        },
+        marketCounts: {
+          crypto: 1,
+          equity: 1,
+          commodity: 1,
+          forex: 1,
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('market-row-BTC')).toBeOnTheScreen();
+        expect(screen.getByTestId('market-row-XYZ100')).toBeOnTheScreen();
+        expect(screen.getByTestId('market-row-EURUSD')).toBeOnTheScreen();
+        expect(screen.getByTestId('market-row-GOLD')).toBeOnTheScreen();
+      });
+    });
+
+    it('market list includes commodities when commodity markets exist (no category filtered out)', async () => {
+      const { usePerpsMarketListView } = jest.requireMock('../../hooks');
+
+      const marketsWithCommodity = [
+        mockMarketData[0],
+        mockMarketData[1],
+        mockMarketCommodity,
+      ];
+
+      usePerpsMarketListView.mockReturnValue({
+        markets: marketsWithCommodity,
+        searchState: {
+          searchQuery: '',
+          setSearchQuery: mockSetSearchQuery,
+          isSearchVisible: false,
+          setIsSearchVisible: mockSetIsSearchVisible,
+          toggleSearchVisibility: mockToggleSearchVisibility,
+          clearSearch: mockClearSearch,
+        },
+        sortState: {
+          selectedOptionId: 'volume',
+          sortBy: 'volume',
+          direction: 'desc',
+          handleOptionChange: jest.fn(),
+        },
+        favoritesState: {
+          showFavoritesOnly: false,
+          setShowFavoritesOnly: jest.fn(),
+        },
+        marketTypeFilterState: {
+          marketTypeFilter: 'all',
+          setMarketTypeFilter: jest.fn(),
+        },
+        marketCounts: {
+          crypto: 2,
+          equity: 0,
+          commodity: 1,
+          forex: 0,
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('market-row-GOLD')).toBeOnTheScreen();
+        expect(screen.getByTestId('market-row-BTC')).toBeOnTheScreen();
+        expect(screen.getByTestId('market-row-ETH')).toBeOnTheScreen();
       });
     });
   });

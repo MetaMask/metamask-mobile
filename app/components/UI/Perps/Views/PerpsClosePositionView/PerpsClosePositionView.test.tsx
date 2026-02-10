@@ -300,6 +300,62 @@ describe('PerpsClosePositionView', () => {
       });
     });
 
+    it('when user is geo-restricted (!isEligible), confirm button is disabled and geo block tooltip is shown', () => {
+      const stateWithGeoBlock = createPerpsStateMock({
+        engine: {
+          backgroundState: {
+            PerpsController: { isEligible: false },
+          },
+        },
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: stateWithGeoBlock },
+        true,
+      );
+
+      const confirmButton = getByTestId(
+        PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+      );
+      expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
+
+      expect(
+        getByTestId(
+          PerpsClosePositionViewSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('when user is geo-restricted and presses confirm, does not call handleClosePosition and shows geo block', () => {
+      const handleClosePosition = jest.fn();
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+
+      const stateWithGeoBlock = createPerpsStateMock({
+        engine: {
+          backgroundState: {
+            PerpsController: { isEligible: false },
+          },
+        },
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: stateWithGeoBlock },
+        true,
+      );
+
+      const confirmButton = getByTestId(
+        PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+      );
+      fireEvent.press(confirmButton);
+
+      expect(handleClosePosition).not.toHaveBeenCalled();
+    });
+
     it('disables confirm button when closing is in progress', () => {
       // Arrange
       usePerpsClosePositionMock.mockReturnValue({
