@@ -190,7 +190,7 @@ builds:
 
   # Test builds (QA)
   main-test:
-    github_environment: build-test
+    github_environment: build-uat
     signing: *signing_uat
     env:
       <<: *public_envs
