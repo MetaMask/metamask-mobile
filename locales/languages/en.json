@@ -6813,6 +6813,7 @@
         "description": "Our partner, Crypto Life, uses a service called Veriff to keep your account secure. ",
         "terms_1": "Your info goes directly to Veriff and Crypto Life. MetaMask never sees it.",
         "terms_2": "You'll need your ID and proof of address to get approved. This usually takes 5 minutes.",
+        "terms_2_us": "Federal law (USA PATRIOT Act) requires us to verify your identity with ID and proof of address to help prevent terrorism and money laundering. This usually takes 5 minutes.",
         "verify_button": "Next",
         "start_verification_error": "Error starting verification. Please try again shortly."
       },
