@@ -97,6 +97,11 @@ import {
   ToastVariants,
 } from '../../../component-library/components/Toast';
 import logo from '../../../images/branding/fox.png';
+import {
+  SrpQuizGetStartedSelectorsIDs,
+  SrpSecurityQuestionOneSelectorsIDs,
+  SrpSecurityQuestionTwoSelectorsIDs,
+} from '../Quiz/SRPQuiz/SrpQuizModal.testIds';
 
 interface RootStackParamList extends ParamListBase {
   RevealPrivateCredential: {
@@ -376,7 +381,7 @@ const RevealPrivateCredential = ({
       <TouchableOpacity
         onPress={() => setShowSeedPhrase(!showSeedPhrase)}
         style={styles.blurContainer}
-        testID={ManualBackUpStepsSelectorsIDs.BLUR_BUTTON}
+        testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID}
       >
         <ImageBackground
           source={
@@ -606,7 +611,7 @@ const RevealPrivateCredential = ({
           onPress={() => setRevealSrpStage(RevealSrpStage.Quiz)}
           size={ButtonSize.Lg}
           label={strings('multichain_accounts.reveal_srp.get_started')}
-          testID={ExportCredentialsIds.NEXT_BUTTON}
+          testID={SrpQuizGetStartedSelectorsIDs.BUTTON}
           style={styles.button}
         />
         <ButtonLink
@@ -766,7 +771,11 @@ const RevealPrivateCredential = ({
                 ? 'srp_security_quiz.question_one.wrong_answer'
                 : 'srp_security_quiz.question_two.right_answer',
             )}
-            testID={`${ExportCredentialsIds.ANSWER_BUTTON}-1`}
+            testID={
+              currentQuestionIndex === 1
+                ? SrpSecurityQuestionOneSelectorsIDs.WRONG_ANSWER
+                : SrpSecurityQuestionTwoSelectorsIDs.RIGHT_ANSWER
+            }
             style={styles.button}
           />
           <ButtonSecondary
@@ -777,7 +786,11 @@ const RevealPrivateCredential = ({
                 ? 'srp_security_quiz.question_one.right_answer'
                 : 'srp_security_quiz.question_two.wrong_answer',
             )}
-            testID={`${ExportCredentialsIds.ANSWER_BUTTON}-2`}
+            testID={
+              currentQuestionIndex === 1
+                ? SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER
+                : SrpSecurityQuestionTwoSelectorsIDs.WRONG_ANSWER
+            }
             style={styles.button}
           />
           <ButtonLink
@@ -803,8 +816,12 @@ const RevealPrivateCredential = ({
             )}
             testID={
               correctAnswer
-                ? ExportCredentialsIds.CONTINUE_BUTTON
-                : ExportCredentialsIds.TRY_AGAIN_BUTTON
+                ? currentQuestionIndex === 1
+                  ? SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE
+                  : SrpSecurityQuestionTwoSelectorsIDs.RIGHT_CONTINUE
+                : currentQuestionIndex === 1
+                  ? SrpSecurityQuestionOneSelectorsIDs.WRONG_ANSWER_TRY_AGAIN_BUTTON
+                  : SrpSecurityQuestionTwoSelectorsIDs.WRONG_ANSWER_TRY_AGAIN_BUTTON
             }
             style={styles.button}
           />

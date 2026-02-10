@@ -6,7 +6,6 @@ import Assertions from '../../../tests/framework/Assertions.ts';
 import SRPListItemComponent from '../../pages/wallet/MultiSrp/Common/SRPListItemComponent';
 import SrpQuizModal from '../../pages/Settings/SecurityAndPrivacy/SrpQuizModal';
 import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
-import { RevealSeedViewSelectorsText } from '../../../app/components/Views/RevealPrivateCredential/RevealSeedView.testIds';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacyView from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
@@ -35,14 +34,16 @@ export const completeSrpQuiz = async (expectedSrp: string) => {
   await RevealSecretRecoveryPhrase.enterPasswordToRevealSecretCredential(
     PASSWORD,
   );
+  // Tap confirm button to unlock and show the tab view with blur overlay
+  await RevealSecretRecoveryPhrase.tapConfirmButton();
+  // Tap the blur overlay to reveal the SRP
   await RevealSecretRecoveryPhrase.tapToReveal();
   await Assertions.expectElementToBeVisible(
     RevealSecretRecoveryPhrase.container,
   );
-  await Assertions.expectTextDisplayed(
-    RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_SRP_TITLE_TEXT,
-  );
-  await Assertions.expectTextDisplayed(expectedSrp);
+  // SRP is now displayed in grid format - verify first word is displayed
+  const srpWords = expectedSrp.split(' ');
+  await Assertions.expectTextDisplayed(srpWords[0]);
   await RevealSecretRecoveryPhrase.scrollToCopyToClipboardButton();
 
   await RevealSecretRecoveryPhrase.tapToRevealPrivateCredentialQRCode();

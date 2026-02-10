@@ -71,10 +71,22 @@ class RevealSecretRecoveryPhrase {
     );
   }
 
+  get confirmButton(): DetoxElement {
+    return Matchers.getElementByID(
+      RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
+    );
+  }
+
   async enterPasswordToRevealSecretCredential(password: string): Promise<void> {
     await Gestures.typeText(this.passwordInputToRevealCredential, password, {
       hideKeyboard: true,
       elemDescription: 'Password input to reveal credential',
+    });
+  }
+
+  async tapConfirmButton(): Promise<void> {
+    await Gestures.waitAndTap(this.confirmButton, {
+      elemDescription: 'Confirm button to reveal credential',
     });
   }
 

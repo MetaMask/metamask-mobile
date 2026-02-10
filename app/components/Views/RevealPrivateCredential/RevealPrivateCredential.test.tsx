@@ -14,8 +14,12 @@ import { ReauthenticateErrorType } from '../../../core/Authentication/types';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Device from '../../../util/device';
-import { ManualBackUpStepsSelectorsIDs } from '../ManualBackupStep1/ManualBackUpSteps.testIds';
 import { ExportCredentialsIds } from '../MultichainAccounts/AccountDetails/ExportCredentials.testIds';
+import {
+  SrpQuizGetStartedSelectorsIDs,
+  SrpSecurityQuestionOneSelectorsIDs,
+  SrpSecurityQuestionTwoSelectorsIDs,
+} from '../Quiz/SRPQuiz/SrpQuizModal.testIds';
 
 const MOCK_PASSWORD = 'word1 word2 word3 word4';
 
@@ -221,33 +225,45 @@ const completeSecurityQuiz = async (
 ) => {
   // Step 1: Click "Get started" on introduction screen
   await waitFor(() => {
-    expect(getByTestId(ExportCredentialsIds.NEXT_BUTTON)).toBeTruthy();
+    expect(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON)).toBeTruthy();
   });
-  fireEvent.press(getByTestId(ExportCredentialsIds.NEXT_BUTTON));
+  fireEvent.press(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON));
 
-  // Step 2: Answer quiz question 1 (correct answer is button 2)
+  // Step 2: Answer quiz question 1 (correct answer is RIGHT_ANSWER)
   await waitFor(() => {
-    expect(getByTestId(`${ExportCredentialsIds.ANSWER_BUTTON}-2`)).toBeTruthy();
+    expect(
+      getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
+    ).toBeTruthy();
   });
-  fireEvent.press(getByTestId(`${ExportCredentialsIds.ANSWER_BUTTON}-2`));
+  fireEvent.press(getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER));
 
   // Step 3: Click "Continue" after correct answer
   await waitFor(() => {
-    expect(getByTestId(ExportCredentialsIds.CONTINUE_BUTTON)).toBeTruthy();
+    expect(
+      getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
+    ).toBeTruthy();
   });
-  fireEvent.press(getByTestId(ExportCredentialsIds.CONTINUE_BUTTON));
+  fireEvent.press(
+    getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
+  );
 
-  // Step 4: Answer quiz question 2 (correct answer is button 1)
+  // Step 4: Answer quiz question 2 (correct answer is RIGHT_ANSWER)
   await waitFor(() => {
-    expect(getByTestId(`${ExportCredentialsIds.ANSWER_BUTTON}-1`)).toBeTruthy();
+    expect(
+      getByTestId(SrpSecurityQuestionTwoSelectorsIDs.RIGHT_ANSWER),
+    ).toBeTruthy();
   });
-  fireEvent.press(getByTestId(`${ExportCredentialsIds.ANSWER_BUTTON}-1`));
+  fireEvent.press(getByTestId(SrpSecurityQuestionTwoSelectorsIDs.RIGHT_ANSWER));
 
   // Step 5: Click "Continue" to proceed to ActionView
   await waitFor(() => {
-    expect(getByTestId(ExportCredentialsIds.CONTINUE_BUTTON)).toBeTruthy();
+    expect(
+      getByTestId(SrpSecurityQuestionTwoSelectorsIDs.RIGHT_CONTINUE),
+    ).toBeTruthy();
   });
-  fireEvent.press(getByTestId(ExportCredentialsIds.CONTINUE_BUTTON));
+  fireEvent.press(
+    getByTestId(SrpSecurityQuestionTwoSelectorsIDs.RIGHT_CONTINUE),
+  );
 
   // Wait for ActionView (scroll view) to appear
   await waitFor(() => {
@@ -328,7 +344,7 @@ describe('RevealPrivateCredential', () => {
         getByTestId(RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID),
       ).toBeTruthy();
       expect(getByTestId(ExportCredentialsIds.CONTAINER)).toBeTruthy();
-      expect(getByTestId(ExportCredentialsIds.NEXT_BUTTON)).toBeTruthy();
+      expect(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON)).toBeTruthy();
       expect(getByText('Get started')).toBeTruthy();
     });
 
@@ -419,10 +435,10 @@ describe('RevealPrivateCredential', () => {
       );
 
       // Initially on introduction screen
-      expect(getByTestId(ExportCredentialsIds.NEXT_BUTTON)).toBeTruthy();
+      expect(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON)).toBeTruthy();
 
       // Click Get started
-      fireEvent.press(getByTestId(ExportCredentialsIds.NEXT_BUTTON));
+      fireEvent.press(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON));
 
       // Should show quiz question
       await waitFor(() => {
@@ -440,21 +456,25 @@ describe('RevealPrivateCredential', () => {
       );
 
       // Navigate to quiz
-      fireEvent.press(getByTestId(ExportCredentialsIds.NEXT_BUTTON));
+      fireEvent.press(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON));
 
       await waitFor(() => {
         expect(
-          getByTestId(`${ExportCredentialsIds.ANSWER_BUTTON}-2`),
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
         ).toBeTruthy();
       });
 
-      // Select correct answer for question 1 (button 2)
-      fireEvent.press(getByTestId(`${ExportCredentialsIds.ANSWER_BUTTON}-2`));
+      // Select correct answer for question 1
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
+      );
 
       // Should show correct feedback
       await waitFor(() => {
         expect(getByText('Correct!')).toBeTruthy();
-        expect(getByTestId(ExportCredentialsIds.CONTINUE_BUTTON)).toBeTruthy();
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
+        ).toBeTruthy();
       });
     });
 
@@ -468,21 +488,27 @@ describe('RevealPrivateCredential', () => {
       );
 
       // Navigate to quiz
-      fireEvent.press(getByTestId(ExportCredentialsIds.NEXT_BUTTON));
+      fireEvent.press(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON));
 
       await waitFor(() => {
         expect(
-          getByTestId(`${ExportCredentialsIds.ANSWER_BUTTON}-1`),
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.WRONG_ANSWER),
         ).toBeTruthy();
       });
 
-      // Select wrong answer for question 1 (button 1)
-      fireEvent.press(getByTestId(`${ExportCredentialsIds.ANSWER_BUTTON}-1`));
+      // Select wrong answer for question 1
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionOneSelectorsIDs.WRONG_ANSWER),
+      );
 
       // Should show incorrect feedback
       await waitFor(() => {
         expect(getByText('Incorrect!')).toBeTruthy();
-        expect(getByTestId(ExportCredentialsIds.TRY_AGAIN_BUTTON)).toBeTruthy();
+        expect(
+          getByTestId(
+            SrpSecurityQuestionOneSelectorsIDs.WRONG_ANSWER_TRY_AGAIN_BUTTON,
+          ),
+        ).toBeTruthy();
       });
     });
 
@@ -973,7 +999,7 @@ describe('RevealPrivateCredential', () => {
 
       // Reveal the seed phrase
       const blurButton = queryByTestId(
-        ManualBackUpStepsSelectorsIDs.BLUR_BUTTON,
+        RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID,
       );
       if (blurButton) {
         fireEvent.press(blurButton);
@@ -1014,7 +1040,7 @@ describe('RevealPrivateCredential', () => {
 
       // Need to reveal the seed phrase after unlocking
       const blurButton = queryByTestId(
-        ManualBackUpStepsSelectorsIDs.BLUR_BUTTON,
+        RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID,
       );
       if (blurButton) {
         fireEvent.press(blurButton);
@@ -1260,7 +1286,7 @@ describe('RevealPrivateCredential', () => {
       await completeSecurityQuiz(getByTestId);
 
       const blurButton = queryByTestId(
-        ManualBackUpStepsSelectorsIDs.BLUR_BUTTON,
+        RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID,
       );
       if (blurButton) {
         fireEvent.press(blurButton);
