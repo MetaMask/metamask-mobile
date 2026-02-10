@@ -13,7 +13,7 @@ import BottomSheet, {
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { strings } from '../../../../../../locales/i18n';
-import { RecurringFeeModalSelectors } from '../../../../../../e2e/selectors/Card/RecurringFeeModal.selectors';
+import { RecurringFeeModalSelectors } from './RecurringFeeModal.testIds';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
 

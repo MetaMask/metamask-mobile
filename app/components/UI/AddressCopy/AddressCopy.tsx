@@ -62,7 +62,7 @@ const AddressCopy = ({ iconColor, hitSlop }: AddressCopyProps) => {
     <View style={styles.address}>
       <ButtonIcon
         iconName={IconName.Copy}
-        size={ButtonIconSize.Lg}
+        size={ButtonIconSize.Md}
         iconProps={iconColor && { color: iconColor }}
         onPress={handleOnPress}
         testID={WalletViewSelectorsIDs.ACCOUNT_COPY_BUTTON}

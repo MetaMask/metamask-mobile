@@ -349,7 +349,6 @@ describe('SnapSettings with keyring snap', () => {
       manifestVersion: '0.1',
     },
     status: 'stopped' as SnapStatus,
-    sourceCode: '',
     version: '1.1.6' as SemVerVersion,
     versionHistory: [
       {

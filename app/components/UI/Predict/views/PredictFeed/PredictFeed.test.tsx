@@ -230,7 +230,7 @@ describe('PredictFeed', () => {
         entryPoint: 'homepage_new_prediction',
       },
     });
-    mockUseFocusEffect.mockImplementation((callback: () => void) => callback());
+    mockUseFocusEffect.mockImplementation(() => undefined);
     mockGetInstance.mockReturnValue(mockSessionManager);
     mockUseSelector.mockReturnValue({
       enabled: false,
@@ -242,9 +242,10 @@ describe('PredictFeed', () => {
       headerHeight: 100,
       tabBarHeight: 48,
       layoutReady: true,
-      activeIndex: 0,
-      setActiveIndex: jest.fn(),
+      onTabSwitch: jest.fn(),
       scrollHandler: jest.fn(),
+      onHeaderLayout: jest.fn(),
+      onTabBarLayout: jest.fn(),
     });
     mockUsePredictMarketData.mockReturnValue({
       marketData: [
@@ -308,10 +309,11 @@ describe('PredictFeed', () => {
   });
 
   describe('tab navigation', () => {
-    it('renders all five category tabs', () => {
+    it('renders all six category tabs', () => {
       const { getByTestId } = render(<PredictFeed />);
 
       expect(getByTestId('tab-trending')).toBeOnTheScreen();
+      expect(getByTestId('tab-ending-soon')).toBeOnTheScreen();
       expect(getByTestId('tab-new')).toBeOnTheScreen();
       expect(getByTestId('tab-sports')).toBeOnTheScreen();
       expect(getByTestId('tab-crypto')).toBeOnTheScreen();
@@ -349,6 +351,11 @@ describe('PredictFeed', () => {
 
     it('tracks page view on screen focus', () => {
       render(<PredictFeed />);
+
+      const focusCallbacks = mockUseFocusEffect.mock.calls.map(
+        (call) => call[0],
+      );
+      focusCallbacks.forEach((cb) => cb?.());
 
       expect(mockSessionManager.trackPageView).toHaveBeenCalled();
     });
@@ -480,16 +487,17 @@ describe('PredictFeed', () => {
 
   describe('pager view interactions', () => {
     it('updates active index and tracks analytics when page changes via swipe', () => {
-      const mockSetActiveIndex = jest.fn();
+      const mockOnTabSwitch = jest.fn();
       mockUseFeedScrollManager.mockReturnValue({
         headerTranslateY: { value: 0 },
         headerHidden: false,
         headerHeight: 100,
         tabBarHeight: 48,
         layoutReady: true,
-        activeIndex: 0,
-        setActiveIndex: mockSetActiveIndex,
+        onTabSwitch: mockOnTabSwitch,
         scrollHandler: jest.fn(),
+        onHeaderLayout: jest.fn(),
+        onTabBarLayout: jest.fn(),
       });
 
       const { getByTestId } = render(<PredictFeed />);
@@ -497,8 +505,10 @@ describe('PredictFeed', () => {
 
       fireEvent(page1, 'onTouchEnd');
 
-      expect(mockSetActiveIndex).toHaveBeenCalledWith(1);
-      expect(mockSessionManager.trackTabChange).toHaveBeenCalledWith('new');
+      expect(mockOnTabSwitch).toHaveBeenCalledWith(1);
+      expect(mockSessionManager.trackTabChange).toHaveBeenCalledWith(
+        'ending-soon',
+      );
     });
   });
 
@@ -510,9 +520,10 @@ describe('PredictFeed', () => {
         headerHeight: 100,
         tabBarHeight: 48,
         layoutReady: false,
-        activeIndex: 0,
-        setActiveIndex: jest.fn(),
+        onTabSwitch: jest.fn(),
         scrollHandler: jest.fn(),
+        onHeaderLayout: jest.fn(),
+        onTabBarLayout: jest.fn(),
       });
 
       const { queryByTestId } = render(<PredictFeed />);
@@ -728,7 +739,7 @@ describe('PredictFeed', () => {
       expect(getByTestId('tab-trending')).toBeOnTheScreen();
     });
 
-    it('renders six category tabs when hot tab is enabled', () => {
+    it('renders seven category tabs when hot tab is enabled', () => {
       mockUseSelector.mockReturnValue({
         enabled: true,
         queryParams: 'tag_id=149',
@@ -738,13 +749,14 @@ describe('PredictFeed', () => {
 
       expect(getByTestId('tab-hot')).toBeOnTheScreen();
       expect(getByTestId('tab-trending')).toBeOnTheScreen();
+      expect(getByTestId('tab-ending-soon')).toBeOnTheScreen();
       expect(getByTestId('tab-new')).toBeOnTheScreen();
       expect(getByTestId('tab-sports')).toBeOnTheScreen();
       expect(getByTestId('tab-crypto')).toBeOnTheScreen();
       expect(getByTestId('tab-politics')).toBeOnTheScreen();
     });
 
-    it('renders six pager pages when hot tab is enabled', () => {
+    it('renders seven pager pages when hot tab is enabled', () => {
       mockUseSelector.mockReturnValue({
         enabled: true,
         queryParams: 'tag_id=149&tag_id=100995&order=volume24hr',
@@ -758,6 +770,7 @@ describe('PredictFeed', () => {
       expect(getByTestId('pager-page-3')).toBeOnTheScreen();
       expect(getByTestId('pager-page-4')).toBeOnTheScreen();
       expect(getByTestId('pager-page-5')).toBeOnTheScreen();
+      expect(getByTestId('pager-page-6')).toBeOnTheScreen();
     });
 
     it('tracks tab change for hot tab when swiped to', () => {
@@ -766,16 +779,17 @@ describe('PredictFeed', () => {
         queryParams: 'tag_id=149',
       });
 
-      const mockSetActiveIndex = jest.fn();
+      const mockOnTabSwitch = jest.fn();
       mockUseFeedScrollManager.mockReturnValue({
         headerTranslateY: { value: 0 },
         headerHidden: false,
         headerHeight: 100,
         tabBarHeight: 48,
         layoutReady: true,
-        activeIndex: 1,
-        setActiveIndex: mockSetActiveIndex,
+        onTabSwitch: mockOnTabSwitch,
         scrollHandler: jest.fn(),
+        onHeaderLayout: jest.fn(),
+        onTabBarLayout: jest.fn(),
       });
 
       const { getByTestId } = render(<PredictFeed />);
@@ -783,14 +797,20 @@ describe('PredictFeed', () => {
 
       fireEvent(hotTabPage, 'onTouchEnd');
 
-      expect(mockSetActiveIndex).toHaveBeenCalledWith(0);
+      expect(mockOnTabSwitch).toHaveBeenCalledWith(0);
       expect(mockSessionManager.trackTabChange).toHaveBeenCalledWith('hot');
     });
 
-    it('starts session with hot as initial tab when flag is enabled', () => {
+    it('starts session with hot as initial tab when requested via deeplink', () => {
       mockUseSelector.mockReturnValue({
         enabled: true,
         queryParams: 'tag_id=149',
+      });
+      mockUseRoute.mockReturnValue({
+        params: {
+          entryPoint: 'homepage_new_prediction',
+          tab: 'hot',
+        },
       });
 
       render(<PredictFeed />);
@@ -799,6 +819,57 @@ describe('PredictFeed', () => {
         'homepage_new_prediction',
         'hot',
       );
+    });
+  });
+
+  describe('query deeplink parameter', () => {
+    it.each([['bitcoin'], ['ethereum'], ['solana']])(
+      'opens search overlay when query param "%s" is provided in route params',
+      (query) => {
+        mockUseRoute.mockReturnValue({
+          params: {
+            entryPoint: 'deeplink',
+            query,
+          },
+        });
+
+        const { getByTestId } = render(<PredictFeed />);
+
+        expect(getByTestId('search-icon')).toBeOnTheScreen();
+      },
+    );
+
+    it.each([['bitcoin'], ['ethereum']])(
+      'pre-fills search input with query "%s" from route params',
+      (query) => {
+        mockUseRoute.mockReturnValue({
+          params: {
+            entryPoint: 'deeplink',
+            query,
+          },
+        });
+
+        const { getByPlaceholderText } = render(<PredictFeed />);
+
+        const searchInput = getByPlaceholderText('Search prediction markets');
+        expect(searchInput.props.value).toBe(query);
+      },
+    );
+
+    it('closes search overlay when cancel is pressed', () => {
+      mockUseRoute.mockReturnValue({
+        params: {
+          entryPoint: 'deeplink',
+          query: 'bitcoin',
+        },
+      });
+
+      const { getByText, getByTestId, queryByTestId } = render(<PredictFeed />);
+
+      expect(getByTestId('search-icon')).toBeOnTheScreen();
+
+      fireEvent.press(getByText('Cancel'));
+      expect(queryByTestId('search-icon')).toBeNull();
     });
   });
 });

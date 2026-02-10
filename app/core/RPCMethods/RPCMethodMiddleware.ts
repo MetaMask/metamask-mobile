@@ -22,10 +22,8 @@ import {
 import { blockTagParamIndex } from '../../util/networks';
 import { polyfillGasPrice } from './utils';
 import ImportedEngine from '../Engine';
-import { strings } from '../../../locales/i18n';
 import { resemblesAddress, safeToChecksumAddress } from '../../util/address';
 import { store } from '../../store';
-import { removeBookmark } from '../../actions/bookmarks';
 import { v1 as random } from 'uuid';
 import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants';
@@ -97,18 +95,12 @@ export interface RPCMethodsMiddleParameters {
   url: MutableRefObject<string>;
   title: MutableRefObject<string>;
   icon: MutableRefObject<ImageSourcePropType | undefined>;
-  // Bookmarks
-  isHomepage: () => boolean;
-  // Show autocomplete
-  fromHomepage: { current: boolean };
-  toggleUrlModal: (shouldClearUrlInput: boolean) => void;
   // For the browser
   tabId: number | '' | false;
   // For WalletConnect
   isWalletConnect: boolean;
   // For MM SDK
   isMMSDK: boolean;
-  injectHomePageScripts: (bookmarks?: []) => void;
   analytics: { [key: string]: string | boolean };
 }
 
@@ -407,18 +399,12 @@ export const getRpcMethodMiddleware = ({
   url,
   title,
   icon,
-  // Bookmarks
-  isHomepage,
-  // Show autocomplete
-  fromHomepage,
-  toggleUrlModal,
   // For the browser
   tabId,
   // For WalletConnect
   isWalletConnect,
   // For MM SDK
   isMMSDK,
-  injectHomePageScripts,
   // For analytics
   analytics,
 }: RPCMethodsMiddleParameters) => {
@@ -964,76 +950,6 @@ export const getRpcMethodMiddleware = ({
             },
           },
         }),
-
-      metamask_removeFavorite: async () => {
-        checkTabActive();
-
-        if (!isHomepage()) {
-          throw providerErrors.unauthorized('Forbidden.');
-        }
-
-        const { bookmarks } = store.getState();
-
-        return new Promise<void>((resolve) => {
-          Alert.alert(
-            strings('browser.remove_bookmark_title'),
-            strings('browser.remove_bookmark_msg'),
-            [
-              {
-                text: strings('browser.cancel'),
-                onPress: () => {
-                  res.result = {
-                    favorites: bookmarks,
-                  };
-                  resolve();
-                },
-                style: 'cancel',
-              },
-              {
-                text: strings('browser.yes'),
-                onPress: () => {
-                  const bookmark = { url: req.params[0] };
-
-                  store.dispatch(removeBookmark(bookmark));
-
-                  const { bookmarks: updatedBookmarks } = store.getState();
-
-                  if (isHomepage()) {
-                    injectHomePageScripts(updatedBookmarks);
-                  }
-
-                  res.result = {
-                    favorites: bookmarks,
-                  };
-                  resolve();
-                },
-              },
-            ],
-          );
-        });
-      },
-
-      metamask_showAutocomplete: async () => {
-        checkTabActive();
-        if (!isHomepage()) {
-          throw providerErrors.unauthorized('Forbidden.');
-        }
-        fromHomepage.current = true;
-        toggleUrlModal(true);
-
-        setTimeout(() => {
-          fromHomepage.current = false;
-        }, 1500);
-
-        res.result = true;
-      },
-
-      metamask_injectHomepageScripts: async () => {
-        if (isHomepage()) {
-          injectHomePageScripts();
-        }
-        res.result = true;
-      },
 
       /**
        * This method is used by the inpage provider or sdk to get its state on
