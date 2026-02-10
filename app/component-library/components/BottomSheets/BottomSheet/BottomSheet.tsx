@@ -77,11 +77,15 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
       } else if (shouldNavigateBack && didNavigateBackRef.current) {
         Logger.log('[BottomSheet] navigation.goBack skipped (duplicate close)');
       }
-      onClose?.(!!postCallback.current);
-      if (!didRunPostCallbackRef.current) {
+      const callback = postCallback.current;
+      const hasCallback = !!callback;
+
+      onClose?.(hasCallback);
+
+      if (!didRunPostCallbackRef.current && hasCallback) {
         didRunPostCallbackRef.current = true;
-        postCallback.current?.();
         postCallback.current = undefined;
+        callback?.();
       }
     }, [navigation, onClose, shouldNavigateBack]);
 
