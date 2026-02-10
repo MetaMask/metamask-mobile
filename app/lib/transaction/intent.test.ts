@@ -29,23 +29,52 @@ jest.mock(
 const ACCOUNT = '0x1234567890123456789012345678901234567890' as Hex;
 const VERIFYING_CONTRACT_DEFAULT =
   '0x9008D19f58AAbd9eD0D60971565AA8510560ab41' as Hex;
-const CUSTOM_SETTLEMENT = '0x1111111111111111111111111111111111111111' as Hex;
 
-const BASE_ORDER: Parameters<typeof signIntent>[0]['order'] = {
-  sellToken: '0x0000000000000000000000000000000000000000' as Hex,
-  buyToken: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48' as Hex,
-  receiver: ACCOUNT,
-  sellAmount: '1000000000000000000',
-  buyAmount: '2000000000',
-  validTo: 1234567890,
-  appData: '0x',
-  appDataHash:
-    '0x0000000000000000000000000000000000000000000000000000000000000000' as Hex,
-  feeAmount: '0',
-  kind: 'sell',
-  partiallyFillable: false,
-  sellTokenBalance: 'erc20',
-  buyTokenBalance: 'erc20',
+const BASE_TYPED_DATA = {
+  types: {
+    EIP712Domain: [
+      { name: 'name', type: 'string' },
+      { name: 'version', type: 'string' },
+      { name: 'chainId', type: 'uint256' },
+      { name: 'verifyingContract', type: 'address' },
+    ],
+    Order: [
+      { name: 'sellToken', type: 'address' },
+      { name: 'buyToken', type: 'address' },
+      { name: 'receiver', type: 'address' },
+      { name: 'sellAmount', type: 'uint256' },
+      { name: 'buyAmount', type: 'uint256' },
+      { name: 'validTo', type: 'uint32' },
+      { name: 'appData', type: 'bytes32' },
+      { name: 'feeAmount', type: 'uint256' },
+      { name: 'kind', type: 'string' },
+      { name: 'partiallyFillable', type: 'bool' },
+      { name: 'sellTokenBalance', type: 'string' },
+      { name: 'buyTokenBalance', type: 'string' },
+    ],
+  },
+  primaryType: 'Order',
+  domain: {
+    name: 'Gnosis Protocol',
+    version: 'v2',
+    chainId: 1,
+    verifyingContract: VERIFYING_CONTRACT_DEFAULT,
+  },
+  message: {
+    sellToken: '0x0000000000000000000000000000000000000000' as Hex,
+    buyToken: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48' as Hex,
+    receiver: ACCOUNT,
+    sellAmount: '1000000000000000000',
+    buyAmount: '2000000000',
+    validTo: 1234567890,
+    appData:
+      '0x0000000000000000000000000000000000000000000000000000000000000000' as Hex,
+    feeAmount: '0',
+    kind: 'sell',
+    partiallyFillable: false,
+    sellTokenBalance: 'erc20',
+    buyTokenBalance: 'erc20',
+  },
 };
 
 const BASE_QUOTE: BridgeQuoteResponse = {
@@ -93,15 +122,16 @@ const BASE_QUOTE: BridgeQuoteResponse = {
     intent: {
       protocol: 'cowswap',
       order: {
-        sellToken: BASE_ORDER.sellToken,
-        buyToken: BASE_ORDER.buyToken,
-        sellAmount: BASE_ORDER.sellAmount,
-        buyAmount: BASE_ORDER.buyAmount,
-        validTo: String(BASE_ORDER.validTo),
-        appData: '0x',
+        sellToken: BASE_TYPED_DATA.message.sellToken,
+        buyToken: BASE_TYPED_DATA.message.buyToken,
+        sellAmount: BASE_TYPED_DATA.message.sellAmount,
+        buyAmount: BASE_TYPED_DATA.message.buyAmount,
+        validTo: String(BASE_TYPED_DATA.message.validTo),
+        appData: BASE_TYPED_DATA.message.appData,
         receiver: ACCOUNT,
       },
       settlementContract: VERIFYING_CONTRACT_DEFAULT,
+      typedData: BASE_TYPED_DATA,
     },
   },
 } as unknown as BridgeQuoteResponse;
@@ -135,14 +165,6 @@ const makeQuote = (
   overrides?: Partial<BridgeQuoteResponse>,
 ): BridgeQuoteResponse => deepMerge(BASE_QUOTE, overrides);
 
-const getFirstTypedMessage = (
-  messenger: jest.Mocked<SignatureControllerMessenger>,
-) => {
-  const callArgs = messenger.call.mock.calls[0];
-  expect(callArgs).toBeDefined();
-  return callArgs?.[1] as any;
-};
-
 describe('intent', () => {
   let messenger: jest.Mocked<SignatureControllerMessenger>;
   let submitIntent: jest.Mock;
@@ -159,68 +181,19 @@ describe('intent', () => {
       const signature = '0x1234567890abcdef' as Hex;
       messenger.call.mockResolvedValue(signature);
       const result = await signIntent({
-        chainId: 1,
         from: ACCOUNT,
-        order: BASE_ORDER,
-        verifyingContract: VERIFYING_CONTRACT_DEFAULT,
+        typedData: BASE_TYPED_DATA as any,
         messenger,
       });
       expect(messenger.call).toHaveBeenCalledWith(
         'KeyringController:signTypedMessage',
         {
           from: ACCOUNT,
-          data: {
-            types: expect.any(Object),
-            primaryType: 'Order',
-            domain: {
-              name: 'Gnosis Protocol',
-              version: 'v2',
-              chainId: 1,
-              verifyingContract: VERIFYING_CONTRACT_DEFAULT,
-            },
-            message: expect.objectContaining({
-              sellToken: BASE_ORDER.sellToken,
-              buyToken: BASE_ORDER.buyToken,
-              receiver: BASE_ORDER.receiver,
-              sellAmount: BASE_ORDER.sellAmount,
-              buyAmount: BASE_ORDER.buyAmount,
-              validTo: BASE_ORDER.validTo,
-              appData: expect.any(String),
-              feeAmount: BASE_ORDER.feeAmount,
-              kind: BASE_ORDER.kind,
-              partiallyFillable: BASE_ORDER.partiallyFillable,
-              sellTokenBalance: BASE_ORDER.sellTokenBalance,
-              buyTokenBalance: BASE_ORDER.buyTokenBalance,
-            }),
-          },
+          data: BASE_TYPED_DATA,
         },
         SignTypedDataVersion.V4,
       );
       expect(result).toBe(signature);
-    });
-    it.each([
-      [
-        'normalizes non-bytes32 appData',
-        '{"version":"1.0"}',
-        /^0x[0-9a-fA-F]{64}$/,
-      ],
-      [
-        'uses bytes32 appData directly',
-        '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-        null,
-      ],
-    ])('%s', async (_label, appData, regex) => {
-      messenger.call.mockResolvedValue('0x1234567890abcdef' as Hex);
-      await signIntent({
-        chainId: 1,
-        from: ACCOUNT,
-        order: { ...BASE_ORDER, appData: appData as any },
-        verifyingContract: VERIFYING_CONTRACT_DEFAULT,
-        messenger,
-      });
-      const { data } = getFirstTypedMessage(messenger);
-      if (regex) expect(data.message.appData).toMatch(regex);
-      else expect(data.message.appData).toBe(appData);
     });
   });
   describe('handleIntentTransaction', () => {
@@ -260,40 +233,19 @@ describe('intent', () => {
       );
     });
 
-    it.each([
-      [
-        'undefined',
-        makeQuote({
-          quote: {
-            ...(BASE_QUOTE.quote as any),
-            intent: {
-              ...(BASE_QUOTE.quote as any).intent,
-              order: {
-                ...(BASE_QUOTE.quote as any).intent.order,
-                validTo: undefined,
-              },
-            },
+    it('throws when intent.typedData is missing', async () => {
+      const quote = makeQuote({
+        quote: {
+          ...(BASE_QUOTE.quote as any),
+          intent: {
+            ...(BASE_QUOTE.quote as any).intent,
+            typedData: undefined,
           },
-        } as any),
-      ],
-      [
-        'invalid string',
-        makeQuote({
-          quote: {
-            ...(BASE_QUOTE.quote as any),
-            intent: {
-              ...(BASE_QUOTE.quote as any).intent,
-              order: {
-                ...(BASE_QUOTE.quote as any).intent.order,
-                validTo: 'not-a-number',
-              },
-            },
-          },
-        } as any),
-      ],
-    ])('throws when order.validTo is %s', async (_l, quote) => {
+        },
+      } as any);
+
       await expect(handleIntentTransaction(quote, ACCOUNT)).rejects.toThrow(
-        'Intent order validTo is missing or invalid in quote response',
+        'Intent typed data is missing from quote response',
       );
     });
     it('calls submitIntent with normalized quote response and signature', async () => {
@@ -311,139 +263,11 @@ describe('intent', () => {
         SignTypedDataVersion.V4,
       );
       expect(submitIntent).toHaveBeenCalledWith({
-        quoteResponse: expect.objectContaining({
-          quote: expect.objectContaining({
-            intent: expect.objectContaining({
-              order: expect.objectContaining({
-                appDataHash: expect.stringMatching(/^0x[0-9a-fA-F]{64}$/),
-                receiver: ACCOUNT,
-                sellAmount: '1000000000000000000',
-                buyAmount: '2000000000',
-                validTo: 1234567890,
-                feeAmount: '0',
-                sellTokenBalance: 'erc20',
-                buyTokenBalance: 'erc20',
-              }),
-            }),
-          }),
-        }),
+        quoteResponse: makeQuote(),
         signature,
         accountAddress: ACCOUNT,
       });
       expect(result).toBe(submitResult);
-    });
-    it('uses default settlementContract when not provided in intent', async () => {
-      messenger.call.mockResolvedValue('0xabcdef1234567890' as Hex);
-      submitIntent.mockResolvedValue({ id: 'intent-tx-1' });
-      const quote = makeQuote({
-        quote: {
-          ...(BASE_QUOTE.quote as any),
-          intent: {
-            protocol: 'cowswap',
-            order: { ...(BASE_QUOTE.quote as any).intent.order },
-            settlementContract: undefined,
-          },
-        },
-      } as any);
-      await handleIntentTransaction(quote, ACCOUNT);
-      const { data } = getFirstTypedMessage(messenger);
-      expect(data.domain.verifyingContract).toBe(VERIFYING_CONTRACT_DEFAULT);
-    });
-    it('uses custom settlementContract when provided in intent', async () => {
-      messenger.call.mockResolvedValue('0xabcdef1234567890' as Hex);
-      submitIntent.mockResolvedValue({ id: 'intent-tx-1' });
-      const quote = makeQuote({
-        quote: {
-          ...(BASE_QUOTE.quote as any),
-          intent: {
-            ...(BASE_QUOTE.quote as any).intent,
-            settlementContract: CUSTOM_SETTLEMENT,
-          },
-        },
-      } as any);
-      await handleIntentTransaction(quote, ACCOUNT);
-      const { data } = getFirstTypedMessage(messenger);
-      expect(data.domain.verifyingContract).toBe(CUSTOM_SETTLEMENT);
-    });
-
-    it('normalizes order with default values when fields are missing', async () => {
-      const signature = '0xabcdef1234567890' as Hex;
-      messenger.call.mockResolvedValue(signature);
-      submitIntent.mockResolvedValue({ id: 'intent-tx-1' });
-      const quote = makeQuote({
-        quote: {
-          ...(BASE_QUOTE.quote as any),
-          intent: {
-            protocol: 'cowswap',
-            settlementContract: VERIFYING_CONTRACT_DEFAULT,
-            order: {
-              sellToken: BASE_ORDER.sellToken,
-              buyToken: BASE_ORDER.buyToken,
-              validTo: String(BASE_ORDER.validTo),
-              appData: '0x',
-
-              // explicitly “missing” fields (otherwise base values leak in via deep merge)
-              receiver: undefined,
-              sellAmount: undefined,
-              buyAmount: undefined,
-              feeAmount: undefined,
-              sellTokenBalance: undefined,
-              buyTokenBalance: undefined,
-            },
-          },
-        },
-      } as any);
-      await handleIntentTransaction(quote, ACCOUNT);
-      expect(submitIntent).toHaveBeenCalledWith({
-        quoteResponse: expect.objectContaining({
-          quote: expect.objectContaining({
-            intent: expect.objectContaining({
-              order: expect.objectContaining({
-                receiver: ACCOUNT,
-                sellAmount: '0',
-                buyAmount: '0',
-                feeAmount: '0',
-                sellTokenBalance: 'erc20',
-                buyTokenBalance: 'erc20',
-              }),
-            }),
-          }),
-        }),
-        signature,
-        accountAddress: ACCOUNT,
-      });
-    });
-
-    it('normalizes appData to appDataHash in the order', async () => {
-      const signature = '0xabcdef1234567890' as Hex;
-      messenger.call.mockResolvedValue(signature);
-      submitIntent.mockResolvedValue({ id: 'intent-tx-1' });
-      const quote = makeQuote({
-        quote: {
-          ...(BASE_QUOTE.quote as any),
-          intent: {
-            ...(BASE_QUOTE.quote as any).intent,
-            order: {
-              ...(BASE_QUOTE.quote as any).intent.order,
-              appData: '{"version":"1.0"}',
-            },
-          },
-        },
-      } as any);
-      await handleIntentTransaction(quote, ACCOUNT);
-      expect(submitIntent).toHaveBeenCalledWith({
-        quoteResponse: expect.objectContaining({
-          quote: expect.objectContaining({
-            intent: expect.objectContaining({
-              order: expect.objectContaining({
-                appDataHash: expect.stringMatching(/^0x[0-9a-fA-F]{64}$/),
-              }),
-            }),
-          }),
-        }),
-        signature,
-        accountAddress: expect.any(String),
-      });
     });
   });
 });
