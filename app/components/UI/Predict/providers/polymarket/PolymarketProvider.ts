@@ -72,6 +72,7 @@ import {
   getSafeUsdcAmount,
   getWithdrawTransactionCallData,
   hasAllowances,
+  hasPermit2Allowance,
 } from './safe/utils';
 import { Permit2FeeAuthorization, SafeFeeAuthorization } from './safe/types';
 import {
@@ -1143,10 +1144,59 @@ export class PolymarketProvider implements PredictProvider {
         Array.isArray(feesWithPermit2.executors) &&
         feesWithPermit2.executors.length > 0;
 
+      let feeAuthorization:
+        | SafeFeeAuthorization
+        | Permit2FeeAuthorization
+        | undefined;
+      let executor: string | undefined;
+      let shouldUsePermit2OrderType = false;
+
+      if (fees !== undefined && fees.totalFee > 0) {
+        const safeAddress = computeProxyAddress(signer.address);
+        const feeAmountInUsdc = BigInt(
+          parseUnits(fees.totalFee.toString(), 6).toString(),
+        );
+
+        if (shouldUsePermit2 && feesWithPermit2?.executors) {
+          const permit2Ready = await hasPermit2Allowance({
+            address: safeAddress,
+          });
+
+          if (permit2Ready) {
+            shouldUsePermit2OrderType = true;
+            executor =
+              feesWithPermit2.executors[
+                Math.floor(Math.random() * feesWithPermit2.executors.length)
+              ];
+
+            feeAuthorization = await createPermit2FeeAuthorization({
+              safeAddress,
+              signer,
+              amount: feeAmountInUsdc,
+              spender: executor,
+            });
+          } else {
+            feeAuthorization = await createSafeFeeAuthorization({
+              safeAddress,
+              signer,
+              amount: feeAmountInUsdc,
+              to: fees.collector,
+            });
+          }
+        } else {
+          feeAuthorization = await createSafeFeeAuthorization({
+            safeAddress,
+            signer,
+            amount: feeAmountInUsdc,
+            to: fees.collector,
+          });
+        }
+      }
+
       const clobOrder = {
         order: { ...signedOrder, side, salt: parseInt(signedOrder.salt) },
         owner: signerApiKey.apiKey,
-        orderType: shouldUsePermit2 ? OrderType.FAK : OrderType.FOK,
+        orderType: shouldUsePermit2OrderType ? OrderType.FAK : OrderType.FOK,
       };
 
       const body = JSON.stringify(clobOrder);
@@ -1160,39 +1210,6 @@ export class PolymarketProvider implements PredictProvider {
         address: clobOrder.order.signer ?? '',
         apiKey: signerApiKey,
       });
-
-      let feeAuthorization:
-        | SafeFeeAuthorization
-        | Permit2FeeAuthorization
-        | undefined;
-      let executor: string | undefined;
-      if (fees !== undefined && fees.totalFee > 0) {
-        const safeAddress = computeProxyAddress(signer.address);
-        const feeAmountInUsdc = BigInt(
-          parseUnits(fees.totalFee.toString(), 6).toString(),
-        );
-
-        if (shouldUsePermit2 && feesWithPermit2?.executors) {
-          executor =
-            feesWithPermit2.executors[
-              Math.floor(Math.random() * feesWithPermit2.executors.length)
-            ];
-
-          feeAuthorization = await createPermit2FeeAuthorization({
-            safeAddress,
-            signer,
-            amount: feeAmountInUsdc,
-            spender: executor,
-          });
-        } else {
-          feeAuthorization = await createSafeFeeAuthorization({
-            safeAddress,
-            signer,
-            amount: feeAmountInUsdc,
-            to: fees.collector,
-          });
-        }
-      }
 
       const { success, response, error } = await submitClobOrder({
         headers,

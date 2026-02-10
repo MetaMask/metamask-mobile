@@ -783,6 +783,19 @@ export const hasAllowances = async ({ address }: { address: string }) => {
   );
 };
 
+export const hasPermit2Allowance = async ({
+  address,
+}: {
+  address: string;
+}): Promise<boolean> => {
+  const allowance = await getAllowance({
+    tokenAddress: MATIC_CONTRACTS.collateral,
+    owner: address,
+    spender: PERMIT2_ADDRESS,
+  });
+  return allowance > 0;
+};
+
 export const createClaimSafeTransaction = (
   positions: PredictPosition[],
   includeTransfer?: {
