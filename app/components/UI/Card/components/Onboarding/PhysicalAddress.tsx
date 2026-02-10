@@ -646,10 +646,7 @@ const PhysicalAddress = () => {
           isChecked={electronicConsent}
           onPress={handleElectronicConsentToggle}
           label={
-            <TouchableOpacity
-              onPress={openESignConsentDisclosureUS}
-              style={tw.style('flex-1 flex-shrink mr-2 -mt-1')}
-            >
+            <Box style={tw.style('flex-1 flex-shrink mr-2 -mt-1')}>
               <Text
                 variant={TextVariant.BodySm}
                 twClassName="text-text-alternative"
@@ -660,13 +657,17 @@ const PhysicalAddress = () => {
                 <Text
                   variant={TextVariant.BodySm}
                   twClassName="text-primary-default underline"
+                  onPress={openESignConsentDisclosureUS}
                 >
                   {strings(
                     'card.card_onboarding.physical_address.electronic_consent_2',
                   )}
                 </Text>
+                {strings(
+                  'card.card_onboarding.physical_address.electronic_consent_3',
+                )}
               </Text>
-            </TouchableOpacity>
+            </Box>
           }
           style={tw.style('h-auto flex flex-row items-start')}
           testID="physical-address-electronic-consent-checkbox"

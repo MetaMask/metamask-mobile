@@ -6887,8 +6887,9 @@
         "state_label": "State",
         "zip_code_label": "Zip code",
         "country_label": "Country",
-        "electronic_consent_1": "I agree to the E-Sign Act Consent and Disclosure and to receive all communications electronically. ",
-        "electronic_consent_2": "View document (PDF)"
+        "electronic_consent_1": "I agree to the ",
+        "electronic_consent_2": "E-Sign Act Consent and Disclosure",
+        "electronic_consent_3": " and to receive all communications electronically."
       },
       "mailing_address": {
         "title": "Mailing address",
