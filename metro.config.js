@@ -93,29 +93,39 @@ module.exports = function (baseConfig) {
           buffer: '@craftzdog/react-native-buffer',
           'node:buffer': '@craftzdog/react-native-buffer',
         },
-        resolveRequest: isE2E
-          ? (context, moduleName, platform) => {
-              if (moduleName === '@sentry/react-native') {
-                return {
-                  type: 'sourceFile',
-                  filePath: path.resolve(
-                    __dirname,
-                    'tests/module-mocking/sentry/react-native.ts',
-                  ),
-                };
-              }
-              if (moduleName === '@sentry/core') {
-                return {
-                  type: 'sourceFile',
-                  filePath: path.resolve(
-                    __dirname,
-                    'tests/module-mocking/sentry/core.ts',
-                  ),
-                };
-              }
-              return context.resolveRequest(context, moduleName, platform);
+        resolveRequest: (context, moduleName, platform) => {
+          // Use axios browser build so Node-only deps (e.g. http2) are never pulled in
+          if (
+            moduleName === 'axios' ||
+            moduleName.includes('axios/dist/node/')
+          ) {
+            return {
+              filePath: require.resolve('axios/dist/browser/axios.js'),
+              type: 'sourceFile',
+            };
+          }
+          if (isE2E) {
+            if (moduleName === '@sentry/react-native') {
+              return {
+                type: 'sourceFile',
+                filePath: path.resolve(
+                  __dirname,
+                  'tests/module-mocking/sentry/react-native.ts',
+                ),
+              };
             }
-          : defaultConfig.resolver.resolveRequest,
+            if (moduleName === '@sentry/core') {
+              return {
+                type: 'sourceFile',
+                filePath: path.resolve(
+                  __dirname,
+                  'tests/module-mocking/sentry/core.ts',
+                ),
+              };
+            }
+          }
+          return context.resolveRequest(context, moduleName, platform);
+        },
       },
       transformer: {
         babelTransformerPath: require.resolve('./metro.transform.js'),
