@@ -95,7 +95,7 @@ describe('Checkout', () => {
       </ThemeContext.Provider>,
     );
 
-    expect(getByTestId('checkout-webview')).toBeTruthy();
+    expect(getByTestId('checkout-webview')).toBeOnTheScreen();
   });
 
   it('renders close button', () => {
@@ -105,6 +105,6 @@ describe('Checkout', () => {
       </ThemeContext.Provider>,
     );
 
-    expect(getByTestId('checkout-close-button')).toBeTruthy();
+    expect(getByTestId('checkout-close-button')).toBeOnTheScreen();
   });
 });

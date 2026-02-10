@@ -30,7 +30,7 @@ import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentSelectionModal';
 import { createCheckoutNavDetails } from '../Checkout';
-import { isNativeProvider } from '../../types';
+import { isNativeProvider, getQuoteProviderName } from '../../types';
 import { createDepositNavigationDetails } from '../../Deposit/routes/utils';
 import Logger from '../../../../../util/Logger';
 
@@ -177,30 +177,31 @@ function BuildQuote() {
     // Note: CustomActions (e.g., PayPal) are handled through the same flow.
     // If the API returns a quote with a URL, it will be opened in the checkout webview.
     // If customActions appear without a URL, they will error here (needs backend fix).
-    const widgetUrl = await getWidgetUrl(selectedQuote);
+    try {
+      const widgetUrl = await getWidgetUrl(selectedQuote);
 
-    if (widgetUrl) {
-      navigation.navigate(
-        ...createCheckoutNavDetails({
-          url: widgetUrl,
-          providerName: selectedProvider?.name ?? '',
-        }),
-      );
-    } else {
-      // Aggregator but no URL -> error
-      Logger.error(
-        new Error('No widget URL available for aggregator provider'),
-        { provider: selectedQuote.provider },
-      );
+      if (widgetUrl) {
+        navigation.navigate(
+          ...createCheckoutNavDetails({
+            url: widgetUrl,
+            providerName: getQuoteProviderName(selectedQuote),
+          }),
+        );
+      } else {
+        Logger.error(
+          new Error('No widget URL available for aggregator provider'),
+          { provider: selectedQuote.provider },
+        );
+        // TODO: Show user-facing error (alert or inline)
+      }
+    } catch (error) {
+      Logger.error(error as Error, {
+        provider: selectedQuote.provider,
+        message: 'Failed to fetch widget URL',
+      });
       // TODO: Show user-facing error (alert or inline)
     }
-  }, [
-    selectedQuote,
-    selectedProvider,
-    navigation,
-    getWidgetUrl,
-    amountAsNumber,
-  ]);
+  }, [selectedQuote, navigation, getWidgetUrl, amountAsNumber]);
 
   const hasAmount = amountAsNumber > 0;
 

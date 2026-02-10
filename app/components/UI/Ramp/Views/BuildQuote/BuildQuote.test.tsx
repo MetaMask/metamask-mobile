@@ -77,11 +77,13 @@ jest.mock('../../hooks/useTokenNetworkInfo', () => ({
   useTokenNetworkInfo: () => mockGetTokenNetworkInfo,
 }));
 
-const mockUseRampAccountAddress = jest.fn(() => '0x1234567890abcdef');
+const mockUseRampAccountAddress = jest.fn(
+  (_chainId?: unknown) => '0x1234567890abcdef',
+);
 
 jest.mock('../../hooks/useRampAccountAddress', () => ({
   __esModule: true,
-  default: (...args: unknown[]) => mockUseRampAccountAddress(...args),
+  default: (chainId: unknown) => mockUseRampAccountAddress(chainId),
 }));
 
 jest.mock('../../../../hooks/useDebouncedValue', () => ({
