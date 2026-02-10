@@ -33,6 +33,7 @@ import {
   formatPositionSize,
   formatOrderCardDate,
 } from '../../utils/formatUtils';
+import { formatOrderLabel } from '../../utils/orderUtils';
 import { useTheme } from '../../../../../util/theme';
 
 interface OrderDetailsRouteParams {
@@ -78,13 +79,7 @@ const PerpsOrderDetailsView: React.FC = () => {
   const orderDetails = useMemo(() => {
     if (!order) return null;
 
-    const isLong = order.side === 'buy';
-    const directionLabel = isLong
-      ? strings('perps.order.long_label')
-      : strings('perps.order.short_label');
-    const orderTypeLabel = strings(
-      `perps.order_details.${order.orderType}_${order.side}`,
-    );
+    const orderTypeLabel = formatOrderLabel(order);
 
     // Calculate fill percentage
     const fillPercentage =
@@ -92,22 +87,66 @@ const PerpsOrderDetailsView: React.FC = () => {
         ? (parseFloat(order.filledSize) / parseFloat(order.originalSize)) * 100
         : 0;
 
-    // Calculate size in USD (size * price)
-    const orderSizeUSD = parseFloat(order.size) * parseFloat(order.price);
+    const parsedPrice = parseFloat(order.price || '0');
+    const parsedTriggerPrice = parseFloat(order.triggerPrice || '0');
+    const hasTriggerPrice =
+      Number.isFinite(parsedTriggerPrice) && parsedTriggerPrice > 0;
+    const hasPrice = Number.isFinite(parsedPrice) && parsedPrice > 0;
+    const priceForValue = hasTriggerPrice
+      ? parsedTriggerPrice
+      : hasPrice
+        ? parsedPrice
+        : 0;
+
+    const originalSizeUSD = parseFloat(order.originalSize) * priceForValue;
+
+    const isMarketExecution =
+      order.orderType === 'market' ||
+      (order.detailedOrderType || '').toLowerCase().includes('market');
+
+    const priceText = isMarketExecution
+      ? strings('perps.order_details.market')
+      : formatPerpsFiat(hasTriggerPrice ? parsedTriggerPrice : parsedPrice);
+
+    let triggerCondition: string | undefined;
+    if (order.isTrigger && hasTriggerPrice) {
+      const detailedOrderType = (order.detailedOrderType || '').toLowerCase();
+      const formattedTriggerPrice = formatPerpsFiat(parsedTriggerPrice);
+
+      if (detailedOrderType.includes('take profit')) {
+        triggerCondition = strings('perps.order_details.price_above', {
+          price: formattedTriggerPrice,
+        });
+      } else if (detailedOrderType.includes('stop')) {
+        triggerCondition = strings('perps.order_details.price_below', {
+          price: formattedTriggerPrice,
+        });
+      } else {
+        const fallbackConditionKey =
+          order.side === 'sell'
+            ? 'perps.order_details.price_above'
+            : 'perps.order_details.price_below';
+        triggerCondition = strings(fallbackConditionKey, {
+          price: formattedTriggerPrice,
+        });
+      }
+    }
 
     // Format date using formatOrderCardDate
     const dateString = formatOrderCardDate(order.timestamp);
 
     return {
-      isLong,
-      directionLabel,
       orderTypeLabel,
       fillPercentage,
-      sizeInUSD: orderSizeUSD,
+      originalSizeInUSD: originalSizeUSD,
       dateString,
-      directionColor: isLong ? colors.success.default : colors.error.default,
+      triggerCondition,
+      priceText,
+      reduceOnlyText: order.reduceOnly
+        ? strings('perps.order_details.yes')
+        : strings('perps.order_details.no'),
     };
-  }, [order, colors]);
+  }, [order]);
 
   const handleCancelOrder = useCallback(async () => {
     if (!order) return;
@@ -227,18 +266,45 @@ const PerpsOrderDetailsView: React.FC = () => {
               ]}
             />
 
-            {/* Limit Price */}
+            {/* Trigger condition */}
+            {orderDetails.triggerCondition && (
+              <>
+                <View style={styles.detailRow}>
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Alternative}
+                    style={styles.detailLabel}
+                  >
+                    {strings('perps.order_details.trigger_condition')}
+                  </Text>
+                  <View style={styles.detailValue}>
+                    <Text variant={TextVariant.BodyMD}>
+                      {orderDetails.triggerCondition}
+                    </Text>
+                  </View>
+                </View>
+
+                <View
+                  style={[
+                    styles.separator,
+                    { backgroundColor: colors.border.muted },
+                  ]}
+                />
+              </>
+            )}
+
+            {/* Price */}
             <View style={styles.detailRow}>
               <Text
                 variant={TextVariant.BodyMD}
                 color={TextColor.Alternative}
                 style={styles.detailLabel}
               >
-                {strings('perps.order_details.limit_price')}
+                {strings('perps.order_details.price')}
               </Text>
               <View style={styles.detailValue}>
                 <Text variant={TextVariant.BodyMD}>
-                  {formatPerpsFiat(parseFloat(order.price))}
+                  {orderDetails.priceText}
                 </Text>
               </View>
             </View>
@@ -261,8 +327,77 @@ const PerpsOrderDetailsView: React.FC = () => {
               </Text>
               <View style={styles.detailValue}>
                 <Text variant={TextVariant.BodyMD}>
-                  {formatPositionSize(parseFloat(order.size))} {order.symbol} •{' '}
-                  {formatPerpsFiat(orderDetails.sizeInUSD)}
+                  {formatPositionSize(parseFloat(order.size))} {order.symbol}
+                </Text>
+              </View>
+            </View>
+
+            <View
+              style={[
+                styles.separator,
+                { backgroundColor: colors.border.muted },
+              ]}
+            />
+
+            {/* Original size */}
+            <View style={styles.detailRow}>
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Alternative}
+                style={styles.detailLabel}
+              >
+                {strings('perps.order_details.original_size')}
+              </Text>
+              <View style={styles.detailValue}>
+                <Text variant={TextVariant.BodyMD}>
+                  {formatPositionSize(parseFloat(order.originalSize))}{' '}
+                  {order.symbol}
+                </Text>
+              </View>
+            </View>
+
+            <View
+              style={[
+                styles.separator,
+                { backgroundColor: colors.border.muted },
+              ]}
+            />
+
+            {/* Order value */}
+            <View style={styles.detailRow}>
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Alternative}
+                style={styles.detailLabel}
+              >
+                {strings('perps.order_details.order_value')}
+              </Text>
+              <View style={styles.detailValue}>
+                <Text variant={TextVariant.BodyMD}>
+                  {formatPerpsFiat(orderDetails.originalSizeInUSD)}
+                </Text>
+              </View>
+            </View>
+
+            <View
+              style={[
+                styles.separator,
+                { backgroundColor: colors.border.muted },
+              ]}
+            />
+
+            {/* Reduce only */}
+            <View style={styles.detailRow}>
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Alternative}
+                style={styles.detailLabel}
+              >
+                {strings('perps.order_details.reduce_only')}
+              </Text>
+              <View style={styles.detailValue}>
+                <Text variant={TextVariant.BodyMD}>
+                  {orderDetails.reduceOnlyText}
                 </Text>
               </View>
             </View>

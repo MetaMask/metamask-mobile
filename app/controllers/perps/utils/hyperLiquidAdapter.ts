@@ -171,6 +171,9 @@ export function adaptOrderFromSDK(
     detailedOrderType,
     isTrigger,
     reduceOnly,
+    ...(rawOrder.isPositionTpsl !== undefined
+      ? { isPositionTpsl: rawOrder.isPositionTpsl }
+      : {}),
   };
 
   if (takeProfitPrice) {

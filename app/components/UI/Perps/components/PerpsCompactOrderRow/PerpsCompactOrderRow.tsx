@@ -11,6 +11,7 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
 import { getPerpsDisplaySymbol, type Order } from '@metamask/perps-controller';
+import { strings } from '../../../../../../locales/i18n';
 import styleSheet from './PerpsCompactOrderRow.styles';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 
@@ -49,11 +50,11 @@ const PerpsCompactOrderRow: React.FC<PerpsCompactOrderRowProps> = ({
       : theme.colors.error.default;
 
     // Format order type
-    let orderTypeLabel = 'Limit price';
-    if (order.detailedOrderType?.includes('Market')) {
-      orderTypeLabel = 'Market price';
-    } else if (order.isTrigger) {
-      orderTypeLabel = 'Trigger price';
+    let orderTypeLabel = strings('perps.order.limit_price');
+    if (order.isTrigger) {
+      orderTypeLabel = strings('perps.order.trigger_price');
+    } else if (order.detailedOrderType?.includes('Market')) {
+      orderTypeLabel = strings('perps.order.market_price');
     }
 
     // Format price - trigger orders already have triggerPx mapped to price by adapter

@@ -240,9 +240,43 @@ describe('PerpsOrderDetailsView', () => {
   it('renders limit price label', () => {
     render(<PerpsOrderDetailsView />);
 
+    expect(screen.getByText('perps.order_details.price')).toBeOnTheScreen();
+  });
+
+  it('renders original size, order value and reduce-only rows', () => {
+    render(<PerpsOrderDetailsView />);
+
     expect(
-      screen.getByText('perps.order_details.limit_price'),
+      screen.getByText('perps.order_details.original_size'),
     ).toBeOnTheScreen();
+    expect(
+      screen.getByText('perps.order_details.order_value'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText('perps.order_details.reduce_only'),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('perps.order_details.no')).toBeOnTheScreen();
+  });
+
+  it('renders trigger condition for trigger orders', () => {
+    const triggerOrder: Order = {
+      ...mockOrder,
+      isTrigger: true,
+      triggerPrice: '51000',
+      detailedOrderType: 'Take Profit Limit',
+      reduceOnly: true,
+    };
+    mockRouteParams = { order: triggerOrder };
+
+    render(<PerpsOrderDetailsView />);
+
+    expect(
+      screen.getByText('perps.order_details.trigger_condition'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText('perps.order_details.price_above'),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('perps.order_details.yes')).toBeOnTheScreen();
   });
 
   it('calls goBack when back button is pressed', () => {

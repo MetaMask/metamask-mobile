@@ -210,8 +210,10 @@ describe('PerpsCard', () => {
       );
 
       // Assert
-      expect(getByText('ETH long')).toBeDefined();
-      expect(getByText('1.0 ETH')).toBeDefined();
+      expect(getByText('Limit long')).toBeDefined();
+      expect(getByText('1 ETH')).toBeDefined();
+      expect(getByText('$3,000')).toBeDefined();
+      expect(getByText('perps.order.limit_price')).toBeDefined();
     });
 
     it('returns null when neither position nor order is provided', () => {
@@ -288,7 +290,23 @@ describe('PerpsCard', () => {
       );
 
       // Assert
-      expect(getByText('ETH short')).toBeDefined();
+      expect(getByText('Limit short')).toBeDefined();
+    });
+
+    it('uses trigger price label for trigger orders', () => {
+      const triggerOrder = {
+        ...mockOrder,
+        isTrigger: true,
+        triggerPrice: '3100',
+        detailedOrderType: 'Take Profit Limit',
+      };
+
+      const { getByText } = render(
+        <PerpsCard order={triggerOrder} testID="test-card" />,
+      );
+
+      expect(getByText('$3,100')).toBeDefined();
+      expect(getByText('perps.order.trigger_price')).toBeDefined();
     });
   });
 });
