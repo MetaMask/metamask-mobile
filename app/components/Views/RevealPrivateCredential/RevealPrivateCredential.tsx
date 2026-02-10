@@ -85,7 +85,6 @@ import Banner, {
   BannerVariant,
 } from '../../../component-library/components/Banners/Banner';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
-import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import { AppThemeKey } from '../../../util/theme/models';
 import blurImage from '../../../images/blur.png';
 import darkBlurImage from '../../../images/dark-blur.png';
@@ -509,7 +508,6 @@ const RevealPrivateCredential = ({
         {strings('reveal_credential.enter_password')}
       </Text>
       <TextField
-        size={TextFieldSize.Lg}
         placeholder={'Password'}
         placeholderTextColor={colors.text.muted}
         onChangeText={onPasswordChange}
