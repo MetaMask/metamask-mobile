@@ -8,9 +8,6 @@ const mockDeposit = jest.fn();
 const mockClaim = jest.fn();
 const mockWithdraw = jest.fn();
 const mockNavigate = jest.fn();
-const mockUseSelector = jest.fn();
-
-let mockWonPositions = [{ currentValue: 100 }, { currentValue: 50 }];
 
 let mockWithdrawTransaction: { amount: number } | undefined = {
   amount: 123.45,
@@ -58,15 +55,6 @@ jest.mock('./usePredictWithdraw', () => ({
   }),
 }));
 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: (...args: unknown[]) => mockUseSelector(...args),
-}));
-
-jest.mock('../selectors/predictController', () => ({
-  selectPredictWonPositions: jest.fn(() => jest.fn(() => mockWonPositions)),
-}));
-
 jest.mock('../utils/accounts', () => ({
   getEvmAccountFromSelectedAccountGroup: jest.fn(() => ({
     address: selectedAddress,
@@ -86,11 +74,7 @@ describe('usePredictToastRegistrations', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
 
-    mockWonPositions = [{ currentValue: 100 }, { currentValue: 50 }];
     mockWithdrawTransaction = { amount: 123.45 };
-    mockUseSelector.mockImplementation(
-      (selector: (state: unknown) => unknown) => selector({}),
-    );
 
     mockDeposit.mockResolvedValue(undefined);
     mockClaim.mockResolvedValue(undefined);
@@ -118,7 +102,8 @@ describe('usePredictToastRegistrations', () => {
         {
           type: 'deposit',
           status: 'approved',
-          transactionMeta: { id: 'tx-1' },
+          transactionId: 'tx-1',
+          senderAddress: selectedAddress,
         },
         showToast,
       );
@@ -150,13 +135,8 @@ describe('usePredictToastRegistrations', () => {
         {
           type: 'deposit',
           status: 'confirmed',
-          transactionMeta: {
-            metamaskPay: {
-              totalFiat: '$110',
-              bridgeFeeFiat: '$5',
-              networkFeeFiat: '$3',
-            },
-          },
+          amount: 102,
+          senderAddress: selectedAddress,
         },
         showToast,
       );
@@ -175,7 +155,7 @@ describe('usePredictToastRegistrations', () => {
         {
           type: 'deposit',
           status: 'failed',
-          transactionMeta: { txParams: { from: selectedAddress } },
+          senderAddress: selectedAddress,
         },
         showToast,
       );
@@ -204,9 +184,7 @@ describe('usePredictToastRegistrations', () => {
         {
           type: 'deposit',
           status: 'failed',
-          transactionMeta: {
-            txParams: { from: '0xabc0000000000000000000000000000000000000' },
-          },
+          senderAddress: '0xabc0000000000000000000000000000000000000',
         },
         showToast,
       );
@@ -225,7 +203,6 @@ describe('usePredictToastRegistrations', () => {
         {
           type: 'deposit',
           status: 'rejected',
-          transactionMeta: {},
         },
         showToast,
       );
@@ -242,13 +219,19 @@ describe('usePredictToastRegistrations', () => {
         {
           type: 'claim',
           status: 'approved',
-          transactionMeta: {},
+          amount: 55.12,
+          senderAddress: selectedAddress,
         },
         showToast,
       );
 
       expect(showToast).toHaveBeenCalledWith(
         expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('$55.12'),
+            }),
+          ]),
           iconName: 'Loading',
           startAccessory: expect.any(Object),
         }),
@@ -262,13 +245,19 @@ describe('usePredictToastRegistrations', () => {
         {
           type: 'claim',
           status: 'confirmed',
-          transactionMeta: {},
+          amount: 45.5,
+          senderAddress: selectedAddress,
         },
         showToast,
       );
 
       expect(showToast).toHaveBeenCalledWith(
         expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('$45.50'),
+            }),
+          ]),
           iconName: 'Confirmation',
         }),
       );
@@ -281,7 +270,7 @@ describe('usePredictToastRegistrations', () => {
         {
           type: 'claim',
           status: 'failed',
-          transactionMeta: { txParams: { from: selectedAddress } },
+          senderAddress: selectedAddress,
         },
         showToast,
       );
@@ -310,9 +299,7 @@ describe('usePredictToastRegistrations', () => {
         {
           type: 'claim',
           status: 'failed',
-          transactionMeta: {
-            txParams: { from: '0xabc0000000000000000000000000000000000000' },
-          },
+          senderAddress: '0xabc0000000000000000000000000000000000000',
         },
         showToast,
       );
@@ -333,7 +320,7 @@ describe('usePredictToastRegistrations', () => {
         {
           type: 'withdraw',
           status: 'approved',
-          transactionMeta: {},
+          senderAddress: selectedAddress,
         },
         showToast,
       );
@@ -353,7 +340,7 @@ describe('usePredictToastRegistrations', () => {
         {
           type: 'withdraw',
           status: 'confirmed',
-          transactionMeta: { txParams: { from: selectedAddress } },
+          senderAddress: selectedAddress,
         },
         showToast,
       );
@@ -365,7 +352,7 @@ describe('usePredictToastRegistrations', () => {
       );
     });
 
-    it('uses transaction meta receiving amount for withdraw success toast when state amount is unavailable', () => {
+    it('uses payload amount for withdraw success toast when state amount is unavailable', () => {
       mockWithdrawTransaction = undefined;
       const handler = getHandler();
 
@@ -373,10 +360,8 @@ describe('usePredictToastRegistrations', () => {
         {
           type: 'withdraw',
           status: 'confirmed',
-          transactionMeta: {
-            txParams: { from: selectedAddress },
-            assetsFiatValues: { receiving: '55.12' },
-          },
+          senderAddress: selectedAddress,
+          amount: 55.12,
         },
         showToast,
       );
@@ -399,7 +384,7 @@ describe('usePredictToastRegistrations', () => {
         {
           type: 'withdraw',
           status: 'failed',
-          transactionMeta: { txParams: { from: selectedAddress } },
+          senderAddress: selectedAddress,
         },
         showToast,
       );
@@ -428,9 +413,7 @@ describe('usePredictToastRegistrations', () => {
         {
           type: 'withdraw',
           status: 'failed',
-          transactionMeta: {
-            txParams: { from: '0xabc0000000000000000000000000000000000000' },
-          },
+          senderAddress: '0xabc0000000000000000000000000000000000000',
         },
         showToast,
       );
@@ -449,7 +432,6 @@ describe('usePredictToastRegistrations', () => {
         {
           type: 'withdraw',
           status: 'rejected',
-          transactionMeta: {},
         },
         showToast,
       );

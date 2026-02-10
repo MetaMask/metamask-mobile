@@ -235,7 +235,9 @@ export interface PredictControllerTransactionStatusChangedEvent {
     {
       type: PredictTransactionEventType;
       status: PredictTransactionEventStatus;
-      transactionMeta: TransactionMeta;
+      senderAddress: string;
+      transactionId?: string;
+      amount?: number;
     },
   ];
 }
@@ -1863,26 +1865,40 @@ export class PredictController extends BaseController<
 
   public confirmClaim({
     providerId = 'polymarket',
+    address,
   }: {
     providerId: string;
+    address?: string;
   }): void {
     const provider = this.providers.get(providerId);
     if (!provider) {
       throw new Error('Provider not available');
     }
-    const signer = this.getSigner();
-    const claimedPositions = this.state.claimablePositions[signer.address];
+
+    const normalizedAddress = (
+      address ?? this.getSigner().address
+    ).toLowerCase();
+    const matchedAddress = Object.keys(this.state.claimablePositions).find(
+      (addressKey) => addressKey.toLowerCase() === normalizedAddress,
+    );
+
+    if (!matchedAddress) {
+      return;
+    }
+
+    const signer = this.getSigner(matchedAddress);
+    const claimedPositions = this.state.claimablePositions[matchedAddress];
     if (!claimedPositions || claimedPositions.length === 0) {
       return;
     }
 
     this.providers.get(providerId)?.confirmClaim?.({
       positions: claimedPositions,
-      signer: this.getSigner(),
+      signer,
     });
 
     this.update((state) => {
-      state.claimablePositions[signer.address] = [];
+      state.claimablePositions[matchedAddress] = [];
     });
   }
 
@@ -2138,9 +2154,32 @@ export class PredictController extends BaseController<
 
   public clearPendingDeposit({ providerId }: { providerId: string }): void {
     const selectedAddress = this.getSigner().address;
+    this.clearPendingDepositForAddress({
+      providerId,
+      address: selectedAddress,
+    });
+  }
+
+  private clearPendingDepositForAddress({
+    providerId,
+    address,
+  }: {
+    providerId: string;
+    address: string;
+  }): void {
+    const normalizedAddress = address.toLowerCase();
     this.update((state) => {
-      if (state.pendingDeposits[providerId]?.[selectedAddress]) {
-        delete state.pendingDeposits[providerId][selectedAddress];
+      const providerDeposits = state.pendingDeposits[providerId];
+      if (!providerDeposits) {
+        return;
+      }
+
+      const matchedAddress = Object.keys(providerDeposits).find(
+        (addressKey) => addressKey.toLowerCase() === normalizedAddress,
+      );
+
+      if (matchedAddress) {
+        delete providerDeposits[matchedAddress];
       }
     });
   }
@@ -2182,13 +2221,22 @@ export class PredictController extends BaseController<
     const address =
       (transactionMeta.txParams.from as string | undefined)?.toLowerCase() ??
       this.getEvmAccountAddress();
+    const transactionId = transactionMeta.id;
+    const amount = this.getTransactionAmount({
+      type,
+      status,
+      transactionMeta,
+      address,
+    });
 
     this.handleTransactionSideEffects(type, status, address);
 
     this.messenger.publish('PredictController:transactionStatusChanged', {
       type,
       status,
-      transactionMeta,
+      senderAddress: address,
+      ...(transactionId ? { transactionId } : {}),
+      ...(amount !== undefined ? { amount } : {}),
     });
   }
 
@@ -2202,11 +2250,11 @@ export class PredictController extends BaseController<
       status === 'confirmed' || status === 'failed' || status === 'rejected';
 
     if (type === 'deposit' && isTerminal) {
-      this.clearPendingDeposit({ providerId });
+      this.clearPendingDepositForAddress({ providerId, address });
     }
 
     if (type === 'claim' && status === 'confirmed') {
-      this.confirmClaim({ providerId });
+      this.confirmClaim({ providerId, address });
       this.getPositions({ address, providerId, claimable: true }).catch(
         () => undefined,
       );
@@ -2246,6 +2294,69 @@ export class PredictController extends BaseController<
         return Boolean(batchId) && pendingValue === batchId;
       }),
     );
+  }
+
+  private getClaimAmountByAddress(address: string): number {
+    const normalizedAddress = address.toLowerCase();
+    const matchedAddress = Object.keys(this.state.claimablePositions).find(
+      (addressKey) => addressKey.toLowerCase() === normalizedAddress,
+    );
+
+    if (!matchedAddress) {
+      return 0;
+    }
+
+    return this.state.claimablePositions[matchedAddress].reduce(
+      (sum, position) => sum + position.currentValue,
+      0,
+    );
+  }
+
+  private getTransactionAmount({
+    type,
+    status,
+    transactionMeta,
+    address,
+  }: {
+    type: PredictTransactionEventType;
+    status: PredictTransactionEventStatus;
+    transactionMeta: TransactionMeta;
+    address: string;
+  }): number | undefined {
+    if (type === 'deposit' && status === 'confirmed') {
+      const totalFiat = Number(transactionMeta.metamaskPay?.totalFiat ?? 0);
+      const bridgeFeeFiat = Number(
+        transactionMeta.metamaskPay?.bridgeFeeFiat ?? 0,
+      );
+      const networkFeeFiat = Number(
+        transactionMeta.metamaskPay?.networkFeeFiat ?? 0,
+      );
+
+      const values = [totalFiat, bridgeFeeFiat, networkFeeFiat];
+      if (values.some((value) => Number.isNaN(value))) {
+        return undefined;
+      }
+
+      return Math.max(totalFiat - bridgeFeeFiat - networkFeeFiat, 0);
+    }
+
+    if (type === 'claim') {
+      return this.getClaimAmountByAddress(address);
+    }
+
+    if (type === 'withdraw' && status === 'confirmed') {
+      const stateAmount = this.state.withdrawTransaction?.amount;
+      if (typeof stateAmount === 'number' && !Number.isNaN(stateAmount)) {
+        return stateAmount;
+      }
+
+      const receivingAmount = Number(
+        transactionMeta.assetsFiatValues?.receiving,
+      );
+      return Number.isNaN(receivingAmount) ? undefined : receivingAmount;
+    }
+
+    return undefined;
   }
 
   private static readonly transactionTypeMap: Partial<

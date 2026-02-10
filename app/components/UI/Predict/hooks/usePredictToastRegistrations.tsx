@@ -6,7 +6,6 @@ import {
 import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
-import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
@@ -16,10 +15,8 @@ import Routes from '../../../../constants/navigation/Routes';
 import type { ToastRegistration } from '../../../Nav/App/ControllerEventToastBridge';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import type { PredictTransactionStatusChangedPayload } from '../controllers/PredictController';
-import { selectPredictWonPositions } from '../selectors/predictController';
-import type { PredictPosition } from '../types';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
-import { calculateNetAmount, formatPrice } from '../utils/format';
+import { formatPrice } from '../utils/format';
 import { usePredictClaim } from './usePredictClaim';
 import { usePredictDeposit } from './usePredictDeposit';
 import { usePredictWithdraw } from './usePredictWithdraw';
@@ -136,29 +133,12 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
   const selectedAddress =
     getEvmAccountFromSelectedAccountGroup()?.address ?? '0x0';
   const normalizedSelectedAddress = selectedAddress.toLowerCase();
-  const wonPositions = useSelector(
-    selectPredictWonPositions({ address: selectedAddress }),
-  );
-
-  const formattedClaimAmount = useMemo(() => {
-    const total = wonPositions.reduce(
-      (sum: number, position: PredictPosition) => sum + position.currentValue,
-      0,
-    );
-
-    return formatPrice(total, { maximumDecimals: 2 });
-  }, [wonPositions]);
-
   const handleTransactionStatusChanged = useCallback(
     (payload: unknown, showToast: ToastRef['showToast']): void => {
-      const { type, status, transactionMeta } =
+      const { type, status, senderAddress, transactionId, amount } =
         payload as PredictTransactionStatusChangedPayload;
-      const transactionFrom = (
-        transactionMeta.txParams?.from as string | undefined
-      )?.toLowerCase();
       const canRetry =
-        Boolean(transactionFrom) &&
-        transactionFrom === normalizedSelectedAddress;
+        Boolean(senderAddress) && senderAddress === normalizedSelectedAddress;
 
       if (type === 'deposit') {
         if (status === 'approved') {
@@ -171,10 +151,10 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
             trackLabel: strings('predict.deposit.track'),
             onTrack: () => {
               navigation.navigate(Routes.TRANSACTIONS_VIEW);
-              if (transactionMeta.id) {
+              if (transactionId) {
                 setTimeout(() => {
                   navigation.navigate(Routes.TRANSACTION_DETAILS, {
-                    transactionId: transactionMeta.id,
+                    transactionId,
                   });
                 }, 100);
               }
@@ -184,13 +164,8 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         }
 
         if (status === 'confirmed') {
-          const netAmount = calculateNetAmount({
-            totalFiat: transactionMeta.metamaskPay?.totalFiat,
-            bridgeFeeFiat: transactionMeta.metamaskPay?.bridgeFeeFiat,
-            networkFeeFiat: transactionMeta.metamaskPay?.networkFeeFiat,
-          });
-          const amount =
-            formatPrice(netAmount, {
+          const depositAmount =
+            formatPrice(amount ?? 0, {
               maximumDecimals: 2,
             }) ?? strings('predict.deposit.account_ready');
 
@@ -198,7 +173,7 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
             showToast,
             title: strings('predict.deposit.ready_to_trade'),
             description: strings('predict.deposit.account_ready_description', {
-              amount,
+              amount: depositAmount,
             }),
             iconColor: theme.colors.success.default,
           });
@@ -228,6 +203,10 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
       }
 
       if (type === 'claim') {
+        const formattedClaimAmount = formatPrice(amount ?? 0, {
+          maximumDecimals: 2,
+        });
+
         if (status === 'approved') {
           showPendingToast({
             showToast,
@@ -285,11 +264,9 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         }
 
         if (status === 'confirmed') {
-          const withdrawAmount =
-            transactionMeta.assetsFiatValues?.receiving ??
-            withdrawTransaction?.amount.toString() ??
-            '0';
-          const amount = formatPrice(withdrawAmount);
+          const formattedWithdrawAmount = formatPrice(
+            amount ?? withdrawTransaction?.amount ?? 0,
+          );
 
           showSuccessToast({
             showToast,
@@ -297,7 +274,7 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
             description: strings(
               'predict.withdraw.withdraw_completed_subtitle',
               {
-                amount,
+                amount: formattedWithdrawAmount,
               },
             ),
             iconColor: theme.colors.success.default,
@@ -328,7 +305,6 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
     [
       claim,
       deposit,
-      formattedClaimAmount,
       navigation,
       normalizedSelectedAddress,
       theme.colors.accent04.normal,

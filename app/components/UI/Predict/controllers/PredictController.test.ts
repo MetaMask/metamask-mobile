@@ -4067,11 +4067,14 @@ describe('PredictController', () => {
           transactionMeta,
         } as any);
 
-        expect(transactionStatusChangedHandler).toHaveBeenCalledWith({
-          type: 'deposit',
-          status: 'approved',
-          transactionMeta,
-        });
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'deposit',
+            status: 'approved',
+            senderAddress: accountAddress,
+            transactionId: 'tx-1',
+          }),
+        );
       });
     });
 
@@ -4101,20 +4104,37 @@ describe('PredictController', () => {
           transactionMeta,
         } as any);
 
-        expect(transactionStatusChangedHandler).toHaveBeenCalledWith({
-          type: 'deposit',
-          status: 'approved',
-          transactionMeta,
-        });
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'deposit',
+            status: 'approved',
+            senderAddress: accountAddress,
+            transactionId: 'tx-1',
+          }),
+        );
       });
     });
 
     it('publishes event for predict claim transaction with confirmed status', () => {
-      withController(({ messenger }) => {
+      withController(({ controller, messenger }) => {
         const transactionStatusChangedHandler = jest.fn();
+        const claimablePositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 100,
+            cashPnl: 25,
+          }),
+        ];
         const transactionMeta = createPredictTransactionMeta({
           nestedType: TransactionType.predictClaim,
           status: TransactionStatus.confirmed,
+        });
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: claimablePositions,
+          };
         });
 
         messenger.subscribe(
@@ -4126,11 +4146,98 @@ describe('PredictController', () => {
           transactionMeta,
         } as any);
 
-        expect(transactionStatusChangedHandler).toHaveBeenCalledWith({
-          type: 'claim',
-          status: 'confirmed',
-          transactionMeta,
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'confirmed',
+            senderAddress: accountAddress,
+            transactionId: 'tx-1',
+            amount: 100,
+          }),
+        );
+      });
+    });
+
+    it('clears only sender pending deposit when selected account differs', () => {
+      withController(({ controller, messenger }) => {
+        const selectedAddress = accountAddress;
+        const senderAddress = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictDeposit,
+          status: TransactionStatus.failed,
+          batchId: 'batch-sender',
+          from: senderAddress,
         });
+
+        controller.updateStateForTesting((state) => {
+          state.pendingDeposits = {
+            polymarket: {
+              [selectedAddress]: 'batch-selected',
+              [senderAddress]: 'batch-sender',
+            },
+          };
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as any);
+
+        expect(
+          controller.state.pendingDeposits.polymarket[selectedAddress],
+        ).toBe('batch-selected');
+        expect(
+          controller.state.pendingDeposits.polymarket[senderAddress],
+        ).toBeUndefined();
+      });
+    });
+
+    it('confirms claim for sender account when selected account differs', () => {
+      withController(({ controller, messenger }) => {
+        const selectedAddress = accountAddress;
+        const senderAddress = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+        const senderClaimablePositions = [
+          createMockPosition({
+            id: 'position-sender',
+            status: PredictPositionStatus.WON,
+            currentValue: 50,
+            cashPnl: 10,
+          }),
+        ];
+        const selectedClaimablePositions = [
+          createMockPosition({
+            id: 'position-selected',
+            status: PredictPositionStatus.WON,
+            currentValue: 20,
+            cashPnl: 5,
+          }),
+        ];
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictClaim,
+          status: TransactionStatus.confirmed,
+          from: senderAddress,
+        });
+
+        mockPolymarketProvider.confirmClaim = jest.fn();
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [selectedAddress]: selectedClaimablePositions,
+            [senderAddress]: senderClaimablePositions,
+          };
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as any);
+
+        expect(mockPolymarketProvider.confirmClaim).toHaveBeenCalledWith({
+          positions: senderClaimablePositions,
+          signer: expect.objectContaining({ address: senderAddress }),
+        });
+        expect(controller.state.claimablePositions[selectedAddress]).toEqual(
+          selectedClaimablePositions,
+        );
+        expect(controller.state.claimablePositions[senderAddress]).toEqual([]);
       });
     });
 
@@ -4151,11 +4258,14 @@ describe('PredictController', () => {
           transactionMeta,
         } as any);
 
-        expect(transactionStatusChangedHandler).toHaveBeenCalledWith({
-          type: 'withdraw',
-          status: 'failed',
-          transactionMeta,
-        });
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'withdraw',
+            status: 'failed',
+            senderAddress: accountAddress,
+            transactionId: 'tx-1',
+          }),
+        );
       });
     });
 
