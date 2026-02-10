@@ -217,11 +217,6 @@ export default {
     UAT: 'https://dev.api.baanx.com',
     PRD: 'https://api.baanx.com',
   },
-  CARD_API_URL: {
-    DEV: 'https://card.dev-api.cx.metamask.io',
-    UAT: 'https://card.uat-api.cx.metamask.io',
-    PRD: 'https://card.api.cx.metamask.io',
-  },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
       'EthQuery - RPC Error - This service is not available in your country',

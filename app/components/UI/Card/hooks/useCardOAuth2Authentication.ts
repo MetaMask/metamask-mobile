@@ -16,7 +16,6 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import Logger from '../../../../util/Logger';
 import { storeCardBaanxToken } from '../util/cardTokenVault';
-import { fetchCardOAuthConfig } from '../util/fetchCardOAuthConfig';
 import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
 import {
   selectUserCardLocation,
@@ -104,27 +103,14 @@ export interface UseCardOAuth2AuthenticationReturn {
   clearError: () => void;
 }
 
-/**
- * Hook for Card authentication using OAuth 2.0 Authorization Code Flow with PKCE.
- *
- * This replaces the native email/password login flow with a browser-based OAuth flow.
- * The flow:
- * 1. Fetches the Baanx Client ID from the Card API configuration endpoint
- * 2. Opens a system browser for the user to authenticate with Baanx
- * 3. Exchanges the authorization code for access and refresh tokens
- * 4. Stores tokens in SecureKeychain
- * 5. Updates Redux auth state
- *
- * @returns OAuth 2.0 login function, loading state, and error handling
- */
 const useCardOAuth2Authentication = (): UseCardOAuth2AuthenticationReturn => {
   const dispatch = useDispatch();
   const location = useSelector(selectUserCardLocation);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [clientId, setClientId] = useState<string | null>(null);
 
-  // Resolve Baanx API base URL and build discovery document
+  const clientId = process.env.MM_CARD_BAANX_API_CLIENT_KEY ?? '';
+
   const baanxApiBaseUrl = useMemo(() => getBaanxApiBaseUrl(), []);
   const discovery = useMemo(
     () => buildDiscoveryDocument(baanxApiBaseUrl),
@@ -133,25 +119,6 @@ const useCardOAuth2Authentication = (): UseCardOAuth2AuthenticationReturn => {
 
   const redirectUri = OAUTH_REDIRECT_URI;
 
-  // Fetch the Client ID from Card API on mount
-  useEffect(() => {
-    const loadConfig = async () => {
-      try {
-        const config = await fetchCardOAuthConfig();
-        setClientId(config.baanxClientId);
-      } catch (err) {
-        Logger.error(err as Error, {
-          tags: { feature: 'card', operation: 'loadOAuthConfig' },
-        });
-        setError(
-          strings('card.card_authentication.errors.configuration_error'),
-        );
-      }
-    };
-    loadConfig();
-  }, []);
-
-  // Android only: Warm up browser for faster launch
   useEffect(() => {
     warmUpAsync();
     return () => {
@@ -159,28 +126,18 @@ const useCardOAuth2Authentication = (): UseCardOAuth2AuthenticationReturn => {
     };
   }, []);
 
-  // useAuthRequest requires a static clientId. When clientId is null (not loaded yet),
-  // we pass a placeholder and disable the request until it's ready.
   const [request, , promptAsync] = useAuthRequest(
-    clientId
-      ? {
-          clientId,
-          scopes: OAUTH2_SCOPES,
-          redirectUri,
-          responseType: ResponseType.Code,
-          usePKCE: true,
-        }
-      : {
-          clientId: 'loading',
-          scopes: OAUTH2_SCOPES,
-          redirectUri,
-          responseType: ResponseType.Code,
-          usePKCE: true,
-        },
-    clientId ? discovery : null,
+    {
+      clientId,
+      scopes: OAUTH2_SCOPES,
+      redirectUri,
+      responseType: ResponseType.Code,
+      usePKCE: true,
+    },
+    discovery,
   );
 
-  const isReady = clientId !== null && request !== null;
+  const isReady = clientId.length > 0 && request !== null;
 
   const clearError = useCallback(() => {
     setError(null);
