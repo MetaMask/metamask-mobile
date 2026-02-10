@@ -32,4 +32,10 @@ export interface PerpsMarketRowItemProps {
    * @default true
    */
   showBadge?: boolean;
+  /**
+   * When true, uses reduced vertical padding (8px instead of 16px).
+   * Useful when embedded in feed cards alongside other row item types.
+   * @default false
+   */
+  compact?: boolean;
 }
