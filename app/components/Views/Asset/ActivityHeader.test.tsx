@@ -34,43 +34,42 @@ describe('ActivityHeader', () => {
     ...overrides,
   });
 
-  it('renders activity header with asset name when available', () => {
-    const asset = createMockAsset({ name: 'Ethereum', symbol: 'ETH' });
+  const testCases = [
+    {
+      description: 'renders activity header with asset name when available',
+      assetOverrides: { name: 'Ethereum', symbol: 'ETH' },
+      expectedTxHeader: 'Ethereum activity',
+    },
+    {
+      description: 'renders activity header with symbol when name is not available',
+      assetOverrides: { name: '', symbol: 'ETH' },
+      expectedTxHeader: 'ETH activity',
+    },
+    {
+      description: 'renders default Activity text when both name and symbol are empty',
+      assetOverrides: { name: '', symbol: '' },
+      expectedTxHeader: 'Activity',
+    },
+    {
+      description: 'renders default Activity text when both name and symbol are undefined',
+      assetOverrides: { name: undefined, symbol: undefined },
+      expectedTxHeader: 'Activity',
+    },
+    {
+      description: 'prefers name over symbol when both are available',
+      assetOverrides: { name: 'Token Name', symbol: 'TKN' },
+      expectedTxHeader: 'Token Name activity',
+    },
+  ];
 
-    const { getByText } = render(<ActivityHeader asset={asset} />);
+  it.each(testCases)(
+    '$description',
+    ({ assetOverrides, expectedTxHeader }) => {
+      const asset = createMockAsset(assetOverrides);
 
-    expect(getByText('Ethereum activity')).toBeDefined();
-  });
+      const { getByText } = render(<ActivityHeader asset={asset} />);
 
-  it('renders activity header with symbol when name is not available', () => {
-    const asset = createMockAsset({ name: '', symbol: 'ETH' });
-
-    const { getByText } = render(<ActivityHeader asset={asset} />);
-
-    expect(getByText('ETH activity')).toBeDefined();
-  });
-
-  it('renders default Activity text when both name and symbol are missing', () => {
-    const asset = createMockAsset({ name: '', symbol: '' });
-
-    const { getByText } = render(<ActivityHeader asset={asset} />);
-
-    expect(getByText('Activity')).toBeDefined();
-  });
-
-  it('renders default Activity text when both name and symbol are undefined', () => {
-    const asset = createMockAsset({ name: undefined, symbol: undefined });
-
-    const { getByText } = render(<ActivityHeader asset={asset} />);
-
-    expect(getByText('Activity')).toBeDefined();
-  });
-
-  it('prefers name over symbol when both are available', () => {
-    const asset = createMockAsset({ name: 'Token Name', symbol: 'TKN' });
-
-    const { getByText } = render(<ActivityHeader asset={asset} />);
-
-    expect(getByText('Token Name activity')).toBeDefined();
-  });
+      expect(getByText(expectedTxHeader)).toBeDefined();
+    },
+  );
 });
