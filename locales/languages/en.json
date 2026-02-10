@@ -2126,6 +2126,7 @@
     "resolved_outcomes": "Resolved outcomes",
     "category": {
       "trending": "Trending",
+      "ending_soon": "Ending soon",
       "new": "New",
       "sports": "Sports",
       "crypto": "Crypto",
