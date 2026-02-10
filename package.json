@@ -187,10 +187,7 @@
     "@metamask/transaction-controller@npm:^62.9.2": "^62.14.0",
     "viem": "2.31.3",
     "@metamask/assets-controllers@npm:^99.2.0": "patch:@metamask/assets-controllers@npm%3A99.2.0#~/.yarn/patches/@metamask-assets-controllers-npm-99.2.0-bf6ecbcde9.patch",
-    "@metamask/assets-controllers@npm:^97.0.0": "patch:@metamask/assets-controllers@npm%3A99.2.0#~/.yarn/patches/@metamask-assets-controllers-npm-99.2.0-bf6ecbcde9.patch",
-    "@metamask/multichain-account-service@^4.0.0": "npm:@metamask-previews/multichain-account-service@5.1.0-preview-766f7065",
-    "@metamask/multichain-account-service@^4.0.1": "npm:@metamask-previews/multichain-account-service@5.1.0-preview-766f7065",
-    "@metamask/multichain-account-service@^5.0.0": "npm:@metamask-previews/multichain-account-service@5.1.0-preview-766f7065"
+    "@metamask/assets-controllers@npm:^97.0.0": "patch:@metamask/assets-controllers@npm%3A99.2.0#~/.yarn/patches/@metamask-assets-controllers-npm-99.2.0-bf6ecbcde9.patch"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
@@ -207,7 +204,7 @@
     "@ledgerhq/react-native-hw-transport-ble": "^6.34.1",
     "@metamask/abi-utils": "^3.0.0",
     "@metamask/account-api": "^0.12.0",
-    "@metamask/account-tree-controller": "^3.0.0",
+    "@metamask/account-tree-controller": "^4.1.0",
     "@metamask/accounts-controller": "^34.0.0",
     "@metamask/address-book-controller": "^7.0.1",
     "@metamask/analytics-controller": "^1.0.0",
@@ -259,7 +256,7 @@
     "@metamask/metamask-eth-abis": "3.1.1",
     "@metamask/mobile-wallet-protocol-core": "^0.3.1",
     "@metamask/mobile-wallet-protocol-wallet-client": "^0.2.1",
-    "@metamask/multichain-account-service": "^5.0.0",
+    "@metamask/multichain-account-service": "^6.0.0",
     "@metamask/multichain-api-client": "^0.10.1",
     "@metamask/multichain-api-middleware": "1.2.5",
     "@metamask/multichain-network-controller": "^2.0.0",
