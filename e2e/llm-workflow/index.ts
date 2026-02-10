@@ -23,5 +23,4 @@ export {
   createMetaMaskMobileE2EContext,
 } from './capabilities';
 
-export { MetaMaskMobileMCPServer } from './mcp-server/server';
 export { MetaMaskMobileSessionManager } from './mcp-server/metamask-provider';
