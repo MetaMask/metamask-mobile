@@ -3,16 +3,16 @@ import { View } from 'react-native';
 
 import Text, {
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '../../../../../../component-library/components/Texts/Text';
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import { strings } from '../../../../../../locales/i18n';
+} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import { strings } from '../../../../../../../locales/i18n';
 import styleSheet from './UnsupportedTokenModal.styles';
-import { useStyles } from '../../../../hooks/useStyles';
-import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
-import Routes from '../../../../../constants/navigation/Routes';
+import { useStyles } from '../../../../../hooks/useStyles';
+import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
+import Routes from '../../../../../../constants/navigation/Routes';
 
 export const createUnsupportedTokenModalNavigationDetails =
   createNavigationDetails(
