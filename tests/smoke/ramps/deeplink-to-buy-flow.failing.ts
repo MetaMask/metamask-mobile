@@ -6,7 +6,7 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import SellGetStartedView from '../../../e2e/pages/Ramps/SellGetStartedView';
 import BuyGetStartedView from '../../../e2e/pages/Ramps/BuyGetStartedView';
 import BuildQuoteView from '../../../e2e/pages/Ramps/BuildQuoteView';
-import TokenSelectBottomSheet from '../../../e2e/pages/Ramps/TokenSelectBottomSheet';
+import TokenSelectScreen from '../../../e2e/pages/Ramps/TokenSelectScreen';
 import Assertions from '../../framework/Assertions';
 import { PopularNetworksList } from '../../resources/networks.e2e';
 import NetworkEducationModal from '../../../e2e/pages/Network/NetworkEducationModal';
@@ -47,7 +47,7 @@ describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
         );
         await BuildQuoteView.tapTokenDropdown('Ethereum');
 
-        await TokenSelectBottomSheet.tapTokenByName('DAI');
+        await TokenSelectScreen.tapTokenByName('DAI');
         await Assertions.expectTextDisplayed('Dai Stablecoin');
         await Assertions.expectTextDisplayed('$275');
       },

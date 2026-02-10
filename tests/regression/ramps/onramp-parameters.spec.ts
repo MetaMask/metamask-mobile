@@ -8,7 +8,7 @@ import { RegressionTrade } from '../../../e2e/tags';
 import Assertions from '../../framework/Assertions.ts';
 import BuildQuoteView from '../../../e2e/pages/Ramps/BuildQuoteView.ts';
 import SelectCurrencyView from '../../../e2e/pages/Ramps/SelectCurrencyView.ts';
-import TokenSelectBottomSheet from '../../../e2e/pages/Ramps/TokenSelectBottomSheet.ts';
+import TokenSelectScreen from '../../../e2e/pages/Ramps/TokenSelectScreen.ts';
 import SelectRegionView from '../../../e2e/pages/Ramps/SelectRegionView.ts';
 import SelectPaymentMethodView from '../../../e2e/pages/Ramps/SelectPaymentMethodView.ts';
 import BuyGetStartedView from '../../../e2e/pages/Ramps/BuyGetStartedView.ts';
@@ -70,7 +70,7 @@ describe.skip(RegressionTrade('On-Ramp Parameters'), () => {
   it('should select token and verify display', async () => {
     await setupOnRampTest(async () => {
       await BuildQuoteView.tapTokenDropdown('Ethereum');
-      await TokenSelectBottomSheet.tapTokenByName('DAI');
+      await TokenSelectScreen.tapTokenByName('DAI');
       await Assertions.expectTextDisplayed('Dai Stablecoin');
     });
   });
