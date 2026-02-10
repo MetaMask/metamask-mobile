@@ -41,6 +41,7 @@ export const backendWebSocketServiceInit: ControllerInitFunction<
     // Feature flag AND app lifecycle integration
     // Service will check this callback before connecting/reconnecting
     isEnabled: () => {
+      return false;
       try {
         const remoteFeatureFlagState = initMessenger?.call(
           'RemoteFeatureFlagController:getState',
