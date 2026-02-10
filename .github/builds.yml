@@ -22,129 +22,124 @@
 
 # Shared env (non-secret): servers + build flags. Production defaults; test/e2e/exp/dev use override anchors below.
 # Prod builds: <<: *public_envs. Test/e2e/exp/dev: <<: [*env_overrides_uat or *env_overrides_exp or *env_overrides_dev, *public_envs] so overrides take precedence.
-_public_envs: &public_envs
-  # Servers (production)
-  PORTFOLIO_API_URL: "https://portfolio.api.cx.metamask.io"
-  SECURITY_ALERTS_API_URL: "https://security-alerts.api.cx.metamask.io"
-  DECODING_API_URL: "https://signature-insights.api.cx.metamask.io/v1"
-  AUTH_SERVICE_URL: "https://auth-service.api.cx.metamask.io"
-  REWARDS_API_URL: "https://rewards.api.cx.metamask.io"
-  BAANX_API_URL: "https://api.baanx.com"
-  RAMPS_ENVIRONMENT: "production"
+_public_envs: &public_envs # Servers (production)
+  PORTFOLIO_API_URL: 'https://portfolio.api.cx.metamask.io'
+  SECURITY_ALERTS_API_URL: 'https://security-alerts.api.cx.metamask.io'
+  DECODING_API_URL: 'https://signature-insights.api.cx.metamask.io/v1'
+  AUTH_SERVICE_URL: 'https://auth-service.api.cx.metamask.io'
+  REWARDS_API_URL: 'https://rewards.api.cx.metamask.io'
+  BAANX_API_URL: 'https://api.baanx.com'
+  RAMPS_ENVIRONMENT: 'production'
   # Build flags (production defaults)
-  BRIDGE_USE_DEV_APIS: "false"
-  RAMP_INTERNAL_BUILD: "false"
-  IS_TEST: "false"
-  SEEDLESS_ONBOARDING_ENABLED: "false"
+  BRIDGE_USE_DEV_APIS: 'false'
+  RAMP_INTERNAL_BUILD: 'false'
+  IS_TEST: 'false'
+  SEEDLESS_ONBOARDING_ENABLED: 'true'
 
 # Test/E2E overrides (merge first so they override public_envs; used by main-test, main-e2e, flask-test, flask-e2e)
 _env_overrides_uat: &env_overrides_uat
-  PORTFOLIO_API_URL: "https://portfolio.dev-api.cx.metamask.io"
-  REWARDS_API_URL: "https://rewards.uat-api.cx.metamask.io"
-  BAANX_API_URL: "https://dev.api.baanx.com"
-  RAMPS_ENVIRONMENT: "staging"
-  BRIDGE_USE_DEV_APIS: "true"
-  RAMP_INTERNAL_BUILD: "true"
-  IS_TEST: "true"
-  IGNORE_BOXLOGS_DEVELOPMENT: "true"
-  IS_SIM_BUILD: "true"
-  SEEDLESS_ONBOARDING_ENABLED: "true"
+  PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
+  REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+  BAANX_API_URL: 'https://dev.api.baanx.com'
+  RAMPS_ENVIRONMENT: 'staging'
+  BRIDGE_USE_DEV_APIS: 'true'
+  RAMP_INTERNAL_BUILD: 'true'
+  IS_TEST: 'true'
+  IGNORE_BOXLOGS_DEVELOPMENT: 'true'
+  IS_SIM_BUILD: 'true'
 
 # Experimental overrides (main-exp)
 _env_overrides_exp: &env_overrides_exp
-  PORTFOLIO_API_URL: "https://portfolio.dev-api.cx.metamask.io"
-  REWARDS_API_URL: "https://rewards.uat-api.cx.metamask.io"
-  BAANX_API_URL: "https://dev.api.baanx.com"
-  RAMPS_ENVIRONMENT: "staging"
-  BRIDGE_USE_DEV_APIS: "true"
-  RAMP_INTERNAL_BUILD: "true"
-  IS_TEST: "false"
-  MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: "true"
-  SEEDLESS_ONBOARDING_ENABLED: "true"
+  PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
+  REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+  BAANX_API_URL: 'https://dev.api.baanx.com'
+  RAMPS_ENVIRONMENT: 'staging'
+  BRIDGE_USE_DEV_APIS: 'true'
+  RAMP_INTERNAL_BUILD: 'true'
+  IS_TEST: 'false'
+  MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
 
 # Dev overrides (main-dev, flask-dev, qa-dev)
 _env_overrides_dev: &env_overrides_dev
-  PORTFOLIO_API_URL: "https://portfolio.dev-api.cx.metamask.io"
-  REWARDS_API_URL: "https://rewards.uat-api.cx.metamask.io"
-  BAANX_API_URL: "https://dev.api.baanx.com"
-  RAMPS_ENVIRONMENT: "staging"
-  BRIDGE_USE_DEV_APIS: "true"
-  RAMP_INTERNAL_BUILD: "true"
-  IS_TEST: "false"
-  MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: "true"
-  IS_SIM_BUILD: "true"
-  CONFIGURATION: "Debug"
-  SEEDLESS_ONBOARDING_ENABLED: "true"
-  DEV_OAUTH_CONFIG: "true"
+  PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
+  REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+  BAANX_API_URL: 'https://dev.api.baanx.com'
+  RAMPS_ENVIRONMENT: 'staging'
+  BRIDGE_USE_DEV_APIS: 'true'
+  RAMP_INTERNAL_BUILD: 'true'
+  IS_TEST: 'false'
+  MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
+  IS_SIM_BUILD: 'true'
+  CONFIGURATION: 'Debug'
+  DEV_OAUTH_CONFIG: 'true'
 
 # Common secrets (shared across ALL builds - same names, GitHub Environment determines values)
-_secrets: &secrets
-  # Infrastructure
-  MM_SENTRY_AUTH_TOKEN: "MM_SENTRY_AUTH_TOKEN"
-  MM_SENTRY_DSN: "MM_SENTRY_DSN"
-  GOOGLE_SERVICES_B64_IOS: "GOOGLE_SERVICES_B64_IOS"
-  GOOGLE_SERVICES_B64_ANDROID: "GOOGLE_SERVICES_B64_ANDROID"
+_secrets: &secrets # Infrastructure
+  MM_SENTRY_AUTH_TOKEN: 'MM_SENTRY_AUTH_TOKEN'
+  MM_SENTRY_DSN: 'MM_SENTRY_DSN'
+  GOOGLE_SERVICES_B64_IOS: 'GOOGLE_SERVICES_B64_IOS'
+  GOOGLE_SERVICES_B64_ANDROID: 'GOOGLE_SERVICES_B64_ANDROID'
   # API Keys
-  MM_INFURA_PROJECT_ID: "MM_INFURA_PROJECT_ID"
-  WALLET_CONNECT_PROJECT_ID: "WALLET_CONNECT_PROJECT_ID"
-  MM_FOX_CODE: "MM_FOX_CODE"
-  MM_BRANCH_KEY_LIVE: "MM_BRANCH_KEY_LIVE"
+  MM_INFURA_PROJECT_ID: 'MM_INFURA_PROJECT_ID'
+  WALLET_CONNECT_PROJECT_ID: 'WALLET_CONNECT_PROJECT_ID'
+  MM_FOX_CODE: 'MM_FOX_CODE'
+  MM_BRANCH_KEY_LIVE: 'MM_BRANCH_KEY_LIVE'
   # Analytics
-  SEGMENT_WRITE_KEY: "SEGMENT_WRITE_KEY"
-  SEGMENT_PROXY_URL: "SEGMENT_PROXY_URL"
-  SEGMENT_DELETE_API_SOURCE_ID: "SEGMENT_DELETE_API_SOURCE_ID"
-  SEGMENT_REGULATIONS_ENDPOINT: "SEGMENT_REGULATIONS_ENDPOINT"
+  SEGMENT_WRITE_KEY: 'SEGMENT_WRITE_KEY'
+  SEGMENT_PROXY_URL: 'SEGMENT_PROXY_URL'
+  SEGMENT_DELETE_API_SOURCE_ID: 'SEGMENT_DELETE_API_SOURCE_ID'
+  SEGMENT_REGULATIONS_ENDPOINT: 'SEGMENT_REGULATIONS_ENDPOINT'
   # Features/Announcements
-  FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: "FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN"
-  FEATURES_ANNOUNCEMENTS_SPACE_ID: "FEATURES_ANNOUNCEMENTS_SPACE_ID"
+  FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: 'FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN'
+  FEATURES_ANNOUNCEMENTS_SPACE_ID: 'FEATURES_ANNOUNCEMENTS_SPACE_ID'
   # Firebase
-  FCM_CONFIG_API_KEY: "FCM_CONFIG_API_KEY"
-  FCM_CONFIG_AUTH_DOMAIN: "FCM_CONFIG_AUTH_DOMAIN"
-  FCM_CONFIG_STORAGE_BUCKET: "FCM_CONFIG_STORAGE_BUCKET"
-  FCM_CONFIG_PROJECT_ID: "FCM_CONFIG_PROJECT_ID"
-  FCM_CONFIG_MESSAGING_SENDER_ID: "FCM_CONFIG_MESSAGING_SENDER_ID"
-  FCM_CONFIG_APP_ID: "FCM_CONFIG_APP_ID"
-  FCM_CONFIG_MEASUREMENT_ID: "FCM_CONFIG_MEASUREMENT_ID"
+  FCM_CONFIG_API_KEY: 'FCM_CONFIG_API_KEY'
+  FCM_CONFIG_AUTH_DOMAIN: 'FCM_CONFIG_AUTH_DOMAIN'
+  FCM_CONFIG_STORAGE_BUCKET: 'FCM_CONFIG_STORAGE_BUCKET'
+  FCM_CONFIG_PROJECT_ID: 'FCM_CONFIG_PROJECT_ID'
+  FCM_CONFIG_MESSAGING_SENDER_ID: 'FCM_CONFIG_MESSAGING_SENDER_ID'
+  FCM_CONFIG_APP_ID: 'FCM_CONFIG_APP_ID'
+  FCM_CONFIG_MEASUREMENT_ID: 'FCM_CONFIG_MEASUREMENT_ID'
   # QuickNode
-  QUICKNODE_MAINNET_URL: "QUICKNODE_MAINNET_URL"
-  QUICKNODE_ARBITRUM_URL: "QUICKNODE_ARBITRUM_URL"
-  QUICKNODE_AVALANCHE_URL: "QUICKNODE_AVALANCHE_URL"
-  QUICKNODE_BASE_URL: "QUICKNODE_BASE_URL"
-  QUICKNODE_LINEA_MAINNET_URL: "QUICKNODE_LINEA_MAINNET_URL"
-  QUICKNODE_MONAD_URL: "QUICKNODE_MONAD_URL"
-  QUICKNODE_OPTIMISM_URL: "QUICKNODE_OPTIMISM_URL"
-  QUICKNODE_POLYGON_URL: "QUICKNODE_POLYGON_URL"
+  QUICKNODE_MAINNET_URL: 'QUICKNODE_MAINNET_URL'
+  QUICKNODE_ARBITRUM_URL: 'QUICKNODE_ARBITRUM_URL'
+  QUICKNODE_AVALANCHE_URL: 'QUICKNODE_AVALANCHE_URL'
+  QUICKNODE_BASE_URL: 'QUICKNODE_BASE_URL'
+  QUICKNODE_LINEA_MAINNET_URL: 'QUICKNODE_LINEA_MAINNET_URL'
+  QUICKNODE_MONAD_URL: 'QUICKNODE_MONAD_URL'
+  QUICKNODE_OPTIMISM_URL: 'QUICKNODE_OPTIMISM_URL'
+  QUICKNODE_POLYGON_URL: 'QUICKNODE_POLYGON_URL'
   # OAuth
-  IOS_GOOGLE_CLIENT_ID: "IOS_GOOGLE_CLIENT_ID"
-  IOS_GOOGLE_REDIRECT_URI: "IOS_GOOGLE_REDIRECT_URI"
-  ANDROID_APPLE_CLIENT_ID: "ANDROID_APPLE_CLIENT_ID"
-  ANDROID_GOOGLE_CLIENT_ID: "ANDROID_GOOGLE_CLIENT_ID"
-  ANDROID_GOOGLE_SERVER_CLIENT_ID: "ANDROID_GOOGLE_SERVER_CLIENT_ID"
+  IOS_GOOGLE_CLIENT_ID: 'IOS_GOOGLE_CLIENT_ID'
+  IOS_GOOGLE_REDIRECT_URI: 'IOS_GOOGLE_REDIRECT_URI'
+  ANDROID_APPLE_CLIENT_ID: 'ANDROID_APPLE_CLIENT_ID'
+  ANDROID_GOOGLE_CLIENT_ID: 'ANDROID_GOOGLE_CLIENT_ID'
+  ANDROID_GOOGLE_SERVER_CLIENT_ID: 'ANDROID_GOOGLE_SERVER_CLIENT_ID'
   # Card/Baanx
-  MM_CARD_BAANX_API_CLIENT_KEY: "MM_CARD_BAANX_API_CLIENT_KEY"
+  MM_CARD_BAANX_API_CLIENT_KEY: 'MM_CARD_BAANX_API_CLIENT_KEY'
 
 # Signing config (AWS Secrets Manager) - omit for dev/simulator builds
 # android_keystore_path: filename in android/keystores/ (build.gradle expects fixed paths)
 _signing_prod: &signing_prod
-  aws_role: "arn:aws:iam::363762752069:role/metamask-mobile-prod-signer"
-  aws_secret: "metamask-mobile-main-prod-signer"
-  android_keystore_path: "release.keystore"
+  aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-prod-signer'
+  aws_secret: 'metamask-mobile-main-prod-signer'
+  android_keystore_path: 'release.keystore'
 _signing_rc: &signing_rc
-  aws_role: "arn:aws:iam::363762752069:role/metamask-mobile-rc-signer"
-  aws_secret: "metamask-mobile-main-rc-signer"
-  android_keystore_path: "rc.keystore"
+  aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-rc-signer'
+  aws_secret: 'metamask-mobile-main-rc-signer'
+  android_keystore_path: 'rc.keystore'
 _signing_uat: &signing_uat
-  aws_role: "arn:aws:iam::363762752069:role/metamask-mobile-uat-signer"
-  aws_secret: "metamask-mobile-main-uat-signer"
-  android_keystore_path: "internalRelease.keystore"
+  aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-uat-signer'
+  aws_secret: 'metamask-mobile-main-uat-signer'
+  android_keystore_path: 'internalRelease.keystore'
 _signing_flask_prod: &signing_flask_prod
-  aws_role: "arn:aws:iam::363762752069:role/metamask-mobile-prod-signer"
-  aws_secret: "metamask-mobile-flask-prod-signer"
-  android_keystore_path: "flaskRelease.keystore"
+  aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-prod-signer'
+  aws_secret: 'metamask-mobile-flask-prod-signer'
+  android_keystore_path: 'flaskRelease.keystore'
 _signing_flask_uat: &signing_flask_uat
-  aws_role: "arn:aws:iam::363762752069:role/metamask-mobile-uat-signer"
-  aws_secret: "metamask-mobile-flask-uat-signer"
-  android_keystore_path: "flask-uat.keystore"
+  aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-uat-signer'
+  aws_secret: 'metamask-mobile-flask-uat-signer'
+  android_keystore_path: 'flask-uat.keystore'
 
 # Main code fencing features
 _code_fencing_main: &code_fencing_main
@@ -171,8 +166,7 @@ _code_fencing_flask: &code_fencing_flask
 # LaunchDarkly will override these at runtime
 # Production (conservative) defaults - override in dev/exp builds as needed
 # =============================================================================
-_remote_feature_flags: &remote_feature_flags
-  # Perps
+_remote_feature_flags: &remote_feature_flags # Perps
   perpsPerpTradingEnabled: false
   perpsPerpTradingServiceInterruptionBannerEnabled: false
   perpsPerpGtmOnboardingModalEnabled: false
@@ -207,8 +201,8 @@ builds:
     signing: *signing_prod
     env:
       <<: *public_envs
-      METAMASK_ENVIRONMENT: "production"
-      METAMASK_BUILD_TYPE: "main"
+      METAMASK_ENVIRONMENT: 'production'
+      METAMASK_BUILD_TYPE: 'main'
     secrets: *secrets
     code_fencing: *code_fencing_main
     remote_feature_flags: *remote_feature_flags
@@ -219,8 +213,8 @@ builds:
     signing: *signing_rc
     env:
       <<: *public_envs
-      METAMASK_ENVIRONMENT: "rc"
-      METAMASK_BUILD_TYPE: "main"
+      METAMASK_ENVIRONMENT: 'rc'
+      METAMASK_BUILD_TYPE: 'main'
     secrets: *secrets
     code_fencing: *code_fencing_main
     remote_feature_flags: *remote_feature_flags
@@ -231,8 +225,8 @@ builds:
     signing: *signing_uat
     env:
       <<: [*env_overrides_uat, *public_envs]
-      METAMASK_ENVIRONMENT: "test"
-      METAMASK_BUILD_TYPE: "main"
+      METAMASK_ENVIRONMENT: 'test'
+      METAMASK_BUILD_TYPE: 'main'
     secrets: *secrets
     code_fencing: *code_fencing_main
     remote_feature_flags: *remote_feature_flags
@@ -243,8 +237,8 @@ builds:
     signing: *signing_uat
     env:
       <<: [*env_overrides_uat, *public_envs]
-      METAMASK_ENVIRONMENT: "e2e"
-      METAMASK_BUILD_TYPE: "main"
+      METAMASK_ENVIRONMENT: 'e2e'
+      METAMASK_BUILD_TYPE: 'main'
     secrets: *secrets
     code_fencing: *code_fencing_main
     remote_feature_flags: *remote_feature_flags
@@ -255,8 +249,8 @@ builds:
     signing: *signing_uat
     env:
       <<: [*env_overrides_exp, *public_envs]
-      METAMASK_ENVIRONMENT: "exp"
-      METAMASK_BUILD_TYPE: "main"
+      METAMASK_ENVIRONMENT: 'exp'
+      METAMASK_BUILD_TYPE: 'main'
     secrets: *secrets
     code_fencing: *code_fencing_main
     remote_feature_flags:
@@ -278,8 +272,8 @@ builds:
     github_environment: build-dev
     env:
       <<: [*env_overrides_dev, *public_envs]
-      METAMASK_ENVIRONMENT: "dev"
-      METAMASK_BUILD_TYPE: "main"
+      METAMASK_ENVIRONMENT: 'dev'
+      METAMASK_BUILD_TYPE: 'main'
     secrets: *secrets
     code_fencing: *code_fencing_main
     remote_feature_flags:
@@ -306,8 +300,8 @@ builds:
     signing: *signing_flask_prod
     env:
       <<: *public_envs
-      METAMASK_ENVIRONMENT: "production"
-      METAMASK_BUILD_TYPE: "flask"
+      METAMASK_ENVIRONMENT: 'production'
+      METAMASK_BUILD_TYPE: 'flask'
     secrets: *secrets
     code_fencing: *code_fencing_flask
     remote_feature_flags: *remote_feature_flags
@@ -318,8 +312,8 @@ builds:
     signing: *signing_flask_uat
     env:
       <<: [*env_overrides_uat, *public_envs]
-      METAMASK_ENVIRONMENT: "test"
-      METAMASK_BUILD_TYPE: "flask"
+      METAMASK_ENVIRONMENT: 'test'
+      METAMASK_BUILD_TYPE: 'flask'
     secrets: *secrets
     code_fencing: *code_fencing_flask
     remote_feature_flags: *remote_feature_flags
@@ -330,8 +324,8 @@ builds:
     signing: *signing_flask_uat
     env:
       <<: [*env_overrides_uat, *public_envs]
-      METAMASK_ENVIRONMENT: "e2e"
-      METAMASK_BUILD_TYPE: "flask"
+      METAMASK_ENVIRONMENT: 'e2e'
+      METAMASK_BUILD_TYPE: 'flask'
     secrets: *secrets
     code_fencing: *code_fencing_flask
     remote_feature_flags: *remote_feature_flags
@@ -341,8 +335,8 @@ builds:
     github_environment: build-flask-dev
     env:
       <<: [*env_overrides_dev, *public_envs]
-      METAMASK_ENVIRONMENT: "dev"
-      METAMASK_BUILD_TYPE: "flask"
+      METAMASK_ENVIRONMENT: 'dev'
+      METAMASK_BUILD_TYPE: 'flask'
     secrets: *secrets
     code_fencing: *code_fencing_flask
     remote_feature_flags:
@@ -369,8 +363,8 @@ builds:
     signing: *signing_uat
     env:
       <<: *public_envs
-      METAMASK_ENVIRONMENT: "production"
-      METAMASK_BUILD_TYPE: "qa"
+      METAMASK_ENVIRONMENT: 'production'
+      METAMASK_BUILD_TYPE: 'qa'
     secrets:
       <<: *secrets
       # QA uses QA Segment project
@@ -393,8 +387,8 @@ builds:
     github_environment: build-qa
     env:
       <<: [*env_overrides_dev, *public_envs]
-      METAMASK_ENVIRONMENT: "dev"
-      METAMASK_BUILD_TYPE: "qa"
+      METAMASK_ENVIRONMENT: 'dev'
+      METAMASK_BUILD_TYPE: 'qa'
     secrets:
       <<: *secrets
       # QA uses QA Segment project
