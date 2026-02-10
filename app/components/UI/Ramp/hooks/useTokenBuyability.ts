@@ -1,14 +1,14 @@
 import { useMemo } from 'react';
 import { Hex, isCaipChainId, isCaipAssetType } from '@metamask/utils';
 import { TokenI } from '../../Tokens/types';
-import { useRampTokens, RampsToken } from '../../Ramp/hooks/useRampTokens';
-import { useRampsTokens } from '../../Ramp/hooks/useRampsTokens';
-import useRampsUnifiedV2Enabled from '../../Ramp/hooks/useRampsUnifiedV2Enabled';
+import { useRampTokens, RampsToken } from './useRampTokens';
+import { useRampsTokens } from './useRampsTokens';
+import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
 import { toAssetId } from '../../Bridge/hooks/useAssetMetadata/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
-import { parseCAIP19AssetId } from '../../Ramp/Aggregator/utils/parseCaip19AssetId';
+import { parseCAIP19AssetId } from '../Aggregator/utils/parseCaip19AssetId';
 import { toLowerCaseEquals } from '../../../../util/general';
-import parseRampIntent from '../../Ramp/utils/parseRampIntent';
+import parseRampIntent from '../utils/parseRampIntent';
 import { getDecimalChainId } from '../../../../util/networks';
 
 export interface UseTokenBuyabilityResult {

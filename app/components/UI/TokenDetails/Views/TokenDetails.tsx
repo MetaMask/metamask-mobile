@@ -49,7 +49,7 @@ import {
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../locales/i18n';
-import { useTokenBuyability } from '../hooks/useTokenBuyability';
+import { useTokenBuyability } from '../../Ramp/hooks/useTokenBuyability';
 
 export {
   TokenDetailsSource,

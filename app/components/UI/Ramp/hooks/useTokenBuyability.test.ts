@@ -1,22 +1,19 @@
 import { renderHook } from '@testing-library/react-native';
 import { useTokenBuyability } from './useTokenBuyability';
-import {
-  useRampTokens,
-  UseRampTokensResult,
-} from '../../Ramp/hooks/useRampTokens';
-import { useRampsTokens } from '../../Ramp/hooks/useRampsTokens';
-import useRampsUnifiedV2Enabled from '../../Ramp/hooks/useRampsUnifiedV2Enabled';
+import { useRampTokens, UseRampTokensResult } from './useRampTokens';
+import { useRampsTokens } from './useRampsTokens';
+import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
 import { TokenI } from '../../Tokens/types';
 
-jest.mock('../../Ramp/hooks/useRampTokens', () => ({
+jest.mock('./useRampTokens', () => ({
   useRampTokens: jest.fn(),
 }));
 
-jest.mock('../../Ramp/hooks/useRampsTokens', () => ({
+jest.mock('./useRampsTokens', () => ({
   useRampsTokens: jest.fn(),
 }));
 
-jest.mock('../../Ramp/hooks/useRampsUnifiedV2Enabled', () => jest.fn());
+jest.mock('./useRampsUnifiedV2Enabled', () => jest.fn());
 
 const mockUseRampTokens = jest.mocked(useRampTokens);
 const mockUseRampsTokens = jest.mocked(useRampsTokens);

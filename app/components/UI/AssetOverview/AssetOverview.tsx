@@ -129,7 +129,7 @@ import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
 import { BridgeToken } from '../Bridge/types';
-import { useTokenBuyability } from '../TokenDetails/hooks/useTokenBuyability';
+import { useTokenBuyability } from '../Ramp/hooks/useTokenBuyability';
 
 /**
  * Determines the source and destination tokens for swap/bridge navigation.

@@ -48,7 +48,7 @@ import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
 import { useScrollToMerklRewards } from '../../AssetOverview/hooks/useScrollToMerklRewards';
 import { selectTokenDetailsV2ButtonsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsV2';
-import useTokenBuyability from '../hooks/useTokenBuyability';
+import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
 ///: END:ONLY_INCLUDE_IF
