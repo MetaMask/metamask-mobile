@@ -468,7 +468,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     TouchableOpacity,
     Text: RNText,
   } = jest.requireActual('react-native');
-  const ReactActual = jest.requireActual('react');
+  const React = jest.requireActual('react');
   return {
     ...jest.requireActual('@metamask/design-system-react-native'),
     Box: ({
@@ -477,21 +477,21 @@ jest.mock('@metamask/design-system-react-native', () => {
     }: {
       children: React.ReactNode;
       testID?: string;
-    }) => ReactActual.createElement(View, { testID }, children),
+    }) => React.createElement(View, { testID }, children),
     ButtonIcon: ({
       testID,
       onPress,
     }: {
       testID?: string;
       onPress?: () => void;
-    }) => ReactActual.createElement(TouchableOpacity, { testID, onPress }),
+    }) => React.createElement(TouchableOpacity, { testID, onPress }),
     Text: ({
       children,
       testID,
     }: {
       children?: React.ReactNode;
       testID?: string;
-    }) => ReactActual.createElement(RNText, { testID }, children),
+    }) => React.createElement(RNText, { testID }, children),
   };
 });
 

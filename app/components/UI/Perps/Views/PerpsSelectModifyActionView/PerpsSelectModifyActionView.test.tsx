@@ -30,44 +30,6 @@ jest.mock('../../hooks/usePerpsNavigation', () => ({
   }),
 }));
 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: (selector: unknown) => {
-    const selectPerpsEligibility = jest.requireMock(
-      '../../selectors/perpsController',
-    ).selectPerpsEligibility;
-    if (selector === selectPerpsEligibility) {
-      return true;
-    }
-    return undefined;
-  },
-}));
-
-jest.mock('../../selectors/perpsController', () => ({
-  selectPerpsEligibility: jest.fn(),
-}));
-
-jest.mock('../../hooks/usePerpsEventTracking', () => ({
-  usePerpsEventTracking: () => ({ track: jest.fn() }),
-}));
-
-jest.mock('../../components/PerpsBottomSheetTooltip', () => ({
-  __esModule: true,
-  default: ({ onClose, testID }: { onClose: () => void; testID?: string }) => {
-    const ReactModule = jest.requireActual('react');
-    const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
-    return ReactModule.createElement(
-      View,
-      { testID },
-      ReactModule.createElement(Text, null, 'Geo Block Tooltip'),
-      ReactModule.createElement(TouchableOpacity, {
-        onPress: onClose,
-        testID: testID ? `${testID}-close` : undefined,
-      }),
-    );
-  },
-}));
-
 // Mock the PerpsModifyActionSheet component
 jest.mock(
   '../../components/PerpsModifyActionSheet',

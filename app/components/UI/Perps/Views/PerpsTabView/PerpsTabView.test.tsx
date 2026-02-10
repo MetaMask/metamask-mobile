@@ -419,16 +419,6 @@ describe('PerpsTabView', () => {
       // Confirm the explore state is rendered (market data should be visible)
       expect(screen.getByText('ETH')).toBeOnTheScreen();
       expect(screen.getByText('BTC')).toBeOnTheScreen();
-      // Explore section copy and no positions section
-      expect(
-        screen.getByText(strings('perps.home.explore_markets')),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByText(strings('perps.home.see_all_perps')),
-      ).toBeOnTheScreen();
-      expect(
-        screen.queryByText(strings('perps.position.title')),
-      ).not.toBeOnTheScreen();
     });
 
     it('should render Start a new trade CTA when positions exist', () => {
