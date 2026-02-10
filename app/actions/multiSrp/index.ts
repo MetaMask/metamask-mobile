@@ -17,7 +17,6 @@ import { SecretType } from '@metamask/seedless-onboarding-controller';
 import Logger from '../../util/Logger';
 import { discoverAccounts } from '../../multichain-accounts/discovery';
 import { captureException } from '@sentry/core';
-import { toMultichainAccountGroupId } from '@metamask/account-api';
 import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 
 export interface ImportNewSecretRecoveryPhraseOptions {
@@ -38,7 +37,7 @@ export async function importNewSecretRecoveryPhrase(
     options: ImportNewSecretRecoveryPhraseReturnType & { error?: Error },
   ) => Promise<void>,
 ): Promise<ImportNewSecretRecoveryPhraseReturnType> {
-  const { MultichainAccountService } = Engine.context;
+  const { KeyringController, MultichainAccountService } = Engine.context;
   const { shouldSelectAccount } = options;
 
   // Convert mnemonic
@@ -49,24 +48,14 @@ export async function importNewSecretRecoveryPhrase(
     type: 'import',
     mnemonic,
   });
-  // NOTE: This should never fail because a wallet can only be created if it has
-  // at least one account and thus, one group too.
-  const group = wallet.getAccountGroup(
-    toMultichainAccountGroupId(wallet.id, 0),
-  );
-  if (!group) {
-    throw new Error(
-      'Failed to get default multichain account group after wallet creation',
-    );
-  }
-  const [account] = group.getAccounts();
-  if (!account) {
-    throw new Error(
-      'Failed to get default account from multichain account group after wallet creation',
-    );
-  }
   const entropySource = wallet.entropySource;
-  const newAccountAddress = account.address;
+
+  const [newAccountAddress] = await KeyringController.withKeyring(
+    {
+      id: entropySource,
+    },
+    async ({ keyring }) => keyring.getAccounts(),
+  );
 
   const { SeedlessOnboardingController } = Engine.context;
 

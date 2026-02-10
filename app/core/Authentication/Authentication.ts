@@ -70,7 +70,6 @@ import { strings } from '../../../locales/i18n';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { IconName } from '../../component-library/components/Icons/Icon';
 import { ReauthenticateErrorType } from './types';
-import { toMultichainAccountGroupId } from '@metamask/account-api';
 import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 
 /**
@@ -943,8 +942,11 @@ class AuthenticationService {
     if (!isSeedlessOnboardingFlow) {
       throw new Error('Not in seedless onboarding flow');
     }
-    const { SeedlessOnboardingController, MultichainAccountService } =
-      Engine.context;
+    const {
+      KeyringController,
+      SeedlessOnboardingController,
+      MultichainAccountService,
+    } = Engine.context;
 
     const mnemonic = mnemonicPhraseToBytes(seed);
 
@@ -954,24 +956,12 @@ class AuthenticationService {
         mnemonic,
       },
     );
-    // NOTE: This should never fail because a wallet can only be created if it has
-    // at least one account and thus, one group too.
-    const group = wallet.getAccountGroup(
-      toMultichainAccountGroupId(wallet.id, 0),
-    );
-    if (!group) {
-      throw new Error(
-        'Failed to get default multichain account group after wallet creation',
-      );
-    }
-    const [account] = group.getAccounts();
-    if (!account) {
-      throw new Error(
-        'Failed to get default account from multichain account group after wallet creation',
-      );
-    }
     const entropySource = wallet.entropySource;
-    const newAccountAddress = account.address;
+
+    const [newAccountAddress] = await KeyringController.withKeyring(
+      { id: entropySource },
+      async ({ keyring }) => keyring.getAccounts(),
+    );
 
     // if social backup is requested, add the seed phrase backup
     try {

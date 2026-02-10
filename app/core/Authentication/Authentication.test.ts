@@ -128,10 +128,14 @@ const HD_KEY_TREE = 'HD Key Tree';
  * @param id - The keyring metadata id, defaults to 'test-keyring-id'
  * @returns A mock keyring object with HD type and metadata
  */
-const createMockHdKeyring = (id = 'test-keyring-id') => ({
+const createMockHdKeyringObject = (id = 'test-keyring-id') => ({
   type: HD_KEY_TREE,
   metadata: { id },
 });
+
+const mockHdKeyring = {
+  getAccounts: jest.fn().mockResolvedValue([mockAddress]),
+};
 
 jest.mock('../Engine', () => ({
   resetState: jest.fn(),
@@ -145,7 +149,7 @@ jest.mock('../Engine', () => ({
       isUnlocked: jest.fn(() => true),
       verifyPassword: jest.fn(),
       state: {
-        keyrings: [createMockHdKeyring()],
+        keyrings: [createMockHdKeyringObject()],
       },
     },
 
@@ -1449,7 +1453,7 @@ describe('Authentication', () => {
         isUnlocked: jest.fn().mockReturnValue(true),
         setLocked: jest.fn().mockResolvedValue(undefined),
         state: {
-          keyrings: [createMockHdKeyring()],
+          keyrings: [createMockHdKeyringObject()],
         },
       } as unknown as KeyringController;
 
@@ -1592,8 +1596,14 @@ describe('Authentication', () => {
         isUnlocked: jest.fn().mockResolvedValue(true),
         submitPassword: jest.fn().mockResolvedValue(undefined),
         verifyPassword: jest.fn().mockResolvedValue(undefined),
+        withKeyring: jest
+          .fn()
+          .mockImplementation(
+            async ({ id: _id }, callback) =>
+              await callback({ keyring: mockHdKeyring }),
+          ),
         state: {
-          keyrings: [createMockHdKeyring()],
+          keyrings: [createMockHdKeyringObject()],
         },
         exportEncryptionKey: jest.fn(),
         exportSeedPhrase: jest.fn(),
@@ -2495,7 +2505,7 @@ describe('Authentication', () => {
         submitPassword: jest.fn(),
         verifyPassword: jest.fn().mockResolvedValue(undefined),
         state: {
-          keyrings: [createMockHdKeyring()],
+          keyrings: [createMockHdKeyringObject()],
         },
       } as unknown as KeyringController;
 
@@ -2541,8 +2551,14 @@ describe('Authentication', () => {
 
       // Setup Engine context mocks
       Engine.context.KeyringController = {
+        withKeyring: jest
+          .fn()
+          .mockImplementation(
+            async ({ id: _id }, callback) =>
+              await callback({ keyring: mockHdKeyring }),
+          ),
         state: {
-          keyrings: [createMockHdKeyring()],
+          keyrings: [createMockHdKeyringObject()],
         },
       } as unknown as KeyringController;
 
@@ -2662,13 +2678,11 @@ describe('Authentication', () => {
       ).rejects.toThrow('Failed to add new wallet');
     });
 
-    it('handle MultichainAccountGroup.getAccounts failure', async () => {
+    it('handle keyring.getAccounts failure', async () => {
       // Arrange
       const mnemonic = 'test mnemonic phrase for wallet';
       const error = new Error('Failed to get accounts');
-      mockMultichainAccountGroup.getAccounts.mockImplementation(() => {
-        throw error;
-      });
+      mockHdKeyring.getAccounts.mockRejectedValue(error);
       Engine.context.MultichainAccountService.createMultichainAccountWallet.mockResolvedValue(
         mockMultichainAccountWallet,
       );
@@ -2699,7 +2713,7 @@ describe('Authentication', () => {
           .mockResolvedValue(mockImportedAddress),
         removeAccount: jest.fn().mockResolvedValue(undefined),
         state: {
-          keyrings: [createMockHdKeyring()],
+          keyrings: [createMockHdKeyringObject()],
         },
       } as unknown as KeyringController;
 
@@ -3482,7 +3496,7 @@ describe('Authentication', () => {
         setLocked: jest.fn().mockResolvedValue(undefined),
         isUnlocked: jest.fn(() => true),
         state: {
-          keyrings: [createMockHdKeyring()],
+          keyrings: [createMockHdKeyringObject()],
         },
       } as unknown as KeyringController;
 
@@ -3573,7 +3587,7 @@ describe('Authentication', () => {
         setLocked: jest.fn().mockResolvedValue(undefined),
         isUnlocked: jest.fn(() => true),
         state: {
-          keyrings: [createMockHdKeyring()],
+          keyrings: [createMockHdKeyringObject()],
         },
       } as unknown as KeyringController;
 
@@ -4335,7 +4349,7 @@ describe('Authentication', () => {
         submitPassword: jest.fn(),
         verifyPassword: jest.fn(),
         state: {
-          keyrings: [createMockHdKeyring()],
+          keyrings: [createMockHdKeyringObject()],
         },
       };
 
