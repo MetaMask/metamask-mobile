@@ -20,6 +20,7 @@ const INPUT_STYLE_OVERRIDE = {
   height: undefined,
   lineHeight: undefined,
   paddingVertical: 0,
+  backgroundColor: 'transparent',
 };
 
 export const RecipientInput = ({
