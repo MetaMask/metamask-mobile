@@ -100,7 +100,7 @@ module.exports = function (baseConfig) {
             moduleName.includes('axios/dist/node/')
           ) {
             return {
-              filePath: require.resolve('axios/dist/browser/axios.js'),
+              filePath: require.resolve('axios/dist/browser/axios.cjs'),
               type: 'sourceFile',
             };
           }
