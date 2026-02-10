@@ -13,7 +13,7 @@ import {
 } from '../../../../util/test/utils';
 import { Linking } from 'react-native';
 import axios, { AxiosResponse } from 'axios';
-import { PerpsModifiersCommandTypes } from '../../../../../tests/framework/types';
+import { E2ECommandTypes } from '../../../../../tests/framework/types';
 
 // Global bridge for E2E mock injection
 export interface E2EBridgePerpsStreaming {
@@ -258,20 +258,20 @@ function startE2EPerpsCommandPolling(): void {
       const data = (response as AxiosResponse).data?.queue as
         | (
             | {
-                type: PerpsModifiersCommandTypes.pushPrice;
+                type: E2ECommandTypes.pushPrice;
                 args: {
                   symbol: string;
                   price: string | number;
                 };
               }
             | {
-                type: PerpsModifiersCommandTypes.forceLiquidation;
+                type: E2ECommandTypes.forceLiquidation;
                 args: {
                   symbol: string;
                 };
               }
             | {
-                type: PerpsModifiersCommandTypes.mockDeposit;
+                type: E2ECommandTypes.mockDeposit;
                 args: {
                   amount: string;
                 };
@@ -291,7 +291,7 @@ function startE2EPerpsCommandPolling(): void {
 
       for (const item of data) {
         if (!item || typeof item !== 'object') continue;
-        if (item.type === PerpsModifiersCommandTypes.pushPrice) {
+        if (item.type === E2ECommandTypes.pushPrice) {
           const sym = (item as { args: { symbol: string } }).args.symbol;
           const price = String(
             (item as { args: { price: string | number } }).args.price,
@@ -303,7 +303,7 @@ function startE2EPerpsCommandPolling(): void {
           } catch (e) {
             // no-op
           }
-        } else if (item.type === PerpsModifiersCommandTypes.forceLiquidation) {
+        } else if (item.type === E2ECommandTypes.forceLiquidation) {
           const sym = (item as { args: { symbol: string } }).args.symbol;
           try {
             if (typeof service.mockForceLiquidation === 'function') {
@@ -312,7 +312,7 @@ function startE2EPerpsCommandPolling(): void {
           } catch (e) {
             // no-op
           }
-        } else if (item.type === PerpsModifiersCommandTypes.mockDeposit) {
+        } else if (item.type === E2ECommandTypes.mockDeposit) {
           const amount = (item as { args: { amount: string } }).args.amount;
           try {
             if (typeof service.mockDepositUSD === 'function') {

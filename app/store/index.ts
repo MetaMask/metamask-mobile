@@ -81,6 +81,15 @@ const createStoreAndPersistor = async () => {
 (async () => {
   try {
     await createStoreAndPersistor();
+    if (isE2E) {
+      // Delay to give the store time to hydrate before first poll
+      setTimeout(async () => {
+        const { startE2EGenericCommandPolling } = await import(
+          '../util/test/e2eCommandPolling'
+        );
+        startE2EGenericCommandPolling();
+      }, 5000);
+    }
   } catch (error) {
     Logger.error(error as Error, 'Error creating store and persistor');
   }
