@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, act } from '@testing-library/react-native';
 import AssetOverviewContent, {
   type AssetOverviewContentProps,
 } from './AssetOverviewContent';
@@ -13,7 +13,6 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '../../Perps/constants/eventNames';
-
 const mockHandlePerpsAction = jest.fn();
 const mockTrack = jest.fn();
 
@@ -35,9 +34,12 @@ jest.mock('../../AssetOverview/hooks/useScrollToMerklRewards', () => ({
   useScrollToMerklRewards: jest.fn(),
 }));
 
+// Use a stable wrapper so jest.restoreAllMocks() (from testSetup.js afterEach)
+// does not wipe the implementation between tests.
+const mockPerpsBottomSheetTooltipInner = jest.fn((..._args: unknown[]) => null);
 jest.mock('../../Perps/components/PerpsBottomSheetTooltip', () => ({
   __esModule: true,
-  default: () => null,
+  default: (...args: unknown[]) => mockPerpsBottomSheetTooltipInner(...args),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -181,6 +183,38 @@ describe('AssetOverviewContent', () => {
 
       expect(mockHandlePerpsAction).toHaveBeenCalledWith('short');
       expect(mockTrack).not.toHaveBeenCalled();
+    });
+
+    it('closes geo block modal when closeEligibilityModal is called', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent {...defaultProps} />,
+        { state: createState(false) },
+      );
+
+      // Open the geo block modal by pressing Long when not eligible
+      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON));
+
+      // Verify the tooltip was rendered with the expected props
+      expect(mockPerpsBottomSheetTooltipInner).toHaveBeenCalledWith(
+        expect.objectContaining({
+          onClose: expect.any(Function),
+          contentKey: 'geo_block',
+        }),
+        expect.anything(),
+      );
+
+      // Extract onClose from the last render call and invoke it
+      const lastCallProps = mockPerpsBottomSheetTooltipInner.mock.calls[
+        mockPerpsBottomSheetTooltipInner.mock.calls.length - 1
+      ][0] as { onClose: () => void };
+      mockPerpsBottomSheetTooltipInner.mockClear();
+
+      act(() => {
+        lastCallProps.onClose();
+      });
+
+      // Modal dismissed — tooltip no longer rendered
+      expect(mockPerpsBottomSheetTooltipInner).not.toHaveBeenCalled();
     });
   });
 });

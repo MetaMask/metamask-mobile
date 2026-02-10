@@ -399,7 +399,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         : PERPS_EVENT_VALUE.DIRECTION.SHORT,
     ...(source && { [PERPS_EVENT_PROPERTY.SOURCE]: source }),
     ...(routeAbTestTokenDetailsLayout && {
-      ab_test_token_details_layout: routeAbTestTokenDetailsLayout,
+      ab_tests: { token_details_layout: routeAbTestTokenDetailsLayout },
     }),
     ...(isButtonColorTestEnabled && {
       [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,

@@ -323,8 +323,9 @@ const BridgeView = () => {
           entry_point: abTestContext.entry_point,
         }),
         ...(abTestContext?.ab_test_token_details_layout && {
-          ab_test_token_details_layout:
-            abTestContext.ab_test_token_details_layout,
+          ab_tests: {
+            token_details_layout: abTestContext.ab_test_token_details_layout,
+          },
         }),
       };
 

@@ -335,7 +335,7 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
       has_balance: hasBalance,
       // A/B test attribution
       ...(isTestActive && {
-        ab_test_token_details_layout: variantName,
+        ab_tests: { token_details_layout: variantName },
       }),
     };
 
