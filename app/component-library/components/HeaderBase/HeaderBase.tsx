@@ -1,6 +1,6 @@
 // Third party dependencies.
-import React, { useCallback, useState } from 'react';
-import { View, LayoutChangeEvent } from 'react-native';
+import React, { useRef, useState, useLayoutEffect } from 'react';
+import { View } from 'react-native';
 
 // External dependencies.
 import {
@@ -42,16 +42,10 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
 
+  const startAccessoryRef = useRef<View>(null);
+  const endAccessoryRef = useRef<View>(null);
   const [startAccessoryWidth, setStartAccessoryWidth] = useState(0);
   const [endAccessoryWidth, setEndAccessoryWidth] = useState(0);
-
-  const handleStartAccessoryLayout = useCallback((e: LayoutChangeEvent) => {
-    setStartAccessoryWidth(e.nativeEvent.layout.width);
-  }, []);
-
-  const handleEndAccessoryLayout = useCallback((e: LayoutChangeEvent) => {
-    setEndAccessoryWidth(e.nativeEvent.layout.width);
-  }, []);
 
   // Determine alignment and text variant based on variant prop
   const isLeftAligned = variant === HeaderBaseVariant.Display;
@@ -62,6 +56,25 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
   const hasEndContent =
     endAccessory || (endButtonIconProps && endButtonIconProps.length > 0);
   const hasAnyAccessory = hasStartContent || hasEndContent;
+
+  // Measure accessory widths synchronously before paint to eliminate flicker
+  useLayoutEffect(() => {
+    if (startAccessoryRef.current) {
+      startAccessoryRef.current.measure((_x, _y, width, _height) => {
+        if (width > 0) {
+          setStartAccessoryWidth(width);
+        }
+      });
+    }
+
+    if (endAccessoryRef.current) {
+      endAccessoryRef.current.measure((_x, _y, width, _height) => {
+        if (width > 0) {
+          setEndAccessoryWidth(width);
+        }
+      });
+    }
+  }, [hasStartContent, hasEndContent]);
 
   // For Compact: render both wrappers if any accessory exists (for centering)
   // For Display: only render wrappers if their respective accessory exists
@@ -150,9 +163,7 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
           }
           {...startAccessoryWrapperProps}
         >
-          <View onLayout={handleStartAccessoryLayout}>
-            {renderStartContent()}
-          </View>
+          <View ref={startAccessoryRef}>{renderStartContent()}</View>
         </View>
       )}
 
@@ -182,7 +193,7 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
           {...endAccessoryWrapperProps}
         >
           <View
-            onLayout={handleEndAccessoryLayout}
+            ref={endAccessoryRef}
             style={
               hasMultipleEndButtons ? tw.style('flex-row gap-2') : undefined
             }
