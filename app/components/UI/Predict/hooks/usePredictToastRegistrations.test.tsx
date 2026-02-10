@@ -12,7 +12,10 @@ const mockUseSelector = jest.fn();
 
 let mockWonPositions = [{ currentValue: 100 }, { currentValue: 50 }];
 
-let mockWithdrawTransaction = { amount: 123.45 };
+let mockWithdrawTransaction: { amount: number } | undefined = {
+  amount: 123.45,
+};
+const selectedAddress = '0x1234567890123456789012345678901234567890';
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, unknown>) =>
@@ -66,7 +69,7 @@ jest.mock('../selectors/predictController', () => ({
 
 jest.mock('../utils/accounts', () => ({
   getEvmAccountFromSelectedAccountGroup: jest.fn(() => ({
-    address: '0x1234567890123456789012345678901234567890',
+    address: selectedAddress,
   })),
 }));
 
@@ -172,7 +175,7 @@ describe('usePredictToastRegistrations', () => {
         {
           type: 'deposit',
           status: 'failed',
-          transactionMeta: {},
+          transactionMeta: { txParams: { from: selectedAddress } },
         },
         showToast,
       );
@@ -192,6 +195,27 @@ describe('usePredictToastRegistrations', () => {
       });
 
       expect(mockDeposit).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows deposit error toast without retry when sender differs from selected account', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'deposit',
+          status: 'failed',
+          transactionMeta: {
+            txParams: { from: '0xabc0000000000000000000000000000000000000' },
+          },
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          linkButtonOptions: expect.anything(),
+        }),
+      );
     });
 
     it('does not show toast on rejected status', () => {
@@ -257,7 +281,7 @@ describe('usePredictToastRegistrations', () => {
         {
           type: 'claim',
           status: 'failed',
-          transactionMeta: {},
+          transactionMeta: { txParams: { from: selectedAddress } },
         },
         showToast,
       );
@@ -277,6 +301,27 @@ describe('usePredictToastRegistrations', () => {
       });
 
       expect(mockClaim).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows claim error toast without retry when sender differs from selected account', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'claim',
+          status: 'failed',
+          transactionMeta: {
+            txParams: { from: '0xabc0000000000000000000000000000000000000' },
+          },
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          linkButtonOptions: expect.anything(),
+        }),
+      );
     });
   });
 
@@ -308,7 +353,7 @@ describe('usePredictToastRegistrations', () => {
         {
           type: 'withdraw',
           status: 'confirmed',
-          transactionMeta: {},
+          transactionMeta: { txParams: { from: selectedAddress } },
         },
         showToast,
       );
@@ -320,6 +365,33 @@ describe('usePredictToastRegistrations', () => {
       );
     });
 
+    it('uses transaction meta receiving amount for withdraw success toast when state amount is unavailable', () => {
+      mockWithdrawTransaction = undefined;
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'confirmed',
+          transactionMeta: {
+            txParams: { from: selectedAddress },
+            assetsFiatValues: { receiving: '55.12' },
+          },
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('$55.12'),
+            }),
+          ]),
+        }),
+      );
+    });
+
     it('shows error toast with retry on failed status', async () => {
       const handler = getHandler();
 
@@ -327,7 +399,7 @@ describe('usePredictToastRegistrations', () => {
         {
           type: 'withdraw',
           status: 'failed',
-          transactionMeta: {},
+          transactionMeta: { txParams: { from: selectedAddress } },
         },
         showToast,
       );
@@ -347,6 +419,27 @@ describe('usePredictToastRegistrations', () => {
       });
 
       expect(mockWithdraw).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows withdraw error toast without retry when sender differs from selected account', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'failed',
+          transactionMeta: {
+            txParams: { from: '0xabc0000000000000000000000000000000000000' },
+          },
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          linkButtonOptions: expect.anything(),
+        }),
+      );
     });
 
     it('does not show toast on rejected status', () => {

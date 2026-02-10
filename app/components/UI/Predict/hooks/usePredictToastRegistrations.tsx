@@ -100,8 +100,8 @@ const showErrorToast = ({
   showToast: ToastRef['showToast'];
   title: string;
   description: string;
-  retryLabel: string;
-  onRetry: () => void;
+  retryLabel?: string;
+  onRetry?: () => void;
   backgroundColor: string;
   iconColor: string;
 }) =>
@@ -116,10 +116,14 @@ const showErrorToast = ({
     iconColor,
     backgroundColor,
     hasNoTimeout: false,
-    linkButtonOptions: {
-      label: retryLabel,
-      onPress: onRetry,
-    },
+    ...(retryLabel && onRetry
+      ? {
+          linkButtonOptions: {
+            label: retryLabel,
+            onPress: onRetry,
+          },
+        }
+      : {}),
   });
 
 export const usePredictToastRegistrations = (): ToastRegistration[] => {
@@ -131,6 +135,7 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
 
   const selectedAddress =
     getEvmAccountFromSelectedAccountGroup()?.address ?? '0x0';
+  const normalizedSelectedAddress = selectedAddress.toLowerCase();
   const wonPositions = useSelector(
     selectPredictWonPositions({ address: selectedAddress }),
   );
@@ -148,6 +153,12 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
     (payload: unknown, showToast: ToastRef['showToast']): void => {
       const { type, status, transactionMeta } =
         payload as PredictTransactionStatusChangedPayload;
+      const transactionFrom = (
+        transactionMeta.txParams?.from as string | undefined
+      )?.toLowerCase();
+      const canRetry =
+        Boolean(transactionFrom) &&
+        transactionFrom === normalizedSelectedAddress;
 
       if (type === 'deposit') {
         if (status === 'approved') {
@@ -199,10 +210,14 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
             showToast,
             title: strings('predict.deposit.error_title'),
             description: strings('predict.deposit.error_description'),
-            retryLabel: strings('predict.deposit.try_again'),
-            onRetry: () => {
-              deposit().catch(() => undefined);
-            },
+            ...(canRetry
+              ? {
+                  retryLabel: strings('predict.deposit.try_again'),
+                  onRetry: () => {
+                    deposit().catch(() => undefined);
+                  },
+                }
+              : {}),
             backgroundColor: theme.colors.accent04.normal,
             iconColor: theme.colors.error.default,
           });
@@ -243,10 +258,14 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
             showToast,
             title: strings('predict.claim.toasts.error.title'),
             description: strings('predict.claim.toasts.error.description'),
-            retryLabel: strings('predict.claim.toasts.error.try_again'),
-            onRetry: () => {
-              claim().catch(() => undefined);
-            },
+            ...(canRetry
+              ? {
+                  retryLabel: strings('predict.claim.toasts.error.try_again'),
+                  onRetry: () => {
+                    claim().catch(() => undefined);
+                  },
+                }
+              : {}),
             backgroundColor: theme.colors.accent04.normal,
             iconColor: theme.colors.error.default,
           });
@@ -266,9 +285,11 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         }
 
         if (status === 'confirmed') {
-          const amount = formatPrice(
-            withdrawTransaction?.amount.toString() ?? '0',
-          );
+          const withdrawAmount =
+            transactionMeta.assetsFiatValues?.receiving ??
+            withdrawTransaction?.amount.toString() ??
+            '0';
+          const amount = formatPrice(withdrawAmount);
 
           showSuccessToast({
             showToast,
@@ -289,10 +310,14 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
             showToast,
             title: strings('predict.withdraw.error_title'),
             description: strings('predict.withdraw.error_description'),
-            retryLabel: strings('predict.withdraw.try_again'),
-            onRetry: () => {
-              withdraw().catch(() => undefined);
-            },
+            ...(canRetry
+              ? {
+                  retryLabel: strings('predict.withdraw.try_again'),
+                  onRetry: () => {
+                    withdraw().catch(() => undefined);
+                  },
+                }
+              : {}),
             backgroundColor: theme.colors.accent04.normal,
             iconColor: theme.colors.error.default,
           });
@@ -305,6 +330,7 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
       deposit,
       formattedClaimAmount,
       navigation,
+      normalizedSelectedAddress,
       theme.colors.accent04.normal,
       theme.colors.error.default,
       theme.colors.success.default,
