@@ -17,13 +17,16 @@ import { strings } from '../../../../../../locales/i18n';
 import { getHeaderCompactStandardNavbarOptions } from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { FlatList } from 'react-native-gesture-handler';
 import { NetworkPills } from './NetworkPills';
+import Routes from '../../../../../constants/navigation/Routes';
 import { CaipChainId } from '@metamask/utils';
 import { useStyles } from '../../../../../component-library/hooks';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 import {
   selectSourceChainRanking,
   selectDestChainRanking,
+  selectTokenSelectorNetworkFilter,
   setIsSelectingToken,
+  setTokenSelectorNetworkFilter,
 } from '../../../../../core/redux/slices/bridge';
 import {
   formatChainIdToCaip,
@@ -120,12 +123,26 @@ export const BridgeTokenSelector: React.FC = () => {
     route.params?.type,
   );
 
-  // Initialize selectedChainId with the chain id of the selected token
-  const [selectedChainId, setSelectedChainId] = useState(
-    selectedToken?.chainId && route.params?.type === TokenSelectorType.Dest
-      ? formatChainIdToCaip(selectedToken.chainId)
-      : undefined,
-  );
+  // Network filter from Redux (set by NetworkPills or NetworkListModal)
+  const selectedChainId = useSelector(selectTokenSelectorNetworkFilter);
+
+  // Initialize network filter for dest mode with selected token's chain
+  useEffect(() => {
+    if (
+      selectedToken?.chainId &&
+      route.params?.type === TokenSelectorType.Dest
+    ) {
+      dispatch(
+        setTokenSelectorNetworkFilter(
+          formatChainIdToCaip(selectedToken.chainId),
+        ),
+      );
+    }
+    // Clear filter on unmount
+    return () => {
+      dispatch(setTokenSelectorNetworkFilter(undefined));
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Ref to track if we need to re-search after chain change
   const shouldResearchAfterChainChange = useRef(false);
@@ -307,25 +324,28 @@ export const BridgeTokenSelector: React.FC = () => {
     searchString,
   ]);
 
-  const handleChainSelect = (chainId?: CaipChainId) => {
-    // Do nothing if selecting the same network that's already selected
-    if (chainId === selectedChainId) {
-      return;
-    }
+  const handleChainSelect = useCallback(
+    (chainId?: CaipChainId) => {
+      // Do nothing if selecting the same network that's already selected
+      if (chainId === selectedChainId) {
+        return;
+      }
 
-    setSelectedChainId(chainId);
+      dispatch(setTokenSelectorNetworkFilter(chainId));
 
-    // Cancel any pending debounced searches
-    debouncedSearch.cancel();
-    // Always reset search results to clear old network's data and ensure clean state
-    resetSearch();
+      // Cancel any pending debounced searches
+      debouncedSearch.cancel();
+      // Always reset search results to clear old network's data and ensure clean state
+      resetSearch();
 
-    // If there's an active search, prepare to re-trigger it on the new network
-    if (isValidSearch) {
-      // Set flag to trigger search after chain IDs update
-      shouldResearchAfterChainChange.current = true;
-    }
-  };
+      // If there's an active search, prepare to re-trigger it on the new network
+      if (isValidSearch) {
+        // Set flag to trigger search after chain IDs update
+        shouldResearchAfterChainChange.current = true;
+      }
+    },
+    [selectedChainId, dispatch, debouncedSearch, resetSearch, isValidSearch],
+  );
 
   const handleSearchTextChange = (text: string) => {
     setSearchString(text);
@@ -503,6 +523,12 @@ export const BridgeTokenSelector: React.FC = () => {
         <NetworkPills
           selectedChainId={selectedChainId}
           onChainSelect={handleChainSelect}
+          onMorePress={() =>
+            navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+              screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
+              params: { type: route.params?.type },
+            })
+          }
           type={route.params?.type}
         />
 
