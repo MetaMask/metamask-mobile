@@ -1,6 +1,6 @@
 // Third party dependencies.
-import React, { useRef, useState, useLayoutEffect } from 'react';
-import { View } from 'react-native';
+import React, { useRef, useState, useLayoutEffect, useCallback } from 'react';
+import { View, LayoutChangeEvent } from 'react-native';
 
 // External dependencies.
 import {
@@ -57,11 +57,11 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
     endAccessory || (endButtonIconProps && endButtonIconProps.length > 0);
   const hasAnyAccessory = hasStartContent || hasEndContent;
 
-  // Measure accessory widths synchronously before paint to eliminate flicker
+  // Attempt synchronous measurement on mount/updates to reduce flicker
   useLayoutEffect(() => {
     if (startAccessoryRef.current) {
       startAccessoryRef.current.measure((_x, _y, width, _height) => {
-        if (width > 0) {
+        if (width > 0 && width !== startAccessoryWidth) {
           setStartAccessoryWidth(width);
         }
       });
@@ -69,12 +69,40 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
 
     if (endAccessoryRef.current) {
       endAccessoryRef.current.measure((_x, _y, width, _height) => {
-        if (width > 0) {
+        if (width > 0 && width !== endAccessoryWidth) {
           setEndAccessoryWidth(width);
         }
       });
     }
-  }, [hasStartContent, hasEndContent]);
+  }, [
+    startAccessory,
+    startButtonIconProps,
+    endAccessory,
+    endButtonIconProps,
+    startAccessoryWidth,
+    endAccessoryWidth,
+  ]);
+
+  // Fallback onLayout callbacks for when measure() returns 0 or content changes
+  const handleStartAccessoryLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { width } = event.nativeEvent.layout;
+      if (width > 0 && width !== startAccessoryWidth) {
+        setStartAccessoryWidth(width);
+      }
+    },
+    [startAccessoryWidth],
+  );
+
+  const handleEndAccessoryLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { width } = event.nativeEvent.layout;
+      if (width > 0 && width !== endAccessoryWidth) {
+        setEndAccessoryWidth(width);
+      }
+    },
+    [endAccessoryWidth],
+  );
 
   // For Compact: render both wrappers if any accessory exists (for centering)
   // For Display: only render wrappers if their respective accessory exists
@@ -163,7 +191,9 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
           }
           {...startAccessoryWrapperProps}
         >
-          <View ref={startAccessoryRef}>{renderStartContent()}</View>
+          <View ref={startAccessoryRef} onLayout={handleStartAccessoryLayout}>
+            {renderStartContent()}
+          </View>
         </View>
       )}
 
@@ -194,6 +224,7 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
         >
           <View
             ref={endAccessoryRef}
+            onLayout={handleEndAccessoryLayout}
             style={
               hasMultipleEndButtons ? tw.style('flex-row gap-2') : undefined
             }
