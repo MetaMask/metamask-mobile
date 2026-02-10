@@ -277,7 +277,7 @@ builds:
 
   # Local development / Expo development build (Runway .app for simulator)
   main-dev:
-    github_environment: build-dev
+    github_environment: build-exp
     env:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'dev'
