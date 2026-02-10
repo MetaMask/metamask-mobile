@@ -97,14 +97,8 @@ export const handleCardOnboarding = () => {
 
       DevLogger.log('[handleCardOnboarding] Navigating to Card Home');
       setTimeout(() => {
-        NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
-          screen: Routes.CARD.HOME,
-          params: {
-            screen: Routes.CARD.HOME,
-            params: {
-              showDeeplinkToast: true,
-            },
-          },
+        NavigationService.navigation?.navigate(Routes.CARD.HOME, {
+          showDeeplinkToast: true,
         });
       }, 500);
     } else {
@@ -113,9 +107,7 @@ export const handleCardOnboarding = () => {
       DevLogger.log(
         '[handleCardOnboarding] Navigating to Card Welcome (onboarding)',
       );
-      NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
-        screen: Routes.CARD.WELCOME,
-      });
+      NavigationService.navigation?.navigate(Routes.CARD.WELCOME);
     }
 
     Logger.log(
@@ -130,9 +122,7 @@ export const handleCardOnboarding = () => {
 
     // Fallback: Navigate to Card Welcome screen
     try {
-      NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
-        screen: Routes.CARD.WELCOME,
-      });
+      NavigationService.navigation?.navigate(Routes.CARD.WELCOME);
     } catch (navError) {
       Logger.error(
         navError as Error,

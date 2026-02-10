@@ -14,13 +14,10 @@ function handleBrowserUrl({
     if (callback) {
       callback(url);
     } else {
-      NavigationService.navigation.navigate(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-        params: {
-          newTabUrl: url,
-          linkType: EXTERNAL_LINK_TYPE,
-          timestamp: Date.now(),
-        },
+      NavigationService.navigation.navigate(Routes.BROWSER.VIEW, {
+        newTabUrl: url,
+        linkType: EXTERNAL_LINK_TYPE,
+        timestamp: Date.now(),
       });
     }
   });

@@ -1247,21 +1247,18 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           case UrlAutocompleteCategory.Perps:
             // Set flag to prevent onBlur from hiding autocomplete
             isNavigatingToDetailRef.current = true;
-            navigation.navigate(Routes.PERPS.ROOT, {
-              screen: Routes.PERPS.MARKET_DETAILS,
-              params: {
-                market: {
-                  symbol: item.symbol,
-                  name: item.name,
-                  maxLeverage: item.maxLeverage,
-                  price: item.price,
-                  change24h: item.change24h,
-                  change24hPercent: item.change24hPercent,
-                  volume: item.volume,
-                  openInterest: item.openInterest,
-                  marketType: item.marketType,
-                  marketSource: item.marketSource,
-                },
+            navigation.navigate(Routes.PERPS.MARKET_DETAILS, {
+              market: {
+                symbol: item.symbol,
+                name: item.name,
+                maxLeverage: item.maxLeverage,
+                price: item.price,
+                change24h: item.change24h,
+                change24hPercent: item.change24hPercent,
+                volume: item.volume,
+                openInterest: item.openInterest,
+                marketType: item.marketType,
+                marketSource: item.marketSource,
               },
             });
             break;
@@ -1269,12 +1266,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           case UrlAutocompleteCategory.Predictions:
             // Set flag to prevent onBlur from hiding autocomplete
             isNavigatingToDetailRef.current = true;
-            navigation.navigate(Routes.PREDICT.ROOT, {
-              screen: Routes.PREDICT.MARKET_DETAILS,
-              params: {
-                marketId: item.id,
-                providerId: item.providerId,
-              },
+            navigation.navigate(Routes.PREDICT.MARKET_DETAILS, {
+              marketId: item.id,
+              providerId: item.providerId,
             });
             break;
 
@@ -1320,17 +1314,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const handleClosePress = useCallback(() => {
       if (fromPerps) {
         // If opened from Perps, navigate back to PerpsHome
-        navigation.navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.PERPS_HOME,
-        });
+        navigation.navigate(Routes.PERPS.PERPS_HOME);
       } else if (fromTrending) {
         // If within trending follow the normal back button behavior
         navigation.goBack();
       } else if (isAssetsTrendingTokensEnabled) {
         // If trending is enabled, go to trending view
-        navigation.navigate(Routes.TRENDING_VIEW, {
-          screen: Routes.TRENDING_FEED,
-        });
+        navigation.navigate(Routes.TRENDING_FEED);
       } else {
         // If trending is disabled, go back to wallet home
         navigation.navigate(Routes.WALLET.HOME);
