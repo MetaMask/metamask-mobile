@@ -12,13 +12,23 @@ import type {
 export * from '../../types/navigation';
 
 // Import adapter types
-import type { RawHyperLiquidLedgerUpdate } from '../../utils/hyperLiquidAdapter';
 import type { CandleData } from '../../types/perps-types';
 import type { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
 import { WebSocketConnectionState } from '../../services/HyperLiquidClientService';
 
 // Re-export WebSocketConnectionState for consumers of types
 export { WebSocketConnectionState };
+
+/** Provider-agnostic raw ledger update. Fields match the common shape across providers. */
+export interface RawLedgerUpdate {
+  hash: string;
+  time: number;
+  delta: {
+    type: string;
+    usdc?: string;
+    coin?: string;
+  };
+}
 
 // User history item for deposits and withdrawals
 export interface UserHistoryItem {
@@ -965,7 +975,7 @@ export interface PerpsProvider {
     accountId?: string;
     startTime?: number;
     endTime?: number;
-  }): Promise<RawHyperLiquidLedgerUpdate[]>;
+  }): Promise<RawLedgerUpdate[]>;
 
   /**
    * Get user history (deposits, withdrawals, transfers)
