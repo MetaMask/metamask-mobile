@@ -42,6 +42,7 @@ import {
   OrderPreview,
   OrderResult,
   PlaceOrderParams,
+  PredictFees,
   PredictProvider,
   PrepareDepositParams,
   PrepareDepositResponse,
@@ -63,6 +64,7 @@ import {
 } from './constants';
 import {
   computeProxyAddress,
+  createPermit2FeeAuthorization,
   createSafeFeeAuthorization,
   getClaimTransaction,
   getDeployProxyWalletTransaction,
@@ -71,6 +73,7 @@ import {
   getWithdrawTransactionCallData,
   hasAllowances,
 } from './safe/utils';
+import { Permit2FeeAuthorization, SafeFeeAuthorization } from './safe/types';
 import {
   ApiKeyCreds,
   OrderData,
@@ -1129,11 +1132,21 @@ export class PolymarketProvider implements PredictProvider {
       };
 
       const signerApiKey = await this.getApiKey({ address: signer.address });
+      const feesWithPermit2 = fees as
+        | (PredictFees & {
+            executors?: string[];
+            permit2Enabled?: boolean;
+          })
+        | undefined;
+      const shouldUsePermit2 =
+        feesWithPermit2?.permit2Enabled === true &&
+        Array.isArray(feesWithPermit2.executors) &&
+        feesWithPermit2.executors.length > 0;
 
       const clobOrder = {
         order: { ...signedOrder, side, salt: parseInt(signedOrder.salt) },
         owner: signerApiKey.apiKey,
-        orderType: OrderType.FOK,
+        orderType: shouldUsePermit2 ? OrderType.FAK : OrderType.FOK,
       };
 
       const body = JSON.stringify(clobOrder);
@@ -1148,24 +1161,44 @@ export class PolymarketProvider implements PredictProvider {
         apiKey: signerApiKey,
       });
 
-      let feeAuthorization;
+      let feeAuthorization:
+        | SafeFeeAuthorization
+        | Permit2FeeAuthorization
+        | undefined;
+      let executor: string | undefined;
       if (fees !== undefined && fees.totalFee > 0) {
         const safeAddress = computeProxyAddress(signer.address);
         const feeAmountInUsdc = BigInt(
           parseUnits(fees.totalFee.toString(), 6).toString(),
         );
-        feeAuthorization = await createSafeFeeAuthorization({
-          safeAddress,
-          signer,
-          amount: feeAmountInUsdc,
-          to: fees.collector,
-        });
+
+        if (shouldUsePermit2 && feesWithPermit2?.executors) {
+          executor =
+            feesWithPermit2.executors[
+              Math.floor(Math.random() * feesWithPermit2.executors.length)
+            ];
+
+          feeAuthorization = await createPermit2FeeAuthorization({
+            safeAddress,
+            signer,
+            amount: feeAmountInUsdc,
+            spender: executor,
+          });
+        } else {
+          feeAuthorization = await createSafeFeeAuthorization({
+            safeAddress,
+            signer,
+            amount: feeAmountInUsdc,
+            to: fees.collector,
+          });
+        }
       }
 
       const { success, response, error } = await submitClobOrder({
         headers,
         clobOrder,
         feeAuthorization,
+        executor,
       });
 
       if (!success) {

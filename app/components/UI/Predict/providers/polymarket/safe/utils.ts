@@ -43,6 +43,7 @@ import {
   DOMAIN_SEPARATOR_TYPEHASH,
   MASTER_COPY_ADDRESS,
   outcomeTokenSpenders,
+  PERMIT2_ADDRESS,
   PROXY_CREATION_CODE,
   SAFE_FACTORY_ADDRESS,
   SAFE_FACTORY_NAME,
@@ -52,12 +53,15 @@ import {
 } from './constants';
 import {
   OperationType,
+  Permit2FeeAuthorization,
   SafeFeeAuthorization,
   SafeTransaction,
   SplitSignature,
 } from './types';
 
 const MIN_VALID_HEX_DATA_LENGTH = 10;
+const SAFE_MSG_TYPEHASH =
+  '0x60b3cbf8b4a223d68d641b3b6ddf9a298e7f33710cf3d3a9d1146b5a6150fbca';
 
 function joinHexData(hexData: string[]): string {
   return `0x${hexData
@@ -168,6 +172,47 @@ const getNonce = async ({
   }
 
   return BigInt(res);
+};
+
+export const getPermit2Nonce = async ({
+  safeAddress,
+}: {
+  safeAddress: string;
+}): Promise<string> => {
+  const { NetworkController } = Engine.context;
+  const networkClientId = NetworkController.findNetworkClientIdByChainId(
+    numberToHex(POLYGON_MAINNET_CHAIN_ID),
+  );
+  const ethQuery = new EthQuery(
+    NetworkController.getNetworkClientById(networkClientId).provider,
+  );
+
+  const nonceBitmapInterface = new Interface([
+    'function nonceBitmap(address, uint256) view returns (uint256)',
+  ]);
+
+  const res = (await query(ethQuery, 'call', [
+    {
+      to: PERMIT2_ADDRESS,
+      data: nonceBitmapInterface.encodeFunctionData('nonceBitmap', [
+        safeAddress,
+        0,
+      ]),
+    },
+  ])) as Hex;
+
+  const bitmap = res === '0x' ? 0n : BigInt(res);
+  let bitPos = 0n;
+  while (bitPos < 256n && ((bitmap >> bitPos) & 1n) === 1n) {
+    bitPos += 1n;
+  }
+
+  if (bitPos === 256n) {
+    throw new Error('No available Permit2 nonce found in nonce bitmap word 0');
+  }
+
+  const wordPos = 0n;
+  return ((wordPos << 8n) | bitPos).toString();
 };
 
 const getTransactionHash = ({
@@ -308,6 +353,93 @@ export const createSafeFeeAuthorization = async ({
     authorization: {
       tx,
       sig,
+    },
+  };
+};
+
+export const createPermit2FeeAuthorization = async ({
+  safeAddress,
+  signer,
+  amount,
+  spender,
+}: {
+  safeAddress: Hex;
+  signer: Signer;
+  amount: bigint;
+  spender: string;
+}): Promise<Permit2FeeAuthorization> => {
+  const nonce = await getPermit2Nonce({ safeAddress });
+  const deadline = (Math.floor(Date.now() / 1000) + 3600).toString();
+  const token = MATIC_CONTRACTS.collateral;
+
+  const domain = {
+    name: 'Permit2',
+    chainId: POLYGON_MAINNET_CHAIN_ID,
+    verifyingContract: PERMIT2_ADDRESS,
+  };
+
+  const types = {
+    PermitTransferFrom: [
+      { name: 'permitted', type: 'TokenPermissions' },
+      { name: 'spender', type: 'address' },
+      { name: 'nonce', type: 'uint256' },
+      { name: 'deadline', type: 'uint256' },
+    ],
+    TokenPermissions: [
+      { name: 'token', type: 'address' },
+      { name: 'amount', type: 'uint256' },
+    ],
+  };
+
+  const message = {
+    permitted: { token, amount: amount.toString() },
+    spender,
+    nonce,
+    deadline,
+  };
+
+  const { _TypedDataEncoder } = ethers.utils;
+  const permit2Hash = _TypedDataEncoder.hash(domain, types, message);
+
+  const safeDomainSeparator = keccak256(
+    new AbiCoder().encode(
+      ['bytes32', 'uint256', 'address'],
+      [DOMAIN_SEPARATOR_TYPEHASH, POLYGON_MAINNET_CHAIN_ID, safeAddress],
+    ),
+  );
+
+  const encodedPermit2Hash = new AbiCoder().encode(['bytes32'], [permit2Hash]);
+  const safeMessageHash = keccak256(
+    new AbiCoder().encode(
+      ['bytes32', 'bytes32'],
+      [SAFE_MSG_TYPEHASH, keccak256(encodedPermit2Hash)],
+    ),
+  );
+
+  const finalHash = keccak256(
+    solidityPack(
+      ['bytes1', 'bytes1', 'bytes32', 'bytes32'],
+      ['0x19', '0x01', safeDomainSeparator, safeMessageHash],
+    ),
+  ) as Hex;
+
+  const rsvSignature = await signTransactionHash(signer, finalHash);
+  const signature = abiEncodePacked(
+    { type: 'uint256', value: rsvSignature.r },
+    { type: 'uint256', value: rsvSignature.s },
+    { type: 'uint8', value: rsvSignature.v },
+  );
+
+  return {
+    type: 'safe-permit2',
+    authorization: {
+      permit: {
+        permitted: { token, amount: amount.toString() },
+        nonce,
+        deadline,
+      },
+      spender,
+      signature,
     },
   };
 };

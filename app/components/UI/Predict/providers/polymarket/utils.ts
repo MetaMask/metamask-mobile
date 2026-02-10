@@ -44,7 +44,7 @@ import {
   SLIPPAGE_BUY,
   SLIPPAGE_SELL,
 } from './constants';
-import { SafeFeeAuthorization } from './safe/types';
+import { Permit2FeeAuthorization, SafeFeeAuthorization } from './safe/types';
 import {
   ApiKeyCreds,
   ClobHeaders,
@@ -65,6 +65,11 @@ import {
 } from './types';
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import { PredictFeeCollection } from '../../types/flags';
+
+type PredictFeesWithPermit2 = PredictFees & {
+  executors?: string[];
+  permit2Enabled?: boolean;
+};
 
 export const getPolymarketEndpoints = () => ({
   GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
@@ -331,16 +336,22 @@ export const submitClobOrder = async ({
   headers,
   clobOrder,
   feeAuthorization,
+  executor,
 }: {
   headers: ClobHeaders;
   clobOrder: ClobOrderObject;
-  feeAuthorization?: SafeFeeAuthorization;
+  feeAuthorization?: SafeFeeAuthorization | Permit2FeeAuthorization;
+  executor?: string;
 }): Promise<Result<OrderResponse>> => {
   const { CLOB_RELAYER } = getPolymarketEndpoints();
   const url = `${CLOB_RELAYER}/order`;
-  const body: ClobOrderObject & { feeAuthorization?: SafeFeeAuthorization } = {
+  const body: ClobOrderObject & {
+    feeAuthorization?: SafeFeeAuthorization | Permit2FeeAuthorization;
+    executor?: string;
+  } = {
     ...clobOrder,
     feeAuthorization,
+    executor,
   };
 
   // For our relayer, we need to replace the underscores with dashes
@@ -1012,7 +1023,7 @@ export async function calculateFees({
   feeCollection?: PredictFeeCollection;
   marketId: string;
   userBetAmount: number;
-}): Promise<PredictFees> {
+}): Promise<PredictFeesWithPermit2> {
   if (
     !feeCollection?.enabled ||
     (await waiveFees({ marketId, waiveList: feeCollection.waiveList }))
@@ -1023,6 +1034,8 @@ export async function calculateFees({
       totalFee: 0,
       totalFeePercentage: 0,
       collector: '0x0',
+      executors: [],
+      permit2Enabled: false,
     };
   }
 
@@ -1045,6 +1058,8 @@ export async function calculateFees({
     totalFee,
     totalFeePercentage,
     collector: feeCollection.collector,
+    executors: feeCollection.executors,
+    permit2Enabled: feeCollection.permit2Enabled,
   };
 }
 
