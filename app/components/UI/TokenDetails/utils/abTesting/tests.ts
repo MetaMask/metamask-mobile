@@ -1,5 +1,19 @@
 /**
- * Token Details Layout A/B Test Configuration
+ * A/B Test configurations for Token Details
+ *
+ * This module contains all active A/B test configurations.
+ * Each test should have a corresponding LaunchDarkly feature flag.
+ *
+ * IMPORTANT: LaunchDarkly handles user identification, variant assignment,
+ * and distribution. Weights here are informational only and for mapping
+ * variant names to their data.
+ */
+
+import type { ABTestConfig } from '../../../Perps/utils/abTesting/types';
+import type { TokenDetailsLayoutTestVariants } from './types';
+
+/**
+ * Token Details Layout A/B Test
  *
  * Tests the new token details layout with sticky Buy/Sell footer
  * vs the old layout with Swap button.
@@ -8,22 +22,29 @@
  * action row will drive higher engagement than the old layout with
  * the Swap button prominently displayed.
  *
- * Metrics:
- * - Button click rates (Buy, Sell, Swap, Send, Receive)
- * - Swap/trade completion rates
- * - Time spent on token details page
- * - Navigation patterns (which buttons are used most)
- *
  * Feature flag: tokenDetailsLayoutAbTest
  * Distribution: 50/50 (controlled by LaunchDarkly)
  *
- * Variants:
- * - control: Old layout (Buy, Swap, Send, Receive) + no sticky footer
- * - treatment: New layout (Cash Buy, Send, Receive, More) + sticky Buy/Sell
+ * LaunchDarkly returns: 'control' | 'treatment'
  */
-export const TOKEN_DETAILS_LAYOUT_TEST = {
-  testId: 'token_details_layout',
-  featureFlagKey: 'tokenDetailsLayoutAbTest',
-  description:
-    'Tests new token details layout with sticky Buy/Sell footer vs old layout with Swap button',
-} as const;
+export const TOKEN_DETAILS_LAYOUT_TEST: ABTestConfig<TokenDetailsLayoutTestVariants> =
+  {
+    testId: 'token_details_layout',
+    featureFlagKey: 'tokenDetailsLayoutAbTest',
+    description:
+      'Tests new token details layout with sticky Buy/Sell footer vs old layout with Swap button',
+    variants: {
+      control: {
+        weight: 50,
+        data: {
+          useNewLayout: false,
+        },
+      },
+      treatment: {
+        weight: 50,
+        data: {
+          useNewLayout: true,
+        },
+      },
+    },
+  };
