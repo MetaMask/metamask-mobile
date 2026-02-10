@@ -98,6 +98,7 @@ import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefres
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import { useRWAToken } from '../../hooks/useRWAToken.ts';
 import { SwapsKeypadRef } from '../../components/SwapsKeypad/types.ts';
+import { GaslessQuickPickOptions } from '../../components/GaslessQuickPickOptions/index.tsx';
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -639,11 +640,14 @@ const BridgeView = () => {
           onChange={handleKeypadChange}
           currency={sourceToken?.symbol || 'ETH'}
           decimals={sourceToken?.decimals || 18}
-          token={sourceToken}
-          tokenBalance={latestSourceBalance}
-          onMaxPress={handleSourceMaxPress}
-          isQuoteSponsored={isQuoteSponsored}
-        />
+        >
+          <GaslessQuickPickOptions
+            token={sourceToken}
+            onMaxPress={handleSourceMaxPress}
+            isQuoteSponsored={isQuoteSponsored}
+            onChange={handleKeypadChange}
+          />
+        </SwapsKeypad>
       </Box>
     </ScreenView>
   );
