@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useMemo,
+} from 'react';
 import { WebSocketConnectionState } from '../../controllers/types';
 
 /** No-op function for context defaults */
@@ -13,6 +19,12 @@ export interface WebSocketHealthToastState {
   reconnectionAttempt: number;
 }
 
+/** Options for hiding the toast (e.g. user swipe dismiss) */
+export interface WebSocketHealthToastHideOptions {
+  /** When true, toast will not be shown again until connection is restored (Connected state) */
+  userDismissed?: boolean;
+}
+
 /**
  * Context params for controlling the WebSocket health toast.
  */
@@ -22,7 +34,7 @@ export interface WebSocketHealthToastContextParams {
     connectionState: WebSocketConnectionState,
     reconnectionAttempt?: number,
   ) => void;
-  hide: () => void;
+  hide: (options?: WebSocketHealthToastHideOptions) => void;
   onRetry?: () => void;
   setOnRetry: (callback: () => void) => void;
 }
@@ -50,22 +62,53 @@ export const WebSocketHealthToastProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
   const [state, setState] = useState<WebSocketHealthToastState>(defaultState);
-  const [onRetry, setOnRetryCallback] = useState<(() => void) | undefined>(
-    undefined,
-  );
+  const [userDismissed, setUserDismissed] = useState(false);
+  const [onRetryCallback, setOnRetryCallback] = useState<
+    (() => void) | undefined
+  >(undefined);
 
   const show = useCallback(
     (connectionState: WebSocketConnectionState, reconnectionAttempt = 0) => {
+      const isConnected =
+        connectionState === WebSocketConnectionState.Connected;
+      const isConnecting =
+        connectionState === WebSocketConnectionState.Connecting;
+
+      // When connection is restored, always show "online" toast and clear dismiss state
+      // (handled first so we never skip due to stale userDismissed closure)
+      if (isConnected) {
+        setUserDismissed(false);
+        setState({
+          isVisible: true,
+          connectionState,
+          reconnectionAttempt,
+        });
+        return;
+      }
+
+      // When reconnecting, clear userDismissed so "connecting" and later "online" toasts can show
+      if (isConnecting) {
+        setUserDismissed(false);
+      }
+
+      // Don't show Disconnected if user previously dismissed (until connection is restoring/restored).
+      // Connecting is always shown so user sees progress after having dismissed "offline".
+      if (userDismissed && !isConnecting) {
+        return;
+      }
       setState({
         isVisible: true,
         connectionState,
         reconnectionAttempt,
       });
     },
-    [],
+    [userDismissed],
   );
 
-  const hide = useCallback(() => {
+  const hide = useCallback((options?: WebSocketHealthToastHideOptions) => {
+    if (options?.userDismissed) {
+      setUserDismissed(true);
+    }
     setState((prev) => ({ ...prev, isVisible: false }));
   }, []);
 
@@ -73,10 +116,19 @@ export const WebSocketHealthToastProvider: React.FC<{
     setOnRetryCallback(() => callback);
   }, []);
 
+  const contextValue = useMemo(
+    () => ({
+      state,
+      show,
+      hide,
+      onRetry: onRetryCallback,
+      setOnRetry,
+    }),
+    [state, show, hide, onRetryCallback, setOnRetry],
+  );
+
   return (
-    <WebSocketHealthToastContext.Provider
-      value={{ state, show, hide, onRetry, setOnRetry }}
-    >
+    <WebSocketHealthToastContext.Provider value={contextValue}>
       {children}
     </WebSocketHealthToastContext.Provider>
   );

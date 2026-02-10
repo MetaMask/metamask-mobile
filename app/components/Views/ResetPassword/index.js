@@ -49,9 +49,7 @@ import { recreateVaultsWithNewPassword } from '../../../core/Vault';
 import Logger from '../../../util/Logger';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
-import TextField, {
-  TextFieldSize,
-} from '../../../component-library/components/Form/TextField';
+import TextField from '../../../component-library/components/Form/TextField';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -818,9 +816,7 @@ class ResetPassword extends PureComponent {
                 {strings('manual_backup_step_1.enter_current_password')}
               </Label>
               <TextField
-                size={TextFieldSize.Lg}
                 placeholder={'Password'}
-                placeholderTextColor={colors.text.muted}
                 onChangeText={this.onPasswordChange}
                 secureTextEntry
                 value={this.state.password}
@@ -952,7 +948,6 @@ class ResetPassword extends PureComponent {
                     {strings('reset_password.password')}
                   </Label>
                   <TextField
-                    size={TextFieldSize.Lg}
                     value={password}
                     onChangeText={this.onPasswordChange}
                     onFocus={this.handlePasswordFocus}
@@ -961,7 +956,6 @@ class ResetPassword extends PureComponent {
                     placeholder={strings(
                       'reset_password.new_password_placeholder',
                     )}
-                    placeholderTextColor={colors.text.muted}
                     testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                     onSubmitEditing={this.jumpToConfirmPassword}
                     returnKeyType="next"
@@ -969,9 +963,6 @@ class ResetPassword extends PureComponent {
                     autoCapitalize="none"
                     keyboardAppearance={themeAppearance}
                     isError={this.isPasswordTooShort()}
-                    style={
-                      this.isPasswordTooShort() ? styles.errorBorder : undefined
-                    }
                     endAccessory={
                       <Icon
                         name={
@@ -1000,7 +991,6 @@ class ResetPassword extends PureComponent {
                     {strings('reset_password.confirm_password')}
                   </Label>
                   <TextField
-                    size={TextFieldSize.Lg}
                     ref={this.confirmPasswordInput}
                     value={confirmPassword}
                     onChangeText={this.setConfirmPassword}
@@ -1008,7 +998,6 @@ class ResetPassword extends PureComponent {
                     placeholder={strings(
                       'reset_password.confirm_password_placeholder',
                     )}
-                    placeholderTextColor={colors.text.muted}
                     testID={
                       ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
                     }

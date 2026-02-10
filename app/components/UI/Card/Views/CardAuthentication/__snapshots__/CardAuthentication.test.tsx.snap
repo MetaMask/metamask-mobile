@@ -673,9 +673,9 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#ffffff",
-                                      "borderColor": "#b7bbc8",
-                                      "borderRadius": 8,
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
+                                      "borderRadius": 12,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
                                       "height": 48,
@@ -700,10 +700,12 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                       editable={true}
                                       keyboardType="email-address"
                                       maxLength={255}
+                                      multiline={false}
                                       numberOfLines={1}
                                       onBlur={[Function]}
                                       onChangeText={[Function]}
                                       onFocus={[Function]}
+                                      placeholderTextColor="#686e7d"
                                       returnKeyType="next"
                                       style={
                                         {
@@ -717,7 +719,6 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                           "height": 46,
                                           "letterSpacing": 0,
                                           "opacity": 1,
-                                          "paddingVertical": 2,
                                           "textAlignVertical": "center",
                                         }
                                       }
@@ -785,9 +786,9 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#ffffff",
-                                      "borderColor": "#b7bbc8",
-                                      "borderRadius": 8,
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
+                                      "borderRadius": 12,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
                                       "height": 48,
@@ -811,11 +812,13 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                       autoFocus={false}
                                       editable={true}
                                       maxLength={255}
+                                      multiline={false}
                                       numberOfLines={1}
                                       onBlur={[Function]}
                                       onChangeText={[Function]}
                                       onFocus={[Function]}
                                       onSubmitEditing={[Function]}
+                                      placeholderTextColor="#686e7d"
                                       returnKeyType="done"
                                       secureTextEntry={true}
                                       style={
@@ -830,7 +833,6 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                           "height": 46,
                                           "letterSpacing": 0,
                                           "opacity": 1,
-                                          "paddingVertical": 2,
                                           "textAlignVertical": "center",
                                         }
                                       }
@@ -841,7 +843,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                   <View
                                     style={
                                       {
-                                        "marginLeft": 8,
+                                        "marginLeft": 12,
                                       }
                                     }
                                     testID="textfield-endacccessory"

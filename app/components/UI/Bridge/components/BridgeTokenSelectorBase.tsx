@@ -6,7 +6,7 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
-import HeaderCenter from '../../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import { strings } from '../../../../../locales/i18n';
 import { FlexDirection, AlignItems } from '../../Box/box.types';
 import { useTokenSearch } from '../hooks/useTokenSearch';
@@ -61,11 +61,6 @@ const createStyles = (params: { theme: Theme }) => {
     },
     tokensListContainer: {
       flex: 1,
-    },
-    searchInput: {
-      borderRadius: 12,
-      borderWidth: 0,
-      backgroundColor: theme.colors.background.section,
     },
   });
 };
@@ -139,7 +134,7 @@ export const BridgeTokenSelectorBase: React.FC<BridgeTokenSelectorBaseProps> =
       title,
       scrollResetKey,
     }) => {
-      const { styles, theme } = useStyles(createStyles);
+      const { styles } = useStyles(createStyles);
       const {
         searchString,
         setSearchString,
@@ -218,15 +213,13 @@ export const BridgeTokenSelectorBase: React.FC<BridgeTokenSelectorBaseProps> =
           return tokensToRenderWithSearch;
         }, [pending, tokensToRenderWithSearch]);
 
-      const placeholderTextColor = theme.colors.text.alternative;
-
       return (
         <BottomSheet
           ref={sheetRef}
           isFullscreen
           keyboardAvoidingViewEnabled={false}
         >
-          <HeaderCenter
+          <HeaderCompactStandard
             title={title ?? strings('bridge.select_token')}
             onClose={dismissModal}
             closeButtonProps={{
@@ -240,10 +233,9 @@ export const BridgeTokenSelectorBase: React.FC<BridgeTokenSelectorBaseProps> =
             <TextFieldSearch
               value={searchString}
               onChangeText={handleSearchTextChange}
+              onPressClearButton={() => setSearchString('')}
               placeholder={strings('swaps.search_token')}
               testID="bridge-token-search-input"
-              style={styles.searchInput}
-              placeholderTextColor={placeholderTextColor}
             />
           </Box>
 
