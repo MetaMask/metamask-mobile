@@ -52,15 +52,55 @@ class WalletConnectDapp {
     }
 
     /**
-     * Scroll a web element into view using JavaScript, then click it.
+     * Scroll a web element into view, then click it.
+     * Uses elementClick (which auto-scrolls per W3C spec). If the click is
+     * intercepted by an overlay, falls back to JS click.
      */
     async _scrollAndClickWebElement(elementRef) {
-        await this._device.webDriverClient.executeScript(
-            'arguments[0].scrollIntoView({block: "center"})',
-            [elementRef],
-        );
-        await AppwrightGestures.wait(500);
-        await this._clickWebElement(elementRef);
+        try {
+            await this._clickWebElement(elementRef);
+        } catch (e) {
+            if (e && e.message && e.message.includes('click intercepted')) {
+                // Overlay blocking — click away to dismiss, then retry
+                await this._device.webDriverClient.executeScript(
+                    'document.elementFromPoint(0,0)?.click?.(); ' +
+                    'return true;',
+                    [],
+                );
+                // Re-attempt after dismissing potential overlay
+                await AppwrightGestures.wait(500);
+                await this._clickWebElement(elementRef);
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    /**
+     * Find a button by its text content via JS and click it.
+     * Bypasses WebDriver elementClick overlay checks entirely.
+     */
+    async _findAndClickButtonByText(text, timeout = 10000) {
+        const script = `
+            const buttons = document.querySelectorAll('button');
+            for (const btn of buttons) {
+                if (btn.textContent.includes(arguments[0])) {
+                    btn.scrollIntoView({block: "center"});
+                    btn.click();
+                    return true;
+                }
+            }
+            return false;
+        `;
+
+        const deadline = Date.now() + timeout;
+        while (Date.now() < deadline) {
+            const clicked = await this._device.webDriverClient.executeScript(script, [text]);
+            if (clicked) return;
+            await AppwrightGestures.wait(500);
+        }
+
+        throw new Error(`Button with text "${text}" not found`);
     }
 
     /**
@@ -136,14 +176,24 @@ class WalletConnectDapp {
         await this._clickShadowDomButton('Open');
     }
 
+    async tapPersonalSignButton() {
+        if (!this._device) return;
+        await this._findAndClickButtonByText('personal_sign');
+    }
+
+    async tapSignTypedDataV4Button() {
+        if (!this._device) return;
+        await this._findAndClickButtonByText('eth_signTypedData_v4');
+    }
+
+    async tapSendTransactionButton() {
+        if (!this._device) return;
+        await this._findAndClickButtonByText('eth_sendTransaction');
+    }
+
     async tapDisconnectButton() {
         if (!this._device) return;
-
-        const el = await this._findWebElement(
-            'xpath',
-            '//*[contains(., "Disconnect")]',
-        );
-        await this._clickWebElement(el);
+        await this._findAndClickButtonByText('Disconnect');
     }
 
     // ── Assertion methods ────────────────────────────────────────────
@@ -154,6 +204,28 @@ class WalletConnectDapp {
         const el = await this._findWebElement(
             'xpath',
             '//*[contains(., "Disconnect")]',
+            15000,
+        );
+        expect(el).toBeTruthy();
+    }
+
+    async assertRequestApproved() {
+        if (!this._device) return;
+
+        const el = await this._findWebElement(
+            'xpath',
+            '//*[contains(text(), "JSON-RPC Request Approved")]',
+            15000,
+        );
+        expect(el).toBeTruthy();
+    }
+
+    async assertRequestRejected() {
+        if (!this._device) return;
+
+        const el = await this._findWebElement(
+            'xpath',
+            '//*[contains(text(), "JSON-RPC Request Rejected")]',
             15000,
         );
         expect(el).toBeTruthy();
