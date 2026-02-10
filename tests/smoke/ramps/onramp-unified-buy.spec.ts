@@ -25,8 +25,8 @@ const unifiedBuyV2Mocks = async (mockServer: Mockttp) => {
   await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
 };
 
-describe(SmokeTrade('Onramp quote build screen'), () => {
-  it('opens the buy flow', async () => {
+describe(SmokeTrade('Onramp Unified Buy'), () => {
+  it('build quote', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
