@@ -165,9 +165,11 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
 
         if (status === 'confirmed') {
           const depositAmount =
-            formatPrice(amount ?? 0, {
-              maximumDecimals: 2,
-            }) ?? strings('predict.deposit.account_ready');
+            typeof amount === 'number' && amount > 0
+              ? formatPrice(amount, {
+                  maximumDecimals: 2,
+                })
+              : strings('predict.deposit.account_ready');
 
           showSuccessToast({
             showToast,

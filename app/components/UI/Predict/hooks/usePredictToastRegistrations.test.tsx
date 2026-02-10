@@ -148,6 +148,31 @@ describe('usePredictToastRegistrations', () => {
       );
     });
 
+    it('uses account ready fallback when deposit confirmed amount is missing', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'deposit',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining(
+                'predict.deposit.account_ready_description:{"amount":"predict.deposit.account_ready"}',
+              ),
+            }),
+          ]),
+        }),
+      );
+    });
+
     it('shows error toast with retry on failed status', async () => {
       const handler = getHandler();
 

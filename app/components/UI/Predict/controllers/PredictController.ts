@@ -2229,7 +2229,20 @@ export class PredictController extends BaseController<
       address,
     });
 
-    this.handleTransactionSideEffects(type, status, address);
+    try {
+      this.handleTransactionSideEffects(type, status, address);
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('handleTransactionStatusUpdate', {
+          operation: 'handleTransactionSideEffects',
+          type,
+          status,
+          address,
+          transactionId,
+        }),
+      );
+    }
 
     this.messenger.publish('PredictController:transactionStatusChanged', {
       type,

@@ -12,6 +12,7 @@ import type { NetworkState } from '@metamask/network-controller';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   TransactionStatus,
+  type TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
 
@@ -4317,6 +4318,124 @@ describe('PredictController', () => {
         } as any);
 
         expect(transactionStatusChangedHandler).not.toHaveBeenCalled();
+      });
+    });
+
+    it('publishes event even when side effects throw', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictClaim,
+          status: TransactionStatus.confirmed,
+        });
+
+        jest
+          .spyOn(
+            controller as unknown as {
+              handleTransactionSideEffects: () => void;
+            },
+            'handleTransactionSideEffects',
+          )
+          .mockImplementation(() => {
+            throw new Error('Side effects failed');
+          });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        expect(() =>
+          messenger.publish('TransactionController:transactionStatusUpdated', {
+            transactionMeta,
+          } as any),
+        ).not.toThrow();
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'confirmed',
+            senderAddress: accountAddress,
+            transactionId: 'tx-1',
+          }),
+        );
+      });
+    });
+
+    it('returns undefined amount for deposit when metamaskPay values are not numeric', () => {
+      withController(({ controller }) => {
+        const getTransactionAmount = (
+          controller as unknown as {
+            getTransactionAmount: (args: {
+              type: 'deposit' | 'claim' | 'withdraw';
+              status: 'approved' | 'confirmed' | 'failed' | 'rejected';
+              transactionMeta: TransactionMeta;
+              address: string;
+            }) => number | undefined;
+          }
+        ).getTransactionAmount.bind(controller);
+
+        const amount = getTransactionAmount({
+          type: 'deposit',
+          status: 'confirmed',
+          transactionMeta: {
+            ...createPredictTransactionMeta({
+              nestedType: TransactionType.predictDeposit,
+              status: TransactionStatus.confirmed,
+            }),
+            metamaskPay: {
+              totalFiat: '$abc',
+              bridgeFeeFiat: '$1',
+              networkFeeFiat: '$1',
+            },
+          },
+          address: accountAddress,
+        });
+
+        expect(amount).toBeUndefined();
+      });
+    });
+
+    it('returns undefined amount for confirmed withdraw when state and receiving are not numeric', () => {
+      withController(({ controller }) => {
+        const getTransactionAmount = (
+          controller as unknown as {
+            getTransactionAmount: (args: {
+              type: 'deposit' | 'claim' | 'withdraw';
+              status: 'approved' | 'confirmed' | 'failed' | 'rejected';
+              transactionMeta: TransactionMeta;
+              address: string;
+            }) => number | undefined;
+          }
+        ).getTransactionAmount.bind(controller);
+
+        controller.updateStateForTesting((state) => {
+          state.withdrawTransaction = {
+            amount: Number.NaN,
+            chainId: 137,
+            transactionId: 'tx-1',
+            status: PredictWithdrawStatus.PENDING,
+            providerId: 'polymarket',
+            predictAddress: accountAddress,
+          };
+        });
+
+        const amount = getTransactionAmount({
+          type: 'withdraw',
+          status: 'confirmed',
+          transactionMeta: {
+            ...createPredictTransactionMeta({
+              nestedType: TransactionType.predictWithdraw,
+              status: TransactionStatus.confirmed,
+            }),
+            assetsFiatValues: {
+              receiving: 'not-a-number',
+            },
+          },
+          address: accountAddress,
+        });
+
+        expect(amount).toBeUndefined();
       });
     });
 
