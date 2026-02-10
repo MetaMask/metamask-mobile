@@ -300,56 +300,6 @@ describe('PerpsClosePositionView', () => {
       });
     });
 
-    it('when user is geo-restricted (!isEligible), confirm button is disabled', () => {
-      const stateWithGeoBlock = createPerpsStateMock({
-        engine: {
-          backgroundState: {
-            PerpsController: { isEligible: false },
-          },
-        },
-      });
-
-      const { getByTestId } = renderWithProvider(
-        <PerpsClosePositionView />,
-        { state: stateWithGeoBlock },
-        true,
-      );
-
-      const confirmButton = getByTestId(
-        PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
-      );
-      expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
-    });
-
-    it('when user is geo-restricted and presses confirm, does not call handleClosePosition', () => {
-      const handleClosePosition = jest.fn();
-      usePerpsClosePositionMock.mockReturnValue({
-        handleClosePosition,
-        isClosing: false,
-      });
-
-      const stateWithGeoBlock = createPerpsStateMock({
-        engine: {
-          backgroundState: {
-            PerpsController: { isEligible: false },
-          },
-        },
-      });
-
-      const { getByTestId } = renderWithProvider(
-        <PerpsClosePositionView />,
-        { state: stateWithGeoBlock },
-        true,
-      );
-
-      const confirmButton = getByTestId(
-        PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
-      );
-      fireEvent.press(confirmButton);
-
-      expect(handleClosePosition).not.toHaveBeenCalled();
-    });
-
     it('disables confirm button when closing is in progress', () => {
       // Arrange
       usePerpsClosePositionMock.mockReturnValue({

@@ -135,6 +135,30 @@ jest.mock('../../../core/Engine', () => {
           return { id, provider };
         },
       },
+      // Perps: stub so hooks (usePerpsClosePosition, usePerpsMarkets, etc.) do not throw
+      // getMarkets returns one market so PerpsTabView explore section renders "See all perps"
+      PerpsController: {
+        closePosition: jest.fn().mockResolvedValue(undefined),
+        getPositions: jest.fn().mockResolvedValue([]),
+        getMarkets: jest.fn().mockResolvedValue([
+          {
+            symbol: 'BTC',
+            name: 'Bitcoin',
+            maxLeverage: '50x',
+            price: '$50,000',
+            change24h: '$0',
+            change24hPercent: '0%',
+            volume: '$1M',
+          },
+        ]),
+        getOrders: jest.fn().mockResolvedValue([]),
+        getOpenOrders: jest.fn().mockResolvedValue([]),
+        getAccountState: jest.fn().mockResolvedValue(null),
+        calculateFees: jest.fn().mockResolvedValue({}),
+        getTradeConfiguration: jest.fn().mockResolvedValue(null),
+        getMarketFilterPreferences: jest.fn().mockResolvedValue({}),
+        getOrderBookGrouping: jest.fn().mockResolvedValue(null),
+      },
     },
     controllerMessenger: {
       subscribe() {

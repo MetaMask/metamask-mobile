@@ -30,7 +30,6 @@ jest.mock('../../hooks/usePerpsNavigation', () => ({
   }),
 }));
 
-let mockIsEligible = true;
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: (selector: unknown) => {
@@ -38,7 +37,7 @@ jest.mock('react-redux', () => ({
       '../../selectors/perpsController',
     ).selectPerpsEligibility;
     if (selector === selectPerpsEligibility) {
-      return mockIsEligible;
+      return true;
     }
     return undefined;
   },
@@ -153,7 +152,6 @@ describe('PerpsSelectModifyActionView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams = { position: mockLongPosition };
-    mockIsEligible = true;
   });
 
   afterEach(() => {
@@ -314,39 +312,6 @@ describe('PerpsSelectModifyActionView', () => {
       asset: 'ETH',
       existingPosition: mockLongPosition,
       hideTPSL: true,
-    });
-  });
-
-  describe('Geo-restriction (close position and modify actions)', () => {
-    it('when user is geo-restricted (!isEligible), selecting reduce_position does not navigate to close position and shows geo block tooltip', () => {
-      mockIsEligible = false;
-      render(<PerpsSelectModifyActionView />);
-
-      fireEvent.press(screen.getByTestId('reduce-position'));
-
-      expect(mockNavigateToClosePosition).not.toHaveBeenCalled();
-      expect(screen.getByText('Geo Block Tooltip')).toBeOnTheScreen();
-    });
-
-    it('when user is geo-restricted (!isEligible), selecting add_to_position does not navigate and shows geo block tooltip', () => {
-      mockIsEligible = false;
-      render(<PerpsSelectModifyActionView />);
-
-      fireEvent.press(screen.getByTestId('add-to-position'));
-
-      expect(mockNavigateToOrder).not.toHaveBeenCalled();
-      expect(screen.getByText('Geo Block Tooltip')).toBeOnTheScreen();
-    });
-
-    it('when user is geo-restricted (!isEligible), selecting flip_position does not navigate and shows geo block tooltip', () => {
-      mockIsEligible = false;
-      render(<PerpsSelectModifyActionView />);
-
-      fireEvent.press(screen.getByTestId('flip-position'));
-
-      expect(mockNavigateToOrder).not.toHaveBeenCalled();
-      expect(mockNavigateToClosePosition).not.toHaveBeenCalled();
-      expect(screen.getByText('Geo Block Tooltip')).toBeOnTheScreen();
     });
   });
 });

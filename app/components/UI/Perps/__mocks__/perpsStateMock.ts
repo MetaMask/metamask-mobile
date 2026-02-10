@@ -5,6 +5,25 @@ import { merge } from 'lodash';
  * Similar to the controller mocks used in confirmations
  */
 
+/**
+ * Default PerpsController state for tests.
+ * Selectors read from state.engine.backgroundState.PerpsController.
+ */
+export const defaultPerpsControllerState = {
+  isEligible: true,
+  initializationState: 'initialized' as const,
+  watchlistMarkets: { testnet: [] as string[], mainnet: [] as string[] },
+  marketFilterPreferences: {
+    optionId: 'default',
+    direction: 'desc' as const,
+  },
+  accountState: null,
+  perpsBalances: {},
+  selectedPaymentToken: null,
+  activeProvider: 'hyperliquid' as const,
+  isTestnet: false,
+};
+
 export const perpsEngineStateMock = {
   engine: {
     backgroundState: {
@@ -37,6 +56,7 @@ export const perpsEngineStateMock = {
         useTokenDetection: true,
         ipfsGateway: 'https://ipfs.io',
       },
+      PerpsController: defaultPerpsControllerState,
     },
   },
 };
