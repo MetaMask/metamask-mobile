@@ -87,6 +87,7 @@ export { usePerpsOrders } from './usePerpsOrders';
 export { usePerpsFunding } from './usePerpsFunding';
 export { useWithdrawalRequests } from './useWithdrawalRequests';
 export { useDepositRequests } from './useDepositRequests';
+export { usePendingTransactions } from './usePendingTransactions';
 export { usePerpsTransactionHistory } from './usePerpsTransactionHistory';
 
 // Event tracking hook
