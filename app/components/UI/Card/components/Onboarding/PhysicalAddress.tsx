@@ -250,6 +250,7 @@ const PhysicalAddress = () => {
   const [state, setState] = useState('');
   const [zipCode, setZipCode] = useState('');
   const [electronicConsent, setElectronicConsent] = useState(false);
+  const [coinmeConsent, setCoinmeConsent] = useState(false);
   const [isPollingVerification, setIsPollingVerification] = useState(false);
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
     null,
@@ -316,6 +317,9 @@ const PhysicalAddress = () => {
     [registrationSettings?.links?.us?.eSignConsentDisclosure],
   );
 
+  // TODO: Replace with actual Coinme Terms URL from Baanx API
+  const coinmeTermsUrl = 'https://placeholder.coinme.com/terms-of-service';
+
   const {
     registerAddress,
     isLoading: registerLoading,
@@ -339,6 +343,12 @@ const PhysicalAddress = () => {
       Linking.openURL(eSignConsentDisclosureUSUrl);
     }
   }, [eSignConsentDisclosureUSUrl]);
+
+  const openCoinmeTerms = useCallback(() => {
+    if (coinmeTermsUrl) {
+      Linking.openURL(coinmeTermsUrl);
+    }
+  }, [coinmeTermsUrl]);
 
   const handleAddressLine1Change = useCallback(
     (text: string) => {
@@ -386,6 +396,12 @@ const PhysicalAddress = () => {
     setElectronicConsent(!electronicConsent);
   }, [electronicConsent, resetRegisterAddress, resetConsent]);
 
+  const handleCoinmeConsentToggle = useCallback(() => {
+    resetConsent();
+    resetRegisterAddress();
+    setCoinmeConsent(!coinmeConsent);
+  }, [coinmeConsent, resetRegisterAddress, resetConsent]);
+
   const isDisabled = useMemo(
     () =>
       registerLoading ||
@@ -399,7 +415,8 @@ const PhysicalAddress = () => {
       !city ||
       (!state && selectedCountry?.key === 'US') ||
       !zipCode ||
-      (!electronicConsent && selectedCountry?.key === 'US'),
+      (!electronicConsent && selectedCountry?.key === 'US') ||
+      (!coinmeConsent && selectedCountry?.key === 'US'),
     [
       registerLoading,
       registerIsError,
@@ -414,6 +431,7 @@ const PhysicalAddress = () => {
       selectedCountry,
       zipCode,
       electronicConsent,
+      coinmeConsent,
     ],
   );
 
@@ -425,7 +443,8 @@ const PhysicalAddress = () => {
       !city ||
       (!state && selectedCountry?.key === 'US') ||
       !zipCode ||
-      (!electronicConsent && selectedCountry?.key === 'US')
+      (!electronicConsent && selectedCountry?.key === 'US') ||
+      (!coinmeConsent && selectedCountry?.key === 'US')
     ) {
       return;
     }
@@ -671,6 +690,36 @@ const PhysicalAddress = () => {
           }
           style={tw.style('h-auto flex flex-row items-start')}
           testID="physical-address-electronic-consent-checkbox"
+        />
+      )}
+      {/* Coinme Terms Consent (US only) */}
+      {selectedCountry?.key === 'US' && (
+        <Checkbox
+          isChecked={coinmeConsent}
+          onPress={handleCoinmeConsentToggle}
+          label={
+            <Box style={tw.style('flex-1 flex-shrink mr-2 -mt-1')}>
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName="text-text-alternative"
+              >
+                {strings(
+                  'card.card_onboarding.physical_address.coinme_terms_consent_1',
+                )}
+                <Text
+                  variant={TextVariant.BodySm}
+                  twClassName="text-primary-default underline"
+                  onPress={openCoinmeTerms}
+                >
+                  {strings(
+                    'card.card_onboarding.physical_address.coinme_terms_consent_2',
+                  )}
+                </Text>
+              </Text>
+            </Box>
+          }
+          style={tw.style('h-auto flex flex-row items-start')}
+          testID="physical-address-coinme-terms-checkbox"
         />
       )}
     </>

@@ -6889,7 +6889,9 @@
         "country_label": "Country",
         "electronic_consent_1": "I agree to the ",
         "electronic_consent_2": "E-Sign Act Consent and Disclosure",
-        "electronic_consent_3": " and to receive all communications electronically."
+        "electronic_consent_3": " and to receive all communications electronically.",
+        "coinme_terms_consent_1": "I agree to the ",
+        "coinme_terms_consent_2": "Coinme Terms of Service"
       },
       "mailing_address": {
         "title": "Mailing address",
