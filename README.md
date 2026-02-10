@@ -70,6 +70,8 @@ cd metamask-mobile
 yarn setup:expo
 ```
 
+This generates `.js.env.defaults` from `builds.yml` (main-dev) so your local env matches CI. Add secrets to `.js.env` (see below).
+
 #### Run the bundler
 
 ```bash
