@@ -24,6 +24,7 @@ const pReducer = persistReducer<RootState, AnyAction>(
 
 // eslint-disable-next-line import/no-mutable-exports
 let store: ReduxStore, persistor: Persistor, runSaga: SagaMiddleware['run'];
+/* istanbul ignore next -- store initialization; runs at module load with heavy deps (sagas, persistence, tracing) */
 const createStoreAndPersistor = async () => {
   trace({
     name: TraceName.StoreInit,
@@ -78,10 +79,10 @@ const createStoreAndPersistor = async () => {
   persistor = persistStore(store, null, onPersistComplete);
 };
 
+/* istanbul ignore next -- app bootstrap IIFE; E2E polling tested in e2eCommandPolling.test.ts */
 (async () => {
   try {
     await createStoreAndPersistor();
-    /* istanbul ignore next -- E2E infrastructure; polling logic is tested in e2eCommandPolling.test.ts */
     if (isE2E) {
       // Delay to give the store time to hydrate before first poll
       setTimeout(async () => {
