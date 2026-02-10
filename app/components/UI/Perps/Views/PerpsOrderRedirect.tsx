@@ -41,7 +41,8 @@ type RouteParams = RouteProp<PerpsNavigationParamList, 'PerpsOrderRedirect'>;
 const PerpsOrderRedirect: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute<RouteParams>();
-  const { direction, asset, source, ab_test_token_details_layout } = route.params;
+  const { direction, asset, source, ab_test_token_details_layout } =
+    route.params;
 
   const { isConnected, isInitialized } = usePerpsConnection();
   const { depositWithOrder } = usePerpsTrading();

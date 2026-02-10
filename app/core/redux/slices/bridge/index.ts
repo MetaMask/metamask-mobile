@@ -67,10 +67,12 @@ export interface BridgeState {
    * Analytics context set when navigating to bridge/swap from Token Details.
    * Contains entry_point and ab_test variant for page-viewed event attribution.
    */
-  abTestContext: {
-    entry_point?: string;
-    ab_test_token_details_layout?: string;
-  } | undefined;
+  abTestContext:
+    | {
+        entry_point?: string;
+        ab_test_token_details_layout?: string;
+      }
+    | undefined;
 }
 
 export const initialState: BridgeState = {
@@ -181,7 +183,10 @@ const slice = createSlice({
     setIsGasIncluded7702Supported: (state, action: PayloadAction<boolean>) => {
       state.isGasIncluded7702Supported = action.payload;
     },
-    setAbTestContext: (state, action: PayloadAction<BridgeState['abTestContext']>) => {
+    setAbTestContext: (
+      state,
+      action: PayloadAction<BridgeState['abTestContext']>,
+    ) => {
       state.abTestContext = action.payload;
     },
   },

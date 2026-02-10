@@ -61,7 +61,9 @@ export const usePerpsActions = ({
           direction,
           asset: marketData.symbol,
           source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
-          ...(abTestTokenDetailsLayout && { ab_test_token_details_layout: abTestTokenDetailsLayout }),
+          ...(abTestTokenDetailsLayout && {
+            ab_test_token_details_layout: abTestTokenDetailsLayout,
+          }),
         },
       });
     },
