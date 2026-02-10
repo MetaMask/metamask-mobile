@@ -89,6 +89,7 @@ _secrets: &secrets # Infrastructure
 
 # Signing config (AWS Secrets Manager) - omit for dev/simulator builds
 # android_keystore_path: filename in android/keystores/ (build.gradle expects fixed paths)
+# GH Environments vs AWS: build-production=prod signer; build-rc & build-beta=rc signer; build-uat/build-e2e/build-exp=uat signer; build-flask-prod=flask prod; build-flask-uat/build-flask-e2e=flask uat
 _signing_prod: &signing_prod
   aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-prod-signer'
   aws_secret: 'metamask-mobile-main-prod-signer'
@@ -171,6 +172,18 @@ builds:
     env:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'production'
+      METAMASK_BUILD_TYPE: 'main'
+    secrets: *secrets
+    code_fencing: *code_fencing_main
+    remote_feature_flags: *remote_feature_flags
+
+  # Beta (production APIs, RC signing; TestFlight / Play Store beta track)
+  main-beta:
+    github_environment: build-beta
+    signing: *signing_rc
+    env:
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'beta'
       METAMASK_BUILD_TYPE: 'main'
     secrets: *secrets
     code_fencing: *code_fencing_main
