@@ -309,10 +309,11 @@ describe('PredictFeed', () => {
   });
 
   describe('tab navigation', () => {
-    it('renders all five category tabs', () => {
+    it('renders all six category tabs', () => {
       const { getByTestId } = render(<PredictFeed />);
 
       expect(getByTestId('tab-trending')).toBeOnTheScreen();
+      expect(getByTestId('tab-ending-soon')).toBeOnTheScreen();
       expect(getByTestId('tab-new')).toBeOnTheScreen();
       expect(getByTestId('tab-sports')).toBeOnTheScreen();
       expect(getByTestId('tab-crypto')).toBeOnTheScreen();
@@ -500,7 +501,9 @@ describe('PredictFeed', () => {
       fireEvent(page1, 'onTouchEnd');
 
       expect(mockOnTabSwitch).toHaveBeenCalledWith(1);
-      expect(mockSessionManager.trackTabChange).toHaveBeenCalledWith('new');
+      expect(mockSessionManager.trackTabChange).toHaveBeenCalledWith(
+        'ending-soon',
+      );
     });
   });
 
@@ -731,7 +734,7 @@ describe('PredictFeed', () => {
       expect(getByTestId('tab-trending')).toBeOnTheScreen();
     });
 
-    it('renders six category tabs when hot tab is enabled', () => {
+    it('renders seven category tabs when hot tab is enabled', () => {
       mockUseSelector.mockReturnValue({
         enabled: true,
         queryParams: 'tag_id=149',
@@ -741,13 +744,14 @@ describe('PredictFeed', () => {
 
       expect(getByTestId('tab-hot')).toBeOnTheScreen();
       expect(getByTestId('tab-trending')).toBeOnTheScreen();
+      expect(getByTestId('tab-ending-soon')).toBeOnTheScreen();
       expect(getByTestId('tab-new')).toBeOnTheScreen();
       expect(getByTestId('tab-sports')).toBeOnTheScreen();
       expect(getByTestId('tab-crypto')).toBeOnTheScreen();
       expect(getByTestId('tab-politics')).toBeOnTheScreen();
     });
 
-    it('renders six pager pages when hot tab is enabled', () => {
+    it('renders seven pager pages when hot tab is enabled', () => {
       mockUseSelector.mockReturnValue({
         enabled: true,
         queryParams: 'tag_id=149&tag_id=100995&order=volume24hr',
@@ -761,6 +765,7 @@ describe('PredictFeed', () => {
       expect(getByTestId('pager-page-3')).toBeOnTheScreen();
       expect(getByTestId('pager-page-4')).toBeOnTheScreen();
       expect(getByTestId('pager-page-5')).toBeOnTheScreen();
+      expect(getByTestId('pager-page-6')).toBeOnTheScreen();
     });
 
     it('tracks tab change for hot tab when swiped to', () => {
