@@ -46,7 +46,7 @@ jest.mock('../../../../../core/Engine', () => ({
 
 // Mock HardwareWallet hooks used by useConfirmActions
 jest.mock('../../../../../core/HardwareWallet', () => ({
-  useHardwareWalletActions: jest.fn(() => ({
+  useHardwareWallet: jest.fn(() => ({
     ensureDeviceReady: jest.fn().mockResolvedValue(true),
     showAwaitingConfirmation: jest.fn(),
     hideAwaitingConfirmation: jest.fn(),

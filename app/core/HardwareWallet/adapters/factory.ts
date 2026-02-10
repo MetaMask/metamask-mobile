@@ -30,29 +30,10 @@ export function createAdapter(
 }
 
 /**
- * Get a human-readable name for a wallet type
- */
-export function getAdapterName(walletType: HardwareWalletType | null): string {
-  switch (walletType) {
-    case HardwareWalletType.Ledger:
-      return 'Ledger';
-    default:
-      return 'Hardware Wallet';
-  }
-}
-
-/**
  * Check if a wallet type requires Bluetooth
  */
 export function requiresBluetooth(
   walletType: HardwareWalletType | null,
 ): boolean {
   return walletType === HardwareWalletType.Ledger;
-}
-
-/**
- * Get all supported hardware wallet types
- */
-export function getSupportedWalletTypes(): HardwareWalletType[] {
-  return [HardwareWalletType.Ledger];
 }

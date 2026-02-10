@@ -1,8 +1,4 @@
-import {
-  NonHardwareAdapter,
-  isNonHardwareAdapter,
-  createNonHardwareAdapter,
-} from './NonHardwareAdapter';
+import { NonHardwareAdapter } from './NonHardwareAdapter';
 import { HardwareWalletAdapterOptions } from '../types';
 
 describe('NonHardwareAdapter', () => {
@@ -180,46 +176,5 @@ describe('NonHardwareAdapter', () => {
     it('returns undefined', () => {
       expect(adapter.getRequiredAppName()).toBeUndefined();
     });
-  });
-});
-
-describe('isNonHardwareAdapter', () => {
-  const mockOptions: HardwareWalletAdapterOptions = {
-    onDisconnect: jest.fn(),
-    onDeviceEvent: jest.fn(),
-  };
-
-  it('returns true for NonHardwareAdapter instance', () => {
-    const adapter = new NonHardwareAdapter(mockOptions);
-    expect(isNonHardwareAdapter(adapter)).toBe(true);
-  });
-
-  it('returns false for other adapters', () => {
-    // Create a mock adapter that is not a NonHardwareAdapter
-    const mockAdapter = {
-      walletType: 'ledger',
-      connect: jest.fn(),
-      disconnect: jest.fn(),
-      getConnectedDeviceId: jest.fn(),
-      ensureDeviceReady: jest.fn(),
-      isConnected: jest.fn(),
-      reset: jest.fn(),
-      markFlowComplete: jest.fn(),
-      isFlowComplete: jest.fn(),
-      resetFlowState: jest.fn(),
-    };
-    expect(isNonHardwareAdapter(mockAdapter as never)).toBe(false);
-  });
-});
-
-describe('createNonHardwareAdapter', () => {
-  const mockOptions: HardwareWalletAdapterOptions = {
-    onDisconnect: jest.fn(),
-    onDeviceEvent: jest.fn(),
-  };
-
-  it('creates a NonHardwareAdapter instance', () => {
-    const adapter = createNonHardwareAdapter(mockOptions);
-    expect(adapter).toBeInstanceOf(NonHardwareAdapter);
   });
 });

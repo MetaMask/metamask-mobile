@@ -148,21 +148,3 @@ export class NonHardwareAdapter implements HardwareWalletAdapter {
     return undefined;
   }
 }
-
-/**
- * Type guard to check if an adapter is a NonHardwareAdapter
- */
-export function isNonHardwareAdapter(
-  adapter: HardwareWalletAdapter,
-): adapter is NonHardwareAdapter {
-  return adapter instanceof NonHardwareAdapter;
-}
-
-/**
- * Factory function to create a NonHardwareAdapter
- */
-export function createNonHardwareAdapter(
-  options: HardwareWalletAdapterOptions,
-): NonHardwareAdapter {
-  return new NonHardwareAdapter(options);
-}

@@ -21,8 +21,6 @@ export interface HardwareWalletManagedState {
   walletType: HardwareWalletType | null;
   /** Target wallet type for new connections (set when opening device selection) */
   targetWalletType: HardwareWalletType | null;
-  /** Whether the current account is a hardware wallet account */
-  isHardwareWalletAccount: boolean;
 }
 
 /**
@@ -101,8 +99,6 @@ export const useHardwareWalletStateManager =
       return getHardwareWalletTypeForAddress(selectedAccount.address) ?? null;
     }, [selectedAccount?.address]);
 
-    const isHardwareWalletAccount = walletType !== null;
-
     // Reset function
     const resetState = useCallback(() => {
       setConnectionState({ status: ConnectionStatus.Disconnected });
@@ -122,15 +118,8 @@ export const useHardwareWalletStateManager =
         deviceId,
         walletType,
         targetWalletType,
-        isHardwareWalletAccount,
       }),
-      [
-        connectionState,
-        deviceId,
-        walletType,
-        targetWalletType,
-        isHardwareWalletAccount,
-      ],
+      [connectionState, deviceId, walletType, targetWalletType],
     );
 
     // Refs object (stable reference)

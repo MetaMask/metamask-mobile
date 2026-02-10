@@ -1,7 +1,4 @@
-export {
-  HardwareWalletProvider,
-  type HardwareWalletProviderProps,
-} from './HardwareWalletProvider';
+export { HardwareWalletProvider } from './HardwareWalletProvider';
 
-export { useHardwareWalletState, useHardwareWalletActions } from './contexts';
+export { useHardwareWallet } from './contexts';
 export { isUserCancellation } from './errors';

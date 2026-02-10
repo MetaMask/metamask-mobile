@@ -3,7 +3,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 import {
-  useHardwareWalletActions,
+  useHardwareWallet,
   isUserCancellation,
 } from '../../../core/HardwareWallet';
 
@@ -29,7 +29,7 @@ const LedgerConfirmationModal = ({
     showAwaitingConfirmation,
     hideAwaitingConfirmation,
     showHardwareWalletError,
-  } = useHardwareWalletActions();
+  } = useHardwareWallet();
 
   // Track rejection for analytics
   const handleRejection = useCallback(

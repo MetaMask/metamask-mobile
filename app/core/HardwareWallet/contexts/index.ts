@@ -1,36 +1,11 @@
 /**
- * Split contexts for hardware wallet management.
- *
- * The contexts are split for performance optimization:
- * - ConfigContext: Rarely changes (wallet type)
- * - StateContext: Frequently changes (connection state)
- * - ActionsContext: Stable callbacks (connect, disconnect, etc.)
- *
- * This pattern prevents unnecessary re-renders when only state changes
- * but actions/config remain the same.
+ * Single hardware wallet context: config, state, and actions.
  */
 
 export {
-  HardwareWalletConfigProvider,
-  useHardwareWalletConfig,
-  type HardwareWalletConfigContextType,
-  type HardwareWalletConfigProviderProps,
-} from './HardwareWalletConfigContext';
-
-export {
-  HardwareWalletStateProvider,
-  useHardwareWalletState,
-  useConnectionStatus,
-  useIsDeviceConnected,
-  useIsOperationInProgress,
-  type HardwareWalletStateContextType,
-  type HardwareWalletStateProviderProps,
+  HardwareWalletContextProvider,
+  useHardwareWallet,
+  type HardwareWalletContextValue,
+  type HardwareWalletContextProviderProps,
   type DeviceSelectionState,
-} from './HardwareWalletStateContext';
-
-export {
-  HardwareWalletActionsProvider,
-  useHardwareWalletActions,
-  type HardwareWalletActionsContextType,
-  type HardwareWalletActionsProviderProps,
-} from './HardwareWalletActionsContext';
+} from './HardwareWalletContext';

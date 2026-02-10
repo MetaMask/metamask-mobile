@@ -4,17 +4,16 @@ import React, {
   ReactNode,
   useCallback,
   useEffect,
+  useMemo,
   useState,
   useRef,
 } from 'react';
 
 import { DiscoveredDevice } from './types';
 import {
-  HardwareWalletConfigProvider,
-  HardwareWalletStateProvider,
-  HardwareWalletActionsProvider,
+  HardwareWalletContextProvider,
   DeviceSelectionState,
-} from './contexts';
+} from './contexts/HardwareWalletContext';
 import { HardwareWalletBottomSheet } from './components';
 import { useHardwareWalletStateManager } from './HardwareWalletStateManager';
 import { useDeviceEventHandlers } from './HardwareWalletEventHandlers';
@@ -26,10 +25,7 @@ import {
   ConnectionStatus,
 } from '@metamask/hw-wallet-sdk';
 
-/**
- * Props for the HardwareWalletProvider
- */
-export interface HardwareWalletProviderProps {
+interface HardwareWalletProviderProps {
   children: ReactNode;
 }
 
@@ -1044,64 +1040,80 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     hideAwaitingConfirmation();
   }, [hideAwaitingConfirmation]);
 
-  // Determine if current account is a hardware wallet
-  const isHardwareWalletAccount = walletType !== null;
+  const contextValue = useMemo(
+    () => ({
+      walletType: effectiveWalletType,
+      deviceId,
+      connectionState,
+      deviceSelection: deviceSelectionState,
+      openDeviceSelection,
+      closeDeviceSelection,
+      openSigningModal,
+      closeSigningModal,
+      connect,
+      disconnect,
+      ensureDeviceReady,
+      setTargetWalletType: setters.setTargetWalletType,
+      showHardwareWalletError,
+      clearError: clearErrorState,
+      retry,
+      selectDevice,
+      rescan,
+      resetFlowState,
+      showAwaitingConfirmation,
+      hideAwaitingConfirmation,
+    }),
+    [
+      effectiveWalletType,
+      deviceId,
+      connectionState,
+      deviceSelectionState,
+      openDeviceSelection,
+      closeDeviceSelection,
+      openSigningModal,
+      closeSigningModal,
+      connect,
+      disconnect,
+      ensureDeviceReady,
+      setters.setTargetWalletType,
+      showHardwareWalletError,
+      clearErrorState,
+      retry,
+      selectDevice,
+      rescan,
+      resetFlowState,
+      showAwaitingConfirmation,
+      hideAwaitingConfirmation,
+    ],
+  );
 
   return (
-    <HardwareWalletConfigProvider
-      isHardwareWalletAccount={isHardwareWalletAccount}
-      walletType={effectiveWalletType}
-      deviceId={deviceId}
-    >
-      <HardwareWalletStateProvider
-        connectionState={connectionState}
-        deviceSelection={deviceSelectionState}
-      >
-        <HardwareWalletActionsProvider
-          onOpenDeviceSelection={openDeviceSelection}
-          onCloseDeviceSelection={closeDeviceSelection}
-          onOpenSigningModal={openSigningModal}
-          onCloseSigningModal={closeSigningModal}
-          onConnect={connect}
-          onDisconnect={disconnect}
-          onEnsureDeviceReady={ensureDeviceReady}
-          onSetTargetWalletType={setters.setTargetWalletType}
-          onShowHardwareWalletError={showHardwareWalletError}
-          onClearError={clearErrorState}
-          onRetry={retry}
-          onSelectDevice={selectDevice}
-          onRescan={rescan}
-          onResetFlowState={resetFlowState}
-          onShowAwaitingConfirmation={showAwaitingConfirmation}
-          onHideAwaitingConfirmation={hideAwaitingConfirmation}
-        >
-          {children}
-          {/* Unified Hardware Wallet Bottom Sheet - handles ALL states */}
-          <HardwareWalletBottomSheet
-            onCancel={closeSigningModal}
-            onClose={closeSigningModal}
-            onAwaitingConfirmationCancel={handleAwaitingConfirmationCancel}
-            onConnectionSuccess={() => {
-              // Mark flow as complete to suppress any error events
-              flowCompleteRef.current = true;
-              if (refs.adapterRef.current) {
-                refs.adapterRef.current.markFlowComplete();
-              }
+    <HardwareWalletContextProvider value={contextValue}>
+      {children}
+      {/* Unified Hardware Wallet Bottom Sheet - handles ALL states */}
+      <HardwareWalletBottomSheet
+        onCancel={closeSigningModal}
+        onClose={closeSigningModal}
+        onAwaitingConfirmationCancel={handleAwaitingConfirmationCancel}
+        onConnectionSuccess={() => {
+          // Mark flow as complete to suppress any error events
+          flowCompleteRef.current = true;
+          if (refs.adapterRef.current) {
+            refs.adapterRef.current.markFlowComplete();
+          }
 
-              // Resolve the promise first
-              const callback = connectionSuccessCallbackRef.current;
-              if (callback) {
-                connectionSuccessCallbackRef.current = null;
-                callback();
-              }
+          // Resolve the promise first
+          const callback = connectionSuccessCallbackRef.current;
+          if (callback) {
+            connectionSuccessCallbackRef.current = null;
+            callback();
+          }
 
-              // Then hide the sheet by transitioning to disconnected
-              updateConnectionState({ status: ConnectionStatus.Disconnected });
-            }}
-          />
-        </HardwareWalletActionsProvider>
-      </HardwareWalletStateProvider>
-    </HardwareWalletConfigProvider>
+          // Then hide the sheet by transitioning to disconnected
+          updateConnectionState({ status: ConnectionStatus.Disconnected });
+        }}
+      />
+    </HardwareWalletContextProvider>
   );
 };
 

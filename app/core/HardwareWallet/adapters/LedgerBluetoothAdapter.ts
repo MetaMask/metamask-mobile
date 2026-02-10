@@ -783,18 +783,3 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
     }
   }
 }
-
-/**
- * Type guard to check if adapter is a LedgerBluetoothAdapter
- */
-export const isLedgerBluetoothAdapter = (
-  adapter: HardwareWalletAdapter,
-): adapter is LedgerBluetoothAdapter =>
-  adapter.walletType === HardwareWalletType.Ledger;
-
-/**
- * Create a LedgerBluetoothAdapter instance
- */
-export const createLedgerBluetoothAdapter = (
-  options: HardwareWalletAdapterOptions,
-): LedgerBluetoothAdapter => new LedgerBluetoothAdapter(options);

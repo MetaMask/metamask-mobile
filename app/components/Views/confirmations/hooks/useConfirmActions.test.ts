@@ -30,7 +30,7 @@ const mockShowHardwareWalletError = jest.fn();
 const mockShowAwaitingConfirmation = jest.fn();
 const mockHideAwaitingConfirmation = jest.fn();
 jest.mock('../../../../core/HardwareWallet', () => ({
-  useHardwareWalletActions: () => ({
+  useHardwareWallet: () => ({
     ensureDeviceReady: mockEnsureDeviceReady,
     showHardwareWalletError: mockShowHardwareWalletError,
     showAwaitingConfirmation: mockShowAwaitingConfirmation,

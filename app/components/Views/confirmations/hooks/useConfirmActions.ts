@@ -12,7 +12,7 @@ import { useSignatureMetrics } from './signatures/useSignatureMetrics';
 import { useTransactionConfirm } from './transactions/useTransactionConfirm';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 import {
-  useHardwareWalletActions,
+  useHardwareWallet,
   isUserCancellation,
 } from '../../../../core/HardwareWallet';
 import { isHardwareAccount } from '../../../../util/address';
@@ -34,7 +34,7 @@ export const useConfirmActions = () => {
     showHardwareWalletError,
     showAwaitingConfirmation,
     hideAwaitingConfirmation,
-  } = useHardwareWalletActions();
+  } = useHardwareWallet();
   const navigation = useNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
   const approvalType = approvalRequest?.type;

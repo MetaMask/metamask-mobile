@@ -28,12 +28,7 @@ jest.mock('@ledgerhq/hw-app-eth', () => ({
   })),
 }));
 
-import {
-  createAdapter,
-  getAdapterName,
-  requiresBluetooth,
-  getSupportedWalletTypes,
-} from './factory';
+import { createAdapter, requiresBluetooth } from './factory';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { HardwareWalletAdapterOptions } from '../types';
 import { LedgerBluetoothAdapter } from './LedgerBluetoothAdapter';
@@ -71,21 +66,6 @@ describe('createAdapter', () => {
   });
 });
 
-describe('getAdapterName', () => {
-  it('should return "Ledger" for Ledger wallet type', () => {
-    expect(getAdapterName(HardwareWalletType.Ledger)).toBe('Ledger');
-  });
-
-  it('should return "Hardware Wallet" for null', () => {
-    expect(getAdapterName(null)).toBe('Hardware Wallet');
-  });
-
-  it('should return "Hardware Wallet" for unknown types', () => {
-    // @ts-expect-error - Testing unknown type
-    expect(getAdapterName('unknown')).toBe('Hardware Wallet');
-  });
-});
-
 describe('requiresBluetooth', () => {
   it('should return true for Ledger', () => {
     expect(requiresBluetooth(HardwareWalletType.Ledger)).toBe(true);
@@ -93,19 +73,5 @@ describe('requiresBluetooth', () => {
 
   it('should return false for null', () => {
     expect(requiresBluetooth(null)).toBe(false);
-  });
-});
-
-describe('getSupportedWalletTypes', () => {
-  it('should return array of supported wallet types', () => {
-    const types = getSupportedWalletTypes();
-
-    expect(Array.isArray(types)).toBe(true);
-    expect(types).toContain(HardwareWalletType.Ledger);
-  });
-
-  it('should not include null', () => {
-    const types = getSupportedWalletTypes();
-    expect(types).not.toContain(null);
   });
 });

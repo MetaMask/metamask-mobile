@@ -8,11 +8,7 @@ import BottomSheet, {
 
 import { useTheme } from '../../../../util/theme';
 
-import {
-  useHardwareWalletState,
-  useHardwareWalletConfig,
-  useHardwareWalletActions,
-} from '../../contexts';
+import { useHardwareWallet } from '../../contexts';
 import { HardwareWalletType, ConnectionStatus } from '@metamask/hw-wallet-sdk';
 
 import {
@@ -74,11 +70,16 @@ export const HardwareWalletBottomSheet: React.FC<
 
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
-  // Get state and actions from context
-  const { connectionState, deviceSelection } = useHardwareWalletState();
-  const { walletType } = useHardwareWalletConfig();
-  const { retry, closeDeviceSelection, selectDevice, rescan, connect } =
-    useHardwareWalletActions();
+  const {
+    connectionState,
+    deviceSelection,
+    walletType,
+    retry,
+    closeDeviceSelection,
+    selectDevice,
+    rescan,
+    connect,
+  } = useHardwareWallet();
 
   // Extract device selection state from context
   const { devices, selectedDevice, isScanning } = deviceSelection;

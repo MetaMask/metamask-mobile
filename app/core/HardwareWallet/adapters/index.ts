@@ -1,20 +1,2 @@
-// Adapters
-export {
-  LedgerBluetoothAdapter,
-  isLedgerBluetoothAdapter,
-  createLedgerBluetoothAdapter,
-} from './LedgerBluetoothAdapter';
-
-export {
-  NonHardwareAdapter,
-  isNonHardwareAdapter,
-  createNonHardwareAdapter,
-} from './NonHardwareAdapter';
-
-// Factory
-export {
-  createAdapter,
-  getAdapterName,
-  requiresBluetooth,
-  getSupportedWalletTypes,
-} from './factory';
+// Factory (only production entry point; adapters are used internally)
+export { createAdapter, requiresBluetooth } from './factory';

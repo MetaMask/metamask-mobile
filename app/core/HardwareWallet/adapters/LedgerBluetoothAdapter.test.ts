@@ -53,11 +53,7 @@ jest.mock('../../Ledger/Ledger', () => ({
   closeRunningAppOnLedger: jest.fn(),
 }));
 
-import {
-  LedgerBluetoothAdapter,
-  isLedgerBluetoothAdapter,
-  createLedgerBluetoothAdapter,
-} from './LedgerBluetoothAdapter';
+import { LedgerBluetoothAdapter } from './LedgerBluetoothAdapter';
 import { HardwareWalletType, DeviceEvent } from '@metamask/hw-wallet-sdk';
 import { HardwareWalletAdapterOptions } from '../types';
 import TransportBLE from '@ledgerhq/react-native-hw-transport-ble';
@@ -451,53 +447,5 @@ describe('LedgerBluetoothAdapter', () => {
         'Adapter has been destroyed',
       );
     });
-  });
-});
-
-describe('isLedgerBluetoothAdapter', () => {
-  it('should return true for LedgerBluetoothAdapter', () => {
-    const adapter = new LedgerBluetoothAdapter({
-      onDisconnect: jest.fn(),
-      onDeviceEvent: jest.fn(),
-    });
-
-    expect(isLedgerBluetoothAdapter(adapter)).toBe(true);
-
-    adapter.destroy();
-  });
-
-  it('should return false for adapters with different walletType', () => {
-    const mockAdapter = {
-      walletType: null,
-      connect: jest.fn(),
-      disconnect: jest.fn(),
-      getConnectedDeviceId: jest.fn(),
-      isConnected: jest.fn(),
-      ensureDeviceReady: jest.fn(),
-      reset: jest.fn(),
-      markFlowComplete: jest.fn(),
-      isFlowComplete: jest.fn(),
-      resetFlowState: jest.fn(),
-      requiresDeviceDiscovery: false,
-      startDeviceDiscovery: jest.fn(() => jest.fn()),
-      stopDeviceDiscovery: jest.fn(),
-      isTransportAvailable: jest.fn(() => Promise.resolve(true)),
-    };
-
-    // walletType can be null, so this should return false (not a LedgerBluetoothAdapter)
-    expect(isLedgerBluetoothAdapter(mockAdapter)).toBe(false);
-  });
-});
-
-describe('createLedgerBluetoothAdapter', () => {
-  it('should create a LedgerBluetoothAdapter instance', () => {
-    const adapter = createLedgerBluetoothAdapter({
-      onDisconnect: jest.fn(),
-      onDeviceEvent: jest.fn(),
-    });
-
-    expect(adapter).toBeInstanceOf(LedgerBluetoothAdapter);
-
-    adapter.destroy();
   });
 });

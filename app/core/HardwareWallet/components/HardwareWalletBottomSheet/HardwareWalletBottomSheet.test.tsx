@@ -18,14 +18,13 @@ const mockActions = {
   connect: jest.fn(),
 };
 
-// Mock contexts
 jest.mock('../../contexts', () => ({
-  useHardwareWalletState: () => ({
+  useHardwareWallet: () => ({
     connectionState: mockConnectionState,
     deviceSelection: mockDeviceSelection,
+    walletType: mockConfig.walletType,
+    ...mockActions,
   }),
-  useHardwareWalletConfig: () => mockConfig,
-  useHardwareWalletActions: () => mockActions,
 }));
 
 // Mock dependencies

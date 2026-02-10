@@ -4,11 +4,7 @@ import { render, waitFor } from '@testing-library/react-native';
 import { Text } from 'react-native';
 import { useSelector } from 'react-redux';
 import { HardwareWalletProvider } from './HardwareWalletProvider';
-import {
-  useHardwareWalletConfig,
-  useHardwareWalletState,
-  useHardwareWalletActions,
-} from './contexts';
+import { useHardwareWallet } from './contexts';
 import { getHardwareWalletTypeForAddress } from './helpers';
 import { createAdapter } from './adapters';
 import { HardwareWalletType, ConnectionStatus } from '@metamask/hw-wallet-sdk';
@@ -139,22 +135,13 @@ describe('HardwareWalletProvider', () => {
     mockGetHardwareWalletType.mockReturnValue(undefined);
   });
 
-  // Test component that uses all contexts
   const TestConsumer: React.FC = () => {
-    const config = useHardwareWalletConfig();
-    const state = useHardwareWalletState();
-    const actions = useHardwareWalletActions();
-
+    const { walletType, connectionState, connect } = useHardwareWallet();
     return (
       <>
-        <Text testID="walletType">{config.walletType ?? 'null'}</Text>
-        <Text testID="isHardwareWallet">
-          {String(config.isHardwareWalletAccount)}
-        </Text>
-        <Text testID="connectionStatus">{state.connectionState.status}</Text>
-        <Text testID="hasConnect">
-          {String(typeof actions.connect === 'function')}
-        </Text>
+        <Text testID="walletType">{walletType ?? 'null'}</Text>
+        <Text testID="connectionStatus">{connectionState.status}</Text>
+        <Text testID="hasConnect">{String(typeof connect === 'function')}</Text>
       </>
     );
   };
@@ -172,7 +159,7 @@ describe('HardwareWalletProvider', () => {
     it('should provide config context', () => {
       const { getByTestId } = renderProvider();
 
-      expect(getByTestId('isHardwareWallet').children[0]).toBe('false');
+      expect(getByTestId('walletType').children[0]).toBe('null');
     });
 
     it('should provide state context', () => {
@@ -202,7 +189,6 @@ describe('HardwareWalletProvider', () => {
         expect(getByTestId('walletType').children[0]).toBe(
           HardwareWalletType.Ledger,
         );
-        expect(getByTestId('isHardwareWallet').children[0]).toBe('true');
       });
     });
 
@@ -213,7 +199,6 @@ describe('HardwareWalletProvider', () => {
       const { getByTestId } = renderProvider();
 
       expect(getByTestId('walletType').children[0]).toBe('null');
-      expect(getByTestId('isHardwareWallet').children[0]).toBe('false');
     });
   });
 
@@ -256,9 +241,14 @@ describe('HardwareWalletProvider', () => {
   describe('actions', () => {
     // Hook to access actions for testing
     const useTestActions = () => {
-      const actions = useHardwareWalletActions();
-      const state = useHardwareWalletState();
-      return { actions, state };
+      const hw = useHardwareWallet();
+      return {
+        actions: hw,
+        state: {
+          connectionState: hw.connectionState,
+          deviceSelection: hw.deviceSelection,
+        },
+      };
     };
 
     const renderWithActions = () => {
@@ -376,9 +366,14 @@ describe('HardwareWalletProvider', () => {
 
   describe('device selection flow', () => {
     const useTestActions = () => {
-      const actions = useHardwareWalletActions();
-      const state = useHardwareWalletState();
-      return { actions, state };
+      const hw = useHardwareWallet();
+      return {
+        actions: hw,
+        state: {
+          connectionState: hw.connectionState,
+          deviceSelection: hw.deviceSelection,
+        },
+      };
     };
 
     const renderWithActions = () => {
@@ -493,9 +488,14 @@ describe('HardwareWalletProvider', () => {
 
   describe('signing modal flow', () => {
     const useTestActions = () => {
-      const actions = useHardwareWalletActions();
-      const state = useHardwareWalletState();
-      return { actions, state };
+      const hw = useHardwareWallet();
+      return {
+        actions: hw,
+        state: {
+          connectionState: hw.connectionState,
+          deviceSelection: hw.deviceSelection,
+        },
+      };
     };
 
     const renderWithActions = () => {
@@ -571,9 +571,14 @@ describe('HardwareWalletProvider', () => {
 
   describe('awaiting confirmation flow', () => {
     const useTestActions = () => {
-      const actions = useHardwareWalletActions();
-      const state = useHardwareWalletState();
-      return { actions, state };
+      const hw = useHardwareWallet();
+      return {
+        actions: hw,
+        state: {
+          connectionState: hw.connectionState,
+          deviceSelection: hw.deviceSelection,
+        },
+      };
     };
 
     const renderWithActions = () => {
@@ -645,9 +650,14 @@ describe('HardwareWalletProvider', () => {
 
   describe('error handling', () => {
     const useTestActions = () => {
-      const actions = useHardwareWalletActions();
-      const state = useHardwareWalletState();
-      return { actions, state };
+      const hw = useHardwareWallet();
+      return {
+        actions: hw,
+        state: {
+          connectionState: hw.connectionState,
+          deviceSelection: hw.deviceSelection,
+        },
+      };
     };
 
     const renderWithActions = () => {
@@ -759,9 +769,14 @@ describe('HardwareWalletProvider', () => {
 
   describe('connect error handling', () => {
     const useTestActions = () => {
-      const actions = useHardwareWalletActions();
-      const state = useHardwareWalletState();
-      return { actions, state };
+      const hw = useHardwareWallet();
+      return {
+        actions: hw,
+        state: {
+          connectionState: hw.connectionState,
+          deviceSelection: hw.deviceSelection,
+        },
+      };
     };
 
     it('should handle adapter connect errors', async () => {
@@ -790,9 +805,11 @@ describe('HardwareWalletProvider', () => {
 
   describe('setTargetWalletType', () => {
     const useTestActions = () => {
-      const actions = useHardwareWalletActions();
-      const config = useHardwareWalletConfig();
-      return { actions, config };
+      const hw = useHardwareWallet();
+      return {
+        actions: hw,
+        config: { walletType: hw.walletType, deviceId: hw.deviceId },
+      };
     };
 
     it('should update wallet type when set', async () => {

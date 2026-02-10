@@ -53,10 +53,7 @@ import SelectOptionSheet from '../../UI/SelectOptionSheet';
 import { AccountsController } from '@metamask/accounts-controller';
 import { toFormattedAddress } from '../../../util/address';
 import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytics';
-import {
-  useHardwareWalletState,
-  useHardwareWalletActions,
-} from '../../../core/HardwareWallet';
+import { useHardwareWallet } from '../../../core/HardwareWallet';
 import { ConnectionStatus, HardwareWalletType } from '@metamask/hw-wallet-sdk';
 
 interface OptionType {
@@ -72,10 +69,13 @@ const LedgerSelectAccount = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
 
-  // Use unified hardware wallet context
-  const { connectionState, deviceSelection } = useHardwareWalletState();
-  const { ensureDeviceReady, setTargetWalletType, showHardwareWalletError } =
-    useHardwareWalletActions();
+  const {
+    connectionState,
+    deviceSelection,
+    ensureDeviceReady,
+    setTargetWalletType,
+    showHardwareWalletError,
+  } = useHardwareWallet();
 
   // Track if we've already started the initialization
   const hasStartedInitRef = useRef(false);

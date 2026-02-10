@@ -20,7 +20,7 @@ const mockShowHardwareWalletError = jest.fn();
 const mockSetTargetWalletType = jest.fn();
 
 jest.mock('../../../core/HardwareWallet', () => ({
-  useHardwareWalletState: jest.fn(() => ({
+  useHardwareWallet: jest.fn(() => ({
     connectionState: {
       status: 'disconnected',
       walletType: undefined,
@@ -31,8 +31,6 @@ jest.mock('../../../core/HardwareWallet', () => ({
       selectedDevice: null,
       isScanning: false,
     },
-  })),
-  useHardwareWalletActions: jest.fn(() => ({
     ensureDeviceReady: mockEnsureDeviceReady,
     showHardwareWalletError: mockShowHardwareWalletError,
     setTargetWalletType: mockSetTargetWalletType,
@@ -161,11 +159,10 @@ describe('LedgerSelectAccount', () => {
     });
 
     it('renders LedgerConnect when connection error exists', () => {
-      // Mock error state in unified context
-      const { useHardwareWalletState } = jest.requireMock(
+      const { useHardwareWallet } = jest.requireMock(
         '../../../core/HardwareWallet',
       );
-      useHardwareWalletState.mockReturnValue({
+      useHardwareWallet.mockReturnValue({
         connectionState: {
           status: ConnectionStatus.ErrorState,
           walletType: 'ledger',
@@ -175,10 +172,13 @@ describe('LedgerSelectAccount', () => {
           },
         },
         deviceSelection: {
-          availableDevices: [],
+          devices: [],
           selectedDevice: null,
           isScanning: false,
         },
+        ensureDeviceReady: mockEnsureDeviceReady,
+        showHardwareWalletError: mockShowHardwareWalletError,
+        setTargetWalletType: mockSetTargetWalletType,
       });
 
       const { toJSON } = renderWithProvider(<LedgerSelectAccount />);
