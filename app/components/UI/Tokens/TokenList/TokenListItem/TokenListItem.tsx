@@ -43,15 +43,15 @@ import { Colors } from '../../../../../util/theme/models';
 import { strings } from '../../../../../../locales/i18n';
 import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../../Bridge/types';
+import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import Routes from '../../../../../constants/navigation/Routes';
 import StockBadge from '../../../shared/StockBadge';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { toHex } from '@metamask/controller-utils';
 import Logger from '../../../../../util/Logger';
-import { useMusdCtaVisibility } from '../../../Earn/hooks/useMusdCtaVisibility';
 import { useNetworkName } from '../../../../Views/confirmations/hooks/useNetworkName';
 import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events';
-import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
+import { MUSD_CONVERSION_APY, isMusdToken } from '../../../Earn/constants/musd';
 import {
   useMerklRewards,
   isEligibleForMerklRewards,
@@ -60,6 +60,8 @@ import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { EVENT_LOCATIONS as EARN_EVENT_LOCATIONS } from '../../../Earn/constants/events/earnEvents';
 import { useStablecoinLendingRedirect } from '../../../Earn/hooks/useStablecoinLendingRedirect';
+import BigNumber from 'bignumber.js';
+import { MINIMUM_BALANCE_FOR_EARN_CTA } from '../../../Earn/constants/token';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -77,6 +79,10 @@ const createStyles = (colors: Colors) =>
     },
     badge: {
       marginTop: 8,
+    },
+    assetNameContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
     },
     assetName: {
       flexDirection: 'row',
@@ -99,6 +105,7 @@ interface TokenListItemProps {
   assetKey: FlashListAssetKey;
   showRemoveMenu: (arg: TokenI) => void;
   setShowScamWarningModal: (arg: boolean) => void;
+  shouldShowTokenListItemCta: (asset?: TokenI) => boolean;
   privacyMode: boolean;
   showPercentageChange?: boolean;
   isFullView?: boolean;
@@ -109,6 +116,7 @@ export const TokenListItem = React.memo(
     assetKey,
     showRemoveMenu,
     setShowScamWarningModal,
+    shouldShowTokenListItemCta,
     privacyMode,
     showPercentageChange = true,
     isFullView = false,
@@ -140,7 +148,6 @@ export const TokenListItem = React.memo(
 
     const earnToken = getEarnToken(asset as TokenI);
 
-    const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
     const { initiateConversion, hasSeenConversionEducationScreen } =
       useMusdConversion();
 
@@ -248,24 +255,15 @@ export const TokenListItem = React.memo(
     const onItemPress = useCallback(
       (token: TokenI, scrollToMerklRewards?: boolean) => {
         trace({ name: TraceName.AssetDetails });
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
-            .addProperties({
-              source: isFullView
-                ? 'mobile-token-list-page'
-                : 'mobile-token-list',
-              chain_id: token.chainId,
-              token_symbol: token.symbol,
-            })
-            .build(),
-        );
-
         navigation.navigate('Asset', {
           ...token,
           scrollToMerklRewards,
+          source: isFullView
+            ? TokenDetailsSource.MobileTokenListPage
+            : TokenDetailsSource.MobileTokenList,
         });
       },
-      [isFullView, trackEvent, createEventBuilder, navigation],
+      [isFullView, navigation],
     );
 
     const handleLendingRedirect = useStablecoinLendingRedirect({
@@ -294,7 +292,10 @@ export const TokenListItem = React.memo(
 
       if (
         isStablecoinLendingEnabled &&
-        earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING
+        earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING &&
+        new BigNumber(earnToken?.balanceFiatNumber || '0').gte(
+          MINIMUM_BALANCE_FOR_EARN_CTA,
+        )
       ) {
         return {
           text: `${strings('stake.earn')}`,
@@ -326,11 +327,11 @@ export const TokenListItem = React.memo(
     }, [
       hasClaimableBonus,
       shouldShowConvertToMusdCta,
+      earnToken,
       isStablecoinLendingEnabled,
-      earnToken?.experience?.type,
+      asset,
       hasPercentageChange,
       pricePercentChange1d,
-      asset,
       onItemPress,
       handleConvertToMUSD,
       handleLendingRedirect,
@@ -370,7 +371,9 @@ export const TokenListItem = React.memo(
     return (
       <AssetElement
         onPress={onItemPress}
-        onLongPress={asset.isNative ? null : showRemoveMenu}
+        onLongPress={
+          asset.isNative || isMusdToken(asset.address) ? null : showRemoveMenu
+        }
         asset={asset}
         balance={asset.balanceFiat}
         secondaryBalance={secondaryBalanceDisplay.text}
@@ -399,11 +402,17 @@ export const TokenListItem = React.memo(
            * The reason for this is that the wallet_watchAsset doesn't return the name
            * more info: https://docs.metamask.io/guide/rpc-api.html#wallet-watchasset
            */}
-          <View style={styles.assetName}>
-            <Text variant={TextVariant.BodyMDMedium} numberOfLines={1}>
-              {asset.name || asset.symbol}
-            </Text>
-            {label && <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />}
+          <View style={styles.assetNameContainer}>
+            <View style={styles.assetName}>
+              <Text variant={TextVariant.BodyMDMedium} numberOfLines={1}>
+                {asset.name || asset.symbol}
+              </Text>
+              {label && (
+                <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />
+              )}
+            </View>
+
+            {renderEarnCta()}
           </View>
           <View style={styles.percentageChange}>
             {
@@ -419,7 +428,6 @@ export const TokenListItem = React.memo(
             {isStockToken(asset as BridgeToken) && (
               <StockBadge style={styles.stockBadgeWrapper} token={asset} />
             )}
-            {renderEarnCta()}
           </View>
         </View>
         <ScamWarningIcon

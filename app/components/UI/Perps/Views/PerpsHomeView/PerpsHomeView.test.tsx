@@ -1,8 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { Linking } from 'react-native';
 import PerpsHomeView from './PerpsHomeView';
-import { PerpsEventValues } from '../../constants/eventNames';
+import { PERPS_EVENT_VALUE } from '../../constants/eventNames';
 import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
 
 // Mock navigation
@@ -18,7 +17,7 @@ jest.mock('@react-navigation/native', () => ({
   }),
   useRoute: () => ({
     params: {
-      source: 'main_action_button', // PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON
+      source: 'main_action_button', // PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON
     },
   }),
   useFocusEffect: (callback: () => void) => {
@@ -222,7 +221,7 @@ jest.mock('../../../../../util/trace', () => ({
 }));
 
 jest.mock('../../constants/eventNames', () => ({
-  PerpsEventProperties: {
+  PERPS_EVENT_PROPERTY: {
     SCREEN_TYPE: 'screen_type',
     SOURCE: 'source',
     BUTTON_CLICKED: 'button_clicked',
@@ -230,7 +229,7 @@ jest.mock('../../constants/eventNames', () => ({
     INTERACTION_TYPE: 'interaction_type',
     LOCATION: 'location',
   },
-  PerpsEventValues: {
+  PERPS_EVENT_VALUE: {
     SCREEN_TYPE: {
       MARKETS: 'markets',
       HOMESCREEN: 'homescreen',
@@ -555,10 +554,11 @@ describe('PerpsHomeView', () => {
     // Act - Press search toggle
     fireEvent.press(getByTestId('perps-home-search-toggle'));
 
-    // Assert - Should navigate to MarketListView with search enabled
+    // Assert - Should navigate to MarketListView with search enabled and 'all' category
     expect(mockNavigateToMarketList).toHaveBeenCalledWith({
       defaultSearchVisible: true,
-      source: PerpsEventValues.SOURCE.HOMESCREEN_TAB,
+      defaultMarketTypeFilter: 'all',
+      source: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB,
       fromHome: true,
       button_clicked: 'magnifying_glass',
       button_location: 'perps_home',
@@ -805,14 +805,6 @@ describe('PerpsHomeView', () => {
   });
 
   describe('Feedback Feature', () => {
-    beforeEach(() => {
-      jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
-    });
-
-    afterEach(() => {
-      jest.restoreAllMocks();
-    });
-
     it('does not show feedback button when feature flag is disabled', () => {
       // Arrange - Feature flag disabled (default)
       mockUseSelector.mockReturnValue(false);
@@ -840,7 +832,7 @@ describe('PerpsHomeView', () => {
       expect(getByTestId('perps-home-feedback-button')).toBeTruthy();
     });
 
-    it('opens survey URL in external browser when feedback button is pressed', () => {
+    it('opens survey URL in in-app browser when feedback button is pressed', () => {
       // Arrange - Enable feedback feature flag
       mockUseSelector.mockImplementation((selector: unknown) => {
         if (selector === selectPerpsFeedbackEnabledFlag) {
@@ -854,10 +846,14 @@ describe('PerpsHomeView', () => {
       // Act
       fireEvent.press(getByTestId('perps-home-feedback-button'));
 
-      // Assert
-      expect(Linking.openURL).toHaveBeenCalledWith(
-        'https://survey.alchemer.com/s3/8649911/MetaMask-Perps-Trading-Feedback',
-      );
+      // Assert - Should navigate to in-app browser (same pattern as Contact Support)
+      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: 'https://survey.alchemer.com/s3/8649911/MetaMask-Perps-Trading-Feedback',
+          title: 'perps.feedback.title',
+        },
+      });
     });
   });
 });

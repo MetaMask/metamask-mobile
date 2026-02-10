@@ -14,6 +14,11 @@ import getAggregatorAnalyticsPayload from './Aggregator/utils/getAggregatorAnaly
 
 const mockNavigate = jest.fn();
 
+jest.mock('./hooks/useHydrateRampsController', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {

@@ -11,6 +11,7 @@ import DataGradient from './DataGradient';
 import PlotLine from './PlotLine';
 import styleSheet from './InteractiveTimespanChart.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
+import { useTheme } from '../../../../../../util/theme';
 import {
   calculateSegmentCenters,
   calculateSnapThreshold,
@@ -93,18 +94,14 @@ const InteractiveTimespanChart = <T extends DataPoint>({
   isLoading = false,
 }: InteractiveTimespanChartProps<T>) => {
   const { styles } = useStyles(styleSheet, {});
+  const { colors } = useTheme();
 
-  const {
-    insetTop,
-    insetRight,
-    insetBottom,
-    insetLeft,
-    timespanButtons,
-    color,
-  } = {
+  const { insetTop, insetRight, insetBottom, insetLeft, timespanButtons } = {
     ...DEFAULT_GRAPH_OPTIONS,
     ...graphOptions,
   };
+
+  const chartColor = graphOptions?.color ?? colors.icon.default;
 
   const [dataPointsToShow, setDataPointsToShow] = useState(
     dataPoints.slice(-timespanButtons[0].value),
@@ -244,14 +241,17 @@ const InteractiveTimespanChart = <T extends DataPoint>({
           svg={doesChartHaveData ? { fill: `url(#dataGradient)` } : undefined}
           yMin={0}
         >
-          <PlotLine doesChartHaveData color={color} />
+          <PlotLine doesChartHaveData color={chartColor} />
           {doesChartHaveData && (
-            <DataGradient dataPoints={parsedDataPointValues} color={color} />
+            <DataGradient
+              dataPoints={parsedDataPointValues}
+              color={chartColor}
+            />
           )}
           <GraphCursor
             currentX={selectedPointIndex}
             data={parsedDataPointValues}
-            color={color}
+            color={chartColor}
           />
         </AreaChart>
       </View>
@@ -271,7 +271,7 @@ const InteractiveTimespanChart = <T extends DataPoint>({
           subtitle={
             parsedSubtitleValues[selectedPointIndex] ?? defaultSubtitle ?? ''
           }
-          color={color}
+          color={chartColor}
           isLoading={isLoading}
         />
       )}

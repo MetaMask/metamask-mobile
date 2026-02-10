@@ -12,8 +12,8 @@ import type { PerpsNavigationParamList } from '../controllers/types';
 import { ensureError } from '../../../../util/errorUtils';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import {
-  PerpsEventValues,
-  PerpsEventProperties,
+  PERPS_EVENT_VALUE,
+  PERPS_EVENT_PROPERTY,
 } from '../constants/eventNames';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
@@ -82,21 +82,21 @@ export const usePerpsHomeActions = (
 
   const handleAddFunds = useCallback(async () => {
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PerpsEventProperties.INTERACTION_TYPE]:
-        PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
-      [PerpsEventProperties.BUTTON_CLICKED]:
-        PerpsEventValues.BUTTON_CLICKED.DEPOSIT,
-      [PerpsEventProperties.BUTTON_LOCATION]:
-        buttonLocation || PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+      [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+        PERPS_EVENT_VALUE.BUTTON_CLICKED.DEPOSIT,
+      [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+        buttonLocation || PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
     });
 
     if (!isEligible) {
       DevLogger.log('[usePerpsHomeActions] User not eligible for deposit');
       // Track geo-block screen viewed
       track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PerpsEventProperties.SCREEN_TYPE]:
-          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-        [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.DEPOSIT_BUTTON,
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.DEPOSIT_BUTTON,
       });
       setIsEligibilityModalVisible(true);
       return;
@@ -151,13 +151,13 @@ export const usePerpsHomeActions = (
   const handleWithdraw = useCallback(async () => {
     // Track withdrawal button click with geo-block status for monitoring (TAT-2337)
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PerpsEventProperties.INTERACTION_TYPE]:
-        PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
-      [PerpsEventProperties.BUTTON_CLICKED]:
-        PerpsEventValues.BUTTON_CLICKED.WITHDRAW,
-      [PerpsEventProperties.BUTTON_LOCATION]:
-        buttonLocation || PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
-      [PerpsEventProperties.IS_GEO_BLOCKED]: !isEligible,
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+      [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+        PERPS_EVENT_VALUE.BUTTON_CLICKED.WITHDRAW,
+      [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+        buttonLocation || PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
+      [PERPS_EVENT_PROPERTY.IS_GEO_BLOCKED]: !isEligible,
     });
 
     // Note: Withdrawals are intentionally NOT geo-blocked (TAT-2337)

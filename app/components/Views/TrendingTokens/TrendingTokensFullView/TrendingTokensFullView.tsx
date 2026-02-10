@@ -46,6 +46,7 @@ import { sortTrendingTokens } from '../../../UI/Trending/utils/sortTrendingToken
 import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 import EmptyErrorTrendingState from '../../TrendingView/components/EmptyErrorState/EmptyErrorTrendingState';
 import EmptySearchResultState from '../../TrendingView/components/EmptyErrorState/EmptySearchResultState';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import TrendingFeedSessionManager from '../../../UI/Trending/services/TrendingFeedSessionManager';
 import { useSearchTracking } from '../../../UI/Trending/hooks/useSearchTracking/useSearchTracking';
 
@@ -67,11 +68,6 @@ const createStyles = (theme: Theme) =>
       borderRadius: 16,
       backgroundColor: theme.colors.background.muted,
       padding: 16,
-    },
-    listContainer: {
-      flex: 1,
-      paddingLeft: 16,
-      paddingRight: 16,
     },
     controlBarWrapper: {
       paddingVertical: 16,
@@ -132,6 +128,79 @@ const createStyles = (theme: Theme) =>
       opacity: 0.5,
     },
   });
+
+export interface TrendingTokensDataProps {
+  isLoading: boolean;
+  refreshing: boolean;
+  trendingTokens: TrendingAsset[];
+  handleRefresh: () => void;
+  selectedTimeOption: TimeOption;
+  filterContext: TrendingFilterContext;
+  theme: Theme;
+
+  search: {
+    searchResults: TrendingAsset[];
+    searchQuery: string;
+  };
+}
+
+export const TrendingTokensData = (props: TrendingTokensDataProps) => {
+  const {
+    isLoading,
+    refreshing,
+    trendingTokens,
+    search,
+    handleRefresh,
+    selectedTimeOption,
+    filterContext,
+    theme,
+  } = props;
+
+  const tw = useTailwind();
+
+  const isSearching = search.searchQuery.trim().length > 0;
+  const hasSearchResults = search.searchResults.length > 0;
+
+  // Loading - show skeleton
+  if (isLoading) {
+    return (
+      <View style={tw`flex-1 px-4`} testID="trending-tokens-skeleton">
+        {Array.from({ length: 12 }).map((_, index) => (
+          <TrendingTokensSkeleton key={index} />
+        ))}
+      </View>
+    );
+  }
+
+  // Show empty trending search results
+  if (isSearching && !hasSearchResults) {
+    return <EmptySearchResultState />;
+  }
+
+  // Show error if no results found
+  if (!isSearching && !hasSearchResults) {
+    return <EmptyErrorTrendingState onRetry={handleRefresh} />;
+  }
+
+  // Show trending tokens list
+  return (
+    <View style={tw`flex-1 px-4`}>
+      <TrendingTokensList
+        trendingTokens={trendingTokens}
+        selectedTimeOption={selectedTimeOption}
+        filterContext={filterContext}
+        refreshControl={
+          <RefreshControl
+            colors={[theme.colors.primary.default]}
+            tintColor={theme.colors.icon.default}
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+          />
+        }
+      />
+    </View>
+  );
+};
 
 const TrendingTokensFullView = () => {
   const navigation =
@@ -515,35 +584,17 @@ const TrendingTokensFullView = () => {
         </View>
       ) : null}
 
-      {isLoading ? (
-        <View style={styles.listContainer}>
-          {Array.from({ length: 12 }).map((_, index) => (
-            <TrendingTokensSkeleton key={index} />
-          ))}
-        </View>
-      ) : (searchResults as TrendingAsset[]).length === 0 ? (
-        searchQuery.trim().length > 0 ? (
-          <EmptySearchResultState />
-        ) : (
-          <EmptyErrorTrendingState onRetry={handleRefresh} />
-        )
-      ) : (
-        <View style={styles.listContainer}>
-          <TrendingTokensList
-            trendingTokens={trendingTokens}
-            selectedTimeOption={selectedTimeOption}
-            filterContext={filterContext}
-            refreshControl={
-              <RefreshControl
-                colors={[theme.colors.primary.default]}
-                tintColor={theme.colors.icon.default}
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-              />
-            }
-          />
-        </View>
-      )}
+      <TrendingTokensData
+        isLoading={isLoading}
+        refreshing={refreshing}
+        trendingTokens={trendingTokens}
+        search={{ searchResults, searchQuery }}
+        handleRefresh={handleRefresh}
+        selectedTimeOption={selectedTimeOption}
+        filterContext={filterContext}
+        theme={theme}
+      />
+
       <TrendingTokenTimeBottomSheet
         isVisible={showTimeBottomSheet}
         onClose={() => setShowTimeBottomSheet(false)}

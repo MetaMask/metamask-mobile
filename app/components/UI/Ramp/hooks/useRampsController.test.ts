@@ -6,6 +6,7 @@ import { useRampsController } from './useRampsController';
 import { useRampsProviders } from './useRampsProviders';
 import { useRampsTokens } from './useRampsTokens';
 import { useRampsCountries } from './useRampsCountries';
+import { useRampsPaymentMethods } from './useRampsPaymentMethods';
 
 jest.mock(
   '../../../../selectors/multichainAccounts/accountTreeController',
@@ -20,49 +21,46 @@ jest.mock(
 jest.mock('./useRampsUserRegion', () => ({
   useRampsUserRegion: jest.fn(() => ({
     userRegion: null,
-    isLoading: false,
-    error: null,
-    fetchUserRegion: jest.fn(),
     setUserRegion: jest.fn(),
-  })),
-}));
-
-jest.mock('./useRampsPreferredProvider', () => ({
-  useRampsPreferredProvider: jest.fn(() => ({
-    preferredProvider: null,
-    setPreferredProvider: jest.fn(),
   })),
 }));
 
 jest.mock('./useRampsProviders', () => ({
   useRampsProviders: jest.fn(() => ({
     providers: [],
+    selectedProvider: null,
+    setSelectedProvider: jest.fn(),
     isLoading: false,
     error: null,
-    fetchProviders: jest.fn(),
   })),
 }));
 
 jest.mock('./useRampsTokens', () => ({
   useRampsTokens: jest.fn(() => ({
     tokens: null,
+    selectedToken: null,
+    setSelectedToken: jest.fn(),
     isLoading: false,
     error: null,
-    fetchTokens: jest.fn(),
   })),
 }));
 
 jest.mock('./useRampsCountries', () => ({
   useRampsCountries: jest.fn(() => ({
-    countries: null,
+    countries: [],
     isLoading: false,
     error: null,
-    fetchCountries: jest.fn(),
   })),
 }));
 
-jest.mock('./useRampsPreferredProviderAutoSet', () => ({
-  useRampsPreferredProviderAutoSet: jest.fn(),
+jest.mock('./useRampsPaymentMethods', () => ({
+  useRampsPaymentMethods: jest.fn(() => ({
+    paymentMethods: [],
+    selectedPaymentMethod: null,
+    setSelectedPaymentMethod: jest.fn(),
+    isLoading: false,
+    error: null,
+  })),
 }));
 
 const createMockStore = () =>
@@ -107,61 +105,38 @@ describe('useRampsController', () => {
 
     expect(result.current).toMatchObject({
       userRegion: null,
-      userRegionLoading: false,
-      userRegionError: null,
-      preferredProvider: null,
+      selectedProvider: null,
       providers: [],
       providersLoading: false,
       providersError: null,
       tokens: null,
+      selectedToken: null,
       tokensLoading: false,
       tokensError: null,
-      countries: null,
+      countries: [],
       countriesLoading: false,
       countriesError: null,
+      paymentMethods: [],
+      selectedPaymentMethod: null,
+      paymentMethodsLoading: false,
+      paymentMethodsError: null,
     });
 
-    expect(typeof result.current.fetchUserRegion).toBe('function');
     expect(typeof result.current.setUserRegion).toBe('function');
-    expect(typeof result.current.setPreferredProvider).toBe('function');
-    expect(typeof result.current.fetchProviders).toBe('function');
-    expect(typeof result.current.fetchTokens).toBe('function');
-    expect(typeof result.current.fetchCountries).toBe('function');
+    expect(typeof result.current.setSelectedProvider).toBe('function');
+    expect(typeof result.current.setSelectedToken).toBe('function');
+    expect(typeof result.current.setSelectedPaymentMethod).toBe('function');
   });
 
-  it('passes options to child hooks', () => {
-    const store = createMockStore();
-    renderHook(
-      () =>
-        useRampsController({
-          region: 'us-ny',
-          action: 'sell',
-          providerFilters: {
-            provider: 'test-provider',
-            crypto: 'ETH',
-          },
-        }),
-      {
-        wrapper: wrapper(store),
-      },
-    );
-
-    expect(useRampsProviders).toHaveBeenCalledWith('us-ny', {
-      provider: 'test-provider',
-      crypto: 'ETH',
-    });
-    expect(useRampsTokens).toHaveBeenCalledWith('us-ny', 'sell');
-    expect(useRampsCountries).toHaveBeenCalledWith('sell');
-  });
-
-  it('passes undefined options when not provided', () => {
+  it('calls child hooks', () => {
     const store = createMockStore();
     renderHook(() => useRampsController(), {
       wrapper: wrapper(store),
     });
 
-    expect(useRampsProviders).toHaveBeenCalledWith(undefined, undefined);
-    expect(useRampsTokens).toHaveBeenCalledWith(undefined, undefined);
-    expect(useRampsCountries).toHaveBeenCalledWith(undefined);
+    expect(useRampsProviders).toHaveBeenCalled();
+    expect(useRampsTokens).toHaveBeenCalled();
+    expect(useRampsCountries).toHaveBeenCalled();
+    expect(useRampsPaymentMethods).toHaveBeenCalled();
   });
 });
