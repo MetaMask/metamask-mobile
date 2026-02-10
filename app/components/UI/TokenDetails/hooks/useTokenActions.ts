@@ -168,15 +168,15 @@ export const useTokenActions = ({
     const addressForChain = accountForChain?.address;
 
     if (addressForChain && selectedAccountGroup && chainId) {
-      navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
-        screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
-        params: {
+      navigation.navigate(
+        Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
+        {
           address: addressForChain,
           networkName: networkName || 'Unknown Network',
           chainId,
           groupId: selectedAccountGroup.id,
         },
-      });
+      );
     } else {
       Logger.error(
         new Error(
@@ -219,12 +219,7 @@ export const useTokenActions = ({
       return;
     }
 
-    navigation.navigate(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
-    });
+    navigation.navigate(Routes.WALLET_VIEW);
 
     if (token.chainId !== selectedChainId) {
       const { NetworkController, MultichainNetworkController } = Engine.context;

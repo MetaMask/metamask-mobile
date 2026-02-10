@@ -51,12 +51,9 @@ export const usePerpsActions = ({
 
       // Navigate to the Perps stack, targeting PerpsOrderRedirect
       // This ensures WebSocket is initialized before calling depositWithOrder()
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.ORDER_REDIRECT,
-        params: {
-          direction,
-          asset: marketData.symbol,
-        },
+      navigation.navigate(Routes.PERPS.ORDER_REDIRECT, {
+        direction,
+        asset: marketData.symbol,
       });
     },
     [navigation, marketData],

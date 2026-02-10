@@ -300,11 +300,6 @@ describe('ConfirmAddAsset', () => {
     await userEvent.press(confirmButton);
 
     expect(mockAddTokenList).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
   });
 });
