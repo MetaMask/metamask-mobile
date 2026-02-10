@@ -29,7 +29,7 @@ const TextFieldSearch: React.FC<TextFieldSearchProps> = ({
   );
 
   const clearButtonHandler = useCallback(() => {
-    onPressClearButton();
+    onPressClearButton?.();
   }, [onPressClearButton]);
 
   const clearButton = (

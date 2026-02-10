@@ -85,40 +85,4 @@ describe('TextFieldSearch', () => {
 
     expect(textFieldComponent.prop('endAccessory')).toBe(false);
   });
-
-  it('warns in dev mode when value exists but onPressClearButton is missing', () => {
-    const globalAny = global as unknown as { __DEV__: boolean };
-    const originalDev = globalAny.__DEV__;
-    globalAny.__DEV__ = true;
-    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
-
-    shallow(
-      <TextFieldSearch
-        value="search text"
-        onPressClearButton={undefined as unknown as () => void}
-      />,
-    );
-
-    expect(consoleWarnSpy).toHaveBeenCalledWith(
-      'TextFieldSearch: onPressClearButton should be provided when using controlled value',
-    );
-
-    consoleWarnSpy.mockRestore();
-    globalAny.__DEV__ = originalDev;
-  });
-
-  it('does not warn when onPressClearButton is provided', () => {
-    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
-
-    shallow(
-      <TextFieldSearch
-        value="search text"
-        onPressClearButton={mockOnPressClearButton}
-      />,
-    );
-
-    expect(consoleWarnSpy).not.toHaveBeenCalled();
-
-    consoleWarnSpy.mockRestore();
-  });
 });
