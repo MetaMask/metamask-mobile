@@ -417,6 +417,41 @@ describe('AssetOverview', () => {
     jest.clearAllMocks();
   });
 
+  it('hides buy button when token is not supported in ramp tokens', () => {
+    mockUseRampTokens.mockReturnValue({
+      allTokens: [],
+      topTokens: [],
+      isLoading: false,
+      error: null,
+    });
+
+    const { queryByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        networkName="Ethereum Mainnet"
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(queryByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON)).toBeNull();
+  });
+
+  it('shows buy button when token is supported in ramp tokens', () => {
+    const { queryByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        networkName="Ethereum Mainnet"
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(queryByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON)).not.toBeNull();
+  });
+
   it('should handle buy button press', async () => {
     const { getByTestId } = renderWithProvider(
       <AssetOverview
