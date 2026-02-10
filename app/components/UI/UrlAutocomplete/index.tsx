@@ -43,7 +43,6 @@ import {
   HISTORY_FUSE_OPTIONS,
 } from './UrlAutocomplete.constants';
 import { Result } from './Result';
-import UrlAutocompleteSearchFooter from './UrlAutocompleteSearchFooter';
 import {
   SwapBridgeNavigationLocation,
   useSwapBridgeNavigation,
@@ -59,6 +58,8 @@ import { PerpsConnectionProvider } from '../Perps/providers/PerpsConnectionProvi
 import { PerpsStreamProvider } from '../Perps/providers/PerpsStreamManager';
 import { isCaipChainId, parseCaipChainId, type Hex } from '@metamask/utils';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../constants/bridge';
+import SitesSearchFooter from '../Sites/components/SitesSearchFooter/SitesSearchFooter';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 export * from './types';
 
@@ -192,6 +193,7 @@ const SearchContent: React.FC<SearchContentProps> = ({
   hide,
   styles,
 }) => {
+  const tw = useTailwind();
   const navigation = useNavigation();
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
@@ -417,9 +419,10 @@ const SearchContent: React.FC<SearchContentProps> = ({
         url,
         name: url,
       };
+      hide();
       onSelect(searchResult);
     },
-    [onSelect],
+    [hide, onSelect],
   );
 
   // Always show search footer when there's a search query
@@ -440,10 +443,10 @@ const SearchContent: React.FC<SearchContentProps> = ({
         keyboardShouldPersistTaps="handled"
         ListFooterComponent={
           showSearchFooter ? (
-            <UrlAutocompleteSearchFooter
+            <SitesSearchFooter
               searchQuery={searchQuery}
-              onSelect={handleSearchFooterSelect}
-              hide={hide}
+              onPress={handleSearchFooterSelect}
+              containerStyle={tw`px-4`}
             />
           ) : null
         }

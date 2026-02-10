@@ -7,6 +7,7 @@ import {
   Icon,
   IconName,
   IconSize,
+  BoxProps,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -20,6 +21,8 @@ import { selectSearchEngine } from '../../../../../reducers/browser/selectors';
 
 export interface SitesSearchFooterProps {
   searchQuery: string;
+  onPress: (url: string) => void;
+  containerStyle?: BoxProps['style'];
 }
 
 /**
@@ -29,14 +32,10 @@ function looksLikeUrl(str: string): boolean {
   return /^(https?:\/\/)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([/?].*)?$/.test(str);
 }
 
-const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
-  searchQuery,
-}) => {
-  const tw = useTailwind();
+export const useSearchFooterBrowserNavigation = () => {
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
-  const searchEngine = useSelector(selectSearchEngine);
 
-  const onPressLink = useCallback(
+  const onPress = useCallback(
     (url: string) => {
       navigation.navigate(Routes.BROWSER.HOME, {
         screen: Routes.BROWSER.VIEW,
@@ -49,6 +48,17 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
     },
     [navigation],
   );
+
+  return { onPress };
+};
+
+const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
+  searchQuery,
+  onPress,
+  containerStyle,
+}) => {
+  const tw = useTailwind();
+  const searchEngine = useSelector(selectSearchEngine);
 
   if (!searchQuery || searchQuery.length === 0) {
     return null;
@@ -65,11 +75,11 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
     searchEngine === 'DuckDuckGo' ? 'DuckDuckGo' : 'Google';
 
   return (
-    <Box>
+    <Box style={containerStyle}>
       {isUrl && (
         <TouchableOpacity
           style={tw.style('flex-row items-center py-4')}
-          onPress={() => onPressLink(searchQuery)}
+          onPress={() => onPress(searchQuery)}
           testID="trending-search-footer-url-link"
         >
           <Box twClassName="flex-1">
@@ -93,7 +103,7 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
 
       <TouchableOpacity
         style={tw.style('flex-row items-center py-4')}
-        onPress={() => onPressLink(searchUrl)}
+        onPress={() => onPress(searchUrl)}
         testID="trending-search-footer-google-link"
       >
         <Box twClassName="flex-1 flex-row items-center">
@@ -130,5 +140,12 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
 };
 
 SitesSearchFooter.displayName = 'SitesSearchFooter';
+
+export const ExploreSitesFooter = (props: { searchQuery: string }) => {
+  const { searchQuery } = props;
+  const { onPress } = useSearchFooterBrowserNavigation();
+
+  return <SitesSearchFooter searchQuery={searchQuery} onPress={onPress} />;
+};
 
 export default SitesSearchFooter;

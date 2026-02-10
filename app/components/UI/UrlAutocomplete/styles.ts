@@ -80,28 +80,6 @@ const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
     price: {
       color: colors.text.default,
     },
-    searchFooterContainer: {
-      paddingHorizontal: 15,
-      paddingTop: 8,
-      borderTopWidth: 1,
-      borderTopColor: colors.border.muted,
-    },
-    searchFooterRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingVertical: 12,
-    },
-    searchFooterTextWrapper: {
-      flex: 1,
-    },
-    searchFooterText: {
-      color: colors.primary.default,
-      ...typography.sBodyMD,
-      fontFamily: getFontFamily(TextVariant.BodyMD),
-    } as TextStyle,
-    searchFooterIcon: {
-      marginLeft: 12,
-    },
   });
 
 export default styleSheet;
