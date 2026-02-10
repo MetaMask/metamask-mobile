@@ -30,7 +30,7 @@ import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentSelectionModal';
 import { createCheckoutNavDetails } from '../Checkout';
-import { getQuoteWidgetUrl, isNativeProvider } from '../../types';
+import { isNativeProvider } from '../../types';
 import Logger from '../../../../../util/Logger';
 
 interface BuildQuoteParams {
@@ -71,6 +71,7 @@ function BuildQuote() {
     quotesLoading,
     startQuotePolling,
     stopQuotePolling,
+    getWidgetUrl,
     paymentMethodsLoading,
     selectedPaymentMethod,
   } = useRampsController();
@@ -157,7 +158,7 @@ function BuildQuote() {
     stopQuotePolling,
   ]);
 
-  const handleContinuePress = useCallback(() => {
+  const handleContinuePress = useCallback(async () => {
     if (!selectedQuote) return;
 
     // Native/whitelabel provider (e.g. Transak Native) -> deposit flow
@@ -170,7 +171,7 @@ function BuildQuote() {
     // Note: CustomActions (e.g., PayPal) are handled through the same flow.
     // If the API returns a quote with a URL, it will be opened in the checkout webview.
     // If customActions appear without a URL, they will error here (needs backend fix).
-    const widgetUrl = getQuoteWidgetUrl(selectedQuote);
+    const widgetUrl = await getWidgetUrl(selectedQuote);
 
     if (widgetUrl) {
       navigation.navigate(
@@ -187,7 +188,7 @@ function BuildQuote() {
       );
       // TODO: Show user-facing error (alert or inline)
     }
-  }, [selectedQuote, selectedProvider, navigation]);
+  }, [selectedQuote, selectedProvider, navigation, getWidgetUrl]);
 
   const hasAmount = amountAsNumber > 0;
 

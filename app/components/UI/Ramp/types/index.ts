@@ -7,20 +7,6 @@ export interface RampIntent {
 }
 
 /**
- * Extracts the widget URL from a quote.
- * Uses the url field from the quote object.
- *
- * @param quote - The quote to extract the widget URL from.
- * @returns The widget URL string, or null if not available.
- */
-export function getQuoteWidgetUrl(quote: Quote): string | null {
-  if (quote.url && typeof quote.url === 'string' && quote.url.length > 0) {
-    return quote.url;
-  }
-  return null;
-}
-
-/**
  * Checks if a quote is from a native/whitelabel provider.
  *
  * @param quote - The quote to check.

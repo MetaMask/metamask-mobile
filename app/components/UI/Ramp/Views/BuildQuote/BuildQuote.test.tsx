@@ -11,6 +11,12 @@ const mockSetOptions = jest.fn();
 const mockGoBack = jest.fn();
 const mockStartQuotePolling = jest.fn();
 const mockStopQuotePolling = jest.fn();
+const mockGetWidgetUrl = jest.fn(async (quote) => {
+  const buyUrl = quote?.quote?.buyURL;
+  if (!buyUrl) return null;
+  // Simulate the fetch behavior
+  return 'https://global.transak.com/?apiKey=test';
+});
 
 const MOCK_ASSET_ID =
   'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
@@ -123,6 +129,7 @@ jest.mock('../../hooks/useRampsController', () => ({
     quotesLoading: mockQuotesLoading,
     startQuotePolling: mockStartQuotePolling,
     stopQuotePolling: mockStopQuotePolling,
+    getWidgetUrl: mockGetWidgetUrl,
     paymentMethodsLoading: false,
     selectedPaymentMethod: mockSelectedPaymentMethod,
   }),
@@ -405,11 +412,12 @@ describe('BuildQuote', () => {
     it('enables continue button when quote is selected and matches amount', () => {
       mockSelectedQuote = {
         provider: '/providers/transak',
-        url: 'https://provider.test/widget',
         quote: {
           amountIn: 100,
           amountOut: 0.05,
           paymentMethod: '/payments/debit-credit-card',
+          buyURL:
+            'https://on-ramp.uat-api.cx.metamask.io/providers/transak/buy-widget',
         },
         providerInfo: {
           id: '/providers/transak',
@@ -428,14 +436,15 @@ describe('BuildQuote', () => {
       expect(continueButton).not.toBeDisabled();
     });
 
-    it('navigates to checkout webview for aggregator provider with URL', () => {
+    it('navigates to checkout webview for aggregator provider with URL', async () => {
       mockSelectedQuote = {
         provider: '/providers/mercuryo',
-        url: 'https://mercuryo.test/widget?amount=100',
         quote: {
           amountIn: 100,
           amountOut: 0.05,
           paymentMethod: '/payments/debit-credit-card',
+          buyURL:
+            'https://on-ramp.uat-api.cx.metamask.io/providers/mercuryo/buy-widget',
         },
         providerInfo: {
           id: '/providers/mercuryo',
@@ -455,10 +464,15 @@ describe('BuildQuote', () => {
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
       const continueButton = getByTestId('build-quote-continue-button');
-      fireEvent.press(continueButton);
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+        // Wait for async getWidgetUrl to complete
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith('Checkout', {
-        url: 'https://mercuryo.test/widget?amount=100',
+        url: 'https://global.transak.com/?apiKey=test',
         providerName: 'Mercuryo',
       });
     });

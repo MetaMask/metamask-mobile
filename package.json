@@ -187,7 +187,8 @@
     "@metamask/transaction-controller@npm:^62.9.2": "^62.14.0",
     "viem": "2.31.3",
     "@metamask/assets-controllers@npm:^99.2.0": "patch:@metamask/assets-controllers@npm%3A99.2.0#~/.yarn/patches/@metamask-assets-controllers-npm-99.2.0-bf6ecbcde9.patch",
-    "@metamask/assets-controllers@npm:^97.0.0": "patch:@metamask/assets-controllers@npm%3A99.2.0#~/.yarn/patches/@metamask-assets-controllers-npm-99.2.0-bf6ecbcde9.patch"
+    "@metamask/assets-controllers@npm:^97.0.0": "patch:@metamask/assets-controllers@npm%3A99.2.0#~/.yarn/patches/@metamask-assets-controllers-npm-99.2.0-bf6ecbcde9.patch",
+    "@metamask/ramps-controller": "portal:/Users/axelgeslin/Projects/Consensys/core/packages/ramps-controller"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
