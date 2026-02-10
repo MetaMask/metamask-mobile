@@ -369,7 +369,7 @@ builds:
 
   # Flask local development / Expo development build (Runway .app for simulator)
   flask-dev:
-    github_environment: build-flask-dev
+    github_environment: build-flask-uat
     env:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'dev'
