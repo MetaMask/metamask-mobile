@@ -295,20 +295,6 @@ describe('HardwareWalletProvider', () => {
       });
     });
 
-    describe('disconnect', () => {
-      it('should disconnect from device', async () => {
-        const { result } = renderWithActions();
-
-        await act(async () => {
-          await result.current.actions.disconnect();
-        });
-
-        expect(result.current.state.connectionState.status).toBe(
-          ConnectionStatus.Disconnected,
-        );
-      });
-    });
-
     describe('ensureDeviceReady', () => {
       it('should start the device readiness flow', async () => {
         const { result } = renderWithActions();
@@ -328,20 +314,6 @@ describe('HardwareWalletProvider', () => {
         // Verify the adapter method was called
         expect(mockAdapterInstance.ensureDeviceReady).toHaveBeenCalledWith(
           'device-123',
-        );
-      });
-    });
-
-    describe('clearError', () => {
-      it('should clear error state', async () => {
-        const { result } = renderWithActions();
-
-        await act(async () => {
-          result.current.actions.clearError();
-        });
-
-        expect(result.current.state.connectionState.status).toBe(
-          ConnectionStatus.Disconnected,
         );
       });
     });
@@ -387,52 +359,22 @@ describe('HardwareWalletProvider', () => {
       });
     };
 
-    describe('openDeviceSelection', () => {
-      it('should transition to scanning state', async () => {
-        const { result } = renderWithActions();
-
-        await act(async () => {
-          result.current.actions.openDeviceSelection(HardwareWalletType.Ledger);
-        });
-
-        expect(result.current.state.connectionState.status).toBe(
-          ConnectionStatus.Scanning,
-        );
-      });
-
-      it('should store success callback for later invocation', async () => {
-        const onSuccess = jest.fn();
-        const { result } = renderWithActions();
-
-        await act(async () => {
-          result.current.actions.openDeviceSelection(
-            HardwareWalletType.Ledger,
-            onSuccess,
-          );
-        });
-
-        expect(result.current.state.connectionState.status).toBe(
-          ConnectionStatus.Scanning,
-        );
-        // Success callback is stored but not called yet
-        expect(onSuccess).not.toHaveBeenCalled();
-      });
-    });
-
     describe('closeDeviceSelection', () => {
       it('should return to disconnected state', async () => {
         const { result } = renderWithActions();
 
-        // First open device selection
+        // Start device selection flow (ensureDeviceReady with no deviceId sets Scanning)
+        act(() => {
+          result.current.actions.ensureDeviceReady();
+        });
         await act(async () => {
-          result.current.actions.openDeviceSelection(HardwareWalletType.Ledger);
+          await new Promise((resolve) => setTimeout(resolve, 50));
         });
 
         expect(result.current.state.connectionState.status).toBe(
           ConnectionStatus.Scanning,
         );
 
-        // Then close it
         await act(async () => {
           result.current.actions.closeDeviceSelection();
         });
@@ -464,107 +406,24 @@ describe('HardwareWalletProvider', () => {
       it('should reset devices and restart scanning', async () => {
         const { result } = renderWithActions();
 
-        // Open device selection first
+        act(() => {
+          result.current.actions.ensureDeviceReady();
+        });
         await act(async () => {
-          result.current.actions.openDeviceSelection(HardwareWalletType.Ledger);
+          await new Promise((resolve) => setTimeout(resolve, 50));
         });
 
-        // Simulate selecting a device
         const mockDevice = { id: 'device-1', name: 'Nano X' };
         await act(async () => {
           result.current.actions.selectDevice(mockDevice);
         });
 
-        // Rescan should clear the selected device
         await act(async () => {
           result.current.actions.rescan();
         });
 
         expect(result.current.state.deviceSelection.isScanning).toBe(true);
         expect(result.current.state.deviceSelection.devices).toEqual([]);
-      });
-    });
-  });
-
-  describe('signing modal flow', () => {
-    const useTestActions = () => {
-      const hw = useHardwareWallet();
-      return {
-        actions: hw,
-        state: {
-          connectionState: hw.connectionState,
-          deviceSelection: hw.deviceSelection,
-        },
-      };
-    };
-
-    const renderWithActions = () => {
-      mockUseSelector.mockReturnValue({ address: '0x1234' });
-      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
-
-      return renderHook(() => useTestActions(), {
-        wrapper: ({ children }: { children: React.ReactNode }) => (
-          <HardwareWalletProvider>{children}</HardwareWalletProvider>
-        ),
-      });
-    };
-
-    describe('openSigningModal', () => {
-      it('should transition to connecting state', async () => {
-        const { result } = renderWithActions();
-
-        await act(async () => {
-          result.current.actions.openSigningModal(
-            HardwareWalletType.Ledger,
-            'device-123',
-          );
-        });
-
-        // The connect happens asynchronously, state should be connecting
-        await waitFor(() => {
-          // After adapter.connect resolves, adapter emits events updating state
-          expect(mockAdapterInstance.connect).toHaveBeenCalledWith(
-            'device-123',
-          );
-        });
-      });
-
-      it('should call onDeviceReady callback when provided', async () => {
-        const onDeviceReady = jest.fn().mockResolvedValue(undefined);
-        const { result } = renderWithActions();
-
-        await act(async () => {
-          result.current.actions.openSigningModal(
-            HardwareWalletType.Ledger,
-            'device-123',
-            onDeviceReady,
-          );
-        });
-
-        expect(mockAdapterInstance.connect).toHaveBeenCalledWith('device-123');
-      });
-    });
-
-    describe('closeSigningModal', () => {
-      it('should return to disconnected state', async () => {
-        const { result } = renderWithActions();
-
-        // Open signing modal
-        await act(async () => {
-          result.current.actions.openSigningModal(
-            HardwareWalletType.Ledger,
-            'device-123',
-          );
-        });
-
-        // Close it
-        await act(async () => {
-          result.current.actions.closeSigningModal();
-        });
-
-        expect(result.current.state.connectionState.status).toBe(
-          ConnectionStatus.Disconnected,
-        );
       });
     });
   });
@@ -718,18 +577,6 @@ describe('HardwareWalletProvider', () => {
 
         // After retry, adapter's ensureDeviceReady should be called again
         expect(mockAdapterInstance.ensureDeviceReady).toHaveBeenCalled();
-      });
-    });
-
-    describe('resetFlowState', () => {
-      it('should call adapter resetFlowState', async () => {
-        const { result } = renderWithActions();
-
-        await act(async () => {
-          result.current.actions.resetFlowState();
-        });
-
-        expect(mockAdapterInstance.resetFlowState).toHaveBeenCalled();
       });
     });
   });

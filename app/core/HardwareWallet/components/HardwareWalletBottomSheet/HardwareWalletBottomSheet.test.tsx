@@ -9,9 +9,7 @@ const mockDeviceSelection = {
 };
 const mockConfig = { walletType: 'ledger' };
 const mockActions = {
-  clearError: jest.fn(),
   retry: jest.fn(),
-  disconnect: jest.fn(),
   closeDeviceSelection: jest.fn(),
   selectDevice: jest.fn(),
   rescan: jest.fn(),

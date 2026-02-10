@@ -35502,7 +35502,6 @@ __metadata:
     react-native-os: "npm:^1.2.6"
     react-native-pager-view: "npm:^6.7.0"
     react-native-performance: "npm:^5.1.2"
-    react-native-permissions: "npm:^3.7.2"
     react-native-progress: "npm:3.5.0"
     react-native-qrcode-svg: "npm:5.1.2"
     react-native-quick-base64: "npm:^2.2.0"
@@ -40150,20 +40149,6 @@ __metadata:
   peerDependencies:
     react-native: "*"
   checksum: 10/7c8025616f85b3cfbbc9f8593b11d65d44693464c97b7290efe807e901c4241c5db25f68424874b456b2fc6ac8188fd07a06f807c75632e5a1fa167e85ae268d
-  languageName: node
-  linkType: hard
-
-"react-native-permissions@npm:^3.7.2":
-  version: 3.10.1
-  resolution: "react-native-permissions@npm:3.10.1"
-  peerDependencies:
-    react: ">=16.13.1"
-    react-native: ">=0.63.3"
-    react-native-windows: ">=0.62.0"
-  peerDependenciesMeta:
-    react-native-windows:
-      optional: true
-  checksum: 10/afd3db79cd5a82f04e1382d63d125d783923e272d3919298680b46d86422ca357ce9774f93c5113615ab6021015e0e5ea5a6ba137c1ab78f1a47f962c0adf959
   languageName: node
   linkType: hard
 

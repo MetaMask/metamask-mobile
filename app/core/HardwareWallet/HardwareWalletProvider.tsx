@@ -323,40 +323,6 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   ]);
 
   /**
-   * Open device selection (starts scanning and shows bottom sheet)
-   * Called when user selects a wallet type to connect
-   *
-   * IMPORTANT: Checks Bluetooth state FIRST before proceeding to scanning.
-   * If Bluetooth is off, immediately shows an error instead of scanning.
-   *
-   * @param walletTypeToConnect - The hardware wallet type to connect
-   * @param onSuccess - Optional callback called after successful connection
-   */
-  const openDeviceSelection = useCallback(
-    (walletTypeToConnect: HardwareWalletType, onSuccess?: () => void) => {
-      console.log(
-        '[HardwareWalletProvider] openDeviceSelection called for:',
-        walletTypeToConnect,
-      );
-      // Store the success callback
-      connectionSuccessCallbackRef.current = onSuccess ?? null;
-
-      // Set the target wallet type
-      setters.setTargetWalletType(walletTypeToConnect);
-
-      // Note: We don't check isTransportAvailable here because:
-      // 1. The state may be stale (adapter callback hasn't updated React state yet)
-      // 2. The adapter's startDeviceDiscovery will handle BLE availability
-      // 3. If BLE is really off, TransportBLE.listen will fail and error callback handles it
-
-      // Proceed to scanning state - let the adapter handle transport availability
-      console.log('[HardwareWalletProvider] Transitioning to scanning state');
-      updateConnectionState({ status: ConnectionStatus.Scanning });
-    },
-    [setters, updateConnectionState],
-  );
-
-  /**
    * Close device selection (stops scanning and returns to disconnected)
    * Called when user cancels device selection via swipe down or cancel button.
    *
@@ -402,104 +368,13 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   }, []);
 
   /**
-   * Track if we're in signing mode (vs device selection mode)
-   * This affects how closeSigningModal behaves
+   * Close bottom sheet (device selection or connecting).
+   * Called when user cancels via swipe down or cancel button.
    */
-  const isSigningRef = useRef(false);
-
-  /**
-   * Store the onDeviceReady callback for signing operations
-   */
-  const onDeviceReadyRef = useRef<(() => Promise<void>) | null>(null);
-
-  /**
-   * Open signing modal (for confirmations flow)
-   * Connects to the device and shows the signing UI
-   * @param walletTypeToSign - The type of wallet
-   * @param targetDeviceId - The device ID to connect to
-   * @param onDeviceReady - Callback called when device is ready for signing
-   */
-  const openSigningModal = useCallback(
-    async (
-      walletTypeToSign: HardwareWalletType,
-      targetDeviceId: string,
-      onDeviceReady?: () => Promise<void>,
-    ): Promise<void> => {
-      // Mark that we're in signing mode
-      isSigningRef.current = true;
-
-      // Store the callback
-      onDeviceReadyRef.current = onDeviceReady ?? null;
-
-      // Set the target wallet type and device ID
-      setters.setTargetWalletType(walletTypeToSign);
-      setters.setDeviceId(targetDeviceId);
-
-      // Note: We don't check isTransportAvailable here because the adapter's connect
-      // method will fail if BLE is unavailable, and the error will be handled properly.
-      // This avoids potential race conditions with React state updates.
-
-      // Transition to connecting state (shows bottom sheet)
-      updateConnectionState({ status: ConnectionStatus.Connecting });
-
-      try {
-        const adapter = refs.adapterRef.current;
-        if (!adapter) {
-          throw new Error('No adapter available');
-        }
-
-        // Connect to the device
-        await adapter.connect(targetDeviceId);
-
-        // The adapter will emit device events that update the connection state
-        // When we reach AwaitingConfirmation, we'll trigger onDeviceReady
-      } catch (error) {
-        handleError(error);
-      }
-    },
-    [setters, handleError, updateConnectionState, refs],
-  );
-
-  /**
-   * Close signing modal
-   * Cleans up signing state and hides the bottom sheet
-   */
-  const closeSigningModal = useCallback(() => {
-    // Clear signing mode
-    isSigningRef.current = false;
-    // Clear the onDeviceReady callback
-    onDeviceReadyRef.current = null;
-    // Clear target wallet type
+  const closeBottomSheet = useCallback(() => {
     setters.setTargetWalletType(null);
-    // Return to disconnected state
     updateConnectionState({ status: ConnectionStatus.Disconnected });
   }, [setters, updateConnectionState]);
-
-  // Trigger onDeviceReady when we reach Connected state during signing
-  // This is when the device is connected and the correct app is open
-  useEffect(() => {
-    if (
-      isSigningRef.current &&
-      connectionState.status === ConnectionStatus.Connected &&
-      onDeviceReadyRef.current
-    ) {
-      // Transition to AwaitingConfirmation since we're about to request a signature
-      updateConnectionState({
-        status: ConnectionStatus.AwaitingConfirmation,
-        deviceId: connectionState.deviceId,
-        operationType: 'sign',
-      });
-
-      // Call the onDeviceReady callback to trigger actual signing
-      const callback = onDeviceReadyRef.current;
-      onDeviceReadyRef.current = null; // Clear to prevent re-triggering
-
-      callback().catch((error) => {
-        console.error('[HardwareWallet] Signing failed:', error);
-        handleError(error);
-      });
-    }
-  }, [connectionState, updateConnectionState, handleError]);
 
   /**
    * Connect to a hardware wallet device
@@ -587,33 +462,6 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     },
     [refs, setters, handleError, updateConnectionState],
   );
-
-  /**
-   * Disconnect from the current device
-   */
-  const disconnect = useCallback(async (): Promise<void> => {
-    // Cancel any abort controller
-    if (refs.abortControllerRef.current) {
-      refs.abortControllerRef.current.abort();
-      refs.abortControllerRef.current = null;
-    }
-
-    try {
-      const adapter = refs.adapterRef.current;
-      if (adapter) {
-        await adapter.disconnect();
-      }
-    } catch (error) {
-      // Log but don't throw - we want to reset state regardless
-      if (__DEV__) {
-        console.warn('[HardwareWallet] Disconnect error:', error);
-      }
-    }
-
-    updateConnectionState({ status: ConnectionStatus.Disconnected });
-    setters.setDeviceId(null);
-    refs.isConnectingRef.current = false;
-  }, [refs, setters, updateConnectionState]);
 
   /**
    * Ensure the device is ready for operations.
@@ -967,18 +815,6 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   ]);
 
   /**
-   * Reset the flow state to allow errors to be shown again.
-   * Should be called before starting new operations that may fail
-   * (e.g., unlocking accounts after initial connection).
-   */
-  const resetFlowState = useCallback(() => {
-    const adapter = refs.adapterRef.current;
-    if (adapter?.resetFlowState) {
-      adapter.resetFlowState();
-    }
-  }, [refs]);
-
-  /**
    * Show the "awaiting confirmation" bottom sheet.
    * Call this after ensureDeviceReady returns true, before sending
    * a signing request to the device. Shows UI prompting user to
@@ -1046,20 +882,14 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       deviceId,
       connectionState,
       deviceSelection: deviceSelectionState,
-      openDeviceSelection,
       closeDeviceSelection,
-      openSigningModal,
-      closeSigningModal,
       connect,
-      disconnect,
       ensureDeviceReady,
       setTargetWalletType: setters.setTargetWalletType,
       showHardwareWalletError,
-      clearError: clearErrorState,
       retry,
       selectDevice,
       rescan,
-      resetFlowState,
       showAwaitingConfirmation,
       hideAwaitingConfirmation,
     }),
@@ -1068,20 +898,14 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       deviceId,
       connectionState,
       deviceSelectionState,
-      openDeviceSelection,
       closeDeviceSelection,
-      openSigningModal,
-      closeSigningModal,
       connect,
-      disconnect,
       ensureDeviceReady,
       setters.setTargetWalletType,
       showHardwareWalletError,
-      clearErrorState,
       retry,
       selectDevice,
       rescan,
-      resetFlowState,
       showAwaitingConfirmation,
       hideAwaitingConfirmation,
     ],
@@ -1092,8 +916,8 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       {children}
       {/* Unified Hardware Wallet Bottom Sheet - handles ALL states */}
       <HardwareWalletBottomSheet
-        onCancel={closeSigningModal}
-        onClose={closeSigningModal}
+        onCancel={closeBottomSheet}
+        onClose={closeBottomSheet}
         onAwaitingConfirmationCancel={handleAwaitingConfirmationCancel}
         onConnectionSuccess={() => {
           // Mark flow as complete to suppress any error events
