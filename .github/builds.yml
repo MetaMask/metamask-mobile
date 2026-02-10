@@ -20,8 +20,8 @@
 # YAML Anchors (reusable config blocks)
 # =============================================================================
 
-# Shared env (non-secret): servers + build flags. Production defaults; test/e2e/exp/dev use override anchors below.
-# Prod builds: <<: *public_envs. Test/e2e/exp/dev: <<: [*env_overrides_uat or *env_overrides_exp or *env_overrides_dev, *public_envs] so overrides take precedence.
+# Shared env (non-secret): servers + build flags. Production defaults.
+# Each build merges <<: *public_envs and overrides only what differs (inline in that build).
 _public_envs: &public_envs # Servers (production)
   PORTFOLIO_API_URL: 'https://portfolio.api.cx.metamask.io'
   SECURITY_ALERTS_API_URL: 'https://security-alerts.api.cx.metamask.io'
@@ -35,43 +35,6 @@ _public_envs: &public_envs # Servers (production)
   RAMP_INTERNAL_BUILD: 'false'
   IS_TEST: 'false'
   SEEDLESS_ONBOARDING_ENABLED: 'true'
-
-# Test/E2E overrides (merge first so they override public_envs; used by main-test, main-e2e, flask-test, flask-e2e)
-_env_overrides_uat: &env_overrides_uat
-  PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
-  REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
-  BAANX_API_URL: 'https://dev.api.baanx.com'
-  RAMPS_ENVIRONMENT: 'staging'
-  BRIDGE_USE_DEV_APIS: 'true'
-  RAMP_INTERNAL_BUILD: 'true'
-  IS_TEST: 'true'
-  IGNORE_BOXLOGS_DEVELOPMENT: 'true'
-  IS_SIM_BUILD: 'true'
-
-# Experimental overrides (main-exp)
-_env_overrides_exp: &env_overrides_exp
-  PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
-  REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
-  BAANX_API_URL: 'https://dev.api.baanx.com'
-  RAMPS_ENVIRONMENT: 'staging'
-  BRIDGE_USE_DEV_APIS: 'true'
-  RAMP_INTERNAL_BUILD: 'true'
-  IS_TEST: 'false'
-  MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
-
-# Dev overrides (main-dev, flask-dev, qa-dev)
-_env_overrides_dev: &env_overrides_dev
-  PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
-  REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
-  BAANX_API_URL: 'https://dev.api.baanx.com'
-  RAMPS_ENVIRONMENT: 'staging'
-  BRIDGE_USE_DEV_APIS: 'true'
-  RAMP_INTERNAL_BUILD: 'true'
-  IS_TEST: 'false'
-  MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
-  IS_SIM_BUILD: 'true'
-  CONFIGURATION: 'Debug'
-  DEV_OAUTH_CONFIG: 'true'
 
 # Common secrets (shared across ALL builds - same names, GitHub Environment determines values)
 _secrets: &secrets # Infrastructure
@@ -224,9 +187,18 @@ builds:
     github_environment: build-test
     signing: *signing_uat
     env:
-      <<: [*env_overrides_uat, *public_envs]
+      <<: *public_envs
       METAMASK_ENVIRONMENT: 'test'
       METAMASK_BUILD_TYPE: 'main'
+      PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      BAANX_API_URL: 'https://dev.api.baanx.com'
+      RAMPS_ENVIRONMENT: 'staging'
+      BRIDGE_USE_DEV_APIS: 'true'
+      RAMP_INTERNAL_BUILD: 'true'
+      IS_TEST: 'true'
+      IGNORE_BOXLOGS_DEVELOPMENT: 'true'
+      IS_SIM_BUILD: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main
     remote_feature_flags: *remote_feature_flags
@@ -236,9 +208,18 @@ builds:
     github_environment: build-e2e
     signing: *signing_uat
     env:
-      <<: [*env_overrides_uat, *public_envs]
+      <<: *public_envs
       METAMASK_ENVIRONMENT: 'e2e'
       METAMASK_BUILD_TYPE: 'main'
+      PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      BAANX_API_URL: 'https://dev.api.baanx.com'
+      RAMPS_ENVIRONMENT: 'staging'
+      BRIDGE_USE_DEV_APIS: 'true'
+      RAMP_INTERNAL_BUILD: 'true'
+      IS_TEST: 'true'
+      IGNORE_BOXLOGS_DEVELOPMENT: 'true'
+      IS_SIM_BUILD: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main
     remote_feature_flags: *remote_feature_flags
@@ -248,9 +229,17 @@ builds:
     github_environment: build-exp
     signing: *signing_uat
     env:
-      <<: [*env_overrides_exp, *public_envs]
+      <<: *public_envs
       METAMASK_ENVIRONMENT: 'exp'
       METAMASK_BUILD_TYPE: 'main'
+      PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      BAANX_API_URL: 'https://dev.api.baanx.com'
+      RAMPS_ENVIRONMENT: 'staging'
+      BRIDGE_USE_DEV_APIS: 'true'
+      RAMP_INTERNAL_BUILD: 'true'
+      IS_TEST: 'false'
+      MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main
     remote_feature_flags:
@@ -271,9 +260,20 @@ builds:
   main-dev:
     github_environment: build-dev
     env:
-      <<: [*env_overrides_dev, *public_envs]
+      <<: *public_envs
       METAMASK_ENVIRONMENT: 'dev'
       METAMASK_BUILD_TYPE: 'main'
+      PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      BAANX_API_URL: 'https://dev.api.baanx.com'
+      RAMPS_ENVIRONMENT: 'staging'
+      BRIDGE_USE_DEV_APIS: 'true'
+      RAMP_INTERNAL_BUILD: 'true'
+      IS_TEST: 'false'
+      MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
+      IS_SIM_BUILD: 'true'
+      CONFIGURATION: 'Debug'
+      DEV_OAUTH_CONFIG: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main
     remote_feature_flags:
@@ -311,9 +311,18 @@ builds:
     github_environment: build-flask-uat
     signing: *signing_flask_uat
     env:
-      <<: [*env_overrides_uat, *public_envs]
+      <<: *public_envs
       METAMASK_ENVIRONMENT: 'test'
       METAMASK_BUILD_TYPE: 'flask'
+      PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      BAANX_API_URL: 'https://dev.api.baanx.com'
+      RAMPS_ENVIRONMENT: 'staging'
+      BRIDGE_USE_DEV_APIS: 'true'
+      RAMP_INTERNAL_BUILD: 'true'
+      IS_TEST: 'true'
+      IGNORE_BOXLOGS_DEVELOPMENT: 'true'
+      IS_SIM_BUILD: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_flask
     remote_feature_flags: *remote_feature_flags
@@ -323,9 +332,18 @@ builds:
     github_environment: build-flask-e2e
     signing: *signing_flask_uat
     env:
-      <<: [*env_overrides_uat, *public_envs]
+      <<: *public_envs
       METAMASK_ENVIRONMENT: 'e2e'
       METAMASK_BUILD_TYPE: 'flask'
+      PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      BAANX_API_URL: 'https://dev.api.baanx.com'
+      RAMPS_ENVIRONMENT: 'staging'
+      BRIDGE_USE_DEV_APIS: 'true'
+      RAMP_INTERNAL_BUILD: 'true'
+      IS_TEST: 'true'
+      IGNORE_BOXLOGS_DEVELOPMENT: 'true'
+      IS_SIM_BUILD: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_flask
     remote_feature_flags: *remote_feature_flags
@@ -334,9 +352,20 @@ builds:
   flask-dev:
     github_environment: build-flask-dev
     env:
-      <<: [*env_overrides_dev, *public_envs]
+      <<: *public_envs
       METAMASK_ENVIRONMENT: 'dev'
       METAMASK_BUILD_TYPE: 'flask'
+      PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      BAANX_API_URL: 'https://dev.api.baanx.com'
+      RAMPS_ENVIRONMENT: 'staging'
+      BRIDGE_USE_DEV_APIS: 'true'
+      RAMP_INTERNAL_BUILD: 'true'
+      IS_TEST: 'false'
+      MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
+      IS_SIM_BUILD: 'true'
+      CONFIGURATION: 'Debug'
+      DEV_OAUTH_CONFIG: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_flask
     remote_feature_flags:
@@ -386,9 +415,20 @@ builds:
   qa-dev:
     github_environment: build-qa
     env:
-      <<: [*env_overrides_dev, *public_envs]
+      <<: *public_envs
       METAMASK_ENVIRONMENT: 'dev'
       METAMASK_BUILD_TYPE: 'qa'
+      PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      BAANX_API_URL: 'https://dev.api.baanx.com'
+      RAMPS_ENVIRONMENT: 'staging'
+      BRIDGE_USE_DEV_APIS: 'true'
+      RAMP_INTERNAL_BUILD: 'true'
+      IS_TEST: 'false'
+      MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
+      IS_SIM_BUILD: 'true'
+      CONFIGURATION: 'Debug'
+      DEV_OAUTH_CONFIG: 'true'
     secrets:
       <<: *secrets
       # QA uses QA Segment project
