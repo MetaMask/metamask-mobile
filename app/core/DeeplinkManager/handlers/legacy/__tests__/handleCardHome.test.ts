@@ -94,9 +94,7 @@ describe('handleCardHome', () => {
         expect(mockDispatch).toHaveBeenCalledWith(
           setAlwaysShowCardButton(true),
         );
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.WELCOME,
-        });
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.WELCOME);
       });
 
       it('enables card regardless of geo location', () => {
@@ -109,9 +107,7 @@ describe('handleCardHome', () => {
         expect(mockDispatch).toHaveBeenCalledWith(
           setAlwaysShowCardButton(true),
         );
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.WELCOME,
-        });
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.WELCOME);
       });
 
       it('enables card regardless of displayCardButtonFeatureFlag', () => {
@@ -156,9 +152,7 @@ describe('handleCardHome', () => {
       it('navigates to Card Welcome for unauthenticated user without card account', () => {
         handleCardHome();
 
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.WELCOME,
-        });
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.WELCOME);
       });
     });
 
@@ -325,12 +319,7 @@ describe('handleCardHome', () => {
         handleCardHome();
         jest.runAllTimers();
 
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.HOME,
-          params: {
-            screen: Routes.CARD.HOME,
-          },
-        });
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.HOME);
       });
 
       it('does not switch account when no card-linked accounts exist', () => {
@@ -368,12 +357,7 @@ describe('handleCardHome', () => {
         handleCardHome();
         jest.runAllTimers();
 
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.HOME,
-          params: {
-            screen: Routes.CARD.HOME,
-          },
-        });
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.HOME);
       });
     });
 
@@ -399,12 +383,7 @@ describe('handleCardHome', () => {
         handleCardHome();
         jest.runAllTimers();
 
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.HOME,
-          params: {
-            screen: Routes.CARD.HOME,
-          },
-        });
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.HOME);
       });
 
       it('logs the account switch', () => {
@@ -436,9 +415,7 @@ describe('handleCardHome', () => {
       it('navigates to Card Welcome', () => {
         handleCardHome();
 
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.WELCOME,
-        });
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.WELCOME);
       });
 
       it('does not switch account', () => {
@@ -520,9 +497,7 @@ describe('handleCardHome', () => {
       it('falls back to Card Welcome navigation', () => {
         handleCardHome();
 
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.WELCOME,
-        });
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.WELCOME);
       });
     });
 
@@ -585,9 +560,7 @@ describe('handleCardHome', () => {
       it('still navigates to Card Welcome', () => {
         handleCardHome();
 
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.WELCOME,
-        });
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.WELCOME);
       });
     });
 
@@ -623,12 +596,7 @@ describe('handleCardHome', () => {
         handleCardHome();
         jest.runAllTimers();
 
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.HOME,
-          params: {
-            screen: Routes.CARD.HOME,
-          },
-        });
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.HOME);
       });
     });
 
@@ -665,9 +633,7 @@ describe('handleCardHome', () => {
       it('still navigates to Card Welcome', () => {
         handleCardHome();
 
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.WELCOME,
-        });
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.WELCOME);
       });
     });
 

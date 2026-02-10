@@ -123,9 +123,9 @@ describe('TurnOnBackupAndSync', () => {
         BACKUPANDSYNC_FEATURES.main,
         true,
       );
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
-        screen: Routes.SETTINGS.BACKUP_AND_SYNC,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SETTINGS.BACKUP_AND_SYNC,
+      );
     });
   });
 

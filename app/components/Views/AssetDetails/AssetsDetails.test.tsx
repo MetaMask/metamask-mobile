@@ -294,12 +294,9 @@ describe('AssetDetails', () => {
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
-        'RootModalFlow',
+        'AssetHideConfirmation',
         expect.objectContaining({
-          screen: 'AssetHideConfirmation',
-          params: expect.objectContaining({
-            onConfirm: expect.any(Function),
-          }),
+          onConfirm: expect.any(Function),
         }),
       );
     });

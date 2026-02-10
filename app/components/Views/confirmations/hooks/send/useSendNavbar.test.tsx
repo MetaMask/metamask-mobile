@@ -206,9 +206,7 @@ describe('useSendNavbar', () => {
 
       fireEvent.press(backButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.SEND.DEFAULT, {
-        screen: Routes.SEND.ASSET,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.SEND.ASSET);
     });
 
     it('navigates to Asset screen when at first route in nested Send stack', () => {
@@ -236,9 +234,7 @@ describe('useSendNavbar', () => {
 
       fireEvent.press(backButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.SEND.DEFAULT, {
-        screen: Routes.SEND.ASSET,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.SEND.ASSET);
     });
 
     it('calls handleCancelPress when close button is pressed', () => {

@@ -234,10 +234,9 @@ describe('ReceiveRequest', () => {
 
     // Assert
     expect(mockNavigate).toHaveBeenCalledWith(
-      'PaymentRequestView',
+      'PaymentRequest',
       expect.objectContaining({
-        screen: 'PaymentRequest',
-        params: expect.any(Object),
+        receiveAsset: expect.any(Object),
       }),
     );
   });
