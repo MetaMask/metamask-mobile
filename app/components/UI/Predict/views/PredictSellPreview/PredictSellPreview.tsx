@@ -50,9 +50,7 @@ import {
   formatPositionSize,
   formatPrice,
 } from '../../utils/format';
-import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import PredictMarketBusySheet from '../../components/PredictMarketBusySheet';
-import type { PredictMarketBusySheetVariant } from '../../components/PredictMarketBusySheet';
 import { SLIPPAGE_BEST_AVAILABLE } from '../../providers/polymarket/constants';
 import styleSheet from './PredictSellPreview.styles';
 
@@ -114,7 +112,7 @@ const PredictSellPreview = () => {
   const [isRetrying, setIsRetrying] = useState(false);
   const [retrySheetVariant, setRetrySheetVariant] =
     useState<PredictMarketBusySheetVariant>('busy');
-  const retrySheetRef = useRef<BottomSheetRef>(null);
+  const retrySheetRef = useRef<PredictMarketBusySheetRef>(null);
 
   const {
     preview,
@@ -408,7 +406,7 @@ const PredictSellPreview = () => {
         sharePrice={preview?.sharePrice ?? position?.price ?? 0}
         side={Side.SELL}
         onRetry={handleRetryWithBestPrice}
-        onClose={handleMarketBusyDismiss}
+        onDismiss={handleMarketBusyDismiss}
         isRetrying={isRetrying}
       />
     </SafeAreaView>

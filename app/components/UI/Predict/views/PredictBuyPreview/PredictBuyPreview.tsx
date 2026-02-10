@@ -52,8 +52,10 @@ import { formatCents, formatPrice } from '../../utils/format';
 import PredictAmountDisplay from '../../components/PredictAmountDisplay';
 import PredictFeeSummary from '../../components/PredictFeeSummary';
 import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
-import PredictMarketBusySheet from '../../components/PredictMarketBusySheet';
-import type { PredictMarketBusySheetVariant } from '../../components/PredictMarketBusySheet';
+import PredictMarketBusySheet, {
+  PredictMarketBusySheetRef,
+  PredictMarketBusySheetVariant,
+} from '../../components/PredictMarketBusySheet';
 import PredictKeypad, {
   PredictKeypadHandles,
 } from '../../components/PredictKeypad';
@@ -136,7 +138,7 @@ const PredictBuyPreview = () => {
   const [isRetrying, setIsRetrying] = useState(false);
   const [retrySheetVariant, setRetrySheetVariant] =
     useState<PredictMarketBusySheetVariant>('busy');
-  const retrySheetRef = useRef<BottomSheetRef>(null);
+  const retrySheetRef = useRef<PredictMarketBusySheetRef>(null);
   const previousValueRef = useRef(0);
 
   const {
@@ -602,7 +604,7 @@ const PredictBuyPreview = () => {
         sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
         side={Side.BUY}
         onRetry={handleRetryWithBestPrice}
-        onClose={handleMarketBusyDismiss}
+        onDismiss={handleMarketBusyDismiss}
         isRetrying={isRetrying}
       />
     </SafeAreaView>

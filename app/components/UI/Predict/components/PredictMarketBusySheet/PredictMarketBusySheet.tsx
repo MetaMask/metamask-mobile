@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useImperativeHandle } from 'react';
 import {
   Box,
   BoxAlignItems,
@@ -10,21 +10,21 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet';
+import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader';
+import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
+import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button/Button.types';
 import { strings } from '../../../../../../locales/i18n';
 import { formatCents } from '../../utils/format';
 import { Side } from '../../types';
 import { PredictMarketBusySheetSelectorsIDs } from '../../Predict.testIds';
+import {
+  usePredictBottomSheet,
+  type PredictBottomSheetRef,
+} from '../../hooks/usePredictBottomSheet';
 
-export type PredictMarketBusySheetRef = BottomSheetRef;
+export type PredictMarketBusySheetRef = PredictBottomSheetRef;
 
 export type PredictMarketBusySheetVariant = 'busy' | 'failed';
 
@@ -33,18 +33,33 @@ interface PredictMarketBusySheetProps {
   sharePrice: number;
   side: Side;
   onRetry: () => void;
-  onClose: () => void;
+  onDismiss?: () => void;
   isRetrying?: boolean;
 }
 
 const PredictMarketBusySheet = forwardRef<
-  BottomSheetRef,
+  PredictMarketBusySheetRef,
   PredictMarketBusySheetProps
 >(
   (
-    { variant, sharePrice, side, onRetry, onClose, isRetrying = false },
+    { variant, sharePrice, side, onRetry, onDismiss, isRetrying = false },
     ref,
   ) => {
+    const tw = useTailwind();
+    const {
+      sheetRef,
+      isVisible,
+      closeSheet,
+      handleSheetClosed,
+      getRefHandlers,
+    } = usePredictBottomSheet({ onDismiss });
+
+    useImperativeHandle(ref, getRefHandlers, [getRefHandlers]);
+
+    if (!isVisible) {
+      return null;
+    }
+
     const isBusy = variant === 'busy';
 
     const iconColor = isBusy
@@ -70,8 +85,13 @@ const PredictMarketBusySheet = forwardRef<
       : strings('predict.order.try_again');
 
     return (
-      <BottomSheet ref={ref} onClose={onClose} shouldNavigateBack={false}>
-        <SheetHeader title="" onBack={onClose} />
+      <BottomSheet
+        ref={sheetRef}
+        shouldNavigateBack={false}
+        isInteractable
+        onClose={handleSheetClosed}
+      >
+        <BottomSheetHeader onClose={closeSheet} style={tw.style('px-6 py-4')} />
         <Box
           testID={PredictMarketBusySheetSelectorsIDs.CONTAINER}
           alignItems={BoxAlignItems.Center}
@@ -102,17 +122,18 @@ const PredictMarketBusySheet = forwardRef<
             {body}
           </Text>
         </Box>
-        <Box twClassName="px-6 pb-6">
-          <Button
-            variant={ButtonVariants.Primary}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label={buttonLabel}
-            onPress={onRetry}
-            isDisabled={isRetrying}
-            loading={isRetrying}
-          />
-        </Box>
+        <BottomSheetFooter
+          buttonPropsArray={[
+            {
+              variant: ButtonVariants.Primary,
+              label: buttonLabel,
+              onPress: onRetry,
+              isDisabled: isRetrying,
+              loading: isRetrying,
+            },
+          ]}
+          style={tw.style('px-6')}
+        />
       </BottomSheet>
     );
   },
