@@ -1,35 +1,18 @@
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import ProviderSelection from './ProviderSelection';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
-import type {
-  Provider,
-  Quote,
-  PaymentMethod as RampsPaymentMethod,
-} from '@metamask/ramps-controller';
+import { renderScreen } from '../../../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../../util/test/initial-root-state';
+import type { Provider, Quote } from '@metamask/ramps-controller';
 import {
   useRampsController,
   type UseRampsControllerResult,
-} from '../../hooks/useRampsController';
-import useRampAccountAddress from '../../hooks/useRampAccountAddress';
-
-const mockGetQuotes = jest.fn().mockResolvedValue({
-  success: [],
-  sorted: [],
-  error: [],
-  customActions: [],
-});
+} from '../../../hooks/useRampsController';
 
 const mockSetSelectedQuote = jest.fn();
 
-jest.mock('../../hooks/useRampsController', () => ({
+jest.mock('../../../hooks/useRampsController', () => ({
   useRampsController: jest.fn(),
-}));
-
-jest.mock('../../hooks/useRampAccountAddress', () => ({
-  __esModule: true,
-  default: jest.fn(),
 }));
 
 const mockUserRegion = {
@@ -55,14 +38,6 @@ const mockSelectedToken = {
   tokenSupported: true,
 } as UseRampsControllerResult['selectedToken'];
 
-const mockPaymentMethod: RampsPaymentMethod = {
-  id: '/payments/debit-credit-card',
-  paymentType: 'debit-credit-card',
-  name: 'Debit or Credit',
-  score: 90,
-  icon: 'card',
-};
-
 const defaultMockController: UseRampsControllerResult = {
   userRegion: null,
   setUserRegion: jest.fn(),
@@ -86,7 +61,7 @@ const defaultMockController: UseRampsControllerResult = {
   paymentMethodsError: null,
   quotes: null,
   selectedQuote: null,
-  getQuotes: mockGetQuotes,
+  getQuotes: jest.fn(),
   setSelectedQuote: mockSetSelectedQuote,
   startQuotePolling: jest.fn(),
   stopQuotePolling: jest.fn(),
@@ -139,7 +114,6 @@ function renderWithProvider(
     ...controllerOverrides,
     providers,
     selectedProvider,
-    getQuotes: mockGetQuotes,
   });
   return renderScreen(
     () => (
@@ -165,17 +139,9 @@ function renderWithProvider(
 describe('ProviderSelection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetQuotes.mockResolvedValue({
-      success: [],
-      sorted: [],
-      error: [],
-      customActions: [],
-    });
     jest.mocked(useRampsController).mockReturnValue({
       ...defaultMockController,
-      getQuotes: mockGetQuotes,
     });
-    jest.mocked(useRampAccountAddress).mockReturnValue(null);
   });
 
   it('matches snapshot when no quotes are available', () => {
@@ -184,34 +150,23 @@ describe('ProviderSelection', () => {
   });
 
   it('matches snapshot when quotes are loading', () => {
-    mockGetQuotes.mockImplementation(() => new Promise<void>(() => undefined));
-    jest
-      .mocked(useRampAccountAddress)
-      .mockReturnValue('0x1234567890abcdef1234567890abcdef12345678');
     const { toJSON } = renderWithProvider(mockProviders, mockProviders[0], {
       userRegion: mockUserRegion,
       selectedToken: mockSelectedToken,
-      paymentMethods: [mockPaymentMethod],
-      selectedPaymentMethod: mockPaymentMethod,
-      getQuotes: mockGetQuotes,
+      quotesLoading: true,
     });
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('matches snapshot when quotes fail to load', async () => {
-    mockGetQuotes.mockRejectedValue(new Error('Failed to load quotes'));
-    jest
-      .mocked(useRampAccountAddress)
-      .mockReturnValue('0x1234567890abcdef1234567890abcdef12345678');
     const { toJSON, getByText } = renderWithProvider(
       mockProviders,
       mockProviders[0],
       {
         userRegion: mockUserRegion,
         selectedToken: mockSelectedToken,
-        paymentMethods: [mockPaymentMethod],
-        selectedPaymentMethod: mockPaymentMethod,
-        getQuotes: mockGetQuotes,
+        quotesError: 'Failed to load quotes',
+        quotesLoading: false,
       },
     );
 
@@ -230,15 +185,6 @@ describe('ProviderSelection', () => {
   it('filters out quotes for providers not in the providers array', async () => {
     const transakQuote = createMockQuote('/providers/transak', 'Transak');
     const stripeQuote = createMockQuote('/providers/stripe', 'Stripe');
-    mockGetQuotes.mockResolvedValue({
-      success: [transakQuote, stripeQuote],
-      sorted: [],
-      error: [],
-      customActions: [],
-    });
-    jest
-      .mocked(useRampAccountAddress)
-      .mockReturnValue('0x1234567890abcdef1234567890abcdef12345678');
 
     const { getByText, queryByText } = renderWithProvider(
       [transakProvider],
@@ -246,9 +192,13 @@ describe('ProviderSelection', () => {
       {
         userRegion: mockUserRegion,
         selectedToken: mockSelectedToken,
-        paymentMethods: [mockPaymentMethod],
-        selectedPaymentMethod: mockPaymentMethod,
-        getQuotes: mockGetQuotes,
+        quotes: {
+          success: [transakQuote, stripeQuote],
+          sorted: [],
+          error: [],
+          customActions: [],
+        },
+        quotesLoading: false,
       },
     );
 

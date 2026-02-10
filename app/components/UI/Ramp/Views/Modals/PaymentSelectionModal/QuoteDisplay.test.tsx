@@ -1,9 +1,9 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import QuoteDisplay from './QuoteDisplay';
-import { ThemeContext, mockTheme } from '../../../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../../../../util/theme';
 
-jest.mock('../../../../../component-library/components/Skeleton', () => {
+jest.mock('../../../../../../component-library/components/Skeleton', () => {
   const { View } = jest.requireActual('react-native');
   return {
     Skeleton: ({ width, height }: { width: number; height: number }) => (
@@ -12,7 +12,7 @@ jest.mock('../../../../../component-library/components/Skeleton', () => {
   };
 });
 
-jest.mock('../../../../../component-library/components/Icons/Icon', () => {
+jest.mock('../../../../../../component-library/components/Icons/Icon', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,

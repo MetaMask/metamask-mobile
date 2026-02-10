@@ -1,21 +1,30 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+} from '../../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconName,
   IconSize,
   IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+} from '../../../../../../component-library/components/Icons/Icon';
+import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 
 const SKELETON_TOKEN_WIDTH = 80;
 const SKELETON_FIAT_WIDTH = 60;
 const SKELETON_HEIGHT = 16;
 const SKELETON_GAP = 6;
+
+const styles = StyleSheet.create({
+  skeleton: {
+    borderRadius: 4,
+  },
+  skeletonGap: {
+    height: SKELETON_GAP,
+  },
+});
 
 export interface QuoteDisplayProps {
   cryptoAmount: string;
@@ -36,13 +45,13 @@ const QuoteDisplay: React.FC<QuoteDisplayProps> = ({
         <Skeleton
           width={SKELETON_TOKEN_WIDTH}
           height={SKELETON_HEIGHT}
-          style={{ borderRadius: 4 }}
+          style={styles.skeleton}
         />
-        <View style={{ height: SKELETON_GAP }} />
+        <View style={styles.skeletonGap} />
         <Skeleton
           width={SKELETON_FIAT_WIDTH}
           height={SKELETON_HEIGHT}
-          style={{ borderRadius: 4 }}
+          style={styles.skeleton}
         />
       </Box>
     );

@@ -1,8 +1,8 @@
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import PaymentSelectionModal from './PaymentSelectionModal';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { renderScreen } from '../../../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
 jest.mock('react-native-reanimated', () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
@@ -15,12 +15,12 @@ jest.mock('react-native-reanimated', () => {
   };
 });
 
-jest.mock('../../../../Base/RemoteImage', () => jest.fn(() => null));
+jest.mock('../../../../../Base/RemoteImage', () => jest.fn(() => null));
 
 const mockOnCloseBottomSheet = jest.fn();
 
 jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
+  '../../../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
     const ReactActual = jest.requireActual('react');
     return ReactActual.forwardRef(
@@ -41,12 +41,12 @@ jest.mock(
   },
 );
 
-jest.mock('../../../../../util/navigation/navUtils', () => ({
+jest.mock('../../../../../../util/navigation/navUtils', () => ({
   createNavigationDetails: jest.fn(),
   useParams: jest.fn(() => ({})),
 }));
 
-jest.mock('../../../../../../locales/i18n', () => ({
+jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
@@ -149,11 +149,11 @@ const defaultControllerReturn = {
 
 const mockUseRampsController = jest.fn(() => defaultControllerReturn);
 
-jest.mock('../../hooks/useRampsController', () => ({
+jest.mock('../../../hooks/useRampsController', () => ({
   useRampsController: () => mockUseRampsController(),
 }));
 
-jest.mock('../../hooks/useRampAccountAddress', () => ({
+jest.mock('../../../hooks/useRampAccountAddress', () => ({
   __esModule: true,
   default: () => '0x123',
 }));
@@ -328,5 +328,58 @@ describe('PaymentSelectionModal', () => {
     mockUseRampsController.mockImplementation(() => emptyState);
     const { toJSON } = renderWithProvider(PaymentSelectionModal);
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('calls getQuotes with payment method params when on PAYMENT view', () => {
+    const mockGetQuotes = jest.fn().mockResolvedValue({
+      success: [],
+      error: [],
+      sorted: [],
+      customActions: [],
+    });
+    mockUseRampsController.mockImplementation(() => ({
+      ...defaultControllerReturn,
+      getQuotes: mockGetQuotes,
+    }));
+    renderWithProvider(PaymentSelectionModal);
+
+    expect(mockGetQuotes).toHaveBeenCalledWith({
+      amount: 100,
+      walletAddress: '0x123',
+      assetId: 'eip155:1/slip44:60',
+      providers: ['/providers/transak'],
+      paymentMethods: [
+        '/payments/debit-credit-card-1',
+        '/payments/debit-credit-card-2',
+      ],
+    });
+  });
+
+  it('calls getQuotes with provider params when navigating to PROVIDER view', async () => {
+    const mockGetQuotes = jest.fn().mockResolvedValue({
+      success: [],
+      error: [],
+      sorted: [],
+      customActions: [],
+    });
+    mockUseRampsController.mockImplementation(() => ({
+      ...defaultControllerReturn,
+      getQuotes: mockGetQuotes,
+      selectedPaymentMethod: mockPaymentMethods[0],
+    }));
+    const { getByText } = renderWithProvider(PaymentSelectionModal);
+
+    mockGetQuotes.mockClear();
+    fireEvent.press(getByText('fiat_on_ramp.change_provider'));
+
+    await waitFor(() => {
+      expect(mockGetQuotes).toHaveBeenCalledWith({
+        amount: 100,
+        walletAddress: '0x123',
+        assetId: 'eip155:1/slip44:60',
+        providers: ['/providers/transak', '/providers/moonpay'],
+        paymentMethods: ['/payments/debit-credit-card-1'],
+      });
+    });
   });
 });

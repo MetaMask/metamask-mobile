@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type { CaipChainId } from '@metamask/utils';
 import { useWindowDimensions, View, ScrollView } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
@@ -10,37 +16,33 @@ import Animated, {
 } from 'react-native-reanimated';
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import { AnimationDuration } from '../../../../../component-library/constants/animation.constants';
+} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
+import { AnimationDuration } from '../../../../../../component-library/constants/animation.constants';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
-import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+} from '../../../../../../component-library/components/Texts/Text';
+import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import {
   Box,
   BoxAlignItems,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
-import { useStyles } from '../../../../hooks/useStyles';
-import { strings } from '../../../../../../locales/i18n';
+import { useStyles } from '../../../../../hooks/useStyles';
+import { strings } from '../../../../../../../locales/i18n';
 import styleSheet from './PaymentSelectionModal.styles';
-import Routes from '../../../../../constants/navigation/Routes';
+import Routes from '../../../../../../constants/navigation/Routes';
 import {
   createNavigationDetails,
   useParams,
-} from '../../../../../util/navigation/navUtils';
+} from '../../../../../../util/navigation/navUtils';
 import PaymentMethodListItem from './PaymentMethodListItem';
 import PaymentMethodListSkeleton from './PaymentMethodListSkeleton';
 import PaymentSelectionAlert from './PaymentSelectionAlert';
 import ProviderSelection from './ProviderSelection';
-import type {
-  PaymentMethod,
-  Provider,
-  Quote,
-} from '@metamask/ramps-controller';
-import { useRampsController } from '../../hooks/useRampsController';
-import useRampAccountAddress from '../../hooks/useRampAccountAddress';
+import type { PaymentMethod, Provider } from '@metamask/ramps-controller';
+import { useRampsController } from '../../../hooks/useRampsController';
+import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
 
 export interface PaymentSelectionModalParams {
   amount?: number;
@@ -71,6 +73,7 @@ function PaymentSelectionModal() {
   const {
     selectedProvider,
     setSelectedProvider,
+    providers,
     paymentMethods,
     paymentMethodsLoading,
     paymentMethodsError,
@@ -83,60 +86,40 @@ function PaymentSelectionModal() {
     selectedToken,
   } = useRampsController();
 
-
-  console.log('RAMP - PAYMENT SELECTION MODAL quotesLoading', quotesLoading);
   const amount = routeAmount ?? DEFAULT_QUOTE_AMOUNT;
-  const walletAddress = useRampAccountAddress(
-    (selectedToken?.chainId as CaipChainId) ?? null,
-  );
+  const walletAddress =
+    useRampAccountAddress((selectedToken?.chainId as CaipChainId) ?? null) ??
+    '';
+  const assetId = selectedToken?.assetId ?? '';
 
   const [activeView, setActiveView] = useState(ViewType.PAYMENT);
 
-  const paymentMethodIds = useMemo(() => paymentMethods.map((pm) => pm.id), [paymentMethods]);
-
-  console.log('RAMP - PAYMENT SELECTION MODAL paymentMethodIds', paymentMethodIds);
-  
-  const erroredPaymentMethodIds = useMemo<string[]>(() => {
-    const byPaymentMethod: Record<string, Quote> = {};
-    for (const quote of quotes?.success ?? []) {
-      const pmId = quote.quote?.paymentMethod;
-      if (pmId) byPaymentMethod[pmId] = quote;
-    }
-    const receivedIds = new Set(Object.keys(byPaymentMethod));
-    console.log('RAMP - PAYMENT SELECTION MODAL receivedIds', receivedIds);
-    console.log('RAMP - PAYMENT SELECTION MODAL byPaymentMethod', byPaymentMethod);
-    return paymentMethodIds?.filter((id) => !receivedIds.has(id)) ?? [];
-  }, [quotes, paymentMethodIds]);
-  console.log('RAMP - PAYMENT SELECTION MODAL erroredPaymentMethodIds', erroredPaymentMethodIds);
+  const paymentMethodIds = useMemo(
+    () => paymentMethods.map((pm) => pm.id),
+    [paymentMethods],
+  );
+  const providerIds = useMemo(() => providers.map((p) => p.id), [providers]);
 
   const translateX = useSharedValue(0);
 
-  const canFetchPaymentMethodQuotes =
-    activeView === ViewType.PAYMENT &&
-    walletAddress &&
-    amount > 0 &&
-    Boolean(selectedToken?.assetId);
-
   useEffect(() => {
-    if (!canFetchPaymentMethodQuotes) {
-      return;
-    }
-
-    // get quotes for all payment methods for the selected provider
     getQuotes({
       amount,
       walletAddress,
-      assetId: selectedToken?.assetId ?? '',
+      assetId,
       providers: [selectedProvider?.id ?? ''],
       paymentMethods: paymentMethodIds,
-    })
+    });
+    return;
   }, [
-    canFetchPaymentMethodQuotes,
     getQuotes,
     amount,
-    selectedProvider?.id,
     walletAddress,
-    paymentMethods,
+    assetId,
+    selectedProvider?.id,
+    selectedPaymentMethod?.id,
+    paymentMethodIds,
+    providerIds,
   ]);
 
   useEffect(() => {
@@ -157,22 +140,65 @@ function PaymentSelectionModal() {
   }));
 
   const handleChangeProviderPress = useCallback(() => {
-    if(quotesLoading) {
+    if (quotesLoading) {
       return;
     }
+    getQuotes({
+      amount,
+      walletAddress,
+      assetId,
+      providers: providerIds,
+      paymentMethods: [selectedPaymentMethod?.id ?? ''],
+    });
     setActiveView(ViewType.PROVIDER);
-  }, [quotesLoading]);
+  }, [
+    amount,
+    assetId,
+    getQuotes,
+    providerIds,
+    quotesLoading,
+    selectedPaymentMethod?.id,
+    walletAddress,
+  ]);
 
   const handleProviderBack = useCallback(() => {
+    getQuotes({
+      amount,
+      walletAddress,
+      assetId,
+      providers: [selectedProvider?.id ?? ''],
+      paymentMethods: paymentMethodIds,
+    });
     setActiveView(ViewType.PAYMENT);
-  }, []);
+  }, [
+    amount,
+    assetId,
+    getQuotes,
+    paymentMethodIds,
+    selectedProvider?.id,
+    walletAddress,
+  ]);
 
   const handleProviderSelect = useCallback(
     (provider: Provider) => {
       setSelectedProvider(provider);
+      getQuotes({
+        amount,
+        walletAddress,
+        assetId,
+        providers: [provider.id],
+        paymentMethods: paymentMethodIds,
+      });
       setActiveView(ViewType.PAYMENT);
     },
-    [setSelectedProvider],
+    [
+      amount,
+      assetId,
+      getQuotes,
+      paymentMethodIds,
+      setSelectedProvider,
+      walletAddress,
+    ],
   );
 
   const handlePaymentMethodPress = useCallback(
@@ -192,9 +218,13 @@ function PaymentSelectionModal() {
         paymentMethod={paymentMethod}
         onPress={() => handlePaymentMethodPress(paymentMethod)}
         isSelected={selectedPaymentMethod?.id === paymentMethod.id}
-        quote={quotes?.success?.find((quote) => quote.quote?.paymentMethod === paymentMethod.id) ?? null}
+        quote={
+          quotes?.success?.find(
+            (quote) => quote.quote?.paymentMethod === paymentMethod.id,
+          ) ?? null
+        }
         quoteLoading={quotesLoading}
-        quoteError={erroredPaymentMethodIds.includes(paymentMethod.id)}
+        quoteError={false}
         currency={currency}
         tokenSymbol={tokenSymbol}
       />
@@ -203,7 +233,7 @@ function PaymentSelectionModal() {
       handlePaymentMethodPress,
       selectedPaymentMethod,
       quotes,
-      erroredPaymentMethodIds,
+      quotesLoading,
       currency,
       tokenSymbol,
     ],
@@ -306,11 +336,13 @@ function PaymentSelectionModal() {
             ) : null}
           </View>
           <View style={styles.panel}>
-            <ProviderSelection
-              onProviderSelect={handleProviderSelect}
-              onBack={handleProviderBack}
-              amount={routeAmount ?? DEFAULT_QUOTE_AMOUNT}
-            />
+            {activeView === ViewType.PROVIDER && (
+              <ProviderSelection
+                onProviderSelect={handleProviderSelect}
+                onBack={handleProviderBack}
+                amount={routeAmount ?? DEFAULT_QUOTE_AMOUNT}
+              />
+            )}
           </View>
         </Animated.View>
       </View>

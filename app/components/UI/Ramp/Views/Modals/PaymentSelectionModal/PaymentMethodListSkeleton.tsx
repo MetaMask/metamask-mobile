@@ -1,10 +1,10 @@
 import React, { type ReactElement } from 'react';
 import { StyleSheet, View } from 'react-native';
-import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
+import ListItemSelect from '../../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
   WidthType,
-} from '../../../../../component-library/components/List/ListItemColumn';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+} from '../../../../../../component-library/components/List/ListItemColumn';
+import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 import QuoteDisplay from './QuoteDisplay';
 
 const ROW_COUNT = 8;

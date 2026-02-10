@@ -1,23 +1,23 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
+import ListItemSelect from '../../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
   WidthType,
-} from '../../../../../component-library/components/List/ListItemColumn';
+} from '../../../../../../component-library/components/List/ListItemColumn';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+} from '../../../../../../component-library/components/Texts/Text';
 import { PaymentType } from '@consensys/on-ramp-sdk';
-import PaymentMethodIcon from '../../Aggregator/components/PaymentMethodIcon';
+import PaymentMethodIcon from '../../../Aggregator/components/PaymentMethodIcon';
 import QuoteDisplay from './QuoteDisplay';
-import { formatDelayFromArray } from '../../Aggregator/utils';
+import { formatDelayFromArray } from '../../../Aggregator/utils';
 import {
   formatCurrency,
   formatTokenAmount,
-} from '../../utils/formatCurrency';
-import { useTheme } from '../../../../../util/theme';
-import type { Colors } from '../../../../../util/theme/models';
+} from '../../../utils/formatCurrency';
+import { useTheme } from '../../../../../../util/theme';
+import type { Colors } from '../../../../../../util/theme/models';
 import type { PaymentMethod, Quote } from '@metamask/ramps-controller';
 
 const ICON_CIRCLE_SIZE = 44;

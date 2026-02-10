@@ -1,24 +1,25 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { StyleSheet, ScrollView } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
-import type { CaipChainId } from '@metamask/utils';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
-import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
+import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
+import ListItemSelect from '../../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
   WidthType,
-} from '../../../../../component-library/components/List/ListItemColumn';
+} from '../../../../../../component-library/components/List/ListItemColumn';
 import Text, {
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '../../../../../../component-library/components/Texts/Text';
 import type { Provider, Quote } from '@metamask/ramps-controller';
-import { strings } from '../../../../../../locales/i18n';
-import { useRampsController } from '../../hooks/useRampsController';
-import useRampAccountAddress from '../../hooks/useRampAccountAddress';
-import { formatCurrency, formatTokenAmount } from '../../utils/formatCurrency';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { strings } from '../../../../../../../locales/i18n';
+import { useRampsController } from '../../../hooks/useRampsController';
+import {
+  formatCurrency,
+  formatTokenAmount,
+} from '../../../utils/formatCurrency';
+import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 import QuoteDisplay from './QuoteDisplay';
 import PaymentSelectionAlert from './PaymentSelectionAlert';
-import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 
 const SKELETON_ROW_COUNT = 3;
 const SKELETON_NAME_WIDTH = 120;
@@ -43,13 +44,11 @@ interface ProviderSelectionProps {
 const ProviderSelection: React.FC<ProviderSelectionProps> = ({
   onBack,
   onProviderSelect,
-  amount,
+  amount: _amount,
 }) => {
   const {
     userRegion,
     selectedToken,
-    selectedPaymentMethod,
-    getQuotes,
     setSelectedQuote,
     selectedProvider,
     providers,
@@ -57,31 +56,6 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
     quotesError,
     quotesLoading,
   } = useRampsController();
-
-  const walletAddress = useRampAccountAddress(
-    (selectedToken?.chainId as CaipChainId) ?? null,
-  );
-
-  useEffect(() => {
-    const providerIds = providers.map((p) => p.id);
-    if (!walletAddress || !selectedToken?.assetId) {
-      return;
-    }
-
-    getQuotes({
-      assetId: selectedToken.assetId, 
-      amount,
-      walletAddress,
-      paymentMethods: [selectedPaymentMethod?.id ?? ''],
-      providers: providerIds,
-    })
-  }, [
-    getQuotes,
-    amount,
-    selectedPaymentMethod?.id,
-    selectedToken?.assetId,
-    walletAddress,
-  ]);
 
   const handleQuotePress = useCallback(
     (quote: Quote) => {
@@ -99,10 +73,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
     [providers],
   );
 
-  
-  const filteredQuotes = useMemo(() => {
-    return quotes?.success?.filter((quote) => providerIds.has(quote.provider));
-  }, [quotes, providerIds]);
+  const filteredQuotes = useMemo(() => quotes?.success?.filter((quote) => providerIds.has(quote.provider)), [quotes, providerIds]);
 
   const currency = userRegion?.country?.currency ?? 'USD';
   const symbol = selectedToken?.symbol ?? '';
