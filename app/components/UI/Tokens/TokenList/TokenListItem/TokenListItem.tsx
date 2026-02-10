@@ -397,7 +397,11 @@ export const TokenListItem = React.memo(
           hideSecondaryBalanceInPrivacyMode={false}
           onSecondaryBalancePress={secondaryBalanceDisplay.onPress}
           secondaryBalanceElement={
-            merklData.isClaiming ? <Spinner /> : undefined
+            isEligibleForMerkl &&
+            isMerklCampaignClaimingEnabled &&
+            merklData.isClaiming ? (
+              <Spinner />
+            ) : undefined
           }
         >
           <BadgeWrapper

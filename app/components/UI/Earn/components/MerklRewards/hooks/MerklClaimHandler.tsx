@@ -57,6 +57,15 @@ export const MerklClaimHandler = React.memo(
       onDataChange,
     ]);
 
+    // Reset parent state to defaults when this handler unmounts
+    // so the parent doesn't retain stale data (e.g. isClaiming: true)
+    useEffect(
+      () => () => {
+        onDataChange(DEFAULT_MERKL_CLAIM_DATA);
+      },
+      [onDataChange],
+    );
+
     return null;
   },
 );
