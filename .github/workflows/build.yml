@@ -83,22 +83,24 @@ jobs:
       - run: yarn install --immutable
 
       # TapAndPay SDK Setup (Android only)
-      - name: Setup SSH for TapAndPay SDK
-        if: matrix.platform == 'android'
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.TAP_AND_PAY_SDK_SSH_KEY }}
-
       - name: Clone TapAndPay SDK
         if: matrix.platform == 'android'
         run: |
+          mkdir -p ~/.ssh
+          echo "$TAP_AND_PAY_SDK_SSH_KEY" | base64 -d > ~/.ssh/tap_and_pay_key
+          chmod 600 ~/.ssh/tap_and_pay_key
+          ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/tap_and_pay_key
           echo "📦 Cloning TapAndPay SDK into android/libs/..."
           git clone --depth 1 "$TAP_AND_PAY_SDK_REPO_SSH" /tmp/tap-and-pay-sdk
           mkdir -p android/libs
           cp -r /tmp/tap-and-pay-sdk/* android/libs/
           rm -rf /tmp/tap-and-pay-sdk
+          rm -f ~/.ssh/tap_and_pay_key
           echo "✅ TapAndPay SDK installed to android/libs/"
         env:
+          TAP_AND_PAY_SDK_SSH_KEY: ${{ secrets.TAP_AND_PAY_SDK_SSH_KEY }}
           TAP_AND_PAY_SDK_REPO_SSH: ${{ needs.prepare.outputs.tap_and_pay_sdk_repo_ssh }}
 
       - name: Apply build config
