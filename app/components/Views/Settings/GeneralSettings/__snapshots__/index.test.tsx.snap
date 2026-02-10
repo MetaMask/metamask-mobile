@@ -92,7 +92,7 @@ exports[`GeneralSettings should render correctly 1`] = `
                 {
                   "alignItems": "center",
                   "backgroundColor": "transparent",
-                  "borderRadius": 8,
+                  "borderRadius": 2,
                   "height": 32,
                   "justifyContent": "center",
                   "opacity": 1,
@@ -110,8 +110,8 @@ exports[`GeneralSettings should render correctly 1`] = `
                 [
                   {
                     "color": "#121314",
-                    "height": 24,
-                    "width": 24,
+                    "height": 20,
+                    "width": 20,
                   },
                   undefined,
                 ]
