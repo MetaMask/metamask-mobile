@@ -114,6 +114,17 @@ function BuildQuote() {
     setUserHasEnteredAmount(true);
   }, []);
 
+  const handlePaymentPillPress = useCallback(() => {
+    if (debouncedPollingAmount <= 0) {
+      return;
+    }
+
+    stopQuotePolling();
+    navigation.navigate(...createPaymentSelectionModalNavigationDetails({
+      amount: debouncedPollingAmount,
+    }));
+  }, [debouncedPollingAmount, navigation, stopQuotePolling]);
+
   useEffect(() => {
     if (
       !walletAddress ||
@@ -124,6 +135,7 @@ function BuildQuote() {
       return;
     }
 
+    console.log('RAMP - BUILD QUOTE startQuotePolling');
     startQuotePolling({
       walletAddress,
       amount: debouncedPollingAmount,
@@ -174,13 +186,7 @@ function BuildQuote() {
                   strings('fiat_on_ramp.select_payment_method')
                 }
                 isLoading={paymentMethodsLoading}
-                onPress={() => {
-                  navigation.navigate(
-                    ...createPaymentSelectionModalNavigationDetails({
-                      amount: amountAsNumber,
-                    }),
-                  );
-                }}
+                onPress={handlePaymentPillPress}
               />
             </View>
           </View>
