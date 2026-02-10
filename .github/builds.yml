@@ -20,84 +20,95 @@
 # YAML Anchors (reusable config blocks)
 # =============================================================================
 
-# Server URLs (production defaults, override in test/e2e/exp/dev builds)
-_servers: &servers
-  PORTFOLIO_API_URL: "https://portfolio.api.cx.metamask.io"
-  SECURITY_ALERTS_API_URL: "https://security-alerts.api.cx.metamask.io"
-  DECODING_API_URL: "https://signature-insights.api.cx.metamask.io/v1"
-  AUTH_SERVICE_URL: "https://auth-service.api.cx.metamask.io"
-  REWARDS_API_URL: "https://rewards.api.cx.metamask.io"
-  BAANX_API_URL: "https://api.baanx.com"
-  RAMPS_ENVIRONMENT: "production"
+# Shared env (non-secret): servers + build flags. Production defaults.
+# Each build merges <<: *public_envs and overrides only what differs (inline in that build).
+_public_envs: &public_envs # Servers (production)
+  PORTFOLIO_API_URL: 'https://portfolio.api.cx.metamask.io'
+  SECURITY_ALERTS_API_URL: 'https://security-alerts.api.cx.metamask.io'
+  DECODING_API_URL: 'https://signature-insights.api.cx.metamask.io/v1'
+  AUTH_SERVICE_URL: 'https://auth-service.api.cx.metamask.io'
+  REWARDS_API_URL: 'https://rewards.api.cx.metamask.io'
+  BAANX_API_URL: 'https://api.baanx.com'
+  RAMPS_ENVIRONMENT: 'production'
+  # Build flags (production defaults)
+  BRIDGE_USE_DEV_APIS: 'false'
+  RAMP_INTERNAL_BUILD: 'false'
+  IS_TEST: 'false'
+  SEEDLESS_ONBOARDING_ENABLED: 'true'
+  MM_NOTIFICATIONS_UI_ENABLED: 'true'
+  MM_PERMISSIONS_SETTINGS_V1_ENABLED: 'false'
+  MM_PERPS_BLOCKED_REGIONS: 'US,CA-ON,GB,BE'
+  MM_PERPS_HIP3_ALLOWLIST_MARKETS: ''
+  MM_PERPS_HIP3_BLOCKLIST_MARKETS: ''
+  MM_PERPS_HIP3_ENABLED: 'true'
 
 # Common secrets (shared across ALL builds - same names, GitHub Environment determines values)
-_secrets: &secrets
-  # Infrastructure
-  MM_SENTRY_AUTH_TOKEN: "MM_SENTRY_AUTH_TOKEN"
-  MM_SENTRY_DSN: "MM_SENTRY_DSN"
-  GOOGLE_SERVICES_B64_IOS: "GOOGLE_SERVICES_B64_IOS"
-  GOOGLE_SERVICES_B64_ANDROID: "GOOGLE_SERVICES_B64_ANDROID"
+_secrets: &secrets # Infrastructure
+  MM_SENTRY_AUTH_TOKEN: 'MM_SENTRY_AUTH_TOKEN'
+  MM_SENTRY_DSN: 'MM_SENTRY_DSN'
+  GOOGLE_SERVICES_B64_IOS: 'GOOGLE_SERVICES_B64_IOS'
+  GOOGLE_SERVICES_B64_ANDROID: 'GOOGLE_SERVICES_B64_ANDROID'
   # API Keys
-  MM_INFURA_PROJECT_ID: "MM_INFURA_PROJECT_ID"
-  WALLET_CONNECT_PROJECT_ID: "WALLET_CONNECT_PROJECT_ID"
-  MM_FOX_CODE: "MM_FOX_CODE"
-  MM_BRANCH_KEY_LIVE: "MM_BRANCH_KEY_LIVE"
+  MM_INFURA_PROJECT_ID: 'MM_INFURA_PROJECT_ID'
+  WALLET_CONNECT_PROJECT_ID: 'WALLET_CONNECT_PROJECT_ID'
+  MM_FOX_CODE: 'MM_FOX_CODE'
+  MM_BRANCH_KEY_LIVE: 'MM_BRANCH_KEY_LIVE'
   # Analytics
-  SEGMENT_WRITE_KEY: "SEGMENT_WRITE_KEY"
-  SEGMENT_PROXY_URL: "SEGMENT_PROXY_URL"
-  SEGMENT_DELETE_API_SOURCE_ID: "SEGMENT_DELETE_API_SOURCE_ID"
-  SEGMENT_REGULATIONS_ENDPOINT: "SEGMENT_REGULATIONS_ENDPOINT"
+  SEGMENT_WRITE_KEY: 'SEGMENT_WRITE_KEY'
+  SEGMENT_PROXY_URL: 'SEGMENT_PROXY_URL'
+  SEGMENT_DELETE_API_SOURCE_ID: 'SEGMENT_DELETE_API_SOURCE_ID'
+  SEGMENT_REGULATIONS_ENDPOINT: 'SEGMENT_REGULATIONS_ENDPOINT'
   # Features/Announcements
-  FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: "FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN"
-  FEATURES_ANNOUNCEMENTS_SPACE_ID: "FEATURES_ANNOUNCEMENTS_SPACE_ID"
+  FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: 'FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN'
+  FEATURES_ANNOUNCEMENTS_SPACE_ID: 'FEATURES_ANNOUNCEMENTS_SPACE_ID'
   # Firebase
-  FCM_CONFIG_API_KEY: "FCM_CONFIG_API_KEY"
-  FCM_CONFIG_AUTH_DOMAIN: "FCM_CONFIG_AUTH_DOMAIN"
-  FCM_CONFIG_STORAGE_BUCKET: "FCM_CONFIG_STORAGE_BUCKET"
-  FCM_CONFIG_PROJECT_ID: "FCM_CONFIG_PROJECT_ID"
-  FCM_CONFIG_MESSAGING_SENDER_ID: "FCM_CONFIG_MESSAGING_SENDER_ID"
-  FCM_CONFIG_APP_ID: "FCM_CONFIG_APP_ID"
-  FCM_CONFIG_MEASUREMENT_ID: "FCM_CONFIG_MEASUREMENT_ID"
+  FCM_CONFIG_API_KEY: 'FCM_CONFIG_API_KEY'
+  FCM_CONFIG_AUTH_DOMAIN: 'FCM_CONFIG_AUTH_DOMAIN'
+  FCM_CONFIG_STORAGE_BUCKET: 'FCM_CONFIG_STORAGE_BUCKET'
+  FCM_CONFIG_PROJECT_ID: 'FCM_CONFIG_PROJECT_ID'
+  FCM_CONFIG_MESSAGING_SENDER_ID: 'FCM_CONFIG_MESSAGING_SENDER_ID'
+  FCM_CONFIG_APP_ID: 'FCM_CONFIG_APP_ID'
+  FCM_CONFIG_MEASUREMENT_ID: 'FCM_CONFIG_MEASUREMENT_ID'
   # QuickNode
-  QUICKNODE_MAINNET_URL: "QUICKNODE_MAINNET_URL"
-  QUICKNODE_ARBITRUM_URL: "QUICKNODE_ARBITRUM_URL"
-  QUICKNODE_AVALANCHE_URL: "QUICKNODE_AVALANCHE_URL"
-  QUICKNODE_BASE_URL: "QUICKNODE_BASE_URL"
-  QUICKNODE_LINEA_MAINNET_URL: "QUICKNODE_LINEA_MAINNET_URL"
-  QUICKNODE_MONAD_URL: "QUICKNODE_MONAD_URL"
-  QUICKNODE_OPTIMISM_URL: "QUICKNODE_OPTIMISM_URL"
-  QUICKNODE_POLYGON_URL: "QUICKNODE_POLYGON_URL"
+  QUICKNODE_MAINNET_URL: 'QUICKNODE_MAINNET_URL'
+  QUICKNODE_ARBITRUM_URL: 'QUICKNODE_ARBITRUM_URL'
+  QUICKNODE_AVALANCHE_URL: 'QUICKNODE_AVALANCHE_URL'
+  QUICKNODE_BASE_URL: 'QUICKNODE_BASE_URL'
+  QUICKNODE_LINEA_MAINNET_URL: 'QUICKNODE_LINEA_MAINNET_URL'
+  QUICKNODE_MONAD_URL: 'QUICKNODE_MONAD_URL'
+  QUICKNODE_OPTIMISM_URL: 'QUICKNODE_OPTIMISM_URL'
+  QUICKNODE_POLYGON_URL: 'QUICKNODE_POLYGON_URL'
   # OAuth
-  IOS_GOOGLE_CLIENT_ID: "IOS_GOOGLE_CLIENT_ID"
-  IOS_GOOGLE_REDIRECT_URI: "IOS_GOOGLE_REDIRECT_URI"
-  ANDROID_APPLE_CLIENT_ID: "ANDROID_APPLE_CLIENT_ID"
-  ANDROID_GOOGLE_CLIENT_ID: "ANDROID_GOOGLE_CLIENT_ID"
-  ANDROID_GOOGLE_SERVER_CLIENT_ID: "ANDROID_GOOGLE_SERVER_CLIENT_ID"
+  IOS_GOOGLE_CLIENT_ID: 'IOS_GOOGLE_CLIENT_ID'
+  IOS_GOOGLE_REDIRECT_URI: 'IOS_GOOGLE_REDIRECT_URI'
+  ANDROID_APPLE_CLIENT_ID: 'ANDROID_APPLE_CLIENT_ID'
+  ANDROID_GOOGLE_CLIENT_ID: 'ANDROID_GOOGLE_CLIENT_ID'
+  ANDROID_GOOGLE_SERVER_CLIENT_ID: 'ANDROID_GOOGLE_SERVER_CLIENT_ID'
   # Card/Baanx
-  MM_CARD_BAANX_API_CLIENT_KEY: "MM_CARD_BAANX_API_CLIENT_KEY"
+  MM_CARD_BAANX_API_CLIENT_KEY: 'MM_CARD_BAANX_API_CLIENT_KEY'
 
 # Signing config (AWS Secrets Manager) - omit for dev/simulator builds
 # android_keystore_path: filename in android/keystores/ (build.gradle expects fixed paths)
 _signing_prod: &signing_prod
-  aws_role: "arn:aws:iam::363762752069:role/metamask-mobile-prod-signer"
-  aws_secret: "metamask-mobile-main-prod-signer"
-  android_keystore_path: "release.keystore"
+  aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-prod-signer'
+  aws_secret: 'metamask-mobile-main-prod-signer'
+  android_keystore_path: 'release.keystore'
 _signing_rc: &signing_rc
-  aws_role: "arn:aws:iam::363762752069:role/metamask-mobile-rc-signer"
-  aws_secret: "metamask-mobile-main-rc-signer"
-  android_keystore_path: "rc.keystore"
+  aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-rc-signer'
+  aws_secret: 'metamask-mobile-main-rc-signer'
+  android_keystore_path: 'rc.keystore'
 _signing_uat: &signing_uat
-  aws_role: "arn:aws:iam::363762752069:role/metamask-mobile-uat-signer"
-  aws_secret: "metamask-mobile-main-uat-signer"
-  android_keystore_path: "internalRelease.keystore"
+  aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-uat-signer'
+  aws_secret: 'metamask-mobile-main-uat-signer'
+  android_keystore_path: 'internalRelease.keystore'
 _signing_flask_prod: &signing_flask_prod
-  aws_role: "arn:aws:iam::363762752069:role/metamask-mobile-prod-signer"
-  aws_secret: "metamask-mobile-flask-prod-signer"
-  android_keystore_path: "flaskRelease.keystore"
+  aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-prod-signer'
+  aws_secret: 'metamask-mobile-flask-prod-signer'
+  android_keystore_path: 'flaskRelease.keystore'
 _signing_flask_uat: &signing_flask_uat
-  aws_role: "arn:aws:iam::363762752069:role/metamask-mobile-uat-signer"
-  aws_secret: "metamask-mobile-flask-uat-signer"
-  android_keystore_path: "flask-uat.keystore"
+  aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-uat-signer'
+  aws_secret: 'metamask-mobile-flask-uat-signer'
+  android_keystore_path: 'flask-uat.keystore'
 
 # Main code fencing features
 _code_fencing_main: &code_fencing_main
@@ -124,8 +135,7 @@ _code_fencing_flask: &code_fencing_flask
 # LaunchDarkly will override these at runtime
 # Production (conservative) defaults - override in dev/exp builds as needed
 # =============================================================================
-_remote_feature_flags: &remote_feature_flags
-  # Perps
+_remote_feature_flags: &remote_feature_flags # Perps
   perpsPerpTradingEnabled: false
   perpsPerpTradingServiceInterruptionBannerEnabled: false
   perpsPerpGtmOnboardingModalEnabled: false
@@ -159,13 +169,9 @@ builds:
     github_environment: build-production
     signing: *signing_prod
     env:
-      METAMASK_ENVIRONMENT: "production"
-      METAMASK_BUILD_TYPE: "main"
-      <<: *servers
-      # Build config flags (not remote feature flags)
-      BRIDGE_USE_DEV_APIS: "false"
-      RAMP_INTERNAL_BUILD: "false"
-      IS_TEST: "false"
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'production'
+      METAMASK_BUILD_TYPE: 'main'
     secrets: *secrets
     code_fencing: *code_fencing_main
     remote_feature_flags: *remote_feature_flags
@@ -175,12 +181,9 @@ builds:
     github_environment: build-rc
     signing: *signing_rc
     env:
-      METAMASK_ENVIRONMENT: "rc"
-      METAMASK_BUILD_TYPE: "main"
-      <<: *servers
-      BRIDGE_USE_DEV_APIS: "false"
-      RAMP_INTERNAL_BUILD: "false"
-      IS_TEST: "false"
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'rc'
+      METAMASK_BUILD_TYPE: 'main'
     secrets: *secrets
     code_fencing: *code_fencing_main
     remote_feature_flags: *remote_feature_flags
@@ -190,19 +193,18 @@ builds:
     github_environment: build-test
     signing: *signing_uat
     env:
-      METAMASK_ENVIRONMENT: "test"
-      METAMASK_BUILD_TYPE: "main"
-      <<: *servers
-      # UAT server overrides (TODO: Add actual UAT URLs when available)
-      PORTFOLIO_API_URL: "https://portfolio.dev-api.cx.metamask.io"
-      REWARDS_API_URL: "https://rewards.uat-api.cx.metamask.io"
-      BAANX_API_URL: "https://dev.api.baanx.com"
-      RAMPS_ENVIRONMENT: "staging"
-      BRIDGE_USE_DEV_APIS: "true"
-      RAMP_INTERNAL_BUILD: "true"
-      IS_TEST: "true"
-      IGNORE_BOXLOGS_DEVELOPMENT: "true"
-      IS_SIM_BUILD: "true"
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'test'
+      METAMASK_BUILD_TYPE: 'main'
+      PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      BAANX_API_URL: 'https://dev.api.baanx.com'
+      RAMPS_ENVIRONMENT: 'staging'
+      BRIDGE_USE_DEV_APIS: 'true'
+      RAMP_INTERNAL_BUILD: 'true'
+      IS_TEST: 'true'
+      IGNORE_BOXLOGS_DEVELOPMENT: 'true'
+      IS_SIM_BUILD: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main
     remote_feature_flags: *remote_feature_flags
@@ -212,18 +214,18 @@ builds:
     github_environment: build-e2e
     signing: *signing_uat
     env:
-      METAMASK_ENVIRONMENT: "e2e"
-      METAMASK_BUILD_TYPE: "main"
-      <<: *servers
-      PORTFOLIO_API_URL: "https://portfolio.dev-api.cx.metamask.io"
-      REWARDS_API_URL: "https://rewards.uat-api.cx.metamask.io"
-      BAANX_API_URL: "https://dev.api.baanx.com"
-      RAMPS_ENVIRONMENT: "staging"
-      BRIDGE_USE_DEV_APIS: "true"
-      RAMP_INTERNAL_BUILD: "true"
-      IS_TEST: "true"
-      IGNORE_BOXLOGS_DEVELOPMENT: "true"
-      IS_SIM_BUILD: "true"
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'e2e'
+      METAMASK_BUILD_TYPE: 'main'
+      PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      BAANX_API_URL: 'https://dev.api.baanx.com'
+      RAMPS_ENVIRONMENT: 'staging'
+      BRIDGE_USE_DEV_APIS: 'true'
+      RAMP_INTERNAL_BUILD: 'true'
+      IS_TEST: 'true'
+      IGNORE_BOXLOGS_DEVELOPMENT: 'true'
+      IS_SIM_BUILD: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main
     remote_feature_flags: *remote_feature_flags
@@ -233,17 +235,17 @@ builds:
     github_environment: build-exp
     signing: *signing_uat
     env:
-      METAMASK_ENVIRONMENT: "exp"
-      METAMASK_BUILD_TYPE: "main"
-      <<: *servers
-      PORTFOLIO_API_URL: "https://portfolio.dev-api.cx.metamask.io"
-      REWARDS_API_URL: "https://rewards.uat-api.cx.metamask.io"
-      BAANX_API_URL: "https://dev.api.baanx.com"
-      RAMPS_ENVIRONMENT: "staging"
-      BRIDGE_USE_DEV_APIS: "true"
-      RAMP_INTERNAL_BUILD: "true"
-      IS_TEST: "false"
-      MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: "true"
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'exp'
+      METAMASK_BUILD_TYPE: 'main'
+      PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      BAANX_API_URL: 'https://dev.api.baanx.com'
+      RAMPS_ENVIRONMENT: 'staging'
+      BRIDGE_USE_DEV_APIS: 'true'
+      RAMP_INTERNAL_BUILD: 'true'
+      IS_TEST: 'false'
+      MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main
     remote_feature_flags:
@@ -264,21 +266,20 @@ builds:
   main-dev:
     github_environment: build-dev
     env:
-      METAMASK_ENVIRONMENT: "dev"
-      METAMASK_BUILD_TYPE: "main"
-      <<: *servers
-      PORTFOLIO_API_URL: "https://portfolio.dev-api.cx.metamask.io"
-      REWARDS_API_URL: "https://rewards.uat-api.cx.metamask.io"
-      BAANX_API_URL: "https://dev.api.baanx.com"
-      RAMPS_ENVIRONMENT: "staging"
-      BRIDGE_USE_DEV_APIS: "true"
-      RAMP_INTERNAL_BUILD: "true"
-      IS_TEST: "false"
-      MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: "true"
-      # iOS: build for simulator (Expo dev build; no signing required)
-      IS_SIM_BUILD: "true"
-      # Android: build Debug APK (for Runway/testing; script verifies APK at prod/debug/)
-      CONFIGURATION: "Debug"
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'dev'
+      METAMASK_BUILD_TYPE: 'main'
+      PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      BAANX_API_URL: 'https://dev.api.baanx.com'
+      RAMPS_ENVIRONMENT: 'staging'
+      BRIDGE_USE_DEV_APIS: 'true'
+      RAMP_INTERNAL_BUILD: 'true'
+      IS_TEST: 'false'
+      MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
+      IS_SIM_BUILD: 'true'
+      CONFIGURATION: 'Debug'
+      DEV_OAUTH_CONFIG: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main
     remote_feature_flags:
@@ -304,12 +305,9 @@ builds:
     github_environment: build-flask-prod
     signing: *signing_flask_prod
     env:
-      METAMASK_ENVIRONMENT: "production"
-      METAMASK_BUILD_TYPE: "flask"
-      <<: *servers
-      BRIDGE_USE_DEV_APIS: "false"
-      RAMP_INTERNAL_BUILD: "false"
-      IS_TEST: "false"
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'production'
+      METAMASK_BUILD_TYPE: 'flask'
     secrets: *secrets
     code_fencing: *code_fencing_flask
     remote_feature_flags: *remote_feature_flags
@@ -319,18 +317,18 @@ builds:
     github_environment: build-flask-uat
     signing: *signing_flask_uat
     env:
-      METAMASK_ENVIRONMENT: "test"
-      METAMASK_BUILD_TYPE: "flask"
-      <<: *servers
-      PORTFOLIO_API_URL: "https://portfolio.dev-api.cx.metamask.io"
-      REWARDS_API_URL: "https://rewards.uat-api.cx.metamask.io"
-      BAANX_API_URL: "https://dev.api.baanx.com"
-      RAMPS_ENVIRONMENT: "staging"
-      BRIDGE_USE_DEV_APIS: "true"
-      RAMP_INTERNAL_BUILD: "true"
-      IS_TEST: "true"
-      IGNORE_BOXLOGS_DEVELOPMENT: "true"
-      IS_SIM_BUILD: "true"
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'test'
+      METAMASK_BUILD_TYPE: 'flask'
+      PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      BAANX_API_URL: 'https://dev.api.baanx.com'
+      RAMPS_ENVIRONMENT: 'staging'
+      BRIDGE_USE_DEV_APIS: 'true'
+      RAMP_INTERNAL_BUILD: 'true'
+      IS_TEST: 'true'
+      IGNORE_BOXLOGS_DEVELOPMENT: 'true'
+      IS_SIM_BUILD: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_flask
     remote_feature_flags: *remote_feature_flags
@@ -340,18 +338,18 @@ builds:
     github_environment: build-flask-e2e
     signing: *signing_flask_uat
     env:
-      METAMASK_ENVIRONMENT: "e2e"
-      METAMASK_BUILD_TYPE: "flask"
-      <<: *servers
-      PORTFOLIO_API_URL: "https://portfolio.dev-api.cx.metamask.io"
-      REWARDS_API_URL: "https://rewards.uat-api.cx.metamask.io"
-      BAANX_API_URL: "https://dev.api.baanx.com"
-      RAMPS_ENVIRONMENT: "staging"
-      BRIDGE_USE_DEV_APIS: "true"
-      RAMP_INTERNAL_BUILD: "true"
-      IS_TEST: "true"
-      IGNORE_BOXLOGS_DEVELOPMENT: "true"
-      IS_SIM_BUILD: "true"
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'e2e'
+      METAMASK_BUILD_TYPE: 'flask'
+      PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      BAANX_API_URL: 'https://dev.api.baanx.com'
+      RAMPS_ENVIRONMENT: 'staging'
+      BRIDGE_USE_DEV_APIS: 'true'
+      RAMP_INTERNAL_BUILD: 'true'
+      IS_TEST: 'true'
+      IGNORE_BOXLOGS_DEVELOPMENT: 'true'
+      IS_SIM_BUILD: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_flask
     remote_feature_flags: *remote_feature_flags
@@ -360,21 +358,20 @@ builds:
   flask-dev:
     github_environment: build-flask-dev
     env:
-      METAMASK_ENVIRONMENT: "dev"
-      METAMASK_BUILD_TYPE: "flask"
-      <<: *servers
-      PORTFOLIO_API_URL: "https://portfolio.dev-api.cx.metamask.io"
-      REWARDS_API_URL: "https://rewards.uat-api.cx.metamask.io"
-      BAANX_API_URL: "https://dev.api.baanx.com"
-      RAMPS_ENVIRONMENT: "staging"
-      BRIDGE_USE_DEV_APIS: "true"
-      RAMP_INTERNAL_BUILD: "true"
-      IS_TEST: "false"
-      MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: "true"
-      # iOS: build for simulator (Expo dev build; no signing required)
-      IS_SIM_BUILD: "true"
-      # Android: build Debug APK (for Runway/testing; script verifies APK at flask/debug/)
-      CONFIGURATION: "Debug"
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'dev'
+      METAMASK_BUILD_TYPE: 'flask'
+      PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      BAANX_API_URL: 'https://dev.api.baanx.com'
+      RAMPS_ENVIRONMENT: 'staging'
+      BRIDGE_USE_DEV_APIS: 'true'
+      RAMP_INTERNAL_BUILD: 'true'
+      IS_TEST: 'false'
+      MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
+      IS_SIM_BUILD: 'true'
+      CONFIGURATION: 'Debug'
+      DEV_OAUTH_CONFIG: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_flask
     remote_feature_flags:
@@ -400,12 +397,9 @@ builds:
     github_environment: build-qa
     signing: *signing_uat
     env:
-      METAMASK_ENVIRONMENT: "production"
-      METAMASK_BUILD_TYPE: "qa"
-      <<: *servers
-      BRIDGE_USE_DEV_APIS: "false"
-      RAMP_INTERNAL_BUILD: "false"
-      IS_TEST: "false"
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'production'
+      METAMASK_BUILD_TYPE: 'qa'
     secrets:
       <<: *secrets
       # QA uses QA Segment project
@@ -427,21 +421,20 @@ builds:
   qa-dev:
     github_environment: build-qa
     env:
-      METAMASK_ENVIRONMENT: "dev"
-      METAMASK_BUILD_TYPE: "qa"
-      <<: *servers
-      PORTFOLIO_API_URL: "https://portfolio.dev-api.cx.metamask.io"
-      REWARDS_API_URL: "https://rewards.uat-api.cx.metamask.io"
-      BAANX_API_URL: "https://dev.api.baanx.com"
-      RAMPS_ENVIRONMENT: "staging"
-      BRIDGE_USE_DEV_APIS: "true"
-      RAMP_INTERNAL_BUILD: "true"
-      IS_TEST: "false"
-      MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: "true"
-      # iOS: build for simulator (Expo dev build; no signing required)
-      IS_SIM_BUILD: "true"
-      # Android: build Debug APK (for Runway/testing; script verifies APK at qa/debug/)
-      CONFIGURATION: "Debug"
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'dev'
+      METAMASK_BUILD_TYPE: 'qa'
+      PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      BAANX_API_URL: 'https://dev.api.baanx.com'
+      RAMPS_ENVIRONMENT: 'staging'
+      BRIDGE_USE_DEV_APIS: 'true'
+      RAMP_INTERNAL_BUILD: 'true'
+      IS_TEST: 'false'
+      MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
+      IS_SIM_BUILD: 'true'
+      CONFIGURATION: 'Debug'
+      DEV_OAUTH_CONFIG: 'true'
     secrets:
       <<: *secrets
       # QA uses QA Segment project
