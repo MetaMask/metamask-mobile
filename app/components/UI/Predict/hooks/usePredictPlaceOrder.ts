@@ -1,4 +1,4 @@
-import { useCallback, useContext, useState } from 'react';
+import { useCallback, useContext, useState, useRef } from 'react';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import {
   ToastContext,
@@ -39,6 +39,8 @@ interface UsePredictPlaceOrderReturn {
   isLoading: boolean;
   result: Result | null;
   placeOrder: (params: PlaceOrderParams) => Promise<void>;
+  isOrderNotFilled: boolean;
+  resetOrderNotFilled: () => void;
 }
 
 /**
@@ -55,6 +57,9 @@ export function usePredictPlaceOrder(
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>();
   const [result, setResult] = useState<Result | null>(null);
+  const [isOrderNotFilled, setIsOrderNotFilled] = useState(false);
+  // TODO: Remove — temp flag to simulate "order not filled" on first attempt
+  const simulateNotFilledRef = useRef(true);
   const { toastRef } = useContext(ToastContext);
   const { balance } = usePredictBalance({ loadOnMount: false });
   const { deposit } = usePredictDeposit();
@@ -149,6 +154,17 @@ export function usePredictPlaceOrder(
 
       try {
         setIsLoading(true);
+
+        // TODO: Remove — simulate "not filled" on first attempt for testing
+        if (simulateNotFilledRef.current) {
+          simulateNotFilledRef.current = false;
+          const code =
+            side === Side.BUY
+              ? PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED
+              : PREDICT_ERROR_CODES.SELL_ORDER_NOT_FULLY_FILLED;
+          throw new Error(code);
+        }
+
         // Place order using Predict controller
         const orderResult = await controllerPlaceOrder(orderParams);
 
@@ -198,6 +214,15 @@ export function usePredictPlaceOrder(
           },
         });
 
+        const rawMessage = err instanceof Error ? err.message : String(err);
+        const isNotFilled =
+          rawMessage === PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED ||
+          rawMessage === PREDICT_ERROR_CODES.SELL_ORDER_NOT_FULLY_FILLED;
+
+        if (isNotFilled) {
+          setIsOrderNotFilled(true);
+        }
+
         setError(parsedErrorMessage);
         onError?.(parsedErrorMessage);
       } finally {
@@ -215,10 +240,17 @@ export function usePredictPlaceOrder(
     ],
   );
 
+  const resetOrderNotFilled = useCallback(() => {
+    setIsOrderNotFilled(false);
+    setError(undefined);
+  }, []);
+
   return {
     error,
     isLoading,
     result,
     placeOrder,
+    isOrderNotFilled,
+    resetOrderNotFilled,
   };
 }
