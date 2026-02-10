@@ -67,12 +67,10 @@ export interface BridgeState {
    * Analytics context set when navigating to bridge/swap from Token Details.
    * Contains entry_point and ab_test variant for page-viewed event attribution.
    */
-  abTestContext:
-    | {
-        entry_point?: string;
-        ab_test_token_details_layout?: string;
-      }
-    | undefined;
+  abTestContext?: {
+    entry_point?: string;
+    ab_test_token_details_layout?: string;
+  };
 }
 
 export const initialState: BridgeState = {
