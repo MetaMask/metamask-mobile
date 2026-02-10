@@ -2,6 +2,7 @@ import React, { useCallback, useRef } from 'react';
 import { ScrollView } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { Icon, IconName, IconSize } from '@metamask/design-system-react-native';
+import { IconName as ComponentLibraryIconName } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
@@ -68,7 +69,7 @@ const NetworkListModal: React.FC = () => {
           onPress={() => handleNetworkPress(undefined)}
           avatarProps={{
             variant: AvatarVariant.Icon,
-            name: IconName.Global,
+            name: ComponentLibraryIconName.Global,
             size: AvatarSize.Sm,
           }}
           testID="network-option-all"

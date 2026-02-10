@@ -151,14 +151,6 @@ export const BridgeTokenSelector: React.FC = () => {
   const lastChainIdRef = useRef(selectedChainId);
   const [listKey, setListKey] = useState(0);
 
-  // Update list key when network actually changes
-  useEffect(() => {
-    if (lastChainIdRef.current !== selectedChainId) {
-      lastChainIdRef.current = selectedChainId;
-      setListKey((prev) => prev + 1);
-    }
-  }, [selectedChainId]);
-
   const chainIdsToFetch = useMemo(() => {
     if (!enabledChainRanking || enabledChainRanking.length === 0) {
       return [];
@@ -241,6 +233,25 @@ export const BridgeTokenSelector: React.FC = () => {
     chainIds: chainIdsToFetch,
     includeAssets,
   });
+
+  // React to network filter changes from any source (pill press or modal).
+  // Cancels pending searches, resets stale results, and flags for re-search.
+  useEffect(() => {
+    if (lastChainIdRef.current !== selectedChainId) {
+      lastChainIdRef.current = selectedChainId;
+      setListKey((prev) => prev + 1);
+
+      // Cancel any pending debounced searches
+      debouncedSearch.cancel();
+      // Clear old network's data to ensure clean state
+      resetSearch();
+
+      // If there's an active search, prepare to re-trigger it on the new network
+      if (isValidSearch) {
+        shouldResearchAfterChainChange.current = true;
+      }
+    }
+  }, [selectedChainId, debouncedSearch, resetSearch, isValidSearch]);
 
   // Use custom hook for merging balances
   const popularTokensWithBalance = useTokensWithBalances(
@@ -333,14 +344,13 @@ export const BridgeTokenSelector: React.FC = () => {
 
       dispatch(setTokenSelectorNetworkFilter(chainId));
 
-      // Cancel any pending debounced searches
+      // Eagerly clean up search state so the UI doesn't flash stale results.
+      // The useEffect watching selectedChainId also performs this cleanup
+      // to handle changes from NetworkListModal (which dispatches directly).
       debouncedSearch.cancel();
-      // Always reset search results to clear old network's data and ensure clean state
       resetSearch();
 
-      // If there's an active search, prepare to re-trigger it on the new network
       if (isValidSearch) {
-        // Set flag to trigger search after chain IDs update
         shouldResearchAfterChainChange.current = true;
       }
     },
