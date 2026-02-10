@@ -3,9 +3,9 @@ import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
 } from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import AccountListBottomSheet from '../../../e2e/pages/wallet/AccountListBottomSheet';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import { loginToApp } from '../../../e2e/viewHelper';
+import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
+import WalletView from '../../page-objects/wallet/WalletView';
+import { loginToApp } from '../../flows/wallet.flow';
 import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
