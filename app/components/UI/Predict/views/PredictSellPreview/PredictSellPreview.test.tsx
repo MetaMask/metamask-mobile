@@ -89,8 +89,20 @@ jest.mock('../../hooks/usePredictPlaceOrder', () => ({
       result: mockPlaceOrderResult,
       error: mockPlaceOrderError,
       reset: mockReset,
+      isOrderNotFilled: false,
+      resetOrderNotFilled: jest.fn(),
     };
   },
+}));
+
+jest.mock('../../hooks/usePredictOrderRetry', () => ({
+  usePredictOrderRetry: () => ({
+    retrySheetRef: { current: null },
+    retrySheetVariant: 'busy' as const,
+    isRetrying: false,
+    handleRetryWithBestPrice: jest.fn(),
+    resetOrderNotFilled: jest.fn(),
+  }),
 }));
 
 // Mock usePredictOrderPreview hook - external API dependency
