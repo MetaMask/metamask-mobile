@@ -62,11 +62,6 @@ const createStyles = (params: { theme: Theme }) => {
     tokensListContainer: {
       flex: 1,
     },
-    searchInput: {
-      borderRadius: 12,
-      borderWidth: 0,
-      backgroundColor: theme.colors.background.section,
-    },
   });
 };
 
@@ -139,7 +134,7 @@ export const BridgeTokenSelectorBase: React.FC<BridgeTokenSelectorBaseProps> =
       title,
       scrollResetKey,
     }) => {
-      const { styles, theme } = useStyles(createStyles);
+      const { styles } = useStyles(createStyles);
       const {
         searchString,
         setSearchString,
@@ -218,8 +213,6 @@ export const BridgeTokenSelectorBase: React.FC<BridgeTokenSelectorBaseProps> =
           return tokensToRenderWithSearch;
         }, [pending, tokensToRenderWithSearch]);
 
-      const placeholderTextColor = theme.colors.text.alternative;
-
       return (
         <BottomSheet
           ref={sheetRef}
@@ -240,10 +233,9 @@ export const BridgeTokenSelectorBase: React.FC<BridgeTokenSelectorBaseProps> =
             <TextFieldSearch
               value={searchString}
               onChangeText={handleSearchTextChange}
+              onPressClearButton={() => setSearchString('')}
               placeholder={strings('swaps.search_token')}
               testID="bridge-token-search-input"
-              style={styles.searchInput}
-              placeholderTextColor={placeholderTextColor}
             />
           </Box>
 
