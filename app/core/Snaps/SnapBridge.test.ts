@@ -106,6 +106,15 @@ jest.mock('../SnapKeyring/utils/snaps', () => ({
   isSnapPreinstalled: (snapId: SnapId) => snapId.includes('preinstalled'),
 }));
 
+jest.mock('@metamask/snaps-rpc-methods', () => ({
+  ...jest.requireActual('@metamask/snaps-rpc-methods'),
+  createWalletSnapPermissionMiddleware: jest
+    .fn()
+    .mockReturnValue((_req: unknown, _res: unknown, next: () => void) =>
+      next(),
+    ),
+}));
+
 function createBridge(snapId = 'npm:@metamask/example-snap' as SnapId) {
   const streamA = new Duplex({
     objectMode: true,

@@ -110,7 +110,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 8,
+                        "borderRadius": 2,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -128,8 +128,8 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -1554,7 +1554,7 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 8,
+                        "borderRadius": 2,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -1572,8 +1572,8 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -2998,7 +2998,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 8,
+                        "borderRadius": 2,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -3016,8 +3016,8 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -4442,7 +4442,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 8,
+                        "borderRadius": 2,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -4460,8 +4460,8 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -5886,7 +5886,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 8,
+                        "borderRadius": 2,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -5904,8 +5904,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -7390,7 +7390,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 8,
+                        "borderRadius": 2,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -7408,8 +7408,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -8879,7 +8879,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 8,
+                        "borderRadius": 2,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -8897,8 +8897,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]

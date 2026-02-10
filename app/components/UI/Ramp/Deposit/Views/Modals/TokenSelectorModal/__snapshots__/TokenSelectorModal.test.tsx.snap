@@ -552,7 +552,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                         {
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
-                                          "borderRadius": 8,
+                                          "borderRadius": 2,
                                           "height": 32,
                                           "justifyContent": "center",
                                           "opacity": 1,
@@ -570,8 +570,8 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 24,
-                                            "width": 24,
+                                            "height": 20,
+                                            "width": 20,
                                           },
                                           undefined,
                                         ]
@@ -1570,7 +1570,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                                         {
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
-                                          "borderRadius": 8,
+                                          "borderRadius": 2,
                                           "height": 32,
                                           "justifyContent": "center",
                                           "opacity": 1,
@@ -1588,8 +1588,8 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 24,
-                                            "width": 24,
+                                            "height": 20,
+                                            "width": 20,
                                           },
                                           undefined,
                                         ]
@@ -2787,7 +2787,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                         {
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
-                                          "borderRadius": 8,
+                                          "borderRadius": 2,
                                           "height": 32,
                                           "justifyContent": "center",
                                           "opacity": 1,
@@ -2805,8 +2805,8 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 24,
-                                            "width": 24,
+                                            "height": 20,
+                                            "width": 20,
                                           },
                                           undefined,
                                         ]
