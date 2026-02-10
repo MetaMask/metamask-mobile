@@ -39,11 +39,12 @@ import { selectIsPna25FlagEnabled } from '../../../../../../selectors/featureFla
 
 interface MetaMetricsAndDataCollectionSectionProps {
   hideMarketingSection?: boolean;
+  analyticsLocation?: 'settings' | 'onboarding_default_settings';
 }
 
 const MetaMetricsAndDataCollectionSection: React.FC<
   MetaMetricsAndDataCollectionSectionProps
-> = ({ hideMarketingSection = false }) => {
+> = ({ hideMarketingSection = false, analyticsLocation = 'settings' }) => {
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);
@@ -118,7 +119,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
           .addProperties({
             is_metrics_opted_in: true,
             updated_after_onboarding: true,
-            location: 'settings',
+            location: analyticsLocation,
           })
           .build(),
       );
@@ -135,6 +136,16 @@ const MetaMetricsAndDataCollectionSection: React.FC<
       if (isDataCollectionForMarketingEnabled) {
         dispatch(setDataCollectionForMarketing(false));
       }
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.METRICS_OPT_OUT,
+        )
+          .addProperties({
+            updated_after_onboarding: true,
+            location: analyticsLocation,
+          })
+          .build(),
+      );
       Alert.alert(
         strings('app_settings.metametrics_opt_out'),
         strings('app_settings.metametrics_restart_required'),

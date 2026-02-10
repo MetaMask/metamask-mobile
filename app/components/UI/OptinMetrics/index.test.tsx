@@ -5,6 +5,7 @@ import { strings } from '../../../../locales/i18n';
 import { MetaMetricsOptInSelectorsIDs } from './MetaMetricsOptIn.testIds';
 import { Platform } from 'react-native';
 import Device from '../../../util/device';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
 const { InteractionManager } = jest.requireActual('react-native');
 
@@ -273,6 +274,88 @@ describe('OptinMetrics', () => {
 
       await waitFor(() => {
         expect(mockAnalytics.optOut).toHaveBeenCalled();
+      });
+    });
+
+    it('tracks METRICS_OPT_OUT when basic usage checkbox is unchecked', async () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      const basicUsageCheckbox = screen.getByText(
+        strings('privacy_policy.gather_basic_usage_title'),
+      );
+
+      fireEvent.press(basicUsageCheckbox);
+
+      await waitFor(() => {
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.METRICS_OPT_OUT.category,
+            properties: expect.objectContaining({
+              updated_after_onboarding: false,
+              location: 'onboarding_metametrics',
+            }),
+          }),
+        );
+      });
+    });
+
+    it('tracks METRICS_OPT_OUT when unchecking via checkbox component', async () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      const checkboxes = screen.getAllByRole('checkbox');
+      const basicUsageCheckbox = checkboxes[0];
+
+      fireEvent.press(basicUsageCheckbox);
+
+      await waitFor(() => {
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.METRICS_OPT_OUT.category,
+            properties: expect.objectContaining({
+              updated_after_onboarding: false,
+              location: 'onboarding_metametrics',
+            }),
+          }),
+        );
+      });
+    });
+
+    it('unchecks marketing when basic usage is unchecked and fires METRICS_OPT_OUT', async () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      const marketingCheckbox = screen.getByText(
+        strings('privacy_policy.checkbox_marketing'),
+      );
+      fireEvent.press(marketingCheckbox);
+
+      const basicUsageCheckbox = screen.getByText(
+        strings('privacy_policy.gather_basic_usage_title'),
+      );
+      fireEvent.press(basicUsageCheckbox);
+
+      await waitFor(() => {
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.METRICS_OPT_OUT.category,
+            properties: expect.objectContaining({
+              updated_after_onboarding: false,
+              location: 'onboarding_metametrics',
+            }),
+          }),
+        );
+      });
+
+      fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
+
+      await waitFor(() => {
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              has_marketing_consent: false,
+              is_metrics_opted_in: false,
+            }),
+          }),
+        );
       });
     });
   });
