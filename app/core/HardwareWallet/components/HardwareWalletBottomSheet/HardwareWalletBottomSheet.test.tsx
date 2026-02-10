@@ -37,10 +37,6 @@ jest.mock('../../../../util/theme', () => ({
   }),
 }));
 
-jest.mock('react-native-permissions', () => ({
-  openSettings: jest.fn(),
-}));
-
 // Track props passed to content components for testing handlers
 let lastDeviceSelectionProps: Record<string, unknown> = {};
 let lastErrorContentProps: Record<string, unknown> = {};

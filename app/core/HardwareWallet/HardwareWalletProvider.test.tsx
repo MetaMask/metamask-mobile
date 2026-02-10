@@ -10,7 +10,6 @@ import {
   useHardwareWalletActions,
 } from './contexts';
 import { getHardwareWalletTypeForAddress } from './helpers';
-import { BluetoothPermissionState, LocationPermissionState } from './types';
 import { createAdapter } from './adapters';
 import { HardwareWalletType, ConnectionStatus } from '@metamask/hw-wallet-sdk';
 
@@ -104,11 +103,6 @@ jest.mock('./errors', () => {
     isUserCancellation: jest.fn().mockReturnValue(false),
   };
 });
-
-// Mock react-native-permissions
-jest.mock('react-native-permissions', () => ({
-  openSettings: jest.fn(),
-}));
 
 // Mock react-native
 jest.mock('react-native', () => ({
@@ -361,66 +355,9 @@ describe('HardwareWalletProvider', () => {
         );
       });
     });
-
-    describe('requestBluetoothPermissions', () => {
-      it('should call onRequestBluetoothPermissions callback', async () => {
-        const mockRequestPermissions = jest.fn().mockResolvedValue(true);
-
-        const { result } = renderHook(() => useTestActions(), {
-          wrapper: ({ children }: { children: React.ReactNode }) => (
-            <HardwareWalletProvider
-              onRequestBluetoothPermissions={mockRequestPermissions}
-            >
-              {children}
-            </HardwareWalletProvider>
-          ),
-        });
-
-        let granted: boolean | undefined;
-        await act(async () => {
-          granted = await result.current.actions.requestBluetoothPermissions();
-        });
-
-        expect(mockRequestPermissions).toHaveBeenCalled();
-        expect(granted).toBe(true);
-      });
-
-      it('should return false if no callback provided', async () => {
-        const { result } = renderWithActions();
-
-        let granted: boolean | undefined;
-        await act(async () => {
-          granted = await result.current.actions.requestBluetoothPermissions();
-        });
-
-        expect(granted).toBe(false);
-      });
-    });
   });
 
   describe('props', () => {
-    it('should accept initial permissions', async () => {
-      mockUseSelector.mockReturnValue({ address: '0x1234' });
-      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
-
-      const initialPermissions = {
-        bluetooth: BluetoothPermissionState.Granted,
-        location: LocationPermissionState.Granted,
-        allGranted: true,
-      };
-
-      const { getByTestId } = render(
-        <HardwareWalletProvider initialPermissions={initialPermissions}>
-          <TestConsumer />
-        </HardwareWalletProvider>,
-      );
-
-      // Give time for effects to settle
-      await waitFor(() => {
-        expect(getByTestId('connectionStatus')).toBeTruthy();
-      });
-    });
-
     it('should render with default props', async () => {
       mockUseSelector.mockReturnValue({ address: '0x1234' });
       mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);

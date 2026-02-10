@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useMemo, ReactNode } from 'react';
-import { ConnectionState } from '../connectionState';
 import { DiscoveredDevice } from '../types';
 import {
   ConnectionStatus,
@@ -39,7 +38,7 @@ const defaultDeviceSelection: DeviceSelectionState = {
 };
 
 const defaultState: HardwareWalletStateContextType = {
-  connectionState: ConnectionState.disconnected(),
+  connectionState: { status: ConnectionStatus.Disconnected },
   deviceSelection: defaultDeviceSelection,
 };
 
@@ -64,7 +63,7 @@ export const HardwareWalletStateProvider: React.FC<
   HardwareWalletStateProviderProps
 > = ({
   children,
-  connectionState = ConnectionState.disconnected(),
+  connectionState = { status: ConnectionStatus.Disconnected },
   deviceSelection = defaultDeviceSelection,
 }) => {
   const value = useMemo<HardwareWalletStateContextType>(

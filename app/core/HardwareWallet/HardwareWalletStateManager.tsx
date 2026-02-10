@@ -5,21 +5,9 @@ import { getHardwareWalletTypeForAddress } from './helpers';
 import {
   HardwareWalletType,
   HardwareWalletConnectionState,
+  ConnectionStatus,
 } from '@metamask/hw-wallet-sdk';
-import { ConnectionState } from './connectionState';
-import {
-  BluetoothPermissionState,
-  LocationPermissionState,
-  HardwareWalletAdapter,
-} from './types';
-
-/**
- * Permission state for hardware wallet connections
- */
-export interface HardwareWalletPermissionState {
-  bluetooth: BluetoothPermissionState;
-  location: LocationPermissionState;
-}
+import { HardwareWalletAdapter } from './types';
 
 /**
  * State managed by the hardware wallet state manager
@@ -29,8 +17,6 @@ export interface HardwareWalletManagedState {
   connectionState: HardwareWalletConnectionState;
   /** ID of the currently connected or target device */
   deviceId: string | null;
-  /** Current permission states */
-  permissionState: HardwareWalletPermissionState;
   /** Type of hardware wallet for current account (derived from selected account) */
   walletType: HardwareWalletType | null;
   /** Target wallet type for new connections (set when opening device selection) */
@@ -59,9 +45,6 @@ export interface HardwareWalletStateSetters {
     React.SetStateAction<HardwareWalletConnectionState>
   >;
   setDeviceId: React.Dispatch<React.SetStateAction<string | null>>;
-  setPermissionState: React.Dispatch<
-    React.SetStateAction<HardwareWalletPermissionState>
-  >;
   setTargetWalletType: React.Dispatch<
     React.SetStateAction<HardwareWalletType | null>
   >;
@@ -79,56 +62,25 @@ export interface HardwareWalletStateManagerResult {
 }
 
 /**
- * Default permission state
- */
-const DEFAULT_PERMISSION_STATE: HardwareWalletPermissionState = {
-  bluetooth: BluetoothPermissionState.Unknown,
-  location: LocationPermissionState.Unknown,
-};
-
-/**
  * Hook to manage hardware wallet state.
  *
  * This hook centralizes all hardware wallet state management including:
  * - Connection state machine
  * - Device ID tracking
- * - Permission states
  * - Wallet type detection from selected account
  *
  * It also provides refs for stable callbacks and an adapter reference.
- *
- * @example
- * ```typescript
- * const { state, refs, setters, resetState } = useHardwareWalletStateManager();
- *
- * // Access current state
- * if (state.isHardwareWalletAccount) {
- *   console.log('Hardware wallet type:', state.walletType);
- * }
- *
- * // Update state
- * setters.setConnectionState(ConnectionState.connecting());
- *
- * // Use refs in callbacks
- * const connect = useCallback(async () => {
- *   if (refs.isConnectingRef.current) return;
- *   refs.isConnectingRef.current = true;
- *   // ...
- * }, []);
- * ```
  */
 export const useHardwareWalletStateManager =
   (): HardwareWalletStateManagerResult => {
     // Connection state
     const [connectionState, setConnectionState] =
-      useState<HardwareWalletConnectionState>(ConnectionState.disconnected());
+      useState<HardwareWalletConnectionState>({
+        status: ConnectionStatus.Disconnected,
+      });
 
     // Device tracking
     const [deviceId, setDeviceId] = useState<string | null>(null);
-
-    // Permission state
-    const [permissionState, setPermissionState] =
-      useState<HardwareWalletPermissionState>(DEFAULT_PERMISSION_STATE);
 
     // Target wallet type (for new connections before account is created)
     const [targetWalletType, setTargetWalletType] =
@@ -153,9 +105,8 @@ export const useHardwareWalletStateManager =
 
     // Reset function
     const resetState = useCallback(() => {
-      setConnectionState(ConnectionState.disconnected());
+      setConnectionState({ status: ConnectionStatus.Disconnected });
       setDeviceId(null);
-      setPermissionState(DEFAULT_PERMISSION_STATE);
       setTargetWalletType(null);
       isConnectingRef.current = false;
 
@@ -169,7 +120,6 @@ export const useHardwareWalletStateManager =
       () => ({
         connectionState,
         deviceId,
-        permissionState,
         walletType,
         targetWalletType,
         isHardwareWalletAccount,
@@ -177,7 +127,6 @@ export const useHardwareWalletStateManager =
       [
         connectionState,
         deviceId,
-        permissionState,
         walletType,
         targetWalletType,
         isHardwareWalletAccount,
@@ -199,7 +148,6 @@ export const useHardwareWalletStateManager =
       () => ({
         setConnectionState,
         setDeviceId,
-        setPermissionState,
         setTargetWalletType,
       }),
       [],

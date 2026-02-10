@@ -2,7 +2,7 @@
  * Split contexts for hardware wallet management.
  *
  * The contexts are split for performance optimization:
- * - ConfigContext: Rarely changes (wallet type, permissions)
+ * - ConfigContext: Rarely changes (wallet type)
  * - StateContext: Frequently changes (connection state)
  * - ActionsContext: Stable callbacks (connect, disconnect, etc.)
  *

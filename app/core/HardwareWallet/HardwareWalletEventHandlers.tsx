@@ -7,8 +7,8 @@ import {
   HardwareWalletConnectionState,
   DeviceEvent,
   DeviceEventPayload,
+  ConnectionStatus,
 } from '@metamask/hw-wallet-sdk';
-import { ConnectionState } from './connectionState';
 import {
   HardwareWalletStateSetters,
   HardwareWalletRefs,
@@ -104,7 +104,10 @@ export const useDeviceEventHandlers = ({
 
       // Skip state update if requested (e.g., when flow is already complete)
       if (!skipStateUpdate) {
-        updateConnectionState(ConnectionState.error(hwError));
+        updateConnectionState({
+          status: ConnectionStatus.ErrorState,
+          error: hwError,
+        });
       } else {
         console.log(
           '[HardwareWallet] Error occurred but skipping state update (flow complete):',
@@ -124,7 +127,7 @@ export const useDeviceEventHandlers = ({
   const clearError = useCallback(() => {
     setters.setConnectionState((prev) => {
       if (prev.status === 'error') {
-        return ConnectionState.disconnected();
+        return { status: ConnectionStatus.Disconnected };
       }
       return prev;
     });
@@ -139,33 +142,35 @@ export const useDeviceEventHandlers = ({
         case DeviceEvent.Connected:
           if (payload.deviceId) {
             setters.setDeviceId(payload.deviceId);
-            updateConnectionState(ConnectionState.connected(payload.deviceId));
+            updateConnectionState({
+              status: ConnectionStatus.Connected,
+              deviceId: payload.deviceId,
+            });
           }
           refs.isConnectingRef.current = false;
           break;
 
         case DeviceEvent.Disconnected:
-          updateConnectionState(ConnectionState.disconnected());
+          updateConnectionState({ status: ConnectionStatus.Disconnected });
           refs.isConnectingRef.current = false;
           break;
 
         case DeviceEvent.AppOpened:
-          updateConnectionState(
-            ConnectionState.connected(
-              refs.adapterRef.current?.getConnectedDeviceId() ?? '',
-            ),
-          );
+          updateConnectionState({
+            status: ConnectionStatus.Connected,
+            deviceId: refs.adapterRef.current?.getConnectedDeviceId() ?? '',
+          });
           break;
 
         case DeviceEvent.AppNotOpen:
           // Get required app from adapter (e.g., 'Ethereum' for Ledger)
           // payload.appName contains what's currently open (e.g., 'BOLOS', 'Bitcoin')
-          updateConnectionState(
-            ConnectionState.awaitingApp(
-              refs.adapterRef.current?.getConnectedDeviceId() ?? '',
+          updateConnectionState({
+            status: ConnectionStatus.AwaitingApp,
+            deviceId: refs.adapterRef.current?.getConnectedDeviceId() ?? '',
+            appName:
               refs.adapterRef.current?.getRequiredAppName?.() ?? 'Ethereum',
-            ),
-          );
+          });
           break;
 
         case DeviceEvent.DeviceLocked:
@@ -177,25 +182,26 @@ export const useDeviceEventHandlers = ({
               ErrorCode.AuthenticationDeviceLocked,
               walletType ?? HardwareWalletType.Ledger,
             );
-            updateConnectionState(ConnectionState.error(lockedError));
+            updateConnectionState({
+              status: ConnectionStatus.ErrorState,
+              error: lockedError,
+            });
           }
           break;
 
         case DeviceEvent.ConfirmationRequired:
-          updateConnectionState(
-            ConnectionState.awaitingConfirmation(
-              refs.adapterRef.current?.getConnectedDeviceId() ?? '',
-            ),
-          );
+          updateConnectionState({
+            status: ConnectionStatus.AwaitingConfirmation,
+            deviceId: refs.adapterRef.current?.getConnectedDeviceId() ?? '',
+          });
           break;
 
         case DeviceEvent.ConfirmationReceived:
           // Return to connected state after confirmation
-          updateConnectionState(
-            ConnectionState.connected(
-              refs.adapterRef.current?.getConnectedDeviceId() ?? '',
-            ),
-          );
+          updateConnectionState({
+            status: ConnectionStatus.Connected,
+            deviceId: refs.adapterRef.current?.getConnectedDeviceId() ?? '',
+          });
           break;
 
         case DeviceEvent.ConfirmationRejected:

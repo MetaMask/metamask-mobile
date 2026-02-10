@@ -41,7 +41,6 @@ const defaultActions: HardwareWalletActionsContextType = {
   showHardwareWalletError: noop,
   clearError: noop,
   retry: noopAsync,
-  requestBluetoothPermissions: noopAsyncBool,
   selectDevice: noop,
   rescan: noop,
   resetFlowState: noop,
@@ -85,8 +84,6 @@ export interface HardwareWalletActionsProviderProps {
   onClearError: () => void;
   /** Retry last failed operation */
   onRetry: () => Promise<void>;
-  /** Request Bluetooth permissions */
-  onRequestBluetoothPermissions: () => Promise<boolean>;
   /** Select a device from discovered list */
   onSelectDevice: (device: DiscoveredDevice) => void;
   /** Rescan for BLE devices */
@@ -121,7 +118,6 @@ export const HardwareWalletActionsProvider: React.FC<
   onShowHardwareWalletError,
   onClearError,
   onRetry,
-  onRequestBluetoothPermissions,
   onSelectDevice,
   onRescan,
   onResetFlowState,
@@ -180,11 +176,6 @@ export const HardwareWalletActionsProvider: React.FC<
 
   const retry = useCallback(() => onRetry(), [onRetry]);
 
-  const requestBluetoothPermissions = useCallback(
-    () => onRequestBluetoothPermissions(),
-    [onRequestBluetoothPermissions],
-  );
-
   const selectDevice = useCallback(
     (selectedDev: DiscoveredDevice) => onSelectDevice(selectedDev),
     [onSelectDevice],
@@ -221,7 +212,6 @@ export const HardwareWalletActionsProvider: React.FC<
       showHardwareWalletError,
       clearError,
       retry,
-      requestBluetoothPermissions,
       selectDevice,
       rescan,
       resetFlowState,
@@ -240,7 +230,6 @@ export const HardwareWalletActionsProvider: React.FC<
       showHardwareWalletError,
       clearError,
       retry,
-      requestBluetoothPermissions,
       selectDevice,
       rescan,
       resetFlowState,

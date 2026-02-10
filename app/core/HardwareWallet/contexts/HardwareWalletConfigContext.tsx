@@ -1,10 +1,5 @@
 import React, { createContext, useContext, useMemo, ReactNode } from 'react';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
-import {
-  HardwareWalletPermissions,
-  BluetoothPermissionState,
-  LocationPermissionState,
-} from '../types';
 
 /**
  * Configuration context type - contains values that rarely change.
@@ -17,24 +12,12 @@ export interface HardwareWalletConfigContextType {
   walletType: HardwareWalletType | null;
   /** Device ID of the associated hardware wallet */
   deviceId: string | null;
-  /** Whether Bluetooth is enabled on the device */
-  isBluetoothEnabled: boolean;
-  /** Current permission states */
-  permissions: HardwareWalletPermissions;
 }
-
-const defaultPermissions: HardwareWalletPermissions = {
-  bluetooth: BluetoothPermissionState.Unknown,
-  location: LocationPermissionState.Unknown,
-  allGranted: false,
-};
 
 const defaultConfig: HardwareWalletConfigContextType = {
   isHardwareWalletAccount: false,
   walletType: null,
   deviceId: null,
-  isBluetoothEnabled: false,
-  permissions: defaultPermissions,
 };
 
 const HardwareWalletConfigContext =
@@ -50,10 +33,6 @@ export interface HardwareWalletConfigProviderProps {
   walletType?: HardwareWalletType | null;
   /** Device ID of the associated hardware wallet */
   deviceId?: string | null;
-  /** Whether Bluetooth is enabled */
-  isBluetoothEnabled?: boolean;
-  /** Current permission states */
-  permissions?: HardwareWalletPermissions;
 }
 
 /**
@@ -67,24 +46,14 @@ export const HardwareWalletConfigProvider: React.FC<
   isHardwareWalletAccount = false,
   walletType = null,
   deviceId = null,
-  isBluetoothEnabled = false,
-  permissions = defaultPermissions,
 }) => {
   const value = useMemo<HardwareWalletConfigContextType>(
     () => ({
       isHardwareWalletAccount,
       walletType,
       deviceId,
-      isBluetoothEnabled,
-      permissions,
     }),
-    [
-      isHardwareWalletAccount,
-      walletType,
-      deviceId,
-      isBluetoothEnabled,
-      permissions,
-    ],
+    [isHardwareWalletAccount, walletType, deviceId],
   );
 
   return (

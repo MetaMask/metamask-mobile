@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux';
 import { useHardwareWalletStateManager } from './HardwareWalletStateManager';
 import { getHardwareWalletTypeForAddress } from './helpers';
 import { HardwareWalletType, ConnectionStatus } from '@metamask/hw-wallet-sdk';
-import { BluetoothPermissionState, LocationPermissionState } from './types';
 
 // Mock react-redux
 jest.mock('react-redux', () => ({
@@ -45,15 +44,6 @@ describe('useHardwareWalletStateManager', () => {
       const { result } = renderHook(() => useHardwareWalletStateManager());
 
       expect(result.current.state.deviceId).toBeNull();
-    });
-
-    it('should return default permission state', () => {
-      const { result } = renderHook(() => useHardwareWalletStateManager());
-
-      expect(result.current.state.permissionState).toEqual({
-        bluetooth: BluetoothPermissionState.Unknown,
-        location: LocationPermissionState.Unknown,
-      });
     });
 
     it('should return null walletType for non-hardware accounts', () => {
@@ -171,39 +161,6 @@ describe('useHardwareWalletStateManager', () => {
         expect(result.current.state.deviceId).toBeNull();
       });
     });
-
-    describe('setPermissionState', () => {
-      it('should update permission state', () => {
-        const { result } = renderHook(() => useHardwareWalletStateManager());
-
-        act(() => {
-          result.current.setters.setPermissionState({
-            bluetooth: BluetoothPermissionState.Granted,
-            location: LocationPermissionState.Granted,
-          });
-        });
-
-        expect(result.current.state.permissionState).toEqual({
-          bluetooth: BluetoothPermissionState.Granted,
-          location: LocationPermissionState.Granted,
-        });
-      });
-
-      it('should accept function updater', () => {
-        const { result } = renderHook(() => useHardwareWalletStateManager());
-
-        act(() => {
-          result.current.setters.setPermissionState((prev) => ({
-            ...prev,
-            bluetooth: BluetoothPermissionState.Granted,
-          }));
-        });
-
-        expect(result.current.state.permissionState.bluetooth).toBe(
-          BluetoothPermissionState.Granted,
-        );
-      });
-    });
   });
 
   describe('refs', () => {
@@ -288,25 +245,6 @@ describe('useHardwareWalletStateManager', () => {
 
       expect(result.current.refs.isConnectingRef.current).toBe(false);
       expect(result.current.refs.abortControllerRef.current).toBeNull();
-    });
-
-    it('should reset permission state', () => {
-      const { result } = renderHook(() => useHardwareWalletStateManager());
-
-      act(() => {
-        result.current.setters.setPermissionState({
-          bluetooth: BluetoothPermissionState.Granted,
-          location: LocationPermissionState.Granted,
-        });
-      });
-      act(() => {
-        result.current.resetState();
-      });
-
-      // Permission state should be reset to defaults
-      expect(result.current.state.permissionState.bluetooth).toBe(
-        BluetoothPermissionState.Unknown,
-      );
     });
   });
 

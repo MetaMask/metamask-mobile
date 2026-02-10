@@ -58,13 +58,6 @@ const TestConsumer: React.FC<{ onActionCalled: (action: string) => void }> = ({
         }}
       />
       <TouchableOpacity
-        testID="requestPermissions"
-        onPress={() => {
-          actions.requestBluetoothPermissions();
-          onActionCalled('requestBluetoothPermissions');
-        }}
-      />
-      <TouchableOpacity
         testID="openDeviceSelection"
         onPress={() => {
           actions.openDeviceSelection(HardwareWalletType.Ledger);
@@ -151,7 +144,6 @@ describe('HardwareWalletActionsContext', () => {
     onShowHardwareWalletError: jest.fn(),
     onClearError: jest.fn(),
     onRetry: jest.fn().mockResolvedValue(undefined),
-    onRequestBluetoothPermissions: jest.fn().mockResolvedValue(true),
     onSelectDevice: jest.fn(),
     onRescan: jest.fn(),
     onResetFlowState: jest.fn(),
@@ -250,22 +242,6 @@ describe('HardwareWalletActionsContext', () => {
       fireEvent.press(screen.getByTestId('retry'));
       expect(mockCallbacks.onRetry).toHaveBeenCalled();
       expect(onActionCalled).toHaveBeenCalledWith('retry');
-    });
-
-    it('should call requestBluetoothPermissions callback', () => {
-      const onActionCalled = jest.fn();
-
-      render(
-        <HardwareWalletActionsProvider {...mockCallbacks}>
-          <TestConsumer onActionCalled={onActionCalled} />
-        </HardwareWalletActionsProvider>,
-      );
-
-      fireEvent.press(screen.getByTestId('requestPermissions'));
-      expect(mockCallbacks.onRequestBluetoothPermissions).toHaveBeenCalled();
-      expect(onActionCalled).toHaveBeenCalledWith(
-        'requestBluetoothPermissions',
-      );
     });
 
     it('should call openDeviceSelection callback', () => {

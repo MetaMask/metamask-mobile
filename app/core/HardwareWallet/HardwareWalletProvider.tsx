@@ -4,18 +4,11 @@ import React, {
   ReactNode,
   useCallback,
   useEffect,
-  useMemo,
   useState,
   useRef,
 } from 'react';
 
-import { ConnectionState } from './connectionState';
-import {
-  BluetoothPermissionState,
-  LocationPermissionState,
-  HardwareWalletPermissions,
-  DiscoveredDevice,
-} from './types';
+import { DiscoveredDevice } from './types';
 import {
   HardwareWalletConfigProvider,
   HardwareWalletStateProvider,
@@ -38,20 +31,7 @@ import {
  */
 export interface HardwareWalletProviderProps {
   children: ReactNode;
-  /** Initial permissions state */
-  initialPermissions?: HardwareWalletPermissions;
-  /** Callback when permissions need to be requested */
-  onRequestBluetoothPermissions?: () => Promise<boolean>;
 }
-
-/**
- * Default permissions when not provided
- */
-const defaultPermissions: HardwareWalletPermissions = {
-  bluetooth: BluetoothPermissionState.Unknown,
-  location: LocationPermissionState.Unknown,
-  allGranted: false,
-};
 
 /**
  * Unified Hardware Wallet Provider
@@ -59,20 +39,10 @@ const defaultPermissions: HardwareWalletPermissions = {
  * This provider manages all hardware wallet state and actions,
  * automatically creating the appropriate adapter based on wallet type
  * and handling device events.
- *
- * @example
- * ```tsx
- * <HardwareWalletProvider
- *   onRequestBluetoothPermissions={requestPermissions}
- * >
- *   <App />
- * </HardwareWalletProvider>
- * ```
+
  */
 export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   children,
-  initialPermissions = defaultPermissions,
-  onRequestBluetoothPermissions,
 }) => {
   // State management
   const { state, refs, setters } = useHardwareWalletStateManager();
@@ -180,7 +150,10 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
         effectiveWalletType ?? HardwareWalletType.Ledger,
         'Bluetooth was disabled. Please enable Bluetooth in your device settings to continue.',
       );
-      updateConnectionState(ConnectionState.error(btError));
+      updateConnectionState({
+        status: ConnectionStatus.ErrorState,
+        error: btError,
+      });
     }
   }, [
     isTransportAvailable,
@@ -212,7 +185,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
         if (error) {
           handleError(error);
         } else {
-          updateConnectionState(ConnectionState.disconnected());
+          updateConnectionState({ status: ConnectionStatus.Disconnected });
         }
       },
       onDeviceEvent: handleDeviceEvent,
@@ -253,23 +226,6 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     updateConnectionState,
     refs,
   ]);
-
-  // Update permissions state with transport availability
-  useEffect(() => {
-    setters.setPermissionState((prev) => ({
-      ...prev,
-      isBluetoothEnabled: isTransportAvailable,
-    }));
-  }, [isTransportAvailable, setters]);
-
-  // Merge initial permissions
-  const permissions = useMemo<HardwareWalletPermissions>(
-    () => ({
-      ...defaultPermissions,
-      ...initialPermissions,
-    }),
-    [initialPermissions],
-  );
 
   // ========================================================================
   // DEVICE DISCOVERY EFFECT (delegated to adapter)
@@ -333,7 +289,10 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
             effectiveWalletType ?? HardwareWalletType.Ledger,
           );
           // Transition to error state so ErrorContent is displayed
-          updateConnectionState(ConnectionState.error(scanError));
+          updateConnectionState({
+            status: ConnectionStatus.ErrorState,
+            error: scanError,
+          });
         },
       );
 
@@ -396,7 +355,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
 
       // Proceed to scanning state - let the adapter handle transport availability
       console.log('[HardwareWalletProvider] Transitioning to scanning state');
-      updateConnectionState(ConnectionState.scanning());
+      updateConnectionState({ status: ConnectionStatus.Scanning });
     },
     [setters, updateConnectionState],
   );
@@ -418,7 +377,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     // Clear target wallet type
     setters.setTargetWalletType(null);
     // Return to disconnected state
-    updateConnectionState(ConnectionState.disconnected());
+    updateConnectionState({ status: ConnectionStatus.Disconnected });
   }, [setters, updateConnectionState]);
 
   /**
@@ -485,7 +444,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       // This avoids potential race conditions with React state updates.
 
       // Transition to connecting state (shows bottom sheet)
-      updateConnectionState(ConnectionState.connecting());
+      updateConnectionState({ status: ConnectionStatus.Connecting });
 
       try {
         const adapter = refs.adapterRef.current;
@@ -517,7 +476,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     // Clear target wallet type
     setters.setTargetWalletType(null);
     // Return to disconnected state
-    updateConnectionState(ConnectionState.disconnected());
+    updateConnectionState({ status: ConnectionStatus.Disconnected });
   }, [setters, updateConnectionState]);
 
   // Trigger onDeviceReady when we reach Connected state during signing
@@ -529,9 +488,11 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       onDeviceReadyRef.current
     ) {
       // Transition to AwaitingConfirmation since we're about to request a signature
-      updateConnectionState(
-        ConnectionState.awaitingConfirmation(connectionState.deviceId, 'sign'),
-      );
+      updateConnectionState({
+        status: ConnectionStatus.AwaitingConfirmation,
+        deviceId: connectionState.deviceId,
+        operationType: 'sign',
+      });
 
       // Call the onDeviceReady callback to trigger actual signing
       const callback = onDeviceReadyRef.current;
@@ -564,7 +525,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
         deviceId: targetDeviceId,
       };
 
-      updateConnectionState(ConnectionState.connecting());
+      updateConnectionState({ status: ConnectionStatus.Connecting });
 
       try {
         const adapter = refs.adapterRef.current;
@@ -594,7 +555,10 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
               if (adapter.markFlowComplete) {
                 adapter.markFlowComplete();
               }
-              updateConnectionState(ConnectionState.success(targetDeviceId));
+              updateConnectionState({
+                status: ConnectionStatus.Ready,
+                deviceId: targetDeviceId,
+              });
               // The success callback will be triggered when success screen dismisses
               // via onConnectionSuccess in the bottom sheet
             } else {
@@ -614,7 +578,10 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
           }
         } else {
           // No pending promise - just set awaiting app state
-          updateConnectionState(ConnectionState.awaitingApp(targetDeviceId));
+          updateConnectionState({
+            status: ConnectionStatus.AwaitingApp,
+            deviceId: targetDeviceId,
+          });
         }
       } catch (error) {
         handleError(error);
@@ -647,7 +614,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       }
     }
 
-    updateConnectionState(ConnectionState.disconnected());
+    updateConnectionState({ status: ConnectionStatus.Disconnected });
     setters.setDeviceId(null);
     refs.isConnectingRef.current = false;
   }, [refs, setters, updateConnectionState]);
@@ -661,7 +628,6 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
    *
    * The function handles ALL device readiness checks:
    * - Bluetooth enabled
-   * - Permissions granted
    * - Device connected
    * - Ethereum app open
    * - Device unlocked
@@ -729,7 +695,9 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
                 if (error) {
                   handleError(error);
                 } else {
-                  updateConnectionState(ConnectionState.disconnected());
+                  updateConnectionState({
+                    status: ConnectionStatus.Disconnected,
+                  });
                 }
               },
               onDeviceEvent: handleDeviceEvent,
@@ -768,7 +736,10 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
           ErrorCode.BluetoothDisabled,
           targetWalletType,
         );
-        updateConnectionState(ConnectionState.error(btError));
+        updateConnectionState({
+          status: ConnectionStatus.ErrorState,
+          error: btError,
+        });
 
         // Return a promise that waits for retry or cancel
         // Don't resolve with false - that would trigger "user cancelled" in caller
@@ -803,7 +774,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
           console.log(
             '[HardwareWalletProvider] No device ID - starting device selection',
           );
-          updateConnectionState(ConnectionState.scanning());
+          updateConnectionState({ status: ConnectionStatus.Scanning });
           return;
         }
 
@@ -812,7 +783,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
           '[HardwareWalletProvider] Have device ID, checking readiness...',
         );
 
-        updateConnectionState(ConnectionState.connecting());
+        updateConnectionState({ status: ConnectionStatus.Connecting });
 
         // Do the readiness check
         (async () => {
@@ -831,7 +802,10 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
             if (isReady) {
               // Success! Set success state
               adapter.markFlowComplete();
-              updateConnectionState(ConnectionState.success(deviceIdToUse));
+              updateConnectionState({
+                status: ConnectionStatus.Ready,
+                deviceId: deviceIdToUse,
+              });
               // Promise will be resolved when success screen dismisses (via callback)
             }
             // If not ready, adapter should have set error state
@@ -934,7 +908,10 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
           ErrorCode.BluetoothDisabled,
           effectiveWalletType ?? HardwareWalletType.Ledger,
         );
-        updateConnectionState(ConnectionState.error(btError));
+        updateConnectionState({
+          status: ConnectionStatus.ErrorState,
+          error: btError,
+        });
         return;
       }
     }
@@ -943,7 +920,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     if (lastOp.type === 'ensureReady') {
       if (lastOp.deviceId && adapter) {
         // Have device ID → retry connection to that device (skip device selection)
-        updateConnectionState(ConnectionState.connecting());
+        updateConnectionState({ status: ConnectionStatus.Connecting });
         try {
           const isReady = await adapter.ensureDeviceReady(lastOp.deviceId);
           if (isReady) {
@@ -951,7 +928,10 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
             if (adapter.markFlowComplete) {
               adapter.markFlowComplete();
             }
-            updateConnectionState(ConnectionState.success(lastOp.deviceId));
+            updateConnectionState({
+              status: ConnectionStatus.Ready,
+              deviceId: lastOp.deviceId,
+            });
             // The promise will be resolved when success screen dismisses
             // via connectionSuccessCallbackRef (already set up by ensureDeviceReady)
             return;
@@ -966,7 +946,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
         console.log(
           '[HardwareWalletProvider] Retry: No deviceId - restarting device selection',
         );
-        updateConnectionState(ConnectionState.scanning());
+        updateConnectionState({ status: ConnectionStatus.Scanning });
       }
       return;
     }
@@ -989,17 +969,6 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     refs,
     effectiveWalletType,
   ]);
-
-  /**
-   * Request Bluetooth permissions
-   */
-  const requestBluetoothPermissions =
-    useCallback(async (): Promise<boolean> => {
-      if (onRequestBluetoothPermissions) {
-        return onRequestBluetoothPermissions();
-      }
-      return false;
-    }, [onRequestBluetoothPermissions]);
 
   /**
    * Reset the flow state to allow errors to be shown again.
@@ -1038,9 +1007,11 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       const currentDeviceId = deviceId ?? 'unknown';
 
       // Transition to AwaitingConfirmation state
-      updateConnectionState(
-        ConnectionState.awaitingConfirmation(currentDeviceId, operationType),
-      );
+      updateConnectionState({
+        status: ConnectionStatus.AwaitingConfirmation,
+        deviceId: currentDeviceId,
+        operationType,
+      });
     },
     [deviceId, updateConnectionState],
   );
@@ -1055,7 +1026,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     awaitingConfirmationRejectRef.current = null;
 
     // Return to disconnected state (hides the bottom sheet)
-    updateConnectionState(ConnectionState.disconnected());
+    updateConnectionState({ status: ConnectionStatus.Disconnected });
   }, [updateConnectionState]);
 
   /**
@@ -1081,8 +1052,6 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       isHardwareWalletAccount={isHardwareWalletAccount}
       walletType={effectiveWalletType}
       deviceId={deviceId}
-      isBluetoothEnabled={isTransportAvailable}
-      permissions={permissions}
     >
       <HardwareWalletStateProvider
         connectionState={connectionState}
@@ -1100,7 +1069,6 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
           onShowHardwareWalletError={showHardwareWalletError}
           onClearError={clearErrorState}
           onRetry={retry}
-          onRequestBluetoothPermissions={requestBluetoothPermissions}
           onSelectDevice={selectDevice}
           onRescan={rescan}
           onResetFlowState={resetFlowState}
@@ -1128,7 +1096,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
               }
 
               // Then hide the sheet by transitioning to disconnected
-              updateConnectionState(ConnectionState.disconnected());
+              updateConnectionState({ status: ConnectionStatus.Disconnected });
             }}
           />
         </HardwareWalletActionsProvider>

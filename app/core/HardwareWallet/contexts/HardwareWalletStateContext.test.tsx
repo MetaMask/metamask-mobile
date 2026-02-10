@@ -8,7 +8,7 @@ import {
   useIsDeviceConnected,
   useIsOperationInProgress,
 } from './HardwareWalletStateContext';
-import { ConnectionState } from '../connectionState';
+import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
 
 // Test component that uses all hooks
 const TestConsumer: React.FC = () => {
@@ -50,7 +50,10 @@ describe('HardwareWalletStateContext', () => {
     it('should provide connecting state', () => {
       render(
         <HardwareWalletStateProvider
-          connectionState={ConnectionState.connecting('device-123')}
+          connectionState={{
+            status: ConnectionStatus.Connecting,
+            deviceId: 'device-123',
+          }}
         >
           <TestConsumer />
         </HardwareWalletStateProvider>,
@@ -65,7 +68,10 @@ describe('HardwareWalletStateContext', () => {
     it('should provide connected state', () => {
       render(
         <HardwareWalletStateProvider
-          connectionState={ConnectionState.connected('device-456')}
+          connectionState={{
+            status: ConnectionStatus.Connected,
+            deviceId: 'device-456',
+          }}
         >
           <TestConsumer />
         </HardwareWalletStateProvider>,
@@ -80,10 +86,11 @@ describe('HardwareWalletStateContext', () => {
     it('should provide awaiting app state', () => {
       render(
         <HardwareWalletStateProvider
-          connectionState={ConnectionState.awaitingApp(
-            'device-789',
-            'Ethereum',
-          )}
+          connectionState={{
+            status: ConnectionStatus.AwaitingApp,
+            deviceId: 'device-789',
+            appName: 'Ethereum',
+          }}
         >
           <TestConsumer />
         </HardwareWalletStateProvider>,
@@ -97,7 +104,10 @@ describe('HardwareWalletStateContext', () => {
     it('should provide awaiting confirmation state', () => {
       render(
         <HardwareWalletStateProvider
-          connectionState={ConnectionState.awaitingConfirmation('device-abc')}
+          connectionState={{
+            status: ConnectionStatus.AwaitingConfirmation,
+            deviceId: 'device-abc',
+          }}
         >
           <TestConsumer />
         </HardwareWalletStateProvider>,

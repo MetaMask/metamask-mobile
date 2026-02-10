@@ -6,7 +6,6 @@ import {
   useHardwareWalletConfig,
 } from './HardwareWalletConfigContext';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
-import { BluetoothPermissionState, LocationPermissionState } from '../types';
 
 // Test component that uses the hook
 const TestConsumer: React.FC = () => {
@@ -18,10 +17,6 @@ const TestConsumer: React.FC = () => {
       </Text>
       <Text testID="walletType">{config.walletType ?? 'null'}</Text>
       <Text testID="deviceId">{config.deviceId ?? 'null'}</Text>
-      <Text testID="isBluetoothEnabled">
-        {config.isBluetoothEnabled.toString()}
-      </Text>
-      <Text testID="bluetoothPermission">{config.permissions.bluetooth}</Text>
     </View>
   );
 };
@@ -40,28 +35,14 @@ describe('HardwareWalletConfigContext', () => {
       );
       expect(screen.getByTestId('walletType')).toHaveTextContent('null');
       expect(screen.getByTestId('deviceId')).toHaveTextContent('null');
-      expect(screen.getByTestId('isBluetoothEnabled')).toHaveTextContent(
-        'false',
-      );
-      expect(screen.getByTestId('bluetoothPermission')).toHaveTextContent(
-        'unknown',
-      );
     });
 
     it('should provide custom values', () => {
-      const permissions = {
-        bluetooth: BluetoothPermissionState.Granted,
-        location: LocationPermissionState.Granted,
-        allGranted: true,
-      };
-
       render(
         <HardwareWalletConfigProvider
           isHardwareWalletAccount
           walletType={HardwareWalletType.Ledger}
           deviceId="device-123"
-          isBluetoothEnabled
-          permissions={permissions}
         >
           <TestConsumer />
         </HardwareWalletConfigProvider>,
@@ -74,12 +55,6 @@ describe('HardwareWalletConfigContext', () => {
         HardwareWalletType.Ledger,
       );
       expect(screen.getByTestId('deviceId')).toHaveTextContent('device-123');
-      expect(screen.getByTestId('isBluetoothEnabled')).toHaveTextContent(
-        'true',
-      );
-      expect(screen.getByTestId('bluetoothPermission')).toHaveTextContent(
-        'granted',
-      );
     });
   });
 

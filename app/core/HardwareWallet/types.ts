@@ -1,7 +1,6 @@
 import {
   HardwareWalletType,
   DeviceEventPayload,
-  DeviceEvent,
 } from '@metamask/hw-wallet-sdk';
 
 /**
@@ -131,90 +130,6 @@ export interface HardwareWalletAdapter {
 }
 
 /**
- * Bluetooth permission states for mobile
- */
-export enum BluetoothPermissionState {
-  /** Permission status is unknown (not yet requested) */
-  Unknown = 'unknown',
-  /** User granted Bluetooth permission */
-  Granted = 'granted',
-  /** User denied Bluetooth permission */
-  Denied = 'denied',
-  /** Bluetooth is not available on this device */
-  Unavailable = 'unavailable',
-}
-
-/**
- * Location permission states (required for BLE on Android)
- */
-export enum LocationPermissionState {
-  /** Permission status is unknown (not yet requested) */
-  Unknown = 'unknown',
-  /** User granted location permission */
-  Granted = 'granted',
-  /** User denied location permission */
-  Denied = 'denied',
-  /** Location services are disabled */
-  Disabled = 'disabled',
-}
-
-/**
- * Combined permission state for hardware wallet connections
- */
-export interface HardwareWalletPermissions {
-  /** Bluetooth permission state */
-  bluetooth: BluetoothPermissionState;
-  /** Location permission state (Android only, always 'granted' on iOS) */
-  location: LocationPermissionState;
-  /** Whether all required permissions are granted */
-  allGranted: boolean;
-}
-
-/**
- * Generic discovered device (works for BLE, USB, etc.)
- * This is the wallet-type-agnostic device type used across the module.
- */
-export interface DiscoveredDevice {
-  /** Unique device identifier */
-  id: string;
-  /** Device name (e.g., 'Nano X 1234') */
-  name: string;
-  /** Device-specific metadata (rssi for BLE, etc.) */
-  metadata?: Record<string, unknown>;
-}
-
-/**
- * Bluetooth device information from scanning
- * @deprecated Use DiscoveredDevice instead for wallet-type-agnostic code
- */
-export interface BluetoothDevice {
-  /** Unique device identifier */
-  id: string;
-  /** Device name (e.g., 'Nano X 1234') */
-  name: string;
-  /** Signal strength in dBm */
-  rssi?: number;
-  /** Whether this device was previously connected */
-  isPreviouslyConnected?: boolean;
-}
-
-/**
- * Configuration for hardware wallet provider
- */
-export interface HardwareWalletConfig {
-  /** Whether the current account is a hardware wallet account */
-  isHardwareWalletAccount: boolean;
-  /** The type of hardware wallet, if applicable */
-  walletType: HardwareWalletType | null;
-  /** Device ID of the connected/associated device */
-  deviceId: string | null;
-  /** Whether Bluetooth is enabled on the device */
-  isBluetoothEnabled: boolean;
-  /** Current permission states */
-  permissions: HardwareWalletPermissions;
-}
-
-/**
  * Actions available on the hardware wallet context
  */
 export interface HardwareWalletActions {
@@ -317,11 +232,6 @@ export interface HardwareWalletActions {
   retry: () => Promise<void>;
 
   /**
-   * Request Bluetooth permissions
-   */
-  requestBluetoothPermissions: () => Promise<boolean>;
-
-  /**
    * Select a device from the discovered devices list.
    * Called when user taps on a device in the device selection UI.
    * @param device - The device to select
@@ -362,21 +272,14 @@ export interface HardwareWalletActions {
 }
 
 /**
- * Type guard: Check if an object is a DeviceEventPayload
+ * Generic discovered device (works for BLE, USB, etc.)
+ * This is the wallet-type-agnostic device type used across the module.
  */
-export const isDeviceEventPayload = (
-  value: unknown,
-): value is DeviceEventPayload =>
-  typeof value === 'object' &&
-  value !== null &&
-  'event' in value &&
-  Object.values(DeviceEvent).includes((value as DeviceEventPayload).event);
-
-/**
- * Type guard: Check if permissions allow connection
- */
-export const canAttemptConnection = (
-  permissions: HardwareWalletPermissions,
-): boolean =>
-  permissions.bluetooth === BluetoothPermissionState.Granted &&
-  permissions.location !== LocationPermissionState.Denied;
+export interface DiscoveredDevice {
+  /** Unique device identifier */
+  id: string;
+  /** Device name (e.g., 'Nano X 1234') */
+  name: string;
+  /** Device-specific metadata (rssi for BLE, etc.) */
+  metadata?: Record<string, unknown>;
+}
