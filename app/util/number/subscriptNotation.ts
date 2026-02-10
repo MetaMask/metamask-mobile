@@ -29,24 +29,20 @@ export const toSubscript = (num: number): string =>
  * @example formatSubscriptNotation(0) => null
  */
 export const formatSubscriptNotation = (num: number): string | null => {
-  if (num <= 0 || num >= 0.0001) {
-    return null;
+  if (num > 0 && num < 0.0001) {
+    const priceStr = num.toFixed(20);
+    const match = priceStr.match(/^0\.0*([1-9]\d*)/);
+
+    if (match) {
+      const leadingZeros = priceStr.indexOf(match[1]) - 2;
+
+      if (leadingZeros >= 4) {
+        const significantDigits =
+          match[1].slice(0, 4).replace(/0+$/, '') || match[1].slice(0, 2);
+        return `0.0${toSubscript(leadingZeros)}${significantDigits}`;
+      }
+    }
   }
 
-  const priceStr = num.toFixed(20);
-  const match = priceStr.match(/^0\.0*([1-9]\d*)/);
-
-  if (!match) {
-    return null;
-  }
-
-  const leadingZeros = priceStr.indexOf(match[1]) - 2;
-
-  if (leadingZeros < 4) {
-    return null;
-  }
-
-  const significantDigits =
-    match[1].slice(0, 4).replace(/0+$/, '') || match[1].slice(0, 2);
-  return `0.0${toSubscript(leadingZeros)}${significantDigits}`;
+  return null;
 };
