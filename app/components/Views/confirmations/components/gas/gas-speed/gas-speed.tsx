@@ -5,14 +5,12 @@ import {
   GasFeeEstimateLevel,
   GasFeeEstimateType,
 } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
 
 import Text from '../../../../../../component-library/components/Texts/Text/Text';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useGasFeeEstimates } from '../../../hooks/gas/useGasFeeEstimates';
 import { toHumanSeconds } from '../../../utils/time';
-import { isFastNetwork } from '../../../utils/network';
 
 const getText = (userFeeLevel: UserFeeLevel | GasFeeEstimateLevel) => {
   switch (userFeeLevel) {
@@ -33,7 +31,6 @@ const getEstimatedTime = (
   userFeeLevel: UserFeeLevel | GasFeeEstimateLevel,
   networkGasFeeEstimates: GasFeeEstimates,
   isGasPriceEstimateSelected: boolean,
-  chainId?: Hex,
 ) => {
   const hasUnknownEstimatedTime =
     userFeeLevel === UserFeeLevel.DAPP_SUGGESTED ||
@@ -47,7 +44,7 @@ const getEstimatedTime = (
 
   const { minWaitTimeEstimate } = networkGasFeeEstimates[userFeeLevel];
 
-  if (isFastNetwork(chainId) && minWaitTimeEstimate < 1000) {
+  if (minWaitTimeEstimate < 1000) {
     return ' < 1 sec';
   }
 
@@ -81,7 +78,6 @@ export const GasSpeed = () => {
     userFeeLevel,
     networkGasFeeEstimates,
     isGasPriceEstimateSelected,
-    transactionMeta?.chainId as Hex,
   );
 
   return <Text>{`${text}${estimatedTime}`}</Text>;

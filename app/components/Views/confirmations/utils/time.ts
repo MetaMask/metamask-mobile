@@ -1,7 +1,5 @@
 // @ts-expect-error - humanize-duration is not typed
 import humanizeDuration from 'humanize-duration';
-import { isFastNetwork } from './network';
-import { Hex } from '@metamask/utils';
 
 const shortEnglishHumanizer = humanizeDuration.humanizer({
   language: 'shortEn',
@@ -23,11 +21,7 @@ const withoutUnitHumanizer = humanizeDuration.humanizer({
   },
 });
 
-export const toHumanEstimatedTimeRange = (
-  min: number,
-  max: number,
-  chainId?: string,
-) => {
+export const toHumanEstimatedTimeRange = (min: number, max: number) => {
   if (!min || !max) {
     return undefined;
   }
@@ -35,8 +29,7 @@ export const toHumanEstimatedTimeRange = (
   // Determine if we should show in minutes or seconds
   const minInSeconds = min / 1000;
   const maxInSeconds = max / 1000;
-  const isFast = isFastNetwork(chainId as Hex);
-  const useMinutes = !isFast && maxInSeconds >= 60;
+  const useMinutes = maxInSeconds >= 60;
 
   const options = {
     units: useMinutes ? ['m'] : ['s'],

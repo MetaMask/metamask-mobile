@@ -30,7 +30,7 @@ export const useGasFeeEstimateLevelOptions = ({
   ) as {
     gasFeeEstimates: GasFeeEstimates;
   };
-  const { chainId, gasFeeEstimates, id, userFeeLevel } = transactionMeta;
+  const { gasFeeEstimates, id, userFeeLevel } = transactionMeta;
 
   const transactionGasFeeEstimates =
     gasFeeEstimates as TransactionGasFeeEstimates;
@@ -80,7 +80,6 @@ export const useGasFeeEstimateLevelOptions = ({
       const estimatedTime = toHumanEstimatedTimeRange(
         networkGasFeeEstimates[level].minWaitTimeEstimate,
         networkGasFeeEstimates[level].maxWaitTimeEstimate,
-        chainId,
       );
 
       let feePerGas = HEX_ZERO;
