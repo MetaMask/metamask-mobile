@@ -13,8 +13,8 @@ import {
   type PerpsStreamManager,
 } from '../../../../components/UI/Perps/providers/PerpsStreamManager';
 
-/** No-op unsubscribe for test stream channels */
-const noopUnsubscribe = (): (() => void) => () => undefined;
+/** No-op unsubscribe for test stream channels; subscribe() must return () => void */
+const noopUnsubscribe = (): void => undefined;
 
 /** Connection context value for view tests: "connected" so views render content instead of loading skeleton */
 const testConnectionValue: PerpsConnectionContextValue = {
@@ -53,7 +53,7 @@ const initialMarketData = [
 /** Channel that calls callback once with initial value so hooks leave loading state */
 function channelWithInitialValue<T>(initialValue: T) {
   return {
-    subscribe: (params: { callback: (data: T) => void }) => {
+    subscribe: (params: { callback: (data: T) => void }): (() => void) => {
       if (params?.callback) {
         params.callback(initialValue);
       }
@@ -64,13 +64,13 @@ function channelWithInitialValue<T>(initialValue: T) {
 
 /** No-op channel for streams not needed by view tests */
 const noopChannel = () => ({
-  subscribe: () => noopUnsubscribe,
+  subscribe: (): (() => void) => noopUnsubscribe,
 });
 
 /** Prices channel: usePerpsLivePrices calls subscribeToSymbols */
 const pricesChannel = () => ({
-  subscribe: () => noopUnsubscribe,
-  subscribeToSymbols: () => noopUnsubscribe,
+  subscribe: (): (() => void) => noopUnsubscribe,
+  subscribeToSymbols: (): (() => void) => noopUnsubscribe,
 });
 
 /** Creates a minimal stream manager double so views using usePerpsStream() render without WebSocket. */

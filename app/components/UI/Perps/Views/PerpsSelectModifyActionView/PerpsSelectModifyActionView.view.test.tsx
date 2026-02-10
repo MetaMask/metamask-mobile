@@ -12,6 +12,8 @@ import PerpsSelectModifyActionView from './PerpsSelectModifyActionView';
 import type { Position } from '../../controllers/types';
 import { renderScreenWithRoutes } from '../../../../../util/test/component-view/render';
 import { initialStatePerps } from '../../../../../util/test/component-view/presets/perps';
+import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
+import type { RootState } from '../../../../../reducers';
 
 const mockLongPosition: Position = {
   symbol: 'ETH',
@@ -41,14 +43,14 @@ const extraRoutes = [
 
 function renderView(
   options: {
-    overrides?: Parameters<typeof initialStatePerps>[0];
+    overrides?: DeepPartial<RootState>;
     initialParams?: Record<string, unknown>;
   } = {},
 ) {
   const { overrides, initialParams } = options;
   const builder = initialStatePerps();
   if (overrides) {
-    builder.withOverrides(overrides as never);
+    builder.withOverrides(overrides);
   }
   const state = builder.build();
   return renderScreenWithRoutes(
