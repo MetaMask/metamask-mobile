@@ -38,7 +38,10 @@ interface NetworkPillsProps {
   type: TokenSelectorType;
 }
 
-interface ChainRankingEntry { chainId: CaipChainId; name: string }
+interface ChainRankingEntry {
+  chainId: CaipChainId;
+  name: string;
+}
 
 /**
  * Returns the first MAX_VISIBLE_PILLS chain IDs from chainRanking.
