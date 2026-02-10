@@ -1,7 +1,8 @@
 import { Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useMemo } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { useSelector } from 'react-redux';
 import Badge, {
   BadgeVariant,
@@ -52,12 +53,12 @@ import Logger from '../../../../../util/Logger';
 import { useNetworkName } from '../../../../Views/confirmations/hooks/useNetworkName';
 import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events';
 import { MUSD_CONVERSION_APY, isMusdToken } from '../../../Earn/constants/musd';
+import { isEligibleForMerklRewards } from '../../../Earn/components/MerklRewards/hooks/useMerklRewards';
 import {
-  useMerklRewards,
-  isEligibleForMerklRewards,
-} from '../../../Earn/components/MerklRewards/hooks/useMerklRewards';
-import { useMerklClaim } from '../../../Earn/components/MerklRewards/hooks/useMerklClaim';
-import { usePendingMerklClaim } from '../../../Earn/components/MerklRewards/hooks/usePendingMerklClaim';
+  MerklClaimHandler,
+  DEFAULT_MERKL_CLAIM_DATA,
+  type MerklClaimData,
+} from '../../../Earn/components/MerklRewards/hooks/MerklClaimHandler';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { EVENT_LOCATIONS as EARN_EVENT_LOCATIONS } from '../../../Earn/constants/events/earnEvents';
@@ -162,9 +163,6 @@ export const TokenListItem = React.memo(
     const isMerklCampaignClaimingEnabled = useSelector(
       selectMerklCampaignClaimingEnabledFlag,
     );
-    const { claimableReward } = useMerklRewards({
-      asset,
-    });
 
     const isEligibleForMerkl = useMemo(
       () =>
@@ -177,24 +175,21 @@ export const TokenListItem = React.memo(
       [asset?.chainId, asset?.address],
     );
 
-    const { hasPendingClaim } = usePendingMerklClaim();
+    // Merkl hooks are only mounted for eligible tokens via MerklClaimHandler
+    // to avoid unnecessary hook overhead for non-eligible tokens
+    const [merklData, setMerklData] = useState<MerklClaimData>(
+      DEFAULT_MERKL_CLAIM_DATA,
+    );
 
     const hasClaimableBonus = Boolean(
       isMerklCampaignClaimingEnabled &&
-        claimableReward &&
+        merklData.claimableReward &&
         isEligibleForMerkl &&
-        !hasPendingClaim,
+        !merklData.hasPendingClaim,
     );
 
-    const { claimRewards, isClaiming } = useMerklClaim(asset);
-
-    const handleClaimBonus = useCallback(async () => {
-      try {
-        await claimRewards();
-      } catch {
-        // Error is handled by useMerklClaim hook
-      }
-    }, [claimRewards]);
+    const { claimRewards } = merklData;
+    const handleClaimBonus = useCallback(() => claimRewards(), [claimRewards]);
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
 
@@ -290,9 +285,9 @@ export const TokenListItem = React.memo(
     const secondaryBalanceDisplay = useMemo(() => {
       if (hasClaimableBonus) {
         return {
-          text: isClaiming ? undefined : strings('earn.claim_bonus'),
+          text: merklData.isClaiming ? undefined : strings('earn.claim_bonus'),
           color: TextColor.Primary,
-          onPress: isClaiming ? undefined : handleClaimBonus,
+          onPress: merklData.isClaiming ? undefined : handleClaimBonus,
         };
       }
 
@@ -342,7 +337,7 @@ export const TokenListItem = React.memo(
       return { text, color, onPress: undefined };
     }, [
       hasClaimableBonus,
-      isClaiming,
+      merklData.isClaiming,
       shouldShowConvertToMusdCta,
       earnToken,
       isStablecoinLendingEnabled,
@@ -385,77 +380,80 @@ export const TokenListItem = React.memo(
       : undefined;
 
     return (
-      <AssetElement
-        onPress={onItemPress}
-        onLongPress={
-          asset.isNative || isMusdToken(asset.address) ? null : showRemoveMenu
-        }
-        asset={asset}
-        balance={asset.balanceFiat}
-        secondaryBalance={secondaryBalanceDisplay.text}
-        secondaryBalanceColor={secondaryBalanceDisplay.color}
-        privacyMode={privacyMode}
-        hideSecondaryBalanceInPrivacyMode={false}
-        onSecondaryBalancePress={secondaryBalanceDisplay.onPress}
-        secondaryBalanceElement={
-          isClaiming ? (
-            <ActivityIndicator size="small" color={colors.primary.default} />
-          ) : undefined
-        }
-      >
-        <BadgeWrapper
-          style={styles.badge}
-          badgePosition={BadgePosition.BottomRight}
-          badgeElement={
-            networkBadgeSource ? (
-              <Badge
-                variant={BadgeVariant.Network}
-                imageSource={networkBadgeSource}
-              />
-            ) : null
+      <>
+        {isEligibleForMerkl && isMerklCampaignClaimingEnabled && (
+          <MerklClaimHandler asset={asset} onDataChange={setMerklData} />
+        )}
+        <AssetElement
+          onPress={onItemPress}
+          onLongPress={
+            asset.isNative || isMusdToken(asset.address) ? null : showRemoveMenu
+          }
+          asset={asset}
+          balance={asset.balanceFiat}
+          secondaryBalance={secondaryBalanceDisplay.text}
+          secondaryBalanceColor={secondaryBalanceDisplay.color}
+          privacyMode={privacyMode}
+          hideSecondaryBalanceInPrivacyMode={false}
+          onSecondaryBalancePress={secondaryBalanceDisplay.onPress}
+          secondaryBalanceElement={
+            merklData.isClaiming ? <Spinner /> : undefined
           }
         >
-          <AssetLogo asset={asset} />
-        </BadgeWrapper>
-        <View style={styles.balances}>
-          {/*
-           * The name of the token must callback to the symbol
-           * The reason for this is that the wallet_watchAsset doesn't return the name
-           * more info: https://docs.metamask.io/guide/rpc-api.html#wallet-watchasset
-           */}
-          <View style={styles.assetNameContainer}>
-            <View style={styles.assetName}>
-              <Text variant={TextVariant.BodyMDMedium} numberOfLines={1}>
-                {asset.name || asset.symbol}
-              </Text>
-              {label && (
-                <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />
+          <BadgeWrapper
+            style={styles.badge}
+            badgePosition={BadgePosition.BottomRight}
+            badgeElement={
+              networkBadgeSource ? (
+                <Badge
+                  variant={BadgeVariant.Network}
+                  imageSource={networkBadgeSource}
+                />
+              ) : null
+            }
+          >
+            <AssetLogo asset={asset} />
+          </BadgeWrapper>
+          <View style={styles.balances}>
+            {/*
+             * The name of the token must callback to the symbol
+             * The reason for this is that the wallet_watchAsset doesn't return the name
+             * more info: https://docs.metamask.io/guide/rpc-api.html#wallet-watchasset
+             */}
+            <View style={styles.assetNameContainer}>
+              <View style={styles.assetName}>
+                <Text variant={TextVariant.BodyMDMedium} numberOfLines={1}>
+                  {asset.name || asset.symbol}
+                </Text>
+                {label && (
+                  <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />
+                )}
+              </View>
+
+              {renderEarnCta()}
+            </View>
+            <View style={styles.percentageChange}>
+              {
+                <SensitiveText
+                  variant={TextVariant.BodySMMedium}
+                  style={styles.balanceFiat}
+                  isHidden={privacyMode}
+                  length={SensitiveTextLength.Short}
+                >
+                  {asset.balance} {asset.symbol}
+                </SensitiveText>
+              }
+              {isStockToken(asset as BridgeToken) && (
+                <StockBadge style={styles.stockBadgeWrapper} token={asset} />
               )}
             </View>
-
-            {renderEarnCta()}
           </View>
-          <View style={styles.percentageChange}>
-            {
-              <SensitiveText
-                variant={TextVariant.BodySMMedium}
-                style={styles.balanceFiat}
-                isHidden={privacyMode}
-                length={SensitiveTextLength.Short}
-              >
-                {asset.balance} {asset.symbol}
-              </SensitiveText>
-            }
-            {isStockToken(asset as BridgeToken) && (
-              <StockBadge style={styles.stockBadgeWrapper} token={asset} />
-            )}
-          </View>
-        </View>
-        <ScamWarningIcon
-          asset={asset as TokenI & { chainId: string }}
-          setShowScamWarningModal={setShowScamWarningModal}
-        />
-      </AssetElement>
+          <ScamWarningIcon
+            asset={asset as TokenI & { chainId: string }}
+            setShowScamWarningModal={setShowScamWarningModal}
+          />
+        </AssetElement>
+      </>
     );
   },
 );

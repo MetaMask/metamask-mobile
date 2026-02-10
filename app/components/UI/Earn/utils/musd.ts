@@ -155,9 +155,7 @@ export function decodeMerklClaimParams(
   try {
     const contractInterface = new Interface(DISTRIBUTOR_CLAIM_ABI);
     const decoded = contractInterface.decodeFunctionData('claim', data);
-    const users = decoded[0];
-    const tokens = decoded[1];
-    const amounts = decoded[2];
+    const [users, tokens, amounts] = decoded;
 
     if (!users?.length || !tokens?.length || !amounts?.length) {
       return null;

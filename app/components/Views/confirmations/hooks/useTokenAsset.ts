@@ -39,13 +39,14 @@ export const useTokenAsset = () => {
       return { displayName: strings('token.unknown') };
     }
 
+    const isMusdClaim = transactionType === TransactionType.musdClaim;
+
     // For musdClaim, txParams.to is the Merkl distributor contract, not the mUSD token
-    const tokenAddress =
-      transactionType === TransactionType.musdClaim
-        ? MUSD_TOKEN_ADDRESS.toLowerCase()
-        : transactionType && TypesForNativeToken.includes(transactionType)
-          ? nativeTokenAddress
-          : safeToChecksumAddress(txParams?.to)?.toLowerCase();
+    const tokenAddress = isMusdClaim
+      ? MUSD_TOKEN_ADDRESS.toLowerCase()
+      : transactionType && TypesForNativeToken.includes(transactionType)
+        ? nativeTokenAddress
+        : safeToChecksumAddress(txParams?.to)?.toLowerCase();
 
     const asset = tokens[chainId]?.find(
       ({ address }) => address.toLowerCase() === tokenAddress,
@@ -53,7 +54,7 @@ export const useTokenAsset = () => {
 
     if (!asset) {
       // For musdClaim, fall back to known mUSD constants when token isn't in user's wallet
-      if (transactionType === TransactionType.musdClaim) {
+      if (isMusdClaim) {
         return {
           asset: {
             symbol: MUSD_TOKEN.symbol,

@@ -147,7 +147,7 @@ describe('useMerklClaim', () => {
     expect(typeof result.current.claimRewards).toBe('function');
   });
 
-  it('sets error and throws when no account is selected', async () => {
+  it('sets error and returns undefined when no account is selected', async () => {
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return null;
@@ -157,17 +157,17 @@ describe('useMerklClaim', () => {
 
     const { result } = renderHook(() => useMerklClaim(mockAsset));
 
+    let claimResult: unknown;
     await act(async () => {
-      await expect(result.current.claimRewards()).rejects.toThrow(
-        'No account or network selected',
-      );
+      claimResult = await result.current.claimRewards();
     });
 
+    expect(claimResult).toBeUndefined();
     expect(result.current.error).toBe('No account or network selected');
     expect(result.current.isClaiming).toBe(false);
   });
 
-  it('sets error and throws when no network is selected', async () => {
+  it('sets error and returns undefined when no network is selected', async () => {
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return mockSelectedAddress;
@@ -184,12 +184,12 @@ describe('useMerklClaim', () => {
 
     const { result } = renderHook(() => useMerklClaim(mockAsset));
 
+    let claimResult: unknown;
     await act(async () => {
-      await expect(result.current.claimRewards()).rejects.toThrow(
-        'No account or network selected',
-      );
+      claimResult = await result.current.claimRewards();
     });
 
+    expect(claimResult).toBeUndefined();
     expect(result.current.error).toBe('No account or network selected');
     expect(result.current.isClaiming).toBe(false);
   });
@@ -326,25 +326,18 @@ describe('useMerklClaim', () => {
     );
   });
 
-  it('sets error and rethrows on network failure', async () => {
+  it('sets error and returns undefined on network failure', async () => {
     const error = new Error('Network error');
     (global.fetch as jest.Mock).mockRejectedValueOnce(error);
 
     const { result } = renderHook(() => useMerklClaim(mockAsset));
 
+    let claimResult: unknown;
     await act(async () => {
-      try {
-        await result.current.claimRewards();
-      } catch (claimError) {
-        // Expected to throw
-        expect(claimError).toBe(error);
-      }
+      claimResult = await result.current.claimRewards();
     });
 
-    await waitFor(() => {
-      expect(result.current.error).toBeTruthy();
-    });
-
+    expect(claimResult).toBeUndefined();
     expect(result.current.error).toBe('Network error');
     expect(result.current.isClaiming).toBe(false);
   });
@@ -417,7 +410,7 @@ describe('useMerklClaim', () => {
     );
   });
 
-  it('falls back to asset chainId when token.chainId is undefined', async () => {
+  it('always uses Linea chain ID for claims even when token.chainId is undefined', async () => {
     // Create reward data without chainId in token
     const rewardDataWithoutChainId = [
       {
@@ -460,9 +453,9 @@ describe('useMerklClaim', () => {
       await result.current.claimRewards();
     });
 
-    // Should use asset.chainId as fallback (mainnet = 0x1)
+    // Claims always go to Linea mainnet
     expect(mockAddTransaction.mock.calls[0][0].chainId).toBe(
-      `0x${Number(CHAIN_IDS.MAINNET).toString(16)}`,
+      `0x${Number(CHAIN_IDS.LINEA_MAINNET).toString(16)}`,
     );
   });
 
@@ -552,15 +545,15 @@ describe('useMerklClaim', () => {
       expect(typeof result.current.claimRewards).toBe('function');
     });
 
-    it('sets error and throws when claimRewards is called with undefined asset', async () => {
+    it('sets error and returns undefined when claimRewards is called with undefined asset', async () => {
       const { result } = renderHook(() => useMerklClaim(undefined));
 
+      let claimResult: unknown;
       await act(async () => {
-        await expect(result.current.claimRewards()).rejects.toThrow(
-          'No asset available for claiming',
-        );
+        claimResult = await result.current.claimRewards();
       });
 
+      expect(claimResult).toBeUndefined();
       expect(result.current.error).toBe('No asset available for claiming');
       expect(result.current.isClaiming).toBe(false);
     });

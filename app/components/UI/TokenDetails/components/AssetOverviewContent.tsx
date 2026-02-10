@@ -173,7 +173,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
-  const merklRewardsRef = useRef<View>(null);
   const resetNavigationLockRef = useRef<(() => void) | null>(null);
 
   const {
@@ -376,7 +375,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             ///: END:ONLY_INCLUDE_IF
           }
           {isMerklCampaignClaimingEnabled && (
-            <View ref={merklRewardsRef} testID="merkl-rewards-section">
+            <View testID="merkl-rewards-section">
               <MerklRewards asset={token} />
             </View>
           )}

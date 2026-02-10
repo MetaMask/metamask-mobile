@@ -36,11 +36,7 @@ import { useCallback, useMemo } from 'react';
 import { updateEditableParams } from '../../../../util/transaction-controller';
 import { selectTokensByChainIdAndAddress } from '../../../../selectors/tokensController';
 import { getTokenTransferData } from '../utils/transaction-pay';
-import {
-  convertMusdClaimAmount,
-  decodeMerklClaimParams,
-} from '../../../UI/Earn/utils/musd';
-import { getClaimedAmountFromContract } from '../../../UI/Earn/components/MerklRewards/merkl-client';
+import useMerklClaimAmount from './earn/useMerklClaimAmount';
 
 interface TokenAmountProps {
   /**
@@ -135,23 +131,8 @@ export const useTokenAmount = ({
     networkClientId,
   );
 
-  // Decode Merkl claim params for musdClaim transactions
-  const musdClaimParams = useMemo(() => {
-    if (transactionType !== TransactionType.musdClaim) return null;
-    return decodeMerklClaimParams(txParams?.data as string);
-  }, [transactionType, txParams?.data]);
-
-  // Fetch the already-claimed amount from the Merkl distributor contract
-  // so we can show unclaimed = total - claimed
-  const { value: musdClaimedAmount, pending: musdClaimedPending } =
-    useAsyncResult(async () => {
-      if (!musdClaimParams) return null;
-      return getClaimedAmountFromContract(
-        musdClaimParams.userAddress,
-        musdClaimParams.tokenAddress as Hex,
-        chainId as Hex,
-      );
-    }, [musdClaimParams, chainId]);
+  const { pending: merklClaimPending, claimAmount: merklClaimAmount } =
+    useMerklClaimAmount(transaction, nativeConversionRate, usdConversionRate);
 
   const transactionData = useMemo(
     () => parseStandardTokenTransactionData(tokenData?.data),
@@ -240,21 +221,10 @@ export const useTokenAmount = ({
       break;
     }
     case TransactionType.musdClaim: {
-      // Wait for the claimed amount to be fetched from the contract
-      if (musdClaimedPending) break;
+      if (merklClaimPending) break;
 
-      if (musdClaimParams) {
-        // Compute unclaimed = total - claimed (what the user will actually receive)
-        const totalRaw = BigInt(musdClaimParams.totalAmount);
-        const claimedRaw = BigInt(musdClaimedAmount ?? '0');
-        const unclaimedRaw =
-          totalRaw > claimedRaw ? (totalRaw - claimedRaw).toString() : '0';
-
-        const { claimAmountDecimal, fiatValue } = convertMusdClaimAmount({
-          claimAmountRaw: unclaimedRaw,
-          conversionRate: nativeConversionRate,
-          usdConversionRate,
-        });
+      if (merklClaimAmount) {
+        const { claimAmountDecimal, fiatValue } = merklClaimAmount;
 
         return {
           amount: formatAmount(I18n.locale, claimAmountDecimal),

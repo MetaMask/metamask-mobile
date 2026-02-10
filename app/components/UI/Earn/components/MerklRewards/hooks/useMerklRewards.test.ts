@@ -23,8 +23,6 @@ jest.mock('../../../../../../util/number', () => ({
 jest.mock('../merkl-client', () => ({
   fetchMerklRewardsForAsset: jest.fn(),
   getClaimedAmountFromContract: jest.fn(),
-  // Return the asset's chainId by default (non-mUSD behavior)
-  getClaimChainId: jest.fn((asset: { chainId: string }) => asset.chainId),
 }));
 
 // Mock Engine for refreshTokenBalances

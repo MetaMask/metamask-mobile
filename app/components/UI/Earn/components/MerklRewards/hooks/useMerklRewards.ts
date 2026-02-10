@@ -13,7 +13,6 @@ import {
 import {
   fetchMerklRewardsForAsset,
   getClaimedAmountFromContract,
-  getClaimChainId,
 } from '../merkl-client';
 import Logger from '../../../../../../util/Logger';
 
@@ -117,7 +116,7 @@ export const useMerklRewards = ({
         // but the contract's claimed mapping is updated immediately
         // If the contract call fails, fall back to the API's claimed value
         // For mUSD, we always check the Linea contract since that's where claims happen
-        const claimChainId = getClaimChainId(asset);
+        const claimChainId = CHAIN_IDS.LINEA_MAINNET as Hex;
         const claimedFromContract = await getClaimedAmountFromContract(
           selectedAddress,
           matchingReward.token.address as Hex,

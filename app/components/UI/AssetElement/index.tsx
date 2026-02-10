@@ -155,7 +155,6 @@ const AssetElement: React.FC<AssetElementProps> = ({
                 isHidden={privacyMode && hideSecondaryBalanceInPrivacyMode}
                 length={SensitiveTextLength.Short}
                 testID={SECONDARY_BALANCE_TEST_ID}
-                // Remove onPress from here since it's on Pressable now
               >
                 {secondaryBalance === TOKEN_BALANCE_LOADING ||
                 secondaryBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (

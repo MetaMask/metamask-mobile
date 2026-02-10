@@ -9,7 +9,6 @@ import {
   AGLAMERKL_ADDRESS_LINEA,
   MERKL_API_BASE_URL,
   MERKL_DISTRIBUTOR_ADDRESS,
-  MERKL_CLAIM_CHAIN_ID,
   DISTRIBUTOR_CLAIMED_ABI,
 } from './constants';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -190,18 +189,6 @@ export const fetchMerklRewardsForAsset = async (
     },
     throwOnError,
   );
-};
-
-/**
- * Get the chain ID to use for claiming rewards.
- * For mUSD, claims always go to Linea regardless of which chain the user is viewing.
- */
-export const getClaimChainId = (asset: TokenI): Hex => {
-  const tokenAddress = asset.address as Hex;
-  if (isMusdToken(tokenAddress)) {
-    return MERKL_CLAIM_CHAIN_ID;
-  }
-  return asset.chainId as Hex;
 };
 
 /**

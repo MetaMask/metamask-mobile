@@ -1328,9 +1328,11 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       // "Claim bonus" text should not be rendered
       expect(queryByText(strings('earn.claim_bonus'))).toBeNull();
 
-      // ActivityIndicator should be rendered
-      const { ActivityIndicator } = jest.requireActual('react-native');
-      expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
+      // Spinner should be rendered
+      const { Spinner } = jest.requireActual(
+        '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs',
+      );
+      expect(UNSAFE_getByType(Spinner)).toBeTruthy();
     });
 
     it('hides "Claim bonus" when merkl campaign claiming is disabled', () => {

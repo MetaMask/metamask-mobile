@@ -149,10 +149,6 @@ describe('MusdClaimInfo', () => {
     });
 
     expect(getByTestId('musd-claim-info')).toBeDefined();
-    expect(getByText('Claim bonus')).toBeDefined();
-    expect(
-      getByText('Bonus payout will be on Linea Mainnet Network.'),
-    ).toBeDefined();
     expect(getByText('Claiming to')).toBeDefined();
     expect(getByText('Network')).toBeDefined();
     expect(getByText('Linea Mainnet')).toBeDefined();

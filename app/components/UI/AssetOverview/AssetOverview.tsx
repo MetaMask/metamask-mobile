@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -228,7 +222,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     selectMerklCampaignClaimingEnabledFlag,
   );
   const { navigateToSendPage } = useSendNavigation();
-  const merklRewardsRef = useRef<View>(null);
 
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
@@ -829,7 +822,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             ///: END:ONLY_INCLUDE_IF
           }
           {isMerklCampaignClaimingEnabled && (
-            <View ref={merklRewardsRef} testID="merkl-rewards-section">
+            <View testID="merkl-rewards-section">
               <MerklRewards asset={asset} />
             </View>
           )}

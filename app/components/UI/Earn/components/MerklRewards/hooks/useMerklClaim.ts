@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import {
+  CHAIN_IDS,
   TransactionType,
   WalletDevice,
 } from '@metamask/transaction-controller';
@@ -12,7 +13,7 @@ import { selectDefaultEndpointByChainId } from '../../../../../../selectors/netw
 import { addTransaction } from '../../../../../../util/transaction-controller';
 import { TokenI } from '../../../../Tokens/types';
 import { RootState } from '../../../../../../reducers';
-import { fetchMerklRewardsForAsset, getClaimChainId } from '../merkl-client';
+import { fetchMerklRewardsForAsset } from '../merkl-client';
 import {
   DISTRIBUTOR_CLAIM_ABI,
   MERKL_CLAIM_ORIGIN,
@@ -43,8 +44,7 @@ export const useMerklClaim = (asset: TokenI | undefined) => {
 
   // Get the chain ID where claims should be executed
   // For mUSD, claims always go to Linea regardless of which chain the user is viewing
-  // asset may be undefined during state transitions; getClaimChainId requires a valid asset
-  const claimChainId = asset ? getClaimChainId(asset) : ('' as Hex);
+  const claimChainId = CHAIN_IDS.LINEA_MAINNET as Hex;
 
   const endpoint = useSelector((state: RootState) =>
     selectDefaultEndpointByChainId(state, claimChainId),
@@ -53,15 +53,13 @@ export const useMerklClaim = (asset: TokenI | undefined) => {
 
   const claimRewards = useCallback(async () => {
     if (!asset) {
-      const errorMessage = 'No asset available for claiming';
-      setError(errorMessage);
-      throw new Error(errorMessage);
+      setError('No asset available for claiming');
+      return undefined;
     }
 
     if (!selectedAddress || !networkClientId) {
-      const errorMessage = 'No account or network selected';
-      setError(errorMessage);
-      throw new Error(errorMessage);
+      setError('No account or network selected');
+      return undefined;
     }
 
     // Abort any previous in-flight request
@@ -81,7 +79,9 @@ export const useMerklClaim = (asset: TokenI | undefined) => {
       );
 
       if (!rewardData) {
-        throw new Error('No claimable rewards found');
+        setError('No claimable rewards found');
+        setIsClaiming(false);
+        return undefined;
       }
 
       // Prepare claim parameters
@@ -134,21 +134,21 @@ export const useMerklClaim = (asset: TokenI | undefined) => {
 
       return { txHash, transactionMeta };
     } catch (e) {
-      const error = e as Error & { code?: number };
+      const { name, code, message } = e as Error & { code?: number };
 
       // Ignore AbortError - component unmounted or request was cancelled
-      if (error.name === 'AbortError') {
+      if (name === 'AbortError') {
         return undefined;
       }
 
       // Don't show error if user rejected/cancelled the transaction (EIP-1193 code 4001)
-      const isUserRejection = error.code === 4001;
+      const isUserRejection = code === 4001;
 
       if (!isUserRejection) {
-        setError(error.message);
+        setError(message);
       }
       setIsClaiming(false);
-      throw e;
+      return undefined;
     }
   }, [selectedAddress, networkClientId, asset, claimChainId]);
 
