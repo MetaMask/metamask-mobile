@@ -20,19 +20,6 @@ export interface UseTokenDetailsABTestResult {
  * Returns a simple boolean for layout selection based on the assigned variant.
  * Falls back to 'treatment' (new layout) if the test is disabled.
  *
- * @example
- * ```typescript
- * const { useNewLayout, variantName, isTestActive } = useTokenDetailsABTest();
- *
- * // Use in rendering - simple boolean check
- * {useNewLayout ? <TokenDetailsActions /> : <AssetDetailsActions />}
- * {useNewLayout && <StickyBuySellFooter />}
- *
- * // Use in analytics
- * trackEvent({
- *   ...(isTestActive && { ab_test_token_details_layout: variantName }),
- * });
- * ```
  */
 export function useTokenDetailsABTest(): UseTokenDetailsABTestResult {
   const launchDarklyVariant = useSelector(selectTokenDetailsLayoutTestVariant);
@@ -45,7 +32,6 @@ export function useTokenDetailsABTest(): UseTokenDetailsABTestResult {
   // Test is active only if LaunchDarkly returned a variant
   const isTestActive = !!launchDarklyVariant;
 
-  // Simple boolean: treatment = new layout, control = old layout
   const useNewLayout = variantName === 'treatment';
 
   return {
