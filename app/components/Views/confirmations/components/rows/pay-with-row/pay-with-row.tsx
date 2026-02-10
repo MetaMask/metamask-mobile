@@ -1,10 +1,10 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenIcon } from '../../token-icon';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
+import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { TouchableOpacity } from 'react-native';
 import { Box } from '../../../../../UI/Box/Box';
 import {
@@ -34,19 +34,11 @@ import {
   TransactionPayComponentIDs,
 } from '../../../ConfirmationView.testIds';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
-import { POLYGON_USDCE } from '../../../constants/predict';
-
-/** Default withdrawal token shown when no payment token is selected */
-const DEFAULT_WITHDRAWAL_TOKEN = {
-  address: POLYGON_USDCE.address,
-  chainId: CHAIN_IDS.POLYGON,
-  symbol: POLYGON_USDCE.symbol,
-};
-
 export function PayWithRow() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
   const { isWithdraw } = useTransactionPayWithdraw();
+  const requiredTokens = useTransactionPayRequiredTokens();
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const { styles } = useStyles(styleSheet, {});
   const { setConfirmationMetric } = useConfirmationMetricEvents();
@@ -71,14 +63,15 @@ export function PayWithRow() {
     ? strings('confirm.label.receive_as')
     : strings('confirm.label.pay_with');
 
-  // For withdrawals, show the default token (Polygon USDC.E) if no token is selected.
-  // Auto-selection is disabled for withdrawals, so payToken will be undefined until user selects.
+  // For withdrawals, default to the first required token (where funds are going)
+  // if no payment token has been explicitly selected.
+  const defaultWithdrawToken = requiredTokens?.[0];
   const displayToken = useMemo(() => {
     if (isWithdraw) {
-      return payToken ?? DEFAULT_WITHDRAWAL_TOKEN;
+      return payToken ?? defaultWithdrawToken ?? null;
     }
     return payToken ?? null;
-  }, [isWithdraw, payToken]);
+  }, [isWithdraw, payToken, defaultWithdrawToken]);
 
   // For deposits, show the user's balance of the selected pay token
   const balanceUsdFormatted = useMemo(
