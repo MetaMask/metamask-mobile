@@ -13,7 +13,7 @@ describe(RegressionWalletPlatform('E2E State Export'), () => {
     jest.setTimeout(150000);
   });
 
-  it('should export app state after onboarding with freshly generated accounts', async () => {
+  it('exports app state after onboarding with freshly generated accounts', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withOnboardingFixture().build(),

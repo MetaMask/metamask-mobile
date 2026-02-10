@@ -157,7 +157,7 @@ export async function startE2ECommandPolling(): Promise<void> {
   // we skip polling entirely instead of making wasted requests.
   const port = getCommandQueueServerPortInApp();
   try {
-    await axios.get(`http://localhost:${port}/queue.json`, { timeout: 3000 });
+    await axios.get(`http://localhost:${port}/debug.json`, { timeout: 3000 });
   } catch {
     DevLogger.log(
       '[E2E Command Server Polling] Server not reachable, skipping polling',
