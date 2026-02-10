@@ -24,9 +24,9 @@ export type { BuildQuoteParams as DepositBuildQuoteParams } from '../Views/Build
 
 /**
  * Simple Ramp build quote parameters
- * Used by app/components/UI/Ramp/components/BuildQuote/BuildQuote.tsx
+ * Used by app/components/UI/Ramp/Views/BuildQuote/BuildQuote.tsx
  */
-export type { BuildQuoteParams as SimpleRampBuildQuoteParams } from '../../components/BuildQuote/BuildQuote';
+export type { BuildQuoteParams as SimpleRampBuildQuoteParams } from '../../Views/BuildQuote/BuildQuote';
 
 /** Webview modal parameters - from the actual Deposit WebviewModal component */
 export type { WebviewModalParams } from '../../Deposit/Views/Modals/WebviewModal';

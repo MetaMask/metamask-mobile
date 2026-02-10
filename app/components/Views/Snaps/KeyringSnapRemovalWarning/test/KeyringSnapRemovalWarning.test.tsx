@@ -100,6 +100,7 @@ describe('KeyringSnapRemovalWarning', () => {
         origin: 'https://metamask.github.io',
       },
     ],
+    sourceCode: '',
     auxiliaryFiles: [],
     localizationFiles: [],
   };

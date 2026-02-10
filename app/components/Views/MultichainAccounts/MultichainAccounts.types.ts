@@ -2,6 +2,12 @@
  * Multichain accounts navigation parameters
  */
 
+import { InternalAccount } from '@metamask/keyring-internal-api';
+
+export interface AccountParams {
+  account?: InternalAccount;
+}
+
 /** Multichain account detail actions parameters */
 export interface MultichainAccountDetailActionsParams {
   screen: string;
@@ -14,51 +20,28 @@ export interface MultichainTransactionDetailsParams {
 }
 
 /** Multichain account actions parameters */
-export interface MultichainAccountActionsParams {
-  address?: string;
-  accountId?: string;
-}
+export interface MultichainAccountActionsParams extends AccountParams {}
 
 /** Edit account name parameters */
-export interface EditAccountNameParams {
-  address?: string;
-  accountId?: string;
-}
+export interface EditAccountNameParams extends AccountParams {}
 
 /** Edit wallet name parameters */
-export interface EditWalletNameParams {
-  keyringId?: string;
-}
+export interface EditWalletNameParams extends AccountParams {}
 
 /** Share address parameters */
-export interface ShareAddressParams {
-  address?: string;
-}
+export interface ShareAddressParams extends AccountParams {}
 
 /** Share address QR parameters */
-export interface ShareAddressQRParams {
-  address?: string;
-  networkName?: string;
-  chainId?: string;
-  groupId?: string;
-}
+export type { ShareAddressQRParams } from './sheets/ShareAddressQR/ShareAddressQR';
 
 /** Delete account parameters */
-export interface DeleteAccountParams {
-  address?: string;
-  accountId?: string;
-}
+export interface DeleteAccountParams extends AccountParams {}
 
 /** Smart account parameters */
-export interface SmartAccountParams {
-  address?: string;
-}
+export interface SmartAccountParams extends AccountParams {}
 
 /** Multichain account details parameters */
-export interface MultichainAccountDetailsParams {
-  address?: string;
-  accountId?: string;
-}
+export interface MultichainAccountDetailsParams extends AccountParams {}
 
 /** Multichain account group details parameters */
 export interface MultichainAccountGroupDetailsParams {
@@ -76,6 +59,4 @@ export interface MultichainAddressListParams {
 }
 
 /** Multichain private key list parameters */
-export interface MultichainPrivateKeyListParams {
-  accountId?: string;
-}
+export type { Params as PrivateKeyListParams } from './PrivateKeyList/types';

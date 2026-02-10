@@ -15,7 +15,6 @@ import {
 } from '@metamask/selected-network-controller';
 import {
   createPreinstalledSnapsMiddleware,
-  createWalletSnapPermissionMiddleware,
   SnapEndowments,
 } from '@metamask/snaps-rpc-methods';
 import {
@@ -52,7 +51,6 @@ import {
   UNSUPPORTED_RPC_METHODS,
 } from '../RPCMethods/utils';
 import { MultichainRouter } from '@metamask/snaps-controllers';
-import { asLegacyMiddleware } from '@metamask/json-rpc-engine/v2';
 
 /**
  * Type definition for the GetRPCMethodMiddleware function.
@@ -162,10 +160,6 @@ export default class SnapBridge {
         }),
       );
     }
-
-    // TODO: Investigate type difference here.
-    // @ts-expect-error: Type mismatch.
-    engine.push(asLegacyMiddleware(createWalletSnapPermissionMiddleware()));
 
     engine.push(
       PermissionController.createPermissionMiddleware({

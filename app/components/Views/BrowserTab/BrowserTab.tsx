@@ -1499,8 +1499,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                         onFileDownload={handleOnFileDownload}
                         webviewDebuggingEnabled={isTest}
                         paymentRequestEnabled
-                        allowFileDownloads={isTabActive}
-                        suppressJavaScriptDialogs={!isTabActive}
                       />
                       {ipfsBannerVisible && (
                         <IpfsBanner
