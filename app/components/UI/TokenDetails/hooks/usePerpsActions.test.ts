@@ -168,6 +168,74 @@ describe('usePerpsActions', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
+  it('includes ab_test_token_details_layout in nav params when provided', () => {
+    // Arrange
+    mockUsePerpsMarketForAsset.mockReturnValue({
+      hasPerpsMarket: true,
+      marketData: {
+        symbol: 'ETH',
+        name: 'ETH',
+        maxLeverage: '50x',
+        price: '',
+        change24h: '',
+        change24hPercent: '',
+        volume: '',
+      },
+      isLoading: false,
+      error: null,
+    });
+
+    const { result } = renderHook(() =>
+      usePerpsActions({
+        symbol: 'ETH',
+        abTestTokenDetailsLayout: 'treatment',
+      }),
+    );
+
+    // Act
+    result.current.handlePerpsAction?.('long');
+
+    // Assert
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.ORDER_REDIRECT,
+      params: expect.objectContaining({
+        direction: 'long',
+        asset: 'ETH',
+        source: 'asset_detail_screen',
+        ab_test_token_details_layout: 'treatment',
+      }),
+    });
+  });
+
+  it('omits ab_test_token_details_layout from nav params when not provided', () => {
+    // Arrange
+    mockUsePerpsMarketForAsset.mockReturnValue({
+      hasPerpsMarket: true,
+      marketData: {
+        symbol: 'ETH',
+        name: 'ETH',
+        maxLeverage: '50x',
+        price: '',
+        change24h: '',
+        change24hPercent: '',
+        volume: '',
+      },
+      isLoading: false,
+      error: null,
+    });
+
+    const { result } = renderHook(() => usePerpsActions({ symbol: 'ETH' }));
+
+    // Act
+    result.current.handlePerpsAction?.('long');
+
+    // Assert
+    const navParams = mockNavigate.mock.calls[0][1] as {
+      params: Record<string, unknown>;
+    };
+    expect(navParams.params).not.toHaveProperty('ab_test_token_details_layout');
+  });
+
   it('forwards isLoading and error from usePerpsMarketForAsset', () => {
     // Arrange
     mockUsePerpsMarketForAsset.mockReturnValue({
