@@ -12,7 +12,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader';
 import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
 import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button/Button.types';
 import { strings } from '../../../../../../locales/i18n';
@@ -23,6 +22,7 @@ import {
   usePredictBottomSheet,
   type PredictBottomSheetRef,
 } from '../../hooks/usePredictBottomSheet';
+import { TouchableOpacity } from 'react-native';
 
 export type PredictOrderRetrySheetRef = PredictBottomSheetRef;
 
@@ -95,19 +95,28 @@ const PredictOrderRetrySheet = forwardRef<
         isInteractable
         onClose={handleSheetClosed}
       >
-        <BottomSheetHeader onClose={closeSheet} style={tw.style('px-6 py-4')} />
+        <TouchableOpacity
+          onPress={closeSheet}
+          style={tw.style('absolute top-8 right-4 z-10')}
+        >
+          <Icon
+            name={IconName.Close}
+            size={IconSize.Xl}
+            color={IconColor.IconDefault}
+          />
+        </TouchableOpacity>
         <Box
           testID={PredictOrderRetrySheetSelectorsIDs.CONTAINER}
           alignItems={BoxAlignItems.Center}
-          twClassName="px-6 pb-8 gap-4"
+          twClassName="px-6 pb-8 pt-8 gap-4"
         >
           <Box
             alignItems={BoxAlignItems.Center}
-            twClassName={`h-10 w-10 rounded-full ${iconBg} justify-center`}
+            twClassName={`h-12 w-12 rounded-full ${iconBg} justify-center`}
           >
             <Icon
               name={IconName.Warning}
-              size={IconSize.Lg}
+              size={IconSize.Xl}
               color={iconColor}
             />
           </Box>
@@ -132,6 +141,7 @@ const PredictOrderRetrySheet = forwardRef<
               variant: ButtonVariants.Primary,
               label: buttonLabel,
               onPress: onRetry,
+              testID: PredictOrderRetrySheetSelectorsIDs.RETRY_BUTTON,
               isDisabled: isRetrying,
               loading: isRetrying,
             },

@@ -3,6 +3,7 @@ import { SLIPPAGE_BEST_AVAILABLE } from '../providers/polymarket/constants';
 import { PredictTradeStatus } from '../constants/eventNames';
 import Engine from '../../../../core/Engine';
 import type { OrderPreview, PlaceOrderParams } from '../providers/types';
+import type { PlaceOrderOutcome } from './usePredictPlaceOrder';
 import type {
   PredictOrderRetrySheetRef,
   PredictOrderRetrySheetVariant,
@@ -10,7 +11,7 @@ import type {
 
 interface UsePredictOrderRetryParams {
   preview: OrderPreview | null | undefined;
-  placeOrder: (params: PlaceOrderParams) => Promise<void>;
+  placeOrder: (params: PlaceOrderParams) => Promise<PlaceOrderOutcome>;
   providerId: string;
   analyticsProperties: PlaceOrderParams['analyticsProperties'];
   isOrderNotFilled: boolean;
@@ -28,6 +29,7 @@ export function usePredictOrderRetry({
   const [isRetrying, setIsRetrying] = useState(false);
   const [retrySheetVariant, setRetrySheetVariant] =
     useState<PredictOrderRetrySheetVariant>('busy');
+  const wasOrderNotFilledRef = useRef(false);
   const retrySheetRef = useRef<PredictOrderRetrySheetRef>(null);
 
   const handleRetryWithBestPrice = useCallback(async () => {
@@ -43,12 +45,23 @@ export function usePredictOrderRetry({
 
     try {
       const retryPreview = { ...preview, slippage: SLIPPAGE_BEST_AVAILABLE };
-      await placeOrder({
+      const outcome = await placeOrder({
         providerId,
         analyticsProperties,
         preview: retryPreview,
       });
-      resetOrderNotFilled();
+
+      if (outcome.status === 'success') {
+        resetOrderNotFilled();
+        return;
+      }
+
+      if (outcome.status === 'deposit_required') {
+        return;
+      }
+
+      setRetrySheetVariant('failed');
+      retrySheetRef.current?.onOpenBottomSheet();
     } catch {
       setRetrySheetVariant('failed');
       retrySheetRef.current?.onOpenBottomSheet();
@@ -64,7 +77,9 @@ export function usePredictOrderRetry({
   ]);
 
   useEffect(() => {
-    if (isOrderNotFilled) {
+    const becameNotFilled = !wasOrderNotFilledRef.current && isOrderNotFilled;
+
+    if (becameNotFilled) {
       setRetrySheetVariant('busy');
       retrySheetRef.current?.onOpenBottomSheet();
 
@@ -75,6 +90,8 @@ export function usePredictOrderRetry({
         sharePrice: preview?.sharePrice,
       });
     }
+
+    wasOrderNotFilledRef.current = isOrderNotFilled;
   }, [isOrderNotFilled, analyticsProperties, providerId, preview?.sharePrice]);
 
   return {

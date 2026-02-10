@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import PredictOrderRetrySheet from './PredictOrderRetrySheet';
 import { Side } from '../../types';
+import { PredictOrderRetrySheetSelectorsIDs } from '../../Predict.testIds';
 
 const mockCloseSheet = jest.fn();
 const mockHandleSheetClosed = jest.fn();
@@ -69,6 +70,7 @@ jest.mock(
       buttonPropsArray: {
         label: string;
         onPress: () => void;
+        testID?: string;
         isDisabled?: boolean;
       }[];
     }) => {
@@ -76,7 +78,7 @@ jest.mock(
       return ReactActual.createElement(
         TouchableOpacity,
         {
-          testID: 'retry-button',
+          testID: btn.testID ?? 'retry-button',
           onPress: btn.onPress,
           disabled: btn.isDisabled,
         },
@@ -235,7 +237,9 @@ describe('PredictOrderRetrySheet', () => {
         <PredictOrderRetrySheet {...defaultProps} onRetry={onRetry} />,
       );
 
-      fireEvent.press(getByTestId('retry-button'));
+      fireEvent.press(
+        getByTestId(PredictOrderRetrySheetSelectorsIDs.RETRY_BUTTON),
+      );
 
       expect(onRetry).toHaveBeenCalledTimes(1);
     });

@@ -1,4 +1,4 @@
-import { useCallback, useContext, useState } from 'react';
+import { useCallback, useContext, useRef, useState } from 'react';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import {
   ToastContext,
@@ -38,10 +38,26 @@ interface UsePredictPlaceOrderReturn {
   error?: string;
   isLoading: boolean;
   result: Result | null;
-  placeOrder: (params: PlaceOrderParams) => Promise<void>;
+  placeOrder: (params: PlaceOrderParams) => Promise<PlaceOrderOutcome>;
   isOrderNotFilled: boolean;
   resetOrderNotFilled: () => void;
 }
+
+export type PlaceOrderOutcome =
+  | {
+      status: 'success';
+      result: Result;
+    }
+  | {
+      status: 'deposit_required';
+    }
+  | {
+      status: 'order_not_filled';
+    }
+  | {
+      status: 'error';
+      error: string;
+    };
 
 /**
  * Hook for placing Predict orders with loading states and error handling
@@ -58,6 +74,8 @@ export function usePredictPlaceOrder(
   const [error, setError] = useState<string>();
   const [result, setResult] = useState<Result | null>(null);
   const [isOrderNotFilled, setIsOrderNotFilled] = useState(false);
+  // TODO: Remove simulation + useRef import when done testing
+  const simulateNotFilledRef = useRef(true);
   const { toastRef } = useContext(ToastContext);
   const { balance } = usePredictBalance({ loadOnMount: false });
   const { deposit } = usePredictDeposit();
@@ -131,7 +149,7 @@ export function usePredictPlaceOrder(
   }, [toastRef]);
 
   const placeOrder = useCallback(
-    async (orderParams: PlaceOrderParams) => {
+    async (orderParams: PlaceOrderParams): Promise<PlaceOrderOutcome> => {
       const {
         preview: { minAmountReceived, side, maxAmountSpent },
       } = orderParams;
@@ -147,11 +165,21 @@ export function usePredictPlaceOrder(
             entryPoint: PredictEventValues.ENTRY_POINT.BUY_PREVIEW,
           },
         });
-        return;
+        return { status: 'deposit_required' };
       }
 
       try {
         setIsLoading(true);
+
+        // TODO: Remove simulation when done testing
+        if (__DEV__ && simulateNotFilledRef.current) {
+          simulateNotFilledRef.current = false;
+          throw new Error(
+            side === Side.BUY
+              ? PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED
+              : PREDICT_ERROR_CODES.SELL_ORDER_NOT_FULLY_FILLED,
+          );
+        }
 
         // Place order using Predict controller
         const orderResult = await controllerPlaceOrder(orderParams);
@@ -172,6 +200,7 @@ export function usePredictPlaceOrder(
         }
 
         DevLogger.log('usePredictPlaceOrder: Order placed successfully');
+        return { status: 'success', result: orderResult };
       } catch (err) {
         const parsedErrorMessage = parseErrorMessage({
           error: err,
@@ -209,10 +238,12 @@ export function usePredictPlaceOrder(
 
         if (isNotFilled) {
           setIsOrderNotFilled(true);
-        } else {
-          setError(parsedErrorMessage);
-          onError?.(parsedErrorMessage);
+          return { status: 'order_not_filled' };
         }
+
+        setError(parsedErrorMessage);
+        onError?.(parsedErrorMessage);
+        return { status: 'error', error: parsedErrorMessage };
       } finally {
         setIsLoading(false);
       }

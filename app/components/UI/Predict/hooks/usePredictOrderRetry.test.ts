@@ -2,6 +2,7 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { usePredictOrderRetry } from './usePredictOrderRetry';
 import Engine from '../../../../core/Engine';
 import type { OrderPreview, PlaceOrderParams } from '../providers/types';
+import type { PlaceOrderOutcome } from './usePredictPlaceOrder';
 import { Side } from '../types';
 
 jest.mock('../../../../core/Engine', () => ({
@@ -48,7 +49,11 @@ function createDefaultParams(
 function createParamsObj(overrides?: Record<string, unknown>) {
   return {
     preview: createMockPreview() as OrderPreview | null | undefined,
-    placeOrder: jest.fn() as jest.Mock<Promise<void>>,
+    placeOrder: jest
+      .fn()
+      .mockResolvedValue(createSuccessOutcome()) as jest.Mock<
+      Promise<PlaceOrderOutcome>
+    >,
     providerId: 'polymarket',
     analyticsProperties: {
       marketId: 'market-123',
@@ -56,6 +61,16 @@ function createParamsObj(overrides?: Record<string, unknown>) {
     isOrderNotFilled: false,
     resetOrderNotFilled: jest.fn(),
     ...overrides,
+  };
+}
+
+function createSuccessOutcome(): PlaceOrderOutcome {
+  return {
+    status: 'success',
+    result: {
+      success: true,
+      response: undefined,
+    },
   };
 }
 
@@ -103,11 +118,29 @@ describe('usePredictOrderRetry', () => {
 
       expect(result.current.retrySheetVariant).toBe('busy');
     });
+
+    it('tracks RETRY_PROMPTED only once per not-filled transition', () => {
+      const params = createDefaultParams({
+        isOrderNotFilled: true,
+        preview: createMockPreview({ sharePrice: 0.51 }),
+      });
+      const { rerender } = renderHook(() => usePredictOrderRetry(params));
+
+      params.preview = createMockPreview({ sharePrice: 0.62 });
+      rerender();
+
+      const promptedCalls = mockTrackEvent.mock.calls.filter(
+        ([event]) => event?.status === 'retry_prompted',
+      );
+      expect(promptedCalls).toHaveLength(1);
+    });
   });
 
   describe('handleRetryWithBestPrice', () => {
     it('calls placeOrder with SLIPPAGE_BEST_AVAILABLE on retry', async () => {
-      const mockPlaceOrder = jest.fn().mockResolvedValue(undefined);
+      const mockPlaceOrder = jest
+        .fn()
+        .mockResolvedValue(createSuccessOutcome());
       const params = createDefaultParams({ placeOrder: mockPlaceOrder });
       const { result } = renderHook(() => usePredictOrderRetry(params));
 
@@ -125,7 +158,9 @@ describe('usePredictOrderRetry', () => {
 
     it('calls resetOrderNotFilled on successful retry', async () => {
       const mockResetOrderNotFilled = jest.fn();
-      const mockPlaceOrder = jest.fn().mockResolvedValue(undefined);
+      const mockPlaceOrder = jest
+        .fn()
+        .mockResolvedValue(createSuccessOutcome());
       const params = createDefaultParams({
         placeOrder: mockPlaceOrder,
         resetOrderNotFilled: mockResetOrderNotFilled,
@@ -140,7 +175,9 @@ describe('usePredictOrderRetry', () => {
     });
 
     it('tracks RETRY_SUBMITTED event on retry attempt', async () => {
-      const mockPlaceOrder = jest.fn().mockResolvedValue(undefined);
+      const mockPlaceOrder = jest
+        .fn()
+        .mockResolvedValue(createSuccessOutcome());
       const params = createDefaultParams({ placeOrder: mockPlaceOrder });
       const { result } = renderHook(() => usePredictOrderRetry(params));
 
@@ -156,10 +193,10 @@ describe('usePredictOrderRetry', () => {
       );
     });
 
-    it('sets variant to failed when retry throws', async () => {
+    it('sets variant to failed when retry returns order_not_filled', async () => {
       const mockPlaceOrder = jest
         .fn()
-        .mockRejectedValue(new Error('retry failed'));
+        .mockResolvedValue({ status: 'order_not_filled' as const });
       const params = createDefaultParams({ placeOrder: mockPlaceOrder });
       const { result } = renderHook(() => usePredictOrderRetry(params));
 
@@ -170,8 +207,39 @@ describe('usePredictOrderRetry', () => {
       expect(result.current.retrySheetVariant).toBe('failed');
     });
 
+    it('sets variant to failed when retry returns error', async () => {
+      const mockPlaceOrder = jest.fn().mockResolvedValue({
+        status: 'error' as const,
+        error: 'Failed to place order',
+      });
+      const params = createDefaultParams({ placeOrder: mockPlaceOrder });
+      const { result } = renderHook(() => usePredictOrderRetry(params));
+
+      await act(async () => {
+        await result.current.handleRetryWithBestPrice();
+      });
+
+      expect(result.current.retrySheetVariant).toBe('failed');
+    });
+
+    it('does not set variant to failed when retry requires deposit', async () => {
+      const mockPlaceOrder = jest
+        .fn()
+        .mockResolvedValue({ status: 'deposit_required' as const });
+      const params = createDefaultParams({ placeOrder: mockPlaceOrder });
+      const { result } = renderHook(() => usePredictOrderRetry(params));
+
+      await act(async () => {
+        await result.current.handleRetryWithBestPrice();
+      });
+
+      expect(result.current.retrySheetVariant).toBe('busy');
+    });
+
     it('sets isRetrying to false after retry completes', async () => {
-      const mockPlaceOrder = jest.fn().mockResolvedValue(undefined);
+      const mockPlaceOrder = jest
+        .fn()
+        .mockResolvedValue(createSuccessOutcome());
       const params = createDefaultParams({ placeOrder: mockPlaceOrder });
       const { result } = renderHook(() => usePredictOrderRetry(params));
 
@@ -185,7 +253,7 @@ describe('usePredictOrderRetry', () => {
     it('sets isRetrying to false after retry fails', async () => {
       const mockPlaceOrder = jest
         .fn()
-        .mockRejectedValue(new Error('retry failed'));
+        .mockResolvedValue({ status: 'order_not_filled' as const });
       const params = createDefaultParams({ placeOrder: mockPlaceOrder });
       const { result } = renderHook(() => usePredictOrderRetry(params));
 
@@ -194,6 +262,20 @@ describe('usePredictOrderRetry', () => {
       });
 
       expect(result.current.isRetrying).toBe(false);
+    });
+
+    it('sets variant to failed on unexpected exception', async () => {
+      const mockPlaceOrder = jest
+        .fn()
+        .mockRejectedValue(new Error('unexpected error'));
+      const params = createDefaultParams({ placeOrder: mockPlaceOrder });
+      const { result } = renderHook(() => usePredictOrderRetry(params));
+
+      await act(async () => {
+        await result.current.handleRetryWithBestPrice();
+      });
+
+      expect(result.current.retrySheetVariant).toBe('failed');
     });
 
     it('does not call placeOrder when preview is null', async () => {
@@ -227,7 +309,9 @@ describe('usePredictOrderRetry', () => {
     });
 
     it('preserves original preview fields except slippage', async () => {
-      const mockPlaceOrder = jest.fn().mockResolvedValue(undefined);
+      const mockPlaceOrder = jest
+        .fn()
+        .mockResolvedValue(createSuccessOutcome());
       const preview = createMockPreview({
         sharePrice: 0.75,
         maxAmountSpent: 20,
