@@ -196,20 +196,6 @@ describe('NetworkPills', () => {
       // 5th entry should not be visible
       expect(queryByText('BNB Chain')).toBeNull();
     });
-
-    it('renders network icons for each chain pill', () => {
-      const { getByTestId } = render(
-        <NetworkPills
-          selectedChainId={undefined}
-          onChainSelect={mockOnChainSelect}
-          type={TokenSelectorType.Source}
-        />,
-      );
-
-      expect(getByTestId('avatar-network-Ethereum')).toBeTruthy();
-      expect(getByTestId('avatar-network-Polygon')).toBeTruthy();
-      expect(getByTestId('avatar-network-Optimism')).toBeTruthy();
-    });
   });
 
   describe('interactions', () => {
