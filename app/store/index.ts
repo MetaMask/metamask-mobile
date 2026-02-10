@@ -81,6 +81,7 @@ const createStoreAndPersistor = async () => {
 (async () => {
   try {
     await createStoreAndPersistor();
+    /* istanbul ignore next -- E2E infrastructure; polling logic is tested in e2eCommandPolling.test.ts */
     if (isE2E) {
       // Delay to give the store time to hydrate before first poll
       setTimeout(async () => {
