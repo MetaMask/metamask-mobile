@@ -1,6 +1,10 @@
 import { renderHook } from '@testing-library/react-native';
 import { useTokenBuyability } from './useTokenBuyability';
-import { useRampTokens, UseRampTokensResult } from './useRampTokens';
+import {
+  useRampTokens,
+  UseRampTokensResult,
+  RampsToken,
+} from './useRampTokens';
 import { useRampsTokens } from './useRampsTokens';
 import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
 import { TokenI } from '../../Tokens/types';
@@ -29,6 +33,18 @@ describe('useTokenBuyability', () => {
       chainId: '0x1',
       ...overrides,
     }) as TokenI;
+
+  const getMockRampToken = (overrides: Record<string, unknown> = {}) =>
+    ({
+      name: 'Mock Token',
+      symbol: 'MOCK',
+      decimals: 18,
+      iconUrl: 'https://example.com/icon.png',
+      assetId: '',
+      chainId: '',
+      tokenSupported: false,
+      ...overrides,
+    }) as unknown as RampsToken;
 
   const setupV1Mocks = (): void => {
     mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
@@ -160,12 +176,12 @@ describe('useTokenBuyability', () => {
         tokens: {
           topTokens: [],
           allTokens: [
-            {
+            getMockRampToken({
               assetId:
                 'eip155:1/erc20:0x6B175474E89094C44Da98b954EedeAC495271d0F',
               chainId: 'eip155:1',
               tokenSupported: true,
-            },
+            }),
           ],
         },
         selectedToken: null,
@@ -184,11 +200,11 @@ describe('useTokenBuyability', () => {
         tokens: {
           topTokens: [],
           allTokens: [
-            {
+            getMockRampToken({
               assetId: 'eip155:1/erc20:0xSomeOtherToken',
               chainId: 'eip155:1',
               tokenSupported: true,
-            },
+            }),
           ],
         },
         selectedToken: null,
@@ -220,15 +236,15 @@ describe('useTokenBuyability', () => {
     it('returns isBuyable: false when V2 controller tokens are empty (no fallback)', () => {
       mockUseRampTokens.mockReturnValue({
         allTokens: [
-          {
+          getMockRampToken({
             assetId:
               'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
             chainId: 'eip155:1',
             tokenSupported: true,
-          },
+          }),
         ],
         isLoading: false,
-      } as UseRampTokensResult);
+      } as unknown as UseRampTokensResult);
 
       mockUseRampsTokens.mockReturnValue({
         tokens: {
@@ -251,25 +267,25 @@ describe('useTokenBuyability', () => {
       // Legacy says buyable, but V2 controller says NOT buyable
       mockUseRampTokens.mockReturnValue({
         allTokens: [
-          {
+          getMockRampToken({
             assetId:
               'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
             chainId: 'eip155:1',
             tokenSupported: true,
-          },
+          }),
         ],
         isLoading: false,
-      } as UseRampTokensResult);
+      } as unknown as UseRampTokensResult);
 
       mockUseRampsTokens.mockReturnValue({
         tokens: {
           topTokens: [],
           allTokens: [
-            {
+            getMockRampToken({
               assetId: 'eip155:1/erc20:0xSomeOtherToken',
               chainId: 'eip155:1',
               tokenSupported: true,
-            },
+            }),
           ],
         },
         selectedToken: null,
