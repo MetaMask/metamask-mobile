@@ -527,11 +527,11 @@ describe('HyperLiquidClientService', () => {
         .mockResolvedValue(mockResponse);
 
       // Act
-      const result = await service.fetchHistoricalCandles(
-        'BTC',
-        '1h' as ValidCandleInterval,
-        100,
-      );
+      const result = await service.fetchHistoricalCandles({
+        symbol: 'BTC',
+        interval: '1h' as ValidCandleInterval,
+        limit: 100,
+      });
 
       // Assert
       expect(result).toEqual({
@@ -573,11 +573,11 @@ describe('HyperLiquidClientService', () => {
         .mockResolvedValue(mockResponse);
 
       // Act
-      const result = await service.fetchHistoricalCandles(
-        'BTC',
-        '1h' as ValidCandleInterval,
-        100,
-      );
+      const result = await service.fetchHistoricalCandles({
+        symbol: 'BTC',
+        interval: '1h' as ValidCandleInterval,
+        limit: 100,
+      });
 
       // Assert
       expect(result).toEqual({
@@ -596,7 +596,11 @@ describe('HyperLiquidClientService', () => {
 
       // Act & Assert
       await expect(
-        service.fetchHistoricalCandles('BTC', '1h' as ValidCandleInterval, 100),
+        service.fetchHistoricalCandles({
+          symbol: 'BTC',
+          interval: '1h' as ValidCandleInterval,
+          limit: 100,
+        }),
       ).rejects.toThrow(errorMessage);
     });
 
@@ -613,11 +617,11 @@ describe('HyperLiquidClientService', () => {
         .mockResolvedValue(mockResponse);
 
       // Act
-      await service.fetchHistoricalCandles(
-        'ETH',
-        '5m' as ValidCandleInterval,
-        50,
-      );
+      await service.fetchHistoricalCandles({
+        symbol: 'ETH',
+        interval: '5m' as ValidCandleInterval,
+        limit: 50,
+      });
 
       // Assert
       expect(mockInfoClientWs.candleSnapshot).toHaveBeenCalledWith({
@@ -652,7 +656,11 @@ describe('HyperLiquidClientService', () => {
           .mockResolvedValue(mockResponse);
 
         // Act
-        await service.fetchHistoricalCandles('BTC', interval, 10);
+        await service.fetchHistoricalCandles({
+          symbol: 'BTC',
+          interval,
+          limit: 10,
+        });
 
         // Assert
         const callArgs = mockInfoClientWs.candleSnapshot.mock.calls[0][0];
@@ -675,11 +683,11 @@ describe('HyperLiquidClientService', () => {
         .mockResolvedValue(mockResponse);
 
       // Act
-      await testnetService.fetchHistoricalCandles(
-        'BTC',
-        '1h' as ValidCandleInterval,
-        100,
-      );
+      await testnetService.fetchHistoricalCandles({
+        symbol: 'BTC',
+        interval: '1h' as ValidCandleInterval,
+        limit: 100,
+      });
 
       // Assert
       expect(mockInfoClientWs.candleSnapshot).toHaveBeenCalled();
@@ -692,11 +700,11 @@ describe('HyperLiquidClientService', () => {
 
       // Act & Assert
       await expect(
-        uninitializedService.fetchHistoricalCandles(
-          'BTC',
-          '1h' as ValidCandleInterval,
-          100,
-        ),
+        uninitializedService.fetchHistoricalCandles({
+          symbol: 'BTC',
+          interval: '1h' as ValidCandleInterval,
+          limit: 100,
+        }),
       ).rejects.toThrow('CLIENT_NOT_INITIALIZED');
     });
   });
@@ -1671,7 +1679,9 @@ describe('HyperLiquidClientService', () => {
 
       // Use expect().rejects pattern with async timer advancement
       // The promise and timer advancement need to happen concurrently
-      const promiseResult = service.ensureTransportReady(50).catch((e) => e);
+      const promiseResult = service
+        .ensureTransportReady({ timeoutMs: 50 })
+        .catch((e) => e);
 
       // Advance timers to trigger the timeout
       await jest.advanceTimersByTimeAsync(100);

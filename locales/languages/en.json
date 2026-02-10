@@ -129,6 +129,10 @@
         "title": "Suspicious token"
       }
     },
+    "first_time_interaction": {
+      "message": "You're interacting with this address for the first time. Make sure that it's correct before you continue.",
+      "title": "1st interaction"
+    },
     "address_trust_signal": {
       "malicious": {
         "message": "If you confirm this request, you will probably lose your assets to a scammer.",
@@ -503,6 +507,19 @@
     "marketing_opt_in_description": "Get product updates, tips, and news including by email. We may use your interactions to improve what we share.",
     "loose_password_description": "If I lose this password, MetaMask can’t reset it."
   },
+  "wallet_creation_error": {
+    "title": "Something went wrong",
+    "social_login_description_part1": "An error occurred while creating your wallet. Try again and if the issue persists, contact",
+    "srp_description_part1": "Send us an anonymous error report to help fix the problem and improve MetaMask. If the issue persists, contact",
+    "metamask_support": "MetaMask Support",
+    "error_report": "Error report",
+    "copy": "Copy",
+    "copied": "Copied",
+    "send_error_report": "Send error report",
+    "try_again": "Try again",
+    "error_report_sent_title": "Error report sent",
+    "error_report_sent_description": "We're investigating this problem. Try creating your wallet again."
+  },
   "reset_password": {
     "title": "Change password",
     "subtitle": "This password will unlock your MetaMask wallet only on this device.",
@@ -627,6 +644,7 @@
     "invalid_value": "Invalid value",
     "insufficient_funds": "Insufficient funds",
     "insufficient_balance_to_cover_fee": "Insufficient balance to cover fees",
+    "transaction_error": "Transaction error",
     "continue": "Continue",
     "unit": "unit",
     "units": "units",
@@ -1884,6 +1902,9 @@
       "past_24_hours": "Past 24 hours",
       "time": "Time",
       "apply": "Apply"
+    },
+    "provider_selector": {
+      "title": "Select Provider"
     },
     "market_type": {
       "filter_by": "Filter by"
@@ -3811,6 +3832,7 @@
     "tx_review_predict_claim": "Claimed wins",
     "tx_review_predict_withdraw": "Predictions withdraw",
     "tx_review_musd_conversion": "mUSD conversion",
+    "claim": "Claim",
     "sent_ether": "Sent ETH",
     "self_sent_ether": "Sent yourself ETH",
     "received_ether": "Received ETH",
@@ -4719,6 +4741,11 @@
     "buy": "Buy {{ticker}}",
     "on_network": "on {{networkName}}",
     "debit_card": "Debit card",
+    "select_payment_method": "Select payment method",
+    "pay_with": "Pay with",
+    "buying_via": "Buying via {{providerName}}.",
+    "change_provider": "Change provider.",
+    "providers": "Providers",
     "continue": "Continue",
     "powered_by_provider": "Powered by {{provider}}",
     "purchased_currency": "Purchased {{currency}}",
@@ -6769,7 +6796,8 @@
         "description": "Enter the code we sent to {{email}}. If you don't see it, check your spam folder.",
         "didnt_receive_code": "Didn't receive the code? ",
         "resend_verification": "Resend it",
-        "resend_cooldown": "Resend available in {{seconds}} seconds"
+        "resend_cooldown": "Resend available in {{seconds}} seconds",
+        "legal_terms": "By continuing, you agree to receiving email for login verifications and alerts."
       },
       "set_phone_number": {
         "title": "Enter your phone number",
@@ -6792,6 +6820,7 @@
         "description": "Our partner, Crypto Life, uses a service called Veriff to keep your account secure. ",
         "terms_1": "Your info goes directly to Veriff and Crypto Life. MetaMask never sees it.",
         "terms_2": "You'll need your ID and proof of address to get approved. This usually takes 5 minutes.",
+        "terms_2_us": "Federal law (USA PATRIOT Act) requires us to verify your identity with ID and proof of address to help prevent terrorism and money laundering. This usually takes 5 minutes.",
         "verify_button": "Next",
         "start_verification_error": "Error starting verification. Please try again shortly."
       },
@@ -6866,8 +6895,21 @@
         "state_label": "State",
         "zip_code_label": "Zip code",
         "country_label": "Country",
-        "electronic_consent_1": "I agree to the E-Sign Act Consent and Disclosure and to receive all communications electronically. ",
-        "electronic_consent_2": "View document (PDF)"
+        "electronic_consent_1": "I agree to the ",
+        "electronic_consent_2": "E-Sign Act Consent and Disclosure",
+        "electronic_consent_3": " and to receive all communications electronically.",
+        "coinme_terms_consent_1": "I agree to the ",
+        "coinme_terms_consent_2": "Coinme Terms of Service",
+        "coinme_terms_consent_3": ".",
+        "crb_consent_1": "I agree with Cross River Bank ",
+        "crb_consent_2": "Terms & Conditions",
+        "crb_consent_3": ", ",
+        "crb_consent_4": "Account Opening Disclosures",
+        "crb_consent_5": ", ",
+        "crb_consent_6": "Notice of Privacy Practices",
+        "crb_consent_7": " and ",
+        "crb_consent_8": "CL Privacy Policy",
+        "crb_consent_9": "."
       },
       "mailing_address": {
         "title": "Mailing address",
@@ -7579,6 +7621,7 @@
   "transaction_details": {
     "title": {
       "musd_conversion": "Converted to mUSD",
+      "musd_claim": "Claimed mUSD",
       "perps_deposit": "Funded perps account",
       "predict_claim": "Claimed winnings",
       "predict_deposit": "Funded Predict account",
@@ -7603,6 +7646,7 @@
       "bridge_receive_loading": "Bridge receive",
       "default": "Transaction",
       "musd_convert_send": "Sent {{sourceSymbol}} from {{sourceChain}}",
+      "musd_claim": "Claim mUSD",
       "perps_deposit": "Add funds",
       "predict_deposit": "Add funds",
       "swap": "Swap tokens",
