@@ -134,11 +134,14 @@ export const BridgeTokenSelector: React.FC = () => {
     [], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
-  // Network filter from Redux (set by NetworkPills or NetworkListModal),
-  // falling back to the synchronous initial value for the first render
-  // before the effect has synced Redux.
+  // Track whether we've synced the initial filter into Redux.
+  // Before sync, we use initialFilter directly; after sync, we trust Redux
+  // (which may be undefined when the user selects "All").
+  const hasSyncedFilter = useRef(false);
   const reduxFilter = useSelector(selectTokenSelectorNetworkFilter);
-  const selectedChainId = reduxFilter ?? initialFilter;
+  const selectedChainId = hasSyncedFilter.current
+    ? reduxFilter
+    : (reduxFilter ?? initialFilter);
 
   // Sync the initial filter into Redux on mount so other consumers
   // (e.g. NetworkListModal) see the correct value. Clear on unmount.
@@ -146,6 +149,7 @@ export const BridgeTokenSelector: React.FC = () => {
     if (initialFilter) {
       dispatch(setTokenSelectorNetworkFilter(initialFilter));
     }
+    hasSyncedFilter.current = true;
     return () => {
       dispatch(setTokenSelectorNetworkFilter(undefined));
     };
