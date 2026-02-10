@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
+import { Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
@@ -284,6 +285,9 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
   };
 });
 
+// Mock Linking
+jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined as never);
+
 // Mock i18n
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -313,6 +317,27 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'I agree to the ',
       'card.card_onboarding.physical_address.electronic_consent_2':
         'E-Sign Consent Disclosure',
+      'card.card_onboarding.physical_address.electronic_consent_3':
+        ' and to receive all communications electronically.',
+      'card.card_onboarding.physical_address.coinme_terms_consent_1':
+        'I agree to the ',
+      'card.card_onboarding.physical_address.coinme_terms_consent_2':
+        'Coinme Terms of Service',
+      'card.card_onboarding.physical_address.coinme_terms_consent_3': '.',
+      'card.card_onboarding.physical_address.crb_consent_1':
+        'I agree with Cross River Bank ',
+      'card.card_onboarding.physical_address.crb_consent_2':
+        'Terms & Conditions',
+      'card.card_onboarding.physical_address.crb_consent_3': ', ',
+      'card.card_onboarding.physical_address.crb_consent_4':
+        'Account Opening Disclosures',
+      'card.card_onboarding.physical_address.crb_consent_5': ', ',
+      'card.card_onboarding.physical_address.crb_consent_6':
+        'Notice of Privacy Practices',
+      'card.card_onboarding.physical_address.crb_consent_7': ' and ',
+      'card.card_onboarding.physical_address.crb_consent_8':
+        'CL Privacy Policy',
+      'card.card_onboarding.physical_address.crb_consent_9': '.',
       'card.card_onboarding.continue_button': 'Continue',
     };
     return translations[key] || key;
@@ -698,10 +723,12 @@ describe('PhysicalAddress Component', () => {
       fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
       fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
       fireEvent.changeText(getByTestId('zip-code-input'), '12345');
-      // Check the electronic consent checkbox
+      // Check all consent checkboxes (required for US users)
       fireEvent.press(
         getByTestId('physical-address-electronic-consent-checkbox'),
       );
+      fireEvent.press(getByTestId('physical-address-coinme-terms-checkbox'));
+      fireEvent.press(getByTestId('physical-address-crb-consent-checkbox'));
 
       // Wait for state updates
       await new Promise((resolve) => setTimeout(resolve, 50));
@@ -813,6 +840,8 @@ describe('PhysicalAddress Component', () => {
       fireEvent.press(
         getByTestId('physical-address-electronic-consent-checkbox'),
       );
+      fireEvent.press(getByTestId('physical-address-coinme-terms-checkbox'));
+      fireEvent.press(getByTestId('physical-address-crb-consent-checkbox'));
 
       await waitFor(() => {
         const button = getByTestId('physical-address-continue-button');
@@ -935,6 +964,8 @@ describe('PhysicalAddress Component', () => {
       fireEvent.press(
         getByTestId('physical-address-electronic-consent-checkbox'),
       );
+      fireEvent.press(getByTestId('physical-address-coinme-terms-checkbox'));
+      fireEvent.press(getByTestId('physical-address-crb-consent-checkbox'));
 
       await waitFor(() => {
         const button = getByTestId('physical-address-continue-button');
@@ -1042,6 +1073,8 @@ describe('PhysicalAddress Component', () => {
       fireEvent.press(
         getByTestId('physical-address-electronic-consent-checkbox'),
       );
+      fireEvent.press(getByTestId('physical-address-coinme-terms-checkbox'));
+      fireEvent.press(getByTestId('physical-address-crb-consent-checkbox'));
 
       await waitFor(() => {
         const button = getByTestId('physical-address-continue-button');
@@ -1131,6 +1164,8 @@ describe('PhysicalAddress Component', () => {
       fireEvent.press(
         getByTestId('physical-address-electronic-consent-checkbox'),
       );
+      fireEvent.press(getByTestId('physical-address-coinme-terms-checkbox'));
+      fireEvent.press(getByTestId('physical-address-crb-consent-checkbox'));
 
       await waitFor(() => {
         const button = getByTestId('physical-address-continue-button');
@@ -1232,6 +1267,8 @@ describe('PhysicalAddress Component', () => {
       fireEvent.press(
         getByTestId('physical-address-electronic-consent-checkbox'),
       );
+      fireEvent.press(getByTestId('physical-address-coinme-terms-checkbox'));
+      fireEvent.press(getByTestId('physical-address-crb-consent-checkbox'));
 
       await waitFor(() => {
         const button = getByTestId('physical-address-continue-button');
@@ -1596,14 +1633,16 @@ describe('PhysicalAddress Component', () => {
       fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
       fireEvent.changeText(getByTestId('zip-code-input'), '12345');
 
-      // Button should be disabled without checkbox
+      // Button should be disabled without checkboxes
       const buttonBefore = getByTestId('physical-address-continue-button');
       expect(buttonBefore.props.disabled).toBe(true);
 
-      // Check the checkbox
+      // Check all consent checkboxes (required for US users)
       fireEvent.press(
         getByTestId('physical-address-electronic-consent-checkbox'),
       );
+      fireEvent.press(getByTestId('physical-address-coinme-terms-checkbox'));
+      fireEvent.press(getByTestId('physical-address-crb-consent-checkbox'));
 
       await waitFor(() => {
         const buttonAfter = getByTestId('physical-address-continue-button');
@@ -1652,6 +1691,120 @@ describe('PhysicalAddress Component', () => {
 
       expect(mockResetRegisterAddress).toHaveBeenCalled();
       expect(mockResetConsent).toHaveBeenCalled();
+    });
+  });
+
+  describe('Legal Links', () => {
+    it('opens E-Sign Consent Disclosure URL when link is pressed', () => {
+      const { getByText } = render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      fireEvent.press(getByText('E-Sign Consent Disclosure'));
+
+      expect(Linking.openURL).toHaveBeenCalledWith('https://example.com/esign');
+    });
+
+    it('opens Coinme Terms of Service URL when link is pressed', () => {
+      const { getByText } = render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      fireEvent.press(getByText('Coinme Terms of Service'));
+
+      expect(Linking.openURL).toHaveBeenCalledWith('https://coinme.com/legal/');
+    });
+
+    it('opens CRB Terms & Conditions URL when link is pressed', () => {
+      const { getByText } = render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      fireEvent.press(getByText('Terms & Conditions'));
+
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'https://baanx-public.s3-eu-west-1.amazonaws.com/Ledger/public-files/BaanxUS_CLCard_TOS.undefined-fddb292f91ce3.pdf',
+      );
+    });
+
+    it('opens CRB Account Opening Disclosures URL when link is pressed', () => {
+      const { getByText } = render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      fireEvent.press(getByText('Account Opening Disclosures'));
+
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'https://secure.baanx.co.uk/BAANX_US_ACCOUNT_OPENING_AGREEMENTS_AND_DISCLOSURES_08152025.pdf',
+      );
+    });
+
+    it('opens CRB Notice of Privacy Practices URL when link is pressed', () => {
+      const { getByText } = render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      fireEvent.press(getByText('Notice of Privacy Practices'));
+
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'https://secure.baanx.co.uk/Baanx_(CL)_U.S._Privacy_Notice_06.2025.pdf',
+      );
+    });
+
+    it('opens CRB CL Privacy Policy URL when link is pressed', () => {
+      const { getByText } = render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      fireEvent.press(getByText('CL Privacy Policy'));
+
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'https://www.crossriver.com/legal/privacy-notice',
+      );
+    });
+
+    it('does not render legal links for non-US users', () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation((selector: any) =>
+        selector({
+          card: {
+            onboarding: {
+              selectedCountry: {
+                key: 'CA',
+                name: 'Canada',
+                emoji: '🇨🇦',
+                areaCode: '1',
+              },
+              onboardingId: 'test-id',
+            },
+          },
+        }),
+      );
+
+      const { queryByText } = render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      expect(queryByText('E-Sign Consent Disclosure')).toBeFalsy();
+      expect(queryByText('Coinme Terms of Service')).toBeFalsy();
+      expect(queryByText('Terms & Conditions')).toBeFalsy();
+      expect(queryByText('Account Opening Disclosures')).toBeFalsy();
+      expect(queryByText('Notice of Privacy Practices')).toBeFalsy();
+      expect(queryByText('CL Privacy Policy')).toBeFalsy();
     });
   });
 
