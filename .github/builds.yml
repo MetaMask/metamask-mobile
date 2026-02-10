@@ -73,6 +73,9 @@ _secrets: &secrets
   ANDROID_GOOGLE_SERVER_CLIENT_ID: "ANDROID_GOOGLE_SERVER_CLIENT_ID"
   # Card/Baanx
   MM_CARD_BAANX_API_CLIENT_KEY: "MM_CARD_BAANX_API_CLIENT_KEY"
+  # Card/Push Provisioning (Android - TapAndPay SDK)
+  TAP_AND_PAY_SDK_SSH_KEY: "TAP_AND_PAY_SDK_SSH_KEY"
+  TAP_AND_PAY_SDK_REPO_SSH: "TAP_AND_PAY_SDK_REPO_SSH"
 
 # Main code fencing features
 _code_fencing_main: &code_fencing_main
