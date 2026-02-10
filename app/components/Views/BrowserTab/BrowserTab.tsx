@@ -718,6 +718,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      */
     const onShouldStartLoadWithRequest = useCallback(
       ({ url: urlToLoad }: { url: string }) => {
+        if (!isTabActive) return false;
+
         webStates.current[urlToLoad] = {
           ...webStates.current[urlToLoad],
           requested: true,
@@ -789,7 +791,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
         return false;
       },
-      [isIpfsGatewayEnabled, isResolvedIpfsUrl, setIpfsBannerVisible],
+      [
+        isIpfsGatewayEnabled,
+        isResolvedIpfsUrl,
+        setIpfsBannerVisible,
+        isTabActive,
+      ],
     );
 
     /**
@@ -1176,6 +1183,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       }: {
         nativeEvent: { downloadUrl: string };
       }) => {
+        if (!isTabActive) return;
         const downloadResponse = await downloadFile(downloadUrl);
         if (downloadResponse) {
           reload();
@@ -1184,7 +1192,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           reload();
         }
       },
-      [reload],
+      [reload, isTabActive],
     );
 
     /**
@@ -1554,6 +1562,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                         onFileDownload={handleOnFileDownload}
                         webviewDebuggingEnabled={isTest}
                         paymentRequestEnabled
+                        allowFileDownloads={isTabActive}
+                        suppressJavaScriptDialogs={!isTabActive}
                       />
                       {ipfsBannerVisible && (
                         <IpfsBanner
