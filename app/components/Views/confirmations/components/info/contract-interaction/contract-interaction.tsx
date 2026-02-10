@@ -16,23 +16,15 @@ import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row/adv
 import GasFeesDetailsRow from '../../rows/transactions/gas-fee-details-row';
 import SwitchAccountTypeInfoRow from '../../rows/switch-account-type-info-row';
 import ValueRow from '../../rows/transactions/value-row';
-import useBalanceChanges from '../../../../../UI/SimulationDetails/useBalanceChanges';
 
 const ContractInteraction = () => {
   const transactionMetadata = useTransactionMetadataRequest();
   const { trackPageViewedEvent } = useConfirmationMetricEvents();
   const { isBatchedUpgrade } = use7702TransactionType();
-  const { simulationData, chainId, networkClientId } =
-    transactionMetadata ?? {};
-  const balanceChangesResult = useBalanceChanges({
-    chainId: chainId ?? '0x0',
-    simulationData,
-    networkClientId: networkClientId ?? '',
-  });
-  const loading = !simulationData || balanceChangesResult.pending;
+  const { simulationData } = transactionMetadata ?? {};
 
   const shouldShowValueRow =
-    !loading && simulationData?.error?.code === SimulationErrorCode.Reverted;
+    simulationData?.error?.code === SimulationErrorCode.Reverted;
 
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
 
