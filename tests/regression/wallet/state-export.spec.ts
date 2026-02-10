@@ -1,9 +1,9 @@
-import { RegressionWalletPlatform } from '../../../e2e/tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { CreateNewWallet } from '../../../e2e/viewHelper';
 import { TestSuiteParams } from '../../framework/types';
 import { logger } from '../../framework';
+import { RegressionWalletPlatform } from '../../../e2e/tags';
+import { CreateNewWallet } from '../../../e2e/viewHelper';
 
 // The address pre-seeded in the default (non-onboarding) fixture
 const DEFAULT_FIXTURE_ADDRESS = '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3';
