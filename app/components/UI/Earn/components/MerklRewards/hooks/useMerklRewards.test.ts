@@ -269,10 +269,11 @@ describe('useMerklRewards', () => {
     );
 
     expect(mockFetchMerklRewardsForAsset).toHaveBeenCalled();
+    // Claims always go to Linea mainnet regardless of asset chain
     expect(mockGetClaimedAmountFromContract).toHaveBeenCalledWith(
       mockSelectedAddress,
       mockAsset.address,
-      mockAsset.chainId,
+      '0xe708', // CHAIN_IDS.LINEA_MAINNET
     );
 
     expect(mockRenderFromTokenMinimalUnit).toHaveBeenCalledWith(
