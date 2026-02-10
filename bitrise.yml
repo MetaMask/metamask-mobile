@@ -2246,7 +2246,7 @@ workflows:
           run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
       # TapAndPay SDK Setup
       - script@1:
-          title: Setup SSH for TapAndPay SDK
+          title: Clone TapAndPay SDK
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -2258,19 +2258,13 @@ workflows:
                 ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null
                 eval "$(ssh-agent -s)"
                 ssh-add ~/.ssh/tap_and_pay_key
-      - script@1:
-          title: Clone TapAndPay SDK
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                set -euo pipefail
                 echo "Cloning TapAndPay SDK into android/libs/..."
                 git clone --depth 1 git@github.com:MetaMask/tap-and-pay-sdk.git /tmp/tap-and-pay-sdk
                 mkdir -p android/libs
                 cp -r /tmp/tap-and-pay-sdk/* android/libs/
                 rm -rf /tmp/tap-and-pay-sdk
-                echo "TapAndPay SDK installed to android/libs/"
                 rm -f ~/.ssh/tap_and_pay_key
+                echo "TapAndPay SDK installed to android/libs/"
       - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
