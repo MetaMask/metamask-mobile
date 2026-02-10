@@ -229,24 +229,21 @@ const OptinMetrics = () => {
   );
 
   const handleBasicUsageToggle = useCallback(() => {
-    setIsBasicUsageChecked((prev) => {
-      const newValue = !prev;
-      // If unchecking basic usage, also uncheck marketing and fire opt-out event
-      if (!newValue) {
-        setIsMarketingChecked(false);
-        metrics.trackEvent(
-          metrics
-            .createEventBuilder(MetaMetricsEvents.METRICS_OPT_OUT)
-            .addProperties({
-              updated_after_onboarding: false,
-              location: 'onboarding_metametrics',
-            })
-            .build(),
-        );
-      }
-      return newValue;
-    });
-  }, [metrics]);
+    const newValue = !isBasicUsageChecked;
+    if (!newValue) {
+      metrics.trackEvent(
+        metrics
+          .createEventBuilder(MetaMetricsEvents.METRICS_OPT_OUT)
+          .addProperties({
+            updated_after_onboarding: false,
+            location: 'onboarding_metametrics',
+          })
+          .build(),
+      );
+      setIsMarketingChecked(false);
+    }
+    setIsBasicUsageChecked(newValue);
+  }, [isBasicUsageChecked, metrics]);
 
   const handleMarketingToggle = useCallback(() => {
     if (isBasicUsageChecked) {

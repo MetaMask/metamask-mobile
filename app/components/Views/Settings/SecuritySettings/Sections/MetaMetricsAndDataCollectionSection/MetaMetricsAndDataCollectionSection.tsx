@@ -131,11 +131,6 @@ const MetaMetricsAndDataCollectionSection: React.FC<
         dispatch(storePna25Acknowledged());
       }
     } else {
-      await analytics.optOut();
-      setAnalyticsEnabled(false);
-      if (isDataCollectionForMarketingEnabled) {
-        dispatch(setDataCollectionForMarketing(false));
-      }
       analytics.trackEvent(
         AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.METRICS_OPT_OUT,
@@ -146,6 +141,11 @@ const MetaMetricsAndDataCollectionSection: React.FC<
           })
           .build(),
       );
+      await analytics.optOut();
+      setAnalyticsEnabled(false);
+      if (isDataCollectionForMarketingEnabled) {
+        dispatch(setDataCollectionForMarketing(false));
+      }
       Alert.alert(
         strings('app_settings.metametrics_opt_out'),
         strings('app_settings.metametrics_restart_required'),
