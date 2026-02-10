@@ -23,38 +23,42 @@ const HeaderCompactSearchMeta = {
 
 export default HeaderCompactSearchMeta;
 
+const ScreenStory = () => {
+  const [value, setValue] = useState('');
+  return (
+    <HeaderCompactSearch
+      variant={HeaderCompactSearchVariant.Screen}
+      onPressBackButton={() => console.log('Back pressed')}
+      textFieldSearchProps={{
+        value,
+        onChangeText: setValue,
+        onPressClearButton: () => setValue(''),
+        placeholder: 'Search tokens, sites, URLs',
+      }}
+    />
+  );
+};
+
 export const Screen = {
-  render: () => {
-    const [value, setValue] = useState('');
-    return (
-      <HeaderCompactSearch
-        variant={HeaderCompactSearchVariant.Screen}
-        onPressBackButton={() => console.log('Back pressed')}
-        textFieldSearchProps={{
-          value,
-          onChangeText: setValue,
-          onPressClearButton: () => setValue(''),
-          placeholder: 'Search tokens, sites, URLs',
-        }}
-      />
-    );
-  },
+  render: () => <ScreenStory />,
+};
+
+const InlineStory = () => {
+  const [value, setValue] = useState('');
+  return (
+    <HeaderCompactSearch
+      variant={HeaderCompactSearchVariant.Inline}
+      onPressCancelButton={() => console.log('Cancel pressed')}
+      textFieldSearchProps={{
+        value,
+        onChangeText: setValue,
+        onPressClearButton: () => setValue(''),
+        placeholder: 'Search tokens, sites, URLs',
+      }}
+    />
+  );
 };
 
 export const Inline = {
-  render: () => {
-    const [value, setValue] = useState('');
-    return (
-      <HeaderCompactSearch
-        variant={HeaderCompactSearchVariant.Inline}
-        onPressCancelButton={() => console.log('Cancel pressed')}
-        textFieldSearchProps={{
-          value,
-          onChangeText: setValue,
-          onPressClearButton: () => setValue(''),
-          placeholder: 'Search tokens, sites, URLs',
-        }}
-      />
-    );
-  },
+  render: () => <InlineStory />,
 };
