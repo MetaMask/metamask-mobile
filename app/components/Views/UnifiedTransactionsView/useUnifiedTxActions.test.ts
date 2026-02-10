@@ -616,7 +616,7 @@ describe('useUnifiedTxActions', () => {
           });
         });
 
-        it('handles legacy transaction by using gasPrice', async () => {
+        it('defers to TransactionController rate multiplication for legacy tx with existing gasPrice', async () => {
           const { result } = renderHook(() => useUnifiedTxActions());
           const tx = {
             id: 'ledger-speedup-legacy',
@@ -628,6 +628,9 @@ describe('useUnifiedTxActions', () => {
             await result.current.speedUpTransaction({});
           });
 
+          // legacyGasFee is undefined because getCancelOrSpeedupValues returns
+          // undefined when existing gasPrice is non-zero, letting the
+          // TransactionController apply its internal rate multiplication (1.1x).
           expect(createLedgerTransactionModalNavDetails).toHaveBeenCalledWith({
             transactionId: 'ledger-speedup-legacy',
             deviceId: 'device-id',
@@ -791,7 +794,7 @@ describe('useUnifiedTxActions', () => {
           });
         });
 
-        it('handles legacy transaction by using gasPrice', async () => {
+        it('defers to TransactionController rate multiplication for legacy tx with existing gasPrice', async () => {
           const { result } = renderHook(() => useUnifiedTxActions());
           const tx = {
             id: 'ledger-cancel-legacy',
@@ -803,6 +806,9 @@ describe('useUnifiedTxActions', () => {
             await result.current.cancelTransaction({});
           });
 
+          // legacyGasFee is undefined because getCancelOrSpeedupValues returns
+          // undefined when existing gasPrice is non-zero, letting the
+          // TransactionController apply its internal rate multiplication (1.1x).
           expect(createLedgerTransactionModalNavDetails).toHaveBeenCalledWith({
             transactionId: 'ledger-cancel-legacy',
             deviceId: 'device-id',
