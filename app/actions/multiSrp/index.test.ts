@@ -6,7 +6,6 @@ import {
   createNewSecretRecoveryPhrase,
   addNewHdAccount,
 } from './';
-import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { createMockInternalAccount } from '../../util/test/accountsControllerTestUtils';
 import { TraceName, TraceOperation } from '../../util/trace';
 import ReduxService from '../../core/redux/ReduxService';
@@ -15,9 +14,9 @@ import { SecretType } from '@metamask/seedless-onboarding-controller';
 import { EntropySourceId } from '@metamask/keyring-api';
 import { waitFor } from '@testing-library/react-native';
 import { toMultichainAccountWalletId } from '@metamask/account-api';
-import { convertMnemonicToWordlistIndices } from '../../util/mnemonic';
+import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 
-const mockMnemonic =
+const mockSeed =
   'verb middle giant soon wage common wide tool gentle garlic issue nut retreat until album recall expire bronze bundle live accident expect dry cook';
 
 const mockEntropySource = 'keyring-id-123';
@@ -148,13 +147,6 @@ const mockMultichainAccountWallet = {
   getAccountGroup: () => mockMultichainAccountGroup,
 };
 
-function toMmenomicUint8Array(mnemonic: string): Uint8Array {
-  return convertMnemonicToWordlistIndices(
-    Buffer.from(mnemonic, 'utf8'),
-    wordlist,
-  );
-}
-
 describe('MultiSRP Actions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -175,7 +167,7 @@ describe('MultiSRP Actions', () => {
 
       // Act
       const result = await importNewSecretRecoveryPhrase(
-        mockMnemonic,
+        mockSeed,
         undefined,
         mockCallback,
       );
@@ -183,7 +175,7 @@ describe('MultiSRP Actions', () => {
       // Assert synchronous return
       expect(mockCreateMultichainAccountWallet).toHaveBeenCalledWith({
         type: 'import',
-        mnemonic: toMmenomicUint8Array(mockMnemonic),
+        mnemonic: mnemonicPhraseToBytes(mockSeed),
       });
       expect(mockSetSelectedAddress).toHaveBeenCalledWith(mockAddress);
       expect(result).toEqual({
@@ -211,7 +203,7 @@ describe('MultiSRP Actions', () => {
 
       // Act
       const result = await importNewSecretRecoveryPhrase(
-        mockMnemonic,
+        mockSeed,
         undefined,
         mockCallback,
       );
@@ -241,7 +233,7 @@ describe('MultiSRP Actions', () => {
       mockCreateMultichainAccountWallet.mockRejectedValue(mockError);
 
       // Act & Assert
-      await expect(importNewSecretRecoveryPhrase(mockMnemonic)).rejects.toThrow(
+      await expect(importNewSecretRecoveryPhrase(mockSeed)).rejects.toThrow(
         mockError,
       );
     });
@@ -251,7 +243,7 @@ describe('MultiSRP Actions', () => {
       mockDiscoverAccounts.mockResolvedValue(0);
 
       // Act
-      const result = await importNewSecretRecoveryPhrase(mockMnemonic, {
+      const result = await importNewSecretRecoveryPhrase(mockSeed, {
         shouldSelectAccount: false,
       });
 
@@ -275,7 +267,7 @@ describe('MultiSRP Actions', () => {
         const mockCallback = jest.fn();
 
         const result = await importNewSecretRecoveryPhrase(
-          mockMnemonic,
+          mockSeed,
           undefined,
           mockCallback,
         );
@@ -308,9 +300,9 @@ describe('MultiSRP Actions', () => {
       it('handles error when seed phrase backup fails and traces error', async () => {
         mockAddNewSecretData.mockRejectedValue(new Error('Backup failed'));
 
-        await expect(
-          importNewSecretRecoveryPhrase(mockMnemonic),
-        ).rejects.toThrow('Backup failed');
+        await expect(importNewSecretRecoveryPhrase(mockSeed)).rejects.toThrow(
+          'Backup failed',
+        );
 
         expect(mockSelectSeedlessOnboardingLoginFlow).toHaveBeenCalled();
         expect(mockTrace).toHaveBeenCalledWith({
@@ -342,9 +334,9 @@ describe('MultiSRP Actions', () => {
         const mockError = new Error('Backup failed');
         mockAddNewSecretData.mockRejectedValue(mockError);
 
-        await expect(
-          importNewSecretRecoveryPhrase(mockMnemonic),
-        ).rejects.toThrow(mockError);
+        await expect(importNewSecretRecoveryPhrase(mockSeed)).rejects.toThrow(
+          mockError,
+        );
 
         expect(mockAddNewSecretData).toHaveBeenCalledWith(
           expect.any(Uint8Array),
@@ -369,7 +361,7 @@ describe('MultiSRP Actions', () => {
 
       // Act
       const result = await importNewSecretRecoveryPhrase(
-        mockMnemonic,
+        mockSeed,
         undefined,
         mockCallback,
       );
@@ -402,7 +394,7 @@ describe('MultiSRP Actions', () => {
       mockAddNewSecretData.mockRejectedValue(syncError);
 
       // Act & Assert
-      await expect(importNewSecretRecoveryPhrase(mockMnemonic)).rejects.toThrow(
+      await expect(importNewSecretRecoveryPhrase(mockSeed)).rejects.toThrow(
         'Sync failed',
       );
       expect(mockRemoveMultichainAccountWallet).toHaveBeenCalledWith(
@@ -428,7 +420,7 @@ describe('MultiSRP Actions', () => {
 
       // Act
       const result = await importNewSecretRecoveryPhrase(
-        mockMnemonic,
+        mockSeed,
         undefined,
         mockCallback,
       );
@@ -457,7 +449,7 @@ describe('MultiSRP Actions', () => {
 
       // Act
       const result = await importNewSecretRecoveryPhrase(
-        mockMnemonic.toUpperCase(),
+        mockSeed.toUpperCase(),
         undefined,
         mockCallback,
       );
@@ -465,7 +457,7 @@ describe('MultiSRP Actions', () => {
       // Assert
       expect(mockCreateMultichainAccountWallet).toHaveBeenCalledWith({
         type: 'import',
-        mnemonic: toMmenomicUint8Array(mockMnemonic),
+        mnemonic: mnemonicPhraseToBytes(mockSeed),
       });
       expect(result).toEqual({
         address: mockAddress,

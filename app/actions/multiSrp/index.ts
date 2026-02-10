@@ -1,4 +1,3 @@
-import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
 import { KeyringSelector } from '@metamask/keyring-controller';
@@ -18,8 +17,8 @@ import { SecretType } from '@metamask/seedless-onboarding-controller';
 import Logger from '../../util/Logger';
 import { discoverAccounts } from '../../multichain-accounts/discovery';
 import { captureException } from '@sentry/core';
-import { convertMnemonicToWordlistIndices } from '../../util/mnemonic';
 import { toMultichainAccountGroupId } from '@metamask/account-api';
+import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 
 export interface ImportNewSecretRecoveryPhraseOptions {
   shouldSelectAccount: boolean;
@@ -31,7 +30,7 @@ export interface ImportNewSecretRecoveryPhraseReturnType {
 }
 
 export async function importNewSecretRecoveryPhrase(
-  mnemonic: string,
+  seed: string,
   options: ImportNewSecretRecoveryPhraseOptions = {
     shouldSelectAccount: true,
   },
@@ -42,23 +41,13 @@ export async function importNewSecretRecoveryPhrase(
   const { MultichainAccountService } = Engine.context;
   const { shouldSelectAccount } = options;
 
-  // Convert input mnemonic to codepoints
-  const mnemonicLower = mnemonic.toLowerCase();
-  const mnemonicWords = mnemonicLower.split(' ');
-  const inputCodePoints = new Uint16Array(
-    mnemonicWords.map((word) => wordlist.indexOf(word)),
-  );
-
-  // Convert input mnemonic to proper buffer
-  const seedPhraseAsBuffer = Buffer.from(mnemonicLower, 'utf8');
-  const seedPhraseAsUint8Array = convertMnemonicToWordlistIndices(
-    seedPhraseAsBuffer,
-    wordlist,
-  );
+  // Convert mnemonic
+  const seedLower = seed.toLowerCase();
+  const mnemonic = mnemonicPhraseToBytes(seedLower);
 
   const wallet = await MultichainAccountService.createMultichainAccountWallet({
     type: 'import',
-    mnemonic: seedPhraseAsUint8Array,
+    mnemonic,
   });
   // NOTE: This should never fail because a wallet can only be created if it has
   // at least one account and thus, one group too.
@@ -85,7 +74,6 @@ export async function importNewSecretRecoveryPhrase(
   if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
     // on Error, wallet should notify user that the newly added seed phrase is not synced properly
     // user can try manual sync again (phase 2)
-    const seed = new Uint8Array(inputCodePoints.buffer);
     let addSeedPhraseSuccess = false;
     try {
       trace({
@@ -93,7 +81,7 @@ export async function importNewSecretRecoveryPhrase(
         op: TraceOperation.OnboardingSecurityOp,
       });
       await SeedlessOnboardingController.addNewSecretData(
-        seed,
+        mnemonic,
         SecretType.Mnemonic,
         {
           keyringId: entropySource,
