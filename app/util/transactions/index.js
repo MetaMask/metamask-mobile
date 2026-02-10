@@ -17,7 +17,11 @@ import {
 } from '@metamask/transaction-controller';
 import Engine from '../../core/Engine';
 import I18n, { strings } from '../../../locales/i18n';
-import { safeToChecksumAddress, toChecksumAddress } from '../address';
+import {
+  safeToChecksumAddress,
+  toChecksumAddress,
+  isHardwareAccount,
+} from '../address';
 import {
   balanceToFiatNumber,
   BNToHex,
@@ -1897,6 +1901,21 @@ export const getIsSwapApproveOrSwapTransaction = (
           getSwapsContractAddress(chainId)))
   );
 };
+
+/**
+ * Determines if the transaction is a swap approve or swap transaction
+ * from a hardware wallet (Ledger or QR).
+ * Used as an additional guard at the call site before invoking autoSign.
+ */
+export const isHardwareSwapApproveOrSwapTransaction = (
+  data,
+  origin,
+  to,
+  chainId,
+  from,
+) =>
+  isHardwareAccount(from) &&
+  getIsSwapApproveOrSwapTransaction(data, origin, to, chainId);
 
 /**
  * For a MM Swap tx: Determines if the transaction is an ERC20 approve tx

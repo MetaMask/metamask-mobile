@@ -32,6 +32,7 @@ import {
   parseTransactionLegacy,
   getIsNativeTokenTransferred,
   getIsSwapApproveOrSwapTransaction,
+  isHardwareSwapApproveOrSwapTransaction,
   getIsSwapApproveTransaction,
   getIsSwapTransaction,
   INCREASE_ALLOWANCE_SIGNATURE,
@@ -65,6 +66,7 @@ import {
   isTransactionIncomplete,
 } from '.';
 import Engine from '../../core/Engine';
+import { isHardwareAccount } from '../address';
 import { strings } from '../../../locales/i18n';
 import { EIP_7702_REVOKE_ADDRESS } from '../../components/Views/confirmations/hooks/7702/useEIP7702Accounts';
 import {
@@ -149,6 +151,10 @@ jest.mock('../../core/Engine');
 const ENGINE_MOCK = Engine as jest.MockedClass<any>;
 
 jest.mock('../../util/transaction-controller');
+jest.mock('../address', () => ({
+  ...jest.requireActual('../address'),
+  isHardwareAccount: jest.fn(),
+}));
 
 const MOCK_ADDRESS1 = '0x0001';
 const MOCK_ADDRESS2 = '0x0002';
@@ -1410,6 +1416,59 @@ describe('Transactions utils :: getIsSwapApproveOrSwapTransaction', () => {
       tokenTransferFromSwapOrigin.origin,
       tokenTransferFromSwapOrigin.transaction.to,
       tokenTransferFromSwapOrigin.chainId,
+    );
+
+    expect(result).toBe(false);
+  });
+});
+
+describe('Transactions utils :: isHardwareSwapApproveOrSwapTransaction', () => {
+  const isHardwareAccountMock = jest.mocked(isHardwareAccount);
+
+  beforeEach(() => {
+    isHardwareAccountMock.mockReset();
+  });
+
+  it('returns true when it is a swap transaction from a hardware wallet', () => {
+    isHardwareAccountMock.mockReturnValue(true);
+
+    const result = isHardwareSwapApproveOrSwapTransaction(
+      swapFlowSwapERC20TxMeta.transaction.data,
+      swapFlowSwapERC20TxMeta.origin,
+      swapFlowSwapERC20TxMeta.transaction.to,
+      swapFlowSwapERC20TxMeta.chainId,
+      swapFlowSwapERC20TxMeta.transaction.from,
+    );
+
+    expect(result).toBe(true);
+    expect(isHardwareAccountMock).toHaveBeenCalledWith(
+      swapFlowSwapERC20TxMeta.transaction.from,
+    );
+  });
+
+  it('returns false when it is a swap transaction but not from a hardware wallet', () => {
+    isHardwareAccountMock.mockReturnValue(false);
+
+    const result = isHardwareSwapApproveOrSwapTransaction(
+      swapFlowSwapERC20TxMeta.transaction.data,
+      swapFlowSwapERC20TxMeta.origin,
+      swapFlowSwapERC20TxMeta.transaction.to,
+      swapFlowSwapERC20TxMeta.chainId,
+      swapFlowSwapERC20TxMeta.transaction.from,
+    );
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when it is from a hardware wallet but not a swap transaction', () => {
+    isHardwareAccountMock.mockReturnValue(true);
+
+    const result = isHardwareSwapApproveOrSwapTransaction(
+      sendERC20TxMeta.transaction.data,
+      sendERC20TxMeta.origin,
+      sendERC20TxMeta.transaction.to,
+      sendERC20TxMeta.chainId,
+      sendERC20TxMeta.transaction.from,
     );
 
     expect(result).toBe(false);

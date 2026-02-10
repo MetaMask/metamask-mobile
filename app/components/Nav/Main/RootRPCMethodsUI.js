@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
-import { getIsSwapApproveOrSwapTransaction } from '../../../util/transactions';
+import { isHardwareSwapApproveOrSwapTransaction } from '../../../util/transactions';
 import Logger from '../../../util/Logger';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
@@ -33,7 +33,7 @@ import SnapDialogApproval from '../../Snaps/SnapDialogApproval/SnapDialogApprova
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import SnapAccountCustomNameApproval from '../../Approvals/SnapAccountCustomNameApproval';
-import { getIsBridgeTransaction } from '../../UI/Bridge/utils/transaction';
+import { isHardwareBridgeTransaction } from '../../UI/Bridge/utils/transaction';
 ///: END:ONLY_INCLUDE_IF
 
 const RootRPCMethodsUI = (props) => {
@@ -137,13 +137,14 @@ const RootRPCMethodsUI = (props) => {
       const { data } = transactionMeta.txParams;
 
       if (
-        getIsSwapApproveOrSwapTransaction(
+        isHardwareSwapApproveOrSwapTransaction(
           data,
           transactionMeta.origin,
           to,
           transactionMeta.chainId,
+          transactionMeta.txParams.from,
         ) ||
-        getIsBridgeTransaction(transactionMeta)
+        isHardwareBridgeTransaction(transactionMeta)
       ) {
         autoSign(transactionMeta);
       }
