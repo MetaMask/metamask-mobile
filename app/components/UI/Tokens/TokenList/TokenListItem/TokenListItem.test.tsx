@@ -1381,9 +1381,11 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       expect(getByText('+3.00%')).toBeOnTheScreen();
     });
 
-    it('passes asset to useMerklClaim hook', () => {
+    it('passes asset to useMerklClaim hook via MerklClaimHandler', () => {
       prepareMocks({
         asset: claimableAsset,
+        isMerklCampaignClaimingEnabled: true,
+        isMerklEligible: true,
       });
 
       renderWithProvider(
@@ -1399,9 +1401,10 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       expect(mockUseMerklClaim).toHaveBeenCalledWith(claimableAsset);
     });
 
-    it('passes undefined to useMerklClaim when asset is not available', () => {
+    it('does not mount MerklClaimHandler when asset is not eligible', () => {
       prepareMocks({
         asset: undefined,
+        isMerklEligible: false,
       });
 
       const emptyAssetKey: FlashListAssetKey = {
@@ -1420,7 +1423,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         />,
       );
 
-      expect(mockUseMerklClaim).toHaveBeenCalledWith(undefined);
+      expect(mockUseMerklClaim).not.toHaveBeenCalled();
     });
   });
 });

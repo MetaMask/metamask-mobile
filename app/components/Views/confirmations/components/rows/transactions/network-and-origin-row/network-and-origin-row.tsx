@@ -41,7 +41,7 @@ export const NetworkAndOriginRow = () => {
 
   return (
     <InfoSection testID={ConfirmationRowComponentIDs.NETWORK}>
-      <NetworkRow chainId={chainId as Hex} />
+      <NetworkRow chainId={chainId as Hex} style={styles.infoRowOverride} />
 
       {isDappOrigin && (
         <AlertRow

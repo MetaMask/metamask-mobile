@@ -24,14 +24,15 @@ const styles = StyleSheet.create({
 
 interface NetworkRowProps {
   chainId: Hex;
+  style?: Record<string, unknown>;
 }
 
-const NetworkRow = ({ chainId }: NetworkRowProps) => {
+const NetworkRow = ({ chainId, style }: NetworkRowProps) => {
   const { networkName } = useNetworkInfo(chainId);
   const networkImage = getNetworkImageSource({ chainId });
 
   return (
-    <InfoRow label={strings('transactions.network')}>
+    <InfoRow label={strings('transactions.network')} style={style}>
       <View style={styles.container}>
         {networkImage && (
           <AvatarNetwork
