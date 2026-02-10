@@ -1,6 +1,6 @@
-import { SmokeWalletPlatform } from '../../../e2e/tags';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import { loginToApp } from '../../../e2e/viewHelper';
+import { SmokeWalletPlatform } from '../../tags';
+import WalletView from '../../page-objects/wallet/WalletView';
+import { loginToApp } from '../../flows/wallet.flow';
 import Assertions from '../../framework/Assertions';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import {
@@ -9,10 +9,10 @@ import {
   type WithFixturesOptions,
 } from '../../framework/types';
 import { AnvilManager } from '../../seeder/anvil-manager';
-import TransactionPayConfirmation from '../../../e2e/pages/Confirmation/TransactionPayConfirmation';
-import FooterActions from '../../../e2e/pages/Browser/Confirmations/FooterActions';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
-import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView';
+import TransactionPayConfirmation from '../../page-objects/Confirmation/TransactionPayConfirmation';
+import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import { setupMusdMocks } from '../../api-mocking/mock-responses/musd/musd-mocks';
 import {
   createMusdFixture,

@@ -14,7 +14,7 @@
 - **Regression Testing Scenarios (`tests/regression/`)** - Regression Test files organized by feature
 - **Snoke Testing Scenarios (`tests/smoke/`)** - Smoke Test files organized by feature
 - **TypeScript Framework (`tests/framework/`)**: Modern testing framework with type safety
-- **Page Objects (`e2e/pages/`)**: Page Object Model implementation
+- **Page Objects (`tests/page-objects/`)**: Page Object Model implementation
 - **Selectors (`tests/selectors/`)**: Element selectors organized by feature
 - **Fixtures (`tests/framework/fixtures/`)**: Test data and state management
 - **API Mocking (`tests/api-mocking/`)**: Comprehensive API mocking system
@@ -32,7 +32,7 @@
 - `tests/framework/` - TypeScript framework foundation (USE THIS)
 - `tests/smoke/` - Smoke Test files organized by feature
 - `tests/regression/` - Regression Test files organized by feature
-- `e2e/pages/` - Page Object classes following POM pattern
+- `tests/page-objects/` - Page Object classes following POM pattern
 - `tests/selectors/` - Element selectors (avoid direct use in tests)
 - `tests/api-mocking/` - API mocking utilities and responses
 - `tests/framework/fixtures/` - Test fixtures and data
@@ -122,7 +122,7 @@ await Gestures.tap(loadingButton, {
 
 ```typescript
 import { SmokeE2E } from '../../tags';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp } from '../../tests/flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import WalletView from '../../pages/wallet/WalletView';
