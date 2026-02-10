@@ -444,14 +444,13 @@ _public_envs: &public_envs
   SECURITY_ALERTS_API_URL: 'https://security-alerts.api.cx.metamask.io'
   BRIDGE_USE_DEV_APIS: "false"
   IS_TEST: "false"
-  SEEDLESS_ONBOARDING_ENABLED: "false"
+  SEEDLESS_ONBOARDING_ENABLED: "true"
 
 # Override blocks for test/e2e/exp/dev (merge first so they take precedence)
 _env_overrides_uat: &env_overrides_uat
   PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
   BRIDGE_USE_DEV_APIS: "true"
   IS_TEST: "true"
-  SEEDLESS_ONBOARDING_ENABLED: "true"
 
 _remote_feature_flags: &remote_feature_flags
   perpsPerpTradingEnabled: false
