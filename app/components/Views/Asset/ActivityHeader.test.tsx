@@ -41,17 +41,20 @@ describe('ActivityHeader', () => {
       expectedTxHeader: 'Ethereum activity',
     },
     {
-      description: 'renders activity header with symbol when name is not available',
+      description:
+        'renders activity header with symbol when name is not available',
       assetOverrides: { name: '', symbol: 'ETH' },
       expectedTxHeader: 'ETH activity',
     },
     {
-      description: 'renders default Activity text when both name and symbol are empty',
+      description:
+        'renders default Activity text when both name and symbol are empty',
       assetOverrides: { name: '', symbol: '' },
       expectedTxHeader: 'Activity',
     },
     {
-      description: 'renders default Activity text when both name and symbol are undefined',
+      description:
+        'renders default Activity text when both name and symbol are undefined',
       assetOverrides: { name: undefined, symbol: undefined },
       expectedTxHeader: 'Activity',
     },
@@ -62,14 +65,11 @@ describe('ActivityHeader', () => {
     },
   ];
 
-  it.each(testCases)(
-    '$description',
-    ({ assetOverrides, expectedTxHeader }) => {
-      const asset = createMockAsset(assetOverrides);
+  it.each(testCases)('$description', ({ assetOverrides, expectedTxHeader }) => {
+    const asset = createMockAsset(assetOverrides);
 
-      const { getByText } = render(<ActivityHeader asset={asset} />);
+    const { getByText } = render(<ActivityHeader asset={asset} />);
 
-      expect(getByText(expectedTxHeader)).toBeDefined();
-    },
-  );
+    expect(getByText(expectedTxHeader)).toBeDefined();
+  });
 });
