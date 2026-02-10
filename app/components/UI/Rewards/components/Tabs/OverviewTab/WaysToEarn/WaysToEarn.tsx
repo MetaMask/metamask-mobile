@@ -275,9 +275,7 @@ export const WaysToEarn = () => {
     if (isFirstTimePerpsUser) {
       navigation.navigate(Routes.PERPS.TUTORIAL);
     } else {
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.PERPS_HOME,
-      });
+      navigation.navigate(Routes.PERPS.PERPS_HOME);
     }
   }, [navigation, isFirstTimePerpsUser]);
 
@@ -301,11 +299,8 @@ export const WaysToEarn = () => {
         navigation.navigate(Routes.REWARDS_SETTINGS_VIEW);
         break;
       case WayToEarnType.PREDICT:
-        navigation.navigate(Routes.PREDICT.ROOT, {
-          screen: Routes.PREDICT.MARKET_LIST,
-          params: {
-            entryPoint: PredictEventValues.ENTRY_POINT.REWARDS,
-          },
+        navigation.navigate(Routes.PREDICT.MARKET_LIST, {
+          entryPoint: PredictEventValues.ENTRY_POINT.REWARDS,
         });
         break;
       case WayToEarnType.CARD:

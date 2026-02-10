@@ -12,10 +12,7 @@ export default function handleRedirection(
   switch (paths[0]) {
     case RAMP_ACTIVITY: {
       NavigationService.navigation.navigate(Routes.TRANSACTIONS_VIEW, {
-        screen: Routes.TRANSACTIONS_VIEW,
-        params: {
-          redirectToOrders: true,
-        },
+        redirectToOrders: true,
       });
       break;
     }

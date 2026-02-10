@@ -204,12 +204,9 @@ const AssetDetails = (props: InnerProps) => {
   // Analytics (PERPS_SCREEN_VIEWED) tracked by PerpsMarketDetailsView on mount
   const handlePerpsDiscoveryPress = useCallback(() => {
     if (marketData) {
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_DETAILS,
-        params: {
-          market: marketData,
-          source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
-        },
+      navigation.navigate(Routes.PERPS.MARKET_DETAILS, {
+        market: marketData,
+        source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
       });
     }
   }, [marketData, navigation]);

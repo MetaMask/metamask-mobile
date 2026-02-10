@@ -204,10 +204,7 @@ const AssetOptions = (props: Props) => {
       ...(existingTabId && { existingTabId, newTabUrl: undefined }),
       timestamp: Date.now(),
     };
-    navigation.navigate(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params,
-    });
+    navigation.navigate(Routes.BROWSER.VIEW, params);
     trackEvent(
       createEventBuilder(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED)
         .addProperties({

@@ -319,9 +319,7 @@ class TransactionElement extends PureComponent {
   };
 
   onPressImportWalletTip = () => {
-    this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.IMPORT_WALLET_TIP,
-    });
+    this.props.navigation.navigate(Routes.SHEET.IMPORT_WALLET_TIP);
   };
 
   renderTxTime = () => {

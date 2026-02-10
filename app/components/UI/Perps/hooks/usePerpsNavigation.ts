@@ -84,9 +84,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
   }, [navigation]);
 
   const navigateToBrowser = useCallback(() => {
-    navigation.navigate(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-    });
+    navigation.navigate(Routes.BROWSER.VIEW);
   }, [navigation]);
 
   const navigateToActions = useCallback(() => {

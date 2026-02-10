@@ -81,12 +81,7 @@ describe('usePerpsNavigation', () => {
 
       result.current.navigateToWallet();
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     });
 
     it('navigates to browser view', () => {

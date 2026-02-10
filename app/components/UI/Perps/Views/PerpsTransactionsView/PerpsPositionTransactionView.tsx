@@ -100,12 +100,9 @@ const PerpsPositionTransactionView: React.FC = () => {
     if (!market) {
       return;
     }
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.MARKET_DETAILS,
-      params: {
-        market,
-        source: PERPS_EVENT_VALUE.SOURCE.TRADE_DETAILS,
-      },
+    navigation.navigate(Routes.PERPS.MARKET_DETAILS, {
+      market,
+      source: PERPS_EVENT_VALUE.SOURCE.TRADE_DETAILS,
     });
   };
 

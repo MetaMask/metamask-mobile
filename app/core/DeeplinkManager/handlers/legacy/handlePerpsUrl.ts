@@ -225,9 +225,8 @@ export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
       case 'home':
         // Explicit navigation to PerpsHomeView
         DevLogger.log('[handlePerpsUrl] Navigating to PerpsHomeView');
-        NavigationService.navigation.navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.PERPS_HOME,
-          params: { source: 'deeplink' },
+        NavigationService.navigation.navigate(Routes.PERPS.PERPS_HOME, {
+          source: 'deeplink',
         });
         break;
 
@@ -236,9 +235,8 @@ export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
         DevLogger.log(
           '[handlePerpsUrl] Navigating to PerpsHomeView (backwards compat)',
         );
-        NavigationService.navigation.navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.PERPS_HOME,
-          params: { source: 'deeplink' },
+        NavigationService.navigation.navigate(Routes.PERPS.PERPS_HOME, {
+          source: 'deeplink',
         });
         break;
 

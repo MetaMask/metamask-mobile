@@ -395,12 +395,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     }
     ///: END:ONLY_INCLUDE_IF
 
-    navigation.navigate(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
-    });
+    navigation.navigate(Routes.WALLET_VIEW);
 
     // For EVM networks, switch the network if needed
     if (asset.chainId !== selectedChainId) {
@@ -478,12 +473,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   // Analytics (PERPS_SCREEN_VIEWED) tracked by PerpsMarketDetailsView on mount
   const handlePerpsDiscoveryPress = useCallback(() => {
     if (marketData) {
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_DETAILS,
-        params: {
-          market: marketData,
-          source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
-        },
+      navigation.navigate(Routes.PERPS.MARKET_DETAILS, {
+        market: marketData,
+        source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
       });
     }
   }, [marketData, navigation]);

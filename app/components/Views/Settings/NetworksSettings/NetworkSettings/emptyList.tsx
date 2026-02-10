@@ -30,12 +30,9 @@ const EmptyPopularList = ({ goToCustomNetwork }: Props) => {
   const navigation = useNavigation();
 
   const goToBrowserTab = () => {
-    navigation.navigate('BrowserTabHome', {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: CHAINLIST_URL,
-        timestamp: Date.now(),
-      },
+    navigation.navigate(Routes.BROWSER.VIEW, {
+      newTabUrl: CHAINLIST_URL,
+      timestamp: Date.now(),
     });
   };
 

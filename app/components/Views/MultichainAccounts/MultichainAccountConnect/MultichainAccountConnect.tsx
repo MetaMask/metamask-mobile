@@ -610,12 +610,9 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       setIsLoading(false);
 
       if (url !== null) {
-        navigation.navigate(Routes.BROWSER.HOME, {
-          screen: Routes.BROWSER.VIEW,
-          params: {
-            newTabUrl: url,
-            timestamp: Date.now(),
-          },
+        navigation.navigate(Routes.BROWSER.VIEW, {
+          newTabUrl: url,
+          timestamp: Date.now(),
         });
       }
     },
