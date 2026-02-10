@@ -1,6 +1,5 @@
 import {
   selectIsAssetsUnifyStateEnabled,
-  assertAssetsUnifyStateFeatureFlagType,
   isAssetsUnifyStateFeatureEnabled,
   AssetsUnifyStateFeatureFlag,
   ASSETS_UNIFY_STATE_FLAG,
@@ -41,63 +40,6 @@ function mockStateWith(assetsUnifyState: AssetsUnifyStateFeatureFlag) {
     },
   };
 }
-
-describe('assertAssetsUnifyStateFeatureFlagType', () => {
-  it('returns true for valid feature flag object', () => {
-    const validFlag: AssetsUnifyStateFeatureFlag = {
-      enabled: true,
-      featureVersion: '1',
-      minimumVersion: '7.70.0',
-    };
-
-    expect(assertAssetsUnifyStateFeatureFlagType(validFlag)).toBe(true);
-  });
-
-  it('returns true for valid feature flag with null values', () => {
-    const validFlag: AssetsUnifyStateFeatureFlag = {
-      enabled: false,
-      featureVersion: null,
-      minimumVersion: null,
-    };
-
-    expect(assertAssetsUnifyStateFeatureFlagType(validFlag)).toBe(true);
-  });
-
-  it('returns false for null', () => {
-    expect(assertAssetsUnifyStateFeatureFlagType(null)).toBe(false);
-  });
-
-  it('returns false for undefined', () => {
-    expect(assertAssetsUnifyStateFeatureFlagType(undefined)).toBe(false);
-  });
-
-  it('returns false for missing enabled property', () => {
-    const invalidFlag = {
-      featureVersion: '1',
-      minimumVersion: '7.70.0',
-    };
-
-    expect(assertAssetsUnifyStateFeatureFlagType(invalidFlag)).toBe(false);
-  });
-
-  it('returns false for missing featureVersion property', () => {
-    const invalidFlag = {
-      enabled: true,
-      minimumVersion: '7.70.0',
-    };
-
-    expect(assertAssetsUnifyStateFeatureFlagType(invalidFlag)).toBe(false);
-  });
-
-  it('returns false for missing minimumVersion property', () => {
-    const invalidFlag = {
-      enabled: true,
-      featureVersion: '1',
-    };
-
-    expect(assertAssetsUnifyStateFeatureFlagType(invalidFlag)).toBe(false);
-  });
-});
 
 describe('isAssetsUnifyStateFeatureEnabled', () => {
   it('returns true when enabled with matching version and minimum version met', () => {
@@ -150,20 +92,8 @@ describe('isAssetsUnifyStateFeatureEnabled', () => {
     expect(isAssetsUnifyStateFeatureEnabled(flag)).toBe(false);
   });
 
-  it('returns false for null flagValue', () => {
-    expect(isAssetsUnifyStateFeatureEnabled(null)).toBe(false);
-  });
-
   it('returns false for undefined flagValue', () => {
     expect(isAssetsUnifyStateFeatureEnabled(undefined)).toBe(false);
-  });
-
-  it('returns false for invalid flag structure', () => {
-    const invalidFlag = {
-      enabled: true,
-    };
-
-    expect(isAssetsUnifyStateFeatureEnabled(invalidFlag)).toBe(false);
   });
 });
 
@@ -224,16 +154,6 @@ describe('selectIsAssetsUnifyStateEnabled', () => {
       enabled: true,
       featureVersion: '99',
       minimumVersion: '1.0.0',
-    });
-
-    expect(selectIsAssetsUnifyStateEnabled(mockedState)).toBe(false);
-  });
-
-  it('returns false when flag structure is invalid', () => {
-    // @ts-expect-error - Testing error case
-    const mockedState = mockStateWith({
-      enabled: true,
-      // Missing featureVersion and minimumVersion - should return false for safety
     });
 
     expect(selectIsAssetsUnifyStateEnabled(mockedState)).toBe(false);

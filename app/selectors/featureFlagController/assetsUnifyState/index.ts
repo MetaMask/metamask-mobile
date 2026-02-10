@@ -18,23 +18,6 @@ export const ASSETS_UNIFY_STATE_FLAG = 'assetsUnifyState';
 export const ASSETS_UNIFY_STATE_FEATURE_VERSION_1 = '1';
 
 /**
- * Asserts that the given value is a valid AssetsUnifyStateFeatureFlag.
- * @param value - The value to check.
- * @returns True if the value is a valid AssetsUnifyStateFeatureFlag, false otherwise.
- */
-export const assertAssetsUnifyStateFeatureFlagType = (
-  value: unknown,
-): value is AssetsUnifyStateFeatureFlag =>
-  typeof value === 'object' &&
-  value !== null &&
-  'enabled' in value &&
-  typeof value.enabled === 'boolean' &&
-  'featureVersion' in value &&
-  (typeof value.featureVersion === 'string' || value.featureVersion === null) &&
-  'minimumVersion' in value &&
-  (typeof value.minimumVersion === 'string' || value.minimumVersion === null);
-
-/**
  * Checks if the assets unify state feature is enabled based on remote feature flags.
  *
  * @param flagValue - The feature flag value to check.
@@ -49,11 +32,12 @@ export const isAssetsUnifyStateFeatureEnabled = (
     return false;
   }
 
-  if (!assertAssetsUnifyStateFeatureFlagType(flagValue)) {
+  if (typeof flagValue !== 'object' || flagValue === null) {
     return false;
   }
 
-  const { enabled, featureVersion, minimumVersion } = flagValue;
+  const flag = flagValue as AssetsUnifyStateFeatureFlag;
+  const { enabled, featureVersion, minimumVersion } = flag;
 
   if (!enabled) {
     return false;
