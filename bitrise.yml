@@ -2252,7 +2252,7 @@ workflows:
                 #!/usr/bin/env bash
                 set -euo pipefail
                 mkdir -p ~/.ssh
-                printf '%s\n' "$TAP_AND_PAY_SDK_SSH_KEY" > ~/.ssh/tap_and_pay_key
+                echo "$TAP_AND_PAY_SDK_SSH_KEY" | base64 -d > ~/.ssh/tap_and_pay_key
                 chmod 600 ~/.ssh/tap_and_pay_key
                 ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null
                 eval "$(ssh-agent -s)"
