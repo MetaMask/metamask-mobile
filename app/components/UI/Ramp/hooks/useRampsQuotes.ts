@@ -32,7 +32,7 @@ export interface GetQuotesOptions {
   amount: number;
   walletAddress?: string;
   paymentMethods?: string[];
-  provider?: string;
+  providers?: string[];
   redirectUrl?: string;
   forceRefresh?: boolean;
   ttl?: number;

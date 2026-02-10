@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CaipChainId } from '@metamask/utils';
 import { useWindowDimensions, View, ScrollView } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
@@ -76,6 +76,8 @@ function PaymentSelectionModal() {
     paymentMethodsError,
     selectedPaymentMethod,
     setSelectedPaymentMethod,
+    quotes,
+    quotesLoading,
     getQuotes,
     userRegion,
     selectedToken,
@@ -86,26 +88,22 @@ function PaymentSelectionModal() {
   );
 
   const [activeView, setActiveView] = useState(ViewType.PAYMENT);
-  const [paymentMethodQuotes, setPaymentMethodQuotes] = useState<Record<
-    string,
-    Quote
-  > | null>(null);
-  const [paymentMethodQuotesLoading, setPaymentMethodQuotesLoading] =
-    useState(false);
-  const [erroredPaymentMethodIds, setErroredPaymentMethodIds] = useState<
-    Set<string>
-  >(new Set());
+  
+  const erroredPaymentMethodIds = useMemo(() => {
+    const byPaymentMethod: Record<string, Quote> = {};
+    for (const quote of quotes?.success ?? []) {
+      const pmId = quote.quote?.paymentMethod;
+      if (pmId) byPaymentMethod[pmId] = quote;
+    }
+    const receivedIds = new Set(Object.keys(byPaymentMethod));
+    return new Set(paymentMethods.map((pm) => pm.id).filter((id) => !receivedIds.has(id)));
+  }, [quotes, paymentMethods]);
 
   const translateX = useSharedValue(0);
 
   const canFetchPaymentMethodQuotes =
     activeView === ViewType.PAYMENT &&
-    selectedProvider &&
-    userRegion?.regionCode &&
-    userRegion?.country?.currency &&
-    selectedToken?.assetId &&
     walletAddress &&
-    paymentMethods.length > 0 &&
     amount > 0;
 
   useEffect(() => {
@@ -113,57 +111,16 @@ function PaymentSelectionModal() {
       return;
     }
 
-    const paymentMethodIds = paymentMethods.map((pm) => pm.id);
-    let cancelled = false;
-    setPaymentMethodQuotesLoading(true);
-    setErroredPaymentMethodIds(new Set());
-
     getQuotes({
-      region: userRegion.regionCode,
-      fiat: userRegion.country.currency,
-      assetId: selectedToken.assetId,
       amount,
       walletAddress,
-      paymentMethods: paymentMethodIds,
-      provider: selectedProvider.id,
+      providers: [selectedProvider?.id ?? ''],
     })
-      .then((response) => {
-        if (cancelled) return;
-        const byPaymentMethod: Record<string, Quote> = {};
-        for (const quote of response.success) {
-          const pmId = quote.quote?.paymentMethod;
-          if (pmId) byPaymentMethod[pmId] = quote;
-        }
-        setPaymentMethodQuotes(byPaymentMethod);
-        const receivedIds = new Set(Object.keys(byPaymentMethod));
-        setErroredPaymentMethodIds(
-          new Set(paymentMethodIds.filter((id) => !receivedIds.has(id))),
-        );
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setPaymentMethodQuotes(null);
-          setErroredPaymentMethodIds(new Set());
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setPaymentMethodQuotesLoading(false);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
   }, [
     canFetchPaymentMethodQuotes,
     getQuotes,
     amount,
-    paymentMethods,
     selectedProvider?.id,
-    selectedToken?.assetId,
-    userRegion?.regionCode,
-    userRegion?.country?.currency,
     walletAddress,
   ]);
 
@@ -217,8 +174,8 @@ function PaymentSelectionModal() {
         paymentMethod={paymentMethod}
         onPress={() => handlePaymentMethodPress(paymentMethod)}
         isSelected={selectedPaymentMethod?.id === paymentMethod.id}
-        quote={paymentMethodQuotes?.[paymentMethod.id] ?? null}
-        quoteLoading={paymentMethodQuotesLoading}
+        quote={quotes?.success?.find((quote) => quote.quote?.paymentMethod === paymentMethod.id) ?? null}
+        quoteLoading={quotesLoading}
         quoteError={erroredPaymentMethodIds.has(paymentMethod.id)}
         currency={currency}
         tokenSymbol={tokenSymbol}
@@ -227,8 +184,7 @@ function PaymentSelectionModal() {
     [
       handlePaymentMethodPress,
       selectedPaymentMethod,
-      paymentMethodQuotes,
-      paymentMethodQuotesLoading,
+      quotes,
       erroredPaymentMethodIds,
       currency,
       tokenSymbol,

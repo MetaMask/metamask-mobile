@@ -54,73 +54,34 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
     setSelectedQuote,
     selectedProvider,
     providers,
+    quotes,
+    quotesError,
+    quotesLoading,
   } = useRampsController();
+
+  console.log('RAMP - PROVIDER SELECTION quotes', quotes);
 
   const walletAddress = useRampAccountAddress(
     (selectedToken?.chainId as CaipChainId) ?? null,
   );
 
-  const [successQuotes, setSuccessQuotes] = useState<Quote[] | null>(null);
-  const [quotesLoading, setQuotesLoading] = useState(false);
-  const [quotesError, setQuotesError] = useState<string | null>(null);
-
-  const paymentMethodIds = useMemo(() => {
-    const id = selectedPaymentMethod?.id ?? paymentMethods?.[0]?.id ?? null;
-    return id ? [id] : [];
-  }, [selectedPaymentMethod?.id, paymentMethods]);
-
-  const canFetchQuotes =
-    userRegion?.regionCode &&
-    userRegion?.country?.currency &&
-    selectedToken?.assetId &&
-    walletAddress &&
-    paymentMethodIds.length > 0 &&
-    amount > 0;
-
   useEffect(() => {
-    if (!canFetchQuotes) {
+    console.log('RAMP - PROVIDER SELECTION useEffect', walletAddress);
+    if (!walletAddress) {
       return;
     }
 
-    let cancelled = false;
-    setQuotesError(null);
-    setQuotesLoading(true);
+    console.log('RAMP - PROVIDER SELECTION selectedPaymentMethod?.id', selectedPaymentMethod?.id);
 
     getQuotes({
-      region: userRegion.regionCode,
-      fiat: userRegion.country.currency,
-      assetId: selectedToken.assetId,
       amount,
       walletAddress,
-      paymentMethods: paymentMethodIds,
+      paymentMethods: [selectedPaymentMethod?.id ?? ''],
     })
-      .then((response) => {
-        if (cancelled) return;
-        setSuccessQuotes(response.success ?? []);
-      })
-      .catch((error) => {
-        if (!cancelled) {
-          setSuccessQuotes([]);
-          setQuotesError(error.message);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setQuotesLoading(false);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
   }, [
-    canFetchQuotes,
     getQuotes,
     amount,
-    paymentMethodIds,
-    selectedToken?.assetId,
-    userRegion?.regionCode,
-    userRegion?.country?.currency,
+    selectedPaymentMethod?.id,
     walletAddress,
   ]);
 
@@ -140,10 +101,10 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
     [providers],
   );
 
-  const quotes = useMemo(() => {
-    const raw = successQuotes ?? [];
-    return raw.filter((quote) => providerIds.has(quote.provider));
-  }, [successQuotes, providerIds]);
+  
+  const filteredQuotes = useMemo(() => {
+    return quotes?.success?.filter((quote) => providerIds.has(quote.provider));
+  }, [quotes, providerIds]);
 
   const currency = userRegion?.country?.currency ?? 'USD';
   const symbol = selectedToken?.symbol ?? '';
@@ -198,7 +159,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
     );
   }
 
-  if (quotes.length === 0) {
+  if (filteredQuotes?.length === 0) {
     return (
       <Box twClassName="flex-1 min-h-0">
         <HeaderCompactStandard
@@ -222,7 +183,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
         onBack={onBack}
       />
       <ScrollView style={styles.scrollView}>
-        {quotes.map((quote) => {
+        {filteredQuotes?.map((quote) => {
           const provider = providers.find((p) => p.id === quote.provider);
           const amountOut = quote.quote?.amountOut;
           const cryptoAmount =
