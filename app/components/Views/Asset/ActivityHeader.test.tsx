@@ -49,6 +49,6 @@ describe('ActivityHeader', () => {
 
     const { getByText } = render(<ActivityHeader asset={asset} />);
 
-    expect(getByText(expectedTxHeader)).toBeDefined();
+    expect(getByText(expectedTxHeader)).toBeOnTheScreen();
   });
 });
