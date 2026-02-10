@@ -194,10 +194,6 @@ function autoConfigureE2EBridge(): void {
     registerE2EPerpsDeepLinkHandler();
 
     DevLogger.log('E2E Bridge auto-configured successfully');
-
-    DevLogger.log(
-      '[E2E Perps Bridge - HTTP Polling] E2E Bridge auto-configured successfully',
-    );
     DevLogger.log('Mock state:', {
       accountBalance: mockService.getMockAccountState().availableBalance,
       positionsCount: mockService.getMockPositions().length,

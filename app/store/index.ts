@@ -86,10 +86,14 @@ const createStoreAndPersistor = async () => {
     if (isE2E) {
       // Delay to give the store time to hydrate before first poll
       setTimeout(async () => {
-        const { startE2ECommandPolling } = await import(
-          '../util/test/e2eCommandPolling'
-        );
-        await startE2ECommandPolling();
+        try {
+          const { startE2ECommandPolling } = await import(
+            '../util/test/e2eCommandPolling'
+          );
+          await startE2ECommandPolling();
+        } catch (err) {
+          Logger.error(err as Error, 'Error starting E2E command polling');
+        }
       }, 5000);
     }
   } catch (error) {
