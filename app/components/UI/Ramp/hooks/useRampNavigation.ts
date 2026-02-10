@@ -41,16 +41,32 @@ export const useRampNavigation = () => {
   const { setSelectedToken, tokens: rampsTokens } = useRampsTokens();
 
   /**
-   * Resolves an assetId to the controller's canonical (lowercase) format.
-   * The controller stores assetIds in lowercase, but callers may pass checksummed.
+   * Resolves an assetId to the controller's canonical format.
+   * Handles two mismatches:
+   * - ERC20: API stores lowercase, callers pass checksummed
+   * - Native: parseRampIntent uses 'slip44:.' but API uses 'slip44:{coinType}'
    */
   const resolveControllerAssetId = useCallback(
     (assetId: string): string => {
       const allTokens = rampsTokens?.allTokens ?? [];
       const lower = assetId.toLowerCase();
-      const match = allTokens.find(
-        (tok) => tok.assetId?.toLowerCase() === lower,
-      );
+
+      // Try exact case-insensitive match first (handles ERC20 casing)
+      const match =
+        allTokens.find((tok) => tok.assetId?.toLowerCase() === lower) ??
+        // For native tokens: 'slip44:.' won't match 'slip44:60', so match
+        // by chain + slip44 namespace
+        (assetId.includes('/slip44:')
+          ? allTokens.find((tok) => {
+              if (!tok.assetId) return false;
+              const [chain] = assetId.split('/');
+              return (
+                tok.assetId.startsWith(`${chain}/slip44:`) &&
+                tok.chainId?.toLowerCase() === chain?.toLowerCase()
+              );
+            })
+          : undefined);
+
       return match?.assetId ?? assetId;
     },
     [rampsTokens],

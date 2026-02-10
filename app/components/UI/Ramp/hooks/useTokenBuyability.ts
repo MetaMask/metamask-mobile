@@ -52,17 +52,34 @@ export const useTokenBuyability = (token: TokenI): UseTokenBuyabilityResult => {
 
   const isBuyable = useMemo(() => {
     if (isV2Enabled) {
-      // V2: case-insensitive match against controller tokens
+      // V2: match against controller tokens
       if (!v2Tokens) return false;
 
-      const assetId = buildRampAssetId(token);
-      if (!assetId) return false;
+      const chainIdInCaip = isCaipChainId(token.chainId)
+        ? token.chainId
+        : toEvmCaipChainId(token.chainId as Hex);
 
-      // Controller stores assetIds in lowercase; parseRampIntent checksums them
-      const lowerAssetId = assetId.toLowerCase();
-      const matchingToken = v2Tokens.find(
-        (tok) => tok.assetId?.toLowerCase() === lowerAssetId,
-      );
+      let matchingToken;
+
+      if (token.isNative) {
+        // Native tokens: parseRampIntent uses 'slip44:.' placeholder but
+        // the API returns the actual coin type (e.g. 'slip44:60').
+        // Match by chainId + slip44 namespace instead of exact assetId.
+        matchingToken = v2Tokens.find((tok) => {
+          if (tok.chainId !== chainIdInCaip || !tok.assetId) return false;
+          return tok.assetId.includes('/slip44:');
+        });
+      } else {
+        // ERC20 tokens: case-insensitive match (API returns lowercase,
+        // parseRampIntent returns checksummed)
+        const assetId = buildRampAssetId(token);
+        if (!assetId) return false;
+        const lowerAssetId = assetId.toLowerCase();
+        matchingToken = v2Tokens.find(
+          (tok) => tok.assetId?.toLowerCase() === lowerAssetId,
+        );
+      }
+
       return (matchingToken as RampsToken | undefined)?.tokenSupported ?? false;
     }
 
