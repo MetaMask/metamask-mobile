@@ -48,7 +48,6 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
   const {
     userRegion,
     selectedToken,
-    paymentMethods,
     selectedPaymentMethod,
     getQuotes,
     setSelectedQuote,
@@ -59,29 +58,28 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
     quotesLoading,
   } = useRampsController();
 
-  console.log('RAMP - PROVIDER SELECTION quotes', quotes);
-
   const walletAddress = useRampAccountAddress(
     (selectedToken?.chainId as CaipChainId) ?? null,
   );
 
   useEffect(() => {
-    console.log('RAMP - PROVIDER SELECTION useEffect', walletAddress);
-    if (!walletAddress) {
+    const providerIds = providers.map((p) => p.id);
+    if (!walletAddress || !selectedToken?.assetId) {
       return;
     }
 
-    console.log('RAMP - PROVIDER SELECTION selectedPaymentMethod?.id', selectedPaymentMethod?.id);
-
     getQuotes({
+      assetId: selectedToken.assetId, 
       amount,
       walletAddress,
       paymentMethods: [selectedPaymentMethod?.id ?? ''],
+      providers: providerIds,
     })
   }, [
     getQuotes,
     amount,
     selectedPaymentMethod?.id,
+    selectedToken?.assetId,
     walletAddress,
   ]);
 

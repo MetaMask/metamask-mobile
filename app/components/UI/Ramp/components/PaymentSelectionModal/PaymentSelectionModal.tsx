@@ -82,39 +82,53 @@ function PaymentSelectionModal() {
     userRegion,
     selectedToken,
   } = useRampsController();
+
+
+  console.log('RAMP - PAYMENT SELECTION MODAL quotesLoading', quotesLoading);
   const amount = routeAmount ?? DEFAULT_QUOTE_AMOUNT;
   const walletAddress = useRampAccountAddress(
     (selectedToken?.chainId as CaipChainId) ?? null,
   );
 
   const [activeView, setActiveView] = useState(ViewType.PAYMENT);
+
+  const paymentMethodIds = useMemo(() => paymentMethods.map((pm) => pm.id), [paymentMethods]);
+
+  console.log('RAMP - PAYMENT SELECTION MODAL paymentMethodIds', paymentMethodIds);
   
-  const erroredPaymentMethodIds = useMemo(() => {
+  const erroredPaymentMethodIds = useMemo<string[]>(() => {
     const byPaymentMethod: Record<string, Quote> = {};
     for (const quote of quotes?.success ?? []) {
       const pmId = quote.quote?.paymentMethod;
       if (pmId) byPaymentMethod[pmId] = quote;
     }
     const receivedIds = new Set(Object.keys(byPaymentMethod));
-    return new Set(paymentMethods.map((pm) => pm.id).filter((id) => !receivedIds.has(id)));
-  }, [quotes, paymentMethods]);
+    console.log('RAMP - PAYMENT SELECTION MODAL receivedIds', receivedIds);
+    console.log('RAMP - PAYMENT SELECTION MODAL byPaymentMethod', byPaymentMethod);
+    return paymentMethodIds?.filter((id) => !receivedIds.has(id)) ?? [];
+  }, [quotes, paymentMethodIds]);
+  console.log('RAMP - PAYMENT SELECTION MODAL erroredPaymentMethodIds', erroredPaymentMethodIds);
 
   const translateX = useSharedValue(0);
 
   const canFetchPaymentMethodQuotes =
     activeView === ViewType.PAYMENT &&
     walletAddress &&
-    amount > 0;
+    amount > 0 &&
+    Boolean(selectedToken?.assetId);
 
   useEffect(() => {
     if (!canFetchPaymentMethodQuotes) {
       return;
     }
 
+    // get quotes for all payment methods for the selected provider
     getQuotes({
       amount,
       walletAddress,
+      assetId: selectedToken?.assetId ?? '',
       providers: [selectedProvider?.id ?? ''],
+      paymentMethods: paymentMethodIds,
     })
   }, [
     canFetchPaymentMethodQuotes,
@@ -122,6 +136,7 @@ function PaymentSelectionModal() {
     amount,
     selectedProvider?.id,
     walletAddress,
+    paymentMethods,
   ]);
 
   useEffect(() => {
@@ -142,8 +157,11 @@ function PaymentSelectionModal() {
   }));
 
   const handleChangeProviderPress = useCallback(() => {
+    if(quotesLoading) {
+      return;
+    }
     setActiveView(ViewType.PROVIDER);
-  }, []);
+  }, [quotesLoading]);
 
   const handleProviderBack = useCallback(() => {
     setActiveView(ViewType.PAYMENT);
@@ -176,7 +194,7 @@ function PaymentSelectionModal() {
         isSelected={selectedPaymentMethod?.id === paymentMethod.id}
         quote={quotes?.success?.find((quote) => quote.quote?.paymentMethod === paymentMethod.id) ?? null}
         quoteLoading={quotesLoading}
-        quoteError={erroredPaymentMethodIds.has(paymentMethod.id)}
+        quoteError={erroredPaymentMethodIds.includes(paymentMethod.id)}
         currency={currency}
         tokenSymbol={tokenSymbol}
       />
