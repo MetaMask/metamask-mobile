@@ -14,11 +14,7 @@ import { storePrivacyPolicyClickedOrClosed } from '../actions/legalNotices';
 import { Authentication } from '../core';
 import AUTHENTICATION_TYPE from '../constants/userProperties';
 import { importNewSecretRecoveryPhrase } from '../actions/multiSrp';
-import importAdditionalAccounts from './importAdditionalAccounts';
 import { store } from '../store';
-import Engine from '../core/Engine';
-import ExtendedKeyringTypes from '../constants/keyringTypes';
-import { isMultichainAccountsState2Enabled } from '../multichain-accounts/remote-feature-flag';
 import { setLockTime } from '../actions/settings';
 import AppConstants from '../core/AppConstants';
 
@@ -75,23 +71,6 @@ async function applyVaultInitialization() {
           'Failed to import SRP, skipping:',
           error instanceof Error ? error.message : String(error),
         );
-      }
-    }
-    const KeyringController = Engine.context.KeyringController;
-    const allKeyrings = KeyringController.getKeyringsByType(
-      ExtendedKeyringTypes.hd,
-    );
-
-    // We're not running EVM discovery on its own if state 2 is enabled. The discovery
-    // will be run on every account providers (EVM included) prior to that point.
-    // See: Authentication.ts
-    if (!isMultichainAccountsState2Enabled()) {
-      for (
-        let keyringIndex = 0;
-        keyringIndex < allKeyrings.length;
-        keyringIndex++
-      ) {
-        await importAdditionalAccounts(9999, keyringIndex);
       }
     }
 
