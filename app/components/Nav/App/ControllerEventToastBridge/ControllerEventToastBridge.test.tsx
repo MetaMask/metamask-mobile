@@ -107,6 +107,39 @@ describe('ControllerEventToastBridge', () => {
     expect(handler).toHaveBeenCalledWith(payload, mockShowToast);
   });
 
+  it('passes noop showToast when toast ref is unavailable', () => {
+    const eventHandlers = new Map<string, (payload: unknown) => void>();
+    mockSubscribe.mockImplementation(
+      (eventName: string, callback: (payload: unknown) => void) => {
+        eventHandlers.set(eventName, callback);
+      },
+    );
+
+    const handler = jest.fn();
+    const payload = { id: 'tx-2' };
+    const registrations: ToastRegistration[] = [
+      {
+        eventName: 'PredictController:transactionStatusChanged',
+        handler,
+      },
+    ];
+
+    const nullToastRef = { current: null };
+
+    render(
+      <ToastContext.Provider value={{ toastRef: nullToastRef }}>
+        <ControllerEventToastBridge registrations={registrations} />
+      </ToastContext.Provider>,
+    );
+
+    eventHandlers.get('PredictController:transactionStatusChanged')?.(payload);
+
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(handler.mock.calls[0][0]).toEqual(payload);
+    expect(typeof handler.mock.calls[0][1]).toBe('function');
+    expect(() => handler.mock.calls[0][1]()).not.toThrow();
+  });
+
   it('subscribes to all handlers when multiple registrations are provided', () => {
     const registrations: ToastRegistration[] = [
       { eventName: 'Controller:eventA', handler: jest.fn() },
