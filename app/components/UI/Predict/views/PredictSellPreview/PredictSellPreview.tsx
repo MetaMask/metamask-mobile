@@ -13,13 +13,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { ActivityIndicator, Image, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PredictCashOutSelectorsIDs } from '../../Predict.testIds';
@@ -51,7 +45,7 @@ import {
   formatPrice,
 } from '../../utils/format';
 import PredictMarketBusySheet from '../../components/PredictMarketBusySheet';
-import { SLIPPAGE_BEST_AVAILABLE } from '../../providers/polymarket/constants';
+import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import styleSheet from './PredictSellPreview.styles';
 
 const PredictSellPreview = () => {
@@ -109,11 +103,6 @@ const PredictSellPreview = () => {
     resetOrderNotFilled,
   } = usePredictPlaceOrder();
 
-  const [isRetrying, setIsRetrying] = useState(false);
-  const [retrySheetVariant, setRetrySheetVariant] =
-    useState<PredictMarketBusySheetVariant>('busy');
-  const retrySheetRef = useRef<PredictMarketBusySheetRef>(null);
-
   const {
     preview,
     error: previewError,
@@ -127,6 +116,21 @@ const PredictSellPreview = () => {
     size: position.amount,
     positionId: position.id,
     autoRefreshTimeout: 1000,
+  });
+
+  const {
+    retrySheetRef,
+    retrySheetVariant,
+    isRetrying,
+    handleRetryWithBestPrice,
+    handleRetryDismiss,
+  } = usePredictOrderRetry({
+    preview,
+    placeOrder,
+    providerId: position.providerId,
+    analyticsProperties,
+    isOrderNotFilled,
+    resetOrderNotFilled,
   });
 
   // Track screen load performance (position data + preview)
@@ -186,35 +190,6 @@ const PredictSellPreview = () => {
     }
     return cashPnl > 0 ? '+' : '-';
   }, [cashPnl]);
-
-  const handleRetryWithBestPrice = useCallback(async () => {
-    if (!preview) return;
-    setIsRetrying(true);
-    try {
-      const retryPreview = { ...preview, slippage: SLIPPAGE_BEST_AVAILABLE };
-      await placeOrder({
-        providerId: position.providerId,
-        analyticsProperties,
-        preview: retryPreview,
-      });
-    } catch {
-      setRetrySheetVariant('failed');
-      retrySheetRef.current?.onOpenBottomSheet();
-    } finally {
-      setIsRetrying(false);
-    }
-  }, [preview, placeOrder, position.providerId, analyticsProperties]);
-
-  const handleMarketBusyDismiss = useCallback(() => {
-    resetOrderNotFilled();
-  }, [resetOrderNotFilled]);
-
-  useEffect(() => {
-    if (isOrderNotFilled) {
-      setRetrySheetVariant('busy');
-      retrySheetRef.current?.onOpenBottomSheet();
-    }
-  }, [isOrderNotFilled]);
 
   const onCashOut = useCallback(async () => {
     if (!preview) return;
@@ -406,7 +381,7 @@ const PredictSellPreview = () => {
         sharePrice={preview?.sharePrice ?? position?.price ?? 0}
         side={Side.SELL}
         onRetry={handleRetryWithBestPrice}
-        onDismiss={handleMarketBusyDismiss}
+        onDismiss={handleRetryDismiss}
         isRetrying={isRetrying}
       />
     </SafeAreaView>

@@ -52,10 +52,7 @@ import { formatCents, formatPrice } from '../../utils/format';
 import PredictAmountDisplay from '../../components/PredictAmountDisplay';
 import PredictFeeSummary from '../../components/PredictFeeSummary';
 import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
-import PredictMarketBusySheet, {
-  PredictMarketBusySheetRef,
-  PredictMarketBusySheetVariant,
-} from '../../components/PredictMarketBusySheet';
+import PredictMarketBusySheet from '../../components/PredictMarketBusySheet';
 import PredictKeypad, {
   PredictKeypadHandles,
 } from '../../components/PredictKeypad';
@@ -69,7 +66,7 @@ import { usePredictRewards } from '../../hooks/usePredictRewards';
 import { TraceName } from '../../../../../util/trace';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
-import { SLIPPAGE_BEST_AVAILABLE } from '../../providers/polymarket/constants';
+import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 
 export const MINIMUM_BET = 1; // $1 minimum bet
 
@@ -135,10 +132,6 @@ const PredictBuyPreview = () => {
   const [isInputFocused, setIsInputFocused] = useState(true);
   const [isUserInputChange, setIsUserInputChange] = useState(false);
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
-  const [isRetrying, setIsRetrying] = useState(false);
-  const [retrySheetVariant, setRetrySheetVariant] =
-    useState<PredictMarketBusySheetVariant>('busy');
-  const retrySheetRef = useRef<PredictMarketBusySheetRef>(null);
   const previousValueRef = useRef(0);
 
   const {
@@ -153,6 +146,21 @@ const PredictBuyPreview = () => {
     side: Side.BUY,
     size: currentValue,
     autoRefreshTimeout: 1000,
+  });
+
+  const {
+    retrySheetRef,
+    retrySheetVariant,
+    isRetrying,
+    handleRetryWithBestPrice,
+    handleRetryDismiss,
+  } = usePredictOrderRetry({
+    preview,
+    placeOrder,
+    providerId: outcome.providerId,
+    analyticsProperties,
+    isOrderNotFilled,
+    resetOrderNotFilled,
   });
 
   // Track screen load performance (balance + initial preview)
@@ -275,35 +283,6 @@ const PredictBuyPreview = () => {
   const handleFeeBreakdownClose = useCallback(() => {
     setIsFeeBreakdownVisible(false);
   }, []);
-
-  const handleRetryWithBestPrice = useCallback(async () => {
-    if (!preview) return;
-    setIsRetrying(true);
-    try {
-      const retryPreview = { ...preview, slippage: SLIPPAGE_BEST_AVAILABLE };
-      await placeOrder({
-        providerId: outcome.providerId,
-        analyticsProperties,
-        preview: retryPreview,
-      });
-    } catch {
-      setRetrySheetVariant('failed');
-      retrySheetRef.current?.onOpenBottomSheet();
-    } finally {
-      setIsRetrying(false);
-    }
-  }, [preview, placeOrder, outcome.providerId, analyticsProperties]);
-
-  const handleMarketBusyDismiss = useCallback(() => {
-    resetOrderNotFilled();
-  }, [resetOrderNotFilled]);
-
-  useEffect(() => {
-    if (isOrderNotFilled) {
-      setRetrySheetVariant('busy');
-      retrySheetRef.current?.onOpenBottomSheet();
-    }
-  }, [isOrderNotFilled]);
 
   useEffect(() => {
     if (isFeeBreakdownVisible) {
@@ -604,7 +583,7 @@ const PredictBuyPreview = () => {
         sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
         side={Side.BUY}
         onRetry={handleRetryWithBestPrice}
-        onDismiss={handleMarketBusyDismiss}
+        onDismiss={handleRetryDismiss}
         isRetrying={isRetrying}
       />
     </SafeAreaView>
