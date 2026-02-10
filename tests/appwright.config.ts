@@ -20,7 +20,7 @@ export default defineConfig({
   projects: [
     {
       name: 'android',
-      testMatch: '**/tests/performance/**/*.spec.js',
+      testMatch: '**/performance/**/*.spec.js',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -34,7 +34,7 @@ export default defineConfig({
     },
     {
       name: 'ios',
-      testMatch: '**/tests/performance/**/*.spec.js',
+      testMatch: '**/performance/**/*.spec.js',
       use: {
         platform: Platform.IOS,
         device: {
@@ -47,7 +47,7 @@ export default defineConfig({
     },
     {
       name: 'browserstack-android',
-      testMatch: '**/tests/performance/login/**/*.spec.js',
+      testMatch: '**/performance/login/**/*.spec.js',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -61,7 +61,7 @@ export default defineConfig({
     },
     {
       name: 'browserstack-ios',
-      testMatch: '**/tests/performance/login/**/*.spec.js',
+      testMatch: '**/performance/login/**/*.spec.js',
       use: {
         platform: Platform.IOS,
         device: {
@@ -75,7 +75,7 @@ export default defineConfig({
     },
     {
       name: 'android-onboarding',
-      testMatch: '**/tests/performance/onboarding/**/*.spec.js',
+      testMatch: '**/performance/onboarding/**/*.spec.js',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -89,7 +89,7 @@ export default defineConfig({
     },
     {
       name: 'ios-onboarding',
-      testMatch: '**/tests/performance/onboarding/**/*.spec.js',
+      testMatch: '**/performance/onboarding/**/*.spec.js',
       use: {
         platform: Platform.IOS,
         device: {
@@ -103,7 +103,7 @@ export default defineConfig({
     },
     {
       name: 'mm-connect-ios-browserstack',
-      testMatch: '**/tests/mm-connect/**/*.spec.js',
+      testMatch: '**/performance/mm-connect/**/*.spec.js',
       use: {
         platform: Platform.IOS,
         device: {
@@ -117,7 +117,7 @@ export default defineConfig({
     },
     {
       name: 'mm-connect-ios-local',
-      testMatch: '**/tests/mm-connect/**/*.spec.js',
+      testMatch: '**/performance/mm-connect/**/*.spec.js',
       use: {
         platform: Platform.IOS,
         device: {
@@ -130,7 +130,7 @@ export default defineConfig({
     },
     {
       name: 'mm-connect-android-browserstack',
-      testMatch: '**/tests/mm-connect/**/*.spec.js',
+      testMatch: '**/performance/mm-connect/**/*.spec.js',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -144,7 +144,7 @@ export default defineConfig({
     },
     {
       name: 'mm-connect-android-local',
-      testMatch: '**/tests/mm-connect/**/*.spec.js',
+      testMatch: '**/performance/mm-connect/**/*.spec.js',
       use: {
         platform: Platform.ANDROID,
         device: {
