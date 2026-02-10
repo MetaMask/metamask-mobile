@@ -9,7 +9,7 @@ export const POLYMARKET_TERMS_URL = 'https://polymarket.com/tos';
  */
 export const SLIPPAGE_BUY = 0.03; // 3%
 export const SLIPPAGE_SELL = 0.05; // 5%
-// Safe: placeOrder floors BUY at maxAmountSpent + tickSize, preventing catastrophic fills
+// BUY is floored at maxAmountSpent + tickSize. SELL has no floor — user accepts up to 50% less USDC.
 export const SLIPPAGE_BEST_AVAILABLE = 0.5; // 50%
 
 export const ORDER_RATE_LIMIT_MS = 5000;

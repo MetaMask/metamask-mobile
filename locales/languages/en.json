@@ -2244,8 +2244,9 @@
       "market_busy_body_sell": "The market is moving fast, so we couldn't sell at {{price}}. Try again at the best available price?",
       "order_failed_title": "Order failed",
       "order_failed_body": "There wasn't enough liquidity at this price. Want to try again?",
-      "try_again_best_price": "Try again at best price",
-      "try_again": "Try again"
+      "try_again": "Try again",
+      "yes_buy": "Yes, buy",
+      "yes_sell": "Yes, sell"
     },
     "withdraw": {
       "withdrawing": "Withdrawal in progress",

@@ -44,7 +44,7 @@ import {
   formatPositionSize,
   formatPrice,
 } from '../../utils/format';
-import PredictMarketBusySheet from '../../components/PredictMarketBusySheet';
+import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import styleSheet from './PredictSellPreview.styles';
 
@@ -123,7 +123,7 @@ const PredictSellPreview = () => {
     retrySheetVariant,
     isRetrying,
     handleRetryWithBestPrice,
-    handleRetryDismiss,
+    resetOrderNotFilled: handleRetryDismiss,
   } = usePredictOrderRetry({
     preview,
     placeOrder,
@@ -375,7 +375,7 @@ const PredictSellPreview = () => {
           </View>
         </View>
       </View>
-      <PredictMarketBusySheet
+      <PredictOrderRetrySheet
         ref={retrySheetRef}
         variant={retrySheetVariant}
         sharePrice={preview?.sharePrice ?? position?.price ?? 0}

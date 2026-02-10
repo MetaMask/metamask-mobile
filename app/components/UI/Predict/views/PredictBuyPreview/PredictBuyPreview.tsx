@@ -52,7 +52,7 @@ import { formatCents, formatPrice } from '../../utils/format';
 import PredictAmountDisplay from '../../components/PredictAmountDisplay';
 import PredictFeeSummary from '../../components/PredictFeeSummary';
 import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
-import PredictMarketBusySheet from '../../components/PredictMarketBusySheet';
+import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
 import PredictKeypad, {
   PredictKeypadHandles,
 } from '../../components/PredictKeypad';
@@ -153,7 +153,7 @@ const PredictBuyPreview = () => {
     retrySheetVariant,
     isRetrying,
     handleRetryWithBestPrice,
-    handleRetryDismiss,
+    resetOrderNotFilled: handleRetryDismiss,
   } = usePredictOrderRetry({
     preview,
     placeOrder,
@@ -577,7 +577,7 @@ const PredictBuyPreview = () => {
           onClose={handleFeeBreakdownClose}
         />
       )}
-      <PredictMarketBusySheet
+      <PredictOrderRetrySheet
         ref={retrySheetRef}
         variant={retrySheetVariant}
         sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}

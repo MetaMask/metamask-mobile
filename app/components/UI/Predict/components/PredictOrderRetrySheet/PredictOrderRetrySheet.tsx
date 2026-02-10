@@ -18,18 +18,18 @@ import { ButtonVariants } from '../../../../../component-library/components/Butt
 import { strings } from '../../../../../../locales/i18n';
 import { formatCents } from '../../utils/format';
 import { Side } from '../../types';
-import { PredictMarketBusySheetSelectorsIDs } from '../../Predict.testIds';
+import { PredictOrderRetrySheetSelectorsIDs } from '../../Predict.testIds';
 import {
   usePredictBottomSheet,
   type PredictBottomSheetRef,
 } from '../../hooks/usePredictBottomSheet';
 
-export type PredictMarketBusySheetRef = PredictBottomSheetRef;
+export type PredictOrderRetrySheetRef = PredictBottomSheetRef;
 
-export type PredictMarketBusySheetVariant = 'busy' | 'failed';
+export type PredictOrderRetrySheetVariant = 'busy' | 'failed';
 
-interface PredictMarketBusySheetProps {
-  variant: PredictMarketBusySheetVariant;
+interface PredictOrderRetrySheetProps {
+  variant: PredictOrderRetrySheetVariant;
   sharePrice: number;
   side: Side;
   onRetry: () => void;
@@ -37,9 +37,9 @@ interface PredictMarketBusySheetProps {
   isRetrying?: boolean;
 }
 
-const PredictMarketBusySheet = forwardRef<
-  PredictMarketBusySheetRef,
-  PredictMarketBusySheetProps
+const PredictOrderRetrySheet = forwardRef<
+  PredictOrderRetrySheetRef,
+  PredictOrderRetrySheetProps
 >(
   (
     { variant, sharePrice, side, onRetry, onDismiss, isRetrying = false },
@@ -81,7 +81,11 @@ const PredictMarketBusySheet = forwardRef<
       : strings('predict.order.order_failed_body');
 
     const buttonLabel = isBusy
-      ? strings('predict.order.try_again_best_price')
+      ? strings(
+          side === Side.BUY
+            ? 'predict.order.yes_buy'
+            : 'predict.order.yes_sell',
+        )
       : strings('predict.order.try_again');
 
     return (
@@ -93,7 +97,7 @@ const PredictMarketBusySheet = forwardRef<
       >
         <BottomSheetHeader onClose={closeSheet} style={tw.style('px-6 py-4')} />
         <Box
-          testID={PredictMarketBusySheetSelectorsIDs.CONTAINER}
+          testID={PredictOrderRetrySheetSelectorsIDs.CONTAINER}
           alignItems={BoxAlignItems.Center}
           twClassName="px-6 pb-8 gap-4"
         >
@@ -139,6 +143,6 @@ const PredictMarketBusySheet = forwardRef<
   },
 );
 
-PredictMarketBusySheet.displayName = 'PredictMarketBusySheet';
+PredictOrderRetrySheet.displayName = 'PredictOrderRetrySheet';
 
-export default PredictMarketBusySheet;
+export default PredictOrderRetrySheet;
