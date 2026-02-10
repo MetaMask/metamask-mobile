@@ -63,7 +63,7 @@ app/components/UI/Earn/selectors/featureFlags/
 
 ### Remote Feature Flags Architecture
 
-**Pattern:** Single anchor with production defaults, override in dev/exp builds (same as `_servers`).
+**Pattern:** Single anchor with production defaults, override in dev/exp builds (same as `_public_envs`).
 
 ```yaml
 # builds.yml

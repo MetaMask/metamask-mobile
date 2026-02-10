@@ -20,8 +20,8 @@
 # YAML Anchors (reusable config blocks)
 # =============================================================================
 
-# Shared env (non-secret): servers + build flags. Production defaults; test/e2e/exp/dev builds override below.
-# Each build merges <<: *public_envs and overrides only what differs (e.g. UAT server URLs, IS_TEST, SEEDLESS_ONBOARDING_ENABLED).
+# Shared env (non-secret): servers + build flags. Production defaults; test/e2e/exp/dev use override anchors below.
+# Prod builds: <<: *public_envs. Test/e2e/exp/dev: <<: [*env_overrides_uat or *env_overrides_exp or *env_overrides_dev, *public_envs] so overrides take precedence.
 _public_envs: &public_envs
   # Servers (production)
   PORTFOLIO_API_URL: "https://portfolio.api.cx.metamask.io"
@@ -37,7 +37,7 @@ _public_envs: &public_envs
   IS_TEST: "false"
   SEEDLESS_ONBOARDING_ENABLED: "false"
 
-# Test/E2E overrides (merge after public_envs; used by main-test, main-e2e, flask-test, flask-e2e)
+# Test/E2E overrides (merge first so they override public_envs; used by main-test, main-e2e, flask-test, flask-e2e)
 _env_overrides_uat: &env_overrides_uat
   PORTFOLIO_API_URL: "https://portfolio.dev-api.cx.metamask.io"
   REWARDS_API_URL: "https://rewards.uat-api.cx.metamask.io"

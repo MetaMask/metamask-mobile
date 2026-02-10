@@ -158,10 +158,11 @@ remote_feature_flags:        →     REMOTE_FEATURE_FLAG_DEFAULTS={"perpsPerpTra
   earnPooledStakingEnabled: true
 ```
 
-**Server URL Strategy:**
+**Env strategy (servers + build flags):**
 
-- `_servers` anchor: Production URLs as defaults
-- Test/e2e/exp/dev builds override with UAT/dev URLs
+- `_public_envs` anchor: Production server URLs and build flags as defaults
+- `_env_overrides_uat`, `_env_overrides_exp`, `_env_overrides_dev`: Override blocks for test/e2e/exp/dev (UAT URLs, IS_TEST, SEEDLESS_ONBOARDING_ENABLED, etc.)
+- Test/e2e/exp/dev builds merge overrides first then `*public_envs` so overrides take precedence (js-yaml merge order)
 - GitHub Environment determines actual secret values (same secret names, different values per environment)
 
 ---
@@ -313,7 +314,7 @@ export RAMPS_ENVIRONMENT="staging"
 
 ### Pattern: Single Anchor with Overrides
 
-Following the same pattern as `_servers` and `_secrets`:
+Following the same pattern as `_public_envs` and `_secrets`:
 
 ```yaml
 # Single anchor with production (conservative) defaults
@@ -437,41 +438,60 @@ Builds that produce signed device binaries (not simulator/debug) use AWS Secrets
 `builds.yml` uses YAML anchors to avoid repetition. The pattern is: **single anchor with production defaults, override in specific builds as needed**.
 
 ```yaml
-# Define anchors with production (conservative) defaults
-_servers: &servers
+# Shared env: servers + build flags (production defaults)
+_public_envs: &public_envs
   PORTFOLIO_API_URL: 'https://portfolio.api.cx.metamask.io'
   SECURITY_ALERTS_API_URL: 'https://security-alerts.api.cx.metamask.io'
+  BRIDGE_USE_DEV_APIS: "false"
+  IS_TEST: "false"
+  SEEDLESS_ONBOARDING_ENABLED: "false"
+
+# Override blocks for test/e2e/exp/dev (merge first so they take precedence)
+_env_overrides_uat: &env_overrides_uat
+  PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
+  BRIDGE_USE_DEV_APIS: "true"
+  IS_TEST: "true"
+  SEEDLESS_ONBOARDING_ENABLED: "true"
 
 _remote_feature_flags: &remote_feature_flags
   perpsPerpTradingEnabled: false
   earnPooledStakingEnabled: true
   earnMusdConversionFlowEnabled: false
 
-# Reuse via aliases, override as needed
+# Reuse via aliases; prod uses public_envs only, test/dev merge overrides + public_envs
 builds:
   main-prod:
     env:
-      <<: *servers
-    remote_feature_flags: *remote_feature_flags # Use defaults directly
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: "production"
+      METAMASK_BUILD_TYPE: "main"
+    remote_feature_flags: *remote_feature_flags
+
+  main-test:
+    env:
+      <<: [*env_overrides_uat, *public_envs]
+      METAMASK_ENVIRONMENT: "test"
+      METAMASK_BUILD_TYPE: "main"
+    remote_feature_flags: *remote_feature_flags
 
   main-dev:
     env:
-      <<: *servers
-      PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io' # Override URL
+      <<: [*env_overrides_dev, *public_envs]
+      METAMASK_ENVIRONMENT: "dev"
+      METAMASK_BUILD_TYPE: "main"
     remote_feature_flags:
       <<: *remote_feature_flags
-      # Override specific flags for dev testing
       perpsPerpTradingEnabled: true
       earnMusdConversionFlowEnabled: true
 ```
 
-**Key:** Anchors are resolved at YAML parse time, not runtime. No magic inheritance logic needed.
+**Key:** Anchors are resolved at YAML parse time. For env, overrides are merged first so they take precedence over `_public_envs` (js-yaml merge order).
 
-**Pattern Benefits:**
+**Pattern benefits:**
 
-- Single source of truth for defaults
-- Explicit overrides show exactly what differs from production
-- Adding a new flag only requires updating one anchor
+- Single source of truth for defaults (`_public_envs`, `_remote_feature_flags`)
+- Override anchors (`_env_overrides_uat`, `_env_overrides_exp`, `_env_overrides_dev`) avoid repeating the same env block in multiple builds
+- Adding a new flag or env var only requires updating the relevant anchor
 
 ---
 
