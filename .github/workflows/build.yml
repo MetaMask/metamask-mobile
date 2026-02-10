@@ -43,6 +43,7 @@ jobs:
     outputs:
       github_environment: ${{ steps.config.outputs.github_environment }}
       secrets_json: ${{ steps.config.outputs.secrets_json }}
+      tap_and_pay_sdk_repo_ssh: ${{ steps.config.outputs.tap_and_pay_sdk_repo_ssh }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -61,6 +62,7 @@ jobs:
           const build = config.builds['${{ inputs.build_name }}'];
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'github_environment=' + build.github_environment + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'secrets_json=' + JSON.stringify(build.secrets || {}) + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'tap_and_pay_sdk_repo_ssh=' + (build.env.TAP_AND_PAY_SDK_REPO_SSH || '') + '\n');
           "
 
   # Build
@@ -91,11 +93,13 @@ jobs:
         if: matrix.platform == 'android'
         run: |
           echo "📦 Cloning TapAndPay SDK into android/libs/..."
-          git clone --depth 1 git@github.com:MetaMask/tap-and-pay-sdk.git /tmp/tap-and-pay-sdk
+          git clone --depth 1 "$TAP_AND_PAY_SDK_REPO_SSH" /tmp/tap-and-pay-sdk
           mkdir -p android/libs
           cp -r /tmp/tap-and-pay-sdk/* android/libs/
           rm -rf /tmp/tap-and-pay-sdk
           echo "✅ TapAndPay SDK installed to android/libs/"
+        env:
+          TAP_AND_PAY_SDK_REPO_SSH: ${{ needs.prepare.outputs.tap_and_pay_sdk_repo_ssh }}
 
       - name: Apply build config
         run: |

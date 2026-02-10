@@ -27,6 +27,7 @@ _servers: &servers
   REWARDS_API_URL: 'https://rewards.api.cx.metamask.io'
   BAANX_API_URL: 'https://api.baanx.com'
   RAMPS_ENVIRONMENT: 'production'
+  TAP_AND_PAY_SDK_REPO_SSH: 'git@github.com:MetaMask/tap-and-pay-sdk.git'
 
 # Common secrets (shared across ALL builds - same names, GitHub Environment determines values)
 _secrets: &secrets # Infrastructure
