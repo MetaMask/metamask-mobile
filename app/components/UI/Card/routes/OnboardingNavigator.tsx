@@ -237,19 +237,16 @@ const OnboardingNavigator: React.FC = () => {
       !isDeeplinkToComplete
     ) {
       hasShownKeepGoingModal.current = true;
-      navigation.navigate(Routes.CARD.MODALS.ID, {
-        screen: Routes.CARD.MODALS.CONFIRM_MODAL,
-        params: {
-          title: strings('card.card_onboarding.keep_going.title'),
-          description: strings('card.card_onboarding.keep_going.description'),
-          confirmAction: {
-            label: strings('card.card_onboarding.keep_going.confirm_button'),
-            onPress: () => {
-              navigation.navigate(initialRouteName);
-            },
+      navigation.navigate(Routes.CARD.MODALS.CONFIRM_MODAL, {
+        title: strings('card.card_onboarding.keep_going.title'),
+        description: strings('card.card_onboarding.keep_going.description'),
+        confirmAction: {
+          label: strings('card.card_onboarding.keep_going.confirm_button'),
+          onPress: () => {
+            navigation.navigate(initialRouteName);
           },
-          icon: IconName.ArrowDoubleRight,
         },
+        icon: IconName.ArrowDoubleRight,
       });
     }
   }, [
