@@ -34,14 +34,6 @@ const mockSmallChainRanking = [
   { chainId: 'eip155:137' as CaipChainId, name: 'Polygon' },
 ];
 
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string, params?: { count?: number }) => {
-    if (key === 'bridge.all') return 'All';
-    if (key === 'bridge.more_networks') return `+${params?.count} more`;
-    return key;
-  },
-}));
-
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: (...args: unknown[]) => args }),
 }));

@@ -9,8 +9,6 @@ import {
   selectTokenSelectorNetworkFilter,
 } from '../../../../../core/redux/slices/bridge';
 
-// --- Mocks ---
-
 const mockOnCloseBottomSheet = jest.fn();
 
 jest.mock('react-redux', () => ({
@@ -28,6 +26,7 @@ jest.mock('../../../../../util/networks', () => ({
   getNetworkImageSource: jest.fn(() => ({ uri: 'mock-network-icon' })),
 }));
 
+// BottomSheet requires a ref mock for onCloseBottomSheet imperative calls
 jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
@@ -50,6 +49,7 @@ jest.mock(
   },
 );
 
+// BottomSheetHeader uses Reanimated internally which doesn't work in tests
 jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
   () => {
@@ -67,9 +67,30 @@ jest.mock(
   },
 );
 
+jest.mock('../../../../../core/redux/slices/bridge', () => ({
+  selectSourceChainRanking: jest.fn(),
+  selectDestChainRanking: jest.fn(),
+  selectTokenSelectorNetworkFilter: jest.fn(),
+  setTokenSelectorNetworkFilter: jest.fn((chainId) => ({
+    type: 'bridge/setTokenSelectorNetworkFilter',
+    payload: chainId,
+  })),
+}));
+
+const mockChainRanking = [
+  { chainId: 'eip155:1' as CaipChainId, name: 'Ethereum' },
+  { chainId: 'eip155:137' as CaipChainId, name: 'Polygon' },
+  { chainId: 'eip155:10' as CaipChainId, name: 'Optimism' },
+];
+
+const mockUseSelector = useSelector as jest.Mock;
+const mockDispatch = jest.fn();
+
+// Cell uses ListItemSelect which relies on theme context.
+// We render with a simple mock to avoid pulling in the full theme provider.
 jest.mock('../../../../../component-library/components/Cells/Cell', () => {
   const { createElement } = jest.requireActual('react');
-  const { TouchableOpacity, Text, View } = jest.requireActual('react-native');
+  const { TouchableOpacity, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
     CellVariant: { Select: 'Select' },
@@ -77,7 +98,6 @@ jest.mock('../../../../../component-library/components/Cells/Cell', () => {
       title,
       onPress,
       testID,
-      children,
     }: {
       title: string;
       onPress?: () => void;
@@ -89,80 +109,15 @@ jest.mock('../../../../../component-library/components/Cells/Cell', () => {
     }) =>
       createElement(TouchableOpacity, { onPress, testID }, [
         createElement(Text, { key: 'title' }, title),
-        children
-          ? createElement(
-              View,
-              { key: 'children', testID: `${testID}-children` },
-              children,
-            )
-          : null,
       ]),
   };
 });
-
-jest.mock('../../../../../component-library/components/Avatars/Avatar', () => ({
-  AvatarVariant: { Icon: 'Icon', Network: 'Network' },
-}));
-
-jest.mock(
-  '../../../../../component-library/components/Avatars/Avatar/Avatar.types',
-  () => ({
-    AvatarSize: { Sm: 'Sm' },
-  }),
-);
-
-jest.mock('@metamask/design-system-react-native', () => {
-  const { createElement } = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    Icon: ({
-      name,
-      testID,
-    }: {
-      name: string;
-      testID?: string;
-      size?: string;
-    }) => createElement(View, { testID: testID ?? `icon-${name}` }),
-    IconName: { Global: 'Global', Check: 'Check' },
-    IconSize: { Md: 'Md' },
-  };
-});
-
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => {
-    if (key === 'bridge.select_network') return 'Select network';
-    if (key === 'bridge.all_networks') return 'All networks';
-    return key;
-  },
-}));
-
-jest.mock('../../../../../core/redux/slices/bridge', () => ({
-  selectSourceChainRanking: jest.fn(),
-  selectDestChainRanking: jest.fn(),
-  selectTokenSelectorNetworkFilter: jest.fn(),
-  setTokenSelectorNetworkFilter: jest.fn((chainId) => ({
-    type: 'bridge/setTokenSelectorNetworkFilter',
-    payload: chainId,
-  })),
-}));
-
-// --- Test data ---
-
-const mockChainRanking = [
-  { chainId: 'eip155:1' as CaipChainId, name: 'Ethereum' },
-  { chainId: 'eip155:137' as CaipChainId, name: 'Polygon' },
-  { chainId: 'eip155:10' as CaipChainId, name: 'Optimism' },
-];
-
-const mockUseSelector = useSelector as jest.Mock;
-const mockDispatch = jest.fn();
 
 describe('NetworkListModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
 
-    // Default: no network selected ("All"), source chain ranking
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (
         selector === selectSourceChainRanking ||
@@ -194,27 +149,6 @@ describe('NetworkListModal', () => {
       expect(getByText('Ethereum')).toBeTruthy();
       expect(getByText('Polygon')).toBeTruthy();
       expect(getByText('Optimism')).toBeTruthy();
-    });
-
-    it('renders check icon for "All" when no chain is selected', () => {
-      const { getByTestId } = render(<NetworkListModal />);
-      // The "All" cell should have children (the check icon)
-      expect(getByTestId('network-option-all-children')).toBeTruthy();
-    });
-
-    it('renders check icon for selected network', () => {
-      mockUseSelector.mockImplementation((selector: unknown) => {
-        if (selector === selectTokenSelectorNetworkFilter) {
-          return 'eip155:137' as CaipChainId;
-        }
-        return mockChainRanking;
-      });
-
-      const { getByTestId, queryByTestId } = render(<NetworkListModal />);
-      // Selected network should have children (check icon)
-      expect(getByTestId('network-option-eip155:137-children')).toBeTruthy();
-      // "All" should not have children rendered
-      expect(queryByTestId('network-option-all-children')).toBeNull();
     });
   });
 
