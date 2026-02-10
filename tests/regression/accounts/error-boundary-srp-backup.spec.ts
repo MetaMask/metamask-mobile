@@ -1,15 +1,16 @@
 'use strict';
-import Browser from '../../../e2e/pages/Browser/BrowserView';
-import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
-import TestDApp from '../../../e2e/pages/Browser/TestDApp';
+import Browser from '../../page-objects/Browser/BrowserView';
+import { loginToApp } from '../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../flows/browser.flow';
+import TestDApp from '../../page-objects/Browser/TestDApp';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { DappVariants, defaultGanacheOptions } from '../../framework/Constants';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { RegressionAccounts } from '../../../e2e/tags';
-import TestHelpers from '../../../e2e/helpers';
+import { RegressionAccounts } from '../../tags';
+import TestHelpers from '../../helpers';
 import Assertions from '../../framework/Assertions';
-import RevealSecretRecoveryPhrase from '../../../e2e/pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
-import ErrorBoundaryView from '../../../e2e/pages/ErrorBoundaryView/ErrorBoundaryView';
+import RevealSecretRecoveryPhrase from '../../page-objects/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
+import ErrorBoundaryView from '../../page-objects/ErrorBoundaryView/ErrorBoundaryView';
 import {
   AnvilPort,
   buildPermissions,

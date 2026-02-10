@@ -145,7 +145,7 @@ npx appwright test --grep "@PerformanceLogin.*@PerformanceLaunch" --project andr
 
 ## Test Tags
 
-Tests are tagged with area-specific, tool-agnostic tags that match the tags in `e2e/tags.js`. These tags allow for selective test execution based on which areas of the app are affected by code changes.
+Tests are tagged with area-specific, tool-agnostic tags that match the tags in `appwright/tags.js`. These tags allow for selective test execution based on which areas of the app are affected by code changes.
 
 | Tag                        | Description                                                   |
 | -------------------------- | ------------------------------------------------------------- |
@@ -670,7 +670,7 @@ test('My Performance Test', async ({
 ## Additional Resources
 
 - [Appwright Documentation](https://appwright.dev/)
-- [MetaMask Mobile E2E Documentation](../e2e/README.md)
+- [MetaMask Mobile E2E Documentation](../tests/docs/README.md)
 - [WDIO Page Objects](../wdio/screen-objects/)
 - [Performance Test Fixtures](./fixtures/)
 
