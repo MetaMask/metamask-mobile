@@ -163,7 +163,7 @@ import type {
   MultichainAccountGroupDetailsParams,
   MultichainWalletDetailsParams,
   MultichainAddressListParams,
-  MultichainPrivateKeyListParams,
+  PrivateKeyListParams,
 } from '../../components/Views/MultichainAccounts/MultichainAccounts.types';
 
 // Earn params
@@ -570,7 +570,7 @@ export interface RootStackParamList extends ParamListBase {
     | undefined;
   MultichainWalletDetails: MultichainWalletDetailsParams | undefined;
   MultichainAddressList: MultichainAddressListParams | undefined;
-  MultichainPrivateKeyList: MultichainPrivateKeyListParams | undefined;
+  MultichainPrivateKeyList: PrivateKeyListParams | undefined;
 
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   // Snaps routes
