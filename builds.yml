@@ -20,8 +20,9 @@
 # YAML Anchors (reusable config blocks)
 # =============================================================================
 
-# Server URLs (production defaults, override in test/e2e/exp/dev builds)
-_servers: &servers
+# Shared env (non-secret): servers + build flags. Production defaults.
+# Each build merges <<: *public_envs and overrides only what differs (inline in that build).
+_public_envs: &public_envs # Servers (production)
   PORTFOLIO_API_URL: 'https://portfolio.api.cx.metamask.io'
   SECURITY_ALERTS_API_URL: 'https://security-alerts.api.cx.metamask.io'
   DECODING_API_URL: 'https://signature-insights.api.cx.metamask.io/v1'
@@ -29,6 +30,17 @@ _servers: &servers
   REWARDS_API_URL: 'https://rewards.api.cx.metamask.io'
   BAANX_API_URL: 'https://api.baanx.com'
   RAMPS_ENVIRONMENT: 'production'
+  # Build flags (production defaults)
+  BRIDGE_USE_DEV_APIS: 'false'
+  RAMP_INTERNAL_BUILD: 'false'
+  IS_TEST: 'false'
+  SEEDLESS_ONBOARDING_ENABLED: 'true'
+  MM_NOTIFICATIONS_UI_ENABLED: 'true'
+  MM_PERMISSIONS_SETTINGS_V1_ENABLED: 'false'
+  MM_PERPS_BLOCKED_REGIONS: 'US,CA-ON,GB,BE'
+  MM_PERPS_HIP3_ALLOWLIST_MARKETS: ''
+  MM_PERPS_HIP3_BLOCKLIST_MARKETS: ''
+  MM_PERPS_HIP3_ENABLED: 'true'
 
 # Common secrets (shared across ALL builds - same names, GitHub Environment determines values)
 _secrets: &secrets # Infrastructure
@@ -157,13 +169,9 @@ builds:
     github_environment: build-production
     signing: *signing_prod
     env:
+      <<: *public_envs
       METAMASK_ENVIRONMENT: 'production'
       METAMASK_BUILD_TYPE: 'main'
-      <<: *servers
-      # Build config flags (not remote feature flags)
-      BRIDGE_USE_DEV_APIS: 'false'
-      RAMP_INTERNAL_BUILD: 'false'
-      IS_TEST: 'false'
     secrets: *secrets
     code_fencing: *code_fencing_main
     remote_feature_flags: *remote_feature_flags
@@ -173,12 +181,9 @@ builds:
     github_environment: build-rc
     signing: *signing_rc
     env:
+      <<: *public_envs
       METAMASK_ENVIRONMENT: 'rc'
       METAMASK_BUILD_TYPE: 'main'
-      <<: *servers
-      BRIDGE_USE_DEV_APIS: 'false'
-      RAMP_INTERNAL_BUILD: 'false'
-      IS_TEST: 'false'
     secrets: *secrets
     code_fencing: *code_fencing_main
     remote_feature_flags: *remote_feature_flags
@@ -188,10 +193,9 @@ builds:
     github_environment: build-test
     signing: *signing_uat
     env:
+      <<: *public_envs
       METAMASK_ENVIRONMENT: 'test'
       METAMASK_BUILD_TYPE: 'main'
-      <<: *servers
-      # UAT server overrides (TODO: Add actual UAT URLs when available)
       PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
@@ -210,9 +214,9 @@ builds:
     github_environment: build-e2e
     signing: *signing_uat
     env:
+      <<: *public_envs
       METAMASK_ENVIRONMENT: 'e2e'
       METAMASK_BUILD_TYPE: 'main'
-      <<: *servers
       PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
@@ -231,9 +235,9 @@ builds:
     github_environment: build-exp
     signing: *signing_uat
     env:
+      <<: *public_envs
       METAMASK_ENVIRONMENT: 'exp'
       METAMASK_BUILD_TYPE: 'main'
-      <<: *servers
       PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
@@ -260,11 +264,11 @@ builds:
 
   # Local development / Expo development build (Runway .app for simulator)
   main-dev:
-    github_environment: build-uat
+    github_environment: build-dev
     env:
+      <<: *public_envs
       METAMASK_ENVIRONMENT: 'dev'
       METAMASK_BUILD_TYPE: 'main'
-      <<: *servers
       PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
@@ -273,10 +277,9 @@ builds:
       RAMP_INTERNAL_BUILD: 'true'
       IS_TEST: 'false'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
-      # iOS: build for simulator (Expo dev build; no signing required)
       IS_SIM_BUILD: 'true'
-      # Android: build Debug APK (for Runway/testing; script verifies APK at prod/debug/)
       CONFIGURATION: 'Debug'
+      DEV_OAUTH_CONFIG: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main
     remote_feature_flags:
@@ -302,12 +305,9 @@ builds:
     github_environment: build-flask-prod
     signing: *signing_flask_prod
     env:
+      <<: *public_envs
       METAMASK_ENVIRONMENT: 'production'
       METAMASK_BUILD_TYPE: 'flask'
-      <<: *servers
-      BRIDGE_USE_DEV_APIS: 'false'
-      RAMP_INTERNAL_BUILD: 'false'
-      IS_TEST: 'false'
     secrets: *secrets
     code_fencing: *code_fencing_flask
     remote_feature_flags: *remote_feature_flags
@@ -317,9 +317,9 @@ builds:
     github_environment: build-flask-uat
     signing: *signing_flask_uat
     env:
+      <<: *public_envs
       METAMASK_ENVIRONMENT: 'test'
       METAMASK_BUILD_TYPE: 'flask'
-      <<: *servers
       PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
@@ -338,9 +338,9 @@ builds:
     github_environment: build-flask-e2e
     signing: *signing_flask_uat
     env:
+      <<: *public_envs
       METAMASK_ENVIRONMENT: 'e2e'
       METAMASK_BUILD_TYPE: 'flask'
-      <<: *servers
       PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
@@ -356,11 +356,11 @@ builds:
 
   # Flask local development / Expo development build (Runway .app for simulator)
   flask-dev:
-    github_environment: build-flask-uat
+    github_environment: build-flask-dev
     env:
+      <<: *public_envs
       METAMASK_ENVIRONMENT: 'dev'
       METAMASK_BUILD_TYPE: 'flask'
-      <<: *servers
       PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
@@ -369,10 +369,9 @@ builds:
       RAMP_INTERNAL_BUILD: 'true'
       IS_TEST: 'false'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
-      # iOS: build for simulator (Expo dev build; no signing required)
       IS_SIM_BUILD: 'true'
-      # Android: build Debug APK (for Runway/testing; script verifies APK at flask/debug/)
       CONFIGURATION: 'Debug'
+      DEV_OAUTH_CONFIG: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_flask
     remote_feature_flags:
@@ -395,15 +394,12 @@ builds:
 
   # QA production build
   qa-prod:
-    github_environment: build-uat
+    github_environment: build-qa
     signing: *signing_uat
     env:
+      <<: *public_envs
       METAMASK_ENVIRONMENT: 'production'
       METAMASK_BUILD_TYPE: 'qa'
-      <<: *servers
-      BRIDGE_USE_DEV_APIS: 'false'
-      RAMP_INTERNAL_BUILD: 'false'
-      IS_TEST: 'false'
     secrets:
       <<: *secrets
       # QA uses QA Segment project
@@ -423,11 +419,11 @@ builds:
 
   # QA dev build / Expo development build (Runway .app for simulator)
   qa-dev:
-    github_environment: build-uat
+    github_environment: build-qa
     env:
+      <<: *public_envs
       METAMASK_ENVIRONMENT: 'dev'
       METAMASK_BUILD_TYPE: 'qa'
-      <<: *servers
       PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
@@ -436,10 +432,9 @@ builds:
       RAMP_INTERNAL_BUILD: 'true'
       IS_TEST: 'false'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
-      # iOS: build for simulator (Expo dev build; no signing required)
       IS_SIM_BUILD: 'true'
-      # Android: build Debug APK (for Runway/testing; script verifies APK at qa/debug/)
       CONFIGURATION: 'Debug'
+      DEV_OAUTH_CONFIG: 'true'
     secrets:
       <<: *secrets
       # QA uses QA Segment project
