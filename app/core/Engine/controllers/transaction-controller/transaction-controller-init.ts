@@ -132,7 +132,7 @@ export const TransactionControllerInit: ControllerInitFunction<
           updateTransactions: true,
         },
         isFirstTimeInteractionEnabled: () =>
-          preferencesController.state?.securityAlertsEnabled,
+          isFirstTimeInteractionEnabled(preferencesController),
         isEIP7702GasFeeTokensEnabled: async (transactionMeta) => {
           const { chainId, isExternalSign } = transactionMeta;
           const state = getState();
@@ -332,6 +332,12 @@ function isIncomingTransactionsEnabled(
   preferencesController: PreferencesController,
 ): boolean {
   return preferencesController.state?.privacyMode !== true;
+}
+
+function isFirstTimeInteractionEnabled(
+  preferencesController: PreferencesController,
+): boolean {
+  return preferencesController.state?.securityAlertsEnabled === true;
 }
 
 function getControllers(
