@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate a bug-to-test matrix for MetaMask Mobile (last 30 days)."""
+"""Generate a closed-bug test matrix for MetaMask Mobile (last 30 days)."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ import datetime as dt
 import json
 import re
 import subprocess
-from collections import Counter
+from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Iterable
 
@@ -31,11 +31,14 @@ def run_gh_issue_list() -> list[dict]:
         "--repo",
         REPO,
         "--state",
-        "all",
+        "closed",
         "--limit",
         str(MAX_ISSUES),
         "--json",
-        "number,title,createdAt,updatedAt,closedAt,state,labels,url,body",
+        (
+            "number,title,createdAt,updatedAt,closedAt,state,stateReason,labels,url,body,"
+            "comments,closedByPullRequestsReferences"
+        ),
     ]
     out = subprocess.check_output(cmd, text=True)
     return json.loads(out)
@@ -76,8 +79,7 @@ def parse_sections(body: str) -> dict[str, str]:
     sections[current] = []
 
     for raw_line in body.splitlines():
-        line = raw_line.rstrip()
-        stripped = line.strip()
+        stripped = raw_line.strip()
         heading_match = re.match(r"^\s*#{1,6}\s+(.+?)\s*$", stripped)
         bold_heading_match = re.match(r"^\s*\*\*(.+?)\*\*\s*$", stripped)
         if heading_match:
@@ -89,7 +91,6 @@ def parse_sections(body: str) -> dict[str, str]:
             sections.setdefault(current, [])
             continue
         sections.setdefault(current, []).append(stripped)
-
     return {k: "\n".join(v).strip() for k, v in sections.items()}
 
 
@@ -123,25 +124,19 @@ def extract_component_paths(body: str) -> list[str]:
             body,
         )
     )
-    normalized = []
+    seen: set[str] = set()
+    ordered: list[str] = []
     for item in matches:
         text = item.strip()
-        if "/" in text and len(text) < 180:
-            normalized.append(text)
-    # Keep order while deduplicating.
-    seen = set()
-    ordered = []
-    for path in normalized:
-        if path not in seen:
-            seen.add(path)
-            ordered.append(path)
+        if "/" in text and len(text) < 180 and text not in seen:
+            seen.add(text)
+            ordered.append(text)
     return ordered
 
 
 def severity_rank(severity_labels: list[str]) -> tuple[int, str]:
     if not severity_labels:
         return (99, "Unlabeled")
-    # Pick the highest urgency if multiple labels exist.
     candidates = []
     for label in severity_labels:
         low = label.lower()
@@ -203,10 +198,7 @@ def infer_mocks(text: str, component_hint: str) -> str:
     lowered = text.lower()
     base = f"Render {component_hint} with controller/store state fixtures."
     if re.search(r"swap|bridge|quote|gas|price|rate|fee", lowered):
-        return (
-            base
-            + " Mock quote/fee API responses (success + edge case) and verify derived totals."
-        )
+        return base + " Mock quote/fee API responses (success + edge case) and verify derived totals."
     if re.search(r"nft|erc-721|token id|collectible", lowered):
         return base + " Mock NFT/token metadata and deterministic IDs for selection vs confirmation."
     if re.search(r"explore|search|paste|url|sites", lowered):
@@ -225,8 +217,7 @@ def infer_needs_e2e(text: str) -> bool:
     return bool(
         re.search(
             r"hardware wallet|qr scanner|camera|deeplink|deep link|walletconnect|"
-            r"push notification|biometric|background|app launch|nfc|bluetooth|"
-            r"permissions",
+            r"push notification|biometric|background|app launch|nfc|bluetooth|permissions",
             lowered,
         )
     )
@@ -250,46 +241,235 @@ def extract_steps_snippet(steps_text: str, title_text: str) -> str:
 def build_problem_summary(title: str, sections: dict[str, str]) -> str:
     describe = section_text(
         sections,
-        [
-            "Describe the bug",
-            "Bug Description",
-            "Description",
-            "Current Behavior",
-        ],
+        ["Describe the bug", "Bug Description", "Description", "Current Behavior"],
     )
     expected = section_text(sections, ["Expected behavior", "Expected Behavior"])
-
     bits = [clean_title(title)]
     if describe:
         bits.append(shorten(describe, 220))
     elif expected:
         bits.append(f"Expected: {shorten(expected, 180)}")
-    summary = " — ".join(bits)
-    return shorten(summary, 340)
+    return shorten(" — ".join(bits), 340)
 
 
 def markdown_escape(value: str) -> str:
     return value.replace("|", "\\|").replace("\n", "<br>")
 
 
+def normalize_title_key(title: str) -> str:
+    text = clean_title(title).lower()
+    text = re.sub(r"\(android.*?\)|\(ios.*?\)", " ", text)
+    text = re.sub(r"v\d+\.\d+(?:\.\d+)?", " ", text)
+    text = re.sub(r"[^a-z0-9]+", " ", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    return text
+
+
+def is_auto_rca_comment(comment_body: str, author_login: str) -> bool:
+    return (
+        author_login == "github-actions"
+        and "This issue has been closed. Please complete this RCA form" in comment_body
+    )
+
+
+def manual_comments_text(issue: dict) -> str:
+    chunks: list[str] = []
+    for comment in issue.get("comments") or []:
+        body = comment.get("body") or ""
+        author = (comment.get("author") or {}).get("login") or ""
+        if is_auto_rca_comment(body, author):
+            continue
+        chunks.append(body)
+    return "\n".join(chunks).strip()
+
+
+def classify_realness(issue: dict, labels: list[str], combined_text: str, title_cluster: dict) -> tuple[str, str]:
+    low_text = combined_text.lower()
+    low_labels = [l.lower() for l in labels]
+    state_reason = (issue.get("stateReason") or "").upper()
+
+    if re.search(
+        r"\btesting customfield mapping\b|\btesting release field mapping\b|^testing\b|\btest issue\b",
+        low_text,
+    ):
+        return (
+            "Not a real bug (test/admin issue)",
+            "Issue content indicates testing/admin validation rather than product defect.",
+        )
+
+    if re.search(
+        r"not a bug|cannot reproduce|not reproducible|"
+        r"as designed|by design|won[’']?t fix|invalid issue",
+        low_text,
+    ):
+        return (
+            "Not a real bug (closed as expected/non-repro)",
+            "Issue text/comments contain explicit non-bug signal (expected behavior/non-repro).",
+        )
+
+    duplicate_signal = bool(
+        re.search(r"\bduplicate\b|\bdupe\b|same as #\d+|closing in favor of #\d+", low_text)
+    ) or ("duplicate" in low_labels)
+
+    if state_reason == "COMPLETED":
+        return ("Confirmed real bug", "State reason is COMPLETED.")
+
+    completed_siblings = [
+        n for n in (title_cluster.get("completed_numbers") or []) if n != issue.get("number")
+    ]
+    if state_reason == "NOT_PLANNED" and completed_siblings:
+        return (
+            "Likely real bug (duplicate/tracked by sibling issue)",
+            f"Same normalized title has completed issue(s): {', '.join(f'#{n}' for n in completed_siblings[:3])}.",
+        )
+
+    if state_reason == "NOT_PLANNED" and duplicate_signal:
+        return (
+            "Likely real bug (duplicate/tracked elsewhere)",
+            "NOT_PLANNED plus duplicate-style signal in content.",
+        )
+
+    if state_reason == "NOT_PLANNED" and re.search(r"\bjira\b|story|ticket|tracked in|moved to", low_text):
+        return (
+            "Likely real bug (tracked externally)",
+            "NOT_PLANNED with Jira/ticket tracking signal.",
+        )
+
+    if state_reason == "NOT_PLANNED" and any(
+        l.startswith("sev") or l.startswith("regression") or l == "release-blocker" for l in low_labels
+    ):
+        return (
+            "Likely real bug (closed without direct fix reference)",
+            "NOT_PLANNED but severity/regression labels suggest valid defect report.",
+        )
+
+    return ("Unclear from issue content", "Insufficient explicit evidence in issue body/comments.")
+
+
+def classify_resolution_layer(
+    issue: dict,
+    labels: list[str],
+    combined_text: str,
+    realness: str,
+    title_cluster: dict,
+) -> tuple[str, str]:
+    if realness.startswith("Not a real bug"):
+        return ("N/A", "Issue classified as non-bug.")
+
+    closing_prs = issue.get("closedByPullRequestsReferences") or []
+    if closing_prs:
+        numbers = [str(pr.get("number")) for pr in closing_prs if pr.get("number")]
+        return (
+            "Mobile codebase",
+            f"Closed by PR reference(s) in {REPO}: {', '.join('#' + n for n in numbers[:3])}.",
+        )
+
+    low_text = combined_text.lower()
+    api_signals = bool(
+        re.search(
+            r"\bapi\b|backend|server[- ]side|indexer|quote service|market data|coingecko|relay|endpoint|"
+            r"portfolio data|price feed|provider response|rpc|cap\s*&\s*vol|market cap|"
+            r"volume data|trending tokens.*limited|symbol for trending token|price data",
+            low_text,
+        )
+    )
+    mobile_signals = bool(
+        re.search(
+            r"screen|view|modal|button|navigation|bottom sheet|app/components|"
+            r"search bar|token detail|activity page|network switcher",
+            low_text,
+        )
+    )
+
+    completed_siblings = [
+        n for n in (title_cluster.get("completed_numbers") or []) if n != issue.get("number")
+    ]
+    completed_sibling_with_pr = [
+        n for n in (title_cluster.get("completed_with_pr") or []) if n != issue.get("number")
+    ]
+    if completed_sibling_with_pr:
+        return (
+            "Mobile codebase (via sibling issue)",
+            f"Similar issue was completed with mobile PR-linked ticket(s): {', '.join(f'#{n}' for n in completed_sibling_with_pr[:3])}.",
+        )
+    if completed_siblings:
+        return (
+            "Likely mobile (via sibling issue)",
+            f"Similar issue has completed sibling ticket(s): {', '.join(f'#{n}' for n in completed_siblings[:3])}.",
+        )
+
+    if api_signals and mobile_signals:
+        return ("Mixed/unclear (mobile + API signals)", "Issue text contains both API and mobile UI signals.")
+    if api_signals:
+        return ("Likely API/backend", "Issue text/comments contain API/backend/data-provider signals.")
+    if mobile_signals:
+        return ("Likely mobile", "Issue text focuses on in-app UI/navigation behavior.")
+    return ("Unknown", "No direct PR linkage and no strong mobile/API signal.")
+
+
+def extract_mobile_impact(combined_text: str, resolution_layer: str) -> str:
+    low_text = combined_text.lower()
+    mobile_signal = bool(
+        re.search(
+            r"\bios\b|\bandroid\b|mobile app|screen|view|button|navigation|network switcher|token detail|app/",
+            low_text,
+        )
+    )
+    if resolution_layer == "N/A":
+        return "No (non-bug)"
+    if resolution_layer.startswith("Likely API") and not mobile_signal:
+        return "Indirect/unclear"
+    if mobile_signal:
+        return "Yes"
+    if resolution_layer.startswith("Mobile"):
+        return "Yes"
+    return "Unclear"
+
+
+def build_title_clusters(issues: list[dict]) -> dict[str, dict]:
+    clusters: dict[str, dict] = defaultdict(
+        lambda: {"numbers": [], "completed_numbers": [], "completed_with_pr": []}
+    )
+    for issue in issues:
+        key = normalize_title_key(issue["title"])
+        if not key:
+            continue
+        cluster = clusters[key]
+        cluster["numbers"].append(issue["number"])
+        if (issue.get("stateReason") or "").upper() == "COMPLETED":
+            cluster["completed_numbers"].append(issue["number"])
+            if issue.get("closedByPullRequestsReferences"):
+                cluster["completed_with_pr"].append(issue["number"])
+    return clusters
+
+
 def build_rows(raw_issues: list[dict]) -> list[dict]:
     now = dt.datetime.now(dt.timezone.utc)
     cutoff = now - dt.timedelta(days=LOOKBACK_DAYS)
 
-    rows = []
+    scoped_issues = []
     for issue in raw_issues:
         labels = [label["name"] for label in issue.get("labels") or []]
+        if issue.get("state") != "CLOSED":
+            continue
         if "type-bug" not in labels:
             continue
         created_at = dt.datetime.fromisoformat(issue["createdAt"].replace("Z", "+00:00"))
         if created_at < cutoff:
             continue
+        scoped_issues.append(issue)
 
+    title_clusters = build_title_clusters(scoped_issues)
+
+    rows: list[dict] = []
+    for issue in scoped_issues:
+        labels = [label["name"] for label in issue.get("labels") or []]
         teams = [name for name in labels if name.lower().startswith("team-")]
         sevs = [name for name in labels if name.lower().startswith("sev")]
         sev_priority, sev_top = severity_rank(sevs)
 
         body = issue.get("body") or ""
+        comments_text = manual_comments_text(issue)
         sections = parse_sections(body)
         summary = build_problem_summary(issue["title"], sections)
 
@@ -329,6 +509,19 @@ def build_rows(raw_issues: list[dict]) -> list[dict]:
             else "Optional: run one E2E regression on the same path to confirm controller + navigation wiring."
         )
 
+        title_key = normalize_title_key(issue["title"])
+        title_cluster = title_clusters.get(title_key, {})
+        combined_for_review = " ".join([issue["title"], body, comments_text])
+        realness, realness_evidence = classify_realness(issue, labels, combined_for_review, title_cluster)
+        resolution_layer, resolution_evidence = classify_resolution_layer(
+            issue,
+            labels,
+            combined_for_review,
+            realness,
+            title_cluster,
+        )
+        mobile_impact = extract_mobile_impact(combined_for_review, resolution_layer)
+
         metadata_gaps = []
         if not teams:
             metadata_gaps.append("Missing team label")
@@ -339,13 +532,18 @@ def build_rows(raw_issues: list[dict]) -> list[dict]:
             "issue_number": issue["number"],
             "issue_url": issue["url"],
             "created_at": issue["createdAt"],
-            "state": issue["state"],
-            "title": clean_title(issue["title"]),
+            "closed_at": issue.get("closedAt") or "",
+            "state_reason": issue.get("stateReason") or "",
             "team_labels": ", ".join(teams) if teams else "Unlabeled",
             "severity_labels": ", ".join(sevs) if sevs else "Unlabeled",
             "severity_top": sev_top,
             "severity_priority": sev_priority,
             "problem_summary": summary,
+            "real_bug_assessment": realness,
+            "real_bug_evidence": shorten(realness_evidence, 220),
+            "mobile_impact": mobile_impact,
+            "resolution_layer": resolution_layer,
+            "resolution_evidence": shorten(resolution_evidence, 220),
             "component_candidate": component_hint,
             "cvt_preconditions_mocks": shorten(mocks, 320),
             "cvt_steps": steps_snippet,
@@ -357,16 +555,12 @@ def build_rows(raw_issues: list[dict]) -> list[dict]:
         rows.append(row)
 
     rows.sort(
-        key=lambda item: (
-            item["severity_priority"],
-            item["created_at"],
-        ),
+        key=lambda item: (item["severity_priority"], item["created_at"]),
         reverse=False,
     )
-    # Keep newest first inside same severity.
-    grouped = {}
+    grouped: dict[int, list[dict]] = defaultdict(list)
     for row in rows:
-        grouped.setdefault(row["severity_priority"], []).append(row)
+        grouped[row["severity_priority"]].append(row)
     ordered_rows: list[dict] = []
     for priority in sorted(grouped.keys()):
         ordered_rows.extend(sorted(grouped[priority], key=lambda x: x["created_at"], reverse=True))
@@ -377,17 +571,19 @@ def write_markdown(rows: list[dict], generated_at: dt.datetime) -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     sev_counter = Counter(row["severity_top"] for row in rows)
+    realness_counter = Counter(row["real_bug_assessment"] for row in rows)
+    resolution_counter = Counter(row["resolution_layer"] for row in rows)
     team_counter = Counter()
     for row in rows:
         for team in [t.strip() for t in row["team_labels"].split(",") if t.strip() and t.strip() != "Unlabeled"]:
             team_counter[team] += 1
 
     header = [
-        "# MetaMask Mobile bug-to-test matrix (last 30 days)",
+        "# MetaMask Mobile closed bug-to-test matrix (last 30 days)",
         "",
         f"- Generated at (UTC): {generated_at.isoformat(timespec='seconds')}",
         f"- Scope: `{REPO}` issues",
-        f"- Filters: `label:type-bug`, `createdAt >= now-30d`",
+        f"- Filters: `state:CLOSED`, `label:type-bug`, `createdAt >= now-30d`",
         f"- Total bugs in scope: **{len(rows)}**",
         "",
         "## Severity distribution",
@@ -397,6 +593,31 @@ def write_markdown(rows: list[dict], generated_at: dt.datetime) -> None:
     ]
     for severity, count in sev_counter.most_common():
         header.append(f"| {severity} | {count} |")
+
+    header.extend(
+        [
+            "",
+            "## Real bug assessment (from issue content/comments)",
+            "",
+            "| Assessment | Count |",
+            "|---|---:|",
+        ]
+    )
+    for assessment, count in realness_counter.most_common():
+        header.append(f"| {assessment} | {count} |")
+
+    header.extend(
+        [
+            "",
+            "## Resolution layer assessment",
+            "",
+            "| Resolution layer | Count |",
+            "|---|---:|",
+        ]
+    )
+    for layer, count in resolution_counter.most_common():
+        header.append(f"| {layer} | {count} |")
+
     header.extend(
         [
             "",
@@ -412,9 +633,15 @@ def write_markdown(rows: list[dict], generated_at: dt.datetime) -> None:
     table_headers = [
         "Issue",
         "Created (UTC)",
-        "State",
+        "Closed (UTC)",
+        "State reason",
         "Team labels",
         "Severity labels",
+        "Real bug assessment",
+        "Real bug evidence",
+        "Applies to mobile",
+        "Resolution layer",
+        "Resolution evidence",
         "Problem summary",
         "Primary test type",
         "Component candidate",
@@ -426,7 +653,7 @@ def write_markdown(rows: list[dict], generated_at: dt.datetime) -> None:
     ]
     table = [
         "",
-        "## Bug-by-bug test blueprint",
+        "## Closed bug-by-bug test blueprint",
         "",
         "|" + "|".join(table_headers) + "|",
         "|" + "|".join(["---"] * len(table_headers)) + "|",
@@ -437,9 +664,15 @@ def write_markdown(rows: list[dict], generated_at: dt.datetime) -> None:
         values = [
             issue_cell,
             row["created_at"],
-            row["state"],
+            row["closed_at"],
+            row["state_reason"],
             row["team_labels"],
             row["severity_labels"],
+            row["real_bug_assessment"],
+            row["real_bug_evidence"],
+            row["mobile_impact"],
+            row["resolution_layer"],
+            row["resolution_evidence"],
             row["problem_summary"],
             row["primary_test_type"],
             row["component_candidate"],
@@ -449,8 +682,7 @@ def write_markdown(rows: list[dict], generated_at: dt.datetime) -> None:
             row["e2e_fallback"],
             row["metadata_gaps"],
         ]
-        escaped = [markdown_escape(str(v)) for v in values]
-        table.append("|" + "|".join(escaped) + "|")
+        table.append("|" + "|".join(markdown_escape(str(v)) for v in values) + "|")
 
     MD_PATH.write_text("\n".join(header + table) + "\n")
 
@@ -460,15 +692,21 @@ def write_excel(rows: list[dict], generated_at: dt.datetime) -> None:
 
     wb = Workbook()
     ws = wb.active
-    ws.title = "Bug Matrix"
+    ws.title = "Closed Bug Matrix"
 
     headers = [
         "Issue #",
         "Issue URL",
         "Created (UTC)",
-        "State",
+        "Closed (UTC)",
+        "State reason",
         "Team labels",
         "Severity labels",
+        "Real bug assessment",
+        "Real bug evidence",
+        "Applies to mobile",
+        "Resolution layer",
+        "Resolution evidence",
         "Problem summary",
         "Primary test type",
         "Component candidate",
@@ -486,9 +724,15 @@ def write_excel(rows: list[dict], generated_at: dt.datetime) -> None:
                 row["issue_number"],
                 row["issue_url"],
                 row["created_at"],
-                row["state"],
+                row["closed_at"],
+                row["state_reason"],
                 row["team_labels"],
                 row["severity_labels"],
+                row["real_bug_assessment"],
+                row["real_bug_evidence"],
+                row["mobile_impact"],
+                row["resolution_layer"],
+                row["resolution_evidence"],
                 row["problem_summary"],
                 row["primary_test_type"],
                 row["component_candidate"],
@@ -507,7 +751,6 @@ def write_excel(rows: list[dict], generated_at: dt.datetime) -> None:
         cell.font = header_font
         cell.alignment = Alignment(vertical="top", wrap_text=True)
 
-    # Wrap text on all data cells and set practical widths.
     for row_cells in ws.iter_rows(min_row=2):
         for cell in row_cells:
             cell.alignment = Alignment(vertical="top", wrap_text=True)
@@ -516,25 +759,31 @@ def write_excel(rows: list[dict], generated_at: dt.datetime) -> None:
         "A": 10,
         "B": 36,
         "C": 22,
-        "D": 10,
-        "E": 28,
-        "F": 20,
-        "G": 52,
-        "H": 38,
-        "I": 38,
-        "J": 56,
-        "K": 42,
-        "L": 44,
-        "M": 46,
-        "N": 24,
+        "D": 22,
+        "E": 14,
+        "F": 26,
+        "G": 20,
+        "H": 30,
+        "I": 40,
+        "J": 16,
+        "K": 26,
+        "L": 42,
+        "M": 48,
+        "N": 36,
+        "O": 38,
+        "P": 54,
+        "Q": 44,
+        "R": 44,
+        "S": 44,
+        "T": 22,
     }
     for col, width in widths.items():
         ws.column_dimensions[col].width = width
-
     ws.freeze_panes = "A2"
 
-    # Summary sheet.
     sev_counter = Counter(row["severity_top"] for row in rows)
+    realness_counter = Counter(row["real_bug_assessment"] for row in rows)
+    resolution_counter = Counter(row["resolution_layer"] for row in rows)
     team_counter = Counter()
     for row in rows:
         for team in [t.strip() for t in row["team_labels"].split(",") if t.strip() and t.strip() != "Unlabeled"]:
@@ -544,27 +793,37 @@ def write_excel(rows: list[dict], generated_at: dt.datetime) -> None:
     summary.append(["Generated at (UTC)", generated_at.isoformat(timespec="seconds")])
     summary.append(["Repository", REPO])
     summary.append(["Lookback days", LOOKBACK_DAYS])
+    summary.append(["Filter", "state:CLOSED + label:type-bug"])
     summary.append(["Total bugs", len(rows)])
     summary.append([])
+
     summary.append(["Severity", "Count"])
     for severity, count in sev_counter.most_common():
         summary.append([severity, count])
     summary.append([])
+
+    summary.append(["Real bug assessment", "Count"])
+    for assessment, count in realness_counter.most_common():
+        summary.append([assessment, count])
+    summary.append([])
+
+    summary.append(["Resolution layer", "Count"])
+    for layer, count in resolution_counter.most_common():
+        summary.append([layer, count])
+    summary.append([])
+
     summary.append(["Team label", "Count"])
     for team, count in team_counter.most_common(20):
         summary.append([team, count])
 
-    for cell in summary[6]:
-        cell.fill = header_fill
-        cell.font = header_font
-    first_team_header_row = 6 + len(sev_counter) + 2
-    for cell in summary[first_team_header_row]:
-        cell.fill = header_fill
-        cell.font = header_font
+    header_rows = [7, 7 + len(sev_counter) + 2, 7 + len(sev_counter) + 2 + len(realness_counter) + 2, 7 + len(sev_counter) + 2 + len(realness_counter) + 2 + len(resolution_counter) + 2]
+    for row_idx in header_rows:
+        for cell in summary[row_idx]:
+            cell.fill = header_fill
+            cell.font = header_font
 
-    summary.column_dimensions["A"].width = 28
-    summary.column_dimensions["B"].width = 20
-
+    summary.column_dimensions["A"].width = 34
+    summary.column_dimensions["B"].width = 28
     wb.save(XLSX_PATH)
 
 
@@ -574,7 +833,6 @@ def main() -> None:
     rows = build_rows(issues)
     write_markdown(rows, generated_at)
     write_excel(rows, generated_at)
-
     print(f"Generated rows: {len(rows)}")
     print(f"Markdown: {MD_PATH}")
     print(f"Excel: {XLSX_PATH}")
