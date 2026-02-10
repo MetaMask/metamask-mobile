@@ -426,6 +426,119 @@ def extract_mobile_impact(combined_text: str, resolution_layer: str) -> str:
     return "Unclear"
 
 
+def derive_ai_validity(
+    issue: dict,
+    realness: str,
+    realness_evidence: str,
+    resolution_layer: str,
+    title_cluster: dict,
+) -> tuple[str, str, str]:
+    issue_number = issue.get("number")
+    state_reason = (issue.get("stateReason") or "").upper()
+    prs = issue.get("closedByPullRequestsReferences") or []
+    sibling_count = max(0, len(title_cluster.get("numbers") or []) - 1)
+
+    if realness.startswith("Not a real bug"):
+        return (
+            "Invalid (non-product bug)",
+            "High",
+            f"{realness_evidence} State reason: {state_reason}.",
+        )
+
+    if realness == "Confirmed real bug":
+        if prs:
+            pr_nums = ", ".join(f"#{pr.get('number')}" for pr in prs[:3] if pr.get("number"))
+            return (
+                "Valid bug",
+                "High",
+                f"Closed as COMPLETED and linked to mobile PR(s) {pr_nums}.",
+            )
+        return (
+            "Valid bug",
+            "Medium-High",
+            "Closed as COMPLETED without explicit linked PR in issue metadata.",
+        )
+
+    if realness.startswith("Likely real bug"):
+        confidence = "Medium"
+        if "sibling issue" in realness.lower() and sibling_count > 0:
+            confidence = "Medium-High"
+        if "tracked externally" in realness.lower():
+            confidence = "Medium"
+        return (
+            "Likely valid bug",
+            confidence,
+            f"{realness_evidence} Cluster sibling count: {sibling_count}.",
+        )
+
+    return (
+        "Needs manual review",
+        "Low",
+        f"Ambiguous closure context. Realness signal: {realness}. Resolution layer: {resolution_layer}.",
+    )
+
+
+def choose_canonical_issue(title_cluster: dict, fallback_issue_number: int) -> int:
+    candidates = (
+        title_cluster.get("completed_with_pr")
+        or title_cluster.get("completed_numbers")
+        or title_cluster.get("numbers")
+        or [fallback_issue_number]
+    )
+    return sorted(candidates)[0]
+
+
+def recommend_test_implementation(
+    issue_number: int,
+    ai_validity_verdict: str,
+    resolution_layer: str,
+    component_hint: str,
+    cvt_mocks: str,
+    cvt_steps: str,
+    cvt_assertions: str,
+    needs_e2e: bool,
+    canonical_issue: int,
+    title_cluster: dict,
+) -> tuple[str, str]:
+    sibling_count = max(0, len(title_cluster.get("numbers") or []) - 1)
+
+    if ai_validity_verdict.startswith("Invalid"):
+        return (
+            "No new product regression test",
+            "Keep a triage guardrail only (classification/unit check for bug-template hygiene).",
+        )
+
+    duplicate_scope = canonical_issue != issue_number and sibling_count > 0
+
+    if resolution_layer.startswith("Likely API/backend"):
+        return (
+            "API integration/contract test + mobile CVT fallback",
+            "API: validate provider payload/ordering/values. "
+            "Mobile CVT: render error/loading/edge-state in component and assert graceful UX.",
+        )
+
+    if resolution_layer.startswith("Mixed/unclear"):
+        return (
+            "CVT + integration test + one E2E smoke",
+            "CVT for UI regression, integration test around controller/network boundary, "
+            "and one E2E to validate the end-to-end dependency chain.",
+        )
+
+    if needs_e2e:
+        base = (
+            f"CVT-first in {component_hint}: Given {cvt_mocks} When {cvt_steps} Then {cvt_assertions}"
+        )
+        extra = " Add one focused E2E for device/integration boundary."
+        if duplicate_scope:
+            extra += f" Reuse canonical scenario from issue #{canonical_issue} with parametrized fixtures."
+        return ("Component View Test + targeted E2E", shorten(base + extra, 420))
+
+    plan = f"CVT in {component_hint}: Given {cvt_mocks} When {cvt_steps} Then {cvt_assertions}"
+    if duplicate_scope:
+        plan += f" Reuse canonical test from issue #{canonical_issue} and add this case as a parameterized fixture."
+    return ("Component View Test (primary)", shorten(plan, 420))
+
+
 def build_title_clusters(issues: list[dict]) -> dict[str, dict]:
     clusters: dict[str, dict] = defaultdict(
         lambda: {"numbers": [], "completed_numbers": [], "completed_with_pr": []}
@@ -511,6 +624,7 @@ def build_rows(raw_issues: list[dict]) -> list[dict]:
 
         title_key = normalize_title_key(issue["title"])
         title_cluster = title_clusters.get(title_key, {})
+        canonical_issue = choose_canonical_issue(title_cluster, issue["number"])
         combined_for_review = " ".join([issue["title"], body, comments_text])
         realness, realness_evidence = classify_realness(issue, labels, combined_for_review, title_cluster)
         resolution_layer, resolution_evidence = classify_resolution_layer(
@@ -521,6 +635,25 @@ def build_rows(raw_issues: list[dict]) -> list[dict]:
             title_cluster,
         )
         mobile_impact = extract_mobile_impact(combined_for_review, resolution_layer)
+        ai_validity_verdict, ai_validity_confidence, ai_validity_analysis = derive_ai_validity(
+            issue,
+            realness,
+            realness_evidence,
+            resolution_layer,
+            title_cluster,
+        )
+        recommended_test_type, recommended_test_implementation = recommend_test_implementation(
+            issue_number=issue["number"],
+            ai_validity_verdict=ai_validity_verdict,
+            resolution_layer=resolution_layer,
+            component_hint=component_hint,
+            cvt_mocks=shorten(mocks, 220),
+            cvt_steps=steps_snippet,
+            cvt_assertions=shorten(assertion, 180),
+            needs_e2e=needs_e2e,
+            canonical_issue=canonical_issue,
+            title_cluster=title_cluster,
+        )
 
         metadata_gaps = []
         if not teams:
@@ -541,15 +674,21 @@ def build_rows(raw_issues: list[dict]) -> list[dict]:
             "problem_summary": summary,
             "real_bug_assessment": realness,
             "real_bug_evidence": shorten(realness_evidence, 220),
+            "ai_validity_verdict": ai_validity_verdict,
+            "ai_validity_confidence": ai_validity_confidence,
+            "ai_validity_analysis": shorten(ai_validity_analysis, 280),
             "mobile_impact": mobile_impact,
             "resolution_layer": resolution_layer,
             "resolution_evidence": shorten(resolution_evidence, 220),
+            "canonical_issue": canonical_issue,
             "component_candidate": component_hint,
             "cvt_preconditions_mocks": shorten(mocks, 320),
             "cvt_steps": steps_snippet,
             "cvt_assertions": shorten(assertion, 220),
             "primary_test_type": primary_test,
             "e2e_fallback": shorten(e2e_fallback, 240),
+            "recommended_test_type": recommended_test_type,
+            "recommended_test_implementation": recommended_test_implementation,
             "metadata_gaps": ", ".join(metadata_gaps) if metadata_gaps else "",
         }
         rows.append(row)
@@ -572,7 +711,9 @@ def write_markdown(rows: list[dict], generated_at: dt.datetime) -> None:
 
     sev_counter = Counter(row["severity_top"] for row in rows)
     realness_counter = Counter(row["real_bug_assessment"] for row in rows)
+    ai_verdict_counter = Counter(row["ai_validity_verdict"] for row in rows)
     resolution_counter = Counter(row["resolution_layer"] for row in rows)
+    test_type_counter = Counter(row["recommended_test_type"] for row in rows)
     team_counter = Counter()
     for row in rows:
         for team in [t.strip() for t in row["team_labels"].split(",") if t.strip() and t.strip() != "Unlabeled"]:
@@ -609,6 +750,18 @@ def write_markdown(rows: list[dict], generated_at: dt.datetime) -> None:
     header.extend(
         [
             "",
+            "## AI validity verdict (final per issue)",
+            "",
+            "| Verdict | Count |",
+            "|---|---:|",
+        ]
+    )
+    for verdict, count in ai_verdict_counter.most_common():
+        header.append(f"| {verdict} | {count} |")
+
+    header.extend(
+        [
+            "",
             "## Resolution layer assessment",
             "",
             "| Resolution layer | Count |",
@@ -617,6 +770,18 @@ def write_markdown(rows: list[dict], generated_at: dt.datetime) -> None:
     )
     for layer, count in resolution_counter.most_common():
         header.append(f"| {layer} | {count} |")
+
+    header.extend(
+        [
+            "",
+            "## Recommended test implementation distribution",
+            "",
+            "| Test implementation | Count |",
+            "|---|---:|",
+        ]
+    )
+    for test_impl, count in test_type_counter.most_common():
+        header.append(f"| {test_impl} | {count} |")
 
     header.extend(
         [
@@ -639,9 +804,15 @@ def write_markdown(rows: list[dict], generated_at: dt.datetime) -> None:
         "Severity labels",
         "Real bug assessment",
         "Real bug evidence",
+        "AI validity verdict",
+        "AI confidence",
+        "AI analysis",
         "Applies to mobile",
         "Resolution layer",
         "Resolution evidence",
+        "Canonical issue for test",
+        "Recommended test implementation",
+        "Recommended implementation details",
         "Problem summary",
         "Primary test type",
         "Component candidate",
@@ -670,9 +841,15 @@ def write_markdown(rows: list[dict], generated_at: dt.datetime) -> None:
             row["severity_labels"],
             row["real_bug_assessment"],
             row["real_bug_evidence"],
+            row["ai_validity_verdict"],
+            row["ai_validity_confidence"],
+            row["ai_validity_analysis"],
             row["mobile_impact"],
             row["resolution_layer"],
             row["resolution_evidence"],
+            row["canonical_issue"],
+            row["recommended_test_type"],
+            row["recommended_test_implementation"],
             row["problem_summary"],
             row["primary_test_type"],
             row["component_candidate"],
@@ -704,9 +881,15 @@ def write_excel(rows: list[dict], generated_at: dt.datetime) -> None:
         "Severity labels",
         "Real bug assessment",
         "Real bug evidence",
+        "AI validity verdict",
+        "AI confidence",
+        "AI analysis",
         "Applies to mobile",
         "Resolution layer",
         "Resolution evidence",
+        "Canonical issue for test",
+        "Recommended test implementation",
+        "Recommended implementation details",
         "Problem summary",
         "Primary test type",
         "Component candidate",
@@ -730,9 +913,15 @@ def write_excel(rows: list[dict], generated_at: dt.datetime) -> None:
                 row["severity_labels"],
                 row["real_bug_assessment"],
                 row["real_bug_evidence"],
+                row["ai_validity_verdict"],
+                row["ai_validity_confidence"],
+                row["ai_validity_analysis"],
                 row["mobile_impact"],
                 row["resolution_layer"],
                 row["resolution_evidence"],
+                row["canonical_issue"],
+                row["recommended_test_type"],
+                row["recommended_test_implementation"],
                 row["problem_summary"],
                 row["primary_test_type"],
                 row["component_candidate"],
@@ -765,17 +954,23 @@ def write_excel(rows: list[dict], generated_at: dt.datetime) -> None:
         "G": 20,
         "H": 30,
         "I": 40,
-        "J": 16,
-        "K": 26,
-        "L": 42,
-        "M": 48,
-        "N": 36,
-        "O": 38,
-        "P": 54,
-        "Q": 44,
-        "R": 44,
-        "S": 44,
-        "T": 22,
+        "J": 24,
+        "K": 12,
+        "L": 46,
+        "M": 16,
+        "N": 26,
+        "O": 42,
+        "P": 14,
+        "Q": 34,
+        "R": 56,
+        "S": 50,
+        "T": 36,
+        "U": 38,
+        "V": 54,
+        "W": 44,
+        "X": 44,
+        "Y": 44,
+        "Z": 22,
     }
     for col, width in widths.items():
         ws.column_dimensions[col].width = width
@@ -783,7 +978,9 @@ def write_excel(rows: list[dict], generated_at: dt.datetime) -> None:
 
     sev_counter = Counter(row["severity_top"] for row in rows)
     realness_counter = Counter(row["real_bug_assessment"] for row in rows)
+    ai_verdict_counter = Counter(row["ai_validity_verdict"] for row in rows)
     resolution_counter = Counter(row["resolution_layer"] for row in rows)
+    test_type_counter = Counter(row["recommended_test_type"] for row in rows)
     team_counter = Counter()
     for row in rows:
         for team in [t.strip() for t in row["team_labels"].split(",") if t.strip() and t.strip() != "Unlabeled"]:
@@ -807,16 +1004,38 @@ def write_excel(rows: list[dict], generated_at: dt.datetime) -> None:
         summary.append([assessment, count])
     summary.append([])
 
+    summary.append(["AI validity verdict", "Count"])
+    for verdict, count in ai_verdict_counter.most_common():
+        summary.append([verdict, count])
+    summary.append([])
+
     summary.append(["Resolution layer", "Count"])
     for layer, count in resolution_counter.most_common():
         summary.append([layer, count])
+    summary.append([])
+
+    summary.append(["Recommended test implementation", "Count"])
+    for test_impl, count in test_type_counter.most_common():
+        summary.append([test_impl, count])
     summary.append([])
 
     summary.append(["Team label", "Count"])
     for team, count in team_counter.most_common(20):
         summary.append([team, count])
 
-    header_rows = [7, 7 + len(sev_counter) + 2, 7 + len(sev_counter) + 2 + len(realness_counter) + 2, 7 + len(sev_counter) + 2 + len(realness_counter) + 2 + len(resolution_counter) + 2]
+    header_rows = []
+    row_idx = 7
+    header_rows.append(row_idx)
+    row_idx += len(sev_counter) + 2
+    header_rows.append(row_idx)
+    row_idx += len(realness_counter) + 2
+    header_rows.append(row_idx)
+    row_idx += len(ai_verdict_counter) + 2
+    header_rows.append(row_idx)
+    row_idx += len(resolution_counter) + 2
+    header_rows.append(row_idx)
+    row_idx += len(test_type_counter) + 2
+    header_rows.append(row_idx)
     for row_idx in header_rows:
         for cell in summary[row_idx]:
             cell.fill = header_fill
