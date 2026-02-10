@@ -21,7 +21,7 @@ const ActivityHeader = ({ asset }: ActivityHeaderProps) => {
       <Text style={styles.title} variant={TextVariant.HeadingMD}>
         {symbol
           ? strings('asset_overview.activity', { symbol })
-          : strings('navigation.transaction_activity')}
+          : strings('drawer.transaction_activity')}
       </Text>
     </View>
   );

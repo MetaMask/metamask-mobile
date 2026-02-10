@@ -2,26 +2,28 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import ActivityHeader from './ActivityHeader';
 
-jest.mock('../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string, params?: { symbol?: string }) => {
-    if (key === 'asset_overview.activity' && params?.symbol) {
-      return `${params.symbol} activity`;
-    }
-    if (key === 'navigation.transaction_activity') {
-      return 'Activity';
-    }
-    return key;
-  }),
-}));
-
-jest.mock('../../../component-library/hooks', () => ({
-  useStyles: () => ({
-    styles: {
-      wrapper: {},
-      title: {},
+// Mock i18n strings function using actual translations from en.json.
+// This is required because the react-native-i18n mock doesn't configure translations.
+jest.mock('../../../../locales/i18n', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const en = require('../../../../locales/languages/en.json');
+  return {
+    strings: (key: string, params?: Record<string, string>) => {
+      const keys = key.split('.');
+      let value: string | Record<string, unknown> = en;
+      for (const k of keys) {
+        value = (value as Record<string, unknown>)[k] as
+          | string
+          | Record<string, unknown>;
+        if (value === undefined) return key;
+      }
+      if (typeof value === 'string' && params) {
+        return value.replace(/\{\{(\w+)\}\}/g, (_, p) => params[p] ?? '');
+      }
+      return value as string;
     },
-  }),
-}));
+  };
+});
 
 describe('ActivityHeader', () => {
   const createMockAsset = (overrides = {}) => ({
