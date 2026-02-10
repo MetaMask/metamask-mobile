@@ -31,6 +31,7 @@ import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentSelectionModal';
 import { createCheckoutNavDetails } from '../Checkout';
 import { isNativeProvider } from '../../types';
+import { createDepositNavigationDetails } from '../../Deposit/routes/utils';
 import Logger from '../../../../../util/Logger';
 
 interface BuildQuoteParams {
@@ -163,7 +164,12 @@ function BuildQuote() {
 
     // Native/whitelabel provider (e.g. Transak Native) -> deposit flow
     if (isNativeProvider(selectedQuote)) {
-      navigation.navigate(Routes.DEPOSIT.ROOT);
+      navigation.navigate(
+        ...createDepositNavigationDetails({
+          amount: String(amountAsNumber),
+          shouldRouteImmediately: true,
+        }),
+      );
       return;
     }
 
@@ -188,7 +194,13 @@ function BuildQuote() {
       );
       // TODO: Show user-facing error (alert or inline)
     }
-  }, [selectedQuote, selectedProvider, navigation, getWidgetUrl]);
+  }, [
+    selectedQuote,
+    selectedProvider,
+    navigation,
+    getWidgetUrl,
+    amountAsNumber,
+  ]);
 
   const hasAmount = amountAsNumber > 0;
 

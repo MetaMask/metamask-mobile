@@ -30,7 +30,17 @@ const MainRoutes = () => (
       component={TokenSelection}
     />
     <Stack.Screen name={Routes.RAMP.AMOUNT_INPUT} component={BuildQuote} />
-    <Stack.Screen name={Routes.RAMP.CHECKOUT} component={Checkout} />
+    <Stack.Screen
+      name={Routes.RAMP.CHECKOUT}
+      component={Checkout}
+      options={{
+        headerShown: false,
+        cardStyle: { backgroundColor: 'transparent' },
+        animationEnabled: false,
+        gestureEnabled: false,
+        detachPreviousScreen: false,
+      }}
+    />
   </Stack.Navigator>
 );
 

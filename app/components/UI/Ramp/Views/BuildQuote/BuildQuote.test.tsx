@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, act } from '@testing-library/react-native';
 import BuildQuote from './BuildQuote';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import type { RampsToken } from '../../hooks/useRampTokens';
@@ -465,10 +465,16 @@ describe('BuildQuote', () => {
 
       const continueButton = getByTestId('build-quote-continue-button');
 
+      mockGetWidgetUrl.mockResolvedValue(
+        'https://global.transak.com/?apiKey=test',
+      );
+
       await act(async () => {
         fireEvent.press(continueButton);
-        // Wait for async getWidgetUrl to complete
-        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      await act(async () => {
+        await Promise.resolve();
       });
 
       expect(mockNavigate).toHaveBeenCalledWith('Checkout', {
@@ -506,11 +512,18 @@ describe('BuildQuote', () => {
       const continueButton = getByTestId('build-quote-continue-button');
       fireEvent.press(continueButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith('DepositRoot');
+      expect(mockNavigate).toHaveBeenCalledWith('Deposit', {
+        screen: 'DepositRoot',
+        params: {
+          amount: '100',
+          shouldRouteImmediately: true,
+        },
+      });
     });
 
-    it('logs error when aggregator provider has no URL', () => {
+    it('logs error when aggregator provider has no URL', async () => {
       const mockLogger = jest.spyOn(Logger, 'error');
+      mockGetWidgetUrl.mockResolvedValue(null);
 
       mockSelectedQuote = {
         provider: '/providers/mercuryo',
@@ -538,7 +551,14 @@ describe('BuildQuote', () => {
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
       const continueButton = getByTestId('build-quote-continue-button');
-      fireEvent.press(continueButton);
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
 
       expect(mockLogger).toHaveBeenCalledWith(
         expect.any(Error),

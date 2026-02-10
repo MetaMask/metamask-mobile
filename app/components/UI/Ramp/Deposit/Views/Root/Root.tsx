@@ -64,13 +64,31 @@ const Root = () => {
       } else {
         navigation.reset({
           index: 0,
-          routes: [{ name: initialRoute, params: { animationEnabled: false } }],
+          routes: [
+            {
+              name: initialRoute,
+              params: {
+                animationEnabled: false,
+                ...(params?.shouldRouteImmediately && {
+                  shouldRouteImmediately: true,
+                }),
+                ...(params?.amount && { amount: params.amount }),
+              },
+            },
+          ],
         });
       }
     };
 
     initializeFlow();
-  }, [checkExistingToken, orders, navigation, initialRoute]);
+  }, [
+    checkExistingToken,
+    orders,
+    navigation,
+    initialRoute,
+    params?.shouldRouteImmediately,
+    params?.amount,
+  ]);
 
   return null;
 };
