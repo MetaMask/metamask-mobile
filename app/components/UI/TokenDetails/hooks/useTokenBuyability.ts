@@ -48,17 +48,21 @@ export const useTokenBuyability = (token: TokenI): UseTokenBuyabilityResult => {
     useRampsTokens();
 
   const isLoading = isV2Enabled ? controllerLoading : legacyLoading;
+  const v2Tokens = controllerTokens?.allTokens;
 
   const isBuyable = useMemo(() => {
     if (isV2Enabled) {
-      // V2: exact match against controller tokens, same as setSelectedToken
-      const v2Tokens = controllerTokens?.allTokens;
+      // V2: case-insensitive match against controller tokens
       if (!v2Tokens) return false;
 
       const assetId = buildRampAssetId(token);
       if (!assetId) return false;
 
-      const matchingToken = v2Tokens.find((tok) => tok.assetId === assetId);
+      // Controller stores assetIds in lowercase; parseRampIntent checksums them
+      const lowerAssetId = assetId.toLowerCase();
+      const matchingToken = v2Tokens.find(
+        (tok) => tok.assetId?.toLowerCase() === lowerAssetId,
+      );
       return (matchingToken as RampsToken | undefined)?.tokenSupported ?? false;
     }
 
@@ -86,7 +90,7 @@ export const useTokenBuyability = (token: TokenI): UseTokenBuyabilityResult => {
       return assetId && toLowerCaseEquals(rampsToken.assetId, assetId);
     });
     return matchingToken?.tokenSupported ?? false;
-  }, [isV2Enabled, controllerTokens, legacyAllTokens, token]);
+  }, [isV2Enabled, v2Tokens, legacyAllTokens, token]);
 
   return { isBuyable, isLoading };
 };

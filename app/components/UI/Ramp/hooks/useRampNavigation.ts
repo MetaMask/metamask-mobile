@@ -38,7 +38,23 @@ export const useRampNavigation = () => {
   const isRampsUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   const isRampsUnifiedV2Enabled = useRampsUnifiedV2Enabled();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
-  const { setSelectedToken } = useRampsTokens();
+  const { setSelectedToken, tokens: rampsTokens } = useRampsTokens();
+
+  /**
+   * Resolves an assetId to the controller's canonical (lowercase) format.
+   * The controller stores assetIds in lowercase, but callers may pass checksummed.
+   */
+  const resolveControllerAssetId = useCallback(
+    (assetId: string): string => {
+      const allTokens = rampsTokens?.allTokens ?? [];
+      const lower = assetId.toLowerCase();
+      const match = allTokens.find(
+        (tok) => tok.assetId?.toLowerCase() === lower,
+      );
+      return match?.assetId ?? assetId;
+    },
+    [rampsTokens],
+  );
 
   const goToBuy = useCallback(
     (
@@ -76,14 +92,16 @@ export const useRampNavigation = () => {
         intent?.assetId &&
         !overrideUnifiedRouting
       ) {
+        // Resolve to the controller's canonical assetId format (lowercase)
+        const controllerAssetId = resolveControllerAssetId(intent.assetId);
         try {
-          setSelectedToken(intent.assetId);
+          setSelectedToken(controllerAssetId);
         } catch {
           // Token may not be in controller's list yet (still loading).
           // Navigate anyway — BuildQuote will handle the missing token.
         }
         navigation.navigate(
-          ...createBuildQuoteNavDetails({ assetId: intent.assetId }),
+          ...createBuildQuoteNavDetails({ assetId: controllerAssetId }),
         );
         return;
       }
@@ -124,6 +142,7 @@ export const useRampNavigation = () => {
     },
     [
       setSelectedToken,
+      resolveControllerAssetId,
       navigation,
       isRampsUnifiedV1Enabled,
       isRampsUnifiedV2Enabled,

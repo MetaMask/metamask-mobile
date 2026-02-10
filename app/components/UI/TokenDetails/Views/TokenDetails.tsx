@@ -186,7 +186,7 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
     ? isNetworkRampNativeTokenSupported(chainIdForRamp, rampNetworks)
     : isNetworkRampSupported(chainIdForRamp, rampNetworks);
 
-  const { isBuyable } = useTokenBuyability(token);
+  const { isBuyable, isLoading: isBuyableLoading } = useTokenBuyability(token);
   const displayBuyButton = isRampAvailable && isBuyable;
 
   const renderHeader = () => (
@@ -282,14 +282,15 @@ const TokenDetails: React.FC<{ token: TokenI }> = ({ token }) => {
             paddingBottom: insets.bottom + 6,
           }}
           buttonPropsArray={[
-            // Only show Buy button if token is available in ramps
-            ...(displayBuyButton
+            // Show Buy button: disabled while tokens load, enabled when buyable
+            ...(displayBuyButton || (isRampAvailable && isBuyableLoading)
               ? [
                   {
                     variant: ButtonVariants.Primary,
                     label: strings('asset_overview.buy_button'),
                     size: ButtonSize.Lg,
                     onPress: handleBuyPress,
+                    isDisabled: isBuyableLoading,
                   },
                 ]
               : []),

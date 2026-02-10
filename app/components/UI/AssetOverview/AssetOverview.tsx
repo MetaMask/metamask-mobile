@@ -14,7 +14,6 @@ import {
   CaipAssetType,
   CaipChainId,
   isCaipAssetType,
-  isCaipChainId,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/utils';
 import I18n, { strings } from '../../../../locales/i18n';
@@ -130,11 +129,7 @@ import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
 import { BridgeToken } from '../Bridge/types';
-import { useRampTokens } from '../Ramp/hooks/useRampTokens';
-import { toAssetId } from '../Bridge/hooks/useAssetMetadata/utils';
-import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
-import { parseCAIP19AssetId } from '../Ramp/Aggregator/utils/parseCaip19AssetId';
-import { toLowerCaseEquals } from '../../../util/general';
+import { useTokenBuyability } from '../TokenDetails/hooks/useTokenBuyability';
 
 /**
  * Determines the source and destination tokens for swap/bridge navigation.
@@ -746,35 +741,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       ? `${balance} ${asset.isETH ? asset.ticker : asset.symbol}`
       : undefined;
 
-  const { allTokens } = useRampTokens();
-
-  const isAssetBuyable = useMemo(() => {
-    if (!allTokens) return false;
-
-    const chainIdInCaip = isCaipChainId(asset.chainId)
-      ? asset.chainId
-      : toEvmCaipChainId(asset.chainId as Hex);
-    const assetId = toAssetId(asset.address, chainIdInCaip);
-
-    const matchingToken = allTokens.find((token) => {
-      if (!token.assetId) return false;
-
-      const parsedTokenAssetId = parseCAIP19AssetId(token.assetId);
-      if (!parsedTokenAssetId) return false;
-
-      // For native assets, match by chainId and slip44 namespace
-      if (asset.isNative) {
-        return (
-          token.chainId === chainIdInCaip &&
-          parsedTokenAssetId.assetNamespace === 'slip44'
-        );
-      }
-
-      // For ERC20 tokens, match by assetId
-      return assetId && toLowerCaseEquals(token.assetId, assetId);
-    });
-    return matchingToken?.tokenSupported ?? false;
-  }, [allTokens, asset.isNative, asset.chainId, asset.address]);
+  const { isBuyable: isAssetBuyable } = useTokenBuyability(asset as TokenI);
 
   return (
     <View style={styles.wrapper} testID={TokenOverviewSelectorsIDs.CONTAINER}>
