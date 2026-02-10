@@ -24,7 +24,10 @@ import type {
   SubscribeAccountParams,
 } from './types';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
-import { createMockHyperLiquidProvider } from '../__mocks__/providerMocks';
+import {
+  createMockHyperLiquidProvider,
+  createMockPosition,
+} from '../__mocks__/providerMocks';
 import {
   createMockInfrastructure,
   createMockMessenger,
@@ -32,6 +35,17 @@ import {
 import Engine from '../../../../core/Engine';
 
 jest.mock('./providers/HyperLiquidProvider');
+jest.mock('./providers/MYXProvider');
+
+// Mock feature flag resolver for MYX provider tests
+const mockResolvePerpsMyxProviderEnabled = jest.fn(
+  (_remoteFeatureFlags?: Record<string, unknown>) => false,
+);
+jest.mock('../selectors/featureFlags', () => ({
+  resolvePerpsMyxProviderEnabled: (
+    remoteFeatureFlags?: Record<string, unknown>,
+  ) => mockResolvePerpsMyxProviderEnabled(remoteFeatureFlags),
+}));
 
 // Mock transaction controller utility
 const mockAddTransaction = jest.fn();
@@ -3746,6 +3760,200 @@ describe('PerpsController', () => {
     });
   });
 
+  describe('readOnly mode', () => {
+    const mockUserAddress = '0xabcdef1234567890abcdef1234567890abcdef12';
+    const MockedHyperLiquidProvider = HyperLiquidProvider as jest.MockedClass<
+      typeof HyperLiquidProvider
+    >;
+
+    beforeEach(() => {
+      // Reset mocks before each test
+      MockedHyperLiquidProvider.mockClear();
+    });
+
+    describe('getPositions with readOnly mode', () => {
+      it('uses existing provider for readOnly queries when available', async () => {
+        // Arrange - set up mock provider with properly typed positions
+        const mockPositions = [
+          createMockPosition({ symbol: 'BTC', size: '0.5' }),
+        ];
+        const existingMockProvider = createMockHyperLiquidProvider();
+        existingMockProvider.getPositions.mockResolvedValue(mockPositions);
+        controller.testSetProviders(
+          new Map([['hyperliquid', existingMockProvider]]),
+        );
+        controller.testMarkInitialized();
+        controller.testUpdate((state) => {
+          state.activeProvider = 'hyperliquid';
+        });
+
+        // Act
+        const positions = await controller.getPositions({
+          readOnly: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert - should use existing provider
+        expect(existingMockProvider.getPositions).toHaveBeenCalledWith({
+          readOnly: true,
+          userAddress: mockUserAddress,
+        });
+        expect(positions).toEqual(mockPositions);
+        // Should NOT create a new HyperLiquidProvider instance
+        expect(MockedHyperLiquidProvider).not.toHaveBeenCalled();
+      });
+
+      it('creates temporary provider for readOnly queries when no activeProviderInstance', async () => {
+        // Arrange - no activeProviderInstance set (pre-initialization)
+        const mockPositions = [
+          createMockPosition({ symbol: 'ETH', size: '2.0' }),
+        ];
+        const tempMockProvider = createMockHyperLiquidProvider();
+        tempMockProvider.getPositions.mockResolvedValue(mockPositions);
+        MockedHyperLiquidProvider.mockImplementation(() => tempMockProvider);
+
+        controller.testUpdate((state) => {
+          state.activeProvider = 'aggregated';
+          state.isTestnet = false;
+        });
+
+        // Act
+        const positions = await controller.getPositions({
+          readOnly: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert - should create a temporary provider for pre-init discovery
+        expect(MockedHyperLiquidProvider).toHaveBeenCalledWith(
+          expect.objectContaining({
+            isTestnet: false,
+          }),
+        );
+        expect(positions).toEqual(mockPositions);
+      });
+
+      it('bypasses getActiveProvider check for readOnly queries', async () => {
+        // Arrange - controller not initialized (no provider available via normal path)
+        const mockPositions = [
+          createMockPosition({ symbol: 'BTC', size: '1.0' }),
+        ];
+        const tempMockProvider = createMockHyperLiquidProvider();
+        tempMockProvider.getPositions.mockResolvedValue(mockPositions);
+        MockedHyperLiquidProvider.mockImplementation(() => tempMockProvider);
+
+        controller.testUpdate((state) => {
+          state.initializationState = InitializationState.Initializing;
+          state.activeProvider = 'aggregated';
+        });
+
+        // Act - should NOT throw despite controller not being initialized
+        const positions = await controller.getPositions({
+          readOnly: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert
+        expect(positions).toEqual(mockPositions);
+      });
+    });
+
+    describe('getAccountState with readOnly mode', () => {
+      // Complete AccountState mock with all required fields
+      const createMockAccountState = (overrides = {}) => ({
+        totalBalance: '50000',
+        availableBalance: '45000',
+        marginUsed: '5000',
+        unrealizedPnl: '1000',
+        returnOnEquity: '20',
+        ...overrides,
+      });
+
+      it('uses existing provider for readOnly queries when available', async () => {
+        // Arrange
+        const mockAccountState = createMockAccountState();
+        const existingMockProvider = createMockHyperLiquidProvider();
+        existingMockProvider.getAccountState.mockResolvedValue(
+          mockAccountState,
+        );
+        controller.testSetProviders(
+          new Map([['hyperliquid', existingMockProvider]]),
+        );
+        controller.testMarkInitialized();
+        controller.testUpdate((state) => {
+          state.activeProvider = 'hyperliquid';
+        });
+
+        // Act
+        const accountState = await controller.getAccountState({
+          readOnly: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert - should use existing provider
+        expect(existingMockProvider.getAccountState).toHaveBeenCalledWith({
+          readOnly: true,
+          userAddress: mockUserAddress,
+        });
+        expect(accountState).toEqual(mockAccountState);
+        expect(MockedHyperLiquidProvider).not.toHaveBeenCalled();
+      });
+
+      it('creates temporary provider for readOnly queries when no activeProviderInstance', async () => {
+        // Arrange - no activeProviderInstance set (pre-initialization)
+        const mockAccountState = createMockAccountState({
+          totalBalance: '25000',
+          availableBalance: '20000',
+        });
+        const tempMockProvider = createMockHyperLiquidProvider();
+        tempMockProvider.getAccountState.mockResolvedValue(mockAccountState);
+        MockedHyperLiquidProvider.mockImplementation(() => tempMockProvider);
+
+        controller.testUpdate((state) => {
+          state.activeProvider = 'aggregated';
+          state.isTestnet = true;
+        });
+
+        // Act
+        const accountState = await controller.getAccountState({
+          readOnly: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert - should create a temporary provider for pre-init discovery
+        expect(MockedHyperLiquidProvider).toHaveBeenCalledWith(
+          expect.objectContaining({
+            isTestnet: true,
+          }),
+        );
+        expect(accountState).toEqual(mockAccountState);
+      });
+
+      it('bypasses getActiveProvider check for readOnly queries', async () => {
+        // Arrange - controller not initialized (no provider available via normal path)
+        const mockAccountState = createMockAccountState({
+          totalBalance: '10000',
+        });
+        const tempMockProvider = createMockHyperLiquidProvider();
+        tempMockProvider.getAccountState.mockResolvedValue(mockAccountState);
+        MockedHyperLiquidProvider.mockImplementation(() => tempMockProvider);
+
+        controller.testUpdate((state) => {
+          state.initializationState = InitializationState.Initializing;
+          state.activeProvider = 'aggregated';
+        });
+
+        // Act - should NOT throw despite controller not being initialized
+        const accountState = await controller.getAccountState({
+          readOnly: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert
+        expect(accountState).toEqual(mockAccountState);
+      });
+    });
+  });
+
   describe('setSelectedPaymentToken', () => {
     it('sets selectedPaymentToken to null when passed null', () => {
       controller.testUpdate((state) => {
@@ -3803,6 +4011,168 @@ describe('PerpsController', () => {
       controller.resetSelectedPaymentToken();
 
       expect(controller.state.selectedPaymentToken).toBeNull();
+    });
+  });
+
+  describe('switchProvider', () => {
+    it('returns success without re-init when switching to same provider', async () => {
+      await controller.init();
+
+      const result = await controller.switchProvider('hyperliquid');
+
+      expect(result.success).toBe(true);
+      expect(result.providerId).toBe('hyperliquid');
+    });
+
+    it('returns error when already reinitializing', async () => {
+      await controller.init();
+
+      // Register myx in providers map so it passes the isValidProvider check
+      const mockMYXProvider = {
+        ...createMockHyperLiquidProvider(),
+        protocolId: 'myx',
+      };
+      const providers = controller.testGetProviders();
+      providers.set('myx', mockMYXProvider as any);
+      controller.testSetProviders(providers);
+
+      (controller as any).isReinitializing = true;
+
+      const result = await controller.switchProvider('myx');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe(PERPS_ERROR_CODES.CLIENT_REINITIALIZING);
+    });
+
+    it('returns error for invalid provider not in providers map', async () => {
+      await controller.init();
+
+      const result = await controller.switchProvider('myx');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Provider myx not available');
+    });
+
+    it('allows aggregated even without explicit map entry', async () => {
+      await controller.init();
+
+      // 'aggregated' is always valid according to the validation logic
+      const result = await controller.switchProvider('aggregated');
+
+      // The key assertion is that it didn't return "not available" error
+      // aggregated proceeds to the init path and succeeds
+      expect(result.success).toBe(true);
+    });
+
+    it('switches to myx provider successfully', async () => {
+      // Enable MYX feature flag so init() creates the MYX provider
+      mockResolvePerpsMyxProviderEnabled.mockReturnValue(true);
+
+      await controller.init();
+
+      // Register a mock MYX provider
+      const mockMYXProvider = {
+        ...createMockHyperLiquidProvider(),
+        protocolId: 'myx',
+      };
+      const providers = controller.testGetProviders();
+      providers.set('myx', mockMYXProvider as any);
+      controller.testSetProviders(providers);
+
+      const result = await controller.switchProvider('myx');
+
+      expect(result.success).toBe(true);
+      expect(result.providerId).toBe('myx');
+      expect(controller.state.activeProvider).toBe('myx');
+
+      // Restore default
+      mockResolvePerpsMyxProviderEnabled.mockReturnValue(false);
+    });
+
+    it('rolls back to previous provider on init failure', async () => {
+      await controller.init();
+
+      // Register a mock MYX provider
+      const mockMYXProvider = {
+        ...createMockHyperLiquidProvider(),
+        protocolId: 'myx',
+      };
+      const providers = controller.testGetProviders();
+      providers.set('myx', mockMYXProvider as any);
+      controller.testSetProviders(providers);
+
+      // Make init set state to Failed so switchProvider detects failure
+      jest.spyOn(controller, 'init').mockImplementationOnce(async () => {
+        controller.testUpdate((state) => {
+          state.initializationState = InitializationState.Failed;
+          state.initializationError = 'MYX init failed';
+        });
+      });
+
+      const result = await controller.switchProvider('myx');
+
+      expect(result.success).toBe(false);
+      // Should roll back to previous provider
+      expect(controller.state.activeProvider).toBe('hyperliquid');
+
+      // Restore init for further tests
+      jest.restoreAllMocks();
+    });
+
+    it('clears isReinitializing flag after success', async () => {
+      await controller.init();
+
+      const mockMYXProvider = {
+        ...createMockHyperLiquidProvider(),
+        protocolId: 'myx',
+      };
+      const providers = controller.testGetProviders();
+      providers.set('myx', mockMYXProvider as any);
+      controller.testSetProviders(providers);
+
+      await controller.switchProvider('myx');
+
+      expect((controller as any).isReinitializing).toBe(false);
+    });
+
+    it('clears isReinitializing flag after failure', async () => {
+      await controller.init();
+
+      const mockMYXProvider = {
+        ...createMockHyperLiquidProvider(),
+        protocolId: 'myx',
+      };
+      const providers = controller.testGetProviders();
+      providers.set('myx', mockMYXProvider as any);
+      controller.testSetProviders(providers);
+
+      jest.spyOn(controller, 'init').mockImplementationOnce(async () => {
+        controller.testUpdate((state) => {
+          state.initializationState = InitializationState.Failed;
+          state.initializationError = 'fail';
+        });
+      });
+
+      await controller.switchProvider('myx');
+
+      expect((controller as any).isReinitializing).toBe(false);
+
+      jest.restoreAllMocks();
+    });
+  });
+
+  describe('init - MYX fallback', () => {
+    it('falls back to hyperliquid when activeProvider is myx but MYX feature flag is disabled', async () => {
+      // Set state to myx before init
+      controller.testUpdate((state) => {
+        state.activeProvider = 'myx';
+      });
+
+      // resolvePerpsMyxProviderEnabled is mocked to return false by default
+      await controller.init();
+
+      // The init path should detect MYX is not available and fall back
+      expect(controller.state.activeProvider).toBe('hyperliquid');
     });
   });
 });

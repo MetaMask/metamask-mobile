@@ -275,7 +275,26 @@ export const selectBridgeFeatureFlags = createSelector(
 );
 
 /**
- * Selector that returns the chainRanking from feature flags filtered by user-configured networks.
+ * Checks whether a CAIP chain ID from chainRanking is supported by this version of the client.
+ * This ensures that chains added to the remote chainRanking flag in the future
+ * won't be surfaced by older app versions that lack support for them.
+ */
+const isAllowedBridgeChainId = (caipChainId: string): boolean => {
+  if (caipChainId.startsWith('eip155:')) {
+    const hexChainId = formatChainIdToHex(caipChainId);
+    return ALLOWED_BRIDGE_CHAIN_IDS.includes(
+      hexChainId as AllowedBridgeChainIds,
+    );
+  }
+  return ALLOWED_BRIDGE_CHAIN_IDS.includes(
+    caipChainId as AllowedBridgeChainIds,
+  );
+};
+
+/**
+ * Selector that returns the chainRanking from feature flags filtered by:
+ * 1. Chains supported by this version of the client
+ * 2. User-configured networks
  * Used by NetworkPills in SOURCE mode to show all networks the user has added.
  */
 export const selectSourceChainRanking = createSelector(
@@ -293,6 +312,11 @@ export const selectSourceChainRanking = createSelector(
     return chainRanking.filter((chain) => {
       const { chainId } = chain;
 
+      // First, ensure this chain is supported by the current client version
+      if (!isAllowedBridgeChainId(chainId)) {
+        return false;
+      }
+
       // For EVM chains (eip155:*), extract the hex chain ID and check if enabled
       if (chainId.startsWith('eip155:')) {
         const hexChainId = formatChainIdToHex(chainId);
@@ -306,14 +330,17 @@ export const selectSourceChainRanking = createSelector(
 );
 
 /**
- * Selector that returns all chains from chainRanking (all bridge-supported networks).
+ * Selector that returns all chains from chainRanking that are supported by this
+ * version of the client.
  * Used by NetworkPills in DEST mode to show all available destination networks.
  */
 export const selectDestChainRanking = createSelector(
   selectBridgeFeatureFlags,
   (bridgeFeatureFlags) => {
     const { chainRanking } = bridgeFeatureFlags;
-    return chainRanking ?? [];
+    return (chainRanking ?? []).filter((chain) =>
+      isAllowedBridgeChainId(chain.chainId),
+    );
   },
 );
 
@@ -330,7 +357,8 @@ export const selectIsBridgeEnabledSourceFactory = createSelector(
     const caipChainId = formatChainIdToCaip(chainId);
 
     return bridgeFeatureFlags.chainRanking?.some(
-      (chain) => chain.chainId === caipChainId,
+      (chain) =>
+        chain.chainId === caipChainId && isAllowedBridgeChainId(chain.chainId),
     );
   },
 );
