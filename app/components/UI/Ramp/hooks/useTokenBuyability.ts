@@ -1,13 +1,10 @@
 import { useMemo } from 'react';
 import { Hex, isCaipChainId, isCaipAssetType } from '@metamask/utils';
 import { TokenI } from '../../Tokens/types';
-import { useRampTokens, RampsToken } from './useRampTokens';
+import { useRampTokens } from './useRampTokens';
 import { useRampsTokens } from './useRampsTokens';
 import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
-import { toAssetId } from '../../Bridge/hooks/useAssetMetadata/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
-import { parseCAIP19AssetId } from '../Aggregator/utils/parseCaip19AssetId';
-import { toLowerCaseEquals } from '../../../../util/general';
 import parseRampIntent from '../utils/parseRampIntent';
 import { getDecimalChainId } from '../../../../util/networks';
 
@@ -16,9 +13,39 @@ export interface UseTokenBuyabilityResult {
   isLoading: boolean;
 }
 
+interface RampTokenLike {
+  assetId?: string;
+  chainId?: string;
+  tokenSupported?: boolean;
+}
+
 /**
- * Constructs the assetId the same way useTokenActions.onBuy does,
- * which is the assetId that gets passed to setSelectedToken.
+ * Finds a matching ramp token from a list.
+ * Native tokens: matches by chainId + slip44 namespace.
+ * ERC20 tokens: matches by case-insensitive assetId.
+ */
+function findMatchingRampToken(
+  tokens: RampTokenLike[],
+  chainId: string,
+  assetId: string | undefined,
+  isNative: boolean,
+): RampTokenLike | undefined {
+  return tokens.find((tok) => {
+    if (!tok.assetId) return false;
+
+    if (isNative) {
+      return tok.chainId === chainId && tok.assetId.includes('/slip44:');
+    }
+
+    return assetId
+      ? tok.assetId.toLowerCase() === assetId.toLowerCase()
+      : false;
+  });
+}
+
+/**
+ * Builds the CAIP-19 assetId for a token, matching the format used by
+ * useTokenActions.onBuy when navigating to the ramp flow.
  */
 function buildRampAssetId(token: TokenI): string | undefined {
   try {
@@ -36,8 +63,7 @@ function buildRampAssetId(token: TokenI): string | undefined {
 
 /**
  * Hook that determines if a token can be bought via ramp services.
- * When unified V2 is enabled, checks only against the RampsController's token list
- * using the exact same assetId format and matching as setSelectedToken.
+ * When unified V2 is enabled, checks against the RampsController's token list.
  * When V2 is disabled, uses the legacy token cache API.
  */
 export const useTokenBuyability = (token: TokenI): UseTokenBuyabilityResult => {
@@ -48,66 +74,22 @@ export const useTokenBuyability = (token: TokenI): UseTokenBuyabilityResult => {
     useRampsTokens();
 
   const isLoading = isV2Enabled ? controllerLoading : legacyLoading;
-  const v2Tokens = controllerTokens?.allTokens;
 
   const isBuyable = useMemo(() => {
-    if (isV2Enabled) {
-      // V2: match against controller tokens
-      if (!v2Tokens) return false;
+    const tokens = isV2Enabled ? controllerTokens?.allTokens : legacyAllTokens;
 
-      const chainIdInCaip = isCaipChainId(token.chainId)
-        ? token.chainId
-        : toEvmCaipChainId(token.chainId as Hex);
+    if (!tokens) return false;
 
-      let matchingToken;
-
-      if (token.isNative) {
-        // Native tokens: parseRampIntent uses 'slip44:.' placeholder but
-        // the API returns the actual coin type (e.g. 'slip44:60').
-        // Match by chainId + slip44 namespace instead of exact assetId.
-        matchingToken = v2Tokens.find((tok) => {
-          if (tok.chainId !== chainIdInCaip || !tok.assetId) return false;
-          return tok.assetId.includes('/slip44:');
-        });
-      } else {
-        // ERC20 tokens: case-insensitive match (API returns lowercase,
-        // parseRampIntent returns checksummed)
-        const assetId = buildRampAssetId(token);
-        if (!assetId) return false;
-        const lowerAssetId = assetId.toLowerCase();
-        matchingToken = v2Tokens.find(
-          (tok) => tok.assetId?.toLowerCase() === lowerAssetId,
-        );
-      }
-
-      return (matchingToken as RampsToken | undefined)?.tokenSupported ?? false;
-    }
-
-    // V1 legacy: case-insensitive with native token handling
-    if (!legacyAllTokens) return false;
-
-    const chainIdInCaip = isCaipChainId(token.chainId)
+    const chainId = isCaipChainId(token.chainId)
       ? token.chainId
       : toEvmCaipChainId(token.chainId as Hex);
-    const assetId = toAssetId(token.address, chainIdInCaip);
 
-    const matchingToken = legacyAllTokens.find((rampsToken) => {
-      if (!rampsToken.assetId) return false;
+    const assetId = buildRampAssetId(token);
+    const isNative = token.isNative ?? false;
 
-      const parsedTokenAssetId = parseCAIP19AssetId(rampsToken.assetId);
-      if (!parsedTokenAssetId) return false;
-
-      if (token.isNative) {
-        return (
-          rampsToken.chainId === chainIdInCaip &&
-          parsedTokenAssetId.assetNamespace === 'slip44'
-        );
-      }
-
-      return assetId && toLowerCaseEquals(rampsToken.assetId, assetId);
-    });
-    return matchingToken?.tokenSupported ?? false;
-  }, [isV2Enabled, v2Tokens, legacyAllTokens, token]);
+    const match = findMatchingRampToken(tokens, chainId, assetId, isNative);
+    return match?.tokenSupported ?? false;
+  }, [isV2Enabled, controllerTokens, legacyAllTokens, token]);
 
   return { isBuyable, isLoading };
 };
