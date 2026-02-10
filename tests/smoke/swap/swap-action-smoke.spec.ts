@@ -1,14 +1,14 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { LocalNode, LocalNodeType } from '../../framework/types';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import { SmokeTrade } from '../../../e2e/tags';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import WalletView from '../../page-objects/wallet/WalletView';
+import { SmokeTrade } from '../../tags';
 import {
   submitSwapUnifiedUI,
   checkSwapActivity,
 } from '../../helpers/swap/swap-unified-ui';
-import { loginToApp } from '../../../e2e/viewHelper';
+import { loginToApp } from '../../flows/wallet.flow';
 import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { testSpecificMock } from '../../helpers/swap/swap-mocks';
