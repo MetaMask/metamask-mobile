@@ -90,10 +90,11 @@ describe('usePerpsActions', () => {
     // Assert
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.ORDER_REDIRECT,
-      params: {
+      params: expect.objectContaining({
         direction: 'long',
         asset: 'ETH',
-      },
+        source: 'asset_detail_screen',
+      }),
     });
   });
 
@@ -122,10 +123,11 @@ describe('usePerpsActions', () => {
     // Assert
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.ORDER_REDIRECT,
-      params: {
+      params: expect.objectContaining({
         direction: 'short',
         asset: 'BTC',
-      },
+        source: 'asset_detail_screen',
+      }),
     });
   });
 
