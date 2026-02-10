@@ -423,12 +423,9 @@ jest.mock('@react-native-cookies/cookies', () => 'RNCookies');
 jest.mock('react-native-reanimated', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const reanimatedMock = require('react-native-reanimated/mock');
-  return {
-    ...reanimatedMock,
-    // useFrameCallback which is not included in the default mock
-    useFrameCallback: jest.fn(),
-    setNativeProps: jest.fn(),
-  };
+  reanimatedMock.useFrameCallback = jest.fn();
+  reanimatedMock.setNativeProps = jest.fn();
+  return reanimatedMock;
 });
 
 NativeModules.RNGestureHandlerModule = {
