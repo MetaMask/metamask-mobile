@@ -13,6 +13,10 @@ describe('TokenDetailsInlineHeader', () => {
     onOptionsPress: mockOnOptionsPress,
   };
 
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('rendering', () => {
     it('renders title text', () => {
       const { getByText } = render(
