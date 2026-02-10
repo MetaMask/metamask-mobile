@@ -5,7 +5,10 @@ import PropTypes from 'prop-types';
 import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
-import { isHardwareSwapApproveOrSwapTransaction } from '../../../util/transactions';
+import {
+  getIsSwapApproveOrSwapTransaction,
+  isHardwareSwapApproveOrSwapTransaction,
+} from '../../../util/transactions';
 import Logger from '../../../util/Logger';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
@@ -33,36 +36,40 @@ import SnapDialogApproval from '../../Snaps/SnapDialogApproval/SnapDialogApprova
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import SnapAccountCustomNameApproval from '../../Approvals/SnapAccountCustomNameApproval';
-import { isHardwareBridgeTransaction } from '../../UI/Bridge/utils/transaction';
+import {
+  getIsBridgeTransaction,
+  isHardwareBridgeTransaction,
+} from '../../UI/Bridge/utils/transaction';
 ///: END:ONLY_INCLUDE_IF
 
 const RootRPCMethodsUI = (props) => {
   const { trackEvent, createEventBuilder } = useMetrics();
 
+  const watchSwapBridgeTransaction = useCallback((transactionMeta) => {
+    const { id: transactionId } = transactionMeta;
+    Engine.controllerMessenger.subscribeOnceIf(
+      'TransactionController:transactionFinished',
+      (transactionMeta) => {
+        try {
+          if (transactionMeta.status === 'submitted') {
+            NotificationManager.watchSubmittedTransaction({
+              ...transactionMeta,
+              assetType: transactionMeta.txParams.assetType,
+            });
+          } else {
+            throw transactionMeta.error;
+          }
+        } catch (error) {
+          console.error(error, 'error while trying to send transaction');
+        }
+      },
+      (transactionMeta) => transactionMeta.id === transactionId,
+    );
+  }, []);
+
   const autoSign = useCallback(
     async (transactionMeta) => {
-      const { id: transactionId } = transactionMeta;
-
       try {
-        Engine.controllerMessenger.subscribeOnceIf(
-          'TransactionController:transactionFinished',
-          (transactionMeta) => {
-            try {
-              if (transactionMeta.status === 'submitted') {
-                NotificationManager.watchSubmittedTransaction({
-                  ...transactionMeta,
-                  assetType: transactionMeta.txParams.assetType,
-                });
-              } else {
-                throw transactionMeta.error;
-              }
-            } catch (error) {
-              console.error(error, 'error while trying to send transaction');
-            }
-          },
-          (transactionMeta) => transactionMeta.id === transactionId,
-        );
-
         const isLedgerAccount = isHardwareAccount(
           transactionMeta.txParams.from,
           [ExtendedKeyringTypes.ledger],
@@ -136,6 +143,18 @@ const RootRPCMethodsUI = (props) => {
       const to = transactionMeta.txParams.to?.toLowerCase();
       const { data } = transactionMeta.txParams;
 
+      const isSwapTransaction = getIsSwapApproveOrSwapTransaction(
+        data,
+        transactionMeta.origin,
+        to,
+        transactionMeta.chainId,
+      );
+      const isBridgeTransaction = getIsBridgeTransaction(transactionMeta);
+
+      if (isSwapTransaction || isBridgeTransaction) {
+        watchSwapBridgeTransaction(transactionMeta);
+      }
+
       if (
         isHardwareSwapApproveOrSwapTransaction(
           data,
@@ -149,7 +168,7 @@ const RootRPCMethodsUI = (props) => {
         autoSign(transactionMeta);
       }
     },
-    [autoSign],
+    [autoSign, watchSwapBridgeTransaction],
   );
 
   // unapprovedTransaction effect
