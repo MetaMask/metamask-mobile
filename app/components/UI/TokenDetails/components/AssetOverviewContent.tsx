@@ -7,6 +7,7 @@ import {
   TextStyle,
   ViewStyle,
 } from 'react-native';
+import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { Theme } from '@metamask/design-tokens';
 import { strings } from '../../../../../locales/i18n';
@@ -179,6 +180,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
   useScrollToMerklRewards(merklRewardsYInHeaderRef);
 
+  // A/B test hook for layout selection (must be called before usePerpsActions to pass ab_tests)
+  const { useNewLayout, isTestActive, variantName } = useTokenDetailsABTest();
+
   const {
     hasPerpsMarket,
     marketData,
@@ -186,6 +190,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     handlePerpsAction,
   } = usePerpsActions({
     symbol: isPerpsEnabled ? token.symbol : null,
+    abTestTokenDetailsLayout: isTestActive ? variantName : undefined,
   });
 
   const isEligible = useSelector(selectPerpsEligibility);
@@ -237,9 +242,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     );
 
   const isTokenTrustworthy = isTokenTrustworthyForPerps(token);
-
-  // A/B test hook for layout selection
-  const { useNewLayout } = useTokenDetailsABTest();
 
   const goToBrowserUrl = (url: string) => {
     const [screen, params] = createWebviewNavDetails({

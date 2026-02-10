@@ -63,6 +63,14 @@ export interface BridgeState {
    * When false, changing source network will update dest to the default for that network.
    */
   isDestTokenManuallySet: boolean;
+  /**
+   * Analytics context set when navigating to bridge/swap from Token Details.
+   * Contains entry_point and ab_test variant for page-viewed event attribution.
+   */
+  abTestContext: {
+    entry_point?: string;
+    ab_test_token_details_layout?: string;
+  } | undefined;
 }
 
 export const initialState: BridgeState = {
@@ -82,6 +90,7 @@ export const initialState: BridgeState = {
   isGasIncludedSTXSendBundleSupported: false,
   isGasIncluded7702Supported: false,
   isDestTokenManuallySet: false,
+  abTestContext: undefined,
 };
 
 const name = 'bridge';
@@ -130,7 +139,9 @@ const slice = createSlice({
     ) => {
       state.selectedDestChainId = action.payload;
     },
-    resetBridgeState: () => initialState,
+    resetBridgeState: () => ({
+      ...initialState,
+    }),
     setSourceToken: (state, action: PayloadAction<BridgeToken | undefined>) => {
       state.sourceToken = action.payload;
     },
@@ -169,6 +180,9 @@ const slice = createSlice({
     },
     setIsGasIncluded7702Supported: (state, action: PayloadAction<boolean>) => {
       state.isGasIncluded7702Supported = action.payload;
+    },
+    setAbTestContext: (state, action: PayloadAction<BridgeState['abTestContext']>) => {
+      state.abTestContext = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -604,6 +618,11 @@ export const selectIsDestTokenManuallySet = createSelector(
   (bridgeState) => bridgeState.isDestTokenManuallySet,
 );
 
+export const selectAbTestContext = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.abTestContext,
+);
+
 export const selectIsGaslessSwapEnabled = createSelector(
   selectIsSwap,
   selectBridgeFeatureFlags,
@@ -681,4 +700,5 @@ export const {
   setIsSelectingToken,
   setIsGasIncludedSTXSendBundleSupported,
   setIsGasIncluded7702Supported,
+  setAbTestContext,
 } = actions;

@@ -170,10 +170,18 @@ interface OrderRouteParams {
   limitPriceUpdate?: string;
   // Hide TP/SL when modifying existing position
   hideTPSL?: boolean;
+  /** Analytics source - e.g. 'asset_detail_screen' when coming from Token Details */
+  source?: string;
+  /** A/B test variant for token details layout - e.g. 'control' or 'treatment' */
+  ab_test_token_details_layout?: string;
 }
 
 interface PerpsOrderViewContentProps {
   hideTPSL?: boolean;
+  /** Analytics source passed from navigation (e.g. 'asset_detail_screen') */
+  routeSource?: string;
+  /** A/B test variant for token details layout */
+  routeAbTestTokenDetailsLayout?: string;
 }
 
 /**
@@ -189,11 +197,14 @@ interface PerpsOrderViewContentProps {
  */
 const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   hideTPSL = false,
+  routeSource,
+  routeAbTestTokenDetailsLayout,
 }) => {
-  // Auto-detect source based on trending session state
-  const source = TrendingFeedSessionManager.getInstance().isFromTrending
-    ? 'trending'
-    : undefined;
+  // Use route source if provided (e.g. from Token Details), otherwise auto-detect from trending session
+  const source = routeSource
+    ?? (TrendingFeedSessionManager.getInstance().isFromTrending
+      ? 'trending'
+      : undefined);
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -378,19 +389,29 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   }, [isOrderTypeVisible, shouldOpenLimitPrice]);
 
   // Track trading screen viewed event using unified declarative API (main's event name)
+  const perpsScreenViewedProps = {
+    [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
+    [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+    [PERPS_EVENT_PROPERTY.DIRECTION]:
+      orderForm.direction === 'long'
+        ? PERPS_EVENT_VALUE.DIRECTION.LONG
+        : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+    ...(source && { [PERPS_EVENT_PROPERTY.SOURCE]: source }),
+    ...(routeAbTestTokenDetailsLayout && { ab_test_token_details_layout: routeAbTestTokenDetailsLayout }),
+    ...(isButtonColorTestEnabled && {
+      [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+    }),
+  };
+
+  // TODO: Remove before merging - local testing (useEffect ensures single log)
+  useEffect(() => {
+    console.log('[AB-Test] PERPS_SCREEN_VIEWED', perpsScreenViewedProps);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
-    properties: {
-      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
-      [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
-      [PERPS_EVENT_PROPERTY.DIRECTION]:
-        orderForm.direction === 'long'
-          ? PERPS_EVENT_VALUE.DIRECTION.LONG
-          : PERPS_EVENT_VALUE.DIRECTION.SHORT,
-      ...(isButtonColorTestEnabled && {
-        [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
-      }),
-    },
+    properties: perpsScreenViewedProps,
   });
 
   // Get real-time price data using new stream architecture (deferred)
@@ -1806,6 +1827,8 @@ const PerpsOrderView: React.FC = () => {
     leverage: paramLeverage,
     existingPosition,
     hideTPSL = false,
+    source: routeSource,
+    ab_test_token_details_layout: routeAbTestTokenDetailsLayout,
   } = route.params || {};
 
   const effectiveAvailableBalance = useMemo(() => {
@@ -1823,7 +1846,7 @@ const PerpsOrderView: React.FC = () => {
       existingPosition={existingPosition}
       effectiveAvailableBalance={effectiveAvailableBalance}
     >
-      <PerpsOrderViewContent hideTPSL={hideTPSL} />
+      <PerpsOrderViewContent hideTPSL={hideTPSL} routeSource={routeSource} routeAbTestTokenDetailsLayout={routeAbTestTokenDetailsLayout} />
     </PerpsOrderProvider>
   );
 };

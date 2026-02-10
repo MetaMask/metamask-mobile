@@ -326,17 +326,23 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
       params.balance !== '0' &&
       params.balance !== '';
 
+    const eventProperties = {
+      source,
+      chain_id: params.chainId,
+      token_symbol: params.symbol,
+      token_address: params.address,
+      token_name: params.name,
+      has_balance: hasBalance,
+      // A/B test attribution
+      ...(isTestActive && {
+        ab_test_token_details_layout: variantName,
+      }),
+    };
+    // TODO: Remove before merging - local testing
+    console.log('[AB-Test] TOKEN_DETAILS_OPENED', eventProperties);
+
     const event = createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
-      .addProperties({
-        source,
-        chain_id: params.chainId,
-        token_symbol: params.symbol,
-        has_balance: hasBalance,
-        // A/B test attribution
-        ...(isTestActive && {
-          ab_tests: { token_details_layout: variantName },
-        }),
-      })
+      .addProperties(eventProperties)
       .build();
     trackEvent(event);
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -2,10 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import { TokenDetails } from './TokenDetails';
 import { TokenI } from '../../Tokens/types';
-import {
-  selectTokenDetailsV2Enabled,
-  selectTokenDetailsV2ButtonsEnabled,
-} from '../../../../selectors/featureFlagController/tokenDetailsV2';
+import { selectTokenDetailsV2Enabled } from '../../../../selectors/featureFlagController/tokenDetailsV2';
 import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
 import { selectPerpsEnabledFlag } from '../../Perps';
 import { selectMerklCampaignClaimingEnabledFlag } from '../../Earn/selectors/featureFlags';
@@ -16,10 +13,19 @@ import {
 } from '../../../../selectors/featureFlagController/deposit';
 
 // Mock feature flags
-const mockSelectTokenDetailsV2ButtonsEnabled = jest.fn().mockReturnValue(true);
 jest.mock('../../../../selectors/featureFlagController/tokenDetailsV2', () => ({
   selectTokenDetailsV2Enabled: jest.fn(() => true),
-  selectTokenDetailsV2ButtonsEnabled: mockSelectTokenDetailsV2ButtonsEnabled,
+  selectTokenDetailsLayoutTestVariant: jest.fn(() => 'treatment'),
+}));
+
+// Mock useTokenDetailsABTest hook
+const mockUseTokenDetailsABTest = jest.fn().mockReturnValue({
+  useNewLayout: true,
+  variantName: 'treatment',
+  isTestActive: true,
+});
+jest.mock('../hooks/useTokenDetailsABTest', () => ({
+  useTokenDetailsABTest: () => mockUseTokenDetailsABTest(),
 }));
 
 // Mock react-redux with proper selector handling
@@ -174,7 +180,11 @@ describe('TokenDetails', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSelectTokenDetailsV2ButtonsEnabled.mockReturnValue(true);
+    mockUseTokenDetailsABTest.mockReturnValue({
+      useNewLayout: true,
+      variantName: 'treatment',
+      isTestActive: true,
+    });
 
     // Setup default useTokenBalance mock
     mockUseTokenBalance.mockReturnValue({
@@ -186,8 +196,6 @@ describe('TokenDetails', () => {
     // Setup default selector returns
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectTokenDetailsV2Enabled) return true;
-      if (selector === selectTokenDetailsV2ButtonsEnabled)
-        return mockSelectTokenDetailsV2ButtonsEnabled();
       if (selector === selectNetworkConfigurationByChainId)
         return { name: 'Ethereum' };
       if (selector === selectPerpsEnabledFlag) return false;
@@ -200,7 +208,7 @@ describe('TokenDetails', () => {
   });
 
   describe('Buy/Sell sticky buttons', () => {
-    it('shows sticky buttons when selectTokenDetailsV2ButtonsEnabled is true', () => {
+    it('shows sticky buttons when useNewLayout is true (treatment variant)', () => {
       const { getByTestId, getByText } = render(
         <TokenDetails {...defaultProps} />,
       );
@@ -209,8 +217,12 @@ describe('TokenDetails', () => {
       expect(getByText('Buy')).toBeOnTheScreen();
     });
 
-    it('does not show sticky buttons when selectTokenDetailsV2ButtonsEnabled is false', () => {
-      mockSelectTokenDetailsV2ButtonsEnabled.mockReturnValue(false);
+    it('does not show sticky buttons when useNewLayout is false (control variant)', () => {
+      mockUseTokenDetailsABTest.mockReturnValue({
+        useNewLayout: false,
+        variantName: 'control',
+        isTestActive: true,
+      });
 
       const { queryByTestId } = render(<TokenDetails {...defaultProps} />);
 

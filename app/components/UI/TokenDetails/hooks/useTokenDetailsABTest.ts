@@ -30,7 +30,7 @@ export interface UseTokenDetailsABTestResult {
  *
  * // Use in analytics
  * trackEvent({
- *   ...(isTestActive && { ab_tests: { token_details_layout: variantName } }),
+ *   ...(isTestActive && { ab_test_token_details_layout: variantName }),
  * });
  * ```
  */

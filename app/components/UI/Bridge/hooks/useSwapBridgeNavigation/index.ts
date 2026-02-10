@@ -25,6 +25,7 @@ import {
   setSourceToken,
   setDestToken,
   setIsDestTokenManuallySet,
+  setAbTestContext,
 } from '../../../../../core/redux/slices/bridge';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useCurrentNetworkInfo } from '../../../../hooks/useCurrentNetworkInfo';
@@ -67,11 +68,17 @@ export const useSwapBridgeNavigation = ({
   sourcePage,
   sourceToken: sourceTokenBase,
   destToken: destTokenBase,
+  abTestContext,
 }: {
   location: SwapBridgeNavigationLocation;
   sourcePage: string;
   sourceToken?: BridgeToken;
   destToken?: BridgeToken;
+  /** Analytics context for A/B test attribution on page-viewed events */
+  abTestContext?: {
+    entry_point?: string;
+    ab_test_token_details_layout?: string;
+  };
 }) => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -161,6 +168,9 @@ export const useSwapBridgeNavigation = ({
       // changing source token will still auto-update the dest token
       dispatch(setIsDestTokenManuallySet(false));
 
+      // Store A/B test context in Redux for page-viewed event attribution
+      dispatch(setAbTestContext(abTestContext));
+
       // Pre-populate Redux state before navigation to prevent empty button flash
       dispatch(setSourceToken(sourceToken));
 
@@ -203,7 +213,7 @@ export const useSwapBridgeNavigation = ({
 
       // Track Swap button click with new consolidated event
       const isFromNavbar = location === SwapBridgeNavigationLocation.MainView;
-      trackActionButtonClick(trackEvent, createEventBuilder, {
+      const actionButtonProps = {
         action_name: ActionButtonType.SWAP,
         // Omit action_position for navbar to avoid confusion with main action buttons
         ...(isFromNavbar
@@ -213,7 +223,9 @@ export const useSwapBridgeNavigation = ({
         location: isFromNavbar
           ? ActionLocation.NAVBAR
           : ActionLocation.ASSET_DETAILS,
-      });
+      };
+
+      trackActionButtonClick(trackEvent, createEventBuilder, actionButtonProps);
       // Check if user is in an active trending session for analytics
       const isFromTrending =
         TrendingFeedSessionManager.getInstance().isFromTrending;
@@ -225,9 +237,6 @@ export const useSwapBridgeNavigation = ({
         token_address_source: sourceToken?.address,
         from_trending: isFromTrending,
       };
-
-      // 🔧 DEBUG: Log event properties for testing - REMOVE BEFORE COMMIT!
-      console.log('🔍 [A/B Test] SWAP_BUTTON_CLICKED (Unified SwapBridge Button Clicked) event fired:', swapEventProperties);
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
@@ -245,6 +254,7 @@ export const useSwapBridgeNavigation = ({
       sourceTokenBase,
       destTokenBase,
       sourcePage,
+      abTestContext,
       trackEvent,
       createEventBuilder,
       location,
