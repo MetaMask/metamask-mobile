@@ -14,11 +14,9 @@ import {
   useIsTransactionPayLoading,
   useTransactionPayQuotes,
   useTransactionPaySourceAmounts,
-  useTransactionPayRequiredTokens,
 } from '../pay/useTransactionPayData';
 import {
   TransactionPayQuote,
-  TransactionPayRequiredToken,
   TransactionPaySourceAmount,
 } from '@metamask/transaction-pay-controller';
 
@@ -51,9 +49,6 @@ describe('useNoPayTokenQuotesAlert', () => {
   const useIsTransactionPayLoadingMock = jest.mocked(
     useIsTransactionPayLoading,
   );
-  const useTransactionPayRequiredTokensMock = jest.mocked(
-    useTransactionPayRequiredTokens,
-  );
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -69,9 +64,6 @@ describe('useNoPayTokenQuotesAlert', () => {
     useTransactionPayQuotesMock.mockReturnValue(undefined);
     useTransactionPaySourceAmountsMock.mockReturnValue([
       {} as TransactionPaySourceAmount,
-    ]);
-    useTransactionPayRequiredTokensMock.mockReturnValue([
-      { address: '0xSource', chainId: '0x89' } as TransactionPayRequiredToken,
     ]);
   });
 
