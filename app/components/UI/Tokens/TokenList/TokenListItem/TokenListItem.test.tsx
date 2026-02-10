@@ -19,7 +19,11 @@ import { strings } from '../../../../../../locales/i18n';
 
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 import { useMusdConversionEligibility } from '../../../Earn/hooks/useMusdConversionEligibility';
-import { selectIsMusdConversionFlowEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import {
+  selectIsMusdConversionFlowEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../../Earn/selectors/featureFlags';
+import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
 
 jest.mock('../../../Stake/components/StakeButton', () => ({
@@ -83,9 +87,10 @@ jest.mock('../../hooks/useTokenPricePercentageChange', () => ({
   useTokenPricePercentageChange: jest.fn(),
 }));
 
+const mockGetEarnToken = jest.fn();
 jest.mock('../../../Earn/hooks/useEarnTokens', () => ({
   __esModule: true,
-  default: () => ({ getEarnToken: jest.fn() }),
+  default: () => ({ getEarnToken: mockGetEarnToken }),
 }));
 
 const mockInitiateConversion = jest.fn();
@@ -160,6 +165,11 @@ jest.mock('../../../Earn/selectors/featureFlags', () => ({
 const mockSelectIsMusdConversionFlowEnabledFlag =
   selectIsMusdConversionFlowEnabledFlag as jest.MockedFunction<
     typeof selectIsMusdConversionFlowEnabledFlag
+  >;
+
+const mockSelectStablecoinLendingEnabledFlag =
+  selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+    typeof selectStablecoinLendingEnabledFlag
   >;
 
 jest.mock('../../util/deriveBalanceFromAssetMarketDetails', () => ({
@@ -286,6 +296,11 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     isTokenWithCta?: boolean;
     isGeoEligible?: boolean;
     isStockToken?: boolean;
+    isStablecoinLendingEnabled?: boolean;
+    earnToken?: {
+      balanceFiatNumber: number;
+      experience: { type: EARN_EXPERIENCES };
+    } | null;
   }
 
   function prepareMocks({
@@ -295,6 +310,8 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     isTokenWithCta = false,
     isGeoEligible = true,
     isStockToken = false,
+    isStablecoinLendingEnabled = false,
+    earnToken = null,
   }: PrepareMocksOptions = {}) {
     jest.clearAllMocks();
 
@@ -311,6 +328,12 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     mockShouldShowTokenListItemCta.mockReturnValue(
       isMusdConversionEnabled && isTokenWithCta && isGeoEligible,
     );
+
+    // Stablecoin lending mocks
+    mockSelectStablecoinLendingEnabledFlag.mockReturnValue(
+      isStablecoinLendingEnabled,
+    );
+    mockGetEarnToken.mockReturnValue(earnToken);
 
     // mUSD conversion mocks
     mockSelectIsMusdConversionFlowEnabledFlag.mockReturnValue(
@@ -970,15 +993,13 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     };
 
     it('renders percentage change when stablecoin lending Earn CTA balance is below minimum', () => {
-      // Arrange
+      // Arrange — earnToken is null because getEarnToken does not return
+      // tokens whose fiat balance is below the minimum threshold.
       prepareMocks({
         asset: { ...defaultAsset, balance: '0.009' },
         pricePercentChange1d: 1.23,
         isStablecoinLendingEnabled: true,
-        earnToken: {
-          balanceFiatNumber: 0.009,
-          experience: { type: EARN_EXPERIENCES.STABLECOIN_LENDING },
-        },
+        earnToken: null,
       });
 
       // Act
@@ -987,7 +1008,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
-          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -1015,7 +1035,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
-          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -1053,7 +1072,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           assetKey={musdAssetKey}
           showRemoveMenu={mockShowRemoveMenu}
           setShowScamWarningModal={jest.fn()}
-          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -1081,7 +1099,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={mockShowRemoveMenu}
           setShowScamWarningModal={jest.fn()}
-          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
