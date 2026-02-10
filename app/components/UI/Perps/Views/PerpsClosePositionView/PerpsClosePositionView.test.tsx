@@ -321,7 +321,7 @@ describe('PerpsClosePositionView', () => {
       expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
     });
 
-    it('when user is geo-restricted and presses confirm, does not call handleClosePosition and shows geo block', () => {
+    it('when user is geo-restricted and presses confirm, does not call handleClosePosition', () => {
       const handleClosePosition = jest.fn();
       usePerpsClosePositionMock.mockReturnValue({
         handleClosePosition,
