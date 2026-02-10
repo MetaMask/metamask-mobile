@@ -54,10 +54,6 @@ const LedgerTransactionModal = () => {
   const dismissModal = useCallback(() => modalRef?.current?.dismissModal(), []);
 
   const executeOnLedger = useCallback(async () => {
-    // Prefer legacyGasFee when defined, as its presence indicates a legacy (non-EIP1559)
-    // transaction. Otherwise fall back to eip1559GasFee for EIP-1559 transactions.
-    // TODO: Consider adding an explicit tx type field to ReplacementTxParams for
-    // a more robust way to distinguish legacy vs EIP-1559 replacement transactions.
     const gasFeeParams =
       replacementParams?.legacyGasFee ?? replacementParams?.eip1559GasFee;
 
