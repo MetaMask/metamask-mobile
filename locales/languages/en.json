@@ -129,6 +129,10 @@
         "title": "Suspicious token"
       }
     },
+    "first_time_interaction": {
+      "message": "You're interacting with this address for the first time. Make sure that it's correct before you continue.",
+      "title": "1st interaction"
+    },
     "address_trust_signal": {
       "malicious": {
         "message": "If you confirm this request, you will probably lose your assets to a scammer.",
@@ -1898,6 +1902,9 @@
       "past_24_hours": "Past 24 hours",
       "time": "Time",
       "apply": "Apply"
+    },
+    "provider_selector": {
+      "title": "Select Provider"
     },
     "market_type": {
       "filter_by": "Filter by"
@@ -6794,7 +6801,8 @@
         "description": "Enter the code we sent to {{email}}. If you don't see it, check your spam folder.",
         "didnt_receive_code": "Didn't receive the code? ",
         "resend_verification": "Resend it",
-        "resend_cooldown": "Resend available in {{seconds}} seconds"
+        "resend_cooldown": "Resend available in {{seconds}} seconds",
+        "legal_terms": "By continuing, you agree to receiving email for login verifications and alerts."
       },
       "set_phone_number": {
         "title": "Enter your phone number",
@@ -6817,6 +6825,7 @@
         "description": "Our partner, Crypto Life, uses a service called Veriff to keep your account secure. ",
         "terms_1": "Your info goes directly to Veriff and Crypto Life. MetaMask never sees it.",
         "terms_2": "You'll need your ID and proof of address to get approved. This usually takes 5 minutes.",
+        "terms_2_us": "Federal law (USA PATRIOT Act) requires us to verify your identity with ID and proof of address to help prevent terrorism and money laundering. This usually takes 5 minutes.",
         "verify_button": "Next",
         "start_verification_error": "Error starting verification. Please try again shortly."
       },
@@ -6891,8 +6900,21 @@
         "state_label": "State",
         "zip_code_label": "Zip code",
         "country_label": "Country",
-        "electronic_consent_1": "I agree to the E-Sign Act Consent and Disclosure and to receive all communications electronically. ",
-        "electronic_consent_2": "View document (PDF)"
+        "electronic_consent_1": "I agree to the ",
+        "electronic_consent_2": "E-Sign Act Consent and Disclosure",
+        "electronic_consent_3": " and to receive all communications electronically.",
+        "coinme_terms_consent_1": "I agree to the ",
+        "coinme_terms_consent_2": "Coinme Terms of Service",
+        "coinme_terms_consent_3": ".",
+        "crb_consent_1": "I agree with Cross River Bank ",
+        "crb_consent_2": "Terms & Conditions",
+        "crb_consent_3": ", ",
+        "crb_consent_4": "Account Opening Disclosures",
+        "crb_consent_5": ", ",
+        "crb_consent_6": "Notice of Privacy Practices",
+        "crb_consent_7": " and ",
+        "crb_consent_8": "CL Privacy Policy",
+        "crb_consent_9": "."
       },
       "mailing_address": {
         "title": "Mailing address",
