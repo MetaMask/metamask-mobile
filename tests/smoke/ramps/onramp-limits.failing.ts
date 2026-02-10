@@ -1,12 +1,12 @@
-import { loginToApp } from '../../../e2e/viewHelper';
+import { loginToApp } from '../../flows/wallet.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { SmokeTrade } from '../../../e2e/tags';
-import BuildQuoteView from '../../../e2e/pages/Ramps/BuildQuoteView';
+import { SmokeTrade } from '../../tags';
+import BuildQuoteView from '../../page-objects/Ramps/BuildQuoteView';
 import Assertions from '../../framework/Assertions';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import FundActionMenu from '../../../e2e/pages/UI/FundActionMenu';
-import BuyGetStartedView from '../../../e2e/pages/Ramps/BuyGetStartedView';
+import WalletView from '../../page-objects/wallet/WalletView';
+import FundActionMenu from '../../page-objects/UI/FundActionMenu';
+import BuyGetStartedView from '../../page-objects/Ramps/BuyGetStartedView';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup';
 import { Mockttp } from 'mockttp';
