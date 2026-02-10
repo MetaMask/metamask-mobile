@@ -293,6 +293,7 @@ const Routes = {
       CANCEL_ALL_ORDERS: 'PerpsCancelAllOrders',
       TOOLTIP: 'PerpsTooltip',
       CROSS_MARGIN_WARNING: 'PerpsCrossMarginWarning',
+      SELECT_PROVIDER: 'PerpsSelectProvider',
     },
     POSITION_TRANSACTION: 'PerpsPositionTransaction',
     ORDER_TRANSACTION: 'PerpsOrderTransaction',

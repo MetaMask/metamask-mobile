@@ -1899,6 +1899,9 @@
       "time": "Time",
       "apply": "Apply"
     },
+    "provider_selector": {
+      "title": "Select Provider"
+    },
     "market_type": {
       "filter_by": "Filter by"
     },
