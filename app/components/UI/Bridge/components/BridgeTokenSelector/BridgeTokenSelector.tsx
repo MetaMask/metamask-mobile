@@ -123,26 +123,33 @@ export const BridgeTokenSelector: React.FC = () => {
     route.params?.type,
   );
 
-  // Network filter from Redux (set by NetworkPills or NetworkListModal)
-  const selectedChainId = useSelector(selectTokenSelectorNetworkFilter);
+  // Compute the initial network filter synchronously so the first render
+  // has the correct value — avoids a wasted all-chains fetch and FlatList
+  // remount that would occur if we relied solely on the async useEffect.
+  const initialFilter = useMemo(
+    () =>
+      selectedToken?.chainId && route.params?.type === TokenSelectorType.Dest
+        ? formatChainIdToCaip(selectedToken.chainId)
+        : undefined,
+    [], // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
-  // Initialize network filter for dest mode with selected token's chain
+  // Network filter from Redux (set by NetworkPills or NetworkListModal),
+  // falling back to the synchronous initial value for the first render
+  // before the effect has synced Redux.
+  const reduxFilter = useSelector(selectTokenSelectorNetworkFilter);
+  const selectedChainId = reduxFilter ?? initialFilter;
+
+  // Sync the initial filter into Redux on mount so other consumers
+  // (e.g. NetworkListModal) see the correct value. Clear on unmount.
   useEffect(() => {
-    if (
-      selectedToken?.chainId &&
-      route.params?.type === TokenSelectorType.Dest
-    ) {
-      dispatch(
-        setTokenSelectorNetworkFilter(
-          formatChainIdToCaip(selectedToken.chainId),
-        ),
-      );
+    if (initialFilter) {
+      dispatch(setTokenSelectorNetworkFilter(initialFilter));
     }
-    // Clear filter on unmount
     return () => {
       dispatch(setTokenSelectorNetworkFilter(undefined));
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [dispatch, initialFilter]);
 
   // Ref to track if we need to re-search after chain change
   const shouldResearchAfterChainChange = useRef(false);
