@@ -332,7 +332,7 @@ exports[`ProviderSelection matches snapshot 1`] = `
                               "alignItems": "center",
                               "flexDirection": "row",
                               "gap": 16,
-                              "height": 56,
+                              "minHeight": 56,
                               "paddingLeft": 8,
                               "paddingRight": 8,
                             },
