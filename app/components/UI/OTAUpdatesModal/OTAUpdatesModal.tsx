@@ -25,8 +25,8 @@ import HeaderCompactStandard from '../../../component-library/components-temp/He
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const foxLogo = require('../../../images/branding/fox.png');
-const metamaskNameDarkMode = require('../../../images/branding/metamask-name.png');
-const metamaskNameLightMode = require('../../../images/branding/metamask-name-white.png');
+const metamaskNameLightMode = require('../../../images/branding/metamask-name.png');
+const metamaskNameDarkMode = require('../../../images/branding/metamask-name-white.png');
 
 export const createOTAUpdatesModalNavDetails = createNavigationDetails(
   Routes.MODAL.ROOT_MODAL_FLOW,
@@ -38,8 +38,8 @@ const OTAUpdatesModal = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const bottomSheetRef = useRef<BottomSheetRef | null>(null);
   const metamaskName = useAssetFromTheme(
-    metamaskNameDarkMode,
     metamaskNameLightMode,
+    metamaskNameDarkMode,
   );
 
   useEffect(() => {
