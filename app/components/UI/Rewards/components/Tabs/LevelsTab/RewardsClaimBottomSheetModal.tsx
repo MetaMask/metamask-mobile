@@ -302,7 +302,7 @@ const RewardsClaimBottomSheetModal = ({
           placeholder={inputPlaceholder}
           onChangeText={setInputValue}
           value={inputValue}
-          style={tw.style('bg-background-pressed my-4')}
+          style={tw.style('my-4')}
         />
       );
     }
