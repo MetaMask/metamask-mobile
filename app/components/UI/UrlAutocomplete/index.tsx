@@ -43,6 +43,7 @@ import {
   HISTORY_FUSE_OPTIONS,
 } from './UrlAutocomplete.constants';
 import { Result } from './Result';
+import UrlAutocompleteSearchFooter from './UrlAutocompleteSearchFooter';
 import {
   SwapBridgeNavigationLocation,
   useSwapBridgeNavigation,
@@ -405,7 +406,26 @@ const SearchContent: React.FC<SearchContentProps> = ({
     [],
   );
 
-  if (searchResults.length === 0) {
+  /**
+   * Handler for search footer URL selection
+   * Creates a FuseSearchResult and calls onSelect
+   */
+  const handleSearchFooterSelect = useCallback(
+    (url: string) => {
+      const searchResult: FuseSearchResult = {
+        category: UrlAutocompleteCategory.Sites,
+        url,
+        name: url,
+      };
+      onSelect(searchResult);
+    },
+    [onSelect],
+  );
+
+  // Always show search footer when there's a search query
+  const showSearchFooter = searchQuery.trim().length > 0;
+
+  if (searchResults.length === 0 && !showSearchFooter) {
     return null;
   }
 
@@ -418,6 +438,15 @@ const SearchContent: React.FC<SearchContentProps> = ({
         renderSectionHeader={renderSectionHeader}
         renderItem={renderItem}
         keyboardShouldPersistTaps="handled"
+        ListFooterComponent={
+          showSearchFooter ? (
+            <UrlAutocompleteSearchFooter
+              searchQuery={searchQuery}
+              onSelect={handleSearchFooterSelect}
+              hide={hide}
+            />
+          ) : null
+        }
       />
       {networkModal}
     </>
