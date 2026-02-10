@@ -25,9 +25,7 @@ export const TokensEmptyState: React.FC<TokensEmptyStateProps> = ({
   const navigation = useNavigation();
 
   const handleLink = () => {
-    navigation.navigate(Routes.SETTINGS_VIEW, {
-      screen: Routes.ONBOARDING.GENERAL_SETTINGS,
-    });
+    navigation.navigate(Routes.ONBOARDING.GENERAL_SETTINGS);
   };
 
   return (

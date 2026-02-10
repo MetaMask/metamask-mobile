@@ -23,10 +23,7 @@ import { strings } from '../../../../../../locales/i18n';
 const SUPPORT_URL = 'https://support.metamask.io';
 
 export const createEligibilityFailedModalNavigationDetails =
-  createNavigationDetails(
-    Routes.MODAL.ROOT_MODAL_FLOW,
-    Routes.SHEET.ELIGIBILITY_FAILED_MODAL,
-  );
+  createNavigationDetails(Routes.SHEET.ELIGIBILITY_FAILED_MODAL);
 
 function EligibilityFailedModal() {
   const sheetRef = useRef<BottomSheetRef>(null);

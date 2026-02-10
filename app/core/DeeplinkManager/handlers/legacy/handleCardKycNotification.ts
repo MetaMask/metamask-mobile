@@ -105,12 +105,7 @@ export const handleCardKycNotification = async () => {
     Logger.log(
       '[handleCardKycNotification] No onboarding or auth state, navigating to Welcome',
     );
-    NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
-      screen: Routes.CARD.HOME,
-      params: {
-        screen: Routes.CARD.WELCOME,
-      },
-    });
+    NavigationService.navigation?.navigate(Routes.CARD.WELCOME);
   } catch (error) {
     Logger.log('[handleCardKycNotification] Failed to handle deeplink:', error);
     Logger.error(
@@ -120,12 +115,7 @@ export const handleCardKycNotification = async () => {
 
     // Fallback: Navigate to Card Welcome screen
     try {
-      NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
-        screen: Routes.CARD.HOME,
-        params: {
-          screen: Routes.CARD.WELCOME,
-        },
-      });
+      NavigationService.navigation?.navigate(Routes.CARD.WELCOME);
     } catch (navError) {
       Logger.error(
         navError as Error,
@@ -228,34 +218,22 @@ function navigateBasedOnVerificationState(
         Logger.log(
           '[handleCardKycNotification] User rejected, navigating to KYCFailed',
         );
-        NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
-          screen: Routes.CARD.HOME,
-          params: {
-            screen: Routes.CARD.ONBOARDING.ROOT,
-            params: {
-              screen: Routes.CARD.ONBOARDING.KYC_FAILED,
-            },
-          },
-        });
+        NavigationService.navigation?.navigate(
+          Routes.CARD.ONBOARDING.KYC_FAILED,
+        );
         break;
 
       case 'VERIFIED':
         Logger.log(
           '[handleCardKycNotification] User verified, navigating to Complete',
         );
-        NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
-          screen: Routes.CARD.HOME,
-          params: {
-            screen: Routes.CARD.ONBOARDING.ROOT,
-            params: {
-              screen: Routes.CARD.ONBOARDING.COMPLETE,
-              params: {
-                nextDestination:
-                  flowType === 'onboarding' ? 'personal_details' : 'card_home',
-              },
-            },
+        NavigationService.navigation?.navigate(
+          Routes.CARD.ONBOARDING.COMPLETE,
+          {
+            nextDestination:
+              flowType === 'onboarding' ? 'personal_details' : 'card_home',
           },
-        });
+        );
         break;
 
       case 'PENDING':
@@ -263,25 +241,14 @@ function navigateBasedOnVerificationState(
           Logger.log(
             '[handleCardKycNotification] User still pending (onboarding), navigating to KYCPending',
           );
-          NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
-            screen: Routes.CARD.HOME,
-            params: {
-              screen: Routes.CARD.ONBOARDING.ROOT,
-              params: {
-                screen: Routes.CARD.ONBOARDING.KYC_PENDING,
-              },
-            },
-          });
+          NavigationService.navigation?.navigate(
+            Routes.CARD.ONBOARDING.KYC_PENDING,
+          );
         } else {
           Logger.log(
             '[handleCardKycNotification] User still pending (authenticated), navigating to CardHome',
           );
-          NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
-            screen: Routes.CARD.HOME,
-            params: {
-              screen: Routes.CARD.HOME,
-            },
-          });
+          NavigationService.navigation?.navigate(Routes.CARD.HOME);
         }
         break;
 
@@ -289,12 +256,7 @@ function navigateBasedOnVerificationState(
         Logger.log(
           '[handleCardKycNotification] User unverified, navigating to Onboarding',
         );
-        NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
-          screen: Routes.CARD.HOME,
-          params: {
-            screen: Routes.CARD.ONBOARDING.ROOT,
-          },
-        });
+        NavigationService.navigation?.navigate(Routes.CARD.ONBOARDING.ROOT);
         break;
 
       default:
@@ -302,22 +264,12 @@ function navigateBasedOnVerificationState(
           Logger.log(
             '[handleCardKycNotification] Unknown verification state (authenticated), navigating to CardHome',
           );
-          NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
-            screen: Routes.CARD.HOME,
-            params: {
-              screen: Routes.CARD.HOME,
-            },
-          });
+          NavigationService.navigation?.navigate(Routes.CARD.HOME);
         } else {
           Logger.log(
             '[handleCardKycNotification] Unknown verification state, navigating to Onboarding',
           );
-          NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
-            screen: Routes.CARD.HOME,
-            params: {
-              screen: Routes.CARD.ONBOARDING.ROOT,
-            },
-          });
+          NavigationService.navigation?.navigate(Routes.CARD.ONBOARDING.ROOT);
         }
         break;
     }

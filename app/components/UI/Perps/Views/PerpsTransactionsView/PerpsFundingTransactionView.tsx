@@ -78,11 +78,8 @@ const PerpsFundingTransactionView: React.FC = () => {
     if (!explorerUrl) {
       return;
     }
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: explorerUrl,
-      },
+    navigation.navigate('SimpleWebview', {
+      url: explorerUrl,
     });
   };
 

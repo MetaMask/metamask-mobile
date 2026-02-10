@@ -61,14 +61,11 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
       style={tw.style(isCarousel ? '' : 'my-[8px]')}
       testID={testID}
       onPress={() => {
-        navigation.navigate(Routes.PREDICT.ROOT, {
-          screen: Routes.PREDICT.MARKET_DETAILS,
-          params: {
-            marketId: market.id,
-            entryPoint: resolvedEntryPoint,
-            title: market.title,
-            image: market.image,
-          },
+        navigation.navigate(Routes.PREDICT.MARKET_DETAILS, {
+          marketId: market.id,
+          entryPoint: resolvedEntryPoint,
+          title: market.title,
+          image: market.image,
         });
       }}
     >

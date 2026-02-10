@@ -53,12 +53,9 @@ export const ShareAddress = () => {
 
   const handleExplorerLinkPress = useCallback(() => {
     if (blockExplorer) {
-      navigation.navigate('Webview', {
-        screen: 'SimpleWebview',
-        params: {
-          url: blockExplorer.url,
-          title: blockExplorer.title,
-        },
+      navigation.navigate('SimpleWebview', {
+        url: blockExplorer.url,
+        title: blockExplorer.title,
       });
     }
   }, [blockExplorer, navigation]);

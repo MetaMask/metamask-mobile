@@ -95,11 +95,8 @@ const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
           .build(),
       );
       trace({ name: TraceName.EarnDepositScreen });
-      navigation.navigate('StakeScreens', {
-        screen: Routes.STAKING.STAKE,
-        params: {
-          token: earnToken,
-        },
+      navigation.navigate(Routes.STAKING.STAKE, {
+        token: earnToken,
       });
       return;
     }
@@ -126,11 +123,8 @@ const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
         .build(),
     );
     trace({ name: TraceName.EarnDepositScreen });
-    navigation.navigate('StakeScreens', {
-      screen: Routes.STAKING.STAKE,
-      params: {
-        token: earnToken,
-      },
+    navigation.navigate(Routes.STAKING.STAKE, {
+      token: earnToken,
     });
   };
 

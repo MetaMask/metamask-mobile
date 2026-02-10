@@ -4161,9 +4161,9 @@ describe('Authentication', () => {
 
       // Assert
       expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(false);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-        params: {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SHEET.SUCCESS_ERROR_SHEET,
+        {
           title: strings('login.seedless_password_outdated_modal_title'),
           description: strings(
             'login.seedless_password_outdated_modal_content',
@@ -4177,7 +4177,7 @@ describe('Authentication', () => {
           onPrimaryButtonPress: expect.any(Function),
           closeOnPrimaryButtonPress: true,
         },
-      });
+      );
     });
 
     it('calls lockApp when primary button is pressed', async () => {

@@ -241,12 +241,9 @@ const AccountBackupStep1B = (props) => {
 
   const learnMore = () => {
     setWhySecureWalletModal(false);
-    props.navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: 'https://support.metamask.io/privacy-and-security/basic-safety-and-security-tips-for-metamask/',
-        title: strings('drawer.metamask_support'),
-      },
+    props.navigation.navigate('SimpleWebview', {
+      url: 'https://support.metamask.io/privacy-and-security/basic-safety-and-security-tips-for-metamask/',
+      title: strings('drawer.metamask_support'),
     });
   };
 
@@ -259,9 +256,7 @@ const AccountBackupStep1B = (props) => {
     track(MetaMetricsEvents.SRP_DEFINITION_CLICKED, {
       location: 'account_backup_step_1b',
     });
-    props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SEEDPHRASE_MODAL,
-    });
+    props.navigation.navigate(Routes.SHEET.SEEDPHRASE_MODAL);
   };
 
   return (

@@ -132,9 +132,8 @@ const PerpsTabView = () => {
   });
 
   const handleManageBalancePress = useCallback(() => {
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.PERPS_HOME,
-      params: { source: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB },
+    navigation.navigate(Routes.PERPS.PERPS_HOME, {
+      source: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB,
     });
   }, [navigation]);
 
@@ -144,9 +143,8 @@ const PerpsTabView = () => {
       navigation.navigate(Routes.PERPS.TUTORIAL);
     } else {
       // Navigate to trading view for returning users
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.PERPS_HOME,
-        params: { source: PERPS_EVENT_VALUE.SOURCE.POSITION_TAB },
+      navigation.navigate(Routes.PERPS.PERPS_HOME, {
+        source: PERPS_EVENT_VALUE.SOURCE.POSITION_TAB,
       });
     }
   }, [navigation, isFirstTimeUser]);
@@ -164,15 +162,11 @@ const PerpsTabView = () => {
       setIsEligibilityModalVisible(true);
       return;
     }
-    navigation.navigate(Routes.PERPS.MODALS.ROOT, {
-      screen: Routes.PERPS.MODALS.CLOSE_ALL_POSITIONS,
-    });
+    navigation.navigate(Routes.PERPS.MODALS.CLOSE_ALL_POSITIONS);
   }, [isEligible, navigation, track]);
 
   const handleCancelAllPress = useCallback(() => {
-    navigation.navigate(Routes.PERPS.MODALS.ROOT, {
-      screen: Routes.PERPS.MODALS.CANCEL_ALL_ORDERS,
-    });
+    navigation.navigate(Routes.PERPS.MODALS.CANCEL_ALL_ORDERS);
   }, [navigation]);
 
   const renderStartTradeCTA = () => (
@@ -281,21 +275,15 @@ const PerpsTabView = () => {
   // Custom explore market row - isolated styling for PerpsTabView only
   const handleExploreMarketPress = useCallback(
     (market: PerpsMarketData) => {
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_DETAILS,
-        params: { market },
-      });
+      navigation.navigate(Routes.PERPS.MARKET_DETAILS, { market });
     },
     [navigation],
   );
 
   const handleSeeAllPerps = useCallback(() => {
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.MARKET_LIST,
-      params: {
-        defaultMarketTypeFilter: 'all',
-        source: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB,
-      },
+    navigation.navigate(Routes.PERPS.MARKET_LIST, {
+      defaultMarketTypeFilter: 'all',
+      source: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB,
     });
   }, [navigation]);
 

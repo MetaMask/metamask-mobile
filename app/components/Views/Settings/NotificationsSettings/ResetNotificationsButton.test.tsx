@@ -52,10 +52,7 @@ describe('ResetNotificationsButton', () => {
     await waitFor(() => {
       // Assert new switch call
       expect(mocks.mockNavigate).toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
-        {
-          screen: Routes.SHEET.RESET_NOTIFICATIONS,
-        },
+        Routes.SHEET.RESET_NOTIFICATIONS,
       );
     });
   });

@@ -34,9 +34,7 @@ describe('useCheckWhatsNewModal', () => {
     // Wait for the async operation to complete
     await new Promise(setImmediate);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.WHATS_NEW,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.WHATS_NEW);
   });
 
   it('should not navigate when shouldShowWhatsNewModal returns false', async () => {

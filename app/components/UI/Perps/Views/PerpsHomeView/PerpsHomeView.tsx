@@ -263,12 +263,9 @@ const PerpsHomeView = () => {
   }, [navigation, trackEvent, createEventBuilder]);
 
   const navigateToContactSupport = useCallback(() => {
-    navigation.navigate(Routes.WEBVIEW.MAIN, {
-      screen: Routes.WEBVIEW.SIMPLE,
-      params: {
-        url: SUPPORT_CONFIG.Url,
-        title: strings(SUPPORT_CONFIG.TitleKey),
-      },
+    navigation.navigate(Routes.WEBVIEW.SIMPLE, {
+      url: SUPPORT_CONFIG.Url,
+      title: strings(SUPPORT_CONFIG.TitleKey),
     });
     // Track contact support interaction for Perps analytics
     trackEvent(
@@ -302,12 +299,9 @@ const PerpsHomeView = () => {
         .build(),
     );
     // Open survey in in-app browser (same pattern as Contact Support)
-    navigation.navigate(Routes.WEBVIEW.MAIN, {
-      screen: Routes.WEBVIEW.SIMPLE,
-      params: {
-        url: FEEDBACK_CONFIG.Url,
-        title: strings(FEEDBACK_CONFIG.TitleKey),
-      },
+    navigation.navigate(Routes.WEBVIEW.SIMPLE, {
+      url: FEEDBACK_CONFIG.Url,
+      title: strings(FEEDBACK_CONFIG.TitleKey),
     });
   }, [trackEvent, createEventBuilder, navigation]);
 

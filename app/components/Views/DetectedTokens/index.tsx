@@ -406,7 +406,6 @@ const DetectedTokens = () => {
 };
 
 export const createDetectedTokensNavDetails = createNavigationDetails(
-  Routes.MODAL.ROOT_MODAL_FLOW,
   Routes.MODAL.DETECTED_TOKENS,
 );
 

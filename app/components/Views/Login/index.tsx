@@ -370,9 +370,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const toggleWarningModal = () => {
     track(MetaMetricsEvents.FORGOT_PASSWORD_CLICKED, {});
 
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.DELETE_WALLET,
-    });
+    navigation.navigate(Routes.MODAL.DELETE_WALLET);
   };
 
   const handleDownloadStateLogs = () => {

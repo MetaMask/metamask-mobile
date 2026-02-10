@@ -60,12 +60,9 @@ const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
       );
     }
 
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url,
-        title: strings(title),
-      },
+    navigation.navigate('SimpleWebview', {
+      url,
+      title: strings(title),
     });
   };
   return (

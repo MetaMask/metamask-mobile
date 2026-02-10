@@ -35,7 +35,6 @@ enum SortOption {
 }
 
 export const createTokensBottomSheetNavDetails = createNavigationDetails(
-  Routes.MODAL.ROOT_MODAL_FLOW,
   Routes.SHEET.TOKEN_SORT,
 );
 

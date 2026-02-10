@@ -103,11 +103,8 @@ const PredictPositionsHeader = forwardRef<
   }, [isDepositPending, loadBalance]);
 
   const handleBalanceTouch = () => {
-    navigation.navigate(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_LIST,
-      params: {
-        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
-      },
+    navigation.navigate(Routes.PREDICT.MARKET_LIST, {
+      entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
     });
   };
 

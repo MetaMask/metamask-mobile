@@ -108,18 +108,8 @@ const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({ asset }) => {
       },
     };
 
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.CLAIM_ON_LINEA,
-      params,
-    });
-  }, [
-    trackClaimButtonClicked,
-    handleContinueClaim,
-    navigation,
-    asset.chainId,
-    asset.symbol,
-    network?.name,
-  ]);
+    navigation.navigate(Routes.MODAL.CLAIM_ON_LINEA, params);
+  }, [trackClaimButtonClicked, handleContinueClaim, navigation]);
 
   return (
     <View style={styles.claimButtonContainer}>

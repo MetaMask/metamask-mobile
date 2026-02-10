@@ -160,9 +160,7 @@ export const showWCLoadingState = ({
 }: {
   navigation?: NavigationContainerRef;
 }): void => {
-  navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-    screen: Routes.SHEET.SDK_LOADING,
-  });
+  navigation?.navigate(Routes.SHEET.SDK_LOADING);
 };
 
 export const isValidWCURI = (uri: string): boolean => {

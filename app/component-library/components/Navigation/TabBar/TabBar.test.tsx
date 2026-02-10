@@ -135,33 +135,21 @@ describe('TabBar', () => {
     );
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Wallet}`));
-    expect(navigation.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
-    });
+    expect(navigation.navigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Browser}`));
-    expect(navigation.navigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-    });
+    expect(navigation.navigate).toHaveBeenCalledWith(Routes.BROWSER.VIEW);
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Actions}`));
     expect(navigation.navigate).toHaveBeenCalledWith(
-      Routes.MODAL.ROOT_MODAL_FLOW,
-      {
-        screen: Routes.MODAL.WALLET_ACTIONS,
-      },
+      Routes.MODAL.WALLET_ACTIONS,
     );
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Activity}`));
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Setting}`));
-    expect(navigation.navigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
-      screen: 'Settings',
-    });
+    expect(navigation.navigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW);
   });
 
   it('navigates to rewards when rewards tab is pressed', () => {

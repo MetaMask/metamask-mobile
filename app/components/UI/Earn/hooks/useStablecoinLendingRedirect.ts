@@ -39,11 +39,8 @@ export const useStablecoinLendingRedirect = ({
         return;
       }
 
-      navigation.navigate('StakeScreens', {
-        screen: Routes.STAKING.STAKE,
-        params: {
-          token,
-        },
+      navigation.navigate(Routes.STAKING.STAKE, {
+        token,
       });
     },
     [navigation, onNavigate],

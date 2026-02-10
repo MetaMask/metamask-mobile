@@ -581,18 +581,13 @@ const ImportFromSecretRecoveryPhrase = ({
     track(MetaMetricsEvents.SRP_DEFINITION_CLICKED, {
       location: 'import_from_seed',
     });
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SEEDPHRASE_MODAL,
-    });
+    navigation.navigate(Routes.SHEET.SEEDPHRASE_MODAL);
   };
 
   const learnMoreLink = () => {
-    navigation.push('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
-        title: 'support.metamask.io',
-      },
+    navigation.push('SimpleWebview', {
+      url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
+      title: 'support.metamask.io',
     });
   };
 

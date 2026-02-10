@@ -124,15 +124,10 @@ describe('PredictUnavailable', () => {
       });
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(
-        'Webview',
-        expect.objectContaining({
-          screen: 'SimpleWebview',
-          params: expect.objectContaining({
-            url: 'https://polymarket.com/tos',
-          }),
-        }),
-      );
+      expect(mockNavigate).toHaveBeenCalledWith('SimpleWebview', {
+        url: 'https://polymarket.com/tos',
+        title: 'Polymarket Terms',
+      });
     });
   });
 

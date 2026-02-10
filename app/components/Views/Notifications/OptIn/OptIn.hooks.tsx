@@ -61,11 +61,8 @@ export function useHandleOptInClick(props: {
   const handleOptInClick = useCallback(async () => {
     // Navigate to Basic Functionality if not enabled
     if (!basicFunctionalityEnabled) {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.BASIC_FUNCTIONALITY,
-        params: {
-          caller: Routes.NOTIFICATIONS.OPT_IN,
-        },
+      navigation.navigate(Routes.SHEET.BASIC_FUNCTIONALITY, {
+        caller: Routes.NOTIFICATIONS.OPT_IN,
       });
       return;
     }

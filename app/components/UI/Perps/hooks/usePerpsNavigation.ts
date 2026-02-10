@@ -80,24 +80,15 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
 
   // Main app navigation handlers
   const navigateToWallet = useCallback(() => {
-    navigation.navigate(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
-    });
+    navigation.navigate(Routes.WALLET_VIEW);
   }, [navigation]);
 
   const navigateToBrowser = useCallback(() => {
-    navigation.navigate(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-    });
+    navigation.navigate(Routes.BROWSER.VIEW);
   }, [navigation]);
 
   const navigateToActions = useCallback(() => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.WALLET_ACTIONS,
-    });
+    navigation.navigate(Routes.MODAL.WALLET_ACTIONS);
   }, [navigation]);
 
   const navigateToActivity = useCallback(() => {

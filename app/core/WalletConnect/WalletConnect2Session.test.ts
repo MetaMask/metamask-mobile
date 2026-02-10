@@ -706,10 +706,7 @@ describe('WalletConnect2Session', () => {
       expect(Minimizer.goBack).not.toHaveBeenCalled();
       expect(Linking.openURL).not.toHaveBeenCalled();
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
-        {
-          screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
-        },
+        Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
       );
     });
 
@@ -776,10 +773,7 @@ describe('WalletConnect2Session', () => {
         jest.runAllTimers();
 
         expect(mockNavigation.navigate).toHaveBeenCalledWith(
-          Routes.MODAL.ROOT_MODAL_FLOW,
-          {
-            screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
-          },
+          Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
         );
         expect(Linking.openURL).not.toHaveBeenCalled();
       });
@@ -810,10 +804,7 @@ describe('WalletConnect2Session', () => {
 
         expect(Linking.openURL).toHaveBeenCalledWith(mockPeerLink);
         expect(mockNavigation.navigate).toHaveBeenCalledWith(
-          Routes.MODAL.ROOT_MODAL_FLOW,
-          {
-            screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
-          },
+          Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
         );
         expect(DevLogger.log).toHaveBeenLastCalledWith(
           `WC2::redirect error while opening ${mockPeerLink} with error Error: Failed to open URL`,

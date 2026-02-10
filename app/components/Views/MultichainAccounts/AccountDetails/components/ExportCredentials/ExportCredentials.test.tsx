@@ -169,8 +169,7 @@ describe('ExportCredentials', () => {
     );
     fireEvent.press(mnemonicButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.SRP_REVEAL_QUIZ,
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.SRP_REVEAL_QUIZ, {
       keyringId: mockKeyringId,
     });
   });

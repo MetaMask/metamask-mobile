@@ -44,9 +44,7 @@ export const usePredictActionGuard = ({
           });
         }
 
-        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-          screen: Routes.PREDICT.MODALS.UNAVAILABLE,
-        });
+        navigation.navigate(Routes.PREDICT.MODALS.UNAVAILABLE);
         return;
       }
 

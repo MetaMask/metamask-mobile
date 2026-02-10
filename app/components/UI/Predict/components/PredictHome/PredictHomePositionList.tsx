@@ -30,13 +30,10 @@ const PredictHomePositionList: React.FC<PredictHomePositionListProps> = ({
 
   const handlePositionPress = useCallback(
     (marketId: string) => {
-      navigation.navigate(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_DETAILS,
-        params: {
-          marketId,
-          entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
-          headerShown: false,
-        },
+      navigation.navigate(Routes.PREDICT.MARKET_DETAILS, {
+        marketId,
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+        headerShown: false,
       });
     },
     [navigation],

@@ -61,8 +61,6 @@ describe('BasicFunctionalityEmptyState', () => {
 
     fireEvent.press(enableButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.BASIC_FUNCTIONALITY,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SHEET.BASIC_FUNCTIONALITY);
   });
 });

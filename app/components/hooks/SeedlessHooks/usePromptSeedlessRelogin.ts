@@ -89,10 +89,7 @@ const usePromptSeedlessRelogin = () => {
       },
       closeOnPrimaryButtonPress: true,
     };
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-      params: errorSheetParams,
-    });
+    navigation.navigate(Routes.SHEET.SUCCESS_ERROR_SHEET, errorSheetParams);
   }, [navigation, deleteWallet]);
 
   return { isDeletingInProgress, deleteWalletError, promptSeedlessRelogin };

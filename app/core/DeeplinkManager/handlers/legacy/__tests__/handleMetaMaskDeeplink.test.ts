@@ -254,10 +254,12 @@ describe('handleMetaMaskProtocol', () => {
       });
 
       expect(handled).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
-        hideReturnToApp: false,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
+        {
+          hideReturnToApp: false,
+        },
+      );
     });
 
     it('displays RETURN_TO_DAPP_NOTIFICATION with hideReturnToApp set to true', () => {
@@ -278,10 +280,12 @@ describe('handleMetaMaskProtocol', () => {
       });
 
       expect(handled).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
-        hideReturnToApp: true,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
+        {
+          hideReturnToApp: true,
+        },
+      );
     });
 
     it('displays RETURN_TO_DAPP_NOTIFICATION with hideReturnToApp set to false', () => {
@@ -302,10 +306,12 @@ describe('handleMetaMaskProtocol', () => {
       });
 
       expect(handled).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
-        hideReturnToApp: false,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
+        {
+          hideReturnToApp: false,
+        },
+      );
     });
 
     it('calls handleDeeplink when channel exists and params.redirect is falsy', () => {

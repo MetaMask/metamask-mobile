@@ -94,9 +94,7 @@ class NavbarTitle extends PureComponent {
     if (!this.props.disableNetwork) {
       if (!this.animating) {
         this.animating = true;
-        this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.NETWORK_SELECTOR,
-        });
+        this.props.navigation.navigate(Routes.SHEET.NETWORK_SELECTOR);
 
         this.props.metrics.trackEvent(
           this.props.metrics

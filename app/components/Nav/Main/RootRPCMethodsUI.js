@@ -21,7 +21,6 @@ import PermissionApproval from '../../Approvals/PermissionApproval';
 import FlowLoaderModal from '../../Approvals/FlowLoaderModal';
 import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal';
 import { getDeviceId } from '../../../core/Ledger/Ledger';
-import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { ConfirmRoot } from '../../../components/Views/confirmations/components/confirm';
@@ -92,15 +91,13 @@ const RootRPCMethodsUI = (props) => {
         if (isLedgerAccount) {
           const deviceId = await getDeviceId();
 
-          props.navigation.navigate(
-            ...createLedgerTransactionModalNavDetails({
-              transactionId: transactionMeta.id,
-              deviceId,
-              // eslint-disable-next-line no-empty-function
-              onConfirmationComplete: () => {},
-              type: 'signTransaction',
-            }),
-          );
+          props.navigation.navigate('LedgerTransactionModal', {
+            transactionId: transactionMeta.id,
+            deviceId,
+            // eslint-disable-next-line no-empty-function
+            onConfirmationComplete: () => {},
+            type: 'signTransaction',
+          });
         } else if (isQRAccount) {
           props.navigation.navigate(
             ...createQRSigningTransactionModalNavDetails({

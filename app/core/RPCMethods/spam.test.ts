@@ -182,11 +182,8 @@ describe('utils', () => {
       });
 
       expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
-        {
-          screen: Routes.SHEET.ORIGIN_SPAM_MODAL,
-          params: { origin: SCAM_ORIGIN_MOCK },
-        },
+        Routes.SHEET.ORIGIN_SPAM_MODAL,
+        { origin: SCAM_ORIGIN_MOCK },
       );
     });
   });

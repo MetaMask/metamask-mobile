@@ -62,10 +62,7 @@ const TronStakingButtons = ({
 
   const onStakePress = () => {
     trace({ name: TraceName.EarnDepositScreen });
-    navigation.navigate('StakeScreens', {
-      screen: Routes.STAKING.STAKE,
-      params: { token: baseAssetForStake },
-    });
+    navigation.navigate(Routes.STAKING.STAKE, { token: baseAssetForStake });
     trackEvent(
       createEventBuilder(MetaMetricsEvents.STAKE_BUTTON_CLICKED)
         .addProperties({
@@ -79,10 +76,7 @@ const TronStakingButtons = ({
 
   const onUnstakePress = () => {
     trace({ name: TraceName.EarnWithdrawScreen });
-    navigation.navigate('StakeScreens', {
-      screen: Routes.STAKING.UNSTAKE,
-      params: { token: asset },
-    });
+    navigation.navigate(Routes.STAKING.UNSTAKE, { token: asset });
   };
 
   // Block deposits for ineligible users unless they have an active staked position

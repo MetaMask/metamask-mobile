@@ -98,10 +98,7 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
         .build(),
     );
 
-    navigate('StakeScreens', {
-      screen: Routes.STAKING.STAKE,
-      params: { token },
-    });
+    navigate(Routes.STAKING.STAKE, { token });
   };
 
   const navigateToLendingHistoricApyChart = () => {
@@ -122,10 +119,7 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
         .build(),
     );
 
-    navigate(Routes.EARN.MODALS.ROOT, {
-      screen: Routes.EARN.MODALS.LENDING_LEARN_MORE,
-      params: { asset: earnToken },
-    });
+    navigate(Routes.EARN.MODALS.LENDING_LEARN_MORE, { asset: earnToken });
   };
 
   if (!isEligible || !token || _.isEmpty(token) || !isStablecoinLendingEnabled)

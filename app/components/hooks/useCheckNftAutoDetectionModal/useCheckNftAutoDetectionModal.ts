@@ -21,9 +21,7 @@ const useCheckNftAutoDetectionModal = () => {
   const checkNftAutoDetectionModal = useCallback(() => {
     const isOnMainnet = isMainNet(chainId);
     if (!useNftDetection && isOnMainnet && !isNFTAutoDetectionModalViewed) {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.NFT_AUTO_DETECTION_MODAL,
-      });
+      navigation.navigate(Routes.MODAL.NFT_AUTO_DETECTION_MODAL);
       dispatch(setNftAutoDetectionModalOpen(true));
     }
   }, [

@@ -45,9 +45,9 @@ export const DefaultSlippageModal = () => {
 
   const handleCustomOptionPress = useCallback(() => {
     navigation.goBack();
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.CUSTOM_SLIPPAGE_MODAL,
-      params: { sourceChainId, destChainId },
+    navigation.navigate(Routes.BRIDGE.MODALS.CUSTOM_SLIPPAGE_MODAL, {
+      sourceChainId,
+      destChainId,
     });
   }, [navigation, sourceChainId, destChainId]);
 

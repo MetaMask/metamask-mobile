@@ -88,9 +88,7 @@ describe('handleCardOnboarding', () => {
         expect(mockDispatch).toHaveBeenCalledWith(
           setAlwaysShowCardButton(true),
         );
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.WELCOME,
-        });
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.WELCOME);
       });
 
       it('enables onboarding regardless of geo location', () => {
@@ -103,9 +101,7 @@ describe('handleCardOnboarding', () => {
         expect(mockDispatch).toHaveBeenCalledWith(
           setAlwaysShowCardButton(true),
         );
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.WELCOME,
-        });
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.WELCOME);
       });
 
       it('enables onboarding regardless of displayCardButtonFeatureFlag', () => {
@@ -150,9 +146,7 @@ describe('handleCardOnboarding', () => {
       it('navigates to Card Welcome for unauthenticated user without card account', () => {
         handleCardOnboarding();
 
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.WELCOME,
-        });
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.WELCOME);
       });
     });
 
@@ -322,14 +316,8 @@ describe('handleCardOnboarding', () => {
         handleCardOnboarding();
         jest.runAllTimers();
 
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.HOME,
-          params: {
-            screen: Routes.CARD.HOME,
-            params: {
-              showDeeplinkToast: true,
-            },
-          },
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.HOME, {
+          showDeeplinkToast: true,
         });
       });
 
@@ -363,14 +351,8 @@ describe('handleCardOnboarding', () => {
         handleCardOnboarding();
         jest.runAllTimers();
 
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.HOME,
-          params: {
-            screen: Routes.CARD.HOME,
-            params: {
-              showDeeplinkToast: true,
-            },
-          },
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.HOME, {
+          showDeeplinkToast: true,
         });
       });
 
@@ -395,14 +377,8 @@ describe('handleCardOnboarding', () => {
         handleCardOnboarding();
         jest.runAllTimers();
 
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.HOME,
-          params: {
-            screen: Routes.CARD.HOME,
-            params: {
-              showDeeplinkToast: true,
-            },
-          },
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.HOME, {
+          showDeeplinkToast: true,
         });
       });
 
@@ -426,9 +402,7 @@ describe('handleCardOnboarding', () => {
       it('navigates to Card Welcome', () => {
         handleCardOnboarding();
 
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.WELCOME,
-        });
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.WELCOME);
       });
 
       it('does not switch account', () => {
@@ -507,9 +481,7 @@ describe('handleCardOnboarding', () => {
       it('falls back to Card Welcome navigation', () => {
         handleCardOnboarding();
 
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.WELCOME,
-        });
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.WELCOME);
       });
     });
 
@@ -542,14 +514,8 @@ describe('handleCardOnboarding', () => {
         handleCardOnboarding();
         jest.runAllTimers();
 
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.HOME,
-          params: {
-            screen: Routes.CARD.HOME,
-            params: {
-              showDeeplinkToast: true,
-            },
-          },
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.HOME, {
+          showDeeplinkToast: true,
         });
       });
     });

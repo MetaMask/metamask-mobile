@@ -5,6 +5,5 @@ import Routes from '../../../constants/navigation/Routes';
 export const foxLogo = require('../../../images/branding/fox.png');
 export const pageNotFound = require('images/page-not-found.png');
 export const createDeepLinkModalNavDetails = createNavigationDetails(
-  Routes.MODAL.ROOT_MODAL_FLOW,
   Routes.MODAL.DEEP_LINK_MODAL,
 );

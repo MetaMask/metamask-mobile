@@ -82,20 +82,14 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
 
   const handleViewAll = useCallback(() => {
     // Navigate to the specific market type tab when "See all" is pressed
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.MARKET_LIST,
-      params: {
-        defaultMarketTypeFilter: marketType,
-      },
+    navigation.navigate(Routes.PERPS.MARKET_LIST, {
+      defaultMarketTypeFilter: marketType,
     });
   }, [navigation, marketType]);
 
   const handleMarketPress = useCallback(
     (market: PerpsMarketData) => {
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_DETAILS,
-        params: { market },
-      });
+      navigation.navigate(Routes.PERPS.MARKET_DETAILS, { market });
     },
     [navigation],
   );

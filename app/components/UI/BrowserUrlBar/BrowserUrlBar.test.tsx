@@ -185,16 +185,16 @@ describe('BrowserUrlBar', () => {
     fireEvent.press(accountButton);
 
     expect(mockTrackEvent).toHaveBeenCalledTimes(2);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
-      params: {
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SHEET.ACCOUNT_PERMISSIONS,
+      {
         hostInfo: {
           metadata: {
             origin: 'https://example.com',
           },
         },
       },
-    });
+    );
   });
 
   it('updates focus state and calls focus/blur callbacks when input receives focus events', () => {
@@ -505,14 +505,11 @@ describe('BrowserUrlBar', () => {
 
         expect(mockTrackEvent).toHaveBeenCalledTimes(2);
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.MODAL.ROOT_MODAL_FLOW,
+          Routes.SHEET.ACCOUNT_PERMISSIONS,
           {
-            screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
-            params: {
-              hostInfo: {
-                metadata: {
-                  origin: 'https://example.com',
-                },
+            hostInfo: {
+              metadata: {
+                origin: 'https://example.com',
               },
             },
           },

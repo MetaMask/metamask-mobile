@@ -120,13 +120,10 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
       }
       // Navigate to market details with the full market data
       // When navigating from a tab, we need to navigate through the root stack
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_DETAILS,
-        params: {
-          market,
-          initialTab,
-          source,
-        },
+      navigation.navigate(Routes.PERPS.MARKET_DETAILS, {
+        market,
+        initialTab,
+        source,
       });
     }
   }, [onPress, market, navigation, order, position, source, track]);

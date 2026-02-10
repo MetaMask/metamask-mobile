@@ -19,10 +19,7 @@ import { decGWEIToHexWEI } from '../../../util/conversions';
 import { addHexPrefix } from '../../../util/number';
 import { speedUpTransaction as speedUpTx } from '../../../util/transaction-controller';
 import { validateTransactionActionBalance } from '../../../util/transactions';
-import {
-  createLedgerTransactionModalNavDetails,
-  type ReplacementTxParams,
-} from '../../UI/LedgerModals/LedgerTransactionModal';
+import { type ReplacementTxParams } from '../../UI/LedgerModals/LedgerTransactionModal';
 import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
 
 type Maybe<T> = T | null | undefined;
@@ -321,14 +318,12 @@ export function useUnifiedTxActions() {
           : onCancelCompleted();
       }
     };
-    navigation.navigate(
-      ...createLedgerTransactionModalNavDetails({
-        transactionId: transaction.id,
-        deviceId,
-        onConfirmationComplete: onConfirmation,
-        replacementParams: transaction?.replacementParams,
-      }),
-    );
+    navigation.navigate('LedgerTransactionModal', {
+      transactionId: transaction.id,
+      deviceId,
+      onConfirmationComplete: onConfirmation,
+      replacementParams: transaction?.replacementParams,
+    });
   };
 
   const cancelUnsignedQRTransaction = async (tx: TransactionMeta) => {

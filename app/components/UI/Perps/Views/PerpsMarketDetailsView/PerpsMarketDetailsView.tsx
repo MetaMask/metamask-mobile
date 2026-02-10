@@ -617,9 +617,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
       // Check for cross-margin position (MetaMask only supports isolated margin)
       if (existingPosition?.leverage?.type === 'cross') {
-        navigation.navigate(Routes.PERPS.MODALS.ROOT, {
-          screen: Routes.PERPS.MODALS.CROSS_MARGIN_WARNING,
-        });
+        navigation.navigate(Routes.PERPS.MODALS.CROSS_MARGIN_WARNING);
 
         track(MetaMetricsEvents.PERPS_ERROR, {
           [PERPS_EVENT_PROPERTY.ERROR_TYPE]:

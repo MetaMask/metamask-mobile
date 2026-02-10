@@ -206,12 +206,9 @@ describe('MultichainTransactionListItem', () => {
     fireEvent.press(touchable);
 
     expect(mockNavigation.navigate).toHaveBeenCalledWith(
-      Routes.MODAL.ROOT_MODAL_FLOW,
+      Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS,
       expect.objectContaining({
-        screen: Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS,
-        params: expect.objectContaining({
-          transaction: mockTransaction,
-        }),
+        transaction: mockTransaction,
       }),
     );
   });

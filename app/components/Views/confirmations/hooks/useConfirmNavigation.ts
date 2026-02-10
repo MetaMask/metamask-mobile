@@ -66,11 +66,6 @@ export function useConfirmNavigation() {
 
       log('Navigating', { route, params, stack });
 
-      if (stack) {
-        navigate(stack, { screen: route, params });
-        return;
-      }
-
       navigate(route, params);
     },
     [navigate, pendingParams, pendingTransactions],

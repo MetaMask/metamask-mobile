@@ -155,9 +155,7 @@ describe('SDKSessionsManager', () => {
       const disconnectAllButton = getByText('sdk.disconnect_all');
       fireEvent.press(disconnectAllButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.SDK_DISCONNECT,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.SHEET.SDK_DISCONNECT);
     });
 
     it('passes trigger prop to SDKSessionItem components', () => {

@@ -336,11 +336,8 @@ const SmartTransactionStatus = ({
   const txUrl = getPortfolioStxLink(chainId, uuid);
 
   const onViewTransaction = () => {
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: txUrl,
-      },
+    navigation.navigate('SimpleWebview', {
+      url: txUrl,
     });
     // Close SmartTransactionStatus
     onConfirm();

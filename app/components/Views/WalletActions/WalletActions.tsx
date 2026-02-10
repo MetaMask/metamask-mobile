@@ -77,17 +77,14 @@ const WalletActions = () => {
 
   const onEarn = useCallback(async () => {
     closeBottomSheetAndNavigate(() => {
-      navigate('StakeModals', {
-        screen: Routes.STAKING.MODALS.EARN_TOKEN_LIST,
-        params: {
-          tokenFilter: {
-            includeNativeTokens: true,
-            includeStakingTokens: false,
-            includeLendingTokens: true,
-            includeReceiptTokens: false,
-          },
-          onItemPressScreen: EARN_INPUT_VIEW_ACTIONS.DEPOSIT,
+      navigate(Routes.STAKING.MODALS.EARN_TOKEN_LIST, {
+        tokenFilter: {
+          includeNativeTokens: true,
+          includeStakingTokens: false,
+          includeLendingTokens: true,
+          includeReceiptTokens: false,
         },
+        onItemPressScreen: EARN_INPUT_VIEW_ACTIONS.DEPOSIT,
       });
     });
 
@@ -119,9 +116,8 @@ const WalletActions = () => {
       if (isFirstTimePerpsUser) {
         navigate(Routes.PERPS.TUTORIAL);
       } else {
-        navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.PERPS_HOME,
-          params: { source: PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON },
+        navigate(Routes.PERPS.PERPS_HOME, {
+          source: PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON,
         });
       }
     });
@@ -129,11 +125,8 @@ const WalletActions = () => {
 
   const onPredict = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      navigate(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_LIST,
-        params: {
-          entryPoint: PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON,
-        },
+      navigate(Routes.PREDICT.MARKET_LIST, {
+        entryPoint: PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON,
       });
     });
   }, [closeBottomSheetAndNavigate, navigate]);

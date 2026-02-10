@@ -490,9 +490,7 @@ const WalletTokensTabView = forwardRef<
       tabsListRef.current?.goToTabIndex(1);
     },
     onNetworkSelectorSelected: () => {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.NETWORK_SELECTOR,
-      });
+      navigation.navigate(Routes.SHEET.NETWORK_SELECTOR);
     },
   });
 
@@ -917,9 +915,7 @@ const Wallet = ({
       isParticipatingInMetaMetrics &&
       isPastPrivacyPolicyDate
     ) {
-      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.EXPERIENCE_ENHANCER,
-      });
+      navigate(Routes.SHEET.EXPERIENCE_ENHANCER);
     }
   }, [
     isSocialLogin,
@@ -974,20 +970,17 @@ const Wallet = ({
 
   useEffect(() => {
     if (isConnectionRemoved && isSocialLogin) {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-        params: {
-          title: strings('connection_removed_modal.title'),
-          description: strings('connection_removed_modal.content'),
-          primaryButtonLabel: strings('connection_removed_modal.tryAgain'),
-          type: 'error',
-          icon: IconName.Danger,
-          iconColor: IconColor.Warning,
-          isInteractable: false,
-          closeOnPrimaryButtonPress: true,
-          onPrimaryButtonPress: () => {
-            dispatch(setIsConnectionRemoved(false));
-          },
+      navigation.navigate(Routes.SHEET.SUCCESS_ERROR_SHEET, {
+        title: strings('connection_removed_modal.title'),
+        description: strings('connection_removed_modal.content'),
+        primaryButtonLabel: strings('connection_removed_modal.tryAgain'),
+        type: 'error',
+        icon: IconName.Danger,
+        iconColor: IconColor.Warning,
+        isInteractable: false,
+        closeOnPrimaryButtonPress: true,
+        onPrimaryButtonPress: () => {
+          dispatch(setIsConnectionRemoved(false));
         },
       });
     }
@@ -1095,9 +1088,7 @@ const Wallet = ({
    * Callback to trigger when pressing the navigation title.
    */
   const onTitlePress = useCallback(() => {
-    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.NETWORK_SELECTOR,
-    });
+    navigate(Routes.SHEET.NETWORK_SELECTOR);
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
         .addProperties({
@@ -1354,9 +1345,7 @@ const Wallet = ({
   );
 
   const turnOnBasicFunctionality = useCallback(() => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.BASIC_FUNCTIONALITY,
-    });
+    navigation.navigate(Routes.SHEET.BASIC_FUNCTIONALITY);
   }, [navigation]);
 
   const defiEnabled =

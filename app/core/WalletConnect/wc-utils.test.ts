@@ -155,8 +155,7 @@ describe('WalletConnect Utils', () => {
     it('navigates to SDK_LOADING sheet', () => {
       showWCLoadingState({ navigation: mockNavigation });
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
-        { screen: Routes.SHEET.SDK_LOADING },
+        Routes.SHEET.SDK_LOADING,
       );
     });
   });

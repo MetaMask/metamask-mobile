@@ -91,9 +91,7 @@ const AddAsset = () => {
   const networkName = useSelector(selectEvmNetworkName);
 
   const goToSecuritySettings = () => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA,
-    });
+    navigation.navigate(Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA);
   };
 
   const renderTabBar = (props: typeof TabBarProps) => <TabBar {...props} />;

@@ -60,21 +60,17 @@ const handleMarketNavigation = (marketId: string, entryPoint: string) => {
     DevLogger.log(
       '[handlePredictUrl] No market ID provided, fallback to market list',
     );
-    NavigationService.navigation.navigate(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_LIST,
-      params: { entryPoint },
+    NavigationService.navigation.navigate(Routes.PREDICT.MARKET_LIST, {
+      entryPoint,
     });
     return;
   }
 
   // Navigate to market details with the market ID
   // Note: Market details is under MODALS.ROOT, not the main ROOT
-  NavigationService.navigation.navigate(Routes.PREDICT.ROOT, {
-    screen: Routes.PREDICT.MARKET_DETAILS,
-    params: {
-      marketId,
-      entryPoint,
-    },
+  NavigationService.navigation.navigate(Routes.PREDICT.MARKET_DETAILS, {
+    marketId,
+    entryPoint,
   });
 };
 
@@ -140,23 +136,17 @@ export const handlePredictUrl = async ({
     } else {
       // Default to market list
       DevLogger.log('[handlePredictUrl] No market parameter, showing list');
-      NavigationService.navigation.navigate(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_LIST,
-        params: {
-          entryPoint,
-          ...(navParams.tab && { tab: navParams.tab }),
-        },
+      NavigationService.navigation.navigate(Routes.PREDICT.MARKET_LIST, {
+        entryPoint,
+        ...(navParams.tab && { tab: navParams.tab }),
       });
     }
   } catch (error) {
     DevLogger.log('Failed to handle predict deeplink:', error);
     // Fallback to market list on error
     // Default to 'deeplink' entry point for error fallback
-    NavigationService.navigation.navigate(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_LIST,
-      params: {
-        entryPoint: 'deeplink',
-      },
+    NavigationService.navigation.navigate(Routes.PREDICT.MARKET_LIST, {
+      entryPoint: 'deeplink',
     });
   }
 };

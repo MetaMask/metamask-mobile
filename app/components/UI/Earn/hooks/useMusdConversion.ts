@@ -138,10 +138,7 @@ export const useMusdConversion = () => {
   );
 
   const navigateToConversionScreen = useCallback(
-    ({
-      preferredPaymentToken,
-      navigationStack = Routes.EARN.ROOT,
-    }: MusdConversionConfig) => {
+    ({ preferredPaymentToken }: MusdConversionConfig) => {
       // Start trace for navigation to conversion screen
       trace({
         name: TraceName.MusdConversionNavigation,
@@ -151,13 +148,13 @@ export const useMusdConversion = () => {
         },
       });
 
-      navigation.navigate(navigationStack, {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-        params: {
+      navigation.navigate(
+        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        {
           loader: ConfirmationLoader.CustomAmount,
           preferredPaymentToken,
         },
-      });
+      );
     },
     [navigation],
   );
@@ -172,14 +169,10 @@ export const useMusdConversion = () => {
         return false;
       }
 
-      const { preferredPaymentToken, navigationStack = Routes.EARN.ROOT } =
-        config;
+      const { preferredPaymentToken } = config;
 
-      navigation.navigate(navigationStack, {
-        screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
-        params: {
-          preferredPaymentToken,
-        },
+      navigation.navigate(Routes.EARN.MUSD.CONVERSION_EDUCATION, {
+        preferredPaymentToken,
       });
 
       return true;

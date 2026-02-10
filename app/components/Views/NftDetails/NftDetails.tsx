@@ -85,11 +85,8 @@ const NftDetails = () => {
         navigation,
         colors,
         () =>
-          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: 'NftOptions',
-            params: {
-              collectible,
-            },
+          navigation.navigate('NftOptions', {
+            collectible,
           }),
         undefined,
       ),
@@ -121,20 +118,14 @@ const NftDetails = () => {
         ? collectible?.collection?.floorAsk?.source?.url
         : undefined;
 
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: { url },
-    });
+    navigation.navigate('SimpleWebview', { url });
   };
 
   const viewLastSalePriceSource = () => {
     const source = collectible?.lastSale?.orderSource;
     if (source) {
       const url = prefixUrlWithProtocol(source);
-      navigation.navigate('Webview', {
-        screen: 'SimpleWebview',
-        params: { url },
-      });
+      navigation.navigate('SimpleWebview', { url });
     }
   };
 
@@ -294,11 +285,8 @@ const NftDetails = () => {
   }, [collectible, navigation]);
 
   const goToTokenIdSheet = (tokenId: string) => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SHOW_TOKEN_ID,
-      params: {
-        tokenId,
-      },
+    navigation.navigate(Routes.SHEET.SHOW_TOKEN_ID, {
+      tokenId,
     });
   };
 
@@ -448,11 +436,8 @@ const NftDetails = () => {
                   </TouchableOpacity>
                 }
                 onValuePress={() => {
-                  navigation.navigate('Webview', {
-                    screen: 'SimpleWebview',
-                    params: {
-                      url: blockExplorerTokenLink(),
-                    },
+                  navigation.navigate('SimpleWebview', {
+                    url: blockExplorerTokenLink(),
                   });
                 }}
               />
@@ -478,11 +463,8 @@ const NftDetails = () => {
               }
               onValuePress={() => {
                 if (collectible.collection?.creator) {
-                  navigation.navigate('Webview', {
-                    screen: 'SimpleWebview',
-                    params: {
-                      url: blockExplorerTokenLink(),
-                    },
+                  navigation.navigate('SimpleWebview', {
+                    url: blockExplorerTokenLink(),
                   });
                 }
               }}
@@ -586,11 +568,8 @@ const NftDetails = () => {
             }
             onValuePress={() => {
               if (collectible.collection?.creator) {
-                navigation.navigate('Webview', {
-                  screen: 'SimpleWebview',
-                  params: {
-                    url: blockExplorerAccountLink(),
-                  },
+                navigation.navigate('SimpleWebview', {
+                  url: blockExplorerAccountLink(),
                 });
               }
             }}
@@ -617,9 +596,8 @@ const NftDetails = () => {
               getTopBidSourceDomain() ? (
                 <TouchableOpacity
                   onPress={() => {
-                    navigation.navigate('Webview', {
-                      screen: 'SimpleWebview',
-                      params: { url: getTopBidSourceDomain() },
+                    navigation.navigate('SimpleWebview', {
+                      url: getTopBidSourceDomain(),
                     });
                   }}
                 >

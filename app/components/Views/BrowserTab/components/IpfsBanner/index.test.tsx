@@ -44,11 +44,8 @@ describe('IpfsBanner', () => {
     const actionButton = getByText('Turn on IPFS gateway');
     fireEvent.press(actionButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SHOW_IPFS,
-      params: {
-        setIpfsBannerVisible: expect.any(Function),
-      },
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SHEET.SHOW_IPFS, {
+      setIpfsBannerVisible: expect.any(Function),
     });
   });
 });

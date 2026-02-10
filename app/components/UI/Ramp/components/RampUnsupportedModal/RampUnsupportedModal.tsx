@@ -19,10 +19,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 
 export const createRampUnsupportedModalNavigationDetails =
-  createNavigationDetails(
-    Routes.MODAL.ROOT_MODAL_FLOW,
-    Routes.SHEET.UNSUPPORTED_REGION_MODAL,
-  );
+  createNavigationDetails(Routes.SHEET.UNSUPPORTED_REGION_MODAL);
 
 function RampUnsupportedModal() {
   const sheetRef = useRef<BottomSheetRef>(null);

@@ -46,9 +46,7 @@ async function updateSDKLoadingState({
       context: 'updateSDKLoadingState',
     });
 
-    instance.state.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SDK_LOADING,
-    });
+    instance.state.navigation?.navigate(Routes.SHEET.SDK_LOADING);
   } else {
     instance.hideLoadingState().catch((err) => {
       DevLogger.log(

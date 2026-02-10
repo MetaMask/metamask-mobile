@@ -123,12 +123,9 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
   const handleTooltipPress = useCallback(
     (contentKey: PerpsTooltipContentKey, data?: Record<string, unknown>) => {
       if (enableTooltips) {
-        navigation.navigate(Routes.PERPS.MODALS.CLOSE_POSITION_MODALS, {
-          screen: Routes.PERPS.MODALS.TOOLTIP,
-          params: {
-            contentKey,
-            data,
-          },
+        navigation.navigate(Routes.PERPS.MODALS.TOOLTIP, {
+          contentKey,
+          data,
         });
       }
     },

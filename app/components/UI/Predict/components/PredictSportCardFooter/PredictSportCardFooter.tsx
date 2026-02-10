@@ -84,14 +84,11 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
             isCarousel ||
             resolvedEntryPoint === PredictEventValues.ENTRY_POINT.CAROUSEL
           ) {
-            navigation.navigate(Routes.PREDICT.ROOT, {
-              screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-              params: {
-                market,
-                outcome,
-                outcomeToken: token,
-                entryPoint: resolvedEntryPoint,
-              },
+            navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
+              market,
+              outcome,
+              outcomeToken: token,
+              entryPoint: resolvedEntryPoint,
             });
           } else {
             navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {

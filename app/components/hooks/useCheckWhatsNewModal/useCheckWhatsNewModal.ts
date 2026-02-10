@@ -19,9 +19,7 @@ const useCheckWhatsNewModal = () => {
       const shouldShow = await shouldShowWhatsNewModal();
 
       if (shouldShow) {
-        navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.MODAL.WHATS_NEW,
-        });
+        navigation.navigate(Routes.MODAL.WHATS_NEW);
       }
     } catch (error) {
       // Silently fail if there's an error checking the modal state

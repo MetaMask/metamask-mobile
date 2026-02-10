@@ -92,12 +92,12 @@ const ClaimBanner = ({ claimableAmount, asset, style }: StakeBannerProps) => {
           selectedAccount?.address,
           pooledStakesData,
         );
-        navigation.navigate('StakeScreens', {
-          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-          params: {
+        navigation.navigate(
+          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          {
             amountWei: claimableAmount,
           },
-        });
+        );
         return;
       }
 

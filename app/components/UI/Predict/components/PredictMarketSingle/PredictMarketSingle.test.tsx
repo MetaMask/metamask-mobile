@@ -155,26 +155,26 @@ describe('PredictMarketSingle', () => {
     const noButton = getByText('No');
 
     fireEvent.press(yesButton);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-      params: {
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.PREDICT.MODALS.BUY_PREVIEW,
+      {
         market: mockMarket,
         outcome: mockOutcome,
         outcomeToken: mockOutcome.tokens[0],
         entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       },
-    });
+    );
 
     fireEvent.press(noButton);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-      params: {
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.PREDICT.MODALS.BUY_PREVIEW,
+      {
         market: mockMarket,
         outcome: mockOutcome,
         outcomeToken: mockOutcome.tokens[1],
         entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       },
-    });
+    );
   });
 
   it('handle missing or invalid market data gracefully', () => {
@@ -368,12 +368,10 @@ describe('PredictMarketSingle', () => {
     fireEvent.press(yesButton);
 
     // Should navigate to unavailable (not add funds sheet)
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.UNAVAILABLE,
-    });
-    expect(mockNavigate).not.toHaveBeenCalledWith('PredictModals', {
-      screen: 'PredictAddFundsSheet',
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.PREDICT.MODALS.UNAVAILABLE,
+    );
+    expect(mockNavigate).not.toHaveBeenCalledWith('PredictAddFundsSheet');
   });
 
   it('checks eligibility before balance for No button', () => {
@@ -395,12 +393,10 @@ describe('PredictMarketSingle', () => {
     fireEvent.press(noButton);
 
     // Should navigate to unavailable (not add funds sheet)
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.UNAVAILABLE,
-    });
-    expect(mockNavigate).not.toHaveBeenCalledWith('PredictModals', {
-      screen: 'PredictAddFundsSheet',
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.PREDICT.MODALS.UNAVAILABLE,
+    );
+    expect(mockNavigate).not.toHaveBeenCalledWith('PredictAddFundsSheet');
   });
 
   it('displays 0% when tokens have price 0', () => {

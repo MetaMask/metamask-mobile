@@ -35,9 +35,9 @@ describe('usePna25BottomSheet', () => {
 
     await new Promise(setImmediate);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.PNA25_NOTICE_BOTTOM_SHEET,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MODAL.PNA25_NOTICE_BOTTOM_SHEET,
+    );
   });
 
   it('does not navigate when should show PNA25 is false', async () => {

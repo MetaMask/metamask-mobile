@@ -40,11 +40,8 @@ const IpfsBanner = ({
         actionButtonProps={{
           variant: ButtonVariants.Link,
           onPress: () =>
-            navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-              screen: Routes.SHEET.SHOW_IPFS,
-              params: {
-                setIpfsBannerVisible: () => setIpfsBannerVisible(false),
-              },
+            navigation.navigate(Routes.SHEET.SHOW_IPFS, {
+              setIpfsBannerVisible: () => setIpfsBannerVisible(false),
             }),
           label: 'Turn on IPFS gateway',
         }}

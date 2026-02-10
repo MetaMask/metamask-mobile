@@ -726,12 +726,7 @@ describe('AssetOverview', () => {
     await Promise.resolve();
 
     // onSend now navigates to home first, then calls navigateToSendPage
-    expect(navigate).toHaveBeenCalledWith(
-      Routes.WALLET.HOME,
-      expect.objectContaining({
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-      }),
-    );
+    expect(navigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
   });
 
   it('should handle swap button press', async () => {
@@ -1267,12 +1262,7 @@ describe('AssetOverview', () => {
       // Wait for all promises to resolve
       await Promise.resolve();
 
-      expect(navigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
+      expect(navigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     });
 
     it('should navigate to bridge when swapping on different chain', async () => {

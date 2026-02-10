@@ -75,9 +75,8 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
 
   const goToBackupFlow = () => {
     setIsVisible(false);
-    navigation.navigate(Routes.SET_PASSWORD_FLOW.ROOT, {
-      screen: Routes.SET_PASSWORD_FLOW.MANUAL_BACKUP_STEP_1,
-      params: { backupFlow: true },
+    navigation.navigate(Routes.SET_PASSWORD_FLOW.MANUAL_BACKUP_STEP_1, {
+      backupFlow: true,
     });
 
     trackEvent(

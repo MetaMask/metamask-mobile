@@ -441,12 +441,9 @@ class AddCustomToken extends PureComponent {
           <Text
             suppressHighlighting
             onPress={() => {
-              navigation.navigate('Webview', {
-                screen: 'SimpleWebview',
-                params: {
-                  url: AppConstants.URLS.SECURITY,
-                  title: strings('add_asset.banners.custom_security_tips'),
-                },
+              navigation.navigate('SimpleWebview', {
+                url: AppConstants.URLS.SECURITY,
+                title: strings('add_asset.banners.custom_security_tips'),
               });
             }}
             style={styles.tokenDetectionLink}
@@ -465,12 +462,9 @@ class AddCustomToken extends PureComponent {
 
     const goToWebView = () => {
       // TODO: This functionality exists in a bunch of other places. We need to unify this into a utils function
-      navigation.navigate('Webview', {
-        screen: 'SimpleWebview',
-        params: {
-          url: AppConstants.URLS.SECURITY,
-          title: strings('add_asset.banners.custom_security_tips'),
-        },
+      navigation.navigate('SimpleWebview', {
+        url: AppConstants.URLS.SECURITY,
+        title: strings('add_asset.banners.custom_security_tips'),
       });
     };
 
@@ -650,12 +644,9 @@ class AddCustomToken extends PureComponent {
                   <Text
                     style={styles.link}
                     onPress={() => {
-                      this.props.navigation.navigate('Webview', {
-                        screen: 'SimpleWebview',
-                        params: {
-                          url,
-                          title,
-                        },
+                      this.props.navigation.navigate('SimpleWebview', {
+                        url,
+                        title,
                       });
                     }}
                   >

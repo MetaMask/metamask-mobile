@@ -100,9 +100,7 @@ export const handleCardHome = () => {
       DevLogger.log(
         '[handleCardHome] User not authenticated and no card-linked account, navigating to Card Welcome',
       );
-      NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
-        screen: Routes.CARD.WELCOME,
-      });
+      NavigationService.navigation?.navigate(Routes.CARD.WELCOME);
     }
 
     Logger.log('[handleCardHome] Card home deeplink handled successfully');
@@ -132,9 +130,7 @@ export const handleCardHome = () => {
     }
 
     try {
-      NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
-        screen: Routes.CARD.WELCOME,
-      });
+      NavigationService.navigation?.navigate(Routes.CARD.WELCOME);
     } catch (navError) {
       Logger.error(
         navError as Error,
@@ -146,11 +142,6 @@ export const handleCardHome = () => {
 
 function navigateToCardHome(): void {
   setTimeout(() => {
-    NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
-      screen: Routes.CARD.HOME,
-      params: {
-        screen: Routes.CARD.HOME,
-      },
-    });
+    NavigationService.navigation?.navigate(Routes.CARD.HOME);
   }, 500);
 }

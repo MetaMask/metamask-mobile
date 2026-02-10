@@ -54,9 +54,8 @@ const FiatOnTestnetsFriction = () => {
             accessibilityRole={'link'}
             accessible
             onPress={() =>
-              navigation.navigate(Routes.WEBVIEW.MAIN, {
-                screen: Routes.WEBVIEW.SIMPLE,
-                params: { url: AppConstants.URLS.TESTNET_ETH_SCAMS },
+              navigation.navigate(Routes.WEBVIEW.SIMPLE, {
+                url: AppConstants.URLS.TESTNET_ETH_SCAMS,
               })
             }
           >

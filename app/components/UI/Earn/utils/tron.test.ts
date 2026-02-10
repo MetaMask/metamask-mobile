@@ -237,15 +237,12 @@ describe('tron utils', () => {
 
       expect(navigation.goBack).toHaveBeenCalledTimes(1);
       expect(navigation.navigate).toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
+        Routes.SHEET.SUCCESS_ERROR_SHEET,
         {
-          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          params: {
-            title: 'stake.tron.stake_completed',
-            description: 'stake.tron.stake_completed_description',
-            type: 'success',
-            closeOnPrimaryButtonPress: true,
-          },
+          title: 'stake.tron.stake_completed',
+          description: 'stake.tron.stake_completed_description',
+          type: 'success',
+          closeOnPrimaryButtonPress: true,
         },
       );
     });
@@ -287,14 +284,11 @@ describe('tron utils', () => {
 
       expect(navigation.goBack).not.toHaveBeenCalled();
       expect(navigation.navigate).toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
+        Routes.SHEET.SUCCESS_ERROR_SHEET,
         {
-          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          params: {
-            title: 'stake.tron.stake_failed',
-            description: 'Error 1\nError 2',
-            type: 'error',
-          },
+          title: 'stake.tron.stake_failed',
+          description: 'Error 1\nError 2',
+          type: 'error',
         },
       );
     });
@@ -310,15 +304,12 @@ describe('tron utils', () => {
 
       expect(navigation.goBack).toHaveBeenCalledTimes(1);
       expect(navigation.navigate).toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
+        Routes.SHEET.SUCCESS_ERROR_SHEET,
         {
-          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          params: {
-            title: 'stake.tron.unstake_completed',
-            description: 'stake.tron.unstake_completed_description',
-            type: 'success',
-            closeOnPrimaryButtonPress: true,
-          },
+          title: 'stake.tron.unstake_completed',
+          description: 'stake.tron.unstake_completed_description',
+          type: 'success',
+          closeOnPrimaryButtonPress: true,
         },
       );
     });
@@ -334,14 +325,11 @@ describe('tron utils', () => {
 
       expect(navigation.goBack).not.toHaveBeenCalled();
       expect(navigation.navigate).toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
+        Routes.SHEET.SUCCESS_ERROR_SHEET,
         {
-          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          params: {
-            title: 'stake.tron.unstake_failed',
-            description: 'Unstake error',
-            type: 'error',
-          },
+          title: 'stake.tron.unstake_failed',
+          description: 'Unstake error',
+          type: 'error',
         },
       );
     });
@@ -356,14 +344,11 @@ describe('tron utils', () => {
       handleTronStakingNavigationResult(navigation, result, 'unstake');
 
       expect(navigation.navigate).toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
+        Routes.SHEET.SUCCESS_ERROR_SHEET,
         {
-          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          params: {
-            title: 'stake.tron.unstake_failed',
-            description: 'stake.tron.errors.insufficient_balance',
-            type: 'error',
-          },
+          title: 'stake.tron.unstake_failed',
+          description: 'stake.tron.errors.insufficient_balance',
+          type: 'error',
         },
       );
     });

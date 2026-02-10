@@ -101,12 +101,9 @@ const AccountActions = () => {
   );
 
   const goToBrowserUrl = (url: string, title: string) => {
-    navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url,
-        title,
-      },
+    navigate('SimpleWebview', {
+      url,
+      title,
     });
   };
 
@@ -171,8 +168,7 @@ const AccountActions = () => {
 
   const goToExportSRP = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.SRP_REVEAL_QUIZ,
+      navigate(Routes.MODAL.SRP_REVEAL_QUIZ, {
         keyringId,
       });
     });

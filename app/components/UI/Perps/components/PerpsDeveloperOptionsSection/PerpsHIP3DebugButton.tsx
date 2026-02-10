@@ -12,9 +12,7 @@ export const PerpsHIP3DebugButton = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
 
   const handleDebugPress = () => {
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.HIP3_DEBUG,
-    });
+    navigation.navigate(Routes.PERPS.HIP3_DEBUG);
   };
 
   // Only show in development builds

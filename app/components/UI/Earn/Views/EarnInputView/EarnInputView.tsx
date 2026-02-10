@@ -250,24 +250,20 @@ const EarnInputView = () => {
       ///: BEGIN:ONLY_INCLUDE_IF(tron)
       // Navigate to TRX staking learn more modal
       if (isTronNative) {
-        navigation.navigate('StakeModals', {
-          screen: Routes.STAKING.MODALS.TRX_LEARN_MORE,
-        });
+        navigation.navigate(Routes.STAKING.MODALS.TRX_LEARN_MORE);
         return;
       }
       ///: END:ONLY_INCLUDE_IF
 
-      navigation.navigate('StakeModals', {
-        screen: Routes.STAKING.MODALS.LEARN_MORE,
-        params: { chainId: earnToken?.chainId },
+      navigation.navigate(Routes.STAKING.MODALS.LEARN_MORE, {
+        chainId: earnToken?.chainId,
       });
     }
 
     if (tokenExperience === EARN_EXPERIENCES.STABLECOIN_LENDING) {
       trace({ name: TraceName.EarnFaq, data: { experience: tokenExperience } });
-      navigation.navigate(Routes.EARN.MODALS.ROOT, {
-        screen: Routes.EARN.MODALS.LENDING_LEARN_MORE,
-        params: { asset: earnToken },
+      navigation.navigate(Routes.EARN.MODALS.LENDING_LEARN_MORE, {
+        asset: earnToken,
       });
     }
   }, [
@@ -462,31 +458,28 @@ const EarnInputView = () => {
         requireApproval: true,
       });
 
-      navigation.navigate('StakeScreens', {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      });
+      navigation.navigate(
+        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      );
     };
 
     const createLegacyLendingDepositConfirmation = (
       _lendingPoolContractAddress: string,
       _needsAllowanceIncrease: boolean,
     ) => {
-      navigation.navigate(Routes.EARN.ROOT, {
-        screen: Routes.EARN.LENDING_DEPOSIT_CONFIRMATION,
-        params: {
-          token,
-          amountTokenMinimalUnit: amountTokenMinimalUnit.toString(),
-          amountFiat: amountFiatNumber,
-          annualRewardsToken,
-          annualRewardsFiat,
-          annualRewardRate,
-          lendingProtocol: earnToken?.experience?.market?.protocol,
-          lendingContractAddress: lendingPoolContractAddress,
-          action: needsAllowanceIncrease
-            ? EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE
-            : EARN_LENDING_ACTIONS.DEPOSIT,
-          allowanceMinimalTokenUnit,
-        },
+      navigation.navigate(Routes.EARN.LENDING_DEPOSIT_CONFIRMATION, {
+        token,
+        amountTokenMinimalUnit: amountTokenMinimalUnit.toString(),
+        amountFiat: amountFiatNumber,
+        annualRewardsToken,
+        annualRewardsFiat,
+        annualRewardRate,
+        lendingProtocol: earnToken?.experience?.market?.protocol,
+        lendingContractAddress: lendingPoolContractAddress,
+        action: needsAllowanceIncrease
+          ? EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE
+          : EARN_LENDING_ACTIONS.DEPOSIT,
+        allowanceMinimalTokenUnit,
       });
     };
 
@@ -539,18 +532,15 @@ const EarnInputView = () => {
           .build(),
       );
 
-      navigation.navigate('StakeModals', {
-        screen: Routes.STAKING.MODALS.GAS_IMPACT,
-        params: {
-          amountWei: amountTokenMinimalUnit.toString(),
-          amountFiat: amountFiatNumber,
-          annualRewardsToken,
-          annualRewardsFiat,
-          annualRewardRate,
-          estimatedGasFee: formatEther(estimatedGasFeeWei.toString()),
-          estimatedGasFeePercentage: `${getDepositTxGasPercentage()}%`,
-          chainId: earnToken?.chainId,
-        },
+      navigation.navigate(Routes.STAKING.MODALS.GAS_IMPACT, {
+        amountWei: amountTokenMinimalUnit.toString(),
+        amountFiat: amountFiatNumber,
+        annualRewardsToken,
+        annualRewardsFiat,
+        annualRewardRate,
+        estimatedGasFee: formatEther(estimatedGasFeeWei.toString()),
+        estimatedGasFeePercentage: `${getDepositTxGasPercentage()}%`,
+        chainId: earnToken?.chainId,
       });
       return;
     }
@@ -589,9 +579,9 @@ const EarnInputView = () => {
         true,
       );
 
-      navigation.navigate('StakeScreens', {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      });
+      navigation.navigate(
+        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      );
 
       const withRedesignedPropEventProperties = {
         ...stakeButtonClickEventProperties,
@@ -606,16 +596,13 @@ const EarnInputView = () => {
       return;
     }
 
-    navigation.navigate('StakeScreens', {
-      screen: Routes.STAKING.STAKE_CONFIRMATION,
-      params: {
-        amountWei: amountWeiString,
-        amountFiat: amountFiatNumber,
-        annualRewardsToken,
-        annualRewardsFiat,
-        annualRewardRate,
-        chainId: earnToken?.chainId,
-      },
+    navigation.navigate(Routes.STAKING.STAKE_CONFIRMATION, {
+      amountWei: amountWeiString,
+      amountFiat: amountFiatNumber,
+      annualRewardsToken,
+      annualRewardsFiat,
+      annualRewardRate,
+      chainId: earnToken?.chainId,
     });
 
     trackEvent(
@@ -687,11 +674,8 @@ const EarnInputView = () => {
     lastQuickAmountButtonPressed.current = 'MAX';
 
     if (!isStablecoinLendingEnabled || token.isETH) {
-      navigation.navigate('StakeModals', {
-        screen: Routes.STAKING.MODALS.MAX_INPUT,
-        params: {
-          handleMaxPress: handleMax,
-        },
+      navigation.navigate(Routes.STAKING.MODALS.MAX_INPUT, {
+        handleMaxPress: handleMax,
       });
     } else {
       handleMax();

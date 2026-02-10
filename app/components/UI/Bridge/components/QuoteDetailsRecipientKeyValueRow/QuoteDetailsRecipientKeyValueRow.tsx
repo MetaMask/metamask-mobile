@@ -37,9 +37,7 @@ const QuoteDetailsRecipientKeyValueRow = () => {
   } = useRecipientDisplayData();
 
   const handleRecipientPress = () => {
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.RECIPIENT_SELECTOR_MODAL,
-    });
+    navigation.navigate(Routes.BRIDGE.MODALS.RECIPIENT_SELECTOR_MODAL);
   };
 
   if (isSwap) {

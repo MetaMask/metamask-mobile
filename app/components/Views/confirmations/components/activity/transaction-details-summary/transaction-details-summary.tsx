@@ -199,9 +199,9 @@ function SummaryLine({
       return;
     }
 
-    navigation.navigate(Routes.WEBVIEW.MAIN, {
-      screen: Routes.WEBVIEW.SIMPLE,
-      params: { url: explorerTxUrl, title: explorerName },
+    navigation.navigate(Routes.WEBVIEW.SIMPLE, {
+      url: explorerTxUrl,
+      title: explorerName,
     });
   }, [explorerName, explorerTxUrl, navigation]);
 

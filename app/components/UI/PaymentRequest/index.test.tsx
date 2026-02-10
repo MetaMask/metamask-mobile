@@ -283,10 +283,7 @@ describe('PaymentRequest', () => {
       });
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
-        {
-          screen: Routes.SHEET.NETWORK_SELECTOR,
-        },
+        Routes.SHEET.NETWORK_SELECTOR,
       );
     });
   });

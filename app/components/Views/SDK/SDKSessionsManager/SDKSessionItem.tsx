@@ -111,10 +111,7 @@ export const SDKSessionItem = ({
       isV2: connection.isV2,
     };
 
-    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SDK_MANAGE_CONNECTIONS,
-      params,
-    });
+    navigate(Routes.SHEET.SDK_MANAGE_CONNECTIONS, params);
   }, [connection, navigate, sessionName, icon]);
 
   return (

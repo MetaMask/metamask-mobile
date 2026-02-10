@@ -145,11 +145,8 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
     if (!networkClientId) return;
     try {
       await Engine.context.NetworkController.setActiveNetwork(networkClientId);
-      navigation.navigate('StakeScreens', {
-        screen: Routes.STAKING.UNSTAKE,
-        params: {
-          token: receiptToken,
-        },
+      navigation.navigate(Routes.STAKING.UNSTAKE, {
+        token: receiptToken,
       });
     } catch (error) {
       console.error(error);
@@ -163,11 +160,8 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
     if (!networkClientId) return;
     try {
       await Engine.context.NetworkController.setActiveNetwork(networkClientId);
-      navigation.navigate('StakeScreens', {
-        screen: Routes.STAKING.STAKE,
-        params: {
-          token: earnToken,
-        },
+      navigation.navigate(Routes.STAKING.STAKE, {
+        token: earnToken,
       });
     } catch (error) {
       console.error(error);

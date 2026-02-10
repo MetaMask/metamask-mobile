@@ -898,21 +898,18 @@ describe('Wallet', () => {
       );
 
       expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
-        {
-          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          params: expect.objectContaining({
-            title: expect.any(String),
-            description: expect.any(String),
-            primaryButtonLabel: expect.any(String),
-            type: 'error',
-            icon: IconName.Danger,
-            iconColor: IconColor.Warning,
-            isInteractable: false,
-            closeOnPrimaryButtonPress: true,
-            onPrimaryButtonPress: expect.any(Function),
-          }),
-        },
+        Routes.SHEET.SUCCESS_ERROR_SHEET,
+        expect.objectContaining({
+          title: expect.any(String),
+          description: expect.any(String),
+          primaryButtonLabel: expect.any(String),
+          type: 'error',
+          icon: IconName.Danger,
+          iconColor: IconColor.Warning,
+          isInteractable: false,
+          closeOnPrimaryButtonPress: true,
+          onPrimaryButtonPress: expect.any(Function),
+        }),
       );
 
       jest.clearAllMocks();
@@ -967,9 +964,9 @@ describe('Wallet', () => {
         },
       );
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-        params: expect.objectContaining({
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SHEET.SUCCESS_ERROR_SHEET,
+        expect.objectContaining({
           title: expect.any(String),
           description: expect.any(String),
           primaryButtonLabel: expect.any(String),
@@ -980,7 +977,7 @@ describe('Wallet', () => {
           closeOnPrimaryButtonPress: true,
           onPrimaryButtonPress: expect.any(Function),
         }),
-      });
+      );
 
       jest.clearAllMocks();
     });

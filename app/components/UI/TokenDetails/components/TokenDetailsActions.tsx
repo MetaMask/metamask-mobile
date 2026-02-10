@@ -154,17 +154,14 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
 
   const handleMorePress = useCallback(() => {
     withNavigationLock(() => {
-      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.MORE_TOKEN_ACTIONS_MENU,
-        params: {
-          hasPerpsMarket,
-          hasBalance,
-          isBuyable,
-          isNativeCurrency,
-          asset: token,
-          onBuy,
-          onReceive,
-        },
+      navigate(Routes.MODAL.MORE_TOKEN_ACTIONS_MENU, {
+        hasPerpsMarket,
+        hasBalance,
+        isBuyable,
+        isNativeCurrency,
+        asset: token,
+        onBuy,
+        onReceive,
       });
     });
   }, [

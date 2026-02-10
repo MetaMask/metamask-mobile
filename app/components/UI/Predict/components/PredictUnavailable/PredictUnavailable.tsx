@@ -70,12 +70,9 @@ const PredictUnavailable = forwardRef<
 
   const handlePolymarketTermsPress = useCallback(() => {
     InteractionManager.runAfterInteractions(() => {
-      navigation.navigate('Webview', {
-        screen: 'SimpleWebview',
-        params: {
-          url: 'https://polymarket.com/tos',
-          title: strings('predict.unavailable.webview_title'),
-        },
+      navigation.navigate('SimpleWebview', {
+        url: 'https://polymarket.com/tos',
+        title: strings('predict.unavailable.webview_title'),
       });
     });
   }, [navigation]);

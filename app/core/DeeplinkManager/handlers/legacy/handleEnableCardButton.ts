@@ -39,9 +39,7 @@ export const handleEnableCardButton = () => {
       Logger.log('[handleEnableCardButton] Card button enabled via deeplink');
 
       // Show success toast via navigation
-      NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.CARD.NOTIFICATION,
-      });
+      NavigationService.navigation?.navigate(Routes.CARD.NOTIFICATION);
     } else {
       DevLogger.log(
         '[handleEnableCardButton] Card experimental switch is disabled, skipping',

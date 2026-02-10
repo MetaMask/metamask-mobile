@@ -32,7 +32,6 @@ const foxLogo = require('../../../images/branding/fox.png');
 const metamaskName = require('../../../images/branding/metamask-name.png');
 
 export const createUpdateNeededNavDetails = createNavigationDetails(
-  Routes.MODAL.ROOT_MODAL_FLOW,
   Routes.MODAL.UPDATE_NEEDED,
 );
 

@@ -51,12 +51,9 @@ export function handleCreateAccountUrl({ path }: { path: string }) {
 
   if (!hasAccountsInScope) {
     // if there are no accounts in the scope, show the modal to create an account
-    NavigationService.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.ADD_ACCOUNT,
-      params: {
-        clientType: getClientType(chainId),
-        scope: chainId,
-      },
+    NavigationService.navigation.navigate(Routes.SHEET.ADD_ACCOUNT, {
+      clientType: getClientType(chainId),
+      scope: chainId,
     });
     return;
   }
@@ -79,19 +76,13 @@ export function handleCreateAccountUrl({ path }: { path: string }) {
       bridgeViewMode: BridgeViewMode.Unified,
     };
 
-    NavigationService.navigation.navigate(Routes.BRIDGE.ROOT, {
-      screen: Routes.BRIDGE.BRIDGE_VIEW,
-      params,
-    });
+    NavigationService.navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW, params);
 
     return;
   }
 
   // if there are account in scope bu non of them have funds, navigate to ramps
-  NavigationService.navigation.navigate(Routes.RAMP.BUY, {
-    screen: Routes.RAMP.GET_STARTED,
-    params: {
-      chainId,
-    },
+  NavigationService.navigation.navigate(Routes.RAMP.GET_STARTED, {
+    chainId,
   });
 }

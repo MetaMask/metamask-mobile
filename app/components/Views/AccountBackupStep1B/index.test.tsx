@@ -122,9 +122,7 @@ describe('AccountBackupStep1B', () => {
     expect(srpLink).toBeOnTheScreen();
 
     fireEvent.press(srpLink);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SEEDPHRASE_MODAL,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SEEDPHRASE_MODAL);
     mockNavigation.mockRestore();
   });
 

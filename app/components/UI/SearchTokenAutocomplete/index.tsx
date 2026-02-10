@@ -307,12 +307,7 @@ const SearchTokenAutocomplete = ({
    * Go to wallet page
    */
   const goToWalletPage = useCallback(() => {
-    navigation.navigate(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
-    });
+    navigation.navigate(Routes.WALLET_VIEW);
   }, [navigation]);
 
   const addTokenList = useCallback(async () => {
@@ -388,11 +383,8 @@ const SearchTokenAutocomplete = ({
           <Text
             suppressHighlighting
             onPress={() => {
-              navigation.navigate('SettingsView', {
-                screen: 'AdvancedSettings',
-                params: {
-                  scrollToBottom: true,
-                },
+              navigation.navigate('AdvancedSettings', {
+                scrollToBottom: true,
               });
             }}
             style={styles.tokenDetectionLink}

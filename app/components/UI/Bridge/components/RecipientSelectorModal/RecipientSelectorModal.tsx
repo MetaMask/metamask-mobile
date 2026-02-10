@@ -55,9 +55,7 @@ const RecipientSelectorModal: React.FC = () => {
   }, [dispatch]);
 
   const handleClose = () => {
-    navigation.navigate(Routes.BRIDGE.ROOT, {
-      screen: Routes.BRIDGE.BRIDGE_VIEW,
-    });
+    navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW);
   };
 
   const getIsAccountSupported = useCallback(

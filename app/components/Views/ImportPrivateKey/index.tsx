@@ -71,14 +71,11 @@ const ImportPrivateKey = () => {
   }, []);
 
   const learnMore = () =>
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: isSRP
-          ? 'https://support.metamask.io/start/use-an-existing-wallet/#importing-using-a-private-key'
-          : 'https://support.metamask.io/start/use-an-existing-wallet/#import-an-existing-wallet',
-        title: strings('drawer.metamask_support'),
-      },
+    navigation.navigate('SimpleWebview', {
+      url: isSRP
+        ? 'https://support.metamask.io/start/use-an-existing-wallet/#importing-using-a-private-key'
+        : 'https://support.metamask.io/start/use-an-existing-wallet/#import-an-existing-wallet',
+      title: strings('drawer.metamask_support'),
     });
 
   const dismiss = () => {
@@ -103,9 +100,7 @@ const ImportPrivateKey = () => {
         await Authentication.importAccountFromPrivateKey(privateKeyToProcess);
       // no need to handle error here, password outdated state will trigger modal that force user to log out
       if (isImported) {
-        navigation.navigate('ImportPrivateKeyView', {
-          screen: 'ImportPrivateKeySuccess',
-        });
+        navigation.navigate('ImportPrivateKeySuccess');
         setPrivateKey('');
         fetchAccountsWithActivity();
       }

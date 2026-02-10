@@ -60,12 +60,9 @@ function TradeTabBarItem({ label, ...props }: TradeTabBarItemProps) {
     impactAsync(ImpactFeedbackStyle.Medium);
     setIsActive((active) => !active);
 
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
-      params: {
-        onDismiss: () => setIsActive(false),
-        buttonLayout,
-      },
+    navigation.navigate(Routes.MODAL.TRADE_WALLET_ACTIONS, {
+      onDismiss: () => setIsActive(false),
+      buttonLayout,
     });
     trackEvent(
       createEventBuilder(MetaMetricsEvents.ACTIONS_BUTTON_CLICKED)

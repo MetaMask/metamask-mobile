@@ -42,10 +42,7 @@ import { strings } from '../../../../locales/i18n';
 import { AddressSelectorSelectors } from './AddressSelector.testIds';
 
 export const createAddressSelectorNavDetails =
-  createNavigationDetails<AddressSelectorParams>(
-    Routes.MODAL.ROOT_MODAL_FLOW,
-    Routes.SHEET.ADDRESS_SELECTOR,
-  );
+  createNavigationDetails<AddressSelectorParams>(Routes.SHEET.ADDRESS_SELECTOR);
 
 const AddressSelector = () => {
   const dispatch = useDispatch();

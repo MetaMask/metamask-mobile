@@ -127,12 +127,9 @@ const Settings = () => {
   };
 
   const goToBrowserUrl = (url: string, title: string) => {
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url,
-        title,
-      },
+    navigation.navigate('SimpleWebview', {
+      url,
+      title,
     });
   };
 

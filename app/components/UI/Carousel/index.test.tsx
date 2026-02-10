@@ -409,12 +409,9 @@ describe('Carousel Solana Integration', () => {
     await arrangeActTestSolanaCarouselClick({ hasSolanaAccount: false }); // no solana account
 
     // Should navigate to add account flow instead of switching accounts
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.ADD_ACCOUNT,
-      params: {
-        clientType: WalletClientType.Solana,
-        scope: SolScope.Mainnet,
-      },
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SHEET.ADD_ACCOUNT, {
+      clientType: WalletClientType.Solana,
+      scope: SolScope.Mainnet,
     });
     expect(Engine.setSelectedAddress).not.toHaveBeenCalled();
   });

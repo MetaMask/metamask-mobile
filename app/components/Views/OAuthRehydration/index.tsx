@@ -242,10 +242,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           closeOnPrimaryButtonPress: true,
           type: 'error',
         };
-        navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          params,
-        });
+        navigation.navigate(Routes.SHEET.SUCCESS_ERROR_SHEET, params);
         return;
       }
 
@@ -621,11 +618,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const toggleWarningModal = () => {
     track(MetaMetricsEvents.FORGOT_PASSWORD_CLICKED, {});
 
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.DELETE_WALLET,
-      params: {
-        oauthLoginSuccess: isComingFromOauthOnboarding,
-      },
+    navigation.navigate(Routes.MODAL.DELETE_WALLET, {
+      oauthLoginSuccess: isComingFromOauthOnboarding,
     });
   };
   return (

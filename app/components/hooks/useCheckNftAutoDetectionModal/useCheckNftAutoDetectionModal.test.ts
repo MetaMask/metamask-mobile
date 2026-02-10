@@ -57,9 +57,9 @@ describe('useCheckNftAutoDetectionModal', () => {
   it('should navigate and dispatch action when conditions are met', () => {
     renderHook(() => useCheckNftAutoDetectionModal());
 
-    expect(navigateMock).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.NFT_AUTO_DETECTION_MODAL,
-    });
+    expect(navigateMock).toHaveBeenCalledWith(
+      Routes.MODAL.NFT_AUTO_DETECTION_MODAL,
+    );
     expect(dispatchMock).toHaveBeenCalledWith(
       setNftAutoDetectionModalOpen(true),
     );

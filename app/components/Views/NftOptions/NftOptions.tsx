@@ -49,21 +49,13 @@ const NftOptions = (props: Props) => {
   );
 
   const goToWalletPage = () => {
-    navigation.navigate(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
-    });
+    navigation.navigate(Routes.WALLET_VIEW);
   };
 
   const goToBrowserUrl = (url: string) => {
     modalRef.current?.dismissModal(() => {
-      navigation.navigate('Webview', {
-        screen: 'SimpleWebview',
-        params: {
-          url,
-        },
+      navigation.navigate('SimpleWebview', {
+        url,
       });
     });
   };
