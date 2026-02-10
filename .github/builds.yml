@@ -35,6 +35,12 @@ _public_envs: &public_envs # Servers (production)
   RAMP_INTERNAL_BUILD: 'false'
   IS_TEST: 'false'
   SEEDLESS_ONBOARDING_ENABLED: 'true'
+  MM_NOTIFICATIONS_UI_ENABLED: 'true'
+  MM_PERMISSIONS_SETTINGS_V1_ENABLED: 'false'
+  MM_PERPS_BLOCKED_REGIONS: 'US,CA-ON,GB,BE'
+  MM_PERPS_HIP3_ALLOWLIST_MARKETS: ''
+  MM_PERPS_HIP3_BLOCKLIST_MARKETS: ''
+  MM_PERPS_HIP3_ENABLED: 'true'
 
 # Common secrets (shared across ALL builds - same names, GitHub Environment determines values)
 _secrets: &secrets # Infrastructure
