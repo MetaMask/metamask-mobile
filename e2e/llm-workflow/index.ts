@@ -20,7 +20,7 @@ export {
   MetaMaskMobileContractSeedingCapability,
   MetaMaskMobileStateSnapshotCapability,
   MetaMaskMobileMockServerCapability,
-  MetaMaskMobileCapabilityFactory,
+  createMetaMaskMobileE2EContext,
 } from './capabilities';
 
 export { MetaMaskMobileMCPServer } from './mcp-server/server';
