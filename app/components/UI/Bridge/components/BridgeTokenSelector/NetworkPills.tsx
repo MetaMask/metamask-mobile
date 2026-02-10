@@ -104,24 +104,11 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
       ]);
       scrollViewRef.current?.scrollTo({ x: 0, animated: true });
     } else {
-      // Already visible: scroll to its position
-      // +1 accounts for the "All" pill at position 0
+      // Already visible: scroll to bring it into view
       const scrollX = Math.max(0, existingIndex * PILL_WIDTH);
       scrollViewRef.current?.scrollTo({ x: scrollX, animated: true });
     }
   }, [selectedChainId]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleAllPress = () => {
-    onChainSelect(undefined);
-  };
-
-  const handleChainPress = (chainId: CaipChainId) => {
-    onChainSelect(chainId);
-  };
-
-  const handleMorePress = () => {
-    onMorePress();
-  };
 
   const renderChainPill = (chain: ChainRankingEntry) => {
     const isSelected = selectedChainId === chain.chainId;
@@ -157,7 +144,7 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
           </Box>
         }
         isActive={isSelected}
-        onPress={() => handleChainPress(chain.chainId)}
+        onPress={() => onChainSelect(chain.chainId)}
         size={ButtonSize.Md}
         style={tw.style('rounded-xl py-2 px-3')}
       />
@@ -176,7 +163,7 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
       <ButtonToggle
         label={strings('bridge.all')}
         isActive={!selectedChainId}
-        onPress={handleAllPress}
+        onPress={() => onChainSelect(undefined)}
         style={tw.style('rounded-xl py-2 px-3')}
         size={ButtonSize.Md}
       />
@@ -187,7 +174,7 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
             count: remainingCount,
           })}
           isActive={false}
-          onPress={handleMorePress}
+          onPress={onMorePress}
           style={tw.style('rounded-xl py-2 px-3')}
           size={ButtonSize.Md}
           testID="network-pills-more-button"
