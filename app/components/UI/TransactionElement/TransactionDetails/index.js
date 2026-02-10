@@ -42,7 +42,6 @@ import { selectTokensByChainIdAndAddress } from '../../../../selectors/tokensCon
 import { selectContractExchangeRatesByChainId } from '../../../../selectors/tokenRatesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { regex } from '../../../../../app/util/regex';
-import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import {
   selectPrimaryCurrency,
   selectAvatarAccountType,
@@ -498,10 +497,6 @@ const mapStateToProps = (state, ownProps) => ({
   primaryCurrency: selectPrimaryCurrency(state),
   swapsTransactions: selectSwapsTransactions(state),
   swapsTokens: swapsControllerTokens(state),
-  shouldUseSmartTransaction: selectShouldUseSmartTransaction(
-    state,
-    ownProps.transactionObject.chainId,
-  ),
   avatarAccountType: selectAvatarAccountType(state),
 });
 
