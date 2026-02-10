@@ -18,6 +18,38 @@ function scheduleNext(delay: number): void {
 
 let isPollingInFlight = false;
 
+function dispatchPerpsCommand(item: {
+  type: string;
+  args: Record<string, unknown>;
+}): void {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+    const mod = require('../../../tests/controller-mocking/mock-responses/perps/perps-e2e-mocks');
+    const service = mod?.PerpsE2EMockService?.getInstance?.();
+    if (!service) return;
+
+    if (item.type === 'push-price') {
+      const sym = item.args.symbol as string;
+      const price = String(item.args.price);
+      if (typeof service.mockPushPrice === 'function') {
+        service.mockPushPrice(sym, price);
+      }
+    } else if (item.type === 'force-liquidation') {
+      const sym = item.args.symbol as string;
+      if (typeof service.mockForceLiquidation === 'function') {
+        service.mockForceLiquidation(sym);
+      }
+    } else if (item.type === 'mock-deposit') {
+      const amount = item.args.amount as string;
+      if (typeof service.mockDepositUSD === 'function') {
+        service.mockDepositUSD(amount);
+      }
+    }
+  } catch (e) {
+    // Perps mocks not available — expected in non-perps tests
+  }
+}
+
 async function pollOnce(): Promise<void> {
   if (isPollingInFlight) return;
   isPollingInFlight = true;
@@ -26,7 +58,7 @@ async function pollOnce(): Promise<void> {
     const port = getCommandQueueServerPortInApp();
     const baseUrl = `http://localhost:${port}/queue.json`;
 
-    DevLogger.log('[E2E Generic Polling] Polling', baseUrl);
+    DevLogger.log('[E2E Command Server Polling] Polling', baseUrl);
 
     const response = await new Promise<AxiosResponse>((resolve, reject) => {
       const timeoutId = setTimeout(() => {
@@ -77,7 +109,6 @@ async function pollOnce(): Promise<void> {
 
       if (item.type === 'export-state') {
         try {
-          // Lazy require to avoid circular dependency and keep tree-shakeable
           // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
           const { handleExportStateCommand } = require('./e2eStateExport');
           await handleExportStateCommand();
@@ -87,6 +118,12 @@ async function pollOnce(): Promise<void> {
             e,
           );
         }
+      } else if (
+        item.type === 'push-price' ||
+        item.type === 'force-liquidation' ||
+        item.type === 'mock-deposit'
+      ) {
+        dispatchPerpsCommand(item);
       }
     }
 
@@ -108,15 +145,27 @@ async function pollOnce(): Promise<void> {
 }
 
 /**
- * Start polling the generic command queue for E2E commands.
+ * Start polling the command queue for E2E commands.
+ * Handles all command types (generic + perps).
+ * Probes the server first — if unreachable, polling never starts.
  * Should only be called once, guarded by isE2E.
  */
-export function startE2EGenericCommandPolling(): void {
+export async function startE2ECommandPolling(): Promise<void> {
   if (!isE2E || hasStartedPolling) return;
 
+  // If the server isn't running (test didn't opt in with useCommandQueueServer),
+  // we skip polling entirely instead of making wasted requests.
+  const port = getCommandQueueServerPortInApp();
+  try {
+    await axios.get(`http://localhost:${port}/queue.json`, { timeout: 3000 });
+  } catch {
+    DevLogger.log(
+      '[E2E Command Server Polling] Server not reachable, skipping polling',
+    );
+    return;
+  }
+
   hasStartedPolling = true;
-  DevLogger.log(
-    '[E2E Command Server Polling] Starting generic command polling',
-  );
+  DevLogger.log('[E2E Command Server Polling] Starting command polling');
   scheduleNext(0);
 }
