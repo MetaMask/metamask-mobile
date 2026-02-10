@@ -43,6 +43,7 @@ import { Colors } from '../../../../../util/theme/models';
 import { strings } from '../../../../../../locales/i18n';
 import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../../Bridge/types';
+import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import Routes from '../../../../../constants/navigation/Routes';
 import StockBadge from '../../../shared/StockBadge';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
@@ -50,7 +51,7 @@ import { toHex } from '@metamask/controller-utils';
 import Logger from '../../../../../util/Logger';
 import { useNetworkName } from '../../../../Views/confirmations/hooks/useNetworkName';
 import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events';
-import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
+import { MUSD_CONVERSION_APY, isMusdToken } from '../../../Earn/constants/musd';
 import {
   useMerklRewards,
   isEligibleForMerklRewards,
@@ -254,24 +255,15 @@ export const TokenListItem = React.memo(
     const onItemPress = useCallback(
       (token: TokenI, scrollToMerklRewards?: boolean) => {
         trace({ name: TraceName.AssetDetails });
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
-            .addProperties({
-              source: isFullView
-                ? 'mobile-token-list-page'
-                : 'mobile-token-list',
-              chain_id: token.chainId,
-              token_symbol: token.symbol,
-            })
-            .build(),
-        );
-
         navigation.navigate('Asset', {
           ...token,
           scrollToMerklRewards,
+          source: isFullView
+            ? TokenDetailsSource.MobileTokenListPage
+            : TokenDetailsSource.MobileTokenList,
         });
       },
-      [isFullView, trackEvent, createEventBuilder, navigation],
+      [isFullView, navigation],
     );
 
     const handleLendingRedirect = useStablecoinLendingRedirect({
@@ -379,7 +371,9 @@ export const TokenListItem = React.memo(
     return (
       <AssetElement
         onPress={onItemPress}
-        onLongPress={asset.isNative ? null : showRemoveMenu}
+        onLongPress={
+          asset.isNative || isMusdToken(asset.address) ? null : showRemoveMenu
+        }
         asset={asset}
         balance={asset.balanceFiat}
         secondaryBalance={secondaryBalanceDisplay.text}

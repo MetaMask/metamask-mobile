@@ -143,6 +143,11 @@ jest.mock('../../../core/Engine', () => {
       unsubscribe() {
         return undefined;
       },
+      call(_action: string, ..._args: unknown[]) {
+        // Analytics calls are side effects - return resolved promise to prevent errors
+        // but don't execute actual analytics tracking in tests
+        return Promise.resolve(undefined);
+      },
     },
     getTotalEvmFiatAccountBalance() {
       return { balance: '0', fiatBalance: '0' };

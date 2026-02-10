@@ -110,7 +110,8 @@ export type PredictCategory =
   | 'new'
   | 'sports'
   | 'crypto'
-  | 'politics';
+  | 'politics'
+  | 'hot';
 
 // Sports league types
 export type PredictSportsLeague = 'nfl' | 'nba';

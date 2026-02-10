@@ -14,7 +14,7 @@ import BackupAndSyncSettings from '../../Views/Settings/Identity/BackupAndSyncSe
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
-import RegionSelector from '../../Views/Settings/RegionSelector/RegionSelector';
+import RegionSelector from '../../UI/Ramp/Views/Settings/RegionSelector/RegionSelector';
 import NotificationsView from '../../Views/Notifications';
 import NotificationsDetails from '../../Views/Notifications/Details';
 import OptIn from '../../Views/Notifications/OptIn';
@@ -50,6 +50,7 @@ import ActivityView from '../../Views/ActivityView';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
 import ExploreSearchScreen from '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
+import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 
@@ -123,7 +124,7 @@ import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/R
 import ReferralBottomSheetModal from '../../UI/Rewards/components/ReferralBottomSheetModal';
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
-import getHeaderCenterNavbarOptions from '../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
+import getHeaderCompactStandardNavbarOptions from '../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
 import {
   TOKEN_TITLE,
   NFT_TITLE,
@@ -131,6 +132,7 @@ import {
 } from '../../Views/AddAsset/AddAsset.constants';
 import { strings } from '../../../../locales/i18n';
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
+import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -174,13 +176,18 @@ const AssetStackFlow = (props) => (
   >
     <Stack.Screen
       name={'Asset'}
-      component={Asset}
+      component={TokenDetails}
       initialParams={props.route.params}
     />
     <Stack.Screen
       name={'AssetDetails'}
       component={AssetDetails}
       initialParams={{ address: props.route.params?.address }}
+    />
+    <Stack.Screen
+      name={Routes.TRANSACTION_DETAILS}
+      component={TransactionDetails}
+      options={{ headerShown: true }}
     />
   </Stack.Navigator>
 );
@@ -361,7 +368,7 @@ const SettingsFlow = () => (
     <Stack.Screen
       name="GeneralSettings"
       component={GeneralSettings}
-      options={GeneralSettings.navigationOptions}
+      options={{ headerShown: false }}
     />
     <Stack.Screen
       name="AdvancedSettings"
@@ -594,6 +601,19 @@ const HomeTabs = () => {
             MetaMetricsEvents.NAVIGATION_TAPS_TRENDING,
           ).build(),
         );
+        // Re-enable AppState listener when returning to trending tab
+        // (it was disabled when leaving to prevent phantom sessions)
+        TrendingFeedSessionManager.getInstance().enableAppStateListener();
+        // Start a new session when returning to trending tab
+        // The session manager will ignore if a session is already active
+        TrendingFeedSessionManager.getInstance().startSession('tab_press');
+      },
+      onLeave: () => {
+        // End trending session when user switches to another tab
+        TrendingFeedSessionManager.getInstance().endSession();
+        // Disable AppState listener to prevent phantom sessions when app backgrounds/foregrounds
+        // while user is on a different tab (since TrendingView stays mounted with unmountOnBlur: false)
+        TrendingFeedSessionManager.getInstance().disableAppStateListener();
       },
       rootScreenName: Routes.TRENDING_VIEW,
       unmountOnBlur: false,
@@ -929,7 +949,7 @@ const MainNavigator = () => {
         name="AddAsset"
         component={AddAsset}
         options={({ route, navigation }) => ({
-          ...getHeaderCenterNavbarOptions({
+          ...getHeaderCompactStandardNavbarOptions({
             title: strings(
               `add_asset.${route.params?.assetType === TOKEN ? TOKEN_TITLE : NFT_TITLE}`,
             ),
@@ -1097,7 +1117,26 @@ const MainNavigator = () => {
           }),
         }}
       />
-      <Stack.Screen name={Routes.EARN.ROOT} component={EarnScreenStack} />
+      <Stack.Screen
+        name={Routes.EARN.ROOT}
+        component={EarnScreenStack}
+        options={{
+          headerShown: false,
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
+      />
       <Stack.Screen
         name={Routes.EARN.MODALS.ROOT}
         component={EarnModalStack}
@@ -1280,10 +1319,7 @@ const MainNavigator = () => {
       <Stack.Screen
         name="GeneralSettings"
         component={GeneralSettings}
-        options={{
-          headerShown: true,
-          ...GeneralSettings.navigationOptions,
-        }}
+        options={{ headerShown: false }}
       />
       {process.env.METAMASK_ENVIRONMENT !== 'production' && (
         <Stack.Screen

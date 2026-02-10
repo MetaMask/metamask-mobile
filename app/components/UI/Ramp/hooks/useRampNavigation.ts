@@ -7,8 +7,8 @@ import {
 } from '../Aggregator/types';
 import { createRampNavigationDetails } from '../Aggregator/routes/utils';
 import { createDepositNavigationDetails } from '../Deposit/routes/utils';
-import { createTokenSelectionNavDetails } from '../components/TokenSelection/TokenSelection';
-import { createBuildQuoteNavDetails } from '../components/BuildQuote';
+import { createTokenSelectionNavDetails } from '../Views/TokenSelection/TokenSelection';
+import { createBuildQuoteNavDetails } from '../Views/BuildQuote';
 import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
 import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
 import {
@@ -17,6 +17,7 @@ import {
 } from '../../../../reducers/fiatOrders';
 import { createRampUnsupportedModalNavigationDetails } from '../components/RampUnsupportedModal/RampUnsupportedModal';
 import { createEligibilityFailedModalNavigationDetails } from '../components/EligibilityFailedModal/EligibilityFailedModal';
+import { useRampsTokens } from './useRampsTokens';
 
 enum RampMode {
   AGGREGATOR = 'AGGREGATOR',
@@ -37,6 +38,7 @@ export const useRampNavigation = () => {
   const isRampsUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   const isRampsUnifiedV2Enabled = useRampsUnifiedV2Enabled();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
+  const { setSelectedToken } = useRampsTokens();
 
   const goToBuy = useCallback(
     (
@@ -74,6 +76,8 @@ export const useRampNavigation = () => {
         intent?.assetId &&
         !overrideUnifiedRouting
       ) {
+        // TODO: Check for provider support for the token and pass params to BuildQuote to show an error modal
+        setSelectedToken(intent.assetId);
         navigation.navigate(
           ...createBuildQuoteNavDetails({ assetId: intent.assetId }),
         );
@@ -115,6 +119,7 @@ export const useRampNavigation = () => {
       }
     },
     [
+      setSelectedToken,
       navigation,
       isRampsUnifiedV1Enabled,
       isRampsUnifiedV2Enabled,

@@ -7,7 +7,7 @@ import BottomSheet, {
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import Icon, {
   IconName,
   IconSize,
@@ -144,8 +144,9 @@ const TrendingTokenTimeBottomSheet: React.FC<
       shouldNavigateBack={false}
       ref={sheetRef}
       onClose={handleSheetClose}
+      testID="trending-token-time-bottom-sheet"
     >
-      <HeaderCenter
+      <HeaderCompactStandard
         title={strings('trending.time')}
         onClose={handleClose}
         closeButtonProps={{ testID: 'close-button' }}
@@ -158,6 +159,7 @@ const TrendingTokenTimeBottomSheet: React.FC<
               optionStyles.optionRowSelected,
           ]}
           onPress={() => onTimeOptionPress(TimeOption.TwentyFourHours)}
+          testID="time-select-24h"
         >
           <Text variant={TextVariant.BodyMD}>
             {strings('trending.24_hours')}
@@ -173,6 +175,7 @@ const TrendingTokenTimeBottomSheet: React.FC<
               optionStyles.optionRowSelected,
           ]}
           onPress={() => onTimeOptionPress(TimeOption.SixHours)}
+          testID="time-select-6h"
         >
           <Text variant={TextVariant.BodyMD}>
             {strings('trending.6_hours')}
@@ -188,6 +191,7 @@ const TrendingTokenTimeBottomSheet: React.FC<
               optionStyles.optionRowSelected,
           ]}
           onPress={() => onTimeOptionPress(TimeOption.OneHour)}
+          testID="time-select-1h"
         >
           <Text variant={TextVariant.BodyMD}>{strings('trending.1_hour')}</Text>
           {selectedTime === TimeOption.OneHour && (
@@ -201,6 +205,7 @@ const TrendingTokenTimeBottomSheet: React.FC<
               optionStyles.optionRowSelected,
           ]}
           onPress={() => onTimeOptionPress(TimeOption.FiveMinutes)}
+          testID="time-select-5m"
         >
           <Text variant={TextVariant.BodyMD}>
             {strings('trending.5_minutes')}

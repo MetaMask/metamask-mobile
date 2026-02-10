@@ -46,6 +46,7 @@ export enum ACTIONS {
   ONBOARDING = 'onboarding',
   TRENDING = 'trending',
   EARN_MUSD = 'earn-musd',
+  NFT = 'nft',
 }
 
 export const PREFIXES = {
@@ -79,5 +80,6 @@ export const PREFIXES = {
   [ACTIONS.CARD_KYC_NOTIFICATION]: '',
   [ACTIONS.TRENDING]: '',
   [ACTIONS.EARN_MUSD]: '',
+  [ACTIONS.NFT]: '',
   METAMASK: 'metamask://',
 };

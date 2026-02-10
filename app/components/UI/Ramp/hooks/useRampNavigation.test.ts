@@ -4,8 +4,8 @@ import Routes from '../../../../constants/navigation/Routes';
 import { useRampNavigation } from './useRampNavigation';
 import { createRampNavigationDetails } from '../Aggregator/routes/utils';
 import { createDepositNavigationDetails } from '../Deposit/routes/utils';
-import { createTokenSelectionNavDetails } from '../components/TokenSelection/TokenSelection';
-import { createBuildQuoteNavDetails } from '../components/BuildQuote';
+import { createTokenSelectionNavDetails } from '../Views/TokenSelection/TokenSelection';
+import { createBuildQuoteNavDetails } from '../Views/BuildQuote';
 import { RampType as AggregatorRampType } from '../Aggregator/types';
 import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
 import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
@@ -16,16 +16,20 @@ import {
 import { createEligibilityFailedModalNavigationDetails } from '../components/EligibilityFailedModal/EligibilityFailedModal';
 import { createRampUnsupportedModalNavigationDetails } from '../components/RampUnsupportedModal/RampUnsupportedModal';
 
+const mockSetSelectedToken = jest.fn();
+jest.mock('./useRampsTokens', () => ({
+  useRampsTokens: () => ({
+    setSelectedToken: mockSetSelectedToken,
+  }),
+}));
 jest.mock('@react-navigation/native');
 jest.mock('@react-navigation/compat', () => ({
   withNavigation: jest.fn((component) => component),
 }));
 jest.mock('../Aggregator/routes/utils');
 jest.mock('../Deposit/routes/utils');
-jest.mock('../components/TokenSelection/TokenSelection', () => {
-  const actual = jest.requireActual(
-    '../components/TokenSelection/TokenSelection',
-  );
+jest.mock('../Views/TokenSelection/TokenSelection', () => {
+  const actual = jest.requireActual('../Views/TokenSelection/TokenSelection');
   const mockFn = jest.fn();
   return {
     ...actual,
@@ -33,7 +37,7 @@ jest.mock('../components/TokenSelection/TokenSelection', () => {
     createTokenSelectionNavigationDetails: mockFn, // Alias for hook compatibility
   };
 });
-jest.mock('../components/BuildQuote', () => {
+jest.mock('../Views/BuildQuote', () => {
   const mockFn = jest.fn();
   return {
     createBuildQuoteNavDetails: mockFn,
@@ -80,6 +84,7 @@ const mockGetRampRoutingDecision =
 describe('useRampNavigation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSetSelectedToken.mockClear();
 
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
@@ -126,6 +131,7 @@ describe('useRampNavigation', () => {
 
         result.current.goToBuy(intent);
 
+        expect(mockSetSelectedToken).toHaveBeenCalledWith(intent.assetId);
         expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
           assetId: intent.assetId,
         });
@@ -148,6 +154,7 @@ describe('useRampNavigation', () => {
 
         result.current.goToBuy();
 
+        expect(mockSetSelectedToken).not.toHaveBeenCalled();
         expect(mockCreateBuildQuoteNavDetails).not.toHaveBeenCalled();
         expect(mockCreateTokenSelectionNavigationDetails).toHaveBeenCalled();
         expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
@@ -162,6 +169,7 @@ describe('useRampNavigation', () => {
 
         result.current.goToBuy(intent, { overrideUnifiedRouting: true });
 
+        expect(mockSetSelectedToken).not.toHaveBeenCalled();
         expect(mockCreateBuildQuoteNavDetails).not.toHaveBeenCalled();
         expect(mockCreateRampNavigationDetails).toHaveBeenCalledWith(
           AggregatorRampType.BUY,
@@ -186,6 +194,7 @@ describe('useRampNavigation', () => {
 
         result.current.goToBuy(intent);
 
+        expect(mockSetSelectedToken).toHaveBeenCalledWith(intent.assetId);
         expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
           assetId: intent.assetId,
         });
@@ -205,6 +214,7 @@ describe('useRampNavigation', () => {
 
           result.current.goToBuy(intent);
 
+          expect(mockSetSelectedToken).not.toHaveBeenCalled();
           expect(mockNavigate).toHaveBeenCalledWith(...navDetails);
           expect(mockCreateBuildQuoteNavDetails).not.toHaveBeenCalled();
         });
@@ -220,6 +230,7 @@ describe('useRampNavigation', () => {
 
           result.current.goToBuy(intent);
 
+          expect(mockSetSelectedToken).not.toHaveBeenCalled();
           expect(mockNavigate).toHaveBeenCalledWith(...navDetails);
           expect(mockCreateBuildQuoteNavDetails).not.toHaveBeenCalled();
         });
