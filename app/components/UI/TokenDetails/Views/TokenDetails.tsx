@@ -49,7 +49,6 @@ import {
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../locales/i18n';
-import { useTokenBuyability } from '../../Ramp/hooks/useTokenBuyability';
 
 export {
   TokenDetailsSource,
@@ -198,9 +197,6 @@ const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({
     ? isNetworkRampNativeTokenSupported(chainIdForRamp, rampNetworks)
     : isNetworkRampSupported(chainIdForRamp, rampNetworks);
 
-  const { isBuyable, isLoading: isBuyableLoading } = useTokenBuyability(token);
-  const displayBuyButton = isRampAvailable && isBuyable;
-
   const renderHeader = () => (
     <>
       <AssetOverviewContent
@@ -294,18 +290,12 @@ const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({
             paddingBottom: insets.bottom + 6,
           }}
           buttonPropsArray={[
-            // Show Buy button: disabled while tokens load, enabled when buyable
-            ...(displayBuyButton || (isRampAvailable && isBuyableLoading)
-              ? [
-                  {
-                    variant: ButtonVariants.Primary,
-                    label: strings('asset_overview.buy_button'),
-                    size: ButtonSize.Lg,
-                    onPress: handleBuyPress,
-                    isDisabled: isBuyableLoading,
-                  },
-                ]
-              : []),
+            {
+              variant: ButtonVariants.Primary,
+              label: strings('asset_overview.buy_button'),
+              size: ButtonSize.Lg,
+              onPress: handleBuyPress,
+            },
             // Only show Sell button if user has balance of this token
             ...(balance && parseFloat(String(balance)) > 0
               ? [
