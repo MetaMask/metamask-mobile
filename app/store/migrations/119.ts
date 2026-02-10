@@ -6,7 +6,7 @@ import { NETWORK_CHAIN_ID } from '../../util/networks/customNetworks';
 export const migrationVersion = 119;
 
 /**
- * Migration 118: Update MegaETH Mainnet name from 'MegaEth' to 'MegaETH'
+ * Migration 119: Update MegaETH Mainnet name from 'MegaEth' to 'MegaETH'
  *
  * This migration updates:
  * - the MegaETH Mainnet network name from `MegaEth` to `MegaETH`.
