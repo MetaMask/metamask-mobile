@@ -87,6 +87,7 @@ import {
   PredictClaimStatus,
   PredictMarket,
   PredictPosition,
+  PredictPositionStatus,
   PredictPriceHistoryPoint,
   PredictWithdraw,
   PredictWithdrawStatus,
@@ -2220,7 +2221,7 @@ export class PredictController extends BaseController<
 
     const address =
       (transactionMeta.txParams.from as string | undefined)?.toLowerCase() ??
-      this.getEvmAccountAddress();
+      this.getEvmAccountAddress().toLowerCase();
     const transactionId = transactionMeta.id;
     const amount = this.getTransactionAmount({
       type,
@@ -2320,7 +2321,10 @@ export class PredictController extends BaseController<
     }
 
     return this.state.claimablePositions[matchedAddress].reduce(
-      (sum, position) => sum + position.currentValue,
+      (sum, position) =>
+        position.status === PredictPositionStatus.WON
+          ? sum + position.currentValue
+          : sum,
       0,
     );
   }

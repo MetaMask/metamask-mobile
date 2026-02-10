@@ -4126,6 +4126,12 @@ describe('PredictController', () => {
             currentValue: 100,
             cashPnl: 25,
           }),
+          createMockPosition({
+            id: 'position-lost',
+            status: PredictPositionStatus.LOST,
+            currentValue: 999,
+            cashPnl: -999,
+          }),
         ];
         const transactionMeta = createPredictTransactionMeta({
           nestedType: TransactionType.predictClaim,
@@ -4370,6 +4376,7 @@ describe('PredictController', () => {
     it('publishes event for pending deposit when sender address is missing', () => {
       withController(({ controller, messenger }) => {
         const transactionStatusChangedHandler = jest.fn();
+        const fallbackAddress = '0xAbCdEfAbCdEfAbCdEfAbCdEfAbCdEfAbCdEfAbCd';
         const transactionMeta = {
           ...createPredictTransactionMeta({
             nestedType: TransactionType.predictDeposit,
@@ -4381,6 +4388,13 @@ describe('PredictController', () => {
             data: '0x',
           },
         };
+
+        jest
+          .spyOn(
+            controller as unknown as { getEvmAccountAddress: () => string },
+            'getEvmAccountAddress',
+          )
+          .mockReturnValue(fallbackAddress);
 
         messenger.subscribe(
           'PredictController:transactionStatusChanged',
@@ -4403,7 +4417,7 @@ describe('PredictController', () => {
           expect.objectContaining({
             type: 'deposit',
             status: 'approved',
-            senderAddress: accountAddress,
+            senderAddress: fallbackAddress.toLowerCase(),
           }),
         );
       });
