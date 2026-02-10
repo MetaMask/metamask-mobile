@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 // eslint-disable-next-line no-duplicate-imports
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { ExploreSitesFooter } from './SitesSearchFooter';
+import SitesSearchFooter from './SitesSearchFooter';
 import Routes from '../../../../../constants/navigation/Routes';
 
 // Mock dependencies
@@ -39,7 +39,7 @@ describe('SitesSearchFooter', () => {
 
   describe('rendering', () => {
     it('returns null when searchQuery is empty', () => {
-      const { queryByTestId } = render(<ExploreSitesFooter searchQuery="" />);
+      const { queryByTestId } = render(<SitesSearchFooter searchQuery="" />);
 
       expect(queryByTestId('trending-search-footer-google-link')).toBeNull();
       expect(queryByTestId('trending-search-footer-url-link')).toBeNull();
@@ -47,7 +47,7 @@ describe('SitesSearchFooter', () => {
 
     it('renders Google search link when query is provided', () => {
       const { getByTestId } = render(
-        <ExploreSitesFooter searchQuery="ethereum" />,
+        <SitesSearchFooter searchQuery="ethereum" />,
       );
 
       expect(
@@ -57,7 +57,7 @@ describe('SitesSearchFooter', () => {
 
     it('renders URL link when query looks like a URL', () => {
       const { getByTestId } = render(
-        <ExploreSitesFooter searchQuery="metamask.io" />,
+        <SitesSearchFooter searchQuery="metamask.io" />,
       );
 
       expect(getByTestId('trending-search-footer-url-link')).toBeOnTheScreen();
@@ -68,7 +68,7 @@ describe('SitesSearchFooter', () => {
 
     it('does not render URL link when query is plain text', () => {
       const { queryByTestId, getByTestId } = render(
-        <ExploreSitesFooter searchQuery="ethereum blockchain" />,
+        <SitesSearchFooter searchQuery="ethereum blockchain" />,
       );
 
       expect(queryByTestId('trending-search-footer-url-link')).toBeNull();
@@ -81,7 +81,7 @@ describe('SitesSearchFooter', () => {
   describe('URL detection', () => {
     it('detects URLs with http protocol', () => {
       const { getByTestId } = render(
-        <ExploreSitesFooter searchQuery="http://metamask.io" />,
+        <SitesSearchFooter searchQuery="http://metamask.io" />,
       );
 
       expect(getByTestId('trending-search-footer-url-link')).toBeOnTheScreen();
@@ -89,7 +89,7 @@ describe('SitesSearchFooter', () => {
 
     it('detects URLs with https protocol', () => {
       const { getByTestId } = render(
-        <ExploreSitesFooter searchQuery="https://metamask.io" />,
+        <SitesSearchFooter searchQuery="https://metamask.io" />,
       );
 
       expect(getByTestId('trending-search-footer-url-link')).toBeOnTheScreen();
@@ -97,7 +97,7 @@ describe('SitesSearchFooter', () => {
 
     it('detects URLs with path', () => {
       const { getByTestId } = render(
-        <ExploreSitesFooter searchQuery="metamask.io/portfolio" />,
+        <SitesSearchFooter searchQuery="metamask.io/portfolio" />,
       );
 
       expect(getByTestId('trending-search-footer-url-link')).toBeOnTheScreen();
@@ -105,7 +105,7 @@ describe('SitesSearchFooter', () => {
 
     it('detects URLs with query parameters', () => {
       const { getByTestId } = render(
-        <ExploreSitesFooter searchQuery="metamask.io/portfolio?tab=nfts" />,
+        <SitesSearchFooter searchQuery="metamask.io/portfolio?tab=nfts" />,
       );
 
       expect(getByTestId('trending-search-footer-url-link')).toBeOnTheScreen();
@@ -113,7 +113,7 @@ describe('SitesSearchFooter', () => {
 
     it('detects subdomains as URLs', () => {
       const { getByTestId } = render(
-        <ExploreSitesFooter searchQuery="portfolio.metamask.io" />,
+        <SitesSearchFooter searchQuery="portfolio.metamask.io" />,
       );
 
       expect(getByTestId('trending-search-footer-url-link')).toBeOnTheScreen();
@@ -121,7 +121,7 @@ describe('SitesSearchFooter', () => {
 
     it('does not detect plain text as URL', () => {
       const { queryByTestId } = render(
-        <ExploreSitesFooter searchQuery="hello world" />,
+        <SitesSearchFooter searchQuery="hello world" />,
       );
 
       expect(queryByTestId('trending-search-footer-url-link')).toBeNull();
@@ -129,7 +129,7 @@ describe('SitesSearchFooter', () => {
 
     it('does not detect single word as URL', () => {
       const { queryByTestId } = render(
-        <ExploreSitesFooter searchQuery="ethereum" />,
+        <SitesSearchFooter searchQuery="ethereum" />,
       );
 
       expect(queryByTestId('trending-search-footer-url-link')).toBeNull();
@@ -152,7 +152,7 @@ describe('SitesSearchFooter', () => {
 
     it('navigates to URL when URL link is pressed', () => {
       const { getByTestId } = render(
-        <ExploreSitesFooter searchQuery="metamask.io" />,
+        <SitesSearchFooter searchQuery="metamask.io" />,
       );
 
       fireEvent.press(getByTestId('trending-search-footer-url-link'));
@@ -163,7 +163,7 @@ describe('SitesSearchFooter', () => {
 
     it('navigates to Google search when Google link is pressed', () => {
       const { getByTestId } = render(
-        <ExploreSitesFooter searchQuery="ethereum" />,
+        <SitesSearchFooter searchQuery="ethereum" />,
       );
 
       fireEvent.press(getByTestId('trending-search-footer-google-link'));
@@ -174,7 +174,7 @@ describe('SitesSearchFooter', () => {
 
     it('encodes special characters in Google search query', () => {
       const { getByTestId } = render(
-        <ExploreSitesFooter searchQuery="ethereum & bitcoin" />,
+        <SitesSearchFooter searchQuery="ethereum & bitcoin" />,
       );
 
       fireEvent.press(getByTestId('trending-search-footer-google-link'));
@@ -188,7 +188,7 @@ describe('SitesSearchFooter', () => {
       (useSelector as jest.Mock).mockReturnValue('DuckDuckGo');
 
       const { getByTestId } = render(
-        <ExploreSitesFooter searchQuery="ethereum" />,
+        <SitesSearchFooter searchQuery="ethereum" />,
       );
 
       fireEvent.press(getByTestId('trending-search-footer-google-link'));
@@ -201,7 +201,7 @@ describe('SitesSearchFooter', () => {
       (useSelector as jest.Mock).mockReturnValue('DuckDuckGo');
 
       const { getByTestId } = render(
-        <ExploreSitesFooter searchQuery="ethereum & bitcoin" />,
+        <SitesSearchFooter searchQuery="ethereum & bitcoin" />,
       );
 
       fireEvent.press(getByTestId('trending-search-footer-google-link'));
@@ -215,7 +215,7 @@ describe('SitesSearchFooter', () => {
   describe('text display', () => {
     it('displays search query in Google search link', () => {
       const { getByText } = render(
-        <ExploreSitesFooter searchQuery="ethereum" />,
+        <SitesSearchFooter searchQuery="ethereum" />,
       );
 
       expect(getByText('ethereum')).toBeOnTheScreen();
@@ -226,7 +226,7 @@ describe('SitesSearchFooter', () => {
       (useSelector as jest.Mock).mockReturnValue('DuckDuckGo');
 
       const { getByText } = render(
-        <ExploreSitesFooter searchQuery="ethereum" />,
+        <SitesSearchFooter searchQuery="ethereum" />,
       );
 
       expect(getByText('ethereum')).toBeOnTheScreen();
@@ -237,7 +237,7 @@ describe('SitesSearchFooter', () => {
   describe('edge cases', () => {
     it('handles URL with uppercase characters', () => {
       const { getByTestId } = render(
-        <ExploreSitesFooter searchQuery="MetaMask.IO" />,
+        <SitesSearchFooter searchQuery="MetaMask.IO" />,
       );
 
       expect(getByTestId('trending-search-footer-url-link')).toBeOnTheScreen();
@@ -245,7 +245,7 @@ describe('SitesSearchFooter', () => {
 
     it('handles query with leading/trailing spaces', () => {
       const { queryByTestId } = render(
-        <ExploreSitesFooter searchQuery="  ethereum  " />,
+        <SitesSearchFooter searchQuery="  ethereum  " />,
       );
 
       // Component trims or handles spaces, but doesn't return null
@@ -256,7 +256,7 @@ describe('SitesSearchFooter', () => {
 
     it('handles URL with multiple subdomains', () => {
       const { getByTestId } = render(
-        <ExploreSitesFooter searchQuery="api.v2.metamask.io" />,
+        <SitesSearchFooter searchQuery="api.v2.metamask.io" />,
       );
 
       expect(getByTestId('trending-search-footer-url-link')).toBeOnTheScreen();
@@ -264,7 +264,7 @@ describe('SitesSearchFooter', () => {
 
     it('handles URL with port number', () => {
       const { queryByTestId } = render(
-        <ExploreSitesFooter searchQuery="localhost:3000" />,
+        <SitesSearchFooter searchQuery="localhost:3000" />,
       );
 
       expect(queryByTestId('trending-search-footer-url-link')).toBeNull();
@@ -272,7 +272,7 @@ describe('SitesSearchFooter', () => {
 
     it('handles special characters in query', () => {
       const { getByTestId } = render(
-        <ExploreSitesFooter searchQuery="test@#$%query" />,
+        <SitesSearchFooter searchQuery="test@#$%query" />,
       );
 
       expect(
@@ -282,7 +282,7 @@ describe('SitesSearchFooter', () => {
 
     it('handles query with emojis', () => {
       const { getByText, getByTestId } = render(
-        <ExploreSitesFooter searchQuery="ethereum 🚀" />,
+        <SitesSearchFooter searchQuery="ethereum 🚀" />,
       );
 
       expect(

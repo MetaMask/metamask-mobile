@@ -21,7 +21,14 @@ import { selectSearchEngine } from '../../../../../reducers/browser/selectors';
 
 export interface SitesSearchFooterProps {
   searchQuery: string;
-  onPress: (url: string) => void;
+  /**
+   * Callback for when pressing a sites footer link
+   * Defaults to browser navigation.
+   * @default useSearchFooterBrowserNavigation - default to explore feature browser navigation
+   * @param {string} url - Url to navigate
+   * @returns
+   */
+  onPress?: (url: string) => void;
   containerStyle?: BoxProps['style'];
 }
 
@@ -59,6 +66,9 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
 }) => {
   const tw = useTailwind();
   const searchEngine = useSelector(selectSearchEngine);
+  const { onPress: exploreOnPress } = useSearchFooterBrowserNavigation();
+
+  const handlePress = onPress ?? exploreOnPress;
 
   if (!searchQuery || searchQuery.length === 0) {
     return null;
@@ -79,7 +89,7 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
       {isUrl && (
         <TouchableOpacity
           style={tw.style('flex-row items-center py-4')}
-          onPress={() => onPress(searchQuery)}
+          onPress={() => handlePress(searchQuery)}
           testID="trending-search-footer-url-link"
         >
           <Box twClassName="flex-1">
@@ -103,7 +113,7 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
 
       <TouchableOpacity
         style={tw.style('flex-row items-center py-4')}
-        onPress={() => onPress(searchUrl)}
+        onPress={() => handlePress(searchUrl)}
         testID="trending-search-footer-google-link"
       >
         <Box twClassName="flex-1 flex-row items-center">
@@ -140,12 +150,5 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
 };
 
 SitesSearchFooter.displayName = 'SitesSearchFooter';
-
-export const ExploreSitesFooter = (props: { searchQuery: string }) => {
-  const { searchQuery } = props;
-  const { onPress } = useSearchFooterBrowserNavigation();
-
-  return <SitesSearchFooter searchQuery={searchQuery} onPress={onPress} />;
-};
 
 export default SitesSearchFooter;

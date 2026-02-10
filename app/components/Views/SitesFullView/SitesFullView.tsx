@@ -12,7 +12,7 @@ import { Theme } from '../../../util/theme/models';
 import { useSitesData } from '../../UI/Sites/hooks/useSiteData/useSitesData';
 import SitesList from '../../UI/Sites/components/SitesList/SitesList';
 import SiteSkeleton from '../../UI/Sites/components/SiteSkeleton/SiteSkeleton';
-import { ExploreSitesFooter } from '../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
+import SitesSearchFooter from '../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
 import { strings } from '../../../../locales/i18n';
 import ListHeaderWithSearch from '../../UI/shared/ListHeaderWithSearch/ListHeaderWithSearch';
 
@@ -84,7 +84,8 @@ const SitesFullView: React.FC = () => {
 
   const renderFooter = useMemo(() => {
     if (!isSearchActive) return null;
-    return <ExploreSitesFooter searchQuery={searchQuery} />;
+
+    return <SitesSearchFooter searchQuery={searchQuery} />;
   }, [isSearchActive, searchQuery]);
 
   return (

@@ -6,7 +6,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SECTIONS_CONFIG, type SectionId } from '../../sections.config';
 import { useExploreSearch } from '../../hooks/useExploreSearch';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
-import { ExploreSitesFooter } from '../../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
+import SitesSearchFooter from '../../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
 import { useSelector } from 'react-redux';
 import { useSearchTracking } from '../../../../UI/Trending/hooks/useSearchTracking/useSearchTracking';
 import { TimeOption } from '../../../../UI/Trending/components/TrendingTokensBottomSheet/TrendingTokenTimeBottomSheet';
@@ -126,7 +126,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   const renderFooter = useMemo(() => {
     if (searchQuery.length === 0) return null;
 
-    return <ExploreSitesFooter searchQuery={searchQuery} />;
+    return <SitesSearchFooter searchQuery={searchQuery} />;
   }, [searchQuery]);
 
   const renderFlatItem: ListRenderItem<FlatListItem> = useCallback(
