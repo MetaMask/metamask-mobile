@@ -3,8 +3,14 @@
  */
 
 import { writeFileSync } from 'node:fs';
-import { SelectTagsAnalysis, PerformanceTestSelection } from '../../types';
-import { smokeTags, flaskTags } from '../../../../../e2e/tags';
+import {
+  SelectTagsAnalysis,
+  PerformanceTestSelection,
+  AnalysisContext,
+  HardRule,
+} from '../../types';
+import { getFileDiff, getPRFileDiff } from '../../utils/git-utils';
+import { smokeTags, flaskTags } from '../../../../tags';
 import { performanceTags } from '../../../../../appwright/tags';
 
 /**
@@ -123,6 +129,100 @@ export function createConservativeResult(): SelectTagsAnalysis {
         'Fallback: AI analysis did not complete successfully. Running all performance tests.',
     },
   };
+}
+
+/**
+ * Helper: gets the package.json diff lines (added/removed only).
+ * Returns empty array if package.json is not in the changed files.
+ */
+function getPackageJsonDiffLines(
+  changedFiles: string[],
+  context: AnalysisContext,
+): string[] {
+  if (!changedFiles.includes('package.json')) {
+    return [];
+  }
+
+  const diff =
+    context.prNumber && context.githubRepo
+      ? getPRFileDiff(context.prNumber, context.githubRepo, 'package.json')
+      : getFileDiff('package.json', context.baseBranch, context.baseDir);
+
+  return diff
+    .split('\n')
+    .filter(
+      (line) =>
+        (line.startsWith('+') || line.startsWith('-')) &&
+        !line.startsWith('+++') &&
+        !line.startsWith('---'),
+    );
+}
+
+/**
+ * Hard rules for the select-tags mode.
+ *
+ * Each rule overrides AI analysis and forces all tests to run.
+ * If a rule's `check` returns a non-null string, that string becomes the reason
+ * and all subsequent rules are skipped.
+ *
+ * To add a new hard rule, append an entry to this array.
+ */
+const HARD_RULES: HardRule[] = [
+  {
+    name: 'controller-version-update',
+    description: '@metamask controller package version updated in package.json',
+    check: (changedFiles, context) => {
+      const diffLines = getPackageJsonDiffLines(changedFiles, context);
+      if (diffLines.length === 0) return null;
+
+      // e.g. "@metamask/accounts-controller": "^22.0.0"
+      const controllerPattern = /@metamask\/[^"]*controller[^"]*"/i;
+      const packageNamePattern = /@metamask\/[^"]*controller[^"]*/i;
+      const matchingLines = diffLines.filter((line) =>
+        controllerPattern.test(line),
+      );
+      if (matchingLines.length === 0) return null;
+
+      const updatedControllers = Array.from(
+        new Set(
+          matchingLines
+            .map((line) => line.match(packageNamePattern)?.[0])
+            .filter((name): name is string => Boolean(name)),
+        ),
+      );
+
+      console.log(`   Updated controllers (${updatedControllers.length}):`);
+      updatedControllers.forEach((pkg) => console.log(`     - ${pkg}`));
+
+      return `@metamask controller package version updated in package.json: ${updatedControllers.join(', ')}`;
+    },
+  },
+];
+
+/**
+ * Evaluates all hard rules for the select-tags mode.
+ * Returns a conservative result (all tests) on the first triggered rule, or null to proceed with AI.
+ */
+export function checkHardRules(
+  changedFiles: string[],
+  context: AnalysisContext,
+): SelectTagsAnalysis | null {
+  for (const rule of HARD_RULES) {
+    const reason = rule.check(changedFiles, context);
+    if (reason) {
+      console.log(`🚨 Hard rule triggered: ${rule.name}`);
+      console.log(`   ${reason}`);
+      console.log('   Running all tests.');
+
+      const result = createConservativeResult();
+      const hardRuleReason = `Hard rule (${rule.name}): ${reason}. Running all tests.`;
+      result.reasoning = hardRuleReason;
+      result.confidence = 100;
+      result.performanceTests.reasoning = hardRuleReason;
+      return result;
+    }
+  }
+  return null;
 }
 
 /**
