@@ -7,7 +7,7 @@ import Text, {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -38,14 +38,13 @@ function RampUnsupportedModal() {
       isInteractable={false}
       testID="ramp-unsupported-modal"
     >
-      <BottomSheetHeader
+      <HeaderCompactStandard
+        title={strings(
+          'fiat_on_ramp_aggregator.unsupported_region_modal.title',
+        )}
         onClose={handleClose}
-        closeButtonProps={{ testID: 'bottomsheetheader-close-button' }}
-      >
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('fiat_on_ramp_aggregator.unsupported_region_modal.title')}
-        </Text>
-      </BottomSheetHeader>
+        closeButtonProps={{ testID: 'ramp-unsupported-modal-close-button' }}
+      />
 
       <Box twClassName="px-6 pb-6">
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>

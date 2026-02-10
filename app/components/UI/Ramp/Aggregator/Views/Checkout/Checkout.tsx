@@ -30,14 +30,7 @@ import Logger from '../../../../../../util/Logger';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../../component-library/components/Buttons/ButtonIcon';
-import {
-  IconColor,
-  IconName,
-} from '../../../../../../component-library/components/Icons/Icon';
+import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './Checkout.styles';
 import Device from '../../../../../../util/device';
@@ -195,17 +188,9 @@ const CheckoutWebView = () => {
         isFullscreen
         keyboardAvoidingViewEnabled={false}
       >
-        <BottomSheetHeader
-          endAccessory={
-            <ButtonIcon
-              iconName={IconName.Close}
-              size={ButtonIconSizes.Lg}
-              iconColor={IconColor.Default}
-              testID="checkout-close-button"
-              onPress={handleClosePress}
-            />
-          }
-          style={styles.headerWithoutPadding}
+        <HeaderCompactStandard
+          onClose={handleClosePress}
+          closeButtonProps={{ testID: 'checkout-close-button' }}
         />
         <ScreenLayout>
           <ScreenLayout.Body>
@@ -227,17 +212,9 @@ const CheckoutWebView = () => {
         isFullscreen
         keyboardAvoidingViewEnabled={false}
       >
-        <BottomSheetHeader
-          endAccessory={
-            <ButtonIcon
-              iconName={IconName.Close}
-              size={ButtonIconSizes.Lg}
-              iconColor={IconColor.Default}
-              testID="checkout-close-button"
-              onPress={handleClosePress}
-            />
-          }
-          style={styles.headerWithoutPadding}
+        <HeaderCompactStandard
+          onClose={handleClosePress}
+          closeButtonProps={{ testID: 'checkout-close-button' }}
         />
 
         <ScreenLayout>
@@ -266,17 +243,9 @@ const CheckoutWebView = () => {
         isInteractable={!Device.isAndroid()}
         keyboardAvoidingViewEnabled={false}
       >
-        <BottomSheetHeader
-          endAccessory={
-            <ButtonIcon
-              iconName={IconName.Close}
-              size={ButtonIconSizes.Lg}
-              iconColor={IconColor.Default}
-              testID="checkout-close-button"
-              onPress={handleClosePress}
-            />
-          }
-          style={styles.headerWithoutPadding}
+        <HeaderCompactStandard
+          onClose={handleClosePress}
+          closeButtonProps={{ testID: 'checkout-close-button' }}
         />
         <WebView
           key={key}
@@ -315,17 +284,9 @@ const CheckoutWebView = () => {
       isFullscreen
       keyboardAvoidingViewEnabled={false}
     >
-      <BottomSheetHeader
-        endAccessory={
-          <ButtonIcon
-            iconName={IconName.Close}
-            size={ButtonIconSizes.Lg}
-            iconColor={IconColor.Default}
-            testID="checkout-close-button"
-            onPress={handleClosePress}
-          />
-        }
-        style={styles.headerWithoutPadding}
+      <HeaderCompactStandard
+        onClose={handleClosePress}
+        closeButtonProps={{ testID: 'checkout-close-button' }}
       />
       <ScreenLayout>
         <ScreenLayout.Body>

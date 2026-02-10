@@ -20,7 +20,7 @@ import {
   ToastVariants,
 } from '../../../../../../../component-library/components/Toast';
 import Logger from '../../../../../../../util/Logger';
-import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCompactStandard from '../../../../../../../component-library/components-temp/HeaderCompactStandard';
 import MenuItem from '../../../../components/MenuItem';
 import useAnalytics from '../../../../hooks/useAnalytics';
 import { useRampsButtonClickData } from '../../../../hooks/useRampsButtonClickData';
@@ -111,9 +111,11 @@ function ConfigurationModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader onClose={handleClosePress}>
-        {strings('deposit.configuration_modal.title')}
-      </BottomSheetHeader>
+      <HeaderCompactStandard
+        title={strings('deposit.configuration_modal.title')}
+        onClose={handleClosePress}
+        closeButtonProps={{ testID: 'configuration-modal-close-button' }}
+      />
       <MenuItem
         iconName={IconName.Clock}
         title={strings('deposit.configuration_modal.view_order_history')}

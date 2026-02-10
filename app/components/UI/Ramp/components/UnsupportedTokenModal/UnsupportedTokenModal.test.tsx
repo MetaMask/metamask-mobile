@@ -58,7 +58,7 @@ describe('UnsupportedTokenModal', () => {
 
   it('closes the modal when the close button is pressed', () => {
     const { getByTestId } = render(UnsupportedTokenModal);
-    const closeButton = getByTestId('bottomsheetheader-close-button');
+    const closeButton = getByTestId('unsupported-token-modal-close-button');
 
     fireEvent.press(closeButton);
 
