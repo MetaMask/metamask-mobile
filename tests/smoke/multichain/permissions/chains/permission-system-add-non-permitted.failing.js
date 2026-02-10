@@ -1,26 +1,24 @@
 import {
   RegressionNetworkExpansion,
   SmokeNetworkExpansion,
-} from '../../../../../e2e/tags';
-import {
-  loginToApp,
-  navigateToBrowserView,
-} from '../../../../../e2e/viewHelper';
+} from '../../../../tags';
+import { loginToApp } from '../../../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../../../flows/browser.flow';
 import Assertions from '../../../../framework/Assertions';
-import TestHelpers from '../../../../../e2e/helpers';
+import TestHelpers from '../../../../helpers';
 import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
 import { CustomNetworks } from '../../../../resources/networks.e2e';
-import Browser from '../../../../../e2e/pages/Browser/BrowserView';
-import TabBarComponent from '../../../../../e2e/pages/wallet/TabBarComponent';
+import Browser from '../../../../page-objects/Browser/BrowserView';
+import TabBarComponent from '../../../../page-objects/wallet/TabBarComponent';
 import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
-import ConnectedAccountsModal from '../../../../../e2e/pages/Browser/ConnectedAccountsModal';
-import NetworkConnectMultiSelector from '../../../../../e2e/pages/Browser/NetworkConnectMultiSelector';
+import ConnectedAccountsModal from '../../../../page-objects/Browser/ConnectedAccountsModal';
+import NetworkConnectMultiSelector from '../../../../page-objects/Browser/NetworkConnectMultiSelector';
 import { DappVariants } from '../../../../framework/Constants';
-import WalletView from '../../../../../e2e/pages/wallet/WalletView';
-import NetworkListModal from '../../../../../e2e/pages/Network/NetworkListModal';
-import TestDApp from '../../../../../e2e/pages/Browser/TestDApp';
-import ConnectBottomSheet from '../../../../../e2e/pages/Browser/ConnectBottomSheet';
+import WalletView from '../../../../page-objects/wallet/WalletView';
+import NetworkListModal from '../../../../page-objects/Network/NetworkListModal';
+import TestDApp from '../../../../page-objects/Browser/TestDApp';
+import ConnectBottomSheet from '../../../../page-objects/Browser/ConnectBottomSheet';
 
 const SEPOLIA = CustomNetworks.Sepolia.providerConfig.nickname;
 const ETHEREUM_MAIN_NET_NETWORK_NAME =
