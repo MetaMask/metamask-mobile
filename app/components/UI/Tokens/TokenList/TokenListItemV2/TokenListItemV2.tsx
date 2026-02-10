@@ -544,6 +544,7 @@ export const TokenListItemV2 = React.memo(
               </Text>
 
               <TouchableOpacity
+                disabled={!secondaryBalanceDisplay.onPress}
                 onPress={secondaryBalanceDisplay.onPress}
                 testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
               >
