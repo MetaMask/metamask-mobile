@@ -1,0 +1,499 @@
+import React from 'react';
+import { fireEvent, waitFor, act } from '@testing-library/react-native';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
+import { SwapsConfirmButton } from './index';
+import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
+import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
+import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
+import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
+import { Hex } from '@metamask/utils';
+import { SolScope } from '@metamask/keyring-api';
+import { isHardwareAccount } from '../../../../../util/address';
+import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
+import { useHasSufficientGas } from '../../hooks/useHasSufficientGas';
+import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
+import { RootState } from '../../../../../reducers';
+import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/test/keyringControllerTestUtils';
+
+// Mock the account-tree-controller file that imports the problematic module
+jest.mock(
+  '../../../../../multichain-accounts/controllers/account-tree-controller',
+  () => ({
+    accountTreeControllerInit: jest.fn(() => ({
+      controller: {
+        state: { accountTree: { wallets: {} } },
+      },
+    })),
+  }),
+);
+
+// TODO remove this mock once we have a real implementation
+jest.mock('../../../../../selectors/confirmTransaction');
+
+jest.mock('../../../../../core/Engine', () => ({
+  controllerMessenger: {
+    call: jest.fn(),
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
+  },
+  context: {
+    KeyringController: {
+      state: {
+        keyrings: [],
+      },
+    },
+    GasFeeController: {
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
+    },
+    NetworkController: {
+      getNetworkConfigurationByNetworkClientId: jest.fn(),
+    },
+    BridgeStatusController: {
+      submitTx: jest.fn().mockResolvedValue({ success: true }),
+    },
+  },
+}));
+
+// Mock selectSourceWalletAddress
+jest.mock('../../../../../selectors/bridge', () => ({
+  ...jest.requireActual('../../../../../selectors/bridge'),
+  selectSourceWalletAddress: jest.fn(),
+}));
+
+// Mock navigation
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      setOptions: jest.fn(),
+    }),
+  };
+});
+
+// Mock useLatestBalance hook
+jest.mock('../../hooks/useLatestBalance', () => ({
+  useLatestBalance: jest.fn().mockImplementation(({ address, chainId }) => {
+    if (!address || !chainId) return undefined;
+
+    const actualEthers = jest.requireActual('ethers');
+
+    return {
+      displayBalance: '2.0',
+      atomicBalance: actualEthers.BigNumber.from('2000000000000000000'), // 2 ETH
+    };
+  }),
+}));
+
+// Mock useBridgeQuoteData
+jest.mock('../../hooks/useBridgeQuoteData', () => ({
+  useBridgeQuoteData: jest
+    .fn()
+    .mockImplementation(() => mockUseBridgeQuoteData),
+}));
+
+// Mock useIsInsufficientBalance
+jest.mock('../../hooks/useInsufficientBalance', () => ({
+  __esModule: true,
+  default: jest.fn().mockReturnValue(false),
+}));
+
+// Mock useHasSufficientGas
+jest.mock('../../hooks/useHasSufficientGas', () => ({
+  useHasSufficientGas: jest.fn().mockReturnValue(true),
+}));
+
+// Mock useSubmitBridgeTx hook
+const mockSubmitBridgeTx = jest.fn();
+jest.mock('../../../../../util/bridge/hooks/useSubmitBridgeTx', () => ({
+  __esModule: true,
+  default: () => ({
+    submitBridgeTx: mockSubmitBridgeTx,
+  }),
+}));
+
+// Mock isHardwareAccount
+jest.mock('../../../../../util/address', () => ({
+  ...jest.requireActual('../../../../../util/address'),
+  isHardwareAccount: jest.fn(),
+}));
+
+// Mock Skeleton component to prevent animation
+jest.mock('../../../../../component-library/components/Skeleton', () => ({
+  Skeleton: () => null,
+}));
+
+jest.mock('react-native-fade-in-image', () => {
+  const ReactModule = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      children,
+      placeholderStyle,
+    }: {
+      children: React.ReactNode;
+      placeholderStyle?: unknown;
+    }) =>
+      ReactModule.createElement(View, { style: placeholderStyle }, children),
+  };
+});
+
+const mockState: DeepPartial<RootState> = {
+  engine: {
+    backgroundState: {
+      KeyringController: {
+        keyrings: [
+          {
+            accounts: ['0x1234567890123456789012345678901234567890'],
+            type: 'HD Key Tree',
+            metadata: {
+              id: mockEntropySource,
+              name: '',
+            },
+          },
+        ],
+      },
+      AccountsController: {
+        internalAccounts: {
+          selectedAccount: '30786334-3935-4563-b064-363339643939',
+          accounts: {
+            '30786334-3935-4563-b064-363339643939': {
+              id: '30786334-3935-4563-b064-363339643939',
+              address: '0x1234567890123456789012345678901234567890',
+              type: 'eip155:eoa',
+              scopes: ['eip155:0'],
+              metadata: {
+                lastSelected: 0,
+                keyring: {
+                  type: 'HD Key Tree',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  bridge: {
+    sourceAmount: '1.0',
+    sourceToken: {
+      address: '0x0000000000000000000000000000000000000000',
+      chainId: '0x1' as Hex,
+      decimals: 18,
+      image: '',
+      name: 'Ether',
+      symbol: 'ETH',
+    },
+    isSubmittingTx: false,
+  },
+};
+
+describe('SwapsConfirmButton', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest
+      .mocked(selectSourceWalletAddress)
+      .mockReturnValue('0x1234567890123456789012345678901234567890');
+    jest.mocked(isHardwareAccount).mockReturnValue(false);
+    jest
+      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mockImplementation(() => mockUseBridgeQuoteData);
+    jest.mocked(useIsInsufficientBalance).mockReturnValue(false);
+    jest.mocked(useHasSufficientGas).mockReturnValue(true);
+    mockSubmitBridgeTx.mockResolvedValue({ success: true });
+  });
+
+  describe('Button Label', () => {
+    it('displays "Confirm swap" label by default', () => {
+      const { getByText } = renderWithProvider(<SwapsConfirmButton />, {
+        state: mockState,
+      });
+
+      expect(getByText(strings('bridge.confirm_swap'))).toBeTruthy();
+    });
+
+    it('displays "Insufficient funds" when balance is insufficient', () => {
+      jest.mocked(useIsInsufficientBalance).mockReturnValue(true);
+
+      const { getByText } = renderWithProvider(<SwapsConfirmButton />, {
+        state: mockState,
+      });
+
+      expect(getByText(strings('bridge.insufficient_funds'))).toBeTruthy();
+    });
+
+    it('displays "Insufficient gas" when gas is insufficient', () => {
+      jest.mocked(useHasSufficientGas).mockReturnValue(false);
+
+      const { getByText } = renderWithProvider(<SwapsConfirmButton />, {
+        state: mockState,
+      });
+
+      expect(getByText(strings('bridge.insufficient_gas'))).toBeTruthy();
+    });
+
+    it('displays "Submitting transaction..." when submitting', () => {
+      const submittingState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          isSubmittingTx: true,
+        },
+      };
+
+      const { getByText } = renderWithProvider(<SwapsConfirmButton />, {
+        state: submittingState,
+      });
+
+      expect(getByText(strings('bridge.submitting_transaction'))).toBeTruthy();
+    });
+  });
+
+  describe('Button Disabled State', () => {
+    it('disables button when loading without active quote', () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isLoading: true,
+          activeQuote: null,
+        }));
+
+      const { getByTestId } = renderWithProvider(<SwapsConfirmButton />, {
+        state: mockState,
+      });
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.disabled).toBe(true);
+    });
+
+    it('disables button when balance is insufficient', () => {
+      jest.mocked(useIsInsufficientBalance).mockReturnValue(true);
+
+      const { getByTestId } = renderWithProvider(<SwapsConfirmButton />, {
+        state: mockState,
+      });
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.disabled).toBe(true);
+    });
+
+    it('disables button when transaction is submitting', () => {
+      const submittingState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          isSubmittingTx: true,
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(<SwapsConfirmButton />, {
+        state: submittingState,
+      });
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.disabled).toBe(true);
+    });
+
+    it('disables button for hardware wallet with Solana source', () => {
+      jest.mocked(isHardwareAccount).mockReturnValue(true);
+
+      const solanaState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          sourceToken: {
+            address: 'So11111111111111111111111111111111111111112',
+            chainId: SolScope.Mainnet,
+            decimals: 9,
+            image: '',
+            name: 'Solana',
+            symbol: 'SOL',
+          },
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(<SwapsConfirmButton />, {
+        state: solanaState,
+      });
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.disabled).toBe(true);
+    });
+
+    it('disables button when blockaid error exists', () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          blockaidError: 'Transaction flagged as suspicious',
+        }));
+
+      const { getByTestId } = renderWithProvider(<SwapsConfirmButton />, {
+        state: mockState,
+      });
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.disabled).toBe(true);
+    });
+
+    it('disables button when gas is insufficient', () => {
+      jest.mocked(useHasSufficientGas).mockReturnValue(false);
+
+      const { getByTestId } = renderWithProvider(<SwapsConfirmButton />, {
+        state: mockState,
+      });
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.disabled).toBe(true);
+    });
+
+    it('disables button when walletAddress is missing', () => {
+      jest.mocked(selectSourceWalletAddress).mockReturnValue(undefined);
+
+      const { getByTestId } = renderWithProvider(<SwapsConfirmButton />, {
+        state: mockState,
+      });
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.disabled).toBe(true);
+    });
+  });
+
+  describe('handleContinue', () => {
+    it('submits transaction and navigates to transactions view', async () => {
+      const { getByTestId } = renderWithProvider(<SwapsConfirmButton />, {
+        state: mockState,
+      });
+
+      const continueButton = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await act(async () => {
+        await waitFor(() => {
+          expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
+            quoteResponse: {
+              ...mockQuoteWithMetadata,
+              aggregator: mockQuoteWithMetadata.quote.bridgeId,
+              walletAddress: '0x1234567890123456789012345678901234567890',
+            },
+          });
+          expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+        });
+      });
+    });
+
+    it('submits transaction for Solana swap', async () => {
+      const solanaState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          sourceAmount: '1.0',
+          sourceToken: {
+            address: 'So11111111111111111111111111111111111111112',
+            chainId: SolScope.Mainnet,
+            decimals: 9,
+            image: '',
+            name: 'Solana',
+            symbol: 'SOL',
+          },
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(<SwapsConfirmButton />, {
+        state: solanaState,
+      });
+
+      const continueButton = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await act(async () => {
+        await waitFor(() => {
+          expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
+            quoteResponse: {
+              ...mockQuoteWithMetadata,
+              aggregator: mockQuoteWithMetadata.quote.bridgeId,
+              walletAddress: '0x1234567890123456789012345678901234567890',
+            },
+          });
+          expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+        });
+      });
+    });
+
+    it('handles errors gracefully during submission', async () => {
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      mockSubmitBridgeTx.mockRejectedValue(new Error('Network error'));
+
+      const { getByTestId } = renderWithProvider(<SwapsConfirmButton />, {
+        state: mockState,
+      });
+
+      const continueButton = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await act(async () => {
+        await waitFor(() => {
+          expect(consoleSpy).toHaveBeenCalledWith(
+            'Error submitting bridge tx',
+            expect.any(Error),
+          );
+          // Should still navigate after error (in finally block)
+          expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+        });
+      });
+
+      consoleSpy.mockRestore();
+    });
+
+    it('does not submit when activeQuote is null', async () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: null,
+          isLoading: false,
+        }));
+
+      const { getByTestId } = renderWithProvider(<SwapsConfirmButton />, {
+        state: mockState,
+      });
+
+      const continueButton = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
+    });
+
+    it('does not submit when walletAddress is missing', async () => {
+      jest.mocked(selectSourceWalletAddress).mockReturnValue(undefined);
+
+      const { getByTestId } = renderWithProvider(<SwapsConfirmButton />, {
+        state: mockState,
+      });
+
+      // Button should be disabled when walletAddress is missing
+      const continueButton = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(continueButton.props.disabled).toBe(true);
+
+      // Verify submitBridgeTx is not called since button is disabled
+      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
+    });
+  });
+});

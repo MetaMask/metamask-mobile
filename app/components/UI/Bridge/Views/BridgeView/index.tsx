@@ -13,10 +13,6 @@ import {
   TokenInputAreaRef,
   TokenInputAreaType,
 } from '../../components/TokenInputArea';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../component-library/hooks';
 import { Box } from '../../../Box/Box';
 import { FlexDirection, AlignItems } from '../../../Box/box.types';
@@ -41,7 +37,6 @@ import {
   selectBridgeControllerState,
   selectIsEvmNonEvmBridge,
   selectIsSubmittingTx,
-  setIsSubmittingTx,
   selectDestAddress,
   selectIsSolanaSourced,
   selectBridgeViewMode,
@@ -59,7 +54,6 @@ import {
 import { getBridgeNavbar } from '../../../Navbar';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
-import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeTx';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import QuoteDetailsCard from '../../components/QuoteDetailsCard';
@@ -74,7 +68,7 @@ import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/us
 import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
 import { useIsNetworkEnabled } from '../../hooks/useIsNetworkEnabled';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import { BridgeQuoteResponse, BridgeToken, BridgeViewMode } from '../../types';
+import { BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import { ScrollView } from 'react-native';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
@@ -99,6 +93,7 @@ import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import { useRWAToken } from '../../hooks/useRWAToken.ts';
 import { SwapsKeypadRef } from '../../components/SwapsKeypad/types.ts';
 import { GaslessQuickPickOptions } from '../../components/GaslessQuickPickOptions/index.tsx';
+import { SwapsConfirmButton } from '../../components/SwapsConfirmButton/index.tsx';
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -119,7 +114,6 @@ const BridgeView = () => {
   const navigation = useNavigation();
   const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
   const { colors } = useTheme();
-  const { submitBridgeTx } = useSubmitBridgeTx();
   const { trackEvent, createEventBuilder } = useMetrics();
   const keypadRef = useRef<SwapsKeypadRef>(null);
 
@@ -279,13 +273,6 @@ const BridgeView = () => {
   // Compute error state directly from dependencies
   const isError = isNoQuotesAvailable || quoteFetchError;
 
-  // Primary condition for keypad visibility - when input is focused or we don't have valid inputs
-  // Also hide the keypad when a new quote is loading and input field is not focused like after
-  // user changing the slippage value.
-  const shouldDisplayKeypad =
-    inputRef.current?.isFocused() ||
-    !hasValidBridgeInputs ||
-    (!activeQuote && !isError && !isLoading);
   // Always show quote details when there's an active quote
   const shouldDisplayQuoteDetails = !!activeQuote;
 
@@ -298,15 +285,6 @@ const BridgeView = () => {
       updateQuoteParams.cancel();
     };
   }, [hasValidBridgeInputs, updateQuoteParams]);
-
-  // Blur input when quotes have loaded
-  useEffect(() => {
-    if (!isLoading || activeQuote?.quote?.requestId) {
-      if (inputRef.current) {
-        inputRef.current.blur();
-      }
-    }
-  }, [isLoading, activeQuote?.quote?.requestId]);
 
   // Reset bridge state when component unmounts
   useEffect(
@@ -372,29 +350,6 @@ const BridgeView = () => {
     keypadRef.current?.open();
   };
 
-  const handleContinue = async () => {
-    try {
-      if (activeQuote && walletAddress) {
-        dispatch(setIsSubmittingTx(true));
-
-        const quoteResponse: BridgeQuoteResponse = {
-          ...activeQuote,
-          aggregator: activeQuote.quote.bridgeId,
-          walletAddress,
-        };
-
-        await submitBridgeTx({
-          quoteResponse,
-        });
-      }
-    } catch (error) {
-      console.error('Error submitting bridge tx', error);
-    } finally {
-      dispatch(setIsSubmittingTx(false));
-      navigation.navigate(Routes.TRANSACTIONS_VIEW);
-    }
-  };
-
   const handleSourceMaxPress = () => {
     if (latestSourceBalance?.displayBalance) {
       dispatch(setSourceAmountAsMax(latestSourceBalance.displayBalance));
@@ -410,14 +365,6 @@ const BridgeView = () => {
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: 'dest',
     });
-
-  const getButtonLabel = () => {
-    if (hasInsufficientBalance) return strings('bridge.insufficient_funds');
-    if (!hasSufficientGas) return strings('bridge.insufficient_gas');
-    if (isSubmittingTx) return strings('bridge.submitting_transaction');
-
-    return strings('bridge.confirm_swap');
-  };
 
   useEffect(() => {
     if (
@@ -451,33 +398,13 @@ const BridgeView = () => {
     ? strings('bridge.stock_token_error_banner_description')
     : strings('bridge.error_banner_description');
 
-  const renderBottomContent = (submitDisabled: boolean) => {
-    // When keypad is visible, it handles everything (button or quick pick + keypad)
-    if (shouldDisplayKeypad) {
-      return null;
-    }
-
+  const renderBottomContent = () => {
     if (isLoading && !activeQuote) {
       return (
         <Box style={styles.buttonContainer}>
           <Text color={TextColor.Alternative}>
             {strings('bridge.fetching_quote')}
           </Text>
-        </Box>
-      );
-    }
-
-    if (isError && isErrorBannerVisible) {
-      return (
-        <Box style={styles.buttonContainer}>
-          <BannerAlert
-            severity={BannerAlertSeverity.Error}
-            description={genericErrorMessage}
-            onClose={() => {
-              setIsErrorBannerVisible(false);
-              inputRef.current?.focus();
-            }}
-          />
         </Box>
       );
     }
@@ -516,17 +443,7 @@ const BridgeView = () => {
             />
           )}
 
-          {!shouldDisplayKeypad && (
-            <Button
-              variant={ButtonVariants.Primary}
-              size={ButtonSize.Lg}
-              label={getButtonLabel()}
-              onPress={handleContinue}
-              style={styles.button}
-              testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON}
-              isDisabled={submitDisabled}
-            />
-          )}
+          <SwapsConfirmButton />
           <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center}>
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               {hasFee
@@ -580,9 +497,6 @@ const BridgeView = () => {
             }
             testID={BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA}
             tokenType={TokenInputAreaType.Source}
-            onFocus={() => {
-              setIsErrorBannerVisible(false);
-            }}
             onInputPress={() => keypadRef.current?.open()}
             onTokenPress={handleSourceTokenPress}
             onMaxPress={handleSourceMaxPress}
@@ -624,6 +538,19 @@ const BridgeView = () => {
           showsVerticalScrollIndicator={false}
         >
           <Box style={styles.dynamicContent}>
+            {isError && isErrorBannerVisible && (
+              <Box style={styles.buttonContainer}>
+                <BannerAlert
+                  severity={BannerAlertSeverity.Error}
+                  description={genericErrorMessage}
+                  onClose={() => {
+                    setIsErrorBannerVisible(false);
+                    inputRef.current?.focus();
+                    keypadRef.current?.open();
+                  }}
+                />
+              </Box>
+            )}
             {shouldDisplayQuoteDetails && (
               <Box style={styles.quoteContainer}>
                 <QuoteDetailsCard />
@@ -632,7 +559,7 @@ const BridgeView = () => {
           </Box>
         </ScrollView>
 
-        {renderBottomContent(isSubmitDisabled)}
+        {renderBottomContent()}
 
         <SwapsKeypad
           ref={keypadRef}
@@ -641,12 +568,16 @@ const BridgeView = () => {
           currency={sourceToken?.symbol || 'ETH'}
           decimals={sourceToken?.decimals || 18}
         >
-          <GaslessQuickPickOptions
-            token={sourceToken}
-            onMaxPress={handleSourceMaxPress}
-            isQuoteSponsored={isQuoteSponsored}
-            onChange={handleKeypadChange}
-          />
+          {activeQuote && sourceAmount && sourceAmount !== '0' ? (
+            <SwapsConfirmButton />
+          ) : !sourceAmount || sourceAmount === '0' ? (
+            <GaslessQuickPickOptions
+              token={sourceToken}
+              onMaxPress={handleSourceMaxPress}
+              isQuoteSponsored={isQuoteSponsored}
+              onChange={handleKeypadChange}
+            />
+          ) : null}
         </SwapsKeypad>
       </Box>
     </ScreenView>

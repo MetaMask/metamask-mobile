@@ -22,9 +22,6 @@ export const createStyles = (params: { theme: Theme }) => {
       justifyContent: 'center',
       backgroundColor: theme.colors.background.default,
     },
-    button: {
-      width: '100%',
-    },
     quoteContainer: {
       flex: 1,
       justifyContent: 'flex-start',

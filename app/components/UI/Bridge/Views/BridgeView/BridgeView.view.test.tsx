@@ -96,7 +96,7 @@ describeForPlatforms('BridgeView', () => {
 
   it('renders enabled confirm button with tokens, amount and recommended quote', () => {
     const now = Date.now();
-    const { getByTestId } = renderBridgeView({
+    const { getAllByTestId } = renderBridgeView({
       deterministicFiat: true,
       overrides: {
         bridge: {
@@ -135,10 +135,13 @@ describeForPlatforms('BridgeView', () => {
       } as unknown as Record<string, unknown>,
     });
 
-    const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-    expect(button).toBeOnTheScreen();
+    // The confirm button may render in both the bottom content area and inside
+    // the SwapsKeypad (which stays open until the user taps outside the input).
+    const buttons = getAllByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+    expect(buttons.length).toBeGreaterThanOrEqual(1);
+    expect(buttons[0]).toBeOnTheScreen();
     expect(
-      (button as unknown as { props: { isDisabled?: boolean } }).props
+      (buttons[0] as unknown as { props: { isDisabled?: boolean } }).props
         .isDisabled,
     ).not.toBe(true);
   });
@@ -222,7 +225,7 @@ describeForPlatforms('BridgeView', () => {
     const now = Date.now();
     const previousQuote = { ...mockQuoteWithMetadata };
 
-    const { getByTestId } = renderBridgeView({
+    const { getAllByTestId } = renderBridgeView({
       deterministicFiat: true,
       overrides: {
         bridge: {
@@ -259,11 +262,12 @@ describeForPlatforms('BridgeView', () => {
       } as unknown as Record<string, unknown>,
     });
 
-    // Confirm button should be visible when there is an active quote during refresh
-    // The keypad is now always managed by SwapsKeypad BottomSheet independently
-    expect(
-      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON),
-    ).toBeOnTheScreen();
+    // Confirm button should be visible when there is an active quote during refresh.
+    // The button may appear in both the bottom content area and inside the
+    // SwapsKeypad (which stays open until the user taps outside the input).
+    const buttons = getAllByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+    expect(buttons.length).toBeGreaterThanOrEqual(1);
+    expect(buttons[0]).toBeOnTheScreen();
   });
 
   it('navigates to dest token selector on press', async () => {
