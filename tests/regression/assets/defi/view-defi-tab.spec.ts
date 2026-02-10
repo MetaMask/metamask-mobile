@@ -1,18 +1,18 @@
-import { RegressionNetworkAbstractions } from '../../../../e2e/tags';
-import WalletView from '../../../../e2e/pages/wallet/WalletView';
+import { RegressionNetworkAbstractions } from '../../../tags';
+import WalletView from '../../../page-objects/wallet/WalletView';
 import Assertions from '../../../framework/Assertions';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { WalletViewSelectorsText } from '../../../../app/components/Views/Wallet/WalletView.testIds';
-import { loginToApp } from '../../../../e2e/viewHelper';
+import { loginToApp } from '../../../flows/wallet.flow';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 import { Mockttp } from 'mockttp';
 import {
   defiPositionsError,
   defiPositionsWithData,
   defiPositionsWithNoData,
-} from '../../../api-mocking/mock-responses/defi-api-mocks.ts';
-import NetworkManager from '../../../../e2e/pages/wallet/NetworkManager.ts';
+} from '../../../api-mocking/mock-responses/defi-api-mocks';
+import NetworkManager from '../../../page-objects/wallet/NetworkManager';
 
 describe(RegressionNetworkAbstractions('View DeFi tab'), () => {
   it('open the DeFi tab with an address that has no positions', async () => {
