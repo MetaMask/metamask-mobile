@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import PaymentMethodListItem from './PaymentMethodListItem';
-import { ThemeContext, mockTheme } from '../../../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../../../../util/theme';
 import type { PaymentMethod } from '@metamask/ramps-controller';
 
 const renderWithTheme = (component: React.ReactElement) =>

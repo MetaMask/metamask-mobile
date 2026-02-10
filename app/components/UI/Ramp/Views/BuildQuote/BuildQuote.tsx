@@ -5,8 +5,8 @@ import type { CaipChainId } from '@metamask/utils';
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import Keypad, { type KeypadChangeData } from '../../../../Base/Keypad';
-import PaymentMethodPill from '../PaymentMethodPill';
-import QuickAmounts from '../QuickAmounts';
+import PaymentMethodPill from '../../components/PaymentMethodPill';
+import QuickAmounts from '../../components/QuickAmounts';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -28,7 +28,7 @@ import { useRampsController } from '../../hooks/useRampsController';
 import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
-import { createPaymentSelectionModalNavigationDetails } from '../PaymentSelectionModal';
+import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentSelectionModal';
 
 interface BuildQuoteParams {
   assetId?: string;
