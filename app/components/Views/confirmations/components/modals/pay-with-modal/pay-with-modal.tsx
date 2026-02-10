@@ -42,28 +42,30 @@ export function PayWithModal() {
 
   const handleTokenSelect = useCallback(
     (token: AssetType) => {
-      if (
-        hasTransactionType(transactionMeta, [TransactionType.musdConversion])
-      ) {
-        close(() => onMusdPaymentTokenChange(token));
-        return;
-      }
+      const onClosed = () => {
+        if (
+          hasTransactionType(transactionMeta, [TransactionType.musdConversion])
+        ) {
+          onMusdPaymentTokenChange(token);
+          return;
+        }
 
-      if (
-        hasTransactionType(transactionMeta, [
-          TransactionType.perpsDepositAndOrder,
-        ])
-      ) {
-        close(() => onPerpsPaymentTokenChange(token));
-        return;
-      }
+        if (
+          hasTransactionType(transactionMeta, [
+            TransactionType.perpsDepositAndOrder,
+          ])
+        ) {
+          onPerpsPaymentTokenChange(token);
+          return;
+        }
 
-      close(() => {
         setPayToken({
           address: token.address as Hex,
           chainId: token.chainId as Hex,
         });
-      });
+      };
+
+      close(onClosed);
     },
     [
       close,
