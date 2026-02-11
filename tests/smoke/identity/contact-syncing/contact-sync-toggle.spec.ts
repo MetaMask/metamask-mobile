@@ -82,7 +82,6 @@ describe(SmokeIdentity('Contacts syncing - Settings'), () => {
         await loginToApp();
 
         // Second fixture: Verify first contact exists and disable sync
-        // await TabBarComponent.tapSettings();
         await WalletView.tapHamburgerMenu();
         await Assertions.expectElementToBeVisible(AccountMenu.contactsButton);
 

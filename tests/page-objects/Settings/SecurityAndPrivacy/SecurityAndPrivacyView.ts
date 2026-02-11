@@ -5,6 +5,7 @@ import {
 } from '../../../../app/components/Views/Settings/SecuritySettings/SecurityPrivacyView.testIds';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
+import { CommonSelectorsIDs } from '../../../../app/util/Common.testIds';
 
 class SecurityAndPrivacy {
   get changePasswordButton(): DetoxElement {
@@ -104,6 +105,10 @@ class SecurityAndPrivacy {
     return Matchers.getElementByText(
       SecurityPrivacyViewSelectorsText.CLEAR_BROWSER_COOKIES,
     );
+  }
+
+  get backButton(): DetoxElement {
+    return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
   }
 
   async tapRevealSecretRecoveryPhraseButton(): Promise<void> {
@@ -226,6 +231,12 @@ class SecurityAndPrivacy {
   async tapShowPrivateKeyButton(): Promise<void> {
     await Gestures.waitAndTap(this.showPrivateKey, {
       elemDescription: 'Show private key button',
+    });
+  }
+
+  async tapBackButton(): Promise<void> {
+    await Gestures.waitAndTap(this.backButton, {
+      elemDescription: 'Back button',
     });
   }
 }

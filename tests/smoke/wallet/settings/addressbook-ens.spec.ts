@@ -1,6 +1,5 @@
 import { RegressionWalletPlatform } from '../../../tags';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
-import SettingsView from '../../../page-objects/Settings/SettingsView';
 import ContactsView from '../../../page-objects/Settings/Contacts/ContactsView';
 import AddContactView from '../../../page-objects/Settings/Contacts/AddContactView';
 import { loginToApp } from '../../../flows/wallet.flow';
@@ -22,6 +21,7 @@ import CommonView from '../../../page-objects/CommonView';
 import enContent from '../../../../locales/languages/en.json';
 import WalletView from '../../../page-objects/wallet/WalletView';
 import { device } from 'detox';
+import AccountMenu from '../../../page-objects/AccountMenu/AccountMenu';
 
 const MEMO = 'Test adding ENS';
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
@@ -134,8 +134,8 @@ describe.skip(RegressionWalletPlatform('Addressbook ENS Tests'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapSettings();
-        await SettingsView.tapContacts();
+        await WalletView.tapHamburgerMenu();
+        await AccountMenu.tapContacts();
         await ContactsView.tapAddContactButton();
         await Assertions.expectElementToBeVisible(AddContactView.container);
         await AddContactView.typeInName('Ibrahim');
@@ -160,8 +160,8 @@ describe.skip(RegressionWalletPlatform('Addressbook ENS Tests'), () => {
 
         await AddContactView.tapEditContactCTA();
         if (device.getPlatform() === 'android') {
-          await TabBarComponent.tapSettings();
-          await SettingsView.tapContacts();
+          await WalletView.tapHamburgerMenu();
+          await AccountMenu.tapContacts();
         }
         await Assertions.expectTextDisplayed('Ibrahim edited', {
           timeout: 20000,
@@ -171,6 +171,8 @@ describe.skip(RegressionWalletPlatform('Addressbook ENS Tests'), () => {
 
         // should go back to send flow to validate newly added address is displayed
         await CommonView.tapBackButton();
+        await AccountMenu.tapBack();
+
         await TabBarComponent.tapWallet();
         await WalletView.tapWalletSendButton();
         await Assertions.expectTextDisplayed('Ibrahim edited', {
