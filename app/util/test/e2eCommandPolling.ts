@@ -2,6 +2,8 @@ import axios, { AxiosResponse } from 'axios';
 import { isE2E, getCommandQueueServerPortInApp } from './utils';
 import DevLogger from '../../core/SDKConnect/utils/DevLogger';
 import { E2ECommandTypes } from '../../../tests/framework/types';
+import { handleExportStateCommand } from './e2eStateExport';
+import { dispatchPerpsCommand } from './e2ePerpsCommandHandler';
 
 let hasStartedPolling = false;
 let pollTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -79,8 +81,6 @@ async function pollOnce(): Promise<void> {
       switch (item.type) {
         case E2ECommandTypes.exportState: {
           try {
-            // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-            const { handleExportStateCommand } = require('./e2eStateExport');
             await handleExportStateCommand();
           } catch (e) {
             DevLogger.log(
@@ -93,9 +93,14 @@ async function pollOnce(): Promise<void> {
         case E2ECommandTypes.pushPrice:
         case E2ECommandTypes.forceLiquidation:
         case E2ECommandTypes.mockDeposit: {
-          // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-          const { dispatchPerpsCommand } = require('./e2ePerpsCommandHandler');
-          dispatchPerpsCommand(item);
+          try {
+            dispatchPerpsCommand(item);
+          } catch (e) {
+            DevLogger.log(
+              '[E2E Command Server Polling] Error handling perps command',
+              e,
+            );
+          }
           break;
         }
         default:
