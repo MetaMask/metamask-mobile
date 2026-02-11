@@ -139,7 +139,7 @@ describe('PerpsModifyActionSheet', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the modify position title', () => {
+  it('renders the modify position title and all options', () => {
     render(
       <PerpsModifyActionSheet
         onClose={mockOnClose}
@@ -149,43 +149,10 @@ describe('PerpsModifyActionSheet', () => {
     );
 
     expect(screen.getByText('Modify Position')).toBeOnTheScreen();
-  });
-
-  it('renders add to position option', () => {
-    render(
-      <PerpsModifyActionSheet
-        onClose={mockOnClose}
-        onActionSelect={mockOnActionSelect}
-        position={mockPosition}
-      />,
-    );
-
     expect(screen.getByText('Add to Position')).toBeOnTheScreen();
     expect(screen.getByText('Increase your position size')).toBeOnTheScreen();
-  });
-
-  it('renders reduce position option', () => {
-    render(
-      <PerpsModifyActionSheet
-        onClose={mockOnClose}
-        onActionSelect={mockOnActionSelect}
-        position={mockPosition}
-      />,
-    );
-
     expect(screen.getByText('Reduce Position')).toBeOnTheScreen();
     expect(screen.getByText('Decrease your position size')).toBeOnTheScreen();
-  });
-
-  it('renders flip position option', () => {
-    render(
-      <PerpsModifyActionSheet
-        onClose={mockOnClose}
-        onActionSelect={mockOnActionSelect}
-        position={mockPosition}
-      />,
-    );
-
     expect(screen.getByText('Flip Position')).toBeOnTheScreen();
     expect(
       screen.getByText('Reverse your position direction'),

@@ -76,24 +76,6 @@ describe('PerpsSelectModifyActionView', () => {
     expect(screen.getByText(FLIP_POSITION_LABEL)).toBeOnTheScreen();
   });
 
-  it('renders add to position option', () => {
-    renderView();
-
-    expect(screen.getByText(ADD_TO_POSITION_LABEL)).toBeOnTheScreen();
-  });
-
-  it('renders reduce position option', () => {
-    renderView();
-
-    expect(screen.getByText(REDUCE_POSITION_LABEL)).toBeOnTheScreen();
-  });
-
-  it('renders flip position option', () => {
-    renderView();
-
-    expect(screen.getByText(FLIP_POSITION_LABEL)).toBeOnTheScreen();
-  });
-
   it('reduce position action runs without error (navigates then sheet closes)', () => {
     renderView({ initialParams: { position: mockLongPosition } });
 
