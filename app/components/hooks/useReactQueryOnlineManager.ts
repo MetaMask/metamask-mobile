@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { Platform } from 'react-native';
 import { addEventListener as addNetInfoEventListener } from '@react-native-community/netinfo';
 import { onlineManager } from '@tanstack/react-query';
 
@@ -9,15 +8,13 @@ import { onlineManager } from '@tanstack/react-query';
  * in React Native environments.
  */
 export function useReactQueryOnlineManager() {
-  useEffect(() => {
-    if (Platform.OS === 'web') {
-      return;
-    }
-
-    return onlineManager.setEventListener((setOnline) =>
-      addNetInfoEventListener((state) => {
-        setOnline(!!state.isConnected);
-      }),
-    );
-  }, []);
+  useEffect(
+    () =>
+      onlineManager.setEventListener((setOnline) =>
+        addNetInfoEventListener((state) => {
+          setOnline(!!state.isConnected);
+        }),
+      ),
+    [],
+  );
 }
