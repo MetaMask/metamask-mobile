@@ -1347,6 +1347,269 @@ describe('RevealPrivateCredential', () => {
         }),
       );
     });
+
+    it('tracks SRP_REVEAL_QUIZ_PROMPT_SEEN when introduction screen is shown', () => {
+      renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: MetaMetricsEvents.SRP_REVEAL_QUIZ_PROMPT_SEEN.category,
+        }),
+      );
+    });
+
+    it('tracks SRP_REVEAL_START_CTA_SELECTED when Get started is pressed', async () => {
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      // Press Get started button
+      fireEvent.press(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON));
+
+      await waitFor(() => {
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            category: MetaMetricsEvents.SRP_REVEAL_START_CTA_SELECTED.category,
+          }),
+        );
+      });
+    });
+
+    it('tracks SRP_REVEAL_FIRST_QUESTION_SEEN when question 1 is shown', async () => {
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      // Navigate to quiz
+      fireEvent.press(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON));
+
+      await waitFor(() => {
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            category: MetaMetricsEvents.SRP_REVEAL_FIRST_QUESTION_SEEN.category,
+          }),
+        );
+      });
+    });
+
+    it('tracks SRP_REVEAL_FIRST_QUESTION_RIGHT_ASNWER when Q1 correct answer is selected', async () => {
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      // Navigate to quiz
+      fireEvent.press(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
+        ).toBeTruthy();
+      });
+
+      // Select correct answer
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
+      );
+
+      await waitFor(() => {
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            category:
+              MetaMetricsEvents.SRP_REVEAL_FIRST_QUESTION_RIGHT_ASNWER.category,
+          }),
+        );
+      });
+    });
+
+    it('tracks SRP_REVEAL_FIRST_QUESTION_WRONG_ANSWER when Q1 wrong answer is selected', async () => {
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      // Navigate to quiz
+      fireEvent.press(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.WRONG_ANSWER),
+        ).toBeTruthy();
+      });
+
+      // Select wrong answer
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionOneSelectorsIDs.WRONG_ANSWER),
+      );
+
+      await waitFor(() => {
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            category:
+              MetaMetricsEvents.SRP_REVEAL_FIRST_QUESTION_WRONG_ANSWER.category,
+          }),
+        );
+      });
+    });
+
+    it('tracks SRP_REVEAL_SECOND_QUESTION_SEEN when question 2 is shown', async () => {
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      // Navigate to quiz and complete Q1
+      fireEvent.press(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
+        ).toBeTruthy();
+      });
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
+        ).toBeTruthy();
+      });
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
+      );
+
+      // Now on Q2
+      await waitFor(() => {
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            category:
+              MetaMetricsEvents.SRP_REVEAL_SECOND_QUESTION_SEEN.category,
+          }),
+        );
+      });
+    });
+
+    it('tracks SRP_REVEAL_SECOND_QUESTION_RIGHT_ASNWER when Q2 correct answer is selected', async () => {
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      // Complete Q1
+      fireEvent.press(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON));
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
+        ).toBeTruthy();
+      });
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
+      );
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
+        ).toBeTruthy();
+      });
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
+      );
+
+      // Select correct answer for Q2
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionTwoSelectorsIDs.RIGHT_ANSWER),
+        ).toBeTruthy();
+      });
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionTwoSelectorsIDs.RIGHT_ANSWER),
+      );
+
+      await waitFor(() => {
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            category:
+              MetaMetricsEvents.SRP_REVEAL_SECOND_QUESTION_RIGHT_ASNWER
+                .category,
+          }),
+        );
+      });
+    });
+
+    it('tracks SRP_REVEAL_SECOND_QUESTION_WRONG_ANSWER when Q2 wrong answer is selected', async () => {
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      // Complete Q1
+      fireEvent.press(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON));
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
+        ).toBeTruthy();
+      });
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
+      );
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
+        ).toBeTruthy();
+      });
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
+      );
+
+      // Select wrong answer for Q2
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionTwoSelectorsIDs.WRONG_ANSWER),
+        ).toBeTruthy();
+      });
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionTwoSelectorsIDs.WRONG_ANSWER),
+      );
+
+      await waitFor(() => {
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            category:
+              MetaMetricsEvents.SRP_REVEAL_SECOND_QUESTION_WRONG_ANSWER
+                .category,
+          }),
+        );
+      });
+    });
   });
 
   describe('done action', () => {

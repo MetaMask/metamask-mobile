@@ -578,8 +578,49 @@ const RevealPrivateCredential = ({
       createEventBuilder(MetaMetricsEvents.REVEAL_SRP_INITIATED).build(),
     );
     trackEvent(createEventBuilder(MetaMetricsEvents.REVEAL_SRP_CTA).build());
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.SRP_REVEAL_START_CTA_SELECTED,
+      ).build(),
+    );
     setRevealSrpStage(RevealSrpStage.Quiz);
   }, [createEventBuilder, trackEvent]);
+
+  // Track when introduction screen is shown
+  useEffect(() => {
+    if (revealSrpStage === RevealSrpStage.Introduction) {
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.SRP_REVEAL_QUIZ_PROMPT_SEEN,
+        ).build(),
+      );
+    }
+  }, [revealSrpStage, trackEvent, createEventBuilder]);
+
+  // Track when questions are shown
+  useEffect(() => {
+    if (revealSrpStage === RevealSrpStage.Quiz && !questionAnswered) {
+      if (currentQuestionIndex === 1) {
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.SRP_REVEAL_FIRST_QUESTION_SEEN,
+          ).build(),
+        );
+      } else if (currentQuestionIndex === 2) {
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.SRP_REVEAL_SECOND_QUESTION_SEEN,
+          ).build(),
+        );
+      }
+    }
+  }, [
+    revealSrpStage,
+    currentQuestionIndex,
+    questionAnswered,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const renderSecurityQuizLockImage = () => (
     <Box
@@ -631,10 +672,41 @@ const RevealPrivateCredential = ({
   );
 
   const handleQuestionAnswerClick = (buttonIndex: number) => {
+    let isCorrect = false;
     if (currentQuestionIndex === 1) {
-      setCorrectAnswer(buttonIndex === 2);
+      isCorrect = buttonIndex === 2;
+      setCorrectAnswer(isCorrect);
+      // Track Q1 answer selection
+      if (isCorrect) {
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.SRP_REVEAL_FIRST_QUESTION_RIGHT_ASNWER,
+          ).build(),
+        );
+      } else {
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.SRP_REVEAL_FIRST_QUESTION_WRONG_ANSWER,
+          ).build(),
+        );
+      }
     } else {
-      setCorrectAnswer(buttonIndex === 1);
+      isCorrect = buttonIndex === 1;
+      setCorrectAnswer(isCorrect);
+      // Track Q2 answer selection
+      if (isCorrect) {
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.SRP_REVEAL_SECOND_QUESTION_RIGHT_ASNWER,
+          ).build(),
+        );
+      } else {
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.SRP_REVEAL_SECOND_QUESTION_WRONG_ANSWER,
+          ).build(),
+        );
+      }
     }
     setQuestionAnswered(true);
   };
