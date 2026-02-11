@@ -7501,9 +7501,9 @@
       "pill_complete": "Complete"
     },
     "drop_section": {
-      "title": "Snapshots",
-      "error_title": "Unable to load snapshots",
-      "error_description": "We couldn't load the snapshots. Please try again.",
+      "title": "Airdrops",
+      "error_title": "Unable to load airdrops",
+      "error_description": "We couldn't load the airdrops. Please try again.",
       "retry_button": "다시 시도"
     },
     "drop_tab": {
@@ -7511,8 +7511,8 @@
       "upcoming_title": "Upcoming",
       "previous_title": "Previous",
       "empty_state": "No snapshots available",
-      "error_title": "Unable to load snapshots",
-      "error_description": "We couldn't load the snapshots. Please try again.",
+      "error_title": "Unable to load airdrops",
+      "error_description": "We couldn't load the airdrops. Please try again.",
       "retry_button": "다시 시도",
       "refreshing": "Refreshing..."
     }
