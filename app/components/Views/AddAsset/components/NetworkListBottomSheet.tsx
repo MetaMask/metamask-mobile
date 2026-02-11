@@ -2,26 +2,28 @@ import React, { useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import { strings } from '../../../../../../../locales/i18n';
-import styleSheet from '../../../../AddAsset/AddAsset.styles';
+} from '../../../../component-library/components/BottomSheets/BottomSheet';
+import { strings } from '../../../../../locales/i18n';
+import styleSheet from '../AddAsset.styles';
 import { useSelector } from 'react-redux';
-import { useStyles } from '../../../../../hooks/useStyles';
-import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
+import { useStyles } from '../../../hooks/useStyles';
+import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import Cell, {
   CellVariant,
-} from '../../../../../../component-library/components/Cells/Cell';
+} from '../../../../component-library/components/Cells/Cell';
 import {
   AvatarSize,
   AvatarVariant,
-} from '../../../../../../component-library/components/Avatars/Avatar';
-import { Hex } from '@metamask/utils';
-import { getNetworkImageSource } from '../../../../../../util/networks';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
+} from '../../../../component-library/components/Avatars/Avatar';
+import { CaipChainId, Hex } from '@metamask/utils';
+import { getNetworkImageSource } from '../../../../util/networks';
+import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import {
   MultichainNetworkConfiguration,
   SupportedCaipChainId,
 } from '@metamask/multichain-network-controller';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 
 export const NETWORK_LIST_BOTTOM_SHEET = 'NETWORK_LIST_BOTTOM_SHEET';
 
@@ -40,6 +42,7 @@ export default function NetworkListBottomSheet({
 }) {
   const { styles } = useStyles(styleSheet, {});
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const getAccountByScope = useSelector(selectSelectedInternalAccountByScope);
 
   const filteredNetworkConfigurations = useMemo(() => {
     const configs = {} as Record<string, MultichainNetworkConfiguration>;
@@ -55,17 +58,24 @@ export default function NetworkListBottomSheet({
         continue;
       }
 
+      // Filter out non-EVM networks the current account group doesn't support
+      if (
+        isNonEvmChainId(chainId) &&
+        !getAccountByScope(chainId as CaipChainId)
+      ) {
+        continue;
+      }
+
       configs[chainId] = config;
     }
 
     return configs;
-  }, [displayEvmNetworksOnly, networkConfigurations]);
+  }, [displayEvmNetworksOnly, networkConfigurations, getAccountByScope]);
 
   return (
     <BottomSheet
       shouldNavigateBack={false}
       ref={sheetRef}
-      isInteractable={false}
       onClose={() => setOpenNetworkSelector(false)}
       style={styles.bottomSheetWrapperContent}
       testID={NETWORK_LIST_BOTTOM_SHEET}

@@ -1,8 +1,8 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import AddAssetNetworkBottomSheet, {
+import NetworkListBottomSheet, {
   NETWORK_LIST_BOTTOM_SHEET,
-} from './AddAssetNetworkBottomSheet';
+} from './NetworkListBottomSheet';
 import { Hex } from '@metamask/utils';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
@@ -75,14 +75,14 @@ const defaultProps = {
   sheetRef: mockSheetRef,
 };
 
-describe('AddAssetNetworkBottomSheet', () => {
+describe('NetworkListBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('renders correctly with network list', () => {
     const { getByText } = renderWithProvider(
-      <AddAssetNetworkBottomSheet {...defaultProps} />,
+      <NetworkListBottomSheet {...defaultProps} />,
       { state: mockInitialState },
     );
 
@@ -93,7 +93,7 @@ describe('AddAssetNetworkBottomSheet', () => {
 
   it('handles network selection', () => {
     const { getByText } = renderWithProvider(
-      <AddAssetNetworkBottomSheet {...defaultProps} />,
+      <NetworkListBottomSheet {...defaultProps} />,
       { state: mockInitialState },
     );
 
@@ -118,7 +118,7 @@ describe('AddAssetNetworkBottomSheet', () => {
     };
 
     const { queryByText } = renderWithProvider(
-      <AddAssetNetworkBottomSheet {...defaultProps} />,
+      <NetworkListBottomSheet {...defaultProps} />,
       { state: emptyNetworkState },
     );
 
@@ -141,7 +141,7 @@ describe('AddAssetNetworkBottomSheet', () => {
     };
 
     const { getByTestId } = renderWithProvider(
-      <AddAssetNetworkBottomSheet {...defaultProps} />,
+      <NetworkListBottomSheet {...defaultProps} />,
       { state: emptyNetworkState },
     );
 

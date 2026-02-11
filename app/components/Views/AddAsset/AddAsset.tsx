@@ -55,7 +55,7 @@ import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { useTopTokens } from '../../UI/Bridge/hooks/useTopTokens';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
-import AddAssetNetworkBottomSheet from './components/AddAssetNetworkBottomSheet';
+import NetworkListBottomSheet from './components/NetworkListBottomSheet';
 import { NFT_TITLE, TOKEN, TOKEN_TITLE } from './AddAsset.constants';
 
 export enum FilterOption {
@@ -107,7 +107,7 @@ const AddAsset = () => {
 
   const renderNetworkSelector = useCallback(
     () => (
-      <AddAssetNetworkBottomSheet
+      <NetworkListBottomSheet
         selectedNetwork={selectedNetwork}
         setSelectedNetwork={async (network) => {
           setSelectedNetwork(network);
