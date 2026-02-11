@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Animated, Pressable } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextVariant,
   TextColor,
@@ -12,11 +13,14 @@ import Icon, {
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import ChecklistItem from './ChecklistItem';
+import Step3Variations from './Step3Variations';
 import { useOnboardingChecklist } from '../hooks/useOnboardingChecklist';
+import Routes from '../../../constants/navigation/Routes';
 
 const OnboardingFloating = () => {
   const tw = useTailwind();
-  const { steps, completeStep } = useOnboardingChecklist();
+  const navigation = useNavigation<any>();
+  const { steps } = useOnboardingChecklist();
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
@@ -55,18 +59,14 @@ const OnboardingFloating = () => {
           <ChecklistItem
             title="Secure your wallet"
             isCompleted={steps.step1}
-            onPress={() => completeStep('step1')}
+            onPress={() => navigation.navigate(Routes.ONBOARDING.NAV)}
           />
           <ChecklistItem
             title="Add funds"
             isCompleted={steps.step2}
-            onPress={() => completeStep('step2')}
+            onPress={() => navigation.navigate(Routes.RAMP.BUY)}
           />
-          <ChecklistItem
-            title="Try a core action"
-            isCompleted={steps.step3}
-            onPress={() => completeStep('step3')}
-          />
+          <Step3Variations />
         </Box>
       )}
     </Box>
