@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { userEvent } from '@testing-library/react-native';
 import MoreTokenActionsMenu, {
   MoreTokenActionsMenuParams,
 } from './MoreTokenActionsMenu';
@@ -412,7 +412,7 @@ describe('MoreTokenActionsMenu', () => {
   });
 
   describe('action handlers', () => {
-    it('calls onBuy when Buy is pressed', () => {
+    it('calls onBuy when Buy is pressed', async () => {
       updateRouteParams({
         hasPerpsMarket: true,
         hasBalance: false,
@@ -426,14 +426,14 @@ describe('MoreTokenActionsMenu', () => {
         state: mockInitialState,
       });
 
-      fireEvent.press(
+      await userEvent.press(
         getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
       );
 
       expect(onBuy).toHaveBeenCalled();
     });
 
-    it('calls onReceive when Receive is pressed', () => {
+    it('calls onReceive when Receive is pressed', async () => {
       updateRouteParams({
         hasPerpsMarket: true,
         hasBalance: true,
@@ -447,7 +447,7 @@ describe('MoreTokenActionsMenu', () => {
         state: mockInitialState,
       });
 
-      fireEvent.press(getByTestId('more-actions-receive'));
+      await userEvent.press(getByTestId('more-actions-receive'));
 
       expect(onReceive).toHaveBeenCalled();
     });
@@ -465,7 +465,7 @@ describe('MoreTokenActionsMenu', () => {
         state: mockInitialState,
       });
 
-      fireEvent.press(getByTestId('more-actions-view-explorer'));
+      await userEvent.press(getByTestId('more-actions-view-explorer'));
 
       await Promise.resolve();
 
@@ -492,7 +492,7 @@ describe('MoreTokenActionsMenu', () => {
         state: mockInitialState,
       });
 
-      fireEvent.press(getByTestId('more-actions-view-explorer'));
+      await userEvent.press(getByTestId('more-actions-view-explorer'));
 
       await Promise.resolve();
 
@@ -501,7 +501,7 @@ describe('MoreTokenActionsMenu', () => {
       );
     });
 
-    it('uses block explorer base URL for native currency when View on block explorer is pressed', () => {
+    it('uses block explorer base URL for native currency when View on block explorer is pressed', async () => {
       updateRouteParams({
         hasPerpsMarket: false,
         hasBalance: true,
@@ -513,13 +513,13 @@ describe('MoreTokenActionsMenu', () => {
         state: mockInitialState,
       });
 
-      fireEvent.press(getByTestId('more-actions-view-explorer'));
+      await userEvent.press(getByTestId('more-actions-view-explorer'));
 
       expect(mockGetBlockExplorerBaseUrl).toHaveBeenCalledWith('0x1');
       expect(mockGetBlockExplorerName).toHaveBeenCalledWith('0x1');
     });
 
-    it('navigates to AssetHideConfirmation when Remove token is pressed', () => {
+    it('navigates to AssetHideConfirmation when Remove token is pressed', async () => {
       updateRouteParams({
         hasPerpsMarket: false,
         hasBalance: true,
@@ -531,7 +531,7 @@ describe('MoreTokenActionsMenu', () => {
         state: mockInitialState,
       });
 
-      fireEvent.press(getByTestId('more-actions-remove-token'));
+      await userEvent.press(getByTestId('more-actions-remove-token'));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: 'AssetHideConfirmation',
@@ -541,7 +541,7 @@ describe('MoreTokenActionsMenu', () => {
       });
     });
 
-    it('hides token, shows notification and tracks event when onConfirm is called', () => {
+    it('hides token, shows notification and tracks event when onConfirm is called', async () => {
       updateRouteParams({
         hasPerpsMarket: false,
         hasBalance: true,
@@ -560,7 +560,7 @@ describe('MoreTokenActionsMenu', () => {
         state: mockInitialState,
       });
 
-      fireEvent.press(getByTestId('more-actions-remove-token'));
+      await userEvent.press(getByTestId('more-actions-remove-token'));
 
       const hideConfirmationCall = mockNavigate.mock.calls.find(
         (call: unknown[]) => {
@@ -602,7 +602,7 @@ describe('MoreTokenActionsMenu', () => {
       expect(mockTrackEvent).toHaveBeenCalled();
     });
 
-    it('logs error when hide token fails', () => {
+    it('logs error when hide token fails', async () => {
       (
         Engine.context.TokensController.ignoreTokens as jest.Mock
       ).mockImplementation(() => {
@@ -619,7 +619,7 @@ describe('MoreTokenActionsMenu', () => {
         state: mockInitialState,
       });
 
-      fireEvent.press(getByTestId('more-actions-remove-token'));
+      await userEvent.press(getByTestId('more-actions-remove-token'));
 
       const navigateCall = mockNavigate.mock.calls.find(
         (call: unknown[]) =>
