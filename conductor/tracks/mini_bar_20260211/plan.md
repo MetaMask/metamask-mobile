@@ -9,10 +9,10 @@
 - [ ] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
 
 ## Phase 2: UI Component Development (MMDS)
-- [ ] Task: Build the Floating Mini-Bar component
+- [x] Task: Build the Floating Mini-Bar component 4461c67
     - [ ] Implement the segmented progress line/bar UI.
     - [ ] Add the `Animated` slide-up/down logic based on scroll position.
-- [ ] Task: Build the Onboarding Journey Screen
+- [x] Task: Build the Onboarding Journey Screen 4461c67
     - [ ] Implement the full-screen layout with 3 steps.
     - [ ] Reuse the step detection and navigation logic from previous iterations.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
