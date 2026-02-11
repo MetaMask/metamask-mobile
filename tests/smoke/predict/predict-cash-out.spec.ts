@@ -1,10 +1,10 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { SmokePredictions } from '../../../e2e/tags';
-import { loginToApp } from '../../../e2e/viewHelper';
+import { SmokePredictions } from '../../tags';
+import { loginToApp } from '../../flows/wallet.flow';
 import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
 import Assertions from '../../framework/Assertions';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
+import WalletView from '../../page-objects/wallet/WalletView';
 import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import {
   POLYMARKET_COMPLETE_MOCKS,
@@ -15,9 +15,9 @@ import {
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import PredictCashOutPage from '../../page-objects/Predict/PredictCashOutPage';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
-import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView';
-import PredictActivityDetails from '../../../e2e/pages/Transactions/predictionsActivityDetails';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
+import PredictActivityDetails from '../../page-objects/Transactions/predictionsActivityDetails';
 import { getEventsPayloads } from '../../helpers/analytics/helpers';
 import SoftAssert from '../../framework/SoftAssert';
 
