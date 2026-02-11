@@ -45,6 +45,7 @@ const Checkout = () => {
 
   const { url: uri, providerName, userAgent } = params ?? {};
   const headerTitle = providerName ?? '';
+  const initialUriRef = useRef(uri);
 
   const handleCancelPress = useCallback(() => {
     // TODO: Add analytics tracking when analytics events are defined for unified flow
@@ -129,11 +130,23 @@ const Checkout = () => {
           userAgent={userAgent ?? undefined}
           onHttpError={(syntheticEvent) => {
             const { nativeEvent } = syntheticEvent;
-            const webviewHttpError = strings(
-              'fiat_on_ramp_aggregator.webview_received_error',
-              { code: nativeEvent.statusCode },
-            );
-            setError(webviewHttpError);
+            const errorUrl = nativeEvent.url;
+
+            // Only show error if the initial URL failed to load.
+            // Third-party widgets often load auxiliary resources (analytics, images, etc.)
+            // that can fail without breaking the checkout flow.
+            if (errorUrl === initialUriRef.current) {
+              const webviewHttpError = strings(
+                'fiat_on_ramp_aggregator.webview_received_error',
+                { code: nativeEvent.statusCode },
+              );
+              setError(webviewHttpError);
+            } else {
+              // Log auxiliary resource failures for debugging but don't break the flow
+              Logger.log(
+                `Checkout: HTTP error ${nativeEvent.statusCode} for auxiliary resource: ${errorUrl}`,
+              );
+            }
           }}
           allowsInlineMediaPlayback
           enableApplePay

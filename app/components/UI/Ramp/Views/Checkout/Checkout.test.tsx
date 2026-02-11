@@ -45,6 +45,11 @@ jest.mock('../../../../../util/browser', () => ({
   shouldStartLoadWithRequest: jest.fn(() => true),
 }));
 
+jest.mock('../../../../../util/Logger', () => ({
+  log: jest.fn(),
+  error: jest.fn(),
+}));
+
 jest.mock('../../Aggregator/sdk', () => ({
   useRampSDK: jest.fn(() => ({
     selectedPaymentMethodId: null,
@@ -140,8 +145,8 @@ describe('Checkout', () => {
     });
   });
 
-  it('shows error view on HTTP error for any URL including redirects', () => {
-    const { getByTestId, getByText } = render(
+  it('does not show error view for auxiliary resource HTTP errors', () => {
+    const { getByTestId, queryByText } = render(
       <ThemeContext.Provider value={mockTheme}>
         <Checkout />
       </ThemeContext.Provider>,
@@ -149,16 +154,18 @@ describe('Checkout', () => {
 
     const webview = getByTestId('checkout-webview');
 
+    // Simulate an HTTP error for an auxiliary resource (not the initial URL)
     fireEvent(webview, 'onHttpError', {
       nativeEvent: {
-        url: 'https://redirected.example.com/payment',
+        url: 'https://analytics.example.com/track.js',
         statusCode: 404,
       },
     });
 
+    // Error view should NOT be shown for auxiliary resource failures
     expect(
-      getByText('fiat_on_ramp_aggregator.webview_received_error'),
-    ).toBeOnTheScreen();
+      queryByText('fiat_on_ramp_aggregator.webview_received_error'),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows error view on HTTP error for initial URL', () => {
