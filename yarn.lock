@@ -9356,14 +9356,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@7.1.0-preview-bc3c2ef97":
-  version: 7.1.0-preview-bc3c2ef97
-  resolution: "@metamask-previews/ramps-controller@npm:7.1.0-preview-bc3c2ef97"
+"@metamask/ramps-controller@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "@metamask/ramps-controller@npm:8.0.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/controller-utils": "npm:^11.18.0"
     "@metamask/messenger": "npm:^0.3.0"
-  checksum: 10/5e68284cd59664d36e1c618e08a0cbdfb9dde1ba6a258d72e377f23fe3692fdf720aa0b727f2b11d0fc9b4239b6090403e053934fb034401543b5d50943b1592
+  checksum: 10/fd016f8d51c835a120da2bd62816dc11f0ab670f1559b17d7bf280842b66c4d6b238a1efa16ce786eedf5876bb275d512a3cba7cdb740ac1ea8620139070ba6b
   languageName: node
   linkType: hard
 
