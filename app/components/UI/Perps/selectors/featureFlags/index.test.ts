@@ -7,11 +7,12 @@ import {
   selectHip3ConfigVersion,
   selectPerpsFeedbackEnabledFlag,
   selectPerpsTradeWithAnyTokenEnabledFlag,
-  selectPerpsPayWithAnyTokenAllowListAssets,
+  selectPerpsPayWithAnyTokenAllowlistAssets,
   selectPerpsRewardsReferralCodeEnabledFlag,
   selectPerpsMYXProviderEnabledFlag,
 } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
+import type { StateWithPartialEngine } from '../../../../../selectors/featureFlagController/types';
 import {
   mockedState,
   mockedEmptyFlagsState,
@@ -1530,33 +1531,36 @@ describe('Perps Feature Flag Selectors', () => {
     });
   });
 
-  describe('selectPerpsPayWithAnyTokenAllowListAssets', () => {
-    const createState = (remoteFlags: Record<string, unknown>) => ({
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: remoteFlags,
-            cacheTimestamp: 0,
+  describe('selectPerpsPayWithAnyTokenAllowlistAssets', () => {
+    const createState = (
+      remoteFlags: Record<string, unknown>,
+    ): StateWithPartialEngine =>
+      ({
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: remoteFlags,
+              cacheTimestamp: 0,
+            },
           },
         },
-      },
-    });
+      }) as StateWithPartialEngine;
 
     beforeEach(() => {
-      delete process.env.PERPS_PAY_WITH_ANY_TOKEN_ALLOW_LIST_ASSETS;
+      delete process.env.PERPS_PAY_WITH_ANY_TOKEN_ALLOWLIST_ASSETS;
     });
 
     it('returns empty array when env and remote are unset', () => {
-      const result = selectPerpsPayWithAnyTokenAllowListAssets(createState({}));
+      const result = selectPerpsPayWithAnyTokenAllowlistAssets(createState({}));
       expect(result).toEqual([]);
     });
 
-    it('uses env override when PERPS_PAY_WITH_ANY_TOKEN_ALLOW_LIST_ASSETS is set', () => {
-      process.env.PERPS_PAY_WITH_ANY_TOKEN_ALLOW_LIST_ASSETS =
+    it('uses env override when PERPS_PAY_WITH_ANY_TOKEN_ALLOWLIST_ASSETS is set', () => {
+      process.env.PERPS_PAY_WITH_ANY_TOKEN_ALLOWLIST_ASSETS =
         '1.0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48,8453.0x0000000000000000000000000000000000000000';
-      const result = selectPerpsPayWithAnyTokenAllowListAssets(
+      const result = selectPerpsPayWithAnyTokenAllowlistAssets(
         createState({
-          perpsPayWithAnyTokenAllowListAssets: '1.0xother,2.0xother',
+          perpsPayWithAnyTokenAllowlistAssets: '1.0xother,2.0xother',
         }),
       );
       expect(result).toEqual([
@@ -1566,9 +1570,9 @@ describe('Perps Feature Flag Selectors', () => {
     });
 
     it('parses remote comma-separated string and normalizes to lowercase', () => {
-      const result = selectPerpsPayWithAnyTokenAllowListAssets(
+      const result = selectPerpsPayWithAnyTokenAllowlistAssets(
         createState({
-          perpsPayWithAnyTokenAllowListAssets:
+          perpsPayWithAnyTokenAllowlistAssets:
             '1.0xA0b86991c6218b36c1d19D4a2e9eb0ce3606eb48, 8453.0xABC ',
         }),
       );
@@ -1579,18 +1583,18 @@ describe('Perps Feature Flag Selectors', () => {
     });
 
     it('parses remote array and normalizes to lowercase', () => {
-      const result = selectPerpsPayWithAnyTokenAllowListAssets(
+      const result = selectPerpsPayWithAnyTokenAllowlistAssets(
         createState({
-          perpsPayWithAnyTokenAllowListAssets: ['1.0xUSDC', ' 8453.0xweth '],
+          perpsPayWithAnyTokenAllowlistAssets: ['1.0xUSDC', ' 8453.0xweth '],
         }),
       );
       expect(result).toEqual(['1.0xusdc', '8453.0xweth']);
     });
 
     it('returns empty array when remote value is invalid type', () => {
-      const result = selectPerpsPayWithAnyTokenAllowListAssets(
+      const result = selectPerpsPayWithAnyTokenAllowlistAssets(
         createState({
-          perpsPayWithAnyTokenAllowListAssets: 123,
+          perpsPayWithAnyTokenAllowlistAssets: 123,
         }),
       );
       expect(result).toEqual([]);

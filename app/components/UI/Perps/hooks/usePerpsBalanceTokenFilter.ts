@@ -14,7 +14,7 @@ import {
   PERPS_BALANCE_CHAIN_ID,
   PERPS_BALANCE_PLACEHOLDER_ADDRESS,
 } from '../constants/perpsConfig';
-import { selectPerpsPayWithAnyTokenAllowListAssets } from '../selectors/featureFlags';
+import { selectPerpsPayWithAnyTokenAllowlistAssets } from '../selectors/featureFlags';
 import { selectPerpsAccountState } from '../selectors/perpsController';
 import { useIsPerpsBalanceSelected } from './useIsPerpsBalanceSelected';
 
@@ -37,7 +37,7 @@ export function usePerpsBalanceTokenFilter(): (
   const isPerpsBalanceSelected = useIsPerpsBalanceSelected();
   const perpsAccount = useSelector(selectPerpsAccountState);
   const allowListAssets = useSelector(
-    selectPerpsPayWithAnyTokenAllowListAssets,
+    selectPerpsPayWithAnyTokenAllowlistAssets,
   );
   const formatFiat = useFiatFormatter({ currency: 'usd' });
 

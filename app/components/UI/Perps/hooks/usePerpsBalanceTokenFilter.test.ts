@@ -52,6 +52,9 @@ describe('usePerpsBalanceTokenFilter', () => {
       if (selector.name === 'selectPerpsAccountState') {
         return { availableBalance: '1500.00' };
       }
+      if (selector.name === 'selectPerpsPayWithAnyTokenAllowlistAssets') {
+        return [];
+      }
       return undefined;
     });
   });
