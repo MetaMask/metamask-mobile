@@ -16,15 +16,8 @@ export function usePerpsPaymentToken(): UsePerpsPaymentTokenResult {
     (token: AssetType | null) => {
       const parsed =
         token === null || token === undefined ? null : parsePayWithToken(token);
-      const payload =
-        parsed === null
-          ? null
-          : {
-              description: parsed.description,
-              address: parsed.address,
-              chainId: parsed.chainId,
-            };
-      Engine.context.PerpsController?.setSelectedPaymentToken?.(payload);
+
+      Engine.context.PerpsController?.setSelectedPaymentToken?.(parsed);
       if (parsed !== null) {
         setPayToken({
           address: parsed.address as Hex,

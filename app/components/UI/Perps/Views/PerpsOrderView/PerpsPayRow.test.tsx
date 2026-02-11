@@ -4,12 +4,17 @@ import { PerpsPayRow } from './PerpsPayRow';
 import { useNavigation } from '@react-navigation/native';
 import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
-import { useIsPerpsBalanceSelected } from '../../hooks/useIsPerpsBalanceSelected';
+import {
+  useIsPerpsBalanceSelected,
+  usePerpsPayWithToken,
+} from '../../hooks/useIsPerpsBalanceSelected';
 import { useTokenWithBalance } from '../../../../Views/confirmations/hooks/tokens/useTokenWithBalance';
 import { useConfirmationMetricEvents } from '../../../../Views/confirmations/hooks/metrics/useConfirmationMetricEvents';
 import { isHardwareAccount } from '../../../../../util/address';
+import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { usePerpsSelector } from '../../hooks/usePerpsSelector';
 import {
   ConfirmationRowComponentIDs,
   TransactionPayComponentIDs,
@@ -28,7 +33,18 @@ jest.mock('../../../../Views/confirmations/hooks/pay/useTransactionPayToken');
 jest.mock(
   '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest',
 );
-jest.mock('../../hooks/useIsPerpsBalanceSelected');
+jest.mock('../../hooks/useIsPerpsBalanceSelected', () => ({
+  useIsPerpsBalanceSelected: jest.fn(),
+  usePerpsPayWithToken: jest.fn(),
+}));
+jest.mock('../../hooks/usePerpsSelector');
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PerpsController: {
+      setSelectedPaymentToken: jest.fn(),
+    },
+  },
+}));
 jest.mock('../../../../Views/confirmations/hooks/tokens/useTokenWithBalance');
 jest.mock(
   '../../../../Views/confirmations/hooks/metrics/useConfirmationMetricEvents',
@@ -52,6 +68,12 @@ const mockUseIsPerpsBalanceSelected =
   useIsPerpsBalanceSelected as jest.MockedFunction<
     typeof useIsPerpsBalanceSelected
   >;
+const mockUsePerpsPayWithToken = usePerpsPayWithToken as jest.MockedFunction<
+  typeof usePerpsPayWithToken
+>;
+const mockUsePerpsSelector = usePerpsSelector as jest.MockedFunction<
+  typeof usePerpsSelector
+>;
 const mockUseTokenWithBalance = useTokenWithBalance as jest.MockedFunction<
   typeof useTokenWithBalance
 >;
@@ -93,6 +115,8 @@ describe('PerpsPayRow', () => {
       setConfirmationMetric: setConfirmationMetricMock,
     } as unknown as ReturnType<typeof useConfirmationMetricEvents>);
     mockIsHardwareAccount.mockReturnValue(false);
+    mockUsePerpsSelector.mockReturnValue({});
+    mockUsePerpsPayWithToken.mockReturnValue(null);
   });
 
   it('renders pay with label', () => {
@@ -179,5 +203,40 @@ describe('PerpsPayRow', () => {
     );
 
     expect(getByTestId(ConfirmationRowComponentIDs.PAY_WITH)).toBeOnTheScreen();
+  });
+
+  it('syncs pay token from pending config when it differs from current', () => {
+    const setPayTokenMock = jest.fn();
+    const pendingToken = {
+      address: '0xPending',
+      chainId: '0x1',
+      description: 'Pending USDC',
+    };
+    mockUsePerpsSelector.mockReturnValue({
+      selectedPaymentToken: pendingToken,
+    });
+    mockUsePerpsPayWithToken.mockReturnValue({
+      address: pendingToken.address,
+      chainId: pendingToken.chainId,
+      description: pendingToken.description,
+    });
+    mockUseTransactionPayToken.mockReturnValue({
+      payToken: { address: '0xOther', chainId: '0xa4b1', symbol: 'USDC' },
+      setPayToken: setPayTokenMock,
+    } as unknown as ReturnType<typeof useTransactionPayToken>);
+
+    renderWithProvider(<PerpsPayRow initialAsset="BTC" />);
+
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      address: '0xPending',
+      chainId: '0x1',
+    });
+    expect(
+      Engine.context.PerpsController?.setSelectedPaymentToken,
+    ).toHaveBeenCalledWith({
+      description: 'Pending USDC',
+      address: '0xPending',
+      chainId: '0x1',
+    });
   });
 });
