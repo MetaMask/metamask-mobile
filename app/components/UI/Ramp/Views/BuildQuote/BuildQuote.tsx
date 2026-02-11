@@ -154,7 +154,9 @@ function BuildQuote() {
     if (isNativeProvider(selectedQuote)) {
       navigation.navigate(
         ...createDepositNavigationDetails({
+          assetId: selectedToken?.assetId,
           amount: String(amountAsNumber),
+          currency,
           shouldRouteImmediately: true,
         }),
       );
@@ -189,7 +191,14 @@ function BuildQuote() {
       });
       // TODO: Show user-facing error (alert or inline)
     }
-  }, [selectedQuote, navigation, getWidgetUrl, amountAsNumber]);
+  }, [
+    selectedQuote,
+    navigation,
+    getWidgetUrl,
+    amountAsNumber,
+    selectedToken,
+    currency,
+  ]);
 
   const hasAmount = amountAsNumber > 0;
 

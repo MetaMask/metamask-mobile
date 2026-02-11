@@ -517,7 +517,9 @@ describe('BuildQuote', () => {
       expect(mockNavigate).toHaveBeenCalledWith('Deposit', {
         screen: 'DepositRoot',
         params: {
+          assetId: MOCK_ASSET_ID,
           amount: '100',
+          currency: 'USD',
           shouldRouteImmediately: true,
         },
       });
