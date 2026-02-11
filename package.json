@@ -144,6 +144,7 @@
     "@ethersproject/providers/ws": "^7.5.10",
     "ganache/secp256k1": "^4.0.4",
     "@expo/image-utils/semver": "7.5.2",
+    "eas-cli/nanoid": "^3.3.8",
     "@ethersproject/providers/bech32": "2.0.0",
     "@ethersproject/signing-key/elliptic": "^6.6.1",
     "@ethereumjs/tx": "^5.4.0",
