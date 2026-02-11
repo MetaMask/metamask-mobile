@@ -19,38 +19,6 @@ function scheduleNext(delay: number): void {
 
 let isPollingInFlight = false;
 
-function dispatchPerpsCommand(item: {
-  type: string;
-  args: Record<string, unknown>;
-}): void {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-    const mod = require('../../../tests/controller-mocking/mock-responses/perps/perps-e2e-mocks');
-    const service = mod?.PerpsE2EMockService?.getInstance?.();
-    if (!service) return;
-
-    if (item.type === E2ECommandTypes.pushPrice) {
-      const sym = item.args.symbol as string;
-      const price = String(item.args.price);
-      if (typeof service.mockPushPrice === 'function') {
-        service.mockPushPrice(sym, price);
-      }
-    } else if (item.type === E2ECommandTypes.forceLiquidation) {
-      const sym = item.args.symbol as string;
-      if (typeof service.mockForceLiquidation === 'function') {
-        service.mockForceLiquidation(sym);
-      }
-    } else if (item.type === E2ECommandTypes.mockDeposit) {
-      const amount = item.args.amount as string;
-      if (typeof service.mockDepositUSD === 'function') {
-        service.mockDepositUSD(amount);
-      }
-    }
-  } catch (e) {
-    // Perps mocks not available — expected in non-perps tests
-  }
-}
-
 async function pollOnce(): Promise<void> {
   if (isPollingInFlight) return;
   isPollingInFlight = true;
@@ -108,23 +76,34 @@ async function pollOnce(): Promise<void> {
     for (const item of data) {
       if (!item || typeof item !== 'object') continue;
 
-      if (item.type === E2ECommandTypes.exportState) {
-        try {
-          // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-          const { handleExportStateCommand } = require('./e2eStateExport');
-          await handleExportStateCommand();
-        } catch (e) {
-          DevLogger.log(
-            '[E2E Command Server Polling] Error handling export-state',
-            e,
-          );
+      switch (item.type) {
+        case E2ECommandTypes.exportState: {
+          try {
+            // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+            const { handleExportStateCommand } = require('./e2eStateExport');
+            await handleExportStateCommand();
+          } catch (e) {
+            DevLogger.log(
+              '[E2E Command Server Polling] Error handling export-state',
+              e,
+            );
+          }
+          break;
         }
-      } else if (
-        item.type === E2ECommandTypes.pushPrice ||
-        item.type === E2ECommandTypes.forceLiquidation ||
-        item.type === E2ECommandTypes.mockDeposit
-      ) {
-        dispatchPerpsCommand(item);
+        case E2ECommandTypes.pushPrice:
+        case E2ECommandTypes.forceLiquidation:
+        case E2ECommandTypes.mockDeposit: {
+          // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+          const { dispatchPerpsCommand } = require('./e2ePerpsCommandHandler');
+          dispatchPerpsCommand(item);
+          break;
+        }
+        default:
+          DevLogger.log(
+            '[E2E Command Server Polling] Unknown command type',
+            item.type,
+          );
+          break;
       }
     }
 

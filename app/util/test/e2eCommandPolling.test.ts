@@ -17,22 +17,11 @@ jest.mock('./e2eStateExport', () => ({
   handleExportStateCommand: jest.fn().mockResolvedValue(undefined),
 }));
 
-const mockPushPrice = jest.fn();
-const mockForceLiquidation = jest.fn();
-const mockDepositUSD = jest.fn();
-
-jest.mock(
-  '../../../tests/controller-mocking/mock-responses/perps/perps-e2e-mocks',
-  () => ({
-    PerpsE2EMockService: {
-      getInstance: () => ({
-        mockPushPrice,
-        mockForceLiquidation,
-        mockDepositUSD,
-      }),
-    },
-  }),
-);
+const mockDispatchPerpsCommand = jest.fn();
+jest.mock('./e2ePerpsCommandHandler', () => ({
+  dispatchPerpsCommand: (...args: unknown[]) =>
+    mockDispatchPerpsCommand(...args),
+}));
 
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
@@ -181,15 +170,17 @@ describe('e2eCommandPolling', () => {
     expect(jest.getTimerCount()).toBe(1);
   });
 
-  it('dispatches push-price command to perps mock service', async () => {
+  it('dispatches push-price command to perps handler', async () => {
     mockIsE2E = true;
     const { startE2ECommandPolling } = loadModule();
 
+    const command = {
+      type: 'push-price',
+      args: { symbol: 'ETH', price: '3000' },
+    };
     mockedAxios.get.mockResolvedValueOnce(probeResponse).mockResolvedValueOnce({
       status: 200,
-      data: {
-        queue: [{ type: 'push-price', args: { symbol: 'ETH', price: '3000' } }],
-      },
+      data: { queue: [command] },
     } as AxiosResponse);
 
     await startE2ECommandPolling();
@@ -197,18 +188,17 @@ describe('e2eCommandPolling', () => {
     jest.advanceTimersByTime(0);
     await flushMicrotasks();
 
-    expect(mockPushPrice).toHaveBeenCalledWith('ETH', '3000');
+    expect(mockDispatchPerpsCommand).toHaveBeenCalledWith(command);
   });
 
-  it('dispatches force-liquidation command to perps mock service', async () => {
+  it('dispatches force-liquidation command to perps handler', async () => {
     mockIsE2E = true;
     const { startE2ECommandPolling } = loadModule();
 
+    const command = { type: 'force-liquidation', args: { symbol: 'BTC' } };
     mockedAxios.get.mockResolvedValueOnce(probeResponse).mockResolvedValueOnce({
       status: 200,
-      data: {
-        queue: [{ type: 'force-liquidation', args: { symbol: 'BTC' } }],
-      },
+      data: { queue: [command] },
     } as AxiosResponse);
 
     await startE2ECommandPolling();
@@ -216,18 +206,17 @@ describe('e2eCommandPolling', () => {
     jest.advanceTimersByTime(0);
     await flushMicrotasks();
 
-    expect(mockForceLiquidation).toHaveBeenCalledWith('BTC');
+    expect(mockDispatchPerpsCommand).toHaveBeenCalledWith(command);
   });
 
-  it('dispatches mock-deposit command to perps mock service', async () => {
+  it('dispatches mock-deposit command to perps handler', async () => {
     mockIsE2E = true;
     const { startE2ECommandPolling } = loadModule();
 
+    const command = { type: 'mock-deposit', args: { amount: '5000' } };
     mockedAxios.get.mockResolvedValueOnce(probeResponse).mockResolvedValueOnce({
       status: 200,
-      data: {
-        queue: [{ type: 'mock-deposit', args: { amount: '5000' } }],
-      },
+      data: { queue: [command] },
     } as AxiosResponse);
 
     await startE2ECommandPolling();
@@ -235,7 +224,7 @@ describe('e2eCommandPolling', () => {
     jest.advanceTimersByTime(0);
     await flushMicrotasks();
 
-    expect(mockDepositUSD).toHaveBeenCalledWith('5000');
+    expect(mockDispatchPerpsCommand).toHaveBeenCalledWith(command);
   });
 
   it('skips null or non-object items in the queue', async () => {

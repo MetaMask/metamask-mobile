@@ -42,18 +42,15 @@ describe(RegressionWalletPlatform('E2E State Export'), () => {
           throw new Error('Exported state missing AccountsController');
         }
 
-        const internalAccounts = accountsController.internalAccounts as Record<
-          string,
-          unknown
-        >;
-        if (!internalAccounts?.accounts) {
+        const internalAccounts = accountsController.internalAccounts as
+          | Record<string, unknown>
+          | undefined;
+        const accounts = internalAccounts?.accounts as
+          | Record<string, Record<string, unknown>>
+          | undefined;
+        if (!accounts) {
           throw new Error('Exported state missing internalAccounts.accounts');
         }
-
-        const accounts = internalAccounts.accounts as Record<
-          string,
-          Record<string, unknown>
-        >;
         const accountEntries = Object.values(accounts);
 
         if (accountEntries.length === 0) {
