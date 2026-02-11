@@ -3,7 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import Logger from '../../../../../util/Logger';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
 import PerpsProviderSelectorSheet from '../../components/PerpsProviderSelector/PerpsProviderSelectorSheet';
-import type { PerpsProviderType } from '../../controllers/types';
+import type { PerpsProviderType } from '@metamask/perps-controller';
 
 /**
  * PerpsSelectProviderView
