@@ -176,9 +176,6 @@ jobs:
     # Android: Cirrus lg (large) runner for 8GB Gradle heap; iOS: GitHub-hosted macOS
     runs-on: ${{ matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
     environment: ${{ needs.prepare.outputs.github_environment }}
-    env:
-      # So bundle exec (in yarn pod:install) finds ios/Gemfile when running from repo root
-      BUNDLE_GEMFILE: ios/Gemfile
     steps:
       - uses: actions/checkout@v4
         with:
@@ -378,6 +375,8 @@ jobs:
       # iOS: Install/update CocoaPods (fast with cache, paths need to be correct for this machine)
       - name: Install CocoaPods dependencies
         if: matrix.platform == 'ios'
+        env:
+          BUNDLE_GEMFILE: ios/Gemfile
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 10
