@@ -125,6 +125,8 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsSavePendingConfig } from '../../hooks/usePerpsSavePendingConfig';
+import { usePerpsSelector } from '../../hooks/usePerpsSelector';
+import { selectPendingTradeConfiguration } from '../../controllers/selectors';
 import {
   selectPerpsButtonColorTestVariant,
   selectPerpsTradeWithAnyTokenEnabledFlag,
@@ -150,7 +152,9 @@ import createStyles from './PerpsOrderView.styles';
 import { PerpsPayRow } from './PerpsPayRow';
 import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
 import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConfirmActions';
+import type { AssetType } from '../../../../Views/confirmations/types/token';
 import Engine from '../../../../../core/Engine';
+import { Hex } from '@metamask/utils';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -249,7 +253,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
 
-  const { payToken } = useTransactionPayToken();
+  const { payToken, setPayToken } = useTransactionPayToken();
   const isPayTokenPerpsBalance = useIsPerpsBalanceSelected();
   const hasCustomTokenSelected = !isPayTokenPerpsBalance;
 
@@ -292,6 +296,41 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   // Save pending trade config when user navigates away
   usePerpsSavePendingConfig(orderForm);
+
+  // Restore previously selected pay-with token from pending config (when user returns within 5 min)
+  const pendingConfig = usePerpsSelector((state) =>
+    selectPendingTradeConfiguration(state, orderForm.asset ?? ''),
+  );
+  const hasRestoredControllerTokenRef = useRef(false);
+  const hasRestoredTransactionPayTokenRef = useRef(false);
+
+  // 1) Restore PerpsController as soon as pending config has a token (balance/validation and "Perps balance" vs token reflect immediately)
+  useEffect(() => {
+    if (
+      !hasRestoredControllerTokenRef.current &&
+      pendingConfig?.selectedPaymentToken
+    ) {
+      hasRestoredControllerTokenRef.current = true;
+      Engine.context.PerpsController?.setSelectedPaymentToken?.(
+        pendingConfig.selectedPaymentToken as AssetType,
+      );
+    }
+  }, [pendingConfig?.selectedPaymentToken]);
+
+  // 2) When transaction exists, restore its pay token so Pay row and Pay-with modal show the preselected token
+  useEffect(() => {
+    if (
+      !hasRestoredTransactionPayTokenRef.current &&
+      pendingConfig?.selectedPaymentToken &&
+      activeTransactionMeta
+    ) {
+      hasRestoredTransactionPayTokenRef.current = true;
+      setPayToken({
+        address: pendingConfig.selectedPaymentToken.address as Hex,
+        chainId: pendingConfig.selectedPaymentToken.chainId as Hex,
+      });
+    }
+  }, [pendingConfig?.selectedPaymentToken, activeTransactionMeta, setPayToken]);
 
   /**
    * PROTOCOL CONSTRAINT: Existing position leverage

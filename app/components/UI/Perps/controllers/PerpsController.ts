@@ -2999,7 +2999,7 @@ export class PerpsController extends BaseController<
    * Save pending trade configuration for a market
    * This is a temporary configuration that expires after 5 minutes
    * @param symbol - Market symbol
-   * @param config - Pending trade configuration
+   * @param config - Pending trade configuration (includes optional selected payment token from Pay row)
    */
   savePendingTradeConfiguration(
     symbol: string,
@@ -3010,6 +3010,12 @@ export class PerpsController extends BaseController<
       stopLossPrice?: string;
       limitPrice?: string;
       orderType?: OrderType;
+      /** When user used pay-with-token in PerpsPayRow: minimal token shape to restore selection */
+      selectedPaymentToken?: {
+        description: string;
+        address: string;
+        chainId: string;
+      } | null;
     },
   ): void {
     const network = this.state.isTestnet ? 'testnet' : 'mainnet';
@@ -3051,6 +3057,11 @@ export class PerpsController extends BaseController<
         stopLossPrice?: string;
         limitPrice?: string;
         orderType?: OrderType;
+        selectedPaymentToken?: {
+          description: string;
+          address: string;
+          chainId: string;
+        } | null;
       }
     | undefined {
     const network = this.state.isTestnet ? 'testnet' : 'mainnet';
