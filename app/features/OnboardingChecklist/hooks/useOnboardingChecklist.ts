@@ -17,6 +17,7 @@ export const DESIGN_STYLE = {
   MODERN_FINTECH: 1,
   INTEGRATED_MINIMALIST: 2,
   GLASSMORPHISM: 3,
+  MINI_BAR: 4,
 } as const;
 
 export type UiMode = (typeof UI_MODE)[keyof typeof UI_MODE];
@@ -89,6 +90,8 @@ export const useOnboardingChecklist = () => {
       sharedState.designStyle = DESIGN_STYLE.INTEGRATED_MINIMALIST;
     } else if (sharedState.designStyle === DESIGN_STYLE.INTEGRATED_MINIMALIST) {
       sharedState.designStyle = DESIGN_STYLE.GLASSMORPHISM;
+    } else if (sharedState.designStyle === DESIGN_STYLE.GLASSMORPHISM) {
+      sharedState.designStyle = DESIGN_STYLE.MINI_BAR;
     } else {
       sharedState.designStyle = DESIGN_STYLE.MODERN_FINTECH;
     }
