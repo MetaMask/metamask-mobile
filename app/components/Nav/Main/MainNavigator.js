@@ -945,20 +945,7 @@ const MainNavigator = () => {
         component={TokensFullView}
         options={{ headerShown: false }}
       />
-      <Stack.Screen
-        name="AddAsset"
-        component={AddAsset}
-        options={({ route, navigation }) => ({
-          ...getHeaderCompactStandardNavbarOptions({
-            title: strings(
-              `add_asset.${route.params?.assetType === TOKEN ? TOKEN_TITLE : NFT_TITLE}`,
-            ),
-            onBack: () => navigation.goBack(),
-            includesTopInset: true,
-          }),
-          headerShown: true,
-        })}
-      />
+      <Stack.Screen name="AddAsset" component={AddAsset} />
       <Stack.Screen
         name="ConfirmAddAsset"
         component={ConfirmAddAsset}

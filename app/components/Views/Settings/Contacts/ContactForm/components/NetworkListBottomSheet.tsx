@@ -2,22 +2,22 @@ import React, { useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../../component-library/components/BottomSheets/BottomSheet';
-import { strings } from '../../../../../locales/i18n';
-import styleSheet from '../AddAsset.styles';
+} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
+import { strings } from '../../../../../../../locales/i18n';
+import styleSheet from '../../../../AddAsset/AddAsset.styles';
 import { useSelector } from 'react-redux';
-import { useStyles } from '../../../hooks/useStyles';
-import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import { useStyles } from '../../../../../hooks/useStyles';
+import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
 import Cell, {
   CellVariant,
-} from '../../../../component-library/components/Cells/Cell';
+} from '../../../../../../component-library/components/Cells/Cell';
 import {
   AvatarSize,
   AvatarVariant,
-} from '../../../../component-library/components/Avatars/Avatar';
+} from '../../../../../../component-library/components/Avatars/Avatar';
 import { Hex } from '@metamask/utils';
-import { getNetworkImageSource } from '../../../../util/networks';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
+import { getNetworkImageSource } from '../../../../../../util/networks';
+import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import {
   MultichainNetworkConfiguration,
   SupportedCaipChainId,
