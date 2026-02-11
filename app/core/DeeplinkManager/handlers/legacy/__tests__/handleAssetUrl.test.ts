@@ -49,7 +49,7 @@ describe('handleAssetUrl', () => {
 
     await handleAssetUrl({
       assetPath:
-        '?asset=eip155:1/erc20:0x0000000000000000000000000000000000000001',
+        '?assetId=eip155:1/erc20:0x0000000000000000000000000000000000000001',
     });
 
     expect(mockNavigate).toHaveBeenCalledWith(
@@ -74,7 +74,7 @@ describe('handleAssetUrl', () => {
     const { mockNavigate } = arrangeMocks();
 
     await handleAssetUrl({
-      assetPath: '?asset=eip155:1/slip44:60',
+      assetPath: '?assetId=eip155:1/slip44:60',
     });
 
     expect(mockNavigate).toHaveBeenCalledWith(
@@ -98,7 +98,7 @@ describe('handleAssetUrl', () => {
   it('returns early when asset parameter is not CAIP-19', async () => {
     const { mockNavigate } = arrangeMocks();
 
-    await handleAssetUrl({ assetPath: '?asset=invalid' });
+    await handleAssetUrl({ assetPath: '?assetId=invalid' });
 
     expect(mockNavigate).not.toHaveBeenCalled();
   });
@@ -109,7 +109,7 @@ describe('handleAssetUrl', () => {
 
     await handleAssetUrl({
       assetPath:
-        '?asset=eip155:1/erc20:0x0000000000000000000000000000000000000001',
+        '?assetId=eip155:1/erc20:0x0000000000000000000000000000000000000001',
     });
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);

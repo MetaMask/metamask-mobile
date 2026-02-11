@@ -107,10 +107,12 @@ export type PredictSeries = {
 
 export type PredictCategory =
   | 'trending'
+  | 'ending-soon'
   | 'new'
   | 'sports'
   | 'crypto'
-  | 'politics';
+  | 'politics'
+  | 'hot';
 
 // Sports league types
 export type PredictSportsLeague = 'nfl' | 'nba';

@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
+import { FlatList } from 'react-native';
 import {
   Box,
   BoxFlexDirection,
@@ -144,7 +145,10 @@ const PreviousSeasonUnlockedRewards = () => {
   }
 
   return (
-    <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-col mt-2">
+    <Box
+      flexDirection={BoxFlexDirection.Column}
+      twClassName="flex-col mt-2 max-h-[72.5%]"
+    >
       <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-4">
         <Text
           variant={TextVariant.HeadingMd}
@@ -170,8 +174,14 @@ const PreviousSeasonUnlockedRewards = () => {
                 flexDirection={BoxFlexDirection.Column}
                 twClassName="gap-4 w-full"
               >
-                <Box twClassName="flex-col">
-                  {endOfSeasonRewards?.map((unlockedReward: RewardDto) => {
+                <FlatList
+                  data={endOfSeasonRewards}
+                  keyExtractor={(item) => item.id}
+                  showsVerticalScrollIndicator={false}
+                  nestedScrollEnabled
+                  style={tw.style('w-full')}
+                  contentContainerStyle={tw.style('gap-4 pb-60')}
+                  renderItem={({ item: unlockedReward, index }) => {
                     const seasonReward = seasonTiers
                       ?.flatMap((tier) => tier.rewards)
                       ?.find(
@@ -190,28 +200,31 @@ const PreviousSeasonUnlockedRewards = () => {
                         | undefined
                     )?.url;
 
+                    const isLast = index === endOfSeasonRewards.length - 1;
+
                     return (
-                      <RewardItem
-                        key={unlockedReward.id}
-                        reward={unlockedReward}
-                        seasonReward={seasonReward}
-                        isLast={unlockedReward === endOfSeasonRewards.at(-1)}
-                        isEndOfSeasonReward
-                        endOfSeasonClaimedDescription={
-                          claimIsRedeem
-                            ? strings(
-                                'rewards.end_of_season_rewards.arriving_soon',
-                              )
-                            : undefined
-                        }
-                        compact
-                        // Can't do anything if we don't have reward url allocated yet
-                        isLocked={!rewardUrl && !claimIsRedeem}
-                        onPress={handleEndOfSeasonClaim}
-                      />
+                      <Box twClassName={isLast ? 'mb-12' : undefined}>
+                        <RewardItem
+                          reward={unlockedReward}
+                          seasonReward={seasonReward}
+                          isLast={isLast}
+                          isEndOfSeasonReward
+                          endOfSeasonClaimedDescription={
+                            claimIsRedeem
+                              ? strings(
+                                  'rewards.end_of_season_rewards.arriving_soon',
+                                )
+                              : undefined
+                          }
+                          compact
+                          // Can't do anything if we don't have reward url allocated yet
+                          isLocked={!rewardUrl && !claimIsRedeem}
+                          onPress={handleEndOfSeasonClaim}
+                        />
+                      </Box>
                     );
-                  })}
-                </Box>
+                  }}
+                />
               </Box>
             ) : (
               <>

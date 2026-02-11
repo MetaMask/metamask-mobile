@@ -77,7 +77,7 @@ exports[`Asset Fund Button Visibility should hide fund button when neither depos
             {
               "alignItems": "center",
               "backgroundColor": "transparent",
-              "borderRadius": 2,
+              "borderRadius": 8,
               "height": 40,
               "justifyContent": "center",
               "opacity": 1,
@@ -97,8 +97,8 @@ exports[`Asset Fund Button Visibility should hide fund button when neither depos
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -182,7 +182,7 @@ exports[`Asset Fund Button Visibility should hide fund button when neither depos
             {
               "alignItems": "center",
               "backgroundColor": "transparent",
-              "borderRadius": 2,
+              "borderRadius": 8,
               "height": 40,
               "justifyContent": "center",
               "opacity": 1,
@@ -202,8 +202,8 @@ exports[`Asset Fund Button Visibility should hide fund button when neither depos
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -322,7 +322,7 @@ exports[`Asset Fund Button Visibility should show fund button for non-ETH tokens
             {
               "alignItems": "center",
               "backgroundColor": "transparent",
-              "borderRadius": 2,
+              "borderRadius": 8,
               "height": 40,
               "justifyContent": "center",
               "opacity": 1,
@@ -342,8 +342,8 @@ exports[`Asset Fund Button Visibility should show fund button for non-ETH tokens
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -427,7 +427,7 @@ exports[`Asset Fund Button Visibility should show fund button for non-ETH tokens
             {
               "alignItems": "center",
               "backgroundColor": "transparent",
-              "borderRadius": 2,
+              "borderRadius": 8,
               "height": 40,
               "justifyContent": "center",
               "opacity": 1,
@@ -447,8 +447,8 @@ exports[`Asset Fund Button Visibility should show fund button for non-ETH tokens
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -567,7 +567,7 @@ exports[`Asset Fund Button Visibility should show fund button for non-ETH tokens
             {
               "alignItems": "center",
               "backgroundColor": "transparent",
-              "borderRadius": 2,
+              "borderRadius": 8,
               "height": 40,
               "justifyContent": "center",
               "opacity": 1,
@@ -587,8 +587,8 @@ exports[`Asset Fund Button Visibility should show fund button for non-ETH tokens
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -672,7 +672,7 @@ exports[`Asset Fund Button Visibility should show fund button for non-ETH tokens
             {
               "alignItems": "center",
               "backgroundColor": "transparent",
-              "borderRadius": 2,
+              "borderRadius": 8,
               "height": 40,
               "justifyContent": "center",
               "opacity": 1,
@@ -692,8 +692,8 @@ exports[`Asset Fund Button Visibility should show fund button for non-ETH tokens
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -812,7 +812,7 @@ exports[`Asset Fund Button Visibility should show fund button when both deposit 
             {
               "alignItems": "center",
               "backgroundColor": "transparent",
-              "borderRadius": 2,
+              "borderRadius": 8,
               "height": 40,
               "justifyContent": "center",
               "opacity": 1,
@@ -832,8 +832,8 @@ exports[`Asset Fund Button Visibility should show fund button when both deposit 
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -917,7 +917,7 @@ exports[`Asset Fund Button Visibility should show fund button when both deposit 
             {
               "alignItems": "center",
               "backgroundColor": "transparent",
-              "borderRadius": 2,
+              "borderRadius": 8,
               "height": 40,
               "justifyContent": "center",
               "opacity": 1,
@@ -937,8 +937,8 @@ exports[`Asset Fund Button Visibility should show fund button when both deposit 
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -1057,7 +1057,7 @@ exports[`Asset Fund Button Visibility should show fund button when only deposit 
             {
               "alignItems": "center",
               "backgroundColor": "transparent",
-              "borderRadius": 2,
+              "borderRadius": 8,
               "height": 40,
               "justifyContent": "center",
               "opacity": 1,
@@ -1077,8 +1077,8 @@ exports[`Asset Fund Button Visibility should show fund button when only deposit 
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -1162,7 +1162,7 @@ exports[`Asset Fund Button Visibility should show fund button when only deposit 
             {
               "alignItems": "center",
               "backgroundColor": "transparent",
-              "borderRadius": 2,
+              "borderRadius": 8,
               "height": 40,
               "justifyContent": "center",
               "opacity": 1,
@@ -1182,8 +1182,8 @@ exports[`Asset Fund Button Visibility should show fund button when only deposit 
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -1302,7 +1302,7 @@ exports[`Asset Fund Button Visibility should show fund button when only ramp is 
             {
               "alignItems": "center",
               "backgroundColor": "transparent",
-              "borderRadius": 2,
+              "borderRadius": 8,
               "height": 40,
               "justifyContent": "center",
               "opacity": 1,
@@ -1322,8 +1322,8 @@ exports[`Asset Fund Button Visibility should show fund button when only ramp is 
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -1407,7 +1407,7 @@ exports[`Asset Fund Button Visibility should show fund button when only ramp is 
             {
               "alignItems": "center",
               "backgroundColor": "transparent",
-              "borderRadius": 2,
+              "borderRadius": 8,
               "height": 40,
               "justifyContent": "center",
               "opacity": 1,
@@ -1427,8 +1427,8 @@ exports[`Asset Fund Button Visibility should show fund button when only ramp is 
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -1858,7 +1858,7 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                                 {
                                   "alignItems": "center",
                                   "backgroundColor": "transparent",
-                                  "borderRadius": 2,
+                                  "borderRadius": 8,
                                   "height": 40,
                                   "justifyContent": "center",
                                   "opacity": 1,
@@ -1878,8 +1878,8 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                                 [
                                   {
                                     "color": "#121314",
-                                    "height": 24,
-                                    "width": 24,
+                                    "height": 32,
+                                    "width": 32,
                                   },
                                   undefined,
                                 ]
@@ -1978,7 +1978,7 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                                 {
                                   "alignItems": "center",
                                   "backgroundColor": "transparent",
-                                  "borderRadius": 2,
+                                  "borderRadius": 8,
                                   "height": 40,
                                   "justifyContent": "center",
                                   "opacity": 1,
@@ -1998,8 +1998,8 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                                 [
                                   {
                                     "color": "#121314",
-                                    "height": 24,
-                                    "width": 24,
+                                    "height": 32,
+                                    "width": 32,
                                   },
                                   undefined,
                                 ]
@@ -3324,7 +3324,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                 {
                                   "alignItems": "center",
                                   "backgroundColor": "transparent",
-                                  "borderRadius": 2,
+                                  "borderRadius": 8,
                                   "height": 40,
                                   "justifyContent": "center",
                                   "opacity": 1,
@@ -3344,8 +3344,8 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                 [
                                   {
                                     "color": "#121314",
-                                    "height": 24,
-                                    "width": 24,
+                                    "height": 32,
+                                    "width": 32,
                                   },
                                   undefined,
                                 ]
@@ -3444,7 +3444,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                 {
                                   "alignItems": "center",
                                   "backgroundColor": "transparent",
-                                  "borderRadius": 2,
+                                  "borderRadius": 8,
                                   "height": 40,
                                   "justifyContent": "center",
                                   "opacity": 1,
@@ -3464,8 +3464,8 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                 [
                                   {
                                     "color": "#121314",
-                                    "height": 24,
-                                    "width": 24,
+                                    "height": 32,
+                                    "width": 32,
                                   },
                                   undefined,
                                 ]
@@ -4859,7 +4859,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                 {
                                   "alignItems": "center",
                                   "backgroundColor": "transparent",
-                                  "borderRadius": 2,
+                                  "borderRadius": 8,
                                   "height": 40,
                                   "justifyContent": "center",
                                   "opacity": 1,
@@ -4879,8 +4879,8 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                 [
                                   {
                                     "color": "#121314",
-                                    "height": 24,
-                                    "width": 24,
+                                    "height": 32,
+                                    "width": 32,
                                   },
                                   undefined,
                                 ]
@@ -4979,7 +4979,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                 {
                                   "alignItems": "center",
                                   "backgroundColor": "transparent",
-                                  "borderRadius": 2,
+                                  "borderRadius": 8,
                                   "height": 40,
                                   "justifyContent": "center",
                                   "opacity": 1,
@@ -4999,8 +4999,8 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                 [
                                   {
                                     "color": "#121314",
-                                    "height": 24,
-                                    "width": 24,
+                                    "height": 32,
+                                    "width": 32,
                                   },
                                   undefined,
                                 ]
@@ -6325,7 +6325,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                 {
                                   "alignItems": "center",
                                   "backgroundColor": "transparent",
-                                  "borderRadius": 2,
+                                  "borderRadius": 8,
                                   "height": 40,
                                   "justifyContent": "center",
                                   "opacity": 1,
@@ -6345,8 +6345,8 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                 [
                                   {
                                     "color": "#121314",
-                                    "height": 24,
-                                    "width": 24,
+                                    "height": 32,
+                                    "width": 32,
                                   },
                                   undefined,
                                 ]
@@ -6445,7 +6445,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                 {
                                   "alignItems": "center",
                                   "backgroundColor": "transparent",
-                                  "borderRadius": 2,
+                                  "borderRadius": 8,
                                   "height": 40,
                                   "justifyContent": "center",
                                   "opacity": 1,
@@ -6465,8 +6465,8 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                 [
                                   {
                                     "color": "#121314",
-                                    "height": 24,
-                                    "width": 24,
+                                    "height": 32,
+                                    "width": 32,
                                   },
                                   undefined,
                                 ]
@@ -7791,7 +7791,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                 {
                                   "alignItems": "center",
                                   "backgroundColor": "transparent",
-                                  "borderRadius": 2,
+                                  "borderRadius": 8,
                                   "height": 40,
                                   "justifyContent": "center",
                                   "opacity": 1,
@@ -7811,8 +7811,8 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                 [
                                   {
                                     "color": "#121314",
-                                    "height": 24,
-                                    "width": 24,
+                                    "height": 32,
+                                    "width": 32,
                                   },
                                   undefined,
                                 ]
@@ -7911,7 +7911,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                 {
                                   "alignItems": "center",
                                   "backgroundColor": "transparent",
-                                  "borderRadius": 2,
+                                  "borderRadius": 8,
                                   "height": 40,
                                   "justifyContent": "center",
                                   "opacity": 1,
@@ -7931,8 +7931,8 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                 [
                                   {
                                     "color": "#121314",
-                                    "height": 24,
-                                    "width": 24,
+                                    "height": 32,
+                                    "width": 32,
                                   },
                                   undefined,
                                 ]
@@ -9326,7 +9326,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                 {
                                   "alignItems": "center",
                                   "backgroundColor": "transparent",
-                                  "borderRadius": 2,
+                                  "borderRadius": 8,
                                   "height": 40,
                                   "justifyContent": "center",
                                   "opacity": 1,
@@ -9346,8 +9346,8 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                 [
                                   {
                                     "color": "#121314",
-                                    "height": 24,
-                                    "width": 24,
+                                    "height": 32,
+                                    "width": 32,
                                   },
                                   undefined,
                                 ]
@@ -9446,7 +9446,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                 {
                                   "alignItems": "center",
                                   "backgroundColor": "transparent",
-                                  "borderRadius": 2,
+                                  "borderRadius": 8,
                                   "height": 40,
                                   "justifyContent": "center",
                                   "opacity": 1,
@@ -9466,8 +9466,8 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                 [
                                   {
                                     "color": "#121314",
-                                    "height": 24,
-                                    "width": 24,
+                                    "height": 32,
+                                    "width": 32,
                                   },
                                   undefined,
                                 ]
@@ -10792,7 +10792,7 @@ exports[`Asset Multichain Functionality should render EVM assets with Transactio
                                 {
                                   "alignItems": "center",
                                   "backgroundColor": "transparent",
-                                  "borderRadius": 2,
+                                  "borderRadius": 8,
                                   "height": 40,
                                   "justifyContent": "center",
                                   "opacity": 1,
@@ -10812,8 +10812,8 @@ exports[`Asset Multichain Functionality should render EVM assets with Transactio
                                 [
                                   {
                                     "color": "#121314",
-                                    "height": 24,
-                                    "width": 24,
+                                    "height": 32,
+                                    "width": 32,
                                   },
                                   undefined,
                                 ]
@@ -10897,7 +10897,7 @@ exports[`Asset Multichain Functionality should render EVM assets with Transactio
                                 {
                                   "alignItems": "center",
                                   "backgroundColor": "transparent",
-                                  "borderRadius": 2,
+                                  "borderRadius": 8,
                                   "height": 40,
                                   "justifyContent": "center",
                                   "opacity": 1,
@@ -10917,8 +10917,8 @@ exports[`Asset Multichain Functionality should render EVM assets with Transactio
                                 [
                                   {
                                     "color": "#121314",
-                                    "height": 24,
-                                    "width": 24,
+                                    "height": 32,
+                                    "width": 32,
                                   },
                                   undefined,
                                 ]
@@ -11358,7 +11358,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                 {
                                   "alignItems": "center",
                                   "backgroundColor": "transparent",
-                                  "borderRadius": 2,
+                                  "borderRadius": 8,
                                   "height": 40,
                                   "justifyContent": "center",
                                   "opacity": 1,
@@ -11378,8 +11378,8 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                 [
                                   {
                                     "color": "#121314",
-                                    "height": 24,
-                                    "width": 24,
+                                    "height": 32,
+                                    "width": 32,
                                   },
                                   undefined,
                                 ]
@@ -11478,7 +11478,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                 {
                                   "alignItems": "center",
                                   "backgroundColor": "transparent",
-                                  "borderRadius": 2,
+                                  "borderRadius": 8,
                                   "height": 40,
                                   "justifyContent": "center",
                                   "opacity": 1,
@@ -11498,8 +11498,8 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                 [
                                   {
                                     "color": "#121314",
-                                    "height": 24,
-                                    "width": 24,
+                                    "height": 32,
+                                    "width": 32,
                                   },
                                   undefined,
                                 ]
@@ -12824,7 +12824,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                 {
                                   "alignItems": "center",
                                   "backgroundColor": "transparent",
-                                  "borderRadius": 2,
+                                  "borderRadius": 8,
                                   "height": 40,
                                   "justifyContent": "center",
                                   "opacity": 1,
@@ -12844,8 +12844,8 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                 [
                                   {
                                     "color": "#121314",
-                                    "height": 24,
-                                    "width": 24,
+                                    "height": 32,
+                                    "width": 32,
                                   },
                                   undefined,
                                 ]
@@ -12944,7 +12944,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                 {
                                   "alignItems": "center",
                                   "backgroundColor": "transparent",
-                                  "borderRadius": 2,
+                                  "borderRadius": 8,
                                   "height": 40,
                                   "justifyContent": "center",
                                   "opacity": 1,
@@ -12964,8 +12964,8 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                 [
                                   {
                                     "color": "#121314",
-                                    "height": 24,
-                                    "width": 24,
+                                    "height": 32,
+                                    "width": 32,
                                   },
                                   undefined,
                                 ]
@@ -14290,7 +14290,7 @@ exports[`Asset Multichain Functionality should use EVM transactions for EVM acco
                                 {
                                   "alignItems": "center",
                                   "backgroundColor": "transparent",
-                                  "borderRadius": 2,
+                                  "borderRadius": 8,
                                   "height": 40,
                                   "justifyContent": "center",
                                   "opacity": 1,
@@ -14310,8 +14310,8 @@ exports[`Asset Multichain Functionality should use EVM transactions for EVM acco
                                 [
                                   {
                                     "color": "#121314",
-                                    "height": 24,
-                                    "width": 24,
+                                    "height": 32,
+                                    "width": 32,
                                   },
                                   undefined,
                                 ]
@@ -14395,7 +14395,7 @@ exports[`Asset Multichain Functionality should use EVM transactions for EVM acco
                                 {
                                   "alignItems": "center",
                                   "backgroundColor": "transparent",
-                                  "borderRadius": 2,
+                                  "borderRadius": 8,
                                   "height": 40,
                                   "justifyContent": "center",
                                   "opacity": 1,
@@ -14415,8 +14415,8 @@ exports[`Asset Multichain Functionality should use EVM transactions for EVM acco
                                 [
                                   {
                                     "color": "#121314",
-                                    "height": 24,
-                                    "width": 24,
+                                    "height": 32,
+                                    "width": 32,
                                   },
                                   undefined,
                                 ]
@@ -14545,7 +14545,7 @@ exports[`Asset should display swaps button if the asset is allowed 1`] = `
             {
               "alignItems": "center",
               "backgroundColor": "transparent",
-              "borderRadius": 2,
+              "borderRadius": 8,
               "height": 40,
               "justifyContent": "center",
               "opacity": 1,
@@ -14565,8 +14565,8 @@ exports[`Asset should display swaps button if the asset is allowed 1`] = `
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -14650,7 +14650,7 @@ exports[`Asset should display swaps button if the asset is allowed 1`] = `
             {
               "alignItems": "center",
               "backgroundColor": "transparent",
-              "borderRadius": 2,
+              "borderRadius": 8,
               "height": 40,
               "justifyContent": "center",
               "opacity": 1,
@@ -14670,8 +14670,8 @@ exports[`Asset should display swaps button if the asset is allowed 1`] = `
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -14790,7 +14790,7 @@ exports[`Asset should not display swaps button if the asset is not allowed 1`] =
             {
               "alignItems": "center",
               "backgroundColor": "transparent",
-              "borderRadius": 2,
+              "borderRadius": 8,
               "height": 40,
               "justifyContent": "center",
               "opacity": 1,
@@ -14810,8 +14810,8 @@ exports[`Asset should not display swaps button if the asset is not allowed 1`] =
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -14895,7 +14895,7 @@ exports[`Asset should not display swaps button if the asset is not allowed 1`] =
             {
               "alignItems": "center",
               "backgroundColor": "transparent",
-              "borderRadius": 2,
+              "borderRadius": 8,
               "height": 40,
               "justifyContent": "center",
               "opacity": 1,
@@ -14915,8 +14915,8 @@ exports[`Asset should not display swaps button if the asset is not allowed 1`] =
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -15035,7 +15035,7 @@ exports[`Asset should render correctly 1`] = `
             {
               "alignItems": "center",
               "backgroundColor": "transparent",
-              "borderRadius": 2,
+              "borderRadius": 8,
               "height": 40,
               "justifyContent": "center",
               "opacity": 1,
@@ -15055,8 +15055,8 @@ exports[`Asset should render correctly 1`] = `
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -15140,7 +15140,7 @@ exports[`Asset should render correctly 1`] = `
             {
               "alignItems": "center",
               "backgroundColor": "transparent",
-              "borderRadius": 2,
+              "borderRadius": 8,
               "height": 40,
               "justifyContent": "center",
               "opacity": 1,
@@ -15160,8 +15160,8 @@ exports[`Asset should render correctly 1`] = `
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]

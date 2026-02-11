@@ -17,6 +17,7 @@ export enum ACTIONS {
   ENABLE_CARD_BUTTON = 'enable-card-button',
   CARD_ONBOARDING = 'card-onboarding',
   CARD_HOME = 'card-home',
+  CARD_KYC_NOTIFICATION = 'card-kyc-notification',
   DAPP = 'dapp',
   SEND = 'send',
   APPROVE = 'approve',
@@ -46,6 +47,7 @@ export enum ACTIONS {
   ONBOARDING = 'onboarding',
   TRENDING = 'trending',
   EARN_MUSD = 'earn-musd',
+  NFT = 'nft',
 }
 
 export const PREFIXES = {
@@ -77,7 +79,9 @@ export const PREFIXES = {
   [ACTIONS.ENABLE_CARD_BUTTON]: '',
   [ACTIONS.CARD_ONBOARDING]: '',
   [ACTIONS.CARD_HOME]: '',
+  [ACTIONS.CARD_KYC_NOTIFICATION]: '',
   [ACTIONS.TRENDING]: '',
   [ACTIONS.EARN_MUSD]: '',
+  [ACTIONS.NFT]: '',
   METAMASK: 'metamask://',
 };

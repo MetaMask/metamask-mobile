@@ -102,7 +102,7 @@ export const handleAssetUrl = async ({ assetPath }: HandleAssetUrlParams) => {
     const urlParams = new URLSearchParams(
       assetPath.includes('?') ? assetPath.split('?')[1] : '',
     );
-    const assetParam = urlParams.get('asset') ?? urlParams.get('assetId');
+    const assetParam = urlParams.get('assetId');
 
     if (!assetParam) {
       DevLogger.log('[handleAssetUrl] Missing asset parameter');

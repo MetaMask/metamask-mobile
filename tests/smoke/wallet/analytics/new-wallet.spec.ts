@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 'use strict';
-import { SmokeWalletPlatform } from '../../../../e2e/tags';
-import { CreateNewWallet } from '../../../../e2e/viewHelper';
-import TestHelpers from '../../../../e2e/helpers';
+import { SmokeWalletPlatform } from '../../../tags';
+import { CreateNewWallet } from '../../../flows/wallet.flow';
+import TestHelpers from '../../../helpers';
 import Assertions from '../../../framework/Assertions';
 import {
   getEventsPayloads,
