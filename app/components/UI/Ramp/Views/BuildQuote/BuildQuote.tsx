@@ -188,8 +188,7 @@ function BuildQuote() {
     if (
       quoteAmount !== amountAsNumber ||
       (quotePaymentMethod != null &&
-        selectedPaymentMethod?.id != null &&
-        quotePaymentMethod !== selectedPaymentMethod.id)
+        selectedPaymentMethod?.id !== quotePaymentMethod)
     ) {
       return;
     }
@@ -262,8 +261,7 @@ function BuildQuote() {
     if (quoteAmount !== amountAsNumber) return false;
     if (
       quotePaymentMethod != null &&
-      selectedPaymentMethod?.id != null &&
-      quotePaymentMethod !== selectedPaymentMethod.id
+      selectedPaymentMethod?.id !== quotePaymentMethod
     ) {
       return false;
     }
