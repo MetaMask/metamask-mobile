@@ -114,16 +114,8 @@ function PaymentSelectionModal({
       paymentMethods: paymentMethodIds,
     });
     return;
-  }, [
-    getQuotes,
-    amount,
-    walletAddress,
-    assetId,
-    selectedProvider?.id,
-    selectedPaymentMethod?.id,
-    paymentMethodIds,
-    providerIds,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [getQuotes, amount, walletAddress, assetId, paymentMethodIds]);
 
   useEffect(() => {
     const animationConfig = {
@@ -345,7 +337,6 @@ function PaymentSelectionModal({
               <ProviderSelection
                 onProviderSelect={handleProviderSelect}
                 onBack={handleProviderBack}
-                amount={routeAmount ?? DEFAULT_QUOTE_AMOUNT}
               />
             )}
           </View>

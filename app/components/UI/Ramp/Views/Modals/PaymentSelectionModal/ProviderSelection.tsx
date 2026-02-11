@@ -38,13 +38,11 @@ const styles = StyleSheet.create({
 interface ProviderSelectionProps {
   onBack: () => void;
   onProviderSelect: (provider: Provider) => void;
-  amount: number;
 }
 
 const ProviderSelection: React.FC<ProviderSelectionProps> = ({
   onBack,
   onProviderSelect,
-  amount: _amount,
 }) => {
   const {
     userRegion,
@@ -73,7 +71,10 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
     [providers],
   );
 
-  const filteredQuotes = useMemo(() => quotes?.success?.filter((quote) => providerIds.has(quote.provider)), [quotes, providerIds]);
+  const filteredQuotes = useMemo(
+    () => quotes?.success?.filter((quote) => providerIds.has(quote.provider)),
+    [quotes, providerIds],
+  );
 
   const currency = userRegion?.country?.currency ?? 'USD';
   const symbol = selectedToken?.symbol ?? '';
