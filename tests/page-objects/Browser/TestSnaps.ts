@@ -360,6 +360,10 @@ class TestSnaps {
     await Gestures.scrollToElement(
       this.timePickerTouchable,
       this.snapUIRendererScrollView,
+      {
+        startPositionX: 0,
+        startPositionY: 0,
+      },
     );
 
     await Gestures.waitAndTap(this.dateTimePickerTouchable);

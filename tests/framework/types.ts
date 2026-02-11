@@ -91,10 +91,20 @@ export interface LongPressOptions extends GestureOptions {
   duration?: number;
 }
 
+/**
+ * The options for the scroll gesture.
+ * @param {string} direction - The direction to scroll.
+ * @param {number} scrollAmount - The amount to scroll.
+ * @param {number} delay - The delay before the scroll.
+ * @param {number} startPositionX - The starting position on the X axis.
+ * @param {number} startPositionY - The starting position on the Y axis.
+ */
 export interface ScrollOptions extends GestureOptions {
   direction?: 'up' | 'down' | 'left' | 'right';
   scrollAmount?: number;
   delay?: number;
+  startPositionX?: number;
+  startPositionY?: number;
 }
 
 // Assertions

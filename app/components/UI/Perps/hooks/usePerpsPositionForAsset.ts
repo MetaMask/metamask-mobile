@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import type { AccountState, Position } from '../controllers/types';
+import type { AccountState, Position } from '@metamask/perps-controller';
 import { usePerpsTrading } from './usePerpsTrading';
 import { usePerpsNetwork } from './usePerpsNetwork';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
