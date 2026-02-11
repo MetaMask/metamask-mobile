@@ -31,11 +31,18 @@ export const completeSrpQuiz = async (expectedSrp: string) => {
   await SrpQuizModal.tapQuestionContinueButton(1);
   await SrpQuizModal.tapQuestionRightAnswerButton(2);
   await SrpQuizModal.tapQuestionContinueButton(2);
-  await RevealSecretRecoveryPhrase.enterPasswordToRevealSecretCredential(
-    PASSWORD,
-  );
-  // Tap confirm button to unlock and show the tab view with blur overlay
-  await RevealSecretRecoveryPhrase.tapConfirmButton();
+
+  // Check if already unlocked via biometrics or need password entry
+  const isAlreadyUnlocked = await RevealSecretRecoveryPhrase.isUnlocked();
+
+  if (!isAlreadyUnlocked) {
+    await RevealSecretRecoveryPhrase.enterPasswordToRevealSecretCredential(
+      PASSWORD,
+    );
+    // Tap confirm button to unlock and show the tab view with blur overlay
+    await RevealSecretRecoveryPhrase.tapConfirmButton();
+  }
+
   // Tap the blur overlay to reveal the SRP
   await RevealSecretRecoveryPhrase.tapToReveal();
   await Assertions.expectElementToBeVisible(

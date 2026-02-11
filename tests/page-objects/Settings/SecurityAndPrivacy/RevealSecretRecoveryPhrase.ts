@@ -90,6 +90,21 @@ class RevealSecretRecoveryPhrase {
     });
   }
 
+  /**
+   * Check if the component is already unlocked (biometrics succeeded).
+   * When unlocked, the reveal button (blur overlay) is visible instead of password input.
+   */
+  async isUnlocked(): Promise<boolean> {
+    try {
+      // If the reveal button is visible, we're unlocked
+      await expect(this.revealSecretRecoveryPhraseButton).toBeVisible();
+      return true;
+    } catch {
+      // If not visible, we need password entry
+      return false;
+    }
+  }
+
   async tapToReveal(): Promise<void> {
     await Gestures.waitAndTap(this.revealSecretRecoveryPhraseButton, {
       elemDescription: 'Reveal secret recovery phrase button',

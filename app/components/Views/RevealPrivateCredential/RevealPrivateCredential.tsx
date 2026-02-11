@@ -573,6 +573,14 @@ const RevealPrivateCredential = ({
     });
   }, [navigate]);
 
+  const handleSRPGetStartedClick = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REVEAL_SRP_INITIATED).build(),
+    );
+    trackEvent(createEventBuilder(MetaMetricsEvents.REVEAL_SRP_CTA).build());
+    setRevealSrpStage(RevealSrpStage.Quiz);
+  }, [createEventBuilder, trackEvent]);
+
   const renderSecurityQuizLockImage = () => (
     <Box
       testID={ExportCredentialsIds.CONTAINER}
@@ -606,7 +614,7 @@ const RevealPrivateCredential = ({
         gap={16}
       >
         <ButtonPrimary
-          onPress={() => setRevealSrpStage(RevealSrpStage.Quiz)}
+          onPress={handleSRPGetStartedClick}
           size={ButtonSize.Lg}
           label={strings('multichain_accounts.reveal_srp.get_started')}
           testID={SrpQuizGetStartedSelectorsIDs.BUTTON}
