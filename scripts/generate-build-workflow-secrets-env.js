@@ -55,7 +55,8 @@ function generateEnvBlock(secretNames) {
 function updateWorkflow(envBlock) {
   let content = fs.readFileSync(WORKFLOW_PATH, 'utf8');
   const startMarker = '      - name: Set secrets\n        env:';
-  const endMarker = '\n        run: node scripts/set-secrets-from-config.js';
+  const endMarker =
+    '\n        run: |\n          node scripts/validate-secrets.js\n          node scripts/set-secrets-from-config.js';
   const startIdx = content.indexOf(startMarker);
   const endIdx = content.indexOf(endMarker, startIdx);
   if (startIdx === -1 || endIdx === -1) {
