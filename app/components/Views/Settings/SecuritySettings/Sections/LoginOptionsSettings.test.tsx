@@ -95,7 +95,7 @@ jest.mock('../../../../UI/SecurityOptionToggle', () => {
 });
 
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import LoginOptionsSettings from './LoginOptionsSettings';
 import AUTHENTICATION_TYPE from '../../../../../constants/userProperties';
@@ -105,6 +105,7 @@ import {
   BIOMETRY_CHOICE_DISABLED,
   TRUE,
 } from '../../../../../constants/storage';
+import { ReauthenticateErrorType } from '../../../../../core/Authentication/types';
 
 // Mock Device
 jest.mock('../../../../../util/device', () => ({
@@ -116,34 +117,6 @@ jest.mock('../../../../../util/device', () => ({
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
-
-// Import the actual constant
-import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../../../constants/error';
-
-// Mock AuthenticationError as a proper class for instanceof to work
-// Must be defined inside the factory because jest.mock is hoisted
-jest.mock('../../../../../core/Authentication/AuthenticationError', () => {
-  class AuthenticationError extends Error {
-    customErrorMessage: string;
-    constructor(message: string, code: string) {
-      super(message);
-      this.customErrorMessage = code;
-      this.name = 'AuthenticationError';
-    }
-  }
-  return {
-    __esModule: true,
-    default: AuthenticationError,
-  };
-});
-
-// Get the mocked AuthenticationError class
-const MockedAuthenticationError = jest.requireMock(
-  '../../../../../core/Authentication/AuthenticationError',
-).default as new (
-  message: string,
-  code: string,
-) => Error & { customErrorMessage: string };
 
 describe('LoginOptionsSettings', () => {
   let mockGetType: jest.Mock;
@@ -242,10 +215,7 @@ describe('LoginOptionsSettings', () => {
 
   it('navigates to password entry when password is required for biometrics', async () => {
     mockUpdateAuthPreference.mockRejectedValueOnce(
-      new MockedAuthenticationError(
-        'Password required',
-        AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-      ),
+      new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
     );
 
     const { getByTestId } = renderWithProvider(<LoginOptionsSettings />, {
@@ -268,10 +238,7 @@ describe('LoginOptionsSettings', () => {
     let passwordCallback: ((password: string) => Promise<void>) | undefined;
     mockUpdateAuthPreference
       .mockRejectedValueOnce(
-        new MockedAuthenticationError(
-          'Password required',
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-        ),
+        new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
       )
       .mockResolvedValueOnce(undefined);
 
@@ -300,24 +267,22 @@ describe('LoginOptionsSettings', () => {
     });
 
     // Simulate password entry
-    if (passwordCallback) {
-      await passwordCallback('test-password');
+    expect(passwordCallback).toBeDefined();
+    await act(async () => {
+      await passwordCallback!('test-password');
+    });
 
-      await waitFor(() => {
-        expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
-          authType: AUTHENTICATION_TYPE.BIOMETRIC,
-          password: 'test-password',
-        });
+    await waitFor(() => {
+      expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+        authType: AUTHENTICATION_TYPE.BIOMETRIC,
+        password: 'test-password',
       });
-    }
+    });
   });
 
   it('clears loading state when user cancels password entry', async () => {
     mockUpdateAuthPreference.mockRejectedValueOnce(
-      new MockedAuthenticationError(
-        'Password required',
-        AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-      ),
+      new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
     );
 
     const { getByTestId } = renderWithProvider(<LoginOptionsSettings />, {
@@ -474,10 +439,7 @@ describe('LoginOptionsSettings', () => {
     let passwordCallback: ((password: string) => Promise<void>) | undefined;
     mockUpdateAuthPreference
       .mockRejectedValueOnce(
-        new MockedAuthenticationError(
-          'Password required',
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-        ),
+        new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
       )
       .mockRejectedValueOnce(new Error('Update failed'));
 
@@ -506,16 +468,17 @@ describe('LoginOptionsSettings', () => {
     });
 
     // Simulate password entry that fails
-    if (passwordCallback) {
-      await passwordCallback('test-password');
+    expect(passwordCallback).toBeDefined();
+    await act(async () => {
+      await passwordCallback!('test-password');
+    });
 
-      await waitFor(() => {
-        expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
-          authType: AUTHENTICATION_TYPE.BIOMETRIC,
-          password: 'test-password',
-        });
+    await waitFor(() => {
+      expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+        authType: AUTHENTICATION_TYPE.BIOMETRIC,
+        password: 'test-password',
       });
-    }
+    });
   });
 
   it('navigates to password entry when password is required for passcode', async () => {
@@ -525,10 +488,7 @@ describe('LoginOptionsSettings', () => {
     });
 
     mockUpdateAuthPreference.mockRejectedValueOnce(
-      new MockedAuthenticationError(
-        'Password required',
-        AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-      ),
+      new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
     );
 
     const { getByTestId } = renderWithProvider(<LoginOptionsSettings />, {
@@ -564,10 +524,7 @@ describe('LoginOptionsSettings', () => {
 
     mockUpdateAuthPreference
       .mockRejectedValueOnce(
-        new MockedAuthenticationError(
-          'Password required',
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-        ),
+        new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
       )
       .mockResolvedValueOnce(undefined);
 
@@ -603,16 +560,17 @@ describe('LoginOptionsSettings', () => {
       expect(mockNavigateFn).toHaveBeenCalled();
     });
 
-    if (passwordCallback) {
-      await passwordCallback('test-password');
+    expect(passwordCallback).toBeDefined();
+    await act(async () => {
+      await passwordCallback!('test-password');
+    });
 
-      await waitFor(() => {
-        expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
-          authType: AUTHENTICATION_TYPE.PASSCODE,
-          password: 'test-password',
-        });
+    await waitFor(() => {
+      expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+        authType: AUTHENTICATION_TYPE.PASSCODE,
+        password: 'test-password',
       });
-    }
+    });
   });
 
   it('reverts toggle state when passcode password entry callback fails', async () => {
@@ -624,10 +582,7 @@ describe('LoginOptionsSettings', () => {
 
     mockUpdateAuthPreference
       .mockRejectedValueOnce(
-        new MockedAuthenticationError(
-          'Password required',
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-        ),
+        new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
       )
       .mockRejectedValueOnce(new Error('Update failed'));
 
@@ -655,16 +610,17 @@ describe('LoginOptionsSettings', () => {
       expect(mockNavigateFn).toHaveBeenCalled();
     });
 
-    if (passwordCallback) {
-      await passwordCallback('test-password');
+    expect(passwordCallback).toBeDefined();
+    await act(async () => {
+      await passwordCallback!('test-password');
+    });
 
-      await waitFor(() => {
-        expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
-          authType: AUTHENTICATION_TYPE.PASSCODE,
-          password: 'test-password',
-        });
+    await waitFor(() => {
+      expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+        authType: AUTHENTICATION_TYPE.PASSCODE,
+        password: 'test-password',
       });
-    }
+    });
   });
 
   it('re-fetches auth type after successful password entry for biometrics', async () => {
@@ -672,10 +628,7 @@ describe('LoginOptionsSettings', () => {
 
     mockUpdateAuthPreference
       .mockRejectedValueOnce(
-        new MockedAuthenticationError(
-          'Password required',
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-        ),
+        new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
       )
       .mockResolvedValueOnce(undefined);
 
@@ -720,19 +673,20 @@ describe('LoginOptionsSettings', () => {
       expect(mockNavigateFn).toHaveBeenCalled();
     });
 
-    if (passwordCallback) {
-      await passwordCallback('test-password');
+    expect(passwordCallback).toBeDefined();
+    await act(async () => {
+      await passwordCallback!('test-password');
+    });
 
-      await waitFor(
-        () => {
-          // Should re-fetch auth type after successful update
-          // Call 1: initial load in useEffect
-          // Call 2: re-fetch after password entry
-          expect(mockGetType).toHaveBeenCalledTimes(2);
-        },
-        { timeout: 3000 },
-      );
-    }
+    await waitFor(
+      () => {
+        // Should re-fetch auth type after successful update
+        // Call 1: initial load in useEffect
+        // Call 2: re-fetch after password entry
+        expect(mockGetType).toHaveBeenCalledTimes(2);
+      },
+      { timeout: 3000 },
+    );
   });
 
   it('re-fetches auth type after successful password entry for passcode', async () => {
@@ -752,10 +706,7 @@ describe('LoginOptionsSettings', () => {
 
     mockUpdateAuthPreference
       .mockRejectedValueOnce(
-        new MockedAuthenticationError(
-          'Password required',
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-        ),
+        new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
       )
       .mockResolvedValueOnce(undefined);
 
@@ -793,19 +744,20 @@ describe('LoginOptionsSettings', () => {
       expect(mockNavigateFn).toHaveBeenCalled();
     });
 
-    if (passwordCallback) {
-      await passwordCallback('test-password');
+    expect(passwordCallback).toBeDefined();
+    await act(async () => {
+      await passwordCallback!('test-password');
+    });
 
-      await waitFor(
-        () => {
-          // Should re-fetch auth type after successful update
-          // Call 1: initial load in useEffect
-          // Call 2: re-fetch after password entry
-          expect(mockGetType).toHaveBeenCalledTimes(2);
-        },
-        { timeout: 3000 },
-      );
-    }
+    await waitFor(
+      () => {
+        // Should re-fetch auth type after successful update
+        // Call 1: initial load in useEffect
+        // Call 2: re-fetch after password entry
+        expect(mockGetType).toHaveBeenCalledTimes(2);
+      },
+      { timeout: 3000 },
+    );
   });
 
   it('handles error when updating passcode auth preference fails', async () => {

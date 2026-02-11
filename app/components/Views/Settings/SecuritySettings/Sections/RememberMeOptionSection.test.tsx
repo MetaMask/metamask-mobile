@@ -31,9 +31,9 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import RememberMeOptionSection from './RememberMeOptionSection';
 import AUTHENTICATION_TYPE from '../../../../../constants/userProperties';
 import { TURN_ON_REMEMBER_ME } from '../SecuritySettings.constants';
-import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../../../constants/error';
 import { PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME } from '../../../../../constants/storage';
 import Logger from '../../../../../util/Logger';
+import { ReauthenticateErrorType } from '../../../../../core/Authentication/types';
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -57,24 +57,6 @@ jest.mock(
     ]),
   }),
 );
-
-// Mock AuthenticationError
-jest.mock('../../../../../core/Authentication/AuthenticationError', () => {
-  class AuthenticationError extends Error {
-    customErrorMessage: string;
-
-    constructor(message: string, code: string) {
-      super(message);
-      this.customErrorMessage = code;
-      this.name = 'AuthenticationError';
-    }
-  }
-
-  return {
-    __esModule: true,
-    default: AuthenticationError,
-  };
-});
 
 // Mock Logger
 jest.mock('../../../../../util/Logger', () => ({
@@ -224,15 +206,8 @@ describe('RememberMeOptionSection', () => {
   });
 
   it('navigates to password entry when password is required for enabling remember me', async () => {
-    const MockedAuthenticationError = jest.requireMock(
-      '../../../../../core/Authentication/AuthenticationError',
-    ).default;
-
     mockUpdateAuthPreference.mockRejectedValueOnce(
-      new MockedAuthenticationError(
-        'Password required',
-        AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-      ),
+      new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
     );
 
     const { getByTestId } = renderWithProvider(<RememberMeOptionSection />, {
@@ -250,17 +225,10 @@ describe('RememberMeOptionSection', () => {
   });
 
   it('updates auth preference when password is provided via callback when enabling', async () => {
-    const MockedAuthenticationError = jest.requireMock(
-      '../../../../../core/Authentication/AuthenticationError',
-    ).default;
-
     let passwordCallback: ((password: string) => Promise<void>) | undefined;
     mockUpdateAuthPreference
       .mockRejectedValueOnce(
-        new MockedAuthenticationError(
-          'Password required',
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-        ),
+        new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
       )
       .mockResolvedValueOnce(undefined);
 
@@ -299,17 +267,10 @@ describe('RememberMeOptionSection', () => {
   });
 
   it('reverts flag when password entry callback fails when enabling', async () => {
-    const MockedAuthenticationError = jest.requireMock(
-      '../../../../../core/Authentication/AuthenticationError',
-    ).default;
-
     let passwordCallback: ((password: string) => Promise<void>) | undefined;
     mockUpdateAuthPreference
       .mockRejectedValueOnce(
-        new MockedAuthenticationError(
-          'Password required',
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-        ),
+        new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
       )
       .mockRejectedValueOnce(new Error('Update failed'));
 
@@ -367,18 +328,11 @@ describe('RememberMeOptionSection', () => {
   });
 
   it('calls Logger.error when password entry callback fails when enabling', async () => {
-    const MockedAuthenticationError = jest.requireMock(
-      '../../../../../core/Authentication/AuthenticationError',
-    ).default;
-
     const updateError = new Error('Update failed');
     let passwordCallback: ((password: string) => Promise<void>) | undefined;
     mockUpdateAuthPreference
       .mockRejectedValueOnce(
-        new MockedAuthenticationError(
-          'Password required',
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-        ),
+        new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
       )
       .mockRejectedValueOnce(updateError);
 
@@ -517,10 +471,6 @@ describe('RememberMeOptionSection', () => {
   });
 
   it('navigates to password entry when password is required for disabling remember me', async () => {
-    const MockedAuthenticationError = jest.requireMock(
-      '../../../../../core/Authentication/AuthenticationError',
-    ).default;
-
     const stateWithRememberMe = {
       security: {
         allowLoginWithRememberMe: true,
@@ -532,10 +482,7 @@ describe('RememberMeOptionSection', () => {
     });
     mockGetItem.mockResolvedValue(null);
     mockUpdateAuthPreference.mockRejectedValueOnce(
-      new MockedAuthenticationError(
-        'Password required',
-        AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-      ),
+      new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
     );
 
     const { getByTestId } = renderWithProvider(<RememberMeOptionSection />, {
@@ -557,10 +504,6 @@ describe('RememberMeOptionSection', () => {
   });
 
   it('restores auth preference when password is provided via callback when disabling', async () => {
-    const MockedAuthenticationError = jest.requireMock(
-      '../../../../../core/Authentication/AuthenticationError',
-    ).default;
-
     const stateWithRememberMe = {
       security: {
         allowLoginWithRememberMe: true,
@@ -574,10 +517,7 @@ describe('RememberMeOptionSection', () => {
     mockGetItem.mockResolvedValue(null);
     mockUpdateAuthPreference
       .mockRejectedValueOnce(
-        new MockedAuthenticationError(
-          'Password required',
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-        ),
+        new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
       )
       .mockResolvedValueOnce(undefined);
 
@@ -626,10 +566,6 @@ describe('RememberMeOptionSection', () => {
   });
 
   it('restores stored previous auth type when password is provided via callback when disabling', async () => {
-    const MockedAuthenticationError = jest.requireMock(
-      '../../../../../core/Authentication/AuthenticationError',
-    ).default;
-
     const stateWithRememberMe = {
       security: {
         allowLoginWithRememberMe: true,
@@ -645,10 +581,7 @@ describe('RememberMeOptionSection', () => {
       .mockResolvedValueOnce(AUTHENTICATION_TYPE.BIOMETRIC);
     mockUpdateAuthPreference
       .mockRejectedValueOnce(
-        new MockedAuthenticationError(
-          'Password required',
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-        ),
+        new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
       )
       .mockResolvedValueOnce(undefined);
 
@@ -691,10 +624,6 @@ describe('RememberMeOptionSection', () => {
   });
 
   it('reverts flag when password entry callback fails when disabling', async () => {
-    const MockedAuthenticationError = jest.requireMock(
-      '../../../../../core/Authentication/AuthenticationError',
-    ).default;
-
     const stateWithRememberMe = {
       security: {
         allowLoginWithRememberMe: true,
@@ -709,10 +638,7 @@ describe('RememberMeOptionSection', () => {
     mockGetItem.mockResolvedValue(null);
     mockUpdateAuthPreference
       .mockRejectedValueOnce(
-        new MockedAuthenticationError(
-          'Password required',
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-        ),
+        new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
       )
       .mockRejectedValueOnce(updateError);
 
