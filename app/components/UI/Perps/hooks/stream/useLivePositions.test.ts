@@ -4,7 +4,7 @@ import {
   usePerpsLivePositions,
   enrichPositionsWithLivePnL,
 } from './usePerpsLivePositions';
-import type { Position, PriceUpdate } from '../../controllers/types';
+import { type Position, type PriceUpdate } from '@metamask/perps-controller';
 
 // Mock the stream provider
 const mockPositionsSubscribe = jest.fn();
