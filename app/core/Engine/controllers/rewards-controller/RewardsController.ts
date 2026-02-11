@@ -3368,6 +3368,12 @@ export class RewardsController extends BaseController<
         newRank: response.newRank,
       });
 
+      this.messenger.publish('RewardsController:dropCommit', {
+        dropId,
+        pointsCommitted: response.pointsCommitted,
+        subscriptionId,
+      });
+
       return response;
     } catch (error) {
       Logger.log(

@@ -7514,6 +7514,8 @@
       "tokens_on_the_way": "Tokens on the way",
       "pill_up_next": "Up next",
       "pill_live_now": "Live now",
+      "pill_live_with_position": "Live • You're #{{rank}}",
+      "pill_live_with_participants": "Live • {{count}} entered",
       "pill_calculating": "Calculating",
       "pill_results_ready": "Results Ready",
       "pill_complete": "Complete"
@@ -7549,7 +7551,7 @@
         "leaderboard_change": "Change",
         "leaderboard_add_more_points": "Add more points"
     },
-    "snapshots": {
+    "drops": {
       "select_account_description": "Select an account and enter",
       "enter": "Enter",
       "add_points_for": "Add Points for {{dropName}}",
@@ -7558,7 +7560,11 @@
       "commit": "Submit",
       "enter_the_snapshot": "Enter the airdrop",
       "spend_points_title": "Spend points and climb the leaderboard",
-      "spend_points_description": "The more you spend, the more you receive."
+      "spend_points_description": "The more you spend, the more you receive.",
+      "commit_success_title": "You've joined the airdrop",
+      "commit_success_description": "We'll notify you when it ends",
+      "commit_error_title": "Failed to join the airdrop",
+      "commit_error_description": "Failed to join the airdrop. Please try again."
     }
   },
   "time": {

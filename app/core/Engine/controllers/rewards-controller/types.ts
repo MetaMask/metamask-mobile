@@ -1548,6 +1548,20 @@ export interface RewardsControllerPointsEventsUpdatedEvent {
 }
 
 /**
+ * Event emitted when points are committed to a drop
+ */
+export interface RewardsControllerDropCommitEvent {
+  type: 'RewardsController:dropCommit';
+  payload: [
+    {
+      dropId: string;
+      pointsCommitted: number;
+      subscriptionId: string;
+    },
+  ];
+}
+
+/**
  * Events that can be emitted by the RewardsController
  */
 export type RewardsControllerEvents =
@@ -1555,7 +1569,8 @@ export type RewardsControllerEvents =
   | RewardsControllerAccountLinkedEvent
   | RewardsControllerRewardClaimedEvent
   | RewardsControllerBalanceUpdatedEvent
-  | RewardsControllerPointsEventsUpdatedEvent;
+  | RewardsControllerPointsEventsUpdatedEvent
+  | RewardsControllerDropCommitEvent;
 
 /**
  * Patch type for state changes

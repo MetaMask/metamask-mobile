@@ -7,7 +7,7 @@ import { getNavigationOptionsTitle } from '../../Navbar';
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { useTheme } from '../../../../util/theme';
-import DropTile from '../components/DropTile';
+import DropTile from '../components/DropTile/DropTile';
 import DropPrerequisiteList from '../components/DropPrerequisite/DropPrerequisiteList';
 import DropPrerequisiteItem from '../components/DropPrerequisite/DropPrerequisiteItem';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
@@ -162,7 +162,7 @@ const DropDetailView: React.FC = () => {
 
     return (
       <Box twClassName="gap-6">
-        <DropTile drop={drop} disableNavigation />
+        <DropTile drop={drop} />
 
         {/*  Qualify now section */}
         {sectionVisibility.showQualifyNow && drop.prerequisites && (
@@ -182,7 +182,7 @@ const DropDetailView: React.FC = () => {
         {sectionVisibility.showCommitment && (
           <Box twClassName="gap-4">
             <Text variant={TextVariant.HeadingMd} twClassName="text-default">
-              {strings('rewards.drops.enter_the_snapshot')}
+              {strings('rewards.drops.enter_the_drop')}
             </Text>
             <DropPrerequisiteItem
               prerequisite={{
@@ -199,6 +199,7 @@ const DropDetailView: React.FC = () => {
               eligibility={eligibility}
               onEnterPress={() =>
                 navigation.navigate(Routes.REWARDS_DROP_COMMITMENT, {
+                  dropId: drop.id,
                   dropName: drop.name,
                   hasExistingCommitment: false,
                 })

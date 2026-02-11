@@ -47,8 +47,9 @@ import {
   selectBulkLinkFailedAccounts,
   selectBulkLinkWasInterrupted,
   selectBulkLinkAccountProgress,
-  selectSnapshotsLoading,
-  selectSnapshotsError,
+  selectSeasonDrops,
+  selectSeasonDropsLoading,
+  selectSeasonDropsError,
 } from './selectors';
 import { OnboardingStep } from './types';
 import {
@@ -57,6 +58,8 @@ import {
   SeasonActivityTypeDto,
   SeasonWayToEarnDto,
   PointsEventDto,
+  SeasonDropDto,
+  DropStatus,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { RootState } from '..';
 import { RewardsState, AccountOptInBannerInfoStatus } from '.';
@@ -3115,62 +3118,252 @@ describe('Rewards selectors', () => {
     });
   });
 
-  describe('selectSnapshotsLoading', () => {
-    it('returns false when snapshots are not loading', () => {
-      const mockState = { rewards: { snapshotsLoading: false } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() => useSelector(selectSnapshotsLoading));
-      expect(result.current).toBe(false);
+  describe('selectSeasonDrops', () => {
+    const createMockSeasonDrop = (
+      overrides: Partial<SeasonDropDto> = {},
+    ): SeasonDropDto => ({
+      id: 'drop-123',
+      seasonId: 'season-456',
+      name: 'Test Drop',
+      tokenSymbol: 'TEST',
+      tokenAmount: '1000000000000000000',
+      tokenChainId: '1',
+      receivingBlockchain: 'Ethereum',
+      opensAt: '2024-01-01T00:00:00.000Z',
+      closesAt: '2024-01-31T00:00:00.000Z',
+      image: {
+        lightModeUrl: 'https://example.com/light.png',
+        darkModeUrl: 'https://example.com/dark.png',
+      },
+      status: DropStatus.OPEN,
+      ...overrides,
     });
 
-    it('returns true when snapshots are loading', () => {
-      const mockState = { rewards: { snapshotsLoading: true } };
+    it('returns null when season drops is null', () => {
+      const mockState = { rewards: { seasonDrops: null } };
       mockedUseSelector.mockImplementation((selector) => selector(mockState));
 
-      const { result } = renderHook(() => useSelector(selectSnapshotsLoading));
-      expect(result.current).toBe(true);
+      const { result } = renderHook(() => useSelector(selectSeasonDrops));
+      expect(result.current).toBeNull();
+    });
+
+    it('returns empty array when no drops exist', () => {
+      const mockState = { rewards: { seasonDrops: [] } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonDrops));
+      expect(result.current).toEqual([]);
+      expect(result.current).toHaveLength(0);
+    });
+
+    it('returns single season drop', () => {
+      const mockDrop = createMockSeasonDrop();
+      const mockState = { rewards: { seasonDrops: [mockDrop] } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonDrops));
+      expect(result.current).toEqual([mockDrop]);
+      expect(result.current).toHaveLength(1);
+      expect(result.current?.[0]?.id).toBe('drop-123');
+    });
+
+    it('returns multiple season drops', () => {
+      const mockDrops = [
+        createMockSeasonDrop({ id: 'drop-1', name: 'First Drop' }),
+        createMockSeasonDrop({
+          id: 'drop-2',
+          name: 'Second Drop',
+          status: DropStatus.UPCOMING,
+        }),
+        createMockSeasonDrop({
+          id: 'drop-3',
+          name: 'Third Drop',
+          status: DropStatus.CLOSED,
+        }),
+      ];
+      const mockState = { rewards: { seasonDrops: mockDrops } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonDrops));
+      expect(result.current).toEqual(mockDrops);
+      expect(result.current).toHaveLength(3);
+      expect(result.current?.[0]?.name).toBe('First Drop');
+      expect(result.current?.[1]?.status).toBe(DropStatus.UPCOMING);
+      expect(result.current?.[2]?.status).toBe(DropStatus.CLOSED);
+    });
+
+    it('returns drops with all status types', () => {
+      const mockDrops = [
+        createMockSeasonDrop({ id: 'drop-1', status: DropStatus.UPCOMING }),
+        createMockSeasonDrop({ id: 'drop-2', status: DropStatus.OPEN }),
+        createMockSeasonDrop({ id: 'drop-3', status: DropStatus.CLOSED }),
+        createMockSeasonDrop({ id: 'drop-4', status: DropStatus.CALCULATED }),
+        createMockSeasonDrop({ id: 'drop-5', status: DropStatus.DISTRIBUTED }),
+      ];
+      const mockState = { rewards: { seasonDrops: mockDrops } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonDrops));
+      expect(result.current).toHaveLength(5);
+      expect(result.current?.[0]?.status).toBe(DropStatus.UPCOMING);
+      expect(result.current?.[1]?.status).toBe(DropStatus.OPEN);
+      expect(result.current?.[2]?.status).toBe(DropStatus.CLOSED);
+      expect(result.current?.[3]?.status).toBe(DropStatus.CALCULATED);
+      expect(result.current?.[4]?.status).toBe(DropStatus.DISTRIBUTED);
+    });
+
+    it('handles state changes correctly', () => {
+      let mockState = {
+        rewards: { seasonDrops: null as SeasonDropDto[] | null },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result, rerender } = renderHook(() =>
+        useSelector(selectSeasonDrops),
+      );
+      expect(result.current).toBeNull();
+
+      const newDrops = [createMockSeasonDrop({ id: 'new-drop' })];
+      mockState = { rewards: { seasonDrops: newDrops } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toEqual(newDrops);
+      expect(result.current).toHaveLength(1);
     });
 
     describe('Direct selector calls', () => {
-      it('returns false when snapshotsLoading is false', () => {
-        const state = createMockRootState({ snapshotsLoading: false });
-        expect(selectSnapshotsLoading(state)).toBe(false);
+      it('returns null when seasonDrops is null', () => {
+        const state = createMockRootState({ seasonDrops: null });
+        expect(selectSeasonDrops(state)).toBeNull();
       });
 
-      it('returns true when snapshotsLoading is true', () => {
-        const state = createMockRootState({ snapshotsLoading: true });
-        expect(selectSnapshotsLoading(state)).toBe(true);
+      it('returns empty array when no drops', () => {
+        const state = createMockRootState({ seasonDrops: [] });
+        expect(selectSeasonDrops(state)).toEqual([]);
+      });
+
+      it('returns season drops when set', () => {
+        const drops = [createMockSeasonDrop()];
+        const state = createMockRootState({ seasonDrops: drops });
+        expect(selectSeasonDrops(state)).toEqual(drops);
+        expect(selectSeasonDrops(state)).toHaveLength(1);
+      });
+
+      it('preserves drop order', () => {
+        const drops = [
+          createMockSeasonDrop({ id: 'first' }),
+          createMockSeasonDrop({ id: 'second' }),
+          createMockSeasonDrop({ id: 'third' }),
+        ];
+        const state = createMockRootState({ seasonDrops: drops });
+        const result = selectSeasonDrops(state);
+        expect(result?.[0]?.id).toBe('first');
+        expect(result?.[1]?.id).toBe('second');
+        expect(result?.[2]?.id).toBe('third');
       });
     });
   });
 
-  describe('selectSnapshotsError', () => {
-    it('returns false when there is no snapshots error', () => {
-      const mockState = { rewards: { snapshotsError: false } };
+  describe('selectSeasonDropsLoading', () => {
+    it('returns false when season drops are not loading', () => {
+      const mockState = { rewards: { seasonDropsLoading: false } };
       mockedUseSelector.mockImplementation((selector) => selector(mockState));
 
-      const { result } = renderHook(() => useSelector(selectSnapshotsError));
+      const { result } = renderHook(() =>
+        useSelector(selectSeasonDropsLoading),
+      );
       expect(result.current).toBe(false);
     });
 
-    it('returns true when there is a snapshots error', () => {
-      const mockState = { rewards: { snapshotsError: true } };
+    it('returns true when season drops are loading', () => {
+      const mockState = { rewards: { seasonDropsLoading: true } };
       mockedUseSelector.mockImplementation((selector) => selector(mockState));
 
-      const { result } = renderHook(() => useSelector(selectSnapshotsError));
+      const { result } = renderHook(() =>
+        useSelector(selectSeasonDropsLoading),
+      );
       expect(result.current).toBe(true);
     });
 
+    it('handles loading state changes correctly', () => {
+      let mockState = { rewards: { seasonDropsLoading: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result, rerender } = renderHook(() =>
+        useSelector(selectSeasonDropsLoading),
+      );
+      expect(result.current).toBe(false);
+
+      mockState = { rewards: { seasonDropsLoading: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(true);
+
+      mockState = { rewards: { seasonDropsLoading: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(false);
+    });
+
     describe('Direct selector calls', () => {
-      it('returns false when snapshotsError is false', () => {
-        const state = createMockRootState({ snapshotsError: false });
-        expect(selectSnapshotsError(state)).toBe(false);
+      it('returns false when seasonDropsLoading is false', () => {
+        const state = createMockRootState({ seasonDropsLoading: false });
+        expect(selectSeasonDropsLoading(state)).toBe(false);
       });
 
-      it('returns true when snapshotsError is true', () => {
-        const state = createMockRootState({ snapshotsError: true });
-        expect(selectSnapshotsError(state)).toBe(true);
+      it('returns true when seasonDropsLoading is true', () => {
+        const state = createMockRootState({ seasonDropsLoading: true });
+        expect(selectSeasonDropsLoading(state)).toBe(true);
+      });
+    });
+  });
+
+  describe('selectSeasonDropsError', () => {
+    it('returns false when there is no season drops error', () => {
+      const mockState = { rewards: { seasonDropsError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonDropsError));
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when there is a season drops error', () => {
+      const mockState = { rewards: { seasonDropsError: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonDropsError));
+      expect(result.current).toBe(true);
+    });
+
+    it('handles error state changes correctly', () => {
+      let mockState = { rewards: { seasonDropsError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result, rerender } = renderHook(() =>
+        useSelector(selectSeasonDropsError),
+      );
+      expect(result.current).toBe(false);
+
+      mockState = { rewards: { seasonDropsError: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(true);
+
+      mockState = { rewards: { seasonDropsError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(false);
+    });
+
+    describe('Direct selector calls', () => {
+      it('returns false when seasonDropsError is false', () => {
+        const state = createMockRootState({ seasonDropsError: false });
+        expect(selectSeasonDropsError(state)).toBe(false);
+      });
+
+      it('returns true when seasonDropsError is true', () => {
+        const state = createMockRootState({ seasonDropsError: true });
+        expect(selectSeasonDropsError(state)).toBe(true);
       });
     });
   });

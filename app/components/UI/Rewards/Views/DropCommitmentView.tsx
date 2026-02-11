@@ -30,6 +30,9 @@ import { formatNumber } from '../utils/formatUtils';
 import PercentageButtons, {
   PercentageButtonOption,
 } from '../components/PercentageButtons/PercentageButtons';
+import { useCommitForDrop } from '../hooks/useCommitForDrop';
+import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import useRewardsToast from '../hooks/useRewardsToast';
 
 const PERCENTAGE_OPTIONS: PercentageButtonOption[] = [
   { value: 10, label: '10%' },
@@ -46,17 +49,30 @@ const DropCommitmentView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const { colors } = useTheme();
-  const route =
-    useRoute<
-      RouteProp<
-        { params: { dropName: string; hasExistingCommitment: boolean } },
-        'params'
-      >
-    >();
-  const { dropName, hasExistingCommitment } = route.params;
+  const route = useRoute<
+    RouteProp<
+      {
+        params: {
+          dropId: string;
+          dropName: string;
+          hasExistingCommitment: boolean;
+        };
+      },
+      'params'
+    >
+  >();
+  const { dropId, dropName, hasExistingCommitment } = route.params;
+  const { showToast, RewardsToastOptions } = useRewardsToast();
 
   // Get available points from season status
   const availablePoints = useSelector(selectBalanceTotal) ?? 0;
+  const selectedAccountAddress = useSelector(
+    selectSelectedInternalAccountAddress,
+  );
+
+  // Commit for drop hook
+  const { commitForDrop, isCommitting, commitError, clearCommitError } =
+    useCommitForDrop();
 
   // Amount input state
   const [amountString, setAmountString] = useState('0');
@@ -95,7 +111,7 @@ const DropCommitmentView: React.FC = () => {
         dropName,
       });
     }
-    return strings('rewards.drops.enter_snapshot', { dropName });
+    return strings('rewards.drops.enter_drop', { dropName });
   }, [hasExistingCommitment, dropName]);
 
   // Set navigation title with back button
@@ -133,14 +149,49 @@ const DropCommitmentView: React.FC = () => {
     [availablePoints],
   );
 
-  // Handle commit button press (placeholder for now)
-  const handleCommitPress = useCallback(() => {
-    // TODO: Implement commit endpoint call when backend is ready
-    // For now, this button does nothing as specified in acceptance criteria
-  }, []);
+  // Handle commit button press
+  const handleCommitPress = useCallback(async () => {
+    clearCommitError();
+    try {
+      const response = await commitForDrop(
+        dropId,
+        amountValue,
+        selectedAccountAddress,
+      );
+
+      if (response) {
+        showToast(
+          RewardsToastOptions.success(
+            strings('rewards.drops.commit_success_title'),
+            strings('rewards.drops.commit_success_description', {
+              points: formatNumber(amountValue),
+            }),
+          ),
+        );
+        navigation.goBack();
+      }
+    } catch {
+      showToast(
+        RewardsToastOptions.error(
+          strings('rewards.drops.commit_error_title'),
+          commitError ?? strings('rewards.drops.commit_error_description'),
+        ),
+      );
+    }
+  }, [
+    clearCommitError,
+    commitForDrop,
+    dropId,
+    amountValue,
+    selectedAccountAddress,
+    showToast,
+    RewardsToastOptions,
+    navigation,
+    commitError,
+  ]);
 
   // Determine if commit button should be disabled
-  const isCommitDisabled = amountValue === 0;
+  const isCommitDisabled = amountValue === 0 || isCommitting;
 
   return (
     <ErrorBoundary navigation={navigation} view="DropCommitmentView">
@@ -218,6 +269,7 @@ const DropCommitmentView: React.FC = () => {
               size={ButtonSize.Lg}
               onPress={handleCommitPress}
               isDisabled={isCommitDisabled}
+              loading={isCommitting}
               style={tw.style('w-full')}
             />
           </Box>

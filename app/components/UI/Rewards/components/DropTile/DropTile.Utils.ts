@@ -1,7 +1,7 @@
 import { IconName } from '@metamask/design-system-react-native';
 import {
   DropStatus,
-  type SeasonDropDto,
+  SeasonDropDto,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../locales/i18n';
 
@@ -111,11 +111,11 @@ function getStatusIcon(status: DropStatus): IconName {
   switch (status) {
     case DropStatus.OPEN:
       return IconName.Clock;
-    case DropStatus.DISTRIBUTED:
+    case DropStatus.CALCULATED:
       return IconName.Confirmation;
     case DropStatus.CLOSED:
       return IconName.Loading;
-    case DropStatus.CALCULATED:
+    case DropStatus.DISTRIBUTED:
       return IconName.Send;
     case DropStatus.UPCOMING:
     default:

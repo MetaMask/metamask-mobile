@@ -21,7 +21,7 @@ interface UseDropLeaderboardReturn {
  * @param dropId - The ID of the drop to get leaderboard for
  */
 export const useDropLeaderboard = (
-  dropId: string,
+  dropId?: string,
 ): UseDropLeaderboardReturn => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const [leaderboard, setLeaderboard] = useState<DropLeaderboardDto | null>(
@@ -70,9 +70,13 @@ export const useDropLeaderboard = (
     fetchLeaderboard();
   }, [fetchLeaderboard]);
 
-  // Invalidate leaderboard when balance is updated or account is linked
+  // Invalidate leaderboard when balance is updated, account is linked, or points are committed to a drop
   useInvalidateByRewardEvents(
-    ['RewardsController:balanceUpdated', 'RewardsController:accountLinked'],
+    [
+      'RewardsController:balanceUpdated',
+      'RewardsController:accountLinked',
+      'RewardsController:dropCommit',
+    ],
     fetchLeaderboard,
   );
 

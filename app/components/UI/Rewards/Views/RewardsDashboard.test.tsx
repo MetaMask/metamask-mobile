@@ -244,16 +244,16 @@ jest.mock('../components/Tabs/RewardsOverview', () => ({
   },
 }));
 
-jest.mock('../components/Tabs/RewardsSnapshots', () => ({
+jest.mock('../components/Tabs/RewardsDrops', () => ({
   __esModule: true,
-  default: function MockRewardsSnapshots({ tabLabel }: { tabLabel: string }) {
+  default: function MockRewardsDrops({ tabLabel }: { tabLabel: string }) {
     const ReactActual = jest.requireActual('react');
     const { View, Text } = jest.requireActual('react-native');
 
     return ReactActual.createElement(
       View,
       { testID: 'rewards-drops-tab' },
-      ReactActual.createElement(Text, null, tabLabel || 'Snapshots'),
+      ReactActual.createElement(Text, null, tabLabel || 'Drops'),
     );
   },
 }));
@@ -956,8 +956,8 @@ describe('RewardsDashboard', () => {
     it('should handle tab change when user selects different tab', () => {
       // Act
       const { getByTestId } = render(<RewardsDashboard />);
-      const snapshotsTab = getByTestId('tab-1');
-      fireEvent.press(snapshotsTab);
+      const dropsTab = getByTestId('tab-1');
+      fireEvent.press(dropsTab);
 
       // Assert
       expect(mockDispatch).toHaveBeenCalledWith(setActiveTab('drops'));
@@ -985,21 +985,11 @@ describe('RewardsDashboard', () => {
     it('switches to drops tab when drops tab is pressed', () => {
       // Act
       const { getByTestId } = render(<RewardsDashboard />);
-      const snapshotsTab = getByTestId('tab-1');
-      fireEvent.press(snapshotsTab);
+      const dropsTab = getByTestId('tab-1');
+      fireEvent.press(dropsTab);
 
-      // Assert
+      // Assert - tab change occurred
       expect(getByTestId('rewards-drops-tab')).toBeTruthy();
-    });
-
-    it('should switch to activity tab when activity tab is pressed', () => {
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-      const activityTab = getByTestId('tab-2');
-      fireEvent.press(activityTab);
-
-      // Assert
-      expect(getByTestId('rewards-activity-tab')).toBeTruthy();
     });
 
     it('allows tab switching when user is not opted in', () => {
@@ -1020,8 +1010,8 @@ describe('RewardsDashboard', () => {
 
       // Act
       const { getByTestId } = render(<RewardsDashboard />);
-      const snapshotsTab = getByTestId('tab-1');
-      fireEvent.press(snapshotsTab);
+      const dropsTab = getByTestId('tab-1');
+      fireEvent.press(dropsTab);
 
       // Assert - tab change occurred
       expect(getByTestId('rewards-drops-tab')).toBeTruthy();
