@@ -7,6 +7,11 @@ import {
 } from '../../../../../util/remoteFeatureFlag';
 import type { RootState } from '../../../../../reducers';
 import type { ButtonColorVariantName } from '../../utils/abTesting/types';
+import {
+  parseCommaSeparatedString,
+  stripQuotes,
+} from '@metamask/perps-controller';
+import { hasProperty } from '@metamask/utils';
 
 /**
  * Valid variants for button color A/B test (TAT-1937)
@@ -178,6 +183,58 @@ export const selectPerpsTradeWithAnyTokenEnabledFlag = createSelector(
       remoteFeatureFlags?.perpsTradeWithAnyTokenIsEnabled as unknown as VersionGatedFeatureFlag;
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
+ * Parses a remote list value (string or array of strings) into normalized
+ * "chainId.address" entries (lowercased for case-insensitive address comparison).
+ */
+function parseAllowListAssets(remoteValue: unknown): string[] {
+  if (typeof remoteValue === 'string') {
+    return parseCommaSeparatedString(remoteValue)
+      .map((s) => stripQuotes(s).trim().toLowerCase())
+      .filter((s) => s.length > 0);
+  }
+  if (
+    Array.isArray(remoteValue) &&
+    remoteValue.every((item) => typeof item === 'string')
+  ) {
+    return (remoteValue as string[])
+      .map((s) => stripQuotes(s.trim()).toLowerCase())
+      .filter((s) => s.length > 0);
+  }
+  return [];
+}
+
+/**
+ * Selector for Perps Pay With Any Token allowlist assets.
+ * When non-empty, only tokens matching "chainId.address" entries in this list
+ * are shown in the pay-with modal (in addition to the Perps balance option).
+ * Env PERPS_PAY_WITH_ANY_TOKEN_ALLOW_LIST_ASSETS overrides the remote flag.
+ *
+ * @returns string[] - Normalized "chainId.address" entries (lowercase)
+ */
+export const selectPerpsPayWithAnyTokenAllowListAssets = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): string[] => {
+    const envValue =
+      process.env.PERPS_PAY_WITH_ANY_TOKEN_ALLOW_LIST_ASSETS ?? '';
+    const localList = parseCommaSeparatedString(envValue)
+      .map((s) => stripQuotes(s).trim().toLowerCase())
+      .filter((s) => s.length > 0);
+    if (localList.length > 0) {
+      return localList;
+    }
+    if (
+      remoteFeatureFlags &&
+      hasProperty(remoteFeatureFlags, 'perpsPayWithAnyTokenAllowlistAssets')
+    ) {
+      return parseAllowListAssets(
+        remoteFeatureFlags.perpsPayWithAnyTokenAllowlistAssets,
+      );
+    }
+    return [];
   },
 );
 
