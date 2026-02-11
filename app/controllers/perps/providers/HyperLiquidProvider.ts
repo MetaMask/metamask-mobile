@@ -48,7 +48,6 @@ import {
   formatHyperLiquidPrice,
   formatHyperLiquidSize,
   parseAssetName,
-  type RawHyperLiquidLedgerUpdate,
 } from '../utils/hyperLiquidAdapter';
 import {
   buildOrdersArray,

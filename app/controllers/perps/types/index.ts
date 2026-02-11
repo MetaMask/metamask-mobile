@@ -8,8 +8,6 @@ import type {
   Hex,
 } from '@metamask/utils';
 
-// Import adapter types (resolved within controllers/ after Phase 1c moves)
-import type { RawHyperLiquidLedgerUpdate } from '../utils/hyperLiquidAdapter';
 import type { CandleData } from './perps-types';
 import type { CandlePeriod, TimeDuration } from '../constants/chartConfig';
 

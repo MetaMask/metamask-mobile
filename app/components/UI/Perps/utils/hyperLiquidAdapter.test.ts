@@ -21,7 +21,7 @@ import {
   formatHyperLiquidPrice,
   formatHyperLiquidSize,
   adaptHyperLiquidLedgerUpdateToUserHistoryItem,
-  type RawHyperLiquidLedgerUpdate,
+  type RawLedgerUpdate,
   type OrderParams,
   type AssetPosition,
   type SpotBalance,
@@ -1221,7 +1221,7 @@ describe('hyperLiquidAdapter', () => {
     const createLedgerUpdate = (
       type: string,
       hash = '0x123',
-    ): RawHyperLiquidLedgerUpdate => ({
+    ): RawLedgerUpdate => ({
       hash,
       time: 1000,
       delta: { type, usdc: '100' },
@@ -1281,7 +1281,7 @@ describe('hyperLiquidAdapter', () => {
 
     describe('internalTransfer USDC amount validation', () => {
       it('includes internalTransfer with positive USDC amount', () => {
-        const updates: RawHyperLiquidLedgerUpdate[] = [
+        const updates: RawLedgerUpdate[] = [
           {
             hash: '0x001',
             time: 1000,
@@ -1295,7 +1295,7 @@ describe('hyperLiquidAdapter', () => {
       });
 
       it('excludes internalTransfer with zero USDC amount', () => {
-        const updates: RawHyperLiquidLedgerUpdate[] = [
+        const updates: RawLedgerUpdate[] = [
           {
             hash: '0x002',
             time: 2000,
@@ -1309,7 +1309,7 @@ describe('hyperLiquidAdapter', () => {
       });
 
       it('excludes internalTransfer with negative USDC amount', () => {
-        const updates: RawHyperLiquidLedgerUpdate[] = [
+        const updates: RawLedgerUpdate[] = [
           {
             hash: '0x003',
             time: 3000,
@@ -1323,7 +1323,7 @@ describe('hyperLiquidAdapter', () => {
       });
 
       it('excludes internalTransfer with invalid USDC value', () => {
-        const updates: RawHyperLiquidLedgerUpdate[] = [
+        const updates: RawLedgerUpdate[] = [
           {
             hash: '0x004',
             time: 4000,
@@ -1337,7 +1337,7 @@ describe('hyperLiquidAdapter', () => {
       });
 
       it('excludes internalTransfer with missing USDC field', () => {
-        const updates: RawHyperLiquidLedgerUpdate[] = [
+        const updates: RawLedgerUpdate[] = [
           {
             hash: '0x005',
             time: 5000,
@@ -1351,7 +1351,7 @@ describe('hyperLiquidAdapter', () => {
       });
 
       it('excludes internalTransfer with undefined USDC value', () => {
-        const updates: RawHyperLiquidLedgerUpdate[] = [
+        const updates: RawLedgerUpdate[] = [
           {
             hash: '0x006',
             time: 6000,
@@ -1365,7 +1365,7 @@ describe('hyperLiquidAdapter', () => {
       });
 
       it('includes internalTransfer with small positive decimal amount', () => {
-        const updates: RawHyperLiquidLedgerUpdate[] = [
+        const updates: RawLedgerUpdate[] = [
           {
             hash: '0x007',
             time: 7000,
@@ -1379,7 +1379,7 @@ describe('hyperLiquidAdapter', () => {
       });
 
       it('filters mixed internalTransfer entries keeping only valid positive amounts', () => {
-        const updates: RawHyperLiquidLedgerUpdate[] = [
+        const updates: RawLedgerUpdate[] = [
           {
             hash: '0x008',
             time: 8000,

@@ -20,7 +20,6 @@ export {
   parseAssetName,
   adaptHyperLiquidLedgerUpdateToUserHistoryItem,
 } from './hyperLiquidAdapter';
-export type { RawHyperLiquidLedgerUpdate } from './hyperLiquidAdapter';
 export * from './hyperLiquidOrderBookProcessor';
 export * from './hyperLiquidValidation';
 export * from './idUtils';

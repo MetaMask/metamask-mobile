@@ -76,7 +76,6 @@ import type {
   WithdrawResult,
   RawLedgerUpdate,
 } from '../types';
-import type { RawHyperLiquidLedgerUpdate } from '../utils/hyperLiquidAdapter';
 import { ProviderRouter } from '../routing/ProviderRouter';
 import { SubscriptionMultiplexer } from '../aggregation/SubscriptionMultiplexer';
 

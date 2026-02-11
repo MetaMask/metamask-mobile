@@ -13,6 +13,7 @@ import type {
   Order,
   OrderParams as PerpsOrderParams,
   Position,
+  RawLedgerUpdate,
   UserHistoryItem,
 } from '../types';
 import { DECIMAL_PRECISION_CONFIG } from '../constants/perpsConfig';
@@ -356,18 +357,8 @@ export function parseAssetName(assetName: string): {
   };
 }
 
-export interface RawHyperLiquidLedgerUpdate {
-  hash: string;
-  time: number;
-  delta: {
-    type: string;
-    usdc?: string;
-    coin?: string;
-  };
-}
-
 export function adaptHyperLiquidLedgerUpdateToUserHistoryItem(
-  rawLedgerUpdates: RawHyperLiquidLedgerUpdate[],
+  rawLedgerUpdates: RawLedgerUpdate[],
 ): UserHistoryItem[] {
   return (rawLedgerUpdates || [])
     .filter((update) => {
