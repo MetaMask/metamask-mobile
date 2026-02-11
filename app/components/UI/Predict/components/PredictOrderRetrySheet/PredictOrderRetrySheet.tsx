@@ -96,6 +96,7 @@ const PredictOrderRetrySheet = forwardRef<
         onClose={handleSheetClosed}
       >
         <TouchableOpacity
+          testID={PredictOrderRetrySheetSelectorsIDs.CLOSE_BUTTON}
           onPress={closeSheet}
           style={tw.style('absolute top-8 right-4 z-10')}
         >

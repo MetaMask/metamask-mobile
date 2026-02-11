@@ -44,21 +44,6 @@ jest.mock(
 );
 
 jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { TouchableOpacity, Text: RNText } =
-      jest.requireActual('react-native');
-    return ({ onClose }: { onClose?: () => void }) =>
-      ReactActual.createElement(
-        TouchableOpacity,
-        { testID: 'sheet-header-close', onPress: onClose },
-        ReactActual.createElement(RNText, null, 'X'),
-      );
-  },
-);
-
-jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter',
   () => {
     const ReactActual = jest.requireActual('react');
@@ -244,12 +229,25 @@ describe('PredictOrderRetrySheet', () => {
       expect(onRetry).toHaveBeenCalledTimes(1);
     });
 
-    it('calls closeSheet when header close pressed', () => {
+    it('disables retry button when isRetrying is true', () => {
+      const { getByTestId } = render(
+        <PredictOrderRetrySheet {...defaultProps} isRetrying />,
+      );
+
+      expect(
+        getByTestId(PredictOrderRetrySheetSelectorsIDs.RETRY_BUTTON).props
+          .disabled,
+      ).toBe(true);
+    });
+
+    it('calls closeSheet when close button pressed', () => {
       const { getByTestId } = render(
         <PredictOrderRetrySheet {...defaultProps} />,
       );
 
-      fireEvent.press(getByTestId('sheet-header-close'));
+      fireEvent.press(
+        getByTestId(PredictOrderRetrySheetSelectorsIDs.CLOSE_BUTTON),
+      );
 
       expect(mockCloseSheet).toHaveBeenCalledTimes(1);
     });

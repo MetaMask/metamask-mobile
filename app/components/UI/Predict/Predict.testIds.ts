@@ -133,6 +133,7 @@ export const PredictCashOutSelectorsIDs = {
 export const PredictOrderRetrySheetSelectorsIDs = {
   CONTAINER: 'predict-order-retry-sheet-container',
   RETRY_BUTTON: 'predict-order-retry-sheet-retry-button',
+  CLOSE_BUTTON: 'predict-order-retry-sheet-close-button',
 } as const;
 
 // ========================================
