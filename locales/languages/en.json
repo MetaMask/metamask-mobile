@@ -3815,6 +3815,7 @@
     "qr_code": "QR code"
   },
   "transactions": {
+    "unavailable": "Unavailable",
     "tx_review_confirm": "Confirm",
     "tx_review_transfer": "Transfer",
     "tx_review_contract_deployment": "Contract deployment",

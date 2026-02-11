@@ -109,7 +109,9 @@ const EstimationInfo = ({
         <>
           {displayValue && (
             <Text style={displayStyle}>
-              {isEstimationFailed ? 'Unavailable' : displayValue}
+              {isEstimationFailed
+                ? strings('transactions.unavailable')
+                : displayValue}
             </Text>
           )}
           {!fiatOnly && <SelectedGasFeeToken />}
