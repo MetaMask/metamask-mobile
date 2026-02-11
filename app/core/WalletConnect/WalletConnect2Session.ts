@@ -641,7 +641,10 @@ class WalletConnect2Session {
 
     // NOTE: unverifiedOrigin may come from WC verifyContext (partially trusted)
     // or fall back to self-reported session metadata URL (untrusted).
-    const unverifiedOrigin = getUnverifiedRequestOrigin(requestEvent, this.selfReportedUrl);
+    const unverifiedOrigin = getUnverifiedRequestOrigin(
+      requestEvent,
+      this.selfReportedUrl,
+    );
     const method = requestEvent.params.request.method;
     const isSwitchingChain = isSwitchingChainRequest(requestEvent);
 
