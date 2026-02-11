@@ -139,7 +139,10 @@ const AddAsset = () => {
       edges={
         Platform.OS === 'ios' ? ['left', 'right'] : ['left', 'right', 'bottom']
       }
-      style={[{ paddingTop: insets.top }, styles.wrapper]}
+      style={[
+        { paddingTop: insets.top, paddingBottom: insets.bottom },
+        styles.wrapper,
+      ]}
       testID={`add-${assetType}-screen`}
     >
       <HeaderCompactStandard
