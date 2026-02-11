@@ -112,7 +112,10 @@ import {
 import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
 import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
 import { getMarketHoursStatus } from '../../utils/marketHours';
-import { shouldDisplayOrderInMarketDetailsOrders } from '../../utils/orderUtils';
+import {
+  buildDisplayOrdersWithSyntheticTpsl,
+  shouldDisplayOrderInMarketDetailsOrders,
+} from '../../utils/orderUtils';
 import { ensureError } from '../../../../../util/errorUtils';
 import PerpsSelectAdjustMarginActionView from '../PerpsSelectAdjustMarginActionView';
 import PerpsSelectModifyActionView from '../PerpsSelectModifyActionView';
@@ -397,14 +400,19 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     currentPositionRef.current = existingPosition;
   }, [existingPosition]);
 
+  const ordersWithSyntheticTpsl = useMemo(
+    () => buildDisplayOrdersWithSyntheticTpsl(sortedOrders),
+    [sortedOrders],
+  );
+
   // Show non-reduce-only orders and standalone TP/SL orders in Orders section.
   // Full-position TP/SL remains in the Auto-close section.
   const displayOrders = useMemo(
     () =>
-      sortedOrders.filter((order) =>
+      ordersWithSyntheticTpsl.filter((order) =>
         shouldDisplayOrderInMarketDetailsOrders(order, existingPosition),
       ),
-    [sortedOrders, existingPosition],
+    [ordersWithSyntheticTpsl, existingPosition],
   );
 
   // Compute TP/SL lines for the chart based on existing position

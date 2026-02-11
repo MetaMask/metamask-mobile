@@ -104,6 +104,14 @@ export function adaptOrderFromSDK(
   rawOrder: FrontendOrder,
   position?: Position,
 ): Order {
+  const rawOrderWithParentTpsl = rawOrder as FrontendOrder & {
+    takeProfitPrice?: string;
+    stopLossPrice?: string;
+    takeProfitOrderId?: string | number;
+    stopLossOrderId?: string | number;
+  };
+
+  // Extract basic fields with appropriate conversions
   const orderId = rawOrder.oid.toString();
   const symbol = rawOrder.coin;
   const side: 'buy' | 'sell' = rawOrder.side === 'B' ? 'buy' : 'sell';
@@ -155,6 +163,24 @@ export function adaptOrderFromSDK(
     });
   }
 
+<<<<<<< HEAD:app/controllers/perps/utils/hyperLiquidAdapter.ts
+=======
+  // Fallback: preserve parent-level TP/SL metadata when children are absent.
+  if (!takeProfitPrice && rawOrderWithParentTpsl.takeProfitPrice) {
+    takeProfitPrice = rawOrderWithParentTpsl.takeProfitPrice;
+  }
+  if (!stopLossPrice && rawOrderWithParentTpsl.stopLossPrice) {
+    stopLossPrice = rawOrderWithParentTpsl.stopLossPrice;
+  }
+  if (!takeProfitOrderId && rawOrderWithParentTpsl.takeProfitOrderId) {
+    takeProfitOrderId = rawOrderWithParentTpsl.takeProfitOrderId.toString();
+  }
+  if (!stopLossOrderId && rawOrderWithParentTpsl.stopLossOrderId) {
+    stopLossOrderId = rawOrderWithParentTpsl.stopLossOrderId.toString();
+  }
+
+  // Build the order object
+>>>>>>> 35fcf09fbb (feat(perps): use children logic for synthetic orders):app/components/UI/Perps/utils/hyperLiquidAdapter.ts
   const order: Order = {
     orderId,
     symbol,
