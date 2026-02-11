@@ -1,7 +1,7 @@
 import axios, { AxiosResponse } from 'axios';
 import { isE2E, getCommandQueueServerPortInApp } from './utils';
 import DevLogger from '../../core/SDKConnect/utils/DevLogger';
-import { E2ECommandTypes } from '../../../tests/framework';
+import { E2ECommandTypes } from '../../../tests/framework/types';
 
 let hasStartedPolling = false;
 let pollTimeout: ReturnType<typeof setTimeout> | null = null;
