@@ -1,6 +1,7 @@
 import axios, { AxiosResponse } from 'axios';
 import { isE2E, getCommandQueueServerPortInApp } from './utils';
 import DevLogger from '../../core/SDKConnect/utils/DevLogger';
+import { E2ECommandTypes } from '../../../tests/framework';
 
 let hasStartedPolling = false;
 let pollTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -28,18 +29,18 @@ function dispatchPerpsCommand(item: {
     const service = mod?.PerpsE2EMockService?.getInstance?.();
     if (!service) return;
 
-    if (item.type === 'push-price') {
+    if (item.type === E2ECommandTypes.pushPrice) {
       const sym = item.args.symbol as string;
       const price = String(item.args.price);
       if (typeof service.mockPushPrice === 'function') {
         service.mockPushPrice(sym, price);
       }
-    } else if (item.type === 'force-liquidation') {
+    } else if (item.type === E2ECommandTypes.forceLiquidation) {
       const sym = item.args.symbol as string;
       if (typeof service.mockForceLiquidation === 'function') {
         service.mockForceLiquidation(sym);
       }
-    } else if (item.type === 'mock-deposit') {
+    } else if (item.type === E2ECommandTypes.mockDeposit) {
       const amount = item.args.amount as string;
       if (typeof service.mockDepositUSD === 'function') {
         service.mockDepositUSD(amount);
@@ -107,7 +108,7 @@ async function pollOnce(): Promise<void> {
     for (const item of data) {
       if (!item || typeof item !== 'object') continue;
 
-      if (item.type === 'export-state') {
+      if (item.type === E2ECommandTypes.exportState) {
         try {
           // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
           const { handleExportStateCommand } = require('./e2eStateExport');
@@ -119,9 +120,9 @@ async function pollOnce(): Promise<void> {
           );
         }
       } else if (
-        item.type === 'push-price' ||
-        item.type === 'force-liquidation' ||
-        item.type === 'mock-deposit'
+        item.type === E2ECommandTypes.pushPrice ||
+        item.type === E2ECommandTypes.forceLiquidation ||
+        item.type === E2ECommandTypes.mockDeposit
       ) {
         dispatchPerpsCommand(item);
       }
