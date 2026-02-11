@@ -77,9 +77,9 @@ export function createHardwareWalletError(
     category,
     userMessage,
     metadata: {
+      ...options?.metadata,
       walletType,
       recoveryAction,
-      ...options?.metadata,
     },
     cause: options?.cause,
   };
