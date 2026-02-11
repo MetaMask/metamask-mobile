@@ -4,7 +4,7 @@ import {
   renderHookWithProvider,
   type DeepPartial,
 } from '../../../../util/test/renderWithProvider';
-import type { AccountState, Position } from '../controllers/types';
+import type { AccountState, Position } from '@metamask/perps-controller';
 import {
   usePerpsPositionForAsset,
   _clearPositionCache,
