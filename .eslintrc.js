@@ -98,6 +98,12 @@ module.exports = {
       },
     },
     {
+      files: ['e2e/module-mocking/**/*.{js,ts}'],
+      rules: {
+        'no-console': 'off',
+      },
+    },
+    {
       files: ['**/*.test.{js,ts,tsx}', '**/*.stories.{js,ts,tsx}'],
       rules: {
         '@metamask/design-tokens/color-no-hex': 'off',
