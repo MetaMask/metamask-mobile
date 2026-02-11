@@ -15,6 +15,16 @@ import fs from 'fs';
 import path from 'path';
 
 /**
+ * Get build variant and display type from environment (rc = normal, exp = experimental).
+ * @returns {{ buildVariant: string, buildType: string }}
+ */
+function getBuildTypeInfo() {
+  const variant = (process.env.BUILD_VARIANT || 'rc').toLowerCase();
+  const buildType = variant === 'exp' ? 'Experimental' : 'Normal';
+  return { buildVariant: variant, buildType };
+}
+
+/**
  * Recursively find JSON files containing performance metrics
  * @param {string} dir - Directory to search
  * @param {string[]} jsonFiles - Array to collect found files
@@ -197,6 +207,7 @@ function createEmptyReport(outputPath) {
   fs.writeFileSync(outputPath, JSON.stringify(emptyReport, null, 2));
   fs.writeFileSync('appwright/aggregated-reports/aggregated-performance-report.json', JSON.stringify(emptyReport, null, 2));
   
+  const { buildVariant, buildType } = getBuildTypeInfo();
   const emptySummary = {
     totalTests: 0,
     platforms: { android: 0, ios: 0 },
@@ -220,11 +231,15 @@ function createEmptyReport(outputPath) {
       jobResults: { android: "unknown", ios: "unknown" },
       branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
       commit: process.env.GITHUB_SHA || 'unknown',
-      workflowRun: process.env.GITHUB_RUN_ID || 'unknown'
+      workflowRun: process.env.GITHUB_RUN_ID || 'unknown',
+      buildVariant,
+      buildType
     },
     generatedAt: new Date().toISOString(),
     branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
     commit: process.env.GITHUB_SHA || 'unknown',
+    buildVariant,
+    buildType,
     warning: 'No test results found'
   };
   
@@ -248,6 +263,7 @@ function createFallbackReport(outputPath, error) {
   try {
     fs.writeFileSync(outputPath, JSON.stringify(fallbackReport, null, 2));
     fs.writeFileSync('appwright/aggregated-reports/aggregated-performance-report.json', JSON.stringify(fallbackReport, null, 2));
+    const { buildVariant, buildType } = getBuildTypeInfo();
     fs.writeFileSync('appwright/aggregated-reports/summary.json', JSON.stringify({
       totalTests: 0,
       platforms: { android: 0, ios: 0 },
@@ -271,11 +287,15 @@ function createFallbackReport(outputPath, error) {
         jobResults: { android: "error", ios: "error" },
         branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
         commit: process.env.GITHUB_SHA || 'unknown',
-        workflowRun: process.env.GITHUB_RUN_ID || 'unknown'
+        workflowRun: process.env.GITHUB_RUN_ID || 'unknown',
+        buildVariant,
+        buildType
       },
       generatedAt: new Date().toISOString(),
       branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
       commit: process.env.GITHUB_SHA || 'unknown',
+      buildVariant,
+      buildType,
       error: error.message
     }, null, 2));
     console.log('✅ Fallback reports created successfully');
@@ -484,11 +504,13 @@ function createSummary(groupedResults) {
       failedTestsByPlatform,
       branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
       commit: process.env.GITHUB_SHA || 'unknown',
-      workflowRun: process.env.GITHUB_RUN_ID || 'unknown'
+      workflowRun: process.env.GITHUB_RUN_ID || 'unknown',
+      ...getBuildTypeInfo()
     },
     generatedAt: new Date().toISOString(),
     branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
-    commit: process.env.GITHUB_SHA || 'unknown'
+    commit: process.env.GITHUB_SHA || 'unknown',
+    ...getBuildTypeInfo()
   };
   
   return summary;
@@ -1255,6 +1277,10 @@ function generateHtmlReport(groupedResults, summary) {
         <div class="meta-item">
           <span>📅</span>
           <span>${timestamp}</span>
+        </div>
+        <div class="meta-item">
+          <span>📦</span>
+          <span>Build: ${summary.buildType || 'Normal'}</span>
         </div>
         <div class="meta-item">
           <span>🌿</span>

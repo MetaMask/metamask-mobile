@@ -17,6 +17,7 @@ import {
 import { TokenI } from '../types';
 import { strings } from '../../../../../locales/i18n';
 import { TokenListItem } from './TokenListItem/TokenListItem';
+import { TokenListItemV2 } from './TokenListItemV2/TokenListItemV2';
 import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
@@ -29,6 +30,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { SCROLL_TO_TOKEN_EVENT } from '../constants';
+import { selectTokenListLayoutV2Enabled } from '../../../../selectors/featureFlagController/tokenListLayout';
 
 export interface FlashListAssetKey {
   address: string;
@@ -66,6 +68,12 @@ const TokenListComponent = ({
   const isHomepageRedesignV1Enabled = useSelector(
     selectHomepageRedesignV1Enabled,
   );
+
+  const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
+
+  // A/B test: Token list item layout (V1 vs V2)
+  const isTokenListV2 = useSelector(selectTokenListLayoutV2Enabled);
+  const ListItemComponent = isTokenListV2 ? TokenListItemV2 : TokenListItem;
 
   const listRef = useRef<FlashListRef<FlashListAssetKey>>(null);
 
@@ -141,7 +149,7 @@ const TokenListComponent = ({
 
   const renderTokenListItem = useCallback(
     ({ item }: { item: FlashListAssetKey }) => (
-      <TokenListItem
+      <ListItemComponent
         assetKey={item}
         showRemoveMenu={showRemoveMenu}
         setShowScamWarningModal={setShowScamWarningModal}
@@ -151,6 +159,7 @@ const TokenListComponent = ({
       />
     ),
     [
+      ListItemComponent,
       showRemoveMenu,
       setShowScamWarningModal,
       privacyMode,
@@ -166,7 +175,7 @@ const TokenListComponent = ({
         testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
       >
         {displayTokenKeys.map((item, index) => (
-          <TokenListItem
+          <ListItemComponent
             key={`${item.address}-${item.chainId}-${item.isStaked ? 'staked' : 'unstaked'}-${index}`}
             assetKey={item}
             showRemoveMenu={showRemoveMenu}
@@ -204,7 +213,6 @@ const TokenListComponent = ({
             const staked = item.isStaked ? 'staked' : 'unstaked';
             return `${item.address}-${item.chainId}-${staked}-${idx}`;
           }}
-          decelerationRate="fast"
           refreshControl={
             <RefreshControl
               colors={[colors.primary.default]}
