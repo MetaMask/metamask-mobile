@@ -3,7 +3,9 @@ import { formatCurrency, formatTokenAmount } from './formatCurrency';
 describe('formatTokenAmount', () => {
   it('formats token amount with symbol and max 6 decimals', () => {
     expect(formatTokenAmount(0.05, 'ETH')).toMatch(/^[\d,.]+\s+ETH$/);
-    expect(formatTokenAmount('1.123456789', 'USDC')).toMatch(/^[\d,.]+\s+USDC$/);
+    expect(formatTokenAmount('1.123456789', 'USDC')).toMatch(
+      /^[\d,.]+\s+USDC$/,
+    );
   });
 
   it('accepts custom maxDecimals', () => {
