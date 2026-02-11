@@ -16,6 +16,7 @@ import { selectSortedAssetsBySelectedAccountGroup } from '../../../../../selecto
 import { TokenListItem } from '../../../../UI/Tokens/TokenList/TokenListItem/TokenListItem';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { SectionRefreshHandle } from '../../types';
+import { useOnboardingChecklist } from '../../../../../features/OnboardingChecklist/hooks/useOnboardingChecklist';
 
 const MAX_TOKENS_DISPLAYED = 4;
 
@@ -36,6 +37,17 @@ const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const sortedTokenKeys = useSelector(selectSortedAssetsBySelectedAccountGroup);
   const privacyMode = useSelector(selectPrivacyMode);
 
+  const { toggleUiMode, toggleStep3Variation, reset, steps } = useOnboardingChecklist();
+
+  const handleDemoToggle = useCallback(() => {
+    if (steps.step3) {
+      reset();
+    } else {
+      toggleUiMode();
+      toggleStep3Variation();
+    }
+  }, [steps.step3, reset, toggleUiMode, toggleStep3Variation]);
+
   const displayTokenKeys = useMemo(
     () => sortedTokenKeys.slice(0, MAX_TOKENS_DISPLAYED),
     [sortedTokenKeys],
@@ -48,7 +60,7 @@ const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
 
   return (
     <Box gap={3}>
-      <SectionTitle title={title} onPress={handleViewAllTokens} />
+      <SectionTitle title={title} onPress={handleViewAllTokens} onLongPress={handleDemoToggle} />
       {isZeroBalanceAccount ? (
         <SectionRow>
           <SectionCard>

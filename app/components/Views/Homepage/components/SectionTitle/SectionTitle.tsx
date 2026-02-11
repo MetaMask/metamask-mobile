@@ -17,13 +17,15 @@ import SectionRow from '../SectionRow';
 interface SectionTitleProps {
   title: string | React.ReactNode;
   onPress?: () => void;
+  onLongPress?: () => void;
 }
 
-const SectionTitle = ({ title, onPress }: SectionTitleProps) => (
+const SectionTitle = ({ title, onPress, onLongPress }: SectionTitleProps) => (
   <SectionRow>
     <TouchableOpacity
       onPress={onPress}
-      disabled={!onPress}
+      onLongPress={onLongPress}
+      disabled={!onPress && !onLongPress}
       accessibilityRole={onPress ? 'button' : undefined}
       accessibilityLabel={typeof title === 'string' ? title : undefined}
     >

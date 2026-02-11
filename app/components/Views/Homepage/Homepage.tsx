@@ -11,6 +11,9 @@ import PerpsSection from './Sections/Perps';
 import PredictionsSection from './Sections/Predictions';
 import DiscoverSection from './Sections/Discover';
 import { SectionRefreshHandle } from './types';
+import OnboardingBanner from '../../../features/OnboardingChecklist/components/OnboardingBanner';
+import OnboardingFloating from '../../../features/OnboardingChecklist/components/OnboardingFloating';
+import { useOnboardingChecklist, UI_MODE } from '../../../features/OnboardingChecklist/hooks/useOnboardingChecklist';
 
 const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
   const tokensSectionRef = useRef<SectionRefreshHandle>(null);
@@ -18,6 +21,8 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
   const perpsSectionRef = useRef<SectionRefreshHandle>(null);
   const predictionsSectionRef = useRef<SectionRefreshHandle>(null);
   const discoverSectionRef = useRef<SectionRefreshHandle>(null);
+
+  const { uiMode, isDismissed } = useOnboardingChecklist();
 
   const refresh = useCallback(async () => {
     await Promise.allSettled([
@@ -32,13 +37,17 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
   return (
-    <Box gap={6} marginBottom={8}>
-      <TokensSection ref={tokensSectionRef} />
-      <NFTsSection ref={nftsSectionRef} />
-      <PerpsSection ref={perpsSectionRef} />
-      <PredictionsSection ref={predictionsSectionRef} />
-      <DiscoverSection ref={discoverSectionRef} />
-    </Box>
+    <>
+      <Box gap={6} marginBottom={8}>
+        {!isDismissed && uiMode === UI_MODE.BANNER && <OnboardingBanner />}
+        <TokensSection ref={tokensSectionRef} />
+        <NFTsSection ref={nftsSectionRef} />
+        <PerpsSection ref={perpsSectionRef} />
+        <PredictionsSection ref={predictionsSectionRef} />
+        <DiscoverSection ref={discoverSectionRef} />
+      </Box>
+      {!isDismissed && uiMode === UI_MODE.FLOATING && <OnboardingFloating />}
+    </>
   );
 });
 
