@@ -29,17 +29,12 @@ jest.mock('./usePredictPositions', () => ({
   })),
 }));
 
-// Mock usePredictBalance
-const mockLoadBalance = jest.fn().mockResolvedValue(undefined);
-jest.mock('./usePredictBalance', () => ({
-  usePredictBalance: jest.fn(() => ({
-    balance: 100,
-    hasNoBalance: false,
-    isLoading: false,
-    isRefreshing: false,
-    error: null,
-    loadBalance: mockLoadBalance,
-  })),
+// Mock @tanstack/react-query
+const mockInvalidateQueries = jest.fn();
+jest.mock('@tanstack/react-query', () => ({
+  useQueryClient: () => ({
+    invalidateQueries: mockInvalidateQueries,
+  }),
 }));
 
 // Create a mock toast ref
@@ -158,7 +153,6 @@ describe('usePredictClaimToasts', () => {
     jest.clearAllMocks();
     mockToastRef.current.showToast.mockClear();
     mockClaim.mockClear();
-    mockLoadBalance.mockClear();
     mockLoadPositions.mockClear();
 
     // Capture the subscribe callback
@@ -429,24 +423,6 @@ describe('usePredictClaimToasts', () => {
   });
 
   describe('onConfirmed callback', () => {
-    it('calls loadBalance when transaction is confirmed', async () => {
-      // Arrange
-      renderHook(() => usePredictClaimToasts(), { wrapper });
-
-      // Act
-      await act(async () => {
-        mockSubscribeCallback?.({
-          transactionMeta: {
-            status: TransactionStatus.confirmed,
-            nestedTransactions: [{ type: TransactionType.predictClaim }],
-          },
-        });
-      });
-
-      // Assert
-      expect(mockLoadBalance).toHaveBeenCalled();
-    });
-
     it('calls loadPositions with isRefresh when transaction is confirmed', async () => {
       // Arrange
       renderHook(() => usePredictClaimToasts(), { wrapper });
