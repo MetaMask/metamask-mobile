@@ -31,11 +31,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock('../../../Navbar', () => ({
-  getRampsNavbarOptions: jest.fn(
-    (_navigation: unknown, _options: unknown) => ({}),
-  ),
-}));
+jest.mock('../../../Navbar', () => ({}));
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../util/navigation/navUtils'),
