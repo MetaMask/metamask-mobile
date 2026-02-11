@@ -6,7 +6,6 @@ import {
   Text,
   TextVariant,
   ButtonSize as ButtonSizeHero,
-  TextColor,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
@@ -27,7 +26,15 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../../../component-library/components/Texts/SensitiveText';
+import {
+  TextVariant as ComponentTextVariant,
+  TextColor as ComponentTextColor,
+} from '../../../../../component-library/components/Texts/Text/Text.types';
 import Routes from '../../../../../constants/navigation/Routes';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
@@ -59,6 +66,7 @@ const PredictPositionsHeader = forwardRef<
   PredictPositionsHeaderProps
 >((props, ref) => {
   const { onError } = props;
+  const privacyMode = useSelector(selectPrivacyMode);
   const { claim } = usePredictClaim();
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
@@ -179,11 +187,16 @@ const PredictPositionsHeader = forwardRef<
           onPress={handleClaim}
           style={tw.style('w-full')}
         >
-          <Text variant={TextVariant.BodyMd} color={TextColor.PrimaryInverse}>
+          <SensitiveText
+            variant={ComponentTextVariant.BodyMD}
+            color={ComponentTextColor.Inverse}
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Medium}
+          >
             {strings('predict.claim_amount_text', {
               amount: totalClaimableAmount.toFixed(2),
             })}
-          </Text>
+          </SensitiveText>
         </ButtonHero>
       )}
 
@@ -237,13 +250,15 @@ const PredictPositionsHeader = forwardRef<
                     />
                   ) : (
                     <>
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        twClassName="text-primary mr-1"
+                      <SensitiveText
+                        variant={ComponentTextVariant.BodyMD}
+                        isHidden={privacyMode}
+                        length={SensitiveTextLength.Medium}
+                        style={tw.style('text-primary mr-1')}
                         testID="claimable-amount"
                       >
                         {formatPrice(balance, { maximumDecimals: 2 })}
-                      </Text>
+                      </SensitiveText>
                       <Icon
                         name={IconName.ArrowRight}
                         size={IconSize.Sm}
@@ -277,19 +292,21 @@ const PredictPositionsHeader = forwardRef<
                     style={tw.style('rounded-md')}
                   />
                 ) : (
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    twClassName={
+                  <SensitiveText
+                    variant={ComponentTextVariant.BodyMD}
+                    color={
                       unrealizedAmount >= 0
-                        ? 'text-success-default'
-                        : 'text-error-default'
+                        ? ComponentTextColor.Success
+                        : ComponentTextColor.Error
                     }
+                    isHidden={privacyMode}
+                    length={SensitiveTextLength.Long}
                   >
                     {strings('predict.unrealized_pnl_value', {
                       amount: formatAmount(unrealizedAmount),
                       percent: formatPercent(unrealizedPercent),
                     })}
-                  </Text>
+                  </SensitiveText>
                 )}
               </Box>
             </>
