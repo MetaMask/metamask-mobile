@@ -62,16 +62,15 @@ enum ViewType {
 
 const DEFAULT_QUOTE_AMOUNT = 100;
 
-function PaymentSelectionModal({
-  onPaymentMethodSelect,
-}: PaymentSelectionModalParams) {
+function PaymentSelectionModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
     screenHeight,
     screenWidth,
   });
-  const { amount: routeAmount } = useParams<PaymentSelectionModalParams>();
+  const { amount: routeAmount, onPaymentMethodSelect } =
+    useParams<PaymentSelectionModalParams>();
 
   const {
     selectedProvider,

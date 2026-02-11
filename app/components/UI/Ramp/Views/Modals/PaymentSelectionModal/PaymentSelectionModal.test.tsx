@@ -17,7 +17,9 @@ jest.mock('react-native-reanimated', () => {
 
 jest.mock('../../../../../Base/RemoteImage', () => jest.fn(() => null));
 
-const mockOnCloseBottomSheet = jest.fn();
+const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => {
+  callback?.();
+});
 
 jest.mock(
   '../../../../../../component-library/components/BottomSheets/BottomSheet',
@@ -30,7 +32,7 @@ jest.mock(
         }: {
           children: React.ReactNode;
         },
-        ref: React.Ref<{ onCloseBottomSheet: () => void }>,
+        ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
       ) => {
         ReactActual.useImperativeHandle(ref, () => ({
           onCloseBottomSheet: mockOnCloseBottomSheet,
@@ -41,9 +43,10 @@ jest.mock(
   },
 );
 
+const mockUseParams = jest.fn(() => ({}));
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
   createNavigationDetails: jest.fn(),
-  useParams: jest.fn(() => ({})),
+  useParams: (...args: unknown[]) => mockUseParams(...args),
 }));
 
 jest.mock('../../../../../../../locales/i18n', () => ({
@@ -211,6 +214,22 @@ describe('PaymentSelectionModal', () => {
       expect(mockSetSelectedPaymentMethod).toHaveBeenCalledWith(
         mockPaymentMethods[0],
       );
+    });
+  });
+
+  it('invokes onPaymentMethodSelect from route params when payment method is pressed', async () => {
+    const mockOnPaymentMethodSelect = jest.fn();
+    mockUseParams.mockReturnValue({
+      onPaymentMethodSelect: mockOnPaymentMethodSelect,
+    });
+
+    const { getAllByText } = renderWithProvider(PaymentSelectionModal);
+
+    const paymentMethodItems = getAllByText('Debit or Credit');
+    fireEvent.press(paymentMethodItems[0]);
+
+    await waitFor(() => {
+      expect(mockOnPaymentMethodSelect).toHaveBeenCalledTimes(1);
     });
   });
 

@@ -191,9 +191,8 @@ function BuildQuote() {
   ]);
 
   const handleContinuePress = useCallback(() => {
-    // TODO: Navigate to next screen with amount
-    setIsOnBuildQuoteScreen(false);
-  }, [setIsOnBuildQuoteScreen]);
+    // TODO: Navigate to next screen with amount and set isOnBuildQuoteScreen(false)
+  }, []);
 
   const hasAmount = amountAsNumber > 0;
 
