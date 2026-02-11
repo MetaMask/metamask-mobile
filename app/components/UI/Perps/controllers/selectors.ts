@@ -151,28 +151,6 @@ export const selectPendingTradeConfiguration = createSelector(
 );
 
 /**
- * Select the current payment token for Perps order/deposit (null = Perps balance).
- * Minimal shape: description, address, chainId.
- */
-export const selectSelectedPaymentToken = (
-  state: PerpsControllerState,
-): { description: string; address: string; chainId: string } | null => {
-  const raw = state?.selectedPaymentToken;
-  if (raw == null || typeof raw !== 'object') return null;
-  const desc = (raw as { description?: unknown }).description;
-  const addr = (raw as { address?: unknown }).address;
-  const chain = (raw as { chainId?: unknown }).chainId;
-  if (
-    typeof desc !== 'string' ||
-    typeof addr !== 'string' ||
-    typeof chain !== 'string'
-  ) {
-    return null;
-  }
-  return { description: desc, address: addr, chainId: chain };
-};
-
-/**
  * Select market filter preferences (network-independent)
  *
  * @param state - PerpsController state
