@@ -340,18 +340,19 @@ export function parseErrorByType(
 
 /**
  * Type guard: error is an object with an explicit ErrorCode (e.g. { code: ErrorCode.BluetoothDisabled, message?: string }).
+ * Accepts both number and string so it works whether ErrorCode is a numeric or string enum.
  */
 function isErrorCodeObject(
   error: unknown,
 ): error is { code: ErrorCode; message?: string } {
+  if (error === null || typeof error !== 'object' || !('code' in error)) {
+    return false;
+  }
+  const { code } = error;
+  const validCodes = Object.values(ErrorCode);
   return (
-    error !== null &&
-    typeof error === 'object' &&
-    'code' in error &&
-    typeof (error as { code: unknown }).code === 'number' &&
-    Object.values(ErrorCode).includes(
-      (error as { code: number }).code as ErrorCode,
-    )
+    (typeof code === 'number' || typeof code === 'string') &&
+    validCodes.includes(code as ErrorCode)
   );
 }
 
@@ -364,7 +365,7 @@ function isErrorLike(error: unknown): error is Error {
     (error !== null &&
       typeof error === 'object' &&
       'message' in error &&
-      typeof (error as Error).message === 'string')
+      typeof error.message === 'string')
   );
 }
 
@@ -386,7 +387,7 @@ function isLedgerCommunicationError(
     error !== null &&
     typeof error === 'object' &&
     'code' in error &&
-    typeof (error as { code: unknown }).code === 'string' &&
+    typeof error.code === 'string' &&
     Object.values(LedgerCommunicationErrors).includes(
       (error as { code: LedgerCommunicationErrors }).code,
     )
