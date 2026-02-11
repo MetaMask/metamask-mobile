@@ -371,15 +371,11 @@ describe('GasFeesDetailsRow', () => {
         pending: false,
       });
 
-      const { getByText, getByTestId } = renderWithProvider(
-        <GasFeesDetailsRow />,
-        {
-          state: createStateWithSimulationData(),
-        },
-      );
+      const { getByText } = renderWithProvider(<GasFeesDetailsRow />, {
+        state: createStateWithSimulationData(),
+      });
 
       expect(getByText('Unavailable')).toBeDefined();
-      expect(getByTestId('gas-fee-unavailable')).toBeDefined();
     });
 
     it('does not render "Unavailable" when estimation has not failed', () => {
