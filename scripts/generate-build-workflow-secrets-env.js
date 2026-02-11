@@ -22,13 +22,13 @@ const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
 
-const BUILDS_PATH = path.join(__dirname, '../.github/builds.yml');
+const BUILDS_PATH = path.join(__dirname, '../builds.yml');
 const WORKFLOW_PATH = path.join(__dirname, '../.github/workflows/build.yml');
 
 function getAllSecretNames() {
   const config = yaml.load(fs.readFileSync(BUILDS_PATH, 'utf8'));
   if (!config.builds) {
-    throw new Error('.github/builds.yml has no builds');
+    throw new Error('builds.yml has no builds');
   }
   const names = new Set();
   for (const build of Object.values(config.builds)) {

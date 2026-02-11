@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -59,7 +53,6 @@ import Routes from '../../../constants/navigation/Routes';
 import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { useScrollToMerklRewards } from './hooks/useScrollToMerklRewards';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
@@ -110,7 +103,7 @@ import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
 import { selectPerpsEnabledFlag } from '../Perps';
 import { usePerpsMarketForAsset } from '../Perps/hooks/usePerpsMarketForAsset';
 import PerpsDiscoveryBanner from '../Perps/components/PerpsDiscoveryBanner';
-import { PerpsEventValues } from '../Perps/constants/eventNames';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import { isTokenTrustworthyForPerps } from '../Perps/constants/perpsConfig';
 import DSText, {
   TextVariant,
@@ -199,6 +192,7 @@ interface AssetOverviewProps {
   networkName?: string;
 }
 
+// TODO: Delete when TokenDetailsV2 flag is fully rolled out
 const AssetOverview: React.FC<AssetOverviewProps> = ({
   asset,
   displayBuyButton,
@@ -228,11 +222,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     selectMerklCampaignClaimingEnabledFlag,
   );
   const { navigateToSendPage } = useSendNavigation();
-  const merklRewardsRef = useRef<View>(null);
-  const merklRewardsYInHeaderRef = useRef<number | null>(null);
-
-  // Scroll to MerklRewards section when navigating from "Claim bonus" CTA
-  useScrollToMerklRewards(merklRewardsYInHeaderRef);
 
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
@@ -481,7 +470,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         screen: Routes.PERPS.MARKET_DETAILS,
         params: {
           market: marketData,
-          source: PerpsEventValues.SOURCE.ASSET_DETAIL_SCREEN,
+          source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
         },
       });
     }
@@ -833,16 +822,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             ///: END:ONLY_INCLUDE_IF
           }
           {isMerklCampaignClaimingEnabled && (
-            <View
-              ref={merklRewardsRef}
-              testID="merkl-rewards-section"
-              onLayout={(event) => {
-                // Store Y position relative to header (which is the scroll offset)
-                // This is more reliable than measureInWindow for FlatList scrolling
-                const { y } = event.nativeEvent.layout;
-                merklRewardsYInHeaderRef.current = y;
-              }}
-            >
+            <View testID="merkl-rewards-section">
               <MerklRewards asset={asset} />
             </View>
           )}

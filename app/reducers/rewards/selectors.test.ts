@@ -19,6 +19,7 @@ import {
   selectSeasonEndDate,
   selectSeasonTiers,
   selectSeasonActivityTypes,
+  selectSeasonWaysToEarn,
   selectOnboardingActiveStep,
   selectOnboardingReferralCode,
   selectGeoLocation,
@@ -46,12 +47,15 @@ import {
   selectBulkLinkFailedAccounts,
   selectBulkLinkWasInterrupted,
   selectBulkLinkAccountProgress,
+  selectSnapshotsLoading,
+  selectSnapshotsError,
 } from './selectors';
 import { OnboardingStep } from './types';
 import {
   RewardDto,
   SeasonTierDto,
   SeasonActivityTypeDto,
+  SeasonWayToEarnDto,
   PointsEventDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { RootState } from '..';
@@ -93,20 +97,20 @@ describe('Rewards selectors', () => {
       expect(result.current).toBe('overview');
     });
 
+    it('returns snapshots tab when set', () => {
+      const mockState = { rewards: { activeTab: 'snapshots' as const } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectActiveTab));
+      expect(result.current).toBe('snapshots');
+    });
+
     it('returns activity tab when set', () => {
       const mockState = { rewards: { activeTab: 'activity' as const } };
       mockedUseSelector.mockImplementation((selector) => selector(mockState));
 
       const { result } = renderHook(() => useSelector(selectActiveTab));
       expect(result.current).toBe('activity');
-    });
-
-    it('returns levels tab when set', () => {
-      const mockState = { rewards: { activeTab: 'levels' as const } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() => useSelector(selectActiveTab));
-      expect(result.current).toBe('levels');
     });
   });
 
@@ -572,15 +576,15 @@ describe('Rewards selectors', () => {
     it('returns season activity types when set', () => {
       const mockActivityTypes: SeasonActivityTypeDto[] = [
         {
+          id: 'swap',
           type: 'SWAP',
           title: 'Swap',
-          description: 'Swap tokens',
           icon: 'SwapVertical',
         },
         {
+          id: 'card',
           type: 'CARD',
           title: 'Card spend',
-          description: 'Spend with card',
           icon: 'Card',
         },
       ];
@@ -591,6 +595,51 @@ describe('Rewards selectors', () => {
         useSelector(selectSeasonActivityTypes),
       );
       expect(result.current).toEqual(mockActivityTypes);
+    });
+  });
+
+  describe('selectSeasonWaysToEarn', () => {
+    it('returns empty array when season ways to earn are not set', () => {
+      const mockState = { rewards: { seasonWaysToEarn: [] } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonWaysToEarn));
+      expect(result.current).toEqual([]);
+    });
+
+    it('returns season ways to earn when set', () => {
+      const mockWaysToEarn: SeasonWayToEarnDto[] = [
+        {
+          id: 'way-swap',
+          type: 'SWAP',
+          title: 'Swap',
+          icon: 'SwapHorizontal',
+          shortDescription: '80 points per $100',
+          bottomSheetTitle: 'Swap tokens',
+          pointsEarningRule: '80 points per $100 swapped',
+          description: 'Swap tokens on supported networks.',
+          buttonLabel: 'Start a swap',
+          buttonAction: { deeplink: 'metamask://swap' },
+        },
+        {
+          id: 'way-referral',
+          type: 'REFERRAL',
+          title: 'Refer friends',
+          icon: 'People',
+          shortDescription: '10 points per 50 from friends',
+          bottomSheetTitle: 'Refer friends',
+          pointsEarningRule: '10 points per 50 pts earned',
+          description: 'Invite your friends.',
+          buttonLabel: 'Share link',
+          buttonAction: { route: { root: 'ReferralView', screen: '' } },
+        },
+      ];
+      const mockState = { rewards: { seasonWaysToEarn: mockWaysToEarn } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonWaysToEarn));
+      expect(result.current).toEqual(mockWaysToEarn);
+      expect(result.current).toHaveLength(2);
     });
   });
 
@@ -3062,6 +3111,66 @@ describe('Rewards selectors', () => {
         });
         // (3 + 2) / 5 = 1.0
         expect(selectBulkLinkAccountProgress(state)).toBe(1.0);
+      });
+    });
+  });
+
+  describe('selectSnapshotsLoading', () => {
+    it('returns false when snapshots are not loading', () => {
+      const mockState = { rewards: { snapshotsLoading: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSnapshotsLoading));
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when snapshots are loading', () => {
+      const mockState = { rewards: { snapshotsLoading: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSnapshotsLoading));
+      expect(result.current).toBe(true);
+    });
+
+    describe('Direct selector calls', () => {
+      it('returns false when snapshotsLoading is false', () => {
+        const state = createMockRootState({ snapshotsLoading: false });
+        expect(selectSnapshotsLoading(state)).toBe(false);
+      });
+
+      it('returns true when snapshotsLoading is true', () => {
+        const state = createMockRootState({ snapshotsLoading: true });
+        expect(selectSnapshotsLoading(state)).toBe(true);
+      });
+    });
+  });
+
+  describe('selectSnapshotsError', () => {
+    it('returns false when there is no snapshots error', () => {
+      const mockState = { rewards: { snapshotsError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSnapshotsError));
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when there is a snapshots error', () => {
+      const mockState = { rewards: { snapshotsError: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSnapshotsError));
+      expect(result.current).toBe(true);
+    });
+
+    describe('Direct selector calls', () => {
+      it('returns false when snapshotsError is false', () => {
+        const state = createMockRootState({ snapshotsError: false });
+        expect(selectSnapshotsError(state)).toBe(false);
+      });
+
+      it('returns true when snapshotsError is true', () => {
+        const state = createMockRootState({ snapshotsError: true });
+        expect(selectSnapshotsError(state)).toBe(true);
       });
     });
   });

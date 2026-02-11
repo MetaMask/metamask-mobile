@@ -28,12 +28,8 @@ function appendToGithubEnv(name, value) {
     fs.appendFileSync(githubEnvPath, `${value}\n`);
     fs.appendFileSync(githubEnvPath, `${delimiter}\n`);
   } else {
-    // Single-line: escape % and newlines per GitHub docs
-    const escaped = String(value)
-      .replace(/%/g, '%25')
-      .replace(/\r/g, '%0D')
-      .replace(/\n/g, '%0A');
-    fs.appendFileSync(githubEnvPath, `${name}=${escaped}\n`);
+    // Single-line: plain KEY=VALUE (GITHUB_ENV format; no percent-encoding needed)
+    fs.appendFileSync(githubEnvPath, `${name}=${value}\n`);
   }
 }
 

@@ -402,15 +402,47 @@ export const selectPerpsEnabledFlag = createSelector(
 | Build        | Environment | GitHub Environment | Use Case                  |
 | ------------ | ----------- | ------------------ | ------------------------- |
 | `main-prod`  | production  | build-production   | App Store release         |
+| `main-beta`  | beta        | build-beta         | TestFlight / Play beta    |
 | `main-rc`    | rc          | build-rc           | Release candidate testing |
-| `main-test`  | test        | build-test         | QA testing                |
+| `main-test`  | test        | build-uat          | QA testing                |
 | `main-e2e`   | e2e         | build-e2e          | E2E automated tests       |
 | `main-exp`   | exp         | build-exp          | Experimental builds       |
 | `main-dev`   | dev         | build-dev          | Local development         |
-| `flask-prod` | production  | build-production   | Flask App Store release   |
-| `flask-test` | test        | build-test         | Flask QA testing          |
-| `flask-e2e`  | e2e         | build-e2e          | Flask E2E tests           |
-| `flask-dev`  | dev         | build-dev          | Flask local development   |
+| `flask-prod` | production  | build-flask-prod   | Flask App Store release   |
+| `flask-test` | test        | build-flask-uat    | Flask QA testing          |
+| `flask-e2e`  | e2e         | build-flask-e2e    | Flask E2E tests           |
+| `flask-dev`  | dev         | build-flask-dev    | Flask local development   |
+
+---
+
+## Signing Configuration (AWS Secrets Manager)
+
+Builds that produce signed device binaries (not simulator/debug) use AWS Secrets Manager for code signing. The `signing` section in `builds.yml` maps each build to an AWS role and secret.
+
+| Build type                             | GH Environment(s)                | AWS Role                    | AWS Secret                        | Android keystore         |
+| -------------------------------------- | -------------------------------- | --------------------------- | --------------------------------- | ------------------------ |
+| main-prod                              | build-production                 | metamask-mobile-prod-signer | metamask-mobile-main-prod-signer  | release.keystore         |
+| main-beta, main-rc                     | build-beta, build-rc             | metamask-mobile-rc-signer   | metamask-mobile-main-rc-signer    | rc.keystore              |
+| main-test, main-e2e, main-exp, qa-prod | build-uat, build-e2e, build-exp  | metamask-mobile-uat-signer  | metamask-mobile-main-uat-signer   | internalRelease.keystore |
+| flask-prod                             | build-flask-prod                 | metamask-mobile-prod-signer | metamask-mobile-flask-prod-signer | flaskRelease.keystore    |
+| flask-test, flask-e2e                  | build-flask-uat, build-flask-e2e | metamask-mobile-uat-signer  | metamask-mobile-flask-uat-signer  | flask-uat.keystore       |
+
+**Dev builds** (main-dev, flask-dev, qa-dev) omit `signing` — they use simulator/debug and require no certificates.
+
+### GH Environments and AWS secrets (for configuring GitHub)
+
+Configure these GitHub Environments with the secrets required by the build workflow. Signing uses AWS Secrets Manager (Account `363762752069`). Each environment that runs signed builds needs the same set of app secrets (Sentry, Segment, Firebase, OAuth, etc.); the table below only lists **signing** mapping.
+
+| GH Environment                   | Signing (AWS)                                                                           |
+| -------------------------------- | --------------------------------------------------------------------------------------- |
+| build-production                 | Role: `metamask-mobile-prod-signer`, Secret: `metamask-mobile-main-prod-signer`         |
+| build-beta                       | Same as RC: Role: `metamask-mobile-rc-signer`, Secret: `metamask-mobile-main-rc-signer` |
+| build-rc                         | Role: `metamask-mobile-rc-signer`, Secret: `metamask-mobile-main-rc-signer`             |
+| build-uat, build-e2e, build-exp  | Role: `metamask-mobile-uat-signer`, Secret: `metamask-mobile-main-uat-signer`           |
+| build-flask-prod                 | Role: `metamask-mobile-prod-signer`, Secret: `metamask-mobile-flask-prod-signer`        |
+| build-flask-uat, build-flask-e2e | Role: `metamask-mobile-uat-signer`, Secret: `metamask-mobile-flask-uat-signer`          |
+
+**AWS secret structure** (per build.gradle expectations): The secret must contain keys such as `ANDROID_KEYSTORE` (base64), `BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD`, `BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS`, `BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD` for UAT builds; adjust for prod/rc/flask variants.
 
 ---
 

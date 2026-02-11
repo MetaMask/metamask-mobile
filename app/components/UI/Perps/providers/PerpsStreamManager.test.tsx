@@ -9,7 +9,12 @@ import {
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
-import type { PriceUpdate, PerpsMarketData, Order } from '../controllers/types';
+import {
+  type PriceUpdate,
+  type PerpsMarketData,
+  type Order,
+  type AccountState,
+} from '@metamask/perps-controller';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 
 jest.mock('../../../../core/Engine');
@@ -762,6 +767,37 @@ describe('PerpsStreamManager', () => {
       expect(cleanupPrewarmSpy).toHaveBeenCalled();
 
       cleanupPrewarmSpy.mockRestore();
+    });
+
+    it('notifies subscriber with null when account subscription callback receives null', async () => {
+      let accountCallback: ((account: AccountState | null) => void) | null =
+        null;
+      mockSubscribeToAccount.mockImplementation(
+        (params: { callback: (account: AccountState | null) => void }) => {
+          accountCallback = params.callback;
+          return jest.fn();
+        },
+      );
+
+      const subscriberCallback = jest.fn();
+      const unsubscribe = testStreamManager.account.subscribe({
+        callback: subscriberCallback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockSubscribeToAccount).toHaveBeenCalled();
+      });
+
+      act(() => {
+        accountCallback?.(null);
+      });
+
+      expect(subscriberCallback).toHaveBeenCalledTimes(1);
+      expect(subscriberCallback).toHaveBeenCalledWith(null);
+      expect(mockLogger.error).not.toHaveBeenCalled();
+
+      unsubscribe();
     });
 
     it('should reset all prewarm state when clearing price cache', async () => {
@@ -1672,6 +1708,94 @@ describe('PerpsStreamManager', () => {
       expect(mockPerpsConnectionManager.isCurrentlyConnecting).toBeDefined();
       expect(mockLogger.error).toBeDefined();
     });
+
+    it('discards fetched data when provider changes during in-flight fetch', async () => {
+      // Arrange
+      mockPerpsConnectionManager.isCurrentlyConnecting = jest.fn(() => false);
+
+      const staleMarketData: PerpsMarketData[] = [
+        {
+          symbol: 'BTC',
+          name: 'Bitcoin',
+          maxLeverage: '40x',
+          price: '$50,000.00',
+          change24h: '+2.5%',
+          change24hPercent: '2.5',
+          volume: '$1.2B',
+        },
+      ];
+
+      // Simulate a provider switch mid-fetch:
+      // 1. getMarketDataWithPrices is called while activeProvider is 'providerA'
+      // 2. While the async call is in-flight, activeProvider changes to 'providerB'
+      // 3. When the promise resolves, the data should be discarded
+
+      let resolveMarketData: (value: PerpsMarketData[]) => void = () =>
+        undefined;
+      const pendingFetch = new Promise<PerpsMarketData[]>((resolve) => {
+        resolveMarketData = resolve;
+      });
+
+      const mockProvider = {
+        getMarketDataWithPrices: jest.fn().mockReturnValue(pendingFetch),
+      };
+
+      // Start with providerA
+      mockEngine.context.PerpsController.getActiveProvider = jest
+        .fn()
+        .mockReturnValue(mockProvider);
+      mockEngine.context.PerpsController.getActiveProviderOrNull = jest
+        .fn()
+        .mockReturnValue(mockProvider);
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).state = {
+        activeProvider: 'providerA',
+      };
+
+      const streamManager = new PerpsStreamManager();
+      const callback = jest.fn();
+
+      // Act - subscribe to trigger connect() → fetchMarketData()
+      const unsubscribe = streamManager.marketData.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      // Wait for the fetch to be initiated
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockProvider.getMarketDataWithPrices).toHaveBeenCalledTimes(1);
+
+      // Simulate provider switch while fetch is in-flight
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).state = {
+        activeProvider: 'providerB',
+      };
+
+      // Resolve the stale fetch
+      await act(async () => {
+        resolveMarketData(staleMarketData);
+        await Promise.resolve();
+      });
+
+      // Assert - callback should NOT be called with stale data
+      expect(callback).not.toHaveBeenCalledWith(staleMarketData);
+
+      // Assert - DevLogger should log the discard
+      expect(mockDevLogger.log).toHaveBeenCalledWith(
+        'PerpsStreamManager: Provider changed during fetch, discarding data',
+        expect.objectContaining({
+          fetchedFor: 'providerA',
+          currentProvider: 'providerB',
+        }),
+      );
+
+      unsubscribe();
+    });
   });
 
   describe('OICapStreamChannel', () => {
@@ -1852,7 +1976,7 @@ describe('PerpsStreamManager', () => {
       const mockGetEvmAccount = jest.fn().mockReturnValue({
         address: '0x123',
       });
-      jest.mock('../utils/accountUtils', () => ({
+      jest.mock('@metamask/perps-controller/utils/accountUtils', () => ({
         getEvmAccountFromSelectedAccountGroup: mockGetEvmAccount,
       }));
 
@@ -2919,22 +3043,6 @@ describe('PerpsStreamManager', () => {
 
       unsubscribe();
       pricesDisconnect.mockRestore();
-    });
-  });
-
-  describe('Deposit Handler Management', () => {
-    it('sets active deposit handler state', () => {
-      expect(testStreamManager.hasActiveDepositHandler()).toBe(false);
-
-      testStreamManager.setActiveDepositHandler(true);
-      expect(testStreamManager.hasActiveDepositHandler()).toBe(true);
-
-      testStreamManager.setActiveDepositHandler(false);
-      expect(testStreamManager.hasActiveDepositHandler()).toBe(false);
-    });
-
-    it('returns false by default when no active deposit handler is set', () => {
-      expect(testStreamManager.hasActiveDepositHandler()).toBe(false);
     });
   });
 });

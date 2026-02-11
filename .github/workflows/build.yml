@@ -16,6 +16,7 @@ on:
         type: choice
         options:
           - main-prod
+          - main-beta
           - main-rc
           - main-test
           - main-e2e
@@ -60,7 +61,7 @@ jobs:
           node -e "
           const yaml = require('js-yaml');
           const fs = require('fs');
-          const config = yaml.load(fs.readFileSync('.github/builds.yml', 'utf8'));
+          const config = yaml.load(fs.readFileSync('builds.yml', 'utf8'));
           const build = config.builds['${{ inputs.build_name }}'];
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'github_environment=' + build.github_environment + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'secrets_json=' + JSON.stringify(build.secrets || {}) + '\n');
@@ -261,7 +262,7 @@ jobs:
             export METRO_MAX_WORKERS='4'
             BUILD_NAME="${{ inputs.build_name }}"
             SCRIPT_NAME="build:${{ matrix.platform }}:${BUILD_NAME//-/:}"
-            yarn run "$SCRIPT_NAME"
+            yarn "$SCRIPT_NAME"
 
       # Rename build artifacts
       - name: Rename ${{ matrix.platform }} artifacts

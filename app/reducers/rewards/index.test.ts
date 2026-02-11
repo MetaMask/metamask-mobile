@@ -24,6 +24,9 @@ import rewardsReducer, {
   setUnlockedRewardLoading,
   setUnlockedRewardError,
   setPointsEvents,
+  setSnapshots,
+  setSnapshotsLoading,
+  setSnapshotsError,
   bulkLinkStarted,
   bulkLinkAccountResult,
   bulkLinkCompleted,
@@ -39,6 +42,7 @@ import {
   SeasonStatusState,
   RewardClaimStatus,
   PointsEventDto,
+  SnapshotDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { AccountGroupId } from '@metamask/account-api';
 
@@ -76,17 +80,6 @@ describe('rewardsReducer', () => {
 
       // Assert
       expect(state.activeTab).toBe('activity');
-    });
-
-    it('should set active tab to levels', () => {
-      // Arrange
-      const action = setActiveTab('levels');
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.activeTab).toBe('levels');
     });
 
     it('should set active tab to overview when invalid value provided', () => {
@@ -280,6 +273,7 @@ describe('rewardsReducer', () => {
             },
           ],
           activityTypes: [],
+          waysToEarn: [],
         },
         balance: {
           total: 500,
@@ -379,9 +373,9 @@ describe('rewardsReducer', () => {
         ...initialState,
         seasonActivityTypes: [
           {
+            id: 'activity-referral',
             type: 'REFERRAL',
             title: 'Referral',
-            description: 'Refer a friend',
             icon: 'UserCircleAdd',
           },
         ],
@@ -391,6 +385,79 @@ describe('rewardsReducer', () => {
       const state = rewardsReducer(stateWithActivities, action);
 
       expect(state.seasonActivityTypes).toEqual([]);
+    });
+
+    it('should set seasonWaysToEarn from season data', () => {
+      const mockSeasonStatus = {
+        season: {
+          id: 'season-ways',
+          name: 'Season Ways',
+          startDate: new Date('2024-02-01').getTime(),
+          endDate: new Date('2024-03-01').getTime(),
+          tiers: [],
+          activityTypes: [],
+          waysToEarn: [
+            {
+              id: 'way-swap',
+              type: 'SWAP',
+              title: 'Swap',
+              icon: 'SwapHorizontal',
+              shortDescription: '80 points per $100',
+              bottomSheetTitle: 'Swap tokens',
+              pointsEarningRule: '80 points per $100 swapped',
+              description: 'Swap tokens on supported networks.',
+              buttonLabel: 'Start a swap',
+              buttonAction: { deeplink: 'metamask://swap' },
+            },
+            {
+              id: 'way-referral',
+              type: 'REFERRAL',
+              title: 'Refer friends',
+              icon: 'People',
+              shortDescription: '10 points per 50 from friends',
+              bottomSheetTitle: 'Refer friends',
+              pointsEarningRule: '10 points per 50 pts earned',
+              description: 'Invite your friends.',
+              buttonLabel: 'Share link',
+              buttonAction: { route: { root: 'ReferralView', screen: '' } },
+            },
+          ],
+        },
+      } as unknown as SeasonStatusState;
+      const action = setSeasonStatus(mockSeasonStatus);
+
+      const state = rewardsReducer(initialState, action);
+
+      expect(state.seasonWaysToEarn).toEqual(
+        mockSeasonStatus.season.waysToEarn,
+      );
+      expect(state.seasonWaysToEarn).toHaveLength(2);
+      expect(state.seasonWaysToEarn[0].type).toBe('SWAP');
+      expect(state.seasonWaysToEarn[1].type).toBe('REFERRAL');
+    });
+
+    it('should clear seasonWaysToEarn when season status is null', () => {
+      const stateWithWaysToEarn = {
+        ...initialState,
+        seasonWaysToEarn: [
+          {
+            id: 'way-swap',
+            type: 'SWAP',
+            title: 'Swap',
+            icon: 'SwapHorizontal',
+            shortDescription: '80 points per $100',
+            bottomSheetTitle: 'Swap tokens',
+            pointsEarningRule: '80 points per $100 swapped',
+            description: 'Swap tokens.',
+            buttonLabel: 'Start a swap',
+          },
+        ],
+      };
+      const action = setSeasonStatus(null);
+
+      const state = rewardsReducer(stateWithWaysToEarn, action);
+
+      expect(state.seasonWaysToEarn).toEqual([]);
     });
 
     it('should set seasonShouldInstallNewVersion when provided', () => {
@@ -1414,9 +1481,9 @@ describe('rewardsReducer', () => {
           ],
           seasonActivityTypes: [
             {
+              id: 'activity-predict',
               type: 'PREDICT',
               title: 'Predict',
-              description: 'Prediction',
               icon: 'Speedometer',
             },
           ],
@@ -2017,6 +2084,7 @@ describe('rewardsReducer', () => {
           },
         ],
         seasonActivityTypes: [],
+        seasonWaysToEarn: [],
         seasonShouldInstallNewVersion: null,
         onboardingActiveStep: OnboardingStep.STEP_1,
         onboardingReferralCode: 'REF123',
@@ -2060,6 +2128,9 @@ describe('rewardsReducer', () => {
           wasInterrupted: false,
           initialSubscriptionId: null,
         },
+        snapshots: null,
+        snapshotsLoading: false,
+        snapshotsError: false,
       };
       const action = resetRewardsState();
 
@@ -2115,6 +2186,7 @@ describe('rewardsReducer', () => {
           },
         ],
         seasonActivityTypes: [],
+        seasonWaysToEarn: [],
         seasonShouldInstallNewVersion: null,
         onboardingActiveStep: OnboardingStep.STEP_2,
         onboardingReferralCode: 'PERSISTED_REF',
@@ -2159,6 +2231,9 @@ describe('rewardsReducer', () => {
           wasInterrupted: false,
           initialSubscriptionId: null,
         },
+        snapshots: null,
+        snapshotsLoading: false,
+        snapshotsError: false,
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -2206,9 +2281,9 @@ describe('rewardsReducer', () => {
         seasonId: 'persisted-season-id',
         seasonActivityTypes: [
           {
+            id: 'activity-musd-deposit',
             type: 'MUSD_DEPOSIT',
             title: 'mUSD deposit',
-            description: 'Deposit mUSD',
             icon: 'Coin',
           },
         ],
@@ -2224,6 +2299,39 @@ describe('rewardsReducer', () => {
 
       expect(state.seasonActivityTypes).toEqual(
         persistedRewardsState.seasonActivityTypes,
+      );
+    });
+
+    it('should restore seasonWaysToEarn from persisted state', () => {
+      const persistedRewardsState: RewardsState = {
+        ...initialState,
+        seasonId: 'persisted-season-id',
+        seasonWaysToEarn: [
+          {
+            id: 'way-perps',
+            type: 'PERPS',
+            title: 'Perps',
+            icon: 'Rocket',
+            shortDescription: '10 points per $100',
+            bottomSheetTitle: 'Trade perps',
+            pointsEarningRule: '10 points per $100 traded',
+            description: 'Trade perps to earn points.',
+            buttonLabel: 'Start a trade',
+            buttonAction: { route: { root: 'PerpsRoot', screen: 'PerpsHome' } },
+          },
+        ],
+      };
+      const rehydrateAction = {
+        type: 'persist/REHYDRATE',
+        payload: {
+          rewards: persistedRewardsState,
+        },
+      };
+
+      const state = rewardsReducer(initialState, rehydrateAction);
+
+      expect(state.seasonWaysToEarn).toEqual(
+        persistedRewardsState.seasonWaysToEarn,
       );
     });
 
@@ -2356,7 +2464,7 @@ describe('rewardsReducer', () => {
         ...initialState,
         nextTierPointsNeeded: 500, // This should be preserved
         balanceRefereePortion: 100, // This should be preserved
-        activeTab: 'levels' as const, // This should be reset to initial
+        activeTab: 'activity' as const, // This should be reset to initial
         seasonStatusLoading: true, // This should be reset to initial
         onboardingActiveStep: OnboardingStep.STEP_3, // This should be reset to initial
         onboardingReferralCode: 'CURRENT_REF', // This should be reset to initial
@@ -2898,7 +3006,7 @@ describe('setUnlockedRewards', () => {
     // Arrange
     const stateWithData = {
       ...initialState,
-      activeTab: 'levels' as const,
+      activeTab: 'activity' as const,
       referralCode: 'TEST123',
       balanceTotal: 1000,
       activeBoostsLoading: true,
@@ -2917,7 +3025,7 @@ describe('setUnlockedRewards', () => {
 
     // Assert
     expect(state.unlockedRewards).toEqual(mockRewards);
-    expect(state.activeTab).toBe('levels');
+    expect(state.activeTab).toBe('activity');
     expect(state.referralCode).toBe('TEST123');
     expect(state.balanceTotal).toBe(1000);
     expect(state.activeBoostsLoading).toBe(true);
@@ -3066,7 +3174,7 @@ describe('setUnlockedRewardError', () => {
     // Arrange
     const stateWithData = {
       ...initialState,
-      activeTab: 'levels' as const,
+      activeTab: 'activity' as const,
       referralCode: 'TEST789',
       balanceTotal: 2000,
       unlockedRewardLoading: true,
@@ -3078,7 +3186,7 @@ describe('setUnlockedRewardError', () => {
 
     // Assert
     expect(state.unlockedRewardError).toBe(true);
-    expect(state.activeTab).toBe('levels');
+    expect(state.activeTab).toBe('activity');
     expect(state.referralCode).toBe('TEST789');
     expect(state.balanceTotal).toBe(2000);
     expect(state.unlockedRewardLoading).toBe(true); // Should remain unchanged
@@ -3647,7 +3755,7 @@ describe('bulkLinkAccountResult', () => {
     // Arrange
     const stateWithData = {
       ...initialState,
-      activeTab: 'levels' as const,
+      activeTab: 'activity' as const,
       referralCode: 'TEST456',
       bulkLink: {
         isRunning: true,
@@ -3665,7 +3773,7 @@ describe('bulkLinkAccountResult', () => {
 
     // Assert
     expect(state.bulkLink.linkedAccounts).toBe(3);
-    expect(state.activeTab).toBe('levels');
+    expect(state.activeTab).toBe('activity');
     expect(state.referralCode).toBe('TEST456');
   });
 });
@@ -4336,5 +4444,332 @@ describe('persist/REHYDRATE with bulk link state', () => {
     expect(state.bulkLink.isRunning).toBe(false);
     expect(state.bulkLink.wasInterrupted).toBe(false);
     expect(state.bulkLink.initialSubscriptionId).toBe(null);
+  });
+});
+
+describe('setSnapshots', () => {
+  const mockSnapshot: SnapshotDto = {
+    id: '01974010-377f-7553-a365-0c33c8130980',
+    seasonId: '7444682d-9050-43b8-9038-28a6a62d6264',
+    name: 'Monad Airdrop',
+    description: 'Earn Monad tokens by participating in the airdrop',
+    tokenSymbol: 'MONAD',
+    tokenAmount: '50000000000000000000000',
+    tokenChainId: '1',
+    tokenAddress: '0x1234567890abcdef1234567890abcdef12345678',
+    receivingBlockchain: 'Ethereum',
+    opensAt: '2025-03-01T00:00:00.000Z',
+    closesAt: '2025-03-15T00:00:00.000Z',
+    calculatedAt: '2025-03-16T00:00:00.000Z',
+    distributedAt: '2025-03-20T00:00:00.000Z',
+    backgroundImage: {
+      lightModeUrl: 'https://example.com/light.png',
+      darkModeUrl: 'https://example.com/dark.png',
+    },
+  };
+
+  it('should set snapshots array', () => {
+    // Arrange
+    const mockSnapshots: SnapshotDto[] = [mockSnapshot];
+    const action = setSnapshots(mockSnapshots);
+
+    // Act
+    const state = rewardsReducer(initialState, action);
+
+    // Assert
+    expect(state.snapshots).toEqual(mockSnapshots);
+    expect(state.snapshotsError).toBe(false);
+  });
+
+  it('should replace existing snapshots with new ones', () => {
+    // Arrange
+    const stateWithSnapshots: RewardsState = {
+      ...initialState,
+      snapshots: [mockSnapshot],
+    };
+    const newSnapshot: SnapshotDto = {
+      ...mockSnapshot,
+      id: 'new-snapshot-id',
+      name: 'New Airdrop',
+    };
+    const action = setSnapshots([newSnapshot]);
+
+    // Act
+    const state = rewardsReducer(stateWithSnapshots, action);
+
+    // Assert
+    expect(state.snapshots).toHaveLength(1);
+    expect(state.snapshots?.[0].id).toBe('new-snapshot-id');
+    expect(state.snapshots?.[0].name).toBe('New Airdrop');
+  });
+
+  it('should set snapshots to empty array', () => {
+    // Arrange
+    const stateWithSnapshots: RewardsState = {
+      ...initialState,
+      snapshots: [mockSnapshot],
+    };
+    const action = setSnapshots([]);
+
+    // Act
+    const state = rewardsReducer(stateWithSnapshots, action);
+
+    // Assert
+    expect(state.snapshots).toEqual([]);
+    expect(state.snapshotsError).toBe(false);
+  });
+
+  it('should set snapshots to null', () => {
+    // Arrange
+    const stateWithSnapshots: RewardsState = {
+      ...initialState,
+      snapshots: [mockSnapshot],
+    };
+    const action = setSnapshots(null);
+
+    // Act
+    const state = rewardsReducer(stateWithSnapshots, action);
+
+    // Assert
+    expect(state.snapshots).toBeNull();
+    expect(state.snapshotsError).toBe(false);
+  });
+
+  it('should reset snapshotsError when setting snapshots', () => {
+    // Arrange
+    const stateWithError: RewardsState = {
+      ...initialState,
+      snapshotsError: true,
+    };
+    const action = setSnapshots([mockSnapshot]);
+
+    // Act
+    const state = rewardsReducer(stateWithError, action);
+
+    // Assert
+    expect(state.snapshots).toEqual([mockSnapshot]);
+    expect(state.snapshotsError).toBe(false);
+  });
+});
+
+describe('setSnapshotsLoading', () => {
+  it('should set snapshotsLoading to true when no snapshots exist', () => {
+    // Arrange
+    const action = setSnapshotsLoading(true);
+
+    // Act
+    const state = rewardsReducer(initialState, action);
+
+    // Assert
+    expect(state.snapshotsLoading).toBe(true);
+  });
+
+  it('should not set loading to true when snapshots already exist', () => {
+    // Arrange
+    const mockSnapshot: SnapshotDto = {
+      id: '01974010-377f-7553-a365-0c33c8130980',
+      seasonId: '7444682d-9050-43b8-9038-28a6a62d6264',
+      name: 'Monad Airdrop',
+      tokenSymbol: 'MONAD',
+      tokenAmount: '50000000000000000000000',
+      tokenChainId: '1',
+      receivingBlockchain: 'Ethereum',
+      opensAt: '2025-03-01T00:00:00.000Z',
+      closesAt: '2025-03-15T00:00:00.000Z',
+      backgroundImage: {
+        lightModeUrl: 'https://example.com/light.png',
+        darkModeUrl: 'https://example.com/dark.png',
+      },
+    };
+    const stateWithSnapshots: RewardsState = {
+      ...initialState,
+      snapshots: [mockSnapshot],
+      snapshotsLoading: false,
+    };
+    const action = setSnapshotsLoading(true);
+
+    // Act
+    const state = rewardsReducer(stateWithSnapshots, action);
+
+    // Assert - loading should remain false when snapshots already loaded
+    expect(state.snapshotsLoading).toBe(false);
+  });
+
+  it('should set snapshotsLoading to false when loading is true', () => {
+    // Arrange
+    const stateWithLoading: RewardsState = {
+      ...initialState,
+      snapshotsLoading: true,
+    };
+    const action = setSnapshotsLoading(false);
+
+    // Act
+    const state = rewardsReducer(stateWithLoading, action);
+
+    // Assert
+    expect(state.snapshotsLoading).toBe(false);
+  });
+
+  it('should set snapshotsLoading to false even when snapshots exist', () => {
+    // Arrange
+    const mockSnapshot: SnapshotDto = {
+      id: '01974010-377f-7553-a365-0c33c8130980',
+      seasonId: '7444682d-9050-43b8-9038-28a6a62d6264',
+      name: 'Monad Airdrop',
+      tokenSymbol: 'MONAD',
+      tokenAmount: '50000000000000000000000',
+      tokenChainId: '1',
+      receivingBlockchain: 'Ethereum',
+      opensAt: '2025-03-01T00:00:00.000Z',
+      closesAt: '2025-03-15T00:00:00.000Z',
+      backgroundImage: {
+        lightModeUrl: 'https://example.com/light.png',
+        darkModeUrl: 'https://example.com/dark.png',
+      },
+    };
+    const stateWithSnapshotsAndLoading: RewardsState = {
+      ...initialState,
+      snapshots: [mockSnapshot],
+      snapshotsLoading: true,
+    };
+    const action = setSnapshotsLoading(false);
+
+    // Act
+    const state = rewardsReducer(stateWithSnapshotsAndLoading, action);
+
+    // Assert
+    expect(state.snapshotsLoading).toBe(false);
+    expect(state.snapshots).toHaveLength(1);
+  });
+
+  it('should not affect other state properties', () => {
+    // Arrange
+    const stateWithData: RewardsState = {
+      ...initialState,
+      activeTab: 'activity' as const,
+      referralCode: 'TEST123',
+    };
+    const action = setSnapshotsLoading(true);
+
+    // Act
+    const state = rewardsReducer(stateWithData, action);
+
+    // Assert
+    expect(state.snapshotsLoading).toBe(true);
+    expect(state.activeTab).toBe('activity');
+    expect(state.referralCode).toBe('TEST123');
+  });
+
+  it('should allow setting loading true when snapshots is empty array', () => {
+    // Arrange
+    const stateWithEmptySnapshots: RewardsState = {
+      ...initialState,
+      snapshots: [],
+      snapshotsLoading: false,
+    };
+    const action = setSnapshotsLoading(true);
+
+    // Act
+    const state = rewardsReducer(stateWithEmptySnapshots, action);
+
+    // Assert - loading should be set to true when snapshots array is empty
+    expect(state.snapshotsLoading).toBe(true);
+  });
+
+  it('should allow setting loading true when snapshots is null', () => {
+    // Arrange
+    const stateWithNullSnapshots: RewardsState = {
+      ...initialState,
+      snapshots: null,
+      snapshotsLoading: false,
+    };
+    const action = setSnapshotsLoading(true);
+
+    // Act
+    const state = rewardsReducer(stateWithNullSnapshots, action);
+
+    // Assert - loading should be set to true when snapshots is null
+    expect(state.snapshotsLoading).toBe(true);
+  });
+});
+
+describe('setSnapshotsError', () => {
+  it('should set snapshotsError to true', () => {
+    // Arrange
+    const action = setSnapshotsError(true);
+
+    // Act
+    const state = rewardsReducer(initialState, action);
+
+    // Assert
+    expect(state.snapshotsError).toBe(true);
+  });
+
+  it('should set snapshotsError to false', () => {
+    // Arrange
+    const stateWithError: RewardsState = {
+      ...initialState,
+      snapshotsError: true,
+    };
+    const action = setSnapshotsError(false);
+
+    // Act
+    const state = rewardsReducer(stateWithError, action);
+
+    // Assert
+    expect(state.snapshotsError).toBe(false);
+  });
+
+  it('should not affect other state properties', () => {
+    // Arrange
+    const mockSnapshot: SnapshotDto = {
+      id: '01974010-377f-7553-a365-0c33c8130980',
+      seasonId: '7444682d-9050-43b8-9038-28a6a62d6264',
+      name: 'Monad Airdrop',
+      tokenSymbol: 'MONAD',
+      tokenAmount: '50000000000000000000000',
+      tokenChainId: '1',
+      receivingBlockchain: 'Ethereum',
+      opensAt: '2025-03-01T00:00:00.000Z',
+      closesAt: '2025-03-15T00:00:00.000Z',
+      backgroundImage: {
+        lightModeUrl: 'https://example.com/light.png',
+        darkModeUrl: 'https://example.com/dark.png',
+      },
+    };
+    const stateWithData: RewardsState = {
+      ...initialState,
+      snapshots: [mockSnapshot],
+      snapshotsLoading: true,
+    };
+    const action = setSnapshotsError(true);
+
+    // Act
+    const state = rewardsReducer(stateWithData, action);
+
+    // Assert
+    expect(state.snapshotsError).toBe(true);
+    expect(state.snapshots).toHaveLength(1);
+    expect(state.snapshotsLoading).toBe(true);
+  });
+
+  it('should toggle error state correctly', () => {
+    // Arrange
+    let currentState = initialState;
+
+    // Act & Assert - Set error to true
+    let action = setSnapshotsError(true);
+    currentState = rewardsReducer(currentState, action);
+    expect(currentState.snapshotsError).toBe(true);
+
+    // Act & Assert - Set error back to false
+    action = setSnapshotsError(false);
+    currentState = rewardsReducer(currentState, action);
+    expect(currentState.snapshotsError).toBe(false);
+
+    // Act & Assert - Set error to true again
+    action = setSnapshotsError(true);
+    currentState = rewardsReducer(currentState, action);
+    expect(currentState.snapshotsError).toBe(true);
   });
 });

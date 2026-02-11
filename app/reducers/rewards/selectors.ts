@@ -52,6 +52,9 @@ export const selectSeasonTiers = (state: RootState) =>
 export const selectSeasonActivityTypes = (state: RootState) =>
   state.rewards.seasonActivityTypes;
 
+export const selectSeasonWaysToEarn = (state: RootState) =>
+  state.rewards.seasonWaysToEarn;
+
 export const selectOnboardingActiveStep = (state: RootState): OnboardingStep =>
   state.rewards.onboardingActiveStep;
 
@@ -147,3 +150,12 @@ export const selectBulkLinkAccountProgress = (state: RootState) => {
   if (totalAccounts === 0) return 0;
   return (linkedAccounts + failedAccounts) / totalAccounts;
 };
+
+// Snapshots selectors
+export const selectSnapshots = (state: RootState) => state.rewards.snapshots;
+
+export const selectSnapshotsLoading = (state: RootState) =>
+  state.rewards.snapshotsLoading;
+
+export const selectSnapshotsError = (state: RootState) =>
+  state.rewards.snapshotsError;

@@ -48,8 +48,9 @@ describe('useTokenBalance', () => {
 
     const { result } = renderHookWithProvider(() => useTokenBalance(token));
 
+    // Address is normalized to checksum format for consistent lookup
     expect(mockSelectAsset).toHaveBeenCalledWith(expect.any(Object), {
-      address: token.address,
+      address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
       chainId: token.chainId,
       isStaked: false,
     });

@@ -214,3 +214,30 @@ export const selectPerpsRewardsReferralCodeEnabledFlag = createSelector(
     return validatedVersionGatedFeatureFlag(versionGatedFlag) ?? false;
   },
 );
+
+/**
+ * Resolve whether the MYX provider is enabled.
+ * Pure utility so that both the Redux selector and the controller
+ * (which reads RemoteFeatureFlagController state directly) share
+ * the same logic.
+ */
+export function resolvePerpsMyxProviderEnabled(
+  remoteFeatureFlags: Record<string, unknown> | undefined,
+): boolean {
+  const localFlag = process.env.MM_PERPS_MYX_PROVIDER_ENABLED === 'true';
+  const remoteFlag =
+    remoteFeatureFlags?.perpsMyxProviderEnabled as VersionGatedFeatureFlag;
+
+  return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+}
+
+/**
+ * Selector for MYX Provider enabled flag
+ * Controls whether MYX is available as a provider option
+ *
+ * @returns boolean - true if MYX provider should be available, false otherwise
+ */
+export const selectPerpsMYXProviderEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => resolvePerpsMyxProviderEnabled(remoteFeatureFlags),
+);

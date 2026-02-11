@@ -5,9 +5,9 @@ import {
   selectWatchlistMarkets,
   selectIsWatchlistMarket,
   selectMarketFilterPreferences,
-} from '../../controllers/selectors';
-import { InitializationState } from '../../controllers/PerpsController';
-import type { PerpsActiveProviderMode } from '../../controllers/types';
+  InitializationState,
+  type PerpsActiveProviderMode,
+} from '@metamask/perps-controller';
 
 const selectPerpsControllerState = (state: RootState) =>
   state.engine.backgroundState.PerpsController;
@@ -72,6 +72,14 @@ const selectPerpsMarketFilterPreferences = createSelector(
 );
 
 /**
+ * True when the user selected the synthetic "Perps balance" option (selectedPaymentToken === null).
+ */
+const selectIsPerpsBalanceSelected = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState) => perpsControllerState?.selectedPaymentToken == null,
+);
+
+/**
  * Selects the current initialization state of the Perps controller.
  * Used by UI components to determine if operations can be performed.
  *
@@ -105,4 +113,5 @@ export {
   selectPerpsWatchlistMarkets,
   selectPerpsMarketFilterPreferences,
   selectPerpsInitializationState,
+  selectIsPerpsBalanceSelected,
 };

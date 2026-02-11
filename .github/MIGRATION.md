@@ -28,7 +28,7 @@ This document outlines the migration path from Bitrise to GitHub Actions using t
 
 **What was done:**
 
-- Created `.github/builds.yml` as single source of truth
+- Created `builds.yml` (project root) as single source of truth
 - Created `scripts/apply-build-config.js` to load and export config
 - Created `scripts/validate-build-config.js` for CI validation
 - Created `scripts/set-secrets-from-config.js` for secret mapping
@@ -40,8 +40,8 @@ This document outlines the migration path from Bitrise to GitHub Actions using t
 **Files:**
 
 ```
+builds.yml               # Build configuration (project root; env vars, secrets, code fencing, remote_feature_flags)
 .github/
-├── builds.yml           # Build configuration (env vars, secrets, code fencing, remote_feature_flags)
 ├── builds.README.md     # Architecture documentation
 └── workflows/
     └── build.yml        # GitHub Actions workflow
@@ -435,7 +435,7 @@ node scripts/apply-build-config.js main-prod --export
 
 ### Adding a New Build Variant
 
-1. Add to `.github/builds.yml`
+1. Add to `builds.yml`
 2. Add to workflow dropdown in `.github/workflows/build.yml`
 3. Add package.json script (optional)
 4. Test: `./scripts/build.sh <platform> <new-build-name>`
