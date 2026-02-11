@@ -76,10 +76,8 @@ export const bridgeControllerInit: ControllerInitFunction<
         // Capture source early — any event before Completed means bridge is active
         if (event !== UnifiedSwapBridgeEventName.Completed) {
           cachedSource = getState()?.bridge?.source;
-        }
-
-        // Enrich Completed event with source attribution
-        if (event === UnifiedSwapBridgeEventName.Completed) {
+        } else {
+          // Enrich Completed event with source attribution
           if (cachedSource) {
             enrichedProperties = {
               ...enrichedProperties,
