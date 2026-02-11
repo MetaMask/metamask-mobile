@@ -13,7 +13,7 @@
   - [ ] Create a reusable MMDS component for checklist rows with checkmarks.
 - [x] Task: Build the "Banner" Layout 03e99f8
   - [ ] Implement the top-of-page container using `MMDS.Box`.
-- [ ] Task: Build the "Floating Bottom" Layout
+- [x] Task: Build the "Floating Bottom" Layout 1ed959e
   - [ ] Implement the sticky bottom component.
   - [ ] Add scroll-listener logic to hide/show based on direction.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
