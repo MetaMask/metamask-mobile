@@ -6,10 +6,7 @@ import {
   HardwareWalletType,
 } from '@metamask/hw-wallet-sdk';
 import { parseErrorByType } from './parser';
-import {
-  LedgerCommunicationErrors,
-  BluetoothPermissionErrors,
-} from '../../Ledger/ledgerErrors';
+import { LedgerCommunicationErrors } from '../../Ledger/ledgerErrors';
 
 jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
@@ -158,35 +155,6 @@ describe('parseErrorByType', () => {
     });
   });
 
-  describe('when error is BluetoothPermissionErrors enum', () => {
-    it('parses BluetoothAccessBlocked', () => {
-      const result = parseErrorByType(
-        BluetoothPermissionErrors.BluetoothAccessBlocked,
-        walletType,
-      );
-
-      expect(result.code).toBe(ErrorCode.PermissionBluetoothDenied);
-    });
-
-    it('parses LocationAccessBlocked', () => {
-      const result = parseErrorByType(
-        BluetoothPermissionErrors.LocationAccessBlocked,
-        walletType,
-      );
-
-      expect(result.code).toBe(ErrorCode.PermissionLocationDenied);
-    });
-
-    it('parses NearbyDevicesAccessBlocked', () => {
-      const result = parseErrorByType(
-        BluetoothPermissionErrors.NearbyDevicesAccessBlocked,
-        walletType,
-      );
-
-      expect(result.code).toBe(ErrorCode.PermissionNearbyDevicesDenied);
-    });
-  });
-
   describe('when error is object with code property as string', () => {
     it('parses object with LedgerCommunicationErrors code', () => {
       const error = { code: LedgerCommunicationErrors.LedgerDisconnected };
@@ -194,14 +162,6 @@ describe('parseErrorByType', () => {
       const result = parseErrorByType(error, walletType);
 
       expect(result.code).toBe(ErrorCode.DeviceDisconnected);
-    });
-
-    it('parses object with BluetoothPermissionErrors code', () => {
-      const error = { code: BluetoothPermissionErrors.BluetoothAccessBlocked };
-
-      const result = parseErrorByType(error, walletType);
-
-      expect(result.code).toBe(ErrorCode.PermissionBluetoothDenied);
     });
   });
 
@@ -534,16 +494,6 @@ describe('parseErrorByType', () => {
       );
 
       expect(result.metadata?.recoveryAction).toBe('acknowledge');
-    });
-
-    it('includes RETRY action for bluetooth permission denied', () => {
-      const result = parseErrorByType(
-        BluetoothPermissionErrors.BluetoothAccessBlocked,
-        walletType,
-      );
-
-      // Bluetooth permission errors should be retryable (user can grant permission)
-      expect(result.metadata?.recoveryAction).toBe('retry');
     });
   });
 });

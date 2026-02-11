@@ -1,10 +1,3 @@
-/**
- * Error Factory
- *
- * Creates HardwareWalletError instances by combining SDK mappings
- * with Mobile-specific extensions.
- */
-
 import {
   LEDGER_ERROR_MAPPINGS,
   BLE_ERROR_MAPPINGS,
@@ -20,8 +13,7 @@ import { RecoveryAction } from './types';
 import { MOBILE_ERROR_EXTENSIONS } from './mappings';
 
 /**
- * Get error info from SDK mappings
- * Searches LEDGER_ERROR_MAPPINGS, BLE_ERROR_MAPPINGS, and MOBILE_ERROR_MAPPINGS
+ * Get error info from SDK mappings.
  */
 function getSDKErrorInfo(
   code: ErrorCode,
@@ -47,7 +39,7 @@ function getSDKErrorInfo(
 /**
  * Create a HardwareWalletError from an error code
  *
- * Combines SDK mappings with Mobile extensions for:
+ * Combines SDK mappings with Mobile specific extensions for:
  * - severity/category from SDK (with fallback to Unknown)
  * - Localized messages from Mobile extensions
  * - recoveryAction from Mobile extensions

@@ -1,22 +1,22 @@
-/**
- * Error Mappings
- *
- * Mobile extensions for SDK error codes.
- * Defines recoveryAction, localized messages, and icons for each error.
- */
-
 import { strings } from '../../../../locales/i18n';
-import { ErrorCode } from '@metamask/hw-wallet-sdk';
+import { ErrorCode, HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import {
   IconName,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { getHardwareWalletTypeName } from '../helpers';
-import { RecoveryAction, MobileErrorExtension } from './types';
+import { RecoveryAction } from './types';
+
+interface MobileErrorExtension {
+  recoveryAction: RecoveryAction;
+  icon: IconName;
+  iconColor: IconColor;
+  getLocalizedTitle: (walletType?: HardwareWalletType) => string;
+  getLocalizedMessage: (walletType?: HardwareWalletType) => string;
+}
 
 /**
- * Mobile extensions for error codes
- * Only defines what's NOT in the SDK: recoveryAction, localized messages, icons
+ * Mobile specific extensions for error codes
  */
 export const MOBILE_ERROR_EXTENSIONS: Partial<
   Record<ErrorCode, MobileErrorExtension>

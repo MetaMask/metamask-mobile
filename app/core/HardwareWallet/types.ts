@@ -130,8 +130,7 @@ export interface HardwareWalletAdapter {
 }
 
 /**
- * Generic discovered device (works for BLE, USB, etc.)
- * This is the wallet-type-agnostic device type used across the module.
+ * Generic discovered device.
  */
 export interface DiscoveredDevice {
   /** Unique device identifier */

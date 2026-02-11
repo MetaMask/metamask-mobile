@@ -1,9 +1,3 @@
-/**
- * Error Helpers
- *
- * Utility functions for working with hardware wallet errors.
- */
-
 import { strings } from '../../../../locales/i18n';
 import {
   ErrorCode,

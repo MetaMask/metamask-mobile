@@ -4,10 +4,7 @@ import {
   LEDGER_ERROR_MAPPINGS,
   HardwareWalletType,
 } from '@metamask/hw-wallet-sdk';
-import {
-  LedgerCommunicationErrors,
-  BluetoothPermissionErrors,
-} from '../../Ledger/ledgerErrors';
+import { LedgerCommunicationErrors } from '../../Ledger/ledgerErrors';
 import { createHardwareWalletError } from './factory';
 import { ERROR_NAME_MAPPINGS } from './mappings';
 
@@ -54,8 +51,7 @@ function extractStatusCode(error: unknown): number | null {
 }
 
 /**
- * Parse a LedgerCommunicationErrors enum value to ErrorCode
- * Maps Mobile's existing error enums to SDK error codes
+ * Parse a LedgerCommunicationErrors enum value to HardwareWalletError.
  */
 function parseLedgerCommunicationError(
   error: LedgerCommunicationErrors,
@@ -121,31 +117,7 @@ function parseLedgerCommunicationError(
 }
 
 /**
- * Parse a BluetoothPermissionErrors enum value to HardwareWalletError
- * Maps directly to our ErrorCode since SDK doesn't have these mappings
- */
-function parseBluetoothPermissionError(
-  error: BluetoothPermissionErrors,
-  walletType: HardwareWalletType,
-): HardwareWalletError {
-  // Map Mobile's BluetoothPermissionErrors directly to ErrorCode
-  // Each has a specific recovery action defined in errorDefinitions.ts
-  const errorCodeMapping: Record<BluetoothPermissionErrors, ErrorCode> = {
-    [BluetoothPermissionErrors.BluetoothAccessBlocked]:
-      ErrorCode.PermissionBluetoothDenied,
-    [BluetoothPermissionErrors.LocationAccessBlocked]:
-      ErrorCode.PermissionLocationDenied,
-    [BluetoothPermissionErrors.NearbyDevicesAccessBlocked]:
-      ErrorCode.PermissionNearbyDevicesDenied,
-  };
-
-  const code = errorCodeMapping[error] ?? ErrorCode.PermissionBluetoothDenied;
-  return createHardwareWalletError(code, walletType);
-}
-
-/**
- * Parse a Ledger status code using SDK's LEDGER_ERROR_MAPPINGS
- * Falls back to message-based heuristics for ambiguous codes
+ * Parse a Ledger status code to HardwareWalletError.
  */
 function parseLedgerStatusCode(
   statusCode: number,
@@ -153,8 +125,7 @@ function parseLedgerStatusCode(
   originalError?: Error,
 ): HardwareWalletError {
   const hexCode = toHexStatusCode(statusCode);
-  const mapping =
-    LEDGER_ERROR_MAPPINGS[hexCode as keyof typeof LEDGER_ERROR_MAPPINGS];
+  const mapping = LEDGER_ERROR_MAPPINGS[hexCode];
 
   if (mapping) {
     // Special handling for 0x6985 which can mean user rejected OR blind signing
@@ -187,7 +158,7 @@ function parseLedgerStatusCode(
 
 /**
  * Parse error by checking error name
- * Ledger library throws errors with specific names like 'DisconnectedDevice'
+ * Ledger packages throws errors with specific names like 'DisconnectedDevice'
  */
 function parseErrorByName(
   error: Error,
@@ -220,40 +191,6 @@ function parseErrorByName(
 }
 
 /**
- * Type guard to check if error is an object with a LedgerCommunicationErrors code property
- */
-function isLedgerCommunicationErrorObject(
-  error: unknown,
-): error is { code: LedgerCommunicationErrors } {
-  return (
-    error !== null &&
-    typeof error === 'object' &&
-    'code' in error &&
-    typeof error.code === 'string' &&
-    Object.values(LedgerCommunicationErrors).includes(
-      error.code as LedgerCommunicationErrors,
-    )
-  );
-}
-
-/**
- * Type guard to check if error is an object with a BluetoothPermissionErrors code property
- */
-function isBluetoothPermissionErrorObject(
-  error: unknown,
-): error is { code: BluetoothPermissionErrors } {
-  return (
-    error !== null &&
-    typeof error === 'object' &&
-    'code' in error &&
-    typeof error.code === 'string' &&
-    Object.values(BluetoothPermissionErrors).includes(
-      error.code as BluetoothPermissionErrors,
-    )
-  );
-}
-
-/**
  * Parse error by checking common patterns in error messages
  */
 function parseErrorByMessage(
@@ -263,7 +200,7 @@ function parseErrorByMessage(
   const message = error.message.toLowerCase();
   const name = error.name?.toLowerCase() ?? '';
 
-  // Check for BLE errors first - these are NOT user cancellations
+  // Check for BLE errors first
   // BleError with "Operation was cancelled" is a Bluetooth connection issue
   if (name === 'bleerror' || message.includes('bleerror')) {
     return createHardwareWalletError(
@@ -349,101 +286,42 @@ export function parseErrorByType(
   error: unknown,
   walletType: HardwareWalletType,
 ): HardwareWalletError {
-  // Already a HardwareWalletError
   if (error instanceof HardwareWalletError) {
     return error;
   }
 
-  // Handle objects with explicit ErrorCode (e.g., { code: ErrorCode.BluetoothDisabled, message: '...' })
-  if (
-    error &&
-    typeof error === 'object' &&
-    'code' in error &&
-    typeof error.code === 'number' &&
-    Object.values(ErrorCode).includes(error.code as ErrorCode)
-  ) {
+  if (isErrorCodeObject(error)) {
     const message =
-      'message' in error && typeof error.message === 'string'
-        ? error.message
-        : undefined;
-    return createHardwareWalletError(
-      error.code as ErrorCode,
-      walletType,
-      message,
-    );
+      typeof error.message === 'string' ? error.message : undefined;
+    return createHardwareWalletError(error.code, walletType, message);
   }
 
-  // Handle LedgerCommunicationErrors enum
-  if (
-    typeof error === 'string' &&
-    Object.values(LedgerCommunicationErrors).includes(
-      error as LedgerCommunicationErrors,
-    )
-  ) {
-    return parseLedgerCommunicationError(
-      error as LedgerCommunicationErrors,
-      walletType,
-    );
+  if (isLedgerCommunicationError(error)) {
+    const code = typeof error === 'string' ? error : error.code;
+    return parseLedgerCommunicationError(code, walletType);
   }
 
-  // Handle BluetoothPermissionErrors enum
-  if (
-    typeof error === 'string' &&
-    Object.values(BluetoothPermissionErrors).includes(
-      error as BluetoothPermissionErrors,
-    )
-  ) {
-    return parseBluetoothPermissionError(
-      error as BluetoothPermissionErrors,
-      walletType,
-    );
-  }
-
-  // Handle error objects with a code property (LedgerCommunicationErrors from hook)
-  if (isLedgerCommunicationErrorObject(error)) {
-    return parseLedgerCommunicationError(error.code, walletType);
-  }
-
-  // Handle error objects with a code property (BluetoothPermissionErrors)
-  if (isBluetoothPermissionErrorObject(error)) {
-    return parseBluetoothPermissionError(error.code, walletType);
-  }
-
-  // Handle Error objects (use duck typing for cross-realm errors)
-  const isErrorLike =
-    error instanceof Error ||
-    (error &&
-      typeof error === 'object' &&
-      'message' in error &&
-      typeof (error as Error).message === 'string');
-
-  if (isErrorLike) {
-    const errorObj = error as Error;
-
-    // First, try to parse by error name (e.g., DisconnectedDevice)
-    const parsedByName = parseErrorByName(errorObj, walletType);
+  if (isErrorLike(error)) {
+    const parsedByName = parseErrorByName(error, walletType);
     if (parsedByName) {
       return parsedByName;
     }
 
-    // Try to extract and parse status code using SDK mappings
-    const statusCode = extractStatusCode(errorObj);
+    const statusCode = extractStatusCode(error);
     if (statusCode) {
-      return parseLedgerStatusCode(statusCode, walletType, errorObj);
+      return parseLedgerStatusCode(statusCode, walletType, error);
     }
 
-    // Try to parse by message patterns
-    const parsedByMessage = parseErrorByMessage(errorObj, walletType);
+    const parsedByMessage = parseErrorByMessage(error, walletType);
     if (parsedByMessage) {
       return parsedByMessage;
     }
 
-    // Fallback to unknown error
     return createHardwareWalletError(
       ErrorCode.Unknown,
       walletType,
-      errorObj.message,
-      { cause: errorObj },
+      error.message,
+      { cause: error },
     );
   }
 
@@ -457,5 +335,60 @@ export function parseErrorByType(
     ErrorCode.Unknown,
     walletType,
     'An unexpected error occurred',
+  );
+}
+
+/**
+ * Type guard: error is an object with an explicit ErrorCode (e.g. { code: ErrorCode.BluetoothDisabled, message?: string }).
+ */
+function isErrorCodeObject(
+  error: unknown,
+): error is { code: ErrorCode; message?: string } {
+  return (
+    error !== null &&
+    typeof error === 'object' &&
+    'code' in error &&
+    typeof (error as { code: unknown }).code === 'number' &&
+    Object.values(ErrorCode).includes(
+      (error as { code: number }).code as ErrorCode,
+    )
+  );
+}
+
+/**
+ * Type guard: error has Error-like shape (for cross-realm errors).
+ */
+function isErrorLike(error: unknown): error is Error {
+  return (
+    error instanceof Error ||
+    (error !== null &&
+      typeof error === 'object' &&
+      'message' in error &&
+      typeof (error as Error).message === 'string')
+  );
+}
+
+/**
+ * Type guard: error is a LedgerCommunicationErrors value (string or object with .code).
+ */
+function isLedgerCommunicationError(
+  error: unknown,
+): error is LedgerCommunicationErrors | { code: LedgerCommunicationErrors } {
+  if (
+    typeof error === 'string' &&
+    Object.values(LedgerCommunicationErrors).includes(
+      error as LedgerCommunicationErrors,
+    )
+  ) {
+    return true;
+  }
+  return (
+    error !== null &&
+    typeof error === 'object' &&
+    'code' in error &&
+    typeof (error as { code: unknown }).code === 'string' &&
+    Object.values(LedgerCommunicationErrors).includes(
+      (error as { code: LedgerCommunicationErrors }).code,
+    )
   );
 }
