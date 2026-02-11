@@ -31,10 +31,6 @@ jest.mock('../../Perps/hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: () => ({ track: mockTrack }),
 }));
 
-jest.mock('../../AssetOverview/hooks/useScrollToMerklRewards', () => ({
-  useScrollToMerklRewards: jest.fn(),
-}));
-
 jest.mock('../../Perps/components/PerpsBottomSheetTooltip', () => ({
   __esModule: true,
   default: () => null,
