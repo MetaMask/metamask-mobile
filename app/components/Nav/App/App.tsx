@@ -214,6 +214,9 @@ const OnboardingSuccessFlow = () => (
  * Stack navigator responsible for the onboarding process
  * Create Wallet and Import from Secret Recovery Phrase
  */
+import OnboardingJourneyScreen from '../../../features/OnboardingChecklist/components/OnboardingJourneyScreen';
+import FakeSRPScreen from '../../../features/OnboardingChecklist/components/FakeSRPScreen';
+
 const OnboardingNav = () => (
   <Stack.Navigator initialRouteName={'Onboarding'}>
     <Stack.Screen name="Onboarding" component={Onboarding} />
@@ -1093,6 +1096,16 @@ const AppFlow = () => (
     <Stack.Screen
       name={Routes.CONFIRMATION_PAY_WITH_MODAL}
       component={PayWithModal}
+    />
+    <Stack.Screen
+      name={Routes.ONBOARDING_JOURNEY}
+      component={OnboardingJourneyScreen}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.FAKE_SRP}
+      component={FakeSRPScreen}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );

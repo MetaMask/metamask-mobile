@@ -12,22 +12,26 @@ import Icon, {
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { useOnboardingChecklist } from '../hooks/useOnboardingChecklist';
+import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../constants/navigation/Routes';
 
 interface OnboardingMiniBarProps {
-  onPress: () => void;
   scrollAnim: Animated.Value;
 }
 
-const OnboardingMiniBar = ({ onPress, scrollAnim }: OnboardingMiniBarProps) => {
+const OnboardingMiniBar = ({ scrollAnim }: OnboardingMiniBarProps) => {
   const tw = useTailwind();
+  const navigation = useNavigation<any>();
   const { steps } = useOnboardingChecklist();
   
   const completedCount = Object.values(steps).filter(Boolean).length;
   
+  const onPress = () => navigation.navigate(Routes.ONBOARDING_JOURNEY);
+  
   // Animation for hiding/showing based on scroll
   const translateY = scrollAnim.interpolate({
-    inputRange: [0, 100],
-    outputRange: [0, 100],
+    inputRange: [0, 150],
+    outputRange: [0, 150],
     extrapolate: 'clamp',
   });
 

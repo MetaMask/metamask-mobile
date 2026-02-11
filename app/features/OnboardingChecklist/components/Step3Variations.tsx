@@ -39,18 +39,6 @@ const Step3Variations = ({
         variant={variant}
         isPulsing={isPulsing}
       />
-      
-      {!steps.step3 && variant !== ChecklistItemVariant.Minimal && (
-        <Box twClassName="mt-1 mb-2">
-          <Button
-            variant={ButtonVariants.Primary}
-            size={ButtonSize.Md}
-            label="Setup MetaMask Card"
-            onPress={handleAction}
-            width={ButtonWidthTypes.Full}
-          />
-        </Box>
-      )}
     </Box>
   );
 };

@@ -439,6 +439,8 @@ const Routes = {
     RETURN_TO_DAPP_NOTIFICATION: 'ReturnToDappToast',
   },
   FEATURE_FLAG_OVERRIDE: 'FeatureFlagOverride',
+  ONBOARDING_JOURNEY: 'OnboardingJourney',
+  FAKE_SRP: 'FakeSRP',
 };
 
 export default Routes;

@@ -18,11 +18,7 @@ import SegmentedProgressBar from './SegmentedProgressBar';
 import { useOnboardingChecklist, DESIGN_STYLE } from '../hooks/useOnboardingChecklist';
 import Routes from '../../../constants/navigation/Routes';
 
-interface OnboardingBannerProps {
-  onSecureWallet: () => void;
-}
-
-const OnboardingBanner = ({ onSecureWallet }: OnboardingBannerProps) => {
+const OnboardingBanner = () => {
   const tw = useTailwind();
   const navigation = useNavigation<any>();
   const { steps, reset, completeStep, designStyle } = useOnboardingChecklist();
@@ -68,7 +64,7 @@ const OnboardingBanner = ({ onSecureWallet }: OnboardingBannerProps) => {
             <Icon name={IconName.MoreHorizontal} size={IconSize.Sm} color={IconColor.Muted} />
           </Pressable>
         </Box>
-        <ChecklistItem title="Secure Wallet" isCompleted={steps.step1} onPress={onSecureWallet} variant={ChecklistItemVariant.Minimal} isPulsing={isNextStep1} />
+        <ChecklistItem title="Secure Wallet" isCompleted={steps.step1} onPress={() => navigation.navigate(Routes.FAKE_SRP)} variant={ChecklistItemVariant.Minimal} isPulsing={isNextStep1} />
         <ChecklistItem title="Add Funds" isCompleted={steps.step2} onPress={handleAddFunds} variant={ChecklistItemVariant.Minimal} isPulsing={isNextStep2} />
         <Step3Variations variant={ChecklistItemVariant.Minimal} isPulsing={isNextStep3} />
       </Box>
@@ -82,7 +78,7 @@ const OnboardingBanner = ({ onSecureWallet }: OnboardingBannerProps) => {
         <Text variant={TextVariant.HeadingLG} color={TextColor.Default} twClassName="mb-6">
           Ready to start?
         </Text>
-        <ChecklistItem title="Protect your account" isCompleted={steps.step1} onPress={onSecureWallet} variant={ChecklistItemVariant.Glass} isPulsing={isNextStep1} />
+        <ChecklistItem title="Protect your account" isCompleted={steps.step1} onPress={() => navigation.navigate(Routes.FAKE_SRP)} variant={ChecklistItemVariant.Glass} isPulsing={isNextStep1} />
         <ChecklistItem title="Get some ETH" isCompleted={steps.step2} onPress={handleAddFunds} variant={ChecklistItemVariant.Glass} isPulsing={isNextStep2} />
         <Step3Variations variant={ChecklistItemVariant.Glass} isPulsing={isNextStep3} />
       </Box>
@@ -112,7 +108,7 @@ const OnboardingBanner = ({ onSecureWallet }: OnboardingBannerProps) => {
       <ChecklistItem
         title="Secure your wallet"
         isCompleted={steps.step1}
-        onPress={onSecureWallet}
+        onPress={() => navigation.navigate(Routes.FAKE_SRP)}
         variant={ChecklistItemVariant.Card}
         isPulsing={isNextStep1}
       />

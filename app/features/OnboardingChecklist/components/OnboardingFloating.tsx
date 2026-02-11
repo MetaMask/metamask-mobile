@@ -17,11 +17,7 @@ import Step3Variations from './Step3Variations';
 import { useOnboardingChecklist, DESIGN_STYLE } from '../hooks/useOnboardingChecklist';
 import Routes from '../../../constants/navigation/Routes';
 
-interface OnboardingFloatingProps {
-  onSecureWallet: () => void;
-}
-
-const OnboardingFloating = ({ onSecureWallet }: OnboardingFloatingProps) => {
+const OnboardingFloating = () => {
   const tw = useTailwind();
   const navigation = useNavigation<any>();
   const { steps, reset, completeStep, designStyle } = useOnboardingChecklist();
@@ -110,7 +106,7 @@ const OnboardingFloating = ({ onSecureWallet }: OnboardingFloatingProps) => {
           <ChecklistItem
             title="Secure your wallet"
             isCompleted={steps.step1}
-            onPress={onSecureWallet}
+            onPress={() => navigation.navigate(Routes.FAKE_SRP)}
             variant={itemVariant}
             isPulsing={isNextStep1}
           />

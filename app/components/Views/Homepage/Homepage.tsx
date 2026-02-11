@@ -14,10 +14,8 @@ import { SectionRefreshHandle } from './types';
 import OnboardingBanner from '../../../features/OnboardingChecklist/components/OnboardingBanner';
 import OnboardingFloating from '../../../features/OnboardingChecklist/components/OnboardingFloating';
 import OnboardingMiniBar from '../../../features/OnboardingChecklist/components/OnboardingMiniBar';
-import OnboardingJourneyScreen from '../../../features/OnboardingChecklist/components/OnboardingJourneyScreen';
-import FakeSRPScreen from '../../../features/OnboardingChecklist/components/FakeSRPScreen';
 import { useOnboardingChecklist, UI_MODE, DESIGN_STYLE } from '../../../features/OnboardingChecklist/hooks/useOnboardingChecklist';
-import { Modal, TouchableOpacity, Animated } from 'react-native';
+import { TouchableOpacity, Animated } from 'react-native';
 import Text, {
   TextColor,
   TextVariant,
@@ -34,34 +32,42 @@ const Homepage = forwardRef<any, HomepageProps>(({ onScroll }, ref) => {
   const predictionsSectionRef = useRef<SectionRefreshHandle>(null);
   const discoverSectionRef = useRef<SectionRefreshHandle>(null);
 
-  const { uiMode, shouldShow, completeStep, isAllCompleted, reset, designStyle } = useOnboardingChecklist();
-  const [showFakeSRP, setShowFakeSRP] = React.useState(false);
-  const [showJourney, setShowJourney] = React.useState(false);
+  const { uiMode, shouldShow, isAllCompleted, reset, designStyle } = useOnboardingChecklist();
 
   // Scroll animation state
   const barAnim = useRef(new Animated.Value(0)).current;
   const lastScrollY = useRef(0);
+  const isVisibleBar = useRef(true);
 
   const handleScroll = useCallback((event: any) => {
     const currentY = event.nativeEvent.contentOffset.y;
     const diff = currentY - lastScrollY.current;
     
-    if (diff > 10 && currentY > 50) {
-      // Scrolling down - Hide
-      Animated.timing(barAnim, {
-        toValue: 100,
-        duration: 250,
-        useNativeDriver: true,
-      }).start();
-    } else if (diff < -10 || currentY < 20) {
-      // Scrolling up - Show
-      Animated.timing(barAnim, {
-        toValue: 0,
-        duration: 250,
-        useNativeDriver: true,
-      }).start();
+    // If we've moved more than 5px
+    if (Math.abs(diff) > 5) {
+      if (diff > 0 && currentY > 100) {
+        if (isVisibleBar.current) {
+          isVisibleBar.current = false;
+          Animated.spring(barAnim, {
+            toValue: 150,
+            useNativeDriver: true,
+            tension: 50,
+            friction: 10,
+          }).start();
+        }
+      } else if (diff < -5 || currentY < 50) {
+        if (!isVisibleBar.current) {
+          isVisibleBar.current = true;
+          Animated.spring(barAnim, {
+            toValue: 0,
+            useNativeDriver: true,
+            tension: 50,
+            friction: 10,
+          }).start();
+        }
+      }
+      lastScrollY.current = currentY;
     }
-    lastScrollY.current = currentY;
   }, [barAnim]);
 
   const refresh = useCallback(async () => {
@@ -78,48 +84,9 @@ const Homepage = forwardRef<any, HomepageProps>(({ onScroll }, ref) => {
 
   return (
     <>
-      {showFakeSRP && (
-        <Box
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 2000,
-          }}
-        >
-          <FakeSRPScreen
-            onComplete={() => setShowFakeSRP(false)}
-            onStepComplete={() => completeStep('step1')}
-          />
-        </Box>
-      )}
-
-      {showJourney && (
-        <Box
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 1500,
-          }}
-        >
-          <OnboardingJourneyScreen
-            onClose={() => setShowJourney(false)}
-            onSecureWallet={() => {
-              setShowJourney(false);
-              setShowFakeSRP(true);
-            }}
-          />
-        </Box>
-      )}
-
       <Box gap={6} marginBottom={8}>
         {shouldShow && designStyle !== DESIGN_STYLE.MINI_BAR && uiMode === UI_MODE.BANNER && (
-          <OnboardingBanner onSecureWallet={() => setShowFakeSRP(true)} />
+          <OnboardingBanner />
         )}
         {!shouldShow && isAllCompleted && (
           <Box twClassName="p-4 mx-4 my-2 rounded-xl bg-background-alternative border border-dashed border-border-muted items-center">
@@ -137,11 +104,10 @@ const Homepage = forwardRef<any, HomepageProps>(({ onScroll }, ref) => {
         <DiscoverSection ref={discoverSectionRef} />
       </Box>
       {shouldShow && designStyle !== DESIGN_STYLE.MINI_BAR && uiMode === UI_MODE.FLOATING && (
-        <OnboardingFloating onSecureWallet={() => setShowFakeSRP(true)} />
+        <OnboardingFloating />
       )}
       {shouldShow && designStyle === DESIGN_STYLE.MINI_BAR && (
         <OnboardingMiniBar
-          onPress={() => setShowJourney(true)}
           scrollAnim={barAnim}
         />
       )}
