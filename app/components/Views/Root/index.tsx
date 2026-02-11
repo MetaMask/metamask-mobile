@@ -20,6 +20,10 @@ import { ScreenOrientationService } from '../../../core/ScreenOrientation';
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
 import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from '../../../core/ReactQueryClient';
+import { useReactQueryOnlineManager } from '../../hooks/useReactQueryOnlineManager';
+import { useReactQueryFocusRefetch } from '../../hooks/useReactQueryFocusRefetch';
 
 /**
  * Top level of the component hierarchy
@@ -27,6 +31,9 @@ import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
  */
 const Root = ({ foxCode }: RootProps) => {
   const [isStoreLoading, setIsStoreLoading] = useState(true);
+
+  useReactQueryOnlineManager();
+  useReactQueryFocusRefetch();
 
   /**
    * Wait for store to be initialized in Detox tests
@@ -76,20 +83,22 @@ const Root = ({ foxCode }: RootProps) => {
             <SnapsExecutionWebView />
             ///: END:ONLY_INCLUDE_IF
           }
-          <FeatureFlagOverrideProvider>
-            <ThemeProvider>
-              <NavigationProvider>
-                <ControllersGate>
-                  <ToastContextWrapper>
-                    <ErrorBoundary view="Root">
-                      <ReducedMotionConfig mode={ReduceMotion.Never} />
-                      <App />
-                    </ErrorBoundary>
-                  </ToastContextWrapper>
-                </ControllersGate>
-              </NavigationProvider>
-            </ThemeProvider>
-          </FeatureFlagOverrideProvider>
+          <QueryClientProvider client={queryClient}>
+            <FeatureFlagOverrideProvider>
+              <ThemeProvider>
+                <NavigationProvider>
+                  <ControllersGate>
+                    <ToastContextWrapper>
+                      <ErrorBoundary view="Root">
+                        <ReducedMotionConfig mode={ReduceMotion.Never} />
+                        <App />
+                      </ErrorBoundary>
+                    </ToastContextWrapper>
+                  </ControllersGate>
+                </NavigationProvider>
+              </ThemeProvider>
+            </FeatureFlagOverrideProvider>
+          </QueryClientProvider>
         </PersistGate>
       </Provider>
     </SafeAreaProvider>
