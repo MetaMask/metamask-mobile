@@ -24,11 +24,22 @@ const styleSheet = (params: {
       backgroundColor: theme.colors.background.alternative,
       paddingTop: 24,
       paddingBottom: 34,
+      paddingHorizontal: 16,
       borderTopLeftRadius: 8,
       borderTopRightRadius: 8,
     },
     modalExpandedContent: {
       paddingHorizontal: 16,
+    },
+    modalHeader: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingBottom: 16,
+    },
+    expandedContentTitle: {
+      width: '90%',
+      textAlign: 'center',
     },
   });
 };

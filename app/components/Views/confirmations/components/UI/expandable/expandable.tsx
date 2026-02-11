@@ -2,9 +2,17 @@ import React, { ReactNode, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 
 import { useStyles } from '../../../../../../component-library/hooks';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import BottomModal from '../bottom-modal';
 import styleSheet from './expandable.styles';
+import {
+  ButtonIcon,
+  ButtonIconSize,
+  FontWeight,
+  IconName,
+  IconSize,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 interface ExpandableProps {
   collapsedContent: ReactNode;
@@ -45,14 +53,25 @@ const Expandable = ({
       {expanded && (
         <BottomModal onClose={() => setExpanded(false)}>
           <View style={styles.modalContent}>
-            <HeaderCompactStandard
-              title={expandedContentTitle}
-              onClose={() => setExpanded(false)}
-              closeButtonProps={{
-                testID: collapseButtonTestID ?? 'collapseButtonTestID',
-              }}
-            />
-            <View style={styles.modalExpandedContent}>{expandedContent}</View>
+            <View style={styles.modalHeader}>
+              <ButtonIcon
+                iconProps={{
+                  size: IconSize.Sm,
+                }}
+                size={ButtonIconSize.Sm}
+                onPress={() => setExpanded(false)}
+                iconName={IconName.ArrowLeft}
+                testID={collapseButtonTestID ?? 'collapseButtonTestID'}
+              />
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Bold}
+                style={styles.expandedContentTitle}
+              >
+                {expandedContentTitle}
+              </Text>
+            </View>
+            {expandedContent}
           </View>
         </BottomModal>
       )}
