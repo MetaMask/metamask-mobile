@@ -26,22 +26,12 @@ export interface Quote extends BaseQuote {
 
 /**
  * Checks if a quote is from a native/whitelabel provider.
- * Prefers provider metadata (providerInfo.type); falls back to provider ID
- * suffix only when metadata is missing, so native providers with non-standard
- * IDs are still detected when the API sends type.
  *
  * @param quote - The quote to check.
- * @returns True if the provider is native/whitelabel.
+ * @returns True if the provider is native/whitelabel, false otherwise.
  */
 export function isNativeProvider(quote: Quote): boolean {
-  if (quote.providerInfo?.type !== undefined) {
-    return quote.providerInfo.type === 'native';
-  }
-  const providerId =
-    typeof quote.provider === 'string'
-      ? quote.provider
-      : ((quote.provider as { id?: string })?.id ?? '');
-  return typeof providerId === 'string' && providerId.endsWith('-native');
+  return quote.providerInfo?.type === 'native';
 }
 
 /**

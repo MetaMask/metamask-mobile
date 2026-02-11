@@ -129,13 +129,11 @@ const Checkout = () => {
           userAgent={userAgent ?? undefined}
           onHttpError={(syntheticEvent) => {
             const { nativeEvent } = syntheticEvent;
-            if (nativeEvent.url === uri) {
-              const webviewHttpError = strings(
-                'fiat_on_ramp_aggregator.webview_received_error',
-                { code: nativeEvent.statusCode },
-              );
-              setError(webviewHttpError);
-            }
+            const webviewHttpError = strings(
+              'fiat_on_ramp_aggregator.webview_received_error',
+              { code: nativeEvent.statusCode },
+            );
+            setError(webviewHttpError);
           }}
           allowsInlineMediaPlayback
           enableApplePay

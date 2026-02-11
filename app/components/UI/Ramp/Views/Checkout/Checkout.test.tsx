@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import Checkout from './Checkout';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 
@@ -43,6 +43,16 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 
 jest.mock('../../../../../util/browser', () => ({
   shouldStartLoadWithRequest: jest.fn(() => true),
+}));
+
+jest.mock('../../Aggregator/sdk', () => ({
+  useRampSDK: jest.fn(() => ({
+    selectedPaymentMethodId: null,
+    selectedRegion: null,
+    selectedAsset: null,
+    selectedFiatCurrencyId: null,
+    isBuy: true,
+  })),
 }));
 
 jest.mock(
@@ -128,5 +138,47 @@ describe('Checkout', () => {
       url: 'https://provider.example.com/widget?test=1',
       providerName: 'Test Provider',
     });
+  });
+
+  it('shows error view on HTTP error for any URL including redirects', () => {
+    const { getByTestId, getByText } = render(
+      <ThemeContext.Provider value={mockTheme}>
+        <Checkout />
+      </ThemeContext.Provider>,
+    );
+
+    const webview = getByTestId('checkout-webview');
+
+    fireEvent(webview, 'onHttpError', {
+      nativeEvent: {
+        url: 'https://redirected.example.com/payment',
+        statusCode: 404,
+      },
+    });
+
+    expect(
+      getByText('fiat_on_ramp_aggregator.webview_received_error'),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows error view on HTTP error for initial URL', () => {
+    const { getByTestId, getByText } = render(
+      <ThemeContext.Provider value={mockTheme}>
+        <Checkout />
+      </ThemeContext.Provider>,
+    );
+
+    const webview = getByTestId('checkout-webview');
+
+    fireEvent(webview, 'onHttpError', {
+      nativeEvent: {
+        url: 'https://provider.example.com/widget?test=1',
+        statusCode: 500,
+      },
+    });
+
+    expect(
+      getByText('fiat_on_ramp_aggregator.webview_received_error'),
+    ).toBeOnTheScreen();
   });
 });

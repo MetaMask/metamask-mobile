@@ -9,6 +9,11 @@ describe('getQuoteProviderName', () => {
   it('returns providerInfo.name when present (canonical display name)', () => {
     const quote: Quote = {
       provider: '/providers/ramp-network',
+      quote: {
+        amountIn: 100,
+        amountOut: 0.05,
+        paymentMethod: '/payments/debit-credit-card',
+      },
       providerInfo: {
         id: '/providers/ramp-network',
         name: 'Ramp Network',
@@ -20,7 +25,14 @@ describe('getQuoteProviderName', () => {
   });
 
   it('returns "Provider" when providerInfo is missing', () => {
-    const quote = { provider: '/providers/mercuryo' } as Quote;
+    const quote = {
+      provider: '/providers/mercuryo',
+      quote: {
+        amountIn: 100,
+        amountOut: 0.05,
+        paymentMethod: '/payments/debit-credit-card',
+      },
+    } as Quote;
 
     expect(getQuoteProviderName(quote)).toBe('Provider');
   });
@@ -28,6 +40,11 @@ describe('getQuoteProviderName', () => {
   it('returns "Provider" when providerInfo.name is missing', () => {
     const quote = {
       provider: '/providers/transak',
+      quote: {
+        amountIn: 100,
+        amountOut: 0.05,
+        paymentMethod: '/payments/debit-credit-card',
+      },
       providerInfo: { id: '/providers/transak', name: '', type: 'aggregator' },
     } as Quote;
 
@@ -37,6 +54,11 @@ describe('getQuoteProviderName', () => {
   it('uses providerInfo.name not quote.provider path (avoids slug as title)', () => {
     const quote: Quote = {
       provider: '/providers/ramp-network',
+      quote: {
+        amountIn: 100,
+        amountOut: 0.05,
+        paymentMethod: '/payments/debit-credit-card',
+      },
       providerInfo: {
         id: '/providers/ramp-network',
         name: 'Ramp Network',
@@ -55,6 +77,11 @@ describe('isNativeProvider', () => {
   it('returns true when providerInfo.type is "native"', () => {
     const quote: Quote = {
       provider: '/providers/transak-native',
+      quote: {
+        amountIn: 100,
+        amountOut: 0.05,
+        paymentMethod: '/payments/debit-credit-card',
+      },
       providerInfo: {
         id: '/providers/transak-native',
         name: 'Transak Native',
@@ -68,10 +95,28 @@ describe('isNativeProvider', () => {
   it('returns false when providerInfo.type is "aggregator"', () => {
     const quote: Quote = {
       provider: '/providers/transak',
+      quote: {
+        amountIn: 100,
+        amountOut: 0.05,
+        paymentMethod: '/payments/debit-credit-card',
+      },
       providerInfo: {
         id: '/providers/transak',
         name: 'Transak',
         type: 'aggregator',
+      },
+    } as Quote;
+
+    expect(isNativeProvider(quote)).toBe(false);
+  });
+
+  it('returns false when providerInfo is missing', () => {
+    const quote: Quote = {
+      provider: '/providers/transak-native',
+      quote: {
+        amountIn: 100,
+        amountOut: 0.05,
+        paymentMethod: '/payments/debit-credit-card',
       },
     } as Quote;
 
@@ -83,6 +128,11 @@ describe('getQuoteBuyUserAgent', () => {
   it('returns userAgent when providerInfo.features.buy.userAgent is set', () => {
     const quote = {
       provider: '/providers/example',
+      quote: {
+        amountIn: 100,
+        amountOut: 0.05,
+        paymentMethod: '/payments/debit-credit-card',
+      },
       providerInfo: {
         id: '/providers/example',
         name: 'Example',
@@ -101,6 +151,11 @@ describe('getQuoteBuyUserAgent', () => {
   it('returns undefined when providerInfo.features.buy.userAgent is null', () => {
     const quote = {
       provider: '/providers/example',
+      quote: {
+        amountIn: 100,
+        amountOut: 0.05,
+        paymentMethod: '/payments/debit-credit-card',
+      },
       providerInfo: {
         id: '/providers/example',
         name: 'Example',
@@ -115,6 +170,11 @@ describe('getQuoteBuyUserAgent', () => {
   it('returns undefined when providerInfo.features.buy.userAgent is empty string', () => {
     const quote = {
       provider: '/providers/example',
+      quote: {
+        amountIn: 100,
+        amountOut: 0.05,
+        paymentMethod: '/payments/debit-credit-card',
+      },
       providerInfo: {
         id: '/providers/example',
         name: 'Example',
@@ -127,7 +187,14 @@ describe('getQuoteBuyUserAgent', () => {
   });
 
   it('returns undefined when providerInfo is missing', () => {
-    const quote = { provider: '/providers/example' } as Quote;
+    const quote = {
+      provider: '/providers/example',
+      quote: {
+        amountIn: 100,
+        amountOut: 0.05,
+        paymentMethod: '/payments/debit-credit-card',
+      },
+    } as Quote;
 
     expect(getQuoteBuyUserAgent(quote)).toBeUndefined();
   });
@@ -135,6 +202,11 @@ describe('getQuoteBuyUserAgent', () => {
   it('returns undefined when providerInfo.features.buy is missing', () => {
     const quote = {
       provider: '/providers/example',
+      quote: {
+        amountIn: 100,
+        amountOut: 0.05,
+        paymentMethod: '/payments/debit-credit-card',
+      },
       providerInfo: {
         id: '/providers/example',
         name: 'Example',
