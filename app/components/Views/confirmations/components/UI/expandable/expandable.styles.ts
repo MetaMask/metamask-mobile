@@ -28,9 +28,6 @@ const styleSheet = (params: {
       borderTopLeftRadius: 8,
       borderTopRightRadius: 8,
     },
-    modalExpandedContent: {
-      paddingHorizontal: 16,
-    },
     modalHeader: {
       display: 'flex',
       flexDirection: 'row',
