@@ -38,7 +38,29 @@ exports[`Checkout renders correctly with valid URL 1`] = `
           undefined,
         ]
       }
-    />
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          [
+            {
+              "color": "#121314",
+              "fontFamily": "Geist-Bold",
+              "fontSize": 16,
+              "fontWeight": 700,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            },
+            {
+              "textAlign": "center",
+            },
+          ]
+        }
+        testID="header-title"
+      >
+        Test Provider
+      </Text>
+    </View>
     <View>
       <View
         onLayout={[Function]}

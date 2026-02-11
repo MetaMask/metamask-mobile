@@ -1,8 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { WebView } from '@metamask/react-native-webview';
-import { useNavigation } from '@react-navigation/native';
-import { useTheme } from '../../../../../util/theme';
-import { getRampsNavbarOptions } from '../../../Navbar';
 import {
   createNavigationDetails,
   useParams,
@@ -41,13 +38,11 @@ const Checkout = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const [error, setError] = useState('');
   const [key, setKey] = useState(0);
-  const navigation = useNavigation();
   const params = useParams<CheckoutParams>();
-  const theme = useTheme();
-
   const { styles } = useStyles(styleSheet, {});
 
   const { url: uri, providerName } = params ?? {};
+  const headerTitle = providerName ?? '';
 
   const handleCancelPress = useCallback(() => {
     // TODO: Add analytics tracking when analytics events are defined for unified flow
@@ -57,19 +52,6 @@ const Checkout = () => {
     handleCancelPress();
     sheetRef.current?.onCloseBottomSheet();
   }, [handleCancelPress]);
-
-  useEffect(() => {
-    navigation.setOptions(
-      getRampsNavbarOptions(
-        navigation,
-        {
-          title: providerName ?? '',
-        },
-        theme,
-        handleCancelPress,
-      ),
-    );
-  }, [navigation, theme, handleCancelPress, providerName]);
 
   const handleShouldStartLoadWithRequest = useCallback(
     ({ url }: { url: string }) => shouldStartLoadWithRequest(url, Logger),
@@ -95,7 +77,9 @@ const Checkout = () => {
             />
           }
           style={styles.headerWithoutPadding}
-        />
+        >
+          {headerTitle}
+        </BottomSheetHeader>
 
         <ScreenLayout>
           <ScreenLayout.Body>
@@ -133,7 +117,9 @@ const Checkout = () => {
             />
           }
           style={styles.headerWithoutPadding}
-        />
+        >
+          {headerTitle}
+        </BottomSheetHeader>
         <WebView
           key={key}
           style={styles.webview}
@@ -177,7 +163,9 @@ const Checkout = () => {
           />
         }
         style={styles.headerWithoutPadding}
-      />
+      >
+        {headerTitle}
+      </BottomSheetHeader>
       <ScreenLayout>
         <ScreenLayout.Body>
           <ErrorView
