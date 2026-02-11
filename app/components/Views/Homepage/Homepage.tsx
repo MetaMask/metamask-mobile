@@ -32,7 +32,7 @@ const Homepage = forwardRef<any, HomepageProps>(({ onScroll }, ref) => {
   const predictionsSectionRef = useRef<SectionRefreshHandle>(null);
   const discoverSectionRef = useRef<SectionRefreshHandle>(null);
 
-  const { uiMode, shouldShow, isAllCompleted, reset, designStyle } = useOnboardingChecklist();
+  const { uiMode, shouldShow, isAllCompleted, reset, designStyle, layoutMode } = useOnboardingChecklist();
 
   // Scroll animation state
   const barAnim = useRef(new Animated.Value(0)).current;
@@ -85,7 +85,7 @@ const Homepage = forwardRef<any, HomepageProps>(({ onScroll }, ref) => {
   return (
     <>
       <Box gap={6} marginBottom={8}>
-        {shouldShow && designStyle !== DESIGN_STYLE.MINI_BAR && uiMode === UI_MODE.BANNER && (
+        {shouldShow && layoutMode === LAYOUT_MODE.C && designStyle !== DESIGN_STYLE.MINI_BAR && uiMode === UI_MODE.BANNER && (
           <OnboardingBanner />
         )}
         {!shouldShow && isAllCompleted && (
@@ -103,10 +103,10 @@ const Homepage = forwardRef<any, HomepageProps>(({ onScroll }, ref) => {
         <PredictionsSection ref={predictionsSectionRef} />
         <DiscoverSection ref={discoverSectionRef} />
       </Box>
-      {shouldShow && designStyle !== DESIGN_STYLE.MINI_BAR && uiMode === UI_MODE.FLOATING && (
+      {shouldShow && layoutMode === LAYOUT_MODE.C && designStyle !== DESIGN_STYLE.MINI_BAR && uiMode === UI_MODE.FLOATING && (
         <OnboardingFloating />
       )}
-      {shouldShow && designStyle === DESIGN_STYLE.MINI_BAR && (
+      {shouldShow && layoutMode === LAYOUT_MODE.C && designStyle === DESIGN_STYLE.MINI_BAR && (
         <OnboardingMiniBar
           scrollAnim={barAnim}
         />

@@ -19,7 +19,12 @@ import TimelineProgressBar from './TimelineProgressBar';
 import { useOnboardingChecklist, DESIGN_STYLE } from '../hooks/useOnboardingChecklist';
 import Routes from '../../../constants/navigation/Routes';
 
-const OnboardingBanner = () => {
+interface OnboardingBannerProps {
+  onSecureWallet?: () => void;
+  style?: any;
+}
+
+const OnboardingBanner = ({ style }: OnboardingBannerProps) => {
   const tw = useTailwind();
   const navigation = useNavigation<any>();
   const { steps, reset, completeStep, designStyle } = useOnboardingChecklist();
@@ -56,7 +61,10 @@ const OnboardingBanner = () => {
   // Style 2: Sleek Timeline
   if (designStyle === DESIGN_STYLE.INTEGRATED_MINIMALIST) {
     return (
-      <Box twClassName="px-6 py-4 mx-4 my-2 rounded-3xl bg-background-default border border-border-muted shadow-xs">
+      <Box 
+        twClassName="px-6 py-4 mx-4 my-2 rounded-3xl bg-background-default border border-border-muted shadow-xs"
+        style={style}
+      >
         <Box twClassName="flex-row justify-between items-center mb-6">
           <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
             Setup Journey
@@ -89,6 +97,7 @@ const OnboardingBanner = () => {
             <Step3Variations 
               variant={ChecklistItemVariant.Timeline} 
               isPulsing={isNextStep3} 
+              icon={IconName.Card}
             />
           </Box>
         </Box>
@@ -99,20 +108,26 @@ const OnboardingBanner = () => {
   // Style 3: Glassmorphism / Elevation
   if (designStyle === DESIGN_STYLE.GLASSMORPHISM) {
     return (
-      <Box twClassName="p-6 mx-4 my-4 rounded-3xl bg-background-default shadow-lg border border-border-muted">
+      <Box 
+        twClassName="p-6 mx-4 my-4 rounded-3xl bg-background-default shadow-lg border border-border-muted"
+        style={style}
+      >
         <Text variant={TextVariant.HeadingLG} color={TextColor.Default} twClassName="mb-6">
           Ready to start?
         </Text>
-        <ChecklistItem title="Protect your account" isCompleted={steps.step1} onPress={() => navigation.navigate(Routes.FAKE_SRP)} variant={ChecklistItemVariant.Glass} isPulsing={isNextStep1} />
-        <ChecklistItem title="Get some ETH" isCompleted={steps.step2} onPress={handleAddFunds} variant={ChecklistItemVariant.Glass} isPulsing={isNextStep2} />
-        <Step3Variations variant={ChecklistItemVariant.Glass} isPulsing={isNextStep3} />
+        <ChecklistItem title="Protect your account" isCompleted={steps.step1} onPress={() => navigation.navigate(Routes.FAKE_SRP)} variant={ChecklistItemVariant.Glass} isPulsing={isNextStep1} icon={IconName.SecurityTick} />
+        <ChecklistItem title="Get some ETH" isCompleted={steps.step2} onPress={handleAddFunds} variant={ChecklistItemVariant.Glass} isPulsing={isNextStep2} icon={IconName.Add} />
+        <Step3Variations variant={ChecklistItemVariant.Glass} isPulsing={isNextStep3} icon={IconName.Card} />
       </Box>
     );
   }
 
   // Style 1: Modern Fintech (Default)
   return (
-    <Box twClassName="p-4 mx-4 my-2 rounded-xl bg-background-default border border-border-muted shadow-sm">
+    <Box 
+      twClassName="p-4 mx-4 my-2 rounded-xl bg-background-default border border-border-muted shadow-sm"
+      style={style}
+    >
       <Box twClassName="flex-row justify-between items-center mb-2">
         <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
           Complete your setup

@@ -12,6 +12,9 @@ import React, {
 } from 'react';
 import type { TabRefreshHandle, WalletTokensTabViewHandle } from './types';
 import { useBalanceRefresh } from './hooks';
+import { useOnboardingChecklist, LAYOUT_MODE } from '../../../features/OnboardingChecklist/hooks/useOnboardingChecklist';
+import OnboardingBanner from '../../../features/OnboardingChecklist/components/OnboardingBanner';
+import FakeSRPScreen from '../../../features/OnboardingChecklist/components/FakeSRPScreen';
 
 import {
   ActivityIndicator,
@@ -615,7 +618,7 @@ const Wallet = ({
   const { navigate } = useNavigation();
   const walletRef = useRef(null);
   const walletTokensTabViewRef = useRef<WalletTokensTabViewHandle>(null);
-  const homepageRef = useRef<{ refresh: () => Promise<void> }>(null);
+  const homepageRef = useRef<any>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const isMountedRef = useRef(true);
   const refreshInProgressRef = useRef(false);
@@ -1416,6 +1419,8 @@ const Wallet = ({
     }
   }, [refreshBalance, isHomepageSectionsV1Enabled]);
 
+  const { layoutMode, shouldShow } = useOnboardingChecklist();
+
   const content = (
     <>
       <AssetPollingProvider />
@@ -1437,24 +1442,32 @@ const Wallet = ({
         <NetworkConnectionBanner />
       </View>
       <>
-        <AccountGroupBalance />
+        {/* Layout A or B: Checklist at the top (replaces banner) */}
+        {shouldShow && (layoutMode === LAYOUT_MODE.A || layoutMode === LAYOUT_MODE.B) ? (
+          <OnboardingBanner style={layoutMode === LAYOUT_MODE.A ? { marginBottom: 16 } : {}} />
+        ) : (
+          <AccountGroupBalance />
+        )}
 
-        <AssetDetailsActions
-          displayBuyButton={displayBuyButton}
-          displaySwapsButton={displaySwapsButton}
-          goToSwaps={goToSwaps}
-          onReceive={onReceive}
-          onSend={onSend}
-          buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-          swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-          sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-          receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
-        />
+        {/* Layout B hides action buttons */}
+        {(!shouldShow || layoutMode !== LAYOUT_MODE.B) && (
+          <AssetDetailsActions
+            displayBuyButton={displayBuyButton}
+            displaySwapsButton={displaySwapsButton}
+            goToSwaps={goToSwaps}
+            onReceive={onReceive}
+            onSend={onSend}
+            buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+            swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+            sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+            receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+          />
+        )}
 
         {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
 
         {isHomepageSectionsV1Enabled ? (
-          <Homepage ref={homepageRef} onScroll={handleHomepageScroll} />
+          <Homepage ref={homepageRef} onScroll={handleScroll} />
         ) : (
           <WalletTokensTabView
             ref={walletTokensTabViewRef}
@@ -1476,7 +1489,6 @@ const Wallet = ({
     [styles],
   );
 
-  const homepageRef = useRef<any>(null);
   const handleScroll = useCallback((event: any) => {
     homepageRef.current?.handleScroll?.(event);
   }, []);
@@ -1499,7 +1511,7 @@ const Wallet = ({
     [
       scrollViewContentStyle,
       isHomepageSectionsV1Enabled,
-      handleHomepageScroll,
+      handleScroll,
       shouldEnableParentScroll,
       colors,
       refreshing,
