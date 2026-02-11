@@ -60,7 +60,7 @@ describe('useLatestBalance EVM/non-EVM dependencies', () => {
       },
     ];
 
-    rerender();
+    rerender(undefined);
 
     await waitFor(() => {
       expect(mockProvider.getBalance).toHaveBeenCalledTimes(1);
