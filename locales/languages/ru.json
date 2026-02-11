@@ -7470,7 +7470,7 @@
       "claim_label": "Получить",
       "claimed_label": "Получено",
       "reward_claimed": "Вознаграждение получено",
-      "time_left": "осталось",
+      "time_left": "осталось {{time}}",
       "expired": "Просрочено"
     },
     "end_of_season_rewards": {
