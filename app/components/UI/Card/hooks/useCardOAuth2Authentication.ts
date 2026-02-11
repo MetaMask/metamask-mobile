@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Platform } from 'react-native';
 import {
   useAuthRequest,
   exchangeCodeAsync,
   ResponseType,
   type DiscoveryDocument,
-  type AuthRequestPromptOptions,
 } from 'expo-auth-session';
 // expo-web-browser is a peer dependency of expo-auth-session
 // eslint-disable-next-line import/no-extraneous-dependencies, import/namespace
@@ -46,12 +46,24 @@ const OAUTH2_SCOPES = [
 const DEFAULT_REFRESH_TOKEN_EXPIRES_IN_SECONDS = 20 * 60;
 
 /**
- * Universal link redirect URI for the OAuth2 authorization flow.
- * This URL is whitelisted with Baanx and registered in the app's
- * DeeplinkManager as a no-op so it doesn't interfere with
- * expo-auth-session's Linking listener.
+ * Redirect URIs for the OAuth2 authorization flow.
+ *
+ * iOS uses a custom scheme (`metamask://card-oauth`) because
+ * ASWebAuthenticationSession with `callbackURLScheme: "https"` can
+ * interfere with intermediate HTTPS navigations inside the Baanx
+ * login page, causing the page to reload after credential submission.
+ * A custom scheme gives ASWebAuthenticationSession an unambiguous
+ * callback target, leaving all HTTPS navigations untouched.
+ *
+ * Android uses a universal link (`https://link.metamask.io/card-oauth`)
+ * which is registered in the DeeplinkManager as a no-op so it doesn't
+ * interfere with expo-auth-session's Linking listener.
  */
-const OAUTH_REDIRECT_URI = 'https://link.metamask.io/card-oauth';
+const OAUTH_REDIRECT_URI_IOS = 'metamask://card-oauth';
+const OAUTH_REDIRECT_URI_ANDROID = 'https://link.metamask.io/card-oauth';
+
+const getOAuthRedirectUri = (): string =>
+  Platform.OS === 'ios' ? OAUTH_REDIRECT_URI_IOS : OAUTH_REDIRECT_URI_ANDROID;
 
 /**
  * Resolve the Baanx API base URL from environment
@@ -117,7 +129,7 @@ const useCardOAuth2Authentication = (): UseCardOAuth2AuthenticationReturn => {
     [baanxApiBaseUrl],
   );
 
-  const redirectUri = OAUTH_REDIRECT_URI;
+  const redirectUri = getOAuthRedirectUri();
 
   useEffect(() => {
     warmUpAsync();
@@ -161,11 +173,7 @@ const useCardOAuth2Authentication = (): UseCardOAuth2AuthenticationReturn => {
 
     try {
       // Step 1: Open browser for authorization
-      const result = await promptAsync({
-        // iOS: Use ephemeral session to avoid cookie issues
-        // with Baanx cross-subdomain session handling
-        preferEphemeralSession: true,
-      } as AuthRequestPromptOptions & { preferEphemeralSession?: boolean });
+      const result = await promptAsync();
 
       if (result.type === 'cancel') {
         const cancelError = new BaanxOAuth2Error(
