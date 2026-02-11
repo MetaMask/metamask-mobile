@@ -14,7 +14,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.eve
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
+} from '@metamask/perps-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
   ConfirmationRowComponentIDs,

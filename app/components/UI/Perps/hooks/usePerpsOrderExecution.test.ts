@@ -3,10 +3,11 @@ import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../constants/eventNames';
+  type OrderParams,
+  type Position,
+} from '@metamask/perps-controller';
 import { usePerpsOrderExecution } from './usePerpsOrderExecution';
 import { usePerpsTrading } from './usePerpsTrading';
-import { type OrderParams, type Position } from '@metamask/perps-controller';
 
 jest.mock('./usePerpsTrading');
 const mockTrack = jest.fn();
