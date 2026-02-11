@@ -3205,12 +3205,14 @@ export class PerpsController extends BaseController<
         ? 'perps_balance'
         : (token.symbol ?? 'unknown');
 
-    this.getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.UiInteraction, {
-      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-        PERPS_EVENT_VALUE.INTERACTION_TYPE.PAYMENT_METHOD_CHANGED,
-      [PERPS_EVENT_PROPERTY.INITIAL_PAYMENT_METHOD]: initialPaymentMethod,
-      [PERPS_EVENT_PROPERTY.NEW_PAYMENT_METHOD]: newPaymentMethod,
-    });
+    if (initialPaymentMethod !== newPaymentMethod) {
+      this.getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.UiInteraction, {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.PAYMENT_METHOD_CHANGED,
+        [PERPS_EVENT_PROPERTY.INITIAL_PAYMENT_METHOD]: initialPaymentMethod,
+        [PERPS_EVENT_PROPERTY.NEW_PAYMENT_METHOD]: newPaymentMethod,
+      });
+    }
 
     let snapshot: Json | null = null;
     if (normalized !== null) {
