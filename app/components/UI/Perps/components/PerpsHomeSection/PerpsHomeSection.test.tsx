@@ -549,4 +549,74 @@ describe('PerpsHomeSection', () => {
       expect(queryByTestId('test-subtitle-suffix')).toBeNull();
     });
   });
+
+  describe('Privacy Mode', () => {
+    const { useSelector } = jest.requireMock('react-redux');
+
+    it('shows subtitle when privacy mode is disabled', () => {
+      // Arrange
+      useSelector.mockReturnValue(false);
+
+      // Act
+      const { getByText } = render(
+        <PerpsHomeSection
+          title="Positions"
+          subtitle="+$50.75"
+          subtitleTestID="test-subtitle"
+          isLoading={false}
+          isEmpty={false}
+          renderSkeleton={mockSkeleton}
+        >
+          {mockChildren}
+        </PerpsHomeSection>,
+      );
+
+      // Assert - subtitle amount should be visible
+      expect(getByText('+$50.75')).toBeTruthy();
+    });
+
+    it('hides subtitle when privacy mode is enabled', () => {
+      // Arrange
+      useSelector.mockReturnValue(true);
+
+      // Act
+      const { queryByText, getAllByText } = render(
+        <PerpsHomeSection
+          title="Positions"
+          subtitle="+$50.75"
+          subtitleTestID="test-subtitle"
+          isLoading={false}
+          isEmpty={false}
+          renderSkeleton={mockSkeleton}
+        >
+          {mockChildren}
+        </PerpsHomeSection>,
+      );
+
+      // Assert - subtitle should be hidden (replaced with bullets)
+      expect(queryByText('+$50.75')).toBeNull();
+      expect(getAllByText('••••••').length).toBeGreaterThan(0);
+    });
+
+    it('shows title regardless of privacy mode', () => {
+      // Arrange
+      useSelector.mockReturnValue(true);
+
+      // Act
+      const { getByText } = render(
+        <PerpsHomeSection
+          title="Positions"
+          subtitle="+$50.75"
+          isLoading={false}
+          isEmpty={false}
+          renderSkeleton={mockSkeleton}
+        >
+          {mockChildren}
+        </PerpsHomeSection>,
+      );
+
+      // Assert - title should always be visible (not sensitive)
+      expect(getByText('Positions')).toBeTruthy();
+    });
+  });
 });

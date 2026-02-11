@@ -732,4 +732,84 @@ describe('PerpsTabControlBar', () => {
       });
     });
   });
+
+  describe('Privacy Mode', () => {
+    const { useSelector } = jest.requireMock('react-redux');
+
+    it('shows balance and PnL values when privacy mode is disabled', () => {
+      // Arrange
+      useSelector.mockReturnValue(false);
+      const accountWithPnl = {
+        ...defaultAccountState,
+        returnOnEquity: '0.15',
+      };
+      jest
+        .mocked(jest.requireMock('../../hooks/stream').usePerpsLiveAccount)
+        .mockReturnValue({
+          account: accountWithPnl,
+          isInitialLoading: false,
+        });
+
+      // Act
+      render(
+        <PerpsTabControlBar
+          hasPositions
+          hasOrders={false}
+          onManageBalancePress={mockOnManageBalancePress}
+        />,
+      );
+
+      // Assert - balance value should be visible via testID
+      const balanceValue = screen.getByTestId('perps-balance-value');
+      expect(balanceValue).toHaveTextContent('$1000.50');
+      // PnL value should be visible (text includes formatted PnL + percentage)
+      expect(screen.getByText(/\+\$50\.75/)).toBeTruthy();
+    });
+
+    it('hides balance and PnL values when privacy mode is enabled', () => {
+      // Arrange
+      useSelector.mockReturnValue(true);
+      const accountWithPnl = {
+        ...defaultAccountState,
+        returnOnEquity: '0.15',
+      };
+      jest
+        .mocked(jest.requireMock('../../hooks/stream').usePerpsLiveAccount)
+        .mockReturnValue({
+          account: accountWithPnl,
+          isInitialLoading: false,
+        });
+
+      // Act
+      render(
+        <PerpsTabControlBar
+          hasPositions
+          hasOrders={false}
+          onManageBalancePress={mockOnManageBalancePress}
+        />,
+      );
+
+      // Assert - sensitive values should be hidden (replaced with bullets)
+      expect(screen.queryByText(/\+\$50\.75/)).toBeNull();
+      expect(screen.queryByText('$1000.50')).toBeNull();
+      expect(screen.getAllByText('••••••').length).toBeGreaterThan(0);
+    });
+
+    it('shows labels regardless of privacy mode', () => {
+      // Arrange
+      useSelector.mockReturnValue(true);
+
+      // Act
+      render(
+        <PerpsTabControlBar
+          hasPositions
+          hasOrders={false}
+          onManageBalancePress={mockOnManageBalancePress}
+        />,
+      );
+
+      // Assert - labels should always be visible (not sensitive)
+      expect(screen.getByText('Total Balance')).toBeTruthy();
+    });
+  });
 });

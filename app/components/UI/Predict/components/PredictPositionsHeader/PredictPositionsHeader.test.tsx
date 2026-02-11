@@ -402,4 +402,53 @@ describe('MarketsWonCard', () => {
       expect(mockOnError).toHaveBeenCalledWith('Balance error');
     });
   });
+
+  describe('Privacy Mode', () => {
+    const getPrivacyModeMock = () =>
+      jest.requireMock('../../../../../selectors/preferencesController')
+        .selectPrivacyMode as jest.Mock;
+
+    afterEach(() => {
+      getPrivacyModeMock().mockReturnValue(false);
+    });
+
+    it('shows balance value when privacy mode is disabled', () => {
+      // Arrange
+      getPrivacyModeMock().mockReturnValue(false);
+      const state = createTestState(100.5);
+
+      // Act
+      renderWithProvider(<MarketsWonCard />, { state });
+
+      // Assert - balance value should be visible via testID
+      const balanceText = screen.getByTestId('claimable-amount');
+      expect(balanceText).toBeOnTheScreen();
+      expect(balanceText).toHaveTextContent('$100.50');
+    });
+
+    it('hides balance and P&L values when privacy mode is enabled', () => {
+      // Arrange
+      getPrivacyModeMock().mockReturnValue(true);
+      const state = createTestState(100.5);
+
+      // Act
+      renderWithProvider(<MarketsWonCard />, { state });
+
+      // Assert - sensitive values should be hidden (replaced with bullets)
+      expect(screen.queryByText('$100.50')).toBeNull();
+      expect(screen.getAllByText('••••••').length).toBeGreaterThan(0);
+    });
+
+    it('shows container regardless of privacy mode', () => {
+      // Arrange
+      getPrivacyModeMock().mockReturnValue(true);
+      const state = createTestState(100.5);
+
+      // Act
+      renderWithProvider(<MarketsWonCard />, { state });
+
+      // Assert - card container should always be visible
+      expect(screen.getByTestId('markets-won-card')).toBeOnTheScreen();
+    });
+  });
 });

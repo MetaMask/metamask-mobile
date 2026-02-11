@@ -631,4 +631,82 @@ describe('PredictBalance', () => {
       expect(getByText(/\$0\.00/)).toBeOnTheScreen();
     });
   });
+
+  describe('Privacy Mode', () => {
+    const getPrivacyModeMock = () =>
+      jest.requireMock('../../../../../selectors/preferencesController')
+        .selectPrivacyMode as jest.Mock;
+
+    afterEach(() => {
+      getPrivacyModeMock().mockReturnValue(false);
+    });
+
+    it('shows balance when privacy mode is disabled', () => {
+      // Arrange
+      getPrivacyModeMock().mockReturnValue(false);
+      mockUsePredictBalance.mockReturnValue({
+        balance: 250.75,
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        loadBalance: jest.fn(),
+        hasNoBalance: false,
+      });
+
+      // Act
+      const { getByText } = renderWithProvider(<PredictBalance />, {
+        state: initialState,
+      });
+
+      // Assert - balance should be visible
+      expect(getByText('$250.75')).toBeOnTheScreen();
+    });
+
+    it('hides balance when privacy mode is enabled', () => {
+      // Arrange
+      getPrivacyModeMock().mockReturnValue(true);
+      mockUsePredictBalance.mockReturnValue({
+        balance: 250.75,
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        loadBalance: jest.fn(),
+        hasNoBalance: false,
+      });
+
+      // Act
+      const { queryByText, getAllByText } = renderWithProvider(
+        <PredictBalance />,
+        {
+          state: initialState,
+        },
+      );
+
+      // Assert - balance should be hidden (replaced with bullets)
+      expect(queryByText('$250.75')).toBeNull();
+      expect(getAllByText('••••••').length).toBeGreaterThan(0);
+    });
+
+    it('shows action buttons regardless of privacy mode', () => {
+      // Arrange
+      getPrivacyModeMock().mockReturnValue(true);
+      mockUsePredictBalance.mockReturnValue({
+        balance: 250.75,
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        loadBalance: jest.fn(),
+        hasNoBalance: false,
+      });
+
+      // Act
+      const { getByText } = renderWithProvider(<PredictBalance />, {
+        state: initialState,
+      });
+
+      // Assert - buttons should always be visible
+      expect(getByText(/Add funds/i)).toBeOnTheScreen();
+      expect(getByText(/Withdraw/i)).toBeOnTheScreen();
+    });
+  });
 });
