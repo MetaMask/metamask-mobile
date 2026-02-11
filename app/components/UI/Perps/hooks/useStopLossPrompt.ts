@@ -1,5 +1,5 @@
 import { useMemo, useRef, useEffect, useState, useCallback } from 'react';
-import type { Position } from '../controllers/types';
+import { type Position } from '@metamask/perps-controller';
 import { STOP_LOSS_PROMPT_CONFIG } from '../constants/perpsConfig';
 
 export type StopLossPromptVariant = 'stop_loss' | 'add_margin';

@@ -22,7 +22,7 @@ const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
 
-const BUILDS_PATH = path.join(__dirname, '../.github/builds.yml');
+const BUILDS_PATH = path.join(__dirname, '../builds.yml');
 const BITRISE_PATH = path.join(__dirname, '../bitrise.yml');
 
 // Environment variables to verify (env section of builds.yml)
@@ -152,7 +152,7 @@ function getBuildName(buildType, environment) {
  */
 function loadConfig(buildName) {
   if (!fs.existsSync(BUILDS_PATH)) {
-    throw new Error('.github/builds.yml not found');
+    throw new Error('builds.yml not found');
   }
 
   const config = yaml.load(fs.readFileSync(BUILDS_PATH, 'utf8'));

@@ -6,7 +6,7 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import PerpsFlipPositionConfirmSheet from './PerpsFlipPositionConfirmSheet';
-import type { Position } from '../../controllers/types';
+import { type Position } from '@metamask/perps-controller';
 
 const mockHandleFlipPosition = jest.fn();
 let mockIsFlipping = false;
@@ -99,7 +99,7 @@ jest.mock('../../utils/formatUtils', () => ({
   PRICE_RANGES_MINIMAL_VIEW: {},
 }));
 
-jest.mock('../../utils/marketUtils', () => ({
+jest.mock('@metamask/perps-controller', () => ({
   getPerpsDisplaySymbol: jest.fn((symbol) => symbol),
 }));
 

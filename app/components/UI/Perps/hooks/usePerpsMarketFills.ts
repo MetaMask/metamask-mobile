@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { usePerpsLiveFills } from './stream';
-import type { OrderFill } from '../controllers/types';
+import { PERPS_CONSTANTS, type OrderFill } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { ensureError } from '../../../../util/errorUtils';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 
