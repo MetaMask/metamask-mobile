@@ -329,20 +329,16 @@ const PerpsHomeView = () => {
       });
     }
 
-    // Avoid duplicate "Learn more" button (shown in empty state card)
-    if (!isBalanceEmpty) {
-      items.push({
-        label: strings(LEARN_MORE_CONFIG.TitleKey),
-        onPress: () => navigtateToTutorial(),
-        testID: PerpsHomeViewSelectorsIDs.LEARN_MORE_BUTTON,
-      });
-    }
+    items.push({
+      label: strings(LEARN_MORE_CONFIG.TitleKey),
+      onPress: () => navigtateToTutorial(),
+      testID: PerpsHomeViewSelectorsIDs.LEARN_MORE_BUTTON,
+    });
 
     return items;
   }, [
     navigateToContactSupport,
     navigtateToTutorial,
-    isBalanceEmpty,
     isFeedbackEnabled,
     handleGiveFeedback,
   ]);
