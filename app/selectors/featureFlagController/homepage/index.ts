@@ -20,10 +20,7 @@ export const selectHomepageRedesignV1Enabled = createSelector(
 
 export const selectHomepageSectionsV1Enabled = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const remoteFlag = remoteFeatureFlags[
-      homepageSectionsV1Key
-    ] as unknown as VersionGatedFeatureFlag;
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  (_remoteFeatureFlags) => {
+    return true;
   },
 );
