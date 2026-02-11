@@ -321,6 +321,7 @@ jobs:
       - name: Run aggregation script
         env:
           BRANCH_NAME: ${{ needs.determine-branch-name.outputs.branch_name }}
+          BUILD_VARIANT: ${{ inputs.build_variant || 'rc' }}
         run: |
           echo "Processing all test results..."
           echo "Running aggregation script..."
